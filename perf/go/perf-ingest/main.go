@@ -67,7 +67,7 @@ var (
 	pubSubClient *pubsub.Client
 
 	// The configuration data for the selected Perf instance.
-	cfg *config.InstanceConfig
+	instanceConfig *config.InstanceConfig
 )
 
 var (
@@ -201,7 +201,7 @@ func processSingleFile(ctx context.Context, store tracestore.TraceStore, vcs vcs
 // ingested file to the PubSub topic specified in the selected Perf instances
 // configuration data.
 func sendPubSubEvent(params []paramtools.Params, paramset paramtools.ParamSet, filename string) error {
-	if cfg.IngestionConfig.FileIngestionTopicName == "" {
+	if instanceConfig.IngestionConfig.FileIngestionTopicName == "" {
 		return nil
 	}
 	traceIDs := make([]string, 0, len(params))
@@ -219,13 +219,13 @@ func sendPubSubEvent(params []paramtools.Params, paramset paramtools.ParamSet, f
 	}
 	body, err := ingestevents.CreatePubSubBody(ie)
 	if err != nil {
-		return skerr.Wrapf(err, "Failed to encode PubSub body for topic: %q", cfg.IngestionConfig.FileIngestionTopicName)
+		return skerr.Wrapf(err, "Failed to encode PubSub body for topic: %q", instanceConfig.IngestionConfig.FileIngestionTopicName)
 	}
 	msg := &pubsub.Message{
 		Data: body,
 	}
 	ctx := context.Background()
-	_, err = pubSubClient.Topic(cfg.IngestionConfig.FileIngestionTopicName).Publish(ctx, msg).Get(ctx)
+	_, err = pubSubClient.Topic(instanceConfig.IngestionConfig.FileIngestionTopicName).Publish(ctx, msg).Get(ctx)
 
 	return err
 }
@@ -252,7 +252,9 @@ func main() {
 	ackCounter := metrics2.GetCounter("ack", nil)
 
 	ctx := context.Background()
-	if err := config.Init(*configFilename); err != nil {
+	var err error
+	instanceConfig, err = config.InstanceConfigFromFile(*configFilename)
+	if err != nil {
 		sklog.Fatal(err)
 	}
 	hostname, err := os.Hostname()
@@ -269,7 +271,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create GCS client: %s", err)
 	}
-	pubSubClient, err = pubsub.NewClient(ctx, config.Config.IngestionConfig.SourceConfig.Project, option.WithTokenSource(ts))
+	pubSubClient, err = pubsub.NewClient(ctx, instanceConfig.IngestionConfig.SourceConfig.Project, option.WithTokenSource(ts))
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -282,10 +284,10 @@ func main() {
 
 	// When running in production we have every instance use the same topic name so that
 	// they load-balance pulling items from the topic.
-	subName := fmt.Sprintf("%s-%s", cfg.IngestionConfig.SourceConfig.Topic, "prod")
+	subName := fmt.Sprintf("%s-%s", instanceConfig.IngestionConfig.SourceConfig.Topic, "prod")
 	if *local {
 		// When running locally create a new topic for every host.
-		subName = fmt.Sprintf("%s-%s", cfg.IngestionConfig.SourceConfig.Topic, hostname)
+		subName = fmt.Sprintf("%s-%s", instanceConfig.IngestionConfig.SourceConfig.Topic, hostname)
 	}
 	sub := pubSubClient.Subscription(subName)
 	ok, err := sub.Exists(ctx)
@@ -294,7 +296,7 @@ func main() {
 	}
 	if !ok {
 		sub, err = pubSubClient.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
-			Topic: pubSubClient.Topic(cfg.IngestionConfig.SourceConfig.Topic),
+			Topic: pubSubClient.Topic(instanceConfig.IngestionConfig.SourceConfig.Topic),
 		})
 		if err != nil {
 			sklog.Fatalf("Failed creating subscription: %s", err)
@@ -305,12 +307,12 @@ func main() {
 	sub.ReceiveSettings.MaxOutstandingMessages = MAX_PARALLEL_RECEIVES
 	sub.ReceiveSettings.NumGoroutines = MAX_PARALLEL_RECEIVES
 
-	vcs, err := gitinfo.CloneOrUpdate(ctx, cfg.GitRepoConfig.URL, "/tmp/skia_ingest_checkout", true)
+	vcs, err := gitinfo.CloneOrUpdate(ctx, instanceConfig.GitRepoConfig.URL, "/tmp/skia_ingest_checkout", true)
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
-	store, err := btts.NewBigTableTraceStoreFromConfig(ctx, cfg, ts, true)
+	store, err := btts.NewBigTableTraceStoreFromConfig(ctx, instanceConfig, ts, true)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -362,7 +364,7 @@ func main() {
 				sklog.Infof("Filename: %q", attrs.Name)
 				// Pull data out of file and write it into BigTable.
 				fullName := fmt.Sprintf("gs://%s/%s", event.Bucket, event.Name)
-				err = processSingleFile(ctx, store, vcs, fullName, reader, attrs.Created, cfg.IngestionConfig.Branches)
+				err = processSingleFile(ctx, store, vcs, fullName, reader, attrs.Created, instanceConfig.IngestionConfig.Branches)
 				if err := reader.Close(); err != nil {
 					sklog.Errorf("Failed to close: %s", err)
 				}
