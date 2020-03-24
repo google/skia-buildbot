@@ -78,7 +78,7 @@ const (
 
 // flags
 var (
-	bigTableConfig                 = flag.String("big_table_config", "nano", "The name of the config to use when using a BigTable trace store.")
+	configFilename                 = flag.String("config_filename", "./configs/nano.json", "The name of the config file to use.")
 	commitRangeURL                 = flag.String("commit_range_url", "", "A URI Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.")
 	defaultSparse                  = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
 	doClustering                   = flag.Bool("do_clustering", true, "If true then run continuous clustering over all the alerts.")
@@ -241,7 +241,7 @@ func initialize() {
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
 
-	if err := config.Init(*bigTableConfig); err != nil {
+	if err := config.Init(*configFilename); err != nil {
 		sklog.Fatal(err)
 	}
 

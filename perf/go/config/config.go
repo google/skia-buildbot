@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 
 	"go.skia.org/infra/go/skerr"
@@ -337,10 +336,10 @@ var (
 var Config *InstanceConfig
 
 // Init loads the selected config by name.
-func Init(configName string) error {
-	cfg, ok := PERF_BIGTABLE_CONFIGS[configName]
-	if !ok {
-		return fmt.Errorf("Invalid config name: %q", configName)
+func Init(filename string) error {
+	cfg, err := InstanceConfigFromFile(filename)
+	if err != nil {
+		return skerr.Wrap(err)
 	}
 	Config = cfg
 	return nil
