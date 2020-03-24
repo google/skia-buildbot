@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "a96a991f_4fd0003c",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 385,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T05:08:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "acd55b23_0d98b6b7",
+      "range": {
+        "startLine": 385,
+        "startChar": 5,
+        "endLine": 385,
+        "endChar": 29
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "27337555_6a7a6ef3",
         "filename": "gold-client/go/goldclient/goldclient.go",
         "patchSetId": 10
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "b447a7d3_a134fa1c",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T05:08:23Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "565308fe_1bac7688",
+      "range": {
+        "startLine": 477,
+        "startChar": 9,
+        "endLine": 477,
+        "endChar": 18
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "07191dee_44fcab7e",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 10
@@ -91,6 +139,30 @@
       "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08419e78_77240301",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1299,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T05:08:23Z",
+      "side": 1,
+      "message": "Thanks for the heads up. So far it doesn\u0027t seem to be a problem, but I\u0027ll keep it in mind if I notice any flaky failures.",
+      "parentUuid": "07191dee_44fcab7e",
+      "range": {
+        "startLine": 1299,
+        "startChar": 10,
+        "endLine": 1299,
+        "endChar": 20
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "34907cae_7b67ad18",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1312,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T05:08:23Z",
+      "side": 1,
+      "message": "I\u0027ll leave them as is for the same reasons as in https://skia-review.googlesource.com/c/buildbot/+/276277/11/gold-client/go/imgmatching/factory_test.go#185, namely the complex arguments and the variable argument list.\n\nRegarding the debugging aspect, IntelliJ and other IDEs support setting conditional breakpoints; that is, breakpoints that will only pause execution if a certain boolean expression evaluates to true. To set a conditional breakpoint in IntelliJ, first set the breakpoint as usual, then right click on it to enter the desired boolean expression: https://screenshot.googleplex.com/iVHM2cOsO84. This is how I\u0027ve been debugging the tests in this CL chain.",
+      "parentUuid": "da5d3a07_8fa3b605",
+      "range": {
+        "startLine": 1312,
+        "startChar": 1,
+        "endLine": 1312,
+        "endChar": 6
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "39d34312_4831c126",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 10
@@ -137,6 +233,30 @@
       "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7059559e_d4b3fc60",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1388,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T05:08:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "39d34312_4831c126",
+      "range": {
+        "startLine": 1388,
+        "startChar": 61,
+        "endLine": 1388,
+        "endChar": 74
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "ff4cc142_9ba532af",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1398,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T05:08:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b04aecb2_4c4a2aa4",
+      "range": {
+        "startLine": 1398,
+        "startChar": 57,
+        "endLine": 1398,
+        "endChar": 58
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "40a736ee_c01feee6",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 10
@@ -183,6 +327,30 @@
       "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "560679ff_71b14baf",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1493,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T05:08:23Z",
+      "side": 1,
+      "message": "I like this a lot, thanks for the suggestion!",
+      "parentUuid": "40a736ee_c01feee6",
+      "range": {
+        "startLine": 1493,
+        "startChar": 5,
+        "endLine": 1493,
+        "endChar": 91
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "798c85a4_dd099cc3",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1545,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T05:08:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "207cea42_4ac22aee",
+      "range": {
+        "startLine": 1545,
+        "startChar": 66,
+        "endLine": 1545,
+        "endChar": 80
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7b48ad83_b32ced5f",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 10
@@ -229,6 +421,30 @@
       "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "608995cc_66f12c39",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1555,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T05:08:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7b48ad83_b32ced5f",
+      "range": {
+        "startLine": 1555,
+        "startChar": 21,
+        "endLine": 1555,
+        "endChar": 52
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +471,30 @@
     },
     {
       "key": {
+        "uuid": "e0ff00bc_c01a9739",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1565,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T05:08:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "04493581_bd8d26da",
+      "range": {
+        "startLine": 1565,
+        "startChar": 5,
+        "endLine": 1565,
+        "endChar": 101
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ae7312a8_4745e1d9",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 10
@@ -275,6 +515,30 @@
       "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56861d50_6d9484b1",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 2013,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T05:08:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ae7312a8_4745e1d9",
+      "range": {
+        "startLine": 2013,
+        "startChar": 1,
+        "endLine": 2013,
+        "endChar": 7
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
