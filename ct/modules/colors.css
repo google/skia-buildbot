@@ -6,6 +6,41 @@
 */
 
 html {
+  /* scaffolding color*/
+  --ocean-blue-pearl: rgb(63, 81, 181);
+  /* table headers*/
   --lavender: rgb(204, 204, 255);
+  /* modal background*/
   --transparent-grey: rgba(0,0,0,0.3);
+
+
+  --primary: var(--ocean-blue-pearl);
+  --on-primary: var(--white);
+  --primary-variant: var(--lavendar);
+  --secondary: var(--lavendar);
+  --on-secondary: var(--black);
+  --background: var(--white);
+  --on-background: var(--black);
+  --surface: var(--white);
+  --on-surface: var(--black);
+  --error: #B00020;
+  --on-error: var(--white);
+
+  /* Dark Mode set */
+  --dark-primary: #BB86FC;
+  --dark-on-primary: var(--black);
+  --dark-primary-variant: #3700B3;
+  --dark-secondary: #03DAC6;
+  --dark-on-secondary: var(--black);
+  --dark-background: #121212;
+  --dark-on-background: var(--white);
+  --dark-surface: #121212;
+  --dark-on-surface: var(--white);
+  --dark-error: #CF6679;
+  --dark-on-error: var(--black);
+
+  div.test {
+    background-color: var(--secondary);
+  }
+
 }

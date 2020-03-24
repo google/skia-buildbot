@@ -12,6 +12,9 @@ ct-scaffold-sk {
   }
 
   header {
+    background-color: var(--primary);
+    color: var(--on-primary);
+
     h1 {
       font-weight: bold;
       font-size: 1.5em;
@@ -26,18 +29,20 @@ ct-scaffold-sk {
       width: 24px;
       height: 24px;
       margin: 0;
-      border: 8px solid var(--white);
-      border-left: 8px solid #CCCCFF;
+      border: 8px solid var(--on-primary);
+      border-left: 8px solid var(--primary-variant);
     }
   }
 
   nav {
+    background-color: var(--surface);
+    color: var(--on-surface);
+    fill: var(--on-surface);
     display:flex;
     flex-direction: column;
     a {
       padding: 0.5em 0.75em;
-      color: var(--black);
-      fill: var(--black);
+      color: var(--on-surface); /* Override User Agent SS*/
       text-decoration: none;
     }
     span {
@@ -46,10 +51,15 @@ ct-scaffold-sk {
     }
   }
 
+  /* Hacks into elements-sk elements to get them to be the colors I want, until they DoTheRightThing(TM) */
   login-sk {
     margin-left: auto;
     margin-right: 1em;
     display: block;
-    color: white;
+    color: var(--on-primary);
   }
+  login-sk .email, login-sk .logInOut {
+	      font-size: 15px;
+	          color: var(--on-primary);
+	  }
 }

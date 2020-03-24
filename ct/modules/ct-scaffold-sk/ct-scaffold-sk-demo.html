@@ -8,11 +8,18 @@
 </head>
 <body>
   <ct-scaffold-sk app_title="Skia Public" testing_offline>
-    <div>
+    <div class=test>
       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod
       tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At
       vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren,
       no sea takimata sanctus est Lorem ipsum dolor sit amet.
+<a href="#" onClick="(function(){
+document.documentElement.style.setProperty('--on-primary', document.documentElement.style.getPropertyValue('--dark-on-primary'))
+document.documentElement.style.setProperty('--primary', document.documentElement.style.getPropertyValue('--primary'))
+document.documentElement.style.setProperty('--on-primary', document.documentElement.style.getPropertyValue('--dark-on-primary'))
+document.documentElement.style.setProperty('--on-primary', document.documentElement.style.getPropertyValue('--dark-on-primary'))
+    return false;
+})();return false;">click here</a>
     </div>
     <div>
       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod
