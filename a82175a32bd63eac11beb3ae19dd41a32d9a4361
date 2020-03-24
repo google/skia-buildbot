@@ -1,0 +1,228 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e63de890_74d354fd",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 18
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:06:19Z",
+      "side": 1,
+      "message": "Any particular reason for this change? Might be good to capture that rationale in the commit message at least.",
+      "range": {
+        "startLine": 11,
+        "startChar": 36,
+        "endLine": 11,
+        "endChar": 43
+      },
+      "revId": "a82175a32bd63eac11beb3ae19dd41a32d9a4361",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2aab1d9c_c24dc2ee",
+        "filename": "perf/go/ingest/parser/parser.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:06:19Z",
+      "side": 1,
+      "message": "Do you want to warn if the conversion is lossy? i.e. the value is bigger than math.MaxFloat32 ?",
+      "range": {
+        "startLine": 87,
+        "startChar": 36,
+        "endLine": 87,
+        "endChar": 44
+      },
+      "revId": "a82175a32bd63eac11beb3ae19dd41a32d9a4361",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7a5ee384_52aabafb",
+        "filename": "perf/go/ingest/process/process.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:06:19Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 18,
+        "startChar": 32,
+        "endLine": 18,
+        "endChar": 41
+      },
+      "revId": "a82175a32bd63eac11beb3ae19dd41a32d9a4361",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d0627c7_40638d6b",
+        "filename": "perf/go/ingest/process/process.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:06:19Z",
+      "side": 1,
+      "message": "no apostrophe",
+      "range": {
+        "startLine": 21,
+        "startChar": 25,
+        "endLine": 21,
+        "endChar": 27
+      },
+      "revId": "a82175a32bd63eac11beb3ae19dd41a32d9a4361",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fc0d3289_e685ce7b",
+        "filename": "perf/go/ingest/process/process.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:06:19Z",
+      "side": 1,
+      "message": "skerr.Wrap here and below",
+      "range": {
+        "startLine": 35,
+        "startChar": 9,
+        "endLine": 35,
+        "endChar": 12
+      },
+      "revId": "a82175a32bd63eac11beb3ae19dd41a32d9a4361",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8e56b7d_4fe220cf",
+        "filename": "perf/go/ingest/process/process.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:06:19Z",
+      "side": 1,
+      "message": "Is it still in the plan for perf to not require a local checkout (e.g. use gitsync)?",
+      "range": {
+        "startLine": 49,
+        "startChar": 89,
+        "endLine": 49,
+        "endChar": 102
+      },
+      "revId": "a82175a32bd63eac11beb3ae19dd41a32d9a4361",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6953f30_1981c000",
+        "filename": "perf/go/ingest/process/process_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:06:19Z",
+      "side": 1,
+      "message": "unnecesary comment on test file",
+      "range": {
+        "startLine": 1,
+        "startChar": 3,
+        "endLine": 1,
+        "endChar": 10
+      },
+      "revId": "a82175a32bd63eac11beb3ae19dd41a32d9a4361",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14d2011f_b3678d80",
+        "filename": "perf/go/ingest/process/process_test.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:06:19Z",
+      "side": 1,
+      "message": "TestStart_IngestDemoRepoWithSQLite3TraceStore_Success",
+      "range": {
+        "startLine": 17,
+        "startChar": 5,
+        "endLine": 17,
+        "endChar": 14
+      },
+      "revId": "a82175a32bd63eac11beb3ae19dd41a32d9a4361",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f8c11a03_a6bb9329",
+        "filename": "perf/go/perfserver/cmd/root.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:06:19Z",
+      "side": 1,
+      "message": "nit: remove extra newline",
+      "revId": "a82175a32bd63eac11beb3ae19dd41a32d9a4361",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1702c73b_f8cadb47",
+        "filename": "perf/go/perfserver/cmd/root.go",
+        "patchSetId": 18
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:06:19Z",
+      "side": 1,
+      "message": "Why not just err :\u003d initSubCommands()?",
+      "range": {
+        "startLine": 49,
+        "startChar": 4,
+        "endLine": 49,
+        "endChar": 7
+      },
+      "revId": "a82175a32bd63eac11beb3ae19dd41a32d9a4361",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
