@@ -52,6 +52,24 @@
       "revId": "7440d6243027cbf2c71663fb9e076578e1c5fa63",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2dd143a_2f2c26e2",
+        "filename": "go/depot_tools/deps_parser/deps_parser.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-24T15:34:28Z",
+      "side": 1,
+      "message": "Added a comment which I think justifies it pretty well.",
+      "parentUuid": "4c825727_1f4bbde0",
+      "revId": "7440d6243027cbf2c71663fb9e076578e1c5fa63",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
