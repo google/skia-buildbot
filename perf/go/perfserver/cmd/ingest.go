@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/spf13/cobra"
+	"go.skia.org/infra/perf/go/ingest/process"
 )
 
 // ingestCmd represents the ingest command
@@ -14,8 +15,8 @@ var ingestCmd = &cobra.Command{
 the configured ingestion sources and populates the datastore
 with that data.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("ingest called")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return process.Start(context.Background(), instanceConfig)
 	},
 }
 

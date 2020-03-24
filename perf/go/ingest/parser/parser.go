@@ -48,9 +48,9 @@ func New(instanceConfig *config.InstanceConfig) *Parser {
 
 // getParamsAndValuesFromLegacyFormat returns two parallel slices, each slice
 // contains the params and then the float for a single value of a trace.
-func getParamsAndValuesFromLegacyFormat(b *format.BenchData) ([]paramtools.Params, []float64) {
+func getParamsAndValuesFromLegacyFormat(b *format.BenchData) ([]paramtools.Params, []float32) {
 	params := []paramtools.Params{}
-	values := []float64{}
+	values := []float32{}
 	for testName, allConfigs := range b.Results {
 		for configName, result := range allConfigs {
 			key := paramtools.Params(b.Key).Copy()
@@ -84,7 +84,7 @@ func getParamsAndValuesFromLegacyFormat(b *format.BenchData) ([]paramtools.Param
 				}
 				key = query.ForceValid(key)
 				params = append(params, key.Copy())
-				values = append(values, floatVal)
+				values = append(values, float32(floatVal))
 			}
 		}
 	}
@@ -93,9 +93,9 @@ func getParamsAndValuesFromLegacyFormat(b *format.BenchData) ([]paramtools.Param
 
 // getParamsAndValuesFromVersion1Format returns two parallel slices, each slice contains
 // the params and then the float for a single value of a trace.
-func getParamsAndValuesFromVersion1Format(f format.Format) ([]paramtools.Params, []float64) {
+func getParamsAndValuesFromVersion1Format(f format.Format) ([]paramtools.Params, []float32) {
 	paramSlice := []paramtools.Params{}
-	measurementSlice := []float64{}
+	measurementSlice := []float32{}
 	for _, result := range f.Results {
 		p := paramtools.Params(f.Key).Copy()
 		p.Add(result.Key)
@@ -129,7 +129,7 @@ func (p *Parser) checkBranchName(params map[string]string) (string, bool) {
 	return "", true
 }
 
-func (p *Parser) extractFromLegacyFile(r io.Reader, filename string) ([]paramtools.Params, []float64, string, map[string]string, error) {
+func (p *Parser) extractFromLegacyFile(r io.Reader, filename string) ([]paramtools.Params, []float32, string, map[string]string, error) {
 	benchData, err := format.ParseLegacyFormat(r)
 	if err != nil {
 		return nil, nil, "", nil, err
@@ -138,7 +138,7 @@ func (p *Parser) extractFromLegacyFile(r io.Reader, filename string) ([]paramtoo
 	return params, values, benchData.Hash, benchData.Key, nil
 }
 
-func (p *Parser) extractFromVersion1File(r io.Reader, filename string) ([]paramtools.Params, []float64, string, map[string]string, error) {
+func (p *Parser) extractFromVersion1File(r io.Reader, filename string) ([]paramtools.Params, []float32, string, map[string]string, error) {
 	f, err := format.Parse(r)
 	if err != nil {
 		return nil, nil, "", nil, err
@@ -156,7 +156,7 @@ func (p *Parser) extractFromVersion1File(r io.Reader, filename string) ([]paramt
 // processed any further.
 //
 // The File.Contents will be closed when this func returns.
-func (p *Parser) Parse(file file.File) ([]paramtools.Params, []float64, string, error) {
+func (p *Parser) Parse(file file.File) ([]paramtools.Params, []float32, string, error) {
 	defer util.Close(file.Contents)
 	p.parseCounter.Inc(1)
 

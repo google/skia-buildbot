@@ -1,7 +1,12 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+
+	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -168,6 +173,19 @@ type InstanceConfig struct {
 	DataStoreConfig DataStoreConfig `json:"data_store_config"`
 	IngestionConfig IngestionConfig `json:"ingestion_config"`
 	GitRepoConfig   GitRepoConfig   `json:"git_repo_config"`
+}
+
+// InstanceConfigFromFile returns the deserialized JSON of an InstanceConfig found in filename.
+func InstanceConfigFromFile(filename string) (*InstanceConfig, error) {
+	var instanceConfig InstanceConfig
+
+	err := util.WithReadFile(filename, func(r io.Reader) error {
+		return json.NewDecoder(r).Decode(&instanceConfig)
+	})
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &instanceConfig, nil
 }
 
 const (
