@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a82df1ac_af180ce2",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1413,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:33:54Z",
+      "side": 1,
+      "message": "I personally dislike want/got since it\u0027s less clear exactly what we are comparing. I prefer to be explicit, like expectedReturnValue and actualReturnValue.\n\nSame below.",
+      "range": {
+        "startLine": 1413,
+        "startChar": 19,
+        "endLine": 1413,
+        "endChar": 28
+      },
+      "revId": "381fc8bcfe03c450570e37c5a87b1a0123ec3e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f5d7d41_9f9fe7b5",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1438,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:33:54Z",
+      "side": 1,
+      "message": "I would add a comment that currently baselines omit explicitly untriaged entries, but we test them here for robustness.",
+      "range": {
+        "startLine": 1438,
+        "startChar": 6,
+        "endLine": 1438,
+        "endChar": 25
+      },
+      "revId": "381fc8bcfe03c450570e37c5a87b1a0123ec3e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a53a413_31b4ece7",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1459,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:33:54Z",
+      "side": 1,
+      "message": "suggestion: I think this would read better with a helper test function.\n\ntest :\u003d func(name, diffPixels, threshold, error string) {...}\n\ntest(\"no parameters specified\", \"\", \"\", \"parameter not found\")\ntest(\"missing first parameter\", \"0\", \"\", \"parameter not found\")\ntest(\"missing second parameter\", \"\", \"0\", \"parameter not found\")\ntest(\"one invalid parameter\", \"not integer\", \"0\", \"parsing integer value\")\ntest(\"other invalid parameter\", \"2\", \"not integer\", \"parsing integer value\")\ntest(\"both invalid parameters\", \"not integer\", \"not integer\", \"parsing integer value\")",
+      "range": {
+        "startLine": 1459,
+        "startChar": 1,
+        "endLine": 1459,
+        "endChar": 6
+      },
+      "revId": "381fc8bcfe03c450570e37c5a87b1a0123ec3e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "761c7841_639fbf79",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1472,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:33:54Z",
+      "side": 1,
+      "message": "nit: parameters",
+      "range": {
+        "startLine": 1472,
+        "startChar": 45,
+        "endLine": 1472,
+        "endChar": 54
+      },
+      "revId": "381fc8bcfe03c450570e37c5a87b1a0123ec3e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "64cce982_969840ee",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1577,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:33:54Z",
+      "side": 1,
+      "message": "If you took the suggestion for the Fuzzy matching test, the same suggestion applies here. 3 inputs is on my upper bounds of \"good for test function\" (it helps they are all the same type), so if you want to reject one and not the other, I understand.",
+      "range": {
+        "startLine": 1577,
+        "startChar": 2,
+        "endLine": 1577,
+        "endChar": 14
+      },
+      "revId": "381fc8bcfe03c450570e37c5a87b1a0123ec3e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

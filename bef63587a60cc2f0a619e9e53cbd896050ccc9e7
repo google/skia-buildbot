@@ -213,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "5cfc877f_a274d810",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1312,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-24T13:33:54Z",
+      "side": 1,
+      "message": "suggestion: split these test cases into two groups - one with Algorithm specified, one with it omitted. Then you have one input (expectations) and one output, which makes the test function more likable.\n\nRationale: testing that we default to exact matching feels like a different concept than just testing exact matching.\n\nsuggestion: get rid of MakeExpectations - bake that into the test function/loop. Pass in just the label of the image in question.",
+      "parentUuid": "34907cae_7b67ad18",
+      "range": {
+        "startLine": 1312,
+        "startChar": 1,
+        "endLine": 1312,
+        "endChar": 6
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "39d34312_4831c126",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 10
