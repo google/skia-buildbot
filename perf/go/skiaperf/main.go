@@ -78,7 +78,7 @@ const (
 
 // flags
 var (
-	bigTableConfig                 = flag.String("big_table_config", "nano", "The name of the config to use when using a BigTable trace store.")
+	configFilename                 = flag.String("config_filename", "./configs/nano.json", "The name of the config file to use.")
 	commitRangeURL                 = flag.String("commit_range_url", "", "A URI Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.")
 	defaultSparse                  = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
 	doClustering                   = flag.Bool("do_clustering", true, "If true then run continuous clustering over all the alerts.")
@@ -241,7 +241,7 @@ func initialize() {
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
 
-	if err := config.Init(*bigTableConfig); err != nil {
+	if err := config.Init(*configFilename); err != nil {
 		sklog.Fatal(err)
 	}
 
@@ -261,11 +261,6 @@ func initialize() {
 		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
 			sklog.Fatal(err)
 		}
-	}
-
-	sklog.Info("About to init datastore.")
-	if err := ds.InitWithOpt(config.Config.DataStoreConfig.Project, config.Config.DataStoreConfig.Namespace, option.WithTokenSource(ts)); err != nil {
-		sklog.Fatalf("Failed to init Cloud Datastore: %s", err)
 	}
 
 	sklog.Info("About to init GCS.")
@@ -794,7 +789,7 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	lastIndex := last[0].Index
 
-	delta := config.GOTO_RANGE
+	delta := config.GotoRange
 	// If redirecting to the Triage page then always show just a single commit.
 	if dest == "t" {
 		delta = 0
