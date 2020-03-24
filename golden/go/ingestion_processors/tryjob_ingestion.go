@@ -123,8 +123,8 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config *share
 		return nil, skerr.Wrapf(err, "could not init firestore in project %s, namespace %s", fsProjectID, fsNamespace)
 	}
 
-	expStore, err := fs_expectationstore.New(ctx, fsClient, nil, fs_expectationstore.ReadOnly)
-	if err != nil {
+	expStore := fs_expectationstore.New(fsClient, nil, fs_expectationstore.ReadOnly)
+	if err := expStore.Initialize(ctx); err != nil {
 		return nil, skerr.Wrapf(err, "initializing expectation store")
 	}
 

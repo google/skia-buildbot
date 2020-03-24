@@ -8,37 +8,51 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/firestore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/deepequal"
-	"go.skia.org/infra/go/firestore"
+	ifirestore "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expectations"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/types"
 )
 
-// TestGetExpectations writes some changes and then reads back the
-// aggregated results.
-func TestGetExpectations(t *testing.T) {
+// TestExpectationEntry_ID_ReplacesInvalidCharacters tests edge cases for malformed names.
+func TestExpectationEntry_ID_ReplacesInvalidCharacters(t *testing.T) {
+	unittest.SmallTest(t)
+	// Based on real data
+	e := expectationEntry{
+		Grouping: "downsample/images/mandrill_512.png",
+		Digest:   "36bc7da524f2869c97f0a0f1d7042110",
+	}
+	assert.Equal(t, "downsample-images-mandrill_512.png|36bc7da524f2869c97f0a0f1d7042110",
+		e.ID())
+}
+
+// TestGet_ExpectationsInCLPartition_Success writes some changes, one of which overwrites a
+// previous expectation and asserts that we can call Get to extract the correct output.
+func TestGet_ExpectationsInCLPartition_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
-
-	f, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
+	// These are arbitrary
+	const clID = "123"
+	const crs = "github"
+	masterStore := New(c, nil, ReadWrite)
+	clStore := masterStore.ForChangeList(clID, crs)
 
 	// Brand new instance should have no expectations
-	e, err := f.Get(ctx)
+	clExps, err := clStore.Get(ctx)
 	require.NoError(t, err)
-	require.True(t, e.Empty())
+	require.True(t, clExps.Empty())
 
-	err = f.AddChange(ctx, []expectations.Delta{
+	err = clStore.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaUntriagedDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.Positive, // Intentionally wrong. Will be fixed by the next AddChange.
 		},
 		{
 			Grouping: data.AlphaTest,
@@ -48,7 +62,7 @@ func TestGetExpectations(t *testing.T) {
 	}, userOne)
 	require.NoError(t, err)
 
-	err = f.AddChange(ctx, []expectations.Delta{
+	err = clStore.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaNegativeDigest,
@@ -67,15 +81,87 @@ func TestGetExpectations(t *testing.T) {
 	}, userTwo)
 	require.NoError(t, err)
 
-	e, err = f.Get(ctx)
+	clExps, err = clStore.Get(ctx)
 	require.NoError(t, err)
-	assertExpectationsMatchDefaults(t, e)
-	// Make sure that if we create a new view, we can read the results immediately.
-	fr, err := New(ctx, c, nil, ReadOnly)
+	assertExpectationsMatchDefaults(t, clExps)
+
+	// Make sure that if we create a new view, we can still read the results.
+	masterStore = New(c, nil, ReadOnly)
+	clStore = masterStore.ForChangeList(clID, crs)
+	clExps, err = clStore.Get(ctx)
 	require.NoError(t, err)
-	e, err = fr.Get(ctx)
+	assertExpectationsMatchDefaults(t, clExps)
+}
+
+// TestGet_ExpectationsInMasterPartition_Success writes some changes, one of which overwrites a
+// previous expectation and asserts that we can call Get to extract the correct output.
+func TestGet_ExpectationsInMasterPartition_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+	require.NoError(t, masterStore.Initialize(ctx))
+
+	// Brand new instance should have no expectations
+	masterExps, err := masterStore.Get(ctx)
 	require.NoError(t, err)
-	assertExpectationsMatchDefaults(t, e)
+	require.True(t, masterExps.Empty())
+
+	err = masterStore.AddChange(ctx, []expectations.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaUntriagedDigest,
+			Label:    expectations.Positive,
+		},
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaPositiveDigest,
+			Label:    expectations.Positive,
+		},
+	}, userOne)
+	require.NoError(t, err)
+
+	err = masterStore.AddChange(ctx, []expectations.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaNegativeDigest,
+			Label:    expectations.Negative,
+		},
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaUntriagedDigest, // overwrites previous
+			Label:    expectations.Untriaged,
+		},
+		{
+			Grouping: data.BetaTest,
+			Digest:   data.BetaPositiveDigest,
+			Label:    expectations.Positive,
+		},
+	}, userTwo)
+	require.NoError(t, err)
+
+	// Wait for the cache to sync
+	assert.Eventually(t, func() bool {
+		masterStore.entryCacheMutex.RLock()
+		defer masterStore.entryCacheMutex.RUnlock()
+		return len(masterStore.entryCache) == 4
+	}, 10*time.Second, 100*time.Millisecond)
+
+	masterExps, err = masterStore.Get(ctx)
+	require.NoError(t, err)
+	assertExpectationsMatchDefaults(t, masterExps)
+
+	// Make sure that if we create a new view, we can still read the results.
+	readOnly := New(c, nil, ReadOnly)
+	roExps, err := readOnly.Get(ctx)
+	require.NoError(t, err)
+	assertExpectationsMatchDefaults(t, roExps)
+
+	assert.Equal(t, 5, countExpectationChanges(ctx, t, masterStore))
+	assert.Equal(t, 2, countTriageRecords(ctx, t, masterStore))
+	assert.Equal(t, 5, countExpectationChanges(ctx, t, readOnly))
+	assert.Equal(t, 2, countTriageRecords(ctx, t, readOnly))
 }
 
 func assertExpectationsMatchDefaults(t *testing.T, e expectations.ReadOnly) {
@@ -87,83 +173,140 @@ func assertExpectationsMatchDefaults(t *testing.T, e expectations.ReadOnly) {
 	assert.Equal(t, 3, e.Len())
 }
 
-// TestGetExpectationsSnapShot has both a read-write and a read version and makes sure
-// that the changes to the read-write version eventually propagate to the read version
-// via the QuerySnapshot.
-func TestGetExpectationsSnapShot(t *testing.T) {
+// TestGetCopy_CLPartition_CallerMutatesReturnValue_StoreUnaffected mutates the result of GetCopy
+// and makes sure that future calls to GetCopy are not affected.
+func TestGetCopy_CLPartition_CallerMutatesReturnValue_StoreUnaffected(t *testing.T) {
 	unittest.LargeTest(t)
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	f, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
+	masterStore := New(c, nil, ReadWrite)
+	clStore := masterStore.ForChangeList("123", "github") // These are arbitrary
+	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive, userOne)
 
-	err = f.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaUntriagedDigest,
-			Label:    expectations.Positive,
-		},
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Positive,
-		},
-	}, userOne)
+	clExps, err := clStore.GetCopy(ctx)
 	require.NoError(t, err)
+	assert.Equal(t, 1, clExps.Len())
+	assert.Equal(t, expectations.Positive, clExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.Untriaged, clExps.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
 
-	ro, err := New(ctx, c, nil, ReadOnly)
-	require.NoError(t, err)
-	require.NotNil(t, ro)
+	clExps.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.Negative)
+	clExps.Set(data.AlphaTest, data.AlphaUntriagedDigest, expectations.Positive)
 
-	exp, err := ro.Get(ctx)
+	shouldBeUnaffected, err := clStore.GetCopy(ctx)
 	require.NoError(t, err)
-	require.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
-	require.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	require.Equal(t, expectations.Untriaged, exp.Classification(data.AlphaTest, data.AlphaNegativeDigest))
-	require.Equal(t, 2, exp.Len())
-
-	err = f.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
-		},
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaUntriagedDigest, // overwrites previous
-			Label:    expectations.Untriaged,
-		},
-		{
-			Grouping: data.BetaTest,
-			Digest:   data.BetaPositiveDigest,
-			Label:    expectations.Positive,
-		},
-	}, userTwo)
-	require.NoError(t, err)
-
-	e, err := ro.Get(ctx)
-	require.NoError(t, err)
-	assertExpectationsMatchDefaults(t, e)
+	assert.Equal(t, 1, shouldBeUnaffected.Len())
+	assert.Equal(t, expectations.Positive, shouldBeUnaffected.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.Untriaged, shouldBeUnaffected.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
 }
 
-// TestGetExpectationsRace writes a bunch of data from many go routines
-// in an effort to catch any race conditions in the caching layer.
-func TestGetExpectationsRace(t *testing.T) {
+// TestGetCopy_MasterPartition_CallerMutatesReturnValue_StoreUnaffected mutates the result of
+// GetCopy and makes sure that future calls to GetCopy are not affected.
+func TestGetCopy_MasterPartition_CallerMutatesReturnValue_StoreUnaffected(t *testing.T) {
 	unittest.LargeTest(t)
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	f, err := New(ctx, c, nil, ReadWrite)
+	masterStore := New(c, nil, ReadWrite)
+	require.NoError(t, masterStore.Initialize(ctx))
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive, userOne)
+
+	// Wait for the query snapshot to show up in the RAM cache.
+	assert.Eventually(t, func() bool {
+		masterStore.entryCacheMutex.RLock()
+		defer masterStore.entryCacheMutex.RUnlock()
+		return len(masterStore.entryCache) == 1
+	}, 10*time.Second, 100*time.Millisecond)
+
+	// Warm the local cache
+	_, err := masterStore.Get(ctx)
 	require.NoError(t, err)
 
-	type entry struct {
-		Grouping types.TestName
-		Digest   types.Digest
-		Label    expectations.Label
-	}
+	masterExps, err := masterStore.GetCopy(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 1, masterExps.Len())
+	assert.Equal(t, expectations.Positive, masterExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.Untriaged, masterExps.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
 
-	entries := []entry{
+	masterExps.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.Negative)
+	masterExps.Set(data.AlphaTest, data.AlphaUntriagedDigest, expectations.Positive)
+
+	shouldBeUnaffected, err := masterStore.GetCopy(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 1, shouldBeUnaffected.Len())
+	assert.Equal(t, expectations.Positive, shouldBeUnaffected.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.Untriaged, shouldBeUnaffected.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
+}
+
+// TestInitialize_ExpectationCacheIsFilledAndUpdated_Success has both a read-write and a read-only
+// version and makes sure that the changes to the read-write version eventually propagate to the
+// read-only version via the snapshots.
+func TestInitialize_ExpectationCacheIsFilledAndUpdated_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	const firstPositiveThenUntriaged = types.Digest("abcd")
+
+	// Initialize store with some expectations.
+	masterStore := New(c, nil, ReadWrite)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive, userOne)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaNegativeDigest, expectations.Negative, userOne)
+	putEntry(ctx, t, masterStore, data.AlphaTest, firstPositiveThenUntriaged, expectations.Positive, userOne)
+
+	// Create a read-only store and assert the cache is empty before we call Initialize.
+	readOnly := New(c, nil, ReadOnly)
+	assert.Empty(t, readOnly.entryCache)
+	assert.False(t, readOnly.hasSnapshotsRunning)
+	require.NoError(t, readOnly.Initialize(ctx))
+
+	assert.True(t, readOnly.hasSnapshotsRunning)
+
+	// Check that the read-only copy has been loaded with the existing 3 entries as a result of
+	// the Initialize method.
+	assert.Len(t, readOnly.entryCache, 3)
+	roExps, err := readOnly.Get(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, expectations.Positive, roExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.Negative, roExps.Classification(data.AlphaTest, data.AlphaNegativeDigest))
+	assert.Equal(t, expectations.Positive, roExps.Classification(data.AlphaTest, firstPositiveThenUntriaged))
+
+	// This should update the existing entry, leaving us with 4 total entries, not 5
+	putEntry(ctx, t, masterStore, data.AlphaTest, firstPositiveThenUntriaged, expectations.Untriaged, userOne)
+	putEntry(ctx, t, masterStore, data.BetaTest, data.BetaPositiveDigest, expectations.Positive, userOne)
+
+	assert.Eventually(t, func() bool {
+		readOnly.entryCacheMutex.RLock()
+		defer readOnly.entryCacheMutex.RUnlock()
+		return len(readOnly.entryCache) == 4
+	}, 10*time.Second, 100*time.Millisecond)
+
+	roExps2, err := readOnly.Get(ctx)
+	require.NoError(t, err)
+	assertExpectationsMatchDefaults(t, roExps2)
+	assert.Equal(t, expectations.Untriaged, roExps2.Classification(data.AlphaTest, firstPositiveThenUntriaged))
+
+	// Spot check that the expectations we got first were not impacted by the new expectations
+	// coming in or the second call to Get.
+	assert.Equal(t, expectations.Positive, roExps.Classification(data.AlphaTest, firstPositiveThenUntriaged))
+
+	assert.Equal(t, 5, countExpectationChanges(ctx, t, masterStore))
+	assert.Equal(t, 5, countTriageRecords(ctx, t, masterStore))
+	assert.Equal(t, 5, countExpectationChanges(ctx, t, readOnly))
+	assert.Equal(t, 5, countTriageRecords(ctx, t, readOnly))
+}
+
+// TestAddChange_MasterPartition_FromManyGoroutines_Success writes a bunch of data from many
+// go routines in an effort to catch any race conditions in the caching layer.
+func TestAddChange_MasterPartition_FromManyGoroutines_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+	require.NoError(t, masterStore.Initialize(ctx))
+
+	entries := []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaUntriagedDigest,
@@ -198,41 +341,93 @@ func TestGetExpectationsRace(t *testing.T) {
 		go func(i int) {
 			defer wg.Done()
 			e := entries[i%len(entries)]
-			err := f.AddChange(ctx, []expectations.Delta{
-				{
-					Grouping: e.Grouping,
-					Digest:   e.Digest,
-					Label:    e.Label,
-				},
-			}, userOne)
+			err := masterStore.AddChange(ctx, []expectations.Delta{e}, userOne)
 			require.NoError(t, err)
 		}(i)
 
-		// Make sure we can read and write w/o races
+		// Make sure we can read and write at the same time. We run these tests with golang's -race
+		// option which can help identify race conditions.
 		if i%5 == 0 {
-			_, err := f.Get(ctx)
+			_, err := masterStore.Get(ctx)
 			require.NoError(t, err)
 		}
 	}
 
 	wg.Wait()
 
-	e, err := f.Get(ctx)
+	e, err := masterStore.Get(ctx)
 	require.NoError(t, err)
 	assertExpectationsMatchDefaults(t, e)
+	assert.Equal(t, 50, countExpectationChanges(ctx, t, masterStore))
+	assert.Equal(t, 50, countTriageRecords(ctx, t, masterStore))
 }
 
-// TestGetExpectationsBig writes 32^2=1024 entries
-// to test the batch writing.
-func TestGetExpectationsBig(t *testing.T) {
+// TestAddChange_ExpectationsDoNotConflictBetweenMasterAndCLPartition tests the separation of
+// the master expectations and the CL expectations. It starts with a single expectation, then adds
+// some expectations to both, including changing the expectation. Specifically, the CL expectations
+// should be treated as a delta to the master expectations (but doesn't actually contain
+// master expectations).
+func TestAddChange_ExpectationsDoNotConflictBetweenMasterAndCLPartition(t *testing.T) {
 	unittest.LargeTest(t)
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	f, err := New(ctx, c, nil, ReadWrite)
+	masterStore := New(c, nil, ReadWrite)
+	require.NoError(t, masterStore.Initialize(ctx))
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.Negative, userTwo)
+
+	clStore := masterStore.ForChangeList("117", "gerrit") // arbitrary cl id
+	// Check that it starts out blank.
+	clExps, err := clStore.Get(ctx)
+	require.NoError(t, err)
+	require.True(t, clExps.Empty())
+
+	// Add to the CL expectations
+	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive, userOne)
+	putEntry(ctx, t, clStore, data.BetaTest, data.BetaPositiveDigest, expectations.Positive, userTwo)
+
+	// Add to the master expectations
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaNegativeDigest, expectations.Negative, userOne)
+
+	// Wait for the entries to sync.
+	assert.Eventually(t, func() bool {
+		masterStore.entryCacheMutex.RLock()
+		defer masterStore.entryCacheMutex.RUnlock()
+		return len(masterStore.entryCache) == 2
+	}, 10*time.Second, 100*time.Millisecond)
+
+	masterExps, err := masterStore.Get(ctx)
+	require.NoError(t, err)
+	clExps, err = clStore.Get(ctx)
 	require.NoError(t, err)
 
-	// Write the expectations in two, non-overlapping blocks.
+	// Make sure the CL expectations did not leak to the master expectations
+	assert.Equal(t, expectations.Negative, masterExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.Negative, masterExps.Classification(data.AlphaTest, data.AlphaNegativeDigest))
+	assert.Equal(t, expectations.Untriaged, masterExps.Classification(data.BetaTest, data.BetaPositiveDigest))
+	assert.Equal(t, 2, masterExps.Len())
+
+	// Make sure the CL expectations are separate from the master expectations.
+	assert.Equal(t, expectations.Positive, clExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.Untriaged, clExps.Classification(data.AlphaTest, data.AlphaNegativeDigest))
+	assert.Equal(t, expectations.Positive, clExps.Classification(data.BetaTest, data.BetaPositiveDigest))
+	assert.Equal(t, 2, clExps.Len())
+}
+
+// TestAddChange_MasterPartition_TwoLargeSimultaneousBatches_Success writes two batches of 512
+// entries to test the batch writing that happens for large amounts of expectation changes.
+func TestAddChange_MasterPartition_TwoLargeSimultaneousBatches_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+	require.NoError(t, masterStore.Initialize(ctx))
+
+	// Write the expectations in two non-overlapping blocks of 16*32=512 entries, which should take
+	// 3 batches to write them all. This is because Firestore has a limit of 500 writes per batch,
+	// and we write both the expectation entry and the expectation change, so ~250 deltas can be
+	// written per batch.
 	exp1, delta1 := makeBigExpectations(0, 16)
 	exp2, delta2 := makeBigExpectations(16, 32)
 
@@ -241,154 +436,56 @@ func TestGetExpectationsBig(t *testing.T) {
 
 	wg := sync.WaitGroup{}
 
-	// Write them concurrently to test for races.
+	// Write them concurrently to test for potential race conditions.
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		err := f.AddChange(ctx, delta1, userOne)
+		err := masterStore.AddChange(ctx, delta1, userOne)
 		require.NoError(t, err)
 	}()
 	go func() {
 		defer wg.Done()
-		err := f.AddChange(ctx, delta2, userTwo)
+		err := masterStore.AddChange(ctx, delta2, userTwo)
 		require.NoError(t, err)
 	}()
 	wg.Wait()
 
-	// We wait for the query snapshots to be notified about the change.
 	require.Eventually(t, func() bool {
-		// Fetch a copy to avoid a race between Get() and DeepEqual
-		e, err := f.GetCopy(ctx)
+		e, err := masterStore.Get(ctx)
 		assert.NoError(t, err)
 		return deepequal.DeepEqual(expected, e)
-	}, 10*time.Second, 100*time.Millisecond)
+	}, 10*time.Second, 500*time.Millisecond)
 
-	// Make sure that if we create a new view, we can read the results
-	// from the table to make the expectations
-	fr, err := New(ctx, c, nil, ReadOnly)
-	require.NoError(t, err)
-	e, err := fr.GetCopy(ctx)
-	require.NoError(t, err)
-	require.Equal(t, expected, e)
+	assert.Equal(t, 1024, countExpectationChanges(ctx, t, masterStore))
+	assert.Equal(t, 2, countTriageRecords(ctx, t, masterStore))
 }
 
-// TestReadOnly ensures a read-only instance fails to write data.
-func TestReadOnly(t *testing.T) {
+func TestAddChange_MasterPartition_NotifierEventsCorrect(t *testing.T) {
 	unittest.LargeTest(t)
+
+	notifier := expectations.NewEventDispatcherForTesting()
+	var calledMutex sync.Mutex
+	var calledWith []expectations.ID
+	notifier.ListenForChange(func(e expectations.ID) {
+		calledMutex.Lock()
+		defer calledMutex.Unlock()
+		calledWith = append(calledWith, e)
+	})
+
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	f, err := New(ctx, c, nil, ReadOnly)
-	require.NoError(t, err)
+	masterStore := New(c, notifier, ReadWrite)
+	require.NoError(t, masterStore.Initialize(ctx))
 
-	err = f.AddChange(ctx, []expectations.Delta{
+	change1 := []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaPositiveDigest,
 			Label:    expectations.Positive,
 		},
-	}, userOne)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "read-only")
-}
-
-// TestQueryLog tests that we can query logs at a given place
-func TestQueryLog(t *testing.T) {
-	unittest.LargeTest(t)
-	c, ctx, cleanup := makeTestFirestoreClient(t)
-	defer cleanup()
-
-	f, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
-
-	fillWith4Entries(t, f)
-
-	entries, n, err := f.QueryLog(ctx, 0, 100, false)
-	require.NoError(t, err)
-	require.Equal(t, 4, n) // 4 operations
-	require.Len(t, entries, 4)
-
-	now := time.Now()
-	normalizeEntries(t, now, entries)
-	require.Equal(t, []expectations.TriageLogEntry{
-		{
-			ID:          "was_random_0",
-			User:        userTwo,
-			TS:          now,
-			ChangeCount: 2,
-			Details:     nil,
-		},
-		{
-			ID:          "was_random_1",
-			User:        userOne,
-			TS:          now,
-			ChangeCount: 1,
-			Details:     nil,
-		},
-		{
-			ID:          "was_random_2",
-			User:        userTwo,
-			TS:          now,
-			ChangeCount: 1,
-			Details:     nil,
-		},
-		{
-			ID:          "was_random_3",
-			User:        userOne,
-			TS:          now,
-			ChangeCount: 1,
-			Details:     nil,
-		},
-	}, entries)
-
-	entries, n, err = f.QueryLog(ctx, 1, 2, false)
-	require.NoError(t, err)
-	require.Equal(t, expectations.CountMany, n)
-	require.Len(t, entries, 2)
-
-	normalizeEntries(t, now, entries)
-	require.Equal(t, []expectations.TriageLogEntry{
-		{
-			ID:          "was_random_0",
-			User:        userOne,
-			TS:          now,
-			ChangeCount: 1,
-			Details:     nil,
-		},
-		{
-			ID:          "was_random_1",
-			User:        userTwo,
-			TS:          now,
-			ChangeCount: 1,
-			Details:     nil,
-		},
-	}, entries)
-
-	// Make sure we can handle an invalid offset
-	entries, n, err = f.QueryLog(ctx, 500, 100, false)
-	require.NoError(t, err)
-	require.Equal(t, 500, n) // The system guesses that there are 500 or fewer items.
-	require.Empty(t, entries)
-}
-
-// TestQueryLogDetails checks that the details are filled in when requested.
-func TestQueryLogDetails(t *testing.T) {
-	unittest.LargeTest(t)
-	c, ctx, cleanup := makeTestFirestoreClient(t)
-	defer cleanup()
-
-	f, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
-
-	fillWith4Entries(t, f)
-
-	entries, n, err := f.QueryLog(ctx, 0, 100, true)
-	require.NoError(t, err)
-	require.Equal(t, 4, n) // 4 operations
-	require.Len(t, entries, 4)
-
-	// These should be sorted, starting with the most recent
-	require.Equal(t, []expectations.Delta{
+	}
+	change2 := []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaNegativeDigest,
@@ -396,44 +493,451 @@ func TestQueryLogDetails(t *testing.T) {
 		},
 		{
 			Grouping: data.BetaTest,
-			Digest:   data.BetaUntriagedDigest,
-			Label:    expectations.Untriaged,
+			Digest:   data.BetaPositiveDigest,
+			Label:    expectations.Positive,
 		},
-	}, entries[0].Details)
-	require.Equal(t, []expectations.Delta{
+	}
+
+	require.NoError(t, masterStore.AddChange(ctx, change1, userOne))
+	require.NoError(t, masterStore.AddChange(ctx, change2, userTwo))
+
+	assert.Eventually(t, func() bool {
+		masterStore.entryCacheMutex.RLock()
+		defer masterStore.entryCacheMutex.RUnlock()
+		return len(masterStore.entryCache) == 3
+	}, 10*time.Second, 100*time.Millisecond)
+
+	assert.ElementsMatch(t, []expectations.ID{change1[0].ID(), change2[0].ID(), change2[1].ID()}, calledWith)
+}
+
+// TestGetTriageHistory_MasterPartition_Success writes some changes and then gets the triage
+// history for those changes. Even if we query for records that don't exist, we should not see
+// errors.
+func TestGetTriageHistory_MasterPartition_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+
+	err := masterStore.AddChange(ctx, []expectations.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaNegativeDigest,
+			Label:    expectations.Positive,
+		},
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaPositiveDigest,
+			Label:    expectations.Positive,
+		},
+	}, userOne)
+	require.NoError(t, err)
+
+	err = masterStore.AddChange(ctx, []expectations.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaNegativeDigest,
+			Label:    expectations.Negative,
+		},
+	}, userTwo)
+	require.NoError(t, err)
+
+	// Just make sure the time in the record was recent - the exact time does not really matter.
+	assertTimeCorrect := func(t *testing.T, ts time.Time) {
+		assert.True(t, ts.Before(time.Now()))
+		assert.True(t, ts.After(time.Now().Add(-time.Minute)))
+	}
+
+	th, err := masterStore.GetTriageHistory(ctx, data.AlphaTest, data.AlphaPositiveDigest)
+	require.NoError(t, err)
+	require.Len(t, th, 1)
+	assert.Equal(t, userOne, th[0].User)
+	assertTimeCorrect(t, th[0].TS)
+
+	th, err = masterStore.GetTriageHistory(ctx, data.AlphaTest, data.AlphaNegativeDigest)
+	require.NoError(t, err)
+	require.Len(t, th, 2)
+	// Make sure the most recent change is first
+	assert.Equal(t, userTwo, th[0].User)
+	assertTimeCorrect(t, th[0].TS)
+	assert.Equal(t, userOne, th[1].User)
+	assertTimeCorrect(t, th[1].TS)
+	assert.True(t, th[0].TS.After(th[1].TS))
+
+	th, err = masterStore.GetTriageHistory(ctx, "does not exist", "nope")
+	require.NoError(t, err)
+	assert.Empty(t, th)
+}
+
+// TestGetTriageHistory_MasterPartition_RepeatedlyOverwriteOneEntry_Success repeatedly overwrites
+// a single entry to make sure the cache reflects reality and that our history is complete.
+func TestGetTriageHistory_MasterPartition_RepeatedlyOverwriteOneEntry_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+	require.NoError(t, masterStore.Initialize(ctx))
+
+	fakeNow := time.Date(2020, time.March, 1, 2, 3, 57, 0, time.UTC)
+	masterStore.now = func() time.Time {
+		return fakeNow
+	}
+
+	theEntry := expectations.ID{Grouping: data.AlphaTest, Digest: data.AlphaPositiveDigest}
+
+	// This will wait for the firestore query snapshots to update the cache to have the entry we care
+	// about to have the given label.
+	waitForCacheToBe := func(label expectations.Label) {
+		require.Eventually(t, func() bool {
+			masterStore.entryCacheMutex.RLock()
+			defer masterStore.entryCacheMutex.RUnlock()
+			if len(masterStore.entryCache) != 1 {
+				return false
+			}
+			actualEntry := masterStore.entryCache[theEntry]
+			// Make sure we don't append to Ranges (since we are currently overwriting at master).
+			assert.Len(t, actualEntry.Ranges, 1)
+			return actualEntry.Ranges[0].Label == label
+		}, 10*time.Second, 100*time.Millisecond)
+	}
+
+	putEntry(ctx, t, masterStore, theEntry.Grouping, theEntry.Digest, expectations.Positive, userOne)
+	waitForCacheToBe(expectations.Positive)
+
+	fakeNow = fakeNow.Add(time.Minute)
+	putEntry(ctx, t, masterStore, theEntry.Grouping, theEntry.Digest, expectations.Negative, userOne)
+	waitForCacheToBe(expectations.Negative)
+
+	fakeNow = fakeNow.Add(time.Minute)
+	putEntry(ctx, t, masterStore, theEntry.Grouping, theEntry.Digest, expectations.Untriaged, userTwo)
+	waitForCacheToBe(expectations.Untriaged)
+
+	fakeNow = fakeNow.Add(time.Minute)
+	putEntry(ctx, t, masterStore, theEntry.Grouping, theEntry.Digest, expectations.Positive, userTwo)
+	waitForCacheToBe(expectations.Positive)
+
+	xth, err := masterStore.GetTriageHistory(ctx, theEntry.Grouping, theEntry.Digest)
+	require.NoError(t, err)
+	assert.Equal(t, []expectations.TriageHistory{
+		{
+			User: userTwo,
+			TS:   time.Date(2020, time.March, 1, 2, 6, 57, 0, time.UTC),
+		}, {
+			User: userTwo,
+			TS:   time.Date(2020, time.March, 1, 2, 5, 57, 0, time.UTC),
+		}, {
+			User: userOne,
+			TS:   time.Date(2020, time.March, 1, 2, 4, 57, 0, time.UTC),
+		}, {
+			User: userOne,
+			TS:   time.Date(2020, time.March, 1, 2, 3, 57, 0, time.UTC),
+		},
+	}, xth)
+	assert.Equal(t, 4, countExpectationChanges(ctx, t, masterStore))
+	assert.Equal(t, 4, countTriageRecords(ctx, t, masterStore))
+}
+
+// TestGetTriageHistory_MasterAndCLPartitionsDoNotConflict_Success writes some changes to the master
+// partition and then to a CL partition and makes sure they don't conflict.
+func TestGetTriageHistory_MasterAndCLPartitionsDoNotConflict_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+
+	err := masterStore.AddChange(ctx, []expectations.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaNegativeDigest,
+			Label:    expectations.Positive,
+		},
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaPositiveDigest,
+			Label:    expectations.Positive,
+		},
+	}, userOne)
+	require.NoError(t, err)
+
+	clStore := masterStore.ForChangeList("123", "gerrit") // arbitrary CL
+
+	err = clStore.AddChange(ctx, []expectations.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaNegativeDigest,
+			Label:    expectations.Negative,
+		},
+	}, userTwo)
+	require.NoError(t, err)
+
+	// Just make sure the time in the record was recent - the exact time does not really matter.
+	assertTimeCorrect := func(t *testing.T, ts time.Time) {
+		assert.True(t, ts.Before(time.Now()))
+		assert.True(t, ts.After(time.Now().Add(-time.Minute)))
+	}
+
+	th, err := masterStore.GetTriageHistory(ctx, data.AlphaTest, data.AlphaPositiveDigest)
+	require.NoError(t, err)
+	require.Len(t, th, 1)
+	assert.Equal(t, userOne, th[0].User)
+	assertTimeCorrect(t, th[0].TS)
+
+	th, err = masterStore.GetTriageHistory(ctx, data.AlphaTest, data.AlphaNegativeDigest)
+	require.NoError(t, err)
+	require.Len(t, th, 1)
+	assert.Equal(t, userOne, th[0].User)
+	assertTimeCorrect(t, th[0].TS)
+
+	th, err = clStore.GetTriageHistory(ctx, data.AlphaTest, data.AlphaPositiveDigest)
+	require.NoError(t, err)
+	require.Empty(t, th)
+
+	th, err = clStore.GetTriageHistory(ctx, data.AlphaTest, data.AlphaNegativeDigest)
+	require.NoError(t, err)
+	require.Len(t, th, 1)
+	assert.Equal(t, userTwo, th[0].User)
+	assertTimeCorrect(t, th[0].TS)
+
+}
+
+func TestQueryLog_WithoutDetails_OffsetsAndLimitsAreRespected(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+	firstTime := time.Date(2020, time.March, 1, 2, 3, 4, 0, time.UTC)
+	fakeNow := firstTime
+	masterStore.now = func() time.Time {
+		return fakeNow
+	}
+
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive, userOne)
+	secondTime := time.Date(2020, time.March, 14, 2, 3, 4, 0, time.UTC)
+	fakeNow = secondTime
+
+	err := masterStore.AddChange(ctx, []expectations.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaNegativeDigest,
+			Label:    expectations.Negative,
+		},
 		{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaPositiveDigest,
 			Label:    expectations.Positive,
 		},
-	}, entries[1].Details)
-	require.Equal(t, []expectations.Delta{
+	}, userTwo)
+	require.NoError(t, err)
+
+	entries, n, err := masterStore.QueryLog(ctx, 0, 100, false)
+	require.NoError(t, err)
+	require.Equal(t, 2, n) // 2 operations in total
+	assert.Equal(t, 3, countExpectationChanges(ctx, t, masterStore))
+	assert.Equal(t, 2, countTriageRecords(ctx, t, masterStore))
+
+	normalizeEntries(t, entries)
+	require.Equal(t, []expectations.TriageLogEntry{
 		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Positive,
+			ID:          "was_random_0",
+			User:        userTwo,
+			TS:          secondTime,
+			ChangeCount: 2,
 		},
-	}, entries[2].Details)
-	require.Equal(t, []expectations.Delta{
 		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Negative,
+			ID:          "was_random_1",
+			User:        userOne,
+			TS:          firstTime,
+			ChangeCount: 1,
 		},
-	}, entries[3].Details)
+	}, entries)
+
+	entries, n, err = masterStore.QueryLog(ctx, 0, 1, false)
+	require.NoError(t, err)
+	require.Equal(t, expectations.CountMany, n)
+
+	normalizeEntries(t, entries)
+	require.Equal(t, []expectations.TriageLogEntry{
+		{
+			ID:          "was_random_0",
+			User:        userTwo,
+			TS:          secondTime,
+			ChangeCount: 2,
+		},
+	}, entries)
+
+	// Now try for an offset way past the end of the data.
+	entries, n, err = masterStore.QueryLog(ctx, 500, 100, false)
+	require.NoError(t, err)
+	require.Equal(t, 500, n) // The system guesses that there are 500 or fewer items.
+	require.Empty(t, entries)
 }
 
-// TestQueryLogDetailsLarge checks that the details are filled in correctly, even in cases
-// where we had to write in multiple chunks. (skbug.com/9485)
-func TestQueryLogDetailsLarge(t *testing.T) {
+func TestQueryLog_MasterAndCLPartitionsDoNotConflict_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	f, err := New(ctx, c, nil, ReadWrite)
+	masterStore := New(c, nil, ReadWrite)
+	firstTime := time.Date(2020, time.March, 1, 2, 3, 4, 0, time.UTC)
+	fakeNow := firstTime
+	masterStore.now = func() time.Time {
+		return fakeNow
+	}
+
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive, userOne)
+
+	clStore := masterStore.ForChangeList("1687", "gerrit") // this is arbitrary
+	secondTime := time.Date(2020, time.March, 14, 2, 3, 4, 0, time.UTC)
+	fakeNow = secondTime
+
+	err := clStore.AddChange(ctx, []expectations.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaNegativeDigest,
+			Label:    expectations.Negative,
+		},
+		{
+			Grouping: data.BetaTest,
+			Digest:   data.BetaPositiveDigest,
+			Label:    expectations.Positive,
+		},
+	}, userTwo)
 	require.NoError(t, err)
 
-	// 800 should spread us across 3 "shards", which are ~250 expectations.
+	entries, n, err := masterStore.QueryLog(ctx, 0, 10, false)
+	require.NoError(t, err)
+	require.Equal(t, 1, n)
+	assert.Equal(t, 1, countExpectationChanges(ctx, t, masterStore))
+	assert.Equal(t, 1, countTriageRecords(ctx, t, masterStore))
+
+	normalizeEntries(t, entries)
+	require.Equal(t, []expectations.TriageLogEntry{
+		{
+			ID:          "was_random_0",
+			User:        userOne,
+			TS:          firstTime,
+			ChangeCount: 1,
+		},
+	}, entries)
+
+	entries, n, err = clStore.QueryLog(ctx, 0, 10, false)
+	require.NoError(t, err)
+	require.Equal(t, 1, n)
+	assert.Equal(t, 2, countExpectationChanges(ctx, t, clStore.(*Store)))
+	assert.Equal(t, 1, countTriageRecords(ctx, t, clStore.(*Store)))
+
+	normalizeEntries(t, entries)
+	require.Equal(t, []expectations.TriageLogEntry{
+		{
+			ID:          "was_random_0",
+			User:        userTwo,
+			TS:          secondTime,
+			ChangeCount: 2,
+		},
+	}, entries)
+}
+
+func TestQueryLog_InvalidOffsets_Error(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive, userOne)
+
+	_, _, err := masterStore.QueryLog(ctx, -1, 100, false)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "be positive")
+
+	_, _, err = masterStore.QueryLog(ctx, 0, -100, false)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "be positive")
+}
+
+func TestQueryLog_WithDetails_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+	firstTime := time.Date(2020, time.March, 1, 2, 3, 4, 0, time.UTC)
+	fakeNow := firstTime
+	masterStore.now = func() time.Time {
+		return fakeNow
+	}
+
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive, userOne)
+	secondTime := time.Date(2020, time.March, 14, 2, 3, 4, 0, time.UTC)
+	fakeNow = secondTime
+
+	err := masterStore.AddChange(ctx, []expectations.Delta{
+		{
+			Grouping: data.AlphaTest,
+			Digest:   data.AlphaNegativeDigest,
+			Label:    expectations.Negative,
+		},
+		{
+			Grouping: data.BetaTest,
+			Digest:   data.BetaPositiveDigest,
+			Label:    expectations.Positive,
+		},
+	}, userTwo)
+	require.NoError(t, err)
+
+	entries, n, err := masterStore.QueryLog(ctx, 0, 100, true)
+	require.NoError(t, err)
+	require.Equal(t, 2, n) // 2 operations in total
+
+	normalizeEntries(t, entries)
+	require.Equal(t, []expectations.TriageLogEntry{
+		{
+			ID:          "was_random_0",
+			User:        userTwo,
+			TS:          secondTime,
+			ChangeCount: 2,
+			Details: []expectations.Delta{
+				{
+					Grouping: data.AlphaTest,
+					Digest:   data.AlphaNegativeDigest,
+					Label:    expectations.Negative,
+				},
+				{
+					Grouping: data.BetaTest,
+					Digest:   data.BetaPositiveDigest,
+					Label:    expectations.Positive,
+				},
+			},
+		},
+		{
+			ID:          "was_random_1",
+			User:        userOne,
+			TS:          firstTime,
+			ChangeCount: 1,
+			Details: []expectations.Delta{
+				{
+					Grouping: data.AlphaTest,
+					Digest:   data.AlphaPositiveDigest,
+					Label:    expectations.Positive,
+				},
+			},
+		},
+	}, entries)
+}
+
+// TestQueryLogDetailsLarge checks that the details are filled in correctly, even in cases
+// where we had to write in multiple chunks. (skbug.com/9485)
+func TestQueryLog_WritingManyExpectations_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+
+	// 800 should spread us across 4 "batches", which are ~250 expectations each.
 	const numExp = 800
 	delta := make([]expectations.Delta, 0, numExp)
 	for i := uint64(0); i < numExp; i++ {
@@ -446,10 +950,10 @@ func TestQueryLogDetailsLarge(t *testing.T) {
 			Label:    expectations.Positive,
 		})
 	}
-	err = f.AddChange(ctx, delta, "test@example.com")
+	err := masterStore.AddChange(ctx, delta, "test@example.com")
 	require.NoError(t, err)
 
-	entries, n, err := f.QueryLog(ctx, 0, 2, true)
+	entries, n, err := masterStore.QueryLog(ctx, 0, 2, true)
 	require.NoError(t, err)
 	require.Equal(t, 1, n) // 1 big operation
 	require.Len(t, entries, 1)
@@ -458,7 +962,7 @@ func TestQueryLogDetailsLarge(t *testing.T) {
 	require.Equal(t, numExp, entry.ChangeCount)
 	require.Len(t, entry.Details, numExp)
 
-	// spot check some details
+	// Spot check some details across the various batches.
 	require.Equal(t, expectations.Delta{
 		Grouping: "test_000",
 		Digest:   "00000000000000000000000000000000",
@@ -486,388 +990,87 @@ func TestQueryLogDetailsLarge(t *testing.T) {
 	}, entry.Details[799])
 }
 
-// TestUndoChangeSunnyDay checks undoing entries that exist.
-func TestUndoChangeSunnyDay(t *testing.T) {
+// TestUndo_MasterPartition_EntriesExist_Success makes sure we can undo changes properly.
+func TestUndo_MasterPartition_EntriesExist_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	f, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
+	masterStore := New(c, nil, ReadWrite)
+	require.NoError(t, masterStore.Initialize(ctx))
 
-	fillWith4Entries(t, f)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive, userOne)
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.Negative, userOne) // will be undone
+	putEntry(ctx, t, masterStore, data.AlphaTest, data.AlphaNegativeDigest, expectations.Negative, userOne)
 
-	entries, n, err := f.QueryLog(ctx, 0, 4, false)
+	entries, _, err := masterStore.QueryLog(ctx, 0, 10, false)
 	require.NoError(t, err)
-	require.Equal(t, expectations.CountMany, n)
+	require.Len(t, entries, 3)
+
+	toUndo := entries[1].ID
+	require.NotEmpty(t, toUndo)
+
+	require.NoError(t, masterStore.UndoChange(ctx, toUndo, userTwo))
+
+	masterExps, err := masterStore.Get(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, expectations.Positive, masterExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.Negative, masterExps.Classification(data.AlphaTest, data.AlphaNegativeDigest))
+
+	// Check that the undo shows up as the most recent entry.
+	entries, _, err = masterStore.QueryLog(ctx, 0, 10, true)
+	require.NoError(t, err)
 	require.Len(t, entries, 4)
-
-	err = f.UndoChange(ctx, entries[0].ID, userOne)
-	require.NoError(t, err)
-
-	err = f.UndoChange(ctx, entries[2].ID, userOne)
-	require.NoError(t, err)
-
-	// Check that the undone items were applied
-	exp, err := f.Get(ctx)
-	require.NoError(t, err)
-
-	assertMatches := func(e expectations.ReadOnly) {
-		assert.Equal(t, e.Classification(data.AlphaTest, data.AlphaPositiveDigest), expectations.Negative)
-		assert.Equal(t, e.Classification(data.AlphaTest, data.AlphaNegativeDigest), expectations.Untriaged)
-		assert.Equal(t, e.Classification(data.BetaTest, data.BetaPositiveDigest), expectations.Positive)
-		assert.Equal(t, e.Classification(data.BetaTest, data.BetaUntriagedDigest), expectations.Untriaged)
-		assert.Equal(t, 2, e.Len())
-	}
-	assertMatches(exp)
-
-	// Make sure that if we create a new view, we can read the results
-	// from the table to make the expectations
-	fr, err := New(ctx, c, nil, ReadOnly)
-	require.NoError(t, err)
-	exp, err = fr.Get(ctx)
-	require.NoError(t, err)
-	assertMatches(exp)
-}
-
-// TestUndoChangeUntriaged checks undoing entries that were set to Untriaged. For example,
-// a user accidentally marks something as untriaged and then undoes that.
-func TestUndoChangeUntriaged(t *testing.T) {
-	unittest.LargeTest(t)
-	c, ctx, cleanup := makeTestFirestoreClient(t)
-	defer cleanup()
-
-	f, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
-
-	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Positive,
-		},
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
-		},
-	}, userOne))
-
-	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Untriaged,
-		},
-	}, userTwo))
-
-	// Make sure the "oops" marking of untriaged was applied:
-	exp, err := f.Get(ctx)
-	require.NoError(t, err)
-	require.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	require.Equal(t, expectations.Untriaged, exp.Classification(data.AlphaTest, data.AlphaNegativeDigest))
-	require.Equal(t, 1, exp.Len())
-
-	entries, _, err := f.QueryLog(ctx, 0, 1, false)
-	require.NoError(t, err)
-	require.Len(t, entries, 1)
-
-	err = f.UndoChange(ctx, entries[0].ID, userTwo)
-	require.NoError(t, err)
-
-	// Check that we reset from Untriaged back to Negative.
-	exp, err = f.Get(ctx)
-	require.NoError(t, err)
-
-	assertMatches := func(e expectations.ReadOnly) {
-		assert.Equal(t, expectations.Positive, e.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-		assert.Equal(t, expectations.Negative, e.Classification(data.AlphaTest, data.AlphaNegativeDigest))
-		assert.Equal(t, 2, e.Len())
-	}
-	assertMatches(exp)
-
-	// Make sure that if we create a new view, we can read the results
-	// from the table to make the expectations
-	fr, err := New(ctx, c, nil, ReadOnly)
-	require.NoError(t, err)
-	exp, err = fr.Get(ctx)
-	require.NoError(t, err)
-	assertMatches(exp)
-}
-
-// TestUndoChangeNoExist checks undoing an entry that does not exist.
-func TestUndoChangeNoExist(t *testing.T) {
-	unittest.LargeTest(t)
-	c, ctx, cleanup := makeTestFirestoreClient(t)
-	defer cleanup()
-
-	f, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
-
-	err = f.UndoChange(ctx, "doesnotexist", "userTwo")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "not find change")
-}
-
-// TestAddChange_MasterBranch_NotifierEventsCorrect makes sure the notifier is called when changes
-// are made to the master branch.
-func TestAddChange_MasterBranch_NotifierEventsCorrect(t *testing.T) {
-	unittest.LargeTest(t)
-
-	notifier := expectations.NewEventDispatcherForTesting()
-	var calledMutex sync.Mutex
-	var calledWith []expectations.ID
-	notifier.ListenForChange(func(e expectations.ID) {
-		calledMutex.Lock()
-		defer calledMutex.Unlock()
-		calledWith = append(calledWith, e)
-	})
-
-	c, ctx, cleanup := makeTestFirestoreClient(t)
-	defer cleanup()
-
-	f, err := New(ctx, c, notifier, ReadWrite)
-	require.NoError(t, err)
-
-	change1 := []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Positive,
-		},
-	}
-	change2 := []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
-		},
-		{
-			Grouping: data.BetaTest,
-			Digest:   data.BetaPositiveDigest,
-			Label:    expectations.Positive,
-		},
-	}
-
-	require.NoError(t, f.AddChange(ctx, change1, userOne))
-	require.NoError(t, f.AddChange(ctx, change2, userTwo))
-
-	assert.Eventually(t, func() bool {
-		calledMutex.Lock()
-		defer calledMutex.Unlock()
-		expected := []expectations.ID{change1[0].ID(), change2[0].ID(), change2[1].ID()}
-		return assert.ElementsMatch(t, expected, calledWith)
-	}, 5*time.Second, 100*time.Millisecond)
-}
-
-// TestAddUndo_NotifierEventsCorrect tests that the notifier calls are correct during Undo
-// operations on the master branch.
-func TestAddUndo_NotifierEventsCorrect(t *testing.T) {
-	unittest.LargeTest(t)
-
-	notifier := expectations.NewEventDispatcherForTesting()
-	var calledMutex sync.Mutex
-	var calledWith []expectations.ID
-	notifier.ListenForChange(func(e expectations.ID) {
-		calledMutex.Lock()
-		defer calledMutex.Unlock()
-		calledWith = append(calledWith, e)
-	})
-
-	c, ctx, cleanup := makeTestFirestoreClient(t)
-	defer cleanup()
-
-	f, err := New(ctx, c, notifier, ReadWrite)
-	require.NoError(t, err)
-
-	change := expectations.Delta{
+	undidEntry := entries[0]
+	assert.Equal(t, userTwo, undidEntry.User)
+	assert.Equal(t, 1, undidEntry.ChangeCount)
+	assert.Equal(t, expectations.Delta{
 		Grouping: data.AlphaTest,
 		Digest:   data.AlphaPositiveDigest,
-		Label:    expectations.Negative,
-	}
-	expectedUndo := expectations.Delta{
+		Label:    expectations.Positive,
+	}, undidEntry.Details[0])
+}
+
+// TestUndo_CLPartition_EntriesExist_Success makes sure we can undo changes properly, even if the
+// background firestore snapshots are not running (e.g. for CL Expectations).
+func TestUndo_CLPartition_EntriesExist_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	c, ctx, cleanup := makeTestFirestoreClient(t)
+	defer cleanup()
+
+	masterStore := New(c, nil, ReadWrite)
+	clStore := masterStore.ForChangeList("123", "github") // These are arbitrary
+
+	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive, userOne)
+	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaPositiveDigest, expectations.Negative, userOne) // will be undone
+	putEntry(ctx, t, clStore, data.AlphaTest, data.AlphaNegativeDigest, expectations.Negative, userOne)
+
+	entries, _, err := clStore.QueryLog(ctx, 0, 10, false)
+	require.NoError(t, err)
+	require.Len(t, entries, 3)
+
+	toUndo := entries[1].ID
+	require.NotEmpty(t, toUndo)
+
+	require.NoError(t, clStore.UndoChange(ctx, toUndo, userTwo))
+
+	exp, err := clStore.Get(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.Negative, exp.Classification(data.AlphaTest, data.AlphaNegativeDigest))
+
+	// Check that the undo shows up as the most recent entry.
+	entries, _, err = clStore.QueryLog(ctx, 0, 10, true)
+	require.NoError(t, err)
+	require.Len(t, entries, 4)
+	undidEntry := entries[0]
+	assert.Equal(t, userTwo, undidEntry.User)
+	assert.Equal(t, 1, undidEntry.ChangeCount)
+	assert.Equal(t, expectations.Delta{
 		Grouping: data.AlphaTest,
 		Digest:   data.AlphaPositiveDigest,
-		Label:    expectations.Untriaged,
-	}
-
-	require.NoError(t, f.AddChange(ctx, []expectations.Delta{change}, userOne))
-
-	entries, _, err := f.QueryLog(ctx, 0, 1, false)
-	require.NoError(t, err)
-	require.Len(t, entries, 1)
-
-	err = f.UndoChange(ctx, entries[0].ID, userOne)
-	require.NoError(t, err)
-
-	assert.Eventually(t, func() bool {
-		calledMutex.Lock()
-		defer calledMutex.Unlock()
-		expected := []expectations.ID{change.ID(), expectedUndo.ID()}
-		return assert.ElementsMatch(t, expected, calledWith)
-	}, 5*time.Second, 100*time.Millisecond)
-}
-
-// TestCLExpectationsAddGet tests the separation of the MasterExpectations and the CLExpectations.
-// It starts with a shared history, then adds some expectations to both, before requiring that
-// they are properly dealt with. Specifically, the CLExpectations should be treated as a delta to
-// the MasterExpectations (but doesn't actually contain MasterExpectations).
-func TestCLExpectationsAddGet(t *testing.T) {
-	t.Skip("The current database schema is broken and this test now illustrates that")
-	unittest.LargeTest(t)
-	c, ctx, cleanup := makeTestFirestoreClient(t)
-	defer cleanup()
-
-	// Notice notifier is nil; this verifies we do not send events when ChangeList
-	// expectations change
-	mb, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
-
-	require.NoError(t, mb.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Negative,
-		},
-	}, userTwo))
-
-	ib := mb.ForChangeList("117", "gerrit") // arbitrary cl id
-
-	// Check that it starts out blank.
-	clExp, err := ib.Get(ctx)
-	require.NoError(t, err)
-	require.True(t, clExp.Empty())
-
-	// Add to the CLExpectations
-	require.NoError(t, ib.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Positive,
-		},
-		{
-			Grouping: data.BetaTest,
-			Digest:   data.BetaPositiveDigest,
-			Label:    expectations.Positive,
-		},
-	}, userOne))
-
-	// Add to the MasterExpectations
-	require.NoError(t, mb.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
-		},
-	}, userOne))
-
-	// Get a fresh start. This will force-refresh all expectations in the cache.
-	mb, err = New(ctx, c, nil, ReadOnly)
-	require.NoError(t, err)
-	masterE, err := mb.Get(ctx)
-	require.NoError(t, err)
-	clExp, err = ib.Get(ctx)
-	require.NoError(t, err)
-
-	// Make sure the CLExpectations did not leak to the MasterExpectations
-	assert.Equal(t, expectations.Negative, masterE.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	assert.Equal(t, expectations.Negative, masterE.Classification(data.AlphaTest, data.AlphaNegativeDigest))
-	assert.Equal(t, expectations.Untriaged, masterE.Classification(data.BetaTest, data.BetaPositiveDigest))
-	assert.Equal(t, 2, masterE.Len())
-
-	// Make sure the CLExpectations are separate from the MasterExpectations.
-	assert.Equal(t, expectations.Positive, clExp.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	assert.Equal(t, expectations.Untriaged, clExp.Classification(data.AlphaTest, data.AlphaNegativeDigest))
-	assert.Equal(t, expectations.Positive, clExp.Classification(data.BetaTest, data.BetaPositiveDigest))
-	assert.Equal(t, 2, clExp.Len())
-}
-
-// TestCLExpectationsQueryLog makes sure the QueryLogs interacts
-// with the CLExpectations as expected. Which is to say, the two
-// logs are separate.
-func TestCLExpectationsQueryLog(t *testing.T) {
-	unittest.LargeTest(t)
-	c, ctx, cleanup := makeTestFirestoreClient(t)
-	defer cleanup()
-
-	mb, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
-
-	require.NoError(t, mb.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Positive,
-		},
-	}, userTwo))
-
-	ib := mb.ForChangeList("117", "gerrit") // arbitrary cl id
-
-	require.NoError(t, ib.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.BetaTest,
-			Digest:   data.BetaPositiveDigest,
-			Label:    expectations.Positive,
-		},
-	}, userOne))
-
-	// Make sure the master logs are separate from the cl logs.
-	// request up to 10 to make sure we would get the cl
-	// change (if the filtering was wrong).
-	entries, n, err := mb.QueryLog(ctx, 0, 10, true)
-	require.NoError(t, err)
-	require.Equal(t, 1, n)
-
-	now := time.Now()
-	normalizeEntries(t, now, entries)
-	require.Equal(t, expectations.TriageLogEntry{
-		ID:          "was_random_0",
-		User:        userTwo,
-		TS:          now,
-		ChangeCount: 1,
-		Details: []expectations.Delta{
-			{
-				Grouping: data.AlphaTest,
-				Digest:   data.AlphaPositiveDigest,
-				Label:    expectations.Positive,
-			},
-		},
-	}, entries[0])
-
-	// Make sure the cl logs are separate from the master logs.
-	// Unlike when getting the expectations, the cl logs are
-	// *only* those logs that affected this cl. Not, for example,
-	// all the master logs with the cl logs tacked on.
-	entries, n, err = ib.QueryLog(ctx, 0, 10, true)
-	require.NoError(t, err)
-	require.Equal(t, 1, n) // only one change on this branch
-
-	normalizeEntries(t, now, entries)
-	require.Equal(t, expectations.TriageLogEntry{
-		ID:          "was_random_0",
-		User:        userOne,
-		TS:          now,
-		ChangeCount: 1,
-		Details: []expectations.Delta{
-			{
-				Grouping: data.BetaTest,
-				Digest:   data.BetaPositiveDigest,
-				Label:    expectations.Positive,
-			},
-		},
-	}, entries[0])
-}
-
-// TestExpectationEntryID tests edge cases for malformed names
-func TestExpectationEntryID(t *testing.T) {
-	unittest.SmallTest(t)
-	// Based on real data
-	e := expectationEntry{
-		Grouping: "downsample/images/mandrill_512.png",
-		Digest:   "36bc7da524f2869c97f0a0f1d7042110",
-	}
-	require.Equal(t, "downsample-images-mandrill_512.png|36bc7da524f2869c97f0a0f1d7042110",
-		e.ID())
+		Label:    expectations.Positive,
+	}, undidEntry.Details[0])
 }
 
 func TestUpdateLastUsed_NoEntriesToUpdate_NothingChanges(t *testing.T) {
@@ -875,12 +1078,12 @@ func TestUpdateLastUsed_NoEntriesToUpdate_NothingChanges(t *testing.T) {
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	exp, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
+	masterStore := New(c, nil, ReadWrite)
+
 	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
 
 	newUsedTime := time.Date(2020, time.February, 5, 0, 0, 0, 0, time.UTC)
-	err = exp.UpdateLastUsed(ctx, nil, newUsedTime)
+	err := masterStore.UpdateLastUsed(ctx, nil, newUsedTime)
 	require.NoError(t, err)
 
 	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
@@ -900,12 +1103,12 @@ func TestUpdateLastUsed_OneEntryToUpdate_Success(t *testing.T) {
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	exp, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
+	masterStore := New(c, nil, ReadWrite)
+
 	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
 
 	newUsedTime := time.Date(2020, time.February, 5, 0, 0, 0, 0, time.UTC)
-	err = exp.UpdateLastUsed(ctx, []expectations.ID{
+	err := masterStore.UpdateLastUsed(ctx, []expectations.ID{
 		{
 			Grouping: entryOneGrouping,
 			Digest:   entryOneDigest,
@@ -915,7 +1118,7 @@ func TestUpdateLastUsed_OneEntryToUpdate_Success(t *testing.T) {
 
 	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
 	require.NotNil(t, actualEntryOne)
-	assert.Equal(t, entryOne.Label, actualEntryOne.Label)          // no change
+	assert.Equal(t, entryOne.Ranges, actualEntryOne.Ranges)        // no change
 	assert.True(t, entryOne.Updated.Equal(actualEntryOne.Updated)) // no change
 	assert.True(t, newUsedTime.Equal(actualEntryOne.LastUsed))     // change expected
 
@@ -933,12 +1136,12 @@ func TestUpdateLastUsed_MultipleEntriesToUpdate_Success(t *testing.T) {
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	exp, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
+	masterStore := New(c, nil, ReadWrite)
+
 	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
 
 	newUsedTime := time.Date(2020, time.February, 5, 0, 0, 0, 0, time.UTC)
-	err = exp.UpdateLastUsed(ctx, []expectations.ID{
+	err := masterStore.UpdateLastUsed(ctx, []expectations.ID{
 		// order shouldn't matter, so might as well do it "backwards"
 		{
 			Grouping: entryTwoGrouping,
@@ -953,27 +1156,18 @@ func TestUpdateLastUsed_MultipleEntriesToUpdate_Success(t *testing.T) {
 
 	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
 	require.NotNil(t, actualEntryOne)
-	assert.Equal(t, entryOne.Label, actualEntryOne.Label)          // no change
+	assert.Equal(t, entryOne.Ranges, actualEntryOne.Ranges)        // no change
 	assert.True(t, entryOne.Updated.Equal(actualEntryOne.Updated)) // no change
 	assert.True(t, newUsedTime.Equal(actualEntryOne.LastUsed))     // change expected
 
 	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
 	require.NotNil(t, actualEntryTwo)
-	assert.Equal(t, entryTwo.Label, actualEntryTwo.Label)          // no change
+	assert.Equal(t, entryTwo.Ranges, actualEntryTwo.Ranges)        // no change
 	assert.True(t, entryTwo.Updated.Equal(actualEntryTwo.Updated)) // no change
 	assert.True(t, newUsedTime.Equal(actualEntryTwo.LastUsed))     // change expected
 
 	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
 	assertUnchanged(t, &entryThree, actualEntryThree)
-}
-
-func TestMarkUnusedEntriesForGC_Untriaged_Error(t *testing.T) {
-	unittest.SmallTest(t)
-	ctx := context.Background()
-	exp := Store{}
-	_, err := exp.MarkUnusedEntriesForGC(ctx, expectations.Untriaged, time.Now())
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "cannot be untriaged")
 }
 
 // TestMarkUnusedEntriesForGC_EntriesRecentlyUsed_NoEntriesMarked_Success checks that we don't mark
@@ -985,17 +1179,16 @@ func TestMarkUnusedEntriesForGC_EntriesRecentlyUsed_NoEntriesMarked_Success(t *t
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	exp, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
+	masterStore := New(c, nil, ReadWrite)
 	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
 
 	// The time passed here is before all entries
-	n, err := exp.MarkUnusedEntriesForGC(ctx, expectations.Positive, entryOne.LastUsed.Add(-time.Second))
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, entryOne.LastUsed.Add(-time.Second))
 	require.NoError(t, err)
 	assert.Equal(t, 0, n)
 	// The time passed here is before all negative entries. It is after entryOne (which is positive)
 	// so we still expect nothing to have changed.
-	n, err = exp.MarkUnusedEntriesForGC(ctx, expectations.Negative, entryTwo.LastUsed.Add(-time.Second))
+	n, err = masterStore.MarkUnusedEntriesForGC(ctx, expectations.Negative, entryTwo.LastUsed.Add(-time.Second))
 	require.NoError(t, err)
 	assert.Equal(t, 0, n)
 
@@ -1009,15 +1202,14 @@ func TestMarkUnusedEntriesForGC_EntriesRecentlyUsed_NoEntriesMarked_Success(t *t
 }
 
 // TestMarkUnusedEntriesForGC_OnePositiveEntryMarked_Success tests where a single entry (the first)
-// is marked for garbage collection (i.e. untriaged).
+// is marked for garbage collection.
 func TestMarkUnusedEntriesForGC_OnePositiveEntryMarked_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	exp, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
+	masterStore := New(c, nil, ReadWrite)
 	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
 
 	// The time here is selected to be after both entryOne and entryTwo were last used, to make
@@ -1025,14 +1217,14 @@ func TestMarkUnusedEntriesForGC_OnePositiveEntryMarked_Success(t *testing.T) {
 	cutoff := entryThree.LastUsed.Add(-time.Minute)
 	assert.True(t, cutoff.After(entryOne.LastUsed))
 	assert.True(t, cutoff.After(entryTwo.LastUsed))
-	n, err := exp.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
 	require.NoError(t, err)
 	assert.Equal(t, 1, n)
 
 	// Make sure all entries are still there, just entryOne is Untriaged
 	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
 	require.NotNil(t, actualEntryOne)
-	assert.Equal(t, expectations.Untriaged, actualEntryOne.Label)
+	assert.True(t, actualEntryOne.NeedsGC)
 	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
 	assertUnchanged(t, &entryTwo, actualEntryTwo)
 	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
@@ -1040,75 +1232,73 @@ func TestMarkUnusedEntriesForGC_OnePositiveEntryMarked_Success(t *testing.T) {
 }
 
 // TestMarkUnusedEntriesForGC_OneNegativeEntryMarked_Success tests where the middle entry (the
-// only negative) entry is marked for garbage collection (i.e. untriaged).
+// only negative) entry is marked for garbage collection.
 func TestMarkUnusedEntriesForGC_OneNegativeEntryMarked_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	exp, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
+	masterStore := New(c, nil, ReadWrite)
+
 	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
 	// This time is picked to be after all entries
 	cutoff := entryThree.LastUsed.Add(time.Minute)
 	assert.True(t, cutoff.After(entryOne.LastUsed))
 	assert.True(t, cutoff.After(entryTwo.LastUsed))
-	n, err := exp.MarkUnusedEntriesForGC(ctx, expectations.Negative, cutoff)
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Negative, cutoff)
 	require.NoError(t, err)
 	assert.Equal(t, 1, n)
 
-	// Make sure all entries are still there, just entryTwo is Untriaged
+	// Make sure all entries are still there, just entryTwo is marked for GC.
 	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
 	assertUnchanged(t, &entryOne, actualEntryOne)
 	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
 	require.NotNil(t, actualEntryTwo)
-	assert.Equal(t, expectations.Untriaged, actualEntryTwo.Label)
+	assert.True(t, actualEntryTwo.NeedsGC)
 	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
 	assertUnchanged(t, &entryThree, actualEntryThree)
 }
 
 // TestMarkUnusedEntriesForGC_MultiplePositiveEntriesAffected tests where we mark both positive
-// entries as untriaged (not matching the negative one in the middle).
+// entries for garbage collecting (not matching the negative one in the middle).
 func TestMarkUnusedEntriesForGC_MultiplePositiveEntriesAffected(t *testing.T) {
 	unittest.LargeTest(t)
 
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	exp, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
+	masterStore := New(c, nil, ReadWrite)
 	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
 
 	// This time is picked to be after all entries
 	cutoff := entryThree.LastUsed.Add(time.Minute)
 	assert.True(t, cutoff.After(entryOne.LastUsed))
 	assert.True(t, cutoff.After(entryTwo.LastUsed))
-	n, err := exp.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
 	require.NoError(t, err)
 	assert.Equal(t, 2, n)
 
-	// Make sure all entries are still there, entryOne and entryThree are Untriaged
+	// Make sure all entries are still there, entryOne and entryThree are marked for GC.
 	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
 	require.NotNil(t, actualEntryOne)
-	assert.Equal(t, expectations.Untriaged, actualEntryOne.Label)
+	assert.True(t, actualEntryOne.NeedsGC)
 	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
 	assertUnchanged(t, &entryTwo, actualEntryTwo)
 	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
 	require.NotNil(t, actualEntryThree)
-	assert.Equal(t, expectations.Untriaged, actualEntryThree.Label)
+	assert.True(t, actualEntryThree.NeedsGC)
 }
 
 // TestMarkUnusedEntriesForGC_LastUsedLongAgo_UpdatedRecently_NoEntriesMarked_Success tests where
-// we don't untriage digests that have not been seen in a while, but were modified recently.
+// we don't mark entries for GC which have not been seen in a while, but were modified recently.
 func TestMarkUnusedEntriesForGC_LastUsedLongAgo_UpdatedRecently_NoEntriesMarked_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	exp, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
+	masterStore := New(c, nil, ReadWrite)
 	// This is well after entryThree.LastUsed
 	moreRecently := time.Date(2020, time.March, 1, 1, 1, 1, 0, time.UTC)
 	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, moreRecently)
@@ -1118,12 +1308,12 @@ func TestMarkUnusedEntriesForGC_LastUsedLongAgo_UpdatedRecently_NoEntriesMarked_
 	cutoff := entryThree.LastUsed.Add(time.Minute)
 	assert.True(t, cutoff.After(entryOne.LastUsed))
 	assert.True(t, cutoff.After(entryTwo.LastUsed))
-	n, err := exp.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
 	require.NoError(t, err)
 	// None should be affected because the modified stamp is too new.
 	assert.Equal(t, 0, n)
 
-	// Make sure all entries are still there, just entryOne is Untriaged
+	// Make sure all entries are still there and none were marked for GC.
 	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
 	assertUnchanged(t, &entryOne, actualEntryOne)
 	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
@@ -1132,33 +1322,32 @@ func TestMarkUnusedEntriesForGC_LastUsedLongAgo_UpdatedRecently_NoEntriesMarked_
 	assertUnchanged(t, &entryThree, actualEntryThree)
 }
 
-// TestGarbageCollect_MultipleEntriesDeleted tests case where we untriage two entries and then
-// delete those untriaged entries so they are not in Firestore anymore.
+// TestGarbageCollect_MultipleEntriesDeleted tests case where we mark two entries for GC and then
+// cleanup those entries so they are not in Firestore anymore.
 func TestGarbageCollect_MultipleEntriesDeleted(t *testing.T) {
 	unittest.LargeTest(t)
 
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	exp, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
-	_, _, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
+	masterStore := New(c, nil, ReadWrite)
+	_, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
 
-	n, err := exp.MarkUnusedEntriesForGC(ctx, expectations.Positive, entryThree.LastUsed.Add(time.Minute))
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, entryThree.LastUsed.Add(time.Minute))
 	require.NoError(t, err)
 	assert.Equal(t, 2, n)
-	n, err = exp.GarbageCollect(ctx)
+	n, err = masterStore.GarbageCollect(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, 2, n)
 
-	// Make sure entryOne and entryTwo are not there (e.g. now nil)
+	// Make sure entryOne and entryThree are not there (e.g. now nil)
 	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
-	require.Nil(t, actualEntryOne)
+	assert.Nil(t, actualEntryOne)
 	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
 	require.NotNil(t, actualEntryTwo)
-	assert.Equal(t, expectations.Negative, actualEntryTwo.Label)
+	assertUnchanged(t, &entryTwo, actualEntryTwo)
 	actualEntryThree := getRawEntry(ctx, t, c, entryThreeGrouping, entryThreeDigest)
-	require.Nil(t, actualEntryThree)
+	assert.Nil(t, actualEntryThree)
 }
 
 // TestGarbageCollect_NoEntriesDeleted tests case where there are no entries to clean up.
@@ -1170,11 +1359,10 @@ func TestGarbageCollect_NoEntriesDeleted(t *testing.T) {
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	exp, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
+	masterStore := New(c, nil, ReadWrite)
 	entryOne, entryTwo, entryThree := populateFirestore(ctx, t, c, updatedLongAgo)
 
-	n, err := exp.GarbageCollect(ctx)
+	n, err := masterStore.GarbageCollect(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, 0, n)
 
@@ -1195,11 +1383,10 @@ func TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success(t *testing.T) {
 	c, ctx, cleanup := makeTestFirestoreClient(t)
 	defer cleanup()
 
-	exp, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
+	masterStore := New(c, nil, ReadWrite)
 
-	clExp := exp.ForChangeList("foo", "bar")
-	err = clExp.AddChange(ctx, []expectations.Delta{
+	clExp := masterStore.ForChangeList("cl1234", "crs")
+	err := clExp.AddChange(ctx, []expectations.Delta{
 		{
 			Grouping: entryOneGrouping,
 			Digest:   entryOneDigest,
@@ -1209,130 +1396,66 @@ func TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	cutoff := time.Now().Add(time.Hour)
-	n, err := exp.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
+	n, err := masterStore.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
 	require.NoError(t, err)
 	assert.Equal(t, 0, n)
 
 	// Make sure the original CL entry is there, still positive.
-	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
+	actualEntryOne := getRawCLEntry(ctx, t, c, entryOneGrouping, entryOneDigest, "crs_cl1234")
 	require.NotNil(t, actualEntryOne)
-	assert.Equal(t, expectations.Positive, actualEntryOne.Label)
-	assert.NotEqual(t, masterBranch, actualEntryOne.CRSAndCLID)
+	assert.False(t, actualEntryOne.NeedsGC)
+	assert.Equal(t, []triageRange{
+		{
+			FirstIndex: beginningOfTime,
+			LastIndex:  endOfTime,
+			Label:      expectations.Positive,
+		},
+	}, actualEntryOne.Ranges)
 }
 
-// TestMarkUnusedEntriesForGC_LegacyEntriesRemoved_Success tests that legacy entries (created w/o
-// a LastUsed field set) get cleaned up if their Updated field is old enough. This is tolerable
-// because if the garbage collection process has been running for a while, then the legacy
-// expectation was at least not seen in the most recent tile, so it is unlikely to be fresh anyway.
-// This test can go away in Fall 2020 when the MarkUnusedEntriesForGC is updated to search first by
-// LastUsed.
-func TestMarkUnusedEntriesForGC_LegacyEntriesRemoved_Success(t *testing.T) {
-	unittest.LargeTest(t)
-
-	c, ctx, cleanup := makeTestFirestoreClient(t)
-	defer cleanup()
-
-	exp, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
-	lastYear := time.Date(2019, time.February, 27, 0, 0, 0, 0, time.UTC)
-	today := time.Date(2020, time.February, 27, 0, 0, 0, 0, time.UTC)
-	entryOne := expectationEntry{
-		Grouping:   entryOneGrouping,
-		Digest:     entryOneDigest,
-		Label:      expectations.Positive,
-		Updated:    lastYear,
-		CRSAndCLID: masterBranch,
-		LastUsed:   time.Time{},
+// normalizeEntries fixes the non-deterministic parts of TriageLogEntry to be deterministic
+func normalizeEntries(t *testing.T, entries []expectations.TriageLogEntry) {
+	for i, te := range entries {
+		require.NotEqual(t, "", te.ID)
+		te.ID = "was_random_" + strconv.Itoa(i)
+		entries[i] = te
 	}
-	entryTwo := expectationEntry{
-		Grouping:   entryTwoGrouping,
-		Digest:     entryTwoDigest,
-		Label:      expectations.Positive,
-		Updated:    today,
-		CRSAndCLID: masterBranch,
-		LastUsed:   time.Time{},
-	}
-	createRawEntry(ctx, t, c, entryOne)
-	createRawEntry(ctx, t, c, entryTwo)
-
-	cutoff := time.Date(2020, time.February, 26, 0, 0, 0, 0, time.UTC)
-	assert.True(t, cutoff.After(lastYear))
-	assert.True(t, cutoff.Before(today))
-	n, err := exp.MarkUnusedEntriesForGC(ctx, expectations.Positive, cutoff)
-	require.NoError(t, err)
-	assert.Equal(t, 1, n)
-
-	// Make sure both entries are there
-	actualEntryOne := getRawEntry(ctx, t, c, entryOneGrouping, entryOneDigest)
-	require.NotNil(t, actualEntryOne)
-	assert.Equal(t, expectations.Untriaged, actualEntryOne.Label)
-	actualEntryTwo := getRawEntry(ctx, t, c, entryTwoGrouping, entryTwoDigest)
-	assertUnchanged(t, &entryTwo, actualEntryTwo)
 }
 
-// TestGetTriageHistory_SunnyDay writes some changes and then gets the triage history for those
-// changes. Even if we query for records that don't exist, we should not see errors.
-func TestGetTriageHistory_SunnyDay_Success(t *testing.T) {
-	unittest.LargeTest(t)
-	c, ctx, cleanup := makeTestFirestoreClient(t)
-	defer cleanup()
+func countExpectationChanges(ctx context.Context, t *testing.T, f *Store) int {
+	q := f.changesCollection().Offset(0)
+	count := 0
+	require.NoError(t, f.client.IterDocs(ctx, "", "", q, 3, 30*time.Second, func(ds *firestore.DocumentSnapshot) error {
+		if ds == nil {
+			return nil
+		}
+		count++
+		return nil
+	}))
+	return count
+}
 
-	f, err := New(ctx, c, nil, ReadWrite)
-	require.NoError(t, err)
+func countTriageRecords(ctx context.Context, t *testing.T, f *Store) int {
+	q := f.recordsCollection().Offset(0)
+	count := 0
+	require.NoError(t, f.client.IterDocs(ctx, "", "", q, 3, 30*time.Second, func(ds *firestore.DocumentSnapshot) error {
+		if ds == nil {
+			return nil
+		}
+		count++
+		return nil
+	}))
+	return count
+}
 
-	// Brand new instance should have no expectations
-	e, err := f.Get(ctx)
-	require.NoError(t, err)
-	require.True(t, e.Empty())
-
-	err = f.AddChange(ctx, []expectations.Delta{
+func putEntry(ctx context.Context, t *testing.T, f expectations.Store, name types.TestName, digest types.Digest, label expectations.Label, user string) {
+	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
 		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Positive,
+			Grouping: name,
+			Digest:   digest,
+			Label:    label,
 		},
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Positive,
-		},
-	}, userOne)
-	require.NoError(t, err)
-
-	err = f.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
-		},
-	}, userTwo)
-	require.NoError(t, err)
-
-	// Just make sure the time in the record was recent - the exact time does not really matter.
-	assertTimeCorrect := func(t *testing.T, ts time.Time) {
-		assert.True(t, ts.Before(time.Now()))
-		assert.True(t, ts.After(time.Now().Add(-time.Minute)))
-	}
-
-	th, err := f.GetTriageHistory(ctx, data.AlphaTest, data.AlphaPositiveDigest)
-	require.NoError(t, err)
-	require.Len(t, th, 1)
-	assert.Equal(t, userOne, th[0].User)
-	assertTimeCorrect(t, th[0].TS)
-
-	th, err = f.GetTriageHistory(ctx, data.AlphaTest, data.AlphaNegativeDigest)
-	require.NoError(t, err)
-	require.Len(t, th, 2)
-	// Make sure the most recent change is first
-	assert.Equal(t, userTwo, th[0].User)
-	assertTimeCorrect(t, th[0].TS)
-	assert.Equal(t, userOne, th[1].User)
-	assertTimeCorrect(t, th[1].TS)
-	assert.True(t, th[0].TS.After(th[1].TS))
-
-	th, err = f.GetTriageHistory(ctx, "does not exist", "nope")
-	require.NoError(t, err)
-	assert.Empty(t, th)
+	}, user))
 }
 
 // An arbitrary date a long time before the times used in populateFirestore.
@@ -1345,40 +1468,46 @@ const (
 	entryTwoDigest     = data.AlphaNegativeDigest
 	entryThreeGrouping = data.BetaTest
 	entryThreeDigest   = data.BetaPositiveDigest
+
+	userOne = "userOne@example.com"
+	userTwo = "userTwo@example.com"
 )
 
 // populateFirestore creates three manual entries in firestore, corresponding to the
 // three_devices data. It uses three different times for LastUsed and the same (provided) time
 // for modified for each of the entries. Then, it returns the created entries for use in asserts.
-func populateFirestore(ctx context.Context, t *testing.T, c *firestore.Client, modified time.Time) (expectationEntry, expectationEntry, expectationEntry) {
+func populateFirestore(ctx context.Context, t *testing.T, c *ifirestore.Client, modified time.Time) (expectationEntry, expectationEntry, expectationEntry) {
 	// For convenience, these times are spaced a few days apart at midnight in ascending order.
 	var entryOneUsed = time.Date(2020, time.January, 28, 0, 0, 0, 0, time.UTC)
 	var entryTwoUsed = time.Date(2020, time.January, 30, 0, 0, 0, 0, time.UTC)
 	var entryThreeUsed = time.Date(2020, time.February, 2, 0, 0, 0, 0, time.UTC)
 
 	entryOne := expectationEntry{
-		Grouping:   entryOneGrouping,
-		Digest:     entryOneDigest,
-		Label:      expectations.Positive,
-		Updated:    modified,
-		CRSAndCLID: masterBranch,
-		LastUsed:   entryOneUsed,
+		Grouping: entryOneGrouping,
+		Digest:   entryOneDigest,
+		Ranges: []triageRange{
+			{FirstIndex: beginningOfTime, LastIndex: endOfTime, Label: expectations.Positive},
+		},
+		Updated:  modified,
+		LastUsed: entryOneUsed,
 	}
 	entryTwo := expectationEntry{
-		Grouping:   entryTwoGrouping,
-		Digest:     entryTwoDigest,
-		Label:      expectations.Negative,
-		Updated:    modified,
-		CRSAndCLID: masterBranch,
-		LastUsed:   entryTwoUsed,
+		Grouping: entryTwoGrouping,
+		Digest:   entryTwoDigest,
+		Ranges: []triageRange{
+			{FirstIndex: beginningOfTime, LastIndex: endOfTime, Label: expectations.Negative},
+		},
+		Updated:  modified,
+		LastUsed: entryTwoUsed,
 	}
 	entryThree := expectationEntry{
-		Grouping:   entryThreeGrouping,
-		Digest:     entryThreeDigest,
-		Label:      expectations.Positive,
-		Updated:    modified,
-		CRSAndCLID: masterBranch,
-		LastUsed:   entryThreeUsed,
+		Grouping: entryThreeGrouping,
+		Digest:   entryThreeDigest,
+		Ranges: []triageRange{
+			{FirstIndex: beginningOfTime, LastIndex: endOfTime, Label: expectations.Positive},
+		},
+		Updated:  modified,
+		LastUsed: entryThreeUsed,
 	}
 	createRawEntry(ctx, t, c, entryOne)
 	createRawEntry(ctx, t, c, entryTwo)
@@ -1387,16 +1516,26 @@ func populateFirestore(ctx context.Context, t *testing.T, c *firestore.Client, m
 }
 
 // createRawEntry creates the bare expectationEntry in firestore.
-func createRawEntry(ctx context.Context, t *testing.T, c *firestore.Client, entry expectationEntry) {
-	doc := c.Collection(expectationsCollection).Doc(entry.ID())
+func createRawEntry(ctx context.Context, t *testing.T, c *ifirestore.Client, entry expectationEntry) {
+	doc := c.Collection(partitions).Doc(masterPartition).Collection(expectationEntries).Doc(entry.ID())
 	_, err := doc.Create(ctx, entry)
 	require.NoError(t, err)
 }
 
+func assertUnchanged(t *testing.T, expected, actual *expectationEntry) {
+	require.NotNil(t, expected)
+	require.NotNil(t, actual)
+	require.Len(t, actual.Ranges, 1)
+	assert.Equal(t, expected.Ranges[0], actual.Ranges[0])
+	assert.True(t, expected.Updated.Equal(actual.Updated))
+	assert.True(t, expected.LastUsed.Equal(actual.LastUsed))
+	assert.Equal(t, expected.NeedsGC, actual.NeedsGC)
+}
+
 // getRawEntry returns the bare expectationEntry from firestore for the given name/digest.
-func getRawEntry(ctx context.Context, t *testing.T, c *firestore.Client, name types.TestName, digest types.Digest) *expectationEntry {
+func getRawEntry(ctx context.Context, t *testing.T, c *ifirestore.Client, name types.TestName, digest types.Digest) *expectationEntry {
 	entry := expectationEntry{Grouping: name, Digest: digest}
-	doc := c.Collection(expectationsCollection).Doc(entry.ID())
+	doc := c.Collection(partitions).Doc(masterPartition).Collection(expectationEntries).Doc(entry.ID())
 	ds, err := doc.Get(ctx)
 	if err != nil {
 		// This error could indicated not found, which may be expected by some tests.
@@ -1407,69 +1546,20 @@ func getRawEntry(ctx context.Context, t *testing.T, c *firestore.Client, name ty
 	return &entry
 }
 
-func assertUnchanged(t *testing.T, expected, actual *expectationEntry) {
-	require.NotNil(t, expected)
-	require.NotNil(t, actual)
-	assert.Equal(t, expected.Label, actual.Label)
-	assert.True(t, expected.Updated.Equal(actual.Updated))
-	assert.True(t, expected.LastUsed.Equal(actual.LastUsed))
-}
-
-// fillWith4Entries fills a given Store with 4 triaged records of a few digests.
-func fillWith4Entries(t *testing.T, f *Store) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Negative,
-		},
-	}, userOne))
-	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Positive, // overwrites previous value
-		},
-	}, userTwo))
-	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.BetaTest,
-			Digest:   data.BetaPositiveDigest,
-			Label:    expectations.Positive,
-		},
-	}, userOne))
-	require.NoError(t, f.AddChange(ctx, []expectations.Delta{
-		{
-			Grouping: data.AlphaTest,
-			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
-		},
-		{
-			Grouping: data.BetaTest,
-			Digest:   data.BetaUntriagedDigest,
-			Label:    expectations.Untriaged,
-		},
-	}, userTwo))
-}
-
-// Some parts of the entries (timestamp and id) are non-deterministic
-// Make sure they are valid, then replace them with deterministic values
-// for an easier comparison.
-func normalizeEntries(t *testing.T, now time.Time, entries []expectations.TriageLogEntry) {
-	for i, te := range entries {
-		require.NotEqual(t, "", te.ID)
-		te.ID = "was_random_" + strconv.Itoa(i)
-		ts := te.TS
-		require.False(t, ts.IsZero())
-		require.True(t, now.After(ts))
-		te.TS = now
-		entries[i] = te
+func getRawCLEntry(ctx context.Context, t *testing.T, c *ifirestore.Client, name types.TestName, digest types.Digest, crsCLID string) *expectationEntry {
+	entry := expectationEntry{Grouping: name, Digest: digest}
+	doc := c.Collection(partitions).Doc(crsCLID).Collection(expectationEntries).Doc(entry.ID())
+	ds, err := doc.Get(ctx)
+	if err != nil {
+		// This error could indicated not found, which may be expected by some tests.
+		return nil
 	}
+	err = ds.DataTo(&entry)
+	require.NoError(t, err)
+	return &entry
 }
 
-// makeBigExpectations makes n tests named from start to end that each have 32 digests.
+// makeBigExpectations makes (end-start) tests named from start to end that each have 32 digests.
 func makeBigExpectations(start, end int) (*expectations.Expectations, []expectations.Delta) {
 	var e expectations.Expectations
 	var delta []expectations.Delta
@@ -1491,16 +1581,11 @@ func makeBigExpectations(start, end int) (*expectations.Expectations, []expectat
 
 // makeTestFirestoreClient returns a firestore.Client and a context.Context. When the third return
 // value is called, the Context will be cancelled and the Client will be cleaned up.
-func makeTestFirestoreClient(t *testing.T) (*firestore.Client, context.Context, func()) {
+func makeTestFirestoreClient(t *testing.T) (*ifirestore.Client, context.Context, func()) {
 	ctx, cancel := context.WithCancel(context.Background())
-	c, cleanup := firestore.NewClientForTesting(ctx, t)
+	c, cleanup := ifirestore.NewClientForTesting(ctx, t)
 	return c, ctx, func() {
 		cancel()
 		cleanup()
 	}
 }
-
-const (
-	userOne = "userOne@example.com"
-	userTwo = "userTwo@example.com"
-)
