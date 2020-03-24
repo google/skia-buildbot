@@ -456,3 +456,39 @@ func (s *Store) GetRecentlyResolvedInRangeWithID(d, id string) ([]Incident, erro
 	}
 	return resolved, err
 }
+
+// AreIncidentsFlaky is a utility function to help determine whether a slice
+// of incidents are flaky. Flaky here is defined as alerts which occasionally
+// show up and go away on their own with no actions taken to resolve them.
+// They are also typically short lived.
+//
+// numThreshold is the number of incidents required to have sufficient sample
+// size. If len(incidents) < numThreshold then incidents are determined to be
+// not flaky.
+//
+// durationThreshold is the duration in seconds below which incidents could be
+// considered to be flaky.
+//
+// durationPercentage. If the percentage of incidents that have durations below
+// durationThreshold is less than durationPercentage then the incidents are
+// determined to be flaky. Eg: 0.50 for 50%. 1 for 100%.
+//
+//
+// Summary: The function uses the following to determine flakiness-
+// * durationPercentage of incidents lasted less than durationThreshold.
+// * Number of incidents must be >= durationThreshold to have sufficient sample
+//   size.
+//
+func AreIncidentsFlaky(incidents []Incident, numThreshold int, durationThreshold int64, durationPercentage float32) bool {
+	if len(incidents) < numThreshold {
+		return false
+	}
+
+	durationLessThanThreshold := 0
+	for _, i := range incidents {
+		if i.LastSeen-i.Start < durationThreshold {
+			durationLessThanThreshold++
+		}
+	}
+	return float32(durationLessThanThreshold)/float32(len(incidents)) >= durationPercentage
+}

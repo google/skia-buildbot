@@ -48,8 +48,13 @@ var (
 )
 
 const (
-	// EXPIRE_DURATION is the time to wait before expiring an incident.
-	EXPIRE_DURATION = 5 * time.Minute
+	// expireDuration is the time to wait before expiring an incident.
+	expireDuration = 5 * time.Minute
+
+	// Constants for sending reminder emails.
+	reminderNumThreshold       = 10
+	reminderDurationThreshold  = 600
+	reminderDurationPercentage = 0.60
 )
 
 // server is the state of the server.
@@ -194,7 +199,7 @@ func New() (baseapp.App, error) {
 			now := time.Now()
 			for _, in := range ins {
 				// If it was last updated too long ago then it should be archived.
-				if time.Unix(in.LastSeen, 0).Add(EXPIRE_DURATION).Before(now) {
+				if time.Unix(in.LastSeen, 0).Add(expireDuration).Before(now) {
 					if _, err := srv.incidentStore.Archive(in.Key); err != nil {
 						sklog.Errorf("Failed to archive incident: %s", err)
 					}
@@ -505,7 +510,15 @@ func (srv *server) recentIncidentsHandler(w http.ResponseWriter, r *http.Request
 		httputils.ReportError(w, err, "Failed to load incidents.", http.StatusInternalServerError)
 		return
 	}
-	if err := json.NewEncoder(w).Encode(ins); err != nil {
+
+	resp := struct {
+		Incidents []incident.Incident `json:"incidents"`
+		Flaky     bool                `json:"flaky"`
+	}{
+		Incidents: ins,
+		Flaky:     incident.AreIncidentsFlaky(ins, reminderNumThreshold, reminderDurationThreshold, reminderDurationPercentage),
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to send response: %s", err)
 	}
 }

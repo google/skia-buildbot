@@ -68,6 +68,11 @@ incident-sk {
     color: var(--green);
   }
 
+  .flaky {
+    font-size: 0.75em;
+    color: var(--black);
+  }
+
   delete-icon-sk {
     fill: var(--gray);
     cursor: pointer;
@@ -98,6 +103,7 @@ incident-sk {
 incident-sk[minimized] .params,
 incident-sk[minimized] .addNote,
 incident-sk[minimized] .history,
+incident-sk[minimized] .flaky,
 incident-sk[minimized] .matchingSilences {
   display: none;
 }
