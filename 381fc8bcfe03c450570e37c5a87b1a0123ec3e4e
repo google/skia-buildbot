@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "058189b8_6463aa1a",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1413,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T19:00:36Z",
+      "side": 1,
+      "message": "I think expected/actualReturnValue carry the same information as want/got, which is a pretty standard Go idiom. For that reason I\u0027ll stick with the more idiomatic way.\n\nI agree with using more meaningful names if the context is unclear, but I don\u0027t think that\u0027s the case here.",
+      "parentUuid": "a82df1ac_af180ce2",
+      "range": {
+        "startLine": 1413,
+        "startChar": 19,
+        "endLine": 1413,
+        "endChar": 28
+      },
+      "revId": "381fc8bcfe03c450570e37c5a87b1a0123ec3e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0f5d7d41_9f9fe7b5",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 11
@@ -45,6 +69,30 @@
       "revId": "381fc8bcfe03c450570e37c5a87b1a0123ec3e4e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d71cb41f_a8a9cbe1",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1438,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T19:00:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0f5d7d41_9f9fe7b5",
+      "range": {
+        "startLine": 1438,
+        "startChar": 6,
+        "endLine": 1438,
+        "endChar": 25
+      },
+      "revId": "381fc8bcfe03c450570e37c5a87b1a0123ec3e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "c31b3d64_6e4107cd",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1459,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T19:00:36Z",
+      "side": 1,
+      "message": "I\u0027d rather not do this, for two reasons:\n- I don\u0027t like that the two fields are positional arguments, which doesn\u0027t tell you which one is which.\n- The distinction between a missing parameter value (i.e. not found in the optionalKeys map) vs. an empty value (i.e. the empty string) is important to this test, thus using string arguments would require passing a sentinel string to represent a missing value, and some conditional logic to correctly build the optionalKeys map in the test function.",
+      "parentUuid": "5a53a413_31b4ece7",
+      "range": {
+        "startLine": 1459,
+        "startChar": 1,
+        "endLine": 1459,
+        "endChar": 6
+      },
+      "revId": "381fc8bcfe03c450570e37c5a87b1a0123ec3e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "761c7841_639fbf79",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 11
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "5e0a291d_4ecc6068",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1472,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T19:00:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "761c7841_639fbf79",
+      "range": {
+        "startLine": 1472,
+        "startChar": 45,
+        "endLine": 1472,
+        "endChar": 54
+      },
+      "revId": "381fc8bcfe03c450570e37c5a87b1a0123ec3e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "64cce982_969840ee",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 11
@@ -114,6 +210,30 @@
       "revId": "381fc8bcfe03c450570e37c5a87b1a0123ec3e4e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d2b5db5_8f7cec63",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 1577,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T19:00:36Z",
+      "side": 1,
+      "message": "Leaving as is for the same reasons as with the FuzzyMatching_InvalidParameters test.",
+      "parentUuid": "64cce982_969840ee",
+      "range": {
+        "startLine": 1577,
+        "startChar": 2,
+        "endLine": 1577,
+        "endChar": 14
+      },
+      "revId": "381fc8bcfe03c450570e37c5a87b1a0123ec3e4e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

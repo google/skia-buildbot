@@ -237,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "873e1c65_4cb3f16c",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 1312,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T19:00:36Z",
+      "side": 1,
+      "message": "Great suggestion, thanks!",
+      "parentUuid": "5cfc877f_a274d810",
+      "range": {
+        "startLine": 1312,
+        "startChar": 1,
+        "endLine": 1312,
+        "endChar": 6
+      },
+      "revId": "bef63587a60cc2f0a619e9e53cbd896050ccc9e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "39d34312_4831c126",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 10
