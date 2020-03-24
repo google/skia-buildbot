@@ -1418,39 +1418,61 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_ImageAlreadyLabeled
 	test("labeled negative, returns false", expectations.Negative, false)
 }
 
-func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_NotImplementedError(t *testing.T) {
+func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Success(t *testing.T) {
 	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
-	test := func(name string, explicitlyUntriaged bool) {
-		t.Run(name, func(t *testing.T) {
-			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
-			defer cleanup()
+	const testName = types.TestName("my_test")
+	const traceId = tiling.TraceID(",name=my_test,")
+	const digest = types.Digest("11111111111111111111111111111111")
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/latestpositivedigest/,name=my_test,"
+	const latestPositiveDigestResponse = `{"digest":"22222222222222222222222222222222"}`
+	const latestPositiveDigestGcsPath = "gs://skia-gold-testing/dm-images-v1/22222222222222222222222222222222.png"
+	latestPositiveImageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+	2 2
+	0x00000000 0x00000000
+	0x00000000 0x00000000`))
 
-			const testName = types.TestName("my_test")
-			const digest = types.Digest("11111111111111111111111111111111")
-			optionalKeys := map[string]string{
-				imgmatching.AlgorithmOptionalKey: string(imgmatching.FuzzyMatching),
-				// These optionalKeys do not matter because the algorithm is not exercised by this test.
-				string(imgmatching.FuzzyMatchingMaxDifferentPixels):  "0",
-				string(imgmatching.FuzzyMatchingPixelDeltaThreshold): "0",
-			}
-
-			if explicitlyUntriaged {
-				goldClient.resultState.Expectations = expectations.Baseline{
-					testName: {
-						digest: expectations.Untriaged,
-					},
-				}
-			}
-
-			_, err := goldClient.matchImageAgainstBaseline(testName, "" /* =traceId */, nil /* =imageBytes */, digest, optionalKeys)
-			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "only exact image matching is supported at this time")
-		})
+	tests := []struct {
+		name                string
+		maxDifferentPixels  string
+		pixelDeltaThreshold string
+		imageBytes          []byte
+		want                bool
+	}{
+		{
+			name:                "identical images, returns true",
+			maxDifferentPixels:  "0",
+			pixelDeltaThreshold: "0",
+			imageBytes: imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+			2 2
+			0x00000000 0x00000000
+			0x00000000 0x00000000`)),
+			want: true,
+		},
+		// TODO(lovisolo): Add more tests.
 	}
 
-	test("implicitly untriaged, not implemented error", false)
-	test("explicitly untriaged, not implemented error", true)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			goldClient, cleanup, httpClient, gcsClient := makeGoldClientForMatchImageAgainstBaselineTests(t)
+			defer cleanup()
+			defer httpClient.AssertExpectations(t)
+			defer gcsClient.AssertExpectations(t)
+
+			httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse([]byte(latestPositiveDigestResponse), "200 OK", http.StatusOK), nil)
+			gcsClient.On("Download", testutils.AnyContext, latestPositiveDigestGcsPath, filepath.Join(goldClient.workDir, digestsDirectory)).Return(latestPositiveImageBytes, nil)
+
+			optionalKeys := map[string]string{
+				imgmatching.AlgorithmOptionalKey:                     string(imgmatching.FuzzyMatching),
+				string(imgmatching.FuzzyMatchingMaxDifferentPixels):  tc.maxDifferentPixels,
+				string(imgmatching.FuzzyMatchingPixelDeltaThreshold): tc.pixelDeltaThreshold,
+			}
+
+			matches, err := goldClient.matchImageAgainstBaseline(testName, traceId, tc.imageBytes, digest, optionalKeys)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.want, matches)
+		})
+	}
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_InvalidParameters_ReturnsError(t *testing.T) {
@@ -1561,7 +1583,7 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage
 
 			_, err := goldClient.matchImageAgainstBaseline(testName, "" /* =traceId */, nil /* =imageBytes */, digest, optionalKeys)
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "only exact image matching is supported at this time")
+			assert.Contains(t, err.Error(), `image matching algorithm "sobel" not yet supported`)
 		})
 	}
 
