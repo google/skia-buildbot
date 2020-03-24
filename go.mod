@@ -64,6 +64,7 @@ require (
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
+	github.com/go-python/gpython v0.0.3
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang-migrate/migrate/v4 v4.10.0
