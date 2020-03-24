@@ -22,7 +22,7 @@ import (
 // [1] https://en.wikipedia.org/wiki/Sobel_operator
 type SobelFuzzyMatcher struct {
 	fuzzy.FuzzyMatcher
-	EdgeThreshold int
+	EdgeThreshold uint8
 }
 
 // Match implements the imagmatching.Matcher interface.

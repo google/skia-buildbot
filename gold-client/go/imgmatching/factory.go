@@ -29,7 +29,7 @@ type MatcherFactoryImpl struct{}
 
 // Make implements the MatcherFactory interface.
 func (m MatcherFactoryImpl) Make(optionalKeys map[string]string) (AlgorithmName, Matcher, error) {
-	algorithmNameStr, ok := optionalKeys[AlgorithmOptionalKey]
+	algorithmNameStr, ok := optionalKeys[ImageMatchingAlgorithmOptionalKey]
 	algorithmName := AlgorithmName(algorithmNameStr)
 
 	// Exact matching by default.
@@ -64,21 +64,21 @@ func (m MatcherFactoryImpl) Make(optionalKeys map[string]string) (AlgorithmName,
 // makeFuzzyMatcher returns a fuzzy.FuzzyMatcher instance set up with the parameter values in the
 // given optional keys map.
 func makeFuzzyMatcher(optionalKeys map[string]string) (*fuzzy.FuzzyMatcher, error) {
-	maxDifferentPixels, err := getAndValidateIntParameter(FuzzyMatchingMaxDifferentPixels, 0, math.MaxInt32, optionalKeys)
+	maxDifferentPixels, err := getAndValidateInt64Parameter(FuzzyMatchingMaxDifferentPixels, 0, math.MaxInt64, optionalKeys)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	// The maximum value corresponds to the maximum possible per-channel delta sum. This assumes four
 	// channels (R, G, B, A), each represented with 8 bits; hence 1020 = 255*4.
-	pixelDeltaThreshold, err := getAndValidateIntParameter(FuzzyMatchingPixelDeltaThreshold, 0, 1020, optionalKeys)
+	pixelDeltaThreshold, err := getAndValidateInt64Parameter(FuzzyMatchingPixelDeltaThreshold, 0, 1020, optionalKeys)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	return &fuzzy.FuzzyMatcher{
-		MaxDifferentPixels:  maxDifferentPixels,
-		PixelDeltaThreshold: pixelDeltaThreshold,
+		MaxDifferentPixels:  uint32(maxDifferentPixels),
+		PixelDeltaThreshold: uint32(pixelDeltaThreshold),
 	}, nil
 }
 
@@ -93,23 +93,23 @@ func makeSobelFuzzyMatcher(optionalKeys map[string]string) (*sobel.SobelFuzzyMat
 
 	// This assumes the Sobel operator returns an 8-bit per-pixel value indicating how likely a pixel
 	// is to be part of an edge.
-	edgeThreshold, err := getAndValidateIntParameter(SobelFuzzyMatchingEdgeThreshold, 0, 255, optionalKeys)
+	edgeThreshold, err := getAndValidateInt64Parameter(SobelFuzzyMatchingEdgeThreshold, 0, 255, optionalKeys)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	return &sobel.SobelFuzzyMatcher{
 		FuzzyMatcher:  *fuzzyMatcher,
-		EdgeThreshold: edgeThreshold,
+		EdgeThreshold: uint8(edgeThreshold),
 	}, nil
 }
 
-// getAndValidateIntParameter extracts and validates the given required integer parameter from the
-// given map of optional keys.
+// getAndValidateInt64Parameter extracts and validates the given required integer parameter from
+// the given map of optional keys.
 //
 // Minimum and maximum value validation can be disabled by setting parameters min and max to
-// math.MinInt32 and math.MaxInt32, respectively.
-func getAndValidateIntParameter(name AlgorithmParameterOptionalKey, min, max int, optionalKeys map[string]string) (int, error) {
+// math.MinInt64 and math.MaxInt64, respectively.
+func getAndValidateInt64Parameter(name AlgorithmParameterNameOptionalKey, min, max int64, optionalKeys map[string]string) (int64, error) {
 	// Validate bounds.
 	if min >= max {
 		// This is almost surely a programming error.
@@ -127,27 +127,21 @@ func getAndValidateIntParameter(name AlgorithmParameterOptionalKey, min, max int
 		return 0, skerr.Fmt("image matching parameter %q cannot be empty", name)
 	}
 
-	// Value must be a valid 32-bit integer.
-	//
-	// Note: The "int" type in Go has a platform-specific bit size of *at least* 32 bits, so we
-	// explicitly parse the value as a 32-bit int to keep things deterministic across platforms.
-	// Additionally, this ensures the math.MinInt32 and math.MaxInt32 sentinel values for the mix and
-	// max parameters work as expected.
-	int64Val, err := strconv.ParseInt(stringVal, 0, 32)
+	// Value must be a valid integer.
+	int64Val, err := strconv.ParseInt(stringVal, 10, 64)
 	if err != nil {
 		return 0, skerr.Fmt("parsing integer value for image matching parameter %q: %q", name, err.Error())
 	}
-	intVal := int(int64Val)
 
 	// Value must be between bounds.
-	if intVal < min || intVal > max {
-		// No lower bound, so value must be violating the upper bound.
-		if min == math.MinInt32 {
+	if int64Val < min || int64Val > max {
+		// Value has an upper bound.
+		if min == math.MinInt64 {
 			return 0, skerr.Fmt("image matching parameter %q must be at most %d, was: %d", name, max, int64Val)
 		}
 
-		// No upper bound, so value must be violating the lower bound.
-		if max == math.MaxInt32 {
+		// Value has a lower bound.
+		if max == math.MaxInt64 {
 			return 0, skerr.Fmt("image matching parameter %q must be at least %d, was: %d", name, min, int64Val)
 		}
 
@@ -155,7 +149,7 @@ func getAndValidateIntParameter(name AlgorithmParameterOptionalKey, min, max int
 		return 0, skerr.Fmt("image matching parameter %q must be between %d and %d, was: %d", name, min, max, int64Val)
 	}
 
-	return intVal, nil
+	return int64Val, nil
 }
 
 // Make sure MatcherFactoryImpl fulfills the MatcherFactory interface.

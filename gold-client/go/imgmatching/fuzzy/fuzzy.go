@@ -18,8 +18,8 @@ import (
 // Valid PixelDeltaThreshold values are 0 to 1020 inclusive (0 <= d{R,G,B,A} <= 255, thus
 // 0 <= dR + dG + dB + dA <= 255*4 = 1020).
 type FuzzyMatcher struct {
-	MaxDifferentPixels  int
-	PixelDeltaThreshold int
+	MaxDifferentPixels  uint32
+	PixelDeltaThreshold uint32
 }
 
 // Match implements the imagmatching.Matcher interface.
@@ -37,7 +37,7 @@ func (m *FuzzyMatcher) Match(expected, actual image.Image) bool {
 	draw.Draw(actualNRGBA, bounds, actual, bounds.Min, draw.Src)
 
 	// We'll track the number of different pixels between the two images.
-	numDiffPixels := 0
+	numDiffPixels := uint32(0)
 
 	// Iterate over all pixels.
 	for x := bounds.Min.X; x <= bounds.Max.X; x++ {
@@ -64,11 +64,11 @@ func (m *FuzzyMatcher) Match(expected, actual image.Image) bool {
 	return true
 }
 
-// absDiff takes two uint8 values m and n, computes |m - n|, and converts the result into an int
+// absDiff takes two uint8 values m and n, computes |m - n|, and converts the result into a uint32
 // suitable for addition without the risk of overflowing.
-func absDiff(m, n uint8) int {
+func absDiff(m, n uint8) uint32 {
 	if m > n {
-		return int(m - n)
+		return uint32(m - n)
 	}
-	return int(n - m)
+	return uint32(n - m)
 }

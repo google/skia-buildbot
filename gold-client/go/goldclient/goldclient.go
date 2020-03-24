@@ -382,16 +382,19 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 				fmt.Printf("Untriaged or negative image: %s", link)
 				ff := c.resultState.FailureFile
 				if ff != "" {
-					f, err := os.OpenFile(ff, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-					if err != nil {
-						return skerr.Fmt("could not open failure file %s: %s", ff, err)
-					}
-					if _, err := f.WriteString(link); err != nil {
-						return skerr.Fmt("could not write to failure file %s: %s", ff, err)
-					}
-					if err := f.Close(); err != nil {
-						return skerr.Fmt("could not close failure file %s: %s", ff, err)
-					}
+					egroup.Go(func() error {
+						f, err := os.OpenFile(ff, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+						if err != nil {
+							return skerr.Fmt("could not open failure file %s: %s", ff, err)
+						}
+						if _, err := f.WriteString(link); err != nil {
+							return skerr.Fmt("could not write to failure file %s: %s", ff, err)
+						}
+						if err := f.Close(); err != nil {
+							return skerr.Fmt("could not close failure file %s: %s", ff, err)
+						}
+						return nil
+					})
 				}
 			}
 
@@ -449,35 +452,22 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 	}
 
 	// Extract the specified image matching algorithm from the optionalKeys (defaulting to exact
-	// matching if none is specified) and obtain an instance of the imgmatching.Matcher if the
-	// algorithm requires one (i.e. all but exact matching).
+	// matching if none is specified) and obtain an instance of the imgmatching.Matcher if the algorithm
+	// requires one (i.e. all but exact matching).
 	algorithmName, matcher, err := c.imgMatcherFactory.Make(optionalKeys)
 	if err != nil {
 		return false, skerr.Wrapf(err, "parsing image matching algorithm from optional keys")
 	}
 
-	// Nothing else to do if performing exact matching: we've already checked whether the image is a
-	// known positive.
+	// Nothing else to do if performing exact matching against an unknown or untriaged image.
 	if algorithmName == imgmatching.ExactMatching {
 		return false, nil
 	}
 
-	// TODO(lovisolo): Remove once the non-exact image matching algorithms are implemented.
-	if algorithmName == imgmatching.FuzzyMatching || algorithmName == imgmatching.SobelFuzzyMatching {
-		return false, skerr.Fmt("only exact image matching is supported at this time")
+	// TODO(lovisolo): Remove once SobelFuzzyMatching is implemented.
+	if algorithmName == imgmatching.SobelFuzzyMatching {
+		return false, skerr.Fmt("image matching algorithm %q not yet supported", imgmatching.SobelFuzzyMatching)
 	}
-
-	// The code below is currently unreachable outside of unit tests because
-	// imgmatching.MatcherFactoryImpl#Make() returns an error if the specified algorithm is not
-	// imgmatching.ExactMatching, imgmatching.FuzzyMatching or imgmatching.SobelFuzzyMatching.
-	//
-	// The unit tests that exercise the code below do so by providing a mock
-	// imgmatching.MatcherFactory implementation that returns an algorithm name other than those
-	// mentioned above, thus bypassing the above guards.
-	//
-	// TODO(lovisolo): Remove comment above and replace the mock MatcherFactory used in tests with
-	//                 the real implementation once at least one non-exact matching algorithm
-	//                 is implemented and ready to be used from tests.
 
 	// Decode test output PNG image.
 	image, err := png.Decode(bytes.NewReader(imageBytes))
