@@ -17,7 +17,8 @@ import (
 
 // flags
 var (
-	local = flag.Bool("local", false, "True if running locally.")
+	local          = flag.Bool("local", false, "True if running locally.")
+	configFilename = flag.String("config_filename", "./configs/nano.json", "Filename of the perf instance config to use.")
 )
 
 func main() {
@@ -28,9 +29,13 @@ func main() {
 		sklog.Fatalf("Failed to auth: %s", err)
 	}
 
+	instanceConfig, err := config.InstanceConfigFromFile(*configFilename)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	// Create the store client.
-	cfg := config.PERF_BIGTABLE_CONFIGS[config.NANO]
-	store, err := btts.NewBigTableTraceStoreFromConfig(ctx, cfg, ts, false)
+	store, err := btts.NewBigTableTraceStoreFromConfig(ctx, instanceConfig, ts, false)
 	if err != nil {
 		sklog.Fatalf("Failed to create client: %s", err)
 	}

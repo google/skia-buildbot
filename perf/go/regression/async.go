@@ -359,9 +359,9 @@ func (p *RegressionDetectionProcess) Run() {
 		var summary *clustering2.ClusterSummaries
 		switch p.request.Alert.Algo {
 		case types.KMEANS_GROUPING:
-			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MIN_STDDEV, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)
+			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MinStdDev, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)
 		case types.STEPFIT_GROUPING:
-			summary, err = StepFit(df, k, config.MIN_STDDEV, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)
+			summary, err = StepFit(df, k, config.MinStdDev, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)
 
 		default:
 			p.reportError(skerr.Fmt("Invalid type of clustering: %s", p.request.Alert.Algo), "Invalid type of clustering.")
