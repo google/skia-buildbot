@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "66d5174d_ee058420",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T22:55:54Z",
+      "side": 1,
+      "message": "I thought about it, but I think it\u0027s clearer if each test case includes its own FuzzyMatcher instance. These self-contained test cases make it completely obvious to the reader what all the inputs are just by looking at one single test case. To me, verbosity wins over DRY-ness in this case.",
+      "parentUuid": "d17e9919_aa8c8fbd",
+      "range": {
+        "startLine": 14,
+        "startChar": 1,
+        "endLine": 14,
+        "endChar": 21
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d94a8fa_897c310b",
         "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3051ae65_cb222c21",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T22:55:54Z",
+      "side": 1,
+      "message": "Similarly as above, the fact that these are image.Images instead of strings makes the test cases completely self-contained and obvious.\n\nUsing strings here would require the reader to take the extra step of checking what the loop does with the strings before feeding them to the matcher.",
+      "parentUuid": "7d94a8fa_897c310b",
+      "range": {
+        "startLine": 15,
+        "startChar": 9,
+        "endLine": 15,
+        "endChar": 20
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "6f91b3f9_d4540ef6",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T22:55:54Z",
+      "side": 1,
+      "message": "Since these tests are clear and simple (e.g. only one output, no error handling, etc.) I don\u0027t think this warrants deviating from the standard \"want\" Go idiom.",
+      "parentUuid": "96abe922_14ae3d64",
+      "range": {
+        "startLine": 17,
+        "startChar": 1,
+        "endLine": 17,
+        "endChar": 5
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eaf78dc2_bcb43b5b",
         "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
         "patchSetId": 4
@@ -91,6 +163,30 @@
       "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "436cf1bb_b8c065c1",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T22:55:54Z",
+      "side": 1,
+      "message": "\u003e As above, since this is the same for all test cases, I would just have a const maxPixelDeltaThreshold at the top of the test and build the matcher in the test function/loop\n\nI\u0027m leaving the matcher as is for the reasons mentioned above.\n\n\u003e The const could also have a slightly more detailed comment (2 color channels completely off)\n\nI\u0027ve replaced this and all other non-zero PixelDeltaThreshold values with a smaller, more realistic value as per the suggestion below. Please let me know if you still think it needs a comment.",
+      "parentUuid": "eaf78dc2_bcb43b5b",
+      "range": {
+        "startLine": 82,
+        "startChar": 24,
+        "endLine": 82,
+        "endChar": 41
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "682acced_35879e31",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T22:55:54Z",
+      "side": 1,
+      "message": "I\u0027ve added \"with non-zero deltas on all channels\" test cases where it seemed sensible.",
+      "parentUuid": "a98c5873_d5072599",
+      "range": {
+        "startLine": 154,
+        "startChar": 3,
+        "endLine": 154,
+        "endChar": 13
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "05c55a2d_41ac54b6",
         "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
         "patchSetId": 4
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "23425ab3_ac91f20e",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T22:55:54Z",
+      "side": 1,
+      "message": "Done. Using PixelDeltaThreshold \u003d 16 everywhere.",
+      "parentUuid": "05c55a2d_41ac54b6",
+      "range": {
+        "startLine": 269,
+        "startChar": 25,
+        "endLine": 269,
+        "endChar": 28
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2d85d023_f9aa86f9",
         "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
         "patchSetId": 4
@@ -160,6 +304,30 @@
       "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a95f7234_b1c05258",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T22:55:54Z",
+      "side": 1,
+      "message": "Replaced \"one pixel with dR + dG + dB + dA \u003d\" with \"one pixel at\".",
+      "parentUuid": "2d85d023_f9aa86f9",
+      "range": {
+        "startLine": 304,
+        "startChar": 63,
+        "endLine": 304,
+        "endChar": 121
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
