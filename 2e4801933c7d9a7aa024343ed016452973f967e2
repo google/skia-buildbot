@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "20a31244_01209604",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T02:26:43Z",
+      "side": 1,
+      "message": "As discussed over GVC, these were used to enforce positiveness, so not absolutely necessary.\n\nI\u0027ve replaced all unsigned ints with regular ints.",
+      "parentUuid": "e4b7ddd4_33de353b",
+      "range": {
+        "startLine": 20,
+        "startChar": 21,
+        "endLine": 20,
+        "endChar": 27
+      },
+      "revId": "2e4801933c7d9a7aa024343ed016452973f967e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c0e8c045_1765b33c",
         "filename": "gold-client/go/imgmatching/sobel/sobel.go",
         "patchSetId": 16
@@ -45,6 +69,30 @@
       "revId": "2e4801933c7d9a7aa024343ed016452973f967e2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "31736ec8_44dfbb6d",
+        "filename": "gold-client/go/imgmatching/sobel/sobel.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-24T02:26:43Z",
+      "side": 1,
+      "message": "As per our chat, this struct is embedded because SobbelFuzzyMatcher delegates to FuzzyMatcher after zeroing out any pixels above EdgeThreshold.",
+      "parentUuid": "c0e8c045_1765b33c",
+      "range": {
+        "startLine": 24,
+        "startChar": 7,
+        "endLine": 24,
+        "endChar": 19
+      },
+      "revId": "2e4801933c7d9a7aa024343ed016452973f967e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
