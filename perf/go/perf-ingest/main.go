@@ -43,10 +43,10 @@ import (
 
 // flags
 var (
-	configName = flag.String("config_name", "nano", "Name of the perf ingester config to use.")
-	local      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port       = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	promPort   = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	configFilename = flag.String("config_filename", "./configs/nano.json", "Filename of the perf instance config to use.")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 )
 
 const (
@@ -252,10 +252,8 @@ func main() {
 	ackCounter := metrics2.GetCounter("ack", nil)
 
 	ctx := context.Background()
-	var ok bool
-	cfg, ok = config.PERF_BIGTABLE_CONFIGS[*configName]
-	if !ok {
-		sklog.Fatalf("Invalid --config value: %q", *configName)
+	if err := config.Init(*configFilename); err != nil {
+		sklog.Fatal(err)
 	}
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -271,7 +269,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create GCS client: %s", err)
 	}
-	pubSubClient, err = pubsub.NewClient(ctx, cfg.IngestionConfig.SourceConfig.Project, option.WithTokenSource(ts))
+	pubSubClient, err = pubsub.NewClient(ctx, config.Config.IngestionConfig.SourceConfig.Project, option.WithTokenSource(ts))
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -290,7 +288,7 @@ func main() {
 		subName = fmt.Sprintf("%s-%s", cfg.IngestionConfig.SourceConfig.Topic, hostname)
 	}
 	sub := pubSubClient.Subscription(subName)
-	ok, err = sub.Exists(ctx)
+	ok, err := sub.Exists(ctx)
 	if err != nil {
 		sklog.Fatalf("Failed checking subscription existence: %s", err)
 	}

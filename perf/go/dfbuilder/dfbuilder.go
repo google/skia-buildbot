@@ -620,6 +620,7 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 			tileOneCount++
 			ps.AddParams(p)
 		}
+		count = tileOneCount
 
 		// Now move to the previous tile.
 		tileNumber = tileNumber.Prev()
