@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 
 	"go.skia.org/infra/go/skerr"
@@ -10,20 +9,17 @@ import (
 )
 
 const (
-	// MAX_SAMPLE_TRACES_PER_CLUSTER  is the maximum number of traces stored in a
+	// MaxSampleTracesPerCluster  is the maximum number of traces stored in a
 	// ClusterSummary.
-	MAX_SAMPLE_TRACES_PER_CLUSTER = 50
+	MaxSampleTracesPerCluster = 50
 
-	// MIN_STDDEV is the smallest standard deviation we will normalize, smaller
+	// MinStdDev is the smallest standard deviation we will normalize, smaller
 	// than this and we presume it's a standard deviation of zero.
-	MIN_STDDEV = 0.001
+	MinStdDev = 0.001
 
-	// GOTO_RANGE is the number of commits on either side of a target
-	// commit we will display when going through the goto redirector.
-	GOTO_RANGE = 10
-
-	CONSTRUCTOR_NANO        = "nano"
-	CONSTRUCTOR_NANO_TRYBOT = "nano-trybot"
+	// GotoRange is the number of commits on either side of a target commit we
+	// will display when going through the goto redirector.
+	GotoRange = 10
 )
 
 // DataStoreType determines what type of datastore to build. Applies to
@@ -188,159 +184,14 @@ func InstanceConfigFromFile(filename string) (*InstanceConfig, error) {
 	return &instanceConfig, nil
 }
 
-const (
-	NANO         = "nano"
-	ANDROID_PROD = "android-prod"
-	CT_PROD      = "ct-prod"
-	ANDROID_X    = "android-x"
-	FLUTTER      = "flutter"
-)
-
-var (
-	PERF_BIGTABLE_CONFIGS = map[string]*InstanceConfig{
-		NANO: {
-			URL: "https://perf.skia.org",
-			DataStoreConfig: DataStoreConfig{
-				DataStoreType: GCPDataStoreType,
-				TileSize:      256,
-				Project:       "skia-public",
-				Instance:      "production",
-				Table:         "perf-skia",
-				Shards:        8,
-				Namespace:     "perf",
-			},
-			IngestionConfig: IngestionConfig{
-				SourceConfig: SourceConfig{
-					SourceType: GCSSourceType,
-					Project:    "skia-public",
-					Topic:      "perf-ingestion-skia-production",
-					Sources:    []string{"gs://skia-perf/nano-json-v1", "gs://skia-perf/task-duration", "gs://skia-perf/buildstats-json-v1"},
-				},
-				Branches:               []string{},
-				FileIngestionTopicName: "",
-			},
-			GitRepoConfig: GitRepoConfig{
-				URL: "https://skia.googlesource.com/skia",
-				Dir: "/tmp/repo",
-			},
-		},
-		ANDROID_PROD: {
-			URL: "https://android-master-perf.skia.org",
-			DataStoreConfig: DataStoreConfig{
-				DataStoreType: GCPDataStoreType,
-				TileSize:      8192,
-				Project:       "skia-public",
-				Instance:      "production",
-				Table:         "perf-android",
-				Shards:        8,
-				Namespace:     "perf-androidmaster",
-			},
-			IngestionConfig: IngestionConfig{
-				SourceConfig: SourceConfig{
-					SourceType: GCSSourceType,
-					Project:    "skia-public",
-					Topic:      "perf-ingestion-android-production",
-					Sources:    []string{"gs://skia-perf/android-master-ingest"},
-				},
-				Branches:               []string{},
-				FileIngestionTopicName: "perf-ingestion-complete-android-production",
-			},
-			GitRepoConfig: GitRepoConfig{
-				URL:              "https://skia.googlesource.com/perf-buildid/android-master",
-				Dir:              "/tmp/repo",
-				DebouceCommitURL: true,
-			},
-		},
-		CT_PROD: {
-			URL: "https://ct-perf.skia.org",
-			DataStoreConfig: DataStoreConfig{
-				DataStoreType: GCPDataStoreType,
-				TileSize:      256,
-				Project:       "skia-public",
-				Instance:      "production",
-				Table:         "perf-ct",
-				Shards:        8,
-				Namespace:     "perf-ct",
-			},
-			IngestionConfig: IngestionConfig{
-				SourceConfig: SourceConfig{
-					SourceType: GCSSourceType,
-					Project:    "skia-public",
-					Topic:      "perf-ingestion-ct-production",
-					Sources:    []string{"gs://cluster-telemetry-perf/ingest"},
-				},
-				Branches:               []string{},
-				FileIngestionTopicName: "",
-			},
-			GitRepoConfig: GitRepoConfig{
-				URL: "https://skia.googlesource.com/perf-ct",
-				Dir: "/tmp/repo",
-			},
-		},
-		ANDROID_X: { // https://bug.skia.org/9315
-			URL: "https://androidx-perf.skia.org/",
-			DataStoreConfig: DataStoreConfig{
-				DataStoreType: GCPDataStoreType,
-				TileSize:      512,
-				Project:       "skia-public",
-				Instance:      "production",
-				Table:         "perf-android-x",
-				Shards:        8,
-				Namespace:     "perf-android-x",
-			},
-			IngestionConfig: IngestionConfig{
-				SourceConfig: SourceConfig{
-					SourceType: GCSSourceType,
-					Project:    "skia-public",
-					Topic:      "perf-ingestion-android-x-production",
-					Sources:    []string{"gs://skia-perf/android-master-ingest"},
-				},
-				Branches:               []string{"aosp-androidx-master-dev"},
-				FileIngestionTopicName: "",
-			},
-			GitRepoConfig: GitRepoConfig{
-				URL:              "https://skia.googlesource.com/perf-buildid/android-master",
-				Dir:              "/tmp/repo",
-				DebouceCommitURL: true,
-			},
-		},
-		FLUTTER: { // https://bug.skia.org/9789
-			URL: "https://flutter-perf.skia.org/",
-			DataStoreConfig: DataStoreConfig{
-				DataStoreType: GCPDataStoreType,
-				TileSize:      256,
-				Project:       "skia-public",
-				Instance:      "production",
-				Table:         "perf-flutter",
-				Shards:        8,
-				Namespace:     "perf-flutter",
-			},
-			IngestionConfig: IngestionConfig{
-				SourceConfig: SourceConfig{
-					SourceType: GCSSourceType,
-					Project:    "skia-public",
-					Topic:      "perf-ingestion-flutter",
-					Sources:    []string{"gs://flutter-skia-perf/flutter-engine"},
-				},
-				Branches:               []string{},
-				FileIngestionTopicName: "",
-			},
-			GitRepoConfig: GitRepoConfig{
-				URL: "https://github.com/flutter/engine",
-				Dir: "/tmp/repo",
-			},
-		},
-	}
-)
-
 // Config is the currently running config.
 var Config *InstanceConfig
 
 // Init loads the selected config by name.
-func Init(configName string) error {
-	cfg, ok := PERF_BIGTABLE_CONFIGS[configName]
-	if !ok {
-		return fmt.Errorf("Invalid config name: %q", configName)
+func Init(filename string) error {
+	cfg, err := InstanceConfigFromFile(filename)
+	if err != nil {
+		return skerr.Wrap(err)
 	}
 	Config = cfg
 	return nil
