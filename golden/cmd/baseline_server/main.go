@@ -23,7 +23,7 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
-	fs_expectationstore "go.skia.org/infra/golden/go/expectations/fs_expectationstore2"
+	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/web"
