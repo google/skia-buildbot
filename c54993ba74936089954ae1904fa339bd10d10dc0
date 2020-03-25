@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "874eefb9_e655c8f5",
+        "filename": "kube/build_base_cipd_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-25T15:50:55Z",
+      "side": 1,
+      "message": "Should we add a comment in cipd.ensure saying to update this if something that effects it changes? (not sure what that would be though).",
+      "revId": "c54993ba74936089954ae1904fa339bd10d10dc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
