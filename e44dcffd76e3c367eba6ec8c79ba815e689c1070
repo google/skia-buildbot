@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "794c321a_a4094fa9",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-25T17:18:37Z",
+      "side": 1,
+      "message": "Don\u0027t know what else to do here :/",
+      "revId": "e44dcffd76e3c367eba6ec8c79ba815e689c1070",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
