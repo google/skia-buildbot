@@ -119,8 +119,8 @@ func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client,
 	if _, err := exec.RunCommand(ctx, &exec.Command{
 		Dir:  parentRepoDir,
 		Env:  env,
-		Name: "gclient",
-		Args: []string{"sync", "--delete_unversioned_trees", "--force"},
+		Name: "python",
+		Args: []string{filepath.Join(parentRepoDir, "..", "..", "depot_tools", GCLIENT), "sync", "--delete_unversioned_trees", "--force"},
 	}); err != nil {
 		return fmt.Errorf("Error when running \"gclient sync\" in %s: %s", parentRepoDir, err)
 	}
