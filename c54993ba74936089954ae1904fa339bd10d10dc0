@@ -16,6 +16,24 @@
       "revId": "c54993ba74936089954ae1904fa339bd10d10dc0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e026c1c6_76d26e9d",
+        "filename": "kube/build_base_cipd_release",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-25T16:22:30Z",
+      "side": 1,
+      "message": "Done.  I think a new platform is unlikely, but it\u0027s possible.  An alternative option is to not use a cipd.ensure file to contain the versions and just write a json/yaml/whatever config for that.  Then we could generate the cipd.ensure file for base-cipd based on that, using a filter on platform.",
+      "parentUuid": "874eefb9_e655c8f5",
+      "revId": "c54993ba74936089954ae1904fa339bd10d10dc0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
