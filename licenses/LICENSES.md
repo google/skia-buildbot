@@ -44,6 +44,7 @@ The following licenses are used in dependent packages.
 | github.com/google/go-github/v29/github                            | BSD-3-Clause  |
 | github.com/google/go-querystring/query                            | BSD-3-Clause  |
 | github.com/google/uuid                                            | BSD-3-Clause  |
+| github.com/go-python/gpython                                      | BSD-3-Clause  |
 | github.com/gorilla/csrf                                           | BSD-3-Clause  |
 | github.com/gorilla/mux                                            | BSD-3-Clause  |
 | github.com/gorilla/securecookie                                   | BSD-3-Clause  |
