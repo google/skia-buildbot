@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "f68849de_0a3ec45a",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1422,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-25T17:38:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0baa7504_1144f142",
+      "range": {
+        "startLine": 1422,
+        "startChar": 1,
+        "endLine": 1422,
+        "endChar": 6
+      },
+      "revId": "2b80040ce6fa0209add535ec73c56924ce814a5b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2438138d_0966e6c2",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 5
