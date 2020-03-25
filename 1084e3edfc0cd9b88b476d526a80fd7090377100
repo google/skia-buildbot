@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0d59ec25_6bf73e32",
+        "filename": "gold-client/go/imgmatching/constants.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T11:31:20Z",
+      "side": 1,
+      "message": "What about just Key? I don\u0027t think Opt is bringing value in its shortened form. In general, I don\u0027t believe we need to encode in the type name that it\u0027s an optional key for JSON. That breaks the abstraction a bit.\n\nFurther thought - maybe the contents of these constants should go in the matcherfactory package, as well as their cousins in sobel and fuzzy. They should only be used when parsing the optional keys, so I don\u0027t think they need to necessarily be in the imgmatching package.",
+      "range": {
+        "startLine": 4,
+        "startChar": 19,
+        "endLine": 4,
+        "endChar": 25
+      },
+      "revId": "1084e3edfc0cd9b88b476d526a80fd7090377100",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
