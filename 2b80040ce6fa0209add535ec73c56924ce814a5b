@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "920615bd_115ca9c1",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1422,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T11:20:22Z",
+      "side": 1,
+      "message": "I would argue you only need to do one test case here because your other tests were pretty thorough.",
+      "range": {
+        "startLine": 1422,
+        "startChar": 1,
+        "endLine": 1422,
+        "endChar": 6
+      },
+      "revId": "2b80040ce6fa0209add535ec73c56924ce814a5b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2438138d_0966e6c2",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1425,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T11:20:22Z",
+      "side": 1,
+      "message": "I mentioned before, I think \"want\" is an idiom we should not follow.",
+      "range": {
+        "startLine": 1425,
+        "startChar": 2,
+        "endLine": 1425,
+        "endChar": 6
+      },
+      "revId": "2b80040ce6fa0209add535ec73c56924ce814a5b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9eb8ff11_fb521347",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1469,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T11:20:22Z",
+      "side": 1,
+      "message": "You have name, 1 input, 1 output - I prefer the test helper function in this case.",
+      "range": {
+        "startLine": 1469,
+        "startChar": 20,
+        "endLine": 1469,
+        "endChar": 25
+      },
+      "revId": "2b80040ce6fa0209add535ec73c56924ce814a5b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
