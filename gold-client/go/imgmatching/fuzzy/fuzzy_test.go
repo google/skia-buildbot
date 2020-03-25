@@ -382,7 +382,6 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 			want: true,
 		},
 
-
 		{
 			name: "number of different pixels = MaxDifferentPixels - 1, one pixel at PixelDeltaThreshold (deltas in some channels), returns true",
 			matcher: FuzzyMatcher{
@@ -450,7 +449,6 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 			0x00000000 0x00000000`),
 			want: false,
 		},
-
 
 		/////////////////////////////////////////////////////
 		// number of different pixels = MaxDifferentPixels //
