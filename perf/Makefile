@@ -21,11 +21,11 @@ buildk: web migration_source
 	./build_docker_release
 
 build-perf-ingest: migration_source
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/perf-ingest
-	./build_perf_ingest_release
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/perfserver
+	./images/perfserver/release
 
 push-perf-ingest: build-perf-ingest
-	pushk perf-ingest
+	pushk perfserver
 
 pushk: buildk
 	pushk skiaperf
