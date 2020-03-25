@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d03a9a91_685127ac",
+        "filename": "golden/go/status/status.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-25T18:25:42Z",
+      "side": 1,
+      "message": "Please add a brief comment explaining why this size was selected.",
+      "range": {
+        "startLine": 159,
+        "startChar": 42,
+        "endLine": 159,
+        "endChar": 45
+      },
+      "revId": "2cb96cc77c8244cd6bc3732eca8ae82d36df10c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d3d57c4_4d49f0bd",
+        "filename": "golden/go/status/status.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-25T18:25:42Z",
+      "side": 1,
+      "message": "Can you explain this and the below continue?",
+      "range": {
+        "startLine": 182,
+        "startChar": 5,
+        "endLine": 182,
+        "endChar": 13
+      },
+      "revId": "2cb96cc77c8244cd6bc3732eca8ae82d36df10c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
