@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "35f8b7ac_b592350e",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1422,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-25T17:17:20Z",
+      "side": 1,
+      "message": "Perhaps. My thought process was to split the input space into meaningful/interesting partitions and have just one test case for each.\n\nThe goal isn\u0027t necessarily to test the underlying algorithm but to test that matchImageAgainstBaseline() works well with a variety of inputs that can produce yes/no answers.\n\nI\u0027m inclined to leave it as is, or maybe have just one test case for \"above threshold, returns false\" instead of the current three if you find that preferrable.\n\nWDYT?",
+      "parentUuid": "920615bd_115ca9c1",
+      "range": {
+        "startLine": 1422,
+        "startChar": 1,
+        "endLine": 1422,
+        "endChar": 6
+      },
+      "revId": "2b80040ce6fa0209add535ec73c56924ce814a5b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2438138d_0966e6c2",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 5
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "e996d910_bd796f66",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1425,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-25T17:17:20Z",
+      "side": 1,
+      "message": "Replaced with expected/actual.",
+      "parentUuid": "2438138d_0966e6c2",
+      "range": {
+        "startLine": 1425,
+        "startChar": 2,
+        "endLine": 1425,
+        "endChar": 6
+      },
+      "revId": "2b80040ce6fa0209add535ec73c56924ce814a5b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9eb8ff11_fb521347",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 5
@@ -59,6 +107,30 @@
       "writtenOn": "2020-03-25T11:20:22Z",
       "side": 1,
       "message": "You have name, 1 input, 1 output - I prefer the test helper function in this case.",
+      "range": {
+        "startLine": 1469,
+        "startChar": 20,
+        "endLine": 1469,
+        "endChar": 25
+      },
+      "revId": "2b80040ce6fa0209add535ec73c56924ce814a5b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f52a2abe_f9f6ae1d",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1469,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-25T17:17:20Z",
+      "side": 1,
+      "message": "I really don\u0027t think a test function would be more readable.\n\nAs an example, the table entry below\n\n  {\n    name: \"above both MaxDifferentPixels and PixelDeltaThreshold, returns false\",\n    imageBytes: imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE\n    2 2\n    0x00000506 0x00000001\n    0x00000001 0x00000000`)),\n    expected: false,\n  },\n\nwould become\n\n  test(\n    \"above both MaxDifferentPixels and PixelDeltaThreshold, returns false\",\n    imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE\n    2 2\n    0x00000506 0x00000001\n    0x00000001 0x00000000`)),\n    false)\n\nwhich IMO is less readable due to the lack of the named fields.\n\nWDYT?",
+      "parentUuid": "9eb8ff11_fb521347",
       "range": {
         "startLine": 1469,
         "startChar": 20,
