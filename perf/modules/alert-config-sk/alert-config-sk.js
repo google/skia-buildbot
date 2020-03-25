@@ -106,9 +106,9 @@ const template = (ele) => html`
   </multi-select-sk>
 
   <h3>Status</h3>
-  <select-sk @selection-changed=${(e) => ele._config.state = e.target.children[e.detail.selection].getAttribute('value')}>
-    <div value=ACTIVE ?selected=${ele._config.state === 'ACTIVE'} title='Clusters that match this will generate alerts.'>Active</div>
-    <div value=DELETED ?selected=${ele._config.state === 'DELETED'} title='Currently inactive.'>Deleted</div>
+  <select-sk .selection=${ele._config.state === 'ACTIVE' ? 0 : 1} @selection-changed=${(e) => ele._config.state = e.target.children[e.detail.selection].getAttribute('value')}>
+    <div value=ACTIVE title='Clusters that match this will generate alerts.'>Active</div>
+    <div value=DELETED title='Currently inactive.'>Deleted</div>
   </select-sk>
   `;
 
