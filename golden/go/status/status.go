@@ -156,7 +156,7 @@ func (s *StatusWatcher) updateLastCommitAge() {
 
 func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 	sklog.Infof("Starting status watcher")
-	expChanges := make(chan expectations.ID)
+	expChanges := make(chan expectations.ID, 100)
 	s.ChangeListener.ListenForChange(func(e expectations.ID) {
 		expChanges <- e
 	})
@@ -179,6 +179,7 @@ func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 			case cpxTile := <-tileStream:
 				if err := s.calcStatus(ctx, cpxTile); err != nil {
 					sklog.Errorf("Error calculating status: %s", err)
+					continue
 				} else {
 					lastCpxTile = cpxTile
 					liveness.Reset()
@@ -187,6 +188,7 @@ func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 				drainChangeChannel(expChanges)
 				if err := s.calcStatus(ctx, lastCpxTile); err != nil {
 					sklog.Errorf("Error calculating tile after expectation update: %s", err)
+					continue
 				}
 				liveness.Reset()
 			}
@@ -200,6 +202,9 @@ func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile types.ComplexTile) error {
 	defer s.updateLastCommitAge()
 	defer shared.NewMetricsTimer("calculate_status").Stop()
+
+	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	defer cancel()
 
 	okByCorpus := map[string]bool{}
 	exp, err := s.ExpectationsStore.Get(ctx)
@@ -218,6 +223,9 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile types.ComplexTil
 	}
 	tileLen := dataTile.LastCommitIndex() + 1
 	for _, trace := range dataTile.Traces {
+		if err := ctx.Err(); err != nil {
+			return skerr.Wrap(err)
+		}
 		gTrace := trace.(*types.GoldenTrace)
 
 		idx := tileLen - 1
