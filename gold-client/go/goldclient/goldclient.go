@@ -146,10 +146,6 @@ type CloudClient struct {
 	// auth stores the authentication method to use.
 	auth       AuthOpt
 	httpClient HTTPClient
-
-	// imgMatcherFactory builds an imgmatching.Matcher for the image matching algorithm specified via
-	// optional keys, if any.
-	imgMatcherFactory imgmatching.MatcherFactory
 }
 
 // GoldClientConfig is a config structure to configure GoldClient instances
@@ -194,11 +190,10 @@ func NewCloudClient(authOpt AuthOpt, config GoldClientConfig) (*CloudClient, err
 	}
 
 	ret := CloudClient{
-		workDir:           workDir,
-		auth:              authOpt,
-		loadAndHashImage:  loadAndHashImage,
-		now:               defaultNow,
-		imgMatcherFactory: &imgmatching.MatcherFactoryImpl{},
+		workDir:          workDir,
+		auth:             authOpt,
+		loadAndHashImage: loadAndHashImage,
+		now:              defaultNow,
 
 		resultState: newResultState(nil, &config),
 	}
@@ -232,11 +227,10 @@ func LoadCloudClient(authOpt AuthOpt, workDir string) (*CloudClient, error) {
 		return nil, skerr.Fmt("No 'workDir' provided to LoadCloudClient")
 	}
 	ret := CloudClient{
-		workDir:           workDir,
-		auth:              authOpt,
-		loadAndHashImage:  loadAndHashImage,
-		now:               defaultNow,
-		imgMatcherFactory: &imgmatching.MatcherFactoryImpl{},
+		workDir:          workDir,
+		auth:             authOpt,
+		loadAndHashImage: loadAndHashImage,
+		now:              defaultNow,
 	}
 	var err error
 	ret.resultState, err = loadStateFromJSON(ret.getResultStatePath())
@@ -451,7 +445,7 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 	// Extract the specified image matching algorithm from the optionalKeys (defaulting to exact
 	// matching if none is specified) and obtain an instance of the imgmatching.Matcher if the
 	// algorithm requires one (i.e. all but exact matching).
-	algorithmName, matcher, err := c.imgMatcherFactory.Make(optionalKeys)
+	algorithmName, matcher, err := imgmatching.MakeMatcher(optionalKeys)
 	if err != nil {
 		return false, skerr.Wrapf(err, "parsing image matching algorithm from optional keys")
 	}
