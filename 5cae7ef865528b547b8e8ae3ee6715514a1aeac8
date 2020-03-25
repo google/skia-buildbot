@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b746ccaa_6b75835f",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-25T13:40:56Z",
+      "side": 1,
+      "message": "Removed the whole copyright. Originally was in the skia directory and got a complaint.",
+      "parentUuid": "595b2f82_1bea028a",
+      "range": {
+        "startLine": 1,
+        "startChar": 13,
+        "endLine": 1,
+        "endChar": 17
+      },
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d83f723f_8c55e1e7",
         "filename": "scripts/find_nongoogler_commits.go",
         "patchSetId": 2
@@ -36,6 +60,24 @@
       "writtenOn": "2020-03-25T12:35:11Z",
       "side": 1,
       "message": "I think this would be easy to generalize for any domain by adding a flag (with default value \"google.com\"). But not sure if anybody will ever use it for anything else though so not a big deal.",
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b9c18f43_a8e25218",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-25T13:40:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d83f723f_8c55e1e7",
       "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -56,6 +98,24 @@
       "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8974f1ca_7f55f46e",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-25T13:40:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f238acac_abcb3f55",
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -82,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "8013ad74_b9475a3b",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-25T13:40:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a3e045ed_a9c00fa0",
+      "range": {
+        "startLine": 28,
+        "startChar": 38,
+        "endLine": 28,
+        "endChar": 39
+      },
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0f407af0_d6e3019f",
         "filename": "scripts/find_nongoogler_commits.go",
         "patchSetId": 2
@@ -105,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "bc5d0b13_561149f8",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-25T13:40:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0f407af0_d6e3019f",
+      "range": {
+        "startLine": 34,
+        "startChar": 5,
+        "endLine": 34,
+        "endChar": 18
+      },
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e01cad33_60990364",
         "filename": "scripts/find_nongoogler_commits.go",
         "patchSetId": 2
@@ -116,6 +224,30 @@
       "writtenOn": "2020-03-25T12:35:11Z",
       "side": 1,
       "message": "I thought map[string]int{} was preferable to do when you are not specifying a min size, but I cannot find any proof of that so.. nevermind.",
+      "range": {
+        "startLine": 56,
+        "startChar": 15,
+        "endLine": 56,
+        "endChar": 36
+      },
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "778f6433_97f8fcba",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-25T13:40:56Z",
+      "side": 1,
+      "message": "Ack looks like unless you have a size or initial values in mind, it doesn\u0027t matter. https://stackoverflow.com/questions/31064688/which-is-the-nicer-way-to-initialize-a-map-in-golang",
+      "parentUuid": "e01cad33_60990364",
       "range": {
         "startLine": 56,
         "startChar": 15,
@@ -148,6 +280,30 @@
       "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e7db0d6_2d03eaa1",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-25T13:40:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6380775e_2b682e01",
+      "range": {
+        "startLine": 66,
+        "startChar": 32,
+        "endLine": 66,
+        "endChar": 42
+      },
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
