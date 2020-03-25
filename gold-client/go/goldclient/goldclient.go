@@ -462,22 +462,10 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 		return false, nil
 	}
 
-	// TODO(lovisolo): Remove once the non-exact image matching algorithms are implemented.
-	if algorithmName == imgmatching.FuzzyMatching || algorithmName == imgmatching.SobelFuzzyMatching {
-		return false, skerr.Fmt("only exact image matching is supported at this time")
+	// TODO(lovisolo): Remove once SobelFuzzyMatching is implemented.
+	if algorithmName == imgmatching.SobelFuzzyMatching {
+		return false, skerr.Fmt("image matching algorithm %q not yet supported", imgmatching.SobelFuzzyMatching)
 	}
-
-	// The code below is currently unreachable outside of unit tests because
-	// imgmatching.MatcherFactoryImpl#Make() returns an error if the specified algorithm is not
-	// imgmatching.ExactMatching, imgmatching.FuzzyMatching or imgmatching.SobelFuzzyMatching.
-	//
-	// The unit tests that exercise the code below do so by providing a mock
-	// imgmatching.MatcherFactory implementation that returns an algorithm name other than those
-	// mentioned above, thus bypassing the above guards.
-	//
-	// TODO(lovisolo): Remove comment above and replace the mock MatcherFactory used in tests with
-	//                 the real implementation once at least one non-exact matching algorithm
-	//                 is implemented and ready to be used from tests.
 
 	// Decode test output PNG image.
 	image, err := png.Decode(bytes.NewReader(imageBytes))
