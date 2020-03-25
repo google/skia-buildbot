@@ -16,7 +16,7 @@ the configured ingestion sources and populates the datastore
 with that data.
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return process.Start(context.Background(), instanceConfig)
+		return process.Start(context.Background(), local, instanceConfig)
 	},
 }
 

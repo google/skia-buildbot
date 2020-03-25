@@ -143,8 +143,24 @@ type IngestionConfig struct {
 	FileIngestionTopicName string `json:"file_ingestion_pubsub_topic_name"`
 }
 
+// GitAuthType is the type of authentication Git should use, if any.
+type GitAuthType string
+
+const (
+	// GitAuthNone implies no authentication is needed when cloning/pulling a
+	// Git repo, i.e. it is public. The value is the empty string so that the
+	// default is no authentication.
+	GitAuthNone GitAuthType = ""
+
+	// GitAuthGerrit is for repos that are hosted by Gerrit and require authentication.
+	GitAuthGerrit GitAuthType = "gerrit"
+)
+
 // GitRepoConfig is the config for the git repo.
 type GitRepoConfig struct {
+	// The type of authentication the repo requires.
+	GitAuthType GitAuthType `json:"git_auth_type"`
+
 	// URL that the Git repo is fetched from.
 	URL string `json:"url"`
 
