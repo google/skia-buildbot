@@ -5,6 +5,8 @@ import (
 	"image"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -41,9 +43,7 @@ func TestDecode_ValidImage_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	buf := bytes.NewBufferString(validImage)
 	img, err := Decode(buf)
-	if err != nil {
-		t.Fatalf("Failed to decode a valid image: %s", err)
-	}
+	require.NoError(t, err)
 	assertImageEqualsExpectedPixels(t, img.(*image.NRGBA), 2, 2, validImageExpectedPixels)
 }
 
@@ -75,9 +75,7 @@ func TestDecode_ValidImageWithGrayscaleNotation_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	buf := bytes.NewBufferString(grayscaleNotationImage)
 	img, err := Decode(buf)
-	if err != nil {
-		t.Fatalf("Failed to decode a valid image: %s", err)
-	}
+	require.NoError(t, err)
 	assertImageEqualsExpectedPixels(t, img.(*image.NRGBA), 2, 2, grayscaleNotationImageExpectedPixels)
 }
 
@@ -89,15 +87,9 @@ func TestDecode_ZeroImage_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	buf := bytes.NewBufferString(zeroImage)
 	img, err := Decode(buf)
-	if err != nil {
-		t.Fatalf("Failed to decode a valid image: %s", err)
-	}
-	if got, want := img.Bounds().Dx(), 0; got != want {
-		t.Errorf("Wrong x dim: Got %v Want %v", got, want)
-	}
-	if got, want := img.Bounds().Dy(), 0; got != want {
-		t.Errorf("Wrong y dim: Got %v Want %v", got, want)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, 0, img.Bounds().Dx())
+	assert.Equal(t, 0, img.Bounds().Dy())
 }
 
 const badImage1 = ``
@@ -125,9 +117,7 @@ func TestDecode_InvalidImage_ReturnsError(t *testing.T) {
 	for _, tc := range []string{badImage1, badImage2, badImage3, badImage4, badImage5} {
 		buf := bytes.NewBufferString(tc)
 		_, err := Decode(buf)
-		if err == nil {
-			t.Fatalf("Decoded an invalid image: %s", tc)
-		}
+		assert.Error(t, err)
 	}
 }
 
@@ -146,18 +136,17 @@ const nonSquareImage2 = `! SKTEXTSIMPLE
 func TestDecodeThenEncode_ReturnsTheSameImage(t *testing.T) {
 	unittest.SmallTest(t)
 	for _, tc := range []string{zeroImage, validImage, nonSquareImage, nonSquareImage2} {
+		// Decode image.
 		buf := bytes.NewBufferString(tc)
 		img, err := Decode(buf)
-		if err != nil {
-			t.Fatalf("Failed to decode a valid image: %s", tc)
-		}
+		require.NoError(t, err)
+
+		// Encode it as SKTEXT.
 		wbuf := &bytes.Buffer{}
-		if err := Encode(wbuf, img.(*image.NRGBA)); err != nil {
-			t.Fatalf("Decoded an encode a valid image: %s", tc)
-		}
-		if got, want := wbuf.String(), tc; got != want {
-			t.Errorf("Roundtrip mismatch: Got %q Want %q", got, want)
-		}
+		err = Encode(wbuf, img.(*image.NRGBA))
+		require.NoError(t, err)
+
+		assert.Equal(t, tc, wbuf.String())
 	}
 }
 
@@ -169,70 +158,38 @@ func TestMustToNRGBA_ValidImage_Success(t *testing.T) {
 
 func TestMustToNRGBA_InvalidImage_Panics(t *testing.T) {
 	unittest.SmallTest(t)
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("Did not panic")
-		}
-	}()
-	MustToNRGBA(badImage1)
+	assert.Panics(t, func() { MustToNRGBA(badImage1) })
 }
 
 func TestMustToGray_ValidImageWithGrayscaleNotation_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	img := MustToGray(grayscaleNotationImage)
 
-	if got, want := img.Bounds().Dx(), 2; got != want {
-		t.Errorf("Wrong x dim: Got %v Want %v", got, want)
-	}
-	if got, want := img.Bounds().Dy(), 2; got != want {
-		t.Errorf("Wrong y dim: Got %v Want %v", got, want)
-	}
+	assert.Equal(t, 2, img.Bounds().Dx())
+	assert.Equal(t, 2, img.Bounds().Dy())
 
 	for _, p := range grayscaleNotationImageExpectedPixels {
 		y := img.GrayAt(p.x, p.y).Y
-		if got, want := y, uint8(p.r); got != want {
-			t.Errorf("Wrong r channel value at (%x, %x): Got %x Want %x", p.x, p.y, got, want)
-		}
-		if got, want := y, uint8(p.g); got != want {
-			t.Errorf("Wrong g channel value at (%x, %x): Got %x Want %x", p.x, p.y, got, want)
-		}
-		if got, want := y, uint8(p.b); got != want {
-			t.Errorf("Wrong b channel value at (%x, %x): Got %x Want %x", p.x, p.y, got, want)
-		}
+		assert.Equal(t, y, p.r, "(%v, %v)", p.x, p.y)
+		assert.Equal(t, y, p.g, "(%v, %v)", p.x, p.y)
+		assert.Equal(t, y, p.b, "(%v, %v)", p.x, p.y)
 	}
 }
 
 func TestMustToGray_InvalidImage_Panics(t *testing.T) {
 	unittest.SmallTest(t)
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("Did not panic")
-		}
-	}()
-	MustToGray(badImage1)
+	assert.Panics(t, func() { MustToGray(badImage1) })
 }
 
 func assertImageEqualsExpectedPixels(t *testing.T, nrgba *image.NRGBA, expectedWidth, expectedHeight int, expectedPixels []expectedPixel) {
-	if got, want := nrgba.Bounds().Dx(), expectedWidth; got != want {
-		t.Errorf("Wrong x dim: Got %v Want %v", got, want)
-	}
-	if got, want := nrgba.Bounds().Dy(), expectedHeight; got != want {
-		t.Errorf("Wrong y dim: Got %v Want %v", got, want)
-	}
+	assert.Equal(t, expectedWidth, nrgba.Bounds().Dx())
+	assert.Equal(t, expectedHeight, nrgba.Bounds().Dy())
 
 	for _, p := range expectedPixels {
 		c := nrgba.NRGBAAt(p.x, p.y)
-		if got, want := c.R, uint8(p.r); got != want {
-			t.Errorf("Wrong r channel value at (%x, %x): Got %x Want %x", p.x, p.y, got, want)
-		}
-		if got, want := c.G, uint8(p.g); got != want {
-			t.Errorf("Wrong g channel value at (%x, %x): Got %x Want %x", p.x, p.y, got, want)
-		}
-		if got, want := c.B, uint8(p.b); got != want {
-			t.Errorf("Wrong b channel value at (%x, %x): Got %x Want %x", p.x, p.y, got, want)
-		}
-		if got, want := c.A, uint8(p.a); got != want {
-			t.Errorf("Wrong a channel value at (%x, %x): Got %x Want %x", p.x, p.y, got, want)
-		}
+		assert.Equal(t, c.R, p.r, "(%v, %v)", p.x, p.y)
+		assert.Equal(t, c.G, p.g, "(%v, %v)", p.x, p.y)
+		assert.Equal(t, c.B, p.b, "(%v, %v)", p.x, p.y)
+		assert.Equal(t, c.A, p.a, "(%v, %v)", p.x, p.y)
 	}
 }
