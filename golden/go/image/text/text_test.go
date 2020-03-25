@@ -67,6 +67,65 @@ func TestDecode_ValidImage_Success(t *testing.T) {
 	}
 }
 
+const GRAYSCALE_NOTATION_IMAGE = `! SKTEXTSIMPLE
+2 2
+0x12 0x34
+0xab 0xcd`
+
+func TestDecode_ValidImageWithGrayscaleNotation_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	buf := bytes.NewBufferString(GRAYSCALE_NOTATION_IMAGE)
+	img, err := Decode(buf)
+	if err != nil {
+		t.Fatalf("Failed to decode a valid image: %s", err)
+	}
+
+	if got, want := img.Bounds().Dx(), 2; got != want {
+		t.Errorf("Wrong x dim: Got %v Want %v", got, want)
+	}
+	if got, want := img.Bounds().Dy(), 2; got != want {
+		t.Errorf("Wrong y dim: Got %v Want %v", got, want)
+	}
+	nrgba := img.(*image.NRGBA)
+
+	testCases := []struct {
+		x, y       int
+		r, g, b, a uint8
+	}{
+		{
+			x: 0, y: 0,
+			r: 0x12, g: 0x12, b: 0x12, a: 0xff,
+		},
+		{
+			x: 1, y: 0,
+			r: 0x34, g: 0x34, b: 0x34, a: 0xff,
+		},
+		{
+			x: 0, y: 1,
+			r: 0xab, g: 0xab, b: 0xab, a: 0xff,
+		},
+		{
+			x: 1, y: 1,
+			r: 0xcd, g: 0xcd, b: 0xcd, a: 0xff,
+		},
+	}
+	for _, tc := range testCases {
+		c := nrgba.NRGBAAt(tc.x, tc.y)
+		if got, want := c.R, uint8(tc.r); got != want {
+			t.Errorf("Wrong r channel value: Got %x Want %x", got, want)
+		}
+		if got, want := c.G, uint8(tc.g); got != want {
+			t.Errorf("Wrong g channel value: Got %x Want %x", got, want)
+		}
+		if got, want := c.B, uint8(tc.b); got != want {
+			t.Errorf("Wrong b channel value: Got %x Want %x", got, want)
+		}
+		if got, want := c.A, uint8(tc.a); got != want {
+			t.Errorf("Wrong a channel value: Got %x Want %x", got, want)
+		}
+	}
+}
+
 const ZERO_IMAGE = `! SKTEXTSIMPLE
 0 0
 `
