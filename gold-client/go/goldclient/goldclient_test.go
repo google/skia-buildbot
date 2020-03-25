@@ -18,6 +18,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/gold-client/go/imgmatching"
+	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
+	"go.skia.org/infra/gold-client/go/imgmatching/sobel"
 
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/fileutil"
@@ -1350,7 +1352,7 @@ func TestCloudClient_MatchImageAgainstBaseline_ExactMatching_Success(t *testing.
 			}
 
 			optionalKeys := map[string]string{
-				imgmatching.AlgorithmOptionalKey: string(imgmatching.ExactMatching),
+				imgmatching.AlgorithmNameOptKey: string(imgmatching.ExactMatching),
 			}
 
 			// Parameters traceId and imageBytes are not used in exact matching.
@@ -1378,10 +1380,10 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_ImageAlreadyLabeled
 			const testName = types.TestName("my_test")
 			const digest = types.Digest("11111111111111111111111111111111")
 			optionalKeys := map[string]string{
-				imgmatching.AlgorithmOptionalKey: string(imgmatching.FuzzyMatching),
+				imgmatching.AlgorithmNameOptKey: string(imgmatching.FuzzyMatching),
 				// These optionalKeys do not matter because the algorithm is not exercised by this test.
-				string(imgmatching.FuzzyMatchingMaxDifferentPixels):  "0",
-				string(imgmatching.FuzzyMatchingPixelDeltaThreshold): "0",
+				string(fuzzy.MaxDifferentPixels):  "0",
+				string(fuzzy.PixelDeltaThreshold): "0",
 			}
 
 			goldClient.resultState.Expectations = expectations.Baseline{
@@ -1477,9 +1479,9 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Succ
 			gcsClient.On("Download", testutils.AnyContext, latestPositiveDigestGcsPath, filepath.Join(goldClient.workDir, digestsDirectory)).Return(latestPositiveImageBytes, nil)
 
 			optionalKeys := map[string]string{
-				imgmatching.AlgorithmOptionalKey:                     string(imgmatching.FuzzyMatching),
-				string(imgmatching.FuzzyMatchingMaxDifferentPixels):  maxDifferentPixels,
-				string(imgmatching.FuzzyMatchingPixelDeltaThreshold): pixelDeltaThreshold,
+				imgmatching.AlgorithmNameOptKey:   string(imgmatching.FuzzyMatching),
+				string(fuzzy.MaxDifferentPixels):  maxDifferentPixels,
+				string(fuzzy.PixelDeltaThreshold): pixelDeltaThreshold,
 			}
 
 			matches, err := goldClient.matchImageAgainstBaseline(testName, traceId, tc.imageBytes, digest, optionalKeys)
@@ -1500,24 +1502,24 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_InvalidParameters_R
 		{
 			name: "insufficient parameters: no parameter specified",
 			optionalKeys: map[string]string{
-				imgmatching.AlgorithmOptionalKey: string(imgmatching.FuzzyMatching),
+				imgmatching.AlgorithmNameOptKey: string(imgmatching.FuzzyMatching),
 			},
 			error: "required image matching parameter not found",
 		},
 		{
 			name: "insufficient parameters: only some parameters specified",
 			optionalKeys: map[string]string{
-				imgmatching.AlgorithmOptionalKey:                    string(imgmatching.FuzzyMatching),
-				string(imgmatching.FuzzyMatchingMaxDifferentPixels): "0",
+				imgmatching.AlgorithmNameOptKey:  string(imgmatching.FuzzyMatching),
+				string(fuzzy.MaxDifferentPixels): "0",
 			},
 			error: "required image matching parameter not found",
 		},
 		{
 			name: "invalid parameters",
 			optionalKeys: map[string]string{
-				imgmatching.AlgorithmOptionalKey:                     string(imgmatching.FuzzyMatching),
-				string(imgmatching.FuzzyMatchingMaxDifferentPixels):  "not a number",
-				string(imgmatching.FuzzyMatchingPixelDeltaThreshold): "not a number",
+				imgmatching.AlgorithmNameOptKey:   string(imgmatching.FuzzyMatching),
+				string(fuzzy.MaxDifferentPixels):  "not a number",
+				string(fuzzy.PixelDeltaThreshold): "not a number",
 			},
 			error: "parsing integer value",
 		},
@@ -1546,11 +1548,11 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLa
 			const testName = types.TestName("my_test")
 			const digest = types.Digest("11111111111111111111111111111111")
 			optionalKeys := map[string]string{
-				imgmatching.AlgorithmOptionalKey: string(imgmatching.SobelFuzzyMatching),
+				imgmatching.AlgorithmNameOptKey: string(imgmatching.SobelFuzzyMatching),
 				// These optionalKeys do not matter because the algorithm is not exercised by this test.
-				string(imgmatching.SobelFuzzyMatchingEdgeThreshold):  "0",
-				string(imgmatching.FuzzyMatchingMaxDifferentPixels):  "0",
-				string(imgmatching.FuzzyMatchingPixelDeltaThreshold): "0",
+				string(sobel.EdgeThreshold):       "0",
+				string(fuzzy.MaxDifferentPixels):  "0",
+				string(fuzzy.PixelDeltaThreshold): "0",
 			}
 
 			goldClient.resultState.Expectations = expectations.Baseline{
@@ -1580,11 +1582,11 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage
 			const testName = types.TestName("my_test")
 			const digest = types.Digest("11111111111111111111111111111111")
 			optionalKeys := map[string]string{
-				imgmatching.AlgorithmOptionalKey: string(imgmatching.SobelFuzzyMatching),
+				imgmatching.AlgorithmNameOptKey: string(imgmatching.SobelFuzzyMatching),
 				// These optionalKeys do not matter because the algorithm is not exercised by this test.
-				string(imgmatching.SobelFuzzyMatchingEdgeThreshold):  "0",
-				string(imgmatching.FuzzyMatchingMaxDifferentPixels):  "0",
-				string(imgmatching.FuzzyMatchingPixelDeltaThreshold): "0",
+				string(sobel.EdgeThreshold):       "0",
+				string(fuzzy.MaxDifferentPixels):  "0",
+				string(fuzzy.PixelDeltaThreshold): "0",
 			}
 
 			if explicitlyUntriaged {
@@ -1616,7 +1618,7 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_InvalidParamet
 		{
 			name: "insufficient parameters: no parameter specified",
 			optionalKeys: map[string]string{
-				imgmatching.AlgorithmOptionalKey: string(imgmatching.SobelFuzzyMatching),
+				imgmatching.AlgorithmNameOptKey: string(imgmatching.SobelFuzzyMatching),
 			},
 			error: "required image matching parameter not found",
 		},
@@ -1624,27 +1626,27 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_InvalidParamet
 		{
 			name: "insufficient parameters: only SobelFuzzyMatching-specific parameter specified",
 			optionalKeys: map[string]string{
-				imgmatching.AlgorithmOptionalKey:                    string(imgmatching.SobelFuzzyMatching),
-				string(imgmatching.SobelFuzzyMatchingEdgeThreshold): "0",
+				imgmatching.AlgorithmNameOptKey: string(imgmatching.SobelFuzzyMatching),
+				string(sobel.EdgeThreshold):     "0",
 			},
 			error: "required image matching parameter not found",
 		},
 		{
 			name: "insufficient parameters: only FuzzyMatching-specific parameter specified",
 			optionalKeys: map[string]string{
-				imgmatching.AlgorithmOptionalKey:                     string(imgmatching.SobelFuzzyMatching),
-				string(imgmatching.FuzzyMatchingMaxDifferentPixels):  "0",
-				string(imgmatching.FuzzyMatchingPixelDeltaThreshold): "0",
+				imgmatching.AlgorithmNameOptKey:   string(imgmatching.SobelFuzzyMatching),
+				string(fuzzy.MaxDifferentPixels):  "0",
+				string(fuzzy.PixelDeltaThreshold): "0",
 			},
 			error: "required image matching parameter not found",
 		},
 		{
 			name: "invalid parameters",
 			optionalKeys: map[string]string{
-				imgmatching.AlgorithmOptionalKey:                     string(imgmatching.SobelFuzzyMatching),
-				string(imgmatching.SobelFuzzyMatchingEdgeThreshold):  "not a number",
-				string(imgmatching.FuzzyMatchingMaxDifferentPixels):  "not a number",
-				string(imgmatching.FuzzyMatchingPixelDeltaThreshold): "not a number",
+				imgmatching.AlgorithmNameOptKey:   string(imgmatching.SobelFuzzyMatching),
+				string(sobel.EdgeThreshold):       "not a number",
+				string(fuzzy.MaxDifferentPixels):  "not a number",
+				string(fuzzy.PixelDeltaThreshold): "not a number",
 			},
 			error: "parsing integer value",
 		},
@@ -1669,7 +1671,7 @@ func TestCloudClient_MatchImageAgainstBaseline_UnknownAlgorithm_ReturnsError(t *
 	defer cleanup()
 
 	optionalKeys := map[string]string{
-		imgmatching.AlgorithmOptionalKey: "unknown algorithm",
+		imgmatching.AlgorithmNameOptKey: "unknown algorithm",
 	}
 
 	_, err := goldClient.matchImageAgainstBaseline("" /* =testName */, "" /* =traceId */, nil /* =imageBytes */, "" /* =digest */, optionalKeys)
