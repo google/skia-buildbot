@@ -11,24 +11,12 @@ import (
 	"go.skia.org/infra/gold-client/go/imgmatching/sobel"
 )
 
-// MatcherFactory represents a Matcher factory that builds a Matcher from a map of optional keys.
-// It is implemented by MatcherFactoryImpl.
+// MakeMatcher takes a map of optional keys and returns the specified image matching algorithm
+// name, and the corresponding Matcher instance (or nil if none is specified).
 //
-// The purpose of this interface is to make testing easier.
-type MatcherFactory interface {
-	// Make takes a map of optional keys and returns the specified image matching algorithm name, and
-	// the corresponding Matcher instance (or nil if none is specified).
-	//
-	// It returns a non-nil error if the specified image matching algorithm is invalid, or if any
-	// required parameters are not found, or if the parameter values are not valid.
-	Make(optionalKeys map[string]string) (AlgorithmName, Matcher, error)
-}
-
-// MatcherFactoryImpl implements the MatcherFactory interface.
-type MatcherFactoryImpl struct{}
-
-// Make implements the MatcherFactory interface.
-func (m MatcherFactoryImpl) Make(optionalKeys map[string]string) (AlgorithmName, Matcher, error) {
+// It returns a non-nil error if the specified image matching algorithm is invalid, or if any
+// required parameters are not found, or if the parameter values are not valid.
+func MakeMatcher(optionalKeys map[string]string) (AlgorithmName, Matcher, error) {
 	algorithmNameStr, ok := optionalKeys[AlgorithmOptionalKey]
 	algorithmName := AlgorithmName(algorithmNameStr)
 
@@ -157,6 +145,3 @@ func getAndValidateIntParameter(name AlgorithmParameterOptionalKey, min, max int
 
 	return intVal, nil
 }
-
-// Make sure MatcherFactoryImpl fulfills the MatcherFactory interface.
-var _ MatcherFactory = (*MatcherFactoryImpl)(nil)
