@@ -22,6 +22,30 @@
       "revId": "1084e3edfc0cd9b88b476d526a80fd7090377100",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2069f0bc_fbefd9fa",
+        "filename": "gold-client/go/imgmatching/constants.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-25T22:30:35Z",
+      "side": 1,
+      "message": "\u003e What about just Key? I don\u0027t think Opt is bringing value in its shortened form. In general, I don\u0027t believe we need to encode in the type name that it\u0027s an optional key for JSON. That breaks the abstraction a bit.\n\nI see these constants as part of the \"goldctl world\" in that they are only used by the MakeMatcher function, which is essentially a parser of optional keys.\n\nThus, constants with \"optional key\" in their names make sense to me. Abstracting away the fact that they are optional keys will probably make things less obvious.\n\nThe matchers, however, make sense to think about in a vacuum, detached from the goldctl world. They don\u0027t need to know about said constants.\n\n\u003e Further thought - maybe the contents of these constants should go in the matcherfactory package, as well as their cousins in sobel and fuzzy. They should only be used when parsing the optional keys, so I don\u0027t think they need to necessarily be in the imgmatching package.\n\nYou\u0027re right.\n\nI\u0027ve moved the constants back into the imgmatching package. The fuzzy and sobel packages now only contain the pure algorithms, without any traces of the goldctl world.\n\nI\u0027ve also moved the MakeMatcher function back into imgmatching. The only reason I had moved it to its own matcherfactory package was to break that import cycle.\n\nWDYT?",
+      "parentUuid": "0d59ec25_6bf73e32",
+      "range": {
+        "startLine": 4,
+        "startChar": 19,
+        "endLine": 4,
+        "endChar": 25
+      },
+      "revId": "1084e3edfc0cd9b88b476d526a80fd7090377100",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
