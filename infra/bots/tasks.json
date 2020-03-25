@@ -89,9 +89,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/git/linux-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -182,9 +182,9 @@
           "version": "version:2.7.17.chromium.24"
         },
         {
-          "name": "infra/3pp/tools/git/linux-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
@@ -261,9 +261,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/git/linux-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -320,9 +320,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/git/linux-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -374,9 +374,9 @@
           "version": "version:2.7.17.chromium.24"
         },
         {
-          "name": "infra/3pp/tools/git/linux-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -428,9 +428,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/git/linux-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -517,9 +517,9 @@
           "version": "version:2.7.17.chromium.24"
         },
         {
-          "name": "infra/3pp/tools/git/linux-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/gsutil",
@@ -602,9 +602,9 @@
           "version": "version:2.7.17.chromium.24"
         },
         {
-          "name": "infra/3pp/tools/git/windows-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/gsutil",
@@ -691,9 +691,9 @@
           "version": "version:2.7.17.chromium.24"
         },
         {
-          "name": "infra/3pp/tools/git/linux-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/gsutil",
@@ -793,9 +793,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/git/linux-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -893,9 +893,9 @@
           "version": "version:2.7.17.chromium.24"
         },
         {
-          "name": "infra/3pp/tools/git/linux-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/gsutil",
@@ -1020,9 +1020,9 @@
           "version": "version:2.7.17.chromium.24"
         },
         {
-          "name": "infra/3pp/tools/git/linux-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/gsutil",
@@ -1122,9 +1122,9 @@
           "version": "version:2.7.17.chromium.24"
         },
         {
-          "name": "infra/3pp/tools/git/linux-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/gsutil",
@@ -1225,9 +1225,9 @@
       ],
       "cipd_packages": [
         {
-          "name": "infra/3pp/tools/git/linux-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/tools/git/${platform}",
@@ -1320,9 +1320,9 @@
           "version": "version:2.7.17.chromium.24"
         },
         {
-          "name": "infra/3pp/tools/git/linux-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/gsutil",
@@ -1443,9 +1443,9 @@
           "version": "version:2.7.17.chromium.24"
         },
         {
-          "name": "infra/3pp/tools/git/linux-amd64",
+          "name": "infra/3pp/tools/git/${platform}",
           "path": "cipd_bin_packages",
-          "version": "version:2.26.0.chromium.6"
+          "version": "version:2.25.1.chromium.6"
         },
         {
           "name": "infra/gsutil",

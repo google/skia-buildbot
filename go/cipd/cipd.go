@@ -22,17 +22,7 @@ import (
 
 const (
 	// CIPD server to use for obtaining packages.
-	ServiceUrl = "https://chrome-infra-packages.appspot.com"
-
-	// Platforms supported by CIPD.
-	PlatformLinuxAmd64   = "linux-amd64"
-	PlatformLinuxArm64   = "linux-arm64"
-	PlatformMacAmd64     = "mac-amd64"
-	PlatformWindows386   = "windows-386"
-	PlatformWindowsAmd64 = "windows-amd64"
-
-	// Template for Git CIPD package for a particular platform.
-	pkgGitTmpl = "infra/3pp/tools/git/%s"
+	SERVICE_URL = "https://chrome-infra-packages.appspot.com"
 )
 
 var (
@@ -43,32 +33,10 @@ var (
 	PkgProtoc = MustGetPackage("skia/bots/protoc")
 
 	// CIPD packages required for using Git.
-	PkgsGit = map[string][]*Package{
-		PlatformLinuxAmd64: {
-			MustGetPackage(fmt.Sprintf(pkgGitTmpl, PlatformLinuxAmd64)),
-			MustGetPackage("infra/tools/git/${platform}"),
-			MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
-		},
-		PlatformLinuxArm64: {
-			MustGetPackage(fmt.Sprintf(pkgGitTmpl, PlatformLinuxArm64)),
-			MustGetPackage("infra/tools/git/${platform}"),
-			MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
-		},
-		PlatformMacAmd64: {
-			MustGetPackage(fmt.Sprintf(pkgGitTmpl, PlatformMacAmd64)),
-			MustGetPackage("infra/tools/git/${platform}"),
-			MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
-		},
-		PlatformWindows386: {
-			MustGetPackage(fmt.Sprintf(pkgGitTmpl, PlatformWindows386)),
-			MustGetPackage("infra/tools/git/${platform}"),
-			MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
-		},
-		PlatformWindowsAmd64: {
-			MustGetPackage(fmt.Sprintf(pkgGitTmpl, PlatformWindowsAmd64)),
-			MustGetPackage("infra/tools/git/${platform}"),
-			MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
-		},
+	PkgsGit = []*Package{
+		MustGetPackage("infra/3pp/tools/git/${platform}"),
+		MustGetPackage("infra/tools/git/${platform}"),
+		MustGetPackage("infra/tools/luci/git-credential-luci/${platform}"),
 	}
 
 	// CIPD packages required for using Python.
@@ -197,7 +165,7 @@ type Client struct {
 // NewClient returns a CIPD client.
 func NewClient(c *http.Client, rootDir string) (*Client, error) {
 	cipdClient, err := cipd.NewClient(cipd.ClientOptions{
-		ServiceURL:          ServiceUrl,
+		ServiceURL:          SERVICE_URL,
 		Root:                rootDir,
 		AuthenticatedClient: c,
 	})
