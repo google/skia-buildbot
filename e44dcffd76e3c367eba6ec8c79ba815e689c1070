@@ -34,6 +34,24 @@
       "revId": "e44dcffd76e3c367eba6ec8c79ba815e689c1070",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c98516f_5fd7d2c5",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-25T17:27:59Z",
+      "side": 1,
+      "message": "Yes, because it fully qualifies it: https://skia.googlesource.com/buildbot/+/master/autoroll/go/repo_manager/repo_manager.go#418",
+      "parentUuid": "4e947229_00884932",
+      "revId": "e44dcffd76e3c367eba6ec8c79ba815e689c1070",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
