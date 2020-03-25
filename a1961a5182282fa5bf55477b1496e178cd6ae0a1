@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "376c486f_50d90e7c",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T11:04:16Z",
+      "side": 1,
+      "message": "I really think it negatively impacts readability. As a reviewer/new person to the code, I *have* to look at the matcher for every case to make sure it\u0027s not different. I would much prefer to know it\u0027s the same every time.",
+      "parentUuid": "66d5174d_ee058420",
+      "range": {
+        "startLine": 14,
+        "startChar": 1,
+        "endLine": 14,
+        "endChar": 21
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7d94a8fa_897c310b",
         "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
         "patchSetId": 4
@@ -140,6 +164,30 @@
       "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d2bd2cee_b224b5c5",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T11:04:16Z",
+      "side": 1,
+      "message": "Please do this.  This is one place where I think the standard Go idiom is wrong.",
+      "parentUuid": "6f91b3f9_d4540ef6",
+      "range": {
+        "startLine": 17,
+        "startChar": 1,
+        "endLine": 17,
+        "endChar": 5
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
