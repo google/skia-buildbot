@@ -13,7 +13,7 @@ const IMAGE = `! SKTEXTSIMPLE
 0x112233ff 0xffffffff
 0xddeeff00 0xffffff88`
 
-func TestDecoder(t *testing.T) {
+func TestDecode_ValidImage_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	buf := bytes.NewBufferString(IMAGE)
 	img, err := Decode(buf)
@@ -71,7 +71,7 @@ const ZERO_IMAGE = `! SKTEXTSIMPLE
 0 0
 `
 
-func TestDecoderDegenerate(t *testing.T) {
+func TestDecode_ZeroImage_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	buf := bytes.NewBufferString(ZERO_IMAGE)
 	img, err := Decode(buf)
@@ -106,7 +106,7 @@ const BAD_IMAGE_5 = `! SKTEXTSIMPLE
   112233ff 0xffffffff
 0xddeeff00 0xffffff88`
 
-func TestDecoderFails(t *testing.T) {
+func TestDecode_InvalidImage_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 	for _, tc := range []string{BAD_IMAGE_1, BAD_IMAGE_2, BAD_IMAGE_3, BAD_IMAGE_4, BAD_IMAGE_5} {
 		buf := bytes.NewBufferString(tc)
@@ -129,7 +129,7 @@ const NON_SQUARE_IMAGE_2 = `! SKTEXTSIMPLE
 0xddeeff00
 0x001100ff`
 
-func TestRoundTrip(t *testing.T) {
+func TestDecodeThenEncode_ReturnsTheSameImage(t *testing.T) {
 	unittest.SmallTest(t)
 	for _, tc := range []string{ZERO_IMAGE, IMAGE, NON_SQUARE_IMAGE, NON_SQUARE_IMAGE_2} {
 		buf := bytes.NewBufferString(tc)
