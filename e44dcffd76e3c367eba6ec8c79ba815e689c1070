@@ -52,6 +52,24 @@
       "revId": "e44dcffd76e3c367eba6ec8c79ba815e689c1070",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cd61376_19d7354b",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-25T17:36:22Z",
+      "side": 1,
+      "message": "Something weird is going on here.  When I copy/paste the cwd+env+command in the commit message and run it in the Docker image, it works.",
+      "parentUuid": "5c98516f_5fd7d2c5",
+      "revId": "e44dcffd76e3c367eba6ec8c79ba815e689c1070",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
