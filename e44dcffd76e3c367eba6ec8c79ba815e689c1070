@@ -70,6 +70,24 @@
       "revId": "e44dcffd76e3c367eba6ec8c79ba815e689c1070",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26506837_4f26f7fa",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-25T17:46:08Z",
+      "side": 1,
+      "message": "Yes, I did that same thing too. I remember running into the samething in CT with depot_tools and having to fully qualify it, not sure if it is exec\u0027s fault or something else.",
+      "parentUuid": "0cd61376_19d7354b",
+      "revId": "e44dcffd76e3c367eba6ec8c79ba815e689c1070",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
