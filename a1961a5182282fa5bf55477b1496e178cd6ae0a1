@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "9e3d7192_1b6323db",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-25T16:45:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "376c486f_50d90e7c",
+      "range": {
+        "startLine": 14,
+        "startChar": 1,
+        "endLine": 14,
+        "endChar": 21
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d94a8fa_897c310b",
         "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
         "patchSetId": 4
@@ -188,6 +212,30 @@
       "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36b46049_28c0a5e2",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-25T16:45:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d2bd2cee_b224b5c5",
+      "range": {
+        "startLine": 17,
+        "startChar": 1,
+        "endLine": 17,
+        "endChar": 5
+      },
+      "revId": "a1961a5182282fa5bf55477b1496e178cd6ae0a1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
