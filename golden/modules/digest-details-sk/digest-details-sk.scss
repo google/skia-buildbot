@@ -1,0 +1,21 @@
+@import '~elements-sk/colors';
+
+digest-details-sk {
+  .flex_vertical {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .flex_horizontal {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .expand {
+    flex-grow: 1;
+  }
+
+  .test_name{
+    font-weight: bold;
+  }
+}
