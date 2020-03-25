@@ -197,7 +197,7 @@ func (rm *githubCipdDEPSRepoManager) cipdInstanceToRevision(instance *cipd_api.I
 		Display:     instance.Pin.InstanceID[:5] + "...",
 		Description: instance.Pin.String(),
 		Timestamp:   time.Time(instance.RegisteredTs),
-		URL:         fmt.Sprintf(cipdPackageUrlTmpl, cipd.SERVICE_URL, rm.cipdAssetName, instance.Pin.InstanceID),
+		URL:         fmt.Sprintf(cipdPackageUrlTmpl, cipd.ServiceUrl, rm.cipdAssetName, instance.Pin.InstanceID),
 	}
 }
 
