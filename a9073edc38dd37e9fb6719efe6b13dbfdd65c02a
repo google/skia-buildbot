@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "046f12ff_f02fe6a0",
+        "filename": "golden/go/image/text/text_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T20:13:22Z",
+      "side": 1,
+      "message": "require.NoError(t, err) here and below",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 46,
+        "endChar": 2
+      },
+      "revId": "a9073edc38dd37e9fb6719efe6b13dbfdd65c02a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c1f137d_fe9b7cbe",
+        "filename": "golden/go/image/text/text_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T20:13:22Z",
+      "side": 1,
+      "message": "Did you initially say this should be SKTEXTSIMPLEGRAYSCALE? or does native grayscale already work?",
+      "range": {
+        "startLine": 50,
+        "startChar": 34,
+        "endLine": 50,
+        "endChar": 46
+      },
+      "revId": "a9073edc38dd37e9fb6719efe6b13dbfdd65c02a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24d0d796_802c2e2f",
+        "filename": "golden/go/image/text/text_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T20:13:22Z",
+      "side": 1,
+      "message": "driveby typo",
+      "range": {
+        "startLine": 156,
+        "startChar": 13,
+        "endLine": 156,
+        "endChar": 21
+      },
+      "revId": "a9073edc38dd37e9fb6719efe6b13dbfdd65c02a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "355f2cef_04fbb448",
+        "filename": "golden/go/image/text/text_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T20:13:22Z",
+      "side": 1,
+      "message": "Equals, right? Contains implies a subset is ok, which I don\u0027t believe we want",
+      "range": {
+        "startLine": 164,
+        "startChar": 16,
+        "endLine": 164,
+        "endChar": 24
+      },
+      "revId": "a9073edc38dd37e9fb6719efe6b13dbfdd65c02a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86e40bf0_ba12436a",
+        "filename": "golden/go/image/text/text_test.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T20:13:22Z",
+      "side": 1,
+      "message": "use assert.Equal here, so as to matche the modern way of writing these tests.",
+      "range": {
+        "startLine": 165,
+        "startChar": 1,
+        "endLine": 167,
+        "endChar": 2
+      },
+      "revId": "a9073edc38dd37e9fb6719efe6b13dbfdd65c02a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
