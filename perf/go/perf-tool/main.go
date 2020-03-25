@@ -3,14 +3,20 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
+	"time"
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/storage"
 	"github.com/spf13/cobra"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -20,6 +26,7 @@ import (
 	"go.skia.org/infra/perf/go/tracestore/btts"
 	"go.skia.org/infra/perf/go/types"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
 )
 
 var (
@@ -31,11 +38,14 @@ var (
 
 // flags
 var (
-	all            bool
-	logToStdErr    bool
-	bigTableConfig string
-	tile           types.TileNumber
-	queryFlag      string
+	indicesTileFlag types.TileNumber
+	tracesTileFlag  types.TileNumber
+
+	tracesQueryFlag string
+
+	ingestStartFlag  string
+	ingestEndFlag    string
+	ingestDryrunFlag bool
 )
 
 func main() {
@@ -44,11 +54,7 @@ func main() {
 	cmd := cobra.Command{
 		Use: "perf-tool [sub]",
 		PersistentPreRunE: func(c *cobra.Command, args []string) error {
-			logMode := glog_and_cloud.SLogNone
-			if logToStdErr {
-				logMode = glog_and_cloud.SLogStderr
-			}
-			glog_and_cloud.SetLogger(glog_and_cloud.NewStdErrCloudLogger(logMode))
+			glog_and_cloud.SetLogger(glog_and_cloud.NewStdErrCloudLogger(glog_and_cloud.SLogStderr))
 
 			var err error
 			ts, err = auth.NewDefaultTokenSource(true, bigtable.Scope)
@@ -68,8 +74,11 @@ func main() {
 			return nil
 		},
 	}
-	cmd.PersistentFlags().StringVar(&bigTableConfig, "config_filename", "./configs/nano.json", "The filename of the config file to use.")
-	cmd.PersistentFlags().BoolVar(&logToStdErr, "logtostderr", false, "Otherwise logs are not produced.")
+	cmd.PersistentFlags().StringVar(&configFilename, "config_filename", "./configs/nano.json", "The filename of the config file to use.")
+	err := cmd.MarkPersistentFlagRequired("config_filename")
+	if err != nil {
+		sklog.Fatal(err)
+	}
 
 	configCmd := &cobra.Command{
 		Use: "config [sub]",
@@ -84,7 +93,7 @@ func main() {
 	indicesCmd := &cobra.Command{
 		Use: "indices [sub]",
 	}
-	indicesCmd.PersistentFlags().Int32Var((*int32)(&tile), "tile", -1, "The tile to query")
+	indicesCmd.PersistentFlags().Int32Var((*int32)(&indicesTileFlag), "tile", -1, "The tile to query")
 	indicesCountCmd := &cobra.Command{
 		Use:   "count",
 		Short: "Counts the number of index rows.",
@@ -103,7 +112,7 @@ func main() {
 		Long:  "Rewrites the indices for all tiles, --tiles is ignored. Starts with latest tile and keeps moving to previous tiles until it finds a tile with no traces.",
 		RunE:  indicesWriteAllAction,
 	}
-	indicesWriteCmd.Flags().Int32Var((*int32)(&tile), "tile", -1, "The tile to query")
+	indicesWriteCmd.Flags().Int32Var((*int32)(&indicesTileFlag), "tile", -1, "The tile to query")
 
 	indicesCmd.AddCommand(
 		indicesCountCmd,
@@ -127,8 +136,8 @@ func main() {
 	tracesCmd := &cobra.Command{
 		Use: "traces [sub]",
 	}
-	tracesCmd.PersistentFlags().Int32Var((*int32)(&tile), "tile", -1, "The tile to query")
-	tracesCmd.PersistentFlags().StringVar(&queryFlag, "query", "", "The query to run. Defaults to the empty query which matches all traces.")
+	tracesCmd.PersistentFlags().Int32Var((*int32)(&tracesTileFlag), "tile", -1, "The tile to query")
+	tracesCmd.PersistentFlags().StringVar(&tracesQueryFlag, "query", "", "The query to run. Defaults to the empty query which matches all traces.")
 
 	tracesListByIndexCmd := &cobra.Command{
 		Use:   "list",
@@ -140,11 +149,28 @@ func main() {
 		tracesListByIndexCmd,
 	)
 
+	ingestCmd := &cobra.Command{
+		Use: "ingest [sub]",
+	}
+
+	ingestForceReingestCmd := &cobra.Command{
+		Use:   "force-reingest",
+		Short: "Force re-ingestion of files.",
+		RunE:  ingestForceReingestAction,
+	}
+
+	ingestForceReingestCmd.Flags().StringVar(&ingestStartFlag, "start", "", "Start the ingestion at this time, of the form: 2006-01-02. Default to one week ago.")
+	ingestForceReingestCmd.Flags().StringVar(&ingestEndFlag, "end", "", "Ingest up to this time, of the form: 2006-01-02. Defaults to now.")
+	ingestForceReingestCmd.Flags().BoolVar(&ingestDryrunFlag, "dryrun", false, "Just display the list of files to send.")
+
+	ingestCmd.AddCommand(ingestForceReingestCmd)
+
 	cmd.AddCommand(
 		configCmd,
 		indicesCmd,
 		tilesCmd,
 		tracesCmd,
+		ingestCmd,
 	)
 
 	if err := cmd.Execute(); err != nil {
@@ -165,16 +191,16 @@ func tilesLastAction(c *cobra.Command, args []string) error {
 
 func tracesListByIndexAction(c *cobra.Command, args []string) error {
 	var tileNumber types.TileNumber
-	if tile == -1 {
+	if tracesTileFlag == -1 {
 		var err error
 		tileNumber, err = store.GetLatestTile()
 		if err != nil {
 			return err
 		}
 	} else {
-		tileNumber = tile
+		tileNumber = tracesTileFlag
 	}
-	values, err := url.ParseQuery(queryFlag)
+	values, err := url.ParseQuery(tracesQueryFlag)
 	if err != nil {
 		return err
 	}
@@ -194,14 +220,14 @@ func tracesListByIndexAction(c *cobra.Command, args []string) error {
 
 func indicesWriteAction(c *cobra.Command, args []string) error {
 	var tileNumber types.TileNumber
-	if tile == -1 {
+	if indicesTileFlag == -1 {
 		var err error
 		tileNumber, err = store.GetLatestTile()
 		if err != nil {
 			return fmt.Errorf("Failed to get latest tile: %s", err)
 		}
 	} else {
-		tileNumber = tile
+		tileNumber = indicesTileFlag
 	}
 	return store.WriteIndices(context.Background(), tileNumber)
 }
@@ -230,14 +256,14 @@ func indicesWriteAllAction(c *cobra.Command, args []string) error {
 
 func indicesCountAction(c *cobra.Command, args []string) error {
 	var tileNumber types.TileNumber
-	if tile == -1 {
+	if indicesTileFlag == -1 {
 		var err error
 		tileNumber, err = store.GetLatestTile()
 		if err != nil {
 			return fmt.Errorf("Failed to get latest tile: %s", err)
 		}
 	} else {
-		tileNumber = tile
+		tileNumber = indicesTileFlag
 	}
 	count, err := store.CountIndices(context.Background(), tileNumber)
 	if err == nil {
@@ -276,5 +302,76 @@ func configCreatePubSubTopicsAction(c *cobra.Command, args []string) error {
 		}
 	}
 
+	return nil
+}
+
+func ingestForceReingestAction(c *cobra.Command, args []string) error {
+	ctx := context.Background()
+	ts, err := auth.NewDefaultTokenSource(true, storage.ScopeReadOnly)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	pubSubClient, err := pubsub.NewClient(ctx, instanceConfig.IngestionConfig.SourceConfig.Project, option.WithTokenSource(ts))
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	topic := pubSubClient.Topic(instanceConfig.IngestionConfig.SourceConfig.Topic)
+
+	now := time.Now()
+	startTime := now.Add(-7 * 24 * time.Hour)
+	if ingestStartFlag != "" {
+		startTime, err = time.Parse("2006-01-02", ingestStartFlag)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	endTime := now
+	if ingestEndFlag != "" {
+		endTime, err = time.Parse("2006-01-02", ingestEndFlag)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().Client()
+	gcsClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	for _, prefix := range instanceConfig.IngestionConfig.SourceConfig.Sources {
+		u, err := url.Parse(prefix)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+
+		dirs := fileutil.GetHourlyDirs(u.Path[1:], startTime.Unix(), endTime.Unix())
+		for _, dir := range dirs {
+			sklog.Infof("Directory: %q", dir)
+			err := gcs.AllFilesInDir(gcsClient, u.Host, dir, func(item *storage.ObjectAttrs) {
+				// The PubSub event data is a JSON serialized storage.ObjectAttrs object.
+				// See https://cloud.google.com/storage/docs/pubsub-notifications#payload
+				sklog.Infof("File: %q", item.Name)
+				b, err := json.Marshal(storage.ObjectAttrs{
+					Name:   item.Name,
+					Bucket: u.Host,
+				})
+				if err != nil {
+					sklog.Errorf("Failed to serialize event: %s", err)
+					return
+				}
+				if ingestDryrunFlag {
+					fmt.Println(item.Name, item.Bucket)
+					return
+				}
+				topic.Publish(ctx, &pubsub.Message{
+					Data: b,
+				})
+			})
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+		}
+	}
 	return nil
 }
