@@ -2,10 +2,10 @@
 
 ## Alerts
 
-### nack
+### success_rate_too_low
 
-The rate of Nacks for incoming files to ingest is too high. Look for errors
-in the logs for perf-ingest processes.
+The rate of successful ingestion is too low. Look for errors in the logs of the
+perf-ingest process.
 
 ### android_clustering_rate
 

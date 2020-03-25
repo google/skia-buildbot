@@ -92,6 +92,7 @@ func New(ctx context.Context, config *config.InstanceConfig, local bool) (*GCSSo
 		// When running locally create a new topic for every host.
 		subName = fmt.Sprintf("%s-%s", config.IngestionConfig.SourceConfig.Topic, hostname)
 	}
+	sklog.Infof("Creating subscription %q for topic %q", subName, config.IngestionConfig.SourceConfig.Topic)
 	sub := pubSubClient.Subscription(subName)
 	ok, err := sub.Exists(ctx)
 	if err != nil {

@@ -5,15 +5,14 @@ import (
 	"context"
 	"time"
 
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
+	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/ingest/parser"
-	"go.skia.org/infra/perf/go/types"
 )
 
 // Start a single go routine to process incoming ingestion files and write
@@ -47,7 +46,7 @@ func Start(ctx context.Context, instanceConfig *config.InstanceConfig) error {
 
 	// New gitinfo.GitInfo.
 	sklog.Infof("Cloning repo %q into %q", instanceConfig.GitRepoConfig.URL, instanceConfig.GitRepoConfig.Dir)
-	vcs, err := gitinfo.CloneOrUpdate(ctx, instanceConfig.GitRepoConfig.URL, instanceConfig.GitRepoConfig.Dir, false)
+	g, err := perfgit.New(ctx, instanceConfig)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -66,7 +65,7 @@ func Start(ctx context.Context, instanceConfig *config.InstanceConfig) error {
 		}
 
 		// Convert gitHash to commitNumber.
-		index, err := vcs.IndexOf(ctx, gitHash)
+		commitNumber, err := g.CommitNumberFromGitHash(ctx, gitHash)
 		if err != nil {
 			badGitHash.Inc(1)
 			sklog.Error("Failed to find gitHash %v: %s", f, err)
@@ -80,7 +79,7 @@ func Start(ctx context.Context, instanceConfig *config.InstanceConfig) error {
 		}
 
 		// Write data to the trace store.
-		if err := store.WriteTraces(types.CommitNumber(index), params, values, ps, f.Name, time.Now()); err != nil {
+		if err := store.WriteTraces(commitNumber, params, values, ps, f.Name, time.Now()); err != nil {
 			failedToWrite.Inc(1)
 			sklog.Error("Failed to write %v: %s", f, err)
 		}
