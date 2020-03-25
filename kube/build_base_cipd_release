@@ -12,12 +12,23 @@ TAG=testing-slim
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
+# Strip out irrelevant CIPD packages.
+tmp="$(mktemp -d)"
+touch ${tmp}/cipd.ensure
+while IFS="" read -r line || [ -n "$line" ]
+do
+  if [[ ! "$line" =~ arm64|windows|mac ]]; then
+    echo "$line" >> ${tmp}/cipd.ensure
+  fi
+done < ../cipd.ensure
+
 INSTALL="install -D --verbose --backup=none"
 INSTALL_DIR="install -d --verbose --backup=none"
-${INSTALL} --mode=644 -T base-cipd/Dockerfile          ${ROOT}/Dockerfile
+${INSTALL} --mode=644 -T base-cipd/Dockerfile        ${ROOT}/Dockerfile
 # Files needed to install CIPD packages.
-${INSTALL} --mode=644 -T ../cipd.ensure              ${ROOT}/tmp/cipd.ensure
+${INSTALL} --mode=644 -T ${tmp}/cipd.ensure          ${ROOT}/tmp/cipd.ensure
 ${INSTALL} --mode=644 -T ../infra/config/recipes.cfg ${ROOT}/tmp/recipes.cfg
+rm -rf $tmp
 }
 
 source ../bash/docker_build.sh
