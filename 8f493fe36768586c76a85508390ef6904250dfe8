@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fd5a1ea6_77773f9b",
+        "filename": "golden/go/image/text/text.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T20:15:10Z",
+      "side": 1,
+      "message": "I reviewed these CLs in the wrong order. Didn\u0027t you originally say SKTEXTSIMPLEGRAYSCALE ? Did you decide against that?",
+      "range": {
+        "startLine": 15,
+        "startChar": 5,
+        "endLine": 15,
+        "endChar": 17
+      },
+      "revId": "8f493fe36768586c76a85508390ef6904250dfe8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
