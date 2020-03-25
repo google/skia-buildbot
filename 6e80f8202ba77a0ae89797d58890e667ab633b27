@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "28d08f4c_fa742df7",
+        "filename": "perf/go/file/gcssource/gcssource.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T18:02:57Z",
+      "side": 1,
+      "message": "Creating?",
+      "range": {
+        "startLine": 95,
+        "startChar": 14,
+        "endLine": 95,
+        "endChar": 21
+      },
+      "revId": "6e80f8202ba77a0ae89797d58890e667ab633b27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eda7c088_1dd4c44f",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T18:02:57Z",
+      "side": 1,
+      "message": "Did you mean for this to be an actual interface?\n\nI would probably have the interface be here and move the disk-based git to a subpackage called gitondisk",
+      "range": {
+        "startLine": 17,
+        "startChar": 22,
+        "endLine": 17,
+        "endChar": 31
+      },
+      "revId": "6e80f8202ba77a0ae89797d58890e667ab633b27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "030ec0e0_deddfc87",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T18:02:57Z",
+      "side": 1,
+      "message": "This is a commit in the demo repo, right?",
+      "range": {
+        "startLine": 47,
+        "startChar": 54,
+        "endLine": 47,
+        "endChar": 94
+      },
+      "revId": "6e80f8202ba77a0ae89797d58890e667ab633b27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
