@@ -6,8 +6,11 @@ import (
 	"context"
 
 	lru "github.com/hashicorp/golang-lru"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -21,7 +24,17 @@ type Git struct {
 }
 
 // New creates a new *Git from the given instance configuration.
-func New(ctx context.Context, instanceConfig *config.InstanceConfig) (*Git, error) {
+func New(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (*Git, error) {
+	if instanceConfig.GitRepoConfig.GitAuthType == config.GitAuthGerrit {
+		sklog.Info("Authenticating to Gerrit.")
+		ts, err := auth.NewDefaultTokenSource(local, auth.SCOPE_GERRIT)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
 	repo, err := gitinfo.CloneOrUpdate(ctx, instanceConfig.GitRepoConfig.URL, instanceConfig.GitRepoConfig.Dir, false)
 	if err != nil {
 		return nil, skerr.Wrap(err)

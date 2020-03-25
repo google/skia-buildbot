@@ -20,7 +20,7 @@ import (
 //
 // Except for file.Sources of type "dir" this function should never return
 // except on error.
-func Start(ctx context.Context, instanceConfig *config.InstanceConfig) error {
+func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) error {
 	// Metrics.
 	filesReceived := metrics2.GetCounter("perfserver_ingest_files_received")
 	failedToParse := metrics2.GetCounter("perfserver_ingest_failed_to_parse")
@@ -46,7 +46,7 @@ func Start(ctx context.Context, instanceConfig *config.InstanceConfig) error {
 
 	// New gitinfo.GitInfo.
 	sklog.Infof("Cloning repo %q into %q", instanceConfig.GitRepoConfig.URL, instanceConfig.GitRepoConfig.Dir)
-	g, err := perfgit.New(ctx, instanceConfig)
+	g, err := perfgit.New(ctx, local, instanceConfig)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
