@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "0baa7504_1144f142",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1422,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T17:32:25Z",
+      "side": 1,
+      "message": "I would probably trim down the false cases as you mention.",
+      "parentUuid": "35f8b7ac_b592350e",
+      "range": {
+        "startLine": 1422,
+        "startChar": 1,
+        "endLine": 1422,
+        "endChar": 6
+      },
+      "revId": "2b80040ce6fa0209add535ec73c56924ce814a5b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2438138d_0966e6c2",
         "filename": "gold-client/go/goldclient/goldclient_test.go",
         "patchSetId": 5
@@ -140,6 +164,30 @@
       "revId": "2b80040ce6fa0209add535ec73c56924ce814a5b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2d23d92_fbed213d",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1469,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-25T17:32:25Z",
+      "side": 1,
+      "message": "You make a good point.",
+      "parentUuid": "f52a2abe_f9f6ae1d",
+      "range": {
+        "startLine": 1469,
+        "startChar": 20,
+        "endLine": 1469,
+        "endChar": 25
+      },
+      "revId": "2b80040ce6fa0209add535ec73c56924ce814a5b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
