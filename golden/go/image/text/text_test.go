@@ -161,6 +161,57 @@ func TestDecodeThenEncode_ReturnsTheSameImage(t *testing.T) {
 	}
 }
 
+func TestMustToNRGBA_ValidImage_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	img := MustToNRGBA(validImage)
+	assertImageEqualsExpectedPixels(t, img, 2, 2, validImageExpectedPixels)
+}
+
+func TestMustToNRGBA_InvalidImage_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Did not panic")
+		}
+	}()
+	MustToNRGBA(badImage1)
+}
+
+func TestMustToGray_ValidImageWithGrayscaleNotation_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	img := MustToGray(grayscaleNotationImage)
+
+	if got, want := img.Bounds().Dx(), 2; got != want {
+		t.Errorf("Wrong x dim: Got %v Want %v", got, want)
+	}
+	if got, want := img.Bounds().Dy(), 2; got != want {
+		t.Errorf("Wrong y dim: Got %v Want %v", got, want)
+	}
+
+	for _, p := range grayscaleNotationImageExpectedPixels {
+		y := img.GrayAt(p.x, p.y).Y
+		if got, want := y, uint8(p.r); got != want {
+			t.Errorf("Wrong r channel value at (%x, %x): Got %x Want %x", p.x, p.y, got, want)
+		}
+		if got, want := y, uint8(p.g); got != want {
+			t.Errorf("Wrong g channel value at (%x, %x): Got %x Want %x", p.x, p.y, got, want)
+		}
+		if got, want := y, uint8(p.b); got != want {
+			t.Errorf("Wrong b channel value at (%x, %x): Got %x Want %x", p.x, p.y, got, want)
+		}
+	}
+}
+
+func TestMustToGray_InvalidImage_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Did not panic")
+		}
+	}()
+	MustToGray(badImage1)
+}
+
 func assertImageEqualsExpectedPixels(t *testing.T, nrgba *image.NRGBA, expectedWidth, expectedHeight int, expectedPixels []expectedPixel) {
 	if got, want := nrgba.Bounds().Dx(), expectedWidth; got != want {
 		t.Errorf("Wrong x dim: Got %v Want %v", got, want)
@@ -172,16 +223,16 @@ func assertImageEqualsExpectedPixels(t *testing.T, nrgba *image.NRGBA, expectedW
 	for _, p := range expectedPixels {
 		c := nrgba.NRGBAAt(p.x, p.y)
 		if got, want := c.R, uint8(p.r); got != want {
-			t.Errorf("Wrong r channel value: Got %x Want %x", got, want)
+			t.Errorf("Wrong r channel value at (%x, %x): Got %x Want %x", p.x, p.y, got, want)
 		}
 		if got, want := c.G, uint8(p.g); got != want {
-			t.Errorf("Wrong g channel value: Got %x Want %x", got, want)
+			t.Errorf("Wrong g channel value at (%x, %x): Got %x Want %x", p.x, p.y, got, want)
 		}
 		if got, want := c.B, uint8(p.b); got != want {
-			t.Errorf("Wrong b channel value: Got %x Want %x", got, want)
+			t.Errorf("Wrong b channel value at (%x, %x): Got %x Want %x", p.x, p.y, got, want)
 		}
 		if got, want := c.A, uint8(p.a); got != want {
-			t.Errorf("Wrong a channel value: Got %x Want %x", got, want)
+			t.Errorf("Wrong a channel value at (%x, %x): Got %x Want %x", p.x, p.y, got, want)
 		}
 	}
 }
