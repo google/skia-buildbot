@@ -5,7 +5,7 @@ import (
 	"image/draw"
 )
 
-// FuzzyMatcher is a non-exact image matching algorithm.
+// Matcher is a non-exact image matching algorithm.
 //
 // It considers two images to be equal if the following two conditions are met:
 //   - Both images are of equal size.
@@ -17,13 +17,13 @@ import (
 //
 // Valid PixelDeltaThreshold values are 0 to 1020 inclusive (0 <= d{R,G,B,A} <= 255, thus
 // 0 <= dR + dG + dB + dA <= 255*4 = 1020).
-type FuzzyMatcher struct {
+type Matcher struct {
 	MaxDifferentPixels  int
 	PixelDeltaThreshold int
 }
 
 // Match implements the imagmatching.Matcher interface.
-func (m *FuzzyMatcher) Match(expected, actual image.Image) bool {
+func (m *Matcher) Match(expected, actual image.Image) bool {
 	// Images must be the same size.
 	if !expected.Bounds().Eq(actual.Bounds()) {
 		return false

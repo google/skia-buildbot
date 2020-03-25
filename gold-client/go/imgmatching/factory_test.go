@@ -15,7 +15,7 @@ func TestMakeMatcher_UnknownAlgorithm_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	_, _, err := MakeMatcher(map[string]string{
-		AlgorithmOptionalKey: "FakeAlgorithm",
+		AlgorithmNameOptKey: "FakeAlgorithm",
 	})
 
 	assert.Error(t, err)
@@ -36,7 +36,7 @@ func TestMakeMatcher_ExactMatchingExplicitlySpecified_ReturnsExactMatching(t *te
 	unittest.SmallTest(t)
 
 	algorithmName, matcher, err := MakeMatcher(map[string]string{
-		AlgorithmOptionalKey: string(ExactMatching),
+		AlgorithmNameOptKey: string(ExactMatching),
 	})
 
 	assert.NoError(t, err)
@@ -47,17 +47,17 @@ func TestMakeMatcher_ExactMatchingExplicitlySpecified_ReturnsExactMatching(t *te
 // missing is a sentinel value used to represent missing parameter values.
 const missing = "missing value"
 
-// fuzzyMatchingTestCase represents a test case for MakeMatcher() where a fuzzy.FuzzyMatcher is
+// fuzzyMatchingTestCase represents a test case for MakeMatcher() where a fuzzy.Matcher is
 // instantiated.
 type fuzzyMatchingTestCase struct {
 	name                string
 	maxDifferentPixels  string
 	pixelDeltaThreshold string
-	want                fuzzy.FuzzyMatcher
+	want                fuzzy.Matcher
 	error               string
 }
 
-// commonMaxDifferentPixelsTestCases returns test cases for the FuzzyMatchingMaxDifferentPixels
+// commonMaxDifferentPixelsTestCases returns test cases for the MaxDifferentPixels
 // optional key.
 //
 // These tests are shared between TestMakeMatcher_FuzzyMatching and
@@ -104,7 +104,7 @@ func commonMaxDifferentPixelsTestCases() []fuzzyMatchingTestCase {
 			name:                "max different pixels: value = 0, success",
 			maxDifferentPixels:  "0",
 			pixelDeltaThreshold: "0",
-			want: fuzzy.FuzzyMatcher{
+			want: fuzzy.Matcher{
 				MaxDifferentPixels:  0,
 				PixelDeltaThreshold: 0,
 			},
@@ -113,7 +113,7 @@ func commonMaxDifferentPixelsTestCases() []fuzzyMatchingTestCase {
 			name:                "max different pixels: value = math.MaxInt32, success",
 			maxDifferentPixels:  fmt.Sprintf("%d", math.MaxInt32),
 			pixelDeltaThreshold: "0",
-			want: fuzzy.FuzzyMatcher{
+			want: fuzzy.Matcher{
 				MaxDifferentPixels:  math.MaxInt32,
 				PixelDeltaThreshold: 0,
 			},
@@ -121,7 +121,7 @@ func commonMaxDifferentPixelsTestCases() []fuzzyMatchingTestCase {
 	}
 }
 
-// commonMaxDifferentPixelsTestCases returns test cases for the FuzzyMatchingPixelDeltaThreshold
+// commonMaxDifferentPixelsTestCases returns test cases for the PixelDeltaThreshold
 // optional key.
 //
 // These tests are shared between TestMakeMatcher_FuzzyMatching and
@@ -168,7 +168,7 @@ func commonPixelDeltaThresholdTestCases() []fuzzyMatchingTestCase {
 			name:                "pixel delta threshold: value = 0, success",
 			maxDifferentPixels:  "0",
 			pixelDeltaThreshold: "0",
-			want: fuzzy.FuzzyMatcher{
+			want: fuzzy.Matcher{
 				MaxDifferentPixels:  0,
 				PixelDeltaThreshold: 0,
 			},
@@ -177,7 +177,7 @@ func commonPixelDeltaThresholdTestCases() []fuzzyMatchingTestCase {
 			name:                "pixel delta threshold: value = 1020, success",
 			maxDifferentPixels:  "0",
 			pixelDeltaThreshold: "1020",
-			want: fuzzy.FuzzyMatcher{
+			want: fuzzy.Matcher{
 				MaxDifferentPixels:  0,
 				PixelDeltaThreshold: 1020,
 			},
@@ -208,13 +208,13 @@ func TestMakeMatcher_FuzzyMatching(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			optionalKeys := map[string]string{
-				AlgorithmOptionalKey: string(FuzzyMatching),
+				AlgorithmNameOptKey: string(FuzzyMatching),
 			}
 			if tc.maxDifferentPixels != missing {
-				optionalKeys[string(FuzzyMatchingMaxDifferentPixels)] = tc.maxDifferentPixels
+				optionalKeys[string(MaxDifferentPixels)] = tc.maxDifferentPixels
 			}
 			if tc.pixelDeltaThreshold != missing {
-				optionalKeys[string(FuzzyMatchingPixelDeltaThreshold)] = tc.pixelDeltaThreshold
+				optionalKeys[string(PixelDeltaThreshold)] = tc.pixelDeltaThreshold
 			}
 
 			algorithmName, matcher, err := MakeMatcher(optionalKeys)
@@ -239,7 +239,7 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 		edgeThreshold       string
 		maxDifferentPixels  string
 		pixelDeltaThreshold string
-		want                sobel.SobelFuzzyMatcher
+		want                sobel.Matcher
 		error               string
 	}
 
@@ -299,8 +299,8 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 			edgeThreshold:       "0",
 			maxDifferentPixels:  "0",
 			pixelDeltaThreshold: "0",
-			want: sobel.SobelFuzzyMatcher{
-				FuzzyMatcher: fuzzy.FuzzyMatcher{
+			want: sobel.Matcher{
+				Matcher: fuzzy.Matcher{
 					MaxDifferentPixels:  0,
 					PixelDeltaThreshold: 0,
 				},
@@ -312,8 +312,8 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 			edgeThreshold:       "254",
 			maxDifferentPixels:  "0",
 			pixelDeltaThreshold: "0",
-			want: sobel.SobelFuzzyMatcher{
-				FuzzyMatcher: fuzzy.FuzzyMatcher{
+			want: sobel.Matcher{
+				Matcher: fuzzy.Matcher{
 					MaxDifferentPixels:  0,
 					PixelDeltaThreshold: 0,
 				},
@@ -325,8 +325,8 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 			edgeThreshold:       "255",
 			maxDifferentPixels:  "0",
 			pixelDeltaThreshold: "0",
-			want: sobel.SobelFuzzyMatcher{
-				FuzzyMatcher: fuzzy.FuzzyMatcher{
+			want: sobel.Matcher{
+				Matcher: fuzzy.Matcher{
 					MaxDifferentPixels:  0,
 					PixelDeltaThreshold: 0,
 				},
@@ -349,8 +349,8 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 			edgeThreshold:       "0",
 			maxDifferentPixels:  tc.maxDifferentPixels,
 			pixelDeltaThreshold: tc.pixelDeltaThreshold,
-			want: sobel.SobelFuzzyMatcher{
-				FuzzyMatcher:  tc.want,
+			want: sobel.Matcher{
+				Matcher:       tc.want,
 				EdgeThreshold: 0,
 			},
 			error: tc.error,
@@ -366,16 +366,16 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			optionalKeys := map[string]string{
-				AlgorithmOptionalKey: string(SobelFuzzyMatching),
+				AlgorithmNameOptKey: string(SobelFuzzyMatching),
 			}
 			if tc.edgeThreshold != missing {
-				optionalKeys[string(SobelFuzzyMatchingEdgeThreshold)] = tc.edgeThreshold
+				optionalKeys[string(EdgeThreshold)] = tc.edgeThreshold
 			}
 			if tc.maxDifferentPixels != missing {
-				optionalKeys[string(FuzzyMatchingMaxDifferentPixels)] = tc.maxDifferentPixels
+				optionalKeys[string(MaxDifferentPixels)] = tc.maxDifferentPixels
 			}
 			if tc.pixelDeltaThreshold != missing {
-				optionalKeys[string(FuzzyMatchingPixelDeltaThreshold)] = tc.pixelDeltaThreshold
+				optionalKeys[string(PixelDeltaThreshold)] = tc.pixelDeltaThreshold
 			}
 
 			algorithmName, matcher, err := MakeMatcher(optionalKeys)

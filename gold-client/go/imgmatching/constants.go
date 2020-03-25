@@ -1,27 +1,32 @@
 package imgmatching
 
-// Optional key used to indicate a non-exact matching algorithm.
-const AlgorithmOptionalKey = "image_matching_algorithm"
+// AlgorithmNameOptKey is the optional key used to indicate a non-exact matching algorithm.
+const AlgorithmNameOptKey = "image_matching_algorithm"
 
-// AlgorithmName is a non-exact image matching algorithm specified via the AlgorithmOptionalKey
+// AlgorithmName is a non-exact image matching algorithm specified via the AlgorithmNameOptKey
 // optional key, e.g. "fuzzy".
 type AlgorithmName string
 
 const (
-	ExactMatching      = AlgorithmName("")
+	ExactMatching      = AlgorithmName("exact")
 	FuzzyMatching      = AlgorithmName("fuzzy")
 	SobelFuzzyMatching = AlgorithmName("sobel")
 )
 
-// AlgorithmParameterOptionalKey is an optional key indicating a parameter for the specified
-// non-exact image matching algorithm, e.g. "fuzzy_max_different_pixels".
-type AlgorithmParameterOptionalKey string
+// AlgorithmParamOptKey is an optional key indicating a parameter for the specified non-exact image
+// matching algorithm, e.g. "fuzzy_max_different_pixels".
+type AlgorithmParamOptKey string
 
 const (
-	// Parameters for FuzzyMatching.
-	FuzzyMatchingMaxDifferentPixels  = AlgorithmParameterOptionalKey("fuzzy_max_different_pixels")
-	FuzzyMatchingPixelDeltaThreshold = AlgorithmParameterOptionalKey("fuzzy_pixel_delta_threshold")
+	// MaxDifferentPixels is the optional key used to specify the MaxDifferentPixels parameter of
+	// algorithms FuzzyMatching and SobelFuzzyMatching.
+	MaxDifferentPixels = AlgorithmParamOptKey("fuzzy_max_different_pixels")
 
-	// Parameters for SobelFuzzyMatching.
-	SobelFuzzyMatchingEdgeThreshold = AlgorithmParameterOptionalKey("sobel_edge_threshold")
+	// PixelDeltaThreshold is the optional key used to specify the PixelDeltaThreshold parameter of
+	// algorithms FuzzyMatching and SobelFuzzyMatching.
+	PixelDeltaThreshold = AlgorithmParamOptKey("fuzzy_pixel_delta_threshold")
+
+	// EdgeThreshold is the optional key used to specify the EdgeThreshold parameter of the
+	// SobelFuzzyMatching algorithm.
+	EdgeThreshold = AlgorithmParamOptKey("sobel_edge_threshold")
 )
