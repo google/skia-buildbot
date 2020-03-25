@@ -11,7 +11,7 @@ import (
 
 type testCase struct {
 	name    string
-	matcher FuzzyMatcher
+	matcher Matcher
 	image1  image.Image
 	image2  image.Image
 	want    bool
@@ -23,7 +23,7 @@ func TestFuzzyMatcher_ZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.
 	tests := []testCase{
 		{
 			name:    "different size images, returns false",
-			matcher: FuzzyMatcher{},
+			matcher: Matcher{},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
 			2 2
 			0x00000000 0x00000000
@@ -37,7 +37,7 @@ func TestFuzzyMatcher_ZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.
 
 		{
 			name:    "identical images, returns true",
-			matcher: FuzzyMatcher{},
+			matcher: Matcher{},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
 			2 2
 			0x00000000 0x00000000
@@ -51,7 +51,7 @@ func TestFuzzyMatcher_ZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.
 
 		{
 			name:    "one different pixel, returns false",
-			matcher: FuzzyMatcher{},
+			matcher: Matcher{},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
 			2 2
 			0x00000000 0x00000000
@@ -78,7 +78,7 @@ func TestFuzzyMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testi
 	tests := []testCase{
 		{
 			name: "different size images, returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				PixelDeltaThreshold: 16,
 			},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -94,7 +94,7 @@ func TestFuzzyMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testi
 
 		{
 			name: "identical images, returns true",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				PixelDeltaThreshold: 16,
 			},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -110,7 +110,7 @@ func TestFuzzyMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testi
 
 		{
 			name: "one pixel at PixelDeltaThreshold - 1 (deltas in some channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				PixelDeltaThreshold: 16,
 			},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -126,7 +126,7 @@ func TestFuzzyMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testi
 
 		{
 			name: "one pixel at PixelDeltaThreshold - 1 (deltas in all channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				PixelDeltaThreshold: 16,
 			},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -142,7 +142,7 @@ func TestFuzzyMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testi
 
 		{
 			name: "one pixel at PixelDeltaThreshold (deltas in some channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				PixelDeltaThreshold: 16,
 			},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -158,7 +158,7 @@ func TestFuzzyMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testi
 
 		{
 			name: "one pixel at PixelDeltaThreshold (deltas in all channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				PixelDeltaThreshold: 16,
 			},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -174,7 +174,7 @@ func TestFuzzyMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testi
 
 		{
 			name: "one pixel at PixelDeltaThreshold + 1 (deltas in some channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				PixelDeltaThreshold: 16,
 			},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -190,7 +190,7 @@ func TestFuzzyMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testi
 
 		{
 			name: "one pixel at PixelDeltaThreshold + 1 (deltas in all channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				PixelDeltaThreshold: 16,
 			},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -219,7 +219,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testi
 	tests := []testCase{
 		{
 			name: "different size images, returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels: 2,
 			},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -235,7 +235,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testi
 
 		{
 			name: "identical images, returns true",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels: 2,
 			},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -251,7 +251,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testi
 
 		{
 			name: "number of different pixels = MaxDifferentPixels - 1, returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels: 2,
 			},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -267,7 +267,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testi
 
 		{
 			name: "number of different pixels = MaxDifferentPixels, returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels: 2,
 			},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -283,7 +283,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testi
 
 		{
 			name: "number of different pixels = MaxDifferentPixels + 1, returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels: 2,
 			},
 			image1: text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -312,7 +312,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 	tests := []testCase{
 		{
 			name: "different size images, returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -329,7 +329,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "identical images, returns true",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -350,7 +350,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels - 1, one pixel at PixelDeltaThreshold - 1 (deltas in some channels), returns true",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -367,7 +367,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels - 1, one pixel at PixelDeltaThreshold - 1 (deltas in all channels), returns true",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -384,7 +384,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels - 1, one pixel at PixelDeltaThreshold (deltas in some channels), returns true",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -401,7 +401,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels - 1, one pixel at PixelDeltaThreshold (deltas in all channels), returns true",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -418,7 +418,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels - 1, one pixel at PixelDeltaThreshold + 1 (deltas in some channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -435,7 +435,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels - 1, one pixel at PixelDeltaThreshold + 1 (deltas in all channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -456,7 +456,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels, one pixel at PixelDeltaThreshold - 1 (deltas in some channels), returns true",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -473,7 +473,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels, one pixel at PixelDeltaThreshold - 1 (deltas in all channels), returns true",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -490,7 +490,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels, one pixel at PixelDeltaThreshold (deltas in some channels), returns true",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -507,7 +507,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels, one pixel at PixelDeltaThreshold (deltas in all channels), returns true",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -524,7 +524,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels, one pixel at PixelDeltaThreshold + 1 (deltas in some channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -541,7 +541,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels, one pixel at PixelDeltaThreshold + 1 (deltas in all channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -562,7 +562,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels + 1, one pixel at PixelDeltaThreshold - 1 (deltas in some channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -579,7 +579,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels + 1, one pixel at PixelDeltaThreshold - 1 (deltas in all channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -596,7 +596,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels + 1, one pixel at PixelDeltaThreshold (deltas in some channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -613,7 +613,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels + 1, one pixel at PixelDeltaThreshold (deltas in all channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -630,7 +630,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels + 1, one pixel at PixelDeltaThreshold + 1 (deltas in some channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
@@ -647,7 +647,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 		{
 			name: "number of different pixels = MaxDifferentPixels + 1, one pixel at PixelDeltaThreshold + 1 (deltas in all channels), returns false",
-			matcher: FuzzyMatcher{
+			matcher: Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			},
