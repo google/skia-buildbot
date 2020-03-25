@@ -11,11 +11,10 @@ import (
 	"go.skia.org/infra/gold-client/go/imgmatching/sobel"
 )
 
-func TestMatcherFactoryImpl_Make_UnknownAlgorithm_ReturnsError(t *testing.T) {
+func TestMakeMatcher_UnknownAlgorithm_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
-	f := MatcherFactoryImpl{}
-	_, _, err := f.Make(map[string]string{
+	_, _, err := MakeMatcher(map[string]string{
 		AlgorithmOptionalKey: "FakeAlgorithm",
 	})
 
@@ -23,22 +22,20 @@ func TestMatcherFactoryImpl_Make_UnknownAlgorithm_ReturnsError(t *testing.T) {
 	assert.Contains(t, err.Error(), `unrecognized image matching algorithm: "FakeAlgorithm"`)
 }
 
-func TestMatcherFactoryImpl_Make_NoAlgorithmSpecified_ReturnsExactMatching(t *testing.T) {
+func TestMakeMatcher_NoAlgorithmSpecified_ReturnsExactMatching(t *testing.T) {
 	unittest.SmallTest(t)
 
-	f := MatcherFactoryImpl{}
-	algorithmName, matcher, err := f.Make(map[string]string{})
+	algorithmName, matcher, err := MakeMatcher(map[string]string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, ExactMatching, algorithmName)
 	assert.Nil(t, matcher)
 }
 
-func TestMatcherFactoryImpl_Make_ExactMatchingExplicitlySpecified_ReturnsExactMatching(t *testing.T) {
+func TestMakeMatcher_ExactMatchingExplicitlySpecified_ReturnsExactMatching(t *testing.T) {
 	unittest.SmallTest(t)
 
-	f := MatcherFactoryImpl{}
-	algorithmName, matcher, err := f.Make(map[string]string{
+	algorithmName, matcher, err := MakeMatcher(map[string]string{
 		AlgorithmOptionalKey: string(ExactMatching),
 	})
 
@@ -50,8 +47,8 @@ func TestMatcherFactoryImpl_Make_ExactMatchingExplicitlySpecified_ReturnsExactMa
 // missing is a sentinel value used to represent missing parameter values.
 const missing = "missing value"
 
-// fuzzyMatchingTestCase represents a test case for MatcherFactoryImpl#Make() where a
-// fuzzy.FuzzyMatcher is instantiated.
+// fuzzyMatchingTestCase represents a test case for MakeMatcher() where a fuzzy.FuzzyMatcher is
+// instantiated.
 type fuzzyMatchingTestCase struct {
 	name                string
 	maxDifferentPixels  string
@@ -63,8 +60,8 @@ type fuzzyMatchingTestCase struct {
 // commonMaxDifferentPixelsTestCases returns test cases for the FuzzyMatchingMaxDifferentPixels
 // optional key.
 //
-// These tests are shared between TestMatcherFactoryImpl_Make_FuzzyMatching and
-// TestMatcherFactoryImpl_Make_SobelFuzzyMatching.
+// These tests are shared between TestMakeMatcher_FuzzyMatching and
+// TestMakeMatcher_SobelFuzzyMatching.
 func commonMaxDifferentPixelsTestCases() []fuzzyMatchingTestCase {
 	return []fuzzyMatchingTestCase{
 		{
@@ -127,8 +124,8 @@ func commonMaxDifferentPixelsTestCases() []fuzzyMatchingTestCase {
 // commonMaxDifferentPixelsTestCases returns test cases for the FuzzyMatchingPixelDeltaThreshold
 // optional key.
 //
-// These tests are shared between TestMatcherFactoryImpl_Make_FuzzyMatching and
-// TestMatcherFactoryImpl_Make_SobelFuzzyMatching.
+// These tests are shared between TestMakeMatcher_FuzzyMatching and
+// TestMakeMatcher_SobelFuzzyMatching.
 func commonPixelDeltaThresholdTestCases() []fuzzyMatchingTestCase {
 	return []fuzzyMatchingTestCase{
 		{
@@ -194,7 +191,7 @@ func commonPixelDeltaThresholdTestCases() []fuzzyMatchingTestCase {
 	}
 }
 
-func TestMatcherFactoryImpl_Make_FuzzyMatching(t *testing.T) {
+func TestMakeMatcher_FuzzyMatching(t *testing.T) {
 	unittest.SmallTest(t)
 
 	tests := []fuzzyMatchingTestCase{
@@ -220,7 +217,7 @@ func TestMatcherFactoryImpl_Make_FuzzyMatching(t *testing.T) {
 				optionalKeys[string(FuzzyMatchingPixelDeltaThreshold)] = tc.pixelDeltaThreshold
 			}
 
-			algorithmName, matcher, err := MatcherFactoryImpl{}.Make(optionalKeys)
+			algorithmName, matcher, err := MakeMatcher(optionalKeys)
 
 			if tc.error != "" {
 				assert.Error(t, err)
@@ -234,7 +231,7 @@ func TestMatcherFactoryImpl_Make_FuzzyMatching(t *testing.T) {
 	}
 }
 
-func TestMatcherFactoryImpl_Make_SobelFuzzyMatching(t *testing.T) {
+func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 	unittest.SmallTest(t)
 
 	type sobelFuzzyMatchingTestCase struct {
@@ -381,7 +378,7 @@ func TestMatcherFactoryImpl_Make_SobelFuzzyMatching(t *testing.T) {
 				optionalKeys[string(FuzzyMatchingPixelDeltaThreshold)] = tc.pixelDeltaThreshold
 			}
 
-			algorithmName, matcher, err := MatcherFactoryImpl{}.Make(optionalKeys)
+			algorithmName, matcher, err := MakeMatcher(optionalKeys)
 
 			if tc.error != "" {
 				assert.Error(t, err)
