@@ -1661,55 +1661,6 @@ func TestCloudClient_MatchImageAgainstBaseline_UnknownAlgorithm_ReturnsError(t *
 	assert.Contains(t, err.Error(), "unrecognized image matching algorithm")
 }
 
-// fakeMatcher implements the imgmatching.Matcher interface.
-type fakeMatcher bool
-
-// Match implements the imgmatching.Matcher interface.
-func (v fakeMatcher) Match(_, _ image.Image) bool { return bool(v) }
-
-// TODO(lovisolo): Replace this test with one that uses a real non-exact image matching algorithm
-//                 once one is implemented.
-func TestCloudClient_MatchImageAgainstBaseline_FakeNonExactAlgorithm_DownloadsMostRecentPositiveDigest_ImagesCorrectlyPassedToAlgorithm_Success(t *testing.T) {
-	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
-
-	const testName = types.TestName("my_test")
-	const traceId = tiling.TraceID(",name=my_test,")
-	imageBytes := imageToPngBytes(t, image1)
-	const digest = types.Digest("11111111111111111111111111111111")
-	optionalKeys := map[string]string{
-		imgmatching.AlgorithmOptionalKey: "FakeAlgorithm",
-	}
-
-	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/latestpositivedigest/,name=my_test,"
-	const latestPositiveDigestResponse = `{"digest":"22222222222222222222222222222222"}`
-	const latestPositiveDigestGcsPath = "gs://skia-gold-testing/dm-images-v1/22222222222222222222222222222222.png"
-	latestPositiveImageBytes := imageToPngBytes(t, image2)
-
-	test := func(name string, matcherReturnValue bool) {
-		t.Run(name, func(t *testing.T) {
-			mockMatcherFactory := &mocks.MatcherFactory{}
-
-			goldClient, cleanup, httpClient, gcsClient := makeGoldClientForMatchImageAgainstBaselineTests(t)
-			goldClient.imgMatcherFactory = mockMatcherFactory
-			defer cleanup()
-			defer mockMatcherFactory.AssertExpectations(t)
-			defer httpClient.AssertExpectations(t)
-			defer gcsClient.AssertExpectations(t)
-
-			httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse([]byte(latestPositiveDigestResponse), "200 OK", http.StatusOK), nil)
-			gcsClient.On("Download", testutils.AnyContext, latestPositiveDigestGcsPath, filepath.Join(goldClient.workDir, digestsDirectory)).Return(latestPositiveImageBytes, nil)
-			mockMatcherFactory.On("Make", optionalKeys).Return(imgmatching.AlgorithmName("FakeAlgorithm"), fakeMatcher(matcherReturnValue), nil)
-
-			matches, err := goldClient.matchImageAgainstBaseline(testName, traceId, imageBytes, digest, optionalKeys)
-			assert.NoError(t, err)
-			assert.Equal(t, matcherReturnValue, matches)
-		})
-	}
-
-	test("matching algorithm says images match, returns true", true)
-	test("matching algorithm says images do not match, returns false", false)
-}
-
 func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsImageFromGCS_Success(t *testing.T) {
 	unittest.MediumTest(t) // This tests reads/writes a small amount of data from/to disk.
 
