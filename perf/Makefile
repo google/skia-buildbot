@@ -30,9 +30,6 @@ push-perf-ingest: build-perf-ingest
 pushk: buildk
 	pushk skiaperf
 
-.PHONY: perf-force-ingest
-	go install -v ./go/perf-force-ingest
-
 ingest_json_validator:
 	go install -v ./go/ingest_json_validator
 
