@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "91631b0b_51100799",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-25T13:57:31Z",
+      "side": 1,
+      "message": "Might want to rename the file now.",
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "595b2f82_1bea028a",
         "filename": "scripts/find_nongoogler_commits.go",
         "patchSetId": 2
@@ -201,6 +218,30 @@
       "side": 1,
       "message": "Done",
       "parentUuid": "0f407af0_d6e3019f",
+      "range": {
+        "startLine": 34,
+        "startChar": 5,
+        "endLine": 34,
+        "endChar": 18
+      },
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ea0b677_43b069ae",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-25T13:57:31Z",
+      "side": 1,
+      "message": "Golang doc style is to start with the name of the function:\n// getAccountSet will sanitize...\nEg: https://golang.org/pkg/fmt/#Fprint",
+      "parentUuid": "bc5d0b13_561149f8",
       "range": {
         "startLine": 34,
         "startChar": 5,
