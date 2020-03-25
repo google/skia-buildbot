@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "197b6086_604c79d1",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-25T10:52:28Z",
+      "side": 1,
+      "message": "Sorry, I should have noticed this during review.  We should be passing in the depot tools env from the repo manager via the env argument.  I think this hard-coded path relative to the parentRepoDir is causing the current problem.",
+      "range": {
+        "startLine": 120,
+        "startChar": 0,
+        "endLine": 124,
+        "endChar": 75
+      },
+      "revId": "c6627763caa538df41a55be301a47e64743ebc99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
