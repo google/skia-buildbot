@@ -1,4 +1,4 @@
-package imgmatching
+package matcherfactory
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/gold-client/go/imgmatching"
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
 	"go.skia.org/infra/gold-client/go/imgmatching/sobel"
 )
@@ -15,7 +16,7 @@ func TestMakeMatcher_UnknownAlgorithm_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	_, _, err := MakeMatcher(map[string]string{
-		AlgorithmOptionalKey: "FakeAlgorithm",
+		imgmatching.AlgorithmOptionalKey: "FakeAlgorithm",
 	})
 
 	assert.Error(t, err)
@@ -28,7 +29,7 @@ func TestMakeMatcher_NoAlgorithmSpecified_ReturnsExactMatching(t *testing.T) {
 	algorithmName, matcher, err := MakeMatcher(map[string]string{})
 
 	assert.NoError(t, err)
-	assert.Equal(t, ExactMatching, algorithmName)
+	assert.Equal(t, imgmatching.ExactMatching, algorithmName)
 	assert.Nil(t, matcher)
 }
 
@@ -36,28 +37,28 @@ func TestMakeMatcher_ExactMatchingExplicitlySpecified_ReturnsExactMatching(t *te
 	unittest.SmallTest(t)
 
 	algorithmName, matcher, err := MakeMatcher(map[string]string{
-		AlgorithmOptionalKey: string(ExactMatching),
+		imgmatching.AlgorithmOptionalKey: string(imgmatching.ExactMatching),
 	})
 
 	assert.NoError(t, err)
-	assert.Equal(t, ExactMatching, algorithmName)
+	assert.Equal(t, imgmatching.ExactMatching, algorithmName)
 	assert.Nil(t, matcher)
 }
 
 // missing is a sentinel value used to represent missing parameter values.
 const missing = "missing value"
 
-// fuzzyMatchingTestCase represents a test case for MakeMatcher() where a fuzzy.FuzzyMatcher is
+// fuzzyMatchingTestCase represents a test case for MakeMatcher() where a fuzzy.Matcher is
 // instantiated.
 type fuzzyMatchingTestCase struct {
 	name                string
 	maxDifferentPixels  string
 	pixelDeltaThreshold string
-	want                fuzzy.FuzzyMatcher
+	want                fuzzy.Matcher
 	error               string
 }
 
-// commonMaxDifferentPixelsTestCases returns test cases for the FuzzyMatchingMaxDifferentPixels
+// commonMaxDifferentPixelsTestCases returns test cases for the MaxDifferentPixels
 // optional key.
 //
 // These tests are shared between TestMakeMatcher_FuzzyMatching and
@@ -104,7 +105,7 @@ func commonMaxDifferentPixelsTestCases() []fuzzyMatchingTestCase {
 			name:                "max different pixels: value = 0, success",
 			maxDifferentPixels:  "0",
 			pixelDeltaThreshold: "0",
-			want: fuzzy.FuzzyMatcher{
+			want: fuzzy.Matcher{
 				MaxDifferentPixels:  0,
 				PixelDeltaThreshold: 0,
 			},
@@ -113,7 +114,7 @@ func commonMaxDifferentPixelsTestCases() []fuzzyMatchingTestCase {
 			name:                "max different pixels: value = math.MaxInt32, success",
 			maxDifferentPixels:  fmt.Sprintf("%d", math.MaxInt32),
 			pixelDeltaThreshold: "0",
-			want: fuzzy.FuzzyMatcher{
+			want: fuzzy.Matcher{
 				MaxDifferentPixels:  math.MaxInt32,
 				PixelDeltaThreshold: 0,
 			},
@@ -121,7 +122,7 @@ func commonMaxDifferentPixelsTestCases() []fuzzyMatchingTestCase {
 	}
 }
 
-// commonMaxDifferentPixelsTestCases returns test cases for the FuzzyMatchingPixelDeltaThreshold
+// commonMaxDifferentPixelsTestCases returns test cases for the PixelDeltaThreshold
 // optional key.
 //
 // These tests are shared between TestMakeMatcher_FuzzyMatching and
@@ -168,7 +169,7 @@ func commonPixelDeltaThresholdTestCases() []fuzzyMatchingTestCase {
 			name:                "pixel delta threshold: value = 0, success",
 			maxDifferentPixels:  "0",
 			pixelDeltaThreshold: "0",
-			want: fuzzy.FuzzyMatcher{
+			want: fuzzy.Matcher{
 				MaxDifferentPixels:  0,
 				PixelDeltaThreshold: 0,
 			},
@@ -177,7 +178,7 @@ func commonPixelDeltaThresholdTestCases() []fuzzyMatchingTestCase {
 			name:                "pixel delta threshold: value = 1020, success",
 			maxDifferentPixels:  "0",
 			pixelDeltaThreshold: "1020",
-			want: fuzzy.FuzzyMatcher{
+			want: fuzzy.Matcher{
 				MaxDifferentPixels:  0,
 				PixelDeltaThreshold: 1020,
 			},
@@ -208,13 +209,13 @@ func TestMakeMatcher_FuzzyMatching(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			optionalKeys := map[string]string{
-				AlgorithmOptionalKey: string(FuzzyMatching),
+				imgmatching.AlgorithmOptionalKey: string(imgmatching.FuzzyMatching),
 			}
 			if tc.maxDifferentPixels != missing {
-				optionalKeys[string(FuzzyMatchingMaxDifferentPixels)] = tc.maxDifferentPixels
+				optionalKeys[string(fuzzy.MaxDifferentPixels)] = tc.maxDifferentPixels
 			}
 			if tc.pixelDeltaThreshold != missing {
-				optionalKeys[string(FuzzyMatchingPixelDeltaThreshold)] = tc.pixelDeltaThreshold
+				optionalKeys[string(fuzzy.PixelDeltaThreshold)] = tc.pixelDeltaThreshold
 			}
 
 			algorithmName, matcher, err := MakeMatcher(optionalKeys)
@@ -224,7 +225,7 @@ func TestMakeMatcher_FuzzyMatching(t *testing.T) {
 				assert.Contains(t, err.Error(), tc.error)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, FuzzyMatching, algorithmName)
+				assert.Equal(t, imgmatching.FuzzyMatching, algorithmName)
 				assert.Equal(t, &tc.want, matcher)
 			}
 		})
@@ -239,7 +240,7 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 		edgeThreshold       string
 		maxDifferentPixels  string
 		pixelDeltaThreshold string
-		want                sobel.SobelFuzzyMatcher
+		want                sobel.Matcher
 		error               string
 	}
 
@@ -299,8 +300,8 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 			edgeThreshold:       "0",
 			maxDifferentPixels:  "0",
 			pixelDeltaThreshold: "0",
-			want: sobel.SobelFuzzyMatcher{
-				FuzzyMatcher: fuzzy.FuzzyMatcher{
+			want: sobel.Matcher{
+				Matcher: fuzzy.Matcher{
 					MaxDifferentPixels:  0,
 					PixelDeltaThreshold: 0,
 				},
@@ -312,8 +313,8 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 			edgeThreshold:       "254",
 			maxDifferentPixels:  "0",
 			pixelDeltaThreshold: "0",
-			want: sobel.SobelFuzzyMatcher{
-				FuzzyMatcher: fuzzy.FuzzyMatcher{
+			want: sobel.Matcher{
+				Matcher: fuzzy.Matcher{
 					MaxDifferentPixels:  0,
 					PixelDeltaThreshold: 0,
 				},
@@ -325,8 +326,8 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 			edgeThreshold:       "255",
 			maxDifferentPixels:  "0",
 			pixelDeltaThreshold: "0",
-			want: sobel.SobelFuzzyMatcher{
-				FuzzyMatcher: fuzzy.FuzzyMatcher{
+			want: sobel.Matcher{
+				Matcher: fuzzy.Matcher{
 					MaxDifferentPixels:  0,
 					PixelDeltaThreshold: 0,
 				},
@@ -349,8 +350,8 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 			edgeThreshold:       "0",
 			maxDifferentPixels:  tc.maxDifferentPixels,
 			pixelDeltaThreshold: tc.pixelDeltaThreshold,
-			want: sobel.SobelFuzzyMatcher{
-				FuzzyMatcher:  tc.want,
+			want: sobel.Matcher{
+				Matcher:       tc.want,
 				EdgeThreshold: 0,
 			},
 			error: tc.error,
@@ -366,16 +367,16 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			optionalKeys := map[string]string{
-				AlgorithmOptionalKey: string(SobelFuzzyMatching),
+				imgmatching.AlgorithmOptionalKey: string(imgmatching.SobelFuzzyMatching),
 			}
 			if tc.edgeThreshold != missing {
-				optionalKeys[string(SobelFuzzyMatchingEdgeThreshold)] = tc.edgeThreshold
+				optionalKeys[string(sobel.EdgeThreshold)] = tc.edgeThreshold
 			}
 			if tc.maxDifferentPixels != missing {
-				optionalKeys[string(FuzzyMatchingMaxDifferentPixels)] = tc.maxDifferentPixels
+				optionalKeys[string(fuzzy.MaxDifferentPixels)] = tc.maxDifferentPixels
 			}
 			if tc.pixelDeltaThreshold != missing {
-				optionalKeys[string(FuzzyMatchingPixelDeltaThreshold)] = tc.pixelDeltaThreshold
+				optionalKeys[string(fuzzy.PixelDeltaThreshold)] = tc.pixelDeltaThreshold
 			}
 
 			algorithmName, matcher, err := MakeMatcher(optionalKeys)
@@ -385,7 +386,7 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 				assert.Contains(t, err.Error(), tc.error)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, SobelFuzzyMatching, algorithmName)
+				assert.Equal(t, imgmatching.SobelFuzzyMatching, algorithmName)
 				assert.Equal(t, &tc.want, matcher)
 			}
 		})

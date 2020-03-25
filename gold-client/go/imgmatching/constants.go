@@ -8,7 +8,7 @@ const AlgorithmOptionalKey = "image_matching_algorithm"
 type AlgorithmName string
 
 const (
-	ExactMatching      = AlgorithmName("")
+	ExactMatching      = AlgorithmName("") // TODO(lovisolo): Set to a non-empty string.
 	FuzzyMatching      = AlgorithmName("fuzzy")
 	SobelFuzzyMatching = AlgorithmName("sobel")
 )
@@ -16,12 +16,3 @@ const (
 // AlgorithmParameterOptionalKey is an optional key indicating a parameter for the specified
 // non-exact image matching algorithm, e.g. "fuzzy_max_different_pixels".
 type AlgorithmParameterOptionalKey string
-
-const (
-	// Parameters for FuzzyMatching.
-	FuzzyMatchingMaxDifferentPixels  = AlgorithmParameterOptionalKey("fuzzy_max_different_pixels")
-	FuzzyMatchingPixelDeltaThreshold = AlgorithmParameterOptionalKey("fuzzy_pixel_delta_threshold")
-
-	// Parameters for SobelFuzzyMatching.
-	SobelFuzzyMatchingEdgeThreshold = AlgorithmParameterOptionalKey("sobel_edge_threshold")
-)
