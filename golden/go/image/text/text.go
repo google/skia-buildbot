@@ -9,6 +9,18 @@
 // ...
 //
 // Where the pixel values are encoded as 0xRRGGBBAA.
+//
+// Grayscale pixels can be encoded as 0xXX. The two images below are equivalent:
+//
+// ! SKTEXTSIMPLE
+// 2 2
+// 0x00 0x11
+// 0xaa 0xbb
+//
+// ! SKTEXTSIMPLE
+// 2 2
+// 0x000000ff 0x111111ff
+// 0xaaaaaaff 0xbbbbbbff
 package text
 
 import (
@@ -73,18 +85,32 @@ func Decode(r io.Reader) (image.Image, error) {
 		for i, h := range hexline {
 			h = strings.TrimSpace(h)
 			if h != "" {
-				if !strings.HasPrefix(h, "0x") || len(h) != 10 {
-					return nil, fmt.Errorf("Invalid pixel format, must be 0xRRGGBBAA, got %q", h)
+				if !strings.HasPrefix(h, "0x") || (len(h) != 4 && len(h) != 10) {
+					return nil, fmt.Errorf("Invalid pixel format, must be 0xRRGGBBAA or 0xXX (for color or grayscale pixels, respectively), got %q", h)
 				}
-				rgba, err := strconv.ParseUint(strings.TrimSpace(h), 0, 32)
+				pixel, err := strconv.ParseUint(strings.TrimSpace(h), 0, 32)
 				if err != nil {
 					return nil, err
 				}
+				var r, g, b, a uint8
+				if len(h) == 10 {
+					// Color notation.
+					r = uint8((pixel >> 24) & 0xff)
+					g = uint8((pixel >> 16) & 0xff)
+					b = uint8((pixel >> 8) & 0xff)
+					a = uint8((pixel >> 0) & 0xff)
+				} else {
+					// Grayscale notation.
+					r = uint8(pixel)
+					g = uint8(pixel)
+					b = uint8(pixel)
+					a = uint8(0xff)
+				}
 				offset := lineNum*ret.Stride + i*4
-				ret.Pix[offset+0] = uint8((rgba >> 24) & 0xff)
-				ret.Pix[offset+1] = uint8((rgba >> 16) & 0xff)
-				ret.Pix[offset+2] = uint8((rgba >> 8) & 0xff)
-				ret.Pix[offset+3] = uint8((rgba >> 0) & 0xff)
+				ret.Pix[offset+0] = r
+				ret.Pix[offset+1] = g
+				ret.Pix[offset+2] = b
+				ret.Pix[offset+3] = a
 			}
 		}
 		lineNum += 1
