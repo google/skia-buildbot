@@ -88,6 +88,24 @@
       "revId": "e44dcffd76e3c367eba6ec8c79ba815e689c1070",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29c03ea7_63c173d7",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-25T18:33:27Z",
+      "side": 1,
+      "message": "Ok, agreed that we need to point to gclient itself rather than relying on PATH.  I\u0027d prefer to do one of the following rather than hard-code the full path here:\n- Pass in the path to gclient\n- Use a path relative to parentRepoDir\n- Find the depot_tools checkout in PATH and add \"gclient.py\" to that\n\nNone are great.",
+      "parentUuid": "26506837_4f26f7fa",
+      "revId": "e44dcffd76e3c367eba6ec8c79ba815e689c1070",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
