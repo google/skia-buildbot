@@ -16,7 +16,7 @@ type testCase struct {
 	expectedToMatch bool
 }
 
-func TestFuzzyMatcher_ZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.T) {
+func TestMatcher_ZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.T) {
 	unittest.SmallTest(t)
 
 	tests := []testCase{
@@ -62,14 +62,14 @@ func TestFuzzyMatcher_ZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			matcher := FuzzyMatcher{}
+			matcher := Matcher{}
 			assert.Equal(t, tc.expectedToMatch, matcher.Match(tc.image1, tc.image2), "image1 vs image2")
 			assert.Equal(t, tc.expectedToMatch, matcher.Match(tc.image2, tc.image1), "image2 vs image1")
 		})
 	}
 }
 
-func TestFuzzyMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T) {
+func TestMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T) {
 	unittest.SmallTest(t)
 
 	tests := []testCase{
@@ -180,7 +180,7 @@ func TestFuzzyMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testi
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			matcher := FuzzyMatcher{
+			matcher := Matcher{
 				PixelDeltaThreshold: 16,
 			}
 			assert.Equal(t, tc.expectedToMatch, matcher.Match(tc.image1, tc.image2), "image1 vs image2")
@@ -189,7 +189,7 @@ func TestFuzzyMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testi
 	}
 }
 
-func TestFuzzyMatcher_NonZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.T) {
+func TestMatcher_NonZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.T) {
 	unittest.SmallTest(t)
 
 	tests := []testCase{
@@ -261,7 +261,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testi
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			matcher := FuzzyMatcher{
+			matcher := Matcher{
 				MaxDifferentPixels: 2,
 			}
 			assert.Equal(t, tc.expectedToMatch, matcher.Match(tc.image1, tc.image2), "image1 vs image2")
@@ -270,7 +270,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testi
 	}
 }
 
-func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T) {
+func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T) {
 	unittest.SmallTest(t)
 
 	tests := []testCase{
@@ -549,7 +549,7 @@ func TestFuzzyMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *te
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			matcher := FuzzyMatcher{
+			matcher := Matcher{
 				MaxDifferentPixels:  2,
 				PixelDeltaThreshold: 16,
 			}
