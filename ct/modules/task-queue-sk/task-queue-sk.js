@@ -23,14 +23,14 @@ import {
 } from '../ctfe_utils';
 
 const template = (el) => html`
-<table class=queue id=queue>
-  <tr class=headers>
-    <td>Queue Position</td>
-    <td>Added</td>
-    <td>Task Type</td>
-    <td>User</td>
-    <td>Swarming Logs</td>
-    <td>Request</td>
+<table class="queue surface secondary-links" id=queue>
+  <tr class=primary-variant-container>
+    <th>Queue Position</th>
+    <th>Added</th>
+    <th>Task Type</th>
+    <th>User</th>
+    <th>Swarming Logs</th>
+    <th>Request</th>
   </tr>
   ${el._pendingTasks.map((task, index) => taskRowTemplate(el, task, index))}
  </table>
@@ -67,9 +67,9 @@ const taskRowTemplate = (el, task, index) => html`
 </tr>`;
 
 const taskDetailDialogTemplate = (task, index) => html`
-<div id=${`detailsDialog${index}`} class="dialog-background hidden"
+<div id=${`detailsDialog${index}`} class="dialog-background hidden overlay"
   @click=${hideDialog}>
-  <div class=dialog-content>
+  <div class="dialog-content surface">
     <pre>${formatTask(task)}</pre>
   </div>
 </div>
