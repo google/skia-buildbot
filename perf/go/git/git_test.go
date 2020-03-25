@@ -35,7 +35,7 @@ func newForTest(t *testing.T) (context.Context, *Git, cleanupFunc) {
 			Dir: tmpDir,
 		},
 	}
-	g, err := New(ctx, instanceConfig)
+	g, err := New(ctx, true, instanceConfig)
 	require.NoError(t, err)
 	return ctx, g, clean
 }
@@ -81,6 +81,6 @@ func TestGit_New_FailCheckout(t *testing.T) {
 			Dir: tmpDir,
 		},
 	}
-	_, err = New(ctx, instanceConfig)
+	_, err = New(ctx, true, instanceConfig)
 	require.Error(t, err)
 }

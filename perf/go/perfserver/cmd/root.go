@@ -13,6 +13,7 @@ import (
 var instanceConfigFile string
 var instanceConfig *config.InstanceConfig
 var promPort string
+var local bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -65,6 +66,7 @@ func initSubCommands() error {
 	}
 
 	rootCmd.PersistentFlags().StringVar(&promPort, "prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	rootCmd.PersistentFlags().BoolVar(&local, "local", false, "True if running locally and not in production.")
 
 	alertInit()
 	ingestInit()

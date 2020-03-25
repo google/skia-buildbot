@@ -51,7 +51,7 @@ func TestStart_IngestDemoRepoWithSQLite3TraceStore_Success(t *testing.T) {
 		},
 	}
 
-	err = Start(context.Background(), &instanceConfig)
+	err = Start(context.Background(), true, &instanceConfig)
 	require.NoError(t, err)
 	// The integration data set has 9 good files, 1 file with a bad commit, and
 	// 1 malformed JSON file.
