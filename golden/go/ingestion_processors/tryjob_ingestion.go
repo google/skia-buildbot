@@ -29,7 +29,7 @@ import (
 	"go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis"
 	"go.skia.org/infra/golden/go/continuous_integration/dummy_cis"
 	"go.skia.org/infra/golden/go/expectations"
-	fs_expectationstore "go.skia.org/infra/golden/go/expectations/fs_expectationstore2"
+	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/ignore/fs_ignorestore"
 	"go.skia.org/infra/golden/go/ingestion"

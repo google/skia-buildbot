@@ -49,7 +49,7 @@ import (
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/expectations/cleanup"
-	fs_expectationstore "go.skia.org/infra/golden/go/expectations/fs_expectationstore2"
+	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/ignore/fs_ignorestore"
 	"go.skia.org/infra/golden/go/indexer"
