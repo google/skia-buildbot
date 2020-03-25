@@ -1,0 +1,153 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "595b2f82_1bea028a",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-25T12:35:11Z",
+      "side": 1,
+      "message": "nit",
+      "range": {
+        "startLine": 1,
+        "startChar": 13,
+        "endLine": 1,
+        "endChar": 17
+      },
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d83f723f_8c55e1e7",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-25T12:35:11Z",
+      "side": 1,
+      "message": "I think this would be easy to generalize for any domain by adding a flag (with default value \"google.com\"). But not sure if anybody will ever use it for anything else though so not a big deal.",
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f238acac_abcb3f55",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-25T12:35:11Z",
+      "side": 1,
+      "message": "nit: Can just keep this on the same line above to be more readable. Same below.",
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3e045ed_a9c00fa0",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-25T12:35:11Z",
+      "side": 1,
+      "message": "Was there a reason to use backticks here vs quotes? You might not need it anywhere in this file (except maybe reviewer_re).",
+      "range": {
+        "startLine": 28,
+        "startChar": 38,
+        "endLine": 28,
+        "endChar": 39
+      },
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f407af0_d6e3019f",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-25T12:35:11Z",
+      "side": 1,
+      "message": "nit: Add documentation:\n// getAccountSet ...",
+      "range": {
+        "startLine": 34,
+        "startChar": 5,
+        "endLine": 34,
+        "endChar": 18
+      },
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e01cad33_60990364",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-25T12:35:11Z",
+      "side": 1,
+      "message": "I thought map[string]int{} was preferable to do when you are not specifying a min size, but I cannot find any proof of that so.. nevermind.",
+      "range": {
+        "startLine": 56,
+        "startChar": 15,
+        "endLine": 56,
+        "endChar": 36
+      },
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6380775e_2b682e01",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-25T12:35:11Z",
+      "side": 1,
+      "message": "Would \"@google.com\" be more correct?",
+      "range": {
+        "startLine": 66,
+        "startChar": 32,
+        "endLine": 66,
+        "endChar": 42
+      },
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
