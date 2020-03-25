@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/draw"
 	"io"
 	"strconv"
 	"strings"
@@ -182,4 +183,12 @@ func MustToNRGBA(s string) *image.NRGBA {
 		panic(fmt.Sprintf("Failed to decode a valid image: %s", err))
 	}
 	return img.(*image.NRGBA)
+}
+
+// MustToGray calls MustToNRGBA with the given string and converts the returned image to grayscale.
+func MustToGray(s string) *image.Gray {
+	nrgba := MustToNRGBA(s)
+	gray := image.NewGray(nrgba.Bounds())
+	draw.Draw(gray, nrgba.Bounds(), nrgba, nrgba.Bounds().Min, draw.Src)
+	return gray
 }
