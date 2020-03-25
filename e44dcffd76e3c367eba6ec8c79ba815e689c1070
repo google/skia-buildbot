@@ -106,6 +106,24 @@
       "revId": "e44dcffd76e3c367eba6ec8c79ba815e689c1070",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d7c339bc_93d22f87",
+        "filename": "autoroll/go/repo_manager/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-25T20:23:36Z",
+      "side": 1,
+      "message": "\u003e Ok, agreed that we need to point to gclient itself rather than relying on PATH.  I\u0027d prefer to do one of the following rather than hard-code the full path here:\n\u003e - Pass in the path to gclient\nI was trying to avoid adding more arguments to pre-upload steps since they have a common interface across all repo managers.\n\n\u003e - Use a path relative to parentRepoDir\nI did path relative to parentRepoDir in https://skia-review.googlesource.com/c/buildbot/+/278776 for the env but now we know why that did not work. I can do relative to parentRepoDir for gclient instead. Done.\n\n\u003e - Find the depot_tools checkout in PATH and add \"gclient.py\" to that\n\u003e \n\u003e None are great.\nYep.",
+      "parentUuid": "29c03ea7_63c173d7",
+      "revId": "e44dcffd76e3c367eba6ec8c79ba815e689c1070",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
