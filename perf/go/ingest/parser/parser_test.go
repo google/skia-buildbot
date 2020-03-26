@@ -108,6 +108,7 @@ var SubTests = map[string]struct {
 	filename        string
 }{
 	"parse_Success":                               {parse_Success, "success.json"},
+	"parse_NoBranchSpecified_Success":             {parse_NoBranchSpecified_Success, "success.json"},
 	"parse_MalformedJSONError":                    {parse_MalformedJSONError, "invalid.json"},
 	"parse_SkipIfNotListedInBranches":             {parse_SkipIfNotListedInBranches, "unknown_branch.json"},
 	"parse_SkipIfListedInBranchesButHasNoData":    {parse_SkipIfListedInBranchesButHasNoData, "no_results.json"},
@@ -116,6 +117,19 @@ var SubTests = map[string]struct {
 }
 
 func parse_Success(t *testing.T, p *Parser, f file.File) {
+	params, values, gitHash, err := p.Parse(f)
+	require.NoError(t, err)
+	assert.Equal(t, "fe4a4029a080bc955e9588d05a6cd9eb490845d4", gitHash)
+	assert.Len(t, values, 4)
+	assert.Len(t, params, 4)
+	assert.Contains(t, values, float32(858))
+	assert.Contains(t, params, expectedGoodParams)
+	assert.Equal(t, int64(1), p.parseCounter.Get())
+	assert.Equal(t, int64(0), p.parseFailCounter.Get())
+}
+
+func parse_NoBranchSpecified_Success(t *testing.T, p *Parser, f file.File) {
+	p.branchNames = nil
 	params, values, gitHash, err := p.Parse(f)
 	require.NoError(t, err)
 	assert.Equal(t, "fe4a4029a080bc955e9588d05a6cd9eb490845d4", gitHash)
