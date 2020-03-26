@@ -277,8 +277,10 @@ func Run(ctx context.Context, cwd string, cmdLine []string, split bufio.SplitFun
 	cmd.Env = td.GetEnv(ctx)
 
 	// Helper function for streaming output.
+	stop := make(chan struct{})
+	stopN := 0 // Tracks how many cancellation goroutines we started.
 	var wg sync.WaitGroup
-	stream := func(r io.Reader, w io.Writer, split bufio.SplitFunc, handle func(string)) {
+	stream := func(r io.ReadCloser, w io.Writer, split bufio.SplitFunc, handle func(string)) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -286,6 +288,22 @@ func Run(ctx context.Context, cwd string, cmdLine []string, split bufio.SplitFun
 			scanner.Split(split)
 			for scanner.Scan() {
 				handle(scanner.Text())
+			}
+		}()
+		// Spin up a goroutine which watches for context cancellation
+		// and closes the pipe to allow the above goroutine to exit in
+		// case of a timeout. Note that this wouldn't be necessary if
+		// bufio.Scanner used a channel; we could use select{} in that
+		// case.
+		stopN++
+		go func() {
+			select {
+			case <-stop:
+				return
+			case <-ctx.Done():
+				// TODO(borenet): Is it okay to call this in multiple places?
+				_ = r.Close()
+				return
 			}
 		}()
 	}
@@ -320,8 +338,8 @@ func Run(ctx context.Context, cwd string, cmdLine []string, split bufio.SplitFun
 	}
 
 	// Wait for the command to finish.
-	err = cmd.Wait()
 	wg.Wait()
+	err = cmd.Wait()
 
 	// If any steps are still active, mark them finished.
 	sm.root.Recurse(func(s *Step) {
@@ -337,6 +355,11 @@ func Run(ctx context.Context, cwd string, cmdLine []string, split bufio.SplitFun
 	}
 	if parseErr != nil {
 		return td.FailStep(ctx, parseErr)
+	}
+
+	// Clean up the cancellation goroutines.
+	for i := 0; i < stopN; i++ {
+		stop <- struct{}{}
 	}
 	return nil
 }
