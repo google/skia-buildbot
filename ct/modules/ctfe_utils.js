@@ -13,8 +13,8 @@ export function getFormattedTimestamp(timestamp) {
   return getTimestamp(timestamp).toLocaleString();
 }
 
-const two_digits = 10**2;
-const four_digits = 10**4;
+const two_digits = 10 ** 2;
+const four_digits = 10 ** 4;
 /**
  * Converts the timestamp used in CTFE DB into a Javascript timestamp.
  */
@@ -26,8 +26,8 @@ export function getTimestamp(timestamp) {
   // Timestamp is of the form YYYYMMDDhhmmss.
   // Consume the pieces off the right to build the date.
   const consumeDigits = (n) => {
-    const first_n_digits = timestamp % (10**n);
-    timestamp = (timestamp - first_n_digits) / (10**n)
+    const first_n_digits = timestamp % (10 ** n);
+    timestamp = (timestamp - first_n_digits) / (10 ** n);
     return first_n_digits;
   };
   date.setUTCSeconds(consumeDigits(2));

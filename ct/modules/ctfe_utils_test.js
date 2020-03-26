@@ -1,7 +1,7 @@
 import { getTimestamp, getFormattedTimestamp, getCtDbTimestamp } from './ctfe_utils';
 
 describe('ctfe_utils', () => {
-    // All dates are arbitrary.
+  // All dates are arbitrary.
   it('converts CT DB int date to JS Date', async () => {
     const date = getTimestamp(20200513095930);
     expect(date.getUTCFullYear()).to.equal(2020);

@@ -8,11 +8,27 @@
 </head>
 <body>
   <ct-scaffold-sk app_title="Skia Public" testing_offline>
-    <div>
+    <div class=test>
       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod
       tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At
       vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren,
       no sea takimata sanctus est Lorem ipsum dolor sit amet.
+<a href="#" onClick="(function(){
+            console.log('adsgadhah');
+document.documentElement.style.setProperty('--primary', getComputedStyle(document.documentElement).getPropertyValue('--dark-primary'));
+document.documentElement.style.setProperty('--on-primary', getComputedStyle(document.documentElement).getPropertyValue('--dark-on-primary'));
+document.documentElement.style.setProperty('--secondary', getComputedStyle(document.documentElement).getPropertyValue('--dark-secondary'));
+document.documentElement.style.setProperty('--on-secondary', getComputedStyle(document.documentElement).getPropertyValue('--dark-on-secondary'));
+document.documentElement.style.setProperty('--surface', getComputedStyle(document.documentElement).getPropertyValue('--dark-surface'));
+document.documentElement.style.setProperty('--on-surface', getComputedStyle(document.documentElement).getPropertyValue('--dark-on-surface'));
+document.documentElement.style.setProperty('--primary-variant', getComputedStyle(document.documentElement).getPropertyValue('--dark-primary-variant'));
+document.documentElement.style.setProperty('--on-primary-variant', getComputedStyle(document.documentElement).getPropertyValue('--dark-on-primary-variant'));
+document.documentElement.style.setProperty('--background', getComputedStyle(document.documentElement).getPropertyValue('--dark-background'));
+document.documentElement.style.setProperty('--on-background', getComputedStyle(document.documentElement).getPropertyValue('--dark-on-background'));
+document.documentElement.style.setProperty('--error', getComputedStyle(document.documentElement).getPropertyValue('--dark-error'));
+document.documentElement.style.setProperty('--on-error', getComputedStyle(document.documentElement).getPropertyValue('--dark-on-error'));
+    return false;
+})();return false;">click here</a>
     </div>
     <div>
       Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod
