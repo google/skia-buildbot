@@ -70,6 +70,10 @@ start_bigtable_emulator:
 	docker run -ti -p 8000:8000 google/cloud-sdk:latest gcloud beta emulators bigtable start \
 		  --project test-project --host-port 0.0.0.0:8000
 
+start_pubsub_emulator:
+	docker run -ti -p 8000:8000 google/cloud-sdk:latest gcloud beta emulators pubsub start \
+		  --project test-project --host-port 0.0.0.0:8010
+
 start_datastore_emulator:
 	 docker run -ti -p 8008:8008 google/cloud-sdk:latest gcloud beta emulators datastore start --no-store-on-disk --project test-project --host-port 0.0.0.0:8008
 
