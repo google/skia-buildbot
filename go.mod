@@ -139,7 +139,7 @@ require (
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 	golang.org/x/tools v0.0.0-20200325203130-f53864d0dba1
 	google.golang.org/api v0.20.0
-	google.golang.org/genproto v0.0.0-20200325114520-5b2d0af7952b
+	google.golang.org/genproto v0.0.0-20200326112834-f447254575fd
 	google.golang.org/grpc v1.28.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/fsnotify.v1 v1.4.7
