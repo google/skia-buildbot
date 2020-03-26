@@ -1,4 +1,5 @@
 import './index';
+import '../../../infra-sk/modules/colors-sk';
 import { $$ } from 'common-sk/modules/dom';
 import { fetchMock } from 'fetch-mock';
 import {
