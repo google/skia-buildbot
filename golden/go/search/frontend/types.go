@@ -73,7 +73,7 @@ type Trace struct {
 	Params map[string]string `json:"params"`
 	// CommentIndices are indices into the TraceComments slice on the final result. For example,
 	// a 1 means the second TraceComment in the top level TraceComments applies to this trace.
-	CommentIndices []int `json:"comment_indicies"`
+	CommentIndices []int `json:"comment_indices"`
 }
 
 // TraceComment is the frontend representation of a trace.Comment
