@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1e10052c_0bfdc0a3",
+        "filename": "infra-sk/modules/colors-sk/colors-sk.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-26T20:29:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "52880b4b_f37e754c",
+      "revId": "985a693790ea39f78b99a67df3eee6d4181c8c72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2b3b9483_03aa3146",
         "filename": "infra-sk/modules/colors-sk/colors-sk.scss",
         "patchSetId": 7
@@ -33,6 +51,24 @@
       "revId": "985a693790ea39f78b99a67df3eee6d4181c8c72",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "195524d4_2bf491df",
+        "filename": "infra-sk/modules/colors-sk/colors-sk.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-26T20:29:22Z",
+      "side": 1,
+      "message": "Already linked near the top, but added one here to be noticed.",
+      "parentUuid": "2b3b9483_03aa3146",
+      "revId": "985a693790ea39f78b99a67df3eee6d4181c8c72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
