@@ -276,19 +276,49 @@ func Run(ctx context.Context, cwd string, cmdLine []string, split bufio.SplitFun
 	cmd.Dir = cwd
 	cmd.Env = td.GetEnv(ctx)
 
-	// Helper function for streaming output.
+	// stream is a helper function for io streams. Keep track of the streams
+	// so that they can be closed and allow the streaming goroutines to exit
+	// in the case of a context cancellation.
+	closers := []io.Closer{}
 	var wg sync.WaitGroup
-	stream := func(r io.Reader, w io.Writer, split bufio.SplitFunc, handle func(string)) {
+	stream := func(readFrom io.ReadCloser, teeTo io.Writer, split bufio.SplitFunc, handle func(string)) {
 		wg.Add(1)
+		closers = append(closers, readFrom)
 		go func() {
 			defer wg.Done()
-			scanner := bufio.NewScanner(io.TeeReader(r, w))
+			scanner := bufio.NewScanner(io.TeeReader(readFrom, teeTo))
 			scanner.Split(split)
 			for scanner.Scan() {
 				handle(scanner.Text())
 			}
 		}()
 	}
+
+	// Spin up a goroutine which watches for context cancellation and closes
+	// the io streams to allow the streaming goroutines to exit in case of a
+	// context cancellation. Note that this wouldn't be necessary if
+	// bufio.Scanner used a channel; we could use select{} inside stream()
+	// in that case.
+	stop := make(chan struct{})
+	go func() {
+		select {
+		case <-stop:
+			// The command exited normally; nothing to do.
+			return
+		case <-ctx.Done():
+			// This is a timeout; stop the streaming goroutines.
+			for _, closer := range closers {
+				_ = closer.Close()
+			}
+			// Read from the stop channel, to allow the deferred
+			// write to finish.
+			<-stop
+		}
+	}()
+	defer func() {
+		// Allow the above goroutine to exit.
+		stop <- struct{}{}
+	}()
 
 	// Handle stdout.
 	stdout, err := cmd.StdoutPipe()
@@ -319,9 +349,17 @@ func Run(ctx context.Context, cwd string, cmdLine []string, split bufio.SplitFun
 		return td.FailStep(ctx, skerr.Wrapf(err, "Failed to start command"))
 	}
 
-	// Wait for the command to finish.
-	err = cmd.Wait()
+	// Wait for the command to finish. Per documentation of
+	// exec.StdoutPipe(), "it is incorrect to call Wait before all reads
+	// from the pipe have completed." In other words, wg.Wait(), which waits
+	// for the log-streaming goroutines started above to complete, should be
+	// called before cmd.Wait(). Note, however, that exec.CommandContext()
+	// just calls os.Process.Kill() on the underlying process when the
+	// context is cancelled, which does not close StdoutPipe() or
+	// StderrPipe(). Therefore, we need the additional goroutines above to
+	// watch for context cancellation and close the pipes.
 	wg.Wait()
+	err = cmd.Wait()
 
 	// If any steps are still active, mark them finished.
 	sm.root.Recurse(func(s *Step) {
