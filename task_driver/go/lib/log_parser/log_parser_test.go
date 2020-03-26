@@ -118,6 +118,10 @@ echo "Step3"
 	require.Equal(t, 2, len(res.Steps[0].Steps))
 	require.Equal(t, td.STEP_RESULT_SUCCESS, res.Steps[0].Steps[0].Result)
 	require.Equal(t, td.STEP_RESULT_FAILURE, res.Steps[0].Steps[1].Result)
+
+	// The active steps should have received errors in their logs.
+	assertLogMatchesContent(t, res.Steps[0], logNameStderr, context.DeadlineExceeded.Error()+"\n")
+	assertLogMatchesContent(t, res.Steps[0].Steps[1], logNameStderr, context.DeadlineExceeded.Error()+"\n")
 }
 
 // numberedStepsRe matches lines like "Step 1: Hello World" to produce steps.
