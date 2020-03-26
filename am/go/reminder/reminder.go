@@ -3,12 +3,16 @@ package reminder
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"html/template"
 	"time"
 
+	"cloud.google.com/go/datastore"
+
 	"go.skia.org/infra/am/go/incident"
 	"go.skia.org/infra/am/go/silence"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/rotations"
@@ -44,6 +48,11 @@ Thanks!
 var (
 	emailTemplateParsed = template.Must(template.New("reminder_email").Parse(emailTemplate))
 )
+
+// Reminder - Keeps track of which days reminders were sent out in the Datastore.
+// Uses named keys which are in "YYYY-MM-DD" format.
+type Reminder struct {
+}
 
 type emailTicker struct {
 	t         *time.Timer
@@ -158,10 +167,35 @@ func StartReminderTicker(iStore *incident.Store, sStore *silence.Store, emailAut
 	go func() {
 		for {
 			<-et.t.C
-			sklog.Infof("[reminder] Going to send reminders")
-			if err := et.remindAlertOwners(); err != nil {
-				sklog.Errorf("Error emailing alert owners: %s", err)
+
+			var err error
+			if _, err = ds.DS.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
+				var reminderFromDS Reminder
+				// Construct the key and see if it already exists in the Datastore.
+				k := ds.NewKey(ds.REMINDER_AM)
+				k.Name = time.Now().UTC().Format("2006-01-02")
+				if err := tx.Get(k, &reminderFromDS); err != nil {
+					if err == datastore.ErrNoSuchEntity {
+						sklog.Info("[reminder] Adding entry to datastore")
+						if _, err := tx.Put(k, &reminderFromDS); err != nil {
+							return err
+						}
+					} else {
+						return err
+					}
+				} else {
+					return fmt.Errorf("%s key already exists in the datastore", k.Name)
+				}
+				return nil
+			}); err != nil {
+				sklog.Errorf("[reminder] Error talking to the datastore: %s", err)
+			} else {
+				sklog.Info("[reminder] Going to send reminders")
+				if err := et.remindAlertOwners(); err != nil {
+					sklog.Errorf("[reminder] Error emailing alert owners: %s", err)
+				}
 			}
+
 			et.updateEmailTicker()
 		}
 	}()
