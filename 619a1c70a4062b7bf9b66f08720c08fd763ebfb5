@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8118822_64403a0a",
+        "filename": "infra-sk/modules/colors-sk/colors-sk.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-26T15:04:44Z",
+      "side": 1,
+      "message": "theme-chooser-sk or theme-toggle-sk would be a better name.",
+      "range": {
+        "startLine": 23,
+        "startChar": 8,
+        "endLine": 23,
+        "endChar": 17
+      },
+      "revId": "619a1c70a4062b7bf9b66f08720c08fd763ebfb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bb640b8_dcf7457e",
+        "filename": "infra-sk/modules/colors-sk/colors-sk.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-26T15:04:44Z",
+      "side": 1,
+      "message": "Consider using localStorage to preserve the user\u0027s choice, for example here\u0027s how Perf uses it to remember if the user has the sidebar expanded:\n\nhttps://github.com/google/skia-buildbot/blob/master/perf/modules/perf-scaffold-sk/perf-scaffold-sk.js#L99",
+      "revId": "619a1c70a4062b7bf9b66f08720c08fd763ebfb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bcae72aa_546d9516",
+        "filename": "infra-sk/modules/colors-sk/colors-sk.scss",
+        "patchSetId": 6
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-26T15:04:44Z",
+      "side": 1,
+      "message": "Can you give all of these colors names and then use those color names in the theme pallette?",
+      "range": {
+        "startLine": 12,
+        "startChar": 13,
+        "endLine": 12,
+        "endChar": 20
+      },
+      "revId": "619a1c70a4062b7bf9b66f08720c08fd763ebfb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
