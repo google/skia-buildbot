@@ -22,6 +22,30 @@
       "revId": "184c3eccf5a0fcc34e9fdac32dbdb9eb2faf8f8b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51d090e7_d3606dcf",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-26T13:48:05Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "70aecc4f_b3ec28a1",
+      "range": {
+        "startLine": 155,
+        "startChar": 0,
+        "endLine": 155,
+        "endChar": 43
+      },
+      "revId": "184c3eccf5a0fcc34e9fdac32dbdb9eb2faf8f8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
