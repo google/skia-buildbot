@@ -123,6 +123,24 @@ and make sure the environment variable BIGTABLE_EMULATOR_HOST is set.
 	}
 }
 
+// RequiresPubSubEmulator is a function that documents a unittest requires the
+// PubSub Emulator and checks that the appropriate environment variable is set.
+func RequiresPubSubEmulator(t sktest.TestingT) {
+	s := os.Getenv("PUBSUB_EMULATOR_HOST")
+	if s == "" {
+		t.Fatal(`This test requires the PubSub emulator, which you can start with
+
+    docker run -ti -p 8010:8010 google/cloud-sdk:latest gcloud beta emulators pubsub start \
+		--project test-project --host-port 0.0.0.0:8010
+
+and then set the environment:
+
+    export PUBSUB_EMULATOR_HOST=localhost:8010
+
+`)
+	}
+}
+
 // LinuxOnlyTest is a function which should be called at the beginning of a test
 // which should only run on Linux.
 func LinuxOnlyTest(t sktest.TestingT) {
