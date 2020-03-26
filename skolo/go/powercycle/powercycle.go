@@ -56,9 +56,6 @@ type Config struct {
 	// EdgeSwitch aggregates all EdgeSwitch configurations.
 	EdgeSwitch map[string]*EdgeSwitchConfig `json:"edgeswitch"`
 
-	// Arduino aggregates all Arduino configurations.
-	Arduino map[string]*ArduinoConfig `json:"arduino"`
-
 	// Seeeduino aggregates all Seeeduino configurations.
 	Seeeduino map[string]*SeeeduinoConfig `json:"seeeduino"`
 }
@@ -149,17 +146,6 @@ func DeviceGroupFromJson5File(path string, connect bool) (DeviceGroup, error) {
 		}
 
 		if err := ret.add(es); err != nil {
-			return nil, err
-		}
-	}
-
-	// Add the Arduino boards.
-	for _, c := range conf.Arduino {
-		ar, err := NewArduinoClient(c, connect)
-		if err != nil {
-			return nil, err
-		}
-		if err := ret.add(ar); err != nil {
 			return nil, err
 		}
 	}

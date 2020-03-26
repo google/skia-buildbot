@@ -73,9 +73,13 @@ func testImportAllowed(importer, importee string) bool {
 	return util.In(importee, legacyTestImportExceptions[importer])
 }
 
-// TestNoPackageImportsTesting asserts that no non-test package imports a test
-// package, with the exception of those listed in legacyTestImportExceptions.
-func TestNoPackageImportsTesting(t *testing.T) {
+// TestImports verifies that we follow some basic rules for imports:
+// 1. No non-test package imports a test package, with the exception of those
+//    listed in legacyTestImportExceptions.
+// 2. No packages use CGO.
+//
+// These checks are combined into one test because LoadAllPackageData is slow.
+func TestImports(t *testing.T) {
 	unittest.LargeTest(t)
 
 	// Find all packages, categorize as test and non-test.
@@ -94,7 +98,7 @@ func TestNoPackageImportsTesting(t *testing.T) {
 		testPkgs[name] = &Package{} // Not actually used.
 	}
 
-	// Ensure that no non-test package imports a test package.
+	// 1. Ensure that no non-test package imports a test package.
 	for name, pkg := range nonTestPkgs {
 		for _, imported := range pkg.Imports {
 			_, importsTestPkg := testPkgs[imported]
@@ -109,6 +113,13 @@ func TestNoPackageImportsTesting(t *testing.T) {
 		// TODO: Remove this once legacyTestImportExceptions is empty.
 		for _, whitelistedTestImport := range legacyTestImportExceptions[name] {
 			assert.Truef(t, util.In(whitelistedTestImport, pkg.Imports), "Non-test package %s is whitelisted to import %s but does not.", name, whitelistedTestImport)
+		}
+	}
+
+	// 2. Ensure that no package uses CGO.
+	for name, pkg := range pkgs {
+		for _, imp := range pkg.Imports {
+			assert.NotEqual(t, "C", imp, "Package %s uses CGO.", name)
 		}
 	}
 }

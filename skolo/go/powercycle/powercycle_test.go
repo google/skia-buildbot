@@ -19,11 +19,6 @@ func TestConfig(t *testing.T) {
 	conf, err := readConfig("./example.json5")
 	require.NoError(t, err)
 
-	for _, oneConf := range conf.Arduino {
-		require.NotEqual(t, "", oneConf.Address)
-		require.NotEqual(t, 0, len(oneConf.DevPortMap))
-	}
-
 	for _, oneConf := range conf.EdgeSwitch {
 		require.NotEqual(t, "", oneConf.Address)
 		require.NotEqual(t, 0, len(oneConf.DevPortMap))
