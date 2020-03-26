@@ -24,6 +24,7 @@ const (
 )
 
 func setupPubSubClient(t *testing.T) (*pubsub.Client, *config.InstanceConfig) {
+	unittest.RequiresPubSubEmulator(t)
 	ctx := context.Background()
 
 	rand.Seed(time.Now().Unix())
