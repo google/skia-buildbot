@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5d1ec879_3c90f6b5",
+        "filename": "infra-sk/modules/query-sk/query-sk-demo.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-26T14:24:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0e0a1fca_9408a87a",
+      "range": {
+        "startLine": 20,
+        "startChar": 6,
+        "endLine": 20,
+        "endChar": 11
+      },
+      "revId": "138cc9530dad56443b5d659b63d5a47958932f3f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7c05814a_ac6d2977",
         "filename": "infra-sk/modules/query-sk/query-sk-demo.html",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "138cc9530dad56443b5d659b63d5a47958932f3f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee312bb6_4d146569",
+        "filename": "infra-sk/modules/query-sk/query-sk-demo.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-26T14:24:06Z",
+      "side": 1,
+      "message": "Ah, eslint doesn\u0027t perform it\u0027s magic on scripts in HTML docs. Fixed now that this is moved to query-sk-demo.js.",
+      "parentUuid": "7c05814a_ac6d2977",
+      "range": {
+        "startLine": 26,
+        "startChar": 6,
+        "endLine": 26,
+        "endChar": 9
+      },
+      "revId": "138cc9530dad56443b5d659b63d5a47958932f3f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
