@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0e0a1fca_9408a87a",
+        "filename": "infra-sk/modules/query-sk/query-sk-demo.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-26T14:17:55Z",
+      "side": 1,
+      "message": "Doesn\u0027t have to be done here, but I would expect this JS to live in query-sk-demo.js",
+      "range": {
+        "startLine": 20,
+        "startChar": 6,
+        "endLine": 20,
+        "endChar": 11
+      },
+      "revId": "138cc9530dad56443b5d659b63d5a47958932f3f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7c05814a_ac6d2977",
+        "filename": "infra-sk/modules/query-sk/query-sk-demo.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-26T14:17:55Z",
+      "side": 1,
+      "message": "driveby comment about let/const instead of var",
+      "range": {
+        "startLine": 26,
+        "startChar": 6,
+        "endLine": 26,
+        "endChar": 9
+      },
+      "revId": "138cc9530dad56443b5d659b63d5a47958932f3f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
