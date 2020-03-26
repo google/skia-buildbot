@@ -46,6 +46,30 @@
       "revId": "1084e3edfc0cd9b88b476d526a80fd7090377100",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5368116a_394e70af",
+        "filename": "gold-client/go/imgmatching/constants.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-26T19:01:45Z",
+      "side": 1,
+      "message": "Marking as resolved.",
+      "parentUuid": "2069f0bc_fbefd9fa",
+      "range": {
+        "startLine": 4,
+        "startChar": 19,
+        "endLine": 4,
+        "endChar": 25
+      },
+      "revId": "1084e3edfc0cd9b88b476d526a80fd7090377100",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
