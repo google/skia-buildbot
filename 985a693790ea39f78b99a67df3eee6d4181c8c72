@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "52880b4b_f37e754c",
+        "filename": "infra-sk/modules/colors-sk/colors-sk.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-26T15:48:22Z",
+      "side": 1,
+      "message": "This CSS is actually separate from the colors-sk element, it can be moved to a separate dir.\n\nAlso, it is pure css so the file name can be .css not .scss.",
+      "revId": "985a693790ea39f78b99a67df3eee6d4181c8c72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b3b9483_03aa3146",
+        "filename": "infra-sk/modules/colors-sk/colors-sk.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-26T15:48:22Z",
+      "side": 1,
+      "message": "Either deep link to https://material.io/design/color/dark-theme.html or provide comments on what the different --vars mean.",
+      "revId": "985a693790ea39f78b99a67df3eee6d4181c8c72",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
