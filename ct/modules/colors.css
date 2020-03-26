@@ -1,11 +1,20 @@
 /* Common CT Colors via CSS Variables.
+   Assumes use of infra-sk/modules/theme-chooser-sk.
 
  Can be imported via:
 
     @import '../colors';
 */
 
-html {
+/* Use the default theme except for the primary colors, and we'll use
+ * complete default dark theme.
+ */
+:root {
+  --ocean-blue-pearl: rgb(63, 81, 181);
   --lavender: rgb(204, 204, 255);
-  --transparent-grey: rgba(0,0,0,0.3);
+
+  --primary: var(--ocean-blue-pearl);
+  --on-primary: var(--white);
+  --primary-variant: var(--lavender);
+  --on-primary-variant: var(--black);
 }
