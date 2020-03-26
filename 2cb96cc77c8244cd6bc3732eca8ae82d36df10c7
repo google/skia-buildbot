@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "968b07b9_4ed056b5",
+        "filename": "golden/go/status/status.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-26T12:09:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d03a9a91_685127ac",
+      "range": {
+        "startLine": 159,
+        "startChar": 42,
+        "endLine": 159,
+        "endChar": 45
+      },
+      "revId": "2cb96cc77c8244cd6bc3732eca8ae82d36df10c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9d3d57c4_4d49f0bd",
         "filename": "golden/go/status/status.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "2cb96cc77c8244cd6bc3732eca8ae82d36df10c7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8597c8a9_87f02efa",
+        "filename": "golden/go/status/status.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-26T12:09:15Z",
+      "side": 1,
+      "message": "Removed the continues and re-wrote using else. bascially we don\u0027t want to reset the timer if we failed to calculate status.",
+      "parentUuid": "9d3d57c4_4d49f0bd",
+      "range": {
+        "startLine": 182,
+        "startChar": 5,
+        "endLine": 182,
+        "endChar": 13
+      },
+      "revId": "2cb96cc77c8244cd6bc3732eca8ae82d36df10c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
