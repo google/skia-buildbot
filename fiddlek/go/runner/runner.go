@@ -113,7 +113,7 @@ func (r *Runner) fiddlerIPsOneStep() error {
 	if r.local {
 		ips = []string{"127.0.0.1"}
 	} else {
-		pods, err := r.clientset.CoreV1().Pods("default").List(metav1.ListOptions{
+		pods, err := r.clientset.CoreV1().Pods("default").List(context.TODO(), metav1.ListOptions{
 			LabelSelector: "app=fiddler",
 		})
 		if err != nil {

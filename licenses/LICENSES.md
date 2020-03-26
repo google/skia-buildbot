@@ -135,4 +135,5 @@ The following licenses are used in dependent packages.
 | k8s.io/client-go                                                  | Apache-2.0    |
 | k8s.io/klog                                                       | Apache-2.0    |
 | k8s.io/utils/integer                                              | Apache-2.0    |
+| sigs.k8s.io/structured-merge-diff/v3/value                        | Apache-2.0    |
 | sigs.k8s.io/yaml                                                  | MIT           |
