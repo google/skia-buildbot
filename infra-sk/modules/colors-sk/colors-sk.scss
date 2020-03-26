@@ -1,0 +1,103 @@
+/* A basic color theme and associated dark theme inspired by https://material.io/design/color/dark-theme.html.
+
+ Can be imported via:
+
+    @import '../colors';
+*/
+
+@import url(~elements-sk/colors.css);
+
+/* Define Color Palette */
+html {
+  --primary: #6200EE;
+  --on-primary: var(--white);
+  --primary-variant: #3700B3;
+  --on-primary-variant: var(--white);
+  --secondary: #03DAC6;
+  --on-secondary: var(--black);
+  --background: var(--white);
+  --on-background: var(--black);
+  --surface: var(--white);
+  --on-surface: var(--black);
+  --error: #B00020;
+  --on-error: var(--white);
+  --transparent-overlay: rgba(0,0,0,0.5);
+}
+
+/* Class to override colors with dark theme */
+.darkmode {
+  --primary: #BB86FC;
+  --on-primary: var(--black);
+  --primary-variant: #3700B3;
+  --on-primary-variant: var(--white);
+  --secondary: #03DAC6;
+  --on-secondary: var(--black);
+  --background: #121212;
+  --on-background: var(--white);
+  --surface: #3d3939;
+  --on-surface: var(--white);
+  --error: #CF6679;
+  --on-error: var(--black);
+  --transparent-overlay: rgba(255,255,255,0.5);
+}
+
+/* Ensure the body respects darkmode */
+body {
+  background-color: var(--background);
+  color: var(--on-background);
+  fill: var(--on-background);
+}
+
+/* Helper classes to set elements to colors sets. */
+.primary-container {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  fill: var(--on-primary);
+}
+
+.primary {
+  color: var(--primary);
+  fill: var(--primary);
+}
+
+.primary-variant-container {
+  background-color: var(--primary-variant);
+  color: var(--on-primary-variant);
+  fill: var(--on-primary-variant);
+}
+
+.primary-variant {
+  color: var(--primary-variant);
+  fill: var(--primary-variant);
+}
+
+.secondary-container {
+  background-color: var(--secondary);
+  color: var(--on-secondary);
+  fill: var(--on-secondary);
+}
+
+.secondary {
+  color: var(--secondary);
+  fill: var(--secondary);
+}
+
+.surface {
+  background-color: var(--surface);
+  color: var(--on-surface);
+  fill: var(--on-surface);
+}
+
+.error-container {
+  background-color: var(--error);
+  color: var(--on-error);
+}
+
+.error {
+  color: var(--error);
+}
+
+.overlay {
+  background-color: var(--transparent-overlay)
+}
+
