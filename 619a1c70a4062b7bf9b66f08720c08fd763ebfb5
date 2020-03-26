@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c390d0d8_ed23c4e9",
+        "filename": "infra-sk/modules/colors-sk/colors-sk.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-26T19:07:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a8118822_64403a0a",
+      "range": {
+        "startLine": 23,
+        "startChar": 8,
+        "endLine": 23,
+        "endChar": 17
+      },
+      "revId": "619a1c70a4062b7bf9b66f08720c08fd763ebfb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8bb640b8_dcf7457e",
         "filename": "infra-sk/modules/colors-sk/colors-sk.js",
         "patchSetId": 6
@@ -39,6 +63,24 @@
       "revId": "619a1c70a4062b7bf9b66f08720c08fd763ebfb5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aaae18a3_9248a19a",
+        "filename": "infra-sk/modules/colors-sk/colors-sk.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-26T19:07:51Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8bb640b8_dcf7457e",
+      "revId": "619a1c70a4062b7bf9b66f08720c08fd763ebfb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -62,6 +104,30 @@
       "revId": "619a1c70a4062b7bf9b66f08720c08fd763ebfb5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0fde0f7f_c6d32e80",
+        "filename": "infra-sk/modules/colors-sk/colors-sk.scss",
+        "patchSetId": 6
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-26T19:07:51Z",
+      "side": 1,
+      "message": "Added the 254 colors from https://material.io/resources/color like we talked about. Mapped the theme named colors as best I could to those to avoid adding extra superfluous ones.",
+      "parentUuid": "bcae72aa_546d9516",
+      "range": {
+        "startLine": 12,
+        "startChar": 13,
+        "endLine": 12,
+        "endChar": 20
+      },
+      "revId": "619a1c70a4062b7bf9b66f08720c08fd763ebfb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
