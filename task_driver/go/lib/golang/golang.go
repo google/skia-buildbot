@@ -44,6 +44,7 @@ func WithEnv(ctx context.Context, workdir string) context.Context {
 		td.PATH_PLACEHOLDER,
 	}, string(os.PathListSeparator))
 	return td.WithEnv(ctx, []string{
+		"CGO_ENABLED=0",
 		fmt.Sprintf("GOCACHE=%s", filepath.Join(dirs.Cache(workdir), "go_cache")),
 		"GOFLAGS=-mod=readonly", // Prohibit builds from modifying go.mod.
 		fmt.Sprintf("GOROOT=%s", goRoot),
