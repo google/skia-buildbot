@@ -3,12 +3,16 @@ package reminder
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"html/template"
 	"time"
 
+	"cloud.google.com/go/datastore"
+
 	"go.skia.org/infra/am/go/incident"
 	"go.skia.org/infra/am/go/silence"
+	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/rotations"
@@ -52,10 +56,18 @@ type emailTicker struct {
 	emailAuth *email.GMail
 }
 
+// Reminder - Keeps track of which days and to which owners reminders went out.
+// Uses named keys which are in "YYYY-MM-DD" format.
+type Reminder struct {
+	//dateUTC       string   `datastore:"date_utc"`
+	ownersEmailed []string `datastore:"owners_emailed"`
+}
+
 // getDailyNextTickDuration returns the duration after which the reminder should be sent.
 // If startTimeUTC is after reminderHourUTC then the next day's reminderHourUTC is used.
 // If startTimeUTC is before reminderHourUTC then the current day's reminderHourUTC is used.
 func getDailyNextTickDuration(startTimeUTC time.Time, reminderHourUTC int) time.Duration {
+	// HERE HERE HERE
 	nextTick := time.Date(startTimeUTC.Year(), startTimeUTC.Month(), startTimeUTC.Day(), reminderHourUTC, 0, 0, 0, time.UTC)
 	if nextTick.Before(startTimeUTC) {
 		nextTick = nextTick.Add(reminderDuration)
@@ -87,14 +99,15 @@ func (et emailTicker) updateEmailTicker() {
 
 // remindAlertOwners sends a reminder email with a list of firing alerts to
 // the owners/assignees of the alerts.
-func (et emailTicker) remindAlertOwners() error {
+// Returns a slice of emailed owners.
+func (et emailTicker) remindAlertOwners() ([]string, error) {
 	ins, err := et.iStore.GetAll()
 	if err != nil {
-		return fmt.Errorf("Failed to load incidents: %s", err)
+		return nil, fmt.Errorf("Failed to load incidents: %s", err)
 	}
 	silences, err := et.sStore.GetAll()
 	if err != nil {
-		return fmt.Errorf("Failed to load silences: %s", err)
+		return nil, fmt.Errorf("Failed to load silences: %s", err)
 	}
 	if silences == nil {
 		silences = []silence.Silence{}
@@ -103,49 +116,54 @@ func (et emailTicker) remindAlertOwners() error {
 	// Find the current trooper.
 	troopers, err := rotations.FromURL(httputils.NewTimeoutClient(), trooperURL)
 	if err != nil {
-		return fmt.Errorf("Could not get current trooper: %s", err)
+		return nil, fmt.Errorf("Could not get current trooper: %s", err)
 	}
 	if len(troopers) != 1 {
-		return fmt.Errorf("Expected 1 entry from %s. Instead got %s", trooperURL, troopers)
+		return nil, fmt.Errorf("Expected 1 entry from %s. Instead got %s", trooperURL, troopers)
 	}
 	trooper := troopers[0]
 
 	// Send reminder emails to alert owners (but not to the trooper).
 	ownersToAlerts := getOwnersToAlerts(ins, silences)
+	emailedOwners := []string{}
 	for o, alerts := range ownersToAlerts {
 		if o == trooper {
 			sklog.Infof("Not going to email %s because they are the current trooper", o)
 			continue
 		}
-		sklog.Infof("Going to email %s for these alerts:\n", o)
-		alertDescriptions := []string{}
-		for _, a := range alerts {
-			desc := fmt.Sprintf("%s - %s", a.Params["alertname"], a.Params["abbr"])
-			alertDescriptions = append(alertDescriptions, desc)
-			sklog.Infof("\t%s\n", desc)
-		}
-		emailBytes := new(bytes.Buffer)
-		if err := emailTemplateParsed.Execute(emailBytes, struct {
-			Owner  string
-			Alerts []string
-		}{
-			Owner:  o,
-			Alerts: alertDescriptions,
-		}); err != nil {
-			return fmt.Errorf("Failed to execute email template: %s", err)
-		}
+		// HERE HERE HERE
+		if o == "barney@example.org" {
+			sklog.Infof("Going to email %s for these alerts:\n", o)
+			alertDescriptions := []string{}
+			for _, a := range alerts {
+				desc := fmt.Sprintf("%s - %s", a.Params["alertname"], a.Params["abbr"])
+				alertDescriptions = append(alertDescriptions, desc)
+				sklog.Infof("\t%s\n", desc)
+			}
+			emailBytes := new(bytes.Buffer)
+			if err := emailTemplateParsed.Execute(emailBytes, struct {
+				Owner  string
+				Alerts []string
+			}{
+				Owner:  o,
+				Alerts: alertDescriptions,
+			}); err != nil {
+				return nil, fmt.Errorf("Failed to execute email template: %s", err)
+			}
 
-		emailSubject := "You have active alerts on am.skia.org"
-		viewActionMarkup, err := email.GetViewActionMarkup("am.skia.org/?tab=0", "View Alerts", "View alerts owned by you")
-		if err != nil {
-			return fmt.Errorf("Failed to get view action markup: %s", err)
-		}
-		if err := et.emailAuth.SendWithMarkup("Alert Manager", []string{o, "rmistry@google.com" /*temporary*/}, emailSubject, emailBytes.String(), viewActionMarkup); err != nil {
-			return fmt.Errorf("Could not send email: %s", err)
+			emailSubject := "You have active alerts on am.skia.org"
+			viewActionMarkup, err := email.GetViewActionMarkup("am.skia.org/?tab=0", "View Alerts", "View alerts owned by you")
+			if err != nil {
+				return nil, fmt.Errorf("Failed to get view action markup: %s", err)
+			}
+			if err := et.emailAuth.SendWithMarkup("Alert Manager", []string{o, "rmistry@google.com" /*temporary*/}, emailSubject, emailBytes.String(), viewActionMarkup); err != nil {
+				return nil, fmt.Errorf("Could not send email: %s", err)
+			}
+			emailedOwners = append(emailedOwners, o)
 		}
 	}
 
-	return nil
+	return emailedOwners, nil
 }
 
 func StartReminderTicker(iStore *incident.Store, sStore *silence.Store, emailAuth *email.GMail) {
@@ -158,10 +176,37 @@ func StartReminderTicker(iStore *incident.Store, sStore *silence.Store, emailAut
 	go func() {
 		for {
 			<-et.t.C
-			sklog.Infof("[reminder] Going to send reminders")
-			if err := et.remindAlertOwners(); err != nil {
-				sklog.Errorf("Error emailing alert owners: %s", err)
+
+			var err error
+			_, err = ds.DS.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
+				var reminderFromDS Reminder
+				// Construct the key and see if it already exists in the Datastore.
+				k := ds.NewKey(ds.REMINDER_AM)
+				k.Name = time.Now().UTC().Format("2006-01-02")
+				if err := tx.Get(k, &reminderFromDS); err != nil {
+					if err == datastore.ErrNoSuchEntity {
+						sklog.Infof("[reminder] Going to send reminders")
+						ownersEmailed, err := et.remindAlertOwners()
+						if err != nil {
+							sklog.Errorf("Error emailing alert owners: %s", err)
+						}
+						sklog.Infof("[reminder] Adding entry to datastore")
+						reminderFromDS.ownersEmailed = ownersEmailed
+						if _, err := tx.Put(k, reminderFromDS); err != nil {
+							return err
+						}
+					} else {
+						return err
+					}
+				} else {
+					sklog.Infof("[reminder] Email already sent by another instance. Not going to send reminders.")
+				}
+				return nil
+			})
+			if err != nil {
+				sklog.Errorf("Error talking to the reminder datastore: %s", err)
 			}
+
 			et.updateEmailTicker()
 		}
 	}()
