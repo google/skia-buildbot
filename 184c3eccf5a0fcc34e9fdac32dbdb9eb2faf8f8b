@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "70aecc4f_b3ec28a1",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-26T13:46:05Z",
+      "side": 1,
+      "message": "There\u0027s a reference to serial_relay in seeeduino.go too, but I don\u0027t see anything that actually shells out to it.",
+      "range": {
+        "startLine": 155,
+        "startChar": 0,
+        "endLine": 155,
+        "endChar": 43
+      },
+      "revId": "184c3eccf5a0fcc34e9fdac32dbdb9eb2faf8f8b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
