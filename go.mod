@@ -55,7 +55,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.29.31 // indirect
+	github.com/aws/aws-sdk-go v1.29.32 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/danjacques/gofslock v0.0.0-20191023191349-0a45f885bc37 // indirect
@@ -74,7 +74,6 @@ require (
 	github.com/golang/protobuf v1.3.5
 	github.com/google/go-github/v29 v29.0.3
 	github.com/google/go-licenses v0.0.0-20200227160636-0fa8c766a591
-	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/licenseclassifier v0.0.0-20200108231022-9dfa8d8474eb // indirect
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.4.0 // indirect
@@ -104,7 +103,6 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
-	github.com/onsi/ginkgo v1.10.2 // indirect
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
 	github.com/otiai10/copy v1.1.1 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -132,16 +130,16 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20200325044158-e08c5658ac2f
+	go.chromium.org/luci v0.0.0-20200326092142-489ad862c372
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20200325010219-a49f79bcc224
+	golang.org/x/tools v0.0.0-20200325203130-f53864d0dba1
 	google.golang.org/api v0.20.0
-	google.golang.org/genproto v0.0.0-20200324203455-a04cca1dde73
+	google.golang.org/genproto v0.0.0-20200325114520-5b2d0af7952b
 	google.golang.org/grpc v1.28.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/fsnotify.v1 v1.4.7
@@ -149,11 +147,10 @@ require (
 	gopkg.in/olivere/elastic.v5 v5.0.84
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.2.8
-	k8s.io/apimachinery v0.17.4
-	k8s.io/client-go v0.17.4
-	k8s.io/utils v0.0.0-20200124190032-861946025e34 // indirect
+	k8s.io/apimachinery v0.18.0
+	k8s.io/client-go v0.18.0
 	rsc.io/sampler v1.99.99 // indirect
-	sigs.k8s.io/yaml v1.2.0 // indirect
+	sigs.k8s.io/structured-merge-diff v0.0.0-20190525122527-15d366b2352e // indirect
 )
 
 go 1.13

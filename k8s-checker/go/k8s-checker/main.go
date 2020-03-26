@@ -64,7 +64,7 @@ var (
 // getEvictedPods finds all pods in "Evicted" state and reports metrics.
 // It puts all reported evictedMetrics into the specified metrics map.
 func getEvictedPods(ctx context.Context, clientset *kubernetes.Clientset, metrics map[metrics2.Int64Metric]struct{}) error {
-	pods, err := clientset.CoreV1().Pods("default").List(metav1.ListOptions{
+	pods, err := clientset.CoreV1().Pods("default").List(ctx, metav1.ListOptions{
 		FieldSelector: "status.phase=Failed",
 	})
 	if err != nil {
@@ -92,7 +92,7 @@ func getEvictedPods(ctx context.Context, clientset *kubernetes.Clientset, metric
 // getLiveAppContainersToImages returns a map of app names to their containers to the images running on them.
 func getLiveAppContainersToImages(ctx context.Context, clientset *kubernetes.Clientset) (map[string]map[string]string, error) {
 	// Get JSON output of pods running in K8s.
-	pods, err := clientset.CoreV1().Pods("default").List(metav1.ListOptions{
+	pods, err := clientset.CoreV1().Pods("default").List(ctx, metav1.ListOptions{
 		FieldSelector: "status.phase=Running",
 	})
 	if err != nil {
