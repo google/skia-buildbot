@@ -22,6 +22,30 @@
       "revId": "1a46d781cd90879a4e0228e6ca9da1985a347ef6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "949813ce_fd81bd0f",
+        "filename": "infra-sk/modules/query-sk/query-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-26T14:06:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "98fabd09_261682f4",
+      "range": {
+        "startLine": 84,
+        "startChar": 9,
+        "endLine": 84,
+        "endChar": 15
+      },
+      "revId": "1a46d781cd90879a4e0228e6ca9da1985a347ef6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
