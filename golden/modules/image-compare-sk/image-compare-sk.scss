@@ -1,0 +1,49 @@
+@import '~elements-sk/colors';
+
+image-compare-sk {
+  // TODO(kjlubick) can/should we put flex_vertical in a central spot?
+  .flex_vertical {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .flex_horizontal {
+    display: flex;
+    flex-direction: row;
+  }
+
+  figure {
+    margin: 0;
+  }
+
+  figcaption {
+    .legend_dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 8px;
+      background-color: var(--black);
+      display: inline-block;
+      vertical-align: middle;
+    }
+  }
+
+  .zoom_btn {
+    width: 90%;
+  }
+
+  .preview {
+    margin: 5px;
+    border: solid 2px lightgray;
+    display: block;
+    width: 132px;
+    height: 132px;
+
+    img {
+      display: block;
+      max-width: 128px;
+      max-height: 128px;
+      width: auto;
+      height: auto;
+    }
+  }
+}
