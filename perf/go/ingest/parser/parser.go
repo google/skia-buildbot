@@ -122,6 +122,9 @@ func getParamsAndValuesFromVersion1Format(f format.Format) ([]paramtools.Params,
 // then the file should be processed, in which case the returned branch name is
 // "".
 func (p *Parser) checkBranchName(params map[string]string) (string, bool) {
+	if len(p.branchNames) == 0 {
+		return "", true
+	}
 	branch, ok := params["branch"]
 	if ok {
 		return branch, p.branchNames[branch]
