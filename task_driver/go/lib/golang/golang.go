@@ -115,19 +115,22 @@ func Test(ctx context.Context, cwd string, args ...string) error {
 		}
 
 		// Find or create the step associated with this event.
-		pkg := sm.FindStep(event.Package)
-		if pkg == nil {
-			pkg = sm.StartStep(td.Props(event.Package))
-		}
-		step := pkg
+		lineage := []string{event.Package}
 		if event.Test != "" {
-			test := pkg.FindChild(event.Test)
-			if test == nil {
-				// This is the first time we've seen this test;
-				// create a sub-step for it.
-				test = pkg.StartChild(td.Props(event.Test))
+			lineage = append(lineage, strings.Split(event.Test, "/")...)
+		}
+		var step *log_parser.Step
+		for idx, stepName := range lineage {
+			nextStep := sm.FindStep(stepName)
+			if nextStep == nil {
+				if idx == 0 {
+					// This step is at the top level.
+					nextStep = sm.StartStep(td.Props(stepName))
+				} else {
+					nextStep = step.StartChild(td.Props(stepName))
+				}
 			}
-			step = test
+			step = nextStep
 		}
 
 		// Record any output.

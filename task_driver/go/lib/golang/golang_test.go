@@ -79,10 +79,13 @@ func TestWithEnv(t *testing.T) {
 	})
 }
 
-func TestTestFail(t *testing.T) {
+// testTestHelper runs "go test" with the given test content (see test2json
+// package for examples) and ensures that the "go test" command and all of its
+// descendants have the given expected result.
+func testTestHelper(t *testing.T, content []byte, expectResult td.StepResult) *td.StepReport {
 	unittest.MediumTest(t)
 
-	d, cleanup, err := test2json.SetupTest(test2json.CONTENT_FAIL)
+	d, cleanup, err := test2json.SetupTest(content)
 	require.NoError(t, err)
 	defer cleanup()
 
@@ -92,72 +95,66 @@ func TestTestFail(t *testing.T) {
 
 	found := map[string]bool{}
 	res.Recurse(func(s *td.StepReport) bool {
+		// Ignore the root-level step.
 		if s.Name == "fake-test-task" {
 			return true
 		}
-		require.Equal(t, td.STEP_RESULT_FAILURE, s.Result, s.Name)
+		require.Equal(t, expectResult, s.Result, s.Name)
 		found[s.Name] = true
+		// TODO(borenet): Verify that the test logs made it to the step.
+		return true
+	})
+	require.True(t, found["go test --json ./..."])
+	require.True(t, found[test2json.PackageFullPath])
+	require.True(t, found[test2json.TestName])
+	return res
+}
 
+func TestTestFail(t *testing.T) {
+	res := testTestHelper(t, test2json.CONTENT_FAIL, td.STEP_RESULT_FAILURE)
+
+	// Verify that the step for the failed test has the expected log snippet
+	// in its Errors field.
+	res.Recurse(func(s *td.StepReport) bool {
 		if s.Name == test2json.TestName {
 			require.Equal(t, 1, len(s.Errors))
 			require.True(t, strings.Contains(s.Errors[0], test2json.FailText))
 		}
-		// TODO(borenet): Verify that the test logs made it to the step.
 		return true
 	})
-	require.True(t, found["go test --json ./..."])
-	require.True(t, found[test2json.PackageFullPath])
-	require.True(t, found[test2json.TestName])
 }
 
 func TestTestPass(t *testing.T) {
-	unittest.MediumTest(t)
-
-	d, cleanup, err := test2json.SetupTest(test2json.CONTENT_PASS)
-	require.NoError(t, err)
-	defer cleanup()
-
-	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
-		return Test(ctx, d, "./...")
-	})
-
-	found := map[string]bool{}
-	res.Recurse(func(s *td.StepReport) bool {
-		if s.Name == "fake-test-task" {
-			return true
-		}
-		require.Equal(t, td.STEP_RESULT_SUCCESS, s.Result, s.Name)
-		found[s.Name] = true
-		// TODO(borenet): Verify that the test logs made it to the step.
-		return true
-	})
-	require.True(t, found["go test --json ./..."])
-	require.True(t, found[test2json.PackageFullPath])
-	require.True(t, found[test2json.TestName])
+	testTestHelper(t, test2json.CONTENT_PASS, td.STEP_RESULT_SUCCESS)
 }
 
 func TestTestSkip(t *testing.T) {
-	unittest.MediumTest(t)
+	testTestHelper(t, test2json.CONTENT_PASS, td.STEP_RESULT_SUCCESS)
+}
 
-	d, cleanup, err := test2json.SetupTest(test2json.CONTENT_SKIP)
-	require.NoError(t, err)
-	defer cleanup()
+func TestTestNested(t *testing.T) {
+	res := testTestHelper(t, test2json.CONTENT_NESTED, td.STEP_RESULT_SUCCESS)
 
-	res := td.RunTestSteps(t, false, func(ctx context.Context) error {
-		return Test(ctx, d, "./...")
-	})
-
-	found := map[string]bool{}
-	res.Recurse(func(s *td.StepReport) bool {
-		if s.Name == "fake-test-task" {
-			return true
+	// Verify that we have the correct tree of steps.
+	expect := []string{
+		"fake-test-task", // Root level step, created by td.RunTestSteps.
+		"go test --json ./...",
+		test2json.PackageFullPath,
+		test2json.TestName,
+		"1",
+		"2",
+		"3",
+	}
+	currentStep := res
+	for idx, expectStep := range expect {
+		require.Equal(t, expectStep, currentStep.Name)
+		if idx == len(expect)-1 {
+			require.Equal(t, 0, len(currentStep.Steps))
+		} else {
+			require.Equal(t, 1, len(currentStep.Steps))
+			currentStep = currentStep.Steps[0]
+			require.Equal(t, expect[idx+1], currentStep.Name)
 		}
-		require.Equal(t, td.STEP_RESULT_SUCCESS, s.Result, s.Name)
-		found[s.Name] = true
-		// TODO(borenet): Verify that the test logs made it to the step.
-		return true
-	})
-	require.True(t, found["go test --json ./..."])
-	require.True(t, found[test2json.PackageFullPath])
-	require.True(t, found[test2json.TestName])
+
+	}
 }
