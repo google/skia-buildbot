@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "91205d99_d61acb36",
+        "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-27T01:38:07Z",
+      "side": 1,
+      "message": "stray comment",
+      "range": {
+        "startLine": 33,
+        "startChar": 4,
+        "endLine": 33,
+        "endChar": 10
+      },
+      "revId": "66280ce4bb3d66cb49b9366f5b7a2526a8c72150",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2079b9b0_efee8a2c",
+        "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-27T01:38:07Z",
+      "side": 1,
+      "message": "icon -\u003e this\n\nThat way the click works even if they don\u0027t hit the icon precisely.",
+      "range": {
+        "startLine": 34,
+        "startChar": 4,
+        "endLine": 34,
+        "endChar": 8
+      },
+      "revId": "66280ce4bb3d66cb49b9366f5b7a2526a8c72150",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

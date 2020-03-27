@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "efbca1ea_bcb510b9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 10
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-27T01:38:07Z",
+      "side": 1,
+      "message": "No longer accurate.",
+      "range": {
+        "startLine": 9,
+        "startChar": 1,
+        "endLine": 9,
+        "endChar": 23
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49289006_2ae5189f",
+        "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-27T01:38:07Z",
+      "side": 1,
+      "message": "nit: wrap to 80 cols",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 37
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25099895_799e8016",
+        "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-27T01:38:07Z",
+      "side": 1,
+      "message": "Blank line between funcs.",
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1edc633_3f6df8af",
+        "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-27T01:38:07Z",
+      "side": 1,
+      "message": "const",
+      "range": {
+        "startLine": 32,
+        "startChar": 4,
+        "endLine": 32,
+        "endChar": 7
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed113244_7b23097e",
+        "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-27T01:38:07Z",
+      "side": 1,
+      "message": "If you inherit from ElementSk then this becomes a lot more imperative.\n\nconst template \u003d (ele) \u003d\u003e html`\u003cinvert-colors-icon-sk\u003e\u003c/invert-colors-icon-sk\u003e`;\n\n  constructor() {\n    super(template)\n  }\n\n  connectedCallback() {\n    this._render();\n    this.addEventListener(\u0027click\u0027, this._toggleTheme);\n    document.body.classList.toggle(kDarkmodeClass, window.localStorage.getItem(kDarkmodeClass) \u003d\u003d\u003d \u0027true\u0027);\n  }",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 11
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b8a1b7d_926d6149",
+        "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-27T01:38:07Z",
+      "side": 1,
+      "message": "const",
+      "range": {
+        "startLine": 41,
+        "startChar": 4,
+        "endLine": 41,
+        "endChar": 7
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ef89a23_8210ba82",
+        "filename": "infra-sk/modules/themes-sk/themes.css",
+        "patchSetId": 10
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-27T01:38:07Z",
+      "side": 1,
+      "message": "@import \u0027../infra-sk/themes-sk/themes.css\u0027;",
+      "range": {
+        "startLine": 6,
+        "startChar": 4,
+        "endLine": 6,
+        "endChar": 24
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ea01b87_aeff846d",
+        "filename": "infra-sk/modules/themes-sk/themes.css",
+        "patchSetId": 10
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-27T01:38:07Z",
+      "side": 1,
+      "message": "I think this should be\n\n :root {\n\nand below should be\n\n :root.darkmode {",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 4
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3a1db6a_654b2655",
+        "filename": "infra-sk/modules/themes-sk/themes.css",
+        "patchSetId": 10
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-27T01:38:07Z",
+      "side": 1,
+      "message": "These helper classes have pretty generic names, in order to avoid collisions maybe add a suffix to them, for example, .primary-container-theme or .primary-container-theme-sk.",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 18
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
