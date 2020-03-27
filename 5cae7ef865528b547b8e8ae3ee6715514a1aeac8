@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "8dc1898a_975b33b2",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-27T14:25:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "91631b0b_51100799",
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "595b2f82_1bea028a",
         "filename": "scripts/find_nongoogler_commits.go",
         "patchSetId": 2
@@ -242,6 +260,30 @@
       "side": 1,
       "message": "Golang doc style is to start with the name of the function:\n// getAccountSet will sanitize...\nEg: https://golang.org/pkg/fmt/#Fprint",
       "parentUuid": "bc5d0b13_561149f8",
+      "range": {
+        "startLine": 34,
+        "startChar": 5,
+        "endLine": 34,
+        "endChar": 18
+      },
+      "revId": "5cae7ef865528b547b8e8ae3ee6715514a1aeac8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "459d5c08_f1112ade",
+        "filename": "scripts/find_nongoogler_commits.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-27T14:25:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ea0b677_43b069ae",
       "range": {
         "startLine": 34,
         "startChar": 5,
