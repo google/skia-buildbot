@@ -53,7 +53,6 @@ The following licenses are used in dependent packages.
 | github.com/hashicorp/go-multierror                                | MPL-2.0       |
 | github.com/hashicorp/hcl                                          | MPL-2.0       |
 | github.com/huandu/xstrings                                        | MIT           |
-| github.com/huin/goserial                                          | BSD-3-Clause  |
 | github.com/imdario/mergo                                          | BSD-3-Clause  |
 | github.com/jackc/chunkreader/v2                                   | MIT           |
 | github.com/jackc/pgconn                                           | MIT           |
