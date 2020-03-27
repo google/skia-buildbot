@@ -33,9 +33,16 @@ func %s(t *testing.T) {
 )
 
 var (
-	CONTENT_FAIL TestContent = []byte(fmt.Sprintf(tmpl, PackageName, TestName, fmt.Sprintf("t.Fatalf(%q)", FailText)))
-	CONTENT_PASS TestContent = []byte(fmt.Sprintf(tmpl, PackageName, TestName, fmt.Sprintf("t.Log(%q)", PassText)))
-	CONTENT_SKIP TestContent = []byte(fmt.Sprintf(tmpl, PackageName, TestName, fmt.Sprintf("t.Skip(%q)", SkipText)))
+	CONTENT_FAIL   TestContent = []byte(fmt.Sprintf(tmpl, PackageName, TestName, fmt.Sprintf("t.Fatalf(%q)", FailText)))
+	CONTENT_PASS   TestContent = []byte(fmt.Sprintf(tmpl, PackageName, TestName, fmt.Sprintf("t.Log(%q)", PassText)))
+	CONTENT_SKIP   TestContent = []byte(fmt.Sprintf(tmpl, PackageName, TestName, fmt.Sprintf("t.Skip(%q)", SkipText)))
+	CONTENT_NESTED TestContent = []byte(fmt.Sprintf(tmpl, PackageName, TestName, `
+	t.Run("1", func(t *testing.T) {
+		t.Run("2", func(t *testing.T) {
+			t.Run("3", func(t *testing.T) {})
+		})
+	})
+`))
 
 	EVENTS_FAIL = []*Event{
 		{

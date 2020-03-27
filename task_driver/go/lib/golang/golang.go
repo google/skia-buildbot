@@ -114,20 +114,21 @@ func Test(ctx context.Context, cwd string, args ...string) error {
 			return err
 		}
 
-		// Find or create the step associated with this event.
-		pkg := sm.FindStep(event.Package)
-		if pkg == nil {
-			pkg = sm.StartStep(td.Props(event.Package))
+		// Find or create the step(s) associated with this event.
+		step := sm.FindStep(event.Package)
+		if step == nil {
+			step = sm.StartStep(td.Props(event.Package))
 		}
-		step := pkg
 		if event.Test != "" {
-			test := pkg.FindChild(event.Test)
-			if test == nil {
-				// This is the first time we've seen this test;
-				// create a sub-step for it.
-				test = pkg.StartChild(td.Props(event.Test))
+			// Slash-separated test names indicate nested tests;
+			// create a step hierarchy to match.
+			for _, stepName := range strings.Split(event.Test, "/") {
+				child := step.FindChild(stepName)
+				if child == nil {
+					child = step.StartChild(td.Props(stepName))
+				}
+				step = child
 			}
-			step = test
 		}
 
 		// Record any output.
