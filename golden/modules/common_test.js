@@ -1,5 +1,5 @@
 import {
-  humanReadableQuery,
+  humanReadableQuery, shorten, imgSrc, diffImgSrc, detailHref, diffPageHref,
 } from './common';
 
 describe('humanReadableQuery', () => {
@@ -10,6 +10,64 @@ describe('humanReadableQuery', () => {
     const inputWithSpaces = "mind%20the%20gap=tube&woody=There's%20a%20space%20in%20my%20boot";
     expect(humanReadableQuery(inputWithSpaces)).to.equal(
       "mind the gap=tube\nwoody=There's a space in my boot",
+    );
+  });
+});
+
+describe('shorten', () => {
+  it('shortens long strings into possibly ellipsed versions', () => {
+    expect(shorten('too short')).to.equal('too short');
+    expect(shorten('should be ellipsed because it is too long')).to.equal('should be el...');
+    expect(shorten('should be ellipsed because it is too long', 20)).to.equal('should be ellipse...');
+    expect(shorten('should be ellipsed because it is too long', 5)).to.equal('sh...');
+  });
+});
+
+// valid, but arbitrary md5 hashes.
+const aDigest = 'aaab78c9711cb79197d47f448ba51338';
+const bDigest = 'bbb8b07beb4e1247c2cbafdb92b93e55';
+
+describe('imgSrc', () => {
+  it('returns links to pngs for a given digest', () => {
+    expect(imgSrc(aDigest)).to.equal('/img/images/aaab78c9711cb79197d47f448ba51338.png');
+    expect(imgSrc(bDigest)).to.equal('/img/images/bbb8b07beb4e1247c2cbafdb92b93e55.png');
+  });
+});
+
+describe('diffImgSrc', () => {
+  it('returns the same src no matter the order of the arguments', () => {
+    expect(diffImgSrc(aDigest, bDigest)).to.equal(
+      '/img/diffs/aaab78c9711cb79197d47f448ba51338-bbb8b07beb4e1247c2cbafdb92b93e55.png',
+    );
+    expect(diffImgSrc(bDigest, aDigest)).to.equal(
+      '/img/diffs/aaab78c9711cb79197d47f448ba51338-bbb8b07beb4e1247c2cbafdb92b93e55.png',
+    );
+  });
+});
+
+describe('detailHref', () => {
+  it('returns a link with and without an issue', () => {
+    expect(detailHref('my-test', aDigest)).to.equal(
+      '/detail?test=my-test&digest=aaab78c9711cb79197d47f448ba51338',
+    );
+    expect(detailHref('my-test', aDigest, '12345')).to.equal(
+      '/detail?test=my-test&digest=aaab78c9711cb79197d47f448ba51338&issue=12345',
+    );
+  });
+});
+
+
+describe('diffPageHref', () => {
+  it('returns a link with and without an issue', () => {
+    expect(diffPageHref('my-test', aDigest, bDigest)).to.equal(
+      '/diff?test=my-test&left=aaab78c9711cb79197d47f448ba51338&right=bbb8b07beb4e1247c2cbafdb92b93e55',
+    );
+    // order matters
+    expect(diffPageHref('my-test', bDigest, aDigest)).to.equal(
+      '/diff?test=my-test&left=bbb8b07beb4e1247c2cbafdb92b93e55&right=aaab78c9711cb79197d47f448ba51338',
+    );
+    expect(diffPageHref('my-test', aDigest, bDigest, '12345')).to.equal(
+      '/diff?test=my-test&left=aaab78c9711cb79197d47f448ba51338&right=bbb8b07beb4e1247c2cbafdb92b93e55&issue=12345',
     );
   });
 });
