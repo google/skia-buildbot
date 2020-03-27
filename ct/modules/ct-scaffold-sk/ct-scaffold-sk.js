@@ -24,6 +24,7 @@ import * as ctfe_utils from '../ctfe_utils';
 
 import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/login-sk';
+import '../../../infra-sk/modules/theme-chooser-sk';
 
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/find-in-page-icon-sk';
@@ -51,17 +52,18 @@ import 'elements-sk/icon/history-icon-sk';
 
 const template = (ele) => html`
 <app-sk>
-  <header>
+  <header class=primary-container-themes-sk>
     <h1>${ele.appTitle}</h1>
     <div class=spinner-spacer>
       <spinner-sk></spinner-sk>
     </div>
     <div class=spacer></div>
     <login-sk ?testing_offline=${ele.testingOffline}></login-sk>
+    <theme-chooser-sk></theme-chooser-sk>
   </header>
 
   <aside>
-    <nav>
+    <nav class=surface-themes-sk>
       <a href="/chromium_analysis/" tab-index=0>
         <trending-up-icon-sk></trending-up-icon-sk><span>Performance</span>
       </a>

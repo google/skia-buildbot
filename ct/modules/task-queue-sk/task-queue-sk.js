@@ -23,20 +23,20 @@ import {
 } from '../ctfe_utils';
 
 const template = (el) => html`
-<table class=queue id=queue>
-  <tr class=headers>
-    <td>Queue Position</td>
-    <td>Added</td>
-    <td>Task Type</td>
-    <td>User</td>
-    <td>Swarming Logs</td>
-    <td>Request</td>
+<table class="queue surface-themes-sk secondary-links" id=queue>
+  <tr class=primary-variant-container-themes-sk>
+    <th>Queue Position</th>
+    <th>Added</th>
+    <th>Task Type</th>
+    <th>User</th>
+    <th>Swarming Logs</th>
+    <th>Request</th>
   </tr>
   ${el._pendingTasks.map((task, index) => taskRowTemplate(el, task, index))}
  </table>
 ${el._pendingTasks.map((task, index) => taskDetailDialogTemplate(task, index))}
 <confirm-dialog-sk id=confirm_dialog></confirm-dialog-sk>
-<toast-sk id=confirm_toast duration=5000></toast-sk>
+<toast-sk id=confirm_toast class=primary-variant-container-themes-sk duration=5000></toast-sk>
 `;
 
 const taskRowTemplate = (el, task, index) => html`
@@ -49,7 +49,7 @@ const taskRowTemplate = (el, task, index) => html`
   <td>
     ${getFormattedTimestamp(task.TsAdded)}
     ${task.FutureDate
-    ? html`</br><span class=red>(scheduled in the future)</span>`
+    ? html`</br><span class=error-themes-sk>(scheduled in the future)</span>`
     : ''}
   </td>
   <td>${task.TaskType}</td>
@@ -67,9 +67,9 @@ const taskRowTemplate = (el, task, index) => html`
 </tr>`;
 
 const taskDetailDialogTemplate = (task, index) => html`
-<div id=${`detailsDialog${index}`} class="dialog-background hidden"
+<div id=${`detailsDialog${index}`} class="dialog-background hidden overlay-themes-sk"
   @click=${hideDialog}>
-  <div class=dialog-content>
+  <div class="dialog-content surface-themes-sk">
     <pre>${formatTask(task)}</pre>
   </div>
 </div>
