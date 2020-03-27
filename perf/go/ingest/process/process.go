@@ -62,6 +62,7 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 	// Metrics.
 	filesReceived := metrics2.GetCounter("perfserver_ingest_files_received")
 	failedToParse := metrics2.GetCounter("perfserver_ingest_failed_to_parse")
+	skipped := metrics2.GetCounter("perfserver_ingest_skipped")
 	badGitHash := metrics2.GetCounter("perfserver_ingest_bad_githash")
 	failedToWrite := metrics2.GetCounter("perfserver_ingest_failed_to_write")
 	successfulWrite := metrics2.GetCounter("perfserver_ingest_successful_write")
@@ -87,7 +88,7 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 	}
 
 	// New Parser.
-	parser := parser.New(instanceConfig)
+	p := parser.New(instanceConfig)
 
 	// New TraceStore.
 	store, err := builders.NewTraceStoreFromConfig(ctx, false, instanceConfig)
@@ -108,10 +109,14 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 		filesReceived.Inc(1)
 
 		// Parse the file.
-		params, values, gitHash, err := parser.Parse(f)
+		params, values, gitHash, err := p.Parse(f)
 		if err != nil {
-			sklog.Errorf("Failed to parse %v: %s", f, err)
-			failedToParse.Inc(1)
+			if err == parser.ErrFileShouldBeSkipped {
+				skipped.Inc(1)
+			} else {
+				sklog.Errorf("Failed to parse %v: %s", f, err)
+				failedToParse.Inc(1)
+			}
 			continue
 		}
 
