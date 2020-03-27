@@ -43,8 +43,8 @@ describe('task-queue-sk', () => {
     // Return some results for 2 of the 16 task queries.
     const table = await loadTableWithReplies([resultSetOneItem, resultSetTwoItems]);
 
-    // (3 items + 1 header row) * 6 columns
-    expect($('td', table).length).to.equal(24);
+    // (3 items) * 6 columns
+    expect($('td', table).length).to.equal(18);
   });
 
   it('delete option shown', async () => {

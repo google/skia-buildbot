@@ -9,7 +9,6 @@ task-queue-sk {
     overflow: auto;
     left: 0;
     top: 0;
-    background-color: var(--transparent-grey);
   }
   div.hidden {
     display: none;
@@ -23,25 +22,26 @@ task-queue-sk {
     transform: translate(-50%, -50%);
     padding: 2em;
     border-radius: 1em;
-    background-color: var(--white);
   }
   table.queue {
     border-spacing: 0px;
     padding-top: 2em;
+    th {
+      text-align: center;
+    }
+    td.nowrap {
+      white-space: nowrap;
+    }
+    th,
+    td  {
+      padding: 15px;
+      border-style: solid;
+      border-width: 1px;
+    }
   }
-  tr.headers {
-    background-color: var(--lavender);
-    text-align: center;
-  }
-  td.nowrap {
-    white-space: nowrap;
-  }
-  th,
-  td  {
-    padding: 15px;
-    border: solid black 1px;
-  }
-  span.red {
-    color: var(--red)
-  }
+}
+
+/* Outside task-queue-sk because darkmode exists outside it. */
+.darkmode .queue a {
+  color: var(--secondary);
 }
