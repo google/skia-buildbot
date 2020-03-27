@@ -119,7 +119,8 @@ func TestSendPubSubEvent_Success(t *testing.T) {
 	}
 	ps := paramtools.NewParamSet(params...)
 
-	// Create the subscription before the pubsub message is sent, otherwise the emulator won't deliver it.
+	// Create the subscription before the pubsub message is sent, otherwise the
+	// emulator won't deliver it.
 	topic := client.Topic(instanceConfig.IngestionConfig.FileIngestionTopicName)
 	// Create a subscription with the same name as the topic since the name is
 	// random and won't have a conflict.
@@ -133,18 +134,19 @@ func TestSendPubSubEvent_Success(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		err := sub.Receive(cctx, func(ctx context.Context, msg *pubsub.Message) {
+		err := sub.Receive(cctx, func(_ context.Context, msg *pubsub.Message) {
 			ev, err := ingestevents.DecodePubSubBody(msg.Data)
 			require.NoError(t, err)
 			assert.Equal(t, "somefile.json", ev.Filename)
 			assert.Equal(t, ps, ev.ParamSet)
+			assert.Contains(t, ev.TraceIDs, ",arch=x86,config=8888,")
 			wg.Done()
 		})
 		require.NoError(t, err)
 	}()
 
 	// Now we can finally send the message.
-	err = sendPubSubEvent(client, instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps, "somefile.json")
+	err = sendPubSubEvent(ctx, client, instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps, "somefile.json")
 	require.NoError(t, err)
 
 	// Wait for one message to be delivered.
