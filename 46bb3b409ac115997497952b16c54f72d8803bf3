@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a14c8b4_f0bfa8c6",
+        "filename": "go/test2json/testutils.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-27T15:25:42Z",
+      "side": 1,
+      "message": "(this comment is addressable in a followup CL)\nThis violates a few testing best practices making this harder to reason about than I would like.\n1) tests should be clear go/unit-test-practices#goals\n2) tests should contain as little logic as possible go/tott/510\n3) tests can be a bit less DRY than standard code go/tott/598\n\nFor me to figure out what CONTENT_FAIL/CONTENT_PASS... are, I have to mentally compute one or two Sprintfs. \n\nIt would be much better if you just had them hardcoded as strings. You can still have expected consts (PackageName, FailText, PassText, etc), but don\u0027t Sprintf them into the code under test.",
+      "range": {
+        "startLine": 18,
+        "startChar": 1,
+        "endLine": 18,
+        "endChar": 5
+      },
+      "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6dc3bbcc_a9efdd3f",
+        "filename": "go/test2json/testutils.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-27T15:25:42Z",
+      "side": 1,
+      "message": "do you want to have these tests output anything to make sure it goes to the right place?",
+      "range": {
+        "startLine": 42,
+        "startChar": 33,
+        "endLine": 42,
+        "endChar": 35
+      },
+      "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7cb47044_d7ad7018",
+        "filename": "task_driver/go/lib/golang/golang_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-27T15:25:42Z",
+      "side": 1,
+      "message": "executeAndExpectResult is more clear",
+      "range": {
+        "startLine": 85,
+        "startChar": 5,
+        "endLine": 85,
+        "endChar": 19
+      },
+      "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed0dc02a_881551cf",
+        "filename": "task_driver/go/lib/golang/golang_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-27T15:25:42Z",
+      "side": 1,
+      "message": "This should go on the actual test",
+      "range": {
+        "startLine": 86,
+        "startChar": 10,
+        "endLine": 86,
+        "endChar": 20
+      },
+      "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80c073e1_cf034902",
+        "filename": "task_driver/go/lib/golang/golang_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-27T15:25:42Z",
+      "side": 1,
+      "message": "I noticed this exported function does not have a docstring - please add one; it would have made reviewing this code a lot easier.",
+      "range": {
+        "startLine": 88,
+        "startChar": 30,
+        "endLine": 88,
+        "endChar": 39
+      },
+      "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe599b55_4ad54517",
+        "filename": "task_driver/go/lib/golang/golang_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-27T15:25:42Z",
+      "side": 1,
+      "message": "While we are here, let\u0027s rename these to conform with go/unit-test-practices#naming, which Leandro, Joe and I have been using in Perf/Go as of late.\n\nI suggest:\n - TestRunTestSteps_FailingTestHasFailureResult\n - TestRunTestSteps_PassingTestHasSuccessResult\n - TestRunTestSteps_SkippedTestHasSuccessResult\n - TestRunTestSteps_NestedTestHasSuccessResultAndNestedSteps",
+      "range": {
+        "startLine": 127,
+        "startChar": 5,
+        "endLine": 127,
+        "endChar": 17
+      },
+      "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db224fd7_58c77493",
+        "filename": "task_driver/go/lib/golang/golang_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-27T15:25:42Z",
+      "side": 1,
+      "message": "This is very hard for me to look at and know the test is doing the right thing. go/tott/598 recommends avoiding loops like this for that reason.\n\nI think it would be more clear and only a little repetitive if this loop were unrolled and the code looked like:\n\nrootStep :\u003d res\nrequire.Equal(t, rootStep, \"fake-test-task\")\nrequire.Len(t, rootStep.Steps, 1)\n\ntestStep :\u003d rootStep.Steps[0]\nrequire.Equal(t, testStep, \"go test --json ./...\")\n...\nrequire.Empty(t, thirdNestStep.Steps)",
+      "range": {
+        "startLine": 149,
+        "startChar": 0,
+        "endLine": 149,
+        "endChar": 38
+      },
+      "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
