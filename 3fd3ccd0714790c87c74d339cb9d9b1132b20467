@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e03f0551_0917edfe",
+        "filename": "perf/go/ingest/process/process.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-27T11:27:55Z",
+      "side": 1,
+      "message": "pipe in ctx from Start",
+      "range": {
+        "startLine": 50,
+        "startChar": 16,
+        "endLine": 50,
+        "endChar": 26
+      },
+      "revId": "3fd3ccd0714790c87c74d339cb9d9b1132b20467",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee83bd30_9605dfcc",
+        "filename": "perf/go/ingest/process/process.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-27T11:27:55Z",
+      "side": 1,
+      "message": "driveby comment: AFAICT, this channel doesn\u0027t end if the context passed in is cancelled (because it continues on error). Maybe add a simple \nif err :\u003d ctx.Err(); err !\u003d nil {\n  return skerr.Wrap(err)\n}\n\nto the top?",
+      "range": {
+        "startLine": 106,
+        "startChar": 16,
+        "endLine": 106,
+        "endChar": 18
+      },
+      "revId": "3fd3ccd0714790c87c74d339cb9d9b1132b20467",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5e03d82_afbd77ff",
+        "filename": "perf/go/ingest/process/process_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-27T11:27:55Z",
+      "side": 1,
+      "message": "nit: wrap comments to 100 cols",
+      "range": {
+        "startLine": 122,
+        "startChar": 92,
+        "endLine": 122,
+        "endChar": 99
+      },
+      "revId": "3fd3ccd0714790c87c74d339cb9d9b1132b20467",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63e13179_69f1de3a",
+        "filename": "perf/go/ingest/process/process_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-27T11:27:55Z",
+      "side": 1,
+      "message": "nit: call this unused param _",
+      "range": {
+        "startLine": 136,
+        "startChar": 32,
+        "endLine": 136,
+        "endChar": 35
+      },
+      "revId": "3fd3ccd0714790c87c74d339cb9d9b1132b20467",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b14c62aa_e22bac85",
+        "filename": "perf/go/ingest/process/process_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-27T11:27:55Z",
+      "side": 1,
+      "message": "add an assert for the trace ids?",
+      "range": {
+        "startLine": 140,
+        "startChar": 10,
+        "endLine": 140,
+        "endChar": 15
+      },
+      "revId": "3fd3ccd0714790c87c74d339cb9d9b1132b20467",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
