@@ -23,7 +23,7 @@ import (
 // sendPubSubEvent sends the unencoded params and paramset found in a single
 // ingested file to the PubSub topic specified in the selected Perf instances
 // configuration data.
-func sendPubSubEvent(pubSubClient *pubsub.Client, topicName string, params []paramtools.Params, paramset paramtools.ParamSet, filename string) error {
+func sendPubSubEvent(ctx context.Context, pubSubClient *pubsub.Client, topicName string, params []paramtools.Params, paramset paramtools.ParamSet, filename string) error {
 	if topicName == "" {
 		return nil
 	}
@@ -47,7 +47,6 @@ func sendPubSubEvent(pubSubClient *pubsub.Client, topicName string, params []par
 	msg := &pubsub.Message{
 		Data: body,
 	}
-	ctx := context.Background()
 	_, err = pubSubClient.Topic(topicName).Publish(ctx, msg).Get(ctx)
 
 	return skerr.Wrap(err)
@@ -105,6 +104,9 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 
 	sklog.Info("Waiting on files to process.")
 	for f := range ch {
+		if err := ctx.Err(); err != nil {
+			return skerr.Wrap(err)
+		}
 		sklog.Infof("Ingest received: %v", f)
 		filesReceived.Inc(1)
 
@@ -141,7 +143,7 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 		}
 		successfulWrite.Inc(1)
 
-		if err := sendPubSubEvent(pubSubClient, instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps, f.Name); err != nil {
+		if err := sendPubSubEvent(ctx, pubSubClient, instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps, f.Name); err != nil {
 			sklog.Errorf("Failed to send pubsub event: %s", err)
 		} else {
 			sklog.Info("FileIngestionTopicName pubsub message sent.")
