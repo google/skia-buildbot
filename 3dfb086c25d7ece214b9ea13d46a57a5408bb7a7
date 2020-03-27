@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d285daec_2abb1974",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 10
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-27T14:07:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "efbca1ea_bcb510b9",
+      "range": {
+        "startLine": 9,
+        "startChar": 1,
+        "endLine": 9,
+        "endChar": 23
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "49289006_2ae5189f",
         "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.js",
         "patchSetId": 10
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "b5dee7b4_a8478a39",
+        "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-27T14:07:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49289006_2ae5189f",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 37
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "25099895_799e8016",
         "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.js",
         "patchSetId": 10
@@ -62,6 +110,24 @@
       "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b4e1b76_105e118c",
+        "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-27T14:07:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "25099895_799e8016",
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "cb87e9dd_644fa8f5",
+        "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-27T14:07:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a1edc633_3f6df8af",
+      "range": {
+        "startLine": 32,
+        "startChar": 4,
+        "endLine": 32,
+        "endChar": 7
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ed113244_7b23097e",
         "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.js",
         "patchSetId": 10
@@ -108,6 +198,30 @@
       "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ee705cb_3bc892fe",
+        "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-27T14:07:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ed113244_7b23097e",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 11
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "cc58b419_cda9ffb6",
+        "filename": "infra-sk/modules/theme-chooser-sk/theme-chooser-sk.js",
+        "patchSetId": 10
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-27T14:07:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2b8a1b7d_926d6149",
+      "range": {
+        "startLine": 41,
+        "startChar": 4,
+        "endLine": 41,
+        "endChar": 7
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8ef89a23_8210ba82",
         "filename": "infra-sk/modules/themes-sk/themes.css",
         "patchSetId": 10
@@ -154,6 +292,30 @@
       "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe3b3b42_9527c2ba",
+        "filename": "infra-sk/modules/themes-sk/themes.css",
+        "patchSetId": 10
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-27T14:07:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8ef89a23_8210ba82",
+      "range": {
+        "startLine": 6,
+        "startChar": 4,
+        "endLine": 6,
+        "endChar": 24
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "f36739e9_9f64e06a",
+        "filename": "infra-sk/modules/themes-sk/themes.css",
+        "patchSetId": 10
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-27T14:07:53Z",
+      "side": 1,
+      "message": "As per discussion, leaving in html so users can easily override with :root. Also leaving darkmode as is, because I think moving it into html would mgive it higher specificity making it harder to override.",
+      "parentUuid": "7ea01b87_aeff846d",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 4
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b3a1db6a_654b2655",
         "filename": "infra-sk/modules/themes-sk/themes.css",
         "patchSetId": 10
@@ -200,6 +386,30 @@
       "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3fbc73a3_7b5bb56a",
+        "filename": "infra-sk/modules/themes-sk/themes.css",
+        "patchSetId": 10
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-03-27T14:07:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b3a1db6a_654b2655",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 18
+      },
+      "revId": "3dfb086c25d7ece214b9ea13d46a57a5408bb7a7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
