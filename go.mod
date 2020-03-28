@@ -42,7 +42,7 @@ require (
 	cloud.google.com/go v0.55.0
 	cloud.google.com/go/bigtable v1.3.0
 	cloud.google.com/go/datastore v1.1.0
-	cloud.google.com/go/firestore v1.1.1
+	cloud.google.com/go/firestore v1.2.0
 	cloud.google.com/go/logging v1.0.0
 	cloud.google.com/go/pubsub v1.3.1
 	cloud.google.com/go/storage v1.6.0
@@ -55,7 +55,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/VividCortex/godaemon v0.0.0-20150910212227-3d9f6e0b234f
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.29.33 // indirect
+	github.com/aws/aws-sdk-go v1.29.34 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/danjacques/gofslock v0.0.0-20191023191349-0a45f885bc37 // indirect
@@ -115,7 +115,7 @@ require (
 	github.com/skia-dev/go-systemd v0.0.0-20181025131956-1cc903e82ae4
 	github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2
 	github.com/spf13/cast v1.3.1 // indirect
-	github.com/spf13/cobra v0.0.6
+	github.com/spf13/cobra v0.0.7
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
@@ -130,11 +130,11 @@ require (
 	go.chromium.org/luci v0.0.0-20200326230034-44adccb3a576
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59
-	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
+	golang.org/x/sys v0.0.0-20200327173247-9dae0f8f5775 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20200326210457-5d86d385bf88
+	golang.org/x/tools v0.0.0-20200328031815-3db5fc6bac03
 	google.golang.org/api v0.20.0
 	google.golang.org/genproto v0.0.0-20200326112834-f447254575fd
 	google.golang.org/grpc v1.28.0
