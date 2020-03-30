@@ -1,0 +1,47 @@
+@import '~elements-sk/colors';
+
+image-compare-sk {
+  min-width: 510px;
+  display: block;
+
+  .comparison_bar {
+    display: flex;
+    flex-direction: row;
+  }
+
+  figure {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+  }
+
+  figcaption {
+    .legend_dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 8px;
+      background-color: var(--black);
+      display: inline-block;
+      vertical-align: middle;
+    }
+  }
+
+  .no_compare{
+    margin: auto;
+    font-weight: bold;
+  }
+
+  .zoom_btn {
+    width: 90%;
+  }
+
+  img.thumbnail {
+    margin: 5px;
+    border: solid 2px lightgray;
+    display: block;
+    width: 128px;
+    height: 128px;
+    object-fit: contain;
+    object-position: top;
+  }
+}
