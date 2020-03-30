@@ -1,0 +1,349 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "26bb1c5f_226124b4",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T07:01:10Z",
+      "side": 1,
+      "message": "image-compare-sk",
+      "range": {
+        "startLine": 7,
+        "startChar": 11,
+        "endLine": 7,
+        "endChar": 21
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5f768f14_93f1ecde",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T07:01:10Z",
+      "side": 1,
+      "message": "Nit: use dashes to separate IDs.",
+      "range": {
+        "startLine": 23,
+        "startChar": 10,
+        "endLine": 23,
+        "endChar": 18
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3881b1b8_edce4e66",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T07:01:10Z",
+      "side": 1,
+      "message": "Nit: Remove blank line.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 0
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c471a6cd_818da7a6",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk-demo.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T07:01:10Z",
+      "side": 1,
+      "message": "Please introduce these images in this CL (as opposed to in https://skia-review.googlesource.com/c/buildbot/+/279858).",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 0
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32c97c3b_4e3fc2ec",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T07:01:10Z",
+      "side": 1,
+      "message": "Please use dashes for CSS class names. Here and below.",
+      "range": {
+        "startLine": 20,
+        "startChar": 11,
+        "endLine": 20,
+        "endChar": 25
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b470fd4_03b1eca3",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T07:01:10Z",
+      "side": 1,
+      "message": "Nit: thumbnail",
+      "range": {
+        "startLine": 22,
+        "startChar": 15,
+        "endLine": 22,
+        "endChar": 22
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "659c3e27_e27ac59c",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T07:01:10Z",
+      "side": 1,
+      "message": "Nit: new line between figcaption and span.",
+      "range": {
+        "startLine": 25,
+        "startChar": 13,
+        "endLine": 25,
+        "endChar": 18
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69ce438d_33780da6",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T07:01:10Z",
+      "side": 1,
+      "message": "Please replace with \"Zoom\" and style with \"text-transform: uppercase\".",
+      "range": {
+        "startLine": 34,
+        "startChar": 78,
+        "endLine": 34,
+        "endChar": 82
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4541aff0_ce928f47",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T07:01:10Z",
+      "side": 1,
+      "message": "There\u0027s some repetition here and above. Can we have a template called e.g. \"thumbnail\" and use it either once or three times depending on whether a right image was provided?",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 6
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6941ae6_37624e4f",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T07:01:10Z",
+      "side": 1,
+      "message": "Can this be replaced with two string properties leftDigest and rightDigest?\n\nThe left/right/diff image URLs can be computed from the left and right digests using the helpers introduced in https://skia-review.googlesource.com/c/buildbot/+/279862. Same for the titles and digest details links.",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 3
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6be34956_bd326675",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T07:01:10Z",
+      "side": 1,
+      "message": "Can the zoom-click event be just {leftDigest, rightDigest}?\n\nSimilar rationale as above.",
+      "range": {
+        "startLine": 113,
+        "startChar": 6,
+        "endLine": 113,
+        "endChar": 12
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d5cb431_d74150c8",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T07:01:10Z",
+      "side": 1,
+      "message": "Nit: leftLabel, rightLabel. But please see the comment above; I\u0027d rather not include these in the event.",
+      "range": {
+        "startLine": 117,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 14
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70d82aa3_1c410186",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T07:01:10Z",
+      "side": 1,
+      "message": "Would \"text-align: center\" work here?",
+      "range": {
+        "startLine": 30,
+        "startChar": 4,
+        "endLine": 30,
+        "endChar": 17
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe54bbab_c00bd9c4",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T07:01:10Z",
+      "side": 1,
+      "message": "Why not 100%?",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 15
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e249c36e_427bfd05",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T07:01:10Z",
+      "side": 1,
+      "message": "This same effect can probably be achieved without a container div by styling the \u003cimg\u003e tag directly, e.g.\n\n  img {\n    ...\n    object-fit: scale-down;\n    object-position: top;\n  }\n\nhttps://developer.mozilla.org/en-US/docs/Web/CSS/object-fit\nhttps://developer.mozilla.org/en-US/docs/Web/CSS/object-position",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 3
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
