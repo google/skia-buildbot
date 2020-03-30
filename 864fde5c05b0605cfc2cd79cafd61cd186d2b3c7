@@ -34,6 +34,24 @@
       "revId": "864fde5c05b0605cfc2cd79cafd61cd186d2b3c7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41984860_f5e9931f",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-30T17:13:49Z",
+      "side": 1,
+      "message": "Oooh. Done.",
+      "parentUuid": "6f206b93_fe545ba9",
+      "revId": "864fde5c05b0605cfc2cd79cafd61cd186d2b3c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
