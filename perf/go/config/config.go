@@ -118,6 +118,14 @@ type SourceConfig struct {
 	// have a single entry and be populated with a local filesystem directory
 	// name.
 	Sources []string `json:"sources"`
+
+	// RejectIfNameMatches is a regex. If it matches the file.Name then the file
+	// will be ignored. Leave the empty string to disable rejection.
+	RejectIfNameMatches string `json:"reject_if_name_matches"`
+
+	// AcceptIfNameMatches is a regex. If it matches the file.Name the file will
+	// be processed. Leave the empty string to accept all files.
+	AcceptIfNameMatches string `json:"accept_if_name_matches"`
 }
 
 // IngestionConfig is the configuration for how source files are ingested into
