@@ -37,7 +37,7 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { ElementSk } from '../ElementSk';
 
 const _paramsetValue = (ele, key, params) => params.map((value) => html`<div class=${ele._highlighted(key, value)} data-key=${key} data-value=${value}>${value}</div>`);
 

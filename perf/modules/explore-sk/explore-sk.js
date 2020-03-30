@@ -20,11 +20,11 @@ import 'elements-sk/tabs-panel-sk';
 import 'elements-sk/tabs-sk';
 
 import '../../../infra-sk/modules/query-sk';
+import '../../../infra-sk/modules/paramset-sk';
 
 import '../commit-detail-panel-sk';
 import '../domain-picker-sk';
 import '../json-source-sk';
-import '../paramset-sk';
 import '../plot-simple-sk';
 import '../query-count-sk';
 import '../query-summary-sk';
