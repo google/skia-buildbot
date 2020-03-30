@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d350e588_9c3658db",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:55:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "26bb1c5f_226124b4",
+      "range": {
+        "startLine": 7,
+        "startChar": 11,
+        "endLine": 7,
+        "endChar": 21
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5f768f14_93f1ecde",
         "filename": "golden/modules/image-compare-sk/image-compare-sk-demo.html",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f168883_9e84db85",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:55:52Z",
+      "side": 1,
+      "message": "As before, I prefer underscores.",
+      "parentUuid": "5f768f14_93f1ecde",
+      "range": {
+        "startLine": 23,
+        "startChar": 10,
+        "endLine": 23,
+        "endChar": 18
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "f35cac8e_57770c0c",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:55:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3881b1b8_edce4e66",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 0
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c471a6cd_818da7a6",
         "filename": "golden/modules/image-compare-sk/image-compare-sk-demo.js",
         "patchSetId": 1
@@ -91,6 +163,30 @@
       "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5578851e_339e85c2",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk-demo.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:55:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c471a6cd_818da7a6",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 0
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "35945eb9_def488d3",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:55:52Z",
+      "side": 1,
+      "message": "I see no recommendations one way or the other on go/htmlcssstyle#ID_and_Class_Naming and I prefer underscores.",
+      "parentUuid": "32c97c3b_4e3fc2ec",
+      "range": {
+        "startLine": 20,
+        "startChar": 11,
+        "endLine": 20,
+        "endChar": 25
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1b470fd4_03b1eca3",
         "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
         "patchSetId": 1
@@ -137,6 +257,30 @@
       "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7b2d683_9b0b3f1c",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:55:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1b470fd4_03b1eca3",
+      "range": {
+        "startLine": 22,
+        "startChar": 15,
+        "endLine": 22,
+        "endChar": 22
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "76825205_72191f70",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:55:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "659c3e27_e27ac59c",
+      "range": {
+        "startLine": 25,
+        "startChar": 13,
+        "endLine": 25,
+        "endChar": 18
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "69ce438d_33780da6",
         "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
         "patchSetId": 1
@@ -183,6 +351,30 @@
       "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f888a513_46363b1b",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:55:52Z",
+      "side": 1,
+      "message": "I think that style is already on our button style. Made it ZoOm as compromise /jk",
+      "parentUuid": "69ce438d_33780da6",
+      "range": {
+        "startLine": 34,
+        "startChar": 78,
+        "endLine": 34,
+        "endChar": 82
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "d83b37e7_13cb62a8",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:55:52Z",
+      "side": 1,
+      "message": "There is duplication, but all three are subtly different. Different enough that a helper didn\u0027t really make sense. I\u0027m going to leave it as is; if we need to make changes to it in the future, maybe we can refactor it then.",
+      "parentUuid": "4541aff0_ce928f47",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 6
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b6941ae6_37624e4f",
         "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
         "patchSetId": 1
@@ -220,6 +436,30 @@
       "writtenOn": "2020-03-30T07:01:10Z",
       "side": 1,
       "message": "Can this be replaced with two string properties leftDigest and rightDigest?\n\nThe left/right/diff image URLs can be computed from the left and right digests using the helpers introduced in https://skia-review.googlesource.com/c/buildbot/+/279862. Same for the titles and digest details links.",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 3
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6765c278_1be83e1f",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:55:52Z",
+      "side": 1,
+      "message": "Not entirely.\nThe title for the left digest, maybe; The title for the right digest, this element does not know if the right is positive/negative/something else.\ndigest details, maybe; I\u0027d rather not also have to pipe down issue/changelistID.\n\nsrc -\u003e digest and diff goes away? That\u0027s doable w/o complicating this element more.",
+      "parentUuid": "b6941ae6_37624e4f",
       "range": {
         "startLine": 80,
         "startChar": 0,
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "2cf3673d_94d8fdef",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:55:52Z",
+      "side": 1,
+      "message": "I\u0027m not changing existing functionality of the zoom element in this CL line. I too would like to clean them up.",
+      "parentUuid": "6be34956_bd326675",
+      "range": {
+        "startLine": 113,
+        "startChar": 6,
+        "endLine": 113,
+        "endChar": 12
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d5cb431_d74150c8",
         "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
         "patchSetId": 1
@@ -275,6 +539,30 @@
       "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "53cd82cc_53304d9e",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:55:52Z",
+      "side": 1,
+      "message": "See above for why not here.",
+      "parentUuid": "1d5cb431_d74150c8",
+      "range": {
+        "startLine": 117,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 14
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "7676c807_e4c46f58",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:55:52Z",
+      "side": 1,
+      "message": "Nope.",
+      "parentUuid": "70d82aa3_1c410186",
+      "range": {
+        "startLine": 30,
+        "startChar": 4,
+        "endLine": 30,
+        "endChar": 17
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fe54bbab_c00bd9c4",
         "filename": "golden/modules/image-compare-sk/image-compare-sk.scss",
         "patchSetId": 1
@@ -312,6 +624,30 @@
       "writtenOn": "2020-03-30T07:01:10Z",
       "side": 1,
       "message": "Why not 100%?",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 15
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46ced375_80f5d765",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:55:52Z",
+      "side": 1,
+      "message": "100% looks strange because the button sticks out past the thumbnails too much on the right.",
+      "parentUuid": "fe54bbab_c00bd9c4",
       "range": {
         "startLine": 35,
         "startChar": 0,
@@ -344,6 +680,30 @@
       "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "38ba7592_8530829a",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:55:52Z",
+      "side": 1,
+      "message": "Thanks for the tip! I went with object-fit: contain on the off-chance the input to gold is \u003c 128 by 128, we would scale it up to fit the thumbnail box.",
+      "parentUuid": "e249c36e_427bfd05",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 3
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
