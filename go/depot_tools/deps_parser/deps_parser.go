@@ -40,6 +40,11 @@ import (
 	"go.skia.org/infra/go/skerr"
 )
 
+const (
+	// DepsFileName is the name of the DEPS file.
+	DepsFileName = "DEPS"
+)
+
 // DepsEntry represents a single entry in a DEPS file. Note that the 'deps' dict
 // may specify that multiple CIPD package are unpacked to the same location; a
 // DepsEntry refers to the dependency, not the path, so each CIPD package would
