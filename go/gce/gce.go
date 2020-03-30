@@ -979,6 +979,12 @@ func (g *GCloud) GetFileFromMetadata(ctx context.Context, vm *Instance, url, dst
 	return err
 }
 
+// InstallWget installs wget CLI to be used by the above.
+func (g *GCloud) InstallWget(ctx context.Context, vm *Instance) error {
+	_, err := g.Ssh(ctx, vm, "sudo", "apt-get", "install", "-y", "wget")
+	return err
+}
+
 // SafeFormatAndMount copies the safe_format_and_mount script to the instance
 // and runs it for all data disks.
 func (g *GCloud) SafeFormatAndMount(ctx context.Context, vm *Instance) error {
@@ -1105,6 +1111,9 @@ func (g *GCloud) CreateAndSetup(ctx context.Context, vm *Instance, ignoreExists 
 	}
 
 	// Metadata downloads.
+	if err := g.InstallWget(ctx, vm); err != nil {
+		return err
+	}
 	for dst, src := range vm.MetadataDownloads {
 		if err := g.GetFileFromMetadata(ctx, vm, src, dst); err != nil {
 			return err
