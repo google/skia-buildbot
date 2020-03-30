@@ -8,13 +8,11 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/btts"
 	"go.skia.org/infra/perf/go/tracestore/btts/btts_testutils"
@@ -32,47 +30,6 @@ var (
 		},
 	}
 )
-
-func TestFromIndexCommit(t *testing.T) {
-	unittest.SmallTest(t)
-
-	ts0 := time.Unix(1406721642, 0).UTC()
-	ts1 := time.Unix(1406721715, 0).UTC()
-
-	commits := []*vcsinfo.IndexCommit{
-		{
-			Hash:      "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
-			Index:     0,
-			Timestamp: ts0,
-		},
-		{
-			Hash:      "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
-			Index:     1,
-			Timestamp: ts1,
-		},
-	}
-	expected_headers := []*dataframe.ColumnHeader{
-		{
-			Offset:    0,
-			Timestamp: ts0.Unix(),
-		},
-		{
-			Offset:    1,
-			Timestamp: ts1.Unix(),
-		},
-	}
-	expected_indices := []types.CommitNumber{0, 1}
-
-	headers, pcommits, _ := fromIndexCommit(commits, 0)
-	assert.Equal(t, 2, len(headers))
-	assert.Equal(t, 2, len(pcommits))
-	assertdeep.Equal(t, expected_headers, headers)
-	assertdeep.Equal(t, expected_indices, pcommits)
-
-	headers, pcommits, _ = fromIndexCommit([]*vcsinfo.IndexCommit{}, 0)
-	assert.Equal(t, 0, len(headers))
-	assert.Equal(t, 0, len(pcommits))
-}
 
 func TestBuildTraceMapper(t *testing.T) {
 	unittest.LargeTest(t)
