@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e1b1a769_9620ac00",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-03-30T14:32:06Z",
+      "side": 1,
+      "message": "Other option was to add a gitdir.GitWithTimeout",
+      "revId": "864fde5c05b0605cfc2cd79cafd61cd186d2b3c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
