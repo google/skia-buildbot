@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
@@ -19,6 +20,8 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -445,7 +448,18 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 }
 
 func (r *androidRepoManager) getTipRev(ctx context.Context) (*revision.Revision, error) {
-	output, err := r.childRepo.Git(ctx, "ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", r.childBranch), "-1")
+	gitExec, err := git.Executable(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	// ls-remote can get stuck indefinitely if GoB is having problems. Call it with a timeout.
+	lsRemoteCmd := &exec.Command{
+		Dir:     r.childRepo.Dir(),
+		Name:    gitExec,
+		Args:    []string{"ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", r.childBranch), "-1"},
+		Timeout: 10 * time.Minute,
+	}
+	output, err := exec.RunCommand(ctx, lsRemoteCmd)
 	if err != nil {
 		return nil, err
 	}
