@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0e58b62b_55195e05",
+        "filename": "golden/puppeteer-tests/test/digest-details-sk_puppeteer_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T15:16:19Z",
+      "side": 1,
+      "message": "This test (and just this test?) appear to be failing, but it works for me locally. Any ideas?",
+      "revId": "7e316fe416a8141551d47a894af214f07ea88a86",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
