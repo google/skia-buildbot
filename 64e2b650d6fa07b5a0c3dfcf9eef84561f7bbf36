@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eebdbfa8_6e0235f3",
+        "filename": "golden/demo_assets/6246b773851984c726cb2e1cb13510c2.png",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T01:11:48Z",
+      "side": 1,
+      "message": "Please don\u0027t add these images in this CL. Instead, include them in the CL that introduces the demo page where they will be used.",
+      "revId": "64e2b650d6fa07b5a0c3dfcf9eef84561f7bbf36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
