@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2da582e1_3f8f3b43",
+        "filename": "go/gce/gce.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 987,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-30T19:00:37Z",
+      "side": 1,
+      "message": "Nit: I don\u0027t know how many things use wget, but we should be able to use curl for GetFileFromMetadata.",
+      "range": {
+        "startLine": 982,
+        "startChar": 0,
+        "endLine": 987,
+        "endChar": 0
+      },
+      "revId": "4193d301803c4656f9235324790e849ed2b8abea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
