@@ -98,7 +98,7 @@ func codeHandler(w http.ResponseWriter, r *http.Request) {
 		// use demo code
 		hash = "d962f6408d45d22c5e0dfe0a0b5cf2bad9dfaa49c4abc0e2b1dfb30726ab838d"
 		if fiddleType == "canvaskit" {
-			hash = "2c67c68bada69a9f4c102f8f27a406c3d84f1f0105595b29dad6535f6001fdd3"
+			hash = "7266dbf9f11f11af091572832d19aee70a818ab6285638f1e57c304eb742cbf8"
 		}
 	}
 
