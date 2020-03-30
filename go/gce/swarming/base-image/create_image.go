@@ -30,7 +30,7 @@ func BaseConfig(serviceAccount string) *gce.Instance {
 	vm := &gce.Instance{
 		BootDisk: &gce.Disk{
 			Name:        INSTANCE_NAME,
-			SourceImage: "projects/debian-cloud/global/images/debian-9-stretch-v20190213",
+			SourceImage: "projects/debian-cloud/global/images/debian-10-buster-v20200309",
 			Type:        gce.DISK_TYPE_PERSISTENT_STANDARD,
 		},
 		MachineType: gce.MACHINE_TYPE_STANDARD_4,
