@@ -453,8 +453,8 @@ func runServer() {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 
 	h := httputils.LoggingGzipRequestResponse(r)
-	h = login.RestrictViewer(h)
-	h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
+	//h = login.RestrictViewer(h)
+	//h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
 	h = httputils.HealthzAndHTTPS(h)
 
 	http.Handle("/", h)
