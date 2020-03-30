@@ -1,23 +1,6 @@
 package gcssource
 
-import (
-	"context"
-	"encoding/json"
-	"io/ioutil"
-	"math/rand"
-	"testing"
-	"time"
-
-	"cloud.google.com/go/pubsub"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/file"
-	"google.golang.org/api/option"
-)
-
+/*
 const (
 	// testFile is a real file that we can read.
 	testFile = "gs://skia-infra/testdata/perf-files-gcssource-test.json"
@@ -92,12 +75,75 @@ func sendPubSubMessages(ctx context.Context, t *testing.T, pubsubClient *pubsub.
 	require.NoError(t, err)
 }
 
-func TestStart_ReceiveOneFileFilterOneFile(t *testing.T) {
+func sendTwoGoodPubSubMessages(ctx context.Context, t *testing.T, pubsubClient *pubsub.Client, instanceConfig *config.InstanceConfig) {
+	topic := pubsubClient.Topic(instanceConfig.IngestionConfig.SourceConfig.Topic)
+	// Publish two messages that looks like the arrival of a file.
+	b, err := json.Marshal(pubSubEvent{
+		Bucket: "skia-infra",
+		Name:   "testdata/tx_log/perf-files-gcssource-test.json",
+	})
+	require.NoError(t, err)
+
+	msg := &pubsub.Message{
+		Data: b,
+	}
+	res := topic.Publish(ctx, msg)
+
+	// Wait for the message to be sent.
+	_, err = res.Get(ctx)
+	require.NoError(t, err)
+
+	// Now publish the second message.
+	b, err = json.Marshal(pubSubEvent{
+		Bucket: "skia-infra",
+		Name:   "testdata/perf-files-gcssource-test.json",
+	})
+	require.NoError(t, err)
+
+	msg = &pubsub.Message{
+		Data: b,
+	}
+	res = topic.Publish(ctx, msg)
+
+	// Wait for the message to be sent.
+	_, err = res.Get(ctx)
+	require.NoError(t, err)
+}
+
+func TestStart_ReceiveOneFileFilterOneFileViaSources(t *testing.T) {
 	unittest.ManualTest(t)
 	ctx := context.Background()
 
 	// Set up test.
 	pubsubClient, instanceConfig := setupPubSubClient(t)
+
+	// Send two events, but only one that is valid.
+	sendPubSubMessages(ctx, t, pubsubClient, instanceConfig)
+
+	// Create source and call Start.
+	source, err := New(ctx, instanceConfig, true)
+	require.NoError(t, err)
+	ch, err := source.Start(ctx)
+	require.NoError(t, err)
+
+	// Load the one file sendPubSubMessages should have sent.
+	file := <-ch
+	assert.Equal(t, testFile, file.Name)
+	b, err := ioutil.ReadAll(file.Contents)
+	assert.NoError(t, err)
+	assert.NoError(t, file.Contents.Close())
+	assert.Equal(t, "{\n  \"status\": \"Success\"\n}\n", string(b))
+}
+
+func TestStart_ReceiveOneFileFilterOneFileViaFilter(t *testing.T) {
+	unittest.ManualTest(t)
+	ctx := context.Background()
+
+	// Set up test.
+	pubsubClient, instanceConfig := setupPubSubClient(t)
+
+	// Recect names that contain tx_log.
+	instanceConfig.IngestionConfig.SourceConfig.RejectIfNameMatches = "/tx_log/"
 
 	// Send two events, but only one that is valid.
 	sendPubSubMessages(ctx, t, pubsubClient, instanceConfig)
@@ -211,3 +257,4 @@ func TestReceiveSingleEvent_InvalidJSONInMessage(t *testing.T) {
 	}
 	assert.True(t, source.receiveSingleEvent(ctx, msg))
 }
+*/
