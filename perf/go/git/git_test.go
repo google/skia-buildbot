@@ -6,19 +6,38 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/config"
+	perfsql "go.skia.org/infra/perf/go/sql"
+	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/perf/go/types"
 )
 
 type cleanupFunc func()
 
-func newForTest(t *testing.T) (context.Context, *Git, cleanupFunc) {
+var (
+	startTime = time.Unix(1680000000, 0)
+)
+
+func newForTest(t *testing.T) (context.Context, *Git, *testutils.GitBuilder, []string, cleanupFunc) {
 	ctx := context.Background()
+
+	gb := testutils.GitInit(t, ctx)
+	ts := startTime
+	hashes := []string{}
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", ts))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", ts.Add(time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", ts.Add(2*time.Minute)))
+	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", ts.Add(3*time.Minute)))
+
+	db, sqlCleanup := sqltest.NewSQLite3DBForTests(t)
 
 	// Get tmp dir to use for repo checkout.
 	tmpDir, err := ioutil.TempDir("", "git")
@@ -27,60 +46,54 @@ func newForTest(t *testing.T) (context.Context, *Git, cleanupFunc) {
 	clean := func() {
 		err = os.RemoveAll(tmpDir)
 		assert.NoError(t, err)
+		sqlCleanup()
+		gb.Cleanup()
 	}
 
 	instanceConfig := &config.InstanceConfig{
+		DataStoreConfig: config.DataStoreConfig{
+			DataStoreType: config.SQLite3DataStoreType,
+		},
 		GitRepoConfig: config.GitRepoConfig{
-			URL: "https://github.com/skia-dev/perf-demo-repo.git",
-			Dir: tmpDir,
+			URL: gb.Dir(),
+			Dir: filepath.Join(tmpDir, "checkout"),
 		},
 	}
-	g, err := New(ctx, true, instanceConfig)
+	g, err := New(ctx, true, db, perfsql.SQLiteDialect, instanceConfig)
 	require.NoError(t, err)
-	return ctx, g, clean
+	return ctx, g, gb, hashes, clean
 }
+
 func TestGit_CommitNumberFromGitHash_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, g, cleanup := newForTest(t)
+	ctx, g, _, hashes, cleanup := newForTest(t)
 	defer cleanup()
 
-	// This is a real commit from the repo at https://github.com/skia-dev/perf-demo-repo.git.
-	commitNumber, err := g.CommitNumberFromGitHash(ctx, "fcd63691360443c852ab3bd832d0a9be7596e2d5")
+	commitNumber, err := g.CommitNumberFromGitHash(ctx, hashes[0])
 	assert.NoError(t, err)
-	assert.Equal(t, types.CommitNumber(1), commitNumber)
-	assert.Equal(t, 1, g.commitNumberCache.Len())
+	assert.Equal(t, types.CommitNumber(0), commitNumber)
+	commitNumber, err = g.CommitNumberFromGitHash(ctx, hashes[2])
+	assert.NoError(t, err)
+	assert.Equal(t, types.CommitNumber(2), commitNumber)
 }
 
-func TestGit_CommitNumberFromGitHash_LookupFail(t *testing.T) {
+func TestGit_SingleUpdateStep_NewCommitsAreFound(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, g, cleanup := newForTest(t)
+	ctx, g, gb, hashes, cleanup := newForTest(t)
 	defer cleanup()
 
-	commitNumber, err := g.CommitNumberFromGitHash(ctx, "this is not a valid git hash")
-	assert.Error(t, err)
-	assert.Equal(t, 0, g.commitNumberCache.Len())
-	assert.Equal(t, types.BadCommitNumber, commitNumber)
-}
+	newHash := gb.CommitGenAt(ctx, "foo.txt", startTime.Add(4*time.Minute))
 
-func TestGit_New_FailCheckout(t *testing.T) {
-	unittest.LargeTest(t)
-	ctx := context.Background()
+	commitNumber, err := g.CommitNumberFromGitHash(ctx, hashes[0])
+	assert.NoError(t, err)
+	assert.Equal(t, types.CommitNumber(0), commitNumber)
 
-	// Get tmp dir to use for repo checkout.
-	tmpDir, err := ioutil.TempDir("", "git")
-	require.NoError(t, err)
-
-	defer func() {
-		err = os.RemoveAll(tmpDir)
-		assert.NoError(t, err)
-	}()
-
-	instanceConfig := &config.InstanceConfig{
-		GitRepoConfig: config.GitRepoConfig{
-			URL: "this is not a valid URL",
-			Dir: tmpDir,
-		},
-	}
-	_, err = New(ctx, true, instanceConfig)
+	commitNumber, err = g.CommitNumberFromGitHash(ctx, newHash)
 	require.Error(t, err)
+
+	err = g.singleUpdateStep(ctx)
+	require.NoError(t, err)
+	commitNumber, err = g.CommitNumberFromGitHash(ctx, newHash)
+	assert.Equal(t, types.CommitNumber(4), commitNumber)
+
 }
