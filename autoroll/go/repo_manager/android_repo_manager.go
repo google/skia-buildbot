@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
@@ -445,7 +446,10 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 }
 
 func (r *androidRepoManager) getTipRev(ctx context.Context) (*revision.Revision, error) {
-	output, err := r.childRepo.Git(ctx, "ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", r.childBranch), "-1")
+	// "ls-remote" can get stuck indefinitely if GoB is having problems. Call it with a timeout.
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 10*time.Minute)
+	defer cancel() // Releases resources if "ls-remote" completes before timeout.
+	output, err := r.childRepo.Git(ctxWithTimeout, "ls-remote", UPSTREAM_REMOTE_NAME, fmt.Sprintf("refs/heads/%s", r.childBranch), "-1")
 	if err != nil {
 		return nil, err
 	}
