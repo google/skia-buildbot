@@ -281,7 +281,7 @@ func (p *FrameRequestProcess) Run() {
 
 	// Formulas.
 	for _, formula := range p.request.Formulas {
-		newDF, err := p.doCalc(formula, begin, end)
+		newDF, err := p.doCalc(ctx, formula, begin, end)
 		if err != nil {
 			p.reportError(err, "Failed to complete query.")
 			return
@@ -292,7 +292,7 @@ func (p *FrameRequestProcess) Run() {
 
 	// Keys
 	if p.request.Keys != "" {
-		newDF, err := p.doKeys(p.request.Keys, begin, end)
+		newDF, err := p.doKeys(ctx, p.request.Keys, begin, end)
 		if err != nil {
 			p.reportError(err, "Failed to complete query.")
 			return
@@ -449,7 +449,7 @@ func (p *FrameRequestProcess) doSearch(ctx context.Context, queryStr string, beg
 		return nil, fmt.Errorf("Invalid Query: %s", err)
 	}
 	if p.request.RequestType == REQUEST_TIME_RANGE {
-		return p.dfBuilder.NewFromQueryAndRange(begin, end, q, true, p.progress)
+		return p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.progress)
 	} else {
 		return p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.progress)
 	}
@@ -457,13 +457,13 @@ func (p *FrameRequestProcess) doSearch(ctx context.Context, queryStr string, beg
 
 // doKeys returns a DataFrame that matches the given set of keys given
 // the time range [begin, end).
-func (p *FrameRequestProcess) doKeys(keyID string, begin, end time.Time) (*DataFrame, error) {
+func (p *FrameRequestProcess) doKeys(ctx context.Context, keyID string, begin, end time.Time) (*DataFrame, error) {
 	keys, err := p.shortcutStore.Get(p.ctx, keyID)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to find that set of keys %q: %s", keyID, err)
 	}
 	if p.request.RequestType == REQUEST_TIME_RANGE {
-		return p.dfBuilder.NewFromKeysAndRange(keys.Keys, begin, end, true, p.progress)
+		return p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.progress)
 	} else {
 		return p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.progress)
 	}
@@ -471,7 +471,7 @@ func (p *FrameRequestProcess) doKeys(keyID string, begin, end time.Time) (*DataF
 
 // doCalc applies the given formula and returns a dataframe that matches the
 // given time range [begin, end) in a DataFrame.
-func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*DataFrame, error) {
+func (p *FrameRequestProcess) doCalc(ctx context.Context, formula string, begin, end time.Time) (*DataFrame, error) {
 	// During the calculation 'rowsFromQuery' will be called to load up data, we
 	// will capture the dataframe that's created at that time. We only really
 	// need df.Headers so it doesn't matter if the calculation has multiple calls
@@ -488,7 +488,7 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 			return nil, err
 		}
 		if p.request.RequestType == REQUEST_TIME_RANGE {
-			df, err = p.dfBuilder.NewFromQueryAndRange(begin, end, q, true, p.progress)
+			df, err = p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.progress)
 		} else {
 			df, err = p.dfBuilder.NewNFromQuery(p.ctx, end, q, p.request.NumCommits, p.progress)
 		}
@@ -509,7 +509,7 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 			return nil, err
 		}
 		if p.request.RequestType == REQUEST_TIME_RANGE {
-			df, err = p.dfBuilder.NewFromKeysAndRange(keys.Keys, begin, end, true, p.progress)
+			df, err = p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.progress)
 		} else {
 			df, err = p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.progress)
 		}
@@ -524,8 +524,8 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 		return rows, nil
 	}
 
-	ctx := calc.NewContext(rowsFromQuery, rowsFromShortcut)
-	rows, err := ctx.Eval(formula)
+	calcContext := calc.NewContext(rowsFromQuery, rowsFromShortcut)
+	rows, err := calcContext.Eval(formula)
 	if err != nil {
 		return nil, fmt.Errorf("Calculation failed: %s", err)
 	}

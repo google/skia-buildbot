@@ -30,12 +30,12 @@ type DataFrameBuilder interface {
 	// the given time range [begin, end) and the passed in query, or a non-nil
 	// error if the traces can't be retrieved. The 'progress' callback is called
 	// periodically as the query is processed.
-	NewFromQueryAndRange(begin, end time.Time, q *query.Query, downsample bool, progress types.Progress) (*DataFrame, error)
+	NewFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, downsample bool, progress types.Progress) (*DataFrame, error)
 
 	// NewFromKeysAndRange returns a populated DataFrame of the traces that match
 	// the given set of 'keys' over the range of [begin, end). The 'progress'
 	// callback is called periodically as the query is processed.
-	NewFromKeysAndRange(keys []string, begin, end time.Time, downsample bool, progress types.Progress) (*DataFrame, error)
+	NewFromKeysAndRange(ctx context.Context, keys []string, begin, end time.Time, downsample bool, progress types.Progress) (*DataFrame, error)
 
 	// NewFromCommitIDsAndQuery returns a populated DataFrame of the traces that
 	// match the given time set of commits 'cids' and the query 'q'. The 'progress'

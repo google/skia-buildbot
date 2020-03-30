@@ -245,7 +245,7 @@ func initialize() {
 		sklog.Fatal(err)
 	}
 
-	if !*local && !util.In(config.Config.DataStoreConfig.Namespace, []string{ds.PERF_NS, ds.PERF_ANDROID_NS, ds.PERF_ANDROID_X_NS, ds.PERF_ANDROID_MASTER_NS, ds.PERF_CT_NS, ds.PERF_FLUTTER_NS}) {
+	if !*local && config.Config.DataStoreConfig.Namespace != "" && !util.In(config.Config.DataStoreConfig.Namespace, []string{ds.PERF_NS, ds.PERF_ANDROID_NS, ds.PERF_ANDROID_X_NS, ds.PERF_ANDROID_MASTER_NS, ds.PERF_CT_NS, ds.PERF_FLUTTER_NS}) {
 		sklog.Fatal("When running in prod the datastore namespace must be a known value.")
 	}
 
@@ -318,10 +318,15 @@ func initialize() {
 		sklog.Fatalf("Failed to build paramsetRefresher: %s", err)
 	}
 
-	dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(vcs, traceStore)
+	g, err := builders.NewPerfGitFromConfig(ctx, *local, config.Config)
+	if err != nil {
+		sklog.Fatalf("Failed to build perfgit.Git: %s", err)
+	}
+
+	dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(g, traceStore)
 
 	sklog.Info("About to build cidl.")
-	cidl = cid.New(ctx, vcs, config.Config.GitRepoConfig.URL)
+	cidl = cid.New(ctx, g, config.Config.GitRepoConfig.URL)
 
 	alerts.DefaultSparse = *defaultSparse
 
