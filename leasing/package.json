@@ -11,5 +11,11 @@
     "html-minifier": "~3.0.0",
     "uglify-js": "^2.4.15",
     "vulcanize": "~1.10.4"
+  },
+  "dependencies": {                                                             
+    "common-sk": "^3.2.4",                                                      
+    "elements-sk": "^3.0.1",                                                    
+    "eslint": "^6.8.0",                                                         
+    "lit-html": "^1.1.2"                                                        
   }
 }
