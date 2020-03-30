@@ -66,16 +66,6 @@ trooper_tools_push_all: trooper_tools_release
 	pushcli "trooper-tools-rack-02"       "jumphost-rack-02"
 	pushcli "trooper-tools-rack-03"       "jumphost-rack-03"
 
-.PHONY: android_watchdog
-android_watchdog:
-	@echo "  Using Android toolchain at $(NDK_TOOLCHAIN)"
-	@echo "  If you haven't created a toolchain yet, download the ndk from"
-	@echo "  https://developer.android.com/ndk/downloads/index.html"
-	@echo "  Extract it to [NDK_DIR] (e.g. /opt/ndk/), then run"
-	@echo "  [NDK_DIR]/build/tools/make_standalone_toolchain.py --arch arm --api 21 --install-dir [NDK_TOOLCHAIN]"
-	@echo "  Where [NDK_TOOLCHAIN] is anywhere you like (e.g. /opt/android_toolchains)"
-	CC="$(NDK_TOOLCHAIN)/bin/arm-linux-androideabi-clang" CXX="$(NDK_TOOLCHAIN)/bin/arm-linux-androideabi-clang++" GOOS=android GOARCH=arm GOARM=7 CGO_ENABLED=1 go build -o out/android_watchdog -v ./cgo/android_watchdog
-
 .PHONY: metadata_server
 metadata_server:
 	go install -v ./go/metadata_server
