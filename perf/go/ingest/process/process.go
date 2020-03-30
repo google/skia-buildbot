@@ -68,7 +68,7 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 
 	var pubSubClient *pubsub.Client
 	if instanceConfig.IngestionConfig.FileIngestionTopicName != "" {
-		ts, err := auth.NewDefaultTokenSource(false, pubsub.ScopePubSub)
+		ts, err := auth.NewDefaultTokenSource(local, pubsub.ScopePubSub)
 		if err != nil {
 			sklog.Fatalf("Failed to create TokenSource: %s", err)
 		}
@@ -80,7 +80,7 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 	}
 
 	// New file.Source.
-	source, err := builders.NewSourceFromConfig(ctx, instanceConfig, false)
+	source, err := builders.NewSourceFromConfig(ctx, instanceConfig, local)
 	ch, err := source.Start(ctx)
 	if err != nil {
 		return skerr.Wrap(err)
@@ -90,7 +90,7 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 	p := parser.New(instanceConfig)
 
 	// New TraceStore.
-	store, err := builders.NewTraceStoreFromConfig(ctx, false, instanceConfig)
+	store, err := builders.NewTraceStoreFromConfig(ctx, local, instanceConfig)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
