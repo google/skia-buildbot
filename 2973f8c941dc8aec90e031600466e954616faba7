@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "bab15bcc_b9360898",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "I\u0027ve done that or deleted them where the param is obvious.",
+      "parentUuid": "afd3fdd9_ca920868",
+      "range": {
+        "startLine": 19,
+        "startChar": 29,
+        "endLine": 19,
+        "endChar": 46
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8a991b03_5a6ff06b",
         "filename": "golden/modules/common.js",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "2973f8c941dc8aec90e031600466e954616faba7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a71062f_7e82f279",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8a991b03_5a6ff06b",
+      "range": {
+        "startLine": 22,
+        "startChar": 16,
+        "endLine": 22,
+        "endChar": 23
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "6fac6679_e451998b",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "I prefer the maxLength to include the ellipsis.",
+      "parentUuid": "13ed597b_e615ca6a",
+      "range": {
+        "startLine": 26,
+        "startChar": 26,
+        "endLine": 26,
+        "endChar": 39
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9b6fb828_7e5f0dc7",
         "filename": "golden/modules/common.js",
         "patchSetId": 1
@@ -91,6 +163,30 @@
       "revId": "2973f8c941dc8aec90e031600466e954616faba7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b756825_11dcb731",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "I see keeping all demo pages using the same /dist path as a feature, not a bug. Very few components actually serve the images directly, so there\u0027s no need for the extra complexity.",
+      "parentUuid": "9b6fb828_7e5f0dc7",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 3
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "380e8fa9_e4f228d9",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "I am referring to a server endpoint here. I believe it\u0027s an appropriate use.",
+      "parentUuid": "9d91ba9d_1802d10d",
+      "range": {
+        "startLine": 33,
+        "startChar": 21,
+        "endLine": 33,
+        "endChar": 30
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1699ff76_e51c9b6c",
         "filename": "golden/modules/common.js",
         "patchSetId": 1
@@ -137,6 +257,30 @@
       "revId": "2973f8c941dc8aec90e031600466e954616faba7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "767b34dc_37588a4d",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "I prefer simplicity and consistency here.",
+      "parentUuid": "1699ff76_e51c9b6c",
+      "range": {
+        "startLine": 37,
+        "startChar": 16,
+        "endLine": 37,
+        "endChar": 41
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "98a1e580_372e80fe",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "186b6c2b_8b41d628",
+      "range": {
+        "startLine": 43,
+        "startChar": 25,
+        "endLine": 43,
+        "endChar": 28
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8b1c270d_9d3fb697",
         "filename": "golden/modules/common.js",
         "patchSetId": 1
@@ -183,6 +351,30 @@
       "revId": "2973f8c941dc8aec90e031600466e954616faba7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f59ea426_33dd8eb3",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8b1c270d_9d3fb697",
+      "range": {
+        "startLine": 47,
+        "startChar": 16,
+        "endLine": 47,
+        "endChar": 22
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "5b1af42e_c8906653",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d5aa750d_309abd96",
+      "range": {
+        "startLine": 61,
+        "startChar": 16,
+        "endLine": 61,
+        "endChar": 26
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5b5d13cd_388dfa44",
         "filename": "golden/modules/common.js",
         "patchSetId": 1
@@ -229,6 +445,30 @@
       "revId": "2973f8c941dc8aec90e031600466e954616faba7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6bab585d_d89278b0",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "Not going to fret about this one - as you mentioned, we probably want to reconsider how Gold\u0027s url schema is anyway. This will probably change.",
+      "parentUuid": "5b5d13cd_388dfa44",
+      "range": {
+        "startLine": 78,
+        "startChar": 16,
+        "endLine": 78,
+        "endChar": 26
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -278,6 +518,54 @@
     },
     {
       "key": {
+        "uuid": "c40a0183_7fc75816",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "I prefer to be moving towards grouping.",
+      "parentUuid": "50e862cf_831b79c1",
+      "range": {
+        "startLine": 94,
+        "startChar": 29,
+        "endLine": 94,
+        "endChar": 37
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "31a80ef3_f6fa3e5b",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "Same as above.",
+      "parentUuid": "a1737998_9fd259b4",
+      "range": {
+        "startLine": 94,
+        "startChar": 16,
+        "endLine": 94,
+        "endChar": 28
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "893ca5c5_088d7be4",
         "filename": "golden/modules/common_test.js",
         "patchSetId": 1
@@ -298,6 +586,30 @@
       "revId": "2973f8c941dc8aec90e031600466e954616faba7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a39c9fa2_5927f41a",
+        "filename": "golden/modules/common_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "893ca5c5_088d7be4",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 69
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -324,6 +636,30 @@
     },
     {
       "key": {
+        "uuid": "22a8569d_aa5e4a51",
+        "filename": "golden/modules/common_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9f757376_a6ff8133",
+      "range": {
+        "startLine": 31,
+        "startChar": 23,
+        "endLine": 31,
+        "endChar": 27
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c10c9304_d7aff63a",
         "filename": "golden/modules/common_test.js",
         "patchSetId": 1
@@ -344,6 +680,30 @@
       "revId": "2973f8c941dc8aec90e031600466e954616faba7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "167e2708_f073b7b7",
+        "filename": "golden/modules/common_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c10c9304_d7aff63a",
+      "range": {
+        "startLine": 38,
+        "startChar": 23,
+        "endLine": 38,
+        "endChar": 26
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -370,6 +730,30 @@
     },
     {
       "key": {
+        "uuid": "f7e3a53f_9258f31e",
+        "filename": "golden/modules/common_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a6b5f751_8d6cec52",
+      "range": {
+        "startLine": 49,
+        "startChar": 16,
+        "endLine": 49,
+        "endChar": 20
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "99b5647f_207bfb33",
         "filename": "golden/modules/common_test.js",
         "patchSetId": 1
@@ -390,6 +774,30 @@
       "revId": "2973f8c941dc8aec90e031600466e954616faba7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a167e3f6_851b9207",
+        "filename": "golden/modules/common_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T12:10:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "99b5647f_207bfb33",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 71,
+        "endChar": 6
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
