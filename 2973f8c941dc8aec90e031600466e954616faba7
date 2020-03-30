@@ -1,0 +1,395 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "afd3fdd9_ca920868",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "Nit: please write these as sentences (uppercase letter at the start, period at the end). Here and below.",
+      "range": {
+        "startLine": 19,
+        "startChar": 29,
+        "endLine": 19,
+        "endChar": 46
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a991b03_5a6ff06b",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "Please rename to truncateWithEllipses.\n\nRationale: more precise and specific, potentially less confusing.",
+      "range": {
+        "startLine": 22,
+        "startChar": 16,
+        "endLine": 22,
+        "endChar": 23
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13ed597b_e615ca6a",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "We can probably just do str.substr(0, maxLength) here to keep things as simple as possible.\n\nIf this absolutely must stay it as is, please throw an exception if maxLength \u003c 3; otherwise the function won\u0027t hold its promise for the maxLength \u003c 3 edge case. Also please add a test case for maxLength \u003c 3 if you accept this recommendation.",
+      "range": {
+        "startLine": 26,
+        "startChar": 26,
+        "endLine": 26,
+        "endChar": 39
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b6fb828_7e5f0dc7",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "IIUC this approach forces all digest and diff images used by various demo pages to be served from the same /dist path.\n\nIt would be cleaner if we could specify a path specific to a particular demo page, such as /dist/image-compare-sk. This would allow us to store demo assets in component-specific directories under //golden/demo-page-assets instead of lumping them all together under the same directory.\n\nHow about this:\n- Let\u0027s introduce a digestAndDiffImagePathPrefix variable, empty by default, and a function setDigestAndDiffImagePathPrefix to override said variable from demo pages.\n- When digestAndDiffImagePathPrefix is empty, the imgSrc and diffImgSrc helpers should return the default paths, e.g. \"/img/images/XXX.png\", \"/img/diffs/XXX-YYY.png\", etc.\n- When digestAndDiffImagePathPrefix is set, said helpers should return a path prefixed by digestAndDiffImagePathPrefix, e.g. \"/dist/image-compare-sk/XXX.png\". \"/dist/image-compare-sk/XXX-YYY.png\", etc.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 3
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d91ba9d_1802d10d",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "Nit: Please rephrase without the word \"endpoints\", which often refers to RPC endpoints.",
+      "range": {
+        "startLine": 33,
+        "startChar": 21,
+        "endLine": 33,
+        "endChar": 30
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1699ff76_e51c9b6c",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "As per the comment above, let\u0027 rename / repurpose this as setDigestAndDiffImagePathPrefix(prefix).",
+      "range": {
+        "startLine": 37,
+        "startChar": 16,
+        "endLine": 37,
+        "endChar": 41
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "186b6c2b_8b41d628",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "Nit: PNG (uppercase). Here and below.",
+      "range": {
+        "startLine": 43,
+        "startChar": 25,
+        "endLine": 43,
+        "endChar": 28
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b1c270d_9d3fb697",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "Please rename to digestImagePath.\n\nRationale: current name is too generic and will likely lead to confusion.",
+      "range": {
+        "startLine": 47,
+        "startChar": 16,
+        "endLine": 47,
+        "endChar": 22
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5aa750d_309abd96",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "Please rename to digestDiffImagePath.\n\nRationale: same as above, and for consistency with the above.",
+      "range": {
+        "startLine": 61,
+        "startChar": 16,
+        "endLine": 61,
+        "endChar": 26
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b5d13cd_388dfa44",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "Nit: digestDetailsPageHref.",
+      "range": {
+        "startLine": 78,
+        "startChar": 16,
+        "endLine": 78,
+        "endChar": 26
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1737998_9fd259b4",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "Nit: digestDiffPageHref.",
+      "range": {
+        "startLine": 94,
+        "startChar": 16,
+        "endLine": 94,
+        "endChar": 28
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "50e862cf_831b79c1",
+        "filename": "golden/modules/common.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "Optional: I\u0027d rename this to \"test\" for now to be consistent with the URL parameter.",
+      "range": {
+        "startLine": 94,
+        "startChar": 29,
+        "endLine": 94,
+        "endChar": 37
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "893ca5c5_088d7be4",
+        "filename": "golden/modules/common_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "Please add a test case for the empty string.",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 69
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f757376_a6ff8133",
+        "filename": "golden/modules/common_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "Nit: PNGs",
+      "range": {
+        "startLine": 31,
+        "startChar": 23,
+        "endLine": 31,
+        "endChar": 27
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c10c9304_d7aff63a",
+        "filename": "golden/modules/common_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "Nit: path",
+      "range": {
+        "startLine": 38,
+        "startChar": 23,
+        "endLine": 38,
+        "endChar": 26
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6b5f751_8d6cec52",
+        "filename": "golden/modules/common_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "Nit: path",
+      "range": {
+        "startLine": 49,
+        "startChar": 16,
+        "endLine": 49,
+        "endChar": 20
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99b5647f_207bfb33",
+        "filename": "golden/modules/common_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-30T06:58:34Z",
+      "side": 1,
+      "message": "Nit: please split this into:\n\n  it(\u0027returns a path with the digests in the expected order\u0027, ...)\n  it(\u0027returns a path with an issue\u0027, ...)",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 71,
+        "endChar": 6
+      },
+      "revId": "2973f8c941dc8aec90e031600466e954616faba7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
