@@ -34,6 +34,24 @@
       "revId": "7e316fe416a8141551d47a894af214f07ea88a86",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a6a8e0f_28eda804",
+        "filename": "golden/puppeteer-tests/test/digest-details-sk_puppeteer_test.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-30T15:38:59Z",
+      "side": 1,
+      "message": "Should be fixed by https://skia-review.googlesource.com/c/buildbot/+/280341",
+      "parentUuid": "aaa099d0_f4593bb4",
+      "revId": "7e316fe416a8141551d47a894af214f07ea88a86",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
