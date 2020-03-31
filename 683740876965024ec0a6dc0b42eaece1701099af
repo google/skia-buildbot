@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "f2038daf_000eeacd",
+        "filename": "golden/puppeteer-tests/test/byblame-page-sk_puppeteer_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-31T20:27:15Z",
+      "side": 1,
+      "message": "LGTM. Can we rename the returned value to \"testBed\"? I don\u0027t know what \"pp\" means, and the concept of a test bed is fairly conventional in component tests across g3 and elsewhere.",
+      "parentUuid": "3f4f1f9c_aebe07c7",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 35
+      },
+      "revId": "683740876965024ec0a6dc0b42eaece1701099af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d817998b_8272a080",
         "filename": "golden/puppeteer-tests/test/byblame-page-sk_puppeteer_test.js",
         "patchSetId": 1
@@ -178,6 +202,30 @@
       "side": 1,
       "message": "This is actually addressing a problem, just not in a nice way:\nlet a,b,c isn\u0027t the same as let a; let b; let c;",
       "parentUuid": "ea55fdee_ac0985a5",
+      "range": {
+        "startLine": 106,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 23
+      },
+      "revId": "683740876965024ec0a6dc0b42eaece1701099af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3392f59_ce4a67f9",
+        "filename": "golden/puppeteer-tests/test/util.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-31T20:27:15Z",
+      "side": 1,
+      "message": "What problem is this addressing? And what\u0027s the difference between let a, b, c; vs let a; let b; let c;? AFAIK both initialize a, b, c as undefined.",
+      "parentUuid": "46d64fb5_9cf8a696",
       "range": {
         "startLine": 106,
         "startChar": 0,

@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "99f4b0b4_391b8891",
+        "filename": "golden/puppeteer-tests/test/util.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-31T20:27:15Z",
+      "side": 1,
+      "message": "Can we remove the default values? They\u0027re going to be overwritten anyway and don\u0027t make the code any more readable.\n\nIf you care about making it clear that stopDemoPageServer must be a function then I recommend renaming it as stopDemoPageServerFn. (I assume this was the intention behind initializing it with () \u003d\u003e {}).\n\nIf this is just to make eslint happy, can we remove that rule?",
+      "range": {
+        "startLine": 106,
+        "startChar": 2,
+        "endLine": 107,
+        "endChar": 36
+      },
+      "revId": "64c6cc087c987877efc4a1a36c0c7bdcf42bd071",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "122f209b_02234e6c",
+        "filename": "golden/puppeteer-tests/test/util.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-31T20:27:15Z",
+      "side": 1,
+      "message": "Nit: Please call this testBed for consistency with the above comment.",
+      "range": {
+        "startLine": 108,
+        "startChar": 8,
+        "endLine": 108,
+        "endChar": 10
+      },
+      "revId": "64c6cc087c987877efc4a1a36c0c7bdcf42bd071",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
