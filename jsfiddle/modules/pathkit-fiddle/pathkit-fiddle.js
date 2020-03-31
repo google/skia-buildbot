@@ -2,8 +2,10 @@ import 'elements-sk/error-toast-sk';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 
-import { SKIA_VERSION } from '../../build/version.js';
-import { WasmFiddle, codeEditor, floatSlider, colorPicker } from '../wasm-fiddle';
+import { SKIA_VERSION } from '../../build/version';
+import {
+  WasmFiddle, codeEditor, floatSlider, colorPicker,
+} from '../wasm-fiddle';
 
 const PathKitInit = require('../../build/pathkit/pathkit.js');
 
@@ -27,9 +29,10 @@ const template = (ele) => html`
     <div class=sliders>
       ${ele.sliders.map(floatSlider)}
       ${ele.colorpickers.map(colorPicker)}
+      ${ele.fpsMeter ? html`<div class=widget id=fps>0 FPS</div>` : ''}
     </div>
     <div class=buttons>
-      <button class="action ${(ele.hasRun || !ele.loadedWasm) ? '': 'prompt'}" @click=${ele.run}>Run</button>
+      <button class="action ${(ele.hasRun || !ele.loadedWasm) ? '' : 'prompt'}" @click=${ele.run}>Run</button>
       <button class=action @click=${ele.save}>Save</button>
     </div>
     <div id=canvasContainer><canvas width=500 height=500></canvas></div>
@@ -41,7 +44,7 @@ const template = (ele) => html`
 </footer>`;
 
 const wasmPromise = PathKitInit({
-  locateFile: (file) => '/res/'+file,
+  locateFile: (file) => `/res/${file}`,
 }).ready();
 
 /**
@@ -56,9 +59,7 @@ const wasmPromise = PathKitInit({
  *
  */
 define('pathkit-fiddle', class extends WasmFiddle {
-
   constructor() {
     super(wasmPromise, template, 'PathKit', 'pathkit');
   }
-
 });
