@@ -22,6 +22,7 @@ module.exports = {
   rules: {
     'camelcase': ['off'],
     'class-methods-use-this': ['off'],
+    'func-names': ['off'],
     'import/prefer-default-export': ['off'],
     'max-classes-per-file': ['off'],
     'max-len': ['off'],
@@ -37,5 +38,6 @@ module.exports = {
     'object-shorthand': ['off'],
     'prefer-destructuring': ['off'],
     'prefer-object-spread': ['off'],
+    'space-before-function-paren': ['error', { 'anonymous': 'never', 'named': 'never', 'asyncArrow': 'always' }],
   },
 };
