@@ -48,3 +48,12 @@ CREATE TABLE IF NOT EXISTS Regressions (
 	regression TEXT,                   -- A regression.Regression serialized as JSON.
 	PRIMARY KEY (commit_number, alert_id)
 );
+
+-- This table is use to store commits. See go/git.
+CREATE TABLE IF NOT EXISTS Commits (
+  commit_number INT PRIMARY KEY,  -- The commit_number.
+  git_hash TEXT UNIQUE NOT NULL,      -- The git hash at that commit_number.
+  commit_time INT,                -- Commit time, as opposed to author time.
+  author TEXT,                        -- Author in the format of "Name <email>".
+  subject TEXT                        -- The git commit subject.
+);
