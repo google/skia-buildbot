@@ -15,14 +15,6 @@ import (
 const (
 	// We use actual Go tests instead of just mocking output and parsing it
 	// so that if the output format changes our tests will catch it.
-	tmpl = `package %s
-
-import "testing"
-
-func %s(t *testing.T) {
-%s
-}
-`
 	ModulePath      = "fake.com/test2json_test"
 	PackageName     = "test2json_test"
 	PackageFullPath = ModulePath + "/go/" + PackageName
@@ -30,144 +22,343 @@ func %s(t *testing.T) {
 	FailText        = "the test failed"
 	PassText        = "the test passed"
 	SkipText        = "no thanks!"
+
+	ContentFail TestContent = `package test2json_test
+
+import "testing"
+
+func TestCase(t *testing.T) {
+	t.Fatalf("the test failed")
+}`
+	ContentPass TestContent = `package test2json_test
+
+import "testing"
+
+func TestCase(t *testing.T) {
+	t.Log("the test passed")
+}`
+	ContentSkip TestContent = `package test2json_test
+
+import "testing"
+
+func TestCase(t *testing.T) {
+	t.Skip("no thanks!")
+}`
+	ContentNested TestContent = `package test2json_test
+
+import (
+	"fmt"
+	"testing"
+)
+
+func TestCase(t *testing.T) {
+	t.Logf("test-level log, before sub-steps")
+	t.Run("1", func(t *testing.T) {
+		t.Logf("nested 1 log, before sub-steps")
+		t.Run("2", func(t *testing.T) {
+			t.Logf("nested 2 log, before sub-steps")
+			t.Run("3", func(t *testing.T) {
+				t.Logf("nested 3 log")
+			})
+			t.Logf("nested 2 log, after sub-steps")
+		})
+		t.Logf("nested 1 log, after sub-steps")
+	})
+	t.Logf("test-level log, after sub-steps")
+}`
 )
 
 var (
-	CONTENT_FAIL TestContent = []byte(fmt.Sprintf(tmpl, PackageName, TestName, fmt.Sprintf("t.Fatalf(%q)", FailText)))
-	CONTENT_PASS TestContent = []byte(fmt.Sprintf(tmpl, PackageName, TestName, fmt.Sprintf("t.Log(%q)", PassText)))
-	CONTENT_SKIP TestContent = []byte(fmt.Sprintf(tmpl, PackageName, TestName, fmt.Sprintf("t.Skip(%q)", SkipText)))
-
-	EVENTS_FAIL = []*Event{
+	EventsFail = []*Event{
 		{
-			Action:  ACTION_RUN,
+			Action:  ActionRun,
 			Package: PackageFullPath,
 			Test:    TestName,
 		},
 		{
-			Action:  ACTION_OUTPUT,
+			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
 			Output:  fmt.Sprintf("=== RUN   %s\n", TestName),
 		},
 		{
-			Action:  ACTION_OUTPUT,
+			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
 			Output:  fmt.Sprintf("--- FAIL: %s (0.00s)\n", TestName),
 		},
 		{
-			Action:  ACTION_OUTPUT,
+			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
 			Output:  fmt.Sprintf("    test2json_test.go:6: %s\n", FailText),
 		},
 		{
-			Action:  ACTION_FAIL,
+			Action:  ActionFail,
 			Package: PackageFullPath,
 			Test:    TestName,
 		},
 		{
-			Action:  ACTION_OUTPUT,
+			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Output:  fmt.Sprintf("FAIL\n"),
 		},
 		{
-			Action:  ACTION_OUTPUT,
+			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Output:  fmt.Sprintf("FAIL\t%s\t0.00s\n", PackageFullPath),
 		},
 		{
-			Action:  ACTION_FAIL,
+			Action:  ActionFail,
 			Package: PackageFullPath,
 		},
 	}
 
-	EVENTS_PASS = []*Event{
+	EventsPass = []*Event{
 		{
-			Action:  ACTION_RUN,
+			Action:  ActionRun,
 			Package: PackageFullPath,
 			Test:    TestName,
 		},
 		{
-			Action:  ACTION_OUTPUT,
+			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
 			Output:  fmt.Sprintf("=== RUN   %s\n", TestName),
 		},
 		{
-			Action:  ACTION_OUTPUT,
+			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
 			Output:  fmt.Sprintf("--- PASS: %s (0.00s)\n", TestName),
 		},
 		{
-			Action:  ACTION_OUTPUT,
+			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
 			Output:  fmt.Sprintf("    test2json_test.go:6: %s\n", PassText),
 		},
 		{
-			Action:  ACTION_PASS,
+			Action:  ActionPass,
 			Package: PackageFullPath,
 			Test:    TestName,
 		},
 		{
-			Action:  ACTION_OUTPUT,
+			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Output:  "PASS\n",
 		},
 		{
-			Action:  ACTION_OUTPUT,
+			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Output:  fmt.Sprintf("ok  \t%s\t0.00s\n", PackageFullPath),
 		},
 		{
-			Action:  ACTION_PASS,
+			Action:  ActionPass,
 			Package: PackageFullPath,
 		},
 	}
 
-	EVENTS_SKIP = []*Event{
+	EventsSkip = []*Event{
 		{
-			Action:  ACTION_RUN,
+			Action:  ActionRun,
 			Package: PackageFullPath,
 			Test:    TestName,
 		},
 		{
-			Action:  ACTION_OUTPUT,
+			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
 			Output:  fmt.Sprintf("=== RUN   %s\n", TestName),
 		},
 		{
-			Action:  ACTION_OUTPUT,
+			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
 			Output:  fmt.Sprintf("--- SKIP: %s (0.00s)\n", TestName),
 		},
 		{
-			Action:  ACTION_OUTPUT,
+			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
 			Output:  "    test2json_test.go:6: no thanks!\n",
 		},
 		{
-			Action:  ACTION_SKIP,
+			Action:  ActionSkip,
 			Package: PackageFullPath,
 			Test:    TestName,
 		},
 		{
-			Action:  ACTION_OUTPUT,
+			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Output:  "PASS\n",
 		},
 		{
-			Action:  ACTION_OUTPUT,
+			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Output:  fmt.Sprintf("ok  \t%s\t0.00s\n", PackageFullPath),
 		},
 		{
-			Action:  ACTION_PASS,
+			Action:  ActionPass,
+			Package: PackageFullPath,
+		},
+	}
+
+	EventsNested = []*Event{
+		{
+			Action:  ActionRun,
+			Package: PackageFullPath,
+			Test:    TestName,
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName,
+			Output:  fmt.Sprintf("=== RUN   %s\n", TestName),
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName,
+			Output:  "test-level log, before sub-steps\n",
+		},
+		{
+			Action:  ActionRun,
+			Package: PackageFullPath,
+			Test:    TestName + "/1",
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName + "/1",
+			Output:  fmt.Sprintf("=== RUN   %s/1\n", TestName),
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName + "/1",
+			Output:  "nested 1 log, before sub-steps\n",
+		},
+		{
+			Action:  ActionRun,
+			Package: PackageFullPath,
+			Test:    TestName + "/1/2",
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName + "/1/2",
+			Output:  fmt.Sprintf("=== RUN   %s/1/2\n", TestName),
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName + "/1/2",
+			Output:  "nested 2 log, before sub-steps\n",
+		},
+		{
+			Action:  ActionRun,
+			Package: PackageFullPath,
+			Test:    TestName + "/1/2/3",
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName + "/1/2/3",
+			Output:  fmt.Sprintf("=== RUN   %s/1/2/3\n", TestName),
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName + "/1/2/3",
+			Output:  "nested 3 log\n",
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			// Note: Unfortunately, it seems that output is
+			// attributed to the most recently started sub-test,
+			// despite using t.Log() on the testing.T instance for
+			// a specific sub-step.
+			Test:   TestName + "/1/2/3",
+			Output: "nested 2 log, after sub-steps\n",
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			// Note: Unfortunately, it seems that output is
+			// attributed to the most recently started sub-test,
+			// despite using t.Log() on the testing.T instance for
+			// a specific sub-step.
+			Test:   TestName + "/1/2/3",
+			Output: "nested 1 log, after sub-steps\n",
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			// Note: Unfortunately, it seems that output is
+			// attributed to the most recently started sub-test,
+			// despite using t.Log() on the testing.T instance for
+			// a specific sub-step.
+			Test:   TestName + "/1/2/3",
+			Output: "test-level log, after sub-steps\n",
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName,
+			Output:  fmt.Sprintf("--- PASS: %s (0.00s)\n", TestName),
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName + "/1",
+			Output:  fmt.Sprintf("    --- PASS: %s/1 (0.00s)\n", TestName),
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName + "/1/2",
+			Output:  fmt.Sprintf("        --- PASS: %s/1/2 (0.00s)\n", TestName),
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName + "/1/2/3",
+			Output:  fmt.Sprintf("            --- PASS: %s/1/2/3 (0.00s)\n", TestName),
+		},
+		{
+			Action:  ActionPass,
+			Package: PackageFullPath,
+			Test:    TestName + "/1/2/3",
+		},
+		{
+			Action:  ActionPass,
+			Package: PackageFullPath,
+			Test:    TestName + "/1/2",
+		},
+		{
+			Action:  ActionPass,
+			Package: PackageFullPath,
+			Test:    TestName + "/1",
+		},
+		{
+			Action:  ActionPass,
+			Package: PackageFullPath,
+			Test:    TestName,
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Output:  "PASS\n",
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Output:  fmt.Sprintf("ok  \t%s\t0.00s\n", PackageFullPath),
+		},
+		{
+			Action:  ActionPass,
 			Package: PackageFullPath,
 		},
 	}
@@ -175,8 +366,14 @@ var (
 	tsRegex = regexp.MustCompile(`\d+\.\d+s`)
 )
 
-type TestContent []byte
+type TestContent string
 
+// SetupTest sets up a temporary directory containing a test file with the given
+// content so that the caller may run `go test` in the returned directory.
+// Returns the directory path and a cleanup function, or any error which
+// occurred. SetupTest is intended to be used with any of the CONTENT provided
+// above, in which case EventStream/ParseEvent should generate the corresponding
+// sequence of EVENTS from above.
 func SetupTest(content TestContent) (tmpDir string, cleanup func(), err error) {
 	// Create a temporary dir with a go package to test.
 	tmpDir, err = ioutil.TempDir("", "")
@@ -197,7 +394,7 @@ func SetupTest(content TestContent) (tmpDir string, cleanup func(), err error) {
 	if err != nil {
 		return
 	}
-	err = ioutil.WriteFile(filepath.Join(pkgPath, "test2json_test.go"), content, os.ModePerm)
+	err = ioutil.WriteFile(filepath.Join(pkgPath, "test2json_test.go"), []byte(content), os.ModePerm)
 	if err != nil {
 		return
 	}

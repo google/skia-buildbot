@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -47,7 +46,6 @@ func runTestAndCompare(t sktest.TestingT, expectEvents []*Event, content TestCon
 		actual.Elapsed = 0.0
 
 		// Compare to the expected event.
-		sklog.Errorf("Event %d", i)
 		assertdeep.Equal(t, expect, actual)
 		i++
 	}
@@ -55,15 +53,20 @@ func runTestAndCompare(t sktest.TestingT, expectEvents []*Event, content TestCon
 
 func TestEventStreamFail(t *testing.T) {
 	unittest.MediumTest(t)
-	runTestAndCompare(t, EVENTS_FAIL, CONTENT_FAIL)
+	runTestAndCompare(t, EventsFail, ContentFail)
 }
 
 func TestEventStreamPass(t *testing.T) {
 	unittest.MediumTest(t)
-	runTestAndCompare(t, EVENTS_PASS, CONTENT_PASS)
+	runTestAndCompare(t, EventsPass, ContentPass)
 }
 
 func TestEventStreamSkip(t *testing.T) {
 	unittest.MediumTest(t)
-	runTestAndCompare(t, EVENTS_SKIP, CONTENT_SKIP)
+	runTestAndCompare(t, EventsSkip, ContentSkip)
+}
+
+func TestEventStreamNested(t *testing.T) {
+	unittest.MediumTest(t)
+	runTestAndCompare(t, EventsNested, ContentNested)
 }

@@ -115,19 +115,23 @@ func Test(ctx context.Context, cwd string, args ...string) error {
 		}
 
 		// Find or create the step associated with this event.
-		pkg := sm.FindStep(event.Package)
-		if pkg == nil {
-			pkg = sm.StartStep(td.Props(event.Package))
+		step := sm.FindStep(event.Package)
+		if step == nil {
+			step = sm.StartStep(td.Props(event.Package))
 		}
-		step := pkg
 		if event.Test != "" {
-			test := pkg.FindChild(event.Test)
-			if test == nil {
-				// This is the first time we've seen this test;
-				// create a sub-step for it.
-				test = pkg.StartChild(td.Props(event.Test))
+			// Slash-separated test names indicate nested tests;
+			// create a step hierarchy to match. The current step
+			// is the last in the chain.
+			for _, stepName := range strings.Split(event.Test, "/") {
+				test := step.FindChild(stepName)
+				if test == nil {
+					// This is the first time we've seen
+					// this test; create a sub-step for it.
+					test = step.StartChild(td.Props(stepName))
+				}
+				step = test
 			}
-			step = test
 		}
 
 		// Record any output.
@@ -138,12 +142,12 @@ func Test(ctx context.Context, cwd string, args ...string) error {
 		// Handle the event action.
 		switch event.Action {
 		// The below actions mark the end of the step.
-		case test2json.ACTION_FAIL:
+		case test2json.ActionFail:
 			step.Fail()
 			fallthrough
-		case test2json.ACTION_SKIP:
+		case test2json.ActionSkip:
 			fallthrough
-		case test2json.ACTION_PASS:
+		case test2json.ActionPass:
 			step.End()
 
 		// Catch-all for un-handled actions.
