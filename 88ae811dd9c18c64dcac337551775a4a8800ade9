@@ -237,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "7478656b_7bb6cd58",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-31T05:29:30Z",
+      "side": 1,
+      "message": "Summary of our conversation via IM: this merits a broader discussion and will be addressed in followup CLs if needed.",
+      "parentUuid": "35945eb9_def488d3",
+      "range": {
+        "startLine": 20,
+        "startChar": 11,
+        "endLine": 20,
+        "endChar": 25
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1b470fd4_03b1eca3",
         "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
         "patchSetId": 1
@@ -425,6 +449,30 @@
     },
     {
       "key": {
+        "uuid": "5fc15339_7a210da1",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-31T05:29:30Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d83b37e7_13cb62a8",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 59,
+        "endChar": 6
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b6941ae6_37624e4f",
         "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
         "patchSetId": 1
@@ -472,6 +520,30 @@
     },
     {
       "key": {
+        "uuid": "ffd0f460_0b43ac67",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-31T05:29:30Z",
+      "side": 1,
+      "message": "Thank you.",
+      "parentUuid": "6765c278_1be83e1f",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 3
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6be34956_bd326675",
         "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
         "patchSetId": 1
@@ -516,6 +588,30 @@
       "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8a64ff42_42432dfb",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-31T05:29:30Z",
+      "side": 1,
+      "message": "No problem. In that case, could we leave a TODO here to clean this up after the migration is complete?",
+      "parentUuid": "2cf3673d_94d8fdef",
+      "range": {
+        "startLine": 113,
+        "startChar": 6,
+        "endLine": 113,
+        "endChar": 12
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
@@ -660,6 +756,30 @@
     },
     {
       "key": {
+        "uuid": "6a054e41_0f3cc135",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-31T05:29:30Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "46ced375_80f5d765",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 15
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e249c36e_427bfd05",
         "filename": "golden/modules/image-compare-sk/image-compare-sk.scss",
         "patchSetId": 1
@@ -695,6 +815,30 @@
       "side": 1,
       "message": "Thanks for the tip! I went with object-fit: contain on the off-chance the input to gold is \u003c 128 by 128, we would scale it up to fit the thumbnail box.",
       "parentUuid": "e249c36e_427bfd05",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 3
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "141f3f61_e36ecdea",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-03-31T05:29:30Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "38ba7592_8530829a",
       "range": {
         "startLine": 38,
         "startChar": 0,
