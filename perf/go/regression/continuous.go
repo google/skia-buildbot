@@ -15,10 +15,10 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
+	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/ingestevents"
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/shortcut"
@@ -56,7 +56,7 @@ type Current struct {
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
-	vcs             vcsinfo.VCS
+	perfGit         *perfgit.Git
 	cidl            *cid.CommitIDLookup
 	store           Store
 	shortcutStore   shortcut.Store
@@ -82,7 +82,7 @@ type Continuous struct {
 //   numCommits - The number of commits to run the clustering over.
 //   radius - The number of commits on each side of a commit to include when clustering.
 func NewContinuous(
-	vcs vcsinfo.VCS,
+	perfGit *perfgit.Git,
 	cidl *cid.CommitIDLookup,
 	provider ConfigProvider,
 	store Store,
@@ -97,7 +97,7 @@ func NewContinuous(
 	fileIngestionTopicName string,
 	eventDriven bool) *Continuous {
 	return &Continuous{
-		vcs:             vcs,
+		perfGit:         perfGit,
 		cidl:            cidl,
 		store:           store,
 		shortcutStore:   shortcutStore,
@@ -428,7 +428,7 @@ func (c *Continuous) Run(ctx context.Context) {
 				N:   int32(c.numCommits),
 				End: time.Time{},
 			}
-			RegressionsForAlert(ctx, cfg, domain, cnp.paramset, c.shortcutStore, clusterResponseProcessor, c.vcs, c.cidl, c.dfBuilder, c.setCurrentStep)
+			RegressionsForAlert(ctx, cfg, domain, cnp.paramset, c.shortcutStore, clusterResponseProcessor, c.perfGit, c.cidl, c.dfBuilder, c.setCurrentStep)
 			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()
