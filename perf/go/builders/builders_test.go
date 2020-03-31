@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts/alertstest"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file/dirsource"
+	"go.skia.org/infra/perf/go/git/gittest"
 	"go.skia.org/infra/perf/go/regression/regressiontest"
 	"go.skia.org/infra/perf/go/shortcut/shortcuttest"
 	perfsql "go.skia.org/infra/perf/go/sql"
@@ -278,4 +279,18 @@ func TestNewShortcutStoreFromConfig_Sqlite3_InvalidDatastoreTypeIsError(t *testi
 	_, err := NewShortcutStoreFromConfig(instanceConfig)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), invalidDataStoreType)
+}
+
+func TestNewPerfGitFromConfig_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, _, _, hashes, _, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	defer cleanup()
+
+	instanceConfig.DataStoreConfig.DataStoreType = config.GCPDataStoreType
+	g, err := NewPerfGitFromConfig(ctx, false, instanceConfig)
+	require.NoError(t, err)
+
+	gitHash, err := g.GitHashFromCommitNumber(ctx, types.CommitNumber(2))
+	require.NoError(t, err)
+	assert.Equal(t, hashes[2], gitHash)
 }
