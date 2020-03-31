@@ -27,9 +27,9 @@ var (
 	cfg = &config.InstanceConfig{
 		DataStoreConfig: config.DataStoreConfig{
 			TileSize: 256,
-			Project:  "test",
-			Instance: "test",
-			Table:    "test",
+			Project:  "testtest",
+			Instance: "testtest",
+			Table:    "testtest",
 			Shards:   8,
 		},
 	}
