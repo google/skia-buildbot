@@ -186,6 +186,12 @@ func main() {
 		}
 	}
 
+	// Regenerate infra/bots/tasks.json in case a dependency changed its
+	// behavior.
+	if _, err := golang.Go(ctx, filepath.Join(co.Dir(), "infra", "bots"), "run", "./gen_tasks.go"); err != nil {
+		td.Fatal(ctx, err)
+	}
+
 	// If we changed anything, upload a CL.
 	c, err := auth_steps.InitHttpClient(ctx, *local, auth.SCOPE_USERINFO_EMAIL)
 	if err != nil {
