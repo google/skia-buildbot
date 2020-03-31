@@ -1,0 +1,636 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ebb06d4_606e5039",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "Can you add an explicit interface for this type? That will allow more easy mocking when writing other tests that depend on this git interface.",
+      "range": {
+        "startLine": 218,
+        "startChar": 9,
+        "endLine": 218,
+        "endChar": 15
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a44f10a_c4cfe6e6",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "I would prefer if the background process was started explicitly in its own function call, maybe \"StartBackgroundPolling\" to make it clear that a background process is starting. I did this pattern with my rewrite of expectation store and I found it to be easier for testing.",
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "836a2e2f_558629bd",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "I would use util.RepeatCtx here.",
+      "range": {
+        "startLine": 285,
+        "startChar": 2,
+        "endLine": 285,
+        "endChar": 36
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2729e0f_7b4670c2",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "should this be wrapped with a timeout? If something gets stuck (e.g. GOB), it might be nice to bail out and try again later w/o hanging forever.",
+      "range": {
+        "startLine": 286,
+        "startChar": 24,
+        "endLine": 286,
+        "endChar": 27
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48715d5d_9749b647",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "Please comment what the units of this are",
+      "range": {
+        "startLine": 299,
+        "startChar": 14,
+        "endLine": 299,
+        "endChar": 19
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17e8f683_0757d58d",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "Please initialize this struct using named fields",
+      "range": {
+        "startLine": 351,
+        "startChar": 14,
+        "endLine": 351,
+        "endChar": 20
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b68f64db_cad817aa",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "Why is this there? Should you assert this to be the case in tests or is it just a byproduct?",
+      "range": {
+        "startLine": 351,
+        "startChar": 27,
+        "endLine": 351,
+        "endChar": 42
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "baee049d_d47ca514",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "skerr.Wrap() will return nil if the input error is nil, so you can wrap it here if you like.",
+      "range": {
+        "startLine": 355,
+        "startChar": 8,
+        "endLine": 355,
+        "endChar": 15
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5aa31535_165d6930",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 426,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "maybe include which commit, like the hash?",
+      "range": {
+        "startLine": 426,
+        "startChar": 45,
+        "endLine": 426,
+        "endChar": 51
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42a390a1_c5471193",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "skerr.Unwrap is available if desired.",
+      "range": {
+        "startLine": 447,
+        "startChar": 11,
+        "endLine": 447,
+        "endChar": 15
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7d3c411_d2b750b4",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "It\u0027s curious that you use %v here instead of %d for the number ranges - any particular reason?",
+      "range": {
+        "startLine": 485,
+        "startChar": 74,
+        "endLine": 485,
+        "endChar": 76
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ddafdf05_272de125",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "It is preferable to do var ret []types.CommitNumber here\nhttps://github.com/golang/go/wiki/CodeReviewComments#declaring-empty-slices",
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c91c355c_8373aaa7",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 589,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "I wouldn\u0027t expect you to need to include the error twice.",
+      "range": {
+        "startLine": 589,
+        "startChar": 62,
+        "endLine": 589,
+        "endChar": 65
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bea0539_8683d563",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "Does it work / is it necessary to call this when in a sub test?",
+      "range": {
+        "startLine": 82,
+        "startChar": 10,
+        "endLine": 82,
+        "endChar": 19
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2118ef2e_29ac8638",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "I don\u0027t understand this. Isn\u0027t Update called in New()? Is this just saying Update hasn\u0027t been called again?",
+      "range": {
+        "startLine": 85,
+        "startChar": 32,
+        "endLine": 85,
+        "endChar": 48
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5d87508_f06763a4",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "return value is unused - just assign to _",
+      "range": {
+        "startLine": 88,
+        "startChar": 1,
+        "endLine": 88,
+        "endChar": 13
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d843a6e3_4871bb70",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "len(hashes)\n\nIt will be consistent with tests below and help explain the magic number. Maybe it doesn\u0027t and a comment is better.",
+      "range": {
+        "startLine": 95,
+        "startChar": 36,
+        "endLine": 95,
+        "endChar": 37
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44582ff8_a858486f",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "Please rename unused parameters to _",
+      "range": {
+        "startLine": 98,
+        "startChar": 84,
+        "endLine": 98,
+        "endChar": 86
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ccc72f77_de35559f",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "Some commentary explaining why these times line up with the expected commits would be useful.",
+      "range": {
+        "startLine": 122,
+        "startChar": 50,
+        "endLine": 122,
+        "endChar": 86
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45ec6688_ee08191c",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "Empty",
+      "range": {
+        "startLine": 171,
+        "startChar": 8,
+        "endLine": 171,
+        "endChar": 11
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46d2e14b_2c76a5db",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "Empty",
+      "range": {
+        "startLine": 266,
+        "startChar": 8,
+        "endLine": 266,
+        "endChar": 13
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4bc510c7_f3833ce0",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "I\u0027m not sure how this test case differs from testCommitNumbersWhenFileChangesInCommitNumberRange_Success",
+      "range": {
+        "startLine": 296,
+        "startChar": 5,
+        "endLine": 296,
+        "endChar": 87
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49cb1170_f4dbab4d",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "newline after 303? Surprised gofmt didn\u0027t fix it.",
+      "range": {
+        "startLine": 303,
+        "startChar": 0,
+        "endLine": 303,
+        "endChar": 1
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "836118dd_3eacf35c",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "It would make me feel better if you had a case with just one commit in the string and asserted the full complete Commit object to make sure the timestamp and subject were properly included.",
+      "range": {
+        "startLine": 318,
+        "startChar": 9,
+        "endLine": 318,
+        "endChar": 14
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f458ba86_6547ff3f",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "In the cases where count is expected to be 0, maybe get rid of it and just have assert.Fail() in here or return an error",
+      "range": {
+        "startLine": 332,
+        "startChar": 2,
+        "endLine": 332,
+        "endChar": 7
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0337cdd2_48ed4d52",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "Do you have a case where the callback returns an error and you verify that the error is passed out of parseGitRevLogStream?",
+      "range": {
+        "startLine": 346,
+        "startChar": 8,
+        "endLine": 346,
+        "endChar": 28
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83e786b8_5bfa086c",
+        "filename": "perf/go/git/gittest/gittest.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "I would probably do context.WithCancel() and call cancel() in cleanup so that it kills the background process in git.go",
+      "range": {
+        "startLine": 31,
+        "startChar": 8,
+        "endLine": 31,
+        "endChar": 28
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cfe69d57_9f570f16",
+        "filename": "perf/go/git/gittest/gittest.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T20:04:31Z",
+      "side": 1,
+      "message": "Maybe make a note reminding the readers of this code that the commit hashes will be arbitrary, but consistent due to the seeding of GitBuilder.",
+      "range": {
+        "startLine": 33,
+        "startChar": 34,
+        "endLine": 33,
+        "endChar": 42
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
