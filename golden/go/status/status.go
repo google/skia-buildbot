@@ -19,9 +19,9 @@ import (
 
 const (
 	// Metric names and templates for metric names added in this file.
-	METRIC_TOTAL  = "gold_status_total_digests"
-	METRIC_ALL    = "gold_status_all"
-	METRIC_CORPUS = "gold_status_by_corpus"
+	totalDigestsMetric = "gold_status_total_digests"
+	allMetric          = "gold_status_all"
+	corpusMetric       = "gold_status_by_corpus"
 )
 
 // GUIStatus reflects the current rebaseline status. In particular whether
@@ -92,10 +92,10 @@ type StatusWatcher struct {
 func New(ctx context.Context, swc StatusWatcherConfig) (*StatusWatcher, error) {
 	ret := &StatusWatcher{
 		StatusWatcherConfig: swc,
-		allUntriagedGauge:   metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": expectations.Untriaged.String()}),
-		allPositiveGauge:    metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": expectations.Positive.String()}),
-		allNegativeGauge:    metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": expectations.Negative.String()}),
-		totalGauge:          metrics2.GetInt64Metric(METRIC_TOTAL, nil),
+		allUntriagedGauge:   metrics2.GetInt64Metric(allMetric, map[string]string{"type": expectations.Untriaged.String()}),
+		allPositiveGauge:    metrics2.GetInt64Metric(allMetric, map[string]string{"type": expectations.Positive.String()}),
+		allNegativeGauge:    metrics2.GetInt64Metric(allMetric, map[string]string{"type": expectations.Negative.String()}),
+		totalGauge:          metrics2.GetInt64Metric(totalDigestsMetric, nil),
 		corpusGauges:        map[string]map[expectations.Label]metrics2.Int64Metric{},
 	}
 
@@ -191,7 +191,6 @@ func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 				} else {
 					liveness.Reset()
 				}
-
 			}
 		}
 	}()
@@ -251,9 +250,9 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile types.ComplexTil
 
 			if _, ok := s.corpusGauges[corpus]; !ok {
 				s.corpusGauges[corpus] = map[expectations.Label]metrics2.Int64Metric{
-					expectations.Untriaged: metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": expectations.Untriaged.String(), "corpus": corpus}),
-					expectations.Positive:  metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": expectations.Positive.String(), "corpus": corpus}),
-					expectations.Negative:  metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": expectations.Negative.String(), "corpus": corpus}),
+					expectations.Untriaged: metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": expectations.Untriaged.String(), "corpus": corpus}),
+					expectations.Positive:  metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": expectations.Positive.String(), "corpus": corpus}),
+					expectations.Negative:  metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": expectations.Negative.String(), "corpus": corpus}),
 				}
 			}
 		}
@@ -298,7 +297,6 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile types.ComplexTil
 	s.totalGauge.Update(int64(allUntriagedCount + allPositiveCount + allNegativeCount))
 
 	sort.Sort(CorpusStatusSorter(corpStatus))
-
 	allCommits := cpxTile.AllCommits()
 	result := &GUIStatus{
 		OK:            overallOk,
