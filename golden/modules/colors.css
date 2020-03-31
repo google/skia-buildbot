@@ -10,4 +10,5 @@ html {
   --bright-orange: rgb(255, 127, 0);
 
   --light-error-red: rgb(255, 230, 230);
+  --transparent-white: rgba(255, 255, 255, 0);
 }

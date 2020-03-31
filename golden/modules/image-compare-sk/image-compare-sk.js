@@ -7,7 +7,7 @@
  *
  * @evt zoom-clicked - When the zoom button is clicked, this event is produced. It has a detail
  *   object with the following string properties: leftImgUrl, rightImgUrl, middleImgUrl, llabel,
- *   rlabel. TODO(kjlubick) can we have this element have/show the dialog?
+ *   rlabel. TODO(kjlubick) can we have this element have/show the dialog and get rid of the event?
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
