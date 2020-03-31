@@ -19,14 +19,14 @@ import (
 
 const (
 	// Possible values for Event.Action.
-	ACTION_BENCH  = "bench"
-	ACTION_CONT   = "cont"
-	ACTION_FAIL   = "fail"
-	ACTION_OUTPUT = "output"
-	ACTION_PASS   = "pass"
-	ACTION_PAUSE  = "pause"
-	ACTION_RUN    = "run"
-	ACTION_SKIP   = "skip"
+	ActionBench  = "bench"
+	ActionCont   = "cont"
+	ActionFail   = "fail"
+	ActionOutput = "output"
+	ActionPass   = "pass"
+	ActionPause  = "pause"
+	ActionRun    = "run"
+	ActionSkip   = "skip"
 )
 
 // Event represents a test event.
