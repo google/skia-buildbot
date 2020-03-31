@@ -13,6 +13,7 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/android_skia_checkout"
@@ -352,7 +353,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	}
 
 	// Create commit message.
-	commitMsg, err := r.buildCommitMsg(&CommitMsgVars{
+	commitMsg, err := r.buildCommitMsg(&parent.CommitMsgVars{
 		ChildPath:   r.childPath,
 		ChildRepo:   common.REPO_SKIA, // TODO(borenet): Don't hard-code.
 		Reviewers:   emails,
@@ -437,7 +438,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	}
 
 	// Mark the change as ready for review, if necessary.
-	if err := r.unsetWIP(ctx, change, 0); err != nil {
+	if err := parent.UnsetWIP(ctx, r.g, change, 0); err != nil {
 		return 0, err
 	}
 

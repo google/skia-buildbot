@@ -3,16 +3,15 @@ package repo_manager
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"sync"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/skerr"
 )
 
 /*
@@ -100,63 +99,7 @@ func (rm *noCheckoutRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 		return 0, err
 	}
 
-	// Create the change.
-	ci, err := gerrit.CreateAndEditChange(ctx, rm.g, rm.gerritConfig.Project, rm.parentBranch.String(), commitMsg, baseCommit, func(ctx context.Context, g gerrit.GerritInterface, ci *gerrit.ChangeInfo) error {
-		for file, contents := range nextRollChanges {
-			if contents == "" {
-				if err := g.DeleteFile(ctx, ci, file); err != nil {
-					return fmt.Errorf("Failed to delete %s file: %s", file, err)
-				}
-			} else {
-				if err := g.EditFile(ctx, ci, file, contents); err != nil {
-					return fmt.Errorf("Failed to edit %s file: %s", file, err)
-				}
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		if ci != nil {
-			if err2 := rm.g.Abandon(ctx, ci, "Failed to create roll CL"); err2 != nil {
-				return 0, fmt.Errorf("Failed to create roll with: %s\nAnd failed to abandon the change with: %s", err, err2)
-			}
-		}
-		return 0, err
-	}
-	if err := rm.setChangeLabels(ctx, ci, emails, dryRun); err != nil {
-		return 0, skerr.Wrap(err)
-	}
-	return ci.Issue, nil
-}
-
-// setChangeLabels marks the change as ready for review and sets the necessary
-// labels.
-func (rm *noCheckoutRepoManager) setChangeLabels(ctx context.Context, ci *gerrit.ChangeInfo, emails []string, dryRun bool) error {
-	// Mark the change as ready for review, if necessary.
-	if err := rm.unsetWIP(ctx, ci, 0); err != nil {
-		return err
-	}
-
-	// Set the CQ bit as appropriate.
-	labels := rm.g.Config().SetCqLabels
-	if dryRun {
-		labels = rm.g.Config().SetDryRunLabels
-	}
-	labels = gerrit.MergeLabels(labels, rm.g.Config().SelfApproveLabels)
-	if err := rm.g.SetReview(ctx, ci, "", labels, emails); err != nil {
-		// TODO(borenet): Should we try to abandon the CL?
-		return fmt.Errorf("Failed to set review: %s", err)
-	}
-
-	// Manually submit if necessary.
-	if !rm.g.Config().HasCq {
-		if err := rm.g.Submit(ctx, ci); err != nil {
-			// TODO(borenet): Should we try to abandon the CL?
-			return fmt.Errorf("Failed to submit: %s", err)
-		}
-	}
-
-	return nil
+	return parent.CreateNewGerritRoll(ctx, rm.g, rm.gerritConfig.Project, rm.parentBranch.String(), commitMsg, baseCommit, nextRollChanges, emails, dryRun)
 }
 
 // See documentation for RepoManager interface.
