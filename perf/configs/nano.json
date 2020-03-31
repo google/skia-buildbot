@@ -2,7 +2,7 @@
   "URL": "https://perf.skia.org",
   "data_store_config": {
     "datastore_type": "gcp",
-    "connection_string": "",
+    "connection_string": "/tmp/git-sqlite.db",
     "tile_size": 256,
     "project": "skia-public",
     "instance": "production",
