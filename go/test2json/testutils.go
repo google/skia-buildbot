@@ -2,11 +2,9 @@ package test2json
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"regexp"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/util"
@@ -15,168 +13,64 @@ import (
 const (
 	// We use actual Go tests instead of just mocking output and parsing it
 	// so that if the output format changes our tests will catch it.
-	tmpl = `package %s
+	modulePath      = "fake.com/test2json_test"
+	packageName     = "test2json_test"
+	PackageFullPath = modulePath + "/go/" + packageName
+	TestName        = "TestCase"
+	FailText        = "the test failed"
+	passText        = "the test passed"
+	skipText        = "no thanks!"
+
+	ContentFail TestContent = `package test2json_test
 
 import "testing"
 
-func %s(t *testing.T) {
-%s
-}
-`
-	ModulePath      = "fake.com/test2json_test"
-	PackageName     = "test2json_test"
-	PackageFullPath = ModulePath + "/go/" + PackageName
-	TestName        = "TestCase"
-	FailText        = "the test failed"
-	PassText        = "the test passed"
-	SkipText        = "no thanks!"
+func TestCase(t *testing.T) {
+	t.Fatalf("the test failed")
+}`
+	ContentPass TestContent = `package test2json_test
+
+import "testing"
+
+func TestCase(t *testing.T) {
+	t.Log("the test passed")
+}`
+	ContentSkip TestContent = `package test2json_test
+
+import "testing"
+
+func TestCase(t *testing.T) {
+	t.Skip("no thanks!")
+}`
+	ContentNested TestContent = `package test2json_test
+
+import "testing"
+
+func TestCase(t *testing.T) {
+	t.Logf("test-level log, before sub-steps")
+	t.Run("1", func(t *testing.T) {
+		t.Logf("nested 1 log, before sub-steps")
+		t.Run("2", func(t *testing.T) {
+			t.Logf("nested 2 log, before sub-steps")
+			t.Run("3", func(t *testing.T) {
+				t.Logf("nested 3 log")
+			})
+			t.Logf("nested 2 log, after sub-steps")
+		})
+		t.Logf("nested 1 log, after sub-steps")
+	})
+	t.Logf("test-level log, after sub-steps")
+}`
 )
 
-var (
-	CONTENT_FAIL TestContent = []byte(fmt.Sprintf(tmpl, PackageName, TestName, fmt.Sprintf("t.Fatalf(%q)", FailText)))
-	CONTENT_PASS TestContent = []byte(fmt.Sprintf(tmpl, PackageName, TestName, fmt.Sprintf("t.Log(%q)", PassText)))
-	CONTENT_SKIP TestContent = []byte(fmt.Sprintf(tmpl, PackageName, TestName, fmt.Sprintf("t.Skip(%q)", SkipText)))
+type TestContent string
 
-	EVENTS_FAIL = []*Event{
-		{
-			Action:  ACTION_RUN,
-			Package: PackageFullPath,
-			Test:    TestName,
-		},
-		{
-			Action:  ACTION_OUTPUT,
-			Package: PackageFullPath,
-			Test:    TestName,
-			Output:  fmt.Sprintf("=== RUN   %s\n", TestName),
-		},
-		{
-			Action:  ACTION_OUTPUT,
-			Package: PackageFullPath,
-			Test:    TestName,
-			Output:  fmt.Sprintf("--- FAIL: %s (0.00s)\n", TestName),
-		},
-		{
-			Action:  ACTION_OUTPUT,
-			Package: PackageFullPath,
-			Test:    TestName,
-			Output:  fmt.Sprintf("    test2json_test.go:6: %s\n", FailText),
-		},
-		{
-			Action:  ACTION_FAIL,
-			Package: PackageFullPath,
-			Test:    TestName,
-		},
-		{
-			Action:  ACTION_OUTPUT,
-			Package: PackageFullPath,
-			Output:  fmt.Sprintf("FAIL\n"),
-		},
-		{
-			Action:  ACTION_OUTPUT,
-			Package: PackageFullPath,
-			Output:  fmt.Sprintf("FAIL\t%s\t0.00s\n", PackageFullPath),
-		},
-		{
-			Action:  ACTION_FAIL,
-			Package: PackageFullPath,
-		},
-	}
-
-	EVENTS_PASS = []*Event{
-		{
-			Action:  ACTION_RUN,
-			Package: PackageFullPath,
-			Test:    TestName,
-		},
-		{
-			Action:  ACTION_OUTPUT,
-			Package: PackageFullPath,
-			Test:    TestName,
-			Output:  fmt.Sprintf("=== RUN   %s\n", TestName),
-		},
-		{
-			Action:  ACTION_OUTPUT,
-			Package: PackageFullPath,
-			Test:    TestName,
-			Output:  fmt.Sprintf("--- PASS: %s (0.00s)\n", TestName),
-		},
-		{
-			Action:  ACTION_OUTPUT,
-			Package: PackageFullPath,
-			Test:    TestName,
-			Output:  fmt.Sprintf("    test2json_test.go:6: %s\n", PassText),
-		},
-		{
-			Action:  ACTION_PASS,
-			Package: PackageFullPath,
-			Test:    TestName,
-		},
-		{
-			Action:  ACTION_OUTPUT,
-			Package: PackageFullPath,
-			Output:  "PASS\n",
-		},
-		{
-			Action:  ACTION_OUTPUT,
-			Package: PackageFullPath,
-			Output:  fmt.Sprintf("ok  \t%s\t0.00s\n", PackageFullPath),
-		},
-		{
-			Action:  ACTION_PASS,
-			Package: PackageFullPath,
-		},
-	}
-
-	EVENTS_SKIP = []*Event{
-		{
-			Action:  ACTION_RUN,
-			Package: PackageFullPath,
-			Test:    TestName,
-		},
-		{
-			Action:  ACTION_OUTPUT,
-			Package: PackageFullPath,
-			Test:    TestName,
-			Output:  fmt.Sprintf("=== RUN   %s\n", TestName),
-		},
-		{
-			Action:  ACTION_OUTPUT,
-			Package: PackageFullPath,
-			Test:    TestName,
-			Output:  fmt.Sprintf("--- SKIP: %s (0.00s)\n", TestName),
-		},
-		{
-			Action:  ACTION_OUTPUT,
-			Package: PackageFullPath,
-			Test:    TestName,
-			Output:  "    test2json_test.go:6: no thanks!\n",
-		},
-		{
-			Action:  ACTION_SKIP,
-			Package: PackageFullPath,
-			Test:    TestName,
-		},
-		{
-			Action:  ACTION_OUTPUT,
-			Package: PackageFullPath,
-			Output:  "PASS\n",
-		},
-		{
-			Action:  ACTION_OUTPUT,
-			Package: PackageFullPath,
-			Output:  fmt.Sprintf("ok  \t%s\t0.00s\n", PackageFullPath),
-		},
-		{
-			Action:  ACTION_PASS,
-			Package: PackageFullPath,
-		},
-	}
-
-	tsRegex = regexp.MustCompile(`\d+\.\d+s`)
-)
-
-type TestContent []byte
-
+// SetupTest sets up a temporary directory containing a test file with the given
+// content so that the caller may run `go test` in the returned directory.
+// Returns the directory path and a cleanup function, or any error which
+// occurred. SetupTest is intended to be used with any of the Content provided
+// above, in which case EventStream/ParseEvent should generate the corresponding
+// sequence of Events from above.
 func SetupTest(content TestContent) (tmpDir string, cleanup func(), err error) {
 	// Create a temporary dir with a go package to test.
 	tmpDir, err = ioutil.TempDir("", "")
@@ -197,7 +91,7 @@ func SetupTest(content TestContent) (tmpDir string, cleanup func(), err error) {
 	if err != nil {
 		return
 	}
-	err = ioutil.WriteFile(filepath.Join(pkgPath, "test2json_test.go"), content, os.ModePerm)
+	err = ioutil.WriteFile(filepath.Join(pkgPath, "test2json_test.go"), []byte(content), os.ModePerm)
 	if err != nil {
 		return
 	}
