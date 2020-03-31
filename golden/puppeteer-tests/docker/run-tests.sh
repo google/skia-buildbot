@@ -21,13 +21,12 @@ cp -r /src/golden/modules           /tests/golden
 cp -r /src/golden/puppeteer-tests   /tests/golden
 
 # Populate the various node_modules directories.
-# TODO(lovisolo): Use "npm ci" once package-lock.json files are in repo.
 cd /tests/common-sk
-npm install
+npm ci
 cd /tests/infra-sk
-npm install
+npm ci
 cd /tests/golden
-npm install
+npm ci
 
 # Run tests.
 cd /tests/golden/puppeteer-tests
