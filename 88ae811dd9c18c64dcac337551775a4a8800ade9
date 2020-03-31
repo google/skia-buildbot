@@ -615,6 +615,30 @@
     },
     {
       "key": {
+        "uuid": "4add9aaf_68d3c588",
+        "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T13:05:01Z",
+      "side": 1,
+      "message": "There\u0027s a TODO at the top of the file to remove the event entirely.",
+      "parentUuid": "8a64ff42_42432dfb",
+      "range": {
+        "startLine": 113,
+        "startChar": 6,
+        "endLine": 113,
+        "endChar": 12
+      },
+      "revId": "88ae811dd9c18c64dcac337551775a4a8800ade9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1d5cb431_d74150c8",
         "filename": "golden/modules/image-compare-sk/image-compare-sk.js",
         "patchSetId": 1
