@@ -40,6 +40,8 @@
     "luci.chromium.try:mac_optional_gpu_tests_rel",
     "luci.chromium.try:win-asan",
     "luci.chromium.try:win_optional_gpu_tests_rel"
+    "luci.chromium.try:linux-swangle-try-x64"
+    "luci.chromium.try:win-swangle-try-x86"
   ],
   "kubernetes": {
     "cpu": "1",
