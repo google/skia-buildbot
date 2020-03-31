@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3f4f1f9c_aebe07c7",
+        "filename": "golden/puppeteer-tests/test/byblame-page-sk_puppeteer_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T12:42:20Z",
+      "side": 1,
+      "message": "I adjusted setUpPuppeteerAndDemoPageServer to not use this, but instead return an object. This feels a bit cleaner/more explicit anyway, and allows us to use arrow functions in all the places.",
+      "parentUuid": "5413c1dc_1de22535",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 35
+      },
+      "revId": "683740876965024ec0a6dc0b42eaece1701099af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d817998b_8272a080",
         "filename": "golden/puppeteer-tests/test/byblame-page-sk_puppeteer_test.js",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "683740876965024ec0a6dc0b42eaece1701099af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70f88fa3_3728370d",
+        "filename": "golden/puppeteer-tests/test/byblame-page-sk_puppeteer_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T12:42:20Z",
+      "side": 1,
+      "message": "Yes.",
+      "parentUuid": "d817998b_8272a080",
+      "range": {
+        "startLine": 9,
+        "startChar": 27,
+        "endLine": 9,
+        "endChar": 28
+      },
+      "revId": "683740876965024ec0a6dc0b42eaece1701099af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "0268a885_17c12413",
+        "filename": "golden/puppeteer-tests/test/util.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T12:42:20Z",
+      "side": 1,
+      "message": "I don\u0027t know which rule or combination of rules is doing this.",
+      "parentUuid": "1b51f669_c1725cb4",
+      "range": {
+        "startLine": 78,
+        "startChar": 8,
+        "endLine": 78,
+        "endChar": 9
+      },
+      "revId": "683740876965024ec0a6dc0b42eaece1701099af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ea55fdee_ac0985a5",
         "filename": "golden/puppeteer-tests/test/util.js",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2020-03-30T19:49:10Z",
       "side": 1,
       "message": "Is it possible to remove the eslint rule responsible for this? (Can be done in a followup CL).",
+      "range": {
+        "startLine": 106,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 23
+      },
+      "revId": "683740876965024ec0a6dc0b42eaece1701099af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46d64fb5_9cf8a696",
+        "filename": "golden/puppeteer-tests/test/util.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-03-31T12:42:20Z",
+      "side": 1,
+      "message": "This is actually addressing a problem, just not in a nice way:\nlet a,b,c isn\u0027t the same as let a; let b; let c;",
+      "parentUuid": "ea55fdee_ac0985a5",
       "range": {
         "startLine": 106,
         "startChar": 0,
