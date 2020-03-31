@@ -19,9 +19,9 @@ import (
 
 const (
 	// Metric names and templates for metric names added in this file.
-	METRIC_TOTAL  = "gold_status_total_digests"
-	METRIC_ALL    = "gold_status_all"
-	METRIC_CORPUS = "gold_status_by_corpus"
+	totalDigestsMetric = "gold_status_total_digests"
+	allMetric          = "gold_status_all"
+	corpusMetric       = "gold_status_by_corpus"
 )
 
 // GUIStatus reflects the current rebaseline status. In particular whether
@@ -92,10 +92,10 @@ type StatusWatcher struct {
 func New(ctx context.Context, swc StatusWatcherConfig) (*StatusWatcher, error) {
 	ret := &StatusWatcher{
 		StatusWatcherConfig: swc,
-		allUntriagedGauge:   metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": expectations.Untriaged.String()}),
-		allPositiveGauge:    metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": expectations.Positive.String()}),
-		allNegativeGauge:    metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": expectations.Negative.String()}),
-		totalGauge:          metrics2.GetInt64Metric(METRIC_TOTAL, nil),
+		allUntriagedGauge:   metrics2.GetInt64Metric(allMetric, map[string]string{"type": expectations.Untriaged.String()}),
+		allPositiveGauge:    metrics2.GetInt64Metric(allMetric, map[string]string{"type": expectations.Positive.String()}),
+		allNegativeGauge:    metrics2.GetInt64Metric(allMetric, map[string]string{"type": expectations.Negative.String()}),
+		totalGauge:          metrics2.GetInt64Metric(totalDigestsMetric, nil),
 		corpusGauges:        map[string]map[expectations.Label]metrics2.Int64Metric{},
 	}
 
@@ -120,6 +120,7 @@ func (s *StatusWatcher) GetStatus() *GUIStatus {
 // being a good backup since it has a lower false-negative chance.
 // updateLastCommitAge is thread-safe.
 func (s *StatusWatcher) updateLastCommitAge() {
+	sklog.Debug("updateLastCommitChange")
 	st := s.GetStatus()
 	if st == nil {
 		sklog.Warningf("GetStatus() was nil when computing metrics")
@@ -135,6 +136,7 @@ func (s *StatusWatcher) updateLastCommitAge() {
 	})
 	lastCommitUnix := st.LastCommit.CommitTime // already in seconds since epoch
 	lastCommitAge.Update(time.Now().Unix() - lastCommitUnix)
+	sklog.Debug("updated gold_last_commit_age_s")
 
 	if s.VCS == nil {
 		sklog.Warningf("skipping updateLastCommitAge because VCS not set up")
@@ -152,6 +154,7 @@ func (s *StatusWatcher) updateLastCommitAge() {
 		oldestNoningestedCommit := commitsFromLast[0]
 		uningestedCommitAgeMetric.Update(time.Now().Unix() - oldestNoningestedCommit.Timestamp.Unix())
 	}
+	sklog.Debug("updated gold_last_commit_age_s 2.0")
 }
 
 func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
@@ -159,6 +162,7 @@ func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 	// This value chosen arbitrarily in an effort to avoid blockages on this channel.
 	expChanges := make(chan expectations.ID, 1000)
 	s.ChangeListener.ListenForChange(func(e expectations.ID) {
+		sklog.Debug("In 'ListenForChange'")
 		expChanges <- e
 	})
 
@@ -176,8 +180,10 @@ func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 	liveness := metrics2.NewLiveness("gold_status_monitoring")
 	go func() {
 		for {
+			sklog.Debug("alpha")
 			select {
 			case cpxTile := <-tileStream:
+				sklog.Debug("tileStream case")
 				if err := s.calcStatus(ctx, cpxTile); err != nil {
 					sklog.Errorf("Error calculating status: %s", err)
 				} else {
@@ -185,14 +191,16 @@ func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 					liveness.Reset()
 				}
 			case <-expChanges:
+				sklog.Debug("expChanges case")
 				drainChangeChannel(expChanges)
+				sklog.Debug("channel drained")
 				if err := s.calcStatus(ctx, lastCpxTile); err != nil {
 					sklog.Errorf("Error calculating tile after expectation update: %s", err)
 				} else {
 					liveness.Reset()
 				}
-
 			}
+			sklog.Debug("omega")
 		}
 	}()
 	sklog.Infof("Done starting status watcher")
@@ -201,6 +209,7 @@ func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 }
 
 func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile types.ComplexTile) error {
+	sklog.Debug("beta")
 	defer s.updateLastCommitAge()
 	defer shared.NewMetricsTimer("calculate_status").Stop()
 
@@ -212,6 +221,7 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile types.ComplexTil
 	if err != nil {
 		return skerr.Wrapf(err, "fetching expectations")
 	}
+	sklog.Debug("gamma")
 
 	// Gathers unique labels by corpus and label.
 	byCorpus := map[string]map[expectations.Label]map[string]bool{}
@@ -251,9 +261,9 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile types.ComplexTil
 
 			if _, ok := s.corpusGauges[corpus]; !ok {
 				s.corpusGauges[corpus] = map[expectations.Label]metrics2.Int64Metric{
-					expectations.Untriaged: metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": expectations.Untriaged.String(), "corpus": corpus}),
-					expectations.Positive:  metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": expectations.Positive.String(), "corpus": corpus}),
-					expectations.Negative:  metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": expectations.Negative.String(), "corpus": corpus}),
+					expectations.Untriaged: metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": expectations.Untriaged.String(), "corpus": corpus}),
+					expectations.Positive:  metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": expectations.Positive.String(), "corpus": corpus}),
+					expectations.Negative:  metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": expectations.Negative.String(), "corpus": corpus}),
 				}
 			}
 		}
@@ -297,8 +307,9 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile types.ComplexTil
 	s.allNegativeGauge.Update(int64(allNegativeCount))
 	s.totalGauge.Update(int64(allUntriagedCount + allPositiveCount + allNegativeCount))
 
+	sklog.Debug("epsilon")
 	sort.Sort(CorpusStatusSorter(corpStatus))
-
+	sklog.Debug("iota")
 	allCommits := cpxTile.AllCommits()
 	result := &GUIStatus{
 		OK:            overallOk,
@@ -308,10 +319,12 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile types.ComplexTil
 		FilledCommits: cpxTile.FilledCommits(),
 		CorpStatus:    corpStatus,
 	}
+	sklog.Debug("zeta")
 
 	// Swap out the current tile.
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+	sklog.Debug("theta")
 	s.current = result
 
 	return nil

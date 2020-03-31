@@ -199,19 +199,21 @@ func (s *Store) Initialize(ctx context.Context) error {
 	}
 
 	// Now we load the RAM cache with all of the loaded expectations.
-	s.entryCacheMutex.Lock()
-	defer s.entryCacheMutex.Unlock()
-	for _, entries := range entriesByShard {
-		for _, e := range entries {
-			// Due to how we shard our queries, there shouldn't be any overwriting of one shard
-			// over another.
-			id := expectations.ID{
-				Grouping: e.Grouping,
-				Digest:   e.Digest,
+	func() {
+		s.entryCacheMutex.Lock()
+		defer s.entryCacheMutex.Unlock()
+		for _, entries := range entriesByShard {
+			for _, e := range entries {
+				// Due to how we shard our queries, there shouldn't be any overwriting of one shard
+				// over another.
+				id := expectations.ID{
+					Grouping: e.Grouping,
+					Digest:   e.Digest,
+				}
+				s.entryCache[id] = e
 			}
-			s.entryCache[id] = e
 		}
-	}
+	}()
 
 	// Re-using those shards from earlier, we start goroutines to wait for any new expectation
 	// entries to be seen or changes to existing ones. When those happen, we update the cache.
@@ -241,27 +243,32 @@ func (s *Store) Initialize(ctx context.Context) error {
 // notifications to the notifier about the updates.
 func (s *Store) updateCacheAndNotify(_ context.Context, qs *firestore.QuerySnapshot) error {
 	entries := extractExpectationEntries(qs)
-	var toNotify []expectations.ID
-	s.entryCacheMutex.Lock()
-	defer s.entryCacheMutex.Unlock()
-	for _, newEntry := range entries {
-		id := expectations.ID{
-			Grouping: newEntry.Grouping,
-			Digest:   newEntry.Digest,
-		}
-		existing, ok := s.entryCache[id]
-		// We always update to the cached version.
-		s.entryCache[id] = newEntry
-		if ok {
-			// We get notifications when UpdateLastUsed updates timestamps. These don't require an
-			// event to be published since they do not affect the labels. The best way to check if
-			// something material changed is to compare the Updated timestamp.
-			if existing.Updated.Equal(newEntry.Updated) {
-				continue
+	toNotify := func() []expectations.ID {
+		var toNotify []expectations.ID
+		// We need to be careful to Unlock entryCacheMutex before trying to Lock returnCacheMutex,
+		// otherwise we can deadlock with Get() or GetCopy().
+		s.entryCacheMutex.Lock()
+		defer s.entryCacheMutex.Unlock()
+		for _, newEntry := range entries {
+			id := expectations.ID{
+				Grouping: newEntry.Grouping,
+				Digest:   newEntry.Digest,
 			}
+			existing, ok := s.entryCache[id]
+			// We always update to the cached version.
+			s.entryCache[id] = newEntry
+			if ok {
+				// We get notifications when UpdateLastUsed updates timestamps. These don't require an
+				// event to be published since they do not affect the labels. The best way to check if
+				// something material changed is to compare the Updated timestamp.
+				if existing.Updated.Equal(newEntry.Updated) {
+					continue
+				}
+			}
+			toNotify = append(toNotify, id)
 		}
-		toNotify = append(toNotify, id)
-	}
+		return toNotify
+	}()
 	if len(toNotify) > 0 {
 		// There were a non-zero amount of actual changes to the expectations. Purge the cached
 		// version that we return from Get.
@@ -459,7 +466,7 @@ func (s *Store) Get(ctx context.Context) (expectations.ReadOnly, error) {
 		// At this point, we do not have a fresh expectation.Expectations (something has changed
 		// since the last time we made it), so we assemble a new one from our in-RAM cache of
 		// expectation entries (which we assume to be up to date courtesy of our running snapshots).
-		e := s.assembleExpectations()
+		e := s.assembleExpectations() // RLock entryCacheMutex
 		s.returnCache = e
 		return e, nil
 	}
@@ -481,7 +488,7 @@ func (s *Store) GetCopy(ctx context.Context) (*expectations.Expectations, error)
 		// At this point, we do not have a fresh expectation.Expectations (something has changed
 		// since the last time we made it), so we assemble a new one from our in-RAM cache of
 		// expectation entries (which we assume to be up to date courtesy of our running snapshots).
-		return s.assembleExpectations(), nil
+		return s.assembleExpectations(), nil // RLock entryCacheMutex
 
 	}
 	// If the snapshots are not loaded, we assume we do not have a RAM cache and load the
