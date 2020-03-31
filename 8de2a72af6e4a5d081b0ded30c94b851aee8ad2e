@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "397e793f_a3401b7f",
+        "filename": "jsfiddle/modules/wasm-fiddle/wasm-fiddle.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-31T19:01:12Z",
+      "side": 1,
+      "message": "Prefer textContent over innerText.",
+      "range": {
+        "startLine": 190,
+        "startChar": 15,
+        "endLine": 190,
+        "endChar": 24
+      },
+      "revId": "8de2a72af6e4a5d081b0ded30c94b851aee8ad2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f550b6e9_0766aea4",
+        "filename": "jsfiddle/modules/wasm-fiddle/wasm-fiddle.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-03-31T19:01:12Z",
+      "side": 1,
+      "message": "This comment got shifted down a line.",
+      "range": {
+        "startLine": 317,
+        "startChar": 9,
+        "endLine": 317,
+        "endChar": 84
+      },
+      "revId": "8de2a72af6e4a5d081b0ded30c94b851aee8ad2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
