@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "73a7357f_0cef5658",
+        "filename": "go/test2json/testutils.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-31T15:31:57Z",
+      "side": 1,
+      "message": "Replaced with hard-coded constants.",
+      "parentUuid": "7a14c8b4_f0bfa8c6",
+      "range": {
+        "startLine": 18,
+        "startChar": 1,
+        "endLine": 18,
+        "endChar": 5
+      },
+      "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6dc3bbcc_a9efdd3f",
         "filename": "go/test2json/testutils.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a2922c3e_7e79fbbd",
+        "filename": "go/test2json/testutils.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-31T15:31:57Z",
+      "side": 1,
+      "message": "Done, but discovered that the routing of the output is less than perfect :-/",
+      "parentUuid": "6dc3bbcc_a9efdd3f",
+      "range": {
+        "startLine": 42,
+        "startChar": 33,
+        "endLine": 42,
+        "endChar": 35
+      },
+      "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3eb85fba_5c5159c2",
+        "filename": "task_driver/go/lib/golang/golang_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-31T15:31:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7cb47044_d7ad7018",
+      "range": {
+        "startLine": 85,
+        "startChar": 5,
+        "endLine": 85,
+        "endChar": 19
+      },
+      "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ed0dc02a_881551cf",
         "filename": "task_driver/go/lib/golang/golang_test.go",
         "patchSetId": 3
@@ -91,6 +163,30 @@
       "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c06445e2_ffde6620",
+        "filename": "task_driver/go/lib/golang/golang_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-31T15:31:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ed0dc02a_881551cf",
+      "range": {
+        "startLine": 86,
+        "startChar": 10,
+        "endLine": 86,
+        "endChar": 20
+      },
+      "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "8c076f21_a433d846",
+        "filename": "task_driver/go/lib/golang/golang_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-31T15:31:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "80c073e1_cf034902",
+      "range": {
+        "startLine": 88,
+        "startChar": 30,
+        "endLine": 88,
+        "endChar": 39
+      },
+      "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fe599b55_4ad54517",
         "filename": "task_driver/go/lib/golang/golang_test.go",
         "patchSetId": 3
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "8bddab3c_f64e1124",
+        "filename": "task_driver/go/lib/golang/golang_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-31T15:31:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fe599b55_4ad54517",
+      "range": {
+        "startLine": 127,
+        "startChar": 5,
+        "endLine": 127,
+        "endChar": 17
+      },
+      "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "db224fd7_58c77493",
         "filename": "task_driver/go/lib/golang/golang_test.go",
         "patchSetId": 3
@@ -160,6 +304,30 @@
       "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "821046dd_c6cb5552",
+        "filename": "task_driver/go/lib/golang/golang_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-03-31T15:31:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "db224fd7_58c77493",
+      "range": {
+        "startLine": 149,
+        "startChar": 0,
+        "endLine": 149,
+        "endChar": 38
+      },
+      "revId": "46bb3b409ac115997497952b16c54f72d8803bf3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
