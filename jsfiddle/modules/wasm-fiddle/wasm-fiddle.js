@@ -14,7 +14,7 @@ export function codeEditor(ele) {
         @paste=${ele._changed} @input=${ele._changed}
   ></textarea>
   <div class=numbers>
-    ${repeat(lines(ele.content)).map((_, n) => _lineNumber(n+1))}
+    ${repeat(lines(ele.content)).map((_, n) => _lineNumber(n + 1))}
   </div>
 
 </editor>`;
@@ -29,8 +29,8 @@ export function floatSlider(name, i) {
   // https://www.w3schools.com/tags/att_input_name.asp
   return html`
 <div class=widget>
-  <input name=${'slider'+i} id=${'slider'+i} min=0 max=1 step=0.00001 type=range>
-  <label for=${'slider'+i}>${name}</label>
+  <input name=${`slider${i}`} id=${`slider${i}`} min=0 max=1 step=0.00001 type=range>
+  <label for=${`slider${i}`}>${name}</label>
 </div>`;
 }
 
@@ -43,8 +43,8 @@ export function colorPicker(name, i) {
   // https://www.w3schools.com/tags/att_input_name.asp
   return html`
 <div class=widget>
-  <input name=${'color'+i} id=${'color'+i} type=color>
-  <label for=${'color'+i}>${name}</label>
+  <input name=${`color${i}`} id=${`color${i}`} type=color>
+  <label for=${`color${i}`}>${name}</label>
 </div>`;
 }
 
@@ -64,11 +64,12 @@ function repeat(n) {
 }
 
 const _lineNumber = (n) => html`
-  <div id=${'L'+n}>${n}</div>
+  <div id=${`L${n}`}>${n}</div>
 `;
 
 const sliderRegex = /#slider(\d):(\S+)/g;
 const colorPickerRegex = /#color(\d):(\S+)/g;
+const fpsRegex = /benchmarkFPS/;
 
 /**
  * @module jsfiddle/modules/wasm-fiddle
@@ -90,7 +91,6 @@ const colorPickerRegex = /#color(\d):(\S+)/g;
  *
  */
 export class WasmFiddle extends HTMLElement {
-
   /**
   * @param {Promise} wasmPromise: promise that will resolve with the WASM library.
   * @param {Object} template: The base template for this element.
@@ -112,13 +112,18 @@ export class WasmFiddle extends HTMLElement {
     this.loadedWasm = false;
     this.sliders = [];
     this.colorpickers = [];
+    this.fpsMeter = false;
     // This will be updated to have any captured console.log (but not console.error or console.warn)
     // messages. this._render will be called on any updates to log as well.
     this.log = '';
+    // runID is a unique identifier that changes every time run is clicked. This allows the client
+    // code to stop animation loops when run is clicked a second time. See _activeRunInstance().
+    this.runID = 0;
   }
 
-  /** @prop {String} content - The current code in the editor.*/
+  /** @prop {String} content - The current code in the editor. */
   get content() { return this._content; }
+
   set content(c) {
     this._content = c;
     this._enumerateWidgets();
@@ -147,6 +152,47 @@ export class WasmFiddle extends HTMLElement {
     window.removeEventListener('popstate', this._loadCode.bind(this));
   }
 
+  // Returns a helper function that will return true if the current running instance is the most
+  // recent instance. This can be used by client code to stop their animation loops when the Run
+  // button is hit again.
+  _activeRunInstance(currentRunID) {
+    return () => currentRunID === this.runID;
+  }
+
+  // Returns a helper function that will store the last 10 frame times and every tenth frame will
+  // output the average FPS from those ten frames. The returned function has its variables tied up
+  // in a closure so that new instances will not conflict with each other (e.g. when run is clicked)
+  // It also checks to see if this invocation is the latest and will do nothing if it is not (e.g.
+  // prevent competing updates to the fps meter.
+  _benchmarkFPSInstance(currentRunID) {
+    let lastTime = null;
+    let frameIdx = 0;
+    const frames = new Float64Array(10);
+    let fpsEle = null;
+    return () => {
+      if (this.runID !== currentRunID) {
+        return;
+      }
+      if (!lastTime || !fpsEle) {
+        lastTime = performance.now();
+        fpsEle = $$('#fps');
+        return;
+      }
+      const now = performance.now();
+      frames[frameIdx] = now - lastTime;
+      lastTime = now;
+      frameIdx = (frameIdx + 1) % frames.length;
+      if (frameIdx === 0) {
+        let sum = 0;
+        for (let i = 0; i < frames.length; i++) {
+          sum += frames[i];
+        }
+        fpsEle.textContent = `${(10000 / sum).toFixed(1)} FPS`;
+        lastTime = performance.now();
+      }
+    };
+  }
+
   _changed() {
     this.content = this._editor.value;
   }
@@ -157,6 +203,7 @@ export class WasmFiddle extends HTMLElement {
   _enumerateWidgets() {
     this.sliders = [];
     this.colorpickers = [];
+    this.fpsMeter = !!this.content.match(fpsRegex);
 
     const sliderMatches = this.content.matchAll(sliderRegex);
     for (const match of sliderMatches) {
@@ -175,7 +222,7 @@ export class WasmFiddle extends HTMLElement {
 
   _loadCode() {
     // The location should be either /<fiddleType> or /<fiddleType>/<fiddlehash>
-    let path = window.location.pathname;
+    const path = window.location.pathname;
     let hash = '';
     const len = this.fiddleType.length + 2; // count of chars in /<fiddleType>/
     if (path.length > len) {
@@ -186,17 +233,16 @@ export class WasmFiddle extends HTMLElement {
       .then(jsonOrThrow)
       .then((json) => {
         this.content = json.code;
-      }
-    ).catch((e) => {
-      errorMessage('Fiddle not Found', 10000);
-      this.content = '';
-      const canvas = $$('#canvas', this);
-      this._resetCanvas(canvas);
-    });
+      }).catch((e) => {
+        errorMessage('Fiddle not Found', 10000);
+        this.content = '';
+        const canvas = $$('#canvas', this);
+        this._resetCanvas(canvas);
+      });
   }
 
   _render() {
-    render(this.template(this), this, {eventContext: this});
+    render(this.template(this), this, { eventContext: this });
     this._editor = $$('#editor textarea', this);
   }
 
@@ -219,17 +265,17 @@ export class WasmFiddle extends HTMLElement {
     Runs the code, allowing the user to see the result on the canvas.
   */
   run() {
+    this.runID = Date.now();
     // reset the log on each run.
     this.log = '';
     // consoleInterceptor is used to intercept console.log calls and store them.
     const consoleInterceptor = {
-      // can't use arrow notation if we want access to arguments
-      log: function() {
+      log: (...rest) => {
         // pipe this through to regular console.log
-        console.log(...arguments);
+        console.log(...rest);
         // stringify all the arguments for rendering using the log property.
-        for (let i = 0; i < arguments.length; i++) {
-          const a = arguments[i];
+        for (let i = 0; i < rest.length; i++) {
+          const a = rest[i];
           if (typeof a === 'object') {
             // Make an attempt to prettify objects - this doesn't work well on WASM objects
             // or DOMElements.
@@ -241,7 +287,7 @@ export class WasmFiddle extends HTMLElement {
         }
         this.log += '\n';
         this._render();
-      }.bind(this),
+      },
       warn: console.warn,
       error: console.error,
     };
@@ -255,18 +301,23 @@ export class WasmFiddle extends HTMLElement {
     this._render();
     const canvas = this._resetCanvas();
 
+
     try {
       // Because of the magic of setting <input name=sliderN>, we don't need to declare any
       // variables for sliders or colorpickers (see floatSlider and colorPicker above).
-      let f = new Function(
+      const f = new Function(
         this.libraryName, // e.g. "CanvasKit", the name of the WASM library.
-        'canvas',  // We provide the canvas element to the user as a parameter named 'canvas'.
+        'canvas', // We provide the canvas element to the user as a parameter named 'canvas'.
         'console', // By having this parameter named 'console', we intercept a user's normal
-                   // calls to the window.console object [unless they happen to actually say
-                   // window.console.log('foo')].
-        this.content); // user provided code, as a string, which will be interpreted and executed.
-      f(this.Wasm, canvas, consoleInterceptor);
-    } catch(e) {
+        // calls to the window.console object [unless they happen to actually say
+        // window.console.log('foo')].
+        'benchmarkFPS', // provide a helper that the user can call to get an FPS output.
+        'isRunning', // provide a helper for the user to stop their animation when run is clicked.
+        this.content, // user provided code, as a string, which will be interpreted and executed.
+      );
+      f(this.Wasm, canvas, consoleInterceptor, this._benchmarkFPSInstance(this.runID),
+        this._activeRunInstance(this.runID));
+    } catch (e) {
       errorMessage(e);
     }
   }
@@ -284,10 +335,9 @@ export class WasmFiddle extends HTMLElement {
       body: JSON.stringify({
         code: this.content,
         type: this.fiddleType,
-      })
+      }),
     }).then(jsonOrThrow).then((json) => {
-        history.pushState(null, '', json.new_url);
-      }
-    ).catch(errorMessage);
+      history.pushState(null, '', json.new_url);
+    }).catch(errorMessage);
   }
 }

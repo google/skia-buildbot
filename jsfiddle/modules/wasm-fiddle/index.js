@@ -1,2 +1,5 @@
-export  { WasmFiddle, codeEditor, floatSlider, colorPicker } from './wasm-fiddle.js'
-import './wasm-fiddle.scss'
+import './wasm-fiddle.scss';
+
+export {
+  WasmFiddle, codeEditor, floatSlider, colorPicker,
+} from './wasm-fiddle';
