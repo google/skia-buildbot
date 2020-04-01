@@ -15,6 +15,7 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/depot_tools"
@@ -375,7 +376,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	// Build the commit message.
 	childRepo := strings.ReplaceAll(rm.childRepoURL, "git@github.com:", "https://github.com/")
 	childRepo = strings.ReplaceAll(childRepo, ".git", "")
-	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
+	commitMsg, err := rm.buildCommitMsg(&parent.CommitMsgVars{
 		ChildPath:   rm.childPath,
 		ChildRepo:   childRepo,
 		Reviewers:   emails,
