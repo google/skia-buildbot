@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/file/dirsource"
 	"go.skia.org/infra/perf/go/file/gcssource"
+	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/dsregressionstore"
 	"go.skia.org/infra/perf/go/regression/sqlregressionstore"
@@ -86,6 +87,50 @@ func newCockroachDBFromConfig(instanceConfig *config.InstanceConfig) (*sql.DB, e
 	}
 
 	return db, nil
+}
+
+// NewPerfGitFromConfig return a new perfgit.Git for the given instanceConfig.
+//
+// The instance created does not poll by default, callers need to call
+// StartBackgroundPolling().
+func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (*perfgit.Git, error) {
+	if instanceConfig.DataStoreConfig.ConnectionString == "" {
+		return nil, skerr.Fmt("A connection_string must always be supplied.")
+	}
+
+	// First figure out what dialect we should use.
+	var dialect perfsql.Dialect
+	switch instanceConfig.DataStoreConfig.DataStoreType {
+	case config.GCPDataStoreType:
+		// Even for BigTable backed datastores we still stand up an sqlite
+		// instance to hold the perfgit info.
+		dialect = perfsql.SQLiteDialect
+	case config.CockroachDBDataStoreType:
+		dialect = perfsql.CockroachDBDialect
+	case config.SQLite3DataStoreType:
+		dialect = perfsql.SQLiteDialect
+	default:
+		return nil, skerr.Fmt("Unknown datastore_type: %q", instanceConfig.DataStoreConfig.DataStoreType)
+	}
+
+	// Now create the appropriate db.
+	var db *sql.DB
+	var err error
+	switch dialect {
+	case perfsql.SQLiteDialect:
+		db, err = newSQLite3DBFromConfig(instanceConfig)
+	case perfsql.CockroachDBDialect:
+		db, err = newCockroachDBFromConfig(instanceConfig)
+	}
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	g, err := perfgit.New(ctx, local, db, dialect, instanceConfig)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	return g, nil
 }
 
 // NewTraceStoreFromConfig creates a new TraceStore from the InstanceConfig.
