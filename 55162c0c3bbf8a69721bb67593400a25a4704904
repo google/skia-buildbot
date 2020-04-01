@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "7088b60d_374bbef1",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T14:12:38Z",
+      "side": 1,
+      "message": "\"I could imagine wanting something more flexible at some point in the future.\"\n\nI don\u0027t believe in adding unused code paths on the off chance they might be useful in the future. In the case of all the stores I added interfaces because there were multiple different implementations, so the interfaces were needed. I can always add an interface later if needed.",
+      "parentUuid": "11028133_4a0887aa",
+      "range": {
+        "startLine": 218,
+        "startChar": 9,
+        "endLine": 218,
+        "endChar": 15
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a44f10a_c4cfe6e6",
         "filename": "perf/go/git/git.go",
         "patchSetId": 10
