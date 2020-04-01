@@ -21,8 +21,8 @@ const (
 
 	USER_CHROME_BOT = gce.USER_CHROME_BOT
 
-	DEBIAN_SOURCE_IMAGE_EXTERNAL = "skia-swarming-base-v2019-03-04-000"
-	DEBIAN_SOURCE_IMAGE_INTERNAL = "skia-swarming-base-v2019-04-18-000"
+	DEBIAN_SOURCE_IMAGE_EXTERNAL = "skia-swarming-base-v2020-03-31-000"
+	DEBIAN_SOURCE_IMAGE_INTERNAL = "skia-swarming-base-v2020-03-31-000"
 	WIN_SOURCE_IMAGE             = "projects/windows-cloud/global/images/windows-server-2019-dc-v20200114"
 
 	INSTANCE_TYPE_CT            = "ct"
