@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9fd5fc1a_9e9151b4",
+        "filename": "golden/puppeteer-tests/test/util.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-01T12:19:48Z",
+      "side": 1,
+      "message": "It\u0027s not an eslint thing, it\u0027s just my preference to initialize things explicitly. If you insist, I can remove the initializations.",
+      "parentUuid": "99f4b0b4_391b8891",
+      "range": {
+        "startLine": 106,
+        "startChar": 2,
+        "endLine": 107,
+        "endChar": 36
+      },
+      "revId": "64c6cc087c987877efc4a1a36c0c7bdcf42bd071",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "122f209b_02234e6c",
         "filename": "golden/puppeteer-tests/test/util.js",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "64c6cc087c987877efc4a1a36c0c7bdcf42bd071",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0aad0efb_f4d5d107",
+        "filename": "golden/puppeteer-tests/test/util.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-01T12:19:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "122f209b_02234e6c",
+      "range": {
+        "startLine": 108,
+        "startChar": 8,
+        "endLine": 108,
+        "endChar": 10
+      },
+      "revId": "64c6cc087c987877efc4a1a36c0c7bdcf42bd071",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

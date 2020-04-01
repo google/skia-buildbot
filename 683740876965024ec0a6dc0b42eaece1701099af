@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "2e181af0_369779f1",
+        "filename": "golden/puppeteer-tests/test/byblame-page-sk_puppeteer_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-01T12:19:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f2038daf_000eeacd",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 35
+      },
+      "revId": "683740876965024ec0a6dc0b42eaece1701099af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d817998b_8272a080",
         "filename": "golden/puppeteer-tests/test/byblame-page-sk_puppeteer_test.js",
         "patchSetId": 1
@@ -235,6 +259,30 @@
       "revId": "683740876965024ec0a6dc0b42eaece1701099af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4e7948c_5cdcd5b2",
+        "filename": "golden/puppeteer-tests/test/util.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-01T12:19:48Z",
+      "side": 1,
+      "message": "I apologize, I was incorrect in my earlier statement.\n\nThis is an eslint rule, and I personally prefer the declarations to be on different lines for readability. I don\u0027t like how the autofix handles it though... https://eslint.org/docs/rules/one-var-declaration-per-line",
+      "parentUuid": "e3392f59_ce4a67f9",
+      "range": {
+        "startLine": 106,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 23
+      },
+      "revId": "683740876965024ec0a6dc0b42eaece1701099af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
