@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb3026e5_89f00bbb",
+        "filename": "autoroll/config/spirv-tools-angle.json",
+        "patchSetId": 9
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-01T12:01:00Z",
+      "side": 1,
+      "message": "For clarity, we could change this to:\n\n...SPIRV-Headers\": {\n\n  \"childPath\": \"DEPS\",\n  \"parentPath\": \"DEPS\",\n}",
+      "range": {
+        "startLine": 40,
+        "startChar": 91,
+        "endLine": 40,
+        "endChar": 106
+      },
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6502f755_e197170e",
+        "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-01T12:01:00Z",
+      "side": 1,
+      "message": "I did this to minimize disturbance of the config files for now.",
+      "range": {
+        "startLine": 75,
+        "startChar": 5,
+        "endLine": 75,
+        "endChar": 30
+      },
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0efc2ed5_c1d7518b",
+        "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-01T12:01:00Z",
+      "side": 1,
+      "message": "I plan to move the tests into the respective parent and child packages in a follow-up CL, but I think it\u0027s nice to see what changes were necessary and verify that the tests pass.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 20
+      },
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0229bec0_ce4972ae",
+        "filename": "autoroll/go/repo_manager/parent/gitiles_deps.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-01T12:01:00Z",
+      "side": 1,
+      "message": "WDYT?  This code already deals with DEPS files and plain files which only contain a version ID, to handle transitive deps.  We could extend that to the primary dependency by adding a VersionFile or something to the config. If it\u0027s DEPS, we use deps_parser.SetDep to change it, otherwise we overwrite the whole contents of the file with the new version.",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 52
+      },
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
