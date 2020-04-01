@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "23252462_82febdb7",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "I have gittest.NewForTest that doesn\u0027t require mocking for testing.",
+      "parentUuid": "7ebb06d4_606e5039",
+      "range": {
+        "startLine": 218,
+        "startChar": 9,
+        "endLine": 218,
+        "endChar": 15
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a44f10a_c4cfe6e6",
         "filename": "perf/go/git/git.go",
         "patchSetId": 10
@@ -39,6 +63,24 @@
       "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad1d4e13_a49cdf83",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a44f10a_c4cfe6e6",
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "a0c54dff_8178b177",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "The doc for that function states \"RepeatCtx calls the provided function \u0027fn\u0027 immediately and then in intervals defined by \u0027interval\u0027.\" which isn\u0027t what I want, since I called the ret.Update in New(), outside to Go func, so I can return an error from New() if the first Update fails.",
+      "parentUuid": "836a2e2f_558629bd",
+      "range": {
+        "startLine": 285,
+        "startChar": 2,
+        "endLine": 285,
+        "endChar": 36
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c2729e0f_7b4670c2",
         "filename": "perf/go/git/git.go",
         "patchSetId": 10
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "ed5801ee_9603b24d",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c2729e0f_7b4670c2",
+      "range": {
+        "startLine": 286,
+        "startChar": 24,
+        "endLine": 286,
+        "endChar": 27
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "48715d5d_9749b647",
         "filename": "perf/go/git/git.go",
         "patchSetId": 10
@@ -108,6 +198,30 @@
       "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3cc5e92d_e356f88f",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "48715d5d_9749b647",
+      "range": {
+        "startLine": 299,
+        "startChar": 14,
+        "endLine": 299,
+        "endChar": 19
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +271,54 @@
     },
     {
       "key": {
+        "uuid": "2c213c2d_d998d7af",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "0 is a valid commit number, so I used BadCommitNumber so there\u0027s no confusion that while all the other fields are valid, this isn\u0027t.",
+      "parentUuid": "b68f64db_cad817aa",
+      "range": {
+        "startLine": 351,
+        "startChar": 27,
+        "endLine": 351,
+        "endChar": 42
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b715092d_36ec2df2",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "17e8f683_0757d58d",
+      "range": {
+        "startLine": 351,
+        "startChar": 14,
+        "endLine": 351,
+        "endChar": 20
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baee049d_d47ca514",
         "filename": "perf/go/git/git.go",
         "patchSetId": 10
@@ -177,6 +339,30 @@
       "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9520102e_eaf78437",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baee049d_d47ca514",
+      "range": {
+        "startLine": 355,
+        "startChar": 8,
+        "endLine": 355,
+        "endChar": 15
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -203,6 +389,30 @@
     },
     {
       "key": {
+        "uuid": "c500eca6_0705e30c",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 426,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5aa31535_165d6930",
+      "range": {
+        "startLine": 426,
+        "startChar": 45,
+        "endLine": 426,
+        "endChar": 51
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "42a390a1_c5471193",
         "filename": "perf/go/git/git.go",
         "patchSetId": 10
@@ -223,6 +433,30 @@
       "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0b01e82_53b3f34c",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 447,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "I will keep it as is.",
+      "parentUuid": "42a390a1_c5471193",
+      "range": {
+        "startLine": 447,
+        "startChar": 11,
+        "endLine": 447,
+        "endChar": 15
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -249,6 +483,30 @@
     },
     {
       "key": {
+        "uuid": "04a895d9_f02bd56d",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 485,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Moved all the times to %s, kept all the printing of types.CommitNumber to %v, since types.CommitNumber could change to be a struct (unlikely) or I could later add a String() func to types.CommitNumber for prettier printing.",
+      "parentUuid": "e7d3c411_d2b750b4",
+      "range": {
+        "startLine": 485,
+        "startChar": 74,
+        "endLine": 485,
+        "endChar": 76
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ddafdf05_272de125",
         "filename": "perf/go/git/git.go",
         "patchSetId": 10
@@ -263,6 +521,24 @@
       "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59630fb6_137ebcf2",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Given that many of our apps spend a lot of time serializing to/from JSON that seems like a preference that would more likely lead to errors.",
+      "parentUuid": "ddafdf05_272de125",
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -289,6 +565,30 @@
     },
     {
       "key": {
+        "uuid": "9627d23a_bbdb0d45",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 589,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c91c355c_8373aaa7",
+      "range": {
+        "startLine": 589,
+        "startChar": 62,
+        "endLine": 589,
+        "endChar": 65
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1bea0539_8683d563",
         "filename": "perf/go/git/git_test.go",
         "patchSetId": 10
@@ -309,6 +609,30 @@
       "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8af46535_c9c0bb03",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Leftovers from before these became sub-tests, removed.",
+      "parentUuid": "1bea0539_8683d563",
+      "range": {
+        "startLine": 82,
+        "startChar": 10,
+        "endLine": 82,
+        "endChar": 19
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -335,6 +659,30 @@
     },
     {
       "key": {
+        "uuid": "b3201da9_92fd0ac9",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Fixed wording.",
+      "parentUuid": "2118ef2e_29ac8638",
+      "range": {
+        "startLine": 85,
+        "startChar": 32,
+        "endLine": 85,
+        "endChar": 48
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c5d87508_f06763a4",
         "filename": "perf/go/git/git_test.go",
         "patchSetId": 10
@@ -355,6 +703,30 @@
       "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee36a154_eb14b234",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c5d87508_f06763a4",
+      "range": {
+        "startLine": 88,
+        "startChar": 1,
+        "endLine": 88,
+        "endChar": 13
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -381,6 +753,30 @@
     },
     {
       "key": {
+        "uuid": "53434a67_c003fa88",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d843a6e3_4871bb70",
+      "range": {
+        "startLine": 95,
+        "startChar": 36,
+        "endLine": 95,
+        "endChar": 37
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "44582ff8_a858486f",
         "filename": "perf/go/git/git_test.go",
         "patchSetId": 10
@@ -401,6 +797,30 @@
       "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a5fa3e2_be5416ed",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "I\u0027m gonna pass on that for func parameters, will still do that for local variables.",
+      "parentUuid": "44582ff8_a858486f",
+      "range": {
+        "startLine": 98,
+        "startChar": 84,
+        "endLine": 98,
+        "endChar": 86
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -427,6 +847,30 @@
     },
     {
       "key": {
+        "uuid": "4bd8e7b2_14339d58",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ccc72f77_de35559f",
+      "range": {
+        "startLine": 122,
+        "startChar": 50,
+        "endLine": 122,
+        "endChar": 86
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "45ec6688_ee08191c",
         "filename": "perf/go/git/git_test.go",
         "patchSetId": 10
@@ -447,6 +891,30 @@
       "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0370e238_d16fa6ad",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "45ec6688_ee08191c",
+      "range": {
+        "startLine": 171,
+        "startChar": 8,
+        "endLine": 171,
+        "endChar": 11
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -473,6 +941,30 @@
     },
     {
       "key": {
+        "uuid": "d91d1894_7ec8ba52",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "46d2e14b_2c76a5db",
+      "range": {
+        "startLine": 266,
+        "startChar": 8,
+        "endLine": 266,
+        "endChar": 13
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4bc510c7_f3833ce0",
         "filename": "perf/go/git/git_test.go",
         "patchSetId": 10
@@ -493,6 +985,30 @@
       "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "207ddff1_d44edca0",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Changed _Success test.",
+      "parentUuid": "4bc510c7_f3833ce0",
+      "range": {
+        "startLine": 296,
+        "startChar": 5,
+        "endLine": 296,
+        "endChar": 87
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -519,6 +1035,30 @@
     },
     {
       "key": {
+        "uuid": "4b85400f_51b420a4",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "49cb1170_f4dbab4d",
+      "range": {
+        "startLine": 303,
+        "startChar": 0,
+        "endLine": 303,
+        "endChar": 1
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "836118dd_3eacf35c",
         "filename": "perf/go/git/git_test.go",
         "patchSetId": 10
@@ -539,6 +1079,30 @@
       "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cf40242d_f8fbf71a",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "836118dd_3eacf35c",
+      "range": {
+        "startLine": 318,
+        "startChar": 9,
+        "endLine": 318,
+        "endChar": 14
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -565,6 +1129,30 @@
     },
     {
       "key": {
+        "uuid": "87fd57df_70f96e73",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f458ba86_6547ff3f",
+      "range": {
+        "startLine": 332,
+        "startChar": 2,
+        "endLine": 332,
+        "endChar": 7
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0337cdd2_48ed4d52",
         "filename": "perf/go/git/git_test.go",
         "patchSetId": 10
@@ -585,6 +1173,30 @@
       "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5eb5a0a4_ae0f6141",
+        "filename": "perf/go/git/git_test.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0337cdd2_48ed4d52",
+      "range": {
+        "startLine": 346,
+        "startChar": 8,
+        "endLine": 346,
+        "endChar": 28
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -611,6 +1223,30 @@
     },
     {
       "key": {
+        "uuid": "03e04489_99b23caf",
+        "filename": "perf/go/git/gittest/gittest.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "83e786b8_5bfa086c",
+      "range": {
+        "startLine": 31,
+        "startChar": 8,
+        "endLine": 31,
+        "endChar": 28
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cfe69d57_9f570f16",
         "filename": "perf/go/git/gittest/gittest.go",
         "patchSetId": 10
@@ -631,6 +1267,30 @@
       "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9babd7e7_ab3e4839",
+        "filename": "perf/go/git/gittest/gittest.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-01T03:04:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cfe69d57_9f570f16",
+      "range": {
+        "startLine": 33,
+        "startChar": 34,
+        "endLine": 33,
+        "endChar": 42
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
