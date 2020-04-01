@@ -19,6 +19,7 @@ cp -r /src/golden/package.json      /tests/golden
 cp -r /src/golden/webpack.config.js /tests/golden
 cp -r /src/golden/modules           /tests/golden
 cp -r /src/golden/puppeteer-tests   /tests/golden
+cp -r /src/golden/demo-page-assets  /tests/golden
 
 # Populate the various node_modules directories.
 # TODO(lovisolo): Use "npm ci" once package-lock.json files are in repo.

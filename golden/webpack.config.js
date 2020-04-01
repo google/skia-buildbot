@@ -14,7 +14,7 @@ module.exports = (env, argv) => {
     config.plugins.push(
       new CopyWebpackPlugin([
         {
-          from: 'demo-page-assets',
+          from: resolve(__dirname, 'demo-page-assets'),
         },
       ]),
     );
