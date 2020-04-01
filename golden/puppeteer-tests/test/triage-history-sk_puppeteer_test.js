@@ -3,20 +3,20 @@ const setUpPuppeteerAndDemoPageServer = require('./util').setUpPuppeteerAndDemoP
 const takeScreenshot = require('./util').takeScreenshot;
 
 describe('triage-history-sk', () => {
-  setUpPuppeteerAndDemoPageServer(); // Sets up this.page and this.baseUrl.
+  const testBed = setUpPuppeteerAndDemoPageServer(); // Contains page and baseUrl.
 
-  beforeEach(async function () {
-    await this.page.goto(`${this.baseUrl}/dist/triage-history-sk.html`);
+  beforeEach(async () => {
+    await testBed.page.goto(`${testBed.baseUrl}/dist/triage-history-sk.html`);
   });
 
-  it('should render the demo page', async function () {
+  it('should render the demo page', async () => {
     // Smoke test.
-    expect(await this.page.$$('triage-history-sk')).to.have.length(2);
+    expect(await testBed.page.$$('triage-history-sk')).to.have.length(2);
   });
 
   describe('screenshots', async () => {
-    it('draws either empty or shows the last history object', async function () {
-      await takeScreenshot(this.page, 'triage-history-sk');
+    it('draws either empty or shows the last history object', async () => {
+      await takeScreenshot(testBed.page, 'triage-history-sk');
     });
   });
 });

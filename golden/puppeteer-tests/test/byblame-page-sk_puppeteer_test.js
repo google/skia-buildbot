@@ -3,24 +3,23 @@ const addEventListenersToPuppeteerPage = require('./util').addEventListenersToPu
 const setUpPuppeteerAndDemoPageServer = require('./util').setUpPuppeteerAndDemoPageServer;
 const takeScreenshot = require('./util').takeScreenshot;
 
-describe('byblame-page-sk', function() {
-  setUpPuppeteerAndDemoPageServer();  // Sets up this.page and this.baseUrl.
+describe('byblame-page-sk', () => {
+  const testBed = setUpPuppeteerAndDemoPageServer(); // Contains page and baseUrl.
 
-  beforeEach(async function() {
-    const eventPromise =
-        await addEventListenersToPuppeteerPage(this.page, ['end-task']);
-    const loaded = eventPromise('end-task');  // Emitted when page is loaded.
-    await this.page.goto(`${this.baseUrl}/dist/byblame-page-sk.html`);
+  beforeEach(async () => {
+    const eventPromise = await addEventListenersToPuppeteerPage(testBed.page, ['end-task']);
+    const loaded = eventPromise('end-task'); // Emitted when page is loaded.
+    await testBed.page.goto(`${testBed.baseUrl}/dist/byblame-page-sk.html`);
     await loaded;
   });
 
-  it('should render the demo page', async function() {
+  it('should render the demo page', async () => {
     // Smoke test.
-    expect(await this.page.$$('byblame-page-sk')).to.have.length(1);
+    expect(await testBed.page.$$('byblame-page-sk')).to.have.length(1);
   });
 
-  it('should take a screenshot', async function() {
-    await this.page.setViewport({ width: 1200, height: 7300 });
-    await takeScreenshot(this.page, 'byblame-page-sk');
+  it('should take a screenshot', async () => {
+    await testBed.page.setViewport({ width: 1200, height: 7300 });
+    await takeScreenshot(testBed.page, 'byblame-page-sk');
   });
 });
