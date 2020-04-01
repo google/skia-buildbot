@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "11028133_4a0887aa",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-01T11:11:25Z",
+      "side": 1,
+      "message": "From my understanding, gittest.NewForTest sets up an actual repo on disk with exactly 8 commits. This is fine for the tests you have in this package, since you want to actually exercise git.  I could imagine wanting something more flexible at some point in the future. I know I needed it when writing Gold ingestion tests, dealing with data across tiles, as a concrete example. It\u0027s fine to put off for now, just something to keep in mind.",
+      "parentUuid": "23252462_82febdb7",
+      "range": {
+        "startLine": 218,
+        "startChar": 9,
+        "endLine": 218,
+        "endChar": 15
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a44f10a_c4cfe6e6",
         "filename": "perf/go/git/git.go",
         "patchSetId": 10
