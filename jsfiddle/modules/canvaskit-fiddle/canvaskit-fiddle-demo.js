@@ -1,8 +1,8 @@
-import './index.js'
+import './index';
 
-import { $$ } from 'common-sk/modules/dom'
+import { $$ } from 'common-sk/modules/dom';
 
-let ck = $$('canvaskit-fiddle');
+const ck = $$('canvaskit-fiddle');
 
 ck.content = `// One can specify up to 10 sliders or color pickers using the syntax
 // #sliderN:displayNameNoSpaces. This will create a variable in the scope
@@ -41,9 +41,10 @@ function getWidth() {
 }
 
 function drawFrame() {
+  benchmarkFPS();
   const path = starPath(CanvasKit, X, Y);
   CanvasKit.setCurrentContext(context);
-  const dpe = CanvasKit.MakeSkDashPathEffect([15, 5, 5, 10], offset/5);
+  const dpe = CanvasKit.SkPathEffect.MakeDash([15, 5, 5, 10], offset/5);
   offset++;
 
   paint.setPathEffect(dpe);
@@ -58,7 +59,9 @@ function drawFrame() {
   skcanvas.flush();
   dpe.delete();
   path.delete();
-  requestAnimationFrame(drawFrame);
+  if (isRunning()) {
+    requestAnimationFrame(drawFrame);
+  }
 }
 requestAnimationFrame(drawFrame);
 
@@ -76,4 +79,4 @@ function starPath(CanvasKit, X, Y, R=128) {
 canvas.addEventListener('mousemove', (e) => {
   X = e.offsetX;
   Y = e.offsetY;
-});`
+});`;

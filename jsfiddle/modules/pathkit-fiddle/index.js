@@ -1,2 +1,2 @@
-import './pathkit-fiddle.js'
-import '../wasm-fiddle/wasm-fiddle.scss'
+import './pathkit-fiddle';
+import '../wasm-fiddle/wasm-fiddle.scss';
