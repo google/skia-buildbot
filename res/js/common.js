@@ -92,29 +92,6 @@ this.sk = this.sk || {};
     document.dispatchEvent(new CustomEvent('error-sk', {detail: detail, bubbles: true}));
   }
 
-  /**
-   * Importer simplifies importing HTML Templates from HTML Imports.
-   *
-   * Just instantiate an instance in the HTML Import:
-   *
-   *    importer = new sk.Importer();
-   *
-   * Then import templates via their id:
-   *
-   *    var node = importer.import('#foo');
-   */
-  sk.Importer = function() {
-    if ('currentScript' in document) {
-      this.importDoc_ = document.currentScript.ownerDocument;
-    } else {
-      this.importDoc_ = document._currentScript.ownerDocument;
-    }
-  }
-
-  sk.Importer.prototype.import = function(id) {
-    return document.importNode($$$(id, this.importDoc_).content, true);
-  }
-
   // elePos returns the position of the top left corner of given element in
   // client coordinates.
   //
