@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "cd0d0146_71d16da8",
+        "filename": "jsfiddle/modules/wasm-fiddle/wasm-fiddle.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-01T13:19:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "397e793f_a3401b7f",
+      "range": {
+        "startLine": 190,
+        "startChar": 15,
+        "endLine": 190,
+        "endChar": 24
+      },
+      "revId": "8de2a72af6e4a5d081b0ded30c94b851aee8ad2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f550b6e9_0766aea4",
         "filename": "jsfiddle/modules/wasm-fiddle/wasm-fiddle.js",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "8de2a72af6e4a5d081b0ded30c94b851aee8ad2e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6369f99a_dc7dc1ce",
+        "filename": "jsfiddle/modules/wasm-fiddle/wasm-fiddle.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-01T13:19:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f550b6e9_0766aea4",
+      "range": {
+        "startLine": 317,
+        "startChar": 9,
+        "endLine": 317,
+        "endChar": 84
+      },
+      "revId": "8de2a72af6e4a5d081b0ded30c94b851aee8ad2e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
