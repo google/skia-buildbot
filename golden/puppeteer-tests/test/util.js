@@ -3,8 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer');
 const webpack = require('webpack');
-const webpackConfigJs = require('../../webpack.config.js');
 const webpackDevMiddleware = require('webpack-dev-middleware');
+const webpackConfigJs = require('../../webpack.config.js');
 
 /**
  * This function allows tests to catch document-level events in a Puppeteer
@@ -31,8 +31,8 @@ exports.addEventListenersToPuppeteerPage = async (page, eventNames) => {
 
   // Use an unlikely prefix to reduce chances of name collision.
   await page.exposeFunction('__pptr_onEvent', (eventName, eventDetail) => {
-    const resolverFn = resolverFnQueues[eventName].shift();  // Dequeue.
-    if (resolverFn) {  // Undefined if queue length was 0.
+    const resolverFn = resolverFnQueues[eventName].shift(); // Dequeue.
+    if (resolverFn) { // Undefined if queue length was 0.
       resolverFn(eventDetail);
     }
   });
@@ -42,7 +42,7 @@ exports.addEventListenersToPuppeteerPage = async (page, eventNames) => {
     await page.evaluateOnNewDocument((name) => {
       document.addEventListener(name, (event) => {
         window.__pptr_onEvent(name, event.detail);
-      })
+      });
     }, name);
   });
 
@@ -54,9 +54,10 @@ exports.addEventListenersToPuppeteerPage = async (page, eventNames) => {
       throw new Error(`no event listener for "${eventName}"`);
     }
     return new Promise(
-        // Enqueue resolver function at the end of the queue.
-        (resolve) => resolverFnQueues[eventName].push(resolve));
-  }
+      // Enqueue resolver function at the end of the queue.
+      (resolve) => resolverFnQueues[eventName].push(resolve),
+    );
+  };
 };
 
 /**
@@ -69,31 +70,30 @@ exports.inDocker = () => fs.existsSync('/.dockerenv');
  * Launches a Puppeteer browser with the right platform-specific arguments.
  * @return {Promise}
  */
-exports.launchBrowser =
-    () => puppeteer.launch(
-        // See
-        // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker.
-        exports.inDocker()
-            ? { args: ['--disable-dev-shm-usage', '--no-sandbox'] }
-            : {});
+exports.launchBrowser = () => puppeteer.launch(
+  // See
+  // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker.
+  exports.inDocker()
+    ? { args: ['--disable-dev-shm-usage', '--no-sandbox'] }
+    : {},
+);
 
 /**
  * Returns the output directory where tests should e.g. save screenshots.
  * Screenshots saved in this directory will be uploaded to Gold.
  * @return {string}
  */
-exports.outputDir =
-    () => exports.inDocker()
-        ? '/out'
-        // Resolves to $SKIA_INFRA_ROOT/golden/puppeteer-tests/output.
-        : path.join(__dirname, '..', 'output');
+exports.outputDir = () => (exports.inDocker()
+  ? '/out'
+// Resolves to $SKIA_INFRA_ROOT/golden/puppeteer-tests/output.
+  : path.join(__dirname, '..', 'output'));
 
 /**
  * This function sets up the before(Each) and after(Each) hooks required for
  * test suites that take screenshots of demo pages.
  *
  * Test cases can access the demo page server's base URL and a Puppeteer page
- * ready to be used via this.baseUrl and this.page, respectively.
+ * ready to be used via the return value's baseUrl and page objects, respectively.
  *
  * This function assumes that each test case uses exactly one Puppeteer page
  * (that's why it doesn't expose the Browser instance to tests). The page is set
@@ -102,34 +102,42 @@ exports.outputDir =
  *
  * Call this function at the beginning of a Mocha describe() block.
  */
-exports.setUpPuppeteerAndDemoPageServer = function() {
-  let browser, stopDemoPageServer;
+exports.setUpPuppeteerAndDemoPageServer = () => {
+  let browser;
+  let stopDemoPageServer;
+  const testBed = {
+    page: null,
+    baseUrl: null,
+  };
 
-  before(async function() {
+  before(async () => {
     let baseUrl;
-    ({baseUrl, stopDemoPageServer} = await exports.startDemoPageServer());
-    this.baseUrl = baseUrl;  // Make baseUrl available to tests.
+    ({ baseUrl, stopDemoPageServer } = await exports.startDemoPageServer());
+    testBed.baseUrl = baseUrl; // Make baseUrl available to tests.
     browser = await exports.launchBrowser();
   });
 
-  after(async function() {
+  after(async () => {
     await browser.close();
     await stopDemoPageServer();
   });
 
-  beforeEach(async function() {
-    this.page = await browser.newPage();  // Make page available to tests.
+  beforeEach(async () => {
+    testBed.page = await browser.newPage(); // Make page available to tests.
     // Tell demo pages this is a Puppeteer test. Demo pages should not fake RPC
     // latency, render animations or exhibit any other non-deterministic
     // behavior that could result in differences in the screenshots uploaded to
     // Gold.
-    await this.page.setCookie(
-        {url: this.baseUrl, name: 'puppeteer', value: 'true'});
+    await testBed.page.setCookie(
+      { url: testBed.baseUrl, name: 'puppeteer', value: 'true' },
+    );
   });
 
-  afterEach(async function() {
-    await this.page.close();
+  afterEach(async () => {
+    await testBed.page.close();
   });
+
+  return testBed;
 };
 
 /**
@@ -153,21 +161,21 @@ exports.startDemoPageServer = async () => {
   // Quiet down the CleanWebpackPlugin.
   // TODO(lovisolo): Move this change to the Pulito repo.
   configuration
-      .plugins
-      .filter(p => p.constructor.name === 'CleanWebpackPlugin')
-      .forEach(p => p.options.verbose = false);
+    .plugins
+    .filter((p) => p.constructor.name === 'CleanWebpackPlugin')
+    .forEach((p) => p.options.verbose = false);
 
   // This is equivalent to running "npx webpack-dev-server" on the terminal.
   const middleware = webpackDevMiddleware(webpack(configuration), {
-    logLevel: 'warn',  // Do not print summary on startup.
+    logLevel: 'warn', // Do not print summary on startup.
   });
-  await new Promise(resolve => middleware.waitUntilValid(resolve));
+  await new Promise((resolve) => middleware.waitUntilValid(resolve));
 
   // Start an HTTP server on a random, unused port. Serve the above middleware.
   const app = express();
   app.use(configuration.output.publicPath, middleware); // Serve on /dist.
   let server;
-  await new Promise(resolve => { server = app.listen(0, resolve); });
+  await new Promise((resolve) => { server = app.listen(0, resolve); });
 
   return {
     // Base URL for the demo page server.
@@ -176,8 +184,8 @@ exports.startDemoPageServer = async () => {
     // Call this function to shut down the HTTP server after tests are finished.
     stopDemoPageServer: async () => {
       await Promise.all([
-        new Promise(resolve => middleware.close(resolve)),
-        new Promise(resolve => server.close(resolve))
+        new Promise((resolve) => middleware.close(resolve)),
+        new Promise((resolve) => server.close(resolve)),
       ]);
     },
   };
@@ -190,8 +198,6 @@ exports.startDemoPageServer = async () => {
  * @param {string} testName Test name, e.g. 'foo-bar_specific-component'.
  * @return {Promise}
  */
-exports.takeScreenshot =
-    (handle, testName) =>
-        handle.screenshot({
-          path: path.join(exports.outputDir(), `${testName}.png`)
-        });
+exports.takeScreenshot = (handle, testName) => handle.screenshot({
+  path: path.join(exports.outputDir(), `${testName}.png`),
+});

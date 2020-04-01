@@ -14,12 +14,13 @@ describe('util', async () => {
   afterEach(async () => { await page.close(); });
 
   describe('addEventListenersToPuppeteerPage', () => {
-    let server, testPageUrl;
+    let server;
+    let testPageUrl;
 
     beforeEach(async () => {
       // Start an HTTP server on a random, unused port.
       const app = express();
-      await new Promise(resolve => { server = app.listen(0, resolve); });
+      await new Promise((resolve) => { server = app.listen(0, resolve); });
       testPageUrl = `http://localhost:${server.address().port}/`;
 
       // Serve a test page that triggers various custom events.
@@ -73,24 +74,23 @@ describe('util', async () => {
     it('renders test page correctly', async () => {
       await page.goto(testPageUrl);
       expect(await page.$eval('h1', (el) => el.innerText))
-          .to.equal('Hello, world!');
+        .to.equal('Hello, world!');
       expect(await page.$eval('p', (el) => el.innerText))
-          .to.equal('I am just a test page.');
+        .to.equal('I am just a test page.');
     });
 
     it('catches events in the right order', async () => {
       // Add event listeners.
       const eventNames = [
-          'alpha-event',
-          'beta-event',
-          'gamma-event',
-          // We purposefully add a listener for ignored-event, but we won't try
-          // to catch any such events. This is to test that uncaught events do
-          // not interfere with the events we're trying to catch.
-          'ignored-event'
+        'alpha-event',
+        'beta-event',
+        'gamma-event',
+        // We purposefully add a listener for ignored-event, but we won't try
+        // to catch any such events. This is to test that uncaught events do
+        // not interfere with the events we're trying to catch.
+        'ignored-event',
       ];
-      const eventPromise =
-          await addEventListenersToPuppeteerPage(page, eventNames);
+      const eventPromise = await addEventListenersToPuppeteerPage(page, eventNames);
 
       // We will collect the Event object details in the order they are caught.
       const eventsInOrder = [];
@@ -103,13 +103,13 @@ describe('util', async () => {
       // We create event promises in an arbitrary order to test that this has no
       // effect in the order that events are caught.
       const allEventsPromise = Promise.all([
-          trackCaughtOrder(eventPromise('gamma-event')),
-          trackCaughtOrder(eventPromise('alpha-event')),
-          trackCaughtOrder(eventPromise('gamma-event')),
-          trackCaughtOrder(eventPromise('beta-event')),
-          trackCaughtOrder(eventPromise('gamma-event')),
-          trackCaughtOrder(eventPromise('beta-event')),
-          trackCaughtOrder(eventPromise('beta-event')),
+        trackCaughtOrder(eventPromise('gamma-event')),
+        trackCaughtOrder(eventPromise('alpha-event')),
+        trackCaughtOrder(eventPromise('gamma-event')),
+        trackCaughtOrder(eventPromise('beta-event')),
+        trackCaughtOrder(eventPromise('gamma-event')),
+        trackCaughtOrder(eventPromise('beta-event')),
+        trackCaughtOrder(eventPromise('beta-event')),
       ]);
 
       await page.goto(testPageUrl);
@@ -137,18 +137,18 @@ describe('util', async () => {
     });
 
     it('fails if event promise function is called with unknown event',
-        async () => {
-          const eventPromise =
-              await addEventListenersToPuppeteerPage(page, ['foo-event']);
-          expect(() => eventPromise('invalid-event'))
-              .to.throw('no event listener for "invalid-event"');
-    });
+      async () => {
+        const eventPromise = await addEventListenersToPuppeteerPage(page, ['foo-event']);
+        expect(() => eventPromise('invalid-event'))
+          .to.throw('no event listener for "invalid-event"');
+      });
   });
 
   describe('startDemoPageServer', () => {
-    let baseUrl, stopDemoPageServer;
+    let baseUrl;
+    let stopDemoPageServer;
     before(async () => {
-      ({baseUrl, stopDemoPageServer} = await startDemoPageServer());
+      ({ baseUrl, stopDemoPageServer } = await startDemoPageServer());
     });
     after(async () => { await stopDemoPageServer(); });
 
@@ -164,6 +164,6 @@ describe('util', async () => {
       // This demo page contains three instances of corpus-selector-sk.
       await page.goto(`${baseUrl}/dist/corpus-selector-sk.html`);
       expect(await page.$$('corpus-selector-sk')).to.have.length(3);
-    })
+    });
   });
 });
