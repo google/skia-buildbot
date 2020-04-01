@@ -1,44 +1,15 @@
 package repo_manager
 
 import (
-	"bytes"
 	"context"
-	"errors"
-	"fmt"
-	"io/ioutil"
 	"net/http"
-	"os"
-	"path"
-	"path/filepath"
-	"regexp"
-	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/autoroll/go/repo_manager/child"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/util"
-)
-
-const (
-	ftReadmePath         = "third_party/freetype/README.chromium"
-	ftReadmeVersionTmpl  = "%sVersion: %s"
-	ftReadmeRevisionTmpl = "%sRevision: %s"
-
-	ftIncludeSrc  = "include/freetype/config"
-	ftIncludeDest = "third_party/freetype/include/freetype-custom-config"
-)
-
-var (
-	ftReadmeVersionRegex  = regexp.MustCompile(fmt.Sprintf(ftReadmeVersionTmpl, "(?m)^", ".*"))
-	ftReadmeRevisionRegex = regexp.MustCompile(fmt.Sprintf(ftReadmeRevisionTmpl, "(?m)^", ".*"))
-
-	ftIncludesToMerge = []string{
-		"ftoption.h",
-		"ftconfig.h",
-	}
+	"go.skia.org/infra/go/skerr"
 )
 
 // FreeTypeRepoManagerConfig provides configuration for FreeTypeRepoManager.
@@ -51,165 +22,23 @@ func (c *FreeTypeRepoManagerConfig) NoCheckout() bool {
 	return false
 }
 
-// freeTypeRepoManager is a RepoManager which rolls FreeType in DEPS and updates
-// header files and README.chromium.
-type freetypeRepoManager struct {
-	*noCheckoutDEPSRepoManager
-	localChildRepo *git.Repo
-}
-
 // NewFreeTypeRepoManager returns a RepoManager instance which rolls FreeType
 // in DEPS and updates header files and README.chromium.
-func NewFreeTypeRepoManager(ctx context.Context, c *FreeTypeRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
-	ncrm, err := NewNoCheckoutDEPSRepoManager(ctx, &c.NoCheckoutDEPSRepoManagerConfig, reg, workdir, g, recipeCfgFile, serverURL, client, cr, local)
+func NewFreeTypeRepoManager(ctx context.Context, c *FreeTypeRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
+	if err := c.Validate(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	parentCfg, childCfg, err := splitNoCheckoutDEPSConfig(c.NoCheckoutDEPSRepoManagerConfig)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
-	localChildRepo, err := git.NewRepo(ctx, c.ChildRepo, workdir)
+	parentRM, err := parent.NewFreeTypeParent(ctx, parentCfg, reg, workdir, client, serverURL)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
-	rv := &freetypeRepoManager{
-		localChildRepo:            localChildRepo,
-		noCheckoutDEPSRepoManager: ncrm.(*noCheckoutDEPSRepoManager),
-	}
-	rv.noCheckoutDEPSRepoManager.noCheckoutRepoManager.createRoll = rv.createRoll
-	rv.noCheckoutDEPSRepoManager.noCheckoutRepoManager.updateHelper = rv.updateHelper
-	return rv, nil
-}
-
-// Perform a three-way merge for this header file in a temporary dir. Adds the
-// new contents to the changes map.
-func (rm *freetypeRepoManager) mergeInclude(ctx context.Context, include, from, to, baseCommit string, changes map[string]string) error {
-	wd, err := ioutil.TempDir("", "")
+	childRM, err := child.NewGitiles(ctx, childCfg, reg, client)
 	if err != nil {
-		return err
+		return nil, skerr.Wrap(err)
 	}
-	defer util.RemoveAll(wd)
-
-	gd := git.GitDir(wd)
-	_, err = gd.Git(ctx, "init")
-
-	// Obtain the current version of the file in the parent repo.
-	parentHeader := path.Join(ftIncludeDest, include)
-	dest := filepath.Join(wd, include)
-	var buf bytes.Buffer
-	if err := rm.parentRepo.ReadFileAtRef(ctx, parentHeader, baseCommit, &buf); err != nil {
-		return err
-	}
-	oldParentContents := buf.String()
-	if err != nil {
-		return err
-	}
-	if err := ioutil.WriteFile(dest, buf.Bytes(), os.ModePerm); err != nil {
-		return err
-	}
-	if _, err := gd.Git(ctx, "add", dest); err != nil {
-		return err
-	}
-	if _, err := gd.Git(ctx, "commit", "-m", "fake"); err != nil {
-		return err
-	}
-
-	// Obtain the old version of the file in the child repo.
-	ftHeader := path.Join(ftIncludeSrc, include)
-	oldChildContents, err := rm.localChildRepo.GetFile(ctx, ftHeader, from)
-	if err != nil {
-		return err
-	}
-	oldPath := filepath.Join(wd, "old")
-	if err := ioutil.WriteFile(oldPath, []byte(oldChildContents), os.ModePerm); err != nil {
-		return err
-	}
-
-	// Obtain the new version of the file in the child repo.
-	newChildContents, err := rm.localChildRepo.GetFile(ctx, ftHeader, to)
-	if err != nil {
-		return err
-	}
-	newPath := filepath.Join(wd, "new")
-	if err := ioutil.WriteFile(newPath, []byte(newChildContents), os.ModePerm); err != nil {
-		return err
-	}
-
-	// Perform the merge.
-	if _, err := gd.Git(ctx, "merge-file", dest, oldPath, newPath); err != nil {
-		return err
-	}
-
-	// Read the resulting contents.
-	newParentContents, err := ioutil.ReadFile(dest)
-	if err != nil {
-		return err
-	}
-	if string(newParentContents) != string(oldParentContents) {
-		changes[parentHeader] = string(newParentContents)
-	}
-	return nil
-}
-
-// See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *freetypeRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string, baseCommit string) (string, map[string]string, error) {
-	commitMsg, changes, err := rm.noCheckoutDEPSRepoManager.createRoll(ctx, from, to, rolling, serverURL, cqExtraTrybots, emails, baseCommit)
-	if err != nil {
-		return "", nil, err
-	}
-
-	// Update README.chromium.
-	ftVersion, err := rm.localChildRepo.Git(ctx, "describe", "--long", to.Id)
-	if err != nil {
-		return "", nil, err
-	}
-	ftVersion = strings.TrimSpace(ftVersion)
-	var buf bytes.Buffer
-	if err := rm.parentRepo.ReadFileAtRef(ctx, ftReadmePath, baseCommit, &buf); err != nil {
-		return "", nil, err
-	}
-	oldReadmeContents := buf.String()
-	newReadmeContents := ftReadmeVersionRegex.ReplaceAllString(oldReadmeContents, fmt.Sprintf(ftReadmeVersionTmpl, "", ftVersion))
-	newReadmeContents = ftReadmeRevisionRegex.ReplaceAllString(newReadmeContents, fmt.Sprintf(ftReadmeRevisionTmpl, "", to.Id))
-	if newReadmeContents != oldReadmeContents {
-		changes[ftReadmePath] = newReadmeContents
-	}
-
-	// Merge includes.
-	for _, include := range ftIncludesToMerge {
-		if err := rm.mergeInclude(ctx, include, from.Id, to.Id, baseCommit, changes); err != nil {
-			return "", nil, err
-		}
-	}
-
-	// Check modules.cfg. Give up if it has changed.
-	diff, err := rm.localChildRepo.Git(ctx, "diff", "--name-only", git.LogFromTo(from.Id, to.Id))
-	if err != nil {
-		return "", nil, err
-	}
-	if strings.Contains(diff, "modules.cfg") {
-		return "", nil, errors.New("modules.cfg has been modified; cannot roll automatically.")
-	}
-
-	return commitMsg, changes, nil
-}
-
-// See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *freetypeRepoManager) updateHelper(ctx context.Context, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
-	lastRollRev, tipRev, notRolledRevs, err := rm.noCheckoutDEPSRepoManager.updateHelper(ctx, parentRepo, baseCommit)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	if err := rm.localChildRepo.Update(ctx); err != nil {
-		return nil, nil, nil, err
-	}
-	return lastRollRev, tipRev, notRolledRevs, nil
-}
-
-// See documentation for RepoManager interface.
-func (r *freetypeRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
-	r.repoMtx.RLock()
-	defer r.repoMtx.RUnlock()
-	details, err := r.localChildRepo.Details(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
+	return newParentChildRepoManager(ctx, parentRM, childRM)
 }
