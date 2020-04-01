@@ -36,7 +36,7 @@
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
     "transitiveDeps": {
-      "external/spirv-headers": "src/third_party/spirv-headers/src"
+      "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers": ["DEPS", "DEPS"]
     }
   },
   "cqExtraTrybots": [
