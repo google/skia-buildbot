@@ -13,9 +13,7 @@ Examples of such tests might include:
    2. Perform some basic assertions on the structure of the webpage to make sure
       it loads correctly.
    3. Grab screenshots.
-   4. Upload those screenshots to the Skia Infra Gold instance.
-      <!-- TODO(lovisolo): Set up a Gold instance for Skia Infra.
-                           Add a link to it here. -->
+   4. Upload those screenshots to the [Skia Infra Gold](https://skia-infra-gold.skia.org/) instance.
 
  - Integration tests. Example steps:
    1. Fire up a Go web server configured to use fake/mock instances of its
