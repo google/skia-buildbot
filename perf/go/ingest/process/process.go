@@ -14,10 +14,13 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
-	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/ingest/parser"
 	"go.skia.org/infra/perf/go/ingestevents"
 	"google.golang.org/api/option"
+)
+
+const (
+	gitRefreshDuration = time.Minute
 )
 
 // sendPubSubEvent sends the unencoded params and paramset found in a single
@@ -68,7 +71,7 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 
 	var pubSubClient *pubsub.Client
 	if instanceConfig.IngestionConfig.FileIngestionTopicName != "" {
-		ts, err := auth.NewDefaultTokenSource(false, pubsub.ScopePubSub)
+		ts, err := auth.NewDefaultTokenSource(local, pubsub.ScopePubSub)
 		if err != nil {
 			sklog.Fatalf("Failed to create TokenSource: %s", err)
 		}
@@ -80,7 +83,7 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 	}
 
 	// New file.Source.
-	source, err := builders.NewSourceFromConfig(ctx, instanceConfig, false)
+	source, err := builders.NewSourceFromConfig(ctx, instanceConfig, local)
 	ch, err := source.Start(ctx)
 	if err != nil {
 		return skerr.Wrap(err)
@@ -90,17 +93,18 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 	p := parser.New(instanceConfig)
 
 	// New TraceStore.
-	store, err := builders.NewTraceStoreFromConfig(ctx, false, instanceConfig)
+	store, err := builders.NewTraceStoreFromConfig(ctx, local, instanceConfig)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
 
-	// New gitinfo.GitInfo.
+	// New perfgit.Git.
 	sklog.Infof("Cloning repo %q into %q", instanceConfig.GitRepoConfig.URL, instanceConfig.GitRepoConfig.Dir)
-	g, err := perfgit.New(ctx, local, instanceConfig)
+	g, err := builders.NewPerfGitFromConfig(ctx, local, instanceConfig)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+	g.StartBackgroundPolling(ctx, gitRefreshDuration)
 
 	sklog.Info("Waiting on files to process.")
 	for f := range ch {
