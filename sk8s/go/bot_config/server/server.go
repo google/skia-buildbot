@@ -1,0 +1,138 @@
+// Package server is the core functionality of bot_config.
+package server
+
+import (
+	"encoding/json"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/sk8s/go/bot_config/adb"
+)
+
+const (
+	serverReadTimeout  = 5 * time.Minute
+	serverWriteTimeout = 5 * time.Minute
+)
+
+// Server is the core functionality of bot_config.
+type Server struct {
+	r *mux.Router
+}
+
+// NewServer returns a new instance of Server.
+func NewServer() (*Server, error) {
+	r := mux.NewRouter()
+	ret := &Server{
+		r: r,
+	}
+
+	r.HandleFunc("/get_state", ret.getState).Methods("POST")
+	r.HandleFunc("/get_settings", ret.getSettings).Methods("GET")
+	r.HandleFunc("/get_dimensions", ret.getDimensions).Methods("POST")
+	r.Use(
+		httputils.HealthzAndHTTPS,
+		httputils.LoggingGzipRequestResponse,
+	)
+
+	return ret, nil
+}
+
+// getState implements get_state in bot_config.py.
+//
+// POST a JSON dictionary that is returned from os_utilities.get_state(), and will
+// emit an updated JSON dictionary on return.
+//
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/swarming_bot/// config/bot_config.py
+func (s *Server) getState(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	dict := map[string]interface{}{}
+	if err := json.NewDecoder(r.Body).Decode(&dict); err != nil {
+		httputils.ReportError(w, err, "Failed to decode settings", http.StatusInternalServerError)
+		return
+	}
+
+	// TODO(jcgregorio) Hook this up to Machine State server.
+	delete(dict, "quarantined")
+
+	dict["sk_rack"] = os.Getenv("MY_RACK_NAME")
+	if err := json.NewEncoder(w).Encode(dict); err != nil {
+		sklog.Errorf("Failed to encode state: %s", err)
+	}
+}
+
+type isolated struct {
+	Size int64 `json:"size"`
+}
+
+type caches struct {
+	Isolated isolated `json:"isolated"`
+}
+
+type settings struct {
+	Caches caches `json:"caches"`
+}
+
+// getSettings implements get_settings for bot_config.py
+//
+// Will emit a JSON dictionary on GET with the settings.
+//
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/swarming_bot/// config/bot_config.py
+func (s *Server) getSettings(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	dict := settings{
+		caches{
+			isolated{
+				Size: 8 * 1024 * 1024 * 1024,
+			},
+		},
+	}
+	if err := json.NewEncoder(w).Encode(dict); err != nil {
+		sklog.Errorf("Failed to encode settings: %s", err)
+	}
+}
+
+// getDimensions implements get_dimensions in bot_config.py.
+//
+// Call this and pass in a JSON dictionary that is returned from
+// os_utilities.get_dimensions(). This command will emit an updated JSON dictionary
+// in the response.
+//
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/swarming_bot/config/bot_config.py
+func (s *Server) getDimensions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	dim := map[string][]string{}
+	if err := json.NewDecoder(r.Body).Decode(&dim); err != nil {
+		sklog.Errorf("Failed to decode JSON input: %s", err)
+	}
+	dim["zone"] = []string{"us", "us-skolo", "us-skolo-1"}
+	dim["inside_docker"] = []string{"1", "containerd"}
+
+	var err error
+	dim, err = adb.DimensionsFromProperties(r.Context(), dim)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to read dimension from device.", http.StatusInternalServerError)
+	}
+	if err := json.NewEncoder(w).Encode(dim); err != nil {
+		sklog.Errorf("Failed to encode JSON output: %s", err)
+	}
+}
+
+// Start the http server. This function never returns.
+func (s *Server) Start(port string) {
+	// Start serving.
+	sklog.Info("Ready to serve.")
+	server := &http.Server{
+		Addr:           port,
+		Handler:        s.r,
+		ReadTimeout:    serverReadTimeout,
+		WriteTimeout:   serverWriteTimeout,
+		MaxHeaderBytes: 1 << 20,
+	}
+	sklog.Fatal(server.ListenAndServe())
+}
