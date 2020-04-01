@@ -30,6 +30,35 @@ CREATE TABLE IF NOT EXISTS TraceValues (
     PRIMARY KEY (trace_id, commit_number)
 );
 
+CREATE TABLE IF NOT EXISTS Commits (
+  commit_number INTEGER PRIMARY KEY,
+  git_hash TEXT UNIQUE NOT NULL,
+  commit_time INTEGER, -- And not author_time.
+  author TEXT,  -- Name <email>
+  subject TEXT
+);
+
+INSERT OR IGNORE INTO Commits (commit_number, git_hash, commit_time, author, subject)
+VALUES
+  (0, "586101c79b0490b50623e76c71a5fd67d8d92b08", 1158764756, "unknown@example.com", "initial directory structure"),
+  (1, "0f87cd842dd46205d5252c35da6d2c869f3d2e98", 1158767262, "unknown@example.com", "initial code checkin"),
+  (2, "48ede9b432a3c3d62835a1400a9ed347b4a93024", 1163013888, "unknown@example.org", "Add LICENSE");
+
+-- Get most recent git hash.
+SELECT git_hash FROM Commits
+ORDER BY commit_number DESC
+LIMIT 1;
+
+-- Get commit_number from git hash.
+SELECT commit_number FROM Commits
+WHERE git_hash='0f87cd842dd46205d5252c35da6d2c869f3d2e98';
+
+-- Get commit_number from time.
+SELECT commit_number FROM Commits
+WHERE commit_time <= 1163013888
+ORDER BY commit_number DESC
+LIMIT 1;
+
 INSERT OR IGNORE INTO SourceFiles (source_file)
 VALUES
   ("gs://perf-bucket/2020/02/08/11/testdata.json"),

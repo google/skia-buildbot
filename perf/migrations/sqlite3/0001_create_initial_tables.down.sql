@@ -5,3 +5,4 @@ DROP TABLE TraceValues;
 DROP TABLE Shortcuts;
 DROP TABLE Alerts;
 DROP TABLE Regressions;
+DROP TABLE Commits;

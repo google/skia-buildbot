@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/perf/go/alerts/alertstest"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file/dirsource"
+	"go.skia.org/infra/perf/go/git/gittest"
 	"go.skia.org/infra/perf/go/regression/regressiontest"
 	"go.skia.org/infra/perf/go/shortcut/shortcuttest"
 	perfsql "go.skia.org/infra/perf/go/sql"
@@ -278,4 +279,85 @@ func TestNewShortcutStoreFromConfig_Sqlite3_InvalidDatastoreTypeIsError(t *testi
 	_, err := NewShortcutStoreFromConfig(instanceConfig)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), invalidDataStoreType)
+}
+
+func TestNewPerfGitFromConfig_ErrIfConnectionStringNotSet(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, _, _, _, _, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	defer cleanup()
+
+	instanceConfig.DataStoreConfig.DataStoreType = config.GCPDataStoreType
+
+	_, err := NewPerfGitFromConfig(ctx, false, instanceConfig)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "connection_string")
+}
+
+func TestNewPerfGitFromConfig_GCP_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, _, _, hashes, _, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	defer cleanup()
+
+	instanceConfig.DataStoreConfig.DataStoreType = config.GCPDataStoreType
+
+	// Create temp file to use for connection string.
+	tmpfile, err := ioutil.TempFile("", "newperfgit")
+	require.NoError(t, err)
+	require.NoError(t, tmpfile.Close())
+	defer func() {
+		assert.NoError(t, os.Remove(tmpfile.Name()))
+	}()
+	instanceConfig.DataStoreConfig.ConnectionString = tmpfile.Name()
+
+	g, err := NewPerfGitFromConfig(ctx, false, instanceConfig)
+	require.NoError(t, err)
+
+	gitHash, err := g.GitHashFromCommitNumber(ctx, types.CommitNumber(2))
+	require.NoError(t, err)
+	assert.Equal(t, hashes[2], gitHash)
+}
+
+func TestNewPerfGitFromConfig_SQLite3_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, _, _, hashes, _, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	defer cleanup()
+
+	instanceConfig.DataStoreConfig.DataStoreType = config.SQLite3DataStoreType
+
+	// Create temp file to use for connection string.
+	tmpfile, err := ioutil.TempFile("", "newperfgit")
+	require.NoError(t, err)
+	require.NoError(t, tmpfile.Close())
+	defer func() {
+		assert.NoError(t, os.Remove(tmpfile.Name()))
+	}()
+	instanceConfig.DataStoreConfig.ConnectionString = tmpfile.Name()
+
+	g, err := NewPerfGitFromConfig(ctx, false, instanceConfig)
+	require.NoError(t, err)
+
+	gitHash, err := g.GitHashFromCommitNumber(ctx, types.CommitNumber(2))
+	require.NoError(t, err)
+	assert.Equal(t, hashes[2], gitHash)
+}
+
+func TestNewPerfGitFromConfig_CockroachDB_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, _, _, hashes, _, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	defer cleanup()
+
+	instanceConfig.DataStoreConfig.DataStoreType = config.CockroachDBDataStoreType
+
+	// Get cockroachdb for its connection string.
+	_, cockroackdbInstanceConfig, cockroackDBCleanup := newCockroachDBConfigForTest(t)
+	defer cockroackDBCleanup()
+
+	instanceConfig.DataStoreConfig.ConnectionString = cockroackdbInstanceConfig.DataStoreConfig.ConnectionString
+
+	g, err := NewPerfGitFromConfig(ctx, false, instanceConfig)
+	require.NoError(t, err)
+
+	gitHash, err := g.GitHashFromCommitNumber(ctx, types.CommitNumber(2))
+	require.NoError(t, err)
+	assert.Equal(t, hashes[2], gitHash)
 }

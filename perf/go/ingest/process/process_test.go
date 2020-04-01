@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"sync"
 	"testing"
 	"time"
@@ -66,6 +67,7 @@ func TestStart_IngestDemoRepoWithSQLite3TraceStore_Success(t *testing.T) {
 	// Get tmp dir to use for repo checkout.
 	tmpDir, err := ioutil.TempDir("", "ingest-process")
 	require.NoError(t, err)
+	tmpDir = filepath.Join(tmpDir, "repo")
 
 	defer func() {
 		err = os.Remove(tmpfile.Name())
