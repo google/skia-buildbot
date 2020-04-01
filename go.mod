@@ -138,7 +138,9 @@ require (
 	gopkg.in/ini.v1 v1.55.0 // indirect
 	gopkg.in/olivere/elastic.v5 v5.0.85
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
+	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.2.8
+	gotest.tools/v3 v3.0.2
 	k8s.io/apimachinery v0.18.0
 	k8s.io/client-go v0.18.0
 )
