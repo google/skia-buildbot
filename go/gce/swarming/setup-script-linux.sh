@@ -5,7 +5,7 @@ set -e
 # Install packages.
 
 sudo apt-get --assume-yes install build-essential mercurial libosmesa-dev libexpat1-dev clang llvm \
-  poppler-utils netpbm gcc-multilib g++-multilib openjdk-8-jdk-headless libxi-dev python-django \
+  poppler-utils netpbm gcc-multilib g++-multilib libxi-dev python-django \
   libc++-dev libc++abi-dev gperf bison usbutils
 
 # Catapult requires a lsb-release file even if it's empty.
@@ -38,7 +38,7 @@ sudo ln -sfn /usr/lib/i386-linux-gnu/libX11.so.6.3.0 /usr/lib/i386-linux-gnu/lib
 # NodeJS / NPM.
 # --location basically means follow redirects.
 curl --silent --location https://deb.nodesource.com/setup_6.x | sudo bash -
-sudo apt-get --assume-yes install nodejs
+sudo apt-get --assume-yes install nodejs npm
 sudo npm install --global npm@3.10.9
 sudo npm install --global bower@1.6.5
 sudo npm install --global polylint@2.10.4
