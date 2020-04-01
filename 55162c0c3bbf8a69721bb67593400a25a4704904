@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "cfa2599e_49722b05",
+        "filename": "perf/go/git/git.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-01T14:36:54Z",
+      "side": 1,
+      "message": "FWIW: I also appreciate having an interface because it makes it easier to skim what the thing does when reviewing or stumbling upon new code for the first time (easier than going through 600 LOC in this case here).",
+      "parentUuid": "7088b60d_374bbef1",
+      "range": {
+        "startLine": 218,
+        "startChar": 9,
+        "endLine": 218,
+        "endChar": 15
+      },
+      "revId": "55162c0c3bbf8a69721bb67593400a25a4704904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a44f10a_c4cfe6e6",
         "filename": "perf/go/git/git.go",
         "patchSetId": 10
