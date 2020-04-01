@@ -147,6 +147,7 @@ func getCipdMock(ctx context.Context) *mocks.CIPDClient {
 		InstanceID:  GITHUB_CIPD_NOT_ROLLED_1,
 	}
 	cipdClient.On("ResolveVersion", ctx, GITHUB_CIPD_ASSET_NAME, GITHUB_CIPD_ASSET_TAG).Return(head, nil).Once()
+	cipdMockDescribe(ctx, cipdClient, GITHUB_CIPD_NOT_ROLLED_1)
 	cipdClient.On("ListInstances", ctx, GITHUB_CIPD_ASSET_NAME).Return(&instanceEnumeratorImpl{}, nil).Once()
 	cipdMockDescribe(ctx, cipdClient, GITHUB_CIPD_LAST_ROLLED)
 	return cipdClient
@@ -166,7 +167,7 @@ func TestGithubCipdDEPSRepoManager(t *testing.T) {
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	mockCipd := getCipdMock(ctx)
-	rm.(*githubCipdDEPSRepoManager).CipdClient = mockCipd
+	rm.child.SetClientForTesting(mockCipd)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
@@ -190,7 +191,7 @@ func TestCreateNewGithubCipdDEPSRoll(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
-	rm.(*githubCipdDEPSRepoManager).CipdClient = getCipdMock(ctx)
+	rm.child.SetClientForTesting(getCipdMock(ctx))
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
@@ -214,12 +215,12 @@ func TestRanPreUploadStepsGithubCipdDEPS(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
-	rm.(*githubCipdDEPSRepoManager).CipdClient = getCipdMock(ctx)
+	rm.child.SetClientForTesting(getCipdMock(ctx))
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
 	ran := false
-	rm.(*githubCipdDEPSRepoManager).preUploadSteps = []PreUploadStep{
+	rm.preUploadSteps = []PreUploadStep{
 		func(context.Context, []string, *http.Client, string) error {
 			ran = true
 			return nil
@@ -246,13 +247,13 @@ func TestErrorPreUploadStepsGithubCipdDEPS(t *testing.T) {
 	cfg.ParentRepo = parent.RepoUrl()
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
-	rm.(*githubCipdDEPSRepoManager).CipdClient = getCipdMock(ctx)
+	rm.child.SetClientForTesting(getCipdMock(ctx))
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
 	ran := false
 	expectedErr := errors.New("Expected error")
-	rm.(*githubCipdDEPSRepoManager).preUploadSteps = []PreUploadStep{
+	rm.preUploadSteps = []PreUploadStep{
 		func(context.Context, []string, *http.Client, string) error {
 			ran = true
 			return expectedErr
