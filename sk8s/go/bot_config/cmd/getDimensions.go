@@ -30,7 +30,11 @@ https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swar
 		dim["zone"] = []string{"us", "us-skolo", "us-skolo-1"}
 		dim["inside_docker"] = []string{"1", "containerd"}
 
-		dim = adb.DimensionsFromProperties(context.Background(), cmd.ErrOrStderr(), dim)
+		var err error
+		dim, err = adb.DimensionsFromProperties(context.Background(), dim)
+		if err != nil {
+			return fmt.Errorf("Failed to get properties from device: %s", err)
+		}
 		if err := json.NewEncoder(os.Stdout).Encode(dim); err != nil {
 			return fmt.Errorf("Failed to encode JSON output: %s", err)
 		}

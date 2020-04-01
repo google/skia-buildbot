@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
@@ -98,11 +99,10 @@ var (
 // DimensionsFromProperties tries to match android.py get_dimensions.
 //
 // https://cs.chromium.org/chromium/infra/luci/appengine/swarming/swarming_bot/api/platforms/android.py?l=137
-func DimensionsFromProperties(ctx context.Context, errout io.Writer, dim map[string][]string) map[string][]string {
+func DimensionsFromProperties(ctx context.Context, dim map[string][]string) (map[string][]string, error) {
 	prop, err := Properties(ctx)
 	if err != nil {
-		_, _ = fmt.Fprintf(errout, "Error: Failed to get properties: %s\n", err)
-		return dim
+		return dim, skerr.Wrapf(err, "Failed to get properties.")
 	}
 	for dimName, propNames := range dimensionProperties {
 		for _, propName := range propNames {
@@ -122,14 +122,16 @@ func DimensionsFromProperties(ctx context.Context, errout io.Writer, dim map[str
 	}
 
 	// Add the first character of each device_os to the dimension.
-	os_list := append([]string{}, dim["device_os"]...)
+	osList := append([]string{}, dim["device_os"]...)
 	for _, os := range dim["device_os"] {
 		if os[:1] != "" && strings.ToUpper(os[:1]) == os[:1] {
-			os_list = append(os_list, os[:1])
+			osList = append(osList, os[:1])
 		}
 	}
-	sort.Strings(os_list)
-	dim["device_os"] = os_list
+	sort.Strings(osList)
+	if len(osList) > 0 {
+		dim["device_os"] = osList
+	}
 
 	// Tweaks the 'product.brand' prop to be a little more readable.
 	flavors := dim["device_os_flavor"]
@@ -139,10 +141,12 @@ func DimensionsFromProperties(ctx context.Context, errout io.Writer, dim map[str
 			flavors[i] = "android"
 		}
 	}
-	dim["device_os_flavor"] = flavors
+	if len(flavors) > 0 {
+		dim["device_os_flavor"] = flavors
+	}
 
 	dim["android_devices"] = []string{"1"}
 	dim["os"] = []string{"Android"}
 
-	return dim
+	return dim, nil
 }
