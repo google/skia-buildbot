@@ -39,14 +39,14 @@ exclude (
 )
 
 require (
-	cloud.google.com/go v0.55.0
+	cloud.google.com/go v0.56.0
 	cloud.google.com/go/bigtable v1.3.0
 	cloud.google.com/go/datastore v1.1.0
 	cloud.google.com/go/firestore v1.2.0
 	cloud.google.com/go/logging v1.0.0
 	cloud.google.com/go/pubsub v1.3.1
 	cloud.google.com/go/storage v1.6.0
-	contrib.go.opencensus.io/exporter/stackdriver v0.13.0
+	contrib.go.opencensus.io/exporter/stackdriver v0.13.1
 	github.com/GeertJohan/go.rice v1.0.0
 	github.com/Jeffail/gabs/v2 v2.5.0
 	github.com/Masterminds/goutils v1.1.0 // indirect
@@ -54,7 +54,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.30.0 // indirect
+	github.com/aws/aws-sdk-go v1.30.1 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/danjacques/gofslock v0.0.0-20191023191349-0a45f885bc37 // indirect
@@ -80,7 +80,7 @@ require (
 	github.com/gorilla/csrf v1.6.2
 	github.com/gorilla/mux v1.7.4
 	github.com/gorilla/securecookie v1.1.1
-	github.com/hashicorp/go-multierror v1.0.0
+	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/huandu/xstrings v1.3.0 // indirect
 	github.com/imdario/mergo v0.3.9 // indirect
@@ -92,6 +92,7 @@ require (
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/maruel/subcommands v0.0.0-20200206125935-de1d40e70d4b // indirect
 	github.com/maruel/ut v1.0.1 // indirect
+	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.2.2 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
@@ -101,6 +102,7 @@ require (
 	github.com/otiai10/copy v1.1.1 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.6.0 // indirect
+	github.com/peterh/liner v1.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/procfs v0.0.10 // indirect
@@ -122,16 +124,15 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20200331030153-44e3a25ca700
+	go.chromium.org/luci v0.0.0-20200401031031-05ba3decd1b6
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
-	golang.org/x/sys v0.0.0-20200327173247-9dae0f8f5775 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20200331025713-a30bf2db82d4
+	golang.org/x/tools v0.0.0-20200331202046-9d5940d49312
 	google.golang.org/api v0.20.0
-	google.golang.org/genproto v0.0.0-20200330113809-af700f360a68
+	google.golang.org/genproto v0.0.0-20200331122359-1ee6d9798940
 	google.golang.org/grpc v1.28.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/fsnotify.v1 v1.4.7
@@ -141,6 +142,7 @@ require (
 	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/apimachinery v0.18.0
 	k8s.io/client-go v0.18.0
+	rsc.io/sampler v1.99.99 // indirect
 )
 
 go 1.13
