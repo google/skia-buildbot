@@ -215,13 +215,21 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 	} else {
 		cmd = append(cmd, "--revision", fmt.Sprintf("%s@%s", projectName, rs.Revision))
 	}
+
+	// Copy the global git config file into the temporary directory.
+	// bot_update modifies this file, which causes problems when there are
+	// multiple instances running at once.
 	if err := util.WithReadFile(filepath.Join(os.Getenv("HOME"), ".gitconfig"), func(r io.Reader) error {
 		return util.WithWriteFile(filepath.Join(tmp, ".gitconfig"), func(w io.Writer) error {
 			_, err := io.Copy(w, r)
 			return err
 		})
 	}); err != nil {
-		return nil, skerr.Wrapf(err, "Failed to copy git config")
+		if os.IsNotExist(skerr.Unwrap(err)) {
+			sklog.Warningf("Failed to copy git config: %s", err)
+		} else {
+			return nil, skerr.Wrapf(err, "Failed to copy git config")
+		}
 	}
 	t := metrics2.NewTimer("gclient_sync", map[string]string{
 		"patchRepo": patchRepo,
