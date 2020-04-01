@@ -12,7 +12,9 @@ import (
 	"strings"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/isolate"
@@ -81,7 +83,7 @@ func SwarmingInit(serviceAccountFile string) error {
 	}
 
 	// Authenticated HTTP client.
-	ts, err := auth.NewDefaultTokenSource(*local, swarming.AUTH_SCOPE)
+	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, swarming.AUTH_SCOPE)
 	if err != nil {
 		return fmt.Errorf("Problem setting up default token source: %s", err)
 	}
@@ -225,9 +227,9 @@ func GetIsolateDetails(ctx context.Context, serviceAccountFile string, propertie
 func GetIsolateHash(ctx context.Context, pool, isolateDep string) (string, error) {
 	isolateClient := *GetIsolateClient(pool)
 	isolateTask := &isolate.Task{
-		BaseDir:     path.Join(*resourcesDir, "isolates"),
+		BaseDir:     path.Join(*isolatesDir),
 		Blacklist:   []string{},
-		IsolateFile: path.Join(*resourcesDir, "isolates", "leasing.isolate"),
+		IsolateFile: path.Join(*isolatesDir, "leasing.isolate"),
 	}
 	if isolateDep != "" {
 		isolateTask.Deps = []string{isolateDep}
