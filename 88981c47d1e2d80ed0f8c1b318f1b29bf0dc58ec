@@ -25,6 +25,53 @@
     },
     {
       "key": {
+        "uuid": "3c5e9a53_be70589d",
+        "filename": "autoroll/config/spirv-tools-angle.json",
+        "patchSetId": 9
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-01T18:28:58Z",
+      "side": 1,
+      "message": "Yes, I think that\u0027s a good idea.",
+      "parentUuid": "eb3026e5_89f00bbb",
+      "range": {
+        "startLine": 40,
+        "startChar": 91,
+        "endLine": 40,
+        "endChar": 106
+      },
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63572e73_b0787b85",
+        "filename": "autoroll/go/repo_manager/child/gitiles.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-01T18:28:58Z",
+      "side": 1,
+      "message": "What does this do again?",
+      "range": {
+        "startLine": 53,
+        "startChar": 11,
+        "endLine": 53,
+        "endChar": 23
+      },
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6502f755_e197170e",
         "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager.go",
         "patchSetId": 9
@@ -71,6 +118,74 @@
     },
     {
       "key": {
+        "uuid": "355240e7_fb57c929",
+        "filename": "autoroll/go/repo_manager/parent/commit_msg.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-01T18:28:58Z",
+      "side": 1,
+      "message": "To me a commit message is determined by a combination of parent+child. i.e. some things are required because of the parent and some optional things are done because of the child. That\u0027s why some rollers have their own commit messages in the configs.\n\nI guess we can revisit things during your TODO in parent:\n\t// TODO(borenet): These fields are not applicable to some rollers, but\n\t// they\u0027re needed for CommitMsgVars. We should probably revisit how we\n\t// build commit messages.",
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b188dfb9_a06505cf",
+        "filename": "autoroll/go/repo_manager/parent/gitiles.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-01T18:28:58Z",
+      "side": 1,
+      "message": "We will likely end up with a few child/xyz and parent/xyz situations. And there might be some commonality between them (as children and parents typically have). Maybe we will need a repo_manager/common eventually.\nLike here GitilesConfig looks similar between child and parent, It could have a CommonGitilesConfig with it\u0027s own Validate.",
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee79b463_9e52acfc",
+        "filename": "autoroll/go/repo_manager/parent/gitiles.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-01T18:28:58Z",
+      "side": 1,
+      "message": "Nit: Add documentation here similar to child/gitiles.go ?",
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "227db41c_c3c91d03",
+        "filename": "autoroll/go/repo_manager/parent/gitiles.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-01T18:28:58Z",
+      "side": 1,
+      "message": "It\u0027s a little strange to have Gerrit specific things like UnsetWIP / SetChangeLabels / CreateNewGerritRoll in parent/gitiles.go.\nThey will soon be needed by other parents that deal with gerrit. Maybe belong in a parent/gerrit_util.go or something better.",
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0229bec0_ce4972ae",
         "filename": "autoroll/go/repo_manager/parent/gitiles_deps.go",
         "patchSetId": 9
@@ -88,6 +203,64 @@
         "endLine": 62,
         "endChar": 52
       },
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17a13f95_ed11be17",
+        "filename": "autoroll/go/repo_manager/parent/gitiles_deps.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-01T18:28:58Z",
+      "side": 1,
+      "message": "Making things flexible SGTM.",
+      "parentUuid": "0229bec0_ce4972ae",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 52
+      },
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa84a372_0109c0e1",
+        "filename": "autoroll/go/repo_manager/parent_child.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-01T18:28:58Z",
+      "side": 1,
+      "message": "Should this file be parent_child_repo_manager? to make it obvious what it is and to distinguish from the other things in this directory (pre_upload_steps, etc).",
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b093144_a2e3a543",
+        "filename": "autoroll/go/repo_manager/parent_child.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-01T18:28:58Z",
+      "side": 1,
+      "message": "What is the eventual plan for this?:\nEventually there will only be newParentChildRepoManager (no other repo managers in go/repo_manager/)",
       "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
