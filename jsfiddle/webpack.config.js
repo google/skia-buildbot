@@ -1,20 +1,20 @@
 const commonBuilder = require('pulito');
 const { resolve } = require('path');
-const CopyWebpackPlugin = require('copy-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = (env, argv) => {
-  let config = commonBuilder(env, argv, __dirname);
+  const config = commonBuilder(env, argv, __dirname);
   // Make all CSS/JS files appear at the /res location.
-  config.output.publicPath='/res/';
+  config.output.publicPath = '/res/';
   config.plugins.push(
     new CopyWebpackPlugin([
-        { from: 'build/canvaskit/canvaskit.wasm' },
-        { from: 'build/pathkit/pathkit.wasm' },
-        { from: 'node_modules/@webcomponents/custom-elements/custom-elements.min.js' },
-    ])
+      { from: resolve(__dirname, 'build/canvaskit/canvaskit.wasm') },
+      { from: resolve(__dirname, 'build/pathkit/pathkit.wasm') },
+      { from: resolve(__dirname, 'node_modules/@webcomponents/custom-elements/custom-elements.min.js') },
+    ]),
   );
   config.node = {
-    fs: 'empty'
+    fs: 'empty',
   };
-  return config
-}
+  return config;
+};
