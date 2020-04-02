@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "6071d0e8_fb81ce1e",
+        "filename": "autoroll/config/spirv-tools-angle.json",
+        "patchSetId": 9
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-02T12:09:22Z",
+      "side": 1,
+      "message": "Added a TransitiveDepConfig struct with {Id, ChildPath, ParentPath}.",
+      "parentUuid": "3c5e9a53_be70589d",
+      "range": {
+        "startLine": 40,
+        "startChar": 91,
+        "endLine": 40,
+        "endChar": 106
+      },
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "63572e73_b0787b85",
         "filename": "autoroll/go/repo_manager/child/gitiles.go",
         "patchSetId": 9
@@ -69,6 +93,30 @@
       "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8aa6815_70618f45",
+        "filename": "autoroll/go/repo_manager/child/gitiles.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-02T12:09:22Z",
+      "side": 1,
+      "message": "c.Branch is a template which is filled in dynamically at every tick when reg.Update() is called.  Registering the template informs the registry that this template needs to be filled in.",
+      "parentUuid": "63572e73_b0787b85",
+      "range": {
+        "startLine": 53,
+        "startChar": 11,
+        "endLine": 53,
+        "endChar": 23
+      },
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -95,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "624f08c9_61aecf36",
+        "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-02T12:09:22Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6502f755_e197170e",
+      "range": {
+        "startLine": 75,
+        "startChar": 5,
+        "endLine": 75,
+        "endChar": 30
+      },
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0efc2ed5_c1d7518b",
         "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager_test.go",
         "patchSetId": 9
@@ -115,6 +187,30 @@
       "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d6e2482_50eb8893",
+        "filename": "autoroll/go/repo_manager/no_checkout_deps_repo_manager_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-02T12:09:22Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0efc2ed5_c1d7518b",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 20
+      },
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -152,6 +248,24 @@
     },
     {
       "key": {
+        "uuid": "4ab5f67d_c9ca9e4d",
+        "filename": "autoroll/go/repo_manager/parent/gitiles.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-02T12:09:22Z",
+      "side": 1,
+      "message": "Agreed, I can see wanting at least both gitiles and github elements in common.  I refactored the gitiles elements into go/repo_manager/gitiles_common.  FTR, my plan is to break up the existing tests into the parent and child sections, and to add testutils for the mocks into the parent, child, and common packages, in a subsequent change.",
+      "parentUuid": "b188dfb9_a06505cf",
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ee79b463_9e52acfc",
         "filename": "autoroll/go/repo_manager/parent/gitiles.go",
         "patchSetId": 9
@@ -169,6 +283,24 @@
     },
     {
       "key": {
+        "uuid": "58cdf8de_12c2fe7d",
+        "filename": "autoroll/go/repo_manager/parent/gitiles.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-02T12:09:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ee79b463_9e52acfc",
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "227db41c_c3c91d03",
         "filename": "autoroll/go/repo_manager/parent/gitiles.go",
         "patchSetId": 9
@@ -183,6 +315,24 @@
       "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3949a579_29594b80",
+        "filename": "autoroll/go/repo_manager/parent/gitiles.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-02T12:09:22Z",
+      "side": 1,
+      "message": "I kind of lumped gitiles and gerrit together, but you\u0027re right, there are rollers with local git checkouts which use Gerrit.  Moved into go/repo_manager/gerrit_common.",
+      "parentUuid": "227db41c_c3c91d03",
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -233,6 +383,30 @@
     },
     {
       "key": {
+        "uuid": "ffefc13b_07f57fc7",
+        "filename": "autoroll/go/repo_manager/parent/gitiles_deps.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-02T12:09:22Z",
+      "side": 1,
+      "message": "Cool, will do in a future CL.",
+      "parentUuid": "17a13f95_ed11be17",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 52
+      },
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aa84a372_0109c0e1",
         "filename": "autoroll/go/repo_manager/parent_child.go",
         "patchSetId": 9
@@ -250,6 +424,24 @@
     },
     {
       "key": {
+        "uuid": "30b3986e_1cff778d",
+        "filename": "autoroll/go/repo_manager/parent_child.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-02T12:09:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aa84a372_0109c0e1",
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3b093144_a2e3a543",
         "filename": "autoroll/go/repo_manager/parent_child.go",
         "patchSetId": 9
@@ -264,6 +456,24 @@
       "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "31d147cb_ffed4726",
+        "filename": "autoroll/go/repo_manager/parent_child.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-02T12:09:22Z",
+      "side": 1,
+      "message": "Pretty much, yes.  I\u0027m planning to leave the RepoManager interface around.  I think all of the existing implementations can be split up into Parent and Child, but I can imagine having a situation where the parent and child are so closely related that it just doesn\u0027t make sense to split them, so I\u0027ll leave that possibility open to avoid having to jump through unnecessary hoops.",
+      "parentUuid": "3b093144_a2e3a543",
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
