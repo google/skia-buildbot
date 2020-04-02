@@ -231,6 +231,24 @@
     },
     {
       "key": {
+        "uuid": "07bba810_68cd7fb4",
+        "filename": "autoroll/go/repo_manager/parent/commit_msg.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-02T12:43:50Z",
+      "side": 1,
+      "message": "Yeah, I think I\u0027m going to move this back into the repo_manager package with a slight reorganization for CommitMsgVars.  Subsequent change.",
+      "parentUuid": "355240e7_fb57c929",
+      "revId": "88981c47d1e2d80ed0f8c1b318f1b29bf0dc58ec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b188dfb9_a06505cf",
         "filename": "autoroll/go/repo_manager/parent/gitiles.go",
         "patchSetId": 9
