@@ -126,6 +126,8 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		rm, err = repo_manager.NewGithubCipdDEPSRepoManager(ctx, c.GithubCipdDEPSRepoManager, reg, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.GithubDEPSRepoManager != nil {
 		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, reg, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
+	} else if c.GitilesCIPDDEPSRepoManager != nil {
+		rm, err = repo_manager.NewGitilesCIPDDEPSRepoManager(ctx, c.GitilesCIPDDEPSRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.NoCheckoutDEPSRepoManager != nil {
 		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.SemVerGCSRepoManager != nil {

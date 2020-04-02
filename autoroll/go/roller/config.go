@@ -185,6 +185,7 @@ type AutoRollerConfig struct {
 	GithubRepoManager            *repo_manager.GithubRepoManagerConfig            `json:"githubRepoManager,omitempty"`
 	GithubCipdDEPSRepoManager    *repo_manager.GithubCipdDEPSRepoManagerConfig    `json:"githubCipdDEPSRepoManager,omitempty"`
 	GithubDEPSRepoManager        *repo_manager.GithubDEPSRepoManagerConfig        `json:"githubDEPSRepoManager,omitempty"`
+	GitilesCIPDDEPSRepoManager   *repo_manager.GitilesCIPDDEPSRepoManagerConfig   `json:"gitilesCIPDDEPSRepoManager,omitempty"`
 	Google3RepoManager           *Google3FakeRepoManagerConfig                    `json:"google3,omitempty"`
 	NoCheckoutDEPSRepoManager    *repo_manager.NoCheckoutDEPSRepoManagerConfig    `json:"noCheckoutDEPSRepoManager,omitempty"`
 	SemVerGCSRepoManager         *repo_manager.SemVerGCSRepoManagerConfig         `json:"semVerGCSRepoManager,omitempty"`
@@ -334,6 +335,11 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 	}
 	if c.GithubDEPSRepoManager != nil {
 		rm = append(rm, c.GithubDEPSRepoManager)
+	}
+	if c.GitilesCIPDDEPSRepoManager != nil {
+		// TODO(borenet): De-duplicate the Gerrit config.
+		c.GitilesCIPDDEPSRepoManager.Gerrit = c.Gerrit
+		rm = append(rm, c.GitilesCIPDDEPSRepoManager)
 	}
 	if c.Google3RepoManager != nil {
 		rm = append(rm, c.Google3RepoManager)
