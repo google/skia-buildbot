@@ -15,10 +15,10 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
+	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
@@ -67,7 +67,7 @@ type Running struct {
 type Requests struct {
 	cidl           *cid.CommitIDLookup
 	dfBuilder      dataframe.DataFrameBuilder
-	vcs            vcsinfo.VCS
+	perfGit        *perfgit.Git
 	paramsProvider regression.ParamsetProvider // TODO build the paramset from dfBuilder.
 	shortcutStore  shortcut.Store
 	mutex          sync.Mutex
@@ -75,13 +75,13 @@ type Requests struct {
 }
 
 // New create a new dryrun Request processor.
-func New(cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, paramsProvider regression.ParamsetProvider, vcs vcsinfo.VCS) *Requests {
+func New(cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, paramsProvider regression.ParamsetProvider, perfGit *perfgit.Git) *Requests {
 	ret := &Requests{
 		cidl:           cidl,
 		dfBuilder:      dfBuilder,
 		paramsProvider: paramsProvider,
 		shortcutStore:  shortcutStore,
-		vcs:            vcs,
+		perfGit:        perfGit,
 		inFlight:       map[string]*Running{},
 	}
 	// Start a go routine to clean up old dry runs.
@@ -173,7 +173,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			domain := domainFromUIDomain(req.Domain)
-			regression.RegressionsForAlert(ctx, &req.Config, domain, d.paramsProvider(), d.shortcutStore, cb, d.vcs, d.cidl, d.dfBuilder, nil)
+			regression.RegressionsForAlert(ctx, &req.Config, domain, d.paramsProvider(), d.shortcutStore, cb, d.perfGit, d.cidl, d.dfBuilder, nil)
 			running.mutex.Lock()
 			defer running.mutex.Unlock()
 			running.Finished = true
