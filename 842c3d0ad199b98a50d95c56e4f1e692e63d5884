@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b44e487e_0309e4a5",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-02T17:07:41Z",
+      "side": 1,
+      "message": "Do you think it would be better organized with a go/repo_manager/common dir?\nOtherwise we will have a bunch of stuff in go/repo_manager/...\nMaybe can be cleaner in repo_manager with:\nparent_child_repo_manager.go\nparent/...\nchild/...\ncommon/...\npre_upload_steps.go\ncommit_msg.go",
+      "revId": "842c3d0ad199b98a50d95c56e4f1e692e63d5884",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
