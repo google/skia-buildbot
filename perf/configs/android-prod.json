@@ -2,7 +2,7 @@
   "URL": "https://android-master-perf.skia.org",
   "data_store_config": {
     "datastore_type": "gcp",
-    "connection_string": "",
+    "connection_string": "/tmp/git-sqlite.db",
     "tile_size": 8192,
     "project": "skia-public",
     "instance": "production",
@@ -15,7 +15,8 @@
       "source_type": "gcs",
       "project": "skia-public",
       "topic": "perf-ingestion-android-production",
-      "sources": ["gs://skia-perf/android-master-ingest"]
+      "sources": ["gs://skia-perf/android-master-ingest"],
+      "reject_if_name_matches": "/tx_log/"
     },
     "branches": [],
     "file_ingestion_pubsub_topic_name": "perf-ingestion-complete-android-production"

@@ -44,9 +44,6 @@ type DataStoreConfig struct {
 	// determine how the rest of the DataStoreConfig values are interpreted.
 	DataStoreType DataStoreType `json:"datastore_type"`
 
-	// ConnectionString is only used for datastores of the type 'sqlite3' and
-	// 'cockroachdb'.
-	//
 	// If the datastore type is 'sqlite3' this value is a filename of the
 	// database.
 	//
@@ -54,6 +51,9 @@ type DataStoreConfig struct {
 	// string of the form "postgres://...". See
 	// https://www.cockroachlabs.com/docs/stable/connection-parameters.html for
 	// more details.
+	//
+	// If the datastore type is 'gcs' then this value is a filename where
+	// the sqlite database that caches git information should be stored.
 	//
 	// In addition, for 'cockroachdb' databases, the database name given in the
 	// connection string must exist and the user given in the connection string
@@ -118,6 +118,14 @@ type SourceConfig struct {
 	// have a single entry and be populated with a local filesystem directory
 	// name.
 	Sources []string `json:"sources"`
+
+	// RejectIfNameMatches is a regex. If it matches the file.Name then the file
+	// will be ignored. Leave the empty string to disable rejection.
+	RejectIfNameMatches string `json:"reject_if_name_matches"`
+
+	// AcceptIfNameMatches is a regex. If it matches the file.Name the file will
+	// be processed. Leave the empty string to accept all files.
+	AcceptIfNameMatches string `json:"accept_if_name_matches"`
 }
 
 // IngestionConfig is the configuration for how source files are ingested into
