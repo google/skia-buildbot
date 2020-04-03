@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
+	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/shortcut"
 )
 
@@ -14,8 +14,8 @@ import (
 type RegressionDetectionResponseProcessor func(*RegressionDetectionRequest, []*RegressionDetectionResponse)
 
 // Run takes a RegressionDetectionRequest and runs it to completion before returning the results.
-func Run(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) ([]*RegressionDetectionResponse, error) {
-	proc, err := newProcess(ctx, req, vcs, cidl, dfBuilder, shortcutStore, responseProcessor)
+func Run(ctx context.Context, req *RegressionDetectionRequest, perfGit *perfgit.Git, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) ([]*RegressionDetectionResponse, error) {
+	proc, err := newProcess(ctx, req, perfGit, cidl, dfBuilder, shortcutStore, responseProcessor)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to start new regression detection process: %s", err)
 	}
