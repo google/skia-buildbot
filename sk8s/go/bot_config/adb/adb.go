@@ -2,83 +2,72 @@
 package adb
 
 import (
-	"bytes"
 	"context"
-	"fmt"
-	"io"
+	"os/exec"
 	"regexp"
 	"sort"
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
 var (
-	// proplines is a regex that matches the output of adb shell getprop across
-	// multiple lines. The output looks like:
+	// proplines is a regex that matches the output of `adb shell getprop`. Which
+	// has output that looks like:
 	//
 	// [ro.product.manufacturer]: [asus]
 	// [ro.product.model]: [Nexus 7]
 	// [ro.product.name]: [razor]
 	proplines = regexp.MustCompile(`(?m)^\[(?P<key>.+)\]:\s*\[(?P<value>.*)\].*$`)
+
+	// execCommandContext captures exec.CommandContext, which makes testing easier.
+	execCommandContext = exec.CommandContext
 )
 
-// Properties returns a map[string]string from running "adb shell getprop".
-func Properties(ctx context.Context) (map[string]string, error) {
-	stdout := &bytes.Buffer{}
-	stderr := &bytes.Buffer{}
+// AdbImpl handles talking to the adb process.
+type AdbImpl struct{}
+
+// New returns a new Adb.
+func New() AdbImpl {
+	return AdbImpl{}
+}
+
+// Adb is the interface that AdbImpl provides.
+type Adb interface {
+
+	// Properties returns a map[string]string from running "adb shell getprop".
+	Properties(ctx context.Context) (map[string]string, error)
+
+	// DimensionsFromProperties mirrors android.py get_dimensions, adding new
+	// properties to the passed in 'dim' based on the values it receives from
+	// calling Properties.
+	//
+	// https://cs.chromium.org/chromium/infra/luci/appengine/swarming/swarming_bot/api/platforms/android.py?l=137
+	DimensionsFromProperties(ctx context.Context, dim map[string][]string) (map[string][]string, error)
+}
+
+// Properties implements the Adb interface.
+func (a AdbImpl) Properties(ctx context.Context) (map[string]string, error) {
 	ret := map[string]string{}
 
-	cmd := exec.Command{
-		Name:    "adb",
-		Args:    []string{"shell", "getprop"},
-		Stdout:  stdout,
-		Stderr:  stderr,
-		Timeout: 5 * time.Second,
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	// Note we use execCommandContext, not exec.CommandContext.
+	cmd := execCommandContext(ctx, "adb", "shell", "getprop")
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Err: %q", string(b))
 	}
-	if err := exec.Run(ctx, &cmd); err != nil {
-		return nil, fmt.Errorf("Failed to run adb shell getprop %q: %s", stderr.String(), err)
-	}
-	lines := stdout.String()
-	matches := proplines.FindAllStringSubmatch(lines, -1)
+
+	matches := proplines.FindAllStringSubmatch(string(b), -1)
 	for _, line := range matches {
 		ret[line[1]] = line[2]
 	}
 
 	return ret, nil
-}
-
-var (
-	// packageVersionRe is a regex that matches the output of adb shell dumpsys package
-	// for the versionName, which looks like:
-	//
-	// versionName=8.1.86 (2287566-436)
-	packageVersionRe = regexp.MustCompile(`(?m)^\s*versionName=(?P<name>[^\s]+)`)
-)
-
-// packageVersion return the version of an installed package in a string slice,
-// returning an empty slice if the command fails.
-func packageVersion(ctx context.Context, errout io.Writer, pkg string) []string {
-	stdout := &bytes.Buffer{}
-	stderr := &bytes.Buffer{}
-
-	cmd := exec.Command{
-		Name:    "adb",
-		Args:    []string{"shell", "dumpsys", "package", pkg},
-		Stdout:  stdout,
-		Stderr:  stderr,
-		Timeout: 5 * time.Second,
-	}
-	if err := exec.Run(ctx, &cmd); err != nil {
-		_, _ = fmt.Fprintf(errout, "Error: Failed to run adb dumpsys package %q: %s", stderr.String(), err)
-	}
-	versionMatch := packageVersionRe.FindAllStringSubmatch(stdout.String(), 1)
-	if len(versionMatch) != 1 {
-		return []string{}
-	}
-	return []string{versionMatch[0][1]}
 }
 
 var (
@@ -95,14 +84,11 @@ var (
 	}
 )
 
-// DimensionsFromProperties tries to match android.py get_dimensions.
-//
-// https://cs.chromium.org/chromium/infra/luci/appengine/swarming/swarming_bot/api/platforms/android.py?l=137
-func DimensionsFromProperties(ctx context.Context, errout io.Writer, dim map[string][]string) map[string][]string {
-	prop, err := Properties(ctx)
+// DimensionsFromProperties implements the Adb interface.
+func (a AdbImpl) DimensionsFromProperties(ctx context.Context, dim map[string][]string) (map[string][]string, error) {
+	prop, err := a.Properties(ctx)
 	if err != nil {
-		_, _ = fmt.Fprintf(errout, "Error: Failed to get properties: %s\n", err)
-		return dim
+		return dim, skerr.Wrapf(err, "Failed to get properties.")
 	}
 	for dimName, propNames := range dimensionProperties {
 		for _, propName := range propNames {
@@ -122,14 +108,16 @@ func DimensionsFromProperties(ctx context.Context, errout io.Writer, dim map[str
 	}
 
 	// Add the first character of each device_os to the dimension.
-	os_list := append([]string{}, dim["device_os"]...)
+	osList := append([]string{}, dim["device_os"]...)
 	for _, os := range dim["device_os"] {
 		if os[:1] != "" && strings.ToUpper(os[:1]) == os[:1] {
-			os_list = append(os_list, os[:1])
+			osList = append(osList, os[:1])
 		}
 	}
-	sort.Strings(os_list)
-	dim["device_os"] = os_list
+	sort.Strings(osList)
+	if len(osList) > 0 {
+		dim["device_os"] = osList
+	}
 
 	// Tweaks the 'product.brand' prop to be a little more readable.
 	flavors := dim["device_os_flavor"]
@@ -139,10 +127,15 @@ func DimensionsFromProperties(ctx context.Context, errout io.Writer, dim map[str
 			flavors[i] = "android"
 		}
 	}
-	dim["device_os_flavor"] = flavors
+	if len(flavors) > 0 {
+		dim["device_os_flavor"] = flavors
+	}
 
 	dim["android_devices"] = []string{"1"}
 	dim["os"] = []string{"Android"}
 
-	return dim
+	return dim, nil
 }
+
+// Assert that AdbImpl implements the Adb interface.
+var _ Adb = AdbImpl{}
