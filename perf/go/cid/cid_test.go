@@ -1,16 +1,14 @@
 package cid
 
 import (
-	"context"
-	"errors"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/testutils"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/go/vcsinfo/mocks"
+	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/git/gittest"
+	perfsql "go.skia.org/infra/perf/go/sql"
 )
 
 func TestCommitID(t *testing.T) {
@@ -18,75 +16,7 @@ func TestCommitID(t *testing.T) {
 	c := &CommitID{
 		Offset: 51,
 	}
-	assert.Equal(t, "master-000001.bdb", c.Filename())
 	assert.Equal(t, "master-000051", c.ID())
-}
-
-func TestFromHash(t *testing.T) {
-	unittest.SmallTest(t)
-
-	const goodHash = "fe4a4029a080bc955e9588d05a6cd9eb490845d4"
-	const badHash = "not-a-valid-hash"
-
-	ctx := context.Background()
-	vcs := &mocks.VCS{}
-	defer vcs.AssertExpectations(t)
-
-	vcs.On("Details", testutils.AnyContext, goodHash, true).Return(
-		&vcsinfo.LongCommit{
-			ShortCommit: &vcsinfo.ShortCommit{
-				Hash:    goodHash,
-				Subject: "Really big code change",
-			},
-			Timestamp: time.Now().Add(-time.Second * 10).Round(time.Second),
-			Branches:  map[string]bool{"master": true},
-		}, nil)
-	vcs.On("IndexOf", testutils.AnyContext, goodHash).Return(0, nil)
-
-	commitID, err := FromHash(ctx, vcs, goodHash)
-	assert.NoError(t, err)
-
-	expected := &CommitID{
-		Offset: 0,
-	}
-	assert.Equal(t, expected, commitID)
-
-	vcs.On("Details", testutils.AnyContext, badHash, true).Return(nil, errors.New("not found"))
-
-	commitID, err = FromHash(ctx, vcs, badHash)
-	assert.Error(t, err)
-	assert.Nil(t, commitID)
-}
-
-func TestParseLogLine(t *testing.T) {
-	unittest.SmallTest(t)
-	ctx := context.Background()
-	s := "1476870603 e8f0a7b986f1e5583c9bc162efcdd92fd6430549 joel.liang@arm.com Generate Signed Distance Field directly from vector path"
-	var index int = 3
-	entry, err := parseLogLine(ctx, s, &index, nil)
-	assert.NoError(t, err)
-	expected := &cacheEntry{
-		author:  "joel.liang@arm.com",
-		subject: "Generate Signed Distance Field directly from vector path",
-		hash:    "e8f0a7b986f1e5583c9bc162efcdd92fd6430549",
-		ts:      1476870603,
-	}
-	assert.Equal(t, expected, entry)
-	assert.Equal(t, 4, index)
-
-	// No subject.
-	s = "1476870603 e8f0a7b986f1e5583c9bc162efcdd92fd6430549 joel.liang@arm.com"
-	entry, err = parseLogLine(ctx, s, &index, nil)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Failed to parse parts")
-	assert.Equal(t, 4, index)
-
-	// Invalid timestamp.
-	s = "1476870ZZZ e8f0a7b986f1e5583c9bc162efcdd92fd6430549 joel.liang@arm.com Generate Signed Distance Field directly from vector path"
-	entry, err = parseLogLine(ctx, s, &index, nil)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "Can't parse timestamp")
-	assert.Equal(t, 4, index)
 }
 
 func TestFromID(t *testing.T) {
@@ -180,4 +110,51 @@ func Test_urlFromParts(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCommitIDLookup_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx, db, _, hashes, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	defer cleanup()
+	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
+	require.NoError(t, err)
+	commitIdLookup := New(ctx, g, "https://skia.googlesource.com/skia", instanceConfig)
+
+	details, err := commitIdLookup.Lookup(ctx, []*CommitID{
+		&CommitID{Offset: 0},
+		&CommitID{Offset: 2},
+		&CommitID{Offset: 5},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, hashes[0], details[0].Hash)
+	assert.Equal(t, hashes[2], details[1].Hash)
+	assert.Equal(t, hashes[5], details[2].Hash)
+
+	// Message contains info relative to the current time, so we'll test it individually.
+	assert.Contains(t, details[0].Message, hashes[0][:7])
+
+	// Then clear it to test the rest of the struct.
+	details[0].Message = ""
+	assert.Equal(t, &CommitDetail{
+		CommitID:  CommitID{Offset: 0},
+		Author:    "test <test@google.com>",
+		Message:   "",
+		URL:       "https://skia.googlesource.com/skia/+/4a8d7d91336c17ab0dd2713f1001bc496ed7fd13",
+		Hash:      "4a8d7d91336c17ab0dd2713f1001bc496ed7fd13",
+		Timestamp: gittest.StartTime.Unix(),
+	}, details[0])
+}
+
+func TestCommitIDLookup_ErrOnBadCommit(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	defer cleanup()
+	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
+	require.NoError(t, err)
+	commitIdLookup := New(ctx, g, "https://skia.googlesource.com/skia", instanceConfig)
+
+	_, err = commitIdLookup.Lookup(ctx, []*CommitID{
+		&CommitID{Offset: -1},
+	})
+	require.Error(t, err)
 }
