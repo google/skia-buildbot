@@ -65,7 +65,6 @@ const _showRadio = (ele) => {
 };
 
 const template = (ele) => html`
-  <h2>Domain</h2>
   ${_showRadio(ele)}
   <div class=ranges>
     ${_request_type(ele)}
