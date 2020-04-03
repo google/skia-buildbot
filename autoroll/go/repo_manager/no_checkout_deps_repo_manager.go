@@ -79,15 +79,15 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 			return skerr.Fmt("ParentPath is required for TransitiveDeps")
 		}
 	}
-	_, _, err := splitNoCheckoutDEPSConfig(*c)
+	_, _, err := c.splitParentChild()
 	return skerr.Wrap(err)
 }
 
-// splitNoCheckoutDEPSConfig splits the NoCheckoutDEPSRepoManagerConfig into a
+// splitParentChild splits the NoCheckoutDEPSRepoManagerConfig into a
 // parent.GitilesDEPSConfig and a child.GitilesConfig.
 // TODO(borenet): Update the config format to directly define the parent
 // and child. We shouldn't need most of the New.*RepoManager functions.
-func splitNoCheckoutDEPSConfig(c NoCheckoutDEPSRepoManagerConfig) (parent.GitilesDEPSConfig, child.GitilesConfig, error) {
+func (c NoCheckoutDEPSRepoManagerConfig) splitParentChild() (parent.GitilesDEPSConfig, child.GitilesConfig, error) {
 	var childDeps, parentDeps map[string]string
 	if c.TransitiveDeps != nil {
 		childDeps = make(map[string]string, len(c.TransitiveDeps))
@@ -138,7 +138,7 @@ func NewNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	parentCfg, childCfg, err := splitNoCheckoutDEPSConfig(*c)
+	parentCfg, childCfg, err := c.splitParentChild()
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

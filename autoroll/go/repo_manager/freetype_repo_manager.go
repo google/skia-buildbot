@@ -28,7 +28,7 @@ func NewFreeTypeRepoManager(ctx context.Context, c *FreeTypeRepoManagerConfig, r
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	parentCfg, childCfg, err := splitNoCheckoutDEPSConfig(c.NoCheckoutDEPSRepoManagerConfig)
+	parentCfg, childCfg, err := c.NoCheckoutDEPSRepoManagerConfig.splitParentChild()
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
