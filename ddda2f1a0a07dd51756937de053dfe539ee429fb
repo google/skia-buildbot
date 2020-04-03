@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "763fb42a_562fea1a",
+        "filename": "autoroll/go/repo_manager/child/child.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-03T18:23:54Z",
+      "side": 1,
+      "message": "The name Sync here is confusing. I would think that it would sync the local view (what Update does above). If this downloads at given Revision to given destination then maybe it should be called Download/Checkout/Create/(something else)?",
+      "range": {
+        "startLine": 27,
+        "startChar": 1,
+        "endLine": 27,
+        "endChar": 5
+      },
+      "revId": "ddda2f1a0a07dd51756937de053dfe539ee429fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
