@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	// MAX_PARALLEL_PARAM_INDEX is the maxumum number of key=value pairs that
+	// maxParallelParamIndex is the maximum number of key=value pairs that
 	// can appear in a Query Plan.
-	MAX_PARALLEL_PARAM_INDEX = 200
+	maxParallelParamIndex = 200
 )
 
 // sizeOfPlan returns the number of key=value pairs in the ParamSet.
@@ -30,8 +30,8 @@ func sizeOfPlan(plan paramtools.ParamSet) int {
 // is too large, i.e. would generate too many concurrent queries to BigTable.
 func validatePlan(plan paramtools.ParamSet) error {
 	count := sizeOfPlan(plan)
-	if count > MAX_PARALLEL_PARAM_INDEX {
-		return fmt.Errorf("Plan is too large, found %d > %d key,value pairs.", count, MAX_PARALLEL_PARAM_INDEX)
+	if count > maxParallelParamIndex {
+		return fmt.Errorf("Plan is too large, found %d > %d key,value pairs.", count, maxParallelParamIndex)
 	}
 	return nil
 }

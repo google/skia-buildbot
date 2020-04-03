@@ -94,7 +94,7 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 
 	// Triage existing regression.
 	tr := regression.TriageStatus{
-		Status:  regression.POSITIVE,
+		Status:  regression.Positive,
 		Message: "bad",
 	}
 	err = store.TriageLow(ctx, c, "1", tr)
@@ -108,7 +108,7 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 	for key = range ranges {
 		break
 	}
-	assert.Equal(t, regression.POSITIVE, ranges[key].ByAlertID["1"].LowStatus.Status)
+	assert.Equal(t, regression.Positive, ranges[key].ByAlertID["1"].LowStatus.Status)
 
 	ranges, err = store.Range(ctx, 1, 3)
 	require.NoError(t, err)
@@ -145,7 +145,7 @@ func TriageNonExistentRegression(t *testing.T, store regression.Store) {
 	ctx, c := getTestVars()
 
 	tr := regression.TriageStatus{
-		Status:  regression.POSITIVE,
+		Status:  regression.Positive,
 		Message: "bad",
 	}
 	// Try triaging a regression that doesn't exist.

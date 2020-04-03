@@ -32,7 +32,7 @@ func newRow(rows Rows) []float32 {
 	}
 	ret := make([]float32, n, n)
 	for i := range ret {
-		ret[i] = vec32.MISSING_DATA_SENTINEL
+		ret[i] = vec32.MissingDataSentinel
 	}
 	return ret
 }

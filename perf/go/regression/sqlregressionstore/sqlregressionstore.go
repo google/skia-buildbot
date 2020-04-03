@@ -153,8 +153,8 @@ func (s *SQLRegressionStore) SetHigh(ctx context.Context, cid *cid.CommitDetail,
 			ret = true
 		}
 		r.High = high
-		if r.HighStatus.Status == regression.NONE {
-			r.HighStatus.Status = regression.UNTRIAGED
+		if r.HighStatus.Status == regression.None {
+			r.HighStatus.Status = regression.Untriaged
 		}
 	})
 	return ret, err
@@ -170,8 +170,8 @@ func (s *SQLRegressionStore) SetLow(ctx context.Context, cid *cid.CommitDetail, 
 			ret = true
 		}
 		r.Low = low
-		if r.LowStatus.Status == regression.NONE {
-			r.LowStatus.Status = regression.UNTRIAGED
+		if r.LowStatus.Status == regression.None {
+			r.LowStatus.Status = regression.Untriaged
 		}
 	})
 	return ret, err

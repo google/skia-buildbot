@@ -13,8 +13,10 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
-const NUM_WORKERS = 64
-const CHANNEL_BUFFER_SIZE = 10000
+const (
+	numWorkers        = 64
+	channelBufferSize = 10000
+)
 
 // request is what flows through the TraceSetBuilder pipeline.
 //
@@ -37,7 +39,7 @@ type mergeWorker struct {
 // newMergeWorker creates a mergeWorker and starts its go routine.
 func newMergeWorker(wg *sync.WaitGroup, size int) *mergeWorker {
 	m := &mergeWorker{
-		ch:       make(chan *request, CHANNEL_BUFFER_SIZE),
+		ch:       make(chan *request, channelBufferSize),
 		wg:       wg,
 		traceSet: types.TraceSet{},
 		paramSet: paramtools.ParamSet{},
@@ -96,7 +98,7 @@ func New(size int) *TraceSetBuilder {
 	}
 
 	// Build a pool of merge workers.
-	for i := 0; i < NUM_WORKERS; i++ {
+	for i := 0; i < numWorkers; i++ {
 		t.mergeWorkers = append(t.mergeWorkers, newMergeWorker(t.wg, size))
 	}
 
@@ -122,7 +124,7 @@ func (t *TraceSetBuilder) Add(traceMap map[int32]int32, traces types.TraceSet) {
 			traceMap: traceMap,
 			params:   params,
 		}
-		index := crc32.ChecksumIEEE([]byte(req.key)) % NUM_WORKERS
+		index := crc32.ChecksumIEEE([]byte(req.key)) % numWorkers
 		t.mergeWorkers[index].Process(req)
 	}
 }

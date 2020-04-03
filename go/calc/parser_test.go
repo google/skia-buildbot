@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	e        = vec32.MISSING_DATA_SENTINEL
+	e        = vec32.MissingDataSentinel
 	testRows = Rows{
 		",config=8888,os=Ubuntu12,": []float32{e, 1.234, e},
 		",config=gpu,os=Ubuntu12,":  []float32{e, 1.236, e},
@@ -110,7 +110,7 @@ func TestEvalNoModifyTile(t *testing.T) {
 	}
 	assert.Equal(t, 1, len(rows))
 	// Make sure we made a deep copy of the rows.
-	if got, want := testRows[",config=8888,os=Ubuntu12,"][0], vec32.MISSING_DATA_SENTINEL; got != want {
+	if got, want := testRows[",config=8888,os=Ubuntu12,"][0], vec32.MissingDataSentinel; got != want {
 		t.Errorf("Tile incorrectly modified: Got %v Want %v", got, want)
 	}
 	if got, want := rows["fill(,config=8888,os=Ubuntu12,)"][0], float32(1.234); got != want {

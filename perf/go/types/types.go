@@ -69,8 +69,8 @@ type RegressionDetectionGrouping string
 //
 // Update algo-select-sk if this enum is changed.
 const (
-	KMEANS_GROUPING  RegressionDetectionGrouping = "kmeans"  // Cluster traces using k-means clustering on their shapes.
-	STEPFIT_GROUPING RegressionDetectionGrouping = "stepfit" // Look at each trace individually and determine if it steps up or down.
+	KMeansGrouping  RegressionDetectionGrouping = "kmeans"  // Cluster traces using k-means clustering on their shapes.
+	StepFitGrouping RegressionDetectionGrouping = "stepfit" // Look at each trace individually and determine if it steps up or down.
 )
 
 // StepDetection are the different ways we can look at an individual trace, or a
@@ -79,35 +79,35 @@ const (
 type StepDetection string
 
 const (
-	// ORIGINAL_STEP is the original type of step detection. Note we leave as
+	// OriginalStep is the original type of step detection. Note we leave as
 	// empty string so we pick up the right default from old alerts.
-	ORIGINAL_STEP StepDetection = ""
+	OriginalStep StepDetection = ""
 
-	// ABSOLUTE_STEP is a step detection that looks for an absolute magnitude
+	// AbsoluteStep is a step detection that looks for an absolute magnitude
 	// change.
-	ABSOLUTE_STEP StepDetection = "absolute"
+	AbsoluteStep StepDetection = "absolute"
 
-	// PERCENT_STEP is a simple check if the step size is greater than some
+	// PercentStep is a simple check if the step size is greater than some
 	// percentage of the mean of the first half of the trace.
-	PERCENT_STEP StepDetection = "percent"
+	PercentStep StepDetection = "percent"
 
-	// COHEN_STEP uses Cohen's d method to detect a change. https://en.wikipedia.org/wiki/Effect_size#Cohen's_d
-	COHEN_STEP StepDetection = "cohen"
+	// CohenStep uses Cohen's d method to detect a change. https://en.wikipedia.org/wiki/Effect_size#Cohen's_d
+	CohenStep StepDetection = "cohen"
 )
 
 var (
 	// AllClusterAlgos is a list of all valid RegressionDetectionGroupings.
 	AllClusterAlgos = []RegressionDetectionGrouping{
-		KMEANS_GROUPING,
-		STEPFIT_GROUPING,
+		KMeansGrouping,
+		StepFitGrouping,
 	}
 
 	// AllStepDetections is a list of all valid StepDetections.
 	AllStepDetections = []StepDetection{
-		ORIGINAL_STEP,
-		ABSOLUTE_STEP,
-		PERCENT_STEP,
-		COHEN_STEP,
+		OriginalStep,
+		AbsoluteStep,
+		PercentStep,
+		CohenStep,
 	}
 )
 

@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/constants"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -24,11 +23,6 @@ import (
 // a real commit into the repo, or an event like running a trybot.
 type CommitID struct {
 	Offset int `json:"offset"` // The index number of the commit from beginning of time, or the index of the patch number in Reitveld.
-}
-
-// Filename returns a safe filename to be used as part of the underlying BoltDB tile name.
-func (c CommitID) Filename() string {
-	return fmt.Sprintf("%s-%06d.bdb", "master", c.Offset/constants.COMMITS_PER_TILE)
 }
 
 // ID returns a unique ID for the CommitID.
