@@ -72,7 +72,7 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 		return ret
 	}
 	// Only normalize the trace if doing ORIGINAL_STEP.
-	if stepDetection == types.ORIGINAL_STEP {
+	if stepDetection == types.OriginalStep {
 		trace = vec32.Dup(trace)
 		vec32.Norm(trace, stddevThreshold)
 	} else {
@@ -90,7 +90,7 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 	y0 := vec32.Mean(trace[:i])
 	y1 := vec32.Mean(trace[i:])
 
-	if stepDetection == types.ORIGINAL_STEP {
+	if stepDetection == types.OriginalStep {
 		// This is the original recipe step detection as described at
 		// https://bitworking.org/news/2014/11/detecting-benchmark-regressions
 		lse := float32(math.MaxFloat32)
@@ -107,11 +107,11 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 		} else {
 			regression = stepSize / lse
 		}
-	} else if stepDetection == types.ABSOLUTE_STEP {
+	} else if stepDetection == types.AbsoluteStep {
 		// A simple check if the step size is greater than some absolute value.
 		stepSize = (y0 - y1)
 		regression = stepSize
-	} else if stepDetection == types.PERCENT_STEP {
+	} else if stepDetection == types.PercentStep {
 		// A simple check if the step size is greater than some percentage of
 		// the mean of the first half of the trace.
 		if len(trace) > 0 {

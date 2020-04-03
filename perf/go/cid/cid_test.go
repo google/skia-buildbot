@@ -18,7 +18,6 @@ func TestCommitID(t *testing.T) {
 	c := &CommitID{
 		Offset: 51,
 	}
-	assert.Equal(t, "master-000001.bdb", c.Filename())
 	assert.Equal(t, "master-000051", c.ID())
 }
 

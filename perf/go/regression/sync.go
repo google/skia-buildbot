@@ -20,7 +20,7 @@ func Run(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinfo.VCS, 
 		return nil, fmt.Errorf("Failed to start new regression detection process: %s", err)
 	}
 	proc.Run()
-	if proc.state == PROCESS_ERROR {
+	if proc.state == ProcessError {
 		return nil, fmt.Errorf("Failed to complete regression detection: %s", proc.message)
 	}
 	return proc.Responses(), nil

@@ -27,13 +27,13 @@ import (
 )
 
 const (
-	// MAX_PARALLEL_RECEIVES is the maximum number of Go routines used when
+	// maxParallelReceives is the maximum number of Go routines used when
 	// receiving PubSub messages.
-	MAX_PARALLEL_RECEIVES = 1
+	maxParallelReceives = 1
 
-	// POLLING_CLUSTERING_DELAY is the time to wait between clustering runs, but
+	// pollingClusteringDelay is the time to wait between clustering runs, but
 	// only when not doing event driven regression detection.
-	POLLING_CLUSTERING_DELAY = 5 * time.Minute
+	pollingClusteringDelay = 5 * time.Minute
 )
 
 // ConfigProvider is a function that's called to return a slice of alerts.Config. It is passed to NewContinuous.
@@ -112,7 +112,7 @@ func NewContinuous(
 		current:         &Current{},
 		paramsProvider:  paramsProvider,
 		dfBuilder:       dfBuilder,
-		pollingDelay:    POLLING_CLUSTERING_DELAY,
+		pollingDelay:    pollingClusteringDelay,
 	}
 }
 
@@ -233,8 +233,8 @@ func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
 	}
 
 	// How many Go routines should be processing messages?
-	sub.ReceiveSettings.MaxOutstandingMessages = MAX_PARALLEL_RECEIVES
-	sub.ReceiveSettings.NumGoroutines = MAX_PARALLEL_RECEIVES
+	sub.ReceiveSettings.MaxOutstandingMessages = maxParallelReceives
+	sub.ReceiveSettings.NumGoroutines = maxParallelReceives
 
 	return sub, nil
 }

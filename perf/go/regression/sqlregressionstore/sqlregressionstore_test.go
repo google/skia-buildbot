@@ -83,7 +83,7 @@ func writeRead(t *testing.T, store *SQLRegressionStore) {
 	ctx := context.Background()
 	r := regression.NewRegression()
 	// Fill with data to ensure it round-trips.
-	r.HighStatus.Status = regression.NEGATIVE
+	r.HighStatus.Status = regression.Negative
 	r.HighStatus.Message = "not good"
 	err := store.write(ctx, expectedCommitNumber, expectedAlertID, r)
 	require.NoError(t, err)
@@ -96,7 +96,7 @@ func writeRead_OverwriteValueGetsUpdated(t *testing.T, store *SQLRegressionStore
 	ctx := context.Background()
 	r := regression.NewRegression()
 	// Fill with data to ensure it round-trips.
-	r.HighStatus.Status = regression.NEGATIVE
+	r.HighStatus.Status = regression.Negative
 	r.HighStatus.Message = "not good"
 	err := store.write(ctx, expectedCommitNumber, expectedAlertID, r)
 	require.NoError(t, err)
@@ -105,7 +105,7 @@ func writeRead_OverwriteValueGetsUpdated(t *testing.T, store *SQLRegressionStore
 	assert.Equal(t, r, r2)
 
 	// Now overwrite that value and confirm it changes.
-	r.HighStatus.Status = regression.POSITIVE
+	r.HighStatus.Status = regression.Positive
 	r.HighStatus.Message = "my bad"
 	err = store.write(ctx, expectedCommitNumber, expectedAlertID, r)
 	require.NoError(t, err)
@@ -124,12 +124,12 @@ func readModifyWrite(t *testing.T, store *SQLRegressionStore) {
 	ctx := context.Background()
 	r := regression.NewRegression()
 	// Fill with data to ensure it round-trips.
-	r.HighStatus.Status = regression.NEGATIVE
+	r.HighStatus.Status = regression.Negative
 	r.HighStatus.Message = "not good"
 	err := store.write(ctx, expectedCommitNumber, expectedAlertID, r)
 	require.NoError(t, err)
 	err = store.readModifyWrite(ctx, expectedCommitNumber, expectedAlertID, false, func(r *regression.Regression) {
-		r.HighStatus.Status = regression.POSITIVE
+		r.HighStatus.Status = regression.Positive
 		r.HighStatus.Message = "my bad"
 	})
 	require.NoError(t, err)
@@ -143,7 +143,7 @@ func readModifyWrite(t *testing.T, store *SQLRegressionStore) {
 func readModifyWrite_StartWithEmpty(t *testing.T, store *SQLRegressionStore) {
 	ctx := context.Background()
 	err := store.readModifyWrite(ctx, expectedCommitNumber, expectedAlertID, false /* mustExist */, func(r *regression.Regression) {
-		r.HighStatus.Status = regression.POSITIVE
+		r.HighStatus.Status = regression.Positive
 		r.HighStatus.Message = "my bad"
 	})
 	require.NoError(t, err)
@@ -151,13 +151,13 @@ func readModifyWrite_StartWithEmpty(t *testing.T, store *SQLRegressionStore) {
 	r2, err := store.read(ctx, expectedCommitNumber, expectedAlertID)
 	require.NoError(t, err)
 	assert.Equal(t, "my bad", r2.HighStatus.Message)
-	assert.Equal(t, regression.POSITIVE, r2.HighStatus.Status)
+	assert.Equal(t, regression.Positive, r2.HighStatus.Status)
 }
 
 func readModifyWrite_StartWithEmptyAndFailOnMustExist(t *testing.T, store *SQLRegressionStore) {
 	ctx := context.Background()
 	err := store.readModifyWrite(ctx, expectedCommitNumber, expectedAlertID, true /* mustExist */, func(r *regression.Regression) {
-		r.HighStatus.Status = regression.POSITIVE
+		r.HighStatus.Status = regression.Positive
 		r.HighStatus.Message = "my bad"
 	})
 	require.Error(t, err) // This means we passed through the tx rollback logic.

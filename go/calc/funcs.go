@@ -178,7 +178,7 @@ func (AveFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 		sum := float32(0.0)
 		count := 0
 		for _, r := range rows {
-			if v := r[i]; v != vec32.MISSING_DATA_SENTINEL {
+			if v := r[i]; v != vec32.MissingDataSentinel {
 				sum += v
 				count += 1
 			}
@@ -227,7 +227,7 @@ func (RatioFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	for i := range ret {
 		ret[i] = rowA[i] / rowB[i]
 		if math.IsInf(float64(ret[i]), 0) {
-			ret[i] = vec32.MISSING_DATA_SENTINEL
+			ret[i] = vec32.MissingDataSentinel
 		}
 	}
 	return Rows{ctx.formula: ret}, nil
@@ -268,7 +268,7 @@ func (CountFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	for i := range ret {
 		count := 0
 		for _, r := range rows {
-			if r[i] != vec32.MISSING_DATA_SENTINEL {
+			if r[i] != vec32.MissingDataSentinel {
 				count += 1
 			}
 		}
@@ -312,7 +312,7 @@ func (SumFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 		sum := float32(0.0)
 		count := 0
 		for _, r := range rows {
-			if v := r[i]; v != vec32.MISSING_DATA_SENTINEL {
+			if v := r[i]; v != vec32.MissingDataSentinel {
 				sum += v
 				count += 1
 			}
@@ -360,7 +360,7 @@ func (GeoFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 		sumLog := 0.0
 		count := 0
 		for _, r := range rows {
-			if v := r[i]; v >= 0 && v != vec32.MISSING_DATA_SENTINEL {
+			if v := r[i]; v >= 0 && v != vec32.MissingDataSentinel {
 				sumLog += math.Log(float64(v))
 				count += 1
 			}
@@ -400,11 +400,11 @@ func (LogFunc) Eval(ctx *Context, node *Node) (Rows, error) {
 	for j, r := range rows {
 		row := vec32.Dup(r)
 		for i, v := range row {
-			if v != vec32.MISSING_DATA_SENTINEL {
+			if v != vec32.MissingDataSentinel {
 				if v > 0 {
 					row[i] = float32(math.Log10(float64(v)))
 				} else {
-					row[i] = vec32.MISSING_DATA_SENTINEL
+					row[i] = vec32.MissingDataSentinel
 				}
 			}
 		}

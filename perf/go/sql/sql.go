@@ -15,14 +15,14 @@ const (
 	CockroachDBDialect Dialect = "cockroachdb"
 )
 
-// COCKROACHDB_EMULATOR_HOST_ENV_VAR is the name of the environment variable
+// cockroachDBEmulatorHostEnvVar is the name of the environment variable
 // that points to a test instance of CockroachDB.
-const COCKROACHDB_EMULATOR_HOST_ENV_VAR = "COCKROACHDB_EMULATOR_HOST"
+const cockroachDBEmulatorHostEnvVar = "COCKROACHDB_EMULATOR_HOST"
 
 // GetCockroachDBEmulatorHost returns the connection string to connect to a
 // local test instance of CockroachDB.
 func GetCockroachDBEmulatorHost() string {
-	ret := os.Getenv(COCKROACHDB_EMULATOR_HOST_ENV_VAR)
+	ret := os.Getenv(cockroachDBEmulatorHostEnvVar)
 	if ret == "" {
 		ret = "localhost:26257"
 	}

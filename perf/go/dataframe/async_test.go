@@ -134,7 +134,7 @@ func TestDFAppend(t *testing.T) {
 
 	assert.Equal(t, expectedHeader, r.Header)
 	assert.Len(t, r.TraceSet, 4)
-	e := vec32.MISSING_DATA_SENTINEL
+	e := vec32.MissingDataSentinel
 	assert.Equal(t, types.Trace{0.1, 0.2, e, 0.4}, r.TraceSet[",config=8888,arch=x86,"])
 	assert.Equal(t, types.Trace{1.1, 1.2, e, 1.4}, r.TraceSet[",config=8888,arch=arm,"])
 	assert.Equal(t, types.Trace{e, e, 4.3, 4.4}, r.TraceSet[",config=565,arch=arm,"])

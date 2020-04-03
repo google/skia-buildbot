@@ -26,30 +26,26 @@ import (
 type ProcessState string
 
 const (
-	PROCESS_RUNNING ProcessState = "Running"
-	PROCESS_SUCCESS ProcessState = "Success"
-	PROCESS_ERROR   ProcessState = "Error"
+	// ProcessRunning means the process is still running.
+	ProcessRunning ProcessState = "Running"
+
+	// ProcessSuccess means the process has finished successfully.
+	ProcessSuccess ProcessState = "Success"
+
+	// ProcessError means the process has ended on an error.
+	ProcessError ProcessState = "Error"
 )
 
 const (
-	// MAX_FINISHED_PROCESS_AGE is the amount of time to keep a finished
+	// maxFinishedProcessAge is the amount of time to keep a finished
 	// RegressionDetectionRequestProcess around before deleting it.
-	MAX_FINISHED_PROCESS_AGE = time.Minute
+	maxFinishedProcessAge = time.Minute
 
 	// The following limits are just to prevent excessively large or long-running
 	// regression detections from being triggered.
 
-	// MAX_K is the largest K used for clustering.
-	MAX_K = 100
-
-	// MAX_RADIUS  is the maximum number of points on either side of a commit
-	// that will be included in regression detection.
-	MAX_RADIUS = 50
-
-	// SPARSE_BLOCK_SEARCH_MULT When searching for commits that have data in a
-	// sparse data set, we'll request data in chunks of this many commits per
-	// point we are looking for.
-	SPARSE_BLOCK_SEARCH_MULT = 2000
+	// maxK is the largest K used for clustering.
+	maxK = 100
 )
 
 var (
@@ -99,7 +95,7 @@ func newProcess(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinf
 		responseProcessor: responseProcessor,
 		response:          []*RegressionDetectionResponse{},
 		lastUpdate:        time.Now(),
-		state:             PROCESS_RUNNING,
+		state:             ProcessRunning,
 		message:           "Running",
 		shortcutStore:     shortcutStore,
 		ctx:               ctx,
@@ -160,7 +156,7 @@ func (fr *RunningRegressionDetectionRequests) step() {
 	now := time.Now()
 	for k, v := range fr.inProcess {
 		v.mutex.Lock()
-		if now.Sub(v.lastUpdate) > MAX_FINISHED_PROCESS_AGE {
+		if now.Sub(v.lastUpdate) > maxFinishedProcessAge {
 			delete(fr.inProcess, k)
 		}
 		v.mutex.Unlock()
@@ -187,7 +183,7 @@ func (fr *RunningRegressionDetectionRequests) Add(ctx context.Context, req *Regr
 	id := req.Id()
 	if p, ok := fr.inProcess[id]; ok {
 		state, _, _ := p.Status()
-		if state != PROCESS_RUNNING {
+		if state != ProcessRunning {
 			delete(fr.inProcess, id)
 		}
 	}
@@ -209,7 +205,7 @@ func (fr *RunningRegressionDetectionRequests) Status(id string) (ProcessState, s
 	defer fr.mutex.Unlock()
 	p, ok := fr.inProcess[id]
 	if !ok {
-		return PROCESS_ERROR, "Not Found", errorNotFound
+		return ProcessError, "Not Found", errorNotFound
 	}
 	return p.Status()
 }
@@ -242,7 +238,7 @@ func (p *RegressionDetectionProcess) reportError(err error, message string) {
 	defer p.mutex.Unlock()
 	sklog.Warningf("RegressionDetectionRequest failed: %#v %s: %s", *(p.request), message, err)
 	p.message = fmt.Sprintf("%s: %s", message, err)
-	p.state = PROCESS_ERROR
+	p.state = ProcessError
 	p.lastUpdate = time.Now()
 }
 
@@ -288,7 +284,7 @@ func (p *RegressionDetectionProcess) Status() (ProcessState, string, error) {
 func missing(tr types.Trace) bool {
 	count := 0
 	for _, x := range tr {
-		if x == vec32.MISSING_DATA_SENTINEL {
+		if x == vec32.MissingDataSentinel {
 			count++
 		}
 	}
@@ -305,7 +301,7 @@ func tooMuchMissingData(tr types.Trace) bool {
 		return false
 	}
 	n := len(tr) / 2
-	if tr[n] == vec32.MISSING_DATA_SENTINEL {
+	if tr[n] == vec32.MissingDataSentinel {
 		return true
 	}
 	return missing(tr[:n]) || missing(tr[len(tr)-n:])
@@ -326,7 +322,7 @@ func (p *RegressionDetectionProcess) ShortcutFromKeys(summary *clustering2.Clust
 // work is done or the request failed. Should be run as a Go routine.
 func (p *RegressionDetectionProcess) Run() {
 	if p.request.Alert.Algo == "" {
-		p.request.Alert.Algo = types.KMEANS_GROUPING
+		p.request.Alert.Algo = types.KMeansGrouping
 	}
 	for p.iter.Next() {
 		df, err := p.iter.Value(p.ctx)
@@ -343,7 +339,7 @@ func (p *RegressionDetectionProcess) Run() {
 		sklog.Infof("Filtered Traces: %d %d %d", before, after, before-after)
 
 		k := p.request.Alert.K
-		if k <= 0 || k > MAX_K {
+		if k <= 0 || k > maxK {
 			n := len(df.TraceSet)
 			// We want K to be around 50 when n = 30000, which has been determined via
 			// trial and error to be a good value for the Perf data we are working in. We
@@ -358,9 +354,9 @@ func (p *RegressionDetectionProcess) Run() {
 
 		var summary *clustering2.ClusterSummaries
 		switch p.request.Alert.Algo {
-		case types.KMEANS_GROUPING:
+		case types.KMeansGrouping:
 			summary, err = clustering2.CalculateClusterSummaries(df, k, config.MinStdDev, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)
-		case types.STEPFIT_GROUPING:
+		case types.StepFitGrouping:
 			summary, err = StepFit(df, k, config.MinStdDev, p.detectionProgress, p.request.Alert.Interesting, p.request.Alert.Step)
 
 		default:
@@ -383,7 +379,7 @@ func (p *RegressionDetectionProcess) Run() {
 		}
 
 		p.mutex.Lock()
-		p.state = PROCESS_SUCCESS
+		p.state = ProcessSuccess
 		p.message = ""
 		cr := &RegressionDetectionResponse{
 			Summary: summary,

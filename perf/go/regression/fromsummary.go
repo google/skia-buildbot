@@ -36,7 +36,7 @@ func RegressionFromClusterResponse(ctx context.Context, resp *RegressionDetectio
 					ret.Frame = resp.Frame
 					ret.Low = cl
 					ret.LowStatus = TriageStatus{
-						Status: UNTRIAGED,
+						Status: Untriaged,
 					}
 					lastLowRegression = math.Abs(float64(cl.StepFit.Regression))
 				}
@@ -46,7 +46,7 @@ func RegressionFromClusterResponse(ctx context.Context, resp *RegressionDetectio
 					ret.Frame = resp.Frame
 					ret.High = cl
 					ret.HighStatus = TriageStatus{
-						Status: UNTRIAGED,
+						Status: Untriaged,
 					}
 					lastHighRegression = math.Abs(float64(cl.StepFit.Regression))
 				}

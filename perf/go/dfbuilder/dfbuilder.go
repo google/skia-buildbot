@@ -368,7 +368,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		counts := make([]int, len(df.Header))
 		for _, tr := range df.TraceSet {
 			for i, x := range tr {
-				if x != vec32.MISSING_DATA_SENTINEL {
+				if x != vec32.MissingDataSentinel {
 					counts[i] += 1
 					nonMissing += 1
 				}
@@ -499,7 +499,7 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 		counts := make([]int, len(df.Header))
 		for _, tr := range df.TraceSet {
 			for i, x := range tr {
-				if x != vec32.MISSING_DATA_SENTINEL {
+				if x != vec32.MissingDataSentinel {
 					counts[i] += 1
 					nonMissing += 1
 				}

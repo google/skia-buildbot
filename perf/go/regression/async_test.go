@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	e = vec32.MISSING_DATA_SENTINEL
+	e = vec32.MissingDataSentinel
 )
 
 func TestTooMuchMissingData(t *testing.T) {

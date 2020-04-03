@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	FROM_ADDRESS = "alertserver@skia.org"
-	EMAIL        = `<b>Alert</b><br><br>
+	fromAddress = "alertserver@skia.org"
+	email       = `<b>Alert</b><br><br>
 <p>
 	A Perf Regression has been found at:
 </p>
@@ -34,7 +34,7 @@ const (
 )
 
 var (
-	emailTemplate = template.Must(template.New("email").Parse(EMAIL))
+	emailTemplate = template.Must(template.New("email").Parse(email))
 
 	emailAddressSplitter = regexp.MustCompile("[, ]+")
 )
@@ -113,7 +113,7 @@ func (n *Notifier) Send(c *cid.CommitDetail, alert *alerts.Alert, cl *clustering
 		return err
 	}
 	subject := fmt.Sprintf("%s - Regression found for %q", alert.DisplayName, c.Message)
-	if err := n.email.Send(FROM_ADDRESS, splitEmails(alert.Alert), subject, body); err != nil {
+	if err := n.email.Send(fromAddress, splitEmails(alert.Alert), subject, body); err != nil {
 		return fmt.Errorf("Failed to send email: %s", err)
 	}
 
