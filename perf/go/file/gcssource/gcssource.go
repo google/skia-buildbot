@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file"
+	"go.skia.org/infra/perf/go/ingest/filter"
 	"google.golang.org/api/option"
 )
 
@@ -61,10 +62,13 @@ type GCSSource struct {
 
 	// ackCounter is a metric of how many messages we've acked.
 	ackCounter metrics2.Counter
+
+	// filter to accept/reject files based on their filename.
+	filter *filter.Filter
 }
 
 // New returns a new *GCSSource
-func New(ctx context.Context, config *config.InstanceConfig, local bool) (*GCSSource, error) {
+func New(ctx context.Context, instanceConfig *config.InstanceConfig, local bool) (*GCSSource, error) {
 	ts, err := auth.NewDefaultTokenSource(local, storage.ScopeReadOnly, pubsub.ScopePubSub)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -75,14 +79,14 @@ func New(ctx context.Context, config *config.InstanceConfig, local bool) (*GCSSo
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	pubSubClient, err := pubsub.NewClient(ctx, config.IngestionConfig.SourceConfig.Project, option.WithTokenSource(ts))
+	pubSubClient, err := pubsub.NewClient(ctx, instanceConfig.IngestionConfig.SourceConfig.Project, option.WithTokenSource(ts))
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	// When running in production we have every instance use the same topic name so that
 	// they load-balance pulling items from the topic.
-	subName := fmt.Sprintf("%s%s", config.IngestionConfig.SourceConfig.Topic, subscriptionSuffix)
+	subName := fmt.Sprintf("%s%s", instanceConfig.IngestionConfig.SourceConfig.Topic, subscriptionSuffix)
 	if local {
 		hostname, err := os.Hostname()
 		if err != nil {
@@ -90,9 +94,9 @@ func New(ctx context.Context, config *config.InstanceConfig, local bool) (*GCSSo
 		}
 
 		// When running locally create a new topic for every host.
-		subName = fmt.Sprintf("%s-%s", config.IngestionConfig.SourceConfig.Topic, hostname)
+		subName = fmt.Sprintf("%s-%s", instanceConfig.IngestionConfig.SourceConfig.Topic, hostname)
 	}
-	sklog.Infof("Creating subscription %q for topic %q", subName, config.IngestionConfig.SourceConfig.Topic)
+	sklog.Infof("Creating subscription %q for topic %q", subName, instanceConfig.IngestionConfig.SourceConfig.Topic)
 	sub := pubSubClient.Subscription(subName)
 	ok, err := sub.Exists(ctx)
 	if err != nil {
@@ -100,7 +104,7 @@ func New(ctx context.Context, config *config.InstanceConfig, local bool) (*GCSSo
 	}
 	if !ok {
 		sub, err = pubSubClient.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
-			Topic: pubSubClient.Topic(config.IngestionConfig.SourceConfig.Topic),
+			Topic: pubSubClient.Topic(instanceConfig.IngestionConfig.SourceConfig.Topic),
 		})
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed to create subscription: %q", subName)
@@ -111,12 +115,18 @@ func New(ctx context.Context, config *config.InstanceConfig, local bool) (*GCSSo
 	sub.ReceiveSettings.MaxOutstandingMessages = maxParallelReceives
 	sub.ReceiveSettings.NumGoroutines = maxParallelReceives
 
+	f, err := filter.New(instanceConfig.IngestionConfig.SourceConfig.AcceptIfNameMatches, instanceConfig.IngestionConfig.SourceConfig.RejectIfNameMatches)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	return &GCSSource{
-		instanceConfig: config,
+		instanceConfig: instanceConfig,
 		storageClient:  gcsClient,
 		nackCounter:    metrics2.GetCounter("perf_file_gcssource_nack", nil),
 		ackCounter:     metrics2.GetCounter("perf_file_gcssource_ack", nil),
 		subscription:   sub,
+		filter:         f,
 	}, nil
 }
 
@@ -143,6 +153,11 @@ func (s *GCSSource) receiveSingleEvent(ctx context.Context, msg *pubsub.Message)
 	}
 
 	filename := fmt.Sprintf("gs://%s/%s", event.Bucket, event.Name)
+
+	// Apply filters to the filename.
+	if s.filter.Reject(filename) {
+		return true
+	}
 
 	// Restrict files processed to those that appear in SourceConfig.Sources.
 	found := false
