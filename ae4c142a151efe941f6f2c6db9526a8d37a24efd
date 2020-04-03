@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "898239c7_95e60927",
+        "filename": "perf/go/ingest/filter/filter.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T12:03:07Z",
+      "side": 1,
+      "message": "Yup, Go uses RE2: https://swtch.com/~rsc/regexp/",
+      "parentUuid": "14500d19_d58107bd",
+      "range": {
+        "startLine": 30,
+        "startChar": 26,
+        "endLine": 30,
+        "endChar": 33
+      },
+      "revId": "ae4c142a151efe941f6f2c6db9526a8d37a24efd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b0a3b7d3_f2f4f481",
         "filename": "perf/go/ingest/filter/filter_test.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "ae4c142a151efe941f6f2c6db9526a8d37a24efd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4dc86b17_7e657d12",
+        "filename": "perf/go/ingest/filter/filter_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T12:03:07Z",
+      "side": 1,
+      "message": "Done. Now 100% coverage!",
+      "parentUuid": "b0a3b7d3_f2f4f481",
+      "range": {
+        "startLine": 27,
+        "startChar": 5,
+        "endLine": 27,
+        "endChar": 62
+      },
+      "revId": "ae4c142a151efe941f6f2c6db9526a8d37a24efd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
