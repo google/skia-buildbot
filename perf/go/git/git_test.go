@@ -282,7 +282,6 @@ func testCommitNumbersWhenFileChangesInCommitNumberRange_HandlesZeroAsBeginCommi
 	require.NoError(t, err)
 	assert.Equal(t, []types.CommitNumber{3}, commits)
 }
-
 func TestParseGitRevLogStream_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	r := strings.NewReader(
