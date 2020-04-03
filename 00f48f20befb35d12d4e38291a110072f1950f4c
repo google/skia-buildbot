@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5c608cd4_7cf78caa",
+        "filename": "sk8s/go/bot_config/adb/adb.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c715074c_025ca660",
+      "range": {
+        "startLine": 32,
+        "startChar": 22,
+        "endLine": 32,
+        "endChar": 25
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6cc8a6fe_1acf93ae",
         "filename": "sk8s/go/bot_config/server/server.go",
         "patchSetId": 43
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "f167b041_ba374157",
+        "filename": "sk8s/go/bot_config/server/server.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6cc8a6fe_1acf93ae",
+      "range": {
+        "startLine": 63,
+        "startChar": 3,
+        "endLine": 63,
+        "endChar": 7
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0551876c_ff5c4c18",
         "filename": "sk8s/go/bot_config/server/server.go",
         "patchSetId": 43
@@ -62,6 +110,24 @@
       "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c23d3fa5_c18caaad",
+        "filename": "sk8s/go/bot_config/server/server.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0551876c_ff5c4c18",
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "1ddfd51b_22073863",
+        "filename": "sk8s/go/bot_config/server/server.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6e529212_6599cd41",
+      "range": {
+        "startLine": 124,
+        "startChar": 3,
+        "endLine": 124,
+        "endChar": 22
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "84d76ae4_29ad7a26",
         "filename": "sk8s/go/bot_config/server/server.go",
         "patchSetId": 43
@@ -108,6 +198,30 @@
       "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74e5be0a_7b98c18a",
+        "filename": "sk8s/go/bot_config/server/server.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "84d76ae4_29ad7a26",
+      "range": {
+        "startLine": 138,
+        "startChar": 51,
+        "endLine": 138,
+        "endChar": 52
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "88cf643b_c62cdc7d",
+        "filename": "sk8s/go/bot_config/server/server_test.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "581a99bf_44825541",
+      "range": {
+        "startLine": 86,
+        "startChar": 34,
+        "endLine": 86,
+        "endChar": 47
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c996e8a7_0422f591",
         "filename": "sk8s/go/bot_config/swarming/swarming.go",
         "patchSetId": 43
@@ -145,6 +283,30 @@
       "writtenOn": "2020-04-03T18:49:55Z",
       "side": 1,
       "message": "Thank you for the reminder offline about why infra/exec was not a good fit here.",
+      "range": {
+        "startLine": 12,
+        "startChar": 1,
+        "endLine": 12,
+        "endChar": 10
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "67878cec_a0ceb6f8",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "c996e8a7_0422f591",
       "range": {
         "startLine": 12,
         "startChar": 1,
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "4d405641_bcdedaec",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "28af40b6_b0bc2642",
+      "range": {
+        "startLine": 24,
+        "startChar": 65,
+        "endLine": 24,
+        "endChar": 72
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f8abb2af_f1ccfa32",
         "filename": "sk8s/go/bot_config/swarming/swarming.go",
         "patchSetId": 43
@@ -191,6 +377,30 @@
       "writtenOn": "2020-04-03T18:49:55Z",
       "side": 1,
       "message": "Machine, as per Niagara naming convention",
+      "range": {
+        "startLine": 30,
+        "startChar": 5,
+        "endLine": 30,
+        "endChar": 8
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c00d2bbc_ff205a50",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Yes, but the entire reason for this module existence is to download a file called \"swarming_bot.zip\" and run the command \"python swarming_bot.zip start_bot\".",
+      "parentUuid": "f8abb2af_f1ccfa32",
       "range": {
         "startLine": 30,
         "startChar": 5,
@@ -226,6 +436,30 @@
     },
     {
       "key": {
+        "uuid": "67b54c99_ba8e6f59",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "hostname is essentially a random string when running on kubernetes where it\u0027s the pod name.",
+      "parentUuid": "bb456dc4_666bf310",
+      "range": {
+        "startLine": 48,
+        "startChar": 9,
+        "endLine": 48,
+        "endChar": 37
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "874a20c6_e21654be",
         "filename": "sk8s/go/bot_config/swarming/swarming.go",
         "patchSetId": 43
@@ -237,6 +471,30 @@
       "writtenOn": "2020-04-03T18:49:55Z",
       "side": 1,
       "message": "A quality of life improvement would be to have a function that pings the metadata server before Launch. That way, if we fail to hit the metadata server, we know before swarming fails with somewhat cryptic 403 errors.",
+      "range": {
+        "startLine": 63,
+        "startChar": 2,
+        "endLine": 63,
+        "endChar": 13
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f81c7b7_d3ee6407",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "There will be no cryptic 403 errors since failing to get a good response from the metadata server will cause Launch to return immediately with an error.",
+      "parentUuid": "874a20c6_e21654be",
       "range": {
         "startLine": 63,
         "startChar": 2,
@@ -272,6 +530,30 @@
     },
     {
       "key": {
+        "uuid": "b94f0895_20811e25",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Moved to util.WithWriteFile as below.",
+      "parentUuid": "009ca8ff_d7c26719",
+      "range": {
+        "startLine": 84,
+        "startChar": 83,
+        "endLine": 84,
+        "endChar": 87
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f5c07e3b_43e4d720",
         "filename": "sk8s/go/bot_config/swarming/swarming.go",
         "patchSetId": 43
@@ -292,6 +574,30 @@
       "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f6a5899_f8fbff9e",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "util.WithWriteFile is much cleaner, thanks!",
+      "parentUuid": "f5c07e3b_43e4d720",
+      "range": {
+        "startLine": 88,
+        "startChar": 1,
+        "endLine": 88,
+        "endChar": 20
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -318,6 +624,30 @@
     },
     {
       "key": {
+        "uuid": "d6a9500d_1bb5ba58",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5b0a4f3e_265cb047",
+      "range": {
+        "startLine": 99,
+        "startChar": 56,
+        "endLine": 99,
+        "endChar": 59
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cea4ddf6_8dcbf4f6",
         "filename": "sk8s/go/bot_config/swarming/swarming.go",
         "patchSetId": 43
@@ -338,6 +668,30 @@
       "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d769d9b_5cd19fd5",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cea4ddf6_8dcbf4f6",
+      "range": {
+        "startLine": 107,
+        "startChar": 53,
+        "endLine": 107,
+        "endChar": 58
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -364,6 +718,30 @@
     },
     {
       "key": {
+        "uuid": "6767d262_7ee552a2",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "321c6b58_5af75a98",
+      "range": {
+        "startLine": 172,
+        "startChar": 16,
+        "endLine": 172,
+        "endChar": 25
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7562c797_4366b2ce",
         "filename": "sk8s/go/bot_config/swarming/swarming.go",
         "patchSetId": 43
@@ -375,6 +753,30 @@
       "writtenOn": "2020-04-03T18:49:55Z",
       "side": 1,
       "message": "Does this mean if we try to do a graceful shutdown of the swarming machine, it will automatically restart? Is this desireable?",
+      "range": {
+        "startLine": 175,
+        "startChar": 1,
+        "endLine": 175,
+        "endChar": 4
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db5fb88c_b5b71132",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Shutting down a swarming machine should be something that Machine State handles and then gets threaded into bot_config.",
+      "parentUuid": "7562c797_4366b2ce",
       "range": {
         "startLine": 175,
         "startChar": 1,
@@ -410,6 +812,30 @@
     },
     {
       "key": {
+        "uuid": "e6f016cf_323e1652",
+        "filename": "sk8s/go/bot_config/swarming/swarming_test.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Seems a bit too compact, I\u0027ll keep what I\u0027ve got there.",
+      "parentUuid": "c3e6fd96_92d741ee",
+      "range": {
+        "startLine": 86,
+        "startChar": 1,
+        "endLine": 89,
+        "endChar": 30
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a838f1b3_6677b08a",
         "filename": "sk8s/go/bot_config/swarming/swarming_test.go",
         "patchSetId": 43
@@ -421,6 +847,30 @@
       "writtenOn": "2020-04-03T18:49:55Z",
       "side": 1,
       "message": "If a test writes and reads stuff to disk as a part of the test, I usually upgrade it to Medium.",
+      "range": {
+        "startLine": 135,
+        "startChar": 10,
+        "endLine": 135,
+        "endChar": 19
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78c9dd41_7b779a03",
+        "filename": "sk8s/go/bot_config/swarming/swarming_test.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "These are all pretty fast, less than 0.01 seconds on my desktop, and I think too much has been stuffed into Medium as it can now take up to 10 minutes to run.",
+      "parentUuid": "a838f1b3_6677b08a",
       "range": {
         "startLine": 135,
         "startChar": 10,
@@ -447,6 +897,24 @@
       "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd343eb7_a4007686",
+        "filename": "sk8s/go/bot_config/swarming/swarming_test.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-03T21:03:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "81ef788b_c1da449d",
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
