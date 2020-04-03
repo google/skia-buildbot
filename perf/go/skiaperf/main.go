@@ -716,7 +716,7 @@ func clusterStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	status.State = state
 	status.Message = msg
-	if state == regression.PROCESS_SUCCESS {
+	if state == regression.ProcessSuccess {
 		value, err := clusterRequests.Response(id)
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to retrieve results.", http.StatusInternalServerError)
@@ -879,7 +879,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 
 	resp := &triageResponse{}
 
-	if tr.Triage.Status == regression.NEGATIVE {
+	if tr.Triage.Status == regression.Negative {
 		cfgs, err := configProvider()
 		if err != nil {
 			sklog.Errorf("Failed to load configs looking for BugURITemplate: %s", err)

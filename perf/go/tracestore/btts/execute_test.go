@@ -24,7 +24,7 @@ func TestValidate(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Test that a huge plan is rejected.
-	for i := 0; i < MAX_PARALLEL_PARAM_INDEX+1; i++ {
+	for i := 0; i < maxParallelParamIndex+1; i++ {
 		plan[fmt.Sprintf("x%d", i)] = []string{"bar"}
 	}
 	err = validatePlan(plan)

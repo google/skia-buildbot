@@ -21,7 +21,7 @@ import (
 
 const (
 	// e is a shorter more readable stand-in for the wordy vec32.MISSING_DATA_SENTINEL.
-	e = vec32.MISSING_DATA_SENTINEL
+	e = vec32.MissingDataSentinel
 
 	// testTileSize is the size of tiles we use for tests.
 	testTileSize = 8
