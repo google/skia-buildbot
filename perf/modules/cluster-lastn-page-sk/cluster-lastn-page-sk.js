@@ -150,8 +150,8 @@ const template = (ele) => html`
     </div>
   </dialog>
   <div class=controls>
-    <label>Alert Configuration: <button @click=${ele._alertEdit}>${_configTitle(ele)}</button></label>
-    <label>Domain: <domain-picker-sk id=range .state=${ele._domain} @domain-changed=${ele._rangeChange} force_request_type=dense></domain-picker-sk></label>
+    <label><h2>Alert Configuration</h2> <button @click=${ele._alertEdit}>${_configTitle(ele)}</button></label>
+    <label><h2>Time Range</h2> <domain-picker-sk id=range .state=${ele._domain} @domain-changed=${ele._rangeChange} force_request_type=dense></domain-picker-sk></label>
     <div class=running>
       <button class=action ?disabled=${!ele._state.query || !!ele._requestId} @click=${ele._run}>Run</button>
       <spinner-sk ?active=${!!ele._requestId}></spinner-sk>

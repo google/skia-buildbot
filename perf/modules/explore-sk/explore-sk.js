@@ -133,10 +133,6 @@ const template = (ele) => html`
   </div>
 
   <dialog id='query-dialog'>
-
-    <domain-picker-sk id=range .state=${ele.state}>
-    </domain-picker-sk>
-
     <h2>Query</h2>
     <div class=query-parts>
       <query-sk
@@ -156,7 +152,13 @@ const template = (ele) => html`
         </div>
     </div>
     <details>
-      <summary>Calculated Traces</summary>
+      <summary><h2>Time Range</h2></summary>
+      <domain-picker-sk id=range .state=${ele.state}>
+      </domain-picker-sk>
+    </details>
+
+    <details>
+      <summary><h2>Calculated Traces</h2></summary>
       <div class=formulas>
         <textarea id=formula rows=3 cols=80></textarea>
         <button @click=${() => ele._addCalculated(true)}>Plot</button>
