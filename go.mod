@@ -54,7 +54,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.30.2 // indirect
+	github.com/aws/aws-sdk-go v1.30.3 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/danjacques/gofslock v0.0.0-20191023191349-0a45f885bc37 // indirect
@@ -73,7 +73,7 @@ require (
 	github.com/golang/protobuf v1.3.5
 	github.com/google/go-github/v29 v29.0.3
 	github.com/google/go-licenses v0.0.0-20200227160636-0fa8c766a591
-	github.com/google/licenseclassifier v0.0.0-20200108231022-9dfa8d8474eb // indirect
+	github.com/google/licenseclassifier v0.0.0-20200402202327-879cb1424de0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.4.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20190915194858-d3ddacdb130f // indirect
@@ -124,15 +124,15 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20200402040520-a32783f8f312
+	go.chromium.org/luci v0.0.0-20200403021923-006ff0a2ec2a
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20200401192744-099440627f01
+	golang.org/x/tools v0.0.0-20200402223321-bcf690261a44
 	google.golang.org/api v0.20.0
-	google.golang.org/genproto v0.0.0-20200401122417-09ab7b7031d2
+	google.golang.org/genproto v0.0.0-20200402124713-8ff61da6d932
 	google.golang.org/grpc v1.28.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/fsnotify.v1 v1.4.7
