@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e690dd20_c868c0f8",
+        "filename": "perf/go/file/gcssource/gcssource_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:52:26Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 162,
+        "startChar": 4,
+        "endLine": 162,
+        "endChar": 10
+      },
+      "revId": "bf5552775ed2debbc343cd3d613c80291cfa7cde",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
