@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	e = MISSING_DATA_SENTINEL
+	e = MissingDataSentinel
 )
 
 func near(a, b float32) bool {
@@ -35,12 +35,12 @@ func TestNew(t *testing.T) {
 
 	v = New(1)
 	assert.Len(t, v, 1)
-	assert.Equal(t, MISSING_DATA_SENTINEL, v[0])
+	assert.Equal(t, MissingDataSentinel, v[0])
 
 	v = New(2)
 	assert.Len(t, v, 2)
-	assert.Equal(t, MISSING_DATA_SENTINEL, v[0])
-	assert.Equal(t, MISSING_DATA_SENTINEL, v[1])
+	assert.Equal(t, MissingDataSentinel, v[0])
+	assert.Equal(t, MissingDataSentinel, v[1])
 }
 
 func TestNorm(t *testing.T) {
@@ -147,7 +147,7 @@ func TestFillAtErrors(t *testing.T) {
 
 func TestDup(t *testing.T) {
 	unittest.SmallTest(t)
-	a := []float32{1, 2, MISSING_DATA_SENTINEL, 0}
+	a := []float32{1, 2, MissingDataSentinel, 0}
 	b := Dup(a)
 	assert.Equal(t, a, b)
 	b[0] = 2

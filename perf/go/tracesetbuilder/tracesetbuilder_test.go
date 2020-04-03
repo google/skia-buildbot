@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
-const e = vec32.MISSING_DATA_SENTINEL
+const e = vec32.MissingDataSentinel
 
 func TestBuilder(t *testing.T) {
 	unittest.SmallTest(t)

@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	// MISSING_DATA_SENTINEL signifies a missing sample value.
+	// MissingDataSentinel signifies a missing sample value.
 	//
 	// JSON doesn't support NaN or +/- Inf, so we need a valid float32 to signal
 	// missing data that also has a compact JSON representation.
-	MISSING_DATA_SENTINEL float32 = 1e32
+	MissingDataSentinel float32 = 1e32
 )
 
 // New creates a new []float32 of the given size pre-populated
@@ -19,7 +19,7 @@ const (
 func New(size int) []float32 {
 	ret := make([]float32, size)
 	for i := range ret {
-		ret[i] = MISSING_DATA_SENTINEL
+		ret[i] = MissingDataSentinel
 	}
 	return ret
 }
@@ -30,7 +30,7 @@ func MeanAndStdDev(a []float32) (float32, float32, error) {
 	count := 0
 	sum := float32(0.0)
 	for _, x := range a {
-		if x != MISSING_DATA_SENTINEL {
+		if x != MissingDataSentinel {
 			count += 1
 			sum += x
 		}
@@ -43,7 +43,7 @@ func MeanAndStdDev(a []float32) (float32, float32, error) {
 
 	vr := float32(0.0)
 	for _, x := range a {
-		if x != MISSING_DATA_SENTINEL {
+		if x != MissingDataSentinel {
 			vr += (x - mean) * (x - mean)
 		}
 	}
@@ -56,10 +56,10 @@ func MeanAndStdDev(a []float32) (float32, float32, error) {
 // resulting NaNs and Infs into sentinel values.
 func ScaleBy(a []float32, b float32) {
 	for i, x := range a {
-		if x != MISSING_DATA_SENTINEL {
+		if x != MissingDataSentinel {
 			scaled := a[i] / b
 			if math.IsNaN(float64(scaled)) || math.IsInf(float64(scaled), 0) {
-				a[i] = MISSING_DATA_SENTINEL
+				a[i] = MissingDataSentinel
 			} else {
 				a[i] = scaled
 			}
@@ -77,7 +77,7 @@ func Norm(a []float32, minStdDev float32) {
 	}
 	// Normalize the data to a mean of 0 and standard deviation of 1.0.
 	for i, x := range a {
-		if x != MISSING_DATA_SENTINEL {
+		if x != MissingDataSentinel {
 			newX := x - mean
 			if stddev > minStdDev {
 				newX = newX / stddev
@@ -109,14 +109,14 @@ func Fill(a []float32) {
 	// Find the first non-sentinel data point.
 	last := float32(0.0)
 	for i := len(a) - 1; i >= 0; i-- {
-		if a[i] != MISSING_DATA_SENTINEL {
+		if a[i] != MissingDataSentinel {
 			last = a[i]
 			break
 		}
 	}
 	// Now fill.
 	for i := len(a) - 1; i >= 0; i-- {
-		if a[i] == MISSING_DATA_SENTINEL {
+		if a[i] == MissingDataSentinel {
 			a[i] = last
 		} else {
 			last = a[i]
@@ -155,7 +155,7 @@ func Mean(xs []float32) float32 {
 	total := float32(0.0)
 	n := 0
 	for _, v := range xs {
-		if v != MISSING_DATA_SENTINEL {
+		if v != MissingDataSentinel {
 			total += v
 			n++
 		}
@@ -173,13 +173,13 @@ func MeanMissing(xs []float32) float32 {
 	total := float32(0.0)
 	n := 0
 	for _, v := range xs {
-		if v != MISSING_DATA_SENTINEL {
+		if v != MissingDataSentinel {
 			total += v
 			n++
 		}
 	}
 	if n == 0 {
-		return MISSING_DATA_SENTINEL
+		return MissingDataSentinel
 	}
 	return total / float32(n)
 }
@@ -201,7 +201,7 @@ func FillMeanMissing(a []float32) {
 func FillStdDev(a []float32) {
 	_, stddev, err := MeanAndStdDev(a)
 	if err != nil {
-		stddev = MISSING_DATA_SENTINEL
+		stddev = MissingDataSentinel
 	}
 	// Now fill.
 	for i := range a {
@@ -215,12 +215,12 @@ func FillStdDev(a []float32) {
 // the slice will be filled with MISSING_DATA_SENTINEL.
 func FillCov(a []float32) {
 	mean, stddev, err := MeanAndStdDev(a)
-	cov := MISSING_DATA_SENTINEL
+	cov := MissingDataSentinel
 	if err == nil {
 		cov = stddev / mean
 	}
 	if math.IsNaN(float64(cov)) || math.IsInf(float64(cov), 0) {
-		cov = MISSING_DATA_SENTINEL
+		cov = MissingDataSentinel
 	}
 	// Now fill.
 	for i := range a {
@@ -235,7 +235,7 @@ func ssen(xs []float32, base float32) (float32, int) {
 	total := float32(0.0)
 	n := 0
 	for _, v := range xs {
-		if v != MISSING_DATA_SENTINEL {
+		if v != MissingDataSentinel {
 			n++
 			total += (v - base) * (v - base)
 		}
@@ -270,14 +270,14 @@ func StdDev(xs []float32, base float32) float32 {
 func FillStep(a []float32) {
 	mid := len(a) / 2
 
-	step := MISSING_DATA_SENTINEL
+	step := MissingDataSentinel
 	meanFirst := MeanMissing(a[:mid])
 	meanLast := MeanMissing(a[mid:])
-	if meanLast != MISSING_DATA_SENTINEL && meanFirst != MISSING_DATA_SENTINEL {
+	if meanLast != MissingDataSentinel && meanFirst != MissingDataSentinel {
 		step = meanFirst / meanLast
 	}
 	if math.IsNaN(float64(step)) || math.IsInf(float64(step), 0) {
-		step = MISSING_DATA_SENTINEL
+		step = MissingDataSentinel
 	}
 	// Now fill.
 	for i := range a {

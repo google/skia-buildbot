@@ -22,7 +22,7 @@ func TestRegressions(t *testing.T) {
 
 	// Triage the low cluster.
 	err := r.TriageLow("source_type=skp", TriageStatus{
-		Status:  POSITIVE,
+		Status:  Positive,
 		Message: "SKP Update",
 	})
 	assert.NoError(t, err)
@@ -30,7 +30,7 @@ func TestRegressions(t *testing.T) {
 
 	// Trying to triage a high cluster that doesn't exists.
 	err = r.TriageHigh("source_type=skp", TriageStatus{
-		Status: NEGATIVE,
+		Status: Negative,
 	})
 	assert.Equal(t, err, ErrNoClusterFound)
 	assert.True(t, r.Triaged())
@@ -41,7 +41,7 @@ func TestRegressions(t *testing.T) {
 
 	// And triage the high cluster.
 	err = r.TriageHigh("source_type=skp", TriageStatus{
-		Status:  NEGATIVE,
+		Status:  Negative,
 		Message: "See bug #foo.",
 	})
 	assert.NoError(t, err)
@@ -49,7 +49,7 @@ func TestRegressions(t *testing.T) {
 
 	// Trying to triage an unknown query.
 	err = r.TriageHigh("uknownquery", TriageStatus{
-		Status: NEGATIVE,
+		Status: Negative,
 	})
 	assert.Equal(t, err, ErrNoClusterFound)
 

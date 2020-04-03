@@ -17,10 +17,17 @@ type Status string
 
 // Status constants.
 const (
-	NONE      Status = ""          // There is no regression.
-	POSITIVE  Status = "positive"  // This change in performance is OK/expected.
-	NEGATIVE  Status = "negative"  // This regression is a bug.
-	UNTRIAGED Status = "untriaged" // The regression has not been triaged.
+	// None means there is no regression.
+	None Status = ""
+
+	// Positive means this change in performance is OK/expected.
+	Positive Status = "positive"
+
+	// Negative means this regression is a bug.
+	Negative Status = "negative"
+
+	// Untriaged means the regression has not been triaged.
+	Untriaged Status = "untriaged"
 )
 
 // AllRegressionsForCommit is a map[alertid]Regression.
@@ -54,10 +61,10 @@ type Regression struct {
 func NewRegression() *Regression {
 	return &Regression{
 		LowStatus: TriageStatus{
-			Status: NONE,
+			Status: None,
 		},
 		HighStatus: TriageStatus{
-			Status: NONE,
+			Status: None,
 		},
 	}
 }
@@ -99,8 +106,8 @@ func (r *Regression) Merge(rhs *Regression) *Regression {
 // Triaged returns true if triaged.
 func (r *Regression) Triaged() bool {
 	ret := true
-	ret = ret && (r.HighStatus.Status != UNTRIAGED)
-	ret = ret && (r.LowStatus.Status != UNTRIAGED)
+	ret = ret && (r.HighStatus.Status != Untriaged)
+	ret = ret && (r.LowStatus.Status != Untriaged)
 	return ret
 }
 
@@ -123,8 +130,8 @@ func (r *AllRegressionsForCommit) SetLow(alertid string, df *dataframe.FrameResp
 	// TODO(jcgregorio) Add checks so that we only overwrite a cluster if the new
 	// cluster is 'better', for some definition of 'better'.
 	reg.Low = low
-	if reg.LowStatus.Status == NONE {
-		reg.LowStatus.Status = UNTRIAGED
+	if reg.LowStatus.Status == None {
+		reg.LowStatus.Status = Untriaged
 	}
 	return ret
 }
@@ -148,8 +155,8 @@ func (r *AllRegressionsForCommit) SetHigh(alertid string, df *dataframe.FrameRes
 	// TODO(jcgregorio) Add checks so that we only overwrite a cluster if the new
 	// cluster is 'better', for some definition of 'better'.
 	reg.High = high
-	if reg.HighStatus.Status == NONE {
-		reg.HighStatus.Status = UNTRIAGED
+	if reg.HighStatus.Status == None {
+		reg.HighStatus.Status = Untriaged
 	}
 	return ret
 }
@@ -188,8 +195,8 @@ func (r *AllRegressionsForCommit) TriageHigh(alertid string, tr TriageStatus) er
 func (r *AllRegressionsForCommit) Triaged() bool {
 	ret := true
 	for _, reg := range r.ByAlertID {
-		ret = ret && (reg.HighStatus.Status != UNTRIAGED)
-		ret = ret && (reg.LowStatus.Status != UNTRIAGED)
+		ret = ret && (reg.HighStatus.Status != Untriaged)
+		ret = ret && (reg.LowStatus.Status != Untriaged)
 	}
 	return ret
 }

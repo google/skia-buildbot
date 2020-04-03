@@ -238,7 +238,7 @@ func (c *Alert) Validate() error {
 func NewConfig() *Alert {
 	return &Alert{
 		ID:     BadAlertID,
-		Algo:   types.KMEANS_GROUPING,
+		Algo:   types.KMeansGrouping,
 		State:  ACTIVE,
 		Sparse: DefaultSparse,
 	}
