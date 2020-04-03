@@ -37,6 +37,7 @@ import (
 	_ "github.com/go-python/gpython/builtin"
 	"github.com/go-python/gpython/parser"
 	"github.com/go-python/gpython/py"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -51,7 +52,8 @@ const (
 // get its own DepsEntry despite their sharing one key in the 'deps' dict.
 type DepsEntry struct {
 	// Id describes what the DepsEntry points to, eg. for Git dependencies
-	// it is the repo URL, and for CIPD packages it is the package name.
+	// it is the normalized repo URL, and for CIPD packages it is the
+	// package name.
 	Id string
 
 	// Version is the currently-pinned version of this dependency.
@@ -62,11 +64,20 @@ type DepsEntry struct {
 	Path string
 }
 
-// ParseDeps parses the DEPS file content and returns a map of dependency ID to
-// DepsEntry. It does not attempt to understand the full Python syntax upon
-// which DEPS is based and may break completely if the file takes an unexpected
-// format.
-func ParseDeps(depsContent string) (map[string]*DepsEntry, error) {
+// DepsEntries represents all entries in a DEPS file.
+type DepsEntries map[string]*DepsEntry
+
+// Get retrieves the DepsEntry with the given ID, accounting for normalization.
+// Returns the DepsEntry or nil if the entry was not found.
+func (e DepsEntries) Get(dep string) *DepsEntry {
+	return e[NormalizeDep(dep)]
+}
+
+// ParseDeps parses the DEPS file content and returns a map of normalized
+// dependency ID to DepsEntry. It does not attempt to understand the full Python
+// syntax upon which DEPS is based and may break completely if the file takes an
+// unexpected format.
+func ParseDeps(depsContent string) (DepsEntries, error) {
 	entries, _, err := parseDeps(depsContent)
 	return entries, err
 }
@@ -76,6 +87,9 @@ func ParseDeps(depsContent string) (map[string]*DepsEntry, error) {
 // to understand the full Python syntax upon which DEPS is based and may break
 // completely if the file takes an unexpected format.
 func SetDep(depsContent, depId, version string) (string, error) {
+	// Normalize the dependency ID.
+	depId = NormalizeDep(depId)
+
 	// Parse the DEPS content.
 	entries, poss, err := parseDeps(depsContent)
 	if err != nil {
@@ -321,10 +335,10 @@ func resolveVars(vars map[string]ast.Expr, expr ast.Expr) (ast.Expr, error) {
 	return expr, nil
 }
 
-// parseDeps parses the DEPS file content and returns a map of dependency ID to
-// DepsEntry and a map of dependency to ast.Pos indicating where the dependency
-// version was defined in the DEPS file content.
-func parseDeps(depsContent string) (map[string]*DepsEntry, map[string]*ast.Pos, error) {
+// parseDeps parses the DEPS file content and returns a map of normalized
+// dependency ID to DepsEntry and a map of normalized dependency ID to ast.Pos
+// indicating where the dependency version was defined in the DEPS file content.
+func parseDeps(depsContent string) (DepsEntries, map[string]*ast.Pos, error) {
 	// Use gpython to parse the DEPS file as a Python script.
 	parsed, err := parser.ParseString(depsContent, "exec")
 	if err != nil {
@@ -385,6 +399,7 @@ func parseDeps(depsContent string) (map[string]*DepsEntry, map[string]*ast.Pos, 
 						return nil, nil, skerr.Wrap(err)
 					}
 					for idx, entry := range entries {
+						entry.Id = NormalizeDep(entry.Id)
 						rvEntries[entry.Id] = entry
 						rvPos[entry.Id] = pos[idx]
 					}
@@ -392,5 +407,17 @@ func parseDeps(depsContent string) (map[string]*DepsEntry, map[string]*ast.Pos, 
 			}
 		}
 	}
-	return rvEntries, rvPos, nil
+	return DepsEntries(rvEntries), rvPos, nil
+}
+
+// NormalizeDep normalizes the dependency ID to account for differences, eg.
+// some users provide the .git suffix while others do not.
+func NormalizeDep(depId string) string {
+	// TODO(borenet): Will this adversely affect non-git entries?
+	if rv, err := git.NormalizeURL(depId); err == nil {
+		return strings.TrimPrefix(rv, "/")
+	}
+	// This occurs when the dep ID could not be parsed as a URL, in which
+	// case we can't normalize it and just use it as-is.
+	return depId
 }

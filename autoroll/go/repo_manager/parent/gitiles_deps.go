@@ -48,8 +48,8 @@ func gitilesDEPSGetLastRollRevFunc(dep string) gitilesGetLastRollRevFunc {
 		if err != nil {
 			return "", skerr.Wrapf(err, "Failed to retrieve DEPS file")
 		}
-		entry, ok := depsEntries[dep]
-		if !ok {
+		entry := depsEntries.Get(dep)
+		if entry == nil {
 			return "", skerr.Fmt("Unable to find %q in DEPS!", dep)
 		}
 		return entry.Version, nil
