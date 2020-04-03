@@ -16,6 +16,24 @@
       "revId": "842c3d0ad199b98a50d95c56e4f1e692e63d5884",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1356842_e5519389",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-03T10:47:52Z",
+      "side": 1,
+      "message": "Sure, done.  I may also want to put Parent and Child implementations in their own subdirectories, but I\u0027ll think about that after the dust has settled.",
+      "parentUuid": "b44e487e_0309e4a5",
+      "revId": "842c3d0ad199b98a50d95c56e4f1e692e63d5884",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
