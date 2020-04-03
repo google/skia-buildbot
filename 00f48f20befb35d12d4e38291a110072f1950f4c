@@ -1,0 +1,452 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c715074c_025ca660",
+        "filename": "sk8s/go/bot_config/adb/adb.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "No longer returns a pointer",
+      "range": {
+        "startLine": 32,
+        "startChar": 22,
+        "endLine": 32,
+        "endChar": 25
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6cc8a6fe_1acf93ae",
+        "filename": "sk8s/go/bot_config/server/server.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "The input is a JSON dictionary via POST",
+      "range": {
+        "startLine": 63,
+        "startChar": 3,
+        "endLine": 63,
+        "endChar": 7
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0551876c_ff5c4c18",
+        "filename": "sk8s/go/bot_config/server/server.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "Maybe also add another TODO for device temperature gathering",
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e529212_6599cd41",
+        "filename": "sk8s/go/bot_config/server/server.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "The input is a JSON dictionary via POST ...",
+      "range": {
+        "startLine": 124,
+        "startChar": 3,
+        "endLine": 124,
+        "endChar": 22
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84d76ae4_29ad7a26",
+        "filename": "sk8s/go/bot_config/server/server.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "Add a todo to have this 1 be the rack number",
+      "range": {
+        "startLine": 138,
+        "startChar": 51,
+        "endLine": 138,
+        "endChar": 52
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "581a99bf_44825541",
+        "filename": "sk8s/go/bot_config/server/server_test.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "testutils.AnyContext",
+      "range": {
+        "startLine": 86,
+        "startChar": 34,
+        "endLine": 86,
+        "endChar": 47
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c996e8a7_0422f591",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "Thank you for the reminder offline about why infra/exec was not a good fit here.",
+      "range": {
+        "startLine": 12,
+        "startChar": 1,
+        "endLine": 12,
+        "endChar": 10
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "28af40b6_b0bc2642",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "Maybe link to https://npf.io/2015/06/testing-exec-command/ here also (I saw it was in the test, but this location might be a bit more discoverable)",
+      "range": {
+        "startLine": 24,
+        "startChar": 65,
+        "endLine": 24,
+        "endChar": 72
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f8abb2af_f1ccfa32",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "Machine, as per Niagara naming convention",
+      "range": {
+        "startLine": 30,
+        "startChar": 5,
+        "endLine": 30,
+        "endChar": 8
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb456dc4_666bf310",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "Should we just query the hostname directly? I don\u0027t believe we currently set this environment variable for the RPIs (although swarming does when running tasks, I believe)\n\nIf the env variable is necessary (e.g. for testing), should we fallback to os.Hostname() if the env variable is not set? We should at least return nil or an error if we don\u0027t have a machine id.",
+      "range": {
+        "startLine": 48,
+        "startChar": 9,
+        "endLine": 48,
+        "endChar": 37
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "874a20c6_e21654be",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "A quality of life improvement would be to have a function that pings the metadata server before Launch. That way, if we fail to hit the metadata server, we know before swarming fails with somewhat cryptic 403 errors.",
+      "range": {
+        "startLine": 63,
+        "startChar": 2,
+        "endLine": 63,
+        "endChar": 13
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "009ca8ff_d7c26719",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "I take it the reason you need to use OpenFile instead of Create is that you want to make sure the executable is world readable and world executable?",
+      "range": {
+        "startLine": 84,
+        "startChar": 83,
+        "endLine": 84,
+        "endChar": 87
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5c07e3b_43e4d720",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "This can mask errors while writing - Can you make use of util.WithWriteFile? If not, move this down just before the copy and don\u0027t defer the close.",
+      "range": {
+        "startLine": 88,
+        "startChar": 1,
+        "endLine": 88,
+        "endChar": 20
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b0a4f3e_265cb047",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "duplicate error",
+      "range": {
+        "startLine": 99,
+        "startChar": 56,
+        "endLine": 99,
+        "endChar": 59
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cea4ddf6_8dcbf4f6",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "It may be helpful to output the first 20-40 bytes of the received input if the JSON is invalid. This can sometimes contain information useful to diagnosing what went wrong.",
+      "range": {
+        "startLine": 107,
+        "startChar": 53,
+        "endLine": 107,
+        "endChar": 58
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "321c6b58_5af75a98",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "Wrapf(err, \"while bootstrapping\")",
+      "range": {
+        "startLine": 172,
+        "startChar": 16,
+        "endLine": 172,
+        "endChar": 25
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7562c797_4366b2ce",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "Does this mean if we try to do a graceful shutdown of the swarming machine, it will automatically restart? Is this desireable?",
+      "range": {
+        "startLine": 175,
+        "startChar": 1,
+        "endLine": 175,
+        "endChar": 4
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c3e6fd96_92d741ee",
+        "filename": "sk8s/go/bot_config/swarming/swarming_test.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "require.NoError(t, ioutil.WriteFile(pythonPath, []byte(...), ...))",
+      "range": {
+        "startLine": 86,
+        "startChar": 1,
+        "endLine": 89,
+        "endChar": 30
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a838f1b3_6677b08a",
+        "filename": "sk8s/go/bot_config/swarming/swarming_test.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "If a test writes and reads stuff to disk as a part of the test, I usually upgrade it to Medium.",
+      "range": {
+        "startLine": 135,
+        "startChar": 10,
+        "endLine": 135,
+        "endChar": 19
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81ef788b_c1da449d",
+        "filename": "sk8s/go/bot_config/swarming/swarming_test.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-03T18:49:55Z",
+      "side": 1,
+      "message": "As mentioned offline, it would be nice to double check the args are what we expect",
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
