@@ -1,48 +1,52 @@
 package repo_manager
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"fmt"
-	"io/ioutil"
 	"net/http"
-	"os"
-	"path"
 	"regexp"
-	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/go/depot_tools"
-	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/autoroll/go/repo_manager/child"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/util"
 )
 
 var (
 	getDepRegex = regexp.MustCompile("[a-f0-9]+")
 )
 
+// TransitiveDepConfig provides configuration for a single transitive
+// dependency.
+type TransitiveDepConfig struct {
+	// Id is the dependency ID, eg. repo URL.
+	Id string `json:"id"`
+	// ChildPath is the path to the file within the child repo which pins
+	// this dependency.
+	ChildPath string `json:"childPath"`
+	// ParentPath is the path to the file within the parent repo which pins
+	// this dependency.
+	ParentPath string `json:"parentPath"`
+}
+
 // NoCheckoutDEPSRepoManagerConfig provides configuration for RepoManagers which
 // don't use a local checkout.
 type NoCheckoutDEPSRepoManagerConfig struct {
 	NoCheckoutRepoManagerConfig
+	Gerrit *codereview.GerritConfig `json:"gerrit"`
 	// URL of the child repo.
 	ChildRepo string `json:"childRepo"` // TODO(borenet): Can we just get this from DEPS?
 
-	// Optional; transitive dependencies to roll. This is a mapping of
-	// dependencies of the child repo which are also dependencies of the
-	// parent repo and should be rolled at the same time. Keys are paths
-	// to transitive dependencies within the child repo (as specified in
-	// DEPS), and values are paths to those dependencies within the parent
-	// repo.
-	TransitiveDeps map[string]string `json:"transitiveDeps"`
+	// TransitiveDeps is an optional mapping of dependency ID (eg. repo URL)
+	// to the paths within the parent and child repo, respectively, where
+	// those dependencies are versioned, eg. "DEPS".
+	TransitiveDeps []*TransitiveDepConfig `json:"transitiveDeps"`
 }
 
+// See documentation for util.Validator interface.
 func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 	if err := c.NoCheckoutRepoManagerConfig.Validate(); err != nil {
 		return err
@@ -64,247 +68,87 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 			return err
 		}
 	}
-	return nil
+	for _, dep := range c.TransitiveDeps {
+		if dep.Id == "" {
+			return skerr.Fmt("Id is required for TransitiveDeps")
+		}
+		if dep.ChildPath == "" {
+			return skerr.Fmt("ChildPath is required for TransitiveDeps")
+		}
+		if dep.ParentPath == "" {
+			return skerr.Fmt("ParentPath is required for TransitiveDeps")
+		}
+	}
+	_, _, err := splitNoCheckoutDEPSConfig(*c)
+	return skerr.Wrap(err)
 }
 
-type noCheckoutDEPSRepoManager struct {
-	*noCheckoutRepoManager
-	childRepo      *gitiles.Repo
-	childRepoUrl   string
-	depotTools     string
-	gclient        string
-	parentRepoUrl  string
-	transitiveDeps map[string]string
+// splitNoCheckoutDEPSConfig splits the NoCheckoutDEPSRepoManagerConfig into a
+// parent.GitilesDEPSConfig and a child.GitilesConfig.
+// TODO(borenet): Update the config format to directly define the parent
+// and child. We shouldn't need most of the New.*RepoManager functions.
+func splitNoCheckoutDEPSConfig(c NoCheckoutDEPSRepoManagerConfig) (parent.GitilesDEPSConfig, child.GitilesConfig, error) {
+	var childDeps, parentDeps map[string]string
+	if c.TransitiveDeps != nil {
+		childDeps = make(map[string]string, len(c.TransitiveDeps))
+		parentDeps = make(map[string]string, len(c.TransitiveDeps))
+		for _, dep := range c.TransitiveDeps {
+			parentDeps[dep.Id] = dep.ParentPath
+			childDeps[dep.Id] = dep.ChildPath
+		}
+	}
+	parentCfg := parent.GitilesDEPSConfig{
+		GitilesConfig: parent.GitilesConfig{
+			BaseConfig: parent.BaseConfig{
+				ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
+				ChildRepo:       c.ChildRepo,
+				IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
+				IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
+				CommitMsgTmpl:   c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
+				MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
+			},
+			GitilesConfig: gitiles_common.GitilesConfig{
+				Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
+				RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+			},
+			Gerrit: c.Gerrit,
+		},
+		Dep:            c.ChildRepo,
+		TransitiveDeps: parentDeps,
+	}
+	if err := parentCfg.Validate(); err != nil {
+		return parent.GitilesDEPSConfig{}, child.GitilesConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
+	}
+	childCfg := child.GitilesConfig{
+		GitilesConfig: gitiles_common.GitilesConfig{
+			Branch:       c.ChildBranch,
+			RepoURL:      c.ChildRepo,
+			Dependencies: childDeps,
+		},
+	}
+	if err := childCfg.Validate(); err != nil {
+		return parent.GitilesDEPSConfig{}, child.GitilesConfig{}, skerr.Wrapf(err, "generated child config is invalid")
+	}
+	return parentCfg, childCfg, nil
 }
 
 // NewNoCheckoutDEPSRepoManager returns a RepoManager instance which does not use
 // a local checkout.
-func NewNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+func NewNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
 	if err := c.Validate(); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
-
-	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
-		return nil, err
-	}
-
-	depotTools, err := depot_tools.GetDepotTools(ctx, workdir, recipeCfgFile)
+	parentCfg, childCfg, err := splitNoCheckoutDEPSConfig(*c)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
-
-	rv := &noCheckoutDEPSRepoManager{
-		childRepo:      gitiles.NewRepo(c.ChildRepo, client),
-		childRepoUrl:   c.ChildRepo,
-		depotTools:     depotTools,
-		gclient:        path.Join(depotTools, GCLIENT),
-		parentRepoUrl:  c.ParentRepo,
-		transitiveDeps: c.TransitiveDeps,
-	}
-	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, reg, workdir, g, serverURL, client, cr, rv.createRoll, rv.updateHelper, local)
+	parentRM, err := parent.NewGitilesDEPS(ctx, parentCfg, reg, client, serverURL)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
-	rv.noCheckoutRepoManager = ncrm
-
-	return rv, nil
-}
-
-// getDEPSFile downloads and returns the path to the DEPS file, and a cleanup
-// function to run when finished with it.
-func (rm *noCheckoutDEPSRepoManager) getDEPSFile(ctx context.Context, repo *gitiles.Repo, baseCommit string) (rv string, cleanup func(), rvErr error) {
-	wd, err := ioutil.TempDir("", "")
+	childRM, err := child.NewGitiles(ctx, childCfg, reg, client)
 	if err != nil {
-		return "", nil, err
+		return nil, skerr.Wrap(err)
 	}
-	defer func() {
-		if rvErr != nil {
-			util.RemoveAll(wd)
-		}
-	}()
-
-	// Download the DEPS file from the parent repo.
-	buf := bytes.NewBuffer([]byte{})
-	if err := repo.ReadFileAtRef(ctx, "DEPS", baseCommit, buf); err != nil {
-		return "", nil, err
-	}
-
-	// Use "gclient getdep" to retrieve the last roll revision.
-
-	// "gclient getdep" requires a .gclient file.
-	if _, err := exec.RunCwd(ctx, wd, "python", rm.gclient, "config", repo.URL); err != nil {
-		return "", nil, err
-	}
-	splitRepo := strings.Split(repo.URL, "/")
-	fakeCheckoutDir := path.Join(wd, strings.TrimSuffix(splitRepo[len(splitRepo)-1], ".git"))
-	if err := os.Mkdir(fakeCheckoutDir, os.ModePerm); err != nil {
-		return "", nil, err
-	}
-	depsFile := path.Join(fakeCheckoutDir, "DEPS")
-	if err := ioutil.WriteFile(depsFile, buf.Bytes(), os.ModePerm); err != nil {
-		return "", nil, err
-	}
-	return depsFile, func() { util.RemoveAll(wd) }, nil
-}
-
-// See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *noCheckoutDEPSRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string, baseCommit string) (string, map[string]string, error) {
-	// Download the DEPS file from the parent repo.
-	depsFile, cleanup, err := rm.getDEPSFile(ctx, rm.parentRepo, baseCommit)
-	if err != nil {
-		return "", nil, err
-	}
-	defer cleanup()
-
-	// Write the new DEPS content.
-	if err := rm.setdep(ctx, depsFile, rm.childPath, to.Id); err != nil {
-		return "", nil, err
-	}
-
-	// Update any transitive DEPS.
-	transitiveDeps := []*TransitiveDep{}
-	if len(rm.transitiveDeps) > 0 {
-		for childPath, parentPath := range rm.transitiveDeps {
-			oldRev, err := rm.getdep(ctx, depsFile, parentPath)
-			if err != nil {
-				return "", nil, err
-			}
-			newRev, ok := to.Dependencies[childPath]
-			if !ok {
-				return "", nil, skerr.Fmt("To-revision %s is missing dependency entry for %s", to.Id, childPath)
-			}
-			if oldRev != newRev {
-				if err := rm.setdep(ctx, depsFile, parentPath, newRev); err != nil {
-					return "", nil, err
-				}
-				transitiveDeps = append(transitiveDeps, &TransitiveDep{
-					ParentPath:  parentPath,
-					RollingFrom: oldRev,
-					RollingTo:   newRev,
-				})
-			}
-		}
-	}
-
-	// Read the updated DEPS content.
-	newDEPSContent, err := ioutil.ReadFile(depsFile)
-	if err != nil {
-		return "", nil, err
-	}
-
-	// Build the commit message.
-	commitMsg, err := rm.buildCommitMsg(&CommitMsgVars{
-		ChildPath:      rm.childPath,
-		ChildRepo:      rm.childRepoUrl,
-		CqExtraTrybots: cqExtraTrybots,
-		Reviewers:      emails,
-		Revisions:      rolling,
-		RollingFrom:    from,
-		RollingTo:      to,
-		ServerURL:      serverURL,
-		TransitiveDeps: transitiveDeps,
-	})
-	if err != nil {
-		return "", nil, fmt.Errorf("Failed to build commit msg: %s", err)
-	}
-	return commitMsg, map[string]string{"DEPS": string(newDEPSContent)}, nil
-}
-
-func (rm *noCheckoutDEPSRepoManager) getdep(ctx context.Context, depsFile, depPath string) (string, error) {
-	output, err := exec.RunCwd(ctx, path.Dir(depsFile), "python", rm.gclient, "getdep", "-r", depPath)
-	if err != nil {
-		return "", err
-	}
-	splitGetdep := strings.Split(strings.TrimSpace(output), "\n")
-	rev := strings.TrimSpace(splitGetdep[len(splitGetdep)-1])
-	if getDepRegex.MatchString(rev) {
-		if len(rev) == 40 {
-			return rev, nil
-		}
-		// The DEPS entry may be a shortened commit hash. Try to resolve
-		// the full hash.
-		rev, err = rm.childRepo.ResolveRef(ctx, rev)
-		if err != nil {
-			return "", skerr.Wrapf(err, "`gclient getdep` produced what appears to be a shortened commit hash, but failed to resolve it as a commit via gitiles. Output of `gclient getdep`:\n%s", output)
-		}
-		return rev, nil
-	}
-	return "", fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
-}
-
-func (rm *noCheckoutDEPSRepoManager) setdep(ctx context.Context, depsFile, depPath, rev string) error {
-	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", depPath, rev)}
-	_, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  path.Dir(depsFile),
-		Env:  depot_tools.Env(rm.depotTools),
-		Name: rm.gclient,
-		Args: args,
-	})
-	return err
-}
-
-// See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *noCheckoutDEPSRepoManager) updateHelper(ctx context.Context, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
-	// Find the last roll rev.
-	depsFile, cleanup, err := rm.getDEPSFile(ctx, rm.parentRepo, baseCommit)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	defer cleanup()
-	lastRollHash, err := rm.getdep(ctx, depsFile, rm.childPath)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	lastRollDetails, err := rm.childRepo.Details(ctx, lastRollHash)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	lastRollRev := revision.FromLongCommit(rm.childRevLinkTmpl, lastRollDetails)
-
-	// Get the tip-of-tree revision.
-	tipRevDetails, err := rm.childRepo.Details(ctx, rm.childBranch.String())
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	tipRev := revision.FromLongCommit(rm.childRevLinkTmpl, tipRevDetails)
-
-	// Find the not-yet-rolled child repo commits.
-	// Only consider commits on the "main" branch as roll candidates.
-	notRolled, err := rm.childRepo.LogFirstParent(ctx, lastRollRev.Id, tipRev.Id)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	notRolledRevs := revision.FromLongCommits(rm.childRevLinkTmpl, notRolled)
-
-	// Transitive deps.
-	if len(rm.transitiveDeps) > 0 {
-		for _, rev := range append(notRolledRevs, tipRev, lastRollRev) {
-			childDepsFile, childCleanup, err := rm.getDEPSFile(ctx, rm.childRepo, rev.Id)
-			if err != nil {
-				return nil, nil, nil, err
-			}
-			defer childCleanup()
-			for childPath := range rm.transitiveDeps {
-				childRev, err := rm.getdep(ctx, childDepsFile, childPath)
-				if err != nil {
-					return nil, nil, nil, err
-				}
-				if rev.Dependencies == nil {
-					rev.Dependencies = map[string]string{}
-				}
-				rev.Dependencies[childPath] = childRev
-			}
-		}
-	}
-
-	return lastRollRev, tipRev, notRolledRevs, nil
-}
-
-// See documentation for RepoManager interface.
-func (r *noCheckoutDEPSRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
-	details, err := r.childRepo.Details(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
+	return newParentChildRepoManager(ctx, parentRM, childRM)
 }

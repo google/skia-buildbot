@@ -80,7 +80,7 @@ func (mr *MockRepo) MockGetCommit(ctx context.Context, ref string) {
 	b, err := json.Marshal(c)
 	assert.NoError(mr.t, err)
 	b = append([]byte(")]}'\n"), b...)
-	url := fmt.Sprintf(gitiles.COMMIT_URL, mr.url, ref)
+	url := fmt.Sprintf(gitiles.COMMIT_URL_JSON, mr.url, ref)
 	mr.URLMock.MockOnce(url, mockhttpclient.MockGetDialogue(b))
 }
 
