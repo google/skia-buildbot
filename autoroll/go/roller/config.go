@@ -316,6 +316,8 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 		rm = append(rm, c.DEPSRepoManager)
 	}
 	if c.FreeTypeRepoManager != nil {
+		// TODO(borenet): De-duplicate the Gerrit config.
+		c.FreeTypeRepoManager.Gerrit = c.Gerrit
 		rm = append(rm, c.FreeTypeRepoManager)
 	}
 	if c.FuchsiaSDKAndroidRepoManager != nil {
@@ -337,6 +339,8 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 		rm = append(rm, c.Google3RepoManager)
 	}
 	if c.NoCheckoutDEPSRepoManager != nil {
+		// TODO(borenet): De-duplicate the Gerrit config.
+		c.NoCheckoutDEPSRepoManager.Gerrit = c.Gerrit
 		rm = append(rm, c.NoCheckoutDEPSRepoManager)
 	}
 	if c.SemVerGCSRepoManager != nil {

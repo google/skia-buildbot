@@ -12,6 +12,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -49,8 +51,8 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 	child := git_testutils.GitInit(t, ctx)
 	childCommits := make([]string, 0, 10)
 	for i := 0; i < numChildCommits; i++ {
-		for idx, h := range ftIncludesToMerge {
-			child.Add(ctx, path.Join(ftIncludeSrc, h), fmt.Sprintf(ftIncludeTmpl, "child", idx, i))
+		for idx, h := range parent.FtIncludesToMerge {
+			child.Add(ctx, path.Join(parent.FtIncludeSrc, h), fmt.Sprintf(ftIncludeTmpl, "child", idx, i))
 		}
 		childCommits = append(childCommits, child.Commit(ctx))
 		_, err = git.GitDir(child.Dir()).Git(ctx, "tag", "-a", fmt.Sprintf(ftVersionTmpl, i), "-m", fmt.Sprintf("Version %d", i))
@@ -61,17 +63,17 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 
 	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.GitDir(child.Dir()), urlmock)
 
-	parent := git_testutils.GitInit(t, ctx)
-	parent.Add(ctx, "DEPS", fmt.Sprintf(`deps = {
+	parentRepo := git_testutils.GitInit(t, ctx)
+	parentRepo.Add(ctx, "DEPS", fmt.Sprintf(`deps = {
   "%s": "%s@%s",
 }`, ftChildPath, child.RepoUrl(), childCommits[0]))
-	parent.Add(ctx, ftReadmePath, fmt.Sprintf(ftReadmeTmpl, fmt.Sprintf(ftVersionTmpl, 0), childCommits[0]))
-	for idx, h := range ftIncludesToMerge {
-		parent.Add(ctx, path.Join(ftIncludeDest, h), fmt.Sprintf(ftIncludeTmpl, "parent", idx, 0))
+	parentRepo.Add(ctx, parent.FtReadmePath, fmt.Sprintf(ftReadmeTmpl, fmt.Sprintf(ftVersionTmpl, 0), childCommits[0]))
+	for idx, h := range parent.FtIncludesToMerge {
+		parentRepo.Add(ctx, path.Join(parent.FtIncludeDest, h), fmt.Sprintf(ftIncludeTmpl, "parent", idx, 0))
 	}
-	parent.Commit(ctx)
+	parentRepo.Commit(ctx)
 
-	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
+	mockParent := gitiles_testutils.NewMockRepo(t, parentRepo.RepoUrl(), git.GitDir(parentRepo.Dir()), urlmock)
 
 	gUrl := "https://fake-skia-review.googlesource.com"
 	serialized, err := json.Marshal(&gerrit.AccountDetails{
@@ -94,10 +96,15 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 					ChildPath:    ftChildPath,
 					IncludeLog:   true,
 					ParentBranch: masterBranchTmpl(t),
-					ParentRepo:   parent.RepoUrl(),
+					ParentRepo:   parentRepo.RepoUrl(),
 				},
 			},
 			ChildRepo: child.RepoUrl(),
+			Gerrit: &codereview.GerritConfig{
+				URL:     "https://fake-skia-review.googlesource.com",
+				Project: "fake-gerrit-project",
+				Config:  codereview.GERRIT_CONFIG_CHROMIUM,
+			},
 		},
 	}
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
@@ -105,38 +112,44 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 	rm, err := NewFreeTypeRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
 
+	// Mock requests for Update().
 	mockParent.MockGetCommit(ctx, "master")
-	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockGetCommit(ctx, childCommits[0])
 	mockChild.MockGetCommit(ctx, "master")
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
-
+	for _, hash := range childCommits {
+		mockChild.MockGetCommit(ctx, hash)
+	}
+	// Update.
 	_, _, _, err = rm.Update(ctx)
 	require.NoError(t, err)
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
 		child.Cleanup()
-		parent.Cleanup()
+		parentRepo.Cleanup()
 		require.True(t, urlmock.Empty(), strings.Join(urlmock.List(), "\n"))
 	}
-	return ctx, wd, rm, child, parent, mockChild, mockParent, childCommits, urlmock, cleanup
+	return ctx, wd, rm, child, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup
 }
 
 func TestFreeTypeRepoManagerUpdate(t *testing.T) {
 	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupFreeType(t)
 	defer cleanup()
 
+	// Mock requests for Update().
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockGetCommit(ctx, childCommits[0])
 	mockChild.MockGetCommit(ctx, "master")
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
-
+	for _, hash := range childCommits {
+		mockChild.MockGetCommit(ctx, hash)
+	}
+	// Update.
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 	require.Equal(t, lastRollRev.Id, childCommits[0])
@@ -148,14 +161,17 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupFreeType(t)
 	defer cleanup()
 
+	// Mock requests for Update().
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockGetCommit(ctx, childCommits[0])
 	mockChild.MockGetCommit(ctx, "master")
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
-
+	for _, hash := range childCommits {
+		mockChild.MockGetCommit(ctx, hash)
+	}
+	// Update.
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
@@ -165,11 +181,11 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 
 	// Mock the request to retrieve the README.chromium file.
-	mockParent.MockReadFile(ctx, ftReadmePath, parentMaster)
+	mockParent.MockReadFile(ctx, parent.FtReadmePath, parentMaster)
 
 	// Mock the requests to retrieve the headers to merge.
-	for _, h := range ftIncludesToMerge {
-		mockParent.MockReadFile(ctx, path.Join(ftIncludeDest, h), parentMaster)
+	for _, h := range parent.FtIncludesToMerge {
+		mockParent.MockReadFile(ctx, path.Join(parent.FtIncludeDest, h), parentMaster)
 		// No need to mock reading from the child repo; the repo manager
 		// actually creates a checkout and uses that.
 	}
@@ -212,7 +228,7 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 Bug: None
 Tbr: me@google.com`, ftChildPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRolledRevs), childRepo.RepoUrl(), lastRollRev.Id[:12], tipRev.Id[:12], lastRollRev.Id[:12], tipRev.Id[:12], logStr, ftChildPath, tipRev.Id[:12])
 	subject := strings.Split(commitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.(*freetypeRepoManager).gerritConfig.Project, subject, "master", parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, "master", parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",
@@ -242,12 +258,12 @@ Tbr: me@google.com`, ftChildPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRo
 
 	// Mock the request to modify the README.chromium file.
 	reqBody = []byte(fmt.Sprintf(ftReadmeTmpl, fmt.Sprintf("v0.0.9-0-g%s", tipRev.Id[:7]), tipRev.Id))
-	urlmock.MockOnce(fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(ftReadmePath)), mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
+	urlmock.MockOnce(fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(parent.FtReadmePath)), mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
 	// Mock the requests to modify the header files.
-	for idx, h := range ftIncludesToMerge {
+	for idx, h := range parent.FtIncludesToMerge {
 		reqBody = []byte(fmt.Sprintf(ftIncludeTmpl, "parent", idx, 9))
-		urlmock.MockOnce(fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(path.Join(ftIncludeDest, h))), mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
+		urlmock.MockOnce(fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(path.Join(parent.FtIncludeDest, h))), mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 	}
 
 	// Mock the request to publish the change edit.

@@ -36,9 +36,13 @@
     "includeLog": false,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/angle/angle.git",
-    "transitiveDeps": {
-      "external/spirv-headers": "third_party/spirv-headers/src"
-    }
+    "transitiveDeps": [
+      {
+        "id": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers",
+        "childPath": "DEPS",
+        "parentPath": "DEPS"
+      }
+    ]
   },
   "kubernetes": {
     "cpu": "1",

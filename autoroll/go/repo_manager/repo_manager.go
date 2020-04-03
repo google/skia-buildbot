@@ -17,6 +17,7 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/cleanup"
@@ -36,9 +37,6 @@ const (
 	DEFAULT_REMOTE = "origin"
 
 	ROLL_BRANCH = "roll_branch"
-
-	gerritRevTmpl = "%s/+/%s"
-	githubRevTmpl = "%s/commit/%s"
 )
 
 // RepoManager is the interface used by different Autoroller implementations
@@ -105,7 +103,7 @@ type CommonRepoManagerConfig struct {
 	// the child repo. If not supplied, no links will be created.
 	ChildRevLinkTmpl string `json:"childRevLinkTmpl"`
 	// CommitMsgTmpl is a template used to build commit messages. See the
-	// CommitMsgVars type for more information.
+	// parent.CommitMsgVars type for more information.
 	CommitMsgTmpl string `json:"commitMsgTmpl"`
 	// ChildSubdir indicates the subdirectory of the workdir in which
 	// the childPath should be rooted. In most cases, this should be empty,
@@ -217,11 +215,11 @@ func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, reg *c
 	if err != nil {
 		return nil, err
 	}
-	commitMsgTmplStr := TMPL_COMMIT_MSG_DEFAULT
+	commitMsgTmplStr := parent.TMPL_COMMIT_MSG_DEFAULT
 	if c.CommitMsgTmpl != "" {
 		commitMsgTmplStr = c.CommitMsgTmpl
 	}
-	commitMsgTmpl, err := ParseCommitMsgTemplate(commitMsgTmplStr)
+	commitMsgTmpl, err := parent.ParseCommitMsgTemplate(commitMsgTmplStr)
 	if err != nil {
 		return nil, err
 	}
@@ -291,35 +289,9 @@ func (r *commonRepoManager) GetRevision(ctx context.Context, id string) (*revisi
 	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
 }
 
-// Helper function for unsetting the WIP bit on a Gerrit CL if necessary.
-// Either the change or issueNum parameter is required; if change is not
-// provided, it will be loaded from Gerrit. unsetWIP checks for a nil
-// GerritInterface, so this is safe to call from RepoManagers which don't
-// use Gerrit. If we fail to unset the WIP bit, unsetWIP abandons the change.
-func (r *commonRepoManager) unsetWIP(ctx context.Context, change *gerrit.ChangeInfo, issueNum int64) error {
-	if r.g != nil {
-		if change == nil {
-			var err error
-			change, err = r.g.GetIssueProperties(ctx, issueNum)
-			if err != nil {
-				return err
-			}
-		}
-		if change.WorkInProgress {
-			if err := r.g.SetReadyForReview(ctx, change); err != nil {
-				if err2 := r.g.Abandon(ctx, change, "Failed to set ready for review."); err2 != nil {
-					return fmt.Errorf("Failed to set ready for review with: %s\nand failed to abandon with: %s", err, err2)
-				}
-				return fmt.Errorf("Failed to set ready for review: %s", err)
-			}
-		}
-	}
-	return nil
-}
-
 // buildCommitMsg executes the commit message template using the given
 // CommitMsgVars.
-func (r *commonRepoManager) buildCommitMsg(vars *CommitMsgVars) (string, error) {
+func (r *commonRepoManager) buildCommitMsg(vars *parent.CommitMsgVars) (string, error) {
 	// Bugs.
 	vars.Bugs = nil
 	if r.includeBugs {

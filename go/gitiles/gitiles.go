@@ -28,7 +28,8 @@ import (
 */
 
 const (
-	COMMIT_URL        = "%s/+/%s?format=JSON"
+	COMMIT_URL        = "%s/+/%s"
+	COMMIT_URL_JSON   = COMMIT_URL + "?format=JSON"
 	DATE_FORMAT_NO_TZ = "Mon Jan 02 15:04:05 2006"
 	DATE_FORMAT_TZ    = "Mon Jan 02 15:04:05 2006 -0700"
 	DOWNLOAD_URL      = "%s/+/%s/%s?format=TEXT"
@@ -287,7 +288,7 @@ func commitToLongCommit(c *Commit) (*vcsinfo.LongCommit, error) {
 // getCommit returns a Commit for the given ref.
 func (r *Repo) getCommit(ctx context.Context, ref string) (*Commit, error) {
 	var c Commit
-	if err := r.getJson(ctx, fmt.Sprintf(COMMIT_URL, r.URL, ref), &c); err != nil {
+	if err := r.getJson(ctx, fmt.Sprintf(COMMIT_URL_JSON, r.URL, ref), &c); err != nil {
 		return nil, err
 	}
 	return &c, nil

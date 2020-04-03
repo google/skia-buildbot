@@ -12,6 +12,8 @@ import (
 	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs/gcsclient"
@@ -184,7 +186,7 @@ func (rm *fuchsiaSDKAndroidRepoManager) CreateNewRoll(ctx context.Context, from,
 	sklog.Info(st)
 
 	// Create the commit message.
-	msg, err := rm.buildCommitMsg(&CommitMsgVars{
+	msg, err := rm.buildCommitMsg(&parent.CommitMsgVars{
 		CqExtraTrybots: cqExtraTrybots,
 		Reviewers:      emails,
 		RollingFrom:    from,
@@ -222,7 +224,7 @@ func (rm *fuchsiaSDKAndroidRepoManager) CreateNewRoll(ctx context.Context, from,
 	if err != nil {
 		return 0, skerr.Wrap(err)
 	}
-	if err := rm.setChangeLabels(ctx, ci, emails, dryRun); err != nil {
+	if err := gerrit_common.SetChangeLabels(ctx, rm.g, ci, emails, dryRun); err != nil {
 		return 0, skerr.Wrap(err)
 	}
 
