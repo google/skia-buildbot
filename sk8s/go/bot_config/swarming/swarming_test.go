@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/glog_and_cloud"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
@@ -280,6 +281,10 @@ func TestFakeSwarmingExecutable_ExitCodeZero(t *testing.T) {
 	unittest.SmallTest(t)
 	if os.Getenv("EMULATE_SWARMING_BOT_EXECUTABLE") != "1" {
 		return
+	}
+	// Confirm the args are getting passed along.
+	if os.Args[len(os.Args)-1] != "start_bot" {
+		sklog.Fatal("Missing start_bot in os.Args.")
 	}
 	// Printf on stderr, which should appear in the callers logs.
 	fmt.Fprintf(os.Stderr, swarmingbotFakeStderrOutput)
