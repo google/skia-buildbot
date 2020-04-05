@@ -6,21 +6,19 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/human"
-	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/timer"
-	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/config"
+	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/types"
 )
 
 // CommitID represents the time of a particular commit, where a commit could either be
 // a real commit into the repo, or an event like running a trybot.
+//
+// TODO(jcgregorio) Collapse this into just types.CommitNumber.
 type CommitID struct {
 	Offset int `json:"offset"` // The index number of the commit from beginning of time, or the index of the patch number in Reitveld.
 }
@@ -68,121 +66,22 @@ type CommitDetail struct {
 	Timestamp int64  `json:"ts"`
 }
 
-// FromHash returns a CommitID for the given git hash.
-func FromHash(ctx context.Context, vcs vcsinfo.VCS, hash string) (*CommitID, error) {
-	commit, err := vcs.Details(ctx, hash, true)
-	if err != nil {
-		return nil, err
-	}
-	if !commit.Branches["master"] {
-		return nil, fmt.Errorf("Commit %s is not in master branch.", hash)
-	}
-	offset, err := vcs.IndexOf(ctx, hash)
-	if err != nil {
-		return nil, fmt.Errorf("Could not ingest, hash not found %q: %s", hash, err)
-	}
-	return &CommitID{
-		Offset: offset,
-	}, nil
-}
-
-// cacheEntry is used in the cache of CommitIDLookup.
-type cacheEntry struct {
-	author  string
-	subject string
-	hash    string
-	ts      int64
-}
-
 // CommitIDLookup allows getting CommitDetails from CommitIDs.
 type CommitIDLookup struct {
-	vcs vcsinfo.VCS
+	git *perfgit.Git
 
-	// mutex protects access to cache.
-	mutex sync.Mutex
-
-	// cache information about commits to "master", by their offset from the
-	// first commit.
-	cache map[int]*cacheEntry
-
-	gitRepoURL string
+	instanceConfig *config.InstanceConfig
 }
 
-// parseLogLine parses a single log line from running git log
-// --format="format:%ct %H %ae %s" and converts it into a cacheEntry.
+// New returns a new CommitIDLookup.
 //
-// index is the index of the last commit id, or -1 if we don't know which
-// commit id we are on.
-func parseLogLine(ctx context.Context, s string, index *int, vcs vcsinfo.VCS) (*cacheEntry, error) {
-	parts := strings.SplitN(s, " ", 4)
-	if len(parts) != 4 {
-		return nil, fmt.Errorf("Failed to parse parts of %q: %#v", s, parts)
-	}
-	ts := parts[0]
-	hash := parts[1]
-	author := parts[2]
-	subject := parts[3]
-	tsi, err := strconv.ParseInt(ts, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("Can't parse timestamp %q: %s", ts, err)
-	}
-	if *index == -1 {
-		*index, err = vcs.IndexOf(ctx, hash)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to get index of %q: %s", hash, err)
-		}
-	} else {
-		*index++
-	}
-	return &cacheEntry{
-		author:  author,
-		subject: subject,
-		hash:    hash,
-		ts:      tsi,
-	}, nil
-}
-
-// warmCache populates c.cache with all the commits to "master"
-// in the past year.
-func (c *CommitIDLookup) warmCache(ctx context.Context) {
-	defer timer.New("cid.warmCache time").Stop()
-	now := time.Now()
-
-	// TODO(jcgregorio) Remove entire cache once we switch to a BigTable backed vcsinfo.
-
-	// Extract ts, hash, author email, and subject from the git log.
-	since := now.Add(-365 * 24 * time.Hour).Format("2006-01-02")
-	g, ok := c.vcs.(*gitinfo.GitInfo)
-	if !ok {
-		return
-	}
-	log, err := g.LogArgs(ctx, "--since="+since, "--format=format:%ct %H %ae %s")
-	if err != nil {
-		sklog.Errorf("Could not get log for --since=%q: %s", since, err)
-		return
-	}
-
-	lines := util.Reverse(strings.Split(log, "\n"))
-	// Get the index of the first commit, and then increment from there.
-	var index int = -1
-	// Parse.
-	for _, s := range lines {
-		entry, err := parseLogLine(ctx, s, &index, c.vcs)
-		if err != nil {
-			sklog.Errorf("Failed to parse git log line %q: %s", s, err)
-			return
-		}
-		c.cache[index] = entry
-	}
-}
-
-func New(ctx context.Context, vcs vcsinfo.VCS, gitRepoURL string) *CommitIDLookup {
+// TODO(jcgregorio) Fold this functionality into perf/go/git once CommitID has
+// been simplified to just a types.CommitNumber.
+func New(ctx context.Context, git *perfgit.Git, instanceConfig *config.InstanceConfig) *CommitIDLookup {
 	cidl := &CommitIDLookup{
-		vcs:        vcs,
-		cache:      map[int]*cacheEntry{},
-		gitRepoURL: gitRepoURL,
+		git:            git,
+		instanceConfig: instanceConfig,
 	}
-	cidl.warmCache(ctx)
 	return cidl
 }
 
@@ -197,56 +96,25 @@ func urlFromParts(repoURL, hash, subject string, debounce bool) string {
 	}
 }
 
-func (c *CommitIDLookup) getFromCache(offset int) (*cacheEntry, bool) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	entry, ok := c.cache[offset]
-	return entry, ok
-}
-
-func (c *CommitIDLookup) addToCache(offset int, entry *cacheEntry) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	c.cache[offset] = entry
-}
-
 // Lookup returns a CommitDetail for each CommitID.
+//
+// TODO(jcgregorio) Once CommitID is types.CommitNumber then move this functionality into perfgit.Git.
 func (c *CommitIDLookup) Lookup(ctx context.Context, cids []*CommitID) ([]*CommitDetail, error) {
 	now := time.Now()
 	ret := make([]*CommitDetail, len(cids), len(cids))
 	for i, cid := range cids {
-		if cid.Offset < 0 {
-			continue
+		commit, err := c.git.CommitFromCommitNumber(ctx, types.CommitNumber(cid.Offset))
+		if err != nil {
+			return nil, skerr.Wrapf(err, "Failed cid.Lookup.")
 		}
-		entry, ok := c.getFromCache(cid.Offset)
-		if ok {
-			ret[i] = &CommitDetail{
-				CommitID:  *cid,
-				Author:    entry.author,
-				Message:   fmt.Sprintf("%.7s - %s - %.50s", entry.hash, human.Duration(now.Sub(time.Unix(entry.ts, 0))), entry.subject),
-				URL:       urlFromParts(c.gitRepoURL, entry.hash, entry.subject, config.Config.GitRepoConfig.DebouceCommitURL),
-				Hash:      entry.hash,
-				Timestamp: entry.ts,
-			}
-		} else {
-			lc, err := c.vcs.ByIndex(ctx, cid.Offset)
-			if err != nil {
-				return nil, fmt.Errorf("Failed to find match for cid %#v: %s", *cid, err)
-			}
-			ret[i] = &CommitDetail{
-				CommitID:  *cid,
-				Author:    lc.Author,
-				Message:   fmt.Sprintf("%.7s - %s - %.50s", lc.Hash, human.Duration(now.Sub(lc.Timestamp)), lc.ShortCommit.Subject),
-				URL:       urlFromParts(c.gitRepoURL, lc.Hash, lc.Subject, config.Config.GitRepoConfig.DebouceCommitURL),
-				Hash:      lc.Hash,
-				Timestamp: lc.Timestamp.Unix(),
-			}
-			c.addToCache(cid.Offset, &cacheEntry{
-				author:  lc.Author,
-				subject: lc.ShortCommit.Subject,
-				hash:    lc.Hash,
-				ts:      lc.Timestamp.Unix(),
-			})
+
+		ret[i] = &CommitDetail{
+			CommitID:  *cid,
+			Author:    commit.Author,
+			Message:   fmt.Sprintf("%.7s - %s - %.50s", commit.GitHash, human.Duration(now.Sub(time.Unix(commit.Timestamp, 0))), commit.Subject),
+			URL:       urlFromParts(c.instanceConfig.GitRepoConfig.URL, commit.GitHash, commit.Subject, c.instanceConfig.GitRepoConfig.DebouceCommitURL),
+			Hash:      commit.GitHash,
+			Timestamp: commit.Timestamp,
 		}
 	}
 	return ret, nil
