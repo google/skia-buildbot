@@ -124,7 +124,7 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20200403183213-e517a9b0f117
+	go.chromium.org/luci v0.0.0-20200404154724-e4db1f789597
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200403201458-baeed622b8d8
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
