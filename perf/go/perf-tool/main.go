@@ -9,7 +9,6 @@ import (
 	"os"
 	"time"
 
-	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
 	"github.com/spf13/cobra"
@@ -21,17 +20,15 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/glog_and_cloud"
+	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/tracestore"
-	"go.skia.org/infra/perf/go/tracestore/btts"
 	"go.skia.org/infra/perf/go/types"
-	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 )
 
 var (
-	ts             oauth2.TokenSource
-	store          tracestore.TraceStore
+	traceStore     tracestore.TraceStore
 	configFilename string
 	instanceConfig *config.InstanceConfig
 )
@@ -48,29 +45,30 @@ var (
 	ingestDryrunFlag bool
 )
 
-func main() {
-	ctx := context.Background()
+func mustGetStore() tracestore.TraceStore {
+	if traceStore != nil {
+		return traceStore
+	}
+	var err error
+	traceStore, err = builders.NewTraceStoreFromConfig(context.Background(), true, instanceConfig)
+	if err != nil {
+		sklog.Fatalf("Failed to create client: %s", err)
+	}
+	return traceStore
+}
 
+func main() {
 	cmd := cobra.Command{
 		Use: "perf-tool [sub]",
 		PersistentPreRunE: func(c *cobra.Command, args []string) error {
 			glog_and_cloud.SetLogger(glog_and_cloud.NewStdErrCloudLogger(glog_and_cloud.SLogStderr))
 
 			var err error
-			ts, err = auth.NewDefaultTokenSource(true, bigtable.Scope)
-			if err != nil {
-				return fmt.Errorf("Failed to auth: %s", err)
-			}
-
 			instanceConfig, err = config.InstanceConfigFromFile(configFilename)
 			if err != nil {
 				return skerr.Wrap(err)
 			}
-			// Create the store client.
-			store, err = btts.NewBigTableTraceStoreFromConfig(ctx, instanceConfig, ts, false)
-			if err != nil {
-				return fmt.Errorf("Failed to create client: %s", err)
-			}
+
 			return nil
 		},
 	}
@@ -181,7 +179,7 @@ func main() {
 }
 
 func tilesLastAction(c *cobra.Command, args []string) error {
-	tileNumber, err := store.GetLatestTile()
+	tileNumber, err := mustGetStore().GetLatestTile()
 	if err != nil {
 		return err
 	}
@@ -191,6 +189,7 @@ func tilesLastAction(c *cobra.Command, args []string) error {
 
 func tracesListByIndexAction(c *cobra.Command, args []string) error {
 	var tileNumber types.TileNumber
+	store := mustGetStore()
 	if tracesTileFlag == -1 {
 		var err error
 		tileNumber, err = store.GetLatestTile()
@@ -219,6 +218,7 @@ func tracesListByIndexAction(c *cobra.Command, args []string) error {
 }
 
 func indicesWriteAction(c *cobra.Command, args []string) error {
+	store := mustGetStore()
 	var tileNumber types.TileNumber
 	if indicesTileFlag == -1 {
 		var err error
@@ -233,6 +233,7 @@ func indicesWriteAction(c *cobra.Command, args []string) error {
 }
 
 func indicesWriteAllAction(c *cobra.Command, args []string) error {
+	store := mustGetStore()
 	tileNumber, err := store.GetLatestTile()
 	if err != nil {
 		return fmt.Errorf("Failed to get latest tile: %s", err)
@@ -255,6 +256,7 @@ func indicesWriteAllAction(c *cobra.Command, args []string) error {
 }
 
 func indicesCountAction(c *cobra.Command, args []string) error {
+	store := mustGetStore()
 	var tileNumber types.TileNumber
 	if indicesTileFlag == -1 {
 		var err error
@@ -284,7 +286,10 @@ func createPubSubTopic(ctx context.Context, client *pubsub.Client, topicName str
 	}
 
 	_, err = client.CreateTopic(ctx, topicName)
-	return fmt.Errorf("Failed to create topic %q: %s", topicName, err)
+	if err != nil {
+		return fmt.Errorf("Failed to create topic %q: %s", topicName, err)
+	}
+	return nil
 }
 
 func configCreatePubSubTopicsAction(c *cobra.Command, args []string) error {

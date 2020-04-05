@@ -28,7 +28,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
@@ -37,10 +36,11 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/bug"
+	perfgit "go.skia.org/infra/perf/go/git"
+
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"
@@ -103,7 +103,7 @@ var (
 )
 
 var (
-	vcs vcsinfo.VCS
+	perfGit *perfgit.Git
 
 	cidl *cid.CommitIDLookup = nil
 
@@ -245,7 +245,7 @@ func initialize() {
 		sklog.Fatal(err)
 	}
 
-	if !*local && !util.In(config.Config.DataStoreConfig.Namespace, []string{ds.PERF_NS, ds.PERF_ANDROID_NS, ds.PERF_ANDROID_X_NS, ds.PERF_ANDROID_MASTER_NS, ds.PERF_CT_NS, ds.PERF_FLUTTER_NS}) {
+	if !*local && config.Config.DataStoreConfig.Namespace != "" && !util.In(config.Config.DataStoreConfig.Namespace, []string{ds.PERF_NS, ds.PERF_ANDROID_NS, ds.PERF_ANDROID_X_NS, ds.PERF_ANDROID_MASTER_NS, ds.PERF_CT_NS, ds.PERF_FLUTTER_NS}) {
 		sklog.Fatal("When running in prod the datastore namespace must be a known value.")
 	}
 
@@ -272,40 +272,6 @@ func initialize() {
 	sklog.Info("About to parse templates.")
 	loadTemplates()
 
-	sklog.Info("About to clone repo.")
-
-	/*
-		gitstoreConfig := &gitstore.BTConfig{
-			ProjectID:  btConfig.Project,
-			InstanceID: btConfig.Instance,
-			TableID:    "git-repos2",
-			AppProfile: "skiaperf",
-		}
-
-		gs, err := gitstore.NewBTGitStore(ctx, gitstoreConfig, btConfig.GitUrl)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		vcs, err := gitstore.NewVCS(gs, "master", nil)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-	*/
-	vcs, err = gitinfo.CloneOrUpdate(ctx, config.Config.GitRepoConfig.URL, config.Config.GitRepoConfig.Dir, false)
-	if err != nil {
-		sklog.Fatal(err)
-	}
-
-	// TODO(jcgregorio) Remove this once we move to gitsync.
-	// Keep the repo synced.
-	go func() {
-		for range time.Tick(time.Minute) {
-			if err := vcs.Update(context.Background(), true, false); err != nil {
-				sklog.Errorf("Failed to update repo: %s", err)
-			}
-		}
-	}()
-
 	sklog.Info("About to build dataframebuilder.")
 
 	traceStore, err = builders.NewTraceStoreFromConfig(ctx, *local, config.Config)
@@ -318,10 +284,15 @@ func initialize() {
 		sklog.Fatalf("Failed to build paramsetRefresher: %s", err)
 	}
 
-	dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(vcs, traceStore)
+	perfGit, err = builders.NewPerfGitFromConfig(ctx, *local, config.Config)
+	if err != nil {
+		sklog.Fatalf("Failed to build perfgit.Git: %s", err)
+	}
+
+	dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(perfGit, traceStore)
 
 	sklog.Info("About to build cidl.")
-	cidl = cid.New(ctx, vcs, config.Config.GitRepoConfig.URL)
+	cidl = cid.New(ctx, perfGit, config.Config)
 
 	alerts.DefaultSparse = *defaultSparse
 
@@ -345,8 +316,8 @@ func initialize() {
 		notifier = notify.New(notify.NoEmail{}, config.Config.URL)
 	}
 
-	frameRequests = dataframe.NewRunningFrameRequests(vcs, dfBuilder, shortcutStore)
-	clusterRequests = regression.NewRunningRegressionDetectionRequests(vcs, cidl, float32(*interesting), dfBuilder, shortcutStore)
+	frameRequests = dataframe.NewRunningFrameRequests(perfGit, dfBuilder, shortcutStore)
+	clusterRequests = regression.NewRunningRegressionDetectionRequests(perfGit, cidl, float32(*interesting), dfBuilder, shortcutStore)
 	regStore, err = builders.NewRegressionStoreFromConfig(*local, cidl, config.Config)
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
@@ -354,14 +325,14 @@ func initialize() {
 	configProvider = newAlertsConfigProvider()
 	paramsProvider := newParamsetProvider(paramsetRefresher)
 
-	dryrunRequests = dryrun.New(cidl, dfBuilder, shortcutStore, paramsProvider, vcs)
+	dryrunRequests = dryrun.New(cidl, dfBuilder, shortcutStore, paramsProvider, perfGit)
 
 	if *doClustering {
 		go func() {
 			for i := 0; i < *numContinuousParallel; i++ {
 				// Start running continuous clustering looking for regressions.
 				time.Sleep(startClusterDelay)
-				c := regression.NewContinuous(vcs, cidl, configProvider, regStore, shortcutStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder,
+				c := regression.NewContinuous(perfGit, cidl, configProvider, regStore, shortcutStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder,
 					*local, config.Config.DataStoreConfig.Project, config.Config.IngestionConfig.FileIngestionTopicName, *eventDrivenRegressionDetection)
 				continuous = append(continuous, c)
 				go c.Run(context.Background())
@@ -404,7 +375,7 @@ type alertsStatus struct {
 }
 
 func alertsHandler(w http.ResponseWriter, r *http.Request) {
-	count, err := regressionCount(defaultAlertCategory)
+	count, err := regressionCount(r.Context(), defaultAlertCategory)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load untriaged count.", http.StatusInternalServerError)
 		return
@@ -465,7 +436,11 @@ func cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 			end = rr.End
 		}
 	}
-	df := dataframe.NewHeaderOnly(vcs, time.Unix(begin, 0), time.Unix(end, 0), false)
+	df, err := dataframe.NewHeaderOnly(r.Context(), perfGit, time.Unix(begin, 0), time.Unix(end, 0), false)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get dataframe.", http.StatusInternalServerError)
+		return
+	}
 
 	found := false
 	cids := []*cid.CommitID{}
@@ -642,8 +617,8 @@ func countHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// cidHandler takes the POST'd list of dataframe.ColumnHeaders,
-// and returns a serialized slice of vcsinfo.ShortCommit's.
+// cidHandler takes the POST'd list of dataframe.ColumnHeaders, and returns a
+// serialized slice of cid.CommitDetails.
 func cidHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	cids := []*cid.CommitID{}
@@ -777,30 +752,29 @@ func gotoHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.Form
 	hash := mux.Vars(r)["hash"]
 	dest := mux.Vars(r)["dest"]
-	index, err := vcs.IndexOf(ctx, hash)
+	index, err := perfGit.CommitNumberFromGitHash(ctx, hash)
 	if err != nil {
 		httputils.ReportError(w, err, "Could not look up git hash.", http.StatusInternalServerError)
 		return
 	}
-	last := vcs.LastNIndex(1)
-	if len(last) != 1 {
-		httputils.ReportError(w, fmt.Errorf("VCS.LastN(1) returned 0 hashes."), "Failed to find last hash.", http.StatusInternalServerError)
+	lastIndex, err := perfGit.CommitNumberFromTime(ctx, time.Time{})
+	if err != nil {
+		httputils.ReportError(w, fmt.Errorf("Failed to find last commit"), "Failed to find last commit.", http.StatusInternalServerError)
 		return
 	}
-	lastIndex := last[0].Index
 
 	delta := config.GotoRange
 	// If redirecting to the Triage page then always show just a single commit.
 	if dest == "t" {
 		delta = 0
 	}
-	begin := index - delta
+	begin := int(index) - delta
 	if begin < 0 {
 		begin = 0
 	}
-	end := index + delta
-	if end > lastIndex {
-		end = lastIndex
+	end := int(index) + delta
+	if end > int(lastIndex) {
+		end = int(lastIndex)
 	}
 	details, err := cidl.Lookup(ctx, []*cid.CommitID{
 		{
@@ -902,17 +876,21 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 // Unit timestamps into a range of types.CommitNumbers.
 //
 // Note this could return two equal commitNumbers.
-func unixTimestampRangeToCommitNumberRange(vcs vcsinfo.VCS, begin, end int64) (types.CommitNumber, types.CommitNumber, error) {
-	commits := vcs.Range(time.Unix(begin, 0), time.Unix(end, 0))
-	if len(commits) == 0 {
-		return types.BadCommitNumber, types.BadCommitNumber, skerr.Fmt("Didn't find any commits in range: %d %d", begin, end)
+func unixTimestampRangeToCommitNumberRange(ctx context.Context, begin, end int64) (types.CommitNumber, types.CommitNumber, error) {
+	beginCommitNumber, err := perfGit.CommitNumberFromTime(ctx, time.Unix(begin, 0))
+	if err != nil {
+		return types.BadCommitNumber, types.BadCommitNumber, skerr.Fmt("Didn't find any commit for begin: %d", begin)
 	}
-	return types.CommitNumber(commits[0].Index), types.CommitNumber(commits[len(commits)-1].Index), nil
+	endCommitNumber, err := perfGit.CommitNumberFromTime(ctx, time.Unix(end, 0))
+	if err != nil {
+		return types.BadCommitNumber, types.BadCommitNumber, skerr.Fmt("Didn't find any commit for end: %d", end)
+	}
+	return beginCommitNumber, endCommitNumber, nil
 }
 
 // regressionCount returns the number of commits that have regressions for alerts
 // in the given category. The time range of commits is REGRESSION_COUNT_DURATION.
-func regressionCount(category string) (int, error) {
+func regressionCount(ctx context.Context, category string) (int, error) {
 	configs, err := configProvider()
 	if err != nil {
 		return 0, err
@@ -922,7 +900,7 @@ func regressionCount(category string) (int, error) {
 	end := time.Now()
 
 	begin := end.Add(regressionCountDuration)
-	commitNumberBegin, commitNumberEnd, err := unixTimestampRangeToCommitNumberRange(vcs, begin.Unix(), end.Unix())
+	commitNumberBegin, commitNumberEnd, err := unixTimestampRangeToCommitNumberRange(ctx, begin.Unix(), end.Unix())
 	if err != nil {
 		return 0, err
 	}
@@ -952,7 +930,7 @@ func regressionCountHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	category := r.FormValue("cat")
 
-	count, err := regressionCount(category)
+	count, err := regressionCount(r.Context(), category)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to count regressions.", http.StatusInternalServerError)
 	}
@@ -1019,7 +997,7 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-	commitNumberBegin, commitNumberEnd, err := unixTimestampRangeToCommitNumberRange(vcs, rr.Begin, rr.End)
+	commitNumberBegin, commitNumberEnd, err := unixTimestampRangeToCommitNumberRange(r.Context(), rr.Begin, rr.End)
 	if err != nil {
 		httputils.ReportError(w, err, "Invalid time range.", http.StatusInternalServerError)
 		return
@@ -1076,12 +1054,16 @@ func regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	// Get a list of commits for the range.
 	var ids []*cid.CommitID
 	if rr.Subset == subsetAll {
-		indexCommits := vcs.Range(time.Unix(rr.Begin, 0), time.Unix(rr.End, 0))
-		ids = make([]*cid.CommitID, 0, len(indexCommits))
-		for _, indexCommit := range indexCommits {
-			ids = append(ids, &cid.CommitID{
-				Offset: indexCommit.Index,
-			})
+		commits, err := perfGit.CommitSliceFromTimeRange(r.Context(), time.Unix(rr.Begin, 0), time.Unix(rr.End, 0))
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to load git info.", http.StatusInternalServerError)
+			return
+		}
+		ids = make([]*cid.CommitID, len(commits), len(commits))
+		for i, c := range commits {
+			ids[i] = &cid.CommitID{
+				Offset: int(c.CommitNumber),
+			}
 		}
 	} else {
 		// If rr.Subset == UNTRIAGED_QS or FLAGGED_QS then only get the commits that
@@ -1258,47 +1240,49 @@ type shiftResponse struct {
 // commits to move.
 func shiftHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	ctx := context.Background()
 	var sr shiftRequest
 	if err := json.NewDecoder(r.Body).Decode(&sr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
 	sklog.Infof("ShiftRequest: %#v", &sr)
-	commits := vcs.Range(time.Unix(sr.Begin, 0), time.Unix(sr.End, 0))
-	if len(commits) == 0 {
-		httputils.ReportError(w, fmt.Errorf("No commits found in range."), "No commits found in range.", http.StatusInternalServerError)
+
+	beginCommit, err := perfGit.CommitNumberFromTime(r.Context(), time.Unix(sr.Begin, 0))
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to look up begin commit.", http.StatusInternalServerError)
 		return
 	}
-	numCommits := sr.NumCommits
+	endCommit, err := perfGit.CommitNumberFromTime(r.Context(), time.Unix(sr.End, 0))
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to look up end commit.", http.StatusInternalServerError)
+		return
+	}
+
+	numCommits := int(endCommit - beginCommit)
 	if sr.RequestType == dataframe.REQUEST_COMPACT {
 		numCommits -= sr.BeginOffset
 	}
-	beginCommit, err := vcs.ByIndex(ctx, commits[0].Index+sr.BeginOffset)
+	newBegin, err := perfGit.CommitFromCommitNumber(r.Context(), beginCommit+types.CommitNumber(sr.BeginOffset))
 	if err != nil {
 		httputils.ReportError(w, err, "Scrolled too far.", http.StatusInternalServerError)
 		return
 	}
-	var endCommitTs time.Time
-	endCommit, err := vcs.ByIndex(ctx, commits[len(commits)-1].Index+sr.EndOffset)
+	newEnd, err := perfGit.CommitFromCommitNumber(r.Context(), endCommit+types.CommitNumber(sr.EndOffset))
 	if err != nil {
-		// We went too far, so just use the last index.
-		commits := vcs.LastNIndex(1)
-		if len(commits) == 0 {
+		newEndCommitNumber, err := perfGit.CommitNumberFromTime(r.Context(), time.Time{})
+		if err != nil {
 			httputils.ReportError(w, err, "Scrolled too far.", http.StatusInternalServerError)
 			return
 		}
-		endCommitTs = commits[0].Timestamp
-	} else {
-		endCommitTs = endCommit.Timestamp
+		newEnd, err = perfGit.CommitFromCommitNumber(r.Context(), newEndCommitNumber)
 	}
-	if beginCommit.Timestamp.Unix() == endCommitTs.Unix() {
+	if newBegin.Timestamp == newEnd.Timestamp {
 		httputils.ReportError(w, err, "No commits found in range.", http.StatusInternalServerError)
 		return
 	}
 	resp := shiftResponse{
-		Begin:      beginCommit.Timestamp.Unix(),
-		End:        endCommitTs.Unix() + 1,
+		Begin:      newBegin.Timestamp,
+		End:        newEnd.Timestamp + 1,
 		NumCommits: numCommits,
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
