@@ -140,12 +140,13 @@ func (s *Server) getDimensions(w http.ResponseWriter, r *http.Request) {
 	dim["zone"] = []string{"us", "us-skolo", "us-skolo-1"} // TODO(jcgregorio) Add rack number in here?
 	dim["inside_docker"] = []string{"1", "containerd"}
 
-	var err error
-	dim, err = s.a.DimensionsFromProperties(r.Context(), dim)
-	if err != nil {
-		// Output isn't going into a browser so send the full err text across.
-		httputils.ReportError(w, err, err.Error(), http.StatusInternalServerError)
-		return
+	if updatedDim, err := s.a.DimensionsFromProperties(r.Context(), dim); err != nil {
+		sklog.Errorf("Failed getting dimensions from properties: %s", err)
+		// Don't return here, this just means we don't see a device attached.
+		// This will eventually be wired up to Machine State server which will
+		// handle the case of a device going missing.
+	} else {
+		dim = updatedDim
 	}
 	if err := json.NewEncoder(w).Encode(dim); err != nil {
 		sklog.Errorf("Failed to encode JSON output: %s", err)
