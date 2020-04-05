@@ -117,26 +117,24 @@ func TestGetDimensions_ErrOnInvalidJSON(t *testing.T) {
 	require.Equal(t, 500, res.StatusCode)
 }
 
-func TestGetDimensions_ErrOnAdbFail(t *testing.T) {
+func TestGetDimensions_NoErrOnAdbFail(t *testing.T) {
 	unittest.SmallTest(t)
 
 	r := httptest.NewRequest("POST", "/get_settings", strings.NewReader("{}"))
-
-	const adbError = "adb no device"
 
 	s, err := New()
 	require.NoError(t, err)
 	w := httptest.NewRecorder()
 
 	a := &mocks.Adb{}
-	a.On("DimensionsFromProperties", mock.Anything, mock.Anything).Return(nil, fmt.Errorf(adbError))
+	a.On("DimensionsFromProperties", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("adb no device"))
 	s.a = a
 
 	s.getDimensions(w, r)
 
 	res := w.Result()
-	assert.Equal(t, 500, res.StatusCode)
+	assert.Equal(t, 200, res.StatusCode)
 	b, err := ioutil.ReadAll(res.Body)
 	require.NoError(t, err)
-	assert.Contains(t, string(b), adbError)
+	assert.Contains(t, string(b), "us-skolo-1")
 }
