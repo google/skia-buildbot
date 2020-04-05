@@ -159,7 +159,11 @@ func TestStart_ReceiveOneFileFilterOneFileViaFilter(t *testing.T) {
 	// Set up test.
 	pubsubClient, instanceConfig := setupPubSubClient(t)
 
+<<<<<<< HEAD
 	// Reject names that contain tx_log.
+=======
+	// Recect names that contain tx_log.
+>>>>>>> git squash commit for roach.
 	instanceConfig.IngestionConfig.SourceConfig.RejectIfNameMatches = "/tx_log/"
 
 	// Send two events, but only one that is valid.
