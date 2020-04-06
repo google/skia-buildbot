@@ -140,7 +140,7 @@ func (r *GitilesRepo) LogLinear(ctx context.Context, from, to *revision.Revision
 
 // ParseDEPS retrieves the DEPS file at the given ref and returns the parsed
 // entries.
-func (r *GitilesRepo) ParseDEPS(ctx context.Context, ref string) (map[string]*deps_parser.DepsEntry, error) {
+func (r *GitilesRepo) ParseDEPS(ctx context.Context, ref string) (deps_parser.DepsEntries, error) {
 	var buf bytes.Buffer
 	if err := r.ReadFileAtRef(ctx, deps_parser.DepsFileName, ref, &buf); err != nil {
 		return nil, skerr.Wrap(err)
