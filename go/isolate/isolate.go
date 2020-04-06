@@ -387,7 +387,7 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, []*
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to create temporary dir: %s", err)
 	}
-	defer util.RemoveAll(tmpDir)
+	//defer util.RemoveAll(tmpDir)
 
 	// Write the .isolated.gen.json files.
 	genJsonFiles := make([]string, 0, len(tasks))
@@ -435,7 +435,7 @@ func (c *Client) ReUploadIsolatedFiles(ctx context.Context, isolatedFiles []*iso
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create temporary dir: %s", err)
 	}
-	defer util.RemoveAll(tmpDir)
+	//defer util.RemoveAll(tmpDir)
 
 	// Re-upload the isolated files.
 	isolatedFilePaths := make([]string, 0, len(isolatedFiles))
