@@ -3,6 +3,7 @@ package gitiles_common
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -85,7 +86,7 @@ func (r *GitilesRepo) GetRevision(ctx context.Context, id string) (*revision.Rev
 	// Optionally load any dependencies.
 	if len(r.deps) > 0 {
 		rev.Dependencies = make(map[string]string, len(r.deps))
-		var depsEntries map[string]*deps_parser.DepsEntry
+		var depsEntries deps_parser.DepsEntries
 		for dep, path := range r.deps {
 			if path == deps_parser.DepsFileName {
 				// Lazily load the DEPS entries.
@@ -98,9 +99,14 @@ func (r *GitilesRepo) GetRevision(ctx context.Context, id string) (*revision.Rev
 				}
 
 				// Find the desired DEPS entry.
-				entry, ok := depsEntries[dep]
-				if !ok {
-					return nil, skerr.Fmt("Dependency %q not found in DEPS!", dep)
+				entry := depsEntries.Get(dep)
+				if entry == nil {
+					b, err := json.MarshalIndent(depsEntries, "", "  ")
+					if err == nil {
+						return nil, skerr.Fmt("Dependency %q not found in DEPS:\n%s", dep, string(b))
+					} else {
+						return nil, skerr.Fmt("Dependency %q not found in DEPS; failed to marshal JSON: %s", dep, err)
+					}
 				}
 				rev.Dependencies[dep] = entry.Version
 			} else {

@@ -92,8 +92,8 @@ func gitilesDEPSGetChangesForRollFunc(dep string, transitiveDeps map[string]stri
 			}
 			td = make([]*TransitiveDep, 0, len(transitiveDeps))
 			for dep, path := range transitiveDeps {
-				oldVersion, ok := entries[dep]
-				if !ok {
+				oldVersion := entries.Get(dep)
+				if oldVersion == nil {
 					sklog.Errorf("Could not find transitive dependency %q in %+v", dep, entries)
 					continue
 				}
