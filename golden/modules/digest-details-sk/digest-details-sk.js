@@ -93,7 +93,7 @@ const detailsAndTriage = (ele) => {
 <div class=metrics_and_triage>
   <div>
     <a href=${diffPageHref(ele._grouping, ele._digest, ele.right.digest, ele.issue)}
-       class=diffpage_link>
+       target=_blank rel=noopener class=diffpage_link>
       Diff Details
     </a>
   </div>
