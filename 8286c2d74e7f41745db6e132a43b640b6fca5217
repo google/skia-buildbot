@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "f980d624_4c4a4549",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-06T19:18:09Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5dba34ec_958d47e8",
+      "revId": "8286c2d74e7f41745db6e132a43b640b6fca5217",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0e500062_64ed68ed",
         "filename": "gold-client/go/imgmatching/sobel/sobel.go",
         "patchSetId": 4
