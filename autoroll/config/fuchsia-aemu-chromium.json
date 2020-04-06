@@ -1,0 +1,39 @@
+// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childName": "Fuchsia AEMU",
+  "contacts": [
+    "chonggu@google.com"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "fuchsia-aemu-chromium-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "chonggu@google.com"
+  ],
+  "gitilesCIPDDEPSRepoManager": {
+    "childBranch": "N/A", // TODO(borenet): Not needed.
+    "childPath": "src/third_party/aemu-linux-x64",
+    "cipdAssetName": "fuchsia/third_party/aemu/linux-amd64",
+    "cipdAssetTag": "latest",
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
