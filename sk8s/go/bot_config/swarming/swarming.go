@@ -40,14 +40,19 @@ const (
 	defaultSwarmingServer  = "https://chromium-swarm.appspot.com"
 	internalSwarmingServer = "https://chrome-swarming.appspot.com"
 	debugSwarmingServer    = "https://chromium-swarm-dev.appspot.com"
+
+	swarmingBotIDEnvVar = "SWARMING_BOT_ID"
 )
 
 // New creates a new *Bot instance.
 //
 // The pythonExe and swarmingBotZip values must be absolute paths.
-func New(pythonExeFilename, swarmingBotZipFilename, metadataURL string) *Bot {
+func New(pythonExeFilename, swarmingBotZipFilename, metadataURL string) (*Bot, error) {
 	// Figure out where we should be downloading the Python code from.
-	host := os.Getenv("SWARMING_BOT_ID")
+	host := os.Getenv(swarmingBotIDEnvVar)
+	if host == "" {
+		return nil, skerr.Fmt("Env variable %q must be set.", swarmingBotIDEnvVar)
+	}
 	swarmingURL := defaultSwarmingServer
 	if strings.HasPrefix(host, "skia-i-") {
 		swarmingURL = internalSwarmingServer
@@ -63,7 +68,7 @@ func New(pythonExeFilename, swarmingBotZipFilename, metadataURL string) *Bot {
 		pythonExeFilename:      pythonExeFilename,
 		swarmingURL:            swarmingURL,
 		metadataURL:            metadataURL,
-	}
+	}, nil
 }
 
 // tokenStruct is the form of the JSON data that the metadata endpoint returns,
