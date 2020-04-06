@@ -885,6 +885,30 @@
     },
     {
       "key": {
+        "uuid": "b6a25c64_0f307c6f",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-06T12:36:09Z",
+      "side": 1,
+      "message": "👍",
+      "parentUuid": "a9ea19d6_d89995e6",
+      "range": {
+        "startLine": 175,
+        "startChar": 1,
+        "endLine": 175,
+        "endChar": 4
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c3e6fd96_92d741ee",
         "filename": "sk8s/go/bot_config/swarming/swarming_test.go",
         "patchSetId": 43
