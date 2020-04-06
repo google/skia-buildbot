@@ -37,9 +37,14 @@
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
     "transitiveDeps": [
       {
-        "id": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers",
-        "childPath": "DEPS",
-        "parentPath": "DEPS"
+        "child": {
+          "id": "https://github.com/KhronosGroup/SPIRV-Headers",
+          "path": "DEPS"
+        },
+        "parent": {
+          "id": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers",
+          "path": "DEPS"
+        }
       }
     ]
   },

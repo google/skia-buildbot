@@ -19,17 +19,32 @@ var (
 	getDepRegex = regexp.MustCompile("[a-f0-9]+")
 )
 
+// TransitiveDepEntry provides one half of the configuration for a transitive
+// dependency, ie. the parent or the child.
+type TransitiveDepEntry struct {
+	// Id is the dependency ID, eg. repo URL.
+	Id string `json:"id"`
+	// Path is the path to the file within the repo which pins this
+	// dependency, eg. "DEPS".
+	Path string `json:"path"`
+}
+
+// See documentation for util.Validator interface.
+func (e TransitiveDepEntry) Validate() error {
+	if e.Id == "" {
+		return skerr.Fmt("Id is required for TransitiveDepEntry")
+	}
+	if e.Path == "" {
+		return skerr.Fmt("Path is required for TransitiveDepEntry")
+	}
+	return nil
+}
+
 // TransitiveDepConfig provides configuration for a single transitive
 // dependency.
 type TransitiveDepConfig struct {
-	// Id is the dependency ID, eg. repo URL.
-	Id string `json:"id"`
-	// ChildPath is the path to the file within the child repo which pins
-	// this dependency.
-	ChildPath string `json:"childPath"`
-	// ParentPath is the path to the file within the parent repo which pins
-	// this dependency.
-	ParentPath string `json:"parentPath"`
+	Child  TransitiveDepEntry `json:"child"`
+	Parent TransitiveDepEntry `json:"parent"`
 }
 
 // NoCheckoutDEPSRepoManagerConfig provides configuration for RepoManagers which
@@ -69,14 +84,11 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 		}
 	}
 	for _, dep := range c.TransitiveDeps {
-		if dep.Id == "" {
-			return skerr.Fmt("Id is required for TransitiveDeps")
+		if err := dep.Child.Validate(); err != nil {
+			return skerr.Wrapf(err, "invalid TransitiveDeps Child")
 		}
-		if dep.ChildPath == "" {
-			return skerr.Fmt("ChildPath is required for TransitiveDeps")
-		}
-		if dep.ParentPath == "" {
-			return skerr.Fmt("ParentPath is required for TransitiveDeps")
+		if err := dep.Parent.Validate(); err != nil {
+			return skerr.Wrapf(err, "invalid TransitiveDeps Parent")
 		}
 	}
 	_, _, err := c.splitParentChild()
@@ -93,8 +105,8 @@ func (c NoCheckoutDEPSRepoManagerConfig) splitParentChild() (parent.GitilesDEPSC
 		childDeps = make(map[string]string, len(c.TransitiveDeps))
 		parentDeps = make(map[string]string, len(c.TransitiveDeps))
 		for _, dep := range c.TransitiveDeps {
-			parentDeps[dep.Id] = dep.ParentPath
-			childDeps[dep.Id] = dep.ChildPath
+			parentDeps[dep.Parent.Id] = dep.Parent.Path
+			childDeps[dep.Child.Id] = dep.Child.Path
 		}
 	}
 	parentCfg := parent.GitilesDEPSConfig{
