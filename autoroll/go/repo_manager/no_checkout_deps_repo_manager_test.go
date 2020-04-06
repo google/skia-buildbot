@@ -288,9 +288,14 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	cfg := noCheckoutDEPSCfg(t)
 	cfg.TransitiveDeps = []*TransitiveDepConfig{
 		{
-			Id:         "grandchild",
-			ChildPath:  "DEPS",
-			ParentPath: "DEPS",
+			Child: TransitiveDepEntry{
+				Id:   "grandchild",
+				Path: "DEPS",
+			},
+			Parent: TransitiveDepEntry{
+				Id:   "grandchild",
+				Path: "DEPS",
+			},
 		},
 	}
 	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg)
