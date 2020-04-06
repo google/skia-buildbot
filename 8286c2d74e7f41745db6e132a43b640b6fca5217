@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5dba34ec_958d47e8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-06T19:05:58Z",
+      "side": 1,
+      "message": "No, this is referring to the test images in TestSobel_EdgesAtVariousAngles_Success. I\u0027ve updated the description, hopefully it\u0027s more clear now.",
+      "parentUuid": "5c21fa73_7b8314ca",
+      "revId": "8286c2d74e7f41745db6e132a43b640b6fca5217",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0e500062_64ed68ed",
         "filename": "gold-client/go/imgmatching/sobel/sobel.go",
         "patchSetId": 4
@@ -30,6 +48,30 @@
       "writtenOn": "2020-04-06T17:37:02Z",
       "side": 1,
       "message": "nit: prefer j \u003c len(kernel) to avoid magic number\n\n(similar for i\u003c\u003d2 below)",
+      "range": {
+        "startLine": 86,
+        "startChar": 13,
+        "endLine": 86,
+        "endChar": 19
+      },
+      "revId": "8286c2d74e7f41745db6e132a43b640b6fca5217",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57282dd9_990f0262",
+        "filename": "gold-client/go/imgmatching/sobel/sobel.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-06T19:05:58Z",
+      "side": 1,
+      "message": "Added a comment as discussed on GVC. Hopefully these constants will be less mysterious now.",
+      "parentUuid": "0e500062_64ed68ed",
       "range": {
         "startLine": 86,
         "startChar": 13,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "d8118fd8_0e6cd22f",
+        "filename": "gold-client/go/imgmatching/sobel/sobel_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-06T19:05:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "469e766e_618068c0",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 42
+      },
+      "revId": "8286c2d74e7f41745db6e132a43b640b6fca5217",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "55b61df0_69c9ac53",
         "filename": "gold-client/go/imgmatching/sobel/sobel_test.go",
         "patchSetId": 4
@@ -85,6 +151,30 @@
       "revId": "8286c2d74e7f41745db6e132a43b640b6fca5217",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f95c09e5_0c327a36",
+        "filename": "gold-client/go/imgmatching/sobel/sobel_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-06T19:05:58Z",
+      "side": 1,
+      "message": "Removed the additional rotations. Added some comments on the small images test.",
+      "parentUuid": "55b61df0_69c9ac53",
+      "range": {
+        "startLine": 294,
+        "startChar": 0,
+        "endLine": 297,
+        "endChar": 60
+      },
+      "revId": "8286c2d74e7f41745db6e132a43b640b6fca5217",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
