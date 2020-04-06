@@ -3,6 +3,7 @@ package parent
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
@@ -48,9 +49,14 @@ func gitilesDEPSGetLastRollRevFunc(dep string) gitilesGetLastRollRevFunc {
 		if err != nil {
 			return "", skerr.Wrapf(err, "Failed to retrieve DEPS file")
 		}
-		entry, ok := depsEntries[dep]
-		if !ok {
-			return "", skerr.Fmt("Unable to find %q in DEPS!", dep)
+		entry := depsEntries.Get(dep)
+		if entry == nil {
+			b, err := json.MarshalIndent(depsEntries, "", "  ")
+			if err == nil {
+				return "", skerr.Fmt("Unable to find %q in DEPS! Entries:\n%s", dep, string(b))
+			} else {
+				return "", skerr.Fmt("Unable to find %q in DEPS! Failed to encode DEPS entries: %s", dep, err)
+			}
 		}
 		return entry.Version, nil
 	}

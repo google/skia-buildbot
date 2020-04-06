@@ -31,6 +31,9 @@ const (
 	PlatformWindows386   = "windows-386"
 	PlatformWindowsAmd64 = "windows-amd64"
 
+	// Placeholder for target platform.
+	PlatformPlaceholder = "${platform}"
+
 	// Template for Git CIPD package for a particular platform.
 	pkgGitTmpl = "infra/3pp/tools/git/%s"
 )
