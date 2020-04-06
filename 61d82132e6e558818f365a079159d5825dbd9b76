@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f819cc5b_76d19858",
+        "filename": "go/depot_tools/deps_parser/deps_parser.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-06T13:16:26Z",
+      "side": 1,
+      "message": "This is accounting of things like ${{var_name}}. That seems weird, but I guess not surprising. Can you show an example of that?",
+      "range": {
+        "startLine": 53,
+        "startChar": 37,
+        "endLine": 53,
+        "endChar": 49
+      },
+      "revId": "61d82132e6e558818f365a079159d5825dbd9b76",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
