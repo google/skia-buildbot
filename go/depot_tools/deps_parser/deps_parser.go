@@ -234,16 +234,18 @@ func resolveDepsEntries(vars map[string]ast.Expr, path string, expr ast.Expr) ([
 			return nil, nil, skerr.Wrap(err)
 		}
 		split := strings.SplitN(str, "@", 2)
-		if len(split) != 2 {
-			return nil, nil, skerr.Fmt("Invalid dep format; expected <repo>@<revision> but got: %s", str)
+		entry := &DepsEntry{
+			Id:   split[0],
+			Path: path,
 		}
-		return []*DepsEntry{
-			{
-				Id:      split[0],
-				Version: split[1],
-				Path:    path,
-			},
-		}, []*ast.Pos{pos}, nil
+		// Some DEPS files contain unpinned entries with no "@version"
+		// suffix. This isn't really valid, but we shouldn't fail to
+		// parse them. Note that we will not be able to correctly update
+		// the version of the dependency via SetDep.
+		if len(split) == 2 {
+			entry.Version = split[1]
+		}
+		return []*DepsEntry{entry}, []*ast.Pos{pos}, nil
 	}
 	return nil, nil, skerr.Fmt("Invalid value type %q", t)
 }

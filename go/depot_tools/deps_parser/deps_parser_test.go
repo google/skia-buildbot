@@ -187,6 +187,21 @@ func TestParseDepsRealWorld(t *testing.T) {
 			},
 		},
 	})
+
+	// This DEPS file has an unpinned entry.
+	checkDeps("https://chromium.googlesource.com/infra/infra.git", "fbd6fe605e30b496eab7a1ddb367cfb24cb86d99", map[string]*depsEntryPos{
+		"chromium.googlesource.com/chromium/tools/build": {
+			DepsEntry: &DepsEntry{
+				Id:      "chromium.googlesource.com/chromium/tools/build",
+				Version: "",
+				Path:    "build",
+			},
+			Pos: &ast.Pos{
+				Lineno:    8,
+				ColOffset: 4,
+			},
+		},
+	})
 }
 
 func TestSetDep(t *testing.T) {
