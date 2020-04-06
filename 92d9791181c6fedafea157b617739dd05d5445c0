@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a2c04589_e66c8e3e",
+        "filename": "sk8s/RPI_DESIGN.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-06T12:40:39Z",
+      "side": 1,
+      "message": "This is the only time the swarming client attempts to use or needs to use sudo. A typical swarming install on a normal machine adds a `sudo reboot` to the sudoers file to accomplish this.\n\n(That background should make things a bit more clear)",
+      "range": {
+        "startLine": 59,
+        "startChar": 28,
+        "endLine": 59,
+        "endChar": 31
+      },
+      "revId": "92d9791181c6fedafea157b617739dd05d5445c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77175b02_4813596d",
+        "filename": "sk8s/RPI_DESIGN.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-06T12:40:39Z",
+      "side": 1,
+      "message": "which build process? The container build?",
+      "range": {
+        "startLine": 68,
+        "startChar": 25,
+        "endLine": 68,
+        "endChar": 42
+      },
+      "revId": "92d9791181c6fedafea157b617739dd05d5445c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
