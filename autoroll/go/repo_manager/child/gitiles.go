@@ -42,7 +42,7 @@ func (c *gitilesChild) Update(ctx context.Context, lastRollRev *revision.Revisio
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "Failed to retrieve tip rev")
 	}
-	notRolledRevs, err := c.LogLinear(ctx, lastRollRev, tipRev)
+	notRolledRevs, err := c.LogFirstParent(ctx, lastRollRev, tipRev)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "Failed to retrieve not-rolled revisions")
 	}
