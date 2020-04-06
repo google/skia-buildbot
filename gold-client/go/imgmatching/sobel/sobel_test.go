@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"image"
 	"image/draw"
+	"image/png"
+	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -321,4 +323,30 @@ func imageToText(t *testing.T, img image.Image) string {
 	err := text.Encode(buf, nrgbaImg)
 	require.NoError(t, err)
 	return buf.String()
+}
+
+// readPngAsGray reads a PNG image from the file system, converts it to grayscale and returns it as
+// an *image.Gray.
+func readPngAsGray(t *testing.T, filename string) *image.Gray {
+	// Read image.
+	img := readPng(t, filename)
+
+	// Convert to grayscale.
+	grayImg := image.NewGray(img.Bounds())
+	draw.Draw(grayImg, img.Bounds(), img, img.Bounds().Min, draw.Src)
+
+	return grayImg
+}
+
+// readPng reads a PNG image from the file system and returns it as an image.Image.
+func readPng(t *testing.T, filename string) image.Image {
+	// Read image.
+	imgBytes, err := ioutil.ReadFile(filename)
+	require.NoError(t, err)
+
+	// Decode image.
+	img, err := png.Decode(bytes.NewReader(imgBytes))
+	require.NoError(t, err)
+
+	return img
 }
