@@ -7,20 +7,17 @@ import (
 	"fmt"
 	"net/url"
 	"sort"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/calc"
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
+	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -83,11 +80,10 @@ type FrameRequestProcess struct {
 	// request is read-only, it should not be modified.
 	request *FrameRequest
 
+	// TODO(jcgregorio) Remove ctx from struct.
 	ctx context.Context
 
-	// vcs is for Git info. The value of the 'vcs' variable should not be
-	//   changed, but vcs is Go routine safe.
-	vcs vcsinfo.VCS
+	perfGit *perfgit.Git
 
 	// dfBuilder builds DataFrame's.
 	dfBuilder DataFrameBuilder
@@ -110,7 +106,7 @@ func (fr *RunningFrameRequests) newProcess(ctx context.Context, req *FrameReques
 		numKeys = 1
 	}
 	ret := &FrameRequestProcess{
-		vcs:           fr.vcs,
+		perfGit:       fr.perfGit,
 		request:       req,
 		lastUpdate:    time.Now(),
 		state:         PROCESS_RUNNING,
@@ -130,7 +126,7 @@ func (fr *RunningFrameRequests) newProcess(ctx context.Context, req *FrameReques
 type RunningFrameRequests struct {
 	mutex sync.Mutex
 
-	vcs vcsinfo.VCS
+	perfGit *perfgit.Git
 
 	dfBuilder DataFrameBuilder
 
@@ -141,9 +137,9 @@ type RunningFrameRequests struct {
 	inProcess map[string]*FrameRequestProcess
 }
 
-func NewRunningFrameRequests(vcs vcsinfo.VCS, dfBuilder DataFrameBuilder, shortcutStore shortcut.Store) *RunningFrameRequests {
+func NewRunningFrameRequests(perfGit *perfgit.Git, dfBuilder DataFrameBuilder, shortcutStore shortcut.Store) *RunningFrameRequests {
 	fr := &RunningFrameRequests{
-		vcs:           vcs,
+		perfGit:       perfGit,
 		dfBuilder:     dfBuilder,
 		shortcutStore: shortcutStore,
 
@@ -281,7 +277,7 @@ func (p *FrameRequestProcess) Run() {
 
 	// Formulas.
 	for _, formula := range p.request.Formulas {
-		newDF, err := p.doCalc(formula, begin, end)
+		newDF, err := p.doCalc(ctx, formula, begin, end)
 		if err != nil {
 			p.reportError(err, "Failed to complete query.")
 			return
@@ -292,7 +288,7 @@ func (p *FrameRequestProcess) Run() {
 
 	// Keys
 	if p.request.Keys != "" {
-		newDF, err := p.doKeys(p.request.Keys, begin, end)
+		newDF, err := p.doKeys(ctx, p.request.Keys, begin, end)
 		if err != nil {
 			p.reportError(err, "Failed to complete query.")
 			return
@@ -306,10 +302,16 @@ func (p *FrameRequestProcess) Run() {
 	}
 
 	if len(df.Header) == 0 {
-		df = NewHeaderOnly(p.vcs, begin, end, true)
+		var err error
+		df, err = NewHeaderOnly(ctx, p.perfGit, begin, end, true)
+		if err != nil {
+			p.reportError(err, "Failed to load dataframe.")
+			return
+		}
+
 	}
 
-	resp, err := ResponseFromDataFrame(ctx, df, p.vcs, true)
+	resp, err := ResponseFromDataFrame(ctx, df, p.perfGit, true)
 	if err != nil {
 		p.reportError(err, "Failed to get skps.")
 		return
@@ -320,77 +322,24 @@ func (p *FrameRequestProcess) Run() {
 	p.response = resp
 }
 
-// getCommitTimesForFile returns a slice of Unix timestamps in seconds that are
-// the times that the given file changed in git between the given 'begin' and
-// 'end' hashes (inclusive).
-func getCommitTimesForFile(ctx context.Context, begin, end string, filename string, vcs vcsinfo.VCS) []int64 {
-	ret := []int64{}
-
-	// TODO(jcgregorio): Replace with calls to Gerrit API, only used by the Skia instance of perf.
-
-	g, ok := vcs.(*gitinfo.GitInfo)
-	if !ok {
-		return ret
-	}
-	// Now query for all the changes to the skp version over the given range of commits.
-	log, err := g.LogFine(ctx, begin+"^", end, "--format=format:%ct", "--", filename)
-	if err != nil {
-		sklog.Errorf("Could not get skp log for %s..%s -- %q: %s", begin, end, filename, err)
-		return ret
-	}
-
-	// Parse.
-	for _, s := range strings.Split(log, "\n") {
-		i, err := strconv.ParseInt(s, 10, 64)
-		if err != nil {
-			continue
-		}
-		ret = append(ret, int64(i))
-	}
-	return ret
-}
+// TODO(jcgregorio) Make skpFilename into a config option.
+var skpFilename = "infra/bots/assets/skp/VERSION"
 
 // getSkps returns the indices where the SKPs have been updated given
 // the ColumnHeaders.
-func getSkps(ctx context.Context, headers []*ColumnHeader, vcs vcsinfo.VCS) ([]int, error) {
-	// We have Offsets, which need to be converted to git hashes.
-	ci, err := vcs.ByIndex(ctx, int(headers[0].Offset))
+func getSkps(ctx context.Context, headers []*ColumnHeader, perfGit *perfgit.Git) ([]int, error) {
+	begin := types.CommitNumber(headers[0].Offset)
+	end := types.CommitNumber(headers[len(headers)-1].Offset)
+
+	commitNumbers, err := perfGit.CommitNumbersWhenFileChangesInCommitNumberRange(ctx, begin, end, skpFilename)
 	if err != nil {
-		return nil, fmt.Errorf("Could not find commit for index %d: %s", headers[0].Offset, err)
+		return nil, skerr.Wrapf(err, "Failed to find skp changes for range: %d-%d", begin, end)
 	}
-	begin := ci.Hash
-	ci, err = vcs.ByIndex(ctx, int(headers[len(headers)-1].Offset))
-	if err != nil {
-		return nil, fmt.Errorf("Could not find commit for index %d: %s", headers[len(headers)-1].Offset, err)
+	ret := make([]int, len(commitNumbers))
+	for i, n := range commitNumbers {
+		ret[i] = int(n)
 	}
-	end := ci.Hash
 
-	// Now query for all the changes to the skp version over the given range of commits.
-	ts := getCommitTimesForFile(ctx, begin, end, "infra/bots/assets/skp/VERSION", vcs)
-	// Add in the changes to the old skp version over the given range of commits.
-	ts = append(ts, getCommitTimesForFile(ctx, begin, end, "SKP_VERSION", vcs)...)
-
-	// Sort because they are in reverse order.
-	sort.Sort(util.Int64Slice(ts))
-
-	// Now flag all the columns where the skp changes.
-	ret := []int{}
-	for i, h := range headers {
-		if len(ts) == 0 {
-			break
-		}
-		if h.Timestamp >= ts[0] {
-			ret = append(ret, i)
-			ts = ts[1:]
-			if len(ts) == 0 {
-				break
-			}
-			// Coalesce all skp updates for a col into a single index.
-			for len(ts) > 0 && h.Timestamp >= ts[0] {
-				ts = ts[1:]
-			}
-		}
-	}
 	return ret, nil
 }
 
@@ -399,13 +348,13 @@ func getSkps(ctx context.Context, headers []*ColumnHeader, vcs vcsinfo.VCS) ([]i
 // If truncate is true then the number of traces returned is limited.
 //
 // tz is the timezone, and can be the empty string if the default (Eastern) timezone is acceptable.
-func ResponseFromDataFrame(ctx context.Context, df *DataFrame, vcs vcsinfo.VCS, truncate bool) (*FrameResponse, error) {
+func ResponseFromDataFrame(ctx context.Context, df *DataFrame, perfGit *perfgit.Git, truncate bool) (*FrameResponse, error) {
 	if len(df.Header) == 0 {
 		return nil, fmt.Errorf("No commits matched that time range.")
 	}
 
 	// Determine where SKP changes occurred.
-	skps, err := getSkps(ctx, df.Header, vcs)
+	skps, err := getSkps(ctx, df.Header, perfGit)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load skps: %s", err)
 	}
@@ -449,7 +398,7 @@ func (p *FrameRequestProcess) doSearch(ctx context.Context, queryStr string, beg
 		return nil, fmt.Errorf("Invalid Query: %s", err)
 	}
 	if p.request.RequestType == REQUEST_TIME_RANGE {
-		return p.dfBuilder.NewFromQueryAndRange(begin, end, q, true, p.progress)
+		return p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.progress)
 	} else {
 		return p.dfBuilder.NewNFromQuery(ctx, end, q, p.request.NumCommits, p.progress)
 	}
@@ -457,13 +406,13 @@ func (p *FrameRequestProcess) doSearch(ctx context.Context, queryStr string, beg
 
 // doKeys returns a DataFrame that matches the given set of keys given
 // the time range [begin, end).
-func (p *FrameRequestProcess) doKeys(keyID string, begin, end time.Time) (*DataFrame, error) {
+func (p *FrameRequestProcess) doKeys(ctx context.Context, keyID string, begin, end time.Time) (*DataFrame, error) {
 	keys, err := p.shortcutStore.Get(p.ctx, keyID)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to find that set of keys %q: %s", keyID, err)
 	}
 	if p.request.RequestType == REQUEST_TIME_RANGE {
-		return p.dfBuilder.NewFromKeysAndRange(keys.Keys, begin, end, true, p.progress)
+		return p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.progress)
 	} else {
 		return p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.progress)
 	}
@@ -471,7 +420,7 @@ func (p *FrameRequestProcess) doKeys(keyID string, begin, end time.Time) (*DataF
 
 // doCalc applies the given formula and returns a dataframe that matches the
 // given time range [begin, end) in a DataFrame.
-func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*DataFrame, error) {
+func (p *FrameRequestProcess) doCalc(ctx context.Context, formula string, begin, end time.Time) (*DataFrame, error) {
 	// During the calculation 'rowsFromQuery' will be called to load up data, we
 	// will capture the dataframe that's created at that time. We only really
 	// need df.Headers so it doesn't matter if the calculation has multiple calls
@@ -488,7 +437,7 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 			return nil, err
 		}
 		if p.request.RequestType == REQUEST_TIME_RANGE {
-			df, err = p.dfBuilder.NewFromQueryAndRange(begin, end, q, true, p.progress)
+			df, err = p.dfBuilder.NewFromQueryAndRange(ctx, begin, end, q, true, p.progress)
 		} else {
 			df, err = p.dfBuilder.NewNFromQuery(p.ctx, end, q, p.request.NumCommits, p.progress)
 		}
@@ -509,7 +458,7 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 			return nil, err
 		}
 		if p.request.RequestType == REQUEST_TIME_RANGE {
-			df, err = p.dfBuilder.NewFromKeysAndRange(keys.Keys, begin, end, true, p.progress)
+			df, err = p.dfBuilder.NewFromKeysAndRange(ctx, keys.Keys, begin, end, true, p.progress)
 		} else {
 			df, err = p.dfBuilder.NewNFromKeys(p.ctx, end, keys.Keys, p.request.NumCommits, p.progress)
 		}
@@ -524,8 +473,8 @@ func (p *FrameRequestProcess) doCalc(formula string, begin, end time.Time) (*Dat
 		return rows, nil
 	}
 
-	ctx := calc.NewContext(rowsFromQuery, rowsFromShortcut)
-	rows, err := ctx.Eval(formula)
+	calcContext := calc.NewContext(rowsFromQuery, rowsFromShortcut)
+	rows, err := calcContext.Eval(formula)
 	if err != nil {
 		return nil, fmt.Errorf("Calculation failed: %s", err)
 	}

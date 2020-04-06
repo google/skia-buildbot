@@ -139,7 +139,7 @@ export class ClusterSummary2Sk extends ElementSk {
    * Look up the commit ids for the given offsets and sources.
    *
    * @param {Array} cids - An array of serialized cid.CommitID.
-   * @returns {Promise} A Promise hat resolves the cids and returns an Array of serialized vcsinfo.ShortCommits.
+   * @returns {Promise} A Promise that resolves the cids and returns an Array of serialized cid.CommitDetails.
    */
   static _lookupCids(cids) {
     return fetch('/_/cid/', {

@@ -5,64 +5,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/deepequal/assertdeep"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/perf/go/cid"
+	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/git/gittest"
+	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/types"
 )
-
-var (
-	ts0 = time.Unix(1406721642, 0).UTC()
-	ts1 = time.Unix(1406721715, 0).UTC()
-
-	commits = []*vcsinfo.IndexCommit{
-		{
-			Hash:      "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
-			Index:     0,
-			Timestamp: ts0,
-		},
-		{
-			Hash:      "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
-			Index:     1,
-			Timestamp: ts1,
-		},
-	}
-)
-
-func TestRangeImpl(t *testing.T) {
-	unittest.SmallTest(t)
-
-	expected_headers := []*ColumnHeader{
-		{
-			Offset:    0,
-			Timestamp: ts0.Unix(),
-		},
-		{
-			Offset:    1,
-			Timestamp: ts1.Unix(),
-		},
-	}
-	expected_pcommits := []*cid.CommitID{
-		{
-			Offset: 0,
-		},
-		{
-			Offset: 1,
-		},
-	}
-
-	headers, pcommits, _ := rangeImpl(commits, 0)
-	assert.Equal(t, 2, len(headers))
-	assert.Equal(t, 2, len(pcommits))
-	assertdeep.Equal(t, expected_headers, headers)
-	assertdeep.Equal(t, expected_pcommits, pcommits)
-
-	headers, pcommits, _ = rangeImpl([]*vcsinfo.IndexCommit{}, 0)
-	assert.Equal(t, 0, len(headers))
-	assert.Equal(t, 0, len(pcommits))
-}
 
 func TestBuildParamSet(t *testing.T) {
 	unittest.SmallTest(t)
@@ -180,4 +130,40 @@ func TestSlice(t *testing.T) {
 	assert.Equal(t, sub.TraceSet[",arch=x86,config=gpu,"], types.Trace([]float32{2.2, 2.3, 2.4}))
 	assert.Equal(t, sub.ParamSet, paramtools.ParamSet{"arch": []string{"x86"}, "config": []string{"565", "8888", "gpu"}})
 
+}
+
+func TestFromTimeRange_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	defer cleanup()
+	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
+	require.NoError(t, err)
+
+	columnHeaders, commitNumbers, _, err := FromTimeRange(ctx, g, gittest.StartTime, gittest.StartTime.Add(2*time.Minute), false)
+	require.NoError(t, err)
+	assert.Equal(t, []*ColumnHeader{
+		{
+			Offset:    0,
+			Timestamp: gittest.StartTime.Unix(),
+		},
+		{
+			Offset:    1,
+			Timestamp: gittest.StartTime.Add(time.Minute).Unix(),
+		},
+	}, columnHeaders)
+	assert.Equal(t, []types.CommitNumber{0, 1}, commitNumbers)
+}
+
+func TestFromTimeRange_EmptySlicesIfNothingInTimeRange(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	defer cleanup()
+	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
+	require.NoError(t, err)
+
+	// Query outside the time of any commit.
+	columnHeaders, commitNumbers, _, err := FromTimeRange(ctx, g, gittest.StartTime.Add(-time.Hour), gittest.StartTime.Add(-time.Hour+2*time.Minute), false)
+	require.NoError(t, err)
+	assert.Empty(t, columnHeaders)
+	assert.Empty(t, commitNumbers)
 }

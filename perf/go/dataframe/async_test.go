@@ -4,8 +4,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
+	perfgit "go.skia.org/infra/perf/go/git"
+	"go.skia.org/infra/perf/go/git/gittest"
+	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -139,4 +143,47 @@ func TestDFAppend(t *testing.T) {
 	assert.Equal(t, types.Trace{1.1, 1.2, e, 1.4}, r.TraceSet[",config=8888,arch=arm,"])
 	assert.Equal(t, types.Trace{e, e, 4.3, 4.4}, r.TraceSet[",config=565,arch=arm,"])
 	assert.Equal(t, types.Trace{e, e, 3.3, 3.4}, r.TraceSet[",config=565,arch=x86,"])
+}
+
+func TestGetSkps_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	defer cleanup()
+	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
+	require.NoError(t, err)
+
+	tmp := skpFilename
+	skpFilename = "bar.txt"
+	defer func() {
+		skpFilename = tmp
+	}()
+
+	skps, err := getSkps(ctx, []*ColumnHeader{
+		{
+			Offset: 0,
+		},
+		{
+			Offset: 7,
+		},
+	}, g)
+	require.NoError(t, err)
+	assert.Equal(t, []int{3, 6}, skps)
+}
+
+func TestGetSkps_ErrOnBadCommitNumber(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	defer cleanup()
+	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
+	require.NoError(t, err)
+
+	_, err = getSkps(ctx, []*ColumnHeader{
+		{
+			Offset: -3,
+		},
+		{
+			Offset: -1,
+		},
+	}, g)
+	require.Error(t, err)
 }
