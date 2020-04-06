@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c2e1e502_07cdb395",
+        "filename": "perf/go/tracestore/btts/btts_testutils/btts_testutils.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-06T12:19:44Z",
+      "side": 1,
+      "message": "The BigTable emulator suddenly started enforcing the \"minimum name 6 chars\".",
+      "range": {
+        "startLine": 14,
+        "startChar": 44,
+        "endLine": 14,
+        "endChar": 52
+      },
+      "revId": "ea83a6de890ff6b75ea95f0e5031edf4911835e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
