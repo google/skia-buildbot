@@ -21,4 +21,8 @@ type Child interface {
 	// GetRevision returns a Revision instance associated with the given
 	// revision ID.
 	GetRevision(context.Context, string) (*revision.Revision, error)
+
+	// Download downloads the Child at the given Revision to the given
+	// destination.
+	Download(context.Context, *revision.Revision, string) error
 }
