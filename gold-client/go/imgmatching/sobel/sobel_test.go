@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"image"
 	"image/draw"
+	"image/png"
+	"io/ioutil"
 	"testing"
 
 	"github.com/magiconair/properties/assert"
@@ -309,6 +311,23 @@ func TestSobel_EdgesAtVariousAngles_Success(t *testing.T) {
 	test("330 degrees", rotate270(input60Degrees), rotate270(expectedOutput60Degrees))
 }
 
+func TestSobel_GoldenImage_Success(t *testing.T) {
+	unittest.MediumTest(t)
+
+	// Attribution for the test/sobel-input.png image used in this test:
+	//
+	//   Author: Simpsons contributor.
+	//   License: CC BY-SA (https://creativecommons.org/licenses/by-sa/3.0).
+	//   Source: https://en.wikipedia.org/wiki/File:Valve_original_%281%29.PNG.
+	//   Modifications: PNG image was recoded using Golang's png.Decode() and png.Encode().
+
+	inputImg := readPngAsGray(t, "test/sobel-input.png")
+	expectedOutputImg := readPngAsGray(t, "test/sobel-expected-output.png")
+	actualOutputImg := sobel(inputImg)
+
+	assert.Equal(t, expectedOutputImg, actualOutputImg)
+}
+
 func TestRotate_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -390,4 +409,30 @@ func imageToText(t *testing.T, img image.Image) string {
 	err := text.Encode(buf, nrgbaImg)
 	require.NoError(t, err)
 	return buf.String()
+}
+
+// readPngAsGray reads a PNG image from the file system, converts it to grayscale and returns it as
+// an *image.Gray.
+func readPngAsGray(t *testing.T, filename string) *image.Gray {
+	// Read image.
+	img := readPng(t, filename)
+
+	// Convert to grayscale.
+	grayImg := image.NewGray(img.Bounds())
+	draw.Draw(grayImg, img.Bounds(), img, img.Bounds().Min, draw.Src)
+
+	return grayImg
+}
+
+// readPng reads a PNG image from the file system and returns it as an image.Image.
+func readPng(t *testing.T, filename string) image.Image {
+	// Read image.
+	imgBytes, err := ioutil.ReadFile(filename)
+	require.NoError(t, err)
+
+	// Decode image.
+	img, err := png.Decode(bytes.NewReader(imgBytes))
+	require.NoError(t, err)
+
+	return img
 }
