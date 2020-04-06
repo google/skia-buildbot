@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "c8daad10_3c43be3d",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-06T13:46:42Z",
+      "side": 1,
+      "message": "Drive by comment (to be fixed in a later CL): \"Do not store Contexts inside a struct type\"\n\nhttps://golang.org/pkg/context/",
+      "range": {
+        "startLine": 83,
+        "startChar": 1,
+        "endLine": 83,
+        "endChar": 20
+      },
+      "revId": "ea83a6de890ff6b75ea95f0e5031edf4911835e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5a9dcec_a063644a",
+        "filename": "perf/go/dataframe/async.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-06T13:46:42Z",
+      "side": 1,
+      "message": "make([]int, len(commitNumbers))",
+      "range": {
+        "startLine": 337,
+        "startChar": 7,
+        "endLine": 337,
+        "endChar": 59
+      },
+      "revId": "ea83a6de890ff6b75ea95f0e5031edf4911835e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f27a078_ade27f70",
+        "filename": "perf/go/dfbuilder/dfbuilder.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-06T13:46:42Z",
+      "side": 1,
+      "message": "ctx",
+      "range": {
+        "startLine": 164,
+        "startChar": 14,
+        "endLine": 164,
+        "endChar": 28
+      },
+      "revId": "ea83a6de890ff6b75ea95f0e5031edf4911835e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c2e1e502_07cdb395",
         "filename": "perf/go/tracestore/btts/btts_testutils/btts_testutils.go",
         "patchSetId": 7
@@ -18,6 +87,29 @@
         "startChar": 44,
         "endLine": 14,
         "endChar": 52
+      },
+      "revId": "ea83a6de890ff6b75ea95f0e5031edf4911835e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef4ef101_fe48f96b",
+        "filename": "perf/modules/cluster-summary2-sk/cluster-summary2-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-06T13:46:42Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 142,
+        "startChar": 34,
+        "endLine": 142,
+        "endChar": 37
       },
       "revId": "ea83a6de890ff6b75ea95f0e5031edf4911835e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
