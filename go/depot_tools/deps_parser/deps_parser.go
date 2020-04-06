@@ -31,12 +31,15 @@ well.
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/go-python/gpython/ast"
 	_ "github.com/go-python/gpython/builtin"
 	"github.com/go-python/gpython/parser"
 	"github.com/go-python/gpython/py"
+	"go.skia.org/infra/go/cipd"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -45,13 +48,19 @@ const (
 	DepsFileName = "DEPS"
 )
 
+var (
+	// We treat "{var_name}" in strings equivalently to a call to Var().
+	varSubstRegex = regexp.MustCompile(`{?{(\w+?)}}?`)
+)
+
 // DepsEntry represents a single entry in a DEPS file. Note that the 'deps' dict
 // may specify that multiple CIPD package are unpacked to the same location; a
 // DepsEntry refers to the dependency, not the path, so each CIPD package would
 // get its own DepsEntry despite their sharing one key in the 'deps' dict.
 type DepsEntry struct {
 	// Id describes what the DepsEntry points to, eg. for Git dependencies
-	// it is the repo URL, and for CIPD packages it is the package name.
+	// it is the normalized repo URL, and for CIPD packages it is the
+	// package name.
 	Id string
 
 	// Version is the currently-pinned version of this dependency.
@@ -62,11 +71,20 @@ type DepsEntry struct {
 	Path string
 }
 
-// ParseDeps parses the DEPS file content and returns a map of dependency ID to
-// DepsEntry. It does not attempt to understand the full Python syntax upon
-// which DEPS is based and may break completely if the file takes an unexpected
-// format.
-func ParseDeps(depsContent string) (map[string]*DepsEntry, error) {
+// DepsEntries represents all entries in a DEPS file.
+type DepsEntries map[string]*DepsEntry
+
+// Get retrieves the DepsEntry with the given ID, accounting for normalization.
+// Returns the DepsEntry or nil if the entry was not found.
+func (e DepsEntries) Get(dep string) *DepsEntry {
+	return e[NormalizeDep(dep)]
+}
+
+// ParseDeps parses the DEPS file content and returns a map of normalized
+// dependency ID to DepsEntry. It does not attempt to understand the full Python
+// syntax upon which DEPS is based and may break completely if the file takes an
+// unexpected format.
+func ParseDeps(depsContent string) (DepsEntries, error) {
 	entries, _, err := parseDeps(depsContent)
 	return entries, err
 }
@@ -76,6 +94,9 @@ func ParseDeps(depsContent string) (map[string]*DepsEntry, error) {
 // to understand the full Python syntax upon which DEPS is based and may break
 // completely if the file takes an unexpected format.
 func SetDep(depsContent, depId, version string) (string, error) {
+	// Normalize the dependency ID.
+	depId = NormalizeDep(depId)
+
 	// Parse the DEPS content.
 	entries, poss, err := parseDeps(depsContent)
 	if err != nil {
@@ -178,16 +199,15 @@ func resolveDepsEntries(vars map[string]ast.Expr, path string, expr ast.Expr) ([
 							return nil, nil, skerr.Fmt("Invalid type for CIPD package dict key at %q; expected %q but got %q", path, ast.StrType.Name, key.Type().Name)
 						}
 						strKey := key.(*ast.Str).S
-						val := pkgDict.Values[idx]
-						if val.Type().Name != ast.StrType.Name {
-							return nil, nil, skerr.Fmt("Invalid type for CIPD package dict value at %q; expected %q but got %q", path, ast.StrType.Name, val.Type().Name)
+						var strVal string
+						strVal, pos, err = exprToString(pkgDict.Values[idx])
+						if err != nil {
+							return nil, nil, skerr.Wrap(err)
 						}
-						strVal := string(val.(*ast.Str).S)
 						if strKey == "package" {
 							entry.Id = strVal
 						} else if strKey == "version" {
 							entry.Version = strVal
-							pos = &val.(*ast.Str).Pos
 						}
 					}
 					if entry.Id == "" || entry.Version == "" {
@@ -316,15 +336,81 @@ func resolveVars(vars map[string]ast.Expr, expr ast.Expr) (ast.Expr, error) {
 			return nil, skerr.Fmt("No such var: %s", key)
 		}
 		return val, nil
+	} else if t == ast.StrType.Name {
+		// Strings may contain vars references in "{var}blah" format.
+		str := expr.(*ast.Str)
+		matches := varSubstRegex.FindAllStringSubmatchIndex(string(str.S), -1)
+		if len(matches) == 0 {
+			// No vars references; return the string as-is.
+			return expr, nil
+		}
+		// Gclient performs an implicit `str.format(**vars)` on string
+		// literals. Approximate that behavior by breaking formatted
+		// strings into a series of expressions.
+		prevIdx := 0
+		var exprs []ast.Expr
+		for _, match := range matches {
+			if len(match) != 4 {
+				return nil, skerr.Fmt("Invalid format for regex match; expected 4 indexes but got: %+v", match)
+			}
+			// If there were any characters between the previous
+			// match and this one, they become a new string literal.
+			if prevIdx < match[0] {
+				exprs = append(exprs, &ast.Str{
+					ExprBase: str.ExprBase,
+					S:        str.S[prevIdx:match[0]],
+				})
+			}
+			// Special case: double-bracketed strings just
+			// become single-bracketed.
+			if str.S[match[0]:match[2]] == "{{" && str.S[match[3]:match[1]] == "}}" {
+				exprs = append(exprs, &ast.Str{
+					ExprBase: str.ExprBase,
+					S:        str.S[match[0]+1 : match[1]-1],
+				})
+			} else {
+				// Insert the expression for the vars entry.
+				key := str.S[match[2]:match[3]]
+				val, ok := vars[string(key)]
+				if !ok {
+					return nil, skerr.Fmt("No such var: %s", key)
+				}
+				exprs = append(exprs, val)
+			}
+			prevIdx = match[1]
+		}
+		// If there are any characters after the last match, they become
+		// a new string literal.
+		if prevIdx < len(str.S) {
+			exprs = append(exprs, &ast.Str{
+				ExprBase: str.ExprBase,
+				S:        str.S[prevIdx:len(str.S)],
+			})
+		}
+		// Glob the exprs together by repeatedly replacing the last two
+		// string literals with a BinOp.
+		for len(exprs) > 1 {
+			left := exprs[len(exprs)-2]
+			right := exprs[len(exprs)-1]
+			expr := &ast.BinOp{
+				ExprBase: str.ExprBase,
+				Left:     left,
+				Op:       ast.Add,
+				Right:    right,
+			}
+			exprs[len(exprs)-2] = expr
+			exprs = exprs[:len(exprs)-1]
+		}
+		return exprs[0], nil
 	}
 	// This is a non-recursive or unsupported type. Return expr unchanged.
 	return expr, nil
 }
 
-// parseDeps parses the DEPS file content and returns a map of dependency ID to
-// DepsEntry and a map of dependency to ast.Pos indicating where the dependency
-// version was defined in the DEPS file content.
-func parseDeps(depsContent string) (map[string]*DepsEntry, map[string]*ast.Pos, error) {
+// parseDeps parses the DEPS file content and returns a map of normalized
+// dependency ID to DepsEntry and a map of normalized dependency ID to ast.Pos
+// indicating where the dependency version was defined in the DEPS file content.
+func parseDeps(depsContent string) (DepsEntries, map[string]*ast.Pos, error) {
 	// Use gpython to parse the DEPS file as a Python script.
 	parsed, err := parser.ParseString(depsContent, "exec")
 	if err != nil {
@@ -385,6 +471,7 @@ func parseDeps(depsContent string) (map[string]*DepsEntry, map[string]*ast.Pos, 
 						return nil, nil, skerr.Wrap(err)
 					}
 					for idx, entry := range entries {
+						entry.Id = NormalizeDep(entry.Id)
 						rvEntries[entry.Id] = entry
 						rvPos[entry.Id] = pos[idx]
 					}
@@ -392,5 +479,21 @@ func parseDeps(depsContent string) (map[string]*DepsEntry, map[string]*ast.Pos, 
 			}
 		}
 	}
-	return rvEntries, rvPos, nil
+	return DepsEntries(rvEntries), rvPos, nil
+}
+
+// NormalizeDep normalizes the dependency ID to account for differences, eg.
+// the URL scheme and .git suffix for git repos and the ${platform} suffix for
+// CIPD packages.
+func NormalizeDep(depId string) string {
+	// TODO(borenet): Will this adversely affect non-git entries?
+	if rv, err := git.NormalizeURL(depId); err == nil {
+		// NormalizeURL sometimes adds an undesired leading '/' for
+		// entries which aren't actually URLs.
+		depId = strings.TrimPrefix(rv, "/")
+	}
+
+	// Trim the "${platform}" suffix from CIPD entries.
+	depId = strings.TrimSuffix(depId, "/"+cipd.PlatformPlaceholder)
+	return depId
 }
