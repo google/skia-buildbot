@@ -39,7 +39,10 @@ func main() {
 
 	if *startSwarming {
 		sklog.Infof("Starting swarming_bot.")
-		bot := swarming.New(*pythonExe, *swarmingBotZip, *metadataURL)
+		bot, err := swarming.New(*pythonExe, *swarmingBotZip, *metadataURL)
+		if err != nil {
+			sklog.Fatal(err)
+		}
 		sklog.Fatal(bot.Launch(context.Background()))
 	} else {
 		select {}
