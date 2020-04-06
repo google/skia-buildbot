@@ -1047,6 +1047,24 @@
       "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "735da4e1_e5e77831",
+        "filename": "sk8s/go/bot_config/swarming/swarming_test.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-06T12:33:53Z",
+      "side": 1,
+      "message": "Sorry, past tense, did send in a follow-up CL: https://skia-review.googlesource.com/c/buildbot/+/281584",
+      "parentUuid": "257fec7f_03d632f0",
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
