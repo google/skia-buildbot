@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"path"
+	"path/filepath"
 	"time"
 
 	cipd_api "go.chromium.org/luci/cipd/client/cipd"
+	"go.chromium.org/luci/cipd/common"
 
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/cipd"
@@ -36,17 +37,20 @@ func (c *CIPDConfig) Validate() error {
 }
 
 // NewCIPD returns an implementation of Child which deals with a CIPD package.
+// If the caller calls CIPDChild.Download, the destination must be a descendant of
+// the provided workdir.
 func NewCIPD(ctx context.Context, c CIPDConfig, client *http.Client, workdir string) (*CIPDChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	cipdClient, err := cipd.NewClient(client, path.Join(workdir, "cipd"))
+	cipdClient, err := cipd.NewClient(client, workdir)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return &CIPDChild{
 		client: cipdClient,
 		name:   c.Name,
+		root:   workdir,
 		tag:    c.Tag,
 	}, nil
 }
@@ -55,6 +59,7 @@ func NewCIPD(ctx context.Context, c CIPDConfig, client *http.Client, workdir str
 type CIPDChild struct {
 	client cipd.CIPDClient
 	name   string
+	root   string
 	tag    string
 }
 
@@ -112,6 +117,21 @@ func (c *CIPDChild) Update(ctx context.Context, lastRollRev *revision.Revision) 
 		}
 	}
 	return tipRev, notRolledRevs, nil
+}
+
+// See documentation for Child interface.
+// The destination must be a descendant of workdir provided to NewCIPD.
+func (c *CIPDChild) Download(ctx context.Context, rev *revision.Revision, dest string) error {
+	var err error
+	dest, err = filepath.Rel(c.root, dest)
+	if err != nil {
+		return skerr.Wrapf(err, "destination must be a descendant of the workdir provided to NewCIPD")
+	}
+	pin := common.Pin{
+		PackageName: c.name,
+		InstanceID:  rev.Id,
+	}
+	return skerr.Wrap(c.client.FetchAndDeployInstance(ctx, dest, pin, 0))
 }
 
 // SetClientForTesting sets the CIPDClient used by the CIPDChild so that it can
