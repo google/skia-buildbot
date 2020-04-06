@@ -1,9 +1,11 @@
 import './index';
 import {
-  typicalDetails, negativeOnly, noRefs, noTraces, twoHundredCommits,
+  typicalDetails, negativeOnly, noRefs, noTraces, twoHundredCommits, fakeNow,
 } from './test_data';
 import { $$ } from '../../../common-sk/modules/dom';
 import { setImageEndpointsForDemos } from '../common';
+
+Date.now = () => fakeNow;
 
 setImageEndpointsForDemos();
 let ele = document.createElement('digest-details-sk');
