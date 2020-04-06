@@ -22,6 +22,30 @@
       "revId": "61d82132e6e558818f365a079159d5825dbd9b76",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2e1270d4_387226b1",
+        "filename": "go/depot_tools/deps_parser/deps_parser.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-06T13:24:59Z",
+      "side": 1,
+      "message": "Chromium\u0027s DEPS does this: https://chromium.googlesource.com/chromium/src/+/master/DEPS#593\n\ngclient essentially does:\n\n\u0027my/package/${{platform}}\u0027.format(**vars)\n\nwhich results in:\n\n\u0027my/package/${platform}\u0027\n\nwhich is the desired end state for CIPD packages.",
+      "parentUuid": "f819cc5b_76d19858",
+      "range": {
+        "startLine": 53,
+        "startChar": 37,
+        "endLine": 53,
+        "endChar": 49
+      },
+      "revId": "61d82132e6e558818f365a079159d5825dbd9b76",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
