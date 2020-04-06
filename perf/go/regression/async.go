@@ -11,13 +11,13 @@ import (
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
+	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -74,7 +74,7 @@ type RegressionDetectionResponse struct {
 type RegressionDetectionProcess struct {
 	// These members are read-only, should not be modified.
 	request           *RegressionDetectionRequest
-	vcs               vcsinfo.VCS
+	perfGit           *perfgit.Git
 	iter              DataFrameIterator
 	responseProcessor RegressionDetectionResponseProcessor
 	shortcutStore     shortcut.Store
@@ -88,10 +88,10 @@ type RegressionDetectionProcess struct {
 	message    string                         // Describes the current state of the process.
 }
 
-func newProcess(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) (*RegressionDetectionProcess, error) {
+func newProcess(ctx context.Context, req *RegressionDetectionRequest, perfGit *perfgit.Git, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) (*RegressionDetectionProcess, error) {
 	ret := &RegressionDetectionProcess{
 		request:           req,
-		vcs:               vcs,
+		perfGit:           perfGit,
 		responseProcessor: responseProcessor,
 		response:          []*RegressionDetectionResponse{},
 		lastUpdate:        time.Now(),
@@ -101,7 +101,7 @@ func newProcess(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinf
 		ctx:               ctx,
 	}
 	// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
-	iter, err := NewDataFrameIterator(ctx, ret.progress, req, dfBuilder, vcs)
+	iter, err := NewDataFrameIterator(ctx, ret.progress, req, dfBuilder, perfGit)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create iterator: %s", err)
 	}
@@ -109,8 +109,8 @@ func newProcess(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinf
 	return ret, nil
 }
 
-func newRunningProcess(ctx context.Context, req *RegressionDetectionRequest, vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) (*RegressionDetectionProcess, error) {
-	ret, err := newProcess(ctx, req, vcs, cidl, dfBuilder, shortcutStore, responseProcessor)
+func newRunningProcess(ctx context.Context, req *RegressionDetectionRequest, perfGit *perfgit.Git, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) (*RegressionDetectionProcess, error) {
+	ret, err := newProcess(ctx, req, perfGit, cidl, dfBuilder, shortcutStore, responseProcessor)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func newRunningProcess(ctx context.Context, req *RegressionDetectionRequest, vcs
 // Once a RegressionDetectionProcess is complete the results will be kept in memory
 // for MAX_FINISHED_PROCESS_AGE before being deleted.
 type RunningRegressionDetectionRequests struct {
-	vcs                vcsinfo.VCS
+	perfGit            *perfgit.Git
 	cidl               *cid.CommitIDLookup
 	defaultInteresting float32 // The threshold to control if a regression is considered interesting.
 	dfBuilder          dataframe.DataFrameBuilder
@@ -136,9 +136,9 @@ type RunningRegressionDetectionRequests struct {
 }
 
 // NewRunningRegressionDetectionRequests return a new RegressionDetectionRequests.
-func NewRunningRegressionDetectionRequests(vcs vcsinfo.VCS, cidl *cid.CommitIDLookup, interesting float32, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store) *RunningRegressionDetectionRequests {
+func NewRunningRegressionDetectionRequests(perfGit *perfgit.Git, cidl *cid.CommitIDLookup, interesting float32, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store) *RunningRegressionDetectionRequests {
 	fr := &RunningRegressionDetectionRequests{
-		vcs:                vcs,
+		perfGit:            perfGit,
 		cidl:               cidl,
 		inProcess:          map[string]*RegressionDetectionProcess{},
 		defaultInteresting: interesting,
@@ -189,7 +189,7 @@ func (fr *RunningRegressionDetectionRequests) Add(ctx context.Context, req *Regr
 	}
 	responseProcessor := func(_ *RegressionDetectionRequest, _ []*RegressionDetectionResponse) {}
 	if _, ok := fr.inProcess[id]; !ok {
-		proc, err := newRunningProcess(ctx, req, fr.vcs, fr.cidl, fr.dfBuilder, fr.shortcutStore, responseProcessor)
+		proc, err := newRunningProcess(ctx, req, fr.perfGit, fr.cidl, fr.dfBuilder, fr.shortcutStore, responseProcessor)
 		if err != nil {
 			return "", err
 		}
@@ -372,7 +372,7 @@ func (p *RegressionDetectionProcess) Run() {
 		}
 
 		df.TraceSet = types.TraceSet{}
-		frame, err := dataframe.ResponseFromDataFrame(p.ctx, df, p.vcs, false)
+		frame, err := dataframe.ResponseFromDataFrame(p.ctx, df, p.perfGit, false)
 		if err != nil {
 			p.reportError(err, "Failed to convert DataFrame to FrameResponse.")
 			return

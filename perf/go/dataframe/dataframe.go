@@ -10,9 +10,10 @@ import (
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/timer"
-	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/cid"
+	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -30,12 +31,12 @@ type DataFrameBuilder interface {
 	// the given time range [begin, end) and the passed in query, or a non-nil
 	// error if the traces can't be retrieved. The 'progress' callback is called
 	// periodically as the query is processed.
-	NewFromQueryAndRange(begin, end time.Time, q *query.Query, downsample bool, progress types.Progress) (*DataFrame, error)
+	NewFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, downsample bool, progress types.Progress) (*DataFrame, error)
 
 	// NewFromKeysAndRange returns a populated DataFrame of the traces that match
 	// the given set of 'keys' over the range of [begin, end). The 'progress'
 	// callback is called periodically as the query is processed.
-	NewFromKeysAndRange(keys []string, begin, end time.Time, downsample bool, progress types.Progress) (*DataFrame, error)
+	NewFromKeysAndRange(ctx context.Context, keys []string, begin, end time.Time, downsample bool, progress types.Progress) (*DataFrame, error)
 
 	// NewFromCommitIDsAndQuery returns a populated DataFrame of the traces that
 	// match the given time set of commits 'cids' and the query 'q'. The 'progress'
@@ -225,42 +226,29 @@ func (d *DataFrame) Slice(offset, size int) (*DataFrame, error) {
 	return ret, nil
 }
 
-// rangeImpl returns the slices of ColumnHeader and cid.CommitID that are
-// needed by DataFrame. The slices are populated from the given
-// vcsinfo.IndexCommits.
-//
-// The value for 'skip', the number of commits skipped, is passed through to
-// the return values.
-func rangeImpl(resp []*vcsinfo.IndexCommit, skip int) ([]*ColumnHeader, []*cid.CommitID, int) {
-	headers := []*ColumnHeader{}
-	commits := []*cid.CommitID{}
-	for _, r := range resp {
-		commits = append(commits, &cid.CommitID{
-			Offset: r.Index,
-		})
-		headers = append(headers, &ColumnHeader{
-			Offset:    int64(r.Index),
-			Timestamp: r.Timestamp.Unix(),
-		})
-	}
-	return headers, commits, skip
-}
-
-// getRange returns the slices of ColumnHeader and cid.CommitID that are needed
-// by DataFrame. The slices are for the commits that fall in the given time
-// range [begin, end).
+// FromTimeRange returns the slices of ColumnHeader and int32. The slices
+// are for the commits that fall in the given time range [begin, end).
 //
 // If 'downsample' is true then the number of commits returned is limited
 // to MAX_SAMPLE_SIZE.
+// TODO(jcgregorio) Remove downsample, it is currently ignored.
 //
 // The value for 'skip', the number of commits skipped, is also returned.
-func getRange(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) ([]*ColumnHeader, []*cid.CommitID, int) {
-	commits := vcs.Range(begin, end)
-	skip := 0
-	if downsample {
-		commits, skip = DownSample(vcs.Range(begin, end), MAX_SAMPLE_SIZE)
+func FromTimeRange(ctx context.Context, git *perfgit.Git, begin, end time.Time, downsample bool) ([]*ColumnHeader, []types.CommitNumber, int, error) {
+	commits, err := git.CommitSliceFromTimeRange(ctx, begin, end)
+	if err != nil {
+		return nil, nil, 0, skerr.Wrapf(err, "Failed to get headers and commit numbers from time range.")
 	}
-	return rangeImpl(commits, skip)
+	colHeader := make([]*ColumnHeader, len(commits), len(commits))
+	commitNumbers := make([]types.CommitNumber, len(commits), len(commits))
+	for i, commit := range commits {
+		colHeader[i] = &ColumnHeader{
+			Offset:    int64(commit.CommitNumber),
+			Timestamp: commit.Timestamp,
+		}
+		commitNumbers[i] = commit.CommitNumber
+	}
+	return colHeader, commitNumbers, 0, nil
 }
 
 // NewEmpty returns a new empty DataFrame.
@@ -277,13 +265,16 @@ func NewEmpty() *DataFrame {
 //
 // If 'downsample' is true then the number of commits returned is limited
 // to MAX_SAMPLE_SIZE.
-func NewHeaderOnly(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) *DataFrame {
+func NewHeaderOnly(ctx context.Context, git *perfgit.Git, begin, end time.Time, downsample bool) (*DataFrame, error) {
 	defer timer.New("NewHeaderOnly time").Stop()
-	colHeaders, _, skip := getRange(vcs, begin, end, downsample)
+	colHeaders, _, skip, err := FromTimeRange(ctx, git, begin, end, downsample)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed creating header only dataframe.")
+	}
 	return &DataFrame{
 		TraceSet: types.TraceSet{},
 		Header:   colHeaders,
 		ParamSet: paramtools.ParamSet{},
 		Skip:     skip,
-	}
+	}, nil
 }

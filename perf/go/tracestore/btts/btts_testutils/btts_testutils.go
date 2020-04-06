@@ -11,9 +11,9 @@ import (
 
 func CreateTestTable(t sktest.TestingT) {
 	ctx := context.Background()
-	client, _ := bigtable.NewAdminClient(ctx, "test", "test")
+	client, _ := bigtable.NewAdminClient(ctx, "testtest", "testtest")
 	err := client.CreateTableFromConf(ctx, &bigtable.TableConf{
-		TableID: "test",
+		TableID: "testtest",
 		Families: map[string]bigtable.GCPolicy{
 			"V": bigtable.MaxVersionsPolicy(1),
 			"S": bigtable.MaxVersionsPolicy(1),
@@ -27,8 +27,8 @@ func CreateTestTable(t sktest.TestingT) {
 
 func CleanUpTestTable(t sktest.TestingT) {
 	ctx := context.Background()
-	client, _ := bigtable.NewAdminClient(ctx, "test", "test")
-	err := client.DeleteTable(ctx, "test")
+	client, _ := bigtable.NewAdminClient(ctx, "testtest", "testtest")
+	err := client.DeleteTable(ctx, "testtest")
 	require.NoError(t, err)
 }
 

@@ -7,15 +7,15 @@ import (
 	"time"
 
 	"go.opencensus.io/trace"
-	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
-	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
+	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/tracesetbuilder"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
@@ -34,89 +34,40 @@ const (
 
 // builder implements DataFrameBuilder using btts.
 type builder struct {
-	vcs      vcsinfo.VCS
+	git      *perfgit.Git
 	store    tracestore.TraceStore
 	tileSize int32
 }
 
 // NewDataFrameBuilderFromTraceStore builds a DataFrameBuilder.
-func NewDataFrameBuilderFromTraceStore(vcs vcsinfo.VCS, store tracestore.TraceStore) dataframe.DataFrameBuilder {
+func NewDataFrameBuilderFromTraceStore(git *perfgit.Git, store tracestore.TraceStore) dataframe.DataFrameBuilder {
 	return &builder{
-		vcs:      vcs,
+		git:      git,
 		store:    store,
 		tileSize: store.TileSize(),
 	}
 }
 
-// fromIndexCommit returns the slices of ColumnHeader and index.
-// The slices are populated from the given vcsinfo.IndexCommits.
-//
-// The value for 'skip', the number of commits skipped, is passed through to
-// the return values.
-func fromIndexCommit(resp []*vcsinfo.IndexCommit, skip int) ([]*dataframe.ColumnHeader, []types.CommitNumber, int) {
-	headers := []*dataframe.ColumnHeader{}
-	indices := []types.CommitNumber{}
-	for _, r := range resp {
-		headers = append(headers, &dataframe.ColumnHeader{
-			Offset:    int64(r.Index),
-			Timestamp: r.Timestamp.Unix(),
-		})
-		indices = append(indices, types.CommitNumber(r.Index))
-	}
-	return headers, indices, skip
-}
-
 // fromIndexRange returns the headers and indices for all the commits
 // between beginIndex and endIndex inclusive.
-func fromIndexRange(ctx context.Context, vcs vcsinfo.VCS, beginIndex, endIndex types.CommitNumber) ([]*dataframe.ColumnHeader, []types.CommitNumber, int, error) {
+func fromIndexRange(ctx context.Context, git *perfgit.Git, beginIndex, endIndex types.CommitNumber) ([]*dataframe.ColumnHeader, []types.CommitNumber, int, error) {
 	ctx, span := trace.StartSpan(ctx, "dfbuilder fromIndexRange")
 	defer span.End()
 
-	g, ok := vcs.(*gitinfo.GitInfo)
-	headers := []*dataframe.ColumnHeader{}
-	indices := []types.CommitNumber{}
-	for i := beginIndex; i <= endIndex; i++ {
-		if ok {
-			// This is a temporary performance enhancement for Perf.
-			// It will be removed once Perf moves to gitstore.
-			ts, err := g.TimestampAtIndex(int(i))
-			if err != nil {
-				return nil, nil, 0, fmt.Errorf("Range of commits invalid: %s", err)
-			}
-			headers = append(headers, &dataframe.ColumnHeader{
-				Offset:    int64(i),
-				Timestamp: ts.Unix(),
-			})
-			indices = append(indices, i)
-		} else {
-			commit, err := vcs.ByIndex(ctx, int(i))
-			if err != nil {
-				return nil, nil, 0, fmt.Errorf("Range of commits invalid: %s", err)
-			}
-			headers = append(headers, &dataframe.ColumnHeader{
-				Offset:    int64(i),
-				Timestamp: commit.Timestamp.Unix(),
-			})
-			indices = append(indices, i)
+	commits, err := git.CommitSliceFromCommitNumberRange(ctx, beginIndex, endIndex)
+	if err != nil {
+		return nil, nil, 0, skerr.Wrapf(err, "Failed to get headers and commit numbers from time range.")
+	}
+	colHeader := make([]*dataframe.ColumnHeader, len(commits), len(commits))
+	commitNumbers := make([]types.CommitNumber, len(commits), len(commits))
+	for i, commit := range commits {
+		colHeader[i] = &dataframe.ColumnHeader{
+			Offset:    int64(commit.CommitNumber),
+			Timestamp: commit.Timestamp,
 		}
+		commitNumbers[i] = commit.CommitNumber
 	}
-	return headers, indices, 0, nil
-}
-
-// fromTimeRange returns the slices of ColumnHeader and int32. The slices
-// are for the commits that fall in the given time range [begin, end).
-//
-// If 'downsample' is true then the number of commits returned is limited
-// to MAX_SAMPLE_SIZE.
-//
-// The value for 'skip', the number of commits skipped, is also returned.
-func fromTimeRange(vcs vcsinfo.VCS, begin, end time.Time, downsample bool) ([]*dataframe.ColumnHeader, []types.CommitNumber, int) {
-	commits := vcs.Range(begin, end)
-	skip := 0
-	if downsample {
-		commits, skip = dataframe.DownSample(commits, dataframe.MAX_SAMPLE_SIZE)
-	}
-	return fromIndexCommit(commits, skip)
+	return colHeader, commitNumbers, 0, nil
 }
 
 // tileMapOffsetToIndex maps the offset of each point in a tile to the index it
@@ -205,16 +156,22 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 }
 
 // See DataFrameBuilder.
-func (b *builder) NewFromQueryAndRange(begin, end time.Time, q *query.Query, downsample bool, progress types.Progress) (*dataframe.DataFrame, error) {
-	colHeaders, indices, skip := fromTimeRange(b.vcs, begin, end, downsample)
-	return b.new(context.TODO(), colHeaders, indices, q, progress, skip)
+func (b *builder) NewFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, downsample bool, progress types.Progress) (*dataframe.DataFrame, error) {
+	colHeaders, indices, skip, err := dataframe.FromTimeRange(ctx, b.git, begin, end, downsample)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return b.new(ctx, colHeaders, indices, q, progress, skip)
 }
 
 // See DataFrameBuilder.
-func (b *builder) NewFromKeysAndRange(keys []string, begin, end time.Time, downsample bool, progress types.Progress) (*dataframe.DataFrame, error) {
+func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin, end time.Time, downsample bool, progress types.Progress) (*dataframe.DataFrame, error) {
 	// TODO tickle progress as each Go routine completes.
 	defer timer.New("NewFromKeysAndRange").Stop()
-	colHeaders, indices, skip := fromTimeRange(b.vcs, begin, end, downsample)
+	colHeaders, indices, skip, err := dataframe.FromTimeRange(ctx, b.git, begin, end, downsample)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
 	// Determine which tiles we are querying over, and how each tile maps into our results.
 	mapper := buildTileMapOffsetToIndex(indices, b.store)
@@ -299,34 +256,7 @@ func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.Comm
 //
 // Pass in zero time, i.e. time.Time{} to indicate to just get the most recent commit.
 func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (types.CommitNumber, error) {
-	ctx, span := trace.StartSpan(ctx, "dfbuilder.findIndexForTime")
-	defer span.End()
-
-	var err error
-	endIndex := 0
-
-	if end.IsZero() {
-		commits := b.vcs.LastNIndex(1)
-		if len(commits) == 0 {
-			return 0, fmt.Errorf("Failed to find an end commit.")
-		}
-		return types.CommitNumber(commits[0].Index), nil
-	}
-
-	hashes := b.vcs.From(end)
-	if len(hashes) > 0 {
-		endIndex, err = b.vcs.IndexOf(ctx, hashes[0])
-		if err != nil {
-			return 0, fmt.Errorf("Failed loading end commit: %s", err)
-		}
-	} else {
-		commits := b.vcs.LastNIndex(1)
-		if len(commits) == 0 {
-			return 0, fmt.Errorf("Failed to find an end commit.")
-		}
-		endIndex = commits[0].Index
-	}
-	return types.CommitNumber(endIndex), nil
+	return b.git.CommitNumberFromTime(ctx, end)
 }
 
 // See DataFrameBuilder.
@@ -354,7 +284,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 	for total < n {
 
 		// Query for traces.
-		headers, indices, skip, err := fromIndexRange(ctx, b.vcs, beginIndex, endIndex)
+		headers, indices, skip, err := fromIndexRange(ctx, b.git, beginIndex, endIndex)
 		if err != nil {
 			return nil, fmt.Errorf("Failed building index range: %s", err)
 		}
@@ -458,7 +388,7 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 	numStepsNoData := 0
 
 	for total < n {
-		headers, indices, skip, err := fromIndexRange(ctx, b.vcs, beginIndex, endIndex)
+		headers, indices, skip, err := fromIndexRange(ctx, b.git, beginIndex, endIndex)
 		if err != nil {
 			return nil, fmt.Errorf("Failed building index range: %s", err)
 		}

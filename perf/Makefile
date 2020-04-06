@@ -75,7 +75,7 @@ start_pubsub_emulator:
 		  --project test-project --host-port 0.0.0.0:8010
 
 start_datastore_emulator:
-	 docker run -ti -p 8008:8008 google/cloud-sdk:latest gcloud beta emulators datastore start --no-store-on-disk --project test-project --host-port 0.0.0.0:8008
+	 docker run -ti -p 8008:8008 google/cloud-sdk:latest gcloud beta emulators datastore start --no-store-on-disk --project testtest --host-port 0.0.0.0:8008
 
 start_cockroachdb_emulator:
 	cockroach start-single-node --insecure  --listen-addr=127.0.0.1
