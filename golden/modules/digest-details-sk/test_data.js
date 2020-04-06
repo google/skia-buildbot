@@ -1,4 +1,4 @@
-export const now = Date.parse('2020-03-22T00:00:00.000Z');
+export const fakeNow = Date.parse('2020-03-22T00:00:00.000Z');
 
 const allTheSame = Array(200).fill(0);
 const mod2Data = Array(200).fill(1).map((_, index) => index % 2);
