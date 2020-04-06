@@ -22,6 +22,30 @@
       "revId": "ddda2f1a0a07dd51756937de053dfe539ee429fb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c6d578f1_bf30528c",
+        "filename": "autoroll/go/repo_manager/child/child.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-06T17:11:49Z",
+      "side": 1,
+      "message": "Sure, changed to Download.",
+      "parentUuid": "763fb42a_562fea1a",
+      "range": {
+        "startLine": 27,
+        "startChar": 1,
+        "endLine": 27,
+        "endChar": 5
+      },
+      "revId": "ddda2f1a0a07dd51756937de053dfe539ee429fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
