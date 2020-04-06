@@ -484,6 +484,30 @@
     },
     {
       "key": {
+        "uuid": "14952dc3_cf7a5782",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-06T12:15:48Z",
+      "side": 1,
+      "message": "Agreed, will do in a follow-up CL.",
+      "parentUuid": "b67c6478_dc934f89",
+      "range": {
+        "startLine": 48,
+        "startChar": 9,
+        "endLine": 48,
+        "endChar": 37
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "874a20c6_e21654be",
         "filename": "sk8s/go/bot_config/swarming/swarming.go",
         "patchSetId": 43
@@ -837,6 +861,30 @@
     },
     {
       "key": {
+        "uuid": "a9ea19d6_d89995e6",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-06T12:15:48Z",
+      "side": 1,
+      "message": "Sorry, I didn\u0027t explain my thoughts in sufficient detail. When this is all complete I expect the graceful shutdown button on swarming to work. The problem with graceful shutdown right now is that the machine doesn\u0027t remember that it was put in graceful shutdown and when the machine restarts swarming restarts, this is why we get those zombie RPis when we lose power to the RPi rack. Machine state should solve that by recording a graceful shutdown attempt and not restarting swarming_bot.zip when it exits, nor should it start swarming_bot.zip when a pod/node is restarted if a graceful shutdown has been recorded.",
+      "parentUuid": "3274e9ce_b8b2cedd",
+      "range": {
+        "startLine": 175,
+        "startChar": 1,
+        "endLine": 175,
+        "endChar": 4
+      },
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c3e6fd96_92d741ee",
         "filename": "sk8s/go/bot_config/swarming/swarming_test.go",
         "patchSetId": 43
@@ -978,6 +1026,24 @@
       "side": 1,
       "message": "I don\u0027t see this change on the diff between PS 43 and 45",
       "parentUuid": "cd343eb7_a4007686",
+      "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "257fec7f_03d632f0",
+        "filename": "sk8s/go/bot_config/swarming/swarming_test.go",
+        "patchSetId": 43
+      },
+      "lineNbr": 327,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-06T12:15:48Z",
+      "side": 1,
+      "message": "Yeah, missed that upload, will send in a follow-up CL.",
+      "parentUuid": "4deaf8e7_fef53887",
       "revId": "00f48f20befb35d12d4e38291a110072f1950f4c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
