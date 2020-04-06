@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c21fa73_7b8314ca",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-06T17:37:02Z",
+      "side": 1,
+      "message": "Did you mean to put this in the following CL also/instead?",
+      "revId": "8286c2d74e7f41745db6e132a43b640b6fca5217",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e500062_64ed68ed",
+        "filename": "gold-client/go/imgmatching/sobel/sobel.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-06T17:37:02Z",
+      "side": 1,
+      "message": "nit: prefer j \u003c len(kernel) to avoid magic number\n\n(similar for i\u003c\u003d2 below)",
+      "range": {
+        "startLine": 86,
+        "startChar": 13,
+        "endLine": 86,
+        "endChar": 19
+      },
+      "revId": "8286c2d74e7f41745db6e132a43b640b6fca5217",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "469e766e_618068c0",
+        "filename": "gold-client/go/imgmatching/sobel/sobel_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-06T17:37:02Z",
+      "side": 1,
+      "message": "wrong assert package",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 42
+      },
+      "revId": "8286c2d74e7f41745db6e132a43b640b6fca5217",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "55b61df0_69c9ac53",
+        "filename": "gold-client/go/imgmatching/sobel/sobel_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-06T17:37:02Z",
+      "side": 1,
+      "message": "I think these 4 tests give us 95% of the value in this file. The rotate helper function brings more trouble than it\u0027s buying us: we shouldn\u0027t generally have test helpers complex enough to warrant their own tests. go/tott/510  I recommend removing rotate* from this file; if it\u0027s important to have 90 degree rotations of the input image (I don\u0027t think it is), then make them explicit.\n\nThe SmallImages above aren\u0027t obvious to me why they are needed when 1) production images are much bigger than 4x4 pixels and 2) the same edge logic (hard line between black and white) is covered by the 0 degrees test. If there\u0027s something important they are testing that I\u0027m missing, please add a detailed comment covering that subtlety.\n\nIf there\u0027s a case that is missing, it would be something with a \"soft\" edge, e.g. 0x03 -\u003e 0x0A to prove that it works on a light grey to a darker grey as well as white to black.\n\nIn summary - tests have maintenance burden too; make sure each test is \"bringing something to the table\"",
+      "range": {
+        "startLine": 294,
+        "startChar": 0,
+        "endLine": 297,
+        "endChar": 60
+      },
+      "revId": "8286c2d74e7f41745db6e132a43b640b6fca5217",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
