@@ -127,9 +127,9 @@ func (r *GitilesRepo) GetTipRevision(ctx context.Context) (*revision.Revision, e
 	return r.GetRevision(ctx, r.branch.String())
 }
 
-// LogLinear returns a slice of revision.Revision instances in the given range.
-func (r *GitilesRepo) LogLinear(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
-	commits, err := r.Repo.LogLinear(ctx, from.Id, to.Id)
+// LogFirstParent returns a slice of revision.Revision instances in the given range.
+func (r *GitilesRepo) LogFirstParent(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
+	commits, err := r.Repo.LogFirstParent(ctx, from.Id, to.Id)
 	if err != nil {
 		return nil, err
 	}
