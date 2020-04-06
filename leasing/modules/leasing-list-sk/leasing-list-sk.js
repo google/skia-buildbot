@@ -1,0 +1,66 @@
+/**
+ * @module module/leasing-list-sk
+ * @description <h2><code>leasing-list-sk</code></h2>
+ *
+ * <p>
+ *   Contains the title bar and error-toast for all the leasing server pages.
+ *   The rest of pages should be a child of this element.
+ * </p>
+ *
+ */
+
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+
+import '../leasing-task-sk'
+
+import 'elements-sk/error-toast-sk';
+import 'elements-sk/icon/folder-icon-sk';
+import 'elements-sk/icon/gesture-icon-sk';
+import 'elements-sk/icon/help-icon-sk';
+import 'elements-sk/icon/home-icon-sk';
+import 'elements-sk/icon/star-icon-sk';
+import 'elements-sk/nav-button-sk';
+import 'elements-sk/nav-links-sk';
+import { device, getAKAStr, doImpl } from '../leasing'
+
+import '../../../infra-sk/modules/login-sk';
+
+function displayTasks(ele) {
+  return ele._tasks.map((task) => html`
+    <leasing-task-sk .task=${task}></leasing-task-sk>
+  `);
+}
+
+const template = (ele) => html`${displayTasks(ele)}`;
+
+define('leasing-list-sk', class extends ElementSk {
+  constructor() {
+    super(template);
+    this._tasks = [];
+
+    this._fetchTasks();
+  }
+
+  _fetchTasks() {
+    let url = '/_/get_leases'
+    const details = {};
+    details.filter_by_user = true // MAKE PROPERTY AND PASS IT IN HERE SOMEWHERE!
+    doImpl(url, details, (json) => {
+      this._tasks = json;
+      console.log("GOT ALL THIS BACK");
+      console.log(this._tasks);
+      this._render();
+    });
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this._render();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+  }
+});
