@@ -23,15 +23,25 @@ import (
 
 const metadataURL = "https://example.org"
 
+func setBotSwarmingEnvVar(t *testing.T, value string) util.CleanupFunc {
+	tmp := os.Getenv(swarmingBotIDEnvVar)
+	err := os.Setenv(swarmingBotIDEnvVar, value)
+	require.NoError(t, err)
+	cleanup := func() {
+		err := os.Setenv(swarmingBotIDEnvVar, tmp)
+		require.NoError(t, err)
+	}
+	return cleanup
+}
+
 func TestNew_CorrectSwarmingURLForRPIBot(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.NoError(t, os.Setenv("SWARMING_BOT_ID", "skia-rpi-test"))
-	defer func() {
-		assert.NoError(t, os.Unsetenv("SWARMING_BOT_ID"))
-	}()
+	cleanup := setBotSwarmingEnvVar(t, "skia-rpi-test")
+	defer cleanup()
 	const pythonPath = "/usr/bin/python2.7"
 	const swarmingBotPath = "/b/s/swarming_bot.zip"
-	b := New(pythonPath, swarmingBotPath, metadataURL)
+	b, err := New(pythonPath, swarmingBotPath, metadataURL)
+	require.NoError(t, err)
 	assert.Equal(t, metadataURL, b.metadataURL)
 	assert.Equal(t, pythonPath, b.pythonExeFilename)
 	assert.Equal(t, swarmingBotPath, b.swarmingBotZipFilename)
@@ -40,13 +50,12 @@ func TestNew_CorrectSwarmingURLForRPIBot(t *testing.T) {
 
 func TestNew_CorrectSwarmingURLForInternalBot(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.NoError(t, os.Setenv("SWARMING_BOT_ID", "skia-i-rpi-test"))
-	defer func() {
-		assert.NoError(t, os.Unsetenv("SWARMING_BOT_ID"))
-	}()
+	cleanup := setBotSwarmingEnvVar(t, "skia-i-rpi-test")
+	defer cleanup()
 	const pythonPath = "/usr/bin/python2.7"
 	const swarmingBotPath = "/b/s/swarming_bot.zip"
-	b := New(pythonPath, swarmingBotPath, metadataURL)
+	b, err := New(pythonPath, swarmingBotPath, metadataURL)
+	require.NoError(t, err)
 	assert.Equal(t, metadataURL, b.metadataURL)
 	assert.Equal(t, pythonPath, b.pythonExeFilename)
 	assert.Equal(t, swarmingBotPath, b.swarmingBotZipFilename)
@@ -55,17 +64,25 @@ func TestNew_CorrectSwarmingURLForInternalBot(t *testing.T) {
 
 func TestNew_CorrectSwarmingURLForDebugBot(t *testing.T) {
 	unittest.SmallTest(t)
-	require.NoError(t, os.Setenv("SWARMING_BOT_ID", "skia-d-rpi-test"))
-	defer func() {
-		assert.NoError(t, os.Unsetenv("SWARMING_BOT_ID"))
-	}()
+	cleanup := setBotSwarmingEnvVar(t, "skia-d-rpi-test")
+	defer cleanup()
 	const pythonPath = "/usr/bin/python2.7"
 	const swarmingBotPath = "/b/s/swarming_bot.zip"
-	b := New(pythonPath, swarmingBotPath, metadataURL)
+	b, err := New(pythonPath, swarmingBotPath, metadataURL)
+	require.NoError(t, err)
 	assert.Equal(t, metadataURL, b.metadataURL)
 	assert.Equal(t, pythonPath, b.pythonExeFilename)
 	assert.Equal(t, swarmingBotPath, b.swarmingBotZipFilename)
 	assert.Contains(t, b.swarmingURL, debugSwarmingServer)
+}
+
+func TestNew_ErrIfNoSwarmingBotIDEnvVar(t *testing.T) {
+	unittest.SmallTest(t)
+	os.Setenv(swarmingBotIDEnvVar, "")
+	const pythonPath = "/usr/bin/python2.7"
+	const swarmingBotPath = "/b/s/swarming_bot.zip"
+	_, err := New(pythonPath, swarmingBotPath, metadataURL)
+	require.Error(t, err)
 }
 
 type cleanupFunc func()
@@ -103,12 +120,16 @@ func newBotForTest(t *testing.T, metadataHander, botCodeHandler http.HandlerFunc
 	// This endpoint will pretend to be the swarming server.
 	r.HandleFunc("/bot_code", botCodeHandler)
 
+	envCleanup := setBotSwarmingEnvVar(t, "skia-rpi-test")
+
 	httpTestServer := httptest.NewServer(r)
 	cleanup := func() {
 		httpTestServer.Close()
+		envCleanup()
 	}
 
-	bot := New(pythonPath, swarmingBotPath, metadataURL)
+	bot, err := New(pythonPath, swarmingBotPath, metadataURL)
+	require.NoError(t, err)
 
 	// Swap out the URLs for ones that point at our local HTTP server.
 	bot.metadataURL = httpTestServer.URL + "/metadata"
