@@ -1,0 +1,27 @@
+{
+  "URL": "https://androidx2-perf.skia.org/",
+  "data_store_config": {
+    "datastore_type": "cockroachdb",
+    "connection_string": "postgresql://root@perf-androidx-cockroachdb-public:26257/androidx?sslmode=disable",
+    "tile_size": 8192,
+    "shards": 8
+  },
+  "ingestion_config": {
+    "source_config": {
+      "source_type": "gcs",
+      "project": "skia-public",
+      "topic": "perf-ingestion-android-x2-production",
+      "sources": ["gs://skia-perf/android-master-ingest"],
+      "reject_if_name_matches": "/tx_log/",
+      "accept_if_name_matches": "androidx"
+    },
+    "branches": ["aosp-androidx-master-dev"],
+    "file_ingestion_pubsub_topic_name": ""
+  },
+  "git_repo_config": {
+    "git_auth_type": "gerrit",
+    "url": "https://skia.googlesource.com/perf-buildid/android-master",
+    "dir": "/tmp/android-x2-repo",
+    "debounce_commit_url": true
+  }
+}
