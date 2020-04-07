@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/config"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
 	perfsql "go.skia.org/infra/perf/go/sql"
@@ -152,11 +153,8 @@ func TestGetSkps_Success(t *testing.T) {
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)
 
-	tmp := skpFilename
-	skpFilename = "bar.txt"
-	defer func() {
-		skpFilename = tmp
-	}()
+	instanceConfig.GitRepoConfig.FileChangeMarker = "bar.txt"
+	config.Config = instanceConfig
 
 	skps, err := getSkps(ctx, []*ColumnHeader{
 		{
@@ -176,6 +174,9 @@ func TestGetSkps_ErrOnBadCommitNumber(t *testing.T) {
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)
+
+	instanceConfig.GitRepoConfig.FileChangeMarker = "bar.txt"
+	config.Config = instanceConfig
 
 	_, err = getSkps(ctx, []*ColumnHeader{
 		{
