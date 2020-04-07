@@ -47,6 +47,7 @@ func getRecipients(taskOwner string) []string {
 	}
 	// Make sure rmistry@ is included on all emails for now.
 	recipients = append(recipients, "rmistry@google.com")
+	trooper = "rmistry@google.com"
 	return append(recipients, trooper)
 }
 
