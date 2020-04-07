@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/counters"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/state_machine"
 )
@@ -264,6 +265,16 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 		roll, err := s.a.UploadNewRoll(ctx, s.a.GetCurrentRev(), s.a.GetNextRollRev(), false)
 		if err != nil {
 			n.SendRollCreationFailed(ctx, err)
+			// We may have failed to upload the roll because of a
+			// broken change in the child. The transition from IDLE
+			// to ACTIVE will fail, leaving us in the IDLE state. If
+			// we don't run UpdateRepos here, we will attempt to
+			// upload the exact same roll on the next tick, which
+			// will trap us in a failure loop even if the broken
+			// change is fixed or reverted.
+			if updateErr := s.a.UpdateRepos(ctx); updateErr != nil {
+				return skerr.Wrapf(err, "failed to upload a roll, and failed to UpdateRepos with: %s", updateErr)
+			}
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), fmt.Sprintf("The roller has uploaded a new roll attempt: %s", roll.IssueURL()))
@@ -276,6 +287,16 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 		roll, err := s.a.UploadNewRoll(ctx, s.a.GetCurrentRev(), s.a.GetNextRollRev(), true)
 		if err != nil {
 			n.SendRollCreationFailed(ctx, err)
+			// We may have failed to upload the roll because of a
+			// broken change in the child. The transition from
+			// DRY_RUN_IDLE to DRY_RUN_ACTIVE will fail, leaving us
+			// in the IDLE state. If we don't run UpdateRepos here,
+			// we will attempt to upload the exact same roll on the
+			// next tick, which will trap us in a failure loop even
+			// if the broken change is fixed or reverted.
+			if updateErr := s.a.UpdateRepos(ctx); updateErr != nil {
+				return skerr.Wrapf(err, "failed to upload a roll, and failed to UpdateRepos with: %s", updateErr)
+			}
 			return err
 		}
 		n.SendIssueUpdate(ctx, roll.IssueID(), roll.IssueURL(), fmt.Sprintf("The roller has uploaded a new dry run attempt: %s", roll.IssueURL()))
