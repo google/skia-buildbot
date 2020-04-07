@@ -20,6 +20,7 @@
   "sheriff": [
     "chrome-os-gardeners@google.com"
   ],
+  "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/chromite",
@@ -31,6 +32,7 @@
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
   "cqExtraTrybots": [
+    "luci.chrome.try:chromeos-betty-pi-arc-chrome",
     "luci.chromium.try:chromeos-kevin-rel"
   ],
   "kubernetes": {
