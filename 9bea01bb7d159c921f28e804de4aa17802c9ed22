@@ -615,6 +615,30 @@
     },
     {
       "key": {
+        "uuid": "a0687a08_3272017a",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T16:27:24Z",
+      "side": 1,
+      "message": "Ah, that might also better align with my experimenting with protobuf, I will try that.",
+      "parentUuid": "580d6ac6_70e0ac7e",
+      "range": {
+        "startLine": 44,
+        "startChar": 13,
+        "endLine": 44,
+        "endChar": 26
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "946e1cc3_85b9b451",
         "filename": "machine/go/state/types/types.go",
         "patchSetId": 5
