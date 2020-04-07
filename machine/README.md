@@ -1,0 +1,34 @@
+# Machine Server
+
+The machine state server is a centralized management application for device
+testing.
+
+See the [Design Doc](http://go/skolo-machine-state).
+
+## Code structure
+
+The main code is structure as:
+
+    go/machine/
+        source/
+        processor/
+        store/
+
+Where:
+
+- `types` contains the Go types used across the rest of the modules.
+- The `source` module contains `source.Source`, a way to get update events from
+  machines.
+- The `store` module contains `store.Store`, a way to persist and
+  retrieve each machines state.
+- The `processor` module contains `processor.Processor`, a way to update a
+  machine state from an incoming event.
+
+The main loop of machine state server looks like:
+
+    for event := range aSource {
+       machineID := idFromEvent(event)
+       currentDescription := aStore.Get(machineID)
+       newDescription = aProcessor.Process(event, currentDescription)
+       aStore.Put(machineID, newDescription)
+    }
