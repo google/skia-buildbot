@@ -63,7 +63,7 @@ const template = (ele) => html`
       <div>${imageComparison(ele)}</div>
       <div>
         <button @click=${ele._toggleRightRef} ?disabled=${!ele._canToggle()} class=toggle_ref
-           ?hidden=${ele._overrideRight} title=${toggleButtonMouseover(ele._canToggle())}>
+           ?hidden=${ele._overrideRight || !ele.right} title=${toggleButtonMouseover(ele._canToggle())}>
            Toggle Reference
         </button>
         <div ?hidden=${!ele.right || ele.right.status !== 'negative'} class=negative_warning>
@@ -93,7 +93,7 @@ const detailsAndTriage = (ele) => {
 <div class=metrics_and_triage>
   <div>
     <a href=${diffPageHref(ele._grouping, ele._digest, ele.right.digest, ele.issue)}
-       class=diffpage_link>
+       target=_blank rel=noopener class=diffpage_link>
       Diff Details
     </a>
   </div>
@@ -137,7 +137,7 @@ const imageComparison = (ele) => {
 };
 
 const traceInfo = (ele) => {
-  if (!ele._traces || !ele._traces.traces) {
+  if (!ele._traces || !ele._traces.traces || !ele._traces.traces.length) {
     return '';
   }
   return html`
@@ -150,6 +150,9 @@ const traceInfo = (ele) => {
 };
 
 const paramset = (ele) => {
+  if (!ele._digest) {
+    return ''; // details might not be loaded yet.
+  }
   const input = {
     titles: [truncateWithEllipses(ele._digest)],
     paramsets: [ele._params],
@@ -167,7 +170,7 @@ function toggleButtonMouseover(canToggle) {
     return 'By default, Gold shows the closest image, whether it has been marked positive or '
     + 'negative. This button allows you to explicitly select the closest positive or negative.';
   }
-  return 'There are no other reference images to compare against.';
+  return 'There are no other reference image types to compare against.';
 }
 
 const validRefs = ['pos', 'neg'];
@@ -273,7 +276,8 @@ define('digest-details-sk', class extends ElementSk {
 
     const refQuery = fromParamSet({
       name: [this._grouping],
-      corpus: this._params.source_type,
+      // TODO(kjlubick) use corpus instead of source_type on the frontend.
+      source_type: this._params.source_type,
     });
 
     const q = {

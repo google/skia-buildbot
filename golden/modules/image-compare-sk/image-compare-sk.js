@@ -23,7 +23,7 @@ const template = (ele) => html`
     <img class=thumbnail alt="left image" src=${digestImagePath(ele.left.digest)}>
     <figcaption>
       <span class=legend_dot></span>
-      <a href=${ele.left.detail}>${ele.left.title}</a>
+      <a target=_blank rel=noopener href=${ele.left.detail}>${ele.left.title}</a>
     </figcaption>
   </figure>
   <a target=_blank rel=noopener href=${digestImagePath(ele.left.digest)}>
@@ -48,7 +48,7 @@ const comparison = (ele) => {
 <figure>
   <img class=thumbnail alt="right image" src=${digestImagePath(ele.right.digest)}>
   <figcaption>
-    <a href=${ele.right.detail}>${ele.right.title}</a>
+    <a target=_blank rel=noopener href=${ele.right.detail}>${ele.right.title}</a>
   </figcaption>
 </figure>
 <a target=_blank rel=noopener href=${digestImagePath(ele.right.digest)}>
