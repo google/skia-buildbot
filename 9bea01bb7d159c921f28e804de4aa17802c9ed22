@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "40410526_9832b96a",
+        "filename": "machine/README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-07T11:20:15Z",
+      "side": 1,
+      "message": "Is this only going to be used for mobile devices?  I was under the impression that we\u0027d eventually grow it to manage all machines.",
+      "range": {
+        "startLine": 3,
+        "startChar": 69,
+        "endLine": 4,
+        "endChar": 6
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "eadb9a0a_84f86fa8",
         "filename": "machine/README.md",
         "patchSetId": 5
@@ -117,6 +140,77 @@
     },
     {
       "key": {
+        "uuid": "058cb4c2_f50ca441",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-07T11:20:15Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "e697781c_c796a7cf",
+      "range": {
+        "startLine": 26,
+        "startChar": 5,
+        "endLine": 26,
+        "endChar": 13
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ab10f07_14e6523a",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-07T11:20:15Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "a7fcc077_43a8378b",
+      "range": {
+        "startLine": 26,
+        "startChar": 14,
+        "endLine": 26,
+        "endChar": 17
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a436ea5e_66a28097",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-07T11:20:15Z",
+      "side": 1,
+      "message": "Just to clarify my understanding, this is user-requested, ie. all machines are ModeAvailable by default, and the trooper might put a machine in maintenance mode because it\u0027s behaving badly or needs a software upgrade.\n\nState, on the other hand, is computed from the blob received from the machine?  Are \"quarantined\" etc part of that?",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 17
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4dab8682_b565e984",
         "filename": "machine/go/state/types/types.go",
         "patchSetId": 5
@@ -128,6 +222,30 @@
       "writtenOn": "2020-04-07T11:06:16Z",
       "side": 1,
       "message": "bikeshed: I\u0027m of the opinion you don\u0027t need to include the type name in the variable name. Available and Maintenance are probably sufficient unless we somehow need to disambiguate.",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 14
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "34a3ce79_a9fc03ae",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-07T11:20:15Z",
+      "side": 1,
+      "message": "Personally, I like to see the type name, especially if we\u0027re going down the potentially confusing route of having both modes (user-requested) and states (machine reported) and if we\u0027re going to have sets of constants for both in the same package.  That changes a bit if we break this package up as Kevin suggests.",
+      "parentUuid": "4dab8682_b565e984",
       "range": {
         "startLine": 33,
         "startChar": 1,
@@ -232,6 +350,29 @@
     },
     {
       "key": {
+        "uuid": "0530f6ee_cf68a959",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-07T11:20:15Z",
+      "side": 1,
+      "message": "Bikeshed: I think we can trim this to MachineEventType etc without losing information.",
+      "range": {
+        "startLine": 48,
+        "startChar": 3,
+        "endLine": 48,
+        "endChar": 25
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9781dce0_34a43608",
         "filename": "machine/go/state/types/types.go",
         "patchSetId": 5
@@ -317,6 +458,29 @@
         "startChar": 12,
         "endLine": 62,
         "endChar": 34
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f583911_396b4f82",
+        "filename": "machine/images/firestore-emulator/release.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-07T11:20:15Z",
+      "side": 1,
+      "message": "Nit: I don\u0027t think this comment is correct",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 86
       },
       "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
