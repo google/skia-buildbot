@@ -1,0 +1,326 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eadb9a0a_84f86fa8",
+        "filename": "machine/README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T11:06:16Z",
+      "side": 1,
+      "message": "nit: one more space on indent?",
+      "range": {
+        "startLine": 13,
+        "startChar": 5,
+        "endLine": 13,
+        "endChar": 6
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b54977b_b51ce947",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T11:06:16Z",
+      "side": 1,
+      "message": "I have come to dislike packages named \"types\" (others [1] agree). It lends themselves to becoming a monolithic package where everything goes.\n\nMy concrete suggestion is to move this file into a file machine/go/(state/)?machine/types.go; (package name is machine) Then your types below will be (including rename suggestions from below)\nmachine.SwarmingState\nmachine.SwarmingDimensions\nmachine.Mode (or machine.Status)\nmachine.Description\nmachine.UpdateEventType\nmachine.UpdateEvent\n\nVariables:\nmachine.Available\nmachine.Maintenance\nmachine.DimensionsUpdated\nmachine.StateUpdated\n\nI found this to be a useful/readable structure in my Niagara prototype https://skia-review.googlesource.com/c/buildbot/+/268160/14/niagara/go/machine/types.go\n\n[1] https://github.com/golang/go/wiki/CodeReviewComments#package-names",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 13
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3363221_d39ed8bd",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T11:06:16Z",
+      "side": 1,
+      "message": "I believe dimensions can only have []string as the value",
+      "range": {
+        "startLine": 20,
+        "startChar": 35,
+        "endLine": 20,
+        "endChar": 48
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7fcc077_43a8378b",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T11:06:16Z",
+      "side": 1,
+      "message": "I find string enums to be easier to debug unless performance reasons dictate the use of int/int8/etc\n\nSame for MachineUpdateEvent",
+      "range": {
+        "startLine": 26,
+        "startChar": 14,
+        "endLine": 26,
+        "endChar": 17
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e697781c_c796a7cf",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T11:06:16Z",
+      "side": 1,
+      "message": "types.ModeType and types.MachineUpdateEventType have a seemingly redundant Type suffix. Just types.Mode and types.MachineUpdateEvent are probably fine.",
+      "range": {
+        "startLine": 26,
+        "startChar": 5,
+        "endLine": 26,
+        "endChar": 13
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4dab8682_b565e984",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T11:06:16Z",
+      "side": 1,
+      "message": "bikeshed: I\u0027m of the opinion you don\u0027t need to include the type name in the variable name. Available and Maintenance are probably sufficient unless we somehow need to disambiguate.",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 14
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cdd0a224_862546db",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T11:06:16Z",
+      "side": 1,
+      "message": "Bikeshed: In my niagara prototype, I tried very hard to not re-use terms with overloaded meanings or terms that were too close. Maybe consider MachineDescription to differentiate further from SwarmingState?  (I also went with Description because it was lexicographically dissimilar to Status, which is what you have here as Mode; state and status caused me headaches when working on the swarming ui)",
+      "range": {
+        "startLine": 41,
+        "startChar": 5,
+        "endLine": 41,
+        "endChar": 17
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a020d15_a7ad0004",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T11:06:16Z",
+      "side": 1,
+      "message": "I would recommend this type not have json tags - I have found it convenient to decouple Gold\u0027s internal types from those which it sends out to the frontend. It gives me more freedom to refactor things later w/o having to also update the frontend logic. Same idea for those types which go into the Store.",
+      "range": {
+        "startLine": 43,
+        "startChar": 32,
+        "endLine": 43,
+        "endChar": 51
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9de2fb52_76055aac",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T11:06:16Z",
+      "side": 1,
+      "message": "Cribbing an idea from the Niagara prototype, what do you think about parsing/processing the raw state from swarming into an actual typed object?\n\nAs a (very bare) example, look at Description https://skia-review.googlesource.com/c/buildbot/+/268160/14/niagara/go/machine/types.go#16\n\nIt has the dimensions and the machine uptime (which had been read out of state); the goal was to have other fields of interest, i.e. temperature, disk space, etc",
+      "range": {
+        "startLine": 44,
+        "startChar": 13,
+        "endLine": 44,
+        "endChar": 26
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "946e1cc3_85b9b451",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T11:06:16Z",
+      "side": 1,
+      "message": "I found it useful in my Niagara prototype to include a \"Reason\" field with the intent of having a human comment on why a machine should be down (and also if the server automatically detected a reason as to why it should be in maintenance mode)\n\nhttps://skia-review.googlesource.com/c/buildbot/+/268160/14/niagara/go/fs_entries/fs_entries.go#31\n\nWhat do you think?",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 1
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9781dce0_34a43608",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T11:06:16Z",
+      "side": 1,
+      "message": "bikeshed: DimensionsUpdated and StateUpdated (same rationale as above, no need to include the type name in the variable name)",
+      "range": {
+        "startLine": 52,
+        "startChar": 4,
+        "endLine": 52,
+        "endChar": 36
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c52f310_c7eb0690",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T11:06:16Z",
+      "side": 1,
+      "message": "This isn\u0027t actually getting set to the desired type",
+      "range": {
+        "startLine": 53,
+        "startChar": 34,
+        "endLine": 53,
+        "endChar": 37
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e5acb45b_f06911c3",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T11:06:16Z",
+      "side": 1,
+      "message": "its",
+      "range": {
+        "startLine": 60,
+        "startChar": 3,
+        "endLine": 60,
+        "endChar": 7
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e9b75dd_db3a7e28",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T11:06:16Z",
+      "side": 1,
+      "message": "Would it be simpler to omit this and just have Dimensions and State be pointer types? Either that or checking for empty maps should work, since empty map is not a valid state nor dimensions,",
+      "range": {
+        "startLine": 62,
+        "startChar": 12,
+        "endLine": 62,
+        "endChar": 34
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
