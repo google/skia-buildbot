@@ -99,17 +99,14 @@ func New() (baseapp.App, error) {
 		admin:  admin,
 	}
 	srv.loadTemplates()
-	liveness := metrics2.NewLiveness("alive", map[string]string{})
-	fmt.Println(liveness)
 
 	return srv, nil
 }
 
 func (srv *Server) loadTemplates() {
-	blah := *baseapp.ResourcesDir
 	srv.templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
-		filepath.Join(blah, "index.html"),
-		filepath.Join(blah, "rotations.html"),
+		filepath.Join(*baseapp.ResourcesDir, "index.html"),
+		filepath.Join(*baseapp.ResourcesDir, "rotations.html"),
 	))
 }
 
