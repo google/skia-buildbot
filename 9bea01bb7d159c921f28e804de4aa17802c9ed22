@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "93c57212_c55583eb",
+        "filename": "machine/README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "40410526_9832b96a",
+      "range": {
+        "startLine": 3,
+        "startChar": 69,
+        "endLine": 4,
+        "endChar": 6
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eadb9a0a_84f86fa8",
         "filename": "machine/README.md",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "782e35c7_c67e3f89",
+        "filename": "machine/README.md",
+        "patchSetId": 5
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "3 spaces on indent is heretical, I went to 4!",
+      "parentUuid": "eadb9a0a_84f86fa8",
+      "range": {
+        "startLine": 13,
+        "startChar": 5,
+        "endLine": 13,
+        "endChar": 6
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9c1d28d3_8306a187",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "Renamed /state to /machine and moved types.go to machine/machine.go.",
+      "parentUuid": "2b54977b_b51ce947",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 13
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e3363221_d39ed8bd",
         "filename": "machine/go/state/types/types.go",
         "patchSetId": 5
@@ -91,6 +163,30 @@
       "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9da5d52e_7071861b",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "I hope so, that will simplify things a lot. Done.",
+      "parentUuid": "e3363221_d39ed8bd",
+      "range": {
+        "startLine": 20,
+        "startChar": 35,
+        "endLine": 20,
+        "endChar": 48
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -211,6 +307,78 @@
     },
     {
       "key": {
+        "uuid": "ca2a31bd_5bf8e43a",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "Done for Mode. EventType-\u003eEvent conflicts with Event.",
+      "parentUuid": "058cb4c2_f50ca441",
+      "range": {
+        "startLine": 26,
+        "startChar": 5,
+        "endLine": 26,
+        "endChar": 13
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "78d0fa6e_ac125682",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "Yes, Mode is under user control.\n\nState is received from the machine, but may be modified by Process. Some ways that Process may modify state would be to quarantine the machine if the device is too hot.",
+      "parentUuid": "a436ea5e_66a28097",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 17
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8c4e70d0_9f7dc120",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ab10f07_14e6523a",
+      "range": {
+        "startLine": 26,
+        "startChar": 14,
+        "endLine": 26,
+        "endChar": 17
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4dab8682_b565e984",
         "filename": "machine/go/state/types/types.go",
         "patchSetId": 5
@@ -258,6 +426,30 @@
     },
     {
       "key": {
+        "uuid": "81c6bb2d_64191100",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "Keeping the Mode prefix.",
+      "parentUuid": "34a3ce79_a9fc03ae",
+      "range": {
+        "startLine": 33,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 14
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cdd0a224_862546db",
         "filename": "machine/go/state/types/types.go",
         "patchSetId": 5
@@ -278,6 +470,30 @@
       "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df3300a1_2dc06aa3",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "Changed to MachineDescription.",
+      "parentUuid": "cdd0a224_862546db",
+      "range": {
+        "startLine": 41,
+        "startChar": 5,
+        "endLine": 41,
+        "endChar": 17
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -304,6 +520,30 @@
     },
     {
       "key": {
+        "uuid": "6eb7c918_939af987",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "Removed. I was thinking they really belonged on MachineUpdateEvent, but considering the size of the data going back and forth I may switch those to proto. Will try that in a later rev of this CL.",
+      "parentUuid": "9a020d15_a7ad0004",
+      "range": {
+        "startLine": 43,
+        "startChar": 32,
+        "endLine": 43,
+        "endChar": 51
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9de2fb52_76055aac",
         "filename": "machine/go/state/types/types.go",
         "patchSetId": 5
@@ -324,6 +564,30 @@
       "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ecf89719_4caa77a3",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "We have no idea what the complete set of key/value pairs is going to be for state, and serializing some into named fields and the remainder into a map[string]string requires a third party library, for example: https://godoc.org/github.com/mitchellh/mapstructure#hdr-Remainder_Values",
+      "parentUuid": "9de2fb52_76055aac",
+      "range": {
+        "startLine": 44,
+        "startChar": 13,
+        "endLine": 44,
+        "endChar": 26
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -350,6 +614,30 @@
     },
     {
       "key": {
+        "uuid": "f682d59d_af648736",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "Added Annotation to MachineDescription.",
+      "parentUuid": "946e1cc3_85b9b451",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 1
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0530f6ee_cf68a959",
         "filename": "machine/go/state/types/types.go",
         "patchSetId": 5
@@ -370,6 +658,30 @@
       "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44944f02_8f64ef75",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "Moved to EventType.",
+      "parentUuid": "0530f6ee_cf68a959",
+      "range": {
+        "startLine": 48,
+        "startChar": 3,
+        "endLine": 48,
+        "endChar": 25
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -396,6 +708,30 @@
     },
     {
       "key": {
+        "uuid": "95b1190a_c468df5a",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "Kept EventType prefix like I did with Mode.",
+      "parentUuid": "9781dce0_34a43608",
+      "range": {
+        "startLine": 52,
+        "startChar": 4,
+        "endLine": 52,
+        "endChar": 36
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8c52f310_c7eb0690",
         "filename": "machine/go/state/types/types.go",
         "patchSetId": 5
@@ -416,6 +752,30 @@
       "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5499d45_88904f36",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8c52f310_c7eb0690",
+      "range": {
+        "startLine": 53,
+        "startChar": 34,
+        "endLine": 53,
+        "endChar": 37
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -442,6 +802,30 @@
     },
     {
       "key": {
+        "uuid": "08aafa13_34520e00",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e5acb45b_f06911c3",
+      "range": {
+        "startLine": 60,
+        "startChar": 3,
+        "endLine": 60,
+        "endChar": 7
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9e9b75dd_db3a7e28",
         "filename": "machine/go/state/types/types.go",
         "patchSetId": 5
@@ -465,6 +849,30 @@
     },
     {
       "key": {
+        "uuid": "6c863f9d_4e0916c0",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "Dimensions and State are just the current events that are tracked, there are a bunch of other events we can produce, such as task start, task stop, etc.",
+      "parentUuid": "9e9b75dd_db3a7e28",
+      "range": {
+        "startLine": 62,
+        "startChar": 12,
+        "endLine": 62,
+        "endChar": 34
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0f583911_396b4f82",
         "filename": "machine/images/firestore-emulator/release.sh",
         "patchSetId": 5
@@ -485,6 +893,30 @@
       "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04c1703e_6b284a41",
+        "filename": "machine/images/firestore-emulator/release.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-07T14:54:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0f583911_396b4f82",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 86
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
