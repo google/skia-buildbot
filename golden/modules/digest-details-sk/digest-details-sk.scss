@@ -8,6 +8,11 @@ digest-details-sk {
     padding: 5px;
     display: flex;
     flex-direction: column;
+    // setting these to inherit will use whatever is set on digest-details-sk itself.
+    min-width: inherit;
+    max-width: inherit;
+    width: inherit;
+    overflow-x: auto;
   }
 
   .top_bar, .digest_labels, .comparison_data {
@@ -29,6 +34,7 @@ digest-details-sk {
   }
 
   .trace_info {
+    border-top: 1px solid var(--light-gray);
     padding: 10px;
     dots-sk {
       overflow: auto;
@@ -42,6 +48,7 @@ digest-details-sk {
     display: flex;
     flex-direction: column;
     padding: 5px;
+    min-width: 180px;
 
     .metric {
       :first-child {

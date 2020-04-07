@@ -307,6 +307,9 @@ export const noTraces = {
       ts: '2020-02-25T16:05:13.000Z',
     },
   ],
+  traces: {
+    traces: [],
+  },
   paramset: {
     ext: [
       'png',

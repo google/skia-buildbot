@@ -25,9 +25,7 @@
 <link rel="import" href="bower_components/paper-tabs/paper-tab.html">
 
 <link rel="import" href="../common/imp/sort.html">
-<link rel="import" href="../common/imp/paramset.html">
 
-<link rel="import" href="digest-details-sk.html">
 <link rel="import" href="cluster-sk.html">
 <link rel="import" href="activity-sk.html">
 <link rel="import" href="test-summary-sk.html">
@@ -39,15 +37,20 @@
     <style include="iron-flex iron-flex-alignment"></style>
     <style include="shared-styles">
       #clusterContainer {
-        margin-left: 1em;
-        margin-top: 1em;
+        padding: 0.5em;
       }
       .searchControlsWrapper {
         padding: 1em 0 0 1em;
       }
 
+      digest-details-sk {
+        min-width: 800px;
+        max-width: 900px;
+      }
+
       .clusterRendering {
-        min-width: 500pt;
+        min-width: 400px;
+        border: 1px solid #ddd;
       }
     </style>
     <div class="vertical layout">
@@ -164,7 +167,9 @@
           gold.loadWithActivity(this, "/json/clusterdiff" + window.location.search, this.$.activityMain, function(json) {
             this._data = json;
             this.$.clusterView.setData(json);
-            this.$.parameters.setParamSets([json.paramsetsUnion]);
+            this.$.parameters.paramsets = {
+              paramsets: [json.paramsetsUnion],
+            };
           }.bind(this));
         },
 
@@ -239,12 +244,12 @@
           if (this._digestList.length == 1) {
             // Show detailed information about the one selected digest.
             url = "/json/details" + gold.detailQuery(this._data.test, this._digestList[0]);
-            this.$.oneDigest.clear();
+            this.$.oneDigest.details = {};
             gold.loadWithActivity(this, url, this.$.activityDetail, '_digestDetails');
           } else if (this._digestList.length == 2) {
             // Show a diff between the two selected digests.
             url = "/json/diff" +  gold.diffQuery(this._data.test, this._digestList[0], this._digestList[1]);
-            this.$.diffTwo.clear();
+            this.$.diffTwo.details = {};
             gold.loadWithActivity(this, url, this.$.activityDiff, '_diffData');
           } else {
             // Show the option to bulk triage all selected digests.
@@ -273,7 +278,9 @@
           Object.keys(paramset).forEach(function(key) {
             paramset[key].sort();
           });
-          this.$.bulkParamset.setParamSets([paramset]);
+          this.$.bulkParamset.paramsets = {
+            paramsets: [paramset],
+          };
         },
 
         _hideBulkTriage: function(digestList) {

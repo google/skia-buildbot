@@ -18,19 +18,18 @@
 
 <link rel="import" href="bower_components/polymer/polymer.html">
 
-<link rel="import" href="digest-details-sk.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="diff-page-sk">
   <template>
-    <style include="shared-styles" clas>
+    <style include="shared-styles">
       .diffContainer {
-        margin: 2em 0 0 2em;
+        padding: 0.5em;
+        max-width: 1000px;
       }
     </style>
     <div class="diffContainer">
       <digest-details-sk
-              mode="diff"
               details="[[data.left]]"
               right="[[data.right]]"
               issue="[[issue]]"
