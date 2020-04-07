@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e8105aac_847a8def",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T15:17:56Z",
+      "side": 1,
+      "message": "State values are arbitrary - interface{} is the right call there.",
+      "range": {
+        "startLine": 12,
+        "startChar": 18,
+        "endLine": 12,
+        "endChar": 24
+      },
+      "revId": "5bf1f64c1d55220052d6ff2f4e5d812134f9a477",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a6e714b_3937daea",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T15:17:56Z",
+      "side": 1,
+      "message": "nit: Description",
+      "range": {
+        "startLine": 41,
+        "startChar": 3,
+        "endLine": 41,
+        "endChar": 21
+      },
+      "revId": "5bf1f64c1d55220052d6ff2f4e5d812134f9a477",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

@@ -591,6 +591,30 @@
     },
     {
       "key": {
+        "uuid": "580d6ac6_70e0ac7e",
+        "filename": "machine/go/state/types/types.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-07T15:17:56Z",
+      "side": 1,
+      "message": "I agree we don\u0027t know the complete state. However, we *do* know about how the ones we care about are structured (and we can ignore ones we don\u0027t care about). For example, we know how the host temperature and uptime is encoded in the state. Not a must have, but might make for fewer type assertions later.",
+      "parentUuid": "ecf89719_4caa77a3",
+      "range": {
+        "startLine": 44,
+        "startChar": 13,
+        "endLine": 44,
+        "endChar": 26
+      },
+      "revId": "9bea01bb7d159c921f28e804de4aa17802c9ed22",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "946e1cc3_85b9b451",
         "filename": "machine/go/state/types/types.go",
         "patchSetId": 5
