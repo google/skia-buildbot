@@ -1,36 +1,25 @@
 package repo_manager
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
-	"sync"
-	"time"
 
-	"cloud.google.com/go/storage"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/child"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
-	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/go/gcs"
-	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/gitiles"
-	"google.golang.org/api/option"
+	"go.skia.org/infra/go/skerr"
 )
 
 const (
-	FUCHSIA_SDK_GS_BUCKET            = "fuchsia"
-	FUCHSIA_SDK_GS_LATEST_PATH_LINUX = "development/LATEST_LINUX"
-	FUCHSIA_SDK_GS_LATEST_PATH_MAC   = "development/LATEST_MAC"
+	FuchsiaSDKVersionFilePathLinux = "build/fuchsia/linux.sdk.sha1"
+	FuchsiaSDKVersionFilePathMac   = "build/fuchsia/mac.sdk.sha1"
 
-	FUCHSIA_SDK_VERSION_FILE_PATH_LINUX = "build/fuchsia/linux.sdk.sha1"
-	FUCHSIA_SDK_VERSION_FILE_PATH_MAC   = "build/fuchsia/mac.sdk.sha1"
-
-	TMPL_COMMIT_MSG_FUCHSIA_SDK = `Roll Fuchsia SDK from {{.RollingFrom.String}} to {{.RollingTo.String}}
+	TmplCommitMsgFuchsiaSDK = `Roll Fuchsia SDK from {{.RollingFrom.String}} to {{.RollingTo.String}}
 
 If this roll has caused a breakage, revert this CL and stop the roller
 using the controls here:
@@ -49,175 +38,83 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 `
 )
 
-// fuchsiaSDKVersion corresponds to one version of the Fuchsia SDK.
-type fuchsiaSDKVersion struct {
-	Timestamp time.Time
-	Version   string
-}
-
-// Return true iff this fuchsiaSDKVersion is newer than the other.
-func (a *fuchsiaSDKVersion) Greater(b *fuchsiaSDKVersion) bool {
-	return a.Timestamp.After(b.Timestamp)
-}
-
-type fuchsiaSDKVersionSlice []*fuchsiaSDKVersion
-
-func (s fuchsiaSDKVersionSlice) Len() int {
-	return len(s)
-}
-
-func (s fuchsiaSDKVersionSlice) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-
-// We sort newest to oldest.
-func (s fuchsiaSDKVersionSlice) Less(i, j int) bool {
-	return s[i].Greater(s[j])
-}
-
 // FuchsiaSDKRepoManagerConfig provides configuration for the Fuchia SDK
 // RepoManager.
 type FuchsiaSDKRepoManagerConfig struct {
 	NoCheckoutRepoManagerConfig
-	IncludeMacSDK bool `json:"includeMacSDK"`
+	Gerrit        *codereview.GerritConfig `json:"gerrit"`
+	IncludeMacSDK bool                     `json:"includeMacSDK"`
 }
 
 // See documentation for RepoManagerConfig interface.
-func (r *FuchsiaSDKRepoManagerConfig) ValidStrategies() []string {
+func (c *FuchsiaSDKRepoManagerConfig) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_BATCH,
 	}
 }
 
-// fuchsiaSDKRepoManager is a RepoManager which rolls the Fuchsia SDK version
-// into Chromium. Unlike other rollers, there is no child repo to sync; the
-// version number is obtained from Google Cloud Storage.
-type fuchsiaSDKRepoManager struct {
-	*noCheckoutRepoManager
-	gcsClient         gcs.GCSClient
-	gsBucket          string
-	gsLatestPathLinux string
-	gsLatestPathMac   string
-	storageClient     *storage.Client
-	versionFileLinux  string
-	versionFileMac    string
-
-	fuchsiaSDKInfoMtx sync.RWMutex
-	lastRollRevMac    string // Protected by fuchsiaSDKInfoMtx.
-	tipRevMac         string // Protected by fuchsiaSDKInfoMtx.
+// splitParentChild breaks the FuchsiaSDKRepoManagerConfig into parent and child
+// configs.
+func (c *FuchsiaSDKRepoManagerConfig) splitParentChild() (parent.GitilesFileConfig, child.FuchsiaSDKConfig, error) {
+	var parentDeps map[string]string
+	if c.IncludeMacSDK {
+		parentDeps = map[string]string{
+			child.FuchsiaSDKGSLatestPathMac: FuchsiaSDKVersionFilePathMac,
+		}
+	}
+	commitMsgTmpl := TmplCommitMsgFuchsiaSDK
+	if c.CommitMsgTmpl != "" {
+		commitMsgTmpl = c.CommitMsgTmpl
+	}
+	parentCfg := parent.GitilesFileConfig{
+		GitilesConfig: parent.GitilesConfig{
+			BaseConfig: parent.BaseConfig{
+				ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
+				ChildRepo:       "TODO",
+				IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
+				IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
+				CommitMsgTmpl:   commitMsgTmpl,
+				MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
+			},
+			GitilesConfig: gitiles_common.GitilesConfig{
+				Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
+				RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+			},
+			Gerrit: c.Gerrit,
+		},
+		Dep:            "TODO",
+		Path:           FuchsiaSDKVersionFilePathLinux,
+		TransitiveDeps: parentDeps,
+	}
+	if err := parentCfg.Validate(); err != nil {
+		return parent.GitilesFileConfig{}, child.FuchsiaSDKConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
+	}
+	childCfg := child.FuchsiaSDKConfig{
+		IncludeMacSDK: c.IncludeMacSDK,
+	}
+	if err := childCfg.Validate(); err != nil {
+		return parent.GitilesFileConfig{}, child.FuchsiaSDKConfig{}, skerr.Wrapf(err, "generated child config is invalid")
+	}
+	return parentCfg, childCfg, nil
 }
 
-// Return a fuchsiaSDKRepoManager instance.
-func NewFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL string, authClient *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+// NewFuchsiaSDKRepoManager returns a RepoManager instance which rolls the
+// Fuchsia SDK.
+func NewFuchsiaSDKRepoManager(ctx context.Context, c *FuchsiaSDKRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL string, authClient *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, fmt.Errorf("Failed to validate config: %s", err)
 	}
-	storageClient, err := storage.NewClient(ctx, option.WithHTTPClient(authClient))
+	parentCfg, childCfg, err := c.splitParentChild()
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create storage client: %s", err)
+		return nil, skerr.Wrap(err)
 	}
-
-	rv := &fuchsiaSDKRepoManager{
-		gcsClient:         gcsclient.New(storageClient, FUCHSIA_SDK_GS_BUCKET),
-		gsBucket:          FUCHSIA_SDK_GS_BUCKET,
-		gsLatestPathLinux: FUCHSIA_SDK_GS_LATEST_PATH_LINUX,
-		gsLatestPathMac:   FUCHSIA_SDK_GS_LATEST_PATH_MAC,
-		storageClient:     storageClient,
-		versionFileLinux:  FUCHSIA_SDK_VERSION_FILE_PATH_LINUX,
-	}
-	if c.IncludeMacSDK {
-		rv.versionFileMac = FUCHSIA_SDK_VERSION_FILE_PATH_MAC
-	}
-	if c.CommitMsgTmpl == "" {
-		c.CommitMsgTmpl = TMPL_COMMIT_MSG_FUCHSIA_SDK
-	}
-	ncrm, err := newNoCheckoutRepoManager(ctx, c.NoCheckoutRepoManagerConfig, reg, workdir, g, serverURL, authClient, cr, rv.createRoll, rv.updateHelper, local)
+	parentRM, err := parent.NewGitilesFile(ctx, parentCfg, reg, authClient, serverURL)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create NoCheckoutRepoManager: %s", err)
+		return nil, skerr.Wrap(err)
 	}
-	rv.noCheckoutRepoManager = ncrm
-	return rv, nil
-}
-
-// See documentation for noCheckoutRepoManagerCreateRollHelperFunc.
-func (rm *fuchsiaSDKRepoManager) createRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, serverURL, cqExtraTrybots string, emails []string, baseCommit string) (string, map[string]string, error) {
-	commitMsg, err := rm.buildCommitMsg(&parent.CommitMsgVars{
-		CqExtraTrybots: cqExtraTrybots,
-		Reviewers:      emails,
-		RollingFrom:    from,
-		RollingTo:      to,
-		ServerURL:      rm.serverURL,
-	})
+	childRM, err := child.NewFuchsiaSDK(ctx, childCfg, authClient)
 	if err != nil {
-		return "", nil, err
+		return nil, skerr.Wrap(err)
 	}
-
-	// Create the roll changes.
-	edits := map[string]string{
-		rm.versionFileLinux: to.Id,
-	}
-	// Hack: include the Mac version if required.
-	if rm.versionFileMac != "" && rm.lastRollRevMac != rm.tipRevMac {
-		edits[rm.versionFileMac] = rm.tipRevMac
-	}
-	return commitMsg, edits, nil
-}
-
-func fuchsiaSDKVersionToRevision(ver string) *revision.Revision {
-	return &revision.Revision{
-		Id: ver,
-	}
-}
-
-// See documentation for noCheckoutRepoManagerUpdateHelperFunc.
-func (rm *fuchsiaSDKRepoManager) updateHelper(ctx context.Context, parentRepo *gitiles.Repo, baseCommit string) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
-	// Read the version file to determine the last roll rev.
-	buf := bytes.NewBuffer([]byte{})
-	if err := parentRepo.ReadFileAtRef(ctx, rm.versionFileLinux, baseCommit, buf); err != nil {
-		return nil, nil, nil, fmt.Errorf("Failed to read %s at %s: %s", rm.versionFileLinux, baseCommit, err)
-	}
-	lastRollRevLinuxStr := strings.TrimSpace(buf.String())
-
-	buf = bytes.NewBuffer([]byte{})
-	if rm.versionFileMac != "" {
-		if err := parentRepo.ReadFileAtRef(ctx, rm.versionFileMac, baseCommit, buf); err != nil {
-			return nil, nil, nil, fmt.Errorf("Failed to read %s at %s: %s", rm.versionFileMac, baseCommit, err)
-		}
-	}
-	lastRollRevMacStr := strings.TrimSpace(buf.String())
-
-	// Get latest SDK version.
-	tipRevLinuxBytes, err := gcs.FileContentsFromGCS(rm.storageClient, rm.gsBucket, rm.gsLatestPathLinux)
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("Failed to read latest SDK version (linux): %s", err)
-	}
-	tipRevLinuxStr := strings.TrimSpace(string(tipRevLinuxBytes))
-
-	tipRevMacBytes, err := gcs.FileContentsFromGCS(rm.storageClient, rm.gsBucket, rm.gsLatestPathMac)
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("Failed to read latest SDK version (mac): %s", err)
-	}
-	tipRevMacStr := strings.TrimSpace(string(tipRevMacBytes))
-
-	// We cannot compute notRolledRevs correctly because there are things
-	// other than SDKs in the GCS dir, and because they are content-
-	// addressed, we can't tell which ones are relevant to us, so we only
-	// include the latest and don't bother loading the list of versions
-	// from GCS.
-	notRolledRevs := []*revision.Revision{}
-	if tipRevLinuxStr != lastRollRevLinuxStr {
-		notRolledRevs = append(notRolledRevs, fuchsiaSDKVersionToRevision(tipRevLinuxStr))
-	}
-
-	rm.fuchsiaSDKInfoMtx.Lock()
-	defer rm.fuchsiaSDKInfoMtx.Unlock()
-	rm.lastRollRevMac = lastRollRevMacStr
-	rm.tipRevMac = tipRevMacStr
-
-	return fuchsiaSDKVersionToRevision(lastRollRevLinuxStr), fuchsiaSDKVersionToRevision(tipRevLinuxStr), notRolledRevs, nil
-}
-
-// See documentation for RepoManager interface.
-func (r *fuchsiaSDKRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
-	return fuchsiaSDKVersionToRevision(id), nil
+	return newParentChildRepoManager(ctx, parentRM, childRM)
 }
