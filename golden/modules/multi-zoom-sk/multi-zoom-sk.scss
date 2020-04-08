@@ -1,0 +1,64 @@
+@import '~elements-sk/colors';
+
+multi-zoom-sk {
+  > .container {
+    border: 1px solid var(--light-gray);
+    min-width: 500px;
+    min-height: 500px;
+    display: flex;
+    flex-direction: row;
+  }
+
+  .preview_and_zoomed {
+    border: 1px solid red; // FIXME(kjlubick)
+    display: flex;
+    flex-direction: column;
+    padding: 0.5em;
+  }
+
+  .previews_and_toggles {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .preview_toggle {
+    position: relative;
+    margin: 0;
+    img.thumbnail {
+      border: solid 2px lightgray;
+      display: block;
+      width: 128px;
+      height: 128px;
+      object-fit: contain;
+      object-position: top;
+    }
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      margin: 2px;
+      width: 128px;
+      height: 128px;
+    }
+  }
+
+  .zoomed_view {
+
+    canvas {
+      border: 1px solid black;
+      width: 500px;
+      height: 500px;
+    }
+  }
+
+  .stats_and_nav {
+    border: 1px solid blue; // FIXME(kjlubick)
+    min-width: 200px // FIXME(kjlubick)
+  }
+
+  canvas.scratch {
+    display: none;
+  }
+
+}
