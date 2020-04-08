@@ -1,9 +1,9 @@
-# Skolo Jumphost Management Design Doc
+# Skolo Rack Management Design Doc
 
 ## Objective
 
-Switch away from using the legacy 'push' system for managing jumphosts and move
-to kubernetes.
+Switch away from using the legacy 'push' system for managing jumphosts and RPi
+machines and move to kubernetes.
 
 ## Overview
 
@@ -51,6 +51,12 @@ clusters simultaneously.
 Pushk will be updated to be able to attach to the k3s clusters on the jumphosts,
 again based on the data in `infra/kube/clusters/config.json` and the user's
 `~/.ssh/id_rsa`.
+
+### RPis
+
+Each RPi is a node in the k8s cluster, with one cluster per rack.
+
+See [RPI_DESIGN](./RPI_DESIGN.md) and also http://go/skolo-machine-state.
 
 ### Requirements addressed
 
