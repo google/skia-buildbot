@@ -26,6 +26,7 @@ module.exports = {
     'import/prefer-default-export': ['off'],
     'max-classes-per-file': ['off'],
     'max-len': ['off'],
+    'no-alert': ['off'],
     'no-bitwise': ['warn'],
     'no-continue': ['off'],
     'no-lone-blocks':['off'],
