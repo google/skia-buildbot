@@ -27,6 +27,7 @@ module.exports = {
     'max-classes-per-file': ['off'],
     'max-len': ['off'],
     'no-bitwise': ['warn'],
+    'no-continue': ['off'],
     'no-lone-blocks':['off'],
     'no-param-reassign': ['off'],
     'no-plusplus': ['off'],
