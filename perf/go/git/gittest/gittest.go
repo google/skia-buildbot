@@ -18,6 +18,12 @@ import (
 	"go.skia.org/infra/perf/go/sql/sqltest"
 )
 
+const (
+	// CockroachDatabaseName is the name of the database in CockroachDB that
+	// NewForTest will create.
+	CockroachDatabaseName = "git"
+)
+
 // CleanupFunc is the type of clean up function that NewForTest returns.
 type CleanupFunc func()
 
@@ -52,7 +58,7 @@ func NewForTest(t *testing.T, dialect perfsql.Dialect) (context.Context, *sql.DB
 	if dialect == perfsql.SQLiteDialect {
 		db, sqlCleanup = sqltest.NewSQLite3DBForTests(t)
 	} else {
-		db, sqlCleanup = sqltest.NewCockroachDBForTests(t, "git", sqltest.ApplyMigrations)
+		db, sqlCleanup = sqltest.NewCockroachDBForTests(t, CockroachDatabaseName, sqltest.ApplyMigrations)
 	}
 
 	// Get tmp dir to use for repo checkout.
