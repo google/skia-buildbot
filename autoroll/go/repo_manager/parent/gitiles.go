@@ -5,9 +5,11 @@ package parent
 */
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 
 	"go.skia.org/infra/autoroll/go/codereview"
@@ -54,6 +56,19 @@ type gitilesGetChangesForRollFunc func(context.Context, *gitiles_common.GitilesR
 // gitilesGetLastRollRevFunc finds the last-rolled child revision ID from the
 // repo at the given base commit.
 type gitilesGetLastRollRevFunc func(context.Context, *gitiles_common.GitilesRepo, string) (string, error)
+
+// VersionFileGetLastRollRevFunc returns a gitilesLastRollRevFunc which reads
+// the given file path from the repo and returns its full contents as the
+// last-rolled revision ID.
+func VersionFileGetLastRollRevFunc(path string) gitilesGetLastRollRevFunc {
+	return func(ctx context.Context, repo *gitiles_common.GitilesRepo, baseCommit string) (string, error) {
+		var buf bytes.Buffer
+		if err := repo.ReadFileAtRef(ctx, path, baseCommit, &buf); err != nil {
+			return "", skerr.Wrap(err)
+		}
+		return strings.TrimSpace(buf.String()), nil
+	}
+}
 
 // gitilesParent is a base for implementations of Parent which use Gitiles.
 type gitilesParent struct {
