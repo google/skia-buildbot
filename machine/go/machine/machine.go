@@ -2,24 +2,8 @@ package machine
 
 import "time"
 
-// SwarmingState is for de/serializing swarming state.
-//
-// https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/doc/Magic-Values.md#bot-states
-type SwarmingState struct {
-	// ID is the name of the machine, aka the swarming bot id.
-	ID string `json:"id"`
-
-	Maintenance string `json:"maintenance,omitempty"`
-
-	Quarantined string `json:"quarantined,omitempty"`
-
-	SkRack string `json:"sk_rack"`
-}
-
 // SwarmingDimensions is for de/serializing swarming dimensions:
 //
-// Note we don't need to sidecar the swarming bot ID like we do in SwarmingState
-// because 'id' is a required dimension.
 // https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/doc/Magic-Values.md#bot-dimensions
 type SwarmingDimensions map[string][]string
 
@@ -55,7 +39,6 @@ type Description struct {
 	Mode        Mode
 	Annotation  Annotation
 	Dimensions  SwarmingDimensions
-	State       SwarmingState
 	LastUpdated time.Time
 }
 
@@ -63,17 +46,20 @@ type Description struct {
 type EventType string
 
 const (
-	// EventTypeDimensions means the dimensions have been updated.
-	EventTypeDimensions EventType = "dimensions"
-
-	// EventTypeState means the state has been updated.
-	EventTypeState EventType = "state"
+	// EventTypeRawState means the raw state from bot_config has been updated.
+	EventTypeRawState EventType = "raw_state"
 )
+
+// Android contains the raw results from interrogating an Android device.
+type Android struct {
+	GetProp               string `json:"getprop"`
+	DumpsysBattery        string `json:"dumpsys_battery"`
+	DumpsysThermalService string `json:"dumpsys_thermal_service"`
+}
 
 // Event is the information a machine should send via Source when
 // its local state has changed.
 type Event struct {
-	EventType  EventType          `json:"type"`
-	Dimensions SwarmingDimensions `json:"dimensions"`
-	State      SwarmingState      `json:"state"`
+	EventType EventType `json:"type"`
+	Android   Android   `json:"android"`
 }
