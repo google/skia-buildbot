@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9b5a01c1_9e125a4b",
+        "filename": "perf/cockroachdb/connect-skia-cockroachdb.sh",
+        "patchSetId": 50
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-08T14:42:33Z",
+      "side": 1,
+      "message": "Might be better to have a connect-cockroachdb.sh with host as an env variable and have the rest of the scripts call that. Will make updating versions or changing flags much simpler in the future. Could put it under a common/ dir to avoid any confusion.\nSimilar comment for admin-cockroachdb.sh.",
+      "revId": "67a8480667e009cc9d0e2a7c7897d1254447d522",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
