@@ -37,7 +37,7 @@ function formatTimestamp(timestamp) {
     return timestamp;
   }
   const d = new Date(timestamp);
-  return d.toUTCString();
+  return d.toLocaleString();
 }
 
 function displayLeaseStartTime(task) {
