@@ -11,12 +11,14 @@ import (
 	"sync"
 
 	"cloud.google.com/go/storage"
+	"google.golang.org/api/iterator"
+	"google.golang.org/api/option"
+
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/vcsinfo"
-	"google.golang.org/api/iterator"
-	"google.golang.org/api/option"
 )
 
 const (
@@ -41,7 +43,7 @@ func DebuggerInit() error {
 		return fmt.Errorf("Failed to checkout %s: %s", common.REPO_SKIA, err)
 	}
 
-	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_WRITE)
+	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, auth.SCOPE_READ_WRITE)
 	if err != nil {
 		return fmt.Errorf("Problem setting up default token source: %s", err)
 	}

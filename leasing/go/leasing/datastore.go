@@ -9,13 +9,15 @@ import (
 	"fmt"
 
 	"cloud.google.com/go/datastore"
-	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/ds"
 	"google.golang.org/api/option"
+
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/baseapp"
+	"go.skia.org/infra/go/ds"
 )
 
 func DatastoreInit(project string, ns string) error {
-	ts, err := auth.NewDefaultTokenSource(*local, "https://www.googleapis.com/auth/datastore")
+	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, "https://www.googleapis.com/auth/datastore")
 	if err != nil {
 		return fmt.Errorf("Problem setting up default token source: %s", err)
 	}
