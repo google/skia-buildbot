@@ -1,0 +1,216 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9c1ae071_885858aa",
+        "filename": "leasing/modules/leasing-list-sk/leasing-list-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-08T15:39:49Z",
+      "side": 1,
+      "message": "this._upgradeProperty(\u0027filterByUser\u0027);",
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef8ca2e0_6c655578",
+        "filename": "leasing/modules/leasing-list-sk/leasing-list-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-08T15:39:49Z",
+      "side": 1,
+      "message": "As the code stands right now _fetchTasks won\u0027t be called when filterByUser is changed. Since you are storing the value of the property in an attribute you can use the attributeChangedCallback to add that functionality.\n\n  static get observedAttributes() {\n    return [\u0027filter_by_user\u0027];\n  }\n\n\n  attributeChangedCallback(name, oldValue, newValue) {\n    switch (name) {\n      case \u0027filter_by_user\u0027:\n        if (newValue !\u003d\u003d \u0027\u0027) {\n          this._fetchTasks(); \n        }\n        break;\n    }\n  }",
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "070bfe3c_9d826e1a",
+        "filename": "leasing/modules/leasing-selections-sk/leasing-selections-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-08T15:39:49Z",
+      "side": 1,
+      "message": "var(--black)",
+      "range": {
+        "startLine": 24,
+        "startChar": 22,
+        "endLine": 24,
+        "endChar": 27
+      },
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e9c9dd4_74a4ee19",
+        "filename": "leasing/modules/leasing-selections-sk/leasing-selections-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-08T15:39:49Z",
+      "side": 1,
+      "message": "var(--black)",
+      "range": {
+        "startLine": 29,
+        "startChar": 29,
+        "endLine": 29,
+        "endChar": 34
+      },
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d04e51f2_901199f9",
+        "filename": "leasing/modules/leasing-task-sk/leasing-task-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-08T15:39:49Z",
+      "side": 1,
+      "message": "Would be better to turn off that eslint warning in infra/.eslintrc.js.",
+      "range": {
+        "startLine": 187,
+        "startChar": 80,
+        "endLine": 187,
+        "endChar": 108
+      },
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "777f456b_75fc31c4",
+        "filename": "leasing/modules/leasing.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-08T15:39:49Z",
+      "side": 1,
+      "message": "Should this be \u00271002\u0027 to be consistent? Here and below for 8086.",
+      "range": {
+        "startLine": 55,
+        "startChar": 2,
+        "endLine": 55,
+        "endChar": 6
+      },
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e03db7aa_2581e450",
+        "filename": "leasing/modules/leasing.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-08T15:39:49Z",
+      "side": 1,
+      "message": "All exported functions should have jsdoc describing the args.",
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae8228fe_28620b86",
+        "filename": "leasing/package.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-08T15:39:49Z",
+      "side": 1,
+      "message": "Make these all devDependencies.",
+      "range": {
+        "startLine": 29,
+        "startChar": 1,
+        "endLine": 32,
+        "endChar": 24
+      },
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc69146a_b6501007",
+        "filename": "leasing/pages/index.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-08T15:39:49Z",
+      "side": 1,
+      "message": "var(--black)",
+      "range": {
+        "startLine": 25,
+        "startChar": 22,
+        "endLine": 25,
+        "endChar": 27
+      },
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a266c1ac_870c2bd7",
+        "filename": "leasing/pages/leases_list.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-08T15:39:49Z",
+      "side": 1,
+      "message": "var(--black)",
+      "range": {
+        "startLine": 17,
+        "startChar": 22,
+        "endLine": 17,
+        "endChar": 27
+      },
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
