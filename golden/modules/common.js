@@ -105,3 +105,18 @@ export function diffPageHref(grouping, left, right, issue = '') {
   }
   return u;
 }
+
+// Utility function for colorHex.
+function _hexify(i) {
+  const s = i.toString(16).toUpperCase();
+  // Pad out to two hex digits if necessary.
+  if (s.length < 2) {
+    return `0${s}`;
+  }
+  return s;
+}
+
+// colorHex returns a hex representation of a given color pixel as a string.
+export function colorHex(r, g, b, a) {
+  return `#${_hexify(r)}${_hexify(g)}${_hexify(b)}${_hexify(a)}`;
+}
