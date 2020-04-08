@@ -85,7 +85,7 @@ func newCockroachDBFromConfig(instanceConfig *config.InstanceConfig) (*sql.DB, e
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-
+	sklog.Infof("Finished applying migrations.")
 	return db, nil
 }
 
@@ -120,6 +120,7 @@ func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *confi
 	default:
 		return nil, skerr.Fmt("Unknown datastore_type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 	}
+	sklog.Infof("Constructing perfgit with dialect: %q and connection_string: %q", dialect, instanceConfig.DataStoreConfig.ConnectionString)
 
 	// Now create the appropriate db.
 	var db *sql.DB

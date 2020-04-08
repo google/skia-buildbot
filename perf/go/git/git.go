@@ -147,10 +147,10 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 		VALUES
 			($1, $2, $3, $4, $5)
 		ON CONFLICT
-		DO NOTHING			
+		DO NOTHING
 		`,
 		getCommitNumberFromGitHash: `
-		SELECT 
+		SELECT
 			commit_number
 		FROM
 			Commits
@@ -266,6 +266,7 @@ func New(ctx context.Context, local bool, db *sql.DB, dialect perfsql.Dialect, i
 	}
 
 	// Clone the git repo if necessary.
+	sklog.Infof("Cloning repo.")
 	if _, err := os.Stat(instanceConfig.GitRepoConfig.Dir); os.IsNotExist(err) {
 		cmd := exec.CommandContext(ctx, gitFullPath, "clone", instanceConfig.GitRepoConfig.URL, instanceConfig.GitRepoConfig.Dir)
 		if err := cmd.Run(); err != nil {
@@ -275,6 +276,7 @@ func New(ctx context.Context, local bool, db *sql.DB, dialect perfsql.Dialect, i
 	}
 
 	// Prepare all our SQL statements.
+	sklog.Infof("Preparing statements.")
 	preparedStatements := map[statement]*sql.Stmt{}
 	for key, statement := range statementsByDialect[dialect] {
 		prepared, err := db.Prepare(statement)
@@ -425,6 +427,7 @@ func pull(ctx context.Context, gitFullPath, dir string) error {
 //
 // Note also that CommitNumber starts at 0 for the first commit in a repo.
 func (g *Git) Update(ctx context.Context) error {
+	sklog.Infof("perfgit: Update called.")
 	g.updateCalled.Inc(1)
 	if err := pull(ctx, g.gitFullPath, g.instanceConfig.GitRepoConfig.Dir); err != nil {
 		return skerr.Wrap(err)
@@ -445,6 +448,7 @@ func (g *Git) Update(ctx context.Context) error {
 		// Add all the commits from the repo since the last time we looked.
 		cmd = exec.CommandContext(ctx, g.gitFullPath, "rev-list", "HEAD", "^"+mostRecentGitHash, `--pretty=%aN <%aE>%n%s%n%ct`, "--reverse")
 	}
+	sklog.Infof("perfgit: Starting update with nextCommitNumber: %d", nextCommitNumber)
 	cmd.Dir = g.instanceConfig.GitRepoConfig.Dir
 
 	stdout, err := cmd.StdoutPipe()
@@ -456,6 +460,7 @@ func (g *Git) Update(ctx context.Context) error {
 		return skerr.Wrap(err)
 	}
 
+	total := 0
 	err = parseGitRevLogStream(stdout, func(p Commit) error {
 		// Add p to the database starting at nextCommitNumber.
 		_, err := g.preparedStatements[insert].ExecContext(ctx, nextCommitNumber, p.GitHash, p.Timestamp, p.Author, p.Subject)
@@ -463,6 +468,10 @@ func (g *Git) Update(ctx context.Context) error {
 			return skerr.Wrapf(err, "Failed to insert commit %q into database.", p.GitHash)
 		}
 		nextCommitNumber++
+		total++
+		if total < 10 || (total%100) == 0 {
+			sklog.Infof("Added %d commits this update cycle.", total)
+		}
 		return nil
 	})
 	if err != nil {

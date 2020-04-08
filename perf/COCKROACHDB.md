@@ -39,3 +39,20 @@ The service name and user account are then used in the connection string in the 
     }
 
 See also [configs](./configs/README.md)
+
+## Migrations
+
+In theory the migrations library will take care of schema migrations on startup, but
+in reality, if running more than one instance, contention for the lock can arise. The
+migrations can be applied from the desktop by using the migrations command line app, which
+can be installed by:
+
+    go get -tags 'cockroachdb'  github.com/golang-migrate/migrate/cmd/migrate
+
+Now port-forwarding the database port for the cockroachdb instance, for example:
+
+    kubectl port-forward perf-skia-cockroachdb-0 26257
+
+Then run the migrations:
+
+    migrate -verbose -path ./migrations/cockroachdb/ -database cockroachdb://root@localhost:26257/skia?sslmode=disable up
