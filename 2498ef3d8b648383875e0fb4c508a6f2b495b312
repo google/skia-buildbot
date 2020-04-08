@@ -22,6 +22,30 @@
       "revId": "2498ef3d8b648383875e0fb4c508a6f2b495b312",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43101a86_e5dfacb2",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-08T14:53:42Z",
+      "side": 1,
+      "message": "CochroachDB time to ingest the one million commits is also close to an hour, but since the cockroachdb is persistent between restarts the startup delay is effectively zero for all subsequent starts.",
+      "parentUuid": "7b505ca0_289b83c4",
+      "range": {
+        "startLine": 11,
+        "startChar": 6,
+        "endLine": 11,
+        "endChar": 10
+      },
+      "revId": "2498ef3d8b648383875e0fb4c508a6f2b495b312",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
