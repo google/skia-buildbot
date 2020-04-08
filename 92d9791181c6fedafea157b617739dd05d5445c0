@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "240bd6b8_eddc215c",
+        "filename": "sk8s/RPI_DESIGN.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-08T02:28:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a2c04589_e66c8e3e",
+      "range": {
+        "startLine": 59,
+        "startChar": 28,
+        "endLine": 59,
+        "endChar": 31
+      },
+      "revId": "92d9791181c6fedafea157b617739dd05d5445c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "77175b02_4813596d",
         "filename": "sk8s/RPI_DESIGN.md",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2020-04-06T12:40:39Z",
       "side": 1,
       "message": "which build process? The container build?",
+      "range": {
+        "startLine": 68,
+        "startChar": 25,
+        "endLine": 68,
+        "endChar": 42
+      },
+      "revId": "92d9791181c6fedafea157b617739dd05d5445c0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0c547ca7_c83f0506",
+        "filename": "sk8s/RPI_DESIGN.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-08T02:28:11Z",
+      "side": 1,
+      "message": "container build, clarified.",
+      "parentUuid": "77175b02_4813596d",
       "range": {
         "startLine": 68,
         "startChar": 25,
