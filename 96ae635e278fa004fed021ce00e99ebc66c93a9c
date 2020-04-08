@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "3930aa8e_78ffc85a",
+        "filename": "leasing/modules/leasing-list-sk/leasing-list-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-08T17:38:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9c1ae071_885858aa",
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ef8ca2e0_6c655578",
         "filename": "leasing/modules/leasing-list-sk/leasing-list-sk.js",
         "patchSetId": 3
@@ -33,6 +51,24 @@
       "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b45cab97_d16e064f",
+        "filename": "leasing/modules/leasing-list-sk/leasing-list-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-08T17:38:17Z",
+      "side": 1,
+      "message": "Thanks! Done.",
+      "parentUuid": "ef8ca2e0_6c655578",
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "62fb6ba0_9d425494",
+        "filename": "leasing/modules/leasing-selections-sk/leasing-selections-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-08T17:38:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "070bfe3c_9d826e1a",
+      "range": {
+        "startLine": 24,
+        "startChar": 22,
+        "endLine": 24,
+        "endChar": 27
+      },
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3e9c9dd4_74a4ee19",
         "filename": "leasing/modules/leasing-selections-sk/leasing-selections-sk.scss",
         "patchSetId": 3
@@ -79,6 +139,30 @@
       "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "434d3b1b_3124cea9",
+        "filename": "leasing/modules/leasing-selections-sk/leasing-selections-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-08T17:38:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3e9c9dd4_74a4ee19",
+      "range": {
+        "startLine": 29,
+        "startChar": 29,
+        "endLine": 29,
+        "endChar": 34
+      },
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -105,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "7fcd7c4b_4e9c6184",
+        "filename": "leasing/modules/leasing-task-sk/leasing-task-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-08T17:38:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d04e51f2_901199f9",
+      "range": {
+        "startLine": 187,
+        "startChar": 80,
+        "endLine": 187,
+        "endChar": 108
+      },
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "777f456b_75fc31c4",
         "filename": "leasing/modules/leasing.js",
         "patchSetId": 3
@@ -128,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "b25b16a6_df42eb81",
+        "filename": "leasing/modules/leasing.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-08T17:38:17Z",
+      "side": 1,
+      "message": "That\u0027s how I initially had it but eslint \"fixed\" it for me.",
+      "parentUuid": "777f456b_75fc31c4",
+      "range": {
+        "startLine": 55,
+        "startChar": 2,
+        "endLine": 55,
+        "endChar": 6
+      },
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e03db7aa_2581e450",
         "filename": "leasing/modules/leasing.js",
         "patchSetId": 3
@@ -142,6 +274,24 @@
       "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75f8ce05_70ed7a3d",
+        "filename": "leasing/modules/leasing.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-08T17:38:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e03db7aa_2581e450",
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -168,6 +318,30 @@
     },
     {
       "key": {
+        "uuid": "7ad5e989_0f016237",
+        "filename": "leasing/package.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-08T17:38:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ae8228fe_28620b86",
+      "range": {
+        "startLine": 29,
+        "startChar": 1,
+        "endLine": 32,
+        "endChar": 24
+      },
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dc69146a_b6501007",
         "filename": "leasing/pages/index.scss",
         "patchSetId": 3
@@ -191,6 +365,30 @@
     },
     {
       "key": {
+        "uuid": "bdcf3f19_d90a5fa3",
+        "filename": "leasing/pages/index.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-08T17:38:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dc69146a_b6501007",
+      "range": {
+        "startLine": 25,
+        "startChar": 22,
+        "endLine": 25,
+        "endChar": 27
+      },
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a266c1ac_870c2bd7",
         "filename": "leasing/pages/leases_list.scss",
         "patchSetId": 3
@@ -211,6 +409,30 @@
       "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd407d90_3da7b9fe",
+        "filename": "leasing/pages/leases_list.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-08T17:38:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a266c1ac_870c2bd7",
+      "range": {
+        "startLine": 17,
+        "startChar": 22,
+        "endLine": 17,
+        "endChar": 27
+      },
+      "revId": "96ae635e278fa004fed021ce00e99ebc66c93a9c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
