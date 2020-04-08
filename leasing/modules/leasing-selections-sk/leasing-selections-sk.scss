@@ -1,0 +1,31 @@
+@import '~elements-sk/colors';
+
+leasing-selections-sk {
+  display: block;
+  text-align: center;
+  padding-top: 5em;
+
+  select, option, input {
+    width: 25em;
+    font-size: 1em;
+  }
+
+  .step-title {
+    padding-top: 1.5em;
+  }
+
+  table.options td {
+    padding: 2em;
+    border: none;
+    font-size: 1.3em;
+  }
+
+  table.options {
+    border: 1px solid var(--black);
+    border-collapse: collapse;
+  }
+
+  tr {
+    border-bottom: 1px solid var(--black);
+  }
+}
