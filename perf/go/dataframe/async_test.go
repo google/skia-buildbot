@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/config"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
 	perfsql "go.skia.org/infra/perf/go/sql"
@@ -152,11 +153,8 @@ func TestGetSkps_Success(t *testing.T) {
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)
 
-	tmp := skpFilename
-	skpFilename = "bar.txt"
-	defer func() {
-		skpFilename = tmp
-	}()
+	instanceConfig.GitRepoConfig.FileChangeMarker = "bar.txt"
+	config.Config = instanceConfig
 
 	skps, err := getSkps(ctx, []*ColumnHeader{
 		{
@@ -170,12 +168,37 @@ func TestGetSkps_Success(t *testing.T) {
 	assert.Equal(t, []int{3, 6}, skps)
 }
 
+func TestGetSkps_SuccessIfFileChangeMarkerNotSet(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	defer cleanup()
+	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
+	require.NoError(t, err)
+
+	instanceConfig.GitRepoConfig.FileChangeMarker = ""
+	config.Config = instanceConfig
+
+	skps, err := getSkps(ctx, []*ColumnHeader{
+		{
+			Offset: 0,
+		},
+		{
+			Offset: 7,
+		},
+	}, g)
+	require.NoError(t, err)
+	assert.Empty(t, skps)
+}
+
 func TestGetSkps_ErrOnBadCommitNumber(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)
+
+	instanceConfig.GitRepoConfig.FileChangeMarker = "bar.txt"
+	config.Config = instanceConfig
 
 	_, err = getSkps(ctx, []*ColumnHeader{
 		{

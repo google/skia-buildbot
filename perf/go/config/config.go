@@ -169,14 +169,19 @@ const (
 
 // GitRepoConfig is the config for the git repo.
 type GitRepoConfig struct {
-	// The type of authentication the repo requires.
+	// GitAuthType is the type of authentication the repo requires.
 	GitAuthType GitAuthType `json:"git_auth_type"`
 
 	// URL that the Git repo is fetched from.
 	URL string `json:"url"`
 
-	// The directory into which the repo should be checked out.
+	// Dir is the directory into which the repo should be checked out.
 	Dir string `json:"dir"`
+
+	// FileChangeMarker is a path in the git repo to watch for changes. If the
+	// file indicated changes in a commit then a marker will be displayed on the
+	// graph at that commit.
+	FileChangeMarker string `json:"file_change_marker"`
 
 	// DebouceCommitURL signals if a link to a Git commit needs to be specially
 	// dereferenced. That is, some repos are synthetic and just contain a single

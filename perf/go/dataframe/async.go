@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/config"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
@@ -322,16 +323,18 @@ func (p *FrameRequestProcess) Run() {
 	p.response = resp
 }
 
-// TODO(jcgregorio) Make skpFilename into a config option.
-var skpFilename = "infra/bots/assets/skp/VERSION"
-
 // getSkps returns the indices where the SKPs have been updated given
 // the ColumnHeaders.
+//
+// TODO(jcgregorio) Rename this functionality to something more generic.
 func getSkps(ctx context.Context, headers []*ColumnHeader, perfGit *perfgit.Git) ([]int, error) {
+	if config.Config.GitRepoConfig.FileChangeMarker == "" {
+		return nil, nil
+	}
 	begin := types.CommitNumber(headers[0].Offset)
 	end := types.CommitNumber(headers[len(headers)-1].Offset)
 
-	commitNumbers, err := perfGit.CommitNumbersWhenFileChangesInCommitNumberRange(ctx, begin, end, skpFilename)
+	commitNumbers, err := perfGit.CommitNumbersWhenFileChangesInCommitNumberRange(ctx, begin, end, config.Config.GitRepoConfig.FileChangeMarker)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to find skp changes for range: %d-%d", begin, end)
 	}
