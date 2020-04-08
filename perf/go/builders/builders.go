@@ -102,9 +102,17 @@ func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *confi
 	var dialect perfsql.Dialect
 	switch instanceConfig.DataStoreConfig.DataStoreType {
 	case config.GCPDataStoreType:
-		// Even for BigTable backed datastores we still stand up an sqlite
-		// instance to hold the perfgit info.
-		dialect = perfsql.SQLiteDialect
+		if strings.HasPrefix(instanceConfig.DataStoreConfig.ConnectionString, "postgresql://") {
+			// This is a temporary path as we migrate away from BigTable to
+			// CockroachDB. The first small step in that migration is to host the
+			// perfgit Commits table on CockroachDB, which has no analog in the
+			// "gcs" world.
+			dialect = perfsql.CockroachDBDialect
+		} else {
+			// Even for BigTable backed datastores we still stand up an sqlite
+			// instance to hold the perfgit info.
+			dialect = perfsql.SQLiteDialect
+		}
 	case config.CockroachDBDataStoreType:
 		dialect = perfsql.CockroachDBDialect
 	case config.SQLite3DataStoreType:
