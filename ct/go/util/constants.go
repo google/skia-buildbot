@@ -371,7 +371,7 @@ var (
 	GCE_LINUX_BUILDER_DIMENSIONS   = map[string]string{"pool": "CTLinuxBuilder", "cores": "64"}
 	GCE_WINDOWS_BUILDER_DIMENSIONS = map[string]string{"pool": "CTBuilder", "os": "Windows"}
 
-	GOLO_ANDROID_WORKER_DIMENSIONS = map[string]string{"pool": SWARMING_POOL, "os": "Android"}
+	GOLO_ANDROID_WORKER_DIMENSIONS = map[string]string{"pool": SWARMING_POOL, "os": "Android", "inside_docker": "0"}
 	GOLO_LINUX_WORKER_DIMENSIONS   = map[string]string{"pool": SWARMING_POOL, "os": "Linux", "cores": "8"}
 
 	// ct-perf.skia.org constants.
