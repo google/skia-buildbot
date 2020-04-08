@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "42aad6c7_01fdfc55",
+        "filename": "autoroll/go/repo_manager/common/gitiles_common/gitiles_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-08T17:57:35Z",
+      "side": 1,
+      "message": "[optional]\nShould lines 181-194 be in a function in deps_parser called GetPinnedRev. That way you will not need any DEPS file specific stuff in this file and will instead have something like\nif path \u003d\u003d deps_parser.DepsFileName {\n  return deps_parser.GetPinnedRev(contents, dep)\n}",
+      "revId": "34dd0a1d20925dae658a8db19281270f5867ac4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
