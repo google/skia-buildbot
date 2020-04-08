@@ -52,8 +52,8 @@ type DataStoreConfig struct {
 	// https://www.cockroachlabs.com/docs/stable/connection-parameters.html for
 	// more details.
 	//
-	// If the datastore type is 'gcs' then this value is a filename where
-	// the sqlite database that caches git information should be stored.
+	// If the datastore type is 'gcs' then this value is used for just the SQL
+	// database that caches git information.
 	//
 	// In addition, for 'cockroachdb' databases, the database name given in the
 	// connection string must exist and the user given in the connection string

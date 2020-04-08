@@ -2,7 +2,7 @@
   "URL": "https://flutter-perf.skia.org/",
   "data_store_config": {
     "datastore_type": "gcp",
-    "connection_string": "/tmp/git-sqlite.db",
+    "connection_string": "postgresql://root@perf-flutter-cockroachdb-public:26257/flutter?sslmode=disable",
     "tile_size": 256,
     "project": "skia-public",
     "instance": "production",

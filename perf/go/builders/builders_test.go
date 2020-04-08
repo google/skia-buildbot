@@ -317,6 +317,22 @@ func TestNewPerfGitFromConfig_GCP_Success(t *testing.T) {
 	assert.Equal(t, hashes[2], gitHash)
 }
 
+func TestNewPerfGitFromConfig_GCP_SuccessIfConnectionStringIsCockroachDB(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, _, _, hashes, _, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	defer cleanup()
+
+	instanceConfig.DataStoreConfig.DataStoreType = config.GCPDataStoreType
+	instanceConfig.DataStoreConfig.ConnectionString = fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", perfsql.GetCockroachDBEmulatorHost(), gittest.CockroachDatabaseName)
+
+	g, err := NewPerfGitFromConfig(ctx, false, instanceConfig)
+	require.NoError(t, err)
+
+	gitHash, err := g.GitHashFromCommitNumber(ctx, types.CommitNumber(2))
+	require.NoError(t, err)
+	assert.Equal(t, hashes[2], gitHash)
+}
+
 func TestNewPerfGitFromConfig_SQLite3_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, _, _, hashes, _, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
