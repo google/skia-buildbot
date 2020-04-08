@@ -16,6 +16,24 @@
       "revId": "34dd0a1d20925dae658a8db19281270f5867ac4f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dbe9213a_3f0da716",
+        "filename": "autoroll/go/repo_manager/common/gitiles_common/gitiles_common.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-08T18:16:04Z",
+      "side": 1,
+      "message": "Sure, added deps_parser.GetDep to be consistent with deps_parser.SetDep (and \"gclient getdep/setdep\").",
+      "parentUuid": "42aad6c7_01fdfc55",
+      "revId": "34dd0a1d20925dae658a8db19281270f5867ac4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
