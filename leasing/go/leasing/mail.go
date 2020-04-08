@@ -14,11 +14,11 @@ import (
 )
 
 const (
-	LEASING_EMAIL_DISPLAY_NAME = "Leasing Server"
+	leasingEmailDisplayName = "Leasing Server"
 
-	GMAIL_CACHED_TOKEN = "leasing_gmail_cached_token"
+	gmailCachedToken = "leasing_gmail_cached_token"
 
-	CONNECTION_INSTRUCTIONS_PAGE = "https://skia.org/dev/testing/swarmingbots#connecting-to-swarming-bots"
+	connectionInstructionsPage = "https://skia.org/dev/testing/swarmingbots#connecting-to-swarming-bots"
 )
 
 var (
@@ -76,12 +76,12 @@ func SendStartEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, TaskIdF
 		<br/><br/>
 		Thanks!
 	`
-	body := fmt.Sprintf(bodyTemplate, taskLink, GetSwarmingBotLink(swarmingServer, swarmingBot), swarmingBot, sectionAboutIsolates, CONNECTION_INSTRUCTIONS_PAGE, fmt.Sprintf("%s%s", PROD_URI, MY_LEASES_URI))
+	body := fmt.Sprintf(bodyTemplate, taskLink, GetSwarmingBotLink(swarmingServer, swarmingBot), swarmingBot, sectionAboutIsolates, connectionInstructionsPage, fmt.Sprintf("%s%s", prodURI, myLeasesURI))
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)
 	}
-	if err := gmail.SendWithMarkup(LEASING_EMAIL_DISPLAY_NAME, getRecipients(ownerEmail), subject, body, markup); err != nil {
+	if err := gmail.SendWithMarkup(leasingEmailDisplayName, getRecipients(ownerEmail), subject, body, markup); err != nil {
 		return fmt.Errorf("Could not send start email: %s", err)
 	}
 	return nil
@@ -97,12 +97,12 @@ func SendWarningEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot string
 		<br/><br/>
 		Thanks!
 	`
-	body := fmt.Sprintf(bodyTemplate, taskLink, fmt.Sprintf("%s%s", PROD_URI, MY_LEASES_URI))
+	body := fmt.Sprintf(bodyTemplate, taskLink, fmt.Sprintf("%s%s", prodURI, myLeasesURI))
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)
 	}
-	if err := gmail.SendWithMarkup(LEASING_EMAIL_DISPLAY_NAME, getRecipients(ownerEmail), subject, body, markup); err != nil {
+	if err := gmail.SendWithMarkup(leasingEmailDisplayName, getRecipients(ownerEmail), subject, body, markup); err != nil {
 		return fmt.Errorf("Could not send warning email: %s", err)
 	}
 	return nil
@@ -120,12 +120,12 @@ func SendFailureEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, swarm
 		<br/><br/>
 		Thanks!
 	`
-	body := fmt.Sprintf(bodyTemplate, taskLink, swarmingTaskState, PROD_URI)
+	body := fmt.Sprintf(bodyTemplate, taskLink, swarmingTaskState, prodURI)
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)
 	}
-	if err := gmail.SendWithMarkup(LEASING_EMAIL_DISPLAY_NAME, getRecipients(ownerEmail), subject, body, markup); err != nil {
+	if err := gmail.SendWithMarkup(leasingEmailDisplayName, getRecipients(ownerEmail), subject, body, markup); err != nil {
 		return fmt.Errorf("Could not send failure email: %s", err)
 	}
 	return nil
@@ -141,12 +141,12 @@ func SendExtensionEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot stri
 		<br/><br/>
 		Thanks!
 	`
-	body := fmt.Sprintf(bodyTemplate, taskLink, durationHrs, PROD_URI)
+	body := fmt.Sprintf(bodyTemplate, taskLink, durationHrs, prodURI)
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)
 	}
-	if err := gmail.SendWithMarkup(LEASING_EMAIL_DISPLAY_NAME, getRecipients(ownerEmail), subject, body, markup); err != nil {
+	if err := gmail.SendWithMarkup(leasingEmailDisplayName, getRecipients(ownerEmail), subject, body, markup); err != nil {
 		return fmt.Errorf("Could not send completion email: %s", err)
 	}
 	return nil
@@ -162,12 +162,12 @@ func SendCompletionEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot str
 		<br/><br/>
 		Thanks!
 	`
-	body := fmt.Sprintf(bodyTemplate, taskLink, PROD_URI)
+	body := fmt.Sprintf(bodyTemplate, taskLink, prodURI)
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)
 	}
-	if err := gmail.SendWithMarkup(LEASING_EMAIL_DISPLAY_NAME, getRecipients(ownerEmail), subject, body, markup); err != nil {
+	if err := gmail.SendWithMarkup(leasingEmailDisplayName, getRecipients(ownerEmail), subject, body, markup); err != nil {
 		return fmt.Errorf("Could not send completion email: %s", err)
 	}
 	return nil
