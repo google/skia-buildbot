@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
@@ -40,13 +41,13 @@ var (
 )
 
 func NewFreeTypeParent(ctx context.Context, c GitilesDEPSConfig, reg *config_vars.Registry, workdir string, client *http.Client, serverURL string) (*gitilesParent, error) {
-	getLastRollRev := gitilesDEPSGetLastRollRevFunc(c.Dep)
+	getLastRollRev := gitilesFileGetLastRollRevFunc(deps_parser.DepsFileName, c.Dep)
 
 	localChildRepo, err := git.NewRepo(ctx, c.ChildRepo, workdir)
 	if err != nil {
 		return nil, err
 	}
-	getChangesHelper := gitilesDEPSGetChangesForRollFunc(c.Dep, c.TransitiveDeps)
+	getChangesHelper := gitilesFileGetChangesForRollFunc(deps_parser.DepsFileName, c.Dep, c.TransitiveDeps)
 	getChangesForRoll := func(ctx context.Context, parentRepo *gitiles_common.GitilesRepo, baseCommit string, from, to *revision.Revision, rolling []*revision.Revision) (map[string]string, []*TransitiveDep, error) {
 		// Get the DEPS changes via gitilesDEPSGetChangesForRollFunc.
 		changes, transitiveDeps, err := getChangesHelper(ctx, parentRepo, baseCommit, from, to, rolling)

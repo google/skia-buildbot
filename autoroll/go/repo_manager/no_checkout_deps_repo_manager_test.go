@@ -344,7 +344,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 git log %s..%s --date=short --first-parent --format='%%ad %%ae %%s'
 %s
 Also rolling transitive DEPS:
-  parent/dep abc1230000ab..def4560000de
+  grandchild abc1230000ab..def4560000de
 
 Created with:
   gclient setdep -r %s@%s

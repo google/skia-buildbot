@@ -30,6 +30,7 @@ well.
 */
 
 import (
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -87,6 +88,25 @@ func (e DepsEntries) Get(dep string) *DepsEntry {
 func ParseDeps(depsContent string) (DepsEntries, error) {
 	entries, _, err := parseDeps(depsContent)
 	return entries, err
+}
+
+// GetDep parses the given depsContent and retrieves the given DepsEntry.
+// Returns an error if the dep was not found.
+func GetDep(depsContent, dep string) (*DepsEntry, error) {
+	entries, err := ParseDeps(depsContent)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	entry := entries.Get(dep)
+	if entry == nil {
+		b, err := json.MarshalIndent(entries, "", "  ")
+		if err == nil {
+			return nil, skerr.Fmt("Unable to find %q in %s! Entries:\n%s", dep, DepsFileName, string(b))
+		} else {
+			return nil, skerr.Fmt("Unable to find %q in %s! Failed to encode DEPS entries with: %s", dep, DepsFileName, err)
+		}
+	}
+	return entry, nil
 }
 
 // SetDep parses the DEPS file content, replaces the given dependency with the

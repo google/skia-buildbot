@@ -3,7 +3,6 @@ package gitiles_common
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -86,36 +85,22 @@ func (r *GitilesRepo) GetRevision(ctx context.Context, id string) (*revision.Rev
 	// Optionally load any dependencies.
 	if len(r.deps) > 0 {
 		rev.Dependencies = make(map[string]string, len(r.deps))
-		var depsEntries deps_parser.DepsEntries
+		// Cache files in case multiple dependencies are versioned in
+		// the same file, eg. DEPS.
+		cache := map[string]string{}
 		for dep, path := range r.deps {
-			if path == deps_parser.DepsFileName {
-				// Lazily load the DEPS entries.
-				if depsEntries == nil {
-					var err error
-					depsEntries, err = r.ParseDEPS(ctx, rev.Id)
-					if err != nil {
-						return nil, skerr.Wrap(err)
-					}
-				}
-
-				// Find the desired DEPS entry.
-				entry := depsEntries.Get(dep)
-				if entry == nil {
-					b, err := json.MarshalIndent(depsEntries, "", "  ")
-					if err == nil {
-						return nil, skerr.Fmt("Dependency %q not found in DEPS:\n%s", dep, string(b))
-					} else {
-						return nil, skerr.Fmt("Dependency %q not found in DEPS; failed to marshal JSON: %s", dep, err)
-					}
-				}
-				rev.Dependencies[dep] = entry.Version
-			} else {
-				var buf bytes.Buffer
-				if err := r.ReadFileAtRef(ctx, path, id, &buf); err != nil {
+			contents, ok := cache[path]
+			if !ok {
+				contents, err = r.GetFile(ctx, path, rev.Id)
+				if err != nil {
 					return nil, skerr.Wrap(err)
 				}
-				rev.Dependencies[dep] = strings.TrimSpace(buf.String())
 			}
+			version, err := GetPinnedRev(path, dep, contents)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			rev.Dependencies[dep] = version
 		}
 	}
 	return rev, nil
@@ -144,12 +129,60 @@ func (r *GitilesRepo) LogFirstParent(ctx context.Context, from, to *revision.Rev
 	return revs, nil
 }
 
-// ParseDEPS retrieves the DEPS file at the given ref and returns the parsed
-// entries.
-func (r *GitilesRepo) ParseDEPS(ctx context.Context, ref string) (deps_parser.DepsEntries, error) {
+// GetFile retrieves the contents of the given file at the given ref.
+func (r *GitilesRepo) GetFile(ctx context.Context, file, ref string) (string, error) {
 	var buf bytes.Buffer
-	if err := r.ReadFileAtRef(ctx, deps_parser.DepsFileName, ref, &buf); err != nil {
-		return nil, skerr.Wrap(err)
+	if err := r.ReadFileAtRef(ctx, file, ref, &buf); err != nil {
+		return "", skerr.Wrap(err)
 	}
-	return deps_parser.ParseDeps(buf.String())
+	return buf.String(), nil
+}
+
+// UpdateDep updates the dependency in the given file, writing the new contents
+// into the changes map and returning the previous version.
+func (r *GitilesRepo) UpdateDep(ctx context.Context, baseCommit, path, dep, newVersion string, changes map[string]string) (string, error) {
+	// Look up the path in our changes map to prevent overwriting
+	// modifications we've already made.
+	oldContents, ok := changes[path]
+	if !ok {
+		var err error
+		oldContents, err = r.GetFile(ctx, path, baseCommit)
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+	}
+
+	// Find the currently-pinned revision.
+	oldVersion, err := GetPinnedRev(path, dep, oldContents)
+	if err != nil {
+		return "", skerr.Wrap(err)
+	}
+
+	// Create the new file content.
+	if newVersion != oldVersion {
+		var newContents string
+		if path == deps_parser.DepsFileName {
+			newContents, err = deps_parser.SetDep(oldContents, dep, newVersion)
+			if err != nil {
+				return "", skerr.Wrap(err)
+			}
+		} else {
+			newContents = newVersion
+		}
+		changes[path] = newContents
+	}
+	return oldVersion, nil
+}
+
+// GetPinnedRev reads the given file to find the pinned revision.
+func GetPinnedRev(path, dep, contents string) (string, error) {
+	if path == deps_parser.DepsFileName {
+		depsEntry, err := deps_parser.GetDep(contents, dep)
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		return depsEntry.Version, nil
+	} else {
+		return strings.TrimSpace(contents), nil
+	}
 }
