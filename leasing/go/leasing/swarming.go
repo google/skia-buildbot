@@ -279,7 +279,7 @@ func IsBotIdValid(pool, botId string) (bool, error) {
 	}
 }
 
-func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId, serverURLstring, isolateHash string, isolateDetails *IsolateDetails) (string, error) {
+func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId, serverURL, isolateHash string, isolateDetails *IsolateDetails) (string, error) {
 	dimsMap := map[string]string{
 		"pool": pool,
 	}

@@ -19,7 +19,8 @@ POLLING_WAIT_TIME_SECS = 60
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('-s', '--leasing-server', required=True, type=str,
-                      help='The leasing server this script will poll.')
+                      help='The leasing server this script will poll. '
+                           'Eg: leasing.skia.org')
   parser.add_argument('-t', '--task-id', required=True, type=str,
                       help='The taskID of this swarming task.')
   parser.add_argument('-o', '--os-type', required=True, type=str,
@@ -46,7 +47,7 @@ def main():
   sys.stdout.flush()
 
   while True:
-    get_task_status_url = '%s/_/get_task_status?task=%s' % (
+    get_task_status_url = 'http://%s/_/get_task_status?task=%s' % (
         args.leasing_server, args.task_id)
     try:
       resp = urllib2.urlopen(get_task_status_url)
