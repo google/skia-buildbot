@@ -76,7 +76,7 @@ func SendStartEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, TaskIdF
 		<br/><br/>
 		Thanks!
 	`
-	body := fmt.Sprintf(bodyTemplate, taskLink, GetSwarmingBotLink(swarmingServer, swarmingBot), swarmingBot, sectionAboutIsolates, connectionInstructionsPage, fmt.Sprintf("%s%s", prodURI, myLeasesURI))
+	body := fmt.Sprintf(bodyTemplate, taskLink, GetSwarmingBotLink(swarmingServer, swarmingBot), swarmingBot, sectionAboutIsolates, connectionInstructionsPage, fmt.Sprintf("https://%s%s", *host, myLeasesURI))
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)
@@ -97,7 +97,7 @@ func SendWarningEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot string
 		<br/><br/>
 		Thanks!
 	`
-	body := fmt.Sprintf(bodyTemplate, taskLink, fmt.Sprintf("%s%s", prodURI, myLeasesURI))
+	body := fmt.Sprintf(bodyTemplate, taskLink, fmt.Sprintf("https://%s%s", *host, myLeasesURI))
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)
@@ -114,13 +114,13 @@ func SendFailureEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot, swarm
 	bodyTemplate := `
 		Your <a href="%s">leasing task</a> unexpectedly ended with the state: %s.
 		<br/><br/>
-		You can reschedule another leasing task <a href="%s">here</a>.
+		You can reschedule another leasing task <a href="https://%s">here</a>.
 		<br/>
 		Contact the CC'ed trooper if you have any questions.
 		<br/><br/>
 		Thanks!
 	`
-	body := fmt.Sprintf(bodyTemplate, taskLink, swarmingTaskState, prodURI)
+	body := fmt.Sprintf(bodyTemplate, taskLink, swarmingTaskState, *host)
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)
@@ -137,11 +137,11 @@ func SendExtensionEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot stri
 	bodyTemplate := `
 		Your <a href="%s">leasing task</a> has been extended by %dhr.
 		<br/><br/>
-		If needed, you can reschedule more leasing tasks <a href="%s">here</a>.
+		If needed, you can reschedule more leasing tasks <a href="https://%s">here</a>.
 		<br/><br/>
 		Thanks!
 	`
-	body := fmt.Sprintf(bodyTemplate, taskLink, durationHrs, prodURI)
+	body := fmt.Sprintf(bodyTemplate, taskLink, durationHrs, *host)
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)
@@ -158,11 +158,11 @@ func SendCompletionEmail(ownerEmail, swarmingServer, swarmingId, swarmingBot str
 	bodyTemplate := `
 		Your <a href="%s">leasing task</a> has completed.
 		<br/><br/>
-		If needed, you can reschedule more leasing tasks <a href="%s">here</a>.
+		If needed, you can reschedule more leasing tasks <a href="https://%s">here</a>.
 		<br/><br/>
 		Thanks!
 	`
-	body := fmt.Sprintf(bodyTemplate, taskLink, prodURI)
+	body := fmt.Sprintf(bodyTemplate, taskLink, *host)
 	markup, err := getSwarmingLinkMarkup(taskLink)
 	if err != nil {
 		return fmt.Errorf("Failed to get view action markup: %s", err)

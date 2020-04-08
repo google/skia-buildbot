@@ -49,11 +49,11 @@ const (
 	addTaskPostURI           = "/_/add_leasing_task"
 	extendTaskPostURI        = "/_/extend_leasing_task"
 	expireTaskPostURI        = "/_/expire_leasing_task"
-	prodURI                  = "https://leasing.skia.org"
 )
 
 var (
 	// Flags
+	host                       = flag.String("host", "leasing.skia.org", "HTTP service host")
 	workdir                    = flag.String("workdir", ".", "Directory to use for scratch work.")
 	isolatesDir                = flag.String("isolates_dir", "", "The directory to find leasing server's isolates files.")
 	pollInterval               = flag.Duration("poll_interval", 1*time.Minute, "How often the leasing server will check if tasks have expired.")
@@ -68,8 +68,6 @@ var (
 
 	// OAUTH params
 	authWhiteList = flag.String("auth_whitelist", "google.com", "White space separated list of domains and email addresses that are allowed to login.")
-
-	serverURL string
 
 	poolToDetails      map[string]*PoolDetails
 	poolToDetailsMutex sync.Mutex
@@ -547,7 +545,7 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Trigger the swarming task.
-	swarmingTaskId, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, serverURL, isolateHash, isolateDetails)
+	swarmingTaskId, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, *host, isolateHash, isolateDetails)
 	if err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Error when triggering swarming task: %v", err), http.StatusInternalServerError)
 		return
@@ -574,5 +572,5 @@ func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
 }
 
 func main() {
-	baseapp.Serve(New, []string{"leasing.skia.org"})
+	baseapp.Serve(New, []string{*host})
 }
