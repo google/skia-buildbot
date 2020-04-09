@@ -39,7 +39,8 @@
       { "srcRelPath": "skcms_internal.h", "dstRelPath": "third_party/skcms/skcms_internal.h" },
       { "srcRelPath": "src",              "dstRelPath": "third_party/skcms/src" },
       { "srcRelPath": "skcms.h",          "dstRelPath": "include/third_party/skcms/skcms.h" }
-    ]
+    ],
+    "versionFile": "third_party/skcms/version.sha1"
   },
   "cqExtraTrybots": [
     "luci.chromium.try:linux-blink-rel"
