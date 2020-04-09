@@ -1260,7 +1260,7 @@ func shiftHandler(w http.ResponseWriter, r *http.Request) {
 
 	numCommits := int(endCommit - beginCommit)
 	if sr.RequestType == dataframe.REQUEST_COMPACT {
-		numCommits -= sr.BeginOffset
+		numCommits = sr.NumCommits - sr.BeginOffset + sr.EndOffset
 	}
 	newBegin, err := perfGit.CommitFromCommitNumber(r.Context(), beginCommit+types.CommitNumber(sr.BeginOffset))
 	if err != nil {
