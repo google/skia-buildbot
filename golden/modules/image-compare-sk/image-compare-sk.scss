@@ -41,7 +41,7 @@ image-compare-sk {
     display: block;
     width: 128px;
     height: 128px;
-    object-fit: contain;
-    object-position: top;
+    object-fit: scale-down;
+    object-position: top left;
   }
 }
