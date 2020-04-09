@@ -2,7 +2,7 @@
   "URL": "https://androidx2-perf.skia.org/",
   "data_store_config": {
     "datastore_type": "cockroachdb",
-    "connection_string": "postgresql://root@perf-androidx-cockroachdb-public:26257/androidx?sslmode=disable",
+    "connection_string": "postgresql://root@localhost:26257/androidx?sslmode=disable",
     "tile_size": 8192,
     "shards": 8
   },
