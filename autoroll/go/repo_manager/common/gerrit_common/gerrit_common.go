@@ -3,8 +3,12 @@ package gerrit_common
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -61,6 +65,27 @@ func UnsetWIP(ctx context.Context, g gerrit.GerritInterface, change *gerrit.Chan
 				return fmt.Errorf("Failed to set ready for review: %s", err)
 			}
 		}
+	}
+	return nil
+}
+
+// DownloadCommitMsgHook downloads the Gerrit Change-Id hook and installs it in
+// the given git checkout.
+func DownloadCommitMsgHook(ctx context.Context, g gerrit.GerritInterface, co *git.Checkout) error {
+	out, err := co.Git(ctx, "rev-parse", "--git-dir")
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	hookFile := filepath.Join(co.Dir(), strings.TrimSpace(out), "hooks", "commit-msg")
+	if _, err := os.Stat(hookFile); os.IsNotExist(err) {
+		if err := os.MkdirAll(filepath.Dir(hookFile), os.ModePerm); err != nil {
+			return skerr.Wrap(err)
+		}
+		if err := g.DownloadCommitMsgHook(ctx, hookFile); err != nil {
+			return skerr.Wrap(err)
+		}
+	} else if err != nil {
+		return skerr.Wrap(err)
 	}
 	return nil
 }

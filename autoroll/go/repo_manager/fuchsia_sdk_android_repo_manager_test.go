@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -31,6 +33,11 @@ func fuchsiaAndroidCfg(t *testing.T) *FuchsiaSDKAndroidRepoManagerConfig {
 					ParentBranch: masterBranchTmpl(t),
 				},
 			},
+			Gerrit: &codereview.GerritConfig{
+				URL:     "https://fake-skia-review.googlesource.com",
+				Project: "fake-gerrit-project",
+				Config:  codereview.GERRIT_CONFIG_ANDROID,
+			},
 		},
 		GenSdkBpRepo:   "TODO",
 		GenSdkBpBranch: "master",
@@ -45,7 +52,7 @@ func TestFuchsiaSDKAndroidConfig(t *testing.T) {
 	require.NoError(t, cfg.Validate())
 }
 
-func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *fuchsiaSDKAndroidRepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
+func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *parentChildRepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, string, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -57,7 +64,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *fuchsiaSDKAndroidRe
 		if strings.Contains(cmd.Name, "git") && util.In("push", cmd.Args) {
 			// Don't run "git push".
 			return nil
-		} else if util.In(FUCHSIA_SDK_ANDROID_GEN_SCRIPT, cmd.Args) {
+		} else if util.In(FuchsiaSDKAndroidGenScript, cmd.Args) {
 			// Write a dummy file to imitate the SDK generation.
 			sdkPath := cmd.Args[len(cmd.Args)-1]
 			testutils.WriteFile(t, filepath.Join(sdkPath, "bogus"), "bogus")
@@ -70,13 +77,15 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *fuchsiaSDKAndroidRe
 
 	// Create repos.
 	parent := git_testutils.GitInit(t, ctx)
-	parent.Add(ctx, FUCHSIA_SDK_ANDROID_VERSION_FILE, fuchsiaSDKRevBase)
+	parent.Add(ctx, FuchsiaSDKAndroidVersionFile, fuchsiaSDKRevBase)
 	parent.Commit(ctx)
 	cfg.ParentRepo = parent.RepoUrl()
 
-	// This is not technically correct, but the call into gen_sdk_bp is
-	// mocked and we have to check out something.
-	cfg.GenSdkBpRepo = parent.RepoUrl()
+	// The call into gen_sdk_bp is mocked, but we have to check out
+	// something.
+	genSdkBpRepo := git_testutils.GitInit(t, ctx)
+	genSdkBpRepo.CommitGen(ctx, "fake")
+	cfg.GenSdkBpRepo = genSdkBpRepo.RepoUrl()
 
 	urlmock := mockhttpclient.NewURLMock()
 	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
@@ -98,8 +107,15 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *fuchsiaSDKAndroidRe
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, FUCHSIA_SDK_ANDROID_VERSION_FILE, parentMaster)
-	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevBase, "mac-base")
+	mockParent.MockReadFile(ctx, FuchsiaSDKAndroidVersionFile, parentMaster)
+	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevBase, "mac-base")
+
+	// Create a dummy commit-msg hook.
+	changeId := "123"
+	respBody := []byte(fmt.Sprintf(`#!/bin/sh
+git interpret-trailers --trailer "Change-Id: %s" > $1
+`, changeId))
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/tools/hooks/commit-msg", mockhttpclient.MockGetDialogue(respBody))
 
 	rm, err := NewFuchsiaSDKAndroidRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), androidGerrit(t, g), false)
 	require.NoError(t, err)
@@ -109,13 +125,13 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *fuchsiaSDKAndroidRe
 		parent.Cleanup()
 	}
 
-	return ctx, rm.(*fuchsiaSDKAndroidRepoManager), urlmock, mockParent, parent, cleanup
+	return ctx, rm, urlmock, mockParent, parent, wd, cleanup
 }
 
 func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, rm, urlmock, mockParent, parent, cleanup := setupFuchsiaSDKAndroid(t)
+	ctx, rm, urlmock, mockParent, parent, wd, cleanup := setupFuchsiaSDKAndroid(t)
 	defer cleanup()
 
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
@@ -131,15 +147,15 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	next, err := rm.GetRevision(ctx, fuchsiaSDKRevNext)
 	require.NoError(t, err)
 	require.Equal(t, fuchsiaSDKRevNext, next.Id)
-	require.Empty(t, rm.preUploadSteps)
 	require.Equal(t, 0, len(notRolledRevs))
 
 	// There's a new version.
 	mockParent.MockGetCommit(ctx, "master")
-	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	parentRepoDir := filepath.Join(wd, filepath.Base(parent.Dir()))
+	parentMaster, err := git.GitDir(parentRepoDir).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, FUCHSIA_SDK_ANDROID_VERSION_FILE, parentMaster)
-	mockGetLatestSDK(urlmock, FUCHSIA_SDK_GS_LATEST_PATH_LINUX, FUCHSIA_SDK_GS_LATEST_PATH_MAC, fuchsiaSDKRevNext, "mac-next")
+	mockParent.MockReadFile(ctx, FuchsiaSDKAndroidVersionFile, parentMaster)
+	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevNext, "mac-next")
 
 	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
 	require.NoError(t, err)
@@ -150,14 +166,8 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 
 	// Upload a CL.
 
-	// Create a dummy commit-msg hook.
-	changeId := "123"
-	hookFile := filepath.Join(rm.parentRepo.Dir(), ".git", "hooks", "commit-msg")
-	testutils.WriteFile(t, hookFile, fmt.Sprintf(`#!/bin/sh
-git interpret-trailers --trailer "Change-Id: %s" > $1
-`, changeId))
-
 	// Mock the request to get the CL.
+	changeId := "123"
 	ci := gerrit.ChangeInfo{
 		ChangeId: changeId,
 		Id:       changeId,
