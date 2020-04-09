@@ -39,6 +39,24 @@
       "revId": "0437de8fde0c1490820979817d0fa6658661aab5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "55871e96_26930bd0",
+        "filename": "autoroll/go/repo_manager/semver_gcs_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-09T19:45:39Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8a494e37_48b1a097",
+      "revId": "0437de8fde0c1490820979817d0fa6658661aab5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
