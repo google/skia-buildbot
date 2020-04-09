@@ -22,6 +22,30 @@
       "revId": "09da58425a2b4dfd6725afa665532ea56faba3d1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25d87fee_5a785749",
+        "filename": "autoroll/go/repo_manager/parent/copy.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-09T19:47:19Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ac21eba4_7ab6c554",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 172
+      },
+      "revId": "09da58425a2b4dfd6725afa665532ea56faba3d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
