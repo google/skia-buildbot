@@ -4,7 +4,8 @@ multi-zoom-sk {
   font-family: sans-serif;
 
   > .container {
-    min-width: 500px;
+    min-width: 700px;
+    width: inherit;
     min-height: 500px;
     display: flex;
     flex-direction: row;
@@ -27,6 +28,7 @@ multi-zoom-sk {
     margin: 0;
     img.thumbnail {
       border: solid 2px lightgray;
+      margin: 0;
       display: block;
       width: 128px;
       height: 128px;

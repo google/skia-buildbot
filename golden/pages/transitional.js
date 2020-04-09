@@ -8,5 +8,6 @@ import '../modules/changelist-controls-sk';
 import '../modules/digest-details-sk';
 import '../modules/dots-legend-sk';
 import '../modules/dots-sk';
+import '../modules/multi-zoom-sk';
 import '../modules/triage-history-sk';
 import '../modules/triage-sk';
