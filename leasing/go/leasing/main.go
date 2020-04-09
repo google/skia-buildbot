@@ -314,6 +314,7 @@ type Task struct {
 	Description        string    `json:"description"`
 	Done               bool      `json:"done"`
 	WarningSent        bool      `json:"warningSent"`
+	EmailThreadId      string    `json:"emailThreadId"`
 
 	TaskIdForIsolates string `json:"taskIdForIsolates"`
 	SwarmingPool      string `json:"pool"`
@@ -434,7 +435,7 @@ func (srv *Server) extendTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Inform the requester that the task has been extended by durationHrs.
-	if err := SendExtensionEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, extendRequest.DurationHrs); err != nil {
+	if err := SendExtensionEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, t.EmailThreadId, extendRequest.DurationHrs); err != nil {
 		httputils.ReportError(w, err, "Error sending extension email", http.StatusInternalServerError)
 		return
 	}
@@ -471,7 +472,7 @@ func (srv *Server) expireTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Inform the requester that the task has completed.
-	if err := SendCompletionEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId); err != nil {
+	if err := SendCompletionEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, t.EmailThreadId); err != nil {
 		httputils.ReportError(w, err, "Error sending completion email", http.StatusInternalServerError)
 		return
 	}

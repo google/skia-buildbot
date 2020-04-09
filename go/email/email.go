@@ -60,6 +60,7 @@ type Message struct {
 	To                []string
 	Subject           string
 	Body              string
+	ThreadId          string
 }
 
 // GetViewActionMarkup returns a string that contains the required markup.
@@ -136,20 +137,20 @@ func NewFromFiles(emailTokenCacheFile, emailClientSecretsFile string) (*GMail, e
 	return NewGMail(clientSecrets.Installed.ClientID, clientSecrets.Installed.ClientSecret, emailTokenCacheFile)
 }
 
-// Send an email.
-func (a *GMail) Send(senderDisplayName string, to []string, subject string, body string) error {
-	return a.SendWithMarkup(senderDisplayName, to, subject, body, "")
+// Send an email. Returns a threadID that can be used for enabling threading in gmail.
+func (a *GMail) Send(senderDisplayName string, to []string, subject, body, threadId string) (string, error) {
+	return a.SendWithMarkup(senderDisplayName, to, subject, body, "", "")
 }
 
-// Send an email with gmail markup.
+// Send an email with gmail markup. Returns a threadID that can be used for enabling threading in gmail.
 // Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
 // A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
-func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject string, body string, markup string) error {
+func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject, body, markup, threadId string) (string, error) {
 	sender := "me"
 	// Get email address to use in the from section.
 	profile, err := a.service.Users.GetProfile(sender).Do()
 	if err != nil {
-		return fmt.Errorf("Failed to get profile for %s: %v", sender, err)
+		return "", fmt.Errorf("Failed to get profile for %s: %v", sender, err)
 	}
 	fromWithName := fmt.Sprintf("%s <%s>", senderDisplayName, profile.EmailAddress)
 
@@ -167,19 +168,25 @@ func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject st
 		Body:    template.HTML(body),
 		Markup:  template.HTML(markup),
 	}); err != nil {
-		return fmt.Errorf("Failed to send email; could not execute template: %v", err)
+		return "", fmt.Errorf("Failed to send email; could not execute template: %v", err)
 	}
 	sklog.Infof("Message to send: %q", msgBytes.String())
 	msg := gmail.Message{}
 	msg.SizeEstimate = int64(msgBytes.Len())
 	msg.Snippet = subject
 	msg.Raw = base64.URLEncoding.EncodeToString(msgBytes.Bytes())
+	if threadId != "" {
+		msg.ThreadId = threadId
+	}
 
-	_, err = a.service.Users.Messages.Send(sender, &msg).Do()
-	return err
+	m, err := a.service.Users.Messages.Send(sender, &msg).Do()
+	if err != nil {
+		return "", fmt.Errorf("Failed to send email: %v", err)
+	}
+	return m.ThreadId, nil
 }
 
-// SendMessage sends the given Message.
-func (a *GMail) SendMessage(msg *Message) error {
-	return a.Send(msg.SenderDisplayName, msg.To, msg.Subject, msg.Body)
+// SendMessage sends the given Message. Returns a threadID that can be used for enabling threading in gmail.
+func (a *GMail) SendMessage(msg *Message) (string, error) {
+	return a.Send(msg.SenderDisplayName, msg.To, msg.Subject, msg.Body, msg.ThreadId)
 }
