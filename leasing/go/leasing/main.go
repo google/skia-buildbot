@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -506,8 +507,8 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	// Populate deviceType only if Android is the osType.
-	if task.OsType != "Android" {
+	// Populate deviceType only if Android  or iOS is the osType.
+	if task.OsType != "Android" && !strings.HasPrefix(task.OsType, "iOS") {
 		task.DeviceType = ""
 	}
 	// Add the username of the requester.
