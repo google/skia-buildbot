@@ -1,4 +1,4 @@
-import './index.js';
+import './index';
 import { $ } from 'common-sk/modules/dom';
 import {
   DOT_STROKE_COLORS,

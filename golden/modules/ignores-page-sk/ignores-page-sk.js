@@ -9,7 +9,7 @@ import * as human from 'common-sk/modules/human';
 import dialogPolyfill from 'dialog-polyfill';
 
 import { $$ } from 'common-sk/modules/dom';
-import { classMap } from 'lit-html/directives/class-map.js';
+import { classMap } from 'lit-html/directives/class-map';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { stateReflector } from 'common-sk/modules/stateReflector';

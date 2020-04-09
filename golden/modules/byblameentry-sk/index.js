@@ -1,2 +1,2 @@
-import './byblameentry-sk.js';
+import './byblameentry-sk';
 import './byblameentry-sk.scss';

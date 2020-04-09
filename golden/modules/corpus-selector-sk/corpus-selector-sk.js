@@ -13,7 +13,7 @@
 
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { classMap } from 'lit-html/directives/class-map.js';
+import { classMap } from 'lit-html/directives/class-map';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 

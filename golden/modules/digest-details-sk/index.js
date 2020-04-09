@@ -1,2 +1,2 @@
-import './digest-details-sk.js';
+import './digest-details-sk';
 import './digest-details-sk.scss';

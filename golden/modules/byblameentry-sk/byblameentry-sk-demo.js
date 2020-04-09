@@ -1,4 +1,4 @@
-import './index.js';
+import './index';
 import { entry, fakeNow, gitLog } from './test_data';
 
 Date.now = () => fakeNow;
