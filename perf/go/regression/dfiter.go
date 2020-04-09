@@ -50,7 +50,7 @@ func (d *dataframeSlicer) Value(ctx context.Context) (*dataframe.DataFrame, erro
 // NewDataFrameIterator returns a DataFrameIterator that produces a set of
 // dataframes for the given RegressionDetectionRequest.
 func NewDataFrameIterator(ctx context.Context, progress types.Progress, req *RegressionDetectionRequest, dfBuilder dataframe.DataFrameBuilder, perfGit *perfgit.Git) (DataFrameIterator, error) {
-	u, err := url.ParseQuery(req.Alert.Query)
+	u, err := url.ParseQuery(req.Query)
 	if err != nil {
 		return nil, err
 	}
