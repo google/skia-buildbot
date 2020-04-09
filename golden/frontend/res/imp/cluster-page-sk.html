@@ -60,7 +60,7 @@
     <div id="clusterContainer" class="horizontal layout">
       <div class="clusterRendering">
         <activity-sk id="activityMain"></activity-sk>
-        <cluster-sk id="clusterView" disabled="{{_zooming}}"></cluster-sk>
+        <cluster-sk id="clusterView"></cluster-sk>
       </div>
       <div>
         <paper-tabs id="tabs" selected={{_currentTab}}>
@@ -111,14 +111,13 @@
         </iron-pages>
       </div>
     </div>
-    <zoom-dialog-sk opened="{{_zooming}}"></zoom-dialog-sk>
   </template>
 
   <script>
       Polymer({
         is: "cluster-page-sk",
 
-        behaviors: [gold.ZoomTargetBehavior, gold.PageStateBehavior],
+        behaviors: [gold.PageStateBehavior],
 
         properties: {
           _currentTab: {
