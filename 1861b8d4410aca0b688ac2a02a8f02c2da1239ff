@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7d1bfeed_4f0d7280",
+        "filename": "autoroll/go/repo_manager/child/fuchsia_sdk.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-09T15:30:36Z",
+      "side": 1,
+      "message": "If it\u0027s a CIPD package, CIPDChild should work just fine.",
+      "parentUuid": "c2b16109_04d2d1dd",
+      "revId": "1861b8d4410aca0b688ac2a02a8f02c2da1239ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "837a1dd1_48cd09a2",
         "filename": "autoroll/go/repo_manager/parent/gitiles_local.go",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2020-04-09T12:57:38Z",
       "side": 1,
       "message": "Little confusing to have gitiles_local.go and gitiles.go. Wonder if gitiles_local_checkout.go would be more clear. Upto you.",
+      "revId": "1861b8d4410aca0b688ac2a02a8f02c2da1239ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "100edb33_49e000a1",
+        "filename": "autoroll/go/repo_manager/parent/gitiles_local.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-09T15:30:36Z",
+      "side": 1,
+      "message": "I refactored most of this into git_checkout.go.  The Gerrit-specific parts went into git_checkout_gerrit.go, with the intention of adding git_checkout_github.go later.  I removed the Gitiles portions altogether, and instead changed to read from the local checkout.  I think that eliminates confusion and sets us up better for Github in a subsequent CL.",
+      "parentUuid": "837a1dd1_48cd09a2",
       "revId": "1861b8d4410aca0b688ac2a02a8f02c2da1239ff",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -50,6 +86,24 @@
       "revId": "1861b8d4410aca0b688ac2a02a8f02c2da1239ff",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "915432f3_230ef56b",
+        "filename": "go/untar/untar.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-09T15:30:36Z",
+      "side": 1,
+      "message": "Yeah, the internal path prevents us from importing it.  I\u0027d like to keep it out of go/util, which already does too many different things.",
+      "parentUuid": "0df106ee_2d550662",
+      "revId": "1861b8d4410aca0b688ac2a02a8f02c2da1239ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
