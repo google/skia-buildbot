@@ -561,7 +561,8 @@ define('skottie-sk', class extends HTMLElement {
     // See https://github.com/josdejong/jsoneditor/blob/master/docs/api.md
     // for documentation on this editor.
     let editorOptions = {
-      sortObjectKeys: true,
+      // Use original key order (this preserves related fields locality).
+      sortObjectKeys: false,
       // There are sometimes a few onChange events that happen
       // during the initial .set(), so we have a safety variable
       // _editorLoaded to prevent a bunch of recursion
