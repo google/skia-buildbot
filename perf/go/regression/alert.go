@@ -38,8 +38,11 @@ func RegressionsForAlert(ctx context.Context, alert *alerts.Alert, domain types.
 
 		// Create RegressionDetectionRequest and run.
 		req := &RegressionDetectionRequest{
-			Alert:  alert,
-			Domain: domain,
+			Alert:        alert,
+			Domain:       domain,
+			Query:        q,
+			Step:         step,
+			TotalQueries: len(queries),
 		}
 		_, err := Run(ctx, req, perfGit, cidl, dfBuilder, shortcutStore, clusterResponseProcessor)
 		if err != nil {
