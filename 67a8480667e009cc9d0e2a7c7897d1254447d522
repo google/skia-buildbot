@@ -16,6 +16,24 @@
       "revId": "67a8480667e009cc9d0e2a7c7897d1254447d522",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5e31adf_ffaf836c",
+        "filename": "perf/cockroachdb/connect-skia-cockroachdb.sh",
+        "patchSetId": 50
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-09T20:07:49Z",
+      "side": 1,
+      "message": "Good idea, I did something similar for attach.sh.",
+      "parentUuid": "9b5a01c1_9e125a4b",
+      "revId": "67a8480667e009cc9d0e2a7c7897d1254447d522",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
