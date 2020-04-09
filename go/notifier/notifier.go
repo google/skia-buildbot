@@ -171,7 +171,8 @@ func (n *emailNotifier) Send(_ context.Context, subject string, msg *Message) er
 		return nil
 	}
 	sklog.Infof("Sending email to %s: %s", strings.Join(n.to, ","), subject)
-	return n.gmail.SendWithMarkup(n.from, n.to, subject, msg.Body, n.markup)
+	_, err := n.gmail.SendWithMarkup(n.from, n.to, subject, msg.Body, n.markup, "")
+	return err
 }
 
 // EmailNotifier returns a Notifier which sends email to interested parties.

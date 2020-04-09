@@ -9,17 +9,19 @@ import (
 )
 
 type emailMock struct {
-	from    string
-	to      []string
-	subject string
-	body    string
+	from     string
+	to       []string
+	subject  string
+	body     string
+	threadId string
 }
 
-func (e *emailMock) Send(from string, to []string, subject string, body string) error {
+func (e *emailMock) Send(from string, to []string, subject string, body string, threadId string) error {
 	e.from = from
 	e.to = to
 	e.subject = subject
 	e.body = body
+	e.threadId = threadId
 	return nil
 }
 

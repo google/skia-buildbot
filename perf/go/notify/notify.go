@@ -41,15 +41,15 @@ var (
 
 // Email sending interface. Note that email.GMail implements this interface.
 type Email interface {
-	Send(from string, to []string, subject string, body string) error
+	Send(from string, to []string, subject string, body string, threadId string) error
 }
 
 // NoEmail implements Email but only logs the information without sending email.
 type NoEmail struct{}
 
 // Send implements the Email interface.
-func (n NoEmail) Send(from string, to []string, subject string, body string) error {
-	sklog.Infof("Not sending email: From: %q To: %q Subject: %q Body: %q", from, to, subject, body)
+func (n NoEmail) Send(from string, to []string, subject string, body string, threadId string) error {
+	sklog.Infof("Not sending email: From: %q To: %q Subject: %q Body: %q ThreadId: %q", from, to, subject, body, threadId)
 	return nil
 }
 
@@ -113,7 +113,7 @@ func (n *Notifier) Send(c *cid.CommitDetail, alert *alerts.Alert, cl *clustering
 		return err
 	}
 	subject := fmt.Sprintf("%s - Regression found for %q", alert.DisplayName, c.Message)
-	if err := n.email.Send(fromAddress, splitEmails(alert.Alert), subject, body); err != nil {
+	if err := n.email.Send(fromAddress, splitEmails(alert.Alert), subject, body, ""); err != nil {
 		return fmt.Errorf("Failed to send email: %s", err)
 	}
 
