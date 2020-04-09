@@ -72,43 +72,29 @@ Tbr: {{stringsJoin .Reviewers ","}}
 `
 )
 
-func TestCompareSemanticVersions(t *testing.T) {
-	unittest.SmallTest(t)
-
-	test := func(a, b []int, expect int) {
-		require.Equal(t, expect, compareSemanticVersions(a, b))
-	}
-	test([]int{}, []int{}, 0)
-	test([]int{}, []int{1}, 1)
-	test([]int{1}, []int{}, -1)
-	test([]int{1}, []int{1}, 0)
-	test([]int{0}, []int{1}, 1)
-	test([]int{1}, []int{0}, -1)
-	test([]int{1, 1}, []int{1, 0}, -1)
-	test([]int{1}, []int{1, 0}, 1)
-	test([]int{1, 0}, []int{1}, -1)
-}
-
 func afdoCfg(t *testing.T) *SemVerGCSRepoManagerConfig {
 	shortRev, err := config_vars.NewTemplate("(\\d+)\\.(\\d+)\\.(\\d+)\\.0_rc-r(\\d+)-merged")
 	require.NoError(t, err)
 	version, err := config_vars.NewTemplate("^chromeos-chrome-amd64-(\\d+)\\.(\\d+)\\.(\\d+)\\.0_rc-r(\\d+)-merged\\.afdo\\.bz2$")
 	require.NoError(t, err)
 	return &SemVerGCSRepoManagerConfig{
-		GCSRepoManagerConfig: GCSRepoManagerConfig{
-			NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
-				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:   masterBranchTmpl(t),
-					ChildPath:     "unused/by/afdo/repomanager",
-					CommitMsgTmpl: TMPL_COMMIT_MSG_AFDO,
-					ParentBranch:  masterBranchTmpl(t),
-					ParentRepo:    "", // Filled in after GitInit().
-				},
+		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
+			CommonRepoManagerConfig: CommonRepoManagerConfig{
+				ChildBranch:   masterBranchTmpl(t),
+				ChildPath:     "unused/by/afdo/repomanager",
+				CommitMsgTmpl: TMPL_COMMIT_MSG_AFDO,
+				ParentBranch:  masterBranchTmpl(t),
+				ParentRepo:    "", // Filled in after GitInit().
 			},
-			GCSBucket:   "chromeos-prebuilt",
-			GCSPath:     "afdo-job/llvm",
-			VersionFile: "chrome/android/profiles/newest.txt",
 		},
+		Gerrit: &codereview.GerritConfig{
+			URL:     "https://fake-skia-review.googlesource.com",
+			Project: "fake-gerrit-project",
+			Config:  codereview.GERRIT_CONFIG_CHROMIUM,
+		},
+		GCSBucket:     "chromeos-prebuilt",
+		GCSPath:       "afdo-job/llvm",
+		VersionFile:   "chrome/android/profiles/newest.txt",
 		ShortRevRegex: shortRev,
 		VersionRegex:  version,
 	}
@@ -124,7 +110,7 @@ func gerritCR(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview {
 	return rv
 }
 
-func setupAfdo(t *testing.T) (context.Context, *gcsRepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
+func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -154,7 +140,10 @@ func setupAfdo(t *testing.T) (context.Context, *gcsRepoManager, *mockhttpclient.
 	cfg := afdoCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
 
-	// Initial update. Everything up-to-date.
+	rm, err := NewSemVerGCSRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	require.NoError(t, err)
+
+	// Mock requests for Update.
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
@@ -162,10 +151,9 @@ func setupAfdo(t *testing.T) (context.Context, *gcsRepoManager, *mockhttpclient.
 	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, map[string]string{
 		afdoRevBase: afdoTimeBase,
 	})
+	mockGSObject(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, afdoRevBase, afdoTimeBase)
 
-	rm, err := NewSemVerGCSRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
-	require.NoError(t, err)
-
+	// Initial update. Everything up to date.
 	_, _, _, err = rm.Update(ctx)
 	require.NoError(t, err)
 
@@ -174,7 +162,7 @@ func setupAfdo(t *testing.T) (context.Context, *gcsRepoManager, *mockhttpclient.
 		parent.Cleanup()
 	}
 
-	return ctx, rm.(*gcsRepoManager), urlmock, mockParent, parent, cleanup
+	return ctx, rm, urlmock, mockParent, parent, cleanup
 }
 
 type gsObject struct {
@@ -266,6 +254,7 @@ func TestAFDORepoManager(t *testing.T) {
 	ctx, rm, urlmock, mockParent, parent, cleanup := setupAfdo(t)
 	defer cleanup()
 
+	// Mock requests for Update.
 	mockParent.MockGetCommit(ctx, "master")
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
@@ -273,6 +262,9 @@ func TestAFDORepoManager(t *testing.T) {
 	mockGSList(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, map[string]string{
 		afdoRevBase: afdoTimeBase,
 	})
+	mockGSObject(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, afdoRevBase, afdoTimeBase)
+
+	// Update.
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 	require.Equal(t, afdoRevBase, lastRollRev.Id)
@@ -289,7 +281,6 @@ func TestAFDORepoManager(t *testing.T) {
 	next, err := rm.GetRevision(ctx, afdoRevNext)
 	require.NoError(t, err)
 	require.Equal(t, afdoRevNext, next.Id)
-	require.Empty(t, rm.preUploadSteps)
 	require.Equal(t, 0, len(notRolledRevs))
 
 	// There's a new version.
@@ -299,6 +290,7 @@ func TestAFDORepoManager(t *testing.T) {
 		afdoRevBase: afdoTimeBase,
 		afdoRevNext: afdoTimeNext,
 	})
+	mockGSObject(t, urlmock, AFDO_GS_BUCKET, AFDO_GS_PATH, afdoRevBase, afdoTimeBase)
 	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
 	require.NoError(t, err)
 	require.Equal(t, afdoRevBase, lastRollRev.Id)
@@ -307,6 +299,9 @@ func TestAFDORepoManager(t *testing.T) {
 	require.Equal(t, afdoRevNext, notRolledRevs[0].Id)
 
 	// Upload a CL.
+
+	// Mock the request to get the current version.
+	mockParent.MockReadFile(ctx, AFDO_VERSION_FILE_PATH, parentMaster)
 
 	// Mock the initial change creation.
 	commitMsg := `Roll AFDO from 66.0.3336.0_rc-r1-merged to 66.0.3337.0_rc-r1-merged
@@ -334,7 +329,7 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 Tbr: reviewer@chromium.org
 `
 	subject := strings.Split(commitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, rm.noCheckoutRepoManager.gerritConfig.Project, subject, rm.parentBranch, parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, "master", parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",
@@ -461,8 +456,7 @@ func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
 	require.NoError(t, err)
 	assertdeep.Equal(t, &revision.Revision{
-		Id:      "BOGUS_REV",
-		Display: "BOGUS_REV",
+		Id: "BOGUS_REV",
 	}, lastRollRev)
 	require.Equal(t, afdoRevNext, tipRev.Id)
 	require.Equal(t, 1, len(notRolledRevs))

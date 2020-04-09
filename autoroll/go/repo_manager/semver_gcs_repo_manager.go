@@ -3,20 +3,29 @@ package repo_manager
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
-	"regexp"
-	"strconv"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/autoroll/go/repo_manager/child"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/skerr"
 )
 
 type SemVerGCSRepoManagerConfig struct {
-	GCSRepoManagerConfig
+	NoCheckoutRepoManagerConfig
+	Gerrit *codereview.GerritConfig `json:"gerrit"`
+
+	// GCS bucket used for finding child revisions.
+	GCSBucket string
+
+	// Path within the GCS bucket which contains child revisions.
+	GCSPath string
+
+	// File to update in the parent repo.
+	VersionFile string
 
 	// ShortRevRegex is a regular expression string which indicates
 	// what part of the revision ID string should be used as the shortened
@@ -30,7 +39,7 @@ type SemVerGCSRepoManagerConfig struct {
 }
 
 func (c *SemVerGCSRepoManagerConfig) Validate() error {
-	if err := c.GCSRepoManagerConfig.Validate(); err != nil {
+	if err := c.NoCheckoutRepoManagerConfig.Validate(); err != nil {
 		return err
 	}
 	if c.VersionRegex == nil {
@@ -47,114 +56,64 @@ func (c *SemVerGCSRepoManagerConfig) Validate() error {
 	return nil
 }
 
-// parseSemanticVersion returns the set of integer versions which make up the
-// given semantic version, as specified by the capture groups in the given
-// Regexp.
-func parseSemanticVersion(regex *regexp.Regexp, ver string) ([]int, error) {
-	matches := regex.FindStringSubmatch(ver)
-	if len(matches) > 1 {
-		matchInts := make([]int, len(matches)-1)
-		for idx, a := range matches[1:] {
-			i, err := strconv.Atoi(a)
-			if err != nil {
-				return matchInts, fmt.Errorf("Failed to parse int from regex match string; is the regex incorrect?")
-			}
-			matchInts[idx] = i
-		}
-		return matchInts, nil
-	} else {
-		return nil, errInvalidGCSVersion
+// splitParentChild splits the SemVerGCSRepoManagerConfig into a
+// parent.GitilesFileConfig and a child.SemVerGCSConfig.
+// TODO(borenet): Update the config format to directly define the parent
+// and child. We shouldn't need most of the New.*RepoManager functions.
+func (c SemVerGCSRepoManagerConfig) splitParentChild() (parent.GitilesFileConfig, child.SemVerGCSConfig, error) {
+	parentCfg := parent.GitilesFileConfig{
+		GitilesConfig: parent.GitilesConfig{
+			BaseConfig: parent.BaseConfig{
+				ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
+				ChildRepo:       c.GCSPath, // TODO
+				IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
+				IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
+				CommitMsgTmpl:   c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
+				MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
+			},
+			GitilesConfig: gitiles_common.GitilesConfig{
+				Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
+				RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+			},
+			Gerrit: c.Gerrit,
+		},
+		Dep:  c.GCSPath, // TODO
+		Path: c.VersionFile,
 	}
-}
-
-// compareSemanticVersions returns 1 if A comes before B, -1 if A comes
-// after B, and 0 if they are equal.
-func compareSemanticVersions(a, b []int) int {
-	for i := 0; ; i++ {
-		if i == len(a) && i == len(b) {
-			return 0
-		} else if i == len(a) {
-			return 1
-		} else if i == len(b) {
-			return -1
-		}
-		if a[i] < b[i] {
-			return 1
-		} else if a[i] > b[i] {
-			return -1
-		}
+	if err := parentCfg.Validate(); err != nil {
+		return parent.GitilesFileConfig{}, child.SemVerGCSConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
 	}
-}
-
-// semVersion is an implementation of gcsVersion which uses semantic versioning.
-type semVersion struct {
-	id      string
-	version []int
-}
-
-// See documentation for gcsVersion interface.
-func (v *semVersion) Compare(other gcsVersion) int {
-	a := v.version
-	b := other.(*semVersion).version
-	return compareSemanticVersions(a, b)
-}
-
-// See documentation for gcsVersion interface.
-func (v *semVersion) Id() string {
-	return v.id
-}
-
-// See documentation for getGCSVersionFunc.
-func getSemanticGCSVersion(regex *regexp.Regexp, rev *revision.Revision) (gcsVersion, error) {
-	ver, err := parseSemanticVersion(regex, rev.Id)
-	if err != nil {
-		return nil, err
+	childCfg := child.SemVerGCSConfig{
+		GCSConfig: child.GCSConfig{
+			GCSBucket: c.GCSBucket,
+			GCSPath:   c.GCSPath,
+		},
+		ShortRevRegex: c.ShortRevRegex,
+		VersionRegex:  c.VersionRegex,
 	}
-	return &semVersion{
-		id:      rev.Id,
-		version: ver,
-	}, nil
+	if err := childCfg.Validate(); err != nil {
+		return parent.GitilesFileConfig{}, child.SemVerGCSConfig{}, skerr.Wrapf(err, "generated child config is invalid")
+	}
+	return parentCfg, childCfg, nil
 }
 
 // NewSemVerGCSRepoManager returns a gcsRepoManager which uses semantic
 // versioning to compare object versions.
-func NewSemVerGCSRepoManager(ctx context.Context, c *SemVerGCSRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+func NewSemVerGCSRepoManager(ctx context.Context, c *SemVerGCSRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
 	if err := c.Validate(); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
-	if err := reg.Register(c.VersionRegex); err != nil {
-		return nil, err
+	parentCfg, childCfg, err := c.splitParentChild()
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
-	if c.ShortRevRegex != nil {
-		if err := reg.Register(c.ShortRevRegex); err != nil {
-			return nil, err
-		}
+	parentRM, err := parent.NewGitilesFile(ctx, parentCfg, reg, client, serverURL)
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
-	getGCSVersion := func(rev *revision.Revision) (gcsVersion, error) {
-		versionRegex, err := regexp.Compile(c.VersionRegex.String())
-		if err != nil {
-			return nil, err
-		}
-		return getSemanticGCSVersion(versionRegex, rev)
+	childRM, err := child.NewSemVerGCS(ctx, childCfg, reg, client)
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
-	shortRev := func(id string) string {
-		if c.ShortRevRegex != nil {
-			shortRevRegex, err := regexp.Compile(c.ShortRevRegex.String())
-			if err != nil {
-				sklog.Errorf("Failed to compile c.ShortRevRegex: %s", err)
-				return id
-			}
-			matches := shortRevRegex.FindStringSubmatch(id)
-			if len(matches) > 0 {
-				return matches[0]
-			}
-			// TODO(borenet): It'd be nice to log an error here to
-			// indicate that the regex might be incorrect, but this
-			// function may be called for revisions which are not
-			// valid and thus may not match the regex. That would
-			// cause an unhelpful error spew in the log.
-		}
-		return id
-	}
-	return newGCSRepoManager(ctx, &c.GCSRepoManagerConfig, reg, workdir, g, serverURL, client, cr, local, getGCSVersion, shortRev)
+	return newParentChildRepoManager(ctx, parentRM, childRM)
 }
