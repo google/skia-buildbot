@@ -418,7 +418,7 @@ func (c *Continuous) Run(ctx context.Context) {
 				sklog.Infof("Alert %q passed smoketest.", cfg.DisplayName)
 			}
 
-			clusterResponseProcessor := func(req *RegressionDetectionRequest, resps []*RegressionDetectionResponse) {
+			clusterResponseProcessor := func(req *RegressionDetectionRequest, resps []*RegressionDetectionResponse, message string) {
 				c.reportRegressions(ctx, req, resps, cfg)
 			}
 			if cfg.Radius == 0 {
