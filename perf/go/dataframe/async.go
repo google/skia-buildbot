@@ -329,7 +329,7 @@ func (p *FrameRequestProcess) Run() {
 // TODO(jcgregorio) Rename this functionality to something more generic.
 func getSkps(ctx context.Context, headers []*ColumnHeader, perfGit *perfgit.Git) ([]int, error) {
 	if config.Config.GitRepoConfig.FileChangeMarker == "" {
-		return nil, nil
+		return []int{}, nil
 	}
 	begin := types.CommitNumber(headers[0].Offset)
 	end := types.CommitNumber(headers[len(headers)-1].Offset)
