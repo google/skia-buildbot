@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/config"
 	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/types"
@@ -455,7 +454,6 @@ func (g *Git) Update(ctx context.Context) error {
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	defer util.Close(stdout)
 	if err := cmd.Start(); err != nil {
 		return skerr.Wrap(err)
 	}
@@ -475,6 +473,7 @@ func (g *Git) Update(ctx context.Context) error {
 		return nil
 	})
 	if err != nil {
+		_ = cmd.Wait()
 		return skerr.Wrap(err)
 	}
 
@@ -616,7 +615,6 @@ func (g *Git) CommitNumbersWhenFileChangesInCommitNumberRange(ctx context.Contex
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	defer util.Close(stdout)
 	if err := cmd.Start(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
