@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"go.opencensus.io/trace"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
@@ -37,23 +37,37 @@ type builder struct {
 	git      *perfgit.Git
 	store    tracestore.TraceStore
 	tileSize int32
+
+	newTimer                      metrics2.Float64SummaryMetric
+	newByTileTimer                metrics2.Float64SummaryMetric
+	newFromQueryAndRangeTimer     metrics2.Float64SummaryMetric
+	newFromKeysAndRangeTimer      metrics2.Float64SummaryMetric
+	newFromCommitIDsAndQueryTimer metrics2.Float64SummaryMetric
+	newNFromQueryTimer            metrics2.Float64SummaryMetric
+	newNFromKeysTimer             metrics2.Float64SummaryMetric
+	preflightQueryTimer           metrics2.Float64SummaryMetric
 }
 
 // NewDataFrameBuilderFromTraceStore builds a DataFrameBuilder.
 func NewDataFrameBuilderFromTraceStore(git *perfgit.Git, store tracestore.TraceStore) dataframe.DataFrameBuilder {
 	return &builder{
-		git:      git,
-		store:    store,
-		tileSize: store.TileSize(),
+		git:                           git,
+		store:                         store,
+		tileSize:                      store.TileSize(),
+		newTimer:                      metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_new"),
+		newByTileTimer:                metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newByTile"),
+		newFromQueryAndRangeTimer:     metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newFromQueryAndRange"),
+		newFromKeysAndRangeTimer:      metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newFromKeysAndRange"),
+		newFromCommitIDsAndQueryTimer: metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newFromCommitIDsAndQuery"),
+		newNFromQueryTimer:            metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newNFromQuery"),
+		newNFromKeysTimer:             metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_newNFromKeys"),
+		preflightQueryTimer:           metrics2.GetFloat64SummaryMetric("perfserver_dfbuilder_preflightQuery"),
 	}
 }
 
 // fromIndexRange returns the headers and indices for all the commits
 // between beginIndex and endIndex inclusive.
 func fromIndexRange(ctx context.Context, git *perfgit.Git, beginIndex, endIndex types.CommitNumber) ([]*dataframe.ColumnHeader, []types.CommitNumber, int, error) {
-	ctx, span := trace.StartSpan(ctx, "dfbuilder fromIndexRange")
-	defer span.End()
-
 	commits, err := git.CommitSliceFromCommitNumberRange(ctx, beginIndex, endIndex)
 	if err != nil {
 		return nil, nil, 0, skerr.Wrapf(err, "Failed to get headers and commit numbers from time range.")
@@ -96,11 +110,8 @@ func buildTileMapOffsetToIndex(indices []types.CommitNumber, store tracestore.Tr
 //
 // The progress callback is triggered once for every tile.
 func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader, indices []types.CommitNumber, q *query.Query, progress types.Progress, skip int) (*dataframe.DataFrame, error) {
-	ctx, span := trace.StartSpan(ctx, "dfbuilder.new")
-	defer span.End()
-
 	// TODO tickle progress as each Go routine completes.
-	defer timer.New("dfbuilder_new").Stop()
+	defer timer.NewWithSummary("perfserver_dfbuilder_new", b.newTimer).Stop()
 	// Determine which tiles we are querying over, and how each tile maps into our results.
 	mapper := buildTileMapOffsetToIndex(indices, b.store)
 
@@ -126,7 +137,7 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 		// TODO(jcgregorio) If we query across a large number of tiles N then this will spawn N*8 Go routines
 		// all hitting the backend at the same time. Maybe we need a worker pool if this becomes a problem.
 		g.Go(func() error {
-			defer timer.New("dfbuilder_by_tile").Stop()
+			defer timer.NewWithSummary("perfserver_dfbuilder_new_by_tile", b.newByTileTimer).Stop()
 
 			// Query for matching traces in the given tile.
 			traces, err := b.store.QueryTracesByIndex(ctx, tileNumber, q)
@@ -157,6 +168,8 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 
 // See DataFrameBuilder.
 func (b *builder) NewFromQueryAndRange(ctx context.Context, begin, end time.Time, q *query.Query, downsample bool, progress types.Progress) (*dataframe.DataFrame, error) {
+	defer timer.NewWithSummary("perfserver_dfbuilder_NewFromQueryAndRange", b.newFromQueryAndRangeTimer).Stop()
+
 	colHeaders, indices, skip, err := dataframe.FromTimeRange(ctx, b.git, begin, end, downsample)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -167,7 +180,7 @@ func (b *builder) NewFromQueryAndRange(ctx context.Context, begin, end time.Time
 // See DataFrameBuilder.
 func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin, end time.Time, downsample bool, progress types.Progress) (*dataframe.DataFrame, error) {
 	// TODO tickle progress as each Go routine completes.
-	defer timer.New("NewFromKeysAndRange").Stop()
+	defer timer.NewWithSummary("perfserver_dfbuilder_NewFromKeysAndRange", b.newFromKeysAndRangeTimer).Stop()
 	colHeaders, indices, skip, err := dataframe.FromTimeRange(ctx, b.git, begin, end, downsample)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -236,6 +249,8 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 
 // See DataFrameBuilder.
 func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, q *query.Query, progress types.Progress) (*dataframe.DataFrame, error) {
+	defer timer.NewWithSummary("perfserver_dfbuilder_NewFromCommitIDsAndQuery", b.newFromCommitIDsAndQueryTimer).Stop()
+
 	details, err := cidl.Lookup(ctx, cids)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to look up CommitIDs: %s", err)
@@ -261,8 +276,7 @@ func (b *builder) findIndexForTime(ctx context.Context, end time.Time) (types.Co
 
 // See DataFrameBuilder.
 func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Query, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
-	ctx, span := trace.StartSpan(ctx, "dfbuilder.NewNFromQuery")
-	defer span.End()
+	defer timer.NewWithSummary("perfserver_dfbuilder_NewNFromQuery", b.newNFromQueryTimer).Stop()
 
 	sklog.Infof("Querying to: %v", end)
 
@@ -371,7 +385,7 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 
 // See DataFrameBuilder.
 func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string, n int32, progress types.Progress) (*dataframe.DataFrame, error) {
-	defer timer.New("NewNFromKeys").Stop()
+	defer timer.NewWithSummary("perfserver_dfbuilder_NewNFromKeys", b.newNFromKeysTimer).Stop()
 
 	endIndex, err := b.findIndexForTime(ctx, end)
 	if err != nil {
@@ -499,6 +513,8 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 
 // See DataFrameBuilder.
 func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Query) (int64, paramtools.ParamSet, error) {
+	defer timer.NewWithSummary("perfserver_dfbuilder_PreflightQuery", b.preflightQueryTimer).Stop()
+
 	var count int64
 	ps := paramtools.ParamSet{}
 

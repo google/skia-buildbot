@@ -3,7 +3,7 @@
   "data_store_config": {
     "tile_size": 256,
     "datastore_type": "sqlite3",
-    "connection_string": "/tmp/perf.db"
+    "connection_string": "/tmp/perf-demo.db"
   },
   "ingestion_config": {
     "source_config": {
