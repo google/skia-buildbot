@@ -1,4 +1,4 @@
-import './index.js';
+import './index';
 import { $, $$ } from 'common-sk/modules/dom';
 import { deepCopy } from 'common-sk/modules/object';
 import { setUpElementUnderTest } from '../test_util';

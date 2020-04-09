@@ -1,4 +1,4 @@
-import './index.js';
+import './index';
 import '../gold-scaffold-sk';
 
 import { fetchMock } from 'fetch-mock';

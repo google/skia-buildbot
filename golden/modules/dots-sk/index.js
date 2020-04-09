@@ -1,2 +1,2 @@
-import './dots-sk.js';
+import './dots-sk';
 import './dots-sk.scss';
