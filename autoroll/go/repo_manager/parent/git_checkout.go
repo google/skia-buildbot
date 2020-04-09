@@ -1,7 +1,7 @@
 package parent
 
 /*
-  Parent implementations which use Gitiles and a local checkout to create changes.
+  Parent implementations which use a local checkout to create changes.
 */
 
 import (
@@ -23,8 +23,8 @@ const (
 	rollBranch = "roll_branch"
 )
 
-// GitilesConfig provides configuration for a Parent which uses Gitiles and a
-// local checkout to create changes.
+// GitCheckoutConfig provides configuration for a Parent which uses a local
+// checkout to create changes.
 type GitCheckoutConfig struct {
 	BaseConfig
 	Branch  *config_vars.Template `json:"branch"`
@@ -56,7 +56,7 @@ type GitCheckoutUploadRollFunc func(context.Context, *git.Checkout, string, stri
 type GitCheckoutGetLastRollRevFunc func(context.Context, *git.Checkout) (string, error)
 
 // NewGitCheckout returns a base for implementations of Parent which use
-// Gitiles and a local checkout to create changes.
+// a local checkout to create changes.
 func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir string, getLastRollRev GitCheckoutGetLastRollRevFunc, createRoll GitCheckoutCreateRollFunc, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
 	if err := reg.Register(c.Branch); err != nil {
 		return nil, skerr.Wrap(err)
@@ -141,9 +141,9 @@ func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revisio
 	return p.uploadRoll(ctx, p.co, upstreamBranch, hash, emails, dryRun)
 }
 
-// GitCheckoutVersionFileGetLastRollRevFunc returns a
-// GitCheckoutGetLastRollRevFunc which reads the given file path from the repo
-// and returns its full contents as the last-rolled revision ID.
+// VersionFileGetLastRollRevFunc returns a GitCheckoutGetLastRollRevFunc which
+// reads the given file path from the repo and returns its full contents as the
+// last-rolled revision ID.
 func VersionFileGetLastRollRevFunc(path string) GitCheckoutGetLastRollRevFunc {
 	return func(ctx context.Context, co *git.Checkout) (string, error) {
 		contents, err := ioutil.ReadFile(filepath.Join(co.Dir(), path))
