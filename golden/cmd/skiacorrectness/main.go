@@ -656,9 +656,9 @@ Please triage them at %s/search?issue=%s.`
 
 const chromeCLTemplate = basicCLTemplate + `
 
-This functionality is currently experimental and won't block your CL.
-If you don't expect your CL to have any effect on browser UI, you can likely ignore this message.
-See the FAQ for more information: https://docs.google.com/document/d/1nyLKlPchMUfZObkx75jRjYLXT_Qawr7mz64QtxZ3Ddo/edit#heading=h.gf086bxtfikg
+If this is due to a failure in a gtest-based test, this functionality is currently experimental and won't block your CL.
+If all the trybots passed and you don't expect your CL to have any effect on browser UI, you can likely ignore this message.
+See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8FFvY3YF-6BT4Mqgrb9U40t0HMfEVSSEpNs/edit?usp=sharing
 `
 
 // TODO(kjlubick) When this stops being practical (i.e. more than 2 custom messages), add a
