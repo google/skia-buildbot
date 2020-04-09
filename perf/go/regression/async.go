@@ -57,6 +57,17 @@ var (
 type RegressionDetectionRequest struct {
 	Alert  *alerts.Alert `json:"alert"`
 	Domain types.Domain  `json:"domain"`
+
+	// Query is the exact query being run. It may be more specific than the one
+	// in the Alert if the Alert has a non-empty GroupBy.
+	Query string `json:"query"`
+
+	// Step/TotalQueries is the current percent of all the queries that have been processed.
+	Step int `json:"step"`
+
+	// TotalQueries is the number of sub-queries to be processed based on the
+	// GroupBy setting in the Alert.
+	TotalQueries int `json:"total_queries"`
 }
 
 // Id returns a unique identifier for the request.
@@ -187,7 +198,7 @@ func (fr *RunningRegressionDetectionRequests) Add(ctx context.Context, req *Regr
 			delete(fr.inProcess, id)
 		}
 	}
-	responseProcessor := func(_ *RegressionDetectionRequest, _ []*RegressionDetectionResponse) {}
+	responseProcessor := func(_ *RegressionDetectionRequest, _ []*RegressionDetectionResponse, _ string) {}
 	if _, ok := fr.inProcess[id]; !ok {
 		proc, err := newRunningProcess(ctx, req, fr.perfGit, fr.cidl, fr.dfBuilder, fr.shortcutStore, responseProcessor)
 		if err != nil {
@@ -336,7 +347,8 @@ func (p *RegressionDetectionProcess) Run() {
 		// on either side of the target commit.
 		df.FilterOut(tooMuchMissingData)
 		after := len(df.TraceSet)
-		sklog.Infof("Filtered Traces: %d %d %d", before, after, before-after)
+		message := fmt.Sprintf("Filtered Traces: Num Before: %d Num After: %d Detla: %d", before, after, before-after)
+		sklog.Info(message)
 
 		k := p.request.Alert.K
 		if k <= 0 || k > maxK {
@@ -385,7 +397,7 @@ func (p *RegressionDetectionProcess) Run() {
 			Summary: summary,
 			Frame:   frame,
 		}
-		p.responseProcessor(p.request, []*RegressionDetectionResponse{cr})
+		p.responseProcessor(p.request, []*RegressionDetectionResponse{cr}, message)
 		p.response = append(p.response, cr)
 		p.mutex.Unlock()
 	}

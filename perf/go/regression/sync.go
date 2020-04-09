@@ -11,7 +11,7 @@ import (
 )
 
 // RegressionDetectionResponseProcessor is a callback that is called with RegressionDetectionResponses as a RegressionDetectionRequest is being processed.
-type RegressionDetectionResponseProcessor func(*RegressionDetectionRequest, []*RegressionDetectionResponse)
+type RegressionDetectionResponseProcessor func(*RegressionDetectionRequest, []*RegressionDetectionResponse, string)
 
 // Run takes a RegressionDetectionRequest and runs it to completion before returning the results.
 func Run(ctx context.Context, req *RegressionDetectionRequest, perfGit *perfgit.Git, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) ([]*RegressionDetectionResponse, error) {
