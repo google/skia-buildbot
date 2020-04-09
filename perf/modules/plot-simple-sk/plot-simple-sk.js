@@ -1250,7 +1250,11 @@ define('plot-simple-sk', class extends ElementSk {
   get bands() { return this._bands; }
 
   set bands(bands) {
-    this._bands = bands;
+    if (!bands) {
+      this._bands = [];
+    } else {
+      this._bands = bands;
+    }
     this._drawOverlayCanvas();
   }
 
