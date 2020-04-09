@@ -1,0 +1,92 @@
+@import '~elements-sk/colors';
+
+multi-zoom-sk {
+  font-family: sans-serif;
+
+  > .container {
+    min-width: 500px;
+    min-height: 500px;
+    display: flex;
+    flex-direction: row;
+  }
+
+  .preview_and_zoomed {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5em;
+  }
+
+  .previews_and_toggles {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .preview {
+    position: relative;
+    margin: 0;
+    img.thumbnail {
+      border: solid 2px lightgray;
+      display: block;
+      width: 128px;
+      height: 128px;
+      object-fit: scale-down;
+      object-position: top left;
+    }
+    // position this exactly over the thumbnail.
+    canvas.crosshair {
+      position: absolute;
+      top: 0;
+      left: 0;
+      margin: 2px;
+      width: 128px;
+      height: 128px;
+    }
+
+    figcaption {
+      checkbox-sk {
+        margin: 3px 0;
+      }
+      .displayed {
+        font-weight: bold;
+      }
+      .for_spacing {
+        // See https://stackoverflow.com/a/20249560 Basically, we have a copy of
+        // the checkbox with label that is hidden and bolded so the width doesn't
+        // jump around when it alternates between displayed and not displayed.
+        height: 0;
+        overflow: hidden;
+        margin: 0;
+      }
+    }
+  }
+
+  .zoomed_view {
+    canvas {
+      border: 1px solid black;
+      width: 500px;
+      height: 500px;
+    }
+  }
+
+  .stats_and_nav {
+    td.label {
+      font-weight: bold;
+    }
+    td.value {
+      font-family: monospace;
+    }
+    th {
+      text-align: left;
+    }
+
+    table {
+      margin-bottom: 10px;
+    }
+  }
+
+  canvas.scratch {
+    display: none;
+  }
+
+}

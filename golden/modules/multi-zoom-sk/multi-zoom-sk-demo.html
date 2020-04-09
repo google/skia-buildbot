@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>multi-zoom-sk</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <button id=dialog_btn>Push for Dialog</button>
+  <h2>Image sizes match</h2>
+  <div id=normal class=demo-container></div>
+
+  <h2>Image sizes mismatch</h2>
+  <div id=mismatch class=demo-container></div>
+
+  <h2>Small base64 image</h2>
+  <div id=base64 class=container></div>
+
+  <dialog id=the_dialog>
+    <multi-zoom-sk id=in_dialog></multi-zoom-sk>
+    <button id=close_btn>Close</button>
+  </dialog>
+</body>
+</html>
