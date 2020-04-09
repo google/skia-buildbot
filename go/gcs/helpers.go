@@ -11,6 +11,8 @@ import (
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/iterator"
 
+	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/untar"
 	"go.skia.org/infra/go/util"
 )
 
@@ -91,4 +93,16 @@ func WithWriteFileGzip(client GCSClient, ctx context.Context, path string, fn fu
 	return WithWriteFile(client, ctx, path, opts, func(w io.Writer) error {
 		return util.WithGzipWriter(w, fn)
 	})
+}
+
+// DownloadAndExtractTarGz downloads the gzip-compressed tarball and extracts
+// the files to the given destination directory.
+func DownloadAndExtractTarGz(ctx context.Context, s *storage.Client, gcsBucket, gcsPath, dest string) error {
+	// Set up the readers to stream the tarball from GCS.
+	r, err := s.Bucket(gcsBucket).Object(gcsPath).NewReader(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	defer util.Close(r)
+	return skerr.Wrap(untar.Untar(r, dest))
 }
