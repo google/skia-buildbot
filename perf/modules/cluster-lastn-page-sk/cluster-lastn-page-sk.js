@@ -151,7 +151,7 @@ const template = (ele) => html`
   </dialog>
   <div class=controls>
     <label><h2>Alert Configuration</h2> <button @click=${ele._alertEdit}>${_configTitle(ele)}</button></label>
-    <label><h2>Time Range</h2> <domain-picker-sk id=range .state=${ele._domain} @domain-changed=${ele._rangeChange} force_request_type=dense></domain-picker-sk></label>
+    <label><h2>Time Range</h2> <domain-picker-sk id=range .state=${ele._domain} force_request_type=dense></domain-picker-sk></label>
     <div class=running>
       <button class=action ?disabled=${!ele._state.query || !!ele._requestId} @click=${ele._run}>Run</button>
       <spinner-sk ?active=${!!ele._requestId}></spinner-sk>
@@ -226,10 +226,6 @@ define('cluster-lastn-page-sk', class extends ElementSk {
     }).catch(errorMessage);
   }
 
-  _rangeChange(e) {
-    this._domain = e.detail.state;
-  }
-
   _alertEdit() {
     this._alertDialog.showModal();
   }
@@ -279,6 +275,7 @@ define('cluster-lastn-page-sk', class extends ElementSk {
       errorMessage('There is a pending query already running.');
       return;
     }
+    this._domain = this.querySelector('#range', this).state;
     const body = {
       domain: this._domain,
       config: this._state,
