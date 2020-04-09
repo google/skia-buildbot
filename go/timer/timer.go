@@ -70,6 +70,14 @@ func NewWithSummary(name string, m metrics2.Float64SummaryMetric) *Timer {
 	}
 }
 
+func NewSummary(name string) *Timer {
+	return &Timer{
+		Begin:  time.Now(),
+		Name:   name,
+		Metric: summaryWrapper{m: metrics2.GetFloat64Metric(name)},
+	}
+}
+
 func (t Timer) Stop() time.Duration {
 	duration := time.Now().Sub(t.Begin)
 	sklog.Infof("%s %v", t.Name, duration)
