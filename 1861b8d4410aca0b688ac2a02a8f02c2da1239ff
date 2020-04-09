@@ -104,6 +104,24 @@
       "revId": "1861b8d4410aca0b688ac2a02a8f02c2da1239ff",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "caed8a70_729c4df9",
+        "filename": "go/untar/untar.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-09T16:56:13Z",
+      "side": 1,
+      "message": "Thats fine but note that util is probably the first place most people will look. Making a util/untar/untar.go is probably better than adding more stuff to the top-level.",
+      "parentUuid": "915432f3_230ef56b",
+      "revId": "1861b8d4410aca0b688ac2a02a8f02c2da1239ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
