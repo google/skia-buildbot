@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0d1926eb_f797a906",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-09T10:47:20Z",
+      "side": 1,
+      "message": "Just a quick note, I suspect we\u0027re going to want to also receive some information about the host.",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 73
+      },
+      "revId": "8e81f924a361e1e60974d623e3766fbc21d3f4c5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
