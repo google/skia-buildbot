@@ -148,7 +148,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 		go func() {
 			ctx := context.Background()
 			// Create a callback that will be passed each found Regression.
-			cb := func(queryRequest *regression.RegressionDetectionRequest, clusterResponse []*regression.RegressionDetectionResponse) {
+			cb := func(queryRequest *regression.RegressionDetectionRequest, clusterResponse []*regression.RegressionDetectionResponse, message string) {
 				running.mutex.Lock()
 				defer running.mutex.Unlock()
 				// Loop over clusterResponse, convert each one to a regression, and merge with running.Regressions.
@@ -160,7 +160,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 						return
 					}
 					id := c.ID()
-					running.Message = fmt.Sprintf("Commit: %s", id)
+					running.Message = fmt.Sprintf("Step: %d/%d\nQuery: %q\nCommit: %d\nDetails: %q", queryRequest.Step+1, queryRequest.TotalQueries, queryRequest.Query, c.CommitID.Offset, message)
 					// We might not have found any regressions.
 					if reg.Low == nil && reg.High == nil {
 						continue
@@ -224,40 +224,44 @@ func (d *Requests) StatusHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, fmt.Errorf("Invalid id: %q", id), "Invalid or expired dry run.", http.StatusInternalServerError)
 		return
 	}
-	// Convert the Running.Regressions into a properly formed Status response.
-	running.mutex.Lock()
-	defer running.mutex.Unlock()
-	keys := []string{}
-	for id := range running.Regressions {
-		keys = append(keys, id)
-	}
-	sort.Strings(keys)
 
-	cids := []*cid.CommitID{}
-	for _, key := range keys {
-		commitId, err := cid.FromID(key)
-		if err != nil {
-			httputils.ReportError(w, err, "Failed to parse commit id.", http.StatusInternalServerError)
-			return
-		}
-		cids = append(cids, commitId)
-	}
-
-	cidd, err := d.cidl.Lookup(r.Context(), cids)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to find commit ids.", http.StatusInternalServerError)
-		return
-	}
 	status := &Status{
 		Finished:    running.Finished,
 		Message:     running.Message,
 		Regressions: []*RegressionRow{},
 	}
-	for _, details := range cidd {
-		status.Regressions = append(status.Regressions, &RegressionRow{
-			CID:        details,
-			Regression: running.Regressions[details.ID()],
-		})
+
+	// Convert the Running.Regressions into a properly formed Status response.
+	if running.Finished {
+		running.mutex.Lock()
+		defer running.mutex.Unlock()
+		keys := []string{}
+		for id := range running.Regressions {
+			keys = append(keys, id)
+		}
+		sort.Strings(keys)
+
+		cids := []*cid.CommitID{}
+		for _, key := range keys {
+			commitId, err := cid.FromID(key)
+			if err != nil {
+				httputils.ReportError(w, err, "Failed to parse commit id.", http.StatusInternalServerError)
+				return
+			}
+			cids = append(cids, commitId)
+		}
+
+		cidd, err := d.cidl.Lookup(r.Context(), cids)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to find commit ids.", http.StatusInternalServerError)
+			return
+		}
+		for _, details := range cidd {
+			status.Regressions = append(status.Regressions, &RegressionRow{
+				CID:        details,
+				Regression: running.Regressions[details.ID()],
+			})
+		}
 	}
 	if err := json.NewEncoder(w).Encode(status); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
