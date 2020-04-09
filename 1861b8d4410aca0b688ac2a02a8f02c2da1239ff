@@ -122,6 +122,24 @@
       "revId": "1861b8d4410aca0b688ac2a02a8f02c2da1239ff",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cbd8e408_872d028e",
+        "filename": "go/untar/untar.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-09T17:58:36Z",
+      "side": 1,
+      "message": "Personally, I don\u0027t think this has enough in common with util to warrant putting it in a sub-package.",
+      "parentUuid": "caed8a70_729c4df9",
+      "revId": "1861b8d4410aca0b688ac2a02a8f02c2da1239ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

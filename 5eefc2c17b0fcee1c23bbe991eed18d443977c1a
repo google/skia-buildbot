@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "298c7904_f9e3d88d",
+        "filename": "autoroll/go/repo_manager/parent/git_checkout.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-09T17:58:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ef1cedd_48fb5a9b",
+      "range": {
+        "startLine": 4,
+        "startChar": 35,
+        "endLine": 4,
+        "endChar": 42
+      },
+      "revId": "5eefc2c17b0fcee1c23bbe991eed18d443977c1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ce65d9b_893e8a2a",
         "filename": "autoroll/go/repo_manager/parent/git_checkout.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "5eefc2c17b0fcee1c23bbe991eed18d443977c1a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "971e684f_dfaef673",
+        "filename": "autoroll/go/repo_manager/parent/git_checkout.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-09T17:58:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ce65d9b_893e8a2a",
+      "range": {
+        "startLine": 144,
+        "startChar": 3,
+        "endLine": 144,
+        "endChar": 43
+      },
+      "revId": "5eefc2c17b0fcee1c23bbe991eed18d443977c1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
