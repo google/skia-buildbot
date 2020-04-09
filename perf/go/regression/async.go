@@ -55,8 +55,11 @@ var (
 // RegressionDetectionRequest is all the info needed to start a clustering run,
 // an Alert and the Domain over which to run that Alert.
 type RegressionDetectionRequest struct {
-	Alert  *alerts.Alert `json:"alert"`
-	Domain types.Domain  `json:"domain"`
+	Alert        *alerts.Alert `json:"alert"`
+	Domain       types.Domain  `json:"domain"`
+	Query        string        `json:"query"`
+	Step         int           `json:"step"`
+	TotalQueries int           `json:"total_queries"`
 }
 
 // Id returns a unique identifier for the request.
@@ -187,7 +190,7 @@ func (fr *RunningRegressionDetectionRequests) Add(ctx context.Context, req *Regr
 			delete(fr.inProcess, id)
 		}
 	}
-	responseProcessor := func(_ *RegressionDetectionRequest, _ []*RegressionDetectionResponse) {}
+	responseProcessor := func(_ *RegressionDetectionRequest, _ []*RegressionDetectionResponse, _ string) {}
 	if _, ok := fr.inProcess[id]; !ok {
 		proc, err := newRunningProcess(ctx, req, fr.perfGit, fr.cidl, fr.dfBuilder, fr.shortcutStore, responseProcessor)
 		if err != nil {
@@ -336,6 +339,7 @@ func (p *RegressionDetectionProcess) Run() {
 		// on either side of the target commit.
 		df.FilterOut(tooMuchMissingData)
 		after := len(df.TraceSet)
+		message := fmt.Sprintf("Filtered Traces: Num Before: %d Num After: %d Detla: %d", before, after, before-after)
 		sklog.Infof("Filtered Traces: %d %d %d", before, after, before-after)
 
 		k := p.request.Alert.K
@@ -385,7 +389,7 @@ func (p *RegressionDetectionProcess) Run() {
 			Summary: summary,
 			Frame:   frame,
 		}
-		p.responseProcessor(p.request, []*RegressionDetectionResponse{cr})
+		p.responseProcessor(p.request, []*RegressionDetectionResponse{cr}, message)
 		p.response = append(p.response, cr)
 		p.mutex.Unlock()
 	}
