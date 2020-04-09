@@ -3,6 +3,7 @@ package repo_manager
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"path"
 	"path/filepath"
@@ -10,12 +11,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
-	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -28,10 +31,22 @@ func copyCfg(t *testing.T) *CopyRepoManagerConfig {
 				ParentBranch: masterBranchTmpl(t),
 			},
 		},
+		VersionFile: filepath.Join(childPath, "version.sha1"),
+		Copies: []parent.CopyEntry{
+			{
+				SrcRelPath: "somefile.txt",
+				DstRelPath: "somefile",
+			},
+		},
+		Gerrit: &codereview.GerritConfig{
+			URL:     "https://fake-skia-review.googlesource.com",
+			Project: "fake-gerrit-project",
+			Config:  codereview.GERRIT_CONFIG_CHROMIUM,
+		},
 	}
 }
 
-func setupCopy(t *testing.T) (context.Context, *config_vars.Registry, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, func()) {
+func setupCopy(t *testing.T) (context.Context, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -48,27 +63,48 @@ func setupCopy(t *testing.T) (context.Context, *config_vars.Registry, string, *g
 
 	parent := git_testutils.GitInit(t, context.Background())
 	parent.Add(ctx, "somefile", "dummy")
-	parent.Add(ctx, path.Join(childPath, COPY_VERSION_HASH_FILE), childCommits[0])
+	parent.Add(ctx, filepath.Join(childPath, "version.sha1"), childCommits[0])
 	parent.Commit(ctx)
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
-		if strings.Contains(cmd.Name, "git") && cmd.Args[0] == "cl" {
-			if cmd.Args[1] == "upload" {
-				return nil
-			} else if cmd.Args[1] == "issue" {
-				json := testutils.MarshalJSON(t, &issueJson{
-					Issue:    issueNum,
-					IssueUrl: "???",
-				})
-				f := strings.Split(cmd.Args[2], "=")[1]
-				testutils.WriteFile(t, f, json)
-				return nil
-			}
+		if strings.Contains(cmd.Name, "git") && cmd.Args[0] == "push" {
+			return nil
 		}
 		return exec.DefaultRun(ctx, cmd)
 	})
 	ctx = exec.NewContext(ctx, mockRun.Run)
+
+	g := setupFakeGerrit(t, wd)
+	cfg := copyCfg(t)
+	cfg.ChildRepo = child.RepoUrl()
+	cfg.ParentRepo = parent.RepoUrl()
+	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
+	urlmock := mockhttpclient.NewURLMock()
+
+	// Create a dummy commit-msg hook.
+	changeId := "123"
+	respBody := []byte(fmt.Sprintf(`#!/bin/sh
+git interpret-trailers --trailer "Change-Id: %s" > $1
+`, changeId))
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/tools/hooks/commit-msg", mockhttpclient.MockGetDialogue(respBody))
+	rm, err := NewCopyRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	require.NoError(t, err)
+
+	// Mock requests for Update.
+	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.GitDir(child.Dir()), urlmock)
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
+	for _, hash := range childCommits {
+		mockChild.MockGetCommit(ctx, hash)
+	}
+
+	// Update.
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
+	require.Equal(t, childCommits[0], lastRollRev.Id)
+	require.Equal(t, childCommits[len(childCommits)-1], tipRev.Id)
+	require.Equal(t, len(childCommits)-1, len(notRolledRevs))
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
@@ -76,72 +112,59 @@ func setupCopy(t *testing.T) (context.Context, *config_vars.Registry, string, *g
 		parent.Cleanup()
 	}
 
-	return ctx, setupRegistry(t), wd, child, childCommits, parent, mockRun, cleanup
+	return ctx, wd, rm, child, parent, mockChild, childCommits, urlmock, cleanup
 }
 
 // TestCopyRepoManager tests all aspects of the CopyRepoManager.
 func TestCopyRepoManager(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, reg, wd, child, childCommits, parent, _, cleanup := setupCopy(t)
+	ctx, _, rm, child, _, mockChild, childCommits, _, cleanup := setupCopy(t)
 	defer cleanup()
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	g := setupFakeGerrit(t, wd)
-	cfg := copyCfg(t)
-	cfg.ChildRepo = child.RepoUrl()
-	cfg.ParentRepo = parent.RepoUrl()
-	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
-	rm, err := NewCopyRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
-	require.NoError(t, err)
+	// New commit landed.
+	lastCommit := child.CommitGen(context.Background(), "abc.txt")
+
+	// Mock requests for Update.
+	mockChild.MockGetCommit(ctx, lastCommit)
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], lastCommit))
+	for _, hash := range childCommits {
+		mockChild.MockGetCommit(ctx, hash)
+	}
+
+	// Update.
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 	require.Equal(t, childCommits[0], lastRollRev.Id)
-	require.Equal(t, childCommits[len(childCommits)-1], tipRev.Id)
-	require.Equal(t, len(childCommits)-1, len(notRolledRevs))
-
-	// Test update.
-	lastCommit := child.CommitGen(context.Background(), "abc.txt")
-	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
-	require.NoError(t, err)
 	require.Equal(t, lastCommit, tipRev.Id)
+	require.Equal(t, len(childCommits), len(notRolledRevs))
 }
 
 func TestCopyCreateNewDEPSRoll(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, reg, wd, child, _, parent, _, cleanup := setupCopy(t)
+	ctx, _, rm, _, _, mockChild, childCommits, urlMock, cleanup := setupCopy(t)
 	defer cleanup()
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	gUrl := "https://fake-skia-review.googlesource.com"
-	urlMock := mockhttpclient.NewURLMock()
-	serialized, err := json.Marshal(&gerrit.AccountDetails{
-		AccountId: 101,
-		Name:      mockUser,
-		Email:     mockUser,
-		UserName:  mockUser,
-	})
-	require.NoError(t, err)
-	serialized = append([]byte("abcd\n"), serialized...)
-	urlMock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerrit(gUrl, urlMock.Client())
-	require.NoError(t, err)
+	// Mock requests for Update.
+	mockChild.MockGetCommit(ctx, childCommits[len(childCommits)-1])
+	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
+	for _, hash := range childCommits {
+		mockChild.MockGetCommit(ctx, hash)
+	}
 
-	cfg := copyCfg(t)
-	cfg.ChildRepo = child.RepoUrl()
-	cfg.ParentRepo = parent.RepoUrl()
-	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
-	rm, err := NewCopyRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
-	require.NoError(t, err)
+	// Update.
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
+	require.Equal(t, childCommits[len(childCommits)-1], tipRev.Id)
 
 	// Create a roll, assert that it's at tip of tree.
 	ci := gerrit.ChangeInfo{
-		ChangeId: "12345",
-		Id:       "12345",
-		Issue:    12345,
+		ChangeId: "123",
+		Id:       "123",
+		Issue:    123,
 		Revisions: map[string]*gerrit.Revision{
 			"ps1": {
 				ID:     "ps1",
@@ -152,8 +175,14 @@ func TestCopyCreateNewDEPSRoll(t *testing.T) {
 	respBody, err := json.Marshal(ci)
 	require.NoError(t, err)
 	respBody = append([]byte(")]}'\n"), respBody...)
-	urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/12345/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
+	urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
+
+	// Mock the request to set the CQ.
+	reqBody := []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
+	urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
+
+	// Upload the CL.
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
 	require.NoError(t, err)
-	require.Equal(t, issueNum, issue)
+	require.Equal(t, int64(123), issue)
 }
