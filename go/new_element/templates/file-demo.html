@@ -12,10 +12,5 @@
 
   <h2>Events</h2>
   <pre id=events></pre>
-  <script type="text/javascript" charset="utf-8">
-    document.querySelector('{{.ElementName}}').addEventListener('some-event-name', (e) => {
-      document.querySelector('#events').textContent = JSON.stringify(e.detail, null, '  ');
-    });
-  </script>
 </body>
 </html>

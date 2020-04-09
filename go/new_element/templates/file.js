@@ -8,11 +8,13 @@
  *
  * @example
  */
-import { define } from 'elements-sk/define'
-import { html } from 'lit-html'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-const template = (ele) => html``;
+const template = (ele) => html`
+<h3>Hello world</h3>
+`;
 
 define('{{.ElementName}}', class extends ElementSk {
   constructor() {
@@ -23,5 +25,4 @@ define('{{.ElementName}}', class extends ElementSk {
     super.connectedCallback();
     this._render();
   }
-
 });

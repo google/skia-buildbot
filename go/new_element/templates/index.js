@@ -1,2 +1,2 @@
-import './{{.ElementName}}.js'
-import './{{.ElementName}}.scss'
+import './{{.ElementName}}';
+import './{{.ElementName}}.scss';
