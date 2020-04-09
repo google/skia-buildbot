@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6c2d110d_5cdcb41e",
+        "filename": "autoroll/go/repo_manager/parent_child_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-09T14:13:10Z",
+      "side": 1,
+      "message": "This used to be part of the semver GCS repo manager, but I had to move it here in order to maintain the same continue-on-failure behavior.  The only other option I could think of is to change GCSChild.GetRevision to never return an error, which seems worse.",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 348
+      },
+      "revId": "0437de8fde0c1490820979817d0fa6658661aab5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a494e37_48b1a097",
+        "filename": "autoroll/go/repo_manager/semver_gcs_repo_manager.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-09T14:13:10Z",
+      "side": 1,
+      "message": "Everything above this point is pretty much the same as before, I just merged the GCSRepoManagerConfig into SemverGCSRepoManagerConfig since there\u0027s no longer any need for a full GCSRepoManager.",
+      "revId": "0437de8fde0c1490820979817d0fa6658661aab5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
