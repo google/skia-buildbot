@@ -16,7 +16,7 @@ import 'elements-sk/icon/cancel-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { classMap } from 'lit-html/directives/class-map.js';
+import { classMap } from 'lit-html/directives/class-map';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 // The "bulk triage" dialog offers more than the tree options below, so we need
