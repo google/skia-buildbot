@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/config"
 	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/types"
@@ -73,7 +72,7 @@ var statementsByDialect = map[perfsql.Dialect]statements{
   			(?, ?, ?, ?, ?)
 		`,
 		getCommitNumberFromGitHash: `
-		SELECT 
+		SELECT
 			commit_number
 		FROM
 			Commits
@@ -122,7 +121,7 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 			commit_number = ?
 		`,
 		getHashFromCommitNumber: `
-		SELECT 
+		SELECT
 			git_hash
 		FROM
 			Commits
@@ -199,7 +198,7 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 			commit_number = $1
 		`,
 		getHashFromCommitNumber: `
-		SELECT 
+		SELECT
 			git_hash
 		FROM
 			Commits
@@ -455,7 +454,6 @@ func (g *Git) Update(ctx context.Context) error {
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	defer util.Close(stdout)
 	if err := cmd.Start(); err != nil {
 		return skerr.Wrap(err)
 	}
@@ -475,6 +473,9 @@ func (g *Git) Update(ctx context.Context) error {
 		return nil
 	})
 	if err != nil {
+		// Once we've successfully called cmd.Start() we must always call
+		// cmd.Wait() to close stdout.
+		_ = cmd.Wait()
 		return skerr.Wrap(err)
 	}
 
@@ -616,7 +617,6 @@ func (g *Git) CommitNumbersWhenFileChangesInCommitNumberRange(ctx context.Contex
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	defer util.Close(stdout)
 	if err := cmd.Start(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -634,6 +634,9 @@ func (g *Git) CommitNumbersWhenFileChangesInCommitNumberRange(ctx context.Contex
 	}
 
 	if scanner.Err() != nil {
+		// Once we've successfully called cmd.Start() we must always call
+		// cmd.Wait() to close stdout.
+		_ = cmd.Wait()
 		return nil, skerr.Wrap(err)
 	}
 
