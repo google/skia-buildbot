@@ -535,7 +535,7 @@ define('skottie-sk', class extends HTMLElement {
     if (this._downloadUrl)  {
       URL.revokeObjectURL(this._downloadUrl);
     }
-    this._downloadUrl = URL.createObjectURL(new Blob([JSON.stringify(this._state.lottie, null, '  ')]));
+    this._downloadUrl = URL.createObjectURL(new Blob([JSON.stringify(this._state.lottie)]));
     render(template(this), this, {eventContext: this});
 
     this._skottiePlayer = $$('skottie-player-sk', this);
