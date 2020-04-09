@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c2b16109_04d2d1dd",
+        "filename": "autoroll/go/repo_manager/child/fuchsia_sdk.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-09T12:57:38Z",
+      "side": 1,
+      "message": "There is also a fuchsia sdk cipd github roller into flutter. Maybe that will one day be called fuchsia_sdk_cipd (or maybe it will just be a cipd child). Just FYI.",
+      "revId": "1861b8d4410aca0b688ac2a02a8f02c2da1239ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "837a1dd1_48cd09a2",
+        "filename": "autoroll/go/repo_manager/parent/gitiles_local.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-09T12:57:38Z",
+      "side": 1,
+      "message": "Little confusing to have gitiles_local.go and gitiles.go. Wonder if gitiles_local_checkout.go would be more clear. Upto you.",
+      "revId": "1861b8d4410aca0b688ac2a02a8f02c2da1239ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0df106ee_2d550662",
+        "filename": "go/untar/untar.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-09T12:57:38Z",
+      "side": 1,
+      "message": "We could not directly use it because it\u0027s internal?\nAlso, should this be in go/util/ (that\u0027s where zip.go is) ?",
+      "revId": "1861b8d4410aca0b688ac2a02a8f02c2da1239ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
