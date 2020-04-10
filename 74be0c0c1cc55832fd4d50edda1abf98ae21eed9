@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5f6f791c_4a9c7b0e",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-10T12:51:26Z",
+      "side": 1,
+      "message": "I presume all sizes are in bytes.",
+      "range": {
+        "startLine": 41,
+        "startChar": 1,
+        "endLine": 41,
+        "endChar": 16
+      },
+      "revId": "74be0c0c1cc55832fd4d50edda1abf98ae21eed9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
