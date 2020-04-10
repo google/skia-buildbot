@@ -49,8 +49,13 @@ func (d *dataframeSlicer) Value(ctx context.Context) (*dataframe.DataFrame, erro
 
 // NewDataFrameIterator returns a DataFrameIterator that produces a set of
 // dataframes for the given RegressionDetectionRequest.
+//
+// If req.Domain.Offset is non-zero then we want the iterator to return a single
+// dataframe of req.Alert.Radius around the specified commit. Otherwise it
+// returns a series of dataframes of size 2*req.Alert.Radius+1 sliced from a
+// single dataframe of size req.Domain.N.
 func NewDataFrameIterator(ctx context.Context, progress types.Progress, req *RegressionDetectionRequest, dfBuilder dataframe.DataFrameBuilder, perfGit *perfgit.Git) (DataFrameIterator, error) {
-	u, err := url.ParseQuery(req.Alert.Query)
+	u, err := url.ParseQuery(req.Query)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +77,7 @@ func NewDataFrameIterator(ctx context.Context, progress types.Progress, req *Reg
 		// Need to find an End time, which is the commit time of the commit at Offset+Radius.
 		commit, err := perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(int(req.Domain.Offset)+req.Alert.Radius-1))
 		if err != nil {
-			return nil, fmt.Errorf("Failed to look up Offset of a single cluster request: %s", err)
+			return nil, fmt.Errorf("Failed to look up CommitNumber of a single cluster request: %s", err)
 		}
 		df, err = dfBuilder.NewNFromQuery(ctx, time.Unix(commit.Timestamp, 0), q, n, progress)
 		if err != nil {
