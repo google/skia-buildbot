@@ -60,7 +60,7 @@
     <div id="clusterContainer" class="horizontal layout">
       <div class="clusterRendering">
         <activity-sk id="activityMain"></activity-sk>
-        <cluster-sk id="clusterView" disabled="{{_zooming}}"></cluster-sk>
+        <cluster-sk id="clusterView" disabled="[[_zooming]]"></cluster-sk>
       </div>
       <div>
         <paper-tabs id="tabs" selected={{_currentTab}}>
@@ -111,14 +111,13 @@
         </iron-pages>
       </div>
     </div>
-    <zoom-dialog-sk opened="{{_zooming}}"></zoom-dialog-sk>
   </template>
 
   <script>
       Polymer({
         is: "cluster-page-sk",
 
-        behaviors: [gold.ZoomTargetBehavior, gold.PageStateBehavior],
+        behaviors: [gold.PageStateBehavior],
 
         properties: {
           _currentTab: {
@@ -139,6 +138,8 @@
           this.listen(this.$.bulkTriage, 'change', '_handleBulkTriageChange');
           this.listen(this, 'triage', '_handleTriage');
           this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
+          this.listen(this, 'zoom-dialog-opened', '_handleZoomOpened');
+          this.listen(this, 'zoom-dialog-closed', '_handleZoomClosed');
           this._setDefaultState(gold.defaultSearchState, true);
         },
 
@@ -255,6 +256,14 @@
             // Show the option to bulk triage all selected digests.
             this._setBulkTriage(this._digestList);
           }
+        },
+
+        _handleZoomClosed: function () {
+          this._zooming = false;
+        },
+
+        _handleZoomOpened: function () {
+          this._zooming = true;
         },
 
         _setBulkTriage: function(selected) {
