@@ -1,4 +1,4 @@
-package imgmatching
+package matcherfactory
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/gold-client/go/imgmatching"
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
 	"go.skia.org/infra/gold-client/go/imgmatching/sobel"
 )
@@ -16,33 +17,33 @@ import (
 //
 // It returns a non-nil error if the specified image matching algorithm is invalid, or if any
 // required parameters are not found, or if the parameter values are not valid.
-func MakeMatcher(optionalKeys map[string]string) (AlgorithmName, Matcher, error) {
-	algorithmNameStr, ok := optionalKeys[AlgorithmNameOptKey]
-	algorithmName := AlgorithmName(algorithmNameStr)
+func MakeMatcher(optionalKeys map[string]string) (imgmatching.AlgorithmName, imgmatching.Matcher, error) {
+	algorithmNameStr, ok := optionalKeys[imgmatching.AlgorithmNameOptKey]
+	algorithmName := imgmatching.AlgorithmName(algorithmNameStr)
 
 	// Exact matching by default.
 	if !ok {
-		algorithmName = ExactMatching
+		algorithmName = imgmatching.ExactMatching
 	}
 
 	switch algorithmName {
-	case ExactMatching:
+	case imgmatching.ExactMatching:
 		// No Matcher implementation necessary for exact matching as this is done ad-hoc.
-		return ExactMatching, nil, nil
+		return imgmatching.ExactMatching, nil, nil
 
-	case FuzzyMatching:
+	case imgmatching.FuzzyMatching:
 		matcher, err := makeFuzzyMatcher(optionalKeys)
 		if err != nil {
 			return "", nil, skerr.Wrap(err)
 		}
-		return FuzzyMatching, matcher, nil
+		return imgmatching.FuzzyMatching, matcher, nil
 
-	case SobelFuzzyMatching:
+	case imgmatching.SobelFuzzyMatching:
 		matcher, err := makeSobelFuzzyMatcher(optionalKeys)
 		if err != nil {
 			return "", nil, skerr.Wrap(err)
 		}
-		return SobelFuzzyMatching, matcher, nil
+		return imgmatching.SobelFuzzyMatching, matcher, nil
 
 	default:
 		return "", nil, skerr.Fmt("unrecognized image matching algorithm: %q", algorithmName)
@@ -52,14 +53,14 @@ func MakeMatcher(optionalKeys map[string]string) (AlgorithmName, Matcher, error)
 // makeFuzzyMatcher returns a fuzzy.Matcher instance set up with the parameter values in the
 // given optional keys map.
 func makeFuzzyMatcher(optionalKeys map[string]string) (*fuzzy.Matcher, error) {
-	maxDifferentPixels, err := getAndValidateIntParameter(MaxDifferentPixels, 0, math.MaxInt32, optionalKeys)
+	maxDifferentPixels, err := getAndValidateIntParameter(imgmatching.MaxDifferentPixels, 0, math.MaxInt32, optionalKeys)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	// The maximum value corresponds to the maximum possible per-channel delta sum. This assumes four
 	// channels (R, G, B, A), each represented with 8 bits; hence 1020 = 255*4.
-	pixelDeltaThreshold, err := getAndValidateIntParameter(PixelDeltaThreshold, 0, 1020, optionalKeys)
+	pixelDeltaThreshold, err := getAndValidateIntParameter(imgmatching.PixelDeltaThreshold, 0, 1020, optionalKeys)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -81,7 +82,7 @@ func makeSobelFuzzyMatcher(optionalKeys map[string]string) (*sobel.Matcher, erro
 
 	// This assumes the Sobel operator returns an 8-bit per-pixel value indicating how likely a pixel
 	// is to be part of an edge.
-	edgeThreshold, err := getAndValidateIntParameter(EdgeThreshold, 0, 255, optionalKeys)
+	edgeThreshold, err := getAndValidateIntParameter(imgmatching.EdgeThreshold, 0, 255, optionalKeys)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -97,7 +98,7 @@ func makeSobelFuzzyMatcher(optionalKeys map[string]string) (*sobel.Matcher, erro
 //
 // Minimum and maximum value validation can be disabled by setting parameters min and max to
 // math.MinInt32 and math.MaxInt32, respectively.
-func getAndValidateIntParameter(name AlgorithmParamOptKey, min, max int, optionalKeys map[string]string) (int, error) {
+func getAndValidateIntParameter(name imgmatching.AlgorithmParamOptKey, min, max int, optionalKeys map[string]string) (int, error) {
 	// Validate bounds.
 	if min >= max {
 		// This is almost surely a programming error.
