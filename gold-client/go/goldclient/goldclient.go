@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/gold-client/go/imgmatching"
+	"go.skia.org/infra/gold-client/go/imgmatching/matcherfactory"
 	"go.skia.org/infra/golden/go/tracestore"
 	"golang.org/x/sync/errgroup"
 
@@ -445,7 +446,7 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 	// Extract the specified image matching algorithm from the optionalKeys (defaulting to exact
 	// matching if none is specified) and obtain an instance of the imgmatching.Matcher if the
 	// algorithm requires one (i.e. all but exact matching).
-	algorithmName, matcher, err := imgmatching.MakeMatcher(optionalKeys)
+	algorithmName, matcher, err := matcherfactory.MakeMatcher(optionalKeys)
 	if err != nil {
 		return false, skerr.Wrapf(err, "parsing image matching algorithm from optional keys")
 	}

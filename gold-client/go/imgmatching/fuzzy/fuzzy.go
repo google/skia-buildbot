@@ -3,6 +3,8 @@ package fuzzy
 import (
 	"image"
 	"image/draw"
+
+	"go.skia.org/infra/gold-client/go/imgmatching"
 )
 
 // Matcher is a non-exact image matching algorithm.
@@ -72,3 +74,6 @@ func absDiff(m, n uint8) int {
 	}
 	return int(n - m)
 }
+
+// Make sure Matcher implements the imgmatching.Matcher interface.
+var _ imgmatching.Matcher = (*Matcher)(nil)
