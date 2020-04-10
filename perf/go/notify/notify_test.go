@@ -9,18 +9,20 @@ import (
 )
 
 type emailMock struct {
-	from    string
-	to      []string
-	subject string
-	body    string
+	from               string
+	to                 []string
+	subject            string
+	body               string
+	threadingReference string
 }
 
-func (e *emailMock) Send(from string, to []string, subject string, body string) error {
+func (e *emailMock) Send(from string, to []string, subject string, body string, threadingReference string) (string, error) {
 	e.from = from
 	e.to = to
 	e.subject = subject
 	e.body = body
-	return nil
+	e.threadingReference = threadingReference
+	return "", nil
 }
 
 func TestExampleSend(t *testing.T) {
