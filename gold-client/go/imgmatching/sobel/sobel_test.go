@@ -321,6 +321,109 @@ func TestSobel_GoldenImage_Success(t *testing.T) {
 	assert.Equal(t, expectedOutput, sobel(input))
 }
 
+func TestZeroOutEdges_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	tests := []struct {
+		name           string
+		input          image.Image
+		edges          *image.Gray
+		edgeThreshold  uint8
+		expectedOutput image.Image
+	}{
+		{
+			name: "empty image, returns empty image",
+			input: text.MustToNRGBA(`! SKTEXTSIMPLE
+			0 0`),
+			edges: text.MustToGray(`! SKTEXTSIMPLE
+			0 0`),
+			edgeThreshold: 0,
+			expectedOutput: text.MustToNRGBA(`! SKTEXTSIMPLE
+			0 0`),
+		},
+		{
+			name: "1x1 image with pixel below threshold, returns original image",
+			input: text.MustToNRGBA(`! SKTEXTSIMPLE
+			1 1
+			0xAABBCCFF`),
+			edges: text.MustToGray(`! SKTEXTSIMPLE
+			1 1
+			0x55`),
+			edgeThreshold: 0xBB,
+			expectedOutput: text.MustToNRGBA(`! SKTEXTSIMPLE
+			1 1
+			0xAABBCCFF`),
+		},
+		{
+			name: "1x1 image with pixel above threshold, returns black image",
+			input: text.MustToNRGBA(`! SKTEXTSIMPLE
+			1 1
+			0xAABBCCFF`),
+			edges: text.MustToGray(`! SKTEXTSIMPLE
+			1 1
+			0xCC`),
+			edgeThreshold: 0xBB,
+			expectedOutput: text.MustToNRGBA(`! SKTEXTSIMPLE
+			1 1
+			0x000000FF`),
+		},
+		{
+			name: "image with some pixels above threshold, returns image with zeroed out edges",
+			input: text.MustToNRGBA(`! SKTEXTSIMPLE
+			5 5
+			0x111111FF 0x222222FF 0x333333FF 0x555555FF 0x888888FF
+			0x111111FF 0x222222FF 0x333333FF 0x555555FF 0x888888FF
+			0x111111FF 0x222222FF 0x333333FF 0x555555FF 0x888888FF
+			0x111111FF 0x222222FF 0x333333FF 0x555555FF 0x888888FF
+			0x111111FF 0x222222FF 0x333333FF 0x555555FF 0x888888FF`),
+			edges: text.MustToGray(`! SKTEXTSIMPLE
+			5 5
+			0x00 0x00 0x00 0x00 0x00
+			0x00 0x88 0xCC 0xFF 0x00
+			0x00 0x88 0xCC 0xFF 0x00
+			0x00 0x88 0xCC 0xFF 0x00
+			0x00 0x00 0x00 0x00 0x00`),
+			edgeThreshold: 0xAA,
+			expectedOutput: text.MustToNRGBA(`! SKTEXTSIMPLE
+			5 5
+			0x111111FF 0x222222FF 0x333333FF 0x555555FF 0x888888FF
+			0x111111FF 0x222222FF 0x000000FF 0x000000FF 0x888888FF
+			0x111111FF 0x222222FF 0x000000FF 0x000000FF 0x888888FF
+			0x111111FF 0x222222FF 0x000000FF 0x000000FF 0x888888FF
+			0x111111FF 0x222222FF 0x333333FF 0x555555FF 0x888888FF`),
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assertImagesEqual(t, tc.expectedOutput, zeroOutEdges(tc.input, tc.edges, tc.edgeThreshold))
+		})
+	}
+}
+
+func TestZeroOutEdges_GoldenImage_Success(t *testing.T) {
+	unittest.MediumTest(t)
+
+	input := readPng(t, "test/input.png")
+	edges := readPngAsGray(t, "test/sobel-expected-output.png")
+	expectedOutput := readPng(t, "test/zero-out-edges-expected-output.png")
+	assert.Equal(t, expectedOutput, zeroOutEdges(input, edges, 0x55))
+}
+
+func TestZeroOutEdges_InputAndEdgesImagesHaveDifferentBounds_Panics(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Panics(t, func() {
+		img := text.MustToNRGBA(`! SKTEXTSIMPLE
+		2 1
+		0x00 0x00`)
+		edges := text.MustToGray(`! SKTEXTSIMPLE
+		1 1
+		0x00`)
+		zeroOutEdges(img, edges, 0)
+	})
+}
+
 // assertImagesEqual asserts that the two given images are equal, and prints out the actual image
 // encoded as SKTEXT if the assertion is false.
 func assertImagesEqual(t *testing.T, expected, actual image.Image) {
@@ -353,8 +456,8 @@ func readPngAsGray(t *testing.T, filename string) *image.Gray {
 	return grayImg
 }
 
-// readPng reads a PNG image from the file system and returns it as an image.Image.
-func readPng(t *testing.T, filename string) image.Image {
+// readPng reads a PNG image from the file system and returns it as an *image.NRGBA.
+func readPng(t *testing.T, filename string) *image.NRGBA {
 	// Read image.
 	imgBytes, err := ioutil.ReadFile(filename)
 	require.NoError(t, err)
@@ -363,5 +466,9 @@ func readPng(t *testing.T, filename string) image.Image {
 	img, err := png.Decode(bytes.NewReader(imgBytes))
 	require.NoError(t, err)
 
-	return img
+	// Convert to NRGBA.
+	nrgbaImg := image.NewNRGBA(img.Bounds())
+	draw.Draw(nrgbaImg, img.Bounds(), img, img.Bounds().Min, draw.Src)
+
+	return nrgbaImg
 }
