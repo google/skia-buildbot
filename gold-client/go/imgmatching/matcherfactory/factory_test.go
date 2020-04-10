@@ -1,4 +1,4 @@
-package imgmatching
+package matcherfactory
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/gold-client/go/imgmatching"
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
 	"go.skia.org/infra/gold-client/go/imgmatching/sobel"
 )
@@ -15,7 +16,7 @@ func TestMakeMatcher_UnknownAlgorithm_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	_, _, err := MakeMatcher(map[string]string{
-		AlgorithmNameOptKey: "FakeAlgorithm",
+		imgmatching.AlgorithmNameOptKey: "FakeAlgorithm",
 	})
 
 	assert.Error(t, err)
@@ -28,7 +29,7 @@ func TestMakeMatcher_NoAlgorithmSpecified_ReturnsExactMatching(t *testing.T) {
 	algorithmName, matcher, err := MakeMatcher(map[string]string{})
 
 	assert.NoError(t, err)
-	assert.Equal(t, ExactMatching, algorithmName)
+	assert.Equal(t, imgmatching.ExactMatching, algorithmName)
 	assert.Nil(t, matcher)
 }
 
@@ -36,11 +37,11 @@ func TestMakeMatcher_ExactMatchingExplicitlySpecified_ReturnsExactMatching(t *te
 	unittest.SmallTest(t)
 
 	algorithmName, matcher, err := MakeMatcher(map[string]string{
-		AlgorithmNameOptKey: string(ExactMatching),
+		imgmatching.AlgorithmNameOptKey: string(imgmatching.ExactMatching),
 	})
 
 	assert.NoError(t, err)
-	assert.Equal(t, ExactMatching, algorithmName)
+	assert.Equal(t, imgmatching.ExactMatching, algorithmName)
 	assert.Nil(t, matcher)
 }
 
@@ -208,13 +209,13 @@ func TestMakeMatcher_FuzzyMatching(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			optionalKeys := map[string]string{
-				AlgorithmNameOptKey: string(FuzzyMatching),
+				imgmatching.AlgorithmNameOptKey: string(imgmatching.FuzzyMatching),
 			}
 			if tc.maxDifferentPixels != missing {
-				optionalKeys[string(MaxDifferentPixels)] = tc.maxDifferentPixels
+				optionalKeys[string(imgmatching.MaxDifferentPixels)] = tc.maxDifferentPixels
 			}
 			if tc.pixelDeltaThreshold != missing {
-				optionalKeys[string(PixelDeltaThreshold)] = tc.pixelDeltaThreshold
+				optionalKeys[string(imgmatching.PixelDeltaThreshold)] = tc.pixelDeltaThreshold
 			}
 
 			algorithmName, matcher, err := MakeMatcher(optionalKeys)
@@ -224,7 +225,7 @@ func TestMakeMatcher_FuzzyMatching(t *testing.T) {
 				assert.Contains(t, err.Error(), tc.error)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, FuzzyMatching, algorithmName)
+				assert.Equal(t, imgmatching.FuzzyMatching, algorithmName)
 				assert.Equal(t, &tc.want, matcher)
 			}
 		})
@@ -366,16 +367,16 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			optionalKeys := map[string]string{
-				AlgorithmNameOptKey: string(SobelFuzzyMatching),
+				imgmatching.AlgorithmNameOptKey: string(imgmatching.SobelFuzzyMatching),
 			}
 			if tc.edgeThreshold != missing {
-				optionalKeys[string(EdgeThreshold)] = tc.edgeThreshold
+				optionalKeys[string(imgmatching.EdgeThreshold)] = tc.edgeThreshold
 			}
 			if tc.maxDifferentPixels != missing {
-				optionalKeys[string(MaxDifferentPixels)] = tc.maxDifferentPixels
+				optionalKeys[string(imgmatching.MaxDifferentPixels)] = tc.maxDifferentPixels
 			}
 			if tc.pixelDeltaThreshold != missing {
-				optionalKeys[string(PixelDeltaThreshold)] = tc.pixelDeltaThreshold
+				optionalKeys[string(imgmatching.PixelDeltaThreshold)] = tc.pixelDeltaThreshold
 			}
 
 			algorithmName, matcher, err := MakeMatcher(optionalKeys)
@@ -385,7 +386,7 @@ func TestMakeMatcher_SobelFuzzyMatching(t *testing.T) {
 				assert.Contains(t, err.Error(), tc.error)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, SobelFuzzyMatching, algorithmName)
+				assert.Equal(t, imgmatching.SobelFuzzyMatching, algorithmName)
 				assert.Equal(t, &tc.want, matcher)
 			}
 		})

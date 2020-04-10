@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"math"
 
+	"go.skia.org/infra/gold-client/go/imgmatching"
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
 )
 
@@ -122,3 +123,6 @@ func zeroOutEdges(img image.Image, edges *image.Gray, edgeThreshold uint8) image
 
 	return outputImg
 }
+
+// Make sure Matcher implements the imgmatching.Matcher interface.
+var _ imgmatching.Matcher = (*Matcher)(nil)
