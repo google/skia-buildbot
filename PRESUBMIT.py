@@ -142,6 +142,28 @@ def _CheckBannedGoAPIs(input_api, output_api):
 
   return []
 
+def _CheckJSDebugging(input_api, output_api):
+  to_warn_regexes = [
+    input_api.re.compile('debugger;'),
+    input_api.re.compile('it\\.only\\('),
+    input_api.re.compile('describe\\.only\\('),
+  ]
+  errors = []
+  file_filter = _MakeFileFilter(input_api, ['js'])
+  for affected_file in input_api.AffectedSourceFiles(file_filter):
+      affected_filepath = affected_file.LocalPath()
+      for (line_num, line) in affected_file.ChangedContents():
+          for re in to_warn_regexes:
+              match = re.search(line)
+              if match:
+                  errors.append('%s:%s: JS debugging code found (%s)' % (
+                      affected_filepath, line_num, match.group()))
+
+  if errors:
+      return [output_api.PresubmitPromptWarning('\n'.join(errors))]
+
+  return []
+
 
 def CheckChange(input_api, output_api):
   """Presubmit checks for the change on upload or commit.
@@ -215,6 +237,7 @@ def CheckChangeOnUpload(input_api, output_api):
   # Give warnings for non-ASCII characters on upload but not commit, since they
   # may be intentional.
   results.extend(_CheckNonAscii(input_api, output_api))
+  results.extend(_CheckJSDebugging(input_api, output_api))
   return results
 
 
