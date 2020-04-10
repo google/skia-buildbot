@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f75ab845_99dd39bc",
+        "filename": "gold-client/go/imgmatching/sobel/sobel.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-10T19:01:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c9d8bbe8_fef6c1e3",
+      "range": {
+        "startLine": 99,
+        "startChar": 3,
+        "endLine": 99,
+        "endChar": 13
+      },
+      "revId": "a75f5f614b0cac7dc0834513dc641733f3df44fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13c58449_8194b364",
         "filename": "gold-client/go/imgmatching/sobel/sobel.go",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "2cbf0bd8_474640f4",
+        "filename": "gold-client/go/imgmatching/sobel/sobel.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-10T19:01:04Z",
+      "side": 1,
+      "message": "As discussed offline, left a comment explicitly stating this indicates a programming error and should never happen in practice.",
+      "parentUuid": "13c58449_8194b364",
+      "range": {
+        "startLine": 103,
+        "startChar": 2,
+        "endLine": 103,
+        "endChar": 59
+      },
+      "revId": "a75f5f614b0cac7dc0834513dc641733f3df44fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a921b36_e0503d46",
         "filename": "gold-client/go/imgmatching/sobel/sobel.go",
         "patchSetId": 3
@@ -68,6 +116,30 @@
       "revId": "a75f5f614b0cac7dc0834513dc641733f3df44fa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8891e74a_31db9962",
+        "filename": "gold-client/go/imgmatching/sobel/sobel.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-10T19:01:04Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3a921b36_e0503d46",
+      "range": {
+        "startLine": 109,
+        "startChar": 1,
+        "endLine": 109,
+        "endChar": 9
+      },
+      "revId": "a75f5f614b0cac7dc0834513dc641733f3df44fa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
