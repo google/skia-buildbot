@@ -94,3 +94,31 @@ func applyConvolution(img *image.Gray, kernel [3][3]int, x, y int) int {
 
 	return convolution
 }
+
+// zeroOutEdges returns a copy of the input image in which all pixels above the edge threshold are
+// replaced with black pixels. Input and edges images must have the same bounds.
+func zeroOutEdges(img image.Image, edges *image.Gray, edgeThreshold uint8) image.Image {
+	// Fail loudly if the assumption above isn't met. This indicates a programming error and should
+	// never happen in practice.
+	if edges.Bounds() != img.Bounds() {
+		panic("input and edges images must have the same bounds")
+	}
+
+	outputImg := image.NewNRGBA(img.Bounds())
+
+	// Iterate over all pixels.
+	for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
+		for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x++ {
+			pixel := img.At(x, y)
+
+			// Zero out pixel if it's above the edge threshold.
+			if edges.GrayAt(x, y).Y > edgeThreshold {
+				pixel = &color.NRGBA{R: 0, G: 0, B: 0, A: 255}
+			}
+
+			outputImg.Set(x, y, pixel)
+		}
+	}
+
+	return outputImg
+}
