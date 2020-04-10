@@ -160,7 +160,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 						return
 					}
 					id := c.ID()
-					running.Message = fmt.Sprintf("Step: %d/%d\nQuery: %q\nCommit: %d\nDetails: %q", queryRequest.Step+1, queryRequest.TotalQueries, queryRequest.Query, c.CommitID.Offset, message)
+					running.Message = fmt.Sprintf("Step: %d/%d\nQuery: %q\nLooking for regressions in query results.\n  Commit: %d\n  Details: %q", queryRequest.Step+1, queryRequest.TotalQueries, queryRequest.Query, c.CommitID.Offset, message)
 					// We might not have found any regressions.
 					if reg.Low == nil && reg.High == nil {
 						continue
@@ -172,8 +172,11 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
+			stepCallback := func(step, total int, query string) {
+				running.Message = fmt.Sprintf("Step %d/%d\nQuery: %q", step+1, total, query)
+			}
 			domain := domainFromUIDomain(req.Domain)
-			regression.RegressionsForAlert(ctx, &req.Config, domain, d.paramsProvider(), d.shortcutStore, cb, d.perfGit, d.cidl, d.dfBuilder, nil)
+			regression.RegressionsForAlert(ctx, &req.Config, domain, d.paramsProvider(), d.shortcutStore, cb, d.perfGit, d.cidl, d.dfBuilder, stepCallback)
 			running.mutex.Lock()
 			defer running.mutex.Unlock()
 			running.Finished = true
