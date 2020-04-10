@@ -20,12 +20,11 @@
  *   Children elements emit the following events of note:
  * @evt show-commits - Event generated when a trace dot is clicked. e.detail contains
  *   the blamelist (an array of commits that could have made up that dot).
- * @evt zoom-clicked - Event generated when the user wants to zoom in on one or two digests.
- *   TODO(kjlubick) - can we get rid of this and have image-compare-sk just create the dialog?
  *
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
+import { errorMessage } from 'elements-sk/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { $$ } from '../../../common-sk/modules/dom';
 import { fromParamSet, fromObject } from '../../../common-sk/modules/query';
@@ -334,25 +333,47 @@ define('digest-details-sk', class extends ElementSk {
 
   _triageChangeHandler(e) {
     e.stopPropagation();
-    this._status = e.detail;
-
-    this._triageHistory.unshift({
-      user: 'me',
-      ts: Date.now(),
-    });
-    this._render();
-    // TODO(kjlubick) make triage-sk smart enough to do the API call itself. Then digest-details-sk
-    //   will not have to send this complex structure.
+    const newStatus = e.detail;
 
     const digestStatus = {};
-    digestStatus[this._digest] = this._status;
-    const detail = {
+    digestStatus[this._digest] = newStatus;
+    const postBody = {
       testDigestStatus: {},
     };
-    detail.testDigestStatus[this._grouping] = digestStatus;
+    postBody.testDigestStatus[this._grouping] = digestStatus;
     if (this.issue) {
-      detail.issue = this.issue;
+      postBody.issue = this.issue;
     }
-    this.dispatchEvent(new CustomEvent('triage', { bubbles: true, detail: detail }));
+
+    this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
+
+    fetch('/json/triage', {
+      method: 'POST',
+      body: postBody,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then((resp) => {
+      if (resp.ok) {
+        this._status = newStatus;
+        this._triageHistory.unshift({
+          user: 'me',
+          ts: Date.now(),
+        });
+        this._render();
+        this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+      } else {
+        this.dispatchEvent(new CustomEvent('fetch-error', {
+          detail: {
+            error: e,
+            loading: 'triage',
+          },
+          bubbles: true,
+        }));
+        $$('triage-sk', this).value = this._status;
+        this._render();
+        this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+      }
+    }).catch(errorMessage);
   }
 });
