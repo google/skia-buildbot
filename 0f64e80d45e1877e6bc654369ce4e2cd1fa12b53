@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "03b00c07_2266ca08",
+        "filename": "gold-client/go/imgmatching/sobel/sobel.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-10T19:51:50Z",
+      "side": 1,
+      "message": "The factory clamps this to 255, so this is a safe cast. Maybe add a comment so future readers don\u0027t have to worry.",
+      "range": {
+        "startLine": 42,
+        "startChar": 50,
+        "endLine": 42,
+        "endChar": 71
+      },
+      "revId": "0f64e80d45e1877e6bc654369ce4e2cd1fa12b53",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8852c35d_7587471b",
+        "filename": "gold-client/go/imgmatching/sobel/sobel_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-10T19:51:50Z",
+      "side": 1,
+      "message": "Please add a comment explaining why some are true and some are false. It saves the reader from having to go back and forth between here and the bottom of the page to discern the subtle differences.",
+      "range": {
+        "startLine": 42,
+        "startChar": 36,
+        "endLine": 42,
+        "endChar": 41
+      },
+      "revId": "0f64e80d45e1877e6bc654369ce4e2cd1fa12b53",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
