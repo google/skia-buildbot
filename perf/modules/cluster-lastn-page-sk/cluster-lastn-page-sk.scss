@@ -13,7 +13,6 @@ cluster-lastn-page-sk {
       width: 12px;
       height: 12px;
     }
-
   }
 
   .controls {
@@ -22,5 +21,8 @@ cluster-lastn-page-sk {
     }
   }
 
+  .messages {
+    overflow-x: auto;
+    width: 75%;
+  }
 }
-
