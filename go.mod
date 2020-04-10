@@ -40,6 +40,7 @@ exclude (
 
 require (
 	cloud.google.com/go v0.56.0
+	cloud.google.com/go/bigquery v1.6.0 // indirect
 	cloud.google.com/go/bigtable v1.3.0
 	cloud.google.com/go/datastore v1.1.0
 	cloud.google.com/go/firestore v1.2.0
@@ -114,7 +115,7 @@ require (
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/viper v1.6.2
+	github.com/spf13/viper v1.6.3
 	github.com/stretchr/testify v1.5.1
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/texttheater/golang-levenshtein v0.0.0-20191208221605-eb6844b05fc6
@@ -124,16 +125,15 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20200408222616-82f4b1b520e3
+	go.chromium.org/luci v0.0.0-20200410032135-d9943f49d18d
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200406173513-056763e48d71
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
-	golang.org/x/sys v0.0.0-20200408040146-ea54a3c99b9b // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20200408132156-9ee5ef7a2c0d
+	golang.org/x/tools v0.0.0-20200410040751-3bd20875a2eb
 	google.golang.org/api v0.21.0
-	google.golang.org/genproto v0.0.0-20200408120641-fbb3ad325eb7
+	google.golang.org/genproto v0.0.0-20200409111301-baae70f3302d
 	google.golang.org/grpc v1.28.1
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/fsnotify.v1 v1.4.7
