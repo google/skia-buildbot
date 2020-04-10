@@ -32,7 +32,7 @@ func RegressionsForAlert(ctx context.Context, alert *alerts.Alert, domain types.
 	sklog.Infof("Config expanded into %d queries.", len(queries))
 	for step, q := range queries {
 		if stepProvider != nil {
-			stepProvider(step, len(queries))
+			stepProvider(step, len(queries), q)
 		}
 		sklog.Infof("Clustering for query: %q", q)
 

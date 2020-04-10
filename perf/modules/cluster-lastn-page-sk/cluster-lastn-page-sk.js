@@ -155,7 +155,7 @@ const template = (ele) => html`
     <div class=running>
       <button class=action ?disabled=${!ele._state.query || !!ele._requestId} @click=${ele._run}>Run</button>
       <spinner-sk ?active=${!!ele._requestId}></spinner-sk>
-      <pre>${ele._runningStatus}</pre>
+      <pre class=messages>${ele._runningStatus}</pre>
     </div>
   </div>
   <hr>

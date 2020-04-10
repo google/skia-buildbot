@@ -36,16 +36,20 @@ const (
 	pollingClusteringDelay = 5 * time.Minute
 )
 
-// ConfigProvider is a function that's called to return a slice of alerts.Config. It is passed to NewContinuous.
+// ConfigProvider is a function that's called to return a slice of
+// alerts.Config. It is passed to NewContinuous.
 type ConfigProvider func() ([]*alerts.Alert, error)
 
-// ParamsetProvider is a function that's called to return the current paramset. It is passed to NewContinuous.
+// ParamsetProvider is a function that's called to return the current paramset.
+// It is passed to NewContinuous.
 type ParamsetProvider func() paramtools.ParamSet
 
-// StepProvider if a func that's called to return the current step within a config we're clustering.
-type StepProvider func(step, total int)
+// StepProvider if a func that's called to return the current step within a
+// config we're clustering and the query being executed.
+type StepProvider func(step, total int, query string)
 
-// Current state of looking for regressions, i.e. the current commit and alert being worked on.
+// Current state of looking for regressions, i.e. the current commit and alert
+// being worked on.
 type Current struct {
 	Commit *cid.CommitDetail `json:"commit"`
 	Alert  *alerts.Alert     `json:"alert"`
@@ -182,7 +186,7 @@ func (c *Continuous) setCurrentConfig(cfg *alerts.Alert) {
 	c.current.Alert = cfg
 }
 
-func (c *Continuous) setCurrentStep(step, total int) {
+func (c *Continuous) setCurrentStep(step, total int, query string) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.current.Step = step
