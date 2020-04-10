@@ -142,6 +142,29 @@ def _CheckBannedGoAPIs(input_api, output_api):
 
   return []
 
+def _CheckJSDebugging(input_api, output_api):
+  """Check JS source code for left over testing/debugging artifacts."""
+  to_warn_regexes = [
+    input_api.re.compile('debugger;'),
+    input_api.re.compile('it\\.only\\('),
+    input_api.re.compile('describe\\.only\\('),
+  ]
+  errors = []
+  file_filter = _MakeFileFilter(input_api, ['js'])
+  for affected_file in input_api.AffectedSourceFiles(file_filter):
+      affected_filepath = affected_file.LocalPath()
+      for (line_num, line) in affected_file.ChangedContents():
+          for re in to_warn_regexes:
+              match = re.search(line)
+              if match:
+                  errors.append('%s:%s: JS debugging code found (%s)' % (
+                      affected_filepath, line_num, match.group()))
+
+  if errors:
+      return [output_api.PresubmitPromptWarning('\n'.join(errors))]
+
+  return []
+
 
 def CheckChange(input_api, output_api):
   """Presubmit checks for the change on upload or commit.
@@ -156,6 +179,8 @@ def CheckChange(input_api, output_api):
   * Checks that the user didn't add TODO(name) without an owner.
   * Checks that there is no stray whitespace at source lines end.
   * Checks that there are no tab characters in any of the text files.
+  * No banned go apis (suggesting alternatives)
+  * No JS debugging artifacts.
   """
   results = []
 
@@ -194,12 +219,11 @@ def CheckChange(input_api, output_api):
   results += input_api.canned_checks.CheckChangeHasNoStrayWhitespace(
       input_api, output_api, source_file_filter=file_filter)
 
-  # CheckChangeHasNoTabs automatically ignores makefiles.
-  IGNORE_TABS = ['go']
-  file_filter = _MakeFileFilter(input_api, exclude_extensions=IGNORE_TABS)
+  # CheckChangeHasNoTabs automatically ignores makefiles and golang files.
   results += input_api.canned_checks.CheckChangeHasNoTabs(input_api, output_api)
 
   results += _CheckBannedGoAPIs(input_api, output_api)
+  results += _CheckJSDebugging(input_api, output_api)
 
   if input_api.is_committing:
     results.extend(input_api.canned_checks.CheckDoNotSubmitInDescription(
