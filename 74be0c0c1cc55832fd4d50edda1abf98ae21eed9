@@ -22,6 +22,30 @@
       "revId": "74be0c0c1cc55832fd4d50edda1abf98ae21eed9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5776c83_fd7f3025",
+        "filename": "skottie/go/skottie/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-10T12:59:13Z",
+      "side": 1,
+      "message": "Yes. Added a comment to that effect.",
+      "parentUuid": "5f6f791c_4a9c7b0e",
+      "range": {
+        "startLine": 41,
+        "startChar": 1,
+        "endLine": 41,
+        "endChar": 16
+      },
+      "revId": "74be0c0c1cc55832fd4d50edda1abf98ae21eed9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
