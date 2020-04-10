@@ -10,7 +10,7 @@ import {
   svg,
   trstatus,
 } from './demo_data';
-import { delay } from '../demo_util';
+import { delay, isPuppeteerTest } from '../demo_util';
 
 // Set up RPC failure simulation.
 const getSimulateRpcFailure = () => sessionStorage.getItem('simulateRpcFailure') === 'true';
@@ -20,7 +20,7 @@ $$('#simulate-rpc-failure').addEventListener('change', (e) => {
   setSimulateRpcFailure(e.target.checked);
 });
 
-const fakeRpcDelayMillis = 300;
+const fakeRpcDelayMillis = isPuppeteerTest() ? 5 : 300;
 
 function byBlame(response) {
   if (getSimulateRpcFailure()) {

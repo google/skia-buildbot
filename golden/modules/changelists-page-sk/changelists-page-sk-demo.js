@@ -3,7 +3,7 @@ import '../gold-scaffold-sk';
 
 import { fetchMock } from 'fetch-mock';
 import { deepCopy } from 'common-sk/modules/object';
-import { delay } from '../demo_util';
+import { delay, isPuppeteerTest } from '../demo_util';
 import { fakeNow, changelistSummaries_5, empty } from './test_data';
 
 Date.now = () => fakeNow;
@@ -30,7 +30,9 @@ open.pagination = {
   total: 3,
 };
 
-fetchMock.get('/json/changelists?offset=0&size=10', delay(ten, 300));
-fetchMock.get('/json/changelists?offset=0&size=10&active=true', delay(open, 300));
-fetchMock.get('/json/changelists?offset=10&size=10', delay(changelistSummaries_5, 300));
-fetchMock.get('glob:/json/changelists*', delay(empty, 300));
+const fakeRpcDelayMillis = isPuppeteerTest() ? 5 : 300;
+
+fetchMock.get('/json/changelists?offset=0&size=10', delay(ten, fakeRpcDelayMillis));
+fetchMock.get('/json/changelists?offset=0&size=10&active=true', delay(open, fakeRpcDelayMillis));
+fetchMock.get('/json/changelists?offset=10&size=10', delay(changelistSummaries_5, fakeRpcDelayMillis));
+fetchMock.get('glob:/json/changelists*', delay(empty, fakeRpcDelayMillis));

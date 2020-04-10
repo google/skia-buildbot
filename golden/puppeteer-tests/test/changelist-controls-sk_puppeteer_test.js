@@ -15,7 +15,7 @@ describe('changelist-controls-sk', () => {
   });
 
   it('should take a screenshot', async () => {
-    await testBed.page.setViewport({ width: 1200, height: 250 });
-    await takeScreenshot(testBed.page, 'changelist-controls-sk');
+    const controls = await testBed.page.$('.search_response');
+    await takeScreenshot(controls, 'changelist-controls-sk');
   });
 });
