@@ -12,13 +12,105 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
+	"go.skia.org/infra/gold-client/go/mocks"
 	"go.skia.org/infra/golden/go/image/text"
 )
 
-func TestSobelFuzzyMatcher_IdenticalImages_ReturnsTrue(t *testing.T) {
+// matcherTestCase represents a test case for the sobel.Matcher's Match() method.
+type matcherTestCase struct {
+	name                            string
+	inputImage1                     image.Image
+	inputImage2                     image.Image
+	edgeThreshold                   int
+	expectedFuzzyMatcherInputImage1 image.Image
+	expectedFuzzyMatcherInputImage2 image.Image
+	expectImagesToMatch             bool
+}
+
+// makeMatcherTestCases returns a slice of test cases shared by the TestMatcher_Match_* tests
+// below.
+func makeMatcherTestCases() []matcherTestCase {
+	return []matcherTestCase{
+		{
+			name:                            "edge threshold 0xFF",
+			inputImage1:                     text.MustToNRGBA(image1),
+			inputImage2:                     text.MustToNRGBA(image2),
+			edgeThreshold:                   0xFF,
+			expectedFuzzyMatcherInputImage1: text.MustToNRGBA(image1),
+			expectedFuzzyMatcherInputImage2: text.MustToNRGBA(image2),
+			expectImagesToMatch:             false,
+		},
+		{
+			name:                            "edge threshold 0xAA",
+			inputImage1:                     text.MustToNRGBA(image1),
+			inputImage2:                     text.MustToNRGBA(image2),
+			edgeThreshold:                   0xAA,
+			expectedFuzzyMatcherInputImage1: text.MustToNRGBA(image1NoEdgesAbove0xAA),
+			expectedFuzzyMatcherInputImage2: text.MustToNRGBA(image2NoEdgesAbove0xAA),
+			expectImagesToMatch:             false,
+		},
+		{
+			name:                            "edge threshold 0x66",
+			inputImage1:                     text.MustToNRGBA(image1),
+			inputImage2:                     text.MustToNRGBA(image2),
+			edgeThreshold:                   0x66,
+			expectedFuzzyMatcherInputImage1: text.MustToNRGBA(image1NoEdgesAbove0x66),
+			expectedFuzzyMatcherInputImage2: text.MustToNRGBA(image2NoEdgesAbove0x66),
+			expectImagesToMatch:             true,
+		},
+		{
+			name:                            "edge threshold 0x00",
+			inputImage1:                     text.MustToNRGBA(image1),
+			inputImage2:                     text.MustToNRGBA(image2),
+			edgeThreshold:                   0x00,
+			expectedFuzzyMatcherInputImage1: text.MustToNRGBA(image1NoEdgesAbove0x00),
+			expectedFuzzyMatcherInputImage2: text.MustToNRGBA(image2NoEdgesAbove0x00),
+			expectImagesToMatch:             true,
+		},
+	}
+}
+
+// TestMatcher_Match_MockFuzzyMatcher_CallsFuzzyMatcherWithExpectedInputImages tests
+// sobel.Matcher's Match() method in isolation with respect to the embedded fuzzy.Matcher.
+func TestMatcher_Match_MockFuzzyMatcher_CallsFuzzyMatcherWithExpectedInputImages(t *testing.T) {
 	unittest.SmallTest(t)
 
-	// TODO(lovisolo): Implement.
+	for _, tc := range makeMatcherTestCases() {
+		t.Run(tc.name, func(t *testing.T) {
+			fuzzyMatcher := &mocks.Matcher{}
+
+			// Return value does not matter, we're only testing that the right inputs are passed.
+			fuzzyMatcher.On("Match", tc.expectedFuzzyMatcherInputImage1, tc.expectedFuzzyMatcherInputImage2).Return(true)
+
+			sobelMatcher := Matcher{
+				EdgeThreshold:          tc.edgeThreshold,
+				fuzzyMatcherForTesting: fuzzyMatcher,
+			}
+
+			assert.True(t, sobelMatcher.Match(tc.inputImage1, tc.inputImage2))
+			fuzzyMatcher.AssertExpectations(t)
+		})
+	}
+}
+
+// TestMatcher_Match_Success tests sobel.Matcher's Match() method using a real fuzzy.Matcher.
+func TestMatcher_Match_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	for _, tc := range makeMatcherTestCases() {
+		t.Run(tc.name, func(t *testing.T) {
+			matcher := Matcher{
+				Matcher: fuzzy.Matcher{
+					MaxDifferentPixels:  3,
+					PixelDeltaThreshold: 10,
+				},
+				EdgeThreshold: tc.edgeThreshold,
+			}
+
+			assert.Equal(t, tc.expectImagesToMatch, matcher.Match(tc.inputImage1, tc.inputImage2))
+		})
+	}
 }
 
 // TestSobel_Success tests the sobel() function using the canonical image1 and image1Sobel images
@@ -578,14 +670,7 @@ func imageToText(t *testing.T, img image.Image) string {
 // readPngAsGray reads a PNG image from the file system, converts it to grayscale and returns it as
 // an *image.Gray.
 func readPngAsGray(t *testing.T, filename string) *image.Gray {
-	// Read image.
-	img := readPng(t, filename)
-
-	// Convert to grayscale.
-	grayImg := image.NewGray(img.Bounds())
-	draw.Draw(grayImg, img.Bounds(), img, img.Bounds().Min, draw.Src)
-
-	return grayImg
+	return imageToGray(readPng(t, filename))
 }
 
 // readPng reads a PNG image from the file system and returns it as an *image.NRGBA.
