@@ -217,6 +217,9 @@ define('multi-zoom-sk', class extends ElementSk {
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('keyup', this._keyEventHandler);
+    // free up heavy resources
+    this._cachedDiffs = [];
+    this._loadedImageData = [null, null, null];
   }
 
   /**

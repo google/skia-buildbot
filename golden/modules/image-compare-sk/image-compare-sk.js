@@ -5,17 +5,22 @@
  * Shows a side by side comparison of two images. If there's nothing to compare against, it will
  * only display one.
  *
- * @evt zoom-clicked - When the zoom button is clicked, this event is produced. It has a detail
- *   object with the following string properties: leftImgUrl, rightImgUrl, middleImgUrl, llabel,
- *   rlabel. TODO(kjlubick) can we have this element have/show the dialog and get rid of the event?
+ * @event zoom-dialog-opened when the user opens the multi-zoom-sk dialog.
+ *
+ * @event zoom-dialog-closed when the user closes the multi-zoom-sk dialog.
+ *
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
+import dialogPolyfill from 'dialog-polyfill';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/icon/open-in-new-icon-sk';
 import 'elements-sk/styles/buttons';
 import { digestDiffImagePath, digestImagePath } from '../common';
+import { $$ } from '../../../common-sk/modules/dom';
+
+import '../multi-zoom-sk';
 
 const template = (ele) => html`
 <div class=comparison_bar>
@@ -31,7 +36,11 @@ const template = (ele) => html`
   </a>
   ${comparison(ele)}
 </div>
+
 <button class=zoom_btn ?hidden=${!ele.right} @click=${ele._handleZoomClicked}>Zoom</button>
+<dialog>
+  <button class=close_btn @click=${ele._closeDialog}>Close</button>
+</dialog>
 `;
 
 const comparison = (ele) => {
@@ -73,6 +82,7 @@ define('image-compare-sk', class extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
+    dialogPolyfill.registerDialog($$('dialog', this));
   }
 
   /**
@@ -95,16 +105,31 @@ define('image-compare-sk', class extends ElementSk {
     this._render();
   }
 
+  _closeDialog() {
+    const dialog = $$('dialog', this);
+    dialog.close();
+    const zoom = $$('dialog multi-zoom-sk');
+    if (zoom) {
+      // Removing the element from the dom removes the keybinding handlers and lets the browser
+      // free up the image resources.
+      dialog.removeChild(zoom);
+    }
+    this.dispatchEvent(new CustomEvent('zoom-dialog-closed', { bubbles: true }));
+  }
+
   _handleZoomClicked() {
-    this.dispatchEvent(new CustomEvent('zoom-clicked', {
-      bubbles: true,
-      detail: {
-        leftImgUrl: digestImagePath(this.left.digest),
-        rightImgUrl: digestImagePath(this.right.digest),
-        middleImgUrl: digestDiffImagePath(this.left.digest, this.right.digest),
-        llabel: this.left.title,
-        rlabel: this.right.title,
-      },
-    }));
+    const ele = document.createElement('multi-zoom-sk');
+    ele.details = {
+      leftImageSrc: digestImagePath(this.left.digest),
+      rightImageSrc: digestImagePath(this.right.digest),
+      diffImageSrc: digestDiffImagePath(this.left.digest, this.right.digest),
+      leftLabel: this.left.title,
+      rightLabel: this.right.title,
+    };
+    const dialog = $$('dialog', this);
+    // put the dialog before the button
+    dialog.insertBefore(ele, dialog.childNodes[0]);
+    dialog.showModal();
+    this.dispatchEvent(new CustomEvent('zoom-dialog-opened', { bubbles: true }));
   }
 });
