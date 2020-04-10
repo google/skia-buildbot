@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8c06f9f8_19250b0a",
+        "filename": "perf/go/regression/dfiter.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-10T14:25:40Z",
+      "side": 0,
+      "message": "This was the actual bug.",
+      "range": {
+        "startLine": 53,
+        "startChar": 26,
+        "endLine": 53,
+        "endChar": 41
+      },
+      "revId": "a2e15e772d6199800f539f28e9eb0b2df0e0ba50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
