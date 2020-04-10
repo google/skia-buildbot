@@ -34,14 +34,16 @@ import (
 )
 
 const (
-	// BUCKET is the Cloud Storage bucket we store files in.
-	BUCKET          = "skottie-renderer"
-	BUCKET_INTERNAL = "skottie-renderer-internal"
+	// gcsBucket is the Cloud Storage bucket we store files in.
+	gcsBucket         = "skottie-renderer"
+	gcsBucketInternal = "skottie-renderer-internal"
 
-	MAX_FILENAME_SIZE = 5 * 1024
-	MAX_JSON_SIZE     = 10 * 1024 * 1024
-	MAX_ZIP_SIZE      = 200 * 1024 * 1024
-	MAX_ZIP_FILES     = 5000
+	// These sizes are in bytes.
+	maxFilenameSize = 5 * 1024
+	maxJSONSize     = 10 * 1024 * 1024
+	maxZipSize      = 200 * 1024 * 1024
+
+	maxZipFiles = 5000
 )
 
 // flags
@@ -89,9 +91,9 @@ func New() (*Server, error) {
 		login.SimpleInitWithAllow(*port, *local, nil, nil, allow)
 	}
 
-	bucket := BUCKET
+	bucket := gcsBucket
 	if *lockedDown {
-		bucket = BUCKET_INTERNAL
+		bucket = gcsBucketInternal
 	}
 
 	srv := &Server{
@@ -214,7 +216,7 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Check for maliciously sized input on any field we upload to GCS
-	if len(req.AssetsFilename) > MAX_ZIP_SIZE || len(req.Filename) > MAX_FILENAME_SIZE {
+	if len(req.AssetsFilename) > maxZipSize || len(req.Filename) > maxFilenameSize {
 		httputils.ReportError(w, nil, "Input file(s) too big", http.StatusInternalServerError)
 		return
 	}
@@ -234,12 +236,12 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("Processing input with hash %s", hash)
 
 	if strings.HasSuffix(req.Filename, ".json") {
-		if err := srv.createFromJSON(&req, hash, ctx); err != nil {
+		if err := srv.createFromJSON(ctx, &req, hash); err != nil {
 			httputils.ReportError(w, err, "Failed handing input of JSON.", http.StatusInternalServerError)
 			return
 		}
 	} else if canUploadZips && strings.HasSuffix(req.Filename, ".zip") {
-		if err := srv.createFromZip(&req, hash, ctx); err != nil {
+		if err := srv.createFromZip(ctx, &req, hash); err != nil {
 			httputils.ReportError(w, err, "Failed handing input of JSON.", http.StatusInternalServerError)
 			return
 		}
@@ -265,17 +267,17 @@ func (srv *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (srv *Server) createFromJSON(req *UploadRequest, hash string, ctx context.Context) error {
+func (srv *Server) createFromJSON(ctx context.Context, req *UploadRequest, hash string) error {
 	b, err := json.Marshal(req.Lottie)
 	if err != nil {
 		return skerr.Fmt("Can't re-encode lottie file: %s", err)
 	}
-	if len(b) > MAX_JSON_SIZE {
+	if len(b) > maxJSONSize {
 		return skerr.Fmt("Lottie JSON is too big (%d bytes): %s", len(b), err)
 	}
 
 	if canUploadZips && req.AssetsZip != "" {
-		if err := srv.uploadAssetsZip(hash, req.AssetsZip, ctx); err != nil {
+		if err := srv.uploadAssetsZip(ctx, hash, req.AssetsZip); err != nil {
 			return skerr.Fmt("Could not process asset folder: %s", err)
 		}
 	}
@@ -283,10 +285,10 @@ func (srv *Server) createFromJSON(req *UploadRequest, hash string, ctx context.C
 	// We don't need to store the zip contents or filename.
 	req.AssetsZip = ""
 	req.AssetsFilename = ""
-	return srv.uploadState(req, hash, ctx)
+	return srv.uploadState(ctx, req, hash)
 }
 
-func (srv *Server) uploadState(req *UploadRequest, hash string, ctx context.Context) error {
+func (srv *Server) uploadState(ctx context.Context, req *UploadRequest, hash string) error {
 	// Write JSON file, containing the state (filename, lottie, etc)
 	bytesToUpload, err := json.Marshal(req)
 	if err != nil {
@@ -306,7 +308,7 @@ func (srv *Server) uploadState(req *UploadRequest, hash string, ctx context.Cont
 	return nil
 }
 
-func (srv *Server) createFromZip(req *UploadRequest, hash string, ctx context.Context) error {
+func (srv *Server) createFromZip(ctx context.Context, req *UploadRequest, hash string) error {
 	zr, err := readBase64Zip(req.AssetsZip)
 	if err != nil {
 		return err
@@ -335,7 +337,7 @@ func (srv *Server) createFromZip(req *UploadRequest, hash string, ctx context.Co
 		return skerr.Fmt("Could not find json file")
 	}
 
-	if jsonFile.UncompressedSize64 > MAX_JSON_SIZE {
+	if jsonFile.UncompressedSize64 > maxJSONSize {
 		return skerr.Fmt("Lottie JSON is too big (%d bytes): %s", jsonFile.UncompressedSize64, err)
 	}
 
@@ -356,7 +358,7 @@ func (srv *Server) createFromZip(req *UploadRequest, hash string, ctx context.Co
 	// re-attach them if they re-upload the animation.
 	req.AssetsFilename = ""
 
-	if err := srv.uploadState(req, hash, ctx); err != nil {
+	if err := srv.uploadState(ctx, req, hash); err != nil {
 		return skerr.Fmt("Could not upload lottie.json state: %s", err)
 	}
 
@@ -374,7 +376,7 @@ func (srv *Server) createFromZip(req *UploadRequest, hash string, ctx context.Co
 			eg.Go(func() error {
 				dest := strings.Join([]string{hash, "assets", strippedName}, "/")
 				sklog.Infof("Uploading %s from zip file to %s", strippedName, dest)
-				if err := srv.writeZipFileToGCS(tf, dest, "application/octet-stream", newCtx); err != nil {
+				if err := srv.writeZipFileToGCS(newCtx, tf, dest, "application/octet-stream"); err != nil {
 					return skerr.Fmt("Failed while uploading asset %s to %s: %s", tf.Name, dest, err)
 				}
 				return nil
@@ -384,7 +386,7 @@ func (srv *Server) createFromZip(req *UploadRequest, hash string, ctx context.Co
 	return eg.Wait()
 }
 
-func (srv *Server) writeZipFileToGCS(f *zip.File, dest, encoding string, ctx context.Context) error {
+func (srv *Server) writeZipFileToGCS(ctx context.Context, f *zip.File, dest, encoding string) error {
 	fr, err := f.Open()
 	if err != nil {
 		return skerr.Fmt("Failed reading out of zip file when uploading %s: %s", dest, err)
@@ -425,9 +427,9 @@ func getFileName(zipName string) string {
 }
 
 var topJSONFile = regexp.MustCompile(`^(?P<prefix>.*?)(?P<name>[^/]+\.json)$`)
-var validFileName = regexp.MustCompile(`^[A-Za-z0-9\._\-]+$`)
+var validFileName = regexp.MustCompile(`^[A-Za-z0-9._\-]+$`)
 
-func (srv *Server) uploadAssetsZip(lottieHash, b64Zip string, ctx context.Context) error {
+func (srv *Server) uploadAssetsZip(ctx context.Context, lottieHash, b64Zip string) error {
 	zr, err := readBase64Zip(b64Zip)
 	if err != nil {
 		return err
@@ -470,7 +472,7 @@ func readBase64Zip(b64Zip string) (*zip.Reader, error) {
 	} else {
 		return nil, skerr.Fmt("Not a base64 encoded zip")
 	}
-	if len(b64Zip) > MAX_ZIP_SIZE {
+	if len(b64Zip) > maxZipSize {
 		return nil, skerr.Fmt(".zip too big (%d bytes)", len(b64Zip))
 	}
 	data, err := base64.StdEncoding.DecodeString(b64Zip)
@@ -485,7 +487,7 @@ func readBase64Zip(b64Zip string) (*zip.Reader, error) {
 		return nil, skerr.Fmt("Could not unzip bytes %s", err)
 	}
 
-	if len(zr.File) > MAX_ZIP_FILES {
+	if len(zr.File) > maxZipFiles {
 		return nil, skerr.Fmt(".zip has too many files (%d)", len(zr.File))
 	}
 	return zr, nil
