@@ -3,10 +3,17 @@ package sobel
 import (
 	"image"
 	"image/color"
+	"image/draw"
 	"math"
 
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
 )
+
+// testMatcher is an exact copy of the imgmatching.Matcher interface for the sole purpose of
+// avoiding an import cycle between packages imgmatching and sobel.
+type testMatcher interface {
+	Match(expected, actual image.Image) bool
+}
 
 // Matcher is a non-exact image matching algorithm.
 //
@@ -24,13 +31,33 @@ import (
 // [1] https://en.wikipedia.org/wiki/Sobel_operator
 type Matcher struct {
 	fuzzy.Matcher
-	EdgeThreshold int
+	EdgeThreshold int // Valid values are 0 to 255 inclusive.
+
+	// If set, fuzzyMatcherForTesting will be used instead of the embedded fuzzy.Matcher.
+	fuzzyMatcherForTesting testMatcher
 }
 
-// Match implements the imagmatching.Matcher interface.
+// Match implements the imgmatching.Matcher interface.
 func (m *Matcher) Match(expected, actual image.Image) bool {
-	// TODO(lovisolo): Implement.
-	return false
+	// Extract edges from the expected image.
+	edges := sobel(imageToGray(expected))
+
+	// Zero-out edges on *both* the expected and actual images, using the edges from the former in
+	// both cases.
+	//
+	// Note that the [0, 255] value range for EdgeThreshold is enforced by the
+	// imgmatching.MakeMatcher() factory function, so it's safe to cast to uint8.
+	expectedNoEdges := zeroOutEdges(expected, edges, uint8(m.EdgeThreshold))
+	actualNoEdges := zeroOutEdges(actual, edges, uint8(m.EdgeThreshold))
+
+	// Determine whether to use the embedded fuzzy.Matcher or the fuzzyMatcherForTesting.
+	fuzzyMatcher := m.fuzzyMatcherForTesting
+	if fuzzyMatcher == nil {
+		fuzzyMatcher = &m.Matcher
+	}
+
+	// Delegate to the fuzzy matcher.
+	return fuzzyMatcher.Match(expectedNoEdges, actualNoEdges)
 }
 
 // sobel returns a grayscale image with the result of applying the Sobel operator[1] to each pixel
@@ -121,4 +148,11 @@ func zeroOutEdges(img image.Image, edges *image.Gray, edgeThreshold uint8) image
 	}
 
 	return outputImg
+}
+
+// imageToGray converts the given image to grayscale.
+func imageToGray(img image.Image) *image.Gray {
+	grayImg := image.NewGray(img.Bounds())
+	draw.Draw(grayImg, img.Bounds(), img, img.Bounds().Min, draw.Src)
+	return grayImg
 }
