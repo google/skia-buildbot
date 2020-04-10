@@ -73,7 +73,8 @@ var (
 
 // sendEmail sends an email with the specified header and body to the recipients.
 func sendEmail(emailAuth *email.GMail, recipients []string, senderDisplayName, subject, body, markup string) error {
-	if err := emailAuth.SendWithMarkup(senderDisplayName, recipients, subject, body, markup); err != nil {
+	_, err := emailAuth.SendWithMarkup(senderDisplayName, recipients, subject, body, markup, "")
+	if err != nil {
 		return fmt.Errorf("Could not send email: %s", err)
 	}
 	return nil

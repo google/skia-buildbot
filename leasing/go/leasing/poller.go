@@ -30,13 +30,15 @@ func populateRunningTask(newState, botId string, k *datastore.Key, t *Task) erro
 	t.LeaseStartTime = time.Now()
 	t.LeaseEndTime = time.Now().Add(time.Hour * time.Duration(durationHrs))
 
+	// Inform the requester that the task has been picked up
+	threadingReference, err := SendStartEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, t.TaskIdForIsolates)
+	if err != nil {
+		return fmt.Errorf("Error sending start email: %s", err)
+	}
+	// Store threadingReference in datastore for threading followup emails.
+	t.EmailThreadingReference = threadingReference
 	if _, err := UpdateDSTask(k, t); err != nil {
 		return fmt.Errorf("Error updating task in datastore: %v", err)
-	}
-
-	// Inform the requester that the task has been picked up
-	if err := SendStartEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, t.TaskIdForIsolates); err != nil {
-		return fmt.Errorf("Error sending start email: %s", err)
 	}
 
 	return nil
@@ -51,7 +53,7 @@ func expireTask(k *datastore.Key, t *Task) error {
 	}
 	sklog.Infof("Marked as expired task %v in the datastore with key %d", t, k.ID)
 	// Inform the requester that the task has completed.
-	if err := SendCompletionEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId); err != nil {
+	if err := SendCompletionEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, t.EmailThreadingReference); err != nil {
 		return fmt.Errorf("Error sending completion email: %s", err)
 	}
 	return nil
@@ -59,7 +61,7 @@ func expireTask(k *datastore.Key, t *Task) error {
 
 // taskExpiringSoon sends a warning email and updates the WarningSent field in the Task struct.
 func taskExpiringSoon(k *datastore.Key, t *Task) error {
-	if err := SendWarningEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId); err != nil {
+	if err := SendWarningEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, t.EmailThreadingReference); err != nil {
 		return fmt.Errorf("Error sending 15m warning email: %s", err)
 	}
 	t.WarningSent = true
@@ -116,7 +118,7 @@ func checkForUnexpectedStates(newState string, failure bool, k *datastore.Key, t
 			}
 
 			// Inform the requester that something went wrong.
-			if err := SendFailureEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, t.SwarmingTaskState); err != nil {
+			if err := SendFailureEmail(t.Requester, t.SwarmingServer, t.SwarmingTaskId, t.SwarmingBotId, t.SwarmingTaskState, t.EmailThreadingReference); err != nil {
 				return fmt.Errorf("Error sending failure email: %s", err)
 			}
 			break

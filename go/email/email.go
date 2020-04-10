@@ -32,6 +32,8 @@ var (
 To: {{.To}}
 Subject: {{.Subject}}
 Content-Type: text/html; charset=UTF-8
+References: {{.ThreadingReference}}
+In-Reply-To: {{.ThreadingReference}}
 
 <html>
 <body>
@@ -56,10 +58,11 @@ type GMail struct {
 
 // Message represents a single email message.
 type Message struct {
-	SenderDisplayName string
-	To                []string
-	Subject           string
-	Body              string
+	SenderDisplayName  string
+	To                 []string
+	Subject            string
+	Body               string
+	ThreadingReference string
 }
 
 // GetViewActionMarkup returns a string that contains the required markup.
@@ -136,38 +139,40 @@ func NewFromFiles(emailTokenCacheFile, emailClientSecretsFile string) (*GMail, e
 	return NewGMail(clientSecrets.Installed.ClientID, clientSecrets.Installed.ClientSecret, emailTokenCacheFile)
 }
 
-// Send an email.
-func (a *GMail) Send(senderDisplayName string, to []string, subject string, body string) error {
-	return a.SendWithMarkup(senderDisplayName, to, subject, body, "")
+// Send an email. Returns the messageId of the sent email.
+func (a *GMail) Send(senderDisplayName string, to []string, subject, body, threadingReference string) (string, error) {
+	return a.SendWithMarkup(senderDisplayName, to, subject, body, "", threadingReference)
 }
 
-// Send an email with gmail markup.
+// Send an email with gmail markup. Returns the messageId of the sent email.
 // Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
 // A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
-func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject string, body string, markup string) error {
+func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject, body, markup, threadingReference string) (string, error) {
 	sender := "me"
 	// Get email address to use in the from section.
 	profile, err := a.service.Users.GetProfile(sender).Do()
 	if err != nil {
-		return fmt.Errorf("Failed to get profile for %s: %v", sender, err)
+		return "", fmt.Errorf("Failed to get profile for %s: %v", sender, err)
 	}
 	fromWithName := fmt.Sprintf("%s <%s>", senderDisplayName, profile.EmailAddress)
 
 	msgBytes := new(bytes.Buffer)
 	if err := emailTemplateParsed.Execute(msgBytes, struct {
-		From    template.HTML
-		To      string
-		Subject string
-		Body    template.HTML
-		Markup  template.HTML
+		From               template.HTML
+		To                 string
+		Subject            string
+		ThreadingReference string
+		Body               template.HTML
+		Markup             template.HTML
 	}{
-		From:    template.HTML(fromWithName),
-		To:      strings.Join(to, ","),
-		Subject: subject,
-		Body:    template.HTML(body),
-		Markup:  template.HTML(markup),
+		From:               template.HTML(fromWithName),
+		To:                 strings.Join(to, ","),
+		Subject:            subject,
+		ThreadingReference: threadingReference,
+		Body:               template.HTML(body),
+		Markup:             template.HTML(markup),
 	}); err != nil {
-		return fmt.Errorf("Failed to send email; could not execute template: %v", err)
+		return "", fmt.Errorf("Failed to send email; could not execute template: %v", err)
 	}
 	sklog.Infof("Message to send: %q", msgBytes.String())
 	msg := gmail.Message{}
@@ -175,11 +180,34 @@ func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject st
 	msg.Snippet = subject
 	msg.Raw = base64.URLEncoding.EncodeToString(msgBytes.Bytes())
 
-	_, err = a.service.Users.Messages.Send(sender, &msg).Do()
-	return err
+	m, err := a.service.Users.Messages.Send(sender, &msg).Do()
+	if err != nil {
+		return "", fmt.Errorf("Failed to send email: %v", err)
+	}
+	return m.Id, nil
 }
 
-// SendMessage sends the given Message.
-func (a *GMail) SendMessage(msg *Message) error {
-	return a.Send(msg.SenderDisplayName, msg.To, msg.Subject, msg.Body)
+// GetThreadingReference returns the reference string that can be used to thread emails.
+func (a *GMail) GetThreadingReference(messageId string) (string, error) {
+	// Get the reference from the response headers of messages.get call.
+	m, err := a.service.Users.Messages.Get("me", messageId).Do()
+	if err != nil {
+		return "", fmt.Errorf("Failed to get message data: %v", err)
+	}
+	reference := ""
+	for _, h := range m.Payload.Headers {
+		if h.Name == "Message-Id" {
+			reference = h.Value
+			break
+		}
+	}
+	if reference == "" {
+		return "", fmt.Errorf("Could not find \"Message-Id\" header for message Id %s", messageId)
+	}
+	return reference, nil
+}
+
+// SendMessage sends the given Message. Returns the messageId of the sent email.
+func (a *GMail) SendMessage(msg *Message) (string, error) {
+	return a.Send(msg.SenderDisplayName, msg.To, msg.Subject, msg.Body, msg.ThreadingReference)
 }
