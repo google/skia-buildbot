@@ -45,20 +45,23 @@ describe('image-compare-sk', () => {
       expect(captionsHref).to.contain('/example.com#bDigest');
     });
 
-    it('fires a zoom event when the zoom button is clicked', () => {
-      let eventsSeen = 0;
-      imageCompareSk.addEventListener('zoom-clicked', (e) => {
-        eventsSeen++;
-        expect(e.detail).to.deep.equal({
-          leftImgUrl: '/img/images/6246b773851984c726cb2e1cb13510c2.png',
-          rightImgUrl: '/img/images/99c58c7002073346ff55f446d47d6311.png',
-          middleImgUrl: '/img/diffs/6246b773851984c726cb2e1cb13510c2-99c58c7002073346ff55f446d47d6311.png',
-          llabel: 'a digest title',
-          rlabel: 'the other image',
-        });
+    it('fires events when the zoom dialog is opened and closed', () => {
+      expect($$('multi-zoom-sk', imageCompareSk)).to.be.null; // not rendered at first
+      let openEvents = 0;
+      let closeEvents = 0;
+      imageCompareSk.addEventListener('zoom-dialog-opened', () => {
+        openEvents++;
       });
-      $$('button.zoom_btn').click();
-      expect(eventsSeen).to.equal(1);
+      imageCompareSk.addEventListener('zoom-dialog-closed', () => {
+        closeEvents++;
+      });
+      $$('button.zoom_btn', imageCompareSk).click();
+      expect(openEvents).to.equal(1);
+      expect($$('multi-zoom-sk', imageCompareSk)).to.not.be.null; // element should be there now.
+
+      $$('button.close_btn', imageCompareSk).click();
+      expect(closeEvents).to.equal(1);
+      expect($$('multi-zoom-sk', imageCompareSk)).to.be.null; // it should be removed from the DOM.
     });
   });
 
@@ -74,7 +77,7 @@ describe('image-compare-sk', () => {
     it('has one image and no zoom button', () => {
       const images = $('img', imageCompareSk);
       expect(images.length).to.equal(1);
-      const zBtn = $$('button.zoom_btn');
+      const zBtn = $$('button.zoom_btn', imageCompareSk);
       expect(zBtn.hidden).to.be.true;
     });
   });

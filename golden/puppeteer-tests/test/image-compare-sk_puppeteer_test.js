@@ -2,7 +2,7 @@ const expect = require('chai').expect;
 const setUpPuppeteerAndDemoPageServer = require('./util').setUpPuppeteerAndDemoPageServer;
 const takeScreenshot = require('./util').takeScreenshot;
 
-describe('image-compare-sk', () => {
+describe.only('image-compare-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(); // Contains page and baseUrl.
 
   beforeEach(async () => {
@@ -18,6 +18,12 @@ describe('image-compare-sk', () => {
     it('has the left and right image', async () => {
       const imageCompareSk = await testBed.page.$('#normal');
       await takeScreenshot(imageCompareSk, 'image-compare-sk');
+    });
+
+    it('shows the multi-zoom-sk dialog when zoom button clicked', async () => {
+      await testBed.page.setViewport({ width: 1000, height: 800 });
+      await testBed.page.click('#normal button.zoom_btn');
+      await takeScreenshot(testBed.page, 'image-compare-sk_zoom-dialog');
     });
 
     it('has just the left image', async () => {
