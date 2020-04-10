@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a7a70e6_6a87affa",
+        "filename": "PRESUBMIT.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-10T13:08:58Z",
+      "side": 1,
+      "message": "FYI: These warnings are basically errors during commit time (which is what we want).",
+      "range": {
+        "startLine": 164,
+        "startChar": 25,
+        "endLine": 164,
+        "endChar": 47
+      },
+      "revId": "8b9439ab28faae90f50c4db0e54f69e606ecbbee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
