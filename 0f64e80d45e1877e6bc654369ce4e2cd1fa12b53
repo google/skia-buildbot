@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d5f0a4dd_65970885",
+        "filename": "gold-client/go/imgmatching/sobel/sobel.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-10T20:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "03b00c07_2266ca08",
+      "range": {
+        "startLine": 42,
+        "startChar": 50,
+        "endLine": 42,
+        "endChar": 71
+      },
+      "revId": "0f64e80d45e1877e6bc654369ce4e2cd1fa12b53",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8852c35d_7587471b",
         "filename": "gold-client/go/imgmatching/sobel/sobel_test.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "0f64e80d45e1877e6bc654369ce4e2cd1fa12b53",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ecca934_1860e8ee",
+        "filename": "gold-client/go/imgmatching/sobel/sobel_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-10T20:16:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8852c35d_7587471b",
+      "range": {
+        "startLine": 42,
+        "startChar": 36,
+        "endLine": 42,
+        "endChar": 41
+      },
+      "revId": "0f64e80d45e1877e6bc654369ce4e2cd1fa12b53",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
