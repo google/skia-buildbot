@@ -456,11 +456,6 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 		return false, nil
 	}
 
-	// TODO(lovisolo): Remove once SobelFuzzyMatching is implemented.
-	if algorithmName == imgmatching.SobelFuzzyMatching {
-		return false, skerr.Fmt("image matching algorithm %q not yet supported", imgmatching.SobelFuzzyMatching)
-	}
-
 	// Decode test output PNG image.
 	image, err := png.Decode(bytes.NewReader(imageBytes))
 	if err != nil {
