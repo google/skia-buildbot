@@ -306,16 +306,6 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		return 0, fmt.Errorf("Error when running gn_to_bp: %s", err)
 	}
 	for _, genFile := range FILES_GENERATED_BY_GN_TO_GP {
-		if parentBranch != "master" {
-			if genFile != android_skia_checkout.AndroidBpRelPath {
-				// Temporary hack to avoid having to cherrypick the very large
-				// change https://skia-review.googlesource.com/c/skia/+/209706
-				// TODO(rmistry): Remove.
-				tokens := strings.Split(path.Dir(genFile), "/")
-				newPath := path.Join(tokens[1:]...)
-				genFile = path.Join(newPath, tokens[0], "SkUserConfig.h")
-			}
-		}
 		if _, err := r.childRepo.Git(ctx, "add", genFile); err != nil {
 			return 0, err
 		}
