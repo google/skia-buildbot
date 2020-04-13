@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ff520209_71ef0866",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk-demo.html",
+        "patchSetId": 13
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0f710a39_9a562052",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 48
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f6303fd5_9ffa7851",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk-demo.js",
         "patchSetId": 13
@@ -45,6 +69,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "741ceff5_36797690",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk-demo.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "It\u0027s not for performance reasons. I just made a local variable.",
+      "parentUuid": "f6303fd5_9ffa7851",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 38
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "28da4f21_0090b7d5",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "I think it\u0027s simpler to have html elements be created with html templating rather than instantiating them in JS code.",
+      "parentUuid": "3abadcce_7fc1052e",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "06a6cb8c_597a5df4",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -91,6 +163,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "02f053aa_066d97f4",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done - kept the comment anyway since the rationale for this class is still important.",
+      "parentUuid": "06a6cb8c_597a5df4",
+      "range": {
+        "startLine": 46,
+        "startChar": 90,
+        "endLine": 48,
+        "endChar": 53
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "63f70c90_745818fb",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8a7373fa_57bf6c00",
+      "range": {
+        "startLine": 52,
+        "startChar": 27,
+        "endLine": 52,
+        "endChar": 43
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0ce49125_7f28e3b8",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -137,6 +257,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b486661_93e26a6f",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0ce49125_7f28e3b8",
+      "range": {
+        "startLine": 58,
+        "startChar": 4,
+        "endLine": 59,
+        "endChar": 16
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "eada53ba_30093ba2",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bed92e42_695e3b50",
+      "range": {
+        "startLine": 60,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 92
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "92b64ac9_55dae0d4",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -183,6 +351,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d42c4e67_044ff99a",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "92b64ac9_55dae0d4",
+      "range": {
+        "startLine": 65,
+        "startChar": 6,
+        "endLine": 65,
+        "endChar": 17
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "519581b8_4371ad3b",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ec1a9807_8b62efdb",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 31
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1144f049_f482a300",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -229,6 +445,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "45a1a217_26a1a477",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1144f049_f482a300",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 151,
+        "endChar": 1
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "dfb02cc1_bd80d31b",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "18946274_9a299bb9",
+      "range": {
+        "startLine": 154,
+        "startChar": 0,
+        "endLine": 154,
+        "endChar": 6
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5d2dc8a0_ea4b4909",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -275,6 +539,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b6c8978_bf003d2b",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "It\u0027s fine as is.",
+      "parentUuid": "5d2dc8a0_ea4b4909",
+      "range": {
+        "startLine": 158,
+        "startChar": 0,
+        "endLine": 161,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "f13c3c67_cf1bc7aa",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "This *is* eslint\u0027s preferred way of formatting this line.",
+      "parentUuid": "49937d52_3d71003a",
+      "range": {
+        "startLine": 164,
+        "startChar": 50,
+        "endLine": 164,
+        "endChar": 51
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "97e18067_3e4a558f",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -321,6 +633,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eddf8463_1f689bd1",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "97e18067_3e4a558f",
+      "range": {
+        "startLine": 174,
+        "startChar": 0,
+        "endLine": 182,
+        "endChar": 47
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -347,6 +683,30 @@
     },
     {
       "key": {
+        "uuid": "d62f273f_ed026f70",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5781e2a9_2956230b",
+      "range": {
+        "startLine": 183,
+        "startChar": 0,
+        "endLine": 185,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b32a893c_fc7724de",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -367,6 +727,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41037bab_26dff925",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b32a893c_fc7724de",
+      "range": {
+        "startLine": 186,
+        "startChar": 4,
+        "endLine": 188,
+        "endChar": 44
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -393,6 +777,30 @@
     },
     {
       "key": {
+        "uuid": "ee48d858_6bbb4040",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ea040810_e8df1884",
+      "range": {
+        "startLine": 189,
+        "startChar": 0,
+        "endLine": 191,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1cc74483_a6ca6202",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -404,6 +812,30 @@
       "writtenOn": "2020-04-13T04:41:54Z",
       "side": 1,
       "message": "Please use keydown. It\u0027s a non-standard behavior for a UI to react to when the user releases a key, as opposed to reacting immediately when a user presses down a key.\n\nTake for example Gerrit and the line selection behavior when pressing the up/down arrow keys. Note that the action happens when said keys are pressed down, as opposed to when they\u0027re released.",
+      "range": {
+        "startLine": 200,
+        "startChar": 31,
+        "endLine": 200,
+        "endChar": 36
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "634fa711_e5d2c5fe",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "[citation needed] https://medium.com/@uistephen/keyboardevent-key-for-cross-browser-key-press-check-61dbad0a067a",
+      "parentUuid": "1cc74483_a6ca6202",
       "range": {
         "startLine": 200,
         "startChar": 31,
@@ -439,6 +871,30 @@
     },
     {
       "key": {
+        "uuid": "8c0b7aa6_f97bc027",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Fixed this so it doesn\u0027t run again after disconnect. I prefer setTimeout over having to clearInterval. Thanks for pointing out that I want the callback to stop when the user hits \u0027m\u0027.",
+      "parentUuid": "286a30ef_f05cb543",
+      "range": {
+        "startLine": 204,
+        "startChar": 0,
+        "endLine": 207,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba1d7892_6478ba5d",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -459,6 +915,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af75aaa7_ab1f3e3c",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "I don\u0027t think it\u0027s more clear to do so.",
+      "parentUuid": "ba1d7892_6478ba5d",
+      "range": {
+        "startLine": 247,
+        "startChar": 12,
+        "endLine": 247,
+        "endChar": 41
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -485,6 +965,30 @@
     },
     {
       "key": {
+        "uuid": "94e8f637_1a51622c",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "67f6b966_2f8c4659",
+      "range": {
+        "startLine": 251,
+        "startChar": 0,
+        "endLine": 253,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0501ff1e_a1d06cde",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -505,6 +1009,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b454addc_b8c63a8c",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "No - it makes more sense to start the path here. Additionally, I have worded this comment so the important rationale is highlighted - that would be lost by removing the comment or a simple link. I made the mistake outlined in the comment, and I want to be sure I don\u0027t again.",
+      "parentUuid": "0501ff1e_a1d06cde",
+      "range": {
+        "startLine": 277,
+        "startChar": 0,
+        "endLine": 280,
+        "endChar": 20
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -531,6 +1059,30 @@
     },
     {
       "key": {
+        "uuid": "5f32681e_80573d59",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "crosshair is singular",
+      "parentUuid": "064f1577_759dbcc6",
+      "range": {
+        "startLine": 339,
+        "startChar": 2,
+        "endLine": 339,
+        "endChar": 21
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c80cf3f0_514385e9",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -551,6 +1103,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4ea9c47_de95e404",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c80cf3f0_514385e9",
+      "range": {
+        "startLine": 347,
+        "startChar": 2,
+        "endLine": 347,
+        "endChar": 14
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -577,6 +1153,30 @@
     },
     {
       "key": {
+        "uuid": "8dff68af_7b8906ac",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "I\u0027m fine keeping it in.",
+      "parentUuid": "d982e978_bb371fbb",
+      "range": {
+        "startLine": 370,
+        "startChar": 0,
+        "endLine": 372,
+        "endChar": 24
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4750614c_c9121773",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -597,6 +1197,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c6b0d72_85c47ed1",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4750614c_c9121773",
+      "range": {
+        "startLine": 376,
+        "startChar": 0,
+        "endLine": 376,
+        "endChar": 24
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -623,6 +1247,30 @@
     },
     {
       "key": {
+        "uuid": "fef8b451_5ac1c51e",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3c86d161_911e6a74",
+      "range": {
+        "startLine": 431,
+        "startChar": 0,
+        "endLine": 468,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ad625b51_5931e846",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -643,6 +1291,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76847ea6_81035c94",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 509,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ad625b51_5931e846",
+      "range": {
+        "startLine": 509,
+        "startChar": 0,
+        "endLine": 509,
+        "endChar": 23
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -669,6 +1341,30 @@
     },
     {
       "key": {
+        "uuid": "ef498def_20c41fbb",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 510,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "As I\u0027ve explained before, I believe events thrown by an elements children and caught by this should generally be stopped, so as to keep the elements interface small and its abstraction level higher.",
+      "parentUuid": "3256a17d_94c007e0",
+      "range": {
+        "startLine": 510,
+        "startChar": 0,
+        "endLine": 510,
+        "endChar": 24
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "41a1102d_5f19edc5",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -689,6 +1385,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8f14f19_18245bb5",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 519,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "41a1102d_5f19edc5",
+      "range": {
+        "startLine": 519,
+        "startChar": 2,
+        "endLine": 519,
+        "endChar": 14
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -715,6 +1435,30 @@
     },
     {
       "key": {
+        "uuid": "edb58c63_bb7d4240",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.scss",
+        "patchSetId": 13
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "We don\u0027t know the widths of the titles - they can be arbitrary.",
+      "parentUuid": "8861a09b_4294ab1f",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "983b7f11_3d4708dd",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk_test.js",
         "patchSetId": 13
@@ -735,6 +1479,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6cbc4c3c_da78c8e7",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "983b7f11_3d4708dd",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -761,6 +1529,30 @@
     },
     {
       "key": {
+        "uuid": "3d1f663f_f0920613",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "I don\u0027t think that really adds much clarity since all but 1 of the test involves a keyboard shortcut.",
+      "parentUuid": "6b8e3f03_853490f1",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 5
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3c0368ca_bc31b618",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk_test.js",
         "patchSetId": 13
@@ -781,6 +1573,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c709f7dd_8231047b",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Not worth a test, IMO",
+      "parentUuid": "3c0368ca_bc31b618",
+      "range": {
+        "startLine": 181,
+        "startChar": 0,
+        "endLine": 181,
+        "endChar": 3
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -807,6 +1623,30 @@
     },
     {
       "key": {
+        "uuid": "7009908d_fb7d370d",
+        "filename": "golden/modules/multi-zoom-sk/test_data.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bd2ebae2_c2724f87",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 51
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b7744dd7_bd3a48f4",
         "filename": "golden/modules/multi-zoom-sk/test_data.js",
         "patchSetId": 13
@@ -818,6 +1658,30 @@
       "writtenOn": "2020-04-13T04:41:54Z",
       "side": 1,
       "message": "Nit:  Please add two spaces of indentation to these so it\u0027s visually clearer that this isn\u0027t code that\u0027s been commented out. Same below.",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "568d99a1_49975502",
+        "filename": "golden/modules/multi-zoom-sk/test_data.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "I don\u0027t know what you mean by indentation. You mean before export const? That seems out of style.",
+      "parentUuid": "b7744dd7_bd3a48f4",
       "range": {
         "startLine": 6,
         "startChar": 0,
@@ -853,6 +1717,30 @@
     },
     {
       "key": {
+        "uuid": "c32aeea6_08e5abdb",
+        "filename": "golden/modules/multi-zoom-sk/test_data.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Not worth the potential flake factor. I prefer my test inputs to be static.",
+      "parentUuid": "f135ab4d_7468aaee",
+      "range": {
+        "startLine": 38,
+        "startChar": 13,
+        "endLine": 38,
+        "endChar": 23
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "74c300e5_9c2857ee",
         "filename": "golden/modules/multi-zoom-sk/test_data.js",
         "patchSetId": 13
@@ -873,6 +1761,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4995f61f_6b8c37da",
+        "filename": "golden/modules/multi-zoom-sk/test_data.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "74c300e5_9c2857ee",
+      "range": {
+        "startLine": 40,
+        "startChar": 3,
+        "endLine": 40,
+        "endChar": 11
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -899,6 +1811,30 @@
     },
     {
       "key": {
+        "uuid": "d14eee2d_5ee68cf3",
+        "filename": "golden/modules/multi-zoom-sk/test_data.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6103577c_907dc357",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 62
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2cec5b0b_f52d0350",
         "filename": "golden/puppeteer-tests/test/multi-zoom-sk_puppeteer_test.js",
         "patchSetId": 13
@@ -922,6 +1858,30 @@
     },
     {
       "key": {
+        "uuid": "d047f25a_48b7c86f",
+        "filename": "golden/puppeteer-tests/test/multi-zoom-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2cec5b0b_f52d0350",
+      "range": {
+        "startLine": 17,
+        "startChar": 12,
+        "endLine": 17,
+        "endChar": 22
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eef2f1ab_d8910e2f",
         "filename": "golden/puppeteer-tests/test/multi-zoom-sk_puppeteer_test.js",
         "patchSetId": 13
@@ -942,6 +1902,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3428ab31_6ba8f7f3",
+        "filename": "golden/puppeteer-tests/test/multi-zoom-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T12:51:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eef2f1ab_d8910e2f",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 7
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
