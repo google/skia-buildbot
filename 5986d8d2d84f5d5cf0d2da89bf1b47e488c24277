@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "73aed411_c11d8c29",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:46:04Z",
+      "side": 1,
+      "message": "Nit: Capitalization/period.",
+      "range": {
+        "startLine": 220,
+        "startChar": 4,
+        "endLine": 220,
+        "endChar": 30
+      },
+      "revId": "5986d8d2d84f5d5cf0d2da89bf1b47e488c24277",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2a474d5_a9721484",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:46:04Z",
+      "side": 1,
+      "message": "Why is this necessary? Shouldn\u0027t these be garbage collected with the rest of the component?\n\nIf they are not, this could indicate a memory leak.",
+      "range": {
+        "startLine": 221,
+        "startChar": 0,
+        "endLine": 223,
+        "endChar": 0
+      },
+      "revId": "5986d8d2d84f5d5cf0d2da89bf1b47e488c24277",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
