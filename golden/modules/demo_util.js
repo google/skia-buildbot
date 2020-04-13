@@ -1,7 +1,8 @@
 /**
  * Wraps the value toReturn in a Promise that will resolve after "delay"
  * milliseconds. Used to fake RPC latency in demo pages.
- * @param toReturn {Object} Object to be returned.
+ * @param toReturn {Object|Function} Either the body to be returned in a 200 JSON response or a
+ *     function that returns the fetch-mock response.
  * @param delay {number} Delay in milliseconds.
  * @return {Function}
  */
@@ -9,13 +10,20 @@ exports.delay = function(toReturn, delay = 100) {
   // We return a function that returns the promise so each call has a "fresh"
   // promise and waits for the time.
   return function() {
+    let returnValue;
+    if (typeof toReturn === 'function') {
+      returnValue = toReturn();
+    } else {
+      returnValue = {
+        status: 200,
+        body: JSON.stringify(toReturn),
+        headers: { 'content-type': 'application/json' },
+      };
+    }
+
     return new Promise((resolve) => {
       setTimeout(resolve, delay);
-    }).then(() => ({
-      status: 200,
-      body: JSON.stringify(toReturn),
-      headers: { 'content-type': 'application/json' },
-    }));
+    }).then(() => returnValue);
   };
 };
 
