@@ -1,11 +1,10 @@
 import './index';
-import '../gold-scaffold-sk';
 import { $$ } from 'common-sk/modules/dom';
 import { fetchMock } from 'fetch-mock';
 import { delay, isPuppeteerTest } from '../demo_util';
 import { trstatus } from './test_data';
 
-const fakeRpcDelayMillis = isPuppeteerTest() ? 0 : 300;
+const fakeRpcDelayMillis = isPuppeteerTest() ? 5 : 300;
 
 fetchMock.get('/json/trstatus', () => {
   if ($$('#simulate-rpc-failure').checked) {
@@ -30,7 +29,7 @@ const handleCorpusSelected = (e) => {
 const el1 = document.createElement('corpus-selector-sk');
 el1.selectedCorpus = 'gm';
 el1.addEventListener('corpus-selected', handleCorpusSelected);
-$$('#default-fn-corpus-selector-placeholder').appendChild(el1);
+$$('#default').appendChild(el1);
 
 // Custom corpus renderer function.
 const el2 = document.createElement('corpus-selector-sk');
@@ -40,11 +39,11 @@ if (!isPuppeteerTest()) {
 }
 el2.corpusRendererFn = (corpus) => `${corpus.name} : ${corpus.untriagedCount} / ${corpus.negativeCount}`;
 el2.addEventListener('corpus-selected', handleCorpusSelected);
-$$('#custom-fn-corpus-selector-placeholder').appendChild(el2);
+$$('#custom-fn').appendChild(el2);
 
 // Custom corpus renderer function (long).
 const el3 = document.createElement('corpus-selector-sk');
 el3.selectedCorpus = 'gm';
 el3.corpusRendererFn = (corpus) => `${corpus.name} : yadda yadda yadda yadda yadda`;
 el3.addEventListener('corpus-selected', handleCorpusSelected);
-$$('#custom-fn-long-corpus-selector-placeholder').appendChild(el3);
+$$('#custom-fn-long-corpus').appendChild(el3);

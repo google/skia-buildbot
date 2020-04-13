@@ -152,18 +152,10 @@ describe('util', async () => {
     });
     after(async () => { await stopDemoPageServer(); });
 
-    it('should serve some demo pages', async () => {
-      // Load changelists-page-sk-demo.html and perform a basic sanity check.
+    it('should serve a demo page', async () => {
+      // Load changelists-page-sk-demo.html and perform a basic smoke test on a known page.
       await page.goto(`${baseUrl}/dist/changelists-page-sk.html`);
       expect(await page.$$('changelists-page-sk')).to.have.length(1);
-
-      // Same with triagelog-page-sk-demo.html.
-      await page.goto(`${baseUrl}/dist/triagelog-page-sk.html`);
-      expect(await page.$$('triagelog-page-sk')).to.have.length(1);
-
-      // This demo page contains three instances of corpus-selector-sk.
-      await page.goto(`${baseUrl}/dist/corpus-selector-sk.html`);
-      expect(await page.$$('corpus-selector-sk')).to.have.length(3);
     });
   });
 });
