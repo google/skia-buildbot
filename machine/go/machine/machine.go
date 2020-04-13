@@ -57,9 +57,16 @@ type Android struct {
 	DumpsysThermalService string `json:"dumpsys_thermal_service"`
 }
 
+// Host is information about the host machine.
+type Host struct {
+	Name string `json:"name"` // From SWARMING_BOT_ID environment variable or hostname().
+	Rack string `json:"rack"` // From MY_RACK_NAME environment variable.
+}
+
 // Event is the information a machine should send via Source when
 // its local state has changed.
 type Event struct {
 	EventType EventType `json:"type"`
 	Android   Android   `json:"android"`
+	Host      Host      `json:"host"`
 }
