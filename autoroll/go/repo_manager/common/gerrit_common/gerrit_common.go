@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 // SetChangeLabels sets the necessary labels on the given change, marking it
@@ -78,6 +79,7 @@ func DownloadCommitMsgHook(ctx context.Context, g gerrit.GerritInterface, co *gi
 	}
 	hookFile := filepath.Join(co.Dir(), strings.TrimSpace(out), "hooks", "commit-msg")
 	if _, err := os.Stat(hookFile); os.IsNotExist(err) {
+		sklog.Errorf("Downloading commit message hook to %s", hookFile)
 		if err := os.MkdirAll(filepath.Dir(hookFile), os.ModePerm); err != nil {
 			return skerr.Wrap(err)
 		}

@@ -162,6 +162,8 @@ func DebugString(command *Command) string {
 }
 
 func createCmd(command *Command) *osexec.Cmd {
+	command.LogStdout = true
+	command.LogStderr = true
 	cmd := osexec.Command(command.Name, command.Args...)
 	if len(command.Env) != 0 {
 		cmd.Env = command.Env

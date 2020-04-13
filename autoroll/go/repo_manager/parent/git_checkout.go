@@ -9,13 +9,17 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 const (
@@ -57,7 +61,12 @@ type GitCheckoutGetLastRollRevFunc func(context.Context, *git.Checkout) (string,
 
 // NewGitCheckout returns a base for implementations of Parent which use
 // a local checkout to create changes.
-func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir string, getLastRollRev GitCheckoutGetLastRollRevFunc, createRoll GitCheckoutCreateRollFunc, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir string, co *git.Checkout, getLastRollRev GitCheckoutGetLastRollRevFunc, createRoll GitCheckoutCreateRollFunc, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
+	// Clean up any lockfiles, in case the process was interrupted.
+	if err := DeleteGitLockFiles(ctx, workdir); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	// Register the configured branch template.
 	if err := reg.Register(c.Branch); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -67,9 +76,11 @@ func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.R
 		return nil, skerr.Wrap(err)
 	}
 	// Create the local checkout.
-	co, err := git.NewCheckout(ctx, c.RepoURL, workdir)
-	if err != nil {
-		return nil, skerr.Wrap(err)
+	if co == nil {
+		co, err = git.NewCheckout(ctx, c.RepoURL, workdir)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 	}
 	return &GitCheckoutParent{
 		baseParent:     base,
@@ -144,14 +155,39 @@ func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revisio
 // VersionFileGetLastRollRevFunc returns a GitCheckoutGetLastRollRevFunc which
 // reads the given file path from the repo and returns its full contents as the
 // last-rolled revision ID.
-func VersionFileGetLastRollRevFunc(path string) GitCheckoutGetLastRollRevFunc {
+func VersionFileGetLastRollRevFunc(path, dep string) GitCheckoutGetLastRollRevFunc {
 	return func(ctx context.Context, co *git.Checkout) (string, error) {
 		contents, err := ioutil.ReadFile(filepath.Join(co.Dir(), path))
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
-		return strings.TrimSpace(string(contents)), nil
+		// TODO(borenet): It's kind of weird that we're using a gitiles
+		// helper function here.
+		return gitiles_common.GetPinnedRev(path, dep, string(contents))
 	}
+}
+
+// DeleteGitLockFiles finds and deletes Git lock files within the given workdir.
+func DeleteGitLockFiles(ctx context.Context, workdir string) error {
+	sklog.Infof("Looking for git lockfiles in %s", workdir)
+	output, err := exec.RunCwd(ctx, workdir, "find", ".", "-name", "index.lock")
+	if err != nil {
+		return err
+	}
+	output = strings.TrimSpace(output)
+	if output == "" {
+		sklog.Info("No lockfiles found.")
+		return nil
+	}
+	lockfiles := strings.Split(output, "\n")
+	for _, f := range lockfiles {
+		fp := filepath.Join(workdir, f)
+		sklog.Warningf("Removing git lockfile: %s", fp)
+		if err := os.Remove(fp); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 var _ Parent = &GitCheckoutParent{}

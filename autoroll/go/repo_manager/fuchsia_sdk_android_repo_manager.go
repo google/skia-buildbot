@@ -92,9 +92,9 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	update := parent.VersionFileGetLastRollRevFunc(FuchsiaSDKAndroidVersionFile)
+	update := parent.VersionFileGetLastRollRevFunc(FuchsiaSDKAndroidVersionFile, "FuchsiaSDK")
 	createRoll := fuchsiaSDKAndroidRepoManagerCreateRollFunc(genSdkBpRepo, c.GenSdkBpBranch, workdir)
-	parentRM, err := parent.NewGitCheckoutGerrit(ctx, parentCfg, reg, authClient, serverURL, workdir, update, createRoll)
+	parentRM, err := parent.NewGitCheckoutGerrit(ctx, parentCfg, reg, authClient, serverURL, workdir, nil, update, createRoll)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
