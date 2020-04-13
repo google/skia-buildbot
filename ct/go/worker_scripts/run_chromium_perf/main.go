@@ -15,7 +15,7 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/ct/go/adb"
+	//"go.skia.org/infra/ct/go/adb"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/exec"
@@ -77,18 +77,18 @@ func runChromiumPerf() error {
 		*valueColumnName = util.DEFAULT_VALUE_COLUMN_NAME
 	}
 
-	if *targetPlatform == util.PLATFORM_ANDROID {
-		if err := adb.VerifyLocalDevice(ctx); err != nil {
-			// Android device missing or offline.
-			return fmt.Errorf("Could not find Android device: %s", err)
-		}
-		// Kill adb server to make sure we start from a clean slate.
-		skutil.LogErr(util.ExecuteCmd(ctx, util.BINARY_ADB, []string{"kill-server"}, []string{},
-			util.ADB_ROOT_TIMEOUT, nil, nil))
-		// Make sure adb shell is running as root.
-		skutil.LogErr(util.ExecuteCmd(ctx, util.BINARY_ADB, []string{"root"}, []string{},
-			util.ADB_ROOT_TIMEOUT, nil, nil))
-	}
+	//if *targetPlatform == util.PLATFORM_ANDROID {
+	//	if err := adb.VerifyLocalDevice(ctx); err != nil {
+	//		// Android device missing or offline.
+	//		return fmt.Errorf("Could not find Android device: %s", err)
+	//	}
+	//	// Kill adb server to make sure we start from a clean slate.
+	//	skutil.LogErr(util.ExecuteCmd(ctx, util.BINARY_ADB, []string{"kill-server"}, []string{},
+	//		util.ADB_ROOT_TIMEOUT, nil, nil))
+	//	// Make sure adb shell is running as root.
+	//	skutil.LogErr(util.ExecuteCmd(ctx, util.BINARY_ADB, []string{"root"}, []string{},
+	//		util.ADB_ROOT_TIMEOUT, nil, nil))
+	//}
 
 	// Instantiate GcsUtil object.
 	gs, err := util.NewGcsUtil(nil)

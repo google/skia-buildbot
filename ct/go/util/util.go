@@ -519,7 +519,8 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	// Trigger and collect swarming tasks.
 	for taskMap := range chTasks {
 		// Trigger swarming using the isolate hashes.
-		tasks, err := s.TriggerSwarmingTasks(ctx, taskMap, dimensions, map[string]string{"runid": runID}, map[string]string{}, []string{}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+		// Removed 7*24*time.Hour. Do it according to android?
+		tasks, err := s.TriggerSwarmingTasks(ctx, taskMap, dimensions, map[string]string{"runid": runID}, map[string]string{}, []string{}, priority, 24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 		if err != nil {
 			return numTasks, fmt.Errorf("Could not trigger swarming tasks: %s", err)
 		}
@@ -538,8 +539,11 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 						sklog.Infof("task %s was killed (either manually or via CT's delete button). Not going to retry it.", task.Title)
 						return
 					}
+					// Just testing. Do not retry anything.
+					return
 					sklog.Infof("Retrying task %s with high priority %d", task.Title, TASKS_PRIORITY_HIGH)
-					retryTask, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, map[string]string{}, []string{}, TASKS_PRIORITY_HIGH, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+					// Removed 7*24*time.Hour. Do it according to android?
+					retryTask, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, map[string]string{}, []string{}, TASKS_PRIORITY_HIGH, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 					if err != nil {
 						sklog.Errorf("Could not trigger retry of task %s: %s", task.Title, err)
 						return
@@ -561,10 +565,13 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 
 // getServiceAccount returns the service account that should be used when triggering swarming tasks.
 func getServiceAccount(dimensions map[string]string) string {
+	// TESTING HERE HERE HERE
 	serviceAccount := ""
 	if util.MapsEqual(dimensions, GCE_LINUX_WORKER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_MASTER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_ANDROID_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_WINDOWS_BUILDER_DIMENSIONS) {
 		// GCE bots need to use "bot". See skbug.com/6611.
 		serviceAccount = "bot"
+	} else if util.MapsEqual(dimensions, GOLO_ANDROID_WORKER_DIMENSIONS) {
+		serviceAccount = "ct-swarming-bots@ct-swarming-bots.iam.gserviceaccount.com"
 	}
 	return serviceAccount
 }
@@ -580,7 +587,12 @@ func GetPathToIsolates(local, runOnMaster bool) string {
 	} else if runOnMaster {
 		return filepath.Join("/", "usr", "local", "share", "ctfe", "isolates")
 	} else {
-		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ctfe", "isolates")
+		d := filepath.Dir(filepath.Dir(os.Args[0]))
+		if d == "." {
+			fmt.Println("IKN HERE")
+			d = "/repos/go/"
+		}
+		return filepath.Join(d, "share", "ctfe", "isolates")
 	}
 }
 
@@ -591,7 +603,12 @@ func GetPathToPyFiles(local bool) string {
 		_, currentFile, _, _ := runtime.Caller(0)
 		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "py")
 	} else {
-		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ctfe", "py")
+		d := filepath.Dir(filepath.Dir(os.Args[0]))
+		if d == "." {
+			fmt.Println("IKN HERE")
+			d = "/repos/go/"
+		}
+		return filepath.Join(d, "share", "ctfe", "py")
 	}
 }
 
@@ -800,6 +817,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 
 	if targetPlatform == PLATFORM_ANDROID {
 		// Reset android logcat prior to the run so that we can examine the logs later.
+		// rmistry: Cannot do this anymore :/
 		util.LogErr(ExecuteCmd(ctx, BINARY_ADB, []string{"logcat", "-c"}, []string{}, ADB_ROOT_TIMEOUT, nil, nil))
 	}
 
@@ -821,6 +839,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 
 	// Append logcat output if we ran on Android.
 	if targetPlatform == PLATFORM_ANDROID {
+		// rmistry: Cannot do this anymore :/
 		if err := ExecuteCmdWithConfigurableLogging(ctx, BINARY_ADB, []string{"logcat", "-d"}, env, ADB_ROOT_TIMEOUT, &b, &b, false, false); err != nil {
 			return "", fmt.Errorf("Error running logcat -d: %s", err)
 		}
