@@ -25,6 +25,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
+	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -209,7 +210,11 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	var manualRequests []*manual.ManualRollRequest
 	if roller.Cfg.SupportsManualRolls {
 		var err error
-		manualRequests, err = manualRollDB.GetRecent(roller.Cfg.RollerName, len(status.NotRolledRevisions))
+		// Retrieve enough manual rolls to cover all NotRolledRevisions
+		// and the full list of recent normal rolls, in case all of the
+		// recent rolls which landed were actually manual rolls.
+		n := len(status.NotRolledReviions) + recent_rolls.RECENT_ROLLS_LENGTH
+		manualRequests, err = manualRollDB.GetRecent(roller.Cfg.RollerName, n)
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to obtain manual roll requests.", http.StatusInternalServerError)
 			return

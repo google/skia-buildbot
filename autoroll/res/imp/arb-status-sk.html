@@ -923,7 +923,6 @@
         this._setMode(json.mode.mode);
         this._setModeChangeBy(json.mode.user);
         this._setModeChangeMsg(json.mode.message);
-        this._setRecent(json.recent);
         this._setInitialSelectedMode(json.validModes.indexOf(json.mode).toString());
         this._setStatus(json.status);
         this._setStrategy(json.strategy.strategy);
@@ -979,6 +978,17 @@
           });
         };
         this.set("rollCandidates", rollCandidates);
+
+        let recentRolls = json.recent;
+        if (json.manualRequests) {
+          recentRolls = json.manualRequests.map((req) => ({
+            issue: parseInt(req.url.split("/")[-1]),
+            subject: "Manual roll to " + req.revision + " requested by " + req.requester,
+            modified: req.timestamp,
+            result: req.status == "COMPLETED" ? (req.result == "SUCCESS" ? "succeeded" : "failed") : "in progress",
+          }))) + recentRolls;
+        }
+        this._setRecent(recentRolls);
 
         this._lastLoaded = new Date().toLocaleTimeString();
         this._resetTimeout();
