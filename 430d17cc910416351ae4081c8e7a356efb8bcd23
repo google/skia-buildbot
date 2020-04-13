@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f680a2d1_8fd1594a",
+        "filename": "golden/modules/byblame-page-sk/byblame-page-sk-demo.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T11:41:01Z",
+      "side": 1,
+      "message": "https://github.com/google/skia-buildbot/blame/master/golden/puppeteer-tests/test/util.js#L127 Perhaps that advice should be put in the README as well?\n\nI picked 5 because I vaguely recall on a previous attempt of doing something like this setting it to 0 made for problems. I went with 5, it worked, so I didn\u0027t bother trying other values.",
+      "parentUuid": "9f397e4d_4beac9ab",
+      "range": {
+        "startLine": 23,
+        "startChar": 26,
+        "endLine": 23,
+        "endChar": 54
+      },
+      "revId": "430d17cc910416351ae4081c8e7a356efb8bcd23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "37fc46ef_2e369c0c",
         "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk-demo.html",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "430d17cc910416351ae4081c8e7a356efb8bcd23",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "835fd2df_fbc6cf89",
+        "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T11:41:01Z",
+      "side": 1,
+      "message": "I agree we should wait until consensus deciding on one or the other. In the meantime, I am continuing with what I have been doing.",
+      "parentUuid": "37fc46ef_2e369c0c",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 22
+      },
+      "revId": "430d17cc910416351ae4081c8e7a356efb8bcd23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "335d54ef_a8ca01ed",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk-demo.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T11:41:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d124bb6f_8f5b4ecb",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 0
+      },
+      "revId": "430d17cc910416351ae4081c8e7a356efb8bcd23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6b22a376_249e359c",
         "filename": "golden/puppeteer-tests/test/triage-history-sk_puppeteer_test.js",
         "patchSetId": 1
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "52e3d3f1_35c7dfea",
+        "filename": "golden/puppeteer-tests/test/triage-history-sk_puppeteer_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T11:41:01Z",
+      "side": 1,
+      "message": "There\u0027s some expectation that a person looking at this code will either also be looking at demo page or the output image, in which case I think it is more apparent I\u0027m referring to the \u003ch2\u003e header tags.",
+      "parentUuid": "6b22a376_249e359c",
+      "range": {
+        "startLine": 19,
+        "startChar": 44,
+        "endLine": 20,
+        "endChar": 14
+      },
+      "revId": "430d17cc910416351ae4081c8e7a356efb8bcd23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7d77a956_91c1f4eb",
         "filename": "golden/puppeteer-tests/test/triage-history-sk_puppeteer_test.js",
         "patchSetId": 1
@@ -114,6 +210,30 @@
       "revId": "430d17cc910416351ae4081c8e7a356efb8bcd23",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5191ce3_002e3e5a",
+        "filename": "golden/puppeteer-tests/test/triage-history-sk_puppeteer_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-13T11:41:01Z",
+      "side": 1,
+      "message": "I can\u0027t think of a better phrasing.",
+      "parentUuid": "7d77a956_91c1f4eb",
+      "range": {
+        "startLine": 21,
+        "startChar": 14,
+        "endLine": 21,
+        "endChar": 20
+      },
+      "revId": "430d17cc910416351ae4081c8e7a356efb8bcd23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
