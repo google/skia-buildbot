@@ -131,7 +131,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
-	golang.org/x/tools v0.0.0-20200410194907-79a7a3126eef
+	golang.org/x/tools v0.0.0-20200413015812-1f08ef6002a8
 	google.golang.org/api v0.21.0
 	google.golang.org/genproto v0.0.0-20200410110633-0848e9f44c36
 	google.golang.org/grpc v1.28.1
