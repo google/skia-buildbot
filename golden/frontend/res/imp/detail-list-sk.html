@@ -52,7 +52,6 @@
       ready: function () {
         this.listen(this, 'zoom-dialog-opened', '_handleZoomOpened');
         this.listen(this, 'zoom-dialog-closed', '_handleZoomClosed');
-        this.listen(this, 'triage', '_handleTriage');
       },
 
       startUse: function() {
@@ -104,10 +103,6 @@
 
       _handleZoomOpened: function () {
         this._zooming = true;
-      },
-
-      _handleTriage: function (ev) {
-        sk.post('/json/triage', JSON.stringify(ev.detail)).catch(sk.errorMessage);
       },
 
       // _findFocus returns the current details element with the keyboard focus.
