@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9f397e4d_4beac9ab",
+        "filename": "golden/modules/byblame-page-sk/byblame-page-sk-demo.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T05:07:53Z",
+      "side": 1,
+      "message": "Why is this necessary? And if it is, why 5 and not just 0?",
+      "range": {
+        "startLine": 23,
+        "startChar": 26,
+        "endLine": 23,
+        "endChar": 54
+      },
+      "revId": "430d17cc910416351ae4081c8e7a356efb8bcd23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37fc46ef_2e369c0c",
+        "filename": "golden/modules/changelist-controls-sk/changelist-controls-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T05:07:53Z",
+      "side": 1,
+      "message": "Let\u0027s please not re-style existing code in a way that deviates from the style guide[1].\n\nIf anything, please use dashes as per the style guide.\n\nAs discussed in previous CLs, this is something that we should probably discuss as a team, and add to http://cs/skia/buildbot/STYLEGUIDE.md once we reach consensus.\n\n[1] go/htmlcssstyle#ID_and_Class_Name_Delimiters",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 22
+      },
+      "revId": "430d17cc910416351ae4081c8e7a356efb8bcd23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d124bb6f_8f5b4ecb",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk-demo.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T05:07:53Z",
+      "side": 1,
+      "message": "Perhaps the Puppeteer-test-specific delay could be baked into the delay() function, so as not to have to repeat the \"isPuppeteerTest() ? 5 : 300\" logic on every test.",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 0
+      },
+      "revId": "430d17cc910416351ae4081c8e7a356efb8bcd23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b22a376_249e359c",
+        "filename": "golden/puppeteer-tests/test/triage-history-sk_puppeteer_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T05:07:53Z",
+      "side": 1,
+      "message": "It\u0027s not clear what \"headers\" means here.",
+      "range": {
+        "startLine": 19,
+        "startChar": 44,
+        "endLine": 20,
+        "endChar": 14
+      },
+      "revId": "430d17cc910416351ae4081c8e7a356efb8bcd23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d77a956_91c1f4eb",
+        "filename": "golden/puppeteer-tests/test/triage-history-sk_puppeteer_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T05:07:53Z",
+      "side": 1,
+      "message": "Consider rephrasing so it\u0027s clear exactly what to expect. The word \"either\" suggests a non-deterministic output.",
+      "range": {
+        "startLine": 21,
+        "startChar": 14,
+        "endLine": 21,
+        "endChar": 20
+      },
+      "revId": "430d17cc910416351ae4081c8e7a356efb8bcd23",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
