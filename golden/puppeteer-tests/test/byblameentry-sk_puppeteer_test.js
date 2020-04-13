@@ -15,7 +15,6 @@ describe('byblameentry-sk', () => {
   });
 
   it('should take a screenshot', async () => {
-    await testBed.page.setViewport({ width: 600, height: 800 });
     const byBlameEntry = await testBed.page.$('byblameentry-sk');
     await takeScreenshot(byBlameEntry, 'byblameentry-sk');
   });

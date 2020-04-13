@@ -15,7 +15,11 @@ describe('triage-history-sk', () => {
   });
 
   describe('screenshots', async () => {
+    // We choose not to draw these two cases separately, since a blank image in Gold would likely
+    // be confusing, despite being correct. Showing the headers adds a bit of documentation to the
+    // images.
     it('draws either empty or shows the last history object', async () => {
+      await testBed.page.setViewport({ width: 400, height: 200 });
       await takeScreenshot(testBed.page, 'triage-history-sk');
     });
   });
