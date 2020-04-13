@@ -1,0 +1,947 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0f710a39_9a562052",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk-demo.html",
+        "patchSetId": 13
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Nit: add a blank line after the button",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 48
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6303fd5_9ffa7851",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk-demo.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Why not inline this?\n\nIf it\u0027s for performance reasons, how did you determine this is slow, and how does it affect the demo page / screenshot tests?",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 38
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3abadcce_7fc1052e",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Since there\u0027s no need for this canvas to be attached to the DOM, can the canvas be created dynamically via document.createElement(\u0027canvas\u0027) where it\u0027s used?\n\nIf instantiating a canvas every time is too expensive, consider creating one once in the component\u0027s constructor.\n\nRationale: these templates are already quite busy. Let\u0027s try to keep them as simple as possible.\n\nThis link might be useful: https://stackoverflow.com/questions/6608996/is-it-possible-to-create-an-html-canvas-without-a-dom-element.",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06a6cb8c_597a5df4",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Consider naming these classes \"idx-N\".\n\nRationale:\n- To be consistent with the \"index\" terminology as in as in left/diff/rightImageIdx\n- To remove the confusion around HTML IDs (\"Why does this CSS class have the word ID in its name? Why not make it an ID instead of a class?\")\n- Since said confusion is gone, the highlighted comment can probably be removed.",
+      "range": {
+        "startLine": 46,
+        "startChar": 90,
+        "endLine": 48,
+        "endChar": 53
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a7373fa_57bf6c00",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Please see my comment in the component constructor about the use of indexes vs left/diff/rightXXX fields.\n\nIf you choose to use indexes everywhere then parameters src and label can be removed, because parameters idx and ele would suffice.",
+      "range": {
+        "startLine": 52,
+        "startChar": 27,
+        "endLine": 52,
+        "endChar": 43
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ce49125_7f28e3b8",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "The cloned checkbox isn\u0027t necessary to avoid flickering, please see my comments in the .scss file.",
+      "range": {
+        "startLine": 58,
+        "startChar": 4,
+        "endLine": 59,
+        "endChar": 16
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bed92e42_695e3b50",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Please replace \"rotate\" with \"flip\" or \"cycle\" everywhere in this component.\n\nRationale: The word rotate has a special meaning in the context of images; it took me a while to realize there are no image rotations involved here.",
+      "range": {
+        "startLine": 60,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 92
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92b64ac9_55dae0d4",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Please give this and leftColumn more descriptive names, e.g. statsAndNavigationTemplate and previewsAndTogglesTemplate, respectively.\n\nThis helps the reader make sense of this template without e.g. having to scroll up to see the context in which it\u0027s used.",
+      "range": {
+        "startLine": 65,
+        "startChar": 6,
+        "endLine": 65,
+        "endChar": 17
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec1a9807_8b62efdb",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Please add a comment explaining exactly what this does. It took me a minute to understand.",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 31
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1144f049_f482a300",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Please inline this inside colorHex() as follows:\n\n  const toHex \u003d (i) \u003d\u003e i.toString(16).toUpperCase().padStart(2, \"0\");\n\nRationale: simpler, no need for a comment clarifying that this is a helper just for colorHex, one less symbol crowding the component\u0027s namespace.",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 151,
+        "endChar": 1
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18946274_9a299bb9",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Can this be an unexported function? I couldn\u0027t find any callers anywhere outside this module.\n\nIf it needs to be exported, it should probably be move outside of this module.\n\nIf it doesn\u0027t need to be hoisted please turn it into a lambda.",
+      "range": {
+        "startLine": 154,
+        "startChar": 0,
+        "endLine": 154,
+        "endChar": 6
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d2dc8a0_ea4b4909",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Can this either be moved closer to its only caller, or be inlined?",
+      "range": {
+        "startLine": 158,
+        "startChar": 0,
+        "endLine": 161,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49937d52_3d71003a",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Nit: This is hard to read.\n\nPlease break this long line as per the JS style guide: http://go/js-style#formatting-where-to-break, http://go/rectangle-rule.\n\nNote to self: it would be great if this could be enforced with eslint.",
+      "range": {
+        "startLine": 164,
+        "startChar": 50,
+        "endLine": 164,
+        "endChar": 51
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97e18067_3e4a558f",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "I see a combination of:\n\n- Fields prefixed with left/right/diff, e.g. _leftLabel, _diffImageSrc, etc.\n- Arrays _loadedImageData and _rotateThrough indexed by left/diff/rightImageIdx.\n\nIs there a reason for having these two different styles? If not, can we do either one or the other?\n\nI have a slight preference for replacing each of the above arrays with three fields, but it\u0027d also be fine with having arrays \"_imageSrcs\" and \"_imageLabels\".\n\nUp to you as long as it\u0027s consistent.",
+      "range": {
+        "startLine": 174,
+        "startChar": 0,
+        "endLine": 182,
+        "endChar": 47
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5781e2a9_2956230b",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Please add comments explaining what these do, and what the valid values are (e.g. \"What does zoom level 8 mean? Why 8?\").\n\nPlease don\u0027t forget to mention the special value of zoomIndex \u003d -1.",
+      "range": {
+        "startLine": 183,
+        "startChar": 0,
+        "endLine": 185,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b32a893c_fc7724de",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Same here; it\u0027s not clear what the difference is between these.",
+      "range": {
+        "startLine": 186,
+        "startChar": 4,
+        "endLine": 188,
+        "endChar": 44
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea040810_e8df1884",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Here as well. (e.g. \"What\u0027s a diff? Why do they need to be cached?\").",
+      "range": {
+        "startLine": 189,
+        "startChar": 0,
+        "endLine": 191,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1cc74483_a6ca6202",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Please use keydown. It\u0027s a non-standard behavior for a UI to react to when the user releases a key, as opposed to reacting immediately when a user presses down a key.\n\nTake for example Gerrit and the line selection behavior when pressing the up/down arrow keys. Note that the action happens when said keys are pressed down, as opposed to when they\u0027re released.",
+      "range": {
+        "startLine": 200,
+        "startChar": 31,
+        "endLine": 200,
+        "endChar": 36
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "286a30ef_f05cb543",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "These timeouts look like they could be replaced with a single call to setInterval().\n\nAlso, the timeout is not cleared after the component is disconnected from the DOM, which might cause flaky errors on the test runner output, e.g. by invoking this._nextZoomeImage() after the component has been detached from the DOM.\n\nPlease replace with:\n\n  this._rotateInterval \u003d setInterval(() \u003d\u003e {\n    if (this._rotatingView) {\n      this._nextZoomedImage();\n    }\n  }, 1000);\n\nAnd call clearInterval(this._rotateInterval) from disconnectCallback().",
+      "range": {
+        "startLine": 204,
+        "startChar": 0,
+        "endLine": 207,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba1d7892_6478ba5d",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Nit: Consider extracting this into a helper shared between _currentColor and _currentDiff.",
+      "range": {
+        "startLine": 247,
+        "startChar": 12,
+        "endLine": 247,
+        "endChar": 41
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67f6b966_2f8c4659",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Please use left/rightImageIdx.",
+      "range": {
+        "startLine": 251,
+        "startChar": 0,
+        "endLine": 253,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0501ff1e_a1d06cde",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Please move beginPath() immediately after clearRect() to make this as clear as possible.\n\nConsider removing the comment or replacing it with a reference to https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clearRect.",
+      "range": {
+        "startLine": 277,
+        "startChar": 0,
+        "endLine": 280,
+        "endChar": 20
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "064f1577_759dbcc6",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Nit: _getCrosshairsCanvas",
+      "range": {
+        "startLine": 339,
+        "startChar": 2,
+        "endLine": 339,
+        "endChar": 21
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c80cf3f0_514385e9",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Nit: _imageLoaded, for consistency with the naming pattern followed by the other event handlers.",
+      "range": {
+        "startLine": 347,
+        "startChar": 2,
+        "endLine": 347,
+        "endChar": 14
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d982e978_bb371fbb",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Is this really necessary? The article above was written 2 years ago, and support for KeyboardEvent.Key seems pretty widespread[1] nowadays.\n\nI\u0027d say let\u0027s keep things simple by only supporting the more modern e.key property, unless we have a really good reason to support older browsers.\n\n[1] https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key#Browser_compatibility",
+      "range": {
+        "startLine": 370,
+        "startChar": 0,
+        "endLine": 372,
+        "endChar": 24
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4750614c_c9121773",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Please add a comment to each test case explaining what they do, e.g. \"Increase zoom\", \"Move left\", \"Move to previous largest diff\", etc.\n\nOtherwise the reader has to scroll up to the template if they haven\u0027t memorized Gold\u0027s keyboard shortcuts.",
+      "range": {
+        "startLine": 376,
+        "startChar": 0,
+        "endLine": 376,
+        "endChar": 24
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c86d161_911e6a74",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 468,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Please extract the cache building routine into its own method.\n\nRationale:\n- Building a cache is orthogonal to switching between diffs.\n- _moveToNextLargestDiff does too much as is.\n- Requires less brain cycles from the reader.",
+      "range": {
+        "startLine": 431,
+        "startChar": 0,
+        "endLine": 468,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad625b51_5931e846",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 509,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "The default action for a checkbox is to toggle between checked/unchecked. If this is what you intended to prevent, please explain why in a comment.\n\nHowever, I don\u0027t think e.preventDefault() is having an effect, because the whole component is re-rendered with the below call to this._render() anyway. So this can probably be removed.",
+      "range": {
+        "startLine": 509,
+        "startChar": 0,
+        "endLine": 509,
+        "endChar": 23
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3256a17d_94c007e0",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 510,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Why is this necessary? If it\u0027s not, please remove.",
+      "range": {
+        "startLine": 510,
+        "startChar": 0,
+        "endLine": 510,
+        "endChar": 24
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41a1102d_5f19edc5",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 519,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Please name this _previewCanvasClicked() and add a comment explaining what this does.\n\nRationale:\n- I had a hard time understanding what this does from the name alone, and after a quick scan through the method body.\n- I didn\u0027t realize at first that this is an event handler.\n- For consistency with the naming pattern followed by the other event handlers.",
+      "range": {
+        "startLine": 519,
+        "startChar": 2,
+        "endLine": 519,
+        "endChar": 14
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8861a09b_4294ab1f",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.scss",
+        "patchSetId": 13
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "This technique only makes sense for e.g. horizontal menu items of varying widths, breadcrumbs, etc.\n\nLet\u0027s instead give .preview a fixed width, large enough to accommodate for the bold typeface in the checkbox labels. This should prevent things from jumping around.\n\nThis, combined with the \"justify-content: space-between\" rule in the previews_and_toggles class, has the extra benefit of ensuring even spacing between the three previews.",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "983b7f11_3d4708dd",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Nit: superfluous blank line",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b8e3f03_853490f1",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Please group this and the other keyboard tests under a new describe block called \"keyboard shortcuts\".",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 5
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c0368ca_bc31b618",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Could you please add tests for the automatic flipping behavior between the selected images?\n\nTips:\n- The Sinon fake timers API is perfect for this: https://sinonjs.org/releases/v1.17.6/fake-timers.\n- See here for an example: http://cs/skia/buildbot/golden/modules/corpus-selector-sk/corpus-selector-sk_test.js?l\u003d184\u0026rcl\u003d78563fc499479fcf0d18b43ed493ed0811ee0f49.",
+      "range": {
+        "startLine": 181,
+        "startChar": 0,
+        "endLine": 181,
+        "endChar": 3
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd2ebae2_c2724f87",
+        "filename": "golden/modules/multi-zoom-sk/test_data.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Nit: blank lines before and after.",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 51
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7744dd7_bd3a48f4",
+        "filename": "golden/modules/multi-zoom-sk/test_data.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Nit:  Please add two spaces of indentation to these so it\u0027s visually clearer that this isn\u0027t code that\u0027s been commented out. Same below.",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f135ab4d_7468aaee",
+        "filename": "golden/modules/multi-zoom-sk/test_data.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Instead of hardcoding the images like so, can we export three arrow functions that generate the base64-encoded images dynamically with a canvas created via document.createElement(\u0027canvas\u0027)?\n\nRationale:\n- No need for these comments.\n- No need to keep the comments in sync with the hardcoded string.\n- Much easier to change these images or add new ones when our tests change.",
+      "range": {
+        "startLine": 38,
+        "startChar": 13,
+        "endLine": 38,
+        "endChar": 23
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74c300e5_9c2857ee",
+        "filename": "golden/modules/multi-zoom-sk/test_data.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Nit: Manually",
+      "range": {
+        "startLine": 40,
+        "startChar": 3,
+        "endLine": 40,
+        "endChar": 11
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6103577c_907dc357",
+        "filename": "golden/modules/multi-zoom-sk/test_data.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Nit: blank line before the code starts.",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 62
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2cec5b0b_f52d0350",
+        "filename": "golden/puppeteer-tests/test/multi-zoom-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "screenshots",
+      "range": {
+        "startLine": 17,
+        "startChar": 12,
+        "endLine": 17,
+        "endChar": 22
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eef2f1ab_d8910e2f",
+        "filename": "golden/puppeteer-tests/test/multi-zoom-sk_puppeteer_test.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-13T04:41:54Z",
+      "side": 1,
+      "message": "Could you please add a screenshot where the \"nth pixel diff\" text is visible?",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 7
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
