@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/common"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/cipd/mocks"
 	"go.skia.org/infra/go/exec"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -157,13 +158,13 @@ func getCipdMock(ctx context.Context) *mocks.CIPDClient {
 func TestGithubCipdDEPSRepoManager(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, parent, _, cleanup := setupGithubCipdDEPS(t)
+	ctx, wd, parentRepo, _, cleanup := setupGithubCipdDEPS(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, _ := setupFakeGithub(t, nil)
 	cfg := githubCipdDEPSRmCfg(t)
-	cfg.ParentRepo = parent.RepoUrl()
+	cfg.ParentRepo = parentRepo.RepoUrl()
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	mockCipd := getCipdMock(ctx)
@@ -182,13 +183,13 @@ func TestGithubCipdDEPSRepoManager(t *testing.T) {
 func TestCreateNewGithubCipdDEPSRoll(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, parent, _, cleanup := setupGithubCipdDEPS(t)
+	ctx, wd, parentRepo, _, cleanup := setupGithubCipdDEPS(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithub(t, nil)
 	cfg := githubCipdDEPSRmCfg(t)
-	cfg.ParentRepo = parent.RepoUrl()
+	cfg.ParentRepo = parentRepo.RepoUrl()
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	rm.child.SetClientForTesting(getCipdMock(ctx))
@@ -206,13 +207,13 @@ func TestCreateNewGithubCipdDEPSRoll(t *testing.T) {
 func TestRanPreUploadStepsGithubCipdDEPS(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, parent, _, cleanup := setupGithubCipdDEPS(t)
+	ctx, wd, parentRepo, _, cleanup := setupGithubCipdDEPS(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithub(t, nil)
 	cfg := githubCipdDEPSRmCfg(t)
-	cfg.ParentRepo = parent.RepoUrl()
+	cfg.ParentRepo = parentRepo.RepoUrl()
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	rm.child.SetClientForTesting(getCipdMock(ctx))
@@ -220,7 +221,7 @@ func TestRanPreUploadStepsGithubCipdDEPS(t *testing.T) {
 	require.NoError(t, err)
 
 	ran := false
-	rm.preUploadSteps = []PreUploadStep{
+	rm.preUploadSteps = []parent.PreUploadStep{
 		func(context.Context, []string, *http.Client, string) error {
 			ran = true
 			return nil
@@ -238,13 +239,13 @@ func TestRanPreUploadStepsGithubCipdDEPS(t *testing.T) {
 func TestErrorPreUploadStepsGithubCipdDEPS(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, parent, _, cleanup := setupGithubCipdDEPS(t)
+	ctx, wd, parentRepo, _, cleanup := setupGithubCipdDEPS(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithub(t, nil)
 	cfg := githubCipdDEPSRmCfg(t)
-	cfg.ParentRepo = parent.RepoUrl()
+	cfg.ParentRepo = parentRepo.RepoUrl()
 	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	rm.child.SetClientForTesting(getCipdMock(ctx))
@@ -253,7 +254,7 @@ func TestErrorPreUploadStepsGithubCipdDEPS(t *testing.T) {
 
 	ran := false
 	expectedErr := errors.New("Expected error")
-	rm.preUploadSteps = []PreUploadStep{
+	rm.preUploadSteps = []parent.PreUploadStep{
 		func(context.Context, []string, *http.Client, string) error {
 			ran = true
 			return expectedErr
