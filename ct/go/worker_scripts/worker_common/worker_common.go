@@ -8,7 +8,7 @@ import (
 	"context"
 	"flag"
 	"os"
-	"path/filepath"
+	//"path/filepath"
 	"runtime"
 
 	"go.skia.org/infra/ct/go/util"
@@ -34,16 +34,18 @@ func Init(ctx context.Context) {
 		}
 
 		// Update depot_tools.
-		skutil.LogErr(util.ExecuteCmd(ctx, filepath.Join(util.DepotToolsDir, "update_depot_tools"), []string{}, []string{}, util.UPDATE_DEPOT_TOOLS_TIMEOUT, nil, nil))
+		// rmistry: Only do this for builders, pass in a flag to use depot_tools or something I guess.
+		// skutil.LogErr(util.ExecuteCmd(ctx, filepath.Join(util.DepotToolsDir, "update_depot_tools"), []string{}, []string{}, util.UPDATE_DEPOT_TOOLS_TIMEOUT, nil, nil))
 		// Add depot_tools to the PATH.
-		skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+string(os.PathListSeparator)+util.DepotToolsDir))
+		// skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+string(os.PathListSeparator)+util.DepotToolsDir))
 		if runtime.GOOS != "windows" {
 			// Add adb to the PATH.
-			skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+string(os.PathListSeparator)+"/home/chrome-bot/KOT49H-hammerhead-userdebug-insecure"))
+			//skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+string(os.PathListSeparator)+"/home/chrome-bot/KOT49H-hammerhead-userdebug-insecure"))
 			// Bring up Xvfb on workers (for GCE instances).
 			if _, _, err := exec.RunIndefinitely(&exec.Command{
-				Name:        "sudo",
-				Args:        []string{"Xvfb", ":0", "-screen", "0", "1280x1024x24"},
+				// was sudo and other was Xvfb
+				Name:        "Xvfb",
+				Args:        []string{":0", "-screen", "0", "1280x1024x24"},
 				Env:         []string{},
 				InheritPath: true,
 				Timeout:     util.XVFB_TIMEOUT,
