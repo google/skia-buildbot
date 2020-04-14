@@ -220,6 +220,10 @@ define('multi-zoom-sk', class extends ElementSk {
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('keydown', this._keyEventHandler);
+    // Free up heavy resources. This may not be necessary, but it makes sure we aren't erroneously
+    // holding onto them.
+    this._cachedDiffs = [];
+    this._loadedImageData = [null, null, null];
   }
 
   /**
