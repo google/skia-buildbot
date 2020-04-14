@@ -7,8 +7,6 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-var deviceIDs = []string{}
-
 func TestConfig(t *testing.T) {
 	unittest.MediumTest(t)
 
@@ -28,11 +26,5 @@ func TestConfig(t *testing.T) {
 		require.NotEqual(t, "", oneConf.Address)
 		require.NotEqual(t, 0, len(oneConf.DevPortMap))
 		require.NotEqual(t, "", oneConf.User)
-	}
-
-	for _, oneConf := range conf.Seeeduino {
-		require.NotEqual(t, "", oneConf.Address)
-		require.NotEqual(t, "", oneConf.BaseURL)
-		require.NotEqual(t, 0, len(oneConf.DevPortMap))
 	}
 }
