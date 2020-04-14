@@ -848,6 +848,30 @@
     },
     {
       "key": {
+        "uuid": "217108d4_06ddc298",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-14T07:31:34Z",
+      "side": 1,
+      "message": "\u003e [citation needed]\n\n(Good point on the lack of a citation).\n\nI don\u0027t have a good source to point at, just examples in various webapps:\n\n- Google Maps: The arrow keys pan the map on key down.\n- YouTube: The left/right arrow keys skip 5 seconds of video on key down.\n- Google Calendar: The \"g\" key on shows a pop-up dialog to jump to a specific date on key down.\n\nRegarding the article, the argument seems to be as follows:\n\n\u003e Use keyup as the trigger event for UX reasons. For most behaviors (not games), people typing expect that the key they have pressed won’t get “entered” until they release the button. That’s why you don’t want to use keydown, probably (I say probably because there are cases where you do want to listen for keydown instead). \n\nI\u0027m not sure that I agree with the author. I honestly can\u0027t think of any examples where I would expect the action to get \"entered\" upon releasing the key.\n\nAnyway, this is easy enough to change at some point down the line if you still disagree, or if you think it warrants more discussion.\n\nLGTM, sorry for the churn.",
+      "parentUuid": "634fa711_e5d2c5fe",
+      "range": {
+        "startLine": 200,
+        "startChar": 31,
+        "endLine": 200,
+        "endChar": 36
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "286a30ef_f05cb543",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -1682,6 +1706,30 @@
       "side": 1,
       "message": "I don\u0027t know what you mean by indentation. You mean before export const? That seems out of style.",
       "parentUuid": "b7744dd7_bd3a48f4",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "493ad569_f89f938a",
+        "filename": "golden/modules/multi-zoom-sk/test_data.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-14T07:31:34Z",
+      "side": 1,
+      "message": "Sorry, I meant to only select lines 5-19. My suggestion is to indent lines with drawing commands, to make it clear that they are documentation and not code that\u0027s been commented out, e.g.:\n\n  // Assumes canvas is an html element that is 16x16.\n  //   const ctx \u003d canvas.getContext(\u00272d\u0027);\n  //   ctx.imageSmoothingEnabled \u003d false;\n  //   ctx.clearRect(0, 0, 16, 16);\n  //   ctx.lineWidth \u003d 3;\n  //   ctx.strokeStyle \u003d \u0027black\u0027;\n  //   ctx.beginPath();\n  //   ctx.moveTo(3, 1);\n  //   ctx.lineTo(4, 15);\n  //   ctx.stroke();\n  //\n  //   ctx.fillStyle \u003d \u0027rgba(255, 10, 10, 0.5)\u0027;\n  //   ctx.fillRect(12, 0, 5, 5);\n  //\n  //   console.log(canvas.toDataURL());\n  export const left16x16 \u003d ...",
+      "parentUuid": "568d99a1_49975502",
       "range": {
         "startLine": 6,
         "startChar": 0,
