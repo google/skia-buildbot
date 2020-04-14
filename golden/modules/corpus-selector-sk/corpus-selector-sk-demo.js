@@ -11,8 +11,11 @@ fetchMock.get('/json/trstatus', () => {
     return 500; // Fake an internal server error.
   }
 
-  // Increase negative triaged count by 1 at every update cycle.
-  trstatus.corpStatus.forEach((corpus) => corpus.negativeCount++);
+  if (!isPuppeteerTest()) {
+    // Increase negative triaged count by 1 at every update cycle. Skip this for puppeteer tests
+    // to avoid non-determinism (e.g. with order of tests).
+    trstatus.corpStatus.forEach((corpus) => corpus.negativeCount++);
+  }
 
   return delay(trstatus, fakeRpcDelayMillis);
 });
