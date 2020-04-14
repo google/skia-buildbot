@@ -872,6 +872,30 @@
     },
     {
       "key": {
+        "uuid": "e4951911_772432f9",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-14T11:25:59Z",
+      "side": 1,
+      "message": "You have convinced me - one thing I also like about keydown is that holding the key triggers multiple events, which is nicer for navigation.",
+      "parentUuid": "217108d4_06ddc298",
+      "range": {
+        "startLine": 200,
+        "startChar": 31,
+        "endLine": 200,
+        "endChar": 36
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "286a30ef_f05cb543",
         "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
         "patchSetId": 13
@@ -1739,6 +1763,30 @@
       "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46128ad4_3ca76680",
+        "filename": "golden/modules/multi-zoom-sk/test_data.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-14T11:25:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "493ad569_f89f938a",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 0
+      },
+      "revId": "c589c5cd5b1441e879344c62ee3492fbb8905691",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
