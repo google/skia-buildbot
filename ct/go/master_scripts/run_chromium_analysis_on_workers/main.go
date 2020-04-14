@@ -179,6 +179,9 @@ func runChromiumAnalysisOnWorkers() error {
 				return skerr.Fmt("Found empty telemetry hash!")
 			}
 			isolateDeps = append(isolateDeps, telemetryHash)
+
+			fmt.Println("DEBUGGING STUFF IS HERE!")
+			fmt.Println(telemetryHash)
 			return nil
 		})
 	}
@@ -187,7 +190,6 @@ func runChromiumAnalysisOnWorkers() error {
 	if err := group.Wait(); err != nil {
 		return err
 	}
-
 	if chromiumBuild != "" {
 		// If a chromium build was created then delete it from Google storage after the run completes.
 		defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuild))
