@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/power/go/decider"
 	"go.skia.org/infra/power/go/recorder"
 	"go.skia.org/infra/power/go/testdata"
+	"go.skia.org/infra/skolo/go/powercycle"
 )
 
 var cycleTests = map[string]func(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_alert_client.APIClient, md *decider.MockDecider, mr *recorder.MockRecorder){
@@ -103,7 +104,7 @@ func testOneMissingBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_
 
 	md.On("ShouldPowercycleBot", mock.Anything).Return(true)
 
-	hostMap := map[string]string{
+	hostMap := map[powercycle.DeviceID]string{
 		"skia-rpi-046": "jumphost-rpi-01",
 	}
 
@@ -146,7 +147,7 @@ func testOneSilencedBot(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock
 
 	md.On("ShouldPowercycleBot", mock.Anything).Return(true)
 
-	hostMap := map[string]string{
+	hostMap := map[powercycle.DeviceID]string{
 		"skia-rpi-046": "jumphost-rpi-01",
 	}
 
@@ -200,7 +201,7 @@ func testThreeMissingDevices(t *testing.T, mi, me *skswarming.MockApiClient, ma 
 	})).Return(false)
 	md.On("ShouldPowercycleDevice", mock.Anything).Return(true)
 
-	hostMap := map[string]string{
+	hostMap := map[powercycle.DeviceID]string{
 		"skia-rpi-001-device": "jumphost-rpi-01",
 		"skia-rpi-002-device": "jumphost-rpi-01",
 		"skia-rpi-003-device": "jumphost-rpi-02",
@@ -245,7 +246,7 @@ func testDuplicateBots(t *testing.T, mi, me *skswarming.MockApiClient, ma *mock_
 
 	md.On("ShouldPowercycleBot", mock.Anything).Return(true)
 
-	hostMap := map[string]string{
+	hostMap := map[powercycle.DeviceID]string{
 		"skia-rpi-113": "jumphost-rpi-01",
 	}
 

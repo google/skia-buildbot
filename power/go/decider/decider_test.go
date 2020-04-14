@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/require"
 	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/power/go/testdata"
+	"go.skia.org/infra/skolo/go/powercycle"
 )
 
 type testcase struct {
@@ -51,7 +51,7 @@ func TestShouldPowercycleBot(t *testing.T) {
 		},
 	}
 	d := decider{
-		enabledBots: util.NewStringSet([]string{MOCK_BOT_ID}),
+		enabledBots: map[powercycle.DeviceID]bool{MOCK_BOT_ID: true},
 	}
 	for name, c := range tests {
 		func(name string, c testcase) {
@@ -97,7 +97,7 @@ func TestShouldPowercycleDevice(t *testing.T) {
 		},
 	}
 	d := decider{
-		enabledBots: util.NewStringSet([]string{MOCK_BOT_ID + "-device"}),
+		enabledBots: map[powercycle.DeviceID]bool{MOCK_BOT_ID + "-device": true},
 	}
 	for name, c := range tests {
 		func(name string, c testcase) {
@@ -135,12 +135,12 @@ func TestIDBasedPowercycleBot(t *testing.T) {
 		},
 	}
 	d := decider{
-		enabledBots: util.NewStringSet([]string{
-			"bot-001",
-			"bot-001-device",
-			"bot-002",
-			"bot-003-device",
-		}),
+		enabledBots: map[powercycle.DeviceID]bool{
+			"bot-001":        true,
+			"bot-001-device": true,
+			"bot-002":        true,
+			"bot-003-device": true,
+		},
 	}
 	for name, c := range tests {
 		func(name string, c testcase) {
@@ -174,12 +174,12 @@ func TestIDBasedPowercycleDevice(t *testing.T) {
 		},
 	}
 	d := decider{
-		enabledBots: util.NewStringSet([]string{
-			"bot-001",
-			"bot-001-device",
-			"bot-002",
-			"bot-003-device",
-		}),
+		enabledBots: map[powercycle.DeviceID]bool{
+			"bot-001":        true,
+			"bot-001-device": true,
+			"bot-002":        true,
+			"bot-003-device": true,
+		},
 	}
 	for name, c := range tests {
 		func(name string, c testcase) {

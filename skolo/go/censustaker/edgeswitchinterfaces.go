@@ -42,7 +42,7 @@ func (e *edgeswitchBotSource) GetBotPortsAddresses() ([]Bot, error) {
 
 var edgeswitchLine = regexp.MustCompile(`^\S+\s+(?P<mac_address>[0-9A-Fa-f\:]+)\s+\S+\s+(?P<interface>\d+)\s+\S+`)
 
-// parseSSHResult looks at the lines output by the EdgeSwitchClient. These are
+// parseSSHResult looks at the lines output by the edgeSwitchSSHClient. These are
 // already split by \n.  It then parses the lines into the various components.
 // See the unit tests for an example of what this data looks like.
 func parseSSHResult(lines []string) ([]Bot, error) {
