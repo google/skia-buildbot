@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "82bfa6cf_36162b6d",
+        "filename": "skolo/linux/ansible/upgrade.yml",
+        "patchSetId": 6
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-14T13:52:54Z",
+      "side": 1,
+      "message": "It\u0027s unclear to me why we do two full-upgrades. Maybe add a comment explaining?",
+      "range": {
+        "startLine": 26,
+        "startChar": 9,
+        "endLine": 28,
+        "endChar": 19
+      },
+      "revId": "bd0c080029ecd43e5f168441e907a4b12f81b7ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
