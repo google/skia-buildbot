@@ -46,6 +46,30 @@
       "revId": "c3ca9a3bb3d5eed39ef214cb220040d8149e9f04",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7d98ff5_7cf61f51",
+        "filename": "skolo/go/powercycle/DESIGN.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-14T19:24:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c2b8ebc6_7ef424d0",
+      "range": {
+        "startLine": 23,
+        "startChar": 27,
+        "endLine": 23,
+        "endChar": 28
+      },
+      "revId": "c3ca9a3bb3d5eed39ef214cb220040d8149e9f04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

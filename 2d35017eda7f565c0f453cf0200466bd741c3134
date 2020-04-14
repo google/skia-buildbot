@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "bf17e314_6e295e4a",
+        "filename": "skolo/go/powercycle/DESIGN.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-14T19:24:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "67738e2b_7d6786af",
+      "range": {
+        "startLine": 4,
+        "startChar": 10,
+        "endLine": 4,
+        "endChar": 34
+      },
+      "revId": "2d35017eda7f565c0f453cf0200466bd741c3134",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5f547e77_15bbc873",
+        "filename": "skolo/go/powercycle/DESIGN.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-14T19:24:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "39902326_e0c8d064",
+      "range": {
+        "startLine": 4,
+        "startChar": 44,
+        "endLine": 4,
+        "endChar": 67
+      },
+      "revId": "2d35017eda7f565c0f453cf0200466bd741c3134",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e3ca69f0_8f446f30",
         "filename": "skolo/go/powercycle/DESIGN.md",
         "patchSetId": 3
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "db31913c_1f01731b",
+        "filename": "skolo/go/powercycle/DESIGN.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-14T19:24:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e3ca69f0_8f446f30",
+      "range": {
+        "startLine": 37,
+        "startChar": 64,
+        "endLine": 37,
+        "endChar": 74
+      },
+      "revId": "2d35017eda7f565c0f453cf0200466bd741c3134",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eaf2619c_ede72b56",
         "filename": "skolo/go/powercycle/DESIGN.md",
         "patchSetId": 3
@@ -91,6 +163,30 @@
       "revId": "2d35017eda7f565c0f453cf0200466bd741c3134",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ba4a947_fa872152",
+        "filename": "skolo/go/powercycle/DESIGN.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-14T19:24:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eaf2619c_ede72b56",
+      "range": {
+        "startLine": 54,
+        "startChar": 71,
+        "endLine": 55,
+        "endChar": 53
+      },
+      "revId": "2d35017eda7f565c0f453cf0200466bd741c3134",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
