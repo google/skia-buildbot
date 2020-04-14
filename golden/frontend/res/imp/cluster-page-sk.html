@@ -136,7 +136,6 @@
           this.listen(this.$.clusterContainer, 'paramset-key-value-click', '_handleParamsetValueClick');
           this.listen(this.$.clusterContainer, 'digest-select', '_handleDigestsSelected');
           this.listen(this.$.bulkTriage, 'change', '_handleBulkTriageChange');
-          this.listen(this, 'triage', '_handleTriage');
           this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
           this.listen(this, 'zoom-dialog-opened', '_handleZoomOpened');
           this.listen(this, 'zoom-dialog-closed', '_handleZoomClosed');
@@ -211,13 +210,8 @@
         _handleBulkTriageChange: function(ev) {
           ev.stopPropagation();
           var detail = new gold.TriageQuery(this._data.test, this._digestList, ev.detail);
-          this.fire('triage', detail);
-        },
-
-        _handleTriage: function(ev) {
-          ev.stopPropagation();
-          sk.post('/json/triage', JSON.stringify(ev.detail)).then(function() {
-            var change = gold.flattenTriageQuery(ev.detail);
+          sk.post('/json/triage', JSON.stringify(detail)).then(function() {
+            var change = gold.flattenTriageQuery(detail);
             var ele = this.$.clusterView;
             // 'change' contains triples of (testname, digests, status)
             // since the triaging was successful we set the corresponding nodes

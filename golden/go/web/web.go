@@ -936,7 +936,7 @@ func (wh *Handlers) TriageHandler(w http.ResponseWriter, r *http.Request) {
 
 	req := frontend.TriageRequest{}
 	if err := parseJSON(r, &req); err != nil {
-		httputils.ReportError(w, err, "Failed to parse JSON request.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to parse JSON request.", http.StatusBadRequest)
 		return
 	}
 	sklog.Infof("Triage request: %#v", req)

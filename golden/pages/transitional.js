@@ -11,3 +11,4 @@ import '../modules/dots-sk';
 import '../modules/multi-zoom-sk';
 import '../modules/triage-history-sk';
 import '../modules/triage-sk';
+import 'elements-sk/error-toast-sk';

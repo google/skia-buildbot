@@ -1,4 +1,5 @@
 import './index';
+import { fetchMock } from 'fetch-mock';
 import { $, $$ } from 'common-sk/modules/dom';
 import { eventPromise, setUpElementUnderTest } from '../test_util';
 import { twoHundredCommits, typicalDetails } from './test_data';
@@ -70,18 +71,6 @@ describe('digest-details-sk', () => {
       });
     });
 
-    it('emits a specialized triage event when its triage-sk is interacted with', async () => {
-      const triagePromise = eventPromise('triage');
-
-      $$('.metrics_and_triage triage-sk button.negative', digestDetailsSk).click();
-      const triageEvent = await triagePromise;
-      expect(triageEvent.detail).to.deep.equal({
-        testDigestStatus: {
-          'dots-legend-sk_too-many-digests': { '6246b773851984c726cb2e1cb13510c2': 'negative' },
-        },
-      });
-    });
-
     it('changes the reference image when the toggle button is clicked', () => {
       $$('button.toggle_ref', digestDetailsSk).click();
 
@@ -93,6 +82,24 @@ describe('digest-details-sk', () => {
       });
 
       expect($$('.negative_warning').hidden).to.be.false;
+    });
+
+    describe('RPC requests', () => {
+      afterEach(() => {
+        expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
+        fetchMock.reset();
+      });
+
+      it('POSTs to an RPC endpoint when triage button clicked', async () => {
+        const endPromise = eventPromise('end-task');
+        fetchMock.post('/json/triage', (url, req) => {
+          expect(req.body).to.equal('{"testDigestStatus":{"dots-legend-sk_too-many-digests":{"6246b773851984c726cb2e1cb13510c2":"negative"}}}');
+          return 200;
+        });
+
+        $$('.metrics_and_triage triage-sk button.negative', digestDetailsSk).click();
+        await endPromise;
+      });
     });
   });
 
@@ -128,16 +135,21 @@ describe('digest-details-sk', () => {
       expect($$('.trace_info dots-legend-sk', digestDetailsSk).issue).to.equal('12345');
     });
 
-    it('includes changelist id when triaging', async () => {
-      const triagePromise = eventPromise('triage');
+    describe('RPC requests', () => {
+      afterEach(() => {
+        expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
+        fetchMock.reset();
+      });
 
-      $$('.metrics_and_triage triage-sk button.negative', digestDetailsSk).click();
-      const triageEvent = await triagePromise;
-      expect(triageEvent.detail).to.deep.equal({
-        testDigestStatus: {
-          'dots-legend-sk_too-many-digests': { '6246b773851984c726cb2e1cb13510c2': 'negative' },
-        },
-        issue: '12345',
+      it('includes changelist id when triaging', async () => {
+        const endPromise = eventPromise('end-task');
+        fetchMock.post('/json/triage', (url, req) => {
+          expect(req.body).to.equal('{"testDigestStatus":{"dots-legend-sk_too-many-digests":{"6246b773851984c726cb2e1cb13510c2":"negative"}},"issue":"12345"}');
+          return 200;
+        });
+
+        $$('.metrics_and_triage triage-sk button.negative', digestDetailsSk).click();
+        await endPromise;
       });
     });
   });

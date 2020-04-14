@@ -4,28 +4,20 @@
  *
  * Displays the details about a digest. These details include comparing it to other digests in the
  * same grouping (e.g. test), if those are available. It provides the affordances to triage the
- * given digest.
+ * given digest and makes the POST request to triage this given digest.
  *
  * <h2>Events</h2>
  *   This element produces the following events:
- * @evt triage - (deprecated) A triage event is generated when the triage button is pressed
- *   The e.detail of the event looks like:
- *   {
- *     digest: ["ba636123..."],
- *     status: "positive",
- *     test: "blurs",
- *     issue: "1234", // empty string for master branch
- *   }
+ * @evt begin-task/end-task - when a POST request is in flight to handle triaging.
  *
  *   Children elements emit the following events of note:
  * @evt show-commits - Event generated when a trace dot is clicked. e.detail contains
  *   the blamelist (an array of commits that could have made up that dot).
- * @evt zoom-clicked - Event generated when the user wants to zoom in on one or two digests.
- *   TODO(kjlubick) - can we get rid of this and have image-compare-sk just create the dialog?
  *
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
+import { errorMessage } from 'elements-sk/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { $$ } from '../../../common-sk/modules/dom';
 import { fromParamSet, fromObject } from '../../../common-sk/modules/query';
@@ -334,25 +326,47 @@ define('digest-details-sk', class extends ElementSk {
 
   _triageChangeHandler(e) {
     e.stopPropagation();
-    this._status = e.detail;
-
-    this._triageHistory.unshift({
-      user: 'me',
-      ts: Date.now(),
-    });
-    this._render();
-    // TODO(kjlubick) make triage-sk smart enough to do the API call itself. Then digest-details-sk
-    //   will not have to send this complex structure.
+    const newStatus = e.detail;
 
     const digestStatus = {};
-    digestStatus[this._digest] = this._status;
-    const detail = {
+    digestStatus[this._digest] = newStatus;
+    const postBody = {
       testDigestStatus: {},
     };
-    detail.testDigestStatus[this._grouping] = digestStatus;
+    postBody.testDigestStatus[this._grouping] = digestStatus;
     if (this.issue) {
-      detail.issue = this.issue;
+      postBody.issue = this.issue;
     }
-    this.dispatchEvent(new CustomEvent('triage', { bubbles: true, detail: detail }));
+
+    this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
+
+    fetch('/json/triage', {
+      method: 'POST',
+      body: JSON.stringify(postBody),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then((resp) => {
+      if (resp.ok) {
+        // Triaging was successful.
+        this._status = newStatus;
+        this._triageHistory.unshift({
+          user: 'me',
+          ts: Date.now(),
+        });
+        this._render();
+        this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+      } else {
+        // Triaging did not work (possibly because the user was not logged in). We want to set
+        // the status of the triage-sk back to what it was to give a visual indication it did not
+        // go through. Additionally, toast error message should catch the user's attention.
+        console.error(resp);
+        errorMessage(`Unexpected error triaging: ${resp.status} ${resp.statusText} `
+          + '(Are you logged in with the right account?)', 8000);
+        $$('triage-sk', this).value = this._status;
+        this._render();
+        this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+      }
+    }).catch(errorMessage);
   }
 });

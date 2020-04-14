@@ -29,6 +29,12 @@
 <link rel="import" href="search-page-sk.html" />
 <link rel="import" href="trybot-page-sk.html" />
 
+<style>
+  error-toast-sk toast-sk {
+    z-index: 11;
+  }
+</style>
+
 <dom-module id="gold-app-sk">
   <template>
     <style>
@@ -45,12 +51,6 @@
         --login-sk-color: white;
       };
     }
-
-    #mainContentWrapper {
-      padding-left: 0.5em
-      padding-right: 0.5em
-    };
-
     </style>
 
     <app-sk id="mainApp" mode="standard" responsive_width="600px" drawer_width="12em" class="fit" flex>
@@ -99,6 +99,7 @@
        <commits-dialog-sk></commits-dialog-sk>
      </div>
     </app-sk>
+    <error-toast-sk></error-toast-sk>
 
   </template>
   <script>

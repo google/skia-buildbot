@@ -63,6 +63,12 @@ multi-zoom-sk {
     }
   }
 
+  .size_warning {
+    font-weight: bold;
+    color: var(--red);
+    margin-bottom: 8px;
+  }
+
   .zoomed_view {
     canvas {
       border: 1px solid black;

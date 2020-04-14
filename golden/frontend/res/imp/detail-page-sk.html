@@ -44,7 +44,6 @@
       is: "detail-page-sk",
 
       ready: function() {
-        this.listen(this, 'triage', '_handleTriage');
         // cut off first char, which is the '?'
         const params = sk.query.toObject(window.location.search.slice(1));
         this.set('issue', params.issue || '');
@@ -59,10 +58,6 @@
 
       pageDeselected: function() {},
 
-      _handleTriage: function(ev) {
-        ev.stopPropagation();
-        sk.post('/json/triage', JSON.stringify(ev.detail)).catch(sk.errorMessage);
-      }
     });
   </script>
 </dom-module>
