@@ -6,6 +6,7 @@ the Skia fleet.
 
 https://docs.google.com/document/d/15sb7RN_S3ctw06xQoNG7c3Owu-DS2jPPDaWAdQIkPLw/edit#
 
+See also `../skolo/go/powercycle/DESIGN.md` for a more up-to-date design.
 
 Local Testing
 -------------
