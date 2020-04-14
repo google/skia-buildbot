@@ -93,7 +93,6 @@ require (
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/maruel/subcommands v0.0.0-20200206125935-de1d40e70d4b // indirect
 	github.com/maruel/ut v1.0.1 // indirect
-	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.2.2 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
@@ -103,7 +102,6 @@ require (
 	github.com/otiai10/copy v1.1.1 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.7.0 // indirect
-	github.com/peterh/liner v1.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/procfs v0.0.10 // indirect
@@ -143,7 +141,6 @@ require (
 	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/apimachinery v0.18.1
 	k8s.io/client-go v0.18.1
-	rsc.io/sampler v1.99.99 // indirect
 )
 
 go 1.13

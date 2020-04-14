@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/power/go/decider"
 	"go.skia.org/infra/power/go/recorder"
+	"go.skia.org/infra/skolo/go/powercycle"
 )
 
 const (
@@ -57,13 +58,13 @@ type gatherer struct {
 	eSwarming skswarming.ApiClient
 	alerts    alertclient.APIClient
 	decider   decider.Decider
-	hostMap   map[string]string // maps bot id -> jumphost name
+	hostMap   map[powercycle.DeviceID]string // maps bot id -> jumphost name
 	recorder  recorder.Recorder
 }
 
 // NewPollingGatherer returns a Gatherer created with the given utilities. all the passed in
 // clients should be properly authenticated.
-func NewPollingGatherer(external, internal skswarming.ApiClient, alerts alertclient.APIClient, decider decider.Decider, recorder recorder.Recorder, hostMap map[string]string, period time.Duration) Gatherer {
+func NewPollingGatherer(external, internal skswarming.ApiClient, alerts alertclient.APIClient, decider decider.Decider, recorder recorder.Recorder, hostMap map[powercycle.DeviceID]string, period time.Duration) Gatherer {
 	g := &gatherer{
 		iSwarming: internal,
 		eSwarming: external,
@@ -186,7 +187,7 @@ func (g *gatherer) update() {
 			if g.decider.ShouldPowercycleBot(b) {
 				downBots = append(downBots, DownBot{
 					BotID:      b.BotId,
-					HostID:     g.hostMap[b.BotId],
+					HostID:     g.hostMap[powercycle.DeviceID(b.BotId)],
 					Dimensions: b.Dimensions,
 					Status:     STATUS_HOST_MISSING,
 					Since:      time.Unix(alert.Start, 0).UTC(),
@@ -195,7 +196,7 @@ func (g *gatherer) update() {
 			} else if g.decider.ShouldPowercycleDevice(b) {
 				downBots = append(downBots, DownBot{
 					BotID:      b.BotId,
-					HostID:     g.hostMap[b.BotId+"-device"],
+					HostID:     g.hostMap[powercycle.DeviceID(b.BotId+"-device")],
 					Dimensions: b.Dimensions,
 					Status:     STATUS_DEVICE_MISSING,
 					Since:      time.Unix(alert.Start, 0).UTC(),
