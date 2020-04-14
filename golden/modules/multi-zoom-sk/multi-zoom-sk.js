@@ -88,6 +88,7 @@ const statsAndNavigation = (ele) => html`
 </table>
 <!-- TODO(kjlubick) Here would be a good place for reading any trace comments and putting pixel
      specific ones here.-->
+${sizeWarning(ele)}
 ${nthPixelDiff(ele)}
 <table class=navigation>
   <tr><th colspan=2>Navigation</td></tr>
@@ -103,6 +104,21 @@ ${nthPixelDiff(ele)}
   <tr><td class=label>G</td><td>Hide/Show Grid</td></tr>
 </table>
 `;
+
+const sizeWarning = (ele) => {
+  const leftData = ele._loadedImageData[leftImageIdx];
+  const rightData = ele._loadedImageData[rightImageIdx];
+  if (!leftData || !rightData) {
+    return '';
+  }
+  if (leftData.width === rightData.width && leftData.height === rightData.height) {
+    return '';
+  }
+  return html`
+<div class=size_warning>
+  Images are different sizes - only pixels in overlapping area will be compared.
+</div>`;
+};
 
 // If the pixel diffs between the two images have been calculated and sorted, look up to see if
 // the given pixel is in the list. If so, display where the diff is in the ordering.
@@ -296,7 +312,7 @@ define('multi-zoom-sk', class extends ElementSk {
 
   _currentDiff() {
     const leftData = this._loadedImageData[leftImageIdx];
-    const rightData = this._loadedImageData[rightImageIdx ];
+    const rightData = this._loadedImageData[rightImageIdx];
     if (!leftData || !rightData) {
       return '';
     }
