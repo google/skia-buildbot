@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "409b1819_6107dfbe",
+        "filename": "autoroll/go/repo_manager/common/gerrit_common/gerrit_common.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-14T15:28:02Z",
+      "side": 1,
+      "message": "Should this be an error?",
+      "range": {
+        "startLine": 82,
+        "startChar": 8,
+        "endLine": 82,
+        "endChar": 14
+      },
+      "revId": "5c96472ab9a6a0c739e817c6b91a2a575542c86d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2e5e928_4a998632",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-14T15:28:02Z",
+      "side": 1,
+      "message": "Maybe one day this can be CodeReviewConfig because we also have github_deps_repo_manager",
+      "range": {
+        "startLine": 33,
+        "startChar": 24,
+        "endLine": 33,
+        "endChar": 36
+      },
+      "revId": "5c96472ab9a6a0c739e817c6b91a2a575542c86d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ff450633_6a73155f",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-14T15:28:02Z",
+      "side": 1,
+      "message": "Is this a temporary workaround to avoid adding childRepo to all config files?",
+      "revId": "5c96472ab9a6a0c739e817c6b91a2a575542c86d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f7d0e06_4049f75f",
+        "filename": "autoroll/go/repo_manager/parent/deps_local.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-14T15:28:02Z",
+      "side": 1,
+      "message": "What is the TODO?",
+      "range": {
+        "startLine": 30,
+        "startChar": 28,
+        "endLine": 30,
+        "endChar": 32
+      },
+      "revId": "5c96472ab9a6a0c739e817c6b91a2a575542c86d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
