@@ -13,6 +13,8 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
@@ -27,16 +29,25 @@ const (
 // checkout to create changes.
 type GitCheckoutConfig struct {
 	BaseConfig
-	Branch  *config_vars.Template `json:"branch"`
-	RepoURL string                `json:"repoURL"`
+	git_common.GitCheckoutConfig
+}
+
+// See documentation for util.Validator interface.
+func (c GitCheckoutConfig) Validate() error {
+	if err := c.BaseConfig.Validate(); err != nil {
+		return skerr.Wrap(err)
+	}
+	if err := c.GitCheckoutConfig.Validate(); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
 }
 
 // GitCheckoutParent is a base for implementations of Parent which use a local
 // Git checkout.
 type GitCheckoutParent struct {
 	*baseParent
-	branch         *config_vars.Template
-	co             *git.Checkout
+	*git_common.Checkout
 	createRoll     GitCheckoutCreateRollFunc
 	getLastRollRev GitCheckoutGetLastRollRevFunc
 	uploadRoll     GitCheckoutUploadRollFunc
@@ -57,24 +68,20 @@ type GitCheckoutGetLastRollRevFunc func(context.Context, *git.Checkout) (string,
 
 // NewGitCheckout returns a base for implementations of Parent which use
 // a local checkout to create changes.
-func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir string, getLastRollRev GitCheckoutGetLastRollRevFunc, createRoll GitCheckoutCreateRollFunc, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
-	if err := reg.Register(c.Branch); err != nil {
-		return nil, skerr.Wrap(err)
-	}
+func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir string, co *git.Checkout, getLastRollRev GitCheckoutGetLastRollRevFunc, createRoll GitCheckoutCreateRollFunc, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
 	// Create a baseParent.
 	base, err := newBaseParent(ctx, c.BaseConfig, serverURL)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	// Create the local checkout.
-	co, err := git.NewCheckout(ctx, c.RepoURL, workdir)
+	checkout, err := git_common.NewCheckout(ctx, c.GitCheckoutConfig, reg, workdir, co)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return &GitCheckoutParent{
 		baseParent:     base,
-		branch:         c.Branch,
-		co:             co,
+		Checkout:       checkout,
 		createRoll:     createRoll,
 		getLastRollRev: getLastRollRev,
 		uploadRoll:     uploadRoll,
@@ -83,24 +90,24 @@ func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.R
 
 // See documentation for Parent interface.
 func (p *GitCheckoutParent) Update(ctx context.Context) (string, error) {
-	if err := p.co.CleanupBranch(ctx, p.branch.String()); err != nil {
+	if _, _, err := p.Checkout.Update(ctx); err != nil {
 		return "", skerr.Wrap(err)
 	}
-	return p.getLastRollRev(ctx, p.co)
+	return p.getLastRollRev(ctx, p.Checkout.Checkout)
 }
 
 // See documentation for Parent interface.
 func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	// Create the roll branch.
-	upstreamBranch := p.branch.String()
-	if err := p.co.CleanupBranch(ctx, upstreamBranch); err != nil {
+	_, upstreamBranch, err := p.Checkout.Update(ctx)
+	if err != nil {
 		return 0, skerr.Wrap(err)
 	}
-	_, _ = p.co.Git(ctx, "branch", "-D", rollBranch) // Fails if the branch does not exist.
-	if _, err := p.co.Git(ctx, "checkout", "-b", rollBranch, "-t", fmt.Sprintf("origin/%s", upstreamBranch)); err != nil {
+	_, _ = p.Git(ctx, "branch", "-D", rollBranch) // Fails if the branch does not exist.
+	if _, err := p.Git(ctx, "checkout", "-b", rollBranch, "-t", fmt.Sprintf("origin/%s", upstreamBranch)); err != nil {
 		return 0, skerr.Wrap(err)
 	}
-	if _, err := p.co.Git(ctx, "reset", "--hard", upstreamBranch); err != nil {
+	if _, err := p.Git(ctx, "reset", "--hard", upstreamBranch); err != nil {
 		return 0, skerr.Wrap(err)
 	}
 
@@ -112,24 +119,24 @@ func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revisio
 	}
 
 	// Run the provided function to create the changes for the roll.
-	hash, err := p.createRoll(ctx, p.co, from, to, rolling, commitMsg)
+	hash, err := p.createRoll(ctx, p.Checkout.Checkout, from, to, rolling, commitMsg)
 	if err != nil {
 		return 0, skerr.Wrap(err)
 	}
 
 	// Ensure that createRoll generated at least one commit downstream of
 	// p.baseCommit, and that it did not leave uncommitted changes.
-	commits, err := p.co.RevList(ctx, "--ancestry-path", "--first-parent", fmt.Sprintf("%s..%s", upstreamBranch, hash))
+	commits, err := p.RevList(ctx, "--ancestry-path", "--first-parent", fmt.Sprintf("%s..%s", upstreamBranch, hash))
 	if err != nil {
 		return 0, skerr.Wrap(err)
 	}
 	if len(commits) == 0 {
 		return 0, skerr.Fmt("createRoll generated no commits!")
 	}
-	if _, err := p.co.Git(ctx, "diff", "--quiet"); err != nil {
+	if _, err := p.Git(ctx, "diff", "--quiet"); err != nil {
 		return 0, skerr.Wrapf(err, "createRoll left uncommitted changes")
 	}
-	out, err := p.co.Git(ctx, "ls-files", "--others", "--exclude-standard")
+	out, err := p.Git(ctx, "ls-files", "--others", "--exclude-standard")
 	if err != nil {
 		return 0, skerr.Wrap(err)
 	}
@@ -138,19 +145,21 @@ func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revisio
 	}
 
 	// Upload the CL.
-	return p.uploadRoll(ctx, p.co, upstreamBranch, hash, emails, dryRun)
+	return p.uploadRoll(ctx, p.Checkout.Checkout, upstreamBranch, hash, emails, dryRun)
 }
 
 // VersionFileGetLastRollRevFunc returns a GitCheckoutGetLastRollRevFunc which
 // reads the given file path from the repo and returns its full contents as the
 // last-rolled revision ID.
-func VersionFileGetLastRollRevFunc(path string) GitCheckoutGetLastRollRevFunc {
+func VersionFileGetLastRollRevFunc(path, dep string) GitCheckoutGetLastRollRevFunc {
 	return func(ctx context.Context, co *git.Checkout) (string, error) {
 		contents, err := ioutil.ReadFile(filepath.Join(co.Dir(), path))
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
-		return strings.TrimSpace(string(contents)), nil
+		// TODO(borenet): It's kind of weird that we're using a gitiles
+		// helper function here.
+		return gitiles_common.GetPinnedRev(path, dep, string(contents))
 	}
 }
 
