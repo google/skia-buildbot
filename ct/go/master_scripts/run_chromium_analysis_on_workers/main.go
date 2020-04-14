@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitauth"
+	//"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
@@ -141,56 +142,63 @@ func runChromiumAnalysisOnWorkers() error {
 	// Trigger both the build repo and isolate telemetry tasks in parallel.
 	group := skutil.NewNamedErrGroup()
 	var chromiumBuild string
-	if *apkGsPath != "" {
-		// Do not trigger chromium build if a custom APK is specified for Android.
-		chromiumBuild = ""
-	} else {
-		group.Go("build chromium", func() error {
-			if *apkGsPath != "" {
-				// Do a no-op here if a custom APK is specified for Android.
-				chromiumBuild = ""
-				return nil
-			}
+	//if *apkGsPath != "" {
+	//	// Do not trigger chromium build if a custom APK is specified for Android.
+	//	chromiumBuild = ""
+	//} else {
+	//	group.Go("build chromium", func() error {
+	//		if *apkGsPath != "" {
+	//			// Do a no-op here if a custom APK is specified for Android.
+	//			chromiumBuild = ""
+	//			return nil
+	//		}
 
-			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour)
-			if err != nil {
-				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
-			}
-			if len(chromiumBuilds) != 1 {
-				return skerr.Fmt("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
-			}
-			chromiumBuild = chromiumBuilds[0]
-			return nil
-		})
-	}
+	//		chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour)
+	//		if err != nil {
+	//			return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
+	//		}
+	//		if len(chromiumBuilds) != 1 {
+	//			return skerr.Fmt("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
+	//		}
+	//		chromiumBuild = chromiumBuilds[0]
+	//		return nil
+	//	})
+	//}
 
 	// Isolate telemetry.
-	isolateDeps := []string{}
-	if *telemetryIsolateHash != "" {
-		isolateDeps = append(isolateDeps, *telemetryIsolateHash)
-	} else {
-		group.Go("isolate telemetry", func() error {
-			telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
-			telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
-			if err != nil {
-				return skerr.Fmt("Error encountered when swarming isolate telemetry task: %s", err)
-			}
-			if telemetryHash == "" {
-				return skerr.Fmt("Found empty telemetry hash!")
-			}
-			isolateDeps = append(isolateDeps, telemetryHash)
-			return nil
-		})
-	}
+	isolateDeps := []string{"1915408019ca6b54e565ba8a6f11c72e82da3e1c"}
+	//if *telemetryIsolateHash != "" {
+	//	isolateDeps = append(isolateDeps, *telemetryIsolateHash)
+	//} else {
+	//	group.Go("isolate telemetry", func() error {
+	//		telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
+	//		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
+	//		if err != nil {
+	//			return skerr.Fmt("Error encountered when swarming isolate telemetry task: %s", err)
+	//		}
+	//		if telemetryHash == "" {
+	//			return skerr.Fmt("Found empty telemetry hash!")
+	//		}
+	//		isolateDeps = append(isolateDeps, telemetryHash)
+
+	//		fmt.Println("DEBUGGING STUFF IS HERE!")
+	//		fmt.Println(telemetryHash)
+	//		return nil
+	//	})
+	//}
 
 	// Wait for chromium build task and isolate telemetry task to complete.
 	if err := group.Wait(); err != nil {
 		return err
 	}
 
+	fmt.Println("DEBUGGING STUFF IS HERE!")
+	fmt.Println(chromiumBuild)
+	chromiumBuild = "try-03e2eacd42f3d4--test-withpatch"
+
 	if chromiumBuild != "" {
 		// If a chromium build was created then delete it from Google storage after the run completes.
-		defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuild))
+		//defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuild))
 	}
 
 	// Archive, trigger and collect swarming tasks.

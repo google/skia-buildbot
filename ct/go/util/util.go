@@ -410,6 +410,7 @@ func GetNumPagesPerBot(repeatValue, maxPagesPerBot int) int {
 	return int(math.Ceil(float64(maxPagesPerBot) / float64(repeatValue)))
 }
 
+// HERE HERE HERE
 // TriggerSwarmingTask returns the number of triggered tasks and an error (if any).
 func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID, serviceAccountJSON, targetPlatform string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE, local bool, repeatValue int, isolateDeps []string) (int, error) {
 	// Instantiate the swarming client.
@@ -516,10 +517,20 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 		chTasks <- tmpMap
 	}()
 
+	cipdPkgs := []string{}
+	expirationTime := 7 * 24 * time.Hour
+	if targetPlatform == PLATFORM_ANDROID {
+		// Add adb CIPD package for Android runs.
+		cipdPkgs = append(cipdPkgs, "cipd_bin_packages:infra/adb/linux-amd64:adb_version:1.0.36")
+		// Android runs use task authentication in swarming (see https://chrome-internal-review.googlesource.com/c/infradata/config/+/2878799/2#message-e3328dd455c1110cd2286a0c343b932594296ea3).
+		// This does not allow more than 48hours validity duration (expiration timeout + hard timeoutout).
+		expirationTime = 2*24*time.Hour - hardTimeout - time.Hour // Remove one hour to be safe.
+	}
+
 	// Trigger and collect swarming tasks.
 	for taskMap := range chTasks {
 		// Trigger swarming using the isolate hashes.
-		tasks, err := s.TriggerSwarmingTasks(ctx, taskMap, dimensions, map[string]string{"runid": runID}, map[string]string{}, []string{}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+		tasks, err := s.TriggerSwarmingTasks(ctx, taskMap, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPkgs, priority, expirationTime, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 		if err != nil {
 			return numTasks, fmt.Errorf("Could not trigger swarming tasks: %s", err)
 		}
@@ -538,8 +549,10 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 						sklog.Infof("task %s was killed (either manually or via CT's delete button). Not going to retry it.", task.Title)
 						return
 					}
+					// Just testing. Do not retry anything.
+					return
 					sklog.Infof("Retrying task %s with high priority %d", task.Title, TASKS_PRIORITY_HIGH)
-					retryTask, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, map[string]string{}, []string{}, TASKS_PRIORITY_HIGH, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+					retryTask, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPkgs, TASKS_PRIORITY_HIGH, expirationTime, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 					if err != nil {
 						sklog.Errorf("Could not trigger retry of task %s: %s", task.Title, err)
 						return
@@ -561,10 +574,13 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 
 // getServiceAccount returns the service account that should be used when triggering swarming tasks.
 func getServiceAccount(dimensions map[string]string) string {
+	// TESTING HERE HERE
 	serviceAccount := ""
 	if util.MapsEqual(dimensions, GCE_LINUX_WORKER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_MASTER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_ANDROID_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_WINDOWS_BUILDER_DIMENSIONS) {
 		// GCE bots need to use "bot". See skbug.com/6611.
 		serviceAccount = "bot"
+	} else if util.MapsEqual(dimensions, GOLO_ANDROID_WORKER_DIMENSIONS) {
+		serviceAccount = "ct-golo@ct-swarming-bots.iam.gserviceaccount.com"
 	}
 	return serviceAccount
 }
@@ -580,7 +596,12 @@ func GetPathToIsolates(local, runOnMaster bool) string {
 	} else if runOnMaster {
 		return filepath.Join("/", "usr", "local", "share", "ctfe", "isolates")
 	} else {
-		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ctfe", "isolates")
+		d := filepath.Dir(filepath.Dir(os.Args[0]))
+		if d == "." {
+			fmt.Println("IKN HERE")
+			d = "/repos/go/"
+		}
+		return filepath.Join(d, "share", "ctfe", "isolates")
 	}
 }
 
@@ -591,7 +612,12 @@ func GetPathToPyFiles(local bool) string {
 		_, currentFile, _, _ := runtime.Caller(0)
 		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "py")
 	} else {
-		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "share", "ctfe", "py")
+		d := filepath.Dir(filepath.Dir(os.Args[0]))
+		if d == "." {
+			fmt.Println("IKN HERE")
+			d = "/repos/go/"
+		}
+		return filepath.Join(d, "share", "ctfe", "py")
 	}
 }
 
@@ -800,6 +826,7 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 
 	if targetPlatform == PLATFORM_ANDROID {
 		// Reset android logcat prior to the run so that we can examine the logs later.
+		// rmistry: Cannot do this anymore :/
 		util.LogErr(ExecuteCmd(ctx, BINARY_ADB, []string{"logcat", "-c"}, []string{}, ADB_ROOT_TIMEOUT, nil, nil))
 	}
 
@@ -816,11 +843,17 @@ func RunBenchmark(ctx context.Context, fileInfoName, pathToPagesets, pathToPyFil
 		output, getErr := GetRunBenchmarkOutput(b)
 		util.LogErr(getErr)
 		fmt.Println(output)
+
+		// HERE HERE HERE
+		fmt.Println("SLEEPING SLEEPING SLEEPING for 10 mins")
+		//time.Sleep(10 * time.Minute)
+
 		return "", fmt.Errorf("Run benchmark command failed with: %s", err)
 	}
 
 	// Append logcat output if we ran on Android.
 	if targetPlatform == PLATFORM_ANDROID {
+		// rmistry: Cannot do this anymore :/
 		if err := ExecuteCmdWithConfigurableLogging(ctx, BINARY_ADB, []string{"logcat", "-d"}, env, ADB_ROOT_TIMEOUT, &b, &b, false, false); err != nil {
 			return "", fmt.Errorf("Error running logcat -d: %s", err)
 		}
@@ -1042,6 +1075,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	return strings.Trim(string(contents), "\n"), nil
 }
 
+// HERE HERE HERE
 func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isolateFileName, serviceAccountJSON, targetPlatform string, local bool, isolateArgs map[string]string) (string, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")

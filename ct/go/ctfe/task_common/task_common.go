@@ -163,15 +163,16 @@ func (vars *AddTaskCommonVars) IsAdminTask() bool {
 	return false
 }
 
+// rmistry
 func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
-	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, nil, "Please login with google account to add tasks", http.StatusInternalServerError)
-		return
-	}
-	if task.IsAdminTask() && !ctfeutil.UserHasAdminRights(r) {
-		httputils.ReportError(w, nil, "Must be admin to add admin tasks; contact rmistry@", http.StatusInternalServerError)
-		return
-	}
+	//if !ctfeutil.UserHasEditRights(r) {
+	//	httputils.ReportError(w, nil, "Please login with google account to add tasks", http.StatusInternalServerError)
+	//	return
+	//}
+	//if task.IsAdminTask() && !ctfeutil.UserHasAdminRights(r) {
+	//	httputils.ReportError(w, nil, "Must be admin to add admin tasks; contact rmistry@", http.StatusInternalServerError)
+	//	return
+	//}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to add %T task", task), http.StatusInternalServerError)
@@ -470,11 +471,12 @@ func getClosedTasksChannel(tasks []*swarmingapi.SwarmingRpcsTaskRequestMetadata)
 	return tasksChannel
 }
 
+// rmistry
 func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
-	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, nil, "Please login with google account to delete tasks", http.StatusInternalServerError)
-		return
-	}
+	//if !ctfeutil.UserHasEditRights(r) {
+	//	httputils.ReportError(w, nil, "Please login with google account to delete tasks", http.StatusInternalServerError)
+	//	return
+	//}
 	w.Header().Set("Content-Type", "application/json")
 	vars := struct{ Id int64 }{}
 	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
