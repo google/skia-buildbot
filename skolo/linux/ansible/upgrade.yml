@@ -1,0 +1,64 @@
+# During upgrades, can be run modified then run via:
+# ansible-playbook -i "host1,host2," upgrade.yml -K
+# successively on each phase of rollout.
+---
+- hosts: all
+  remote_user: chrome-bot
+  become_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+  - name: sudo apt update
+    apt:
+      update_cache: yes
+  - name: Shutdown collectd before upgrade.
+    shell: pkill -9 collectd
+    ignore_errors: yes
+  # May cause a collision issue on upgrade
+  - name: remove inetutils-ping
+    apt:
+      name: inetutils-ping
+      state: absent
+  - name: sudo apt upgrade
+    apt:
+      force_apt_get: yes
+      upgrade: safe
+  # We do a full upgrade here to attempt to remove any additional packages that
+  # may cause conflicts during the below update. It may be unnecessary.
+  - name: sudo apt full-upgrade
+    apt:
+      upgrade: full
+  - name: sudo apt autoremove
+    apt:
+      autoremove: yes
+  - name: Enumerate sources.list files.
+    find:
+      path: /etc/apt/
+      recurse: yes
+      patterns: '*.list'
+    register: sources_list
+  - name: update sources.list to buster
+    replace:
+      path: "{{ item.path }}"
+      regexp: 'stretch'
+      replace: 'buster'
+    with_list: "{{sources_list.files}}"
+  - name: sudo apt update
+    apt:
+      update_cache: yes
+  - name: sudo apt upgrade
+    apt:
+      upgrade: safe
+    ignore_errors: yes
+  - name: sudo apt full-upgrade
+    apt:
+      upgrade: full
+    ignore_errors: yes
+  - name: reboot the machine
+    reboot:
+      msg: "Reboot initiated by Ansible script"
+      connect_timeout: 5
+      reboot_timeout: 300
+      pre_reboot_delay: 0
+      post_reboot_delay: 30
+      test_command: uptime
