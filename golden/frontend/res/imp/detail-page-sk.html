@@ -37,18 +37,14 @@
               issue="[[issue]]">
       </digest-details-sk>
     </div>
-    <zoom-dialog-sk></zoom-dialog-sk>
 
   </template>
   <script>
     Polymer({
       is: "detail-page-sk",
 
-      behaviors: [gold.ZoomTargetBehavior],
-
       ready: function() {
         this.listen(this, 'triage', '_handleTriage');
-        this.listen(this, 'zoom-clicked', '_handleZoomClicked');
         // cut off first char, which is the '?'
         const params = sk.query.toObject(window.location.search.slice(1));
         this.set('issue', params.issue || '');

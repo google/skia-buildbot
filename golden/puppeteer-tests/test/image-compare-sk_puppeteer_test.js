@@ -20,6 +20,12 @@ describe('image-compare-sk', () => {
       await takeScreenshot(imageCompareSk, 'image-compare-sk');
     });
 
+    it('shows the multi-zoom-sk dialog when zoom button clicked', async () => {
+      await testBed.page.setViewport({ width: 1000, height: 800 });
+      await testBed.page.click('#normal button.zoom_btn');
+      await takeScreenshot(testBed.page, 'image-compare-sk_zoom-dialog');
+    });
+
     it('has just the left image', async () => {
       const imageCompareSk = await testBed.page.$('#no_right');
       await takeScreenshot(

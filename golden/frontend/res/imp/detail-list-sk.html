@@ -25,15 +25,11 @@
       openHelpDialog - opens the help dialog for key bindings.
 -->
 
-<link rel="import" href="zoom-dialog-sk.html">
 <link rel="import" href="help-dialog-sk.html">
 
 <dom-module id="detail-list-sk">
   <template>
     <content></content>
-
-    <!-- zoom dialog -->
-    <zoom-dialog-sk id="detailsZoomDialog"></zoom-dialog-sk>
 
     <!-- help dialog -->
     <help-dialog-sk id="helpDialog">
@@ -54,10 +50,8 @@
       is: 'detail-list-sk',
 
       ready: function () {
-        this._zooming = false;
-
-        this.listen(this, 'zoom-clicked', "_handleZoomClicked");
-        this.listen(this, 'iron-overlay-closed', '_handleZoomClosed');
+        this.listen(this, 'zoom-dialog-opened', '_handleZoomOpened');
+        this.listen(this, 'zoom-dialog-closed', '_handleZoomClosed');
         this.listen(this, 'triage', '_handleTriage');
       },
 
@@ -96,7 +90,7 @@
             this._markFocus('untriaged');
             break;
           case 'W':
-            this._handleZoomClicked();
+            // TODO(kjlubick)
             break;
           case '?':
             this.openHelpDialog();
@@ -104,27 +98,11 @@
         }
       },
 
-      _handleZoomClosed: function (ev) {
+      _handleZoomClosed: function () {
        this._zooming = false;
       },
 
-      _handleZoomClicked: function (ev) {
-        var zoomDetail;
-
-        // This was triggerd by a keyboard shortcut.
-        if (!ev) {
-          var ele = this._findFocus();
-          if (ele == null) {
-            return
-          }
-          // Extract the zoom information from the element.
-          zoomDetail = ele.getZoomDetail();
-        } else {
-          zoomDetail = ev.detail;
-          ev.stopPropagation();
-        }
-
-        this.$.detailsZoomDialog.open(zoomDetail);
+      _handleZoomOpened: function () {
         this._zooming = true;
       },
 
