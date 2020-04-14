@@ -311,6 +311,8 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 		rm = append(rm, c.AndroidRepoManager)
 	}
 	if c.CopyRepoManager != nil {
+		// TODO(borenet): De-duplicate the Gerrit config.
+		c.CopyRepoManager.Gerrit = c.Gerrit
 		rm = append(rm, c.CopyRepoManager)
 	}
 	if c.DEPSRepoManager != nil {
@@ -350,6 +352,8 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 		rm = append(rm, c.NoCheckoutDEPSRepoManager)
 	}
 	if c.SemVerGCSRepoManager != nil {
+		// TODO(borenet): De-duplicate the Gerrit config.
+		c.SemVerGCSRepoManager.Gerrit = c.Gerrit
 		rm = append(rm, c.SemVerGCSRepoManager)
 	}
 	if len(rm) == 1 {
