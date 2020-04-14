@@ -13,6 +13,7 @@ import (
 
 	github_api "github.com/google/go-github/v29/github"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/exec"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/github"
@@ -157,13 +158,13 @@ func mockGithubDEPSRequests(t *testing.T, urlMock *mockhttpclient.URLMock) {
 func TestGithubDEPSRepoManager(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, child, childCommits, parent, _, cleanup := setupGithubDEPS(t)
+	ctx, wd, child, childCommits, parentRepo, _, cleanup := setupGithubDEPS(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, _ := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg(t)
-	cfg.ParentRepo = parent.RepoUrl()
+	cfg.ParentRepo = parentRepo.RepoUrl()
 	rm, err := NewGithubDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
@@ -182,13 +183,13 @@ func TestGithubDEPSRepoManager(t *testing.T) {
 func TestCreateNewGithubDEPSRoll(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, _, _, parent, _, cleanup := setupGithubDEPS(t)
+	ctx, wd, _, _, parentRepo, _, cleanup := setupGithubDEPS(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg(t)
-	cfg.ParentRepo = parent.RepoUrl()
+	cfg.ParentRepo = parentRepo.RepoUrl()
 	rm, err := NewGithubDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
@@ -204,13 +205,13 @@ func TestCreateNewGithubDEPSRoll(t *testing.T) {
 func TestCreateNewGithubDEPSRollTransitive(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, _, _, parent, _, cleanup := setupGithubDEPS(t)
+	ctx, wd, _, _, parentRepo, _, cleanup := setupGithubDEPS(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg(t)
-	cfg.ParentRepo = parent.RepoUrl()
+	cfg.ParentRepo = parentRepo.RepoUrl()
 	cfg.TransitiveDeps = map[string]string{
 		"child/dep": "parent/dep",
 	}
@@ -230,19 +231,19 @@ func TestCreateNewGithubDEPSRollTransitive(t *testing.T) {
 func TestRanPreUploadStepsGithubDEPS(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, _, _, parent, _, cleanup := setupGithubDEPS(t)
+	ctx, wd, _, _, parentRepo, _, cleanup := setupGithubDEPS(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg(t)
-	cfg.ParentRepo = parent.RepoUrl()
+	cfg.ParentRepo = parentRepo.RepoUrl()
 	rm, err := NewGithubDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 	ran := false
-	rm.(*githubDEPSRepoManager).preUploadSteps = []PreUploadStep{
+	rm.(*githubDEPSRepoManager).preUploadSteps = []parent.PreUploadStep{
 		func(context.Context, []string, *http.Client, string) error {
 			ran = true
 			return nil
@@ -260,20 +261,20 @@ func TestRanPreUploadStepsGithubDEPS(t *testing.T) {
 func TestErrorPreUploadStepsGithubDEPS(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, _, _, parent, _, cleanup := setupGithubDEPS(t)
+	ctx, wd, _, _, parentRepo, _, cleanup := setupGithubDEPS(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlMock := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg(t)
-	cfg.ParentRepo = parent.RepoUrl()
+	cfg.ParentRepo = parentRepo.RepoUrl()
 	rm, err := NewGithubDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 	ran := false
 	expectedErr := errors.New("Expected error")
-	rm.(*githubDEPSRepoManager).preUploadSteps = []PreUploadStep{
+	rm.(*githubDEPSRepoManager).preUploadSteps = []parent.PreUploadStep{
 		func(context.Context, []string, *http.Client, string) error {
 			ran = true
 			return expectedErr
