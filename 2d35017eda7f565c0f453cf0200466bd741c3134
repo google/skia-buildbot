@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "39902326_e0c8d064",
+        "filename": "skolo/go/powercycle/DESIGN.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-14T19:10:12Z",
+      "side": 1,
+      "message": "Consider creating a Golink and pasting it here and on //power/README.md.",
+      "range": {
+        "startLine": 4,
+        "startChar": 44,
+        "endLine": 4,
+        "endChar": 67
+      },
+      "revId": "2d35017eda7f565c0f453cf0200466bd741c3134",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67738e2b_7d6786af",
+        "filename": "skolo/go/powercycle/DESIGN.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-14T19:10:12Z",
+      "side": 1,
+      "message": "Nit: //power/README.md",
+      "range": {
+        "startLine": 4,
+        "startChar": 10,
+        "endLine": 4,
+        "endChar": 34
+      },
+      "revId": "2d35017eda7f565c0f453cf0200466bd741c3134",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3ca69f0_8f446f30",
+        "filename": "skolo/go/powercycle/DESIGN.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-14T19:10:12Z",
+      "side": 1,
+      "message": "Nit: //skolo/sys",
+      "range": {
+        "startLine": 37,
+        "startChar": 64,
+        "endLine": 37,
+        "endChar": 74
+      },
+      "revId": "2d35017eda7f565c0f453cf0200466bd741c3134",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eaf2619c_ede72b56",
+        "filename": "skolo/go/powercycle/DESIGN.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-14T19:10:12Z",
+      "side": 1,
+      "message": "Maybe turn this into a TODO on a separate line/paragraph?",
+      "range": {
+        "startLine": 54,
+        "startChar": 71,
+        "endLine": 55,
+        "endChar": 53
+      },
+      "revId": "2d35017eda7f565c0f453cf0200466bd741c3134",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
