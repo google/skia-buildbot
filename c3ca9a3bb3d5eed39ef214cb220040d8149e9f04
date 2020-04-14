@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8b4b573a_8e93eaa0",
+        "filename": "skolo/go/powercycle/DESIGN.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-14T19:02:10Z",
+      "side": 1,
+      "message": "Nit: it\u0027s hard for me to tell where this is connected. Maybe an extra line between 22 and 23 would help?",
+      "range": {
+        "startLine": 23,
+        "startChar": 27,
+        "endLine": 23,
+        "endChar": 28
+      },
+      "revId": "c3ca9a3bb3d5eed39ef214cb220040d8149e9f04",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
