@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "24e7fc7c_a723dfbc",
+        "filename": "power/go/decider/decider.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-14T20:31:42Z",
+      "side": 1,
+      "message": "Would it make sense to have a HostID type?\n\nBenefits:\n- It would remove the need for the \"maps id -\u003e host\" comments here and in gatherer.go.\n- It would make any code using the hostMap dictionary a bit easier to read.",
+      "range": {
+        "startLine": 29,
+        "startChar": 37,
+        "endLine": 29,
+        "endChar": 43
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4664b2b_118a66ec",
+        "filename": "skolo/go/powercycle/edgeswitch_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-14T20:31:42Z",
+      "side": 1,
+      "message": "What do you think about moving files edgeswitch_*.go into their own subpackage?\n\nThe main benefit would be to make the separation between powercycle.go and the EdgeSwitch stuff clearer by making everything package-private except for e.g. the current mewEdgeSwitchClient function, which returns a Client.",
+      "range": {
+        "startLine": 26,
+        "startChar": 5,
+        "endLine": 26,
+        "endChar": 18
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e97baf7_fd3f74a7",
+        "filename": "skolo/go/powercycle/edgeswitch_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-14T20:31:42Z",
+      "side": 1,
+      "message": "Note that this package currently contains two functions with very similar names:\n\n- NewEdgeSwitchClient\n- newEdgeSwitchClient\n\nIt might be worth coming up with more distinct names for these.",
+      "range": {
+        "startLine": 39,
+        "startChar": 5,
+        "endLine": 39,
+        "endChar": 24
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40661610_10db4ca9",
+        "filename": "skolo/go/powercycle/mpower.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-14T20:31:42Z",
+      "side": 1,
+      "message": "Nit: please add a blank line after this field. Same below.",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 32
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68599720_3abc6f76",
+        "filename": "skolo/go/powercycle/mpower.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-14T20:31:42Z",
+      "side": 1,
+      "message": "Similarly as with the EdgeSwitch stuff, consider moving the MPower code to its own subpackage and making package-private everything that powercycle.go doesn\u0027t need to know about.",
+      "range": {
+        "startLine": 58,
+        "startChar": 5,
+        "endLine": 58,
+        "endChar": 20
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdb1bd27_104b91be",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-14T20:31:42Z",
+      "side": 1,
+      "message": "Could we add a comment explaining what these string keys represent?\n\nAlternatively, could we make these self documenting by defining a custom type?",
+      "range": {
+        "startLine": 46,
+        "startChar": 12,
+        "endLine": 46,
+        "endChar": 18
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5cb6b8c1_a2823760",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-14T20:31:42Z",
+      "side": 1,
+      "message": "Nit: and",
+      "range": {
+        "startLine": 88,
+        "startChar": 53,
+        "endLine": 88,
+        "endChar": 55
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e3bc1ab_c8e9823b",
+        "filename": "skolo/go/powercycle/powercycle_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-14T20:31:42Z",
+      "side": 1,
+      "message": "Drive-by comment: I think NotEmpty can be used for strings as well.\n\nhttps://godoc.org/github.com/stretchr/testify/assert#NotEmpty",
+      "range": {
+        "startLine": 48,
+        "startChar": 10,
+        "endLine": 48,
+        "endChar": 18
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
