@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/flynn/json5"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -25,26 +24,6 @@ type DeviceGroup interface {
 	// is larger than zero it overrides the default delay between
 	// turning the port off and on again.
 	PowerCycle(devID string, delayOverride time.Duration) error
-
-	// PowerUsage returns the power usage of all devices in the group
-	// at a specific time.
-	PowerUsage() (*GroupPowerUsage, error)
-}
-
-// GroupPowerUsage captures power usage of a set of devices at
-// a specific time stamp.
-type GroupPowerUsage struct {
-	// Time stamp when the usage sample was taken.
-	TS time.Time
-	// Map[deviceID]PowerStat capturs power usage for the devices in the group.
-	Stats map[string]*PowerStat
-}
-
-// PowerStat captures the current, voltage and wattage.
-type PowerStat struct {
-	Ampere float32 // current in mA
-	Volt   float32 // voltage in V
-	Watt   float32 // wattage in W (redundant ~Ampere * Volt / 1000)
 }
 
 // Config is the overall structure to aggregate configuration options
@@ -55,9 +34,6 @@ type Config struct {
 
 	// EdgeSwitch aggregates all EdgeSwitch configurations.
 	EdgeSwitch map[string]*EdgeSwitchConfig `json:"edgeswitch"`
-
-	// Seeeduino aggregates all Seeeduino configurations.
-	Seeeduino map[string]*SeeeduinoConfig `json:"seeeduino"`
 }
 
 // aggregatedDevGroup implements the DeviceGroup interface and allows
@@ -96,24 +72,6 @@ func (a *aggregatedDevGroup) PowerCycle(devID string, delayOverride time.Duratio
 	return dev.PowerCycle(devID, delayOverride)
 }
 
-func (a *aggregatedDevGroup) PowerUsage() (*GroupPowerUsage, error) {
-	ret := &GroupPowerUsage{
-		TS: time.Now(),
-	}
-	ret.Stats = map[string]*PowerStat{}
-	for _, dev := range a.idDevGroupMap {
-		devStats, err := dev.PowerUsage()
-		if err != nil {
-			sklog.Errorf("Error getting power stats: %s", err)
-			continue
-		}
-		for id, stat := range devStats.Stats {
-			ret.Stats[id] = stat
-		}
-	}
-	return ret, nil
-}
-
 // DeviceGroupFromJson5File parses a Json5 file and instantiates the
 // defined devices.
 func DeviceGroupFromJson5File(path string, connect bool) (DeviceGroup, error) {
@@ -146,17 +104,6 @@ func DeviceGroupFromJson5File(path string, connect bool) (DeviceGroup, error) {
 		}
 
 		if err := ret.add(es); err != nil {
-			return nil, err
-		}
-	}
-
-	// Add the Seeeduino boards.
-	for _, c := range conf.Seeeduino {
-		ar, err := NewSeeeduinoClient(c, connect)
-		if err != nil {
-			return nil, err
-		}
-		if err := ret.add(ar); err != nil {
 			return nil, err
 		}
 	}

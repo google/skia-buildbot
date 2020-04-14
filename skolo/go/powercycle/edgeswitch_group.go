@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"sort"
-	"strconv"
-	"strings"
 	"time"
 
 	"go.skia.org/infra/go/sklog"
@@ -145,70 +143,4 @@ func SoftPowerCycle(address string) bool {
 	_ = session.Run("sudo /sbin/reboot")
 	sklog.Infof("Soft reboot should have succeeded.  See logs: %s", b.String())
 	return true
-}
-
-// PowerUsage, see the DeviceGroup interface.
-func (e *EdgeSwitchDevGroup) PowerUsage() (*GroupPowerUsage, error) {
-	outputLines, err := e.client.ExecCmds([]string{
-		"show poe status all",
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	ret := &GroupPowerUsage{
-		TS: time.Now(),
-	}
-	ret.Stats = make(map[string]*PowerStat, len(outputLines))
-	// only consider lines like:
-	// Intf      Detection      Class   Consumed(W) Voltage(V) Current(mA) Temperature(C)
-	// 0/6       Good           Class3         1.93      52.82       36.62             45
-	for _, oneLine := range outputLines {
-		fields := strings.Fields(oneLine)
-		if (len(fields) < 7) || (len(fields[0]) < 3) || (fields[0][1] != '/') {
-			continue
-		}
-
-		stat := &PowerStat{}
-		var err error = nil
-		last := len(fields)
-		stat.Ampere = parseFloat(&err, fields[last-2])
-		stat.Volt = parseFloat(&err, fields[last-3])
-		stat.Watt = parseFloat(&err, fields[last-4])
-		port := parseInt(&err, fields[0][2:])
-
-		if err != nil {
-			sklog.Errorf("Error: %s", err)
-			continue
-		}
-
-		devID, ok := e.portDevMap[port]
-
-		if !ok {
-			continue
-		}
-
-		sklog.Infof("Found port %d and dev '%s'", port, devID)
-		ret.Stats[devID] = stat
-	}
-
-	return ret, nil
-}
-
-func parseFloat(err *error, strVal string) float32 {
-	if *err != nil {
-		return 0
-	}
-	var ret float64
-	ret, *err = strconv.ParseFloat(strVal, 32)
-	return float32(ret)
-}
-
-func parseInt(err *error, strVal string) int {
-	if *err != nil {
-		return 0
-	}
-	var ret int64
-	ret, *err = strconv.ParseInt(strVal, 10, 32)
-	return int(ret)
 }
