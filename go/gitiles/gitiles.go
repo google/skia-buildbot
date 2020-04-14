@@ -270,7 +270,7 @@ func commitToLongCommit(c *Commit) (*vcsinfo.LongCommit, error) {
 	if len(split) > 1 && split[0] == "" {
 		split = split[1:]
 	}
-	if len(split) > 1 {
+	if len(split) > 0 {
 		body = strings.Join(split, "\n")
 	}
 	return &vcsinfo.LongCommit{

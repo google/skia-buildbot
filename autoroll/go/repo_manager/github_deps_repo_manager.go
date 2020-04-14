@@ -405,3 +405,17 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 
 	return int64(pr.GetNumber()), nil
 }
+
+// getChildRepoUrl returns the URL of the child repo, obtaining it if necessary.
+func (rm *githubDEPSRepoManager) getChildRepoUrl(ctx context.Context) (string, error) {
+	rm.childRepoUrlMtx.Lock()
+	defer rm.childRepoUrlMtx.Unlock()
+	if rm.childRepoUrl == "" {
+		childRepoUrl, err := rm.childRepo.Git(ctx, "remote", "get-url", "origin")
+		if err != nil {
+			return "", err
+		}
+		rm.childRepoUrl = strings.TrimSpace(childRepoUrl)
+	}
+	return rm.childRepoUrl, nil
+}
