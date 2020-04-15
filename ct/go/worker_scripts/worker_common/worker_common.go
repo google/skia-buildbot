@@ -22,7 +22,7 @@ var (
 	Local = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 )
 
-func Init(ctx context.Context) {
+func Init(ctx context.Context, useDepotTools bool) {
 	common.Init()
 	if *Local {
 		util.SetVarsForLocal()
@@ -33,13 +33,14 @@ func Init(ctx context.Context) {
 			util.DepotToolsDir = `C:\\Users\chrome-bot\depot_tools`
 		}
 
-		// Update depot_tools.
-		skutil.LogErr(util.ExecuteCmd(ctx, filepath.Join(util.DepotToolsDir, "update_depot_tools"), []string{}, []string{}, util.UPDATE_DEPOT_TOOLS_TIMEOUT, nil, nil))
-		// Add depot_tools to the PATH.
-		skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+string(os.PathListSeparator)+util.DepotToolsDir))
+		if useDepotTools {
+			// Update depot_tools.
+			skutil.LogErr(util.ExecuteCmd(ctx, filepath.Join(util.DepotToolsDir, "update_depot_tools"), []string{}, []string{}, util.UPDATE_DEPOT_TOOLS_TIMEOUT, nil, nil))
+			// Add depot_tools to the PATH.
+			skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+string(os.PathListSeparator)+util.DepotToolsDir))
+		}
+
 		if runtime.GOOS != "windows" {
-			// Add adb to the PATH.
-			skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+string(os.PathListSeparator)+"/home/chrome-bot/KOT49H-hammerhead-userdebug-insecure"))
 			// Bring up Xvfb on workers (for GCE instances).
 			if _, _, err := exec.RunIndefinitely(&exec.Command{
 				Name:        "sudo",

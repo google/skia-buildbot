@@ -516,10 +516,20 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 		chTasks <- tmpMap
 	}()
 
+	cipdPkgs := []string{}
+	expirationTime := 7 * 24 * time.Hour
+	if targetPlatform == PLATFORM_ANDROID {
+		// Add adb CIPD package for Android runs.
+		cipdPkgs = append(cipdPkgs, ADB_CIPD_PACKAGE)
+		// Android runs use task authentication in swarming (see https://chrome-internal-review.googlesource.com/c/infradata/config/+/2878799/2#message-e3328dd455c1110cd2286a0c343b932594296ea3).
+		// This does not allow more than 48hours validity duration (expiration timeout + hard timeoutout).
+		expirationTime = 2*24*time.Hour - hardTimeout - time.Hour // Remove one hour to be safe.
+	}
+
 	// Trigger and collect swarming tasks.
 	for taskMap := range chTasks {
 		// Trigger swarming using the isolate hashes.
-		tasks, err := s.TriggerSwarmingTasks(ctx, taskMap, dimensions, map[string]string{"runid": runID}, map[string]string{}, []string{}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+		tasks, err := s.TriggerSwarmingTasks(ctx, taskMap, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPkgs, priority, expirationTime, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 		if err != nil {
 			return numTasks, fmt.Errorf("Could not trigger swarming tasks: %s", err)
 		}
@@ -539,7 +549,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 						return
 					}
 					sklog.Infof("Retrying task %s with high priority %d", task.Title, TASKS_PRIORITY_HIGH)
-					retryTask, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, map[string]string{}, []string{}, TASKS_PRIORITY_HIGH, 7*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+					retryTask, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPkgs, TASKS_PRIORITY_HIGH, expirationTime, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 					if err != nil {
 						sklog.Errorf("Could not trigger retry of task %s: %s", task.Title, err)
 						return
@@ -565,6 +575,9 @@ func getServiceAccount(dimensions map[string]string) string {
 	if util.MapsEqual(dimensions, GCE_LINUX_WORKER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_MASTER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_ANDROID_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_WINDOWS_BUILDER_DIMENSIONS) {
 		// GCE bots need to use "bot". See skbug.com/6611.
 		serviceAccount = "bot"
+	} else if util.MapsEqual(dimensions, GOLO_ANDROID_WORKER_DIMENSIONS) {
+		// Android runs use task authentication in swarming (see https://chrome-internal-review.googlesource.com/c/infradata/config/+/2878799/2#message-e3328dd455c1110cd2286a0c343b932594296ea3).
+		serviceAccount = GOLO_ANDROID_SERVICE_ACCOUNT
 	}
 	return serviceAccount
 }

@@ -32,7 +32,7 @@ var (
 
 func buildRepo() error {
 	ctx := context.Background()
-	worker_common.Init(ctx)
+	worker_common.Init(ctx, true /* useDepotTools */)
 	defer util.TimeTrack(time.Now(), "Building Repo")
 	defer sklog.Flush()
 

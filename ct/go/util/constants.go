@@ -194,7 +194,10 @@ const (
 	CT_PERF_BUCKET = "cluster-telemetry-perf"
 	CT_PERF_REPO   = "https://skia.googlesource.com/perf-ct"
 
-	MASTER_SERVICE_ACCOUNT = "ct-swarming-bots@ct-swarming-bots.iam.gserviceaccount.com"
+	MASTER_SERVICE_ACCOUNT       = "ct-swarming-bots@ct-swarming-bots.iam.gserviceaccount.com"
+	GOLO_ANDROID_SERVICE_ACCOUNT = "ct-golo@ct-swarming-bots.iam.gserviceaccount.com"
+
+	ADB_CIPD_PACKAGE = "cipd_bin_packages:infra/adb/linux-amd64:adb_version:1.0.36"
 )
 
 type PagesetTypeInfo struct {
@@ -351,7 +354,7 @@ var (
 
 	SupportedPlatformsToDesc = map[string]string{
 		PLATFORM_LINUX:   "Linux (Ubuntu18.04 machines)",
-		PLATFORM_ANDROID: "Android (N5X devices)",
+		PLATFORM_ANDROID: "Android (Pixel2 devices)",
 		PLATFORM_WINDOWS: "Windows (2016 DataCenter Server cloud instances)",
 	}
 
@@ -371,7 +374,7 @@ var (
 	GCE_LINUX_BUILDER_DIMENSIONS   = map[string]string{"pool": "CTLinuxBuilder", "cores": "64"}
 	GCE_WINDOWS_BUILDER_DIMENSIONS = map[string]string{"pool": "CTBuilder", "os": "Windows"}
 
-	GOLO_ANDROID_WORKER_DIMENSIONS = map[string]string{"pool": SWARMING_POOL, "os": "Android", "inside_docker": "0"}
+	GOLO_ANDROID_WORKER_DIMENSIONS = map[string]string{"pool": SWARMING_POOL, "os": "Android", "inside_docker": "1", "device_type": "walleye"}
 	GOLO_LINUX_WORKER_DIMENSIONS   = map[string]string{"pool": SWARMING_POOL, "os": "Linux", "cores": "8"}
 
 	// ct-perf.skia.org constants.

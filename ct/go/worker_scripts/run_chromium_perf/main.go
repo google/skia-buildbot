@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -15,10 +16,11 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/ct/go/adb"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -51,7 +53,7 @@ var (
 
 func runChromiumPerf() error {
 	ctx := context.Background()
-	worker_common.Init(ctx)
+	worker_common.Init(ctx, false /* useDepotTools */)
 	if !*worker_common.Local {
 		defer util.CleanTmpDir()
 	}
@@ -77,21 +79,18 @@ func runChromiumPerf() error {
 		*valueColumnName = util.DEFAULT_VALUE_COLUMN_NAME
 	}
 
+	var httpClient *http.Client
 	if *targetPlatform == util.PLATFORM_ANDROID {
-		if err := adb.VerifyLocalDevice(ctx); err != nil {
-			// Android device missing or offline.
-			return fmt.Errorf("Could not find Android device: %s", err)
+		// Android runs use task based authentication and need to use Luci context.
+		ts, err := auth.NewLUCIContextTokenSource(auth.SCOPE_FULL_CONTROL)
+		if err != nil {
+			return fmt.Errorf("Could not get token source: %s", err)
 		}
-		// Kill adb server to make sure we start from a clean slate.
-		skutil.LogErr(util.ExecuteCmd(ctx, util.BINARY_ADB, []string{"kill-server"}, []string{},
-			util.ADB_ROOT_TIMEOUT, nil, nil))
-		// Make sure adb shell is running as root.
-		skutil.LogErr(util.ExecuteCmd(ctx, util.BINARY_ADB, []string{"root"}, []string{},
-			util.ADB_ROOT_TIMEOUT, nil, nil))
+		httpClient = httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	}
 
 	// Instantiate GcsUtil object.
-	gs, err := util.NewGcsUtil(nil)
+	gs, err := util.NewGcsUtil(httpClient)
 	if err != nil {
 		return err
 	}

@@ -31,7 +31,7 @@ var (
 
 func runLua() error {
 	ctx := context.Background()
-	worker_common.Init(ctx)
+	worker_common.Init(ctx, false /* useDepotTools */)
 	if !*worker_common.Local {
 		defer util.CleanTmpDir()
 	}
