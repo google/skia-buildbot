@@ -11,6 +11,7 @@ const paramset2 = {
   arch: ['Arm7'],
   bench_type: ['playback', 'recording'],
   compiler: [],
+  extra_config: ['Android', 'Android_NoGPUThreads'],
   cpu_or_gpu: ['GPU'],
 };
 
