@@ -125,7 +125,7 @@ const (
 	NINJA_TIMEOUT               = 2 * time.Hour
 
 	// util.InstallChromeAPK
-	ADB_INSTALL_TIMEOUT = 15 * time.Minute
+	ADB_INSTALL_TIMEOUT = 5 * time.Minute
 
 	// Capture Archives
 	CAPTURE_ARCHIVES_DEFAULT_CT_BENCHMARK = "rasterize_and_record_micro_ct"
