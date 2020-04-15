@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "2e50ceec_68045dfd",
+        "filename": "power/go/decider/decider.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-15T19:30:57Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8b9de0db_9592eb4d",
+      "range": {
+        "startLine": 29,
+        "startChar": 37,
+        "endLine": 29,
+        "endChar": 43
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e4664b2b_118a66ec",
         "filename": "skolo/go/powercycle/edgeswitch_client.go",
         "patchSetId": 3
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "762afd93_5dbcbdab",
+        "filename": "skolo/go/powercycle/edgeswitch_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-15T19:30:57Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "a7a4aa54_726ecfbc",
+      "range": {
+        "startLine": 26,
+        "startChar": 5,
+        "endLine": 26,
+        "endChar": 18
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1e97baf7_fd3f74a7",
         "filename": "skolo/go/powercycle/edgeswitch_client.go",
         "patchSetId": 3
@@ -140,6 +188,30 @@
       "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9780778b_919fff16",
+        "filename": "skolo/go/powercycle/edgeswitch_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-15T19:30:57Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "12ada822_5be34b04",
+      "range": {
+        "startLine": 39,
+        "startChar": 5,
+        "endLine": 39,
+        "endChar": 24
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
