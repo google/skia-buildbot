@@ -4,32 +4,26 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"os"
 	"time"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/skolo/go/powercycle"
 )
 
-var (
-	configFile  = flag.String("conf", "/etc/powercycle.json5", "JSON5 file with device configuration.")
-	delay       = flag.Int("delay", 0, "Any value > 0 overrides the default duration (in sec) between turning the port off and on.")
-	connect     = flag.Bool("connect", false, "Connect to all the powercycle hosts and verify they are attached computing attached devices.")
-	list        = flag.Bool("l", false, "List the available devices and exit.")
-	powerOutput = flag.String("power_output", "", "Continously poll power usage and write it to the given file. Press ^C to exit.")
-	sampleRate  = flag.Duration("power_sample_rate", 2*time.Second, "Time delay between capturing power usage.")
-
-	autoFix    = flag.Bool("auto_fix", false, "Fetch the list of down bots/devices from power.skia.org and reboot those.")
-	autoFixURL = flag.String("auto_fix_url", "https://power.skia.org/down_bots", "Url at which to grab the list of down bots/devices.")
-
-	daemonURL = flag.String("daemon_url", "http://localhost:9210/powercycled_bots", "The (probably localhost) URL at which the powercycle daemon is located.")
-)
-
 func main() {
+	var (
+		configFile = flag.String("conf", "/etc/powercycle.json5", "JSON5 file with device configuration.")
+		delay      = flag.Int("delay", 0, "Any value > 0 overrides the default duration (in sec) between turning the port off and on.")
+		connect    = flag.Bool("connect", false, "Connect to all the powercycle hosts and verify they are attached computing attached devices.")
+		list       = flag.Bool("l", false, "List the available devices and exit.")
+		autoFix    = flag.Bool("auto_fix", false, "Fetch the list of down bots/devices from power.skia.org and reboot those.")
+		autoFixURL = flag.String("auto_fix_url", "https://power.skia.org/down_bots", "Url at which to grab the list of down bots/devices.")
+		daemonURL  = flag.String("daemon_url", "http://localhost:9210/powercycled_bots", "The (probably localhost) URL at which the powercycle daemon is located.")
+	)
 	common.Init()
 	args := flag.Args()
 	if !*connect && !*autoFix && len(args) == 0 {
@@ -39,21 +33,17 @@ func main() {
 		// powercycle without connecting first, the DeviceGroups won't be properly initialized.
 		*connect = true
 	}
-	devGroup, err := powercycle.DeviceGroupFromJson5File(*configFile, *connect)
+	devGroup, err := powercycle.ParseJSON5(*configFile, *connect)
 	if err != nil {
 		sklog.Fatalf("Unable to parse config file.  Got error: %s", err)
 	}
 
 	if *list {
 		listDevices(devGroup, 0)
-	} else if *powerOutput != "" {
-		if *sampleRate <= 0 {
-			sklog.Fatal("Non-positive sample rate provided.")
-		}
 	}
 
 	if *autoFix {
-		args, err = GetAutoFixCandidates(*autoFixURL)
+		args, err = getAutoFixCandidates(*autoFixURL)
 		if err != nil {
 			sklog.Fatalf("Could not fetch list of down bots/devices: %s", err)
 			return
@@ -75,21 +65,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Check if the device ids are valid.
+	// Check if all of the device ids are valid.
 	validDeviceIds := devGroup.DeviceIDs()
-	for _, arg := range args {
-		if !util.In(arg, validDeviceIds) {
+	for _, deviceID := range args {
+		if !powercycle.DeviceIn(powercycle.DeviceID(deviceID), validDeviceIds) {
 			sklog.Errorf("Invalid device ID.")
 			listDevices(devGroup, 1)
 		}
 	}
 
 	for _, deviceID := range args {
-		if err := devGroup.PowerCycle(deviceID, time.Duration(*delay)*time.Second); err != nil {
+		if err := devGroup.PowerCycle(powercycle.DeviceID(deviceID), time.Duration(*delay)*time.Second); err != nil {
 			sklog.Fatalf("Unable to power cycle device %s. Got error: %s", deviceID, err)
 		}
 	}
-	if err := reportToDaemon(args); err != nil {
+	if err := reportToDaemon(*daemonURL, args); err != nil {
 		sklog.Fatalf("Could not report powercyling through daemon: %s", err)
 	}
 	sklog.Infof("Power cycle successful. All done.")
@@ -98,16 +88,16 @@ func main() {
 
 // listDevices prints out the devices it know about. This implies that
 // the devices have been contacted and passed a ping test.
-func listDevices(devGroup powercycle.DeviceGroup, exitCode int) {
+func listDevices(ctrl powercycle.Controller, exitCode int) {
 	sklog.Errorf("Valid device IDs are:\n\n")
-	for _, id := range devGroup.DeviceIDs() {
+	for _, id := range ctrl.DeviceIDs() {
 		sklog.Errorf("    %s\n", id)
 	}
 	os.Exit(exitCode)
 }
 
-func reportToDaemon(bots []string) error {
-	if *daemonURL == "" {
+func reportToDaemon(daemonURL string, bots []string) error {
+	if daemonURL == "" {
 		sklog.Warning("Skipping daemon reporting because --daemon_url is blank")
 		return nil
 	}
@@ -119,8 +109,8 @@ func reportToDaemon(bots []string) error {
 		PowercycledBots: bots,
 	}
 	if err := json.NewEncoder(&body).Encode(toReport); err != nil {
-		return fmt.Errorf("Problem encoding json: %s", err)
+		return skerr.Wrapf(err, "encoding JSON")
 	}
-	_, err := c.Post(*daemonURL, "application/json", &body)
-	return err
+	_, err := c.Post(daemonURL, "application/json", &body)
+	return skerr.Wrapf(err, "posting to %s", daemonURL)
 }

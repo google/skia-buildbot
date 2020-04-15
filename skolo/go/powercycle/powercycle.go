@@ -1,132 +1,142 @@
 package powercycle
 
 import (
-	"fmt"
 	"io/ioutil"
-	"os"
 	"sort"
 	"time"
 
 	"github.com/flynn/json5"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/skerr"
 )
 
-// DeviceGroup describes a set of devices that can all be
-// controlled together. Any switch or power strip needs to
-// implement this interface.
-type DeviceGroup interface {
-	// DeviceIDs returns a list of strings that uniquely identify
-	// the devices that can be controlled through this group.
-	DeviceIDs() []string
+// DeviceID is a unique identifier for a given machine or attached device.
+type DeviceID string
 
-	// PowerCycle turns the device off for a reasonable amount of time
-	// (i.e. 10 seconds) and then turns it back on. If delayOverride
-	// is larger than zero it overrides the default delay between
-	// turning the port off and on again.
-	PowerCycle(devID string, delayOverride time.Duration) error
+// DeviceIn returns true if the given id is in the slice of DeviceID.
+func DeviceIn(id DeviceID, ids []DeviceID) bool {
+	for _, other := range ids {
+		if other == id {
+			return true
+		}
+	}
+	return false
 }
 
-// Config is the overall structure to aggregate configuration options
-// for different device types.
-type Config struct {
+func sortIDs(ids []DeviceID) {
+	sort.Slice(ids, func(i, j int) bool {
+		return ids[i] < ids[j]
+	})
+}
+
+// Controller abstracts a set of devices that can all be controlled together.
+type Controller interface {
+	// DeviceIDs returns a list of strings that uniquely identify the devices that can be controlled
+	// through this group.
+	DeviceIDs() []DeviceID
+
+	// PowerCycle turns the device off for a reasonable amount of time (i.e. 10 seconds) and then
+	// turns it back on. If delayOverride is larger than zero it overrides the default delay between
+	// turning the port off and on again.
+	PowerCycle(id DeviceID, delayOverride time.Duration) error
+}
+
+// controllerName is a human readable name (hopefully a physical label) for a given Controller.
+// It is not really used by the code - this type is primarily for self-documentation purposes.
+type controllerName string
+
+// config is the overall structure to aggregate configuration options for different device types.
+type config struct {
 	// MPower aggregates all mPower configurations.
-	MPower map[string]*MPowerConfig `json:"mpower"`
+	MPower map[controllerName]*mPowerConfig `json:"mpower"`
 
 	// EdgeSwitch aggregates all EdgeSwitch configurations.
-	EdgeSwitch map[string]*EdgeSwitchConfig `json:"edgeswitch"`
+	EdgeSwitch map[controllerName]*edgeSwitchConfig `json:"edgeswitch"`
 }
 
-// aggregatedDevGroup implements the DeviceGroup interface and allows
-// to combine multiple device groups into one.
-type aggregatedDevGroup struct {
-	idDevGroupMap map[string]DeviceGroup // Maps from a deviceID to a device group.
+// multiController allows us to combine multiple Controller implementations into one.
+type multiController struct {
+	controllerForID map[DeviceID]Controller
 }
 
-// add adds a new device group.
-func (a *aggregatedDevGroup) add(devGroup DeviceGroup) error {
-	for _, id := range devGroup.DeviceIDs() {
-		if _, ok := a.idDevGroupMap[id]; ok {
-			return fmt.Errorf("Device '%s' already exists.", id)
+// add adds a new Controller.
+func (a *multiController) add(client Controller) error {
+	for _, id := range client.DeviceIDs() {
+		if _, ok := a.controllerForID[id]; ok {
+			return skerr.Fmt("Device '%s' already exists.", id)
 		}
-		a.idDevGroupMap[id] = devGroup
+		a.controllerForID[id] = client
 	}
 	return nil
 }
 
-// DeviceIDs, see the DeviceGroup interface.
-func (a *aggregatedDevGroup) DeviceIDs() []string {
-	ret := make([]string, 0, len(a.idDevGroupMap))
-	for id := range a.idDevGroupMap {
+// DeviceIDs implements the Controller interface.
+func (a *multiController) DeviceIDs() []DeviceID {
+	ret := make([]DeviceID, 0, len(a.controllerForID))
+	for id := range a.controllerForID {
 		ret = append(ret, id)
 	}
-	sort.Strings(ret)
+	sortIDs(ret)
 	return ret
 }
 
-// PowerCycle, see the DeviceGroup interface.
-func (a *aggregatedDevGroup) PowerCycle(devID string, delayOverride time.Duration) error {
-	dev, ok := a.idDevGroupMap[devID]
+// PowerCycle implements the Controller interface.
+func (a *multiController) PowerCycle(id DeviceID, delayOverride time.Duration) error {
+	ctrl, ok := a.controllerForID[id]
 	if !ok {
-		return fmt.Errorf("Unknown device id: %s", devID)
+		return skerr.Fmt("Unknown device id: %s", id)
 	}
-	return dev.PowerCycle(devID, delayOverride)
+	return ctrl.PowerCycle(id, delayOverride)
 }
 
-// DeviceGroupFromJson5File parses a Json5 file and instantiates the
-// defined devices.
-func DeviceGroupFromJson5File(path string, connect bool) (DeviceGroup, error) {
+// ParseJSON5 parses a JSON5 file and instantiates the defined devices. If connect is true, an
+// attempt will be made to connect to the subclients and errors will be returned if they are not
+// accessible.
+func ParseJSON5(path string, connect bool) (Controller, error) {
 	conf, err := readConfig(path)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 
-	ret := &aggregatedDevGroup{
-		idDevGroupMap: map[string]DeviceGroup{},
+	ret := &multiController{
+		controllerForID: map[DeviceID]Controller{},
 	}
 
 	// Add the mpower devices.
-	for _, c := range conf.MPower {
-		mp, err := NewMPowerClient(c, connect)
+	for name, c := range conf.MPower {
+		mp, err := newMPowerController(c, connect)
 		if err != nil {
-			return nil, err
+			return nil, skerr.Wrapf(err, "initializing %s", name)
 		}
-
+		// TODO(kjlubick) add test for duplicate device names.
 		if err := ret.add(mp); err != nil {
-			return nil, err
+			return nil, skerr.Wrapf(err, "incorporating %s", name)
 		}
 	}
 
 	// Add the EdgeSwitch devices.
-	for _, c := range conf.EdgeSwitch {
-		es, err := NewEdgeSwitchDevGroup(c, connect)
+	for name, c := range conf.EdgeSwitch {
+		es, err := newEdgeSwitchController(c, connect)
 		if err != nil {
-			return nil, err
+			return nil, skerr.Wrapf(err, "initializing %s", name)
 		}
 
 		if err := ret.add(es); err != nil {
-			return nil, err
+			return nil, skerr.Wrapf(err, "incorporating %s", name)
 		}
 	}
 
 	return ret, nil
 }
 
-func readConfig(path string) (*Config, error) {
-	f, err := os.Open(path)
+func readConfig(path string) (config, error) {
+	conf := config{}
+	jsonBytes, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, err
-	}
-	defer util.Close(f)
-
-	jsonBytes, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, err
+		return conf, skerr.Wrapf(err, "reading %s", path)
 	}
 
-	conf := &Config{}
-	if err := json5.Unmarshal(jsonBytes, conf); err != nil {
-		return nil, err
+	if err := json5.Unmarshal(jsonBytes, &conf); err != nil {
+		return conf, skerr.Wrapf(err, "reading JSON5 from %s", path)
 	}
-
 	return conf, nil
 }
