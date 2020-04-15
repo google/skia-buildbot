@@ -13,20 +13,17 @@ import (
 	"strings"
 	"sync"
 	"text/template"
-	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/issues"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -56,25 +53,6 @@ type RepoManager interface {
 	// GetRevision returns a revision.Revision instance from the given
 	// revision ID.
 	GetRevision(context.Context, string) (*revision.Revision, error)
-}
-
-// Start makes the RepoManager begin the periodic update process.
-func Start(ctx context.Context, r RepoManager, frequency time.Duration) {
-	sklog.Infof("Starting repo_manager")
-	lv := metrics2.NewLiveness("last_successful_repo_manager_update")
-	cleanup.Repeat(frequency, func(_ context.Context) {
-		sklog.Infof("Running repo_manager update.")
-		// Explicitly ignore the passed-in context; this allows us to
-		// continue updating the RepoManager even if the context is
-		// canceled, which helps to prevent errors due to interrupted
-		// syncs, etc.
-		ctx := context.Background()
-		if _, _, _, err := r.Update(ctx); err != nil {
-			sklog.Errorf("Failed to update repo manager: %s", err)
-		} else {
-			lv.Reset()
-		}
-	}, nil)
 }
 
 // CommonRepoManagerConfig provides configuration for commonRepoManager.
