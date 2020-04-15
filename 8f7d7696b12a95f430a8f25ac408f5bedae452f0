@@ -71,6 +71,52 @@
     },
     {
       "key": {
+        "uuid": "741426b4_f05d3a06",
+        "filename": "skolo/go/powercycle/edgeswitch_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-15T11:24:52Z",
+      "side": 1,
+      "message": "Nit: \"client\"",
+      "range": {
+        "startLine": 43,
+        "startChar": 31,
+        "endLine": 43,
+        "endChar": 34
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e0cf253c_2b934219",
+        "filename": "skolo/go/powercycle/edgeswitch_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-15T11:24:52Z",
+      "side": 1,
+      "message": "Nit: Could this be \"newSSHClient\"?",
+      "range": {
+        "startLine": 44,
+        "startChar": 30,
+        "endLine": 44,
+        "endChar": 39
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "40661610_10db4ca9",
         "filename": "skolo/go/powercycle/mpower.go",
         "patchSetId": 3
@@ -117,6 +163,29 @@
     },
     {
       "key": {
+        "uuid": "9b85dd5c_210e167a",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-15T11:24:52Z",
+      "side": 1,
+      "message": "Bikeshed: seeing this code for the first time, it\u0027s not clear to me what a \"Client\" is used for.  Maybe \"Controller\" or \"PowerCycler\" would be more descriptive?",
+      "range": {
+        "startLine": 32,
+        "startChar": 5,
+        "endLine": 32,
+        "endChar": 11
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "bdb1bd27_104b91be",
         "filename": "skolo/go/powercycle/powercycle.go",
         "patchSetId": 3
@@ -133,6 +202,99 @@
         "startChar": 12,
         "endLine": 46,
         "endChar": 18
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "690bacb6_88bdac6d",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-15T11:24:52Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "bdb1bd27_104b91be",
+      "range": {
+        "startLine": 46,
+        "startChar": 12,
+        "endLine": 46,
+        "endChar": 18
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6bfc4944_a3d7fef1",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-15T11:24:52Z",
+      "side": 1,
+      "message": "More bikeshed: maybe \"multiClient\"?  That mirrors what I\u0027ve seen elsewhere, eg. io.MultiWriter.",
+      "range": {
+        "startLine": 52,
+        "startChar": 3,
+        "endLine": 52,
+        "endChar": 13
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37a4ff3b_3284dd5b",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-15T11:24:52Z",
+      "side": 1,
+      "message": "Nit: \"Client\"",
+      "range": {
+        "startLine": 54,
+        "startChar": 62,
+        "endLine": 54,
+        "endChar": 74
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14d10293_e989755b",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-15T11:24:52Z",
+      "side": 1,
+      "message": "Nit: \"Client\"",
+      "range": {
+        "startLine": 57,
+        "startChar": 18,
+        "endLine": 57,
+        "endChar": 30
       },
       "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
