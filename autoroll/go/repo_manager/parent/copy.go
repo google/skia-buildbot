@@ -70,7 +70,7 @@ func (c CopyConfig) Validate() error {
 // NewCopy returns a Parent implementation which copies the Child into itself.
 // It uses a local git checkout and uploads changes to Gerrit.
 func NewCopy(ctx context.Context, c CopyConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir string, dep child.Child) (*GitCheckoutParent, error) {
-	getLastRollRev := VersionFileGetLastRollRevFunc(c.VersionFile)
+	getLastRollRev := VersionFileGetLastRollRevFunc(c.VersionFile, c.ChildRepo)
 	createRoll := func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Create a temporary directory.
 		tmp, err := ioutil.TempDir("", "")
@@ -123,5 +123,5 @@ func NewCopy(ctx context.Context, c CopyConfig, reg *config_vars.Registry, clien
 		}
 		return strings.TrimSpace(out), nil
 	}
-	return NewGitCheckoutGerrit(ctx, c.GitCheckoutGerritConfig, reg, client, serverURL, workdir, getLastRollRev, createRoll)
+	return NewGitCheckoutGerrit(ctx, c.GitCheckoutGerritConfig, reg, client, serverURL, workdir, nil, getLastRollRev, createRoll)
 }
