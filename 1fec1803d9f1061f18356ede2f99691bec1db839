@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "deabf01d_d78aa369",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-15T14:43:02Z",
+      "side": 1,
+      "message": "Is repoFrequency used anywhere else?",
+      "range": {
+        "startLine": 329,
+        "startChar": 63,
+        "endLine": 329,
+        "endChar": 76
+      },
+      "revId": "1fec1803d9f1061f18356ede2f99691bec1db839",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
