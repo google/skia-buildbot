@@ -42,6 +42,27 @@ type Description struct {
 	LastUpdated time.Time
 }
 
+// NewDescription returns a new Description instance.
+func NewDescription() Description {
+	return Description{
+		Mode:        ModeAvailable,
+		Dimensions:  SwarmingDimensions{},
+		LastUpdated: time.Now(),
+	}
+}
+
+// DupDescription returns a deep copy of Description.
+func DupDescription(in Description) Description {
+	ret := in
+	ret.Dimensions = SwarmingDimensions{}
+	for k, values := range in.Dimensions {
+		newValues := make([]string, len(values))
+		copy(newValues, values)
+		ret.Dimensions[k] = newValues
+	}
+	return ret
+}
+
 // EventType is the type of update we got from the machine.
 type EventType string
 
@@ -57,9 +78,19 @@ type Android struct {
 	DumpsysThermalService string `json:"dumpsys_thermal_service"`
 }
 
+// Host is information about the host machine.
+type Host struct {
+	// Name is the machine id, rrom SWARMING_BOT_ID environment variable or hostname().
+	Name string `json:"name"`
+
+	// Rack is the id of the rack, from the MY_RACK_NAME environment variable.
+	Rack string `json:"rack"`
+}
+
 // Event is the information a machine should send via Source when
 // its local state has changed.
 type Event struct {
 	EventType EventType `json:"type"`
 	Android   Android   `json:"android"`
+	Host      Host      `json:"host"`
 }
