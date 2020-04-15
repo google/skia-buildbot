@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "49b0e3f8_c2f3e07f",
+        "filename": "autoroll/config/dawn-skia.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-15T16:49:12Z",
+      "side": 1,
+      "message": "Just confirming: Are the child and parent ids supposed to be the same for all of these?",
+      "revId": "b1e5b0066c9b74ba98c1a4034c442baa09a89898",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
