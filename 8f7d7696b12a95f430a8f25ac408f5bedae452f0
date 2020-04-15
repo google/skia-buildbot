@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8b9de0db_9592eb4d",
+        "filename": "power/go/decider/decider.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T12:38:44Z",
+      "side": 1,
+      "message": "Maybe. DeviceID spread a little farther than I anticipated, so I am hesitant to do so here. I will reconsider it in follow up CLs when I\u0027m fixing the implementation.",
+      "parentUuid": "24e7fc7c_a723dfbc",
+      "range": {
+        "startLine": 29,
+        "startChar": 37,
+        "endLine": 29,
+        "endChar": 43
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e4664b2b_118a66ec",
         "filename": "skolo/go/powercycle/edgeswitch_client.go",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2020-04-14T20:31:42Z",
       "side": 1,
       "message": "What do you think about moving files edgeswitch_*.go into their own subpackage?\n\nThe main benefit would be to make the separation between powercycle.go and the EdgeSwitch stuff clearer by making everything package-private except for e.g. the current mewEdgeSwitchClient function, which returns a Client.",
+      "range": {
+        "startLine": 26,
+        "startChar": 5,
+        "endLine": 26,
+        "endChar": 18
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7a4aa54_726ecfbc",
+        "filename": "skolo/go/powercycle/edgeswitch_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T12:38:44Z",
+      "side": 1,
+      "message": "I lean towards combining the edgeswitch files first and see where thing stand. At the moment, I\u0027m not sure if I want subpackages or not. I\u0027ve got to make things work again first.",
+      "parentUuid": "e4664b2b_118a66ec",
       "range": {
         "startLine": 26,
         "startChar": 5,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "12ada822_5be34b04",
+        "filename": "skolo/go/powercycle/edgeswitch_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T12:38:44Z",
+      "side": 1,
+      "message": "As mentioned in my notes to reviewer comments, I did not touch this file much because I anticipate it changing greatly when I get things working. I will make the naming cleaner at that point.",
+      "parentUuid": "1e97baf7_fd3f74a7",
+      "range": {
+        "startLine": 39,
+        "startChar": 5,
+        "endLine": 39,
+        "endChar": 24
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "741426b4_f05d3a06",
         "filename": "skolo/go/powercycle/edgeswitch_client.go",
         "patchSetId": 3
@@ -91,6 +163,30 @@
       "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91ff864f_17dc276f",
+        "filename": "skolo/go/powercycle/edgeswitch_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T12:38:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "741426b4_f05d3a06",
+      "range": {
+        "startLine": 43,
+        "startChar": 31,
+        "endLine": 43,
+        "endChar": 34
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "63bcf275_62f529b7",
+        "filename": "skolo/go/powercycle/edgeswitch_client.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T12:38:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e0cf253c_2b934219",
+      "range": {
+        "startLine": 44,
+        "startChar": 30,
+        "endLine": 44,
+        "endChar": 39
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "40661610_10db4ca9",
         "filename": "skolo/go/powercycle/mpower.go",
         "patchSetId": 3
@@ -137,6 +257,30 @@
       "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6201a9e9_eb38280d",
+        "filename": "skolo/go/powercycle/mpower.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T12:38:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "40661610_10db4ca9",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 32
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "64d629e7_ed2f8fbd",
+        "filename": "skolo/go/powercycle/mpower.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T12:38:44Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "68599720_3abc6f76",
+      "range": {
+        "startLine": 58,
+        "startChar": 5,
+        "endLine": 58,
+        "endChar": 20
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9b85dd5c_210e167a",
         "filename": "skolo/go/powercycle/powercycle.go",
         "patchSetId": 3
@@ -183,6 +351,30 @@
       "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0318d923_93d68ed6",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T12:38:44Z",
+      "side": 1,
+      "message": "I like Controller",
+      "parentUuid": "9b85dd5c_210e167a",
+      "range": {
+        "startLine": 32,
+        "startChar": 5,
+        "endLine": 32,
+        "endChar": 11
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -233,6 +425,30 @@
     },
     {
       "key": {
+        "uuid": "136370aa_f0c09462",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T12:38:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "690bacb6_88bdac6d",
+      "range": {
+        "startLine": 46,
+        "startChar": 12,
+        "endLine": 46,
+        "endChar": 18
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6bfc4944_a3d7fef1",
         "filename": "skolo/go/powercycle/powercycle.go",
         "patchSetId": 3
@@ -253,6 +469,30 @@
       "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21920c69_01758406",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T12:38:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6bfc4944_a3d7fef1",
+      "range": {
+        "startLine": 52,
+        "startChar": 3,
+        "endLine": 52,
+        "endChar": 13
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -279,6 +519,30 @@
     },
     {
       "key": {
+        "uuid": "3b62c03f_d76bd6ac",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T12:38:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37a4ff3b_3284dd5b",
+      "range": {
+        "startLine": 54,
+        "startChar": 62,
+        "endLine": 54,
+        "endChar": 74
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "14d10293_e989755b",
         "filename": "skolo/go/powercycle/powercycle.go",
         "patchSetId": 3
@@ -299,6 +563,30 @@
       "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3afda85_aa1d5c3c",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T12:38:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "14d10293_e989755b",
+      "range": {
+        "startLine": 57,
+        "startChar": 18,
+        "endLine": 57,
+        "endChar": 30
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -325,6 +613,30 @@
     },
     {
       "key": {
+        "uuid": "9f49d570_3e9b7340",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T12:38:44Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5cb6b8c1_a2823760",
+      "range": {
+        "startLine": 88,
+        "startChar": 53,
+        "endLine": 88,
+        "endChar": 55
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5e3bc1ab_c8e9823b",
         "filename": "skolo/go/powercycle/powercycle_test.go",
         "patchSetId": 3
@@ -345,6 +657,30 @@
       "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "875b2884_d6fce664",
+        "filename": "skolo/go/powercycle/powercycle_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T12:38:44Z",
+      "side": 1,
+      "message": "It can - I tend to prefer NotEmpty for collections only",
+      "parentUuid": "5e3bc1ab_c8e9823b",
+      "range": {
+        "startLine": 48,
+        "startChar": 10,
+        "endLine": 48,
+        "endChar": 18
+      },
+      "revId": "8f7d7696b12a95f430a8f25ac408f5bedae452f0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
