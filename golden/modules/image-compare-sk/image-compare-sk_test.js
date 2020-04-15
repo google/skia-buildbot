@@ -1,6 +1,6 @@
 import './index';
 import { $, $$ } from 'common-sk/modules/dom';
-import { setUpElementUnderTest } from '../test_util';
+import { eventPromise, setUpElementUnderTest } from '../test_util';
 
 const aDigest = '6246b773851984c726cb2e1cb13510c2';
 const bDigest = '99c58c7002073346ff55f446d47d6311';
@@ -45,22 +45,19 @@ describe('image-compare-sk', () => {
       expect(captionsHref).to.contain('/example.com#bDigest');
     });
 
-    it('fires events when the zoom dialog is opened and closed', () => {
+    it('fires events when the zoom dialog is opened and closed', async () => {
       expect($$('multi-zoom-sk', imageCompareSk)).to.be.null; // not rendered at first
       let openEvents = 0;
-      let closeEvents = 0;
       imageCompareSk.addEventListener('zoom-dialog-opened', () => {
         openEvents++;
-      });
-      imageCompareSk.addEventListener('zoom-dialog-closed', () => {
-        closeEvents++;
       });
       $$('button.zoom_btn', imageCompareSk).click();
       expect(openEvents).to.equal(1);
       expect($$('multi-zoom-sk', imageCompareSk)).to.not.be.null; // element should be there now.
 
+      const closePromise = eventPromise('zoom-dialog-closed');
       $$('button.close_btn', imageCompareSk).click();
-      expect(closeEvents).to.equal(1);
+      await closePromise;
       expect($$('multi-zoom-sk', imageCompareSk)).to.be.null; // it should be removed from the DOM.
     });
   });

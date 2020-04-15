@@ -326,8 +326,14 @@ define('digest-details-sk', class extends ElementSk {
 
   _triageChangeHandler(e) {
     e.stopPropagation();
-    const newStatus = e.detail;
+    this.triggerTriage(e.detail);
+  }
 
+  /**
+   * Triages the given digest with the new status.
+   * @param newStatus {string} one of 'positive', 'negative', or 'untriaged'.
+   */
+  triggerTriage(newStatus) {
     const digestStatus = {};
     digestStatus[this._digest] = newStatus;
     const postBody = {
