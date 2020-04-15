@@ -66,7 +66,7 @@ var (
 // AutoRollerI is the common interface for starting an AutoRoller and handling HTTP requests.
 type AutoRollerI interface {
 	// Start initiates the AutoRoller's loop.
-	Start(ctx context.Context, tickFrequency, repoFrequency time.Duration)
+	Start(ctx context.Context, tickFrequency time.Duration)
 	// AddHandlers allows the AutoRoller to respond to specific HTTP requests.
 	AddHandlers(r *mux.Router)
 }
@@ -276,7 +276,7 @@ func main() {
 	}
 
 	// Start the roller.
-	arb.Start(ctx, time.Minute /* tickFrequency */, 15*time.Minute /* repoFrequency */)
+	arb.Start(ctx, time.Minute /* tickFrequency */)
 
 	if g != nil {
 		// Periodically delete old roll CLs.
