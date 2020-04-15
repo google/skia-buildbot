@@ -16,6 +16,24 @@
       "revId": "b1e5b0066c9b74ba98c1a4034c442baa09a89898",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b94cc8a_ea4ee2f7",
+        "filename": "autoroll/config/dawn-skia.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-15T16:51:00Z",
+      "side": 1,
+      "message": "Yep, I compared the two DEPS files and they use the same URLs.",
+      "parentUuid": "49b0e3f8_c2f3e07f",
+      "revId": "b1e5b0066c9b74ba98c1a4034c442baa09a89898",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
