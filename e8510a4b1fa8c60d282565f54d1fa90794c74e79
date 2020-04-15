@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fed4e537_9acd7c8f",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-15T19:19:47Z",
+      "side": 1,
+      "message": "Could you please expand this comment a bit? What exactly is a \"double click event\" in this context? And what\u0027s the undesired effect that we\u0027re trying to prevent?\n\nI assume \"double click\" here does not mean a dblclick[1] event. If so, perhaps different wording would be clearer.\n\n[1] https://developer.mozilla.org/en-US/docs/Web/API/Element/dblclick_event",
+      "range": {
+        "startLine": 330,
+        "startChar": 0,
+        "endLine": 330,
+        "endChar": 71
+      },
+      "revId": "e8510a4b1fa8c60d282565f54d1fa90794c74e79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
