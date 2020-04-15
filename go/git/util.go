@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 )
 
 // Clone runs "git clone" into the given destination directory. Most callers
@@ -85,4 +88,27 @@ func NormalizeURL(inputURL string) (string, error) {
 	path := strings.TrimRight(strings.TrimSuffix(parsedURL.Path, ".git"), "/")
 	path = "/" + strings.TrimLeft(path, "/:")
 	return host + path, nil
+}
+
+// DeleteLockFiles finds and deletes Git lock files within the given workdir.
+func DeleteLockFiles(ctx context.Context, workdir string) error {
+	sklog.Infof("Looking for git lockfiles in %s", workdir)
+	output, err := exec.RunCwd(ctx, workdir, "find", ".", "-name", "index.lock")
+	if err != nil {
+		return err
+	}
+	output = strings.TrimSpace(output)
+	if output == "" {
+		sklog.Info("No lockfiles found.")
+		return nil
+	}
+	lockfiles := strings.Split(output, "\n")
+	for _, f := range lockfiles {
+		fp := filepath.Join(workdir, f)
+		sklog.Warningf("Removing git lockfile: %s", fp)
+		if err := os.Remove(fp); err != nil {
+			return err
+		}
+	}
+	return nil
 }

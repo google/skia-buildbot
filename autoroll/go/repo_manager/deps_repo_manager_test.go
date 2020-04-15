@@ -12,18 +12,21 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -49,95 +52,88 @@ func depsCfg(t *testing.T) *DEPSRepoManagerConfig {
 				ParentBranch: masterBranchTmpl(t),
 			},
 		},
+		Gerrit: &codereview.GerritConfig{
+			URL:     "https://fake-skia-review.googlesource.com",
+			Project: "fake-gerrit-project",
+			Config:  codereview.GERRIT_CONFIG_CHROMIUM,
+		},
 	}
 }
 
-func setupDEPSRepoManager(t *testing.T) (context.Context, *config_vars.Registry, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, func()) {
+func setupDEPSRepoManager(t *testing.T) (context.Context, *config_vars.Registry, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
 	// Create child and parent repos.
-	child := git_testutils.GitInit(t, context.Background())
+	ctx := context.Background()
+	child := git_testutils.GitInit(t, ctx)
 	f := "somefile.txt"
 	childCommits := make([]string, 0, 10)
 	for i := 0; i < numChildCommits; i++ {
-		childCommits = append(childCommits, child.CommitGen(context.Background(), f))
+		childCommits = append(childCommits, child.CommitGen(ctx, f))
 	}
 
-	parent := git_testutils.GitInit(t, context.Background())
-	parent.Add(context.Background(), "DEPS", fmt.Sprintf(`deps = {
+	parent := git_testutils.GitInit(t, ctx)
+	parent.Add(ctx, "DEPS", fmt.Sprintf(`deps = {
   "%s": "%s@%s",
 }`, childPath, child.RepoUrl(), childCommits[0]))
-	parent.Commit(context.Background())
+	parent.Add(ctx, ".gitignore", fmt.Sprintf(`
+.gclient
+.gclient_entries
+%s
+`, childPath))
+	parent.Commit(ctx)
 
 	lastUpload := new(vcsinfo.LongCommit)
 	mockRun := &exec.CommandCollector{}
-	ctx := exec.NewContext(context.Background(), mockRun.Run)
+	ctx = exec.NewContext(ctx, mockRun.Run)
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
-		if strings.Contains(cmd.Name, "git") && cmd.Args[0] == "cl" {
-			if cmd.Args[1] == "upload" {
-				d, err := git.GitDir(cmd.Dir).Details(ctx, "HEAD")
-				if err != nil {
-					return err
-				}
-				*lastUpload = *d
-				return nil
-			} else if cmd.Args[1] == "issue" {
-				json := testutils.MarshalJSON(t, &issueJson{
-					Issue:    issueNum,
-					IssueUrl: "???",
-				})
-				f := strings.Split(cmd.Args[2], "=")[1]
-				testutils.WriteFile(t, f, json)
-				return nil
+		if strings.Contains(cmd.Name, "git") && cmd.Args[0] == "push" {
+			d, err := git.GitDir(cmd.Dir).Details(ctx, "HEAD")
+			if err != nil {
+				return skerr.Wrap(err)
 			}
-		}
-		if strings.Contains(cmd.Name, "gclient") && util.In("setdep", cmd.Args) {
-			splitDep := strings.Split(cmd.Args[len(cmd.Args)-1], "@")
-			require.Equal(t, 2, len(splitDep))
-			require.Equal(t, 40, len(splitDep[1]))
+			*lastUpload = *d
+			return nil
 		}
 		return exec.DefaultRun(ctx, cmd)
 	})
 
+	urlmock := setupFakeGerrit(t, wd)
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
 		child.Cleanup()
 		parent.Cleanup()
 	}
 
-	return ctx, setupRegistry(t), wd, child, childCommits, parent, mockRun, lastUpload, cleanup
+	return ctx, setupRegistry(t), wd, child, childCommits, parent, mockRun, lastUpload, urlmock, cleanup
 }
 
-func setupFakeGerrit(t *testing.T, wd string) *gerrit.Gerrit {
-	gUrl := "https://fake-skia-review.googlesource.com"
+func setupFakeGerrit(t *testing.T, wd string) *mockhttpclient.URLMock {
 	urlMock := mockhttpclient.NewURLMock()
-	serialized, err := json.Marshal(&gerrit.AccountDetails{
-		AccountId: 101,
-		Name:      mockUser,
-		Email:     mockUser,
-		UserName:  mockUser,
-	})
-	require.NoError(t, err)
-	serialized = append([]byte("abcd\n"), serialized...)
-	urlMock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerrit(gUrl, urlMock.Client())
-	require.NoError(t, err)
-	return g
+
+	// Create a dummy commit-msg hook.
+	changeId := "123"
+	respBody := []byte(fmt.Sprintf(`#!/bin/sh
+git interpret-trailers --trailer "Change-Id: %s" >> $1
+`, changeId))
+	urlMock.MockOnce("https://fake-skia-review.googlesource.com/a/tools/hooks/commit-msg", mockhttpclient.MockGetDialogue(respBody))
+
+	return urlMock
 }
 
 // TestRepoManager tests all aspects of the DEPSRepoManager except for CreateNewRoll.
 func TestDEPSRepoManager(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, reg, wd, _, childCommits, parent, _, _, cleanup := setupDEPSRepoManager(t)
+	ctx, reg, wd, childRepo, childCommits, parentRepo, _, _, urlmock, cleanup := setupDEPSRepoManager(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	g := setupFakeGerrit(t, wd)
 	cfg := depsCfg(t)
-	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
+	cfg.ChildRepo = childRepo.RepoUrl()
+	cfg.ParentRepo = parentRepo.RepoUrl()
+	rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, nil, recipesCfg, "fake.server.com", urlmock.Client(), nil, false)
 	require.NoError(t, err)
 
 	// Test update.
@@ -148,50 +144,93 @@ func TestDEPSRepoManager(t *testing.T) {
 	require.Equal(t, len(childCommits)-1, len(notRolledRevs))
 }
 
+func mockGerritGetAndPublishChange(t *testing.T, urlmock *mockhttpclient.URLMock, cfg *DEPSRepoManagerConfig) {
+	// Mock the request to load the change.
+	ci := gerrit.ChangeInfo{
+		ChangeId: "123",
+		Id:       "123",
+		Issue:    123,
+		Revisions: map[string]*gerrit.Revision{
+			"ps1": {
+				ID:     "ps1",
+				Number: 1,
+			},
+		},
+		WorkInProgress: true,
+	}
+	respBody, err := json.Marshal(ci)
+	require.NoError(t, err)
+	respBody = append([]byte(")]}'\n"), respBody...)
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
+
+	// Mock the request to set the change as read for review. This is only
+	// done if ChangeInfo.WorkInProgress is true.
+	reqBody := []byte(`{}`)
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/ready", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
+
+	// Mock the request to set the CQ.
+	gerritCfg := codereview.GERRIT_CONFIGS[cfg.Gerrit.Config]
+	if gerritCfg.HasCq {
+		reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
+	} else {
+		reqBody = []byte(`{"labels":{"Code-Review":1},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
+	}
+	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
+	if !gerritCfg.HasCq {
+		urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/submit", mockhttpclient.MockPostDialogue("application/json", []byte("{}"), []byte("")))
+	}
+}
+
 func TestCreateNewDEPSRoll(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, reg, wd, _, _, parent, _, _, cleanup := setupDEPSRepoManager(t)
+	ctx, reg, wd, childRepo, _, parentRepo, _, _, urlmock, cleanup := setupDEPSRepoManager(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	g := setupFakeGerrit(t, wd)
 	cfg := depsCfg(t)
-	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
+	cfg.ChildRepo = childRepo.RepoUrl()
+	cfg.ParentRepo = parentRepo.RepoUrl()
+	rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, nil, recipesCfg, "fake.server.com", urlmock.Client(), nil, false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
+	// Mock the request to load the change.
+	mockGerritGetAndPublishChange(t, urlmock, cfg)
+
 	// Create a roll, assert that it's at tip of tree.
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
 	require.NoError(t, err)
-	require.Equal(t, issueNum, issue)
+	require.Equal(t, int64(123), issue)
 }
 
 // Verify that we ran the PreUploadSteps.
 func TestRanPreUploadStepsDeps(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, reg, wd, _, _, parent, _, _, cleanup := setupDEPSRepoManager(t)
+	ctx, reg, wd, childRepo, _, parentRepo, _, _, urlmock, cleanup := setupDEPSRepoManager(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	g := setupFakeGerrit(t, wd)
+	// Create a dummy pre-upload step.
+	ran := false
+	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string) error {
+		ran = true
+		return nil
+	})
+
 	cfg := depsCfg(t)
-	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
+	cfg.ChildRepo = childRepo.RepoUrl()
+	cfg.ParentRepo = parentRepo.RepoUrl()
+	cfg.PreUploadSteps = []string{stepName}
+	rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, nil, recipesCfg, "fake.server.com", urlmock.Client(), nil, false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
-	ran := false
-	rm.(*depsRepoManager).preUploadSteps = []PreUploadStep{
-		func(context.Context, []string, *http.Client, string) error {
-			ran = true
-			return nil
-		},
-	}
+	// Mock the request to load the change.
+	mockGerritGetAndPublishChange(t, urlmock, cfg)
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
@@ -204,18 +243,21 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 	unittest.LargeTest(t)
 
 	test := func(includeLog bool) {
-		ctx, reg, wd, _, _, parent, _, lastUpload, cleanup := setupDEPSRepoManager(t)
+		ctx, reg, wd, childRepo, _, parentRepo, _, lastUpload, urlmock, cleanup := setupDEPSRepoManager(t)
 		defer cleanup()
 		recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-		g := setupFakeGerrit(t, wd)
 		cfg := depsCfg(t)
-		cfg.ParentRepo = parent.RepoUrl()
+		cfg.ChildRepo = childRepo.RepoUrl()
+		cfg.ParentRepo = parentRepo.RepoUrl()
 		cfg.IncludeLog = includeLog
-		rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
+		rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, nil, recipesCfg, "fake.server.com", urlmock.Client(), nil, false)
 		require.NoError(t, err)
 		lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 		require.NoError(t, err)
+
+		// Mock the request to load the change.
+		mockGerritGetAndPublishChange(t, urlmock, cfg)
 
 		// Create a roll.
 		_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
@@ -231,20 +273,19 @@ func TestDEPSRepoManagerIncludeLog(t *testing.T) {
 }
 
 // Verify that we properly utilize a gclient spec.
-func TestDEPSRepoManagerGclientSpec(t *testing.T) {
+func TestDEPSRepoManagerGClientSpec(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, reg, wd, _, _, parent, mockRun, _, cleanup := setupDEPSRepoManager(t)
+	ctx, reg, wd, childRepo, _, parentRepo, mockRun, _, urlmock, cleanup := setupDEPSRepoManager(t)
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	g := setupFakeGerrit(t, wd)
 	gclientSpec := fmt.Sprintf(`
 solutions=[{
-  "name": "%s",
+  "name": "alternate/location/%s",
   "url": "%s",
   "deps_file": "DEPS",
-  "managed": True,
+  "managed": False,
   "custom_deps": {},
   "custom_vars": {
     "a": "b",
@@ -252,16 +293,21 @@ solutions=[{
   },
 }];
 cache_dir=None
-`, path.Base(parent.RepoUrl()), parent.RepoUrl())
+`, path.Base(parentRepo.RepoUrl()), parentRepo.RepoUrl())
 	// Remove newlines.
 	gclientSpec = strings.Replace(gclientSpec, "\n", "", -1)
 	cfg := depsCfg(t)
+	cfg.ChildRepo = childRepo.RepoUrl()
 	cfg.GClientSpec = gclientSpec
-	cfg.ParentRepo = parent.RepoUrl()
-	rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
+	cfg.ParentPath = filepath.Join("alternate", "location", filepath.Base(parentRepo.RepoUrl()))
+	cfg.ParentRepo = parentRepo.RepoUrl()
+	rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, nil, recipesCfg, "fake.server.com", urlmock.Client(), nil, false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
+
+	// Mock the request to load the change.
+	mockGerritGetAndPublishChange(t, urlmock, cfg)
 
 	// Create a roll.
 	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
@@ -289,35 +335,43 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 
 	test := func(bugLine, expect string) {
 		// Setup.
-		ctx, reg, wd, child, _, parent, _, lastUpload, cleanup := setupDEPSRepoManager(t)
+		ctx, reg, wd, childRepo, _, parentRepo, _, lastUpload, urlmock, cleanup := setupDEPSRepoManager(t)
 		defer cleanup()
 		recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-		g := setupFakeGerrit(t, wd)
 		cfg := depsCfg(t)
+		cfg.ChildRepo = childRepo.RepoUrl()
 		cfg.IncludeBugs = true
 		cfg.BugProject = project
-		cfg.ParentRepo = parent.RepoUrl()
-		rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, g, recipesCfg, "fake.server.com", nil, gerritCR(t, g), false)
+		cfg.ParentRepo = parentRepo.RepoUrl()
+		rm, err := NewDEPSRepoManager(ctx, cfg, reg, wd, nil, recipesCfg, "fake.server.com", urlmock.Client(), nil, false)
+		require.NoError(t, err)
+
+		// Initial update.
+		_, _, _, err = rm.Update(ctx)
 		require.NoError(t, err)
 
 		// Insert a fake entry into the repo mapping.
-		issues.REPO_PROJECT_MAPPING[parent.RepoUrl()] = project
+		issues.REPO_PROJECT_MAPPING[parentRepo.RepoUrl()] = project
 
 		// Make a commit with the bug entry.
-		child.AddGen(ctx, "myfile")
-		hash := child.CommitMsg(ctx, fmt.Sprintf(`Some dummy commit
+		childRepo.AddGen(ctx, "myfile")
+		hash := childRepo.CommitMsg(ctx, fmt.Sprintf(`Some dummy commit
 
 %s
 `, bugLine))
-		details, err := git.GitDir(child.Dir()).Details(ctx, hash)
+		details, err := git.GitDir(childRepo.Dir()).Details(ctx, hash)
 		require.NoError(t, err)
-		rev := revision.FromLongCommit(rm.(*depsRepoManager).childRevLinkTmpl, details)
-
-		// Create a roll.
+		rev := revision.FromLongCommit(fmt.Sprintf(gitiles.COMMIT_URL, cfg.ChildRepo, "%s"), details)
+		// Update.
 		lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 		require.NoError(t, err)
 		require.Equal(t, hash, tipRev.Id)
+
+		// Mock the request to load the change.
+		mockGerritGetAndPublishChange(t, urlmock, cfg)
+
+		// Create a roll.
 		_, err = rm.CreateNewRoll(ctx, lastRollRev, rev, notRolledRevs, emails, cqExtraTrybots, false)
 		require.NoError(t, err)
 
@@ -326,10 +380,10 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 		for _, line := range strings.Split(lastUpload.Body, "\n") {
 			if strings.HasPrefix(line, "BUG=") {
 				found = true
-				require.Equal(t, line[4:], expect)
+				require.Equal(t, expect, line[4:])
 			} else if strings.HasPrefix(line, "Bug: ") {
 				found = true
-				require.Equal(t, line[5:], expect)
+				require.Equal(t, expect, line[5:])
 			}
 		}
 		if expect == "" {
@@ -354,7 +408,9 @@ func TestDEPSConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
 	cfg := depsCfg(t)
-	cfg.ParentRepo = "dummy" // Not supplied above.
+	// These are not supplied above.
+	cfg.ChildRepo = "dummy"
+	cfg.ParentRepo = "dummy"
 	require.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and
