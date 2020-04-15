@@ -26,9 +26,8 @@ Where:
 
 The main loop of machine state server looks like:
 
-    for event := range aSource {
-       machineID := idFromEvent(event)
-       currentDescription := aStore.Get(machineID)
-       newDescription = aProcessor.Process(event, currentDescription)
-       aStore.Put(machineID, newDescription)
+    for event := range eventCh {
+    	store.Update(ctx, event.Host.Name, func(previous machine.Description) machine.Description {
+    		return processor.Process(ctx, previous, event)
+    	})
     }
