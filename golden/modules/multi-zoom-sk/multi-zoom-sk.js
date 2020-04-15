@@ -327,6 +327,7 @@ define('multi-zoom-sk', class extends ElementSk {
   }
 
   _cycleBoxClicked(e, imgIdx) {
+    e.preventDefault(); // prevents double click events from happening.
     e.stopPropagation();
     this._cycleThrough[imgIdx] = !this._cycleThrough[imgIdx];
     // Nothing was selected previously, so snap to the new selection.

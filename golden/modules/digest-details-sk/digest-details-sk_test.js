@@ -100,6 +100,17 @@ describe('digest-details-sk', () => {
         $$('.metrics_and_triage triage-sk button.negative', digestDetailsSk).click();
         await endPromise;
       });
+
+      it('POSTs to an RPC endpoint when triggerTriage is called', async () => {
+        const endPromise = eventPromise('end-task');
+        fetchMock.post('/json/triage', (url, req) => {
+          expect(req.body).to.equal('{"testDigestStatus":{"dots-legend-sk_too-many-digests":{"6246b773851984c726cb2e1cb13510c2":"negative"}}}');
+          return 200;
+        });
+
+        digestDetailsSk.triggerTriage('negative');
+        await endPromise;
+      });
     });
   });
 

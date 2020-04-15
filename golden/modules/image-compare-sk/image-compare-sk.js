@@ -38,7 +38,7 @@ const template = (ele) => html`
 </div>
 
 <button class=zoom_btn ?hidden=${!ele.right} @click=${ele._handleZoomClicked}>Zoom</button>
-<dialog>
+<dialog @close=${ele._closeEvent}))}>
   <button class=close_btn @click=${ele._closeDialog}>Close</button>
 </dialog>
 `;
@@ -107,9 +107,15 @@ define('image-compare-sk', class extends ElementSk {
 
   _closeDialog() {
     const dialog = $$('dialog', this);
-    dialog.close();
-    const zoom = $$('dialog multi-zoom-sk');
-    if (zoom) {
+    if (dialog) {
+      dialog.close();
+    }
+  }
+
+  _closeEvent() {
+    const dialog = $$('dialog', this);
+    const zoom = $$('dialog multi-zoom-sk', this);
+    if (dialog && zoom) {
       // Removing the element from the dom removes the keybinding handlers and lets the browser
       // free up the image resources.
       dialog.removeChild(zoom);
@@ -129,7 +135,7 @@ define('image-compare-sk', class extends ElementSk {
     const dialog = $$('dialog', this);
     // put the dialog before the button
     dialog.insertBefore(ele, dialog.childNodes[0]);
-    dialog.showModal();
     this.dispatchEvent(new CustomEvent('zoom-dialog-opened', { bubbles: true }));
+    dialog.showModal();
   }
 });
