@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1991c2d1_949c6e60",
+        "filename": "power/go/decider/decider.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-04-15T13:19:53Z",
+      "side": 1,
+      "message": "nit: Here and a few other spots, format this? seems like the only change you made was to make the comments exceed 80 columns :D",
+      "range": {
+        "startLine": 18,
+        "startChar": 1,
+        "endLine": 19,
+        "endChar": 35
+      },
+      "revId": "9bf8c25b3f5a1335add589ea51223f6dc9920ce3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
