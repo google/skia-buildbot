@@ -22,6 +22,30 @@
       "revId": "1fec1803d9f1061f18356ede2f99691bec1db839",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2c193f39_4e3d1ce6",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-15T14:49:35Z",
+      "side": 1,
+      "message": "Whoops, removed the rest of the plumbing.",
+      "parentUuid": "deabf01d_d78aa369",
+      "range": {
+        "startLine": 329,
+        "startChar": 63,
+        "endLine": 329,
+        "endChar": 76
+      },
+      "revId": "1fec1803d9f1061f18356ede2f99691bec1db839",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
