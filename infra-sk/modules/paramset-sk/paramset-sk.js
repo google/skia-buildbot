@@ -42,7 +42,7 @@ import { ElementSk } from '../ElementSk';
 const _paramsetValue = (ele, key, params) => params.map((value) => html`<div class=${ele._highlighted(key, value)} data-key=${key} data-value=${value}>${value}</div>`);
 
 const _paramsetValues = (ele, key) => ele._paramsets.map((p) => html`<td>
-  ${_paramsetValue(ele, key, p[key])}
+  ${_paramsetValue(ele, key, p[key] || [])}
 </td>`);
 
 const _row = (ele, key) => html`
