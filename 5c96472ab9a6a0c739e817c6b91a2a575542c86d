@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "fe94dbd7_d9acb15a",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-15T17:07:04Z",
+      "side": 1,
+      "message": "\u003e This config will disappear once I get all of the repo managers broken up.  I\u0027m planning to aim for one ParentChildRepoManagerConfig.  The code review config would become part of that, eg:\n\u003e \n\u003e // package repo_manager\n\u003e \n\u003e type ParentChildRepoManagerConfig struct {\n\u003e     Parent parent.Config\n\u003e     Child child.Config\n\u003e }\n\u003e \n\u003e // package parent\n\u003e \n\u003e type Config struct {\n\u003e     // Code review config.\n\u003e     Gerrit *codereview.GerritConfig\n\u003e     GitHub *codereview.GithubConfig\n\nWhy not just \"CodeReview *codereview.CodeReviewConfig\"\n\n\u003e \n\u003e     // Only one of the below should be specified.\n\u003e     Copy *CopyConfig\n\u003e     GitilesFile *GitilesFileConfig\n\u003e     DEPSLocal *DEPSLocalConfig\n\u003e     ...\n\u003e }",
+      "parentUuid": "4274d8f7_427a2061",
+      "range": {
+        "startLine": 33,
+        "startChar": 24,
+        "endLine": 33,
+        "endChar": 36
+      },
+      "revId": "5c96472ab9a6a0c739e817c6b91a2a575542c86d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ff450633_6a73155f",
         "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
         "patchSetId": 6
