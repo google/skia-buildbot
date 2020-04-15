@@ -22,6 +22,30 @@
       "revId": "e8510a4b1fa8c60d282565f54d1fa90794c74e79",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60a94cf1_3a7d2c0f",
+        "filename": "golden/modules/multi-zoom-sk/multi-zoom-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T19:26:06Z",
+      "side": 1,
+      "message": "Done using \"duplicate\" to be more clear.",
+      "parentUuid": "fed4e537_9acd7c8f",
+      "range": {
+        "startLine": 330,
+        "startChar": 0,
+        "endLine": 330,
+        "endChar": 71
+      },
+      "revId": "e8510a4b1fa8c60d282565f54d1fa90794c74e79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
