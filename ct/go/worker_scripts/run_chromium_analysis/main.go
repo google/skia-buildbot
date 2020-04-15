@@ -18,6 +18,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/ct/go/adb"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/auth"
@@ -259,6 +260,14 @@ func runChromiumAnalysis() error {
 						break
 					} else if exec.IsTimeout(err) {
 						timeoutTracker.Increment()
+					} else {
+						// For Android runs make sure that the device is online. If not then stop early.
+						if *targetPlatform == util.PLATFORM_ANDROID {
+							if err := adb.VerifyLocalDevice(ctx); err != nil {
+								sklog.Errorf("Could not find Android device: %s", err)
+								return
+							}
+						}
 					}
 					if i >= retryNum {
 						sklog.Errorf("%s failed inspite of %d retries. Last error: %s", pagesetName, retryNum, err)
