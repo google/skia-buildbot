@@ -327,6 +327,9 @@ define('multi-zoom-sk', class extends ElementSk {
   }
 
   _cycleBoxClicked(e, imgIdx) {
+    // Prevents duplicate click events from happening; without this, we see two click events in
+    // rapid succession, which leads to the toggle cancelling itself out.
+    e.preventDefault();
     e.stopPropagation();
     this._cycleThrough[imgIdx] = !this._cycleThrough[imgIdx];
     // Nothing was selected previously, so snap to the new selection.

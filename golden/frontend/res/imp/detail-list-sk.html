@@ -89,7 +89,7 @@
             this._markFocus('untriaged');
             break;
           case 'W':
-            // TODO(kjlubick)
+            this._zoomIn();
             break;
           case '?':
             this.openHelpDialog();
@@ -165,6 +165,14 @@
         var ele = this._findFocus();
         if (ele && ele.triggerTriage) {
           ele.triggerTriage(status);
+        }
+      },
+
+      _zoomIn: function () {
+        const ele = this._findFocus();
+        if (ele) {
+          const zoom = $$$('button.zoom_btn', ele);
+          zoom && zoom.click();
         }
       }
     });
