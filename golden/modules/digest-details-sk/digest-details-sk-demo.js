@@ -48,8 +48,11 @@ document.addEventListener('triage', (e) => {
 document.addEventListener('show-commits', (e) => {
   $$('#event').textContent = `show-commits: ${JSON.stringify(e.detail)}`;
 });
-document.addEventListener('zoom-clicked', (e) => {
-  $$('#event').textContent = `zoom-clicked: ${JSON.stringify(e.detail)}`;
+document.addEventListener('zoom-dialog-opened', (e) => {
+  $$('#event').textContent = `zoom-dialog-opened: ${JSON.stringify(e.detail)}`;
+});
+document.addEventListener('zoom-dialog-closed', (e) => {
+  $$('#event').textContent = `zoom-dialog-closed: ${JSON.stringify(e.detail)}`;
 });
 document.addEventListener('fetch-error', (e) => {
   $$('#event').textContent = `fetch-error: ${JSON.stringify(e.detail)}`;
