@@ -7,26 +7,26 @@ import (
 	"strings"
 
 	swarming "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/skolo/go/powercycle"
 )
 
 // The Decider interface abstracts away the logic to decide if a bot/device
 // 1) is powercycleable and 2) should be powercycled
 type Decider interface {
-	// ShouldPowercycleBot returns true if the bot/host supports powercycling
-	// and is in a state that would be fixed by powercycling.
+	// ShouldPowercycleBot returns true if the bot/host supports powercycling and is in a state that
+	// would be fixed by powercycling.
 	ShouldPowercycleBot(*swarming.SwarmingRpcsBotInfo) bool
-	// ShouldPowercycleBot returns true if the device supports powercycling
-	// and is in a state that would be fixed by powercycling.
+	// ShouldPowercycleDevice returns true if the device supports powercycling and is in a state that
+	// would be fixed by powercycling.
 	ShouldPowercycleDevice(*swarming.SwarmingRpcsBotInfo) bool
 }
 
-// decider implments the Decider interface
+// decider implements the Decider interface
 type decider struct {
-	enabledBots util.StringSet
-	hostMap     map[string]string // maps id -> host
+	enabledBots map[powercycle.DeviceID]bool
+	hostMap     map[powercycle.DeviceID]string // maps id -> host
 }
 
 var json5FileMatcher = regexp.MustCompile(".+powercycle-(.+).json5")
@@ -34,16 +34,18 @@ var json5FileMatcher = regexp.MustCompile(".+powercycle-(.+).json5")
 // New creates a new Decider based off the powercycle configs. It will assume that
 // only the bots listed in that config file are powercycleable.
 // Additionally, it returns a map of deviceID -> jumphost it is on, which is
-// derrived from which config file declares the given device.
-func New(powercycleConfigFiles []string) (Decider, map[string]string, error) {
-	hm := map[string]string{}
-	ids := util.StringSet{}
+// derived from which config file declares the given device.
+func New(powercycleConfigFiles []string) (Decider, map[powercycle.DeviceID]string, error) {
+	hm := map[powercycle.DeviceID]string{}
+	enabled := map[powercycle.DeviceID]bool{}
 	for _, file := range powercycleConfigFiles {
-		dg, err := powercycle.DeviceGroupFromJson5File(file, false)
+		dg, err := powercycle.ParseJSON5(file, false)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, skerr.Wrap(err)
 		}
-		ids = ids.AddLists(dg.DeviceIDs())
+		for _, id := range dg.DeviceIDs() {
+			enabled[id] = true
+		}
 		// Extract the jumphost name from the file name of the powercycle config file that
 		// was passed in.
 		if matches := json5FileMatcher.FindStringSubmatch(file); matches == nil {
@@ -59,14 +61,14 @@ func New(powercycleConfigFiles []string) (Decider, map[string]string, error) {
 
 	sklog.Infof("Derived hostmap: %#v", hm)
 
-	return &decider{enabledBots: ids}, hm, nil
+	return &decider{enabledBots: enabled}, hm, nil
 }
 
-// See the Decider interface for information on ShouldPowercycleBot
+// ShouldPowercycleBot implements the Decider interface.
 func (d *decider) ShouldPowercycleBot(bot *swarming.SwarmingRpcsBotInfo) bool {
 	// Deleted bots typically won't show up in a call to the BotList API, but
 	// it doesn't hurt to be defensive.
-	return bot.IsDead && !bot.Deleted && d.checkEnabled(bot.BotId)
+	return bot.IsDead && !bot.Deleted && d.isEnabled(powercycle.DeviceID(bot.BotId))
 }
 
 // state represents a portion of the bot.State.  bot.State is given to us as a
@@ -81,9 +83,9 @@ type state struct {
 	Devices map[string]map[string]interface{} `json:"devices"`
 }
 
-// See the Decider interface for information on ShouldPowercycleDevice
+// ShouldPowercycleDevice implements the Decider interface.
 func (d *decider) ShouldPowercycleDevice(bot *swarming.SwarmingRpcsBotInfo) bool {
-	if !bot.Quarantined || bot.IsDead || bot.Deleted || !d.checkEnabled(TransformBotIDToDevice(bot.BotId)) {
+	if !bot.Quarantined || bot.IsDead || bot.Deleted || !d.isEnabled(transformBotIDToDevice(bot.BotId)) {
 		return false
 	}
 
@@ -107,13 +109,13 @@ func (d *decider) ShouldPowercycleDevice(bot *swarming.SwarmingRpcsBotInfo) bool
 	return false
 }
 
-// checkEnabled returns true if the bot or device id is supported for powercycling.
-func (d *decider) checkEnabled(id string) bool {
+// isEnabled returns true if the bot or device id is supported for powercycling.
+func (d *decider) isEnabled(id powercycle.DeviceID) bool {
 	return d.enabledBots[id]
 }
 
-// TransformBotIDToDevice transforms the bot id to a bot id with device, e.g.
+// transformBotIDToDevice transforms the bot id to a bot id with device, e.g.
 // skia-foo -> skia-foo-device
-func TransformBotIDToDevice(id string) string {
-	return id + "-device"
+func transformBotIDToDevice(id string) powercycle.DeviceID {
+	return powercycle.DeviceID(id + "-device")
 }
