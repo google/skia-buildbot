@@ -2,15 +2,12 @@ package main
 
 import (
 	"bytes"
-	"encoding/csv"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
-	"sort"
 	"time"
 
-	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
@@ -18,17 +15,11 @@ import (
 	"go.skia.org/infra/skolo/go/powercycle"
 )
 
-const (
-	// Duration after which to flush powerusage stats to disk.
-	FLUSH_POWER_USAGE = time.Minute
-)
-
 var (
 	configFile  = flag.String("conf", "/etc/powercycle.json5", "JSON5 file with device configuration.")
 	delay       = flag.Int("delay", 0, "Any value > 0 overrides the default duration (in sec) between turning the port off and on.")
 	connect     = flag.Bool("connect", false, "Connect to all the powercycle hosts and verify they are attached computing attached devices.")
 	list        = flag.Bool("l", false, "List the available devices and exit.")
-	powerCycle  = flag.Bool("power_cycle", true, "Powercycle the given devices.")
 	powerOutput = flag.String("power_output", "", "Continously poll power usage and write it to the given file. Press ^C to exit.")
 	sampleRate  = flag.Duration("power_sample_rate", 2*time.Second, "Time delay between capturing power usage.")
 
@@ -59,7 +50,6 @@ func main() {
 		if *sampleRate <= 0 {
 			sklog.Fatal("Non-positive sample rate provided.")
 		}
-		tailPower(devGroup, *powerOutput, *sampleRate)
 	}
 
 	if *autoFix {
@@ -114,79 +104,6 @@ func listDevices(devGroup powercycle.DeviceGroup, exitCode int) {
 		sklog.Errorf("    %s\n", id)
 	}
 	os.Exit(exitCode)
-}
-
-// tailPower continually polls the power usage and writes the values in
-// a CSV file.
-func tailPower(devGroup powercycle.DeviceGroup, outputPath string, sampleRate time.Duration) {
-	f, err := os.Create(outputPath)
-	if err != nil {
-		sklog.Fatalf("Unable to open file '%s': Go error: %s", outputPath, err)
-	}
-	writer := csv.NewWriter(f)
-
-	// Catch Ctrl-C to flush the file.
-	cleanup.AtExit(func() {
-		sklog.Infof("Closing cvs file.")
-		sklog.Flush()
-		writer.Flush()
-		util.LogErr(f.Close())
-	})
-
-	var ids []string = nil
-	lastFlush := time.Now()
-	for range time.Tick(sampleRate) {
-		// get power stats
-		powerStats, err := devGroup.PowerUsage()
-		if err != nil {
-			sklog.Errorf("Error getting power stats: %s", err)
-			continue
-		}
-
-		if ids == nil {
-			ids = make([]string, 0, len(powerStats.Stats))
-			for id := range powerStats.Stats {
-				ids = append(ids, id)
-			}
-			sort.Strings(ids)
-
-			recs := make([]string, 0, len(ids)*3+1)
-			recs = append(recs, "time")
-			for _, id := range ids {
-				recs = append(recs, id+"-A")
-				recs = append(recs, id+"-V")
-				recs = append(recs, id+"-W")
-			}
-			if err := writer.Write(recs); err != nil {
-				sklog.Errorf("Error writing CSV records: %s", err)
-			}
-		}
-
-		recs := make([]string, 0, len(ids)*3+1)
-		recs = append(recs, powerStats.TS.String())
-		var stats *powercycle.PowerStat
-		var ok bool
-		for _, id := range ids {
-			stats, ok = powerStats.Stats[id]
-			if !ok {
-				sklog.Errorf("Unable to find expected id: %s", id)
-				break
-			}
-			recs = append(recs, fmt.Sprintf("%5.3f", stats.Ampere))
-			recs = append(recs, fmt.Sprintf("%5.3f", stats.Volt))
-			recs = append(recs, fmt.Sprintf("%5.3f", stats.Watt))
-		}
-		if ok {
-			if err := writer.Write(recs); err != nil {
-				sklog.Errorf("Error writing CSV records: %s", err)
-			}
-
-			if time.Now().Sub(lastFlush) >= FLUSH_POWER_USAGE {
-				lastFlush = time.Now()
-				writer.Flush()
-			}
-		}
-	}
 }
 
 func reportToDaemon(bots []string) error {
