@@ -141,13 +141,6 @@ func (m *MPowerClient) PowerCycle(devID string, delayOverride time.Duration) err
 	return nil
 }
 
-// TODO(stepahan): Implement PowerUsage for when needed.
-
-// PowerUsage, see the DeviceGroup interface.
-func (m *MPowerClient) PowerUsage() (*GroupPowerUsage, error) {
-	return &GroupPowerUsage{}, nil
-}
-
 // ping issues a command to the device to verify that the
 // connection works.
 func (m *MPowerClient) ping() error {
