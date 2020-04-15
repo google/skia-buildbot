@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "899a3ebc_841bdf85",
+        "filename": "scripts/run_on_swarming_bots/delete_out_dirs.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-04-15T15:42:52Z",
+      "side": 1,
+      "message": "Probably want to revert this file except perhaps for the workdir, so it still does what it advertises?",
+      "range": {
+        "startLine": 22,
+        "startChar": 4,
+        "endLine": 29,
+        "endChar": 39
+      },
+      "revId": "5142d51446b583ddc975f243bdc2b48ca448d08f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
