@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/ct/go/adb"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/auth"
@@ -222,14 +223,32 @@ func runChromiumPerf() error {
 
 				mutex.RLock()
 				_, noPatchErr := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDirNoPatch, chromiumBinaryNoPatch, runIDNoPatch, *browserExtraArgsNoPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark, !*worker_common.Local)
-				if noPatchErr != nil && exec.IsTimeout(noPatchErr) {
-					timeoutTracker.Increment()
+				if noPatchErr != nil {
+					if exec.IsTimeout(noPatchErr) {
+						timeoutTracker.Increment()
+					}
+					// For Android runs make sure that the device is online. If not then stop early.
+					if *targetPlatform == util.PLATFORM_ANDROID {
+						if err := adb.VerifyLocalDevice(ctx); err != nil {
+							sklog.Errorf("Could not find Android device: %s", err)
+							return
+						}
+					}
 				} else {
 					timeoutTracker.Reset()
 				}
 				_, withPatchErr := util.RunBenchmark(ctx, pagesetName, pathToPagesets, pathToPyFiles, localOutputDirWithPatch, chromiumBinaryWithPatch, runIDWithPatch, *browserExtraArgsWithPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark, !*worker_common.Local)
-				if withPatchErr != nil && exec.IsTimeout(withPatchErr) {
-					timeoutTracker.Increment()
+				if withPatchErr != nil {
+					if exec.IsTimeout(withPatchErr) {
+						timeoutTracker.Increment()
+					}
+					// For Android runs make sure that the device is online. If not then stop early.
+					if *targetPlatform == util.PLATFORM_ANDROID {
+						if err := adb.VerifyLocalDevice(ctx); err != nil {
+							sklog.Errorf("Could not find Android device: %s", err)
+							return
+						}
+					}
 				} else {
 					timeoutTracker.Reset()
 				}
