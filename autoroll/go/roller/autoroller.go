@@ -326,9 +326,8 @@ func isSyncError(err error) bool {
 }
 
 // Start initiates the AutoRoller's loop.
-func (r *AutoRoller) Start(ctx context.Context, tickFrequency, repoFrequency time.Duration) {
+func (r *AutoRoller) Start(ctx context.Context, tickFrequency time.Duration) {
 	sklog.Infof("Starting autoroller.")
-	repo_manager.Start(ctx, r.rm, repoFrequency)
 	lv := metrics2.NewLiveness("last_successful_autoroll_tick", map[string]string{"roller": r.roller})
 	cleanup.Repeat(tickFrequency, func(_ context.Context) {
 		// Explicitly ignore the passed-in context; this allows us to
