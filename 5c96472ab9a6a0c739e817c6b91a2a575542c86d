@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a57bdf1_776fcbca",
+        "filename": "autoroll/go/repo_manager/common/gerrit_common/gerrit_common.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-15T14:11:44Z",
+      "side": 1,
+      "message": "It was for debugging, removed.",
+      "parentUuid": "409b1819_6107dfbe",
+      "range": {
+        "startLine": 82,
+        "startChar": 8,
+        "endLine": 82,
+        "endChar": 14
+      },
+      "revId": "5c96472ab9a6a0c739e817c6b91a2a575542c86d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c2e5e928_4a998632",
         "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2020-04-14T15:28:02Z",
       "side": 1,
       "message": "Maybe one day this can be CodeReviewConfig because we also have github_deps_repo_manager",
+      "range": {
+        "startLine": 33,
+        "startChar": 24,
+        "endLine": 33,
+        "endChar": 36
+      },
+      "revId": "5c96472ab9a6a0c739e817c6b91a2a575542c86d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4274d8f7_427a2061",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-15T14:11:44Z",
+      "side": 1,
+      "message": "This config will disappear once I get all of the repo managers broken up.  I\u0027m planning to aim for one ParentChildRepoManagerConfig.  The code review config would become part of that, eg:\n\n// package repo_manager\n\ntype ParentChildRepoManagerConfig struct {\n    Parent parent.Config\n    Child child.Config\n}\n\n// package parent\n\ntype Config struct {\n    // Code review config.\n    Gerrit *codereview.GerritConfig\n    GitHub *codereview.GithubConfig\n\n    // Only one of the below should be specified.\n    Copy *CopyConfig\n    GitilesFile *GitilesFileConfig\n    DEPSLocal *DEPSLocalConfig\n    ...\n}",
+      "parentUuid": "c2e5e928_4a998632",
       "range": {
         "startLine": 33,
         "startChar": 24,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "2073dfaf_6a294477",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-15T14:11:44Z",
+      "side": 1,
+      "message": "Yes, this used to be part of depsRepoManager which no longer exists but this function is still needed for githubDEPSRepoManager.",
+      "parentUuid": "ff450633_6a73155f",
+      "revId": "5c96472ab9a6a0c739e817c6b91a2a575542c86d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1f7d0e06_4049f75f",
         "filename": "autoroll/go/repo_manager/parent/deps_local.go",
         "patchSetId": 6
@@ -85,6 +151,30 @@
       "revId": "5c96472ab9a6a0c739e817c6b91a2a575542c86d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab336018_b70679f2",
+        "filename": "autoroll/go/repo_manager/parent/deps_local.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-15T14:11:44Z",
+      "side": 1,
+      "message": "I thought I\u0027d get to it in this CL, so I didn\u0027t bother typing out the comment, then forgot about it.  I wanted to not make this Parent specific to Gerrit. I\u0027ll fix it when I start moving the GitHub repo managers over.",
+      "parentUuid": "1f7d0e06_4049f75f",
+      "range": {
+        "startLine": 30,
+        "startChar": 28,
+        "endLine": 30,
+        "endChar": 32
+      },
+      "revId": "5c96472ab9a6a0c739e817c6b91a2a575542c86d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
