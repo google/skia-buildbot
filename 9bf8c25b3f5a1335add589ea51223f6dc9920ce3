@@ -22,6 +22,30 @@
       "revId": "9bf8c25b3f5a1335add589ea51223f6dc9920ce3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1e3e2c7c_ba5be2aa",
+        "filename": "power/go/decider/decider.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-15T13:52:07Z",
+      "side": 1,
+      "message": "We allow golang comments to go out to 100 cols, since there are no hard and fast line limits for golang.",
+      "parentUuid": "1991c2d1_949c6e60",
+      "range": {
+        "startLine": 18,
+        "startChar": 1,
+        "endLine": 19,
+        "endChar": 35
+      },
+      "revId": "9bf8c25b3f5a1335add589ea51223f6dc9920ce3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
