@@ -2,111 +2,102 @@ package powercycle
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
-	"sort"
 	"time"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/crypto/ssh"
 )
 
 const (
-	// Number of seconds to wait between turning a port on and off again.
-	EDGE_SWITCH_DELAY = 5
+	// Amount of time to wait between turning a port on and off again.
+	powerOffDelayEdgeSwitch = 5 * time.Second
 )
 
-// EdgeSwitchConfig contains configuration options for a single EdgeSwitch.
-// Note: We assume the device is on a trusted network.
-type EdgeSwitchConfig struct {
-	Address    string         `json:"address"` // IP address and port of the device, i.e. 192.168.1.33:22
-	DevPortMap map[string]int `json:"ports"`   // Mapping between device name and port on the power strip.
+// edgeSwitchConfig contains configuration options for a single EdgeSwitch. Authentication is
+// handled via *sigh* a hard-coded default password.
+type edgeSwitchConfig struct {
+	// IP address and port of the device, i.e. 192.168.1.33:22
+	Address string `json:"address"`
+	// Mapping between device id and port on the power strip.
+	DevPortMap map[DeviceID]int `json:"ports"`
 }
 
-// EdgeSwitchDevGroup implements the DeviceGroup interface.
-type EdgeSwitchDevGroup struct {
-	conf       *EdgeSwitchConfig
-	portDevMap map[int]string
-	devIDs     []string
-	client     *EdgeSwitchClient
+// edgeSwitchClient implements the Client interface.
+type edgeSwitchClient struct {
+	conf       *edgeSwitchConfig
+	portDevMap map[int]DeviceID
+	devIDs     []DeviceID
+	ssh        *edgeSwitchSSHClient
 }
 
-// NewEdgeSwitchDevGroup connects to the EdgeSwitch identified by the given
-// configuration and returns a new instance of EdgeSwitchDevGroup.
-func NewEdgeSwitchDevGroup(conf *EdgeSwitchConfig, connect bool) (*EdgeSwitchDevGroup, error) {
-	ret := &EdgeSwitchDevGroup{
-		conf:   conf,
-		client: NewEdgeSwitchClient(conf.Address),
+// newEdgeSwitchController connects to the EdgeSwitch identified by the given
+// configuration and returns a new instance of edgeSwitchClient.
+func newEdgeSwitchController(conf *edgeSwitchConfig, connect bool) (*edgeSwitchClient, error) {
+	ret := &edgeSwitchClient{
+		conf: conf,
+		ssh:  NewEdgeSwitchClient(conf.Address),
 	}
 
 	if connect {
-		if err := Ping(ret.client); err != nil {
-			return nil, err
+		if err := Ping(ret.ssh); err != nil {
+			return nil, skerr.Wrapf(err, "pinging switch")
 		}
 	}
 
 	// Build the dev-port mappings. Ensure each device and port occur only once.
-	devIDSet := make(util.StringSet, len(conf.DevPortMap))
-	ret.portDevMap = make(map[int]string, len(conf.DevPortMap))
+	ret.portDevMap = make(map[int]DeviceID, len(conf.DevPortMap))
 	for id, port := range conf.DevPortMap {
-		if devIDSet[id] {
-			return nil, fmt.Errorf("Device '%s' occurs more than once.", id)
-		}
 		if _, ok := ret.portDevMap[port]; ok {
-			return nil, fmt.Errorf("Port '%d' specified more than once.", port)
+			return nil, skerr.Fmt("Port '%d' specified more than once.", port)
 		}
-		devIDSet[id] = true
 		ret.portDevMap[port] = id
+		ret.devIDs = append(ret.devIDs, id)
 	}
-	ret.devIDs = devIDSet.Keys()
-	sort.Strings(ret.devIDs)
-
+	sortIDs(ret.devIDs)
 	return ret, nil
 }
 
-// DeviceIDs, see the DeviceGroup interface.
-func (e *EdgeSwitchDevGroup) DeviceIDs() []string {
+// DeviceIDs implements the Client interface.
+func (e *edgeSwitchClient) DeviceIDs() []DeviceID {
 	return e.devIDs
 }
 
-// PowerCycle, see the DeviceGroup interface.
-func (e *EdgeSwitchDevGroup) PowerCycle(devID string, delayOverride time.Duration) error {
-	delay := EDGE_SWITCH_DELAY * time.Second
+// PowerCycle implements the Client interface.
+func (e *edgeSwitchClient) PowerCycle(id DeviceID, delayOverride time.Duration) error {
+	delay := powerOffDelayEdgeSwitch
 	if delayOverride > 0 {
 		delay = delayOverride
 	}
 
-	port, ok := e.conf.DevPortMap[devID]
+	port, ok := e.conf.DevPortMap[id]
 	if !ok {
-		return fmt.Errorf("Invalid devID: %s", devID)
+		return skerr.Fmt("Invalid id: %s", id)
 	}
 
-	// We rely on a dns lookup for the bot id ("e.g. skia-rpi-001") for this to work.
-	// The router or the host can have it in /etc/host.
-	if ok := SoftPowerCycle(devID); ok {
-		sklog.Infof("Was able to powercycle %s via SSH", devID)
+	if ok := softPowerCycle(id); ok {
+		sklog.Infof("Was able to powercycle %s via SSH", id)
 		return nil
 	}
 
 	// Turn the given port off, wait and then on again.
-	if err := TurnOffPort(e.client, port); err != nil {
-		return err
+	if err := TurnOffPort(e.ssh, port); err != nil {
+		return skerr.Wrap(err)
 	}
 
 	time.Sleep(delay)
 
-	if err := TurnOnPort(e.client, port); err != nil {
-		return err
+	if err := TurnOnPort(e.ssh, port); err != nil {
+		return skerr.Wrap(err)
 	}
 	return nil
 }
 
-// SoftPowerCycle attempts to SSH into the machine using the
-// jumphost's private/public key and reboot it. This should
-// help the jarring behavior seen when a bot is hard-rebooted
-// frequently.
-func SoftPowerCycle(address string) bool {
+// softPowerCycle attempts to SSH into the machine using the jumphost's private/public key and
+// reboot it. This should help the jarring behavior seen when a bot is hard-rebooted frequently.
+func softPowerCycle(machineName DeviceID) bool {
 	key, err := ioutil.ReadFile("/home/chrome-bot/.ssh/id_rsa")
 	if err != nil {
 		sklog.Errorf("unable to read private key: %s", err)
@@ -125,7 +116,9 @@ func SoftPowerCycle(address string) bool {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		Timeout:         5 * time.Second,
 	}
-	client, err := ssh.Dial("tcp", address+":22", c)
+	// We rely on a dns lookup for the bot id ("e.g. skia-rpi-001") for this to work.
+	// The router or the host can have it in /etc/host.
+	client, err := ssh.Dial("tcp", string(machineName)+":22", c)
 	if err != nil {
 		sklog.Errorf("Failed to dial: %s", err)
 		return false
