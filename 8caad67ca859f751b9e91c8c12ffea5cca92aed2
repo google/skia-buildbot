@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4c026dbe_032f8d5e",
+        "filename": "skolo/go/powercycle/command_runner.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T16:06:53Z",
+      "side": 1,
+      "message": "Drive-by comment: This is testable using https://npf.io/2015/06/testing-exec-command/.",
+      "range": {
+        "startLine": 55,
+        "startChar": 27,
+        "endLine": 55,
+        "endChar": 35
+      },
+      "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
