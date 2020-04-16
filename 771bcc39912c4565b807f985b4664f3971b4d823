@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "c1383800_b0d7c97a",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T20:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1d64970b_878fae41",
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4b3925d6_f816db84",
         "filename": "machine/go/machine/processor/impl.go",
         "patchSetId": 1
@@ -86,6 +104,30 @@
       "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5d771b0_c2cbe441",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T20:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d376423d_f02057c9",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 7
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -247,6 +289,24 @@
     },
     {
       "key": {
+        "uuid": "52ba8a02_5adf7de6",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T20:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cbfefa02_241fbbee",
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb165850_a2848078",
         "filename": "machine/go/machine/processor/impl_test.go",
         "patchSetId": 1
@@ -267,6 +327,30 @@
       "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25b039be_c5f650f3",
+        "filename": "machine/go/machine/processor/impl_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T20:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "eb165850_a2848078",
+      "range": {
+        "startLine": 163,
+        "startChar": 0,
+        "endLine": 163,
+        "endChar": 23
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -293,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "c74138dc_d3c781a8",
+        "filename": "machine/go/machine/processor/impl_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T20:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ebf4d47c_fba8f16c",
+      "range": {
+        "startLine": 166,
+        "startChar": 1,
+        "endLine": 166,
+        "endChar": 43
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "824cf0bf_e2a8abba",
         "filename": "machine/go/machine/processor/impl_test.go",
         "patchSetId": 1
@@ -316,6 +424,30 @@
     },
     {
       "key": {
+        "uuid": "300949ee_91e65388",
+        "filename": "machine/go/machine/processor/impl_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T20:36:26Z",
+      "side": 1,
+      "message": "Added dims.",
+      "parentUuid": "824cf0bf_e2a8abba",
+      "range": {
+        "startLine": 173,
+        "startChar": 16,
+        "endLine": 173,
+        "endChar": 45
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "728e4c01_ab8b0de3",
         "filename": "machine/go/machine/processor/impl_test.go",
         "patchSetId": 1
@@ -336,6 +468,30 @@
       "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "683a81fc_85291844",
+        "filename": "machine/go/machine/processor/impl_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T20:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "728e4c01_ab8b0de3",
+      "range": {
+        "startLine": 193,
+        "startChar": 0,
+        "endLine": 193,
+        "endChar": 1
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -456,6 +612,30 @@
     },
     {
       "key": {
+        "uuid": "089edbce_e444ac33",
+        "filename": "machine/go/machine/store/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T20:36:26Z",
+      "side": 1,
+      "message": "I already did that in the last sentence of the documentation for storeDescription.",
+      "parentUuid": "7bf2c06f_f674b68a",
+      "range": {
+        "startLine": 61,
+        "startChar": 26,
+        "endLine": 61,
+        "endChar": 70
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9eab0817_650e11ca",
         "filename": "machine/go/machine/store/impl.go",
         "patchSetId": 1
@@ -479,6 +659,30 @@
     },
     {
       "key": {
+        "uuid": "7a4d3a0c_21f42de4",
+        "filename": "machine/go/machine/store/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T20:36:26Z",
+      "side": 1,
+      "message": "True, but this keeps the actual usage, coming in a later CL, very clean.",
+      "parentUuid": "9eab0817_650e11ca",
+      "range": {
+        "startLine": 67,
+        "startChar": 9,
+        "endLine": 67,
+        "endChar": 78
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9e5f7660_bf085572",
         "filename": "machine/go/machine/store/impl.go",
         "patchSetId": 1
@@ -499,6 +703,30 @@
       "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a7f2107_0f30ce26",
+        "filename": "machine/go/machine/store/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T20:36:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9e5f7660_bf085572",
+      "range": {
+        "startLine": 97,
+        "startChar": 11,
+        "endLine": 97,
+        "endChar": 14
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -572,6 +800,30 @@
     },
     {
       "key": {
+        "uuid": "77cbd3f1_ed08e460",
+        "filename": "machine/go/machine/store/impl_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T20:36:26Z",
+      "side": 1,
+      "message": "asserting ModeAvailable is an assertion about this being a machine.Description that was created with NewDescription.",
+      "parentUuid": "102cb34b_2b67d398",
+      "range": {
+        "startLine": 73,
+        "startChar": 26,
+        "endLine": 73,
+        "endChar": 39
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0094357e_0f61a2b6",
         "filename": "machine/go/machine/store/impl_test.go",
         "patchSetId": 1
@@ -595,6 +847,30 @@
     },
     {
       "key": {
+        "uuid": "50fdf574_6aa0c36f",
+        "filename": "machine/go/machine/store/impl_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T20:36:26Z",
+      "side": 1,
+      "message": "Added code to readback and test the written machine.Description.",
+      "parentUuid": "0094357e_0f61a2b6",
+      "range": {
+        "startLine": 75,
+        "startChar": 21,
+        "endLine": 75,
+        "endChar": 36
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "549cd779_fb452398",
         "filename": "machine/go/machine/store/impl_test.go",
         "patchSetId": 1
@@ -615,6 +891,30 @@
       "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c38d5a5_a07882e3",
+        "filename": "machine/go/machine/store/impl_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T20:36:26Z",
+      "side": 1,
+      "message": "Dropped the write.",
+      "parentUuid": "549cd779_fb452398",
+      "range": {
+        "startLine": 108,
+        "startChar": 2,
+        "endLine": 108,
+        "endChar": 62
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
