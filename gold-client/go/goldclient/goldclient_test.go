@@ -1552,40 +1552,62 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLa
 	test("labeled negative, returns false", expectations.Negative, false)
 }
 
-func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage_NotImplementedError(t *testing.T) {
+func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage_Success(t *testing.T) {
 	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
-	test := func(name string, explicitlyUntriaged bool) {
+	const testName = types.TestName("my_test")
+	const traceId = tiling.TraceID(",name=my_test,")
+	const digest = types.Digest("11111111111111111111111111111111")
+	testImageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+	8 8
+	0x44 0x44 0x44 0x44 0x44 0x44 0x49 0x83
+	0x44 0x44 0x44 0x44 0x44 0x49 0x83 0x88
+	0x44 0x44 0x47 0x49 0x55 0x83 0x88 0x88
+	0x44 0x44 0x49 0x4D 0x7F 0x87 0x88 0x88
+	0x44 0x44 0x55 0x7F 0x88 0x88 0x88 0x88
+	0x44 0x49 0x83 0x87 0x88 0x88 0x88 0x88
+	0x49 0x83 0x88 0x88 0x88 0x88 0x88 0x88
+	0x83 0x88 0x88 0x88 0x88 0x88 0x88 0x88`))
+
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/latestpositivedigest/,name=my_test,"
+	const latestPositiveDigestResponse = `{"digest":"22222222222222222222222222222222"}`
+	const latestPositiveDigestGcsPath = "gs://skia-gold-testing/dm-images-v1/22222222222222222222222222222222.png"
+	latestPositiveImageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+	8 8
+	0x44 0x44 0x44 0x44 0x44 0x44 0x49 0x83
+	0x44 0x44 0x44 0x44 0x44 0x49 0x83 0x88
+	0x44 0x44 0x44 0x44 0x49 0x83 0x88 0x88
+	0x44 0x44 0x44 0x49 0x83 0x88 0x88 0x88
+	0x44 0x44 0x49 0x83 0x88 0x88 0x88 0x88
+	0x44 0x49 0x83 0x88 0x88 0x88 0x88 0x88
+	0x49 0x83 0x88 0x88 0x88 0x88 0x88 0x88
+	0x83 0x88 0x88 0x88 0x88 0x88 0x88 0x88`))
+
+	test := func(name, edgeThreshold string, expected bool) {
 		t.Run(name, func(t *testing.T) {
-			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
+			goldClient, cleanup, httpClient, gcsClient := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer cleanup()
+			defer httpClient.AssertExpectations(t)
+			defer gcsClient.AssertExpectations(t)
 
-			const testName = types.TestName("my_test")
-			const digest = types.Digest("11111111111111111111111111111111")
+			httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse([]byte(latestPositiveDigestResponse), "200 OK", http.StatusOK), nil)
+			gcsClient.On("Download", testutils.AnyContext, latestPositiveDigestGcsPath, filepath.Join(goldClient.workDir, digestsDirectory)).Return(latestPositiveImageBytes, nil)
+
 			optionalKeys := map[string]string{
-				imgmatching.AlgorithmNameOptKey: string(imgmatching.SobelFuzzyMatching),
-				// These optionalKeys do not matter because the algorithm is not exercised by this test.
-				string(imgmatching.EdgeThreshold):       "0",
-				string(imgmatching.MaxDifferentPixels):  "0",
-				string(imgmatching.PixelDeltaThreshold): "0",
+				imgmatching.AlgorithmNameOptKey:         string(imgmatching.SobelFuzzyMatching),
+				string(imgmatching.MaxDifferentPixels):  "2",
+				string(imgmatching.PixelDeltaThreshold): "10",
+				string(imgmatching.EdgeThreshold):       edgeThreshold,
 			}
 
-			if explicitlyUntriaged {
-				goldClient.resultState.Expectations = expectations.Baseline{
-					testName: {
-						digest: expectations.Untriaged,
-					},
-				}
-			}
-
-			_, err := goldClient.matchImageAgainstBaseline(testName, "" /* =traceId */, nil /* =imageBytes */, digest, optionalKeys)
-			assert.Error(t, err)
-			assert.Contains(t, err.Error(), `image matching algorithm "sobel" not yet supported`)
+			actual, err := goldClient.matchImageAgainstBaseline(testName, traceId, testImageBytes, digest, optionalKeys)
+			assert.NoError(t, err)
+			assert.Equal(t, expected, actual)
 		})
 	}
 
-	test("implicitly untriaged, not implemented error", false)
-	test("explicitly untriaged, not implemented error", true)
+	test("differences under threshold, returns true", "0x66", true)
+	test("differences above threshold, returns false", "0xAA", false)
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_InvalidParameters_ReturnsError(t *testing.T) {
