@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "889452ae_c9c2ad20",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1396,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T18:17:34Z",
+      "side": 1,
+      "message": "Am I missing something or would you be able to just initialize a CloudClient struct with the instanceID and resultState set? I think this would avoid unnecessary creation/deletion of a temp dir and simplify the setup here.",
+      "range": {
+        "startLine": 1385,
+        "startChar": 0,
+        "endLine": 1396,
+        "endChar": 56
+      },
+      "revId": "c1a9fdf5347971f11e1c086896a7f4891c3d3ccf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
