@@ -1,3 +1,5 @@
+// Package processor does the work of taking incoming events from machines and
+// updating the machine state using that information.
 package processor
 
 import (
