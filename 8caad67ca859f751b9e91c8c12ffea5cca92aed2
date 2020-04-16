@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "78064988_f5d34a49",
+        "filename": "skolo/go/powercycle/command_runner.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T17:43:11Z",
+      "side": 1,
+      "message": "Just so I understand correctly, we\u0027re not going to attempt to do any logic based on which command(s) failed and when?  Is there an expectation for what happens if one command fails, ie. do we keep going or stop early?",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 62
+      },
+      "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4c026dbe_032f8d5e",
         "filename": "skolo/go/powercycle/command_runner.go",
         "patchSetId": 6
@@ -18,6 +41,75 @@
         "startChar": 27,
         "endLine": 55,
         "endChar": 35
+      },
+      "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7805aa1_bc59ef28",
+        "filename": "skolo/go/powercycle/command_runner.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T17:43:11Z",
+      "side": 1,
+      "message": "What are the chances that we fill up a buffer before starting the command and create a deadlock?  Seems like it\u0027d be safer to start the command before trying to write to the pipe.",
+      "range": {
+        "startLine": 66,
+        "startChar": 17,
+        "endLine": 66,
+        "endChar": 28
+      },
+      "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20c48f87_564c0db9",
+        "filename": "skolo/go/powercycle/command_runner.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T17:43:11Z",
+      "side": 1,
+      "message": "The vast majority of code ignores the primary return value(s) if a non-nil error is returned. Could we include the output of the command in the error message instead?",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 79,
+        "endChar": 58
+      },
+      "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "181258a0_bbe369df",
+        "filename": "skolo/go/powercycle/edgeswitch.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T17:43:11Z",
+      "side": 1,
+      "message": "Nit: I like to put these checks in a Validate() method of the config, ie. implement util.Validator.",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 2
       },
       "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
