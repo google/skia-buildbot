@@ -2,26 +2,24 @@ package repo_manager
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
-	"regexp"
 	"strings"
-
-	buildbucketpb "go.chromium.org/luci/buildbucket/proto"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/github_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -53,10 +51,6 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 `
 )
 
-var (
-	pullRequestInLogRE = regexp.MustCompile(`(?m) \((#[0-9]+)\)$`)
-)
-
 // GithubRepoManagerConfig provides configuration for the Github RepoManager.
 type GithubRepoManagerConfig struct {
 	CommonRepoManagerConfig
@@ -65,7 +59,7 @@ type GithubRepoManagerConfig struct {
 	// The roller will update this file with the child repo's revision.
 	RevisionFile string `json:"revisionFile"`
 
-	BuildbucketRevisionFilter *BuildbucketRevisionFilterConfig `json:"buildbucketFilter"`
+	BuildbucketRevisionFilter *revision_filter.BuildbucketRevisionFilterConfig `json:"buildbucketFilter"`
 
 	// Optional; transitive dependencies to roll. This is a mapping of
 	// dependencies of the child repo which are also dependencies of the
@@ -77,11 +71,6 @@ type GithubRepoManagerConfig struct {
 	TransitiveDeps map[string]string `json:"transitiveDeps"`
 }
 
-type BuildbucketRevisionFilterConfig struct {
-	Project string `json:"project"`
-	Bucket  string `json:"bucket"`
-}
-
 // githubRepoManager is a struct used by the autoroller for managing checkouts.
 type githubRepoManager struct {
 	*commonRepoManager
@@ -91,80 +80,12 @@ type githubRepoManager struct {
 	childRepoURL  string
 	revisionFile  string
 
-	revFilter RevisionFilter
+	revFilter revision_filter.RevisionFilter
 
 	transitiveDeps map[string]string
 	// Will be used for getdeps if transitive dependences are specified in the
 	// config.
 	depotTools string
-}
-
-// Refactor this out to commonRepoManager one day to be able to define any
-// filter for any roller.
-type RevisionFilter interface {
-	// Skip returns a non-empty string if the revision should be skipped. The
-	// string will contain the reason the revision should be skipped. An empty
-	// string is returned if the revision should not be skipped.
-	// If an error is returned then an empty string will be returned.
-	Skip(context.Context, *revision.Revision) (string, error)
-}
-type bbRevisionFilter struct {
-	bb      buildbucket.BuildBucketInterface
-	project string
-	bucket  string
-}
-
-// See RevisionFilter interface.
-func (f bbRevisionFilter) Skip(ctx context.Context, r *revision.Revision) (string, error) {
-	pred := &buildbucketpb.BuildPredicate{
-		Builder: &buildbucketpb.BuilderID{Project: f.project, Bucket: f.bucket},
-		Tags: []*buildbucketpb.StringPair{
-			{Key: "buildset", Value: fmt.Sprintf("commit/git/%s", r.Id)},
-		},
-	}
-	builds, err := f.bb.Search(ctx, pred)
-	if err != nil {
-		return "", err
-	}
-	if len(builds) == 0 {
-		sklog.Infof("[bbFilter] Builds for %s have not started yet", r.Id)
-		return fmt.Sprintf("Builds have not started yet"), nil
-	}
-
-	// statuses stores the statuses of builders. This is used to account for luci build retries.
-	// It is used to determine if there was any successful build for a builder. We should have ideally used
-	// the most recent status but there appears to be strange behavior with flutter luci builds where
-	// INFRA_FAILURE builds appear to be coming after SUCCESSFUL builds. Eg:
-	// https://cr-buildbucket.appspot.com/rpcexplorer/services/buildbucket.v2.Builds/SearchBuilds?request={"predicate":{"builder":{"project": "flutter","bucket": "prod"},"tags":[{"key": "buildset","value": "commit/git/18962926012965f815c273e58409cda3144998f5"}]}}
-	// This has been brought up with the flutter team.
-	statuses := map[string]buildbucketpb.Status{}
-	for _, build := range builds {
-		prev, ok := statuses[build.Builder.Builder]
-		if !ok || prev != buildbucketpb.Status_SUCCESS {
-			statuses[build.Builder.Builder] = build.Status
-		}
-	}
-	for b, status := range statuses {
-		if status == buildbucketpb.Status_SUCCESS {
-			sklog.Infof("[bbFilter] Found successful build of \"%s\" for %s", b, r.Id)
-		} else {
-			sklog.Infof("[bbFilter] Could not find successful build of \"%s\" for %s: %s", b, r.Id, status)
-			return fmt.Sprintf("Luci builds of \"%s\" for %s was %s", b, r.Id, status), nil
-		}
-	}
-	sklog.Infof("[bbFilter] All builds of %s were %s", r.Id, buildbucketpb.Status_SUCCESS)
-	return "", nil
-}
-
-func newBuildbucketRevisionFilter(client *http.Client, project, bucket string) (*bbRevisionFilter, error) {
-	if project == "" || bucket == "" {
-		return nil, errors.New("Both project and bucket must be specified for buildbucketFilter.")
-	}
-	return &bbRevisionFilter{
-		bb:      buildbucket.NewClient(client),
-		project: project,
-		bucket:  bucket,
-	}, nil
 }
 
 // NewGithubRepoManager returns a RepoManager instance which operates in the given
@@ -181,7 +102,10 @@ func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *
 	}
 
 	// Create and populate the parent directory if needed.
-	_, repo := GetUserAndRepo(c.ParentRepo)
+	_, repo, err := github_common.SplitGithubUserAndRepo(c.ParentRepo)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	userFork := fmt.Sprintf("git@github.com:%s/%s.git", cr.UserName(), repo)
 	parentRepo, err := git.NewCheckout(ctx, userFork, wd)
 	if err != nil {
@@ -206,9 +130,9 @@ func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *
 		}
 	}
 
-	var f RevisionFilter
+	var f revision_filter.RevisionFilter
 	if c.BuildbucketRevisionFilter != nil {
-		f, err = newBuildbucketRevisionFilter(client, c.BuildbucketRevisionFilter.Project, c.BuildbucketRevisionFilter.Bucket)
+		f, err = revision_filter.NewBuildbucketRevisionFilter(client, c.BuildbucketRevisionFilter.Project, c.BuildbucketRevisionFilter.Bucket)
 		if err != nil {
 			return nil, err
 		}
@@ -232,15 +156,6 @@ func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *
 	}
 
 	return gr, nil
-}
-
-// Fix pull request linkification in the commit details.
-func (rm *githubRepoManager) fixPullRequestLinks(rev *revision.Revision) {
-	user, repo := GetUserAndRepo(rm.childRepoURL)
-	// Github autolinks PR numbers to be of the same repository in logStr. Fix this by
-	// explicitly adding the child repo to the PR number.
-	rev.Description = pullRequestInLogRE.ReplaceAllString(rev.Description, fmt.Sprintf(" (%s/%s$1)", user, repo))
-	rev.Details = pullRequestInLogRE.ReplaceAllString(rev.Details, fmt.Sprintf(" (%s/%s$1)", user, repo))
 }
 
 // See documentation for RepoManager interface.
@@ -291,7 +206,6 @@ func (rm *githubRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 		return nil, nil, nil, err
 	}
 	lastRollRev := revision.FromLongCommit(rm.childRevLinkTmpl, lastRollDetails)
-	rm.fixPullRequestLinks(lastRollRev)
 
 	// Get the tip-of-tree revision. Because we filter the notRolledRevs,
 	// this may not end up being present in that list.
@@ -299,15 +213,11 @@ func (rm *githubRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	rm.fixPullRequestLinks(tipRev)
 
 	// Find the not-rolled child repo commits.
 	notRolledRevs, err := rm.getCommitsNotRolled(ctx, lastRollRev, tipRev)
 	if err != nil {
 		return nil, nil, nil, err
-	}
-	for _, rev := range notRolledRevs {
-		rm.fixPullRequestLinks(rev)
 	}
 
 	// Optionally filter not-rolled revisions.
@@ -473,11 +383,4 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	}
 
 	return int64(pr.GetNumber()), nil
-}
-
-func GetUserAndRepo(githubRepo string) (string, string) {
-	repoTokens := strings.Split(githubRepo, ":")
-	user := strings.Split(repoTokens[1], "/")[0]
-	repo := strings.TrimRight(strings.Split(repoTokens[1], "/")[1], ".git")
-	return user, repo
 }

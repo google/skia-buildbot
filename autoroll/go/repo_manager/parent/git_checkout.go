@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"path/filepath"
 	"strings"
 
@@ -68,14 +67,14 @@ type GitCheckoutGetLastRollRevFunc func(context.Context, *git.Checkout) (string,
 
 // NewGitCheckout returns a base for implementations of Parent which use
 // a local checkout to create changes.
-func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir string, co *git.Checkout, getLastRollRev GitCheckoutGetLastRollRevFunc, createRoll GitCheckoutCreateRollFunc, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, serverURL, workdir, userName, userEmail string, co *git.Checkout, getLastRollRev GitCheckoutGetLastRollRevFunc, createRoll GitCheckoutCreateRollFunc, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
 	// Create a baseParent.
 	base, err := newBaseParent(ctx, c.BaseConfig, serverURL)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	// Create the local checkout.
-	checkout, err := git_common.NewCheckout(ctx, c.GitCheckoutConfig, reg, workdir, co)
+	checkout, err := git_common.NewCheckout(ctx, c.GitCheckoutConfig, reg, workdir, userName, userEmail, co)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

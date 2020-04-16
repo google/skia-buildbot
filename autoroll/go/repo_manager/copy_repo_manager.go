@@ -96,7 +96,7 @@ func NewCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, reg *conf
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	parentRM, err := parent.NewCopy(ctx, parentCfg, reg, client, serverURL, workdir, childRM)
+	parentRM, err := parent.NewCopy(ctx, parentCfg, reg, client, serverURL, workdir, cr.UserName(), cr.UserEmail(), childRM)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

@@ -94,7 +94,7 @@ func NewDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, reg *conf
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	parentRM, err := parent.NewDEPSLocal(ctx, parentCfg, reg, client, serverURL, workdir, recipeCfgFile)
+	parentRM, err := parent.NewDEPSLocal(ctx, parentCfg, reg, client, serverURL, workdir, cr.UserName(), cr.UserEmail(), recipeCfgFile)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -102,7 +102,7 @@ func NewDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, reg *conf
 	// Find the path to the child repo.
 	childPath := filepath.Join(workdir, parentCfg.ChildPath)
 	childCheckout := &git.Checkout{GitDir: git.GitDir(childPath)}
-	childRM, err := child.NewGitCheckout(ctx, childCfg, reg, workdir, childCheckout)
+	childRM, err := child.NewGitCheckout(ctx, childCfg, reg, workdir, cr.UserName(), cr.UserEmail(), childCheckout)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
