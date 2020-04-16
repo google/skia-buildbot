@@ -464,6 +464,7 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 	}
 
 	// Fetch the most recent positive digest.
+	sklog.Infof("Fetching most recent positive digest for trace with ID %q.", traceId)
 	mostRecentPositiveDigest, err := c.MostRecentPositiveDigest(traceId)
 	if err != nil {
 		return false, skerr.Wrapf(err, "retrieving most recent positive image")
@@ -476,6 +477,7 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 	}
 
 	// Return algorithm's output.
+	sklog.Infof("Non-exact image comparison using algorithm %q against most recent positive digest %q.", algorithmName, mostRecentPositiveDigest)
 	return matcher.Match(mostRecentPositiveImage, image), nil
 }
 
