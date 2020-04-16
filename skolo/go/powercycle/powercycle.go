@@ -1,6 +1,7 @@
 package powercycle
 
 import (
+	"context"
 	"io/ioutil"
 	"sort"
 	"time"
@@ -37,7 +38,7 @@ type Controller interface {
 	// PowerCycle turns the device off for a reasonable amount of time (i.e. 10 seconds) and then
 	// turns it back on. If delayOverride is larger than zero it overrides the default delay between
 	// turning the port off and on again.
-	PowerCycle(id DeviceID, delayOverride time.Duration) error
+	PowerCycle(ctx context.Context, id DeviceID, delayOverride time.Duration) error
 }
 
 // controllerName is a human readable name (hopefully a physical label) for a given Controller.
@@ -80,18 +81,18 @@ func (a *multiController) DeviceIDs() []DeviceID {
 }
 
 // PowerCycle implements the Controller interface.
-func (a *multiController) PowerCycle(id DeviceID, delayOverride time.Duration) error {
+func (a *multiController) PowerCycle(ctx context.Context, id DeviceID, delayOverride time.Duration) error {
 	ctrl, ok := a.controllerForID[id]
 	if !ok {
 		return skerr.Fmt("Unknown device id: %s", id)
 	}
-	return ctrl.PowerCycle(id, delayOverride)
+	return ctrl.PowerCycle(ctx, id, delayOverride)
 }
 
 // ParseJSON5 parses a JSON5 file and instantiates the defined devices. If connect is true, an
 // attempt will be made to connect to the subclients and errors will be returned if they are not
 // accessible.
-func ParseJSON5(path string, connect bool) (Controller, error) {
+func ParseJSON5(ctx context.Context, path string, connect bool) (Controller, error) {
 	conf, err := readConfig(path)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -103,7 +104,7 @@ func ParseJSON5(path string, connect bool) (Controller, error) {
 
 	// Add the mpower devices.
 	for name, c := range conf.MPower {
-		mp, err := newMPowerController(c, connect)
+		mp, err := newMPowerController(ctx, c, connect)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "initializing %s", name)
 		}
@@ -115,7 +116,7 @@ func ParseJSON5(path string, connect bool) (Controller, error) {
 
 	// Add the EdgeSwitch devices.
 	for name, c := range conf.EdgeSwitch {
-		es, err := newEdgeSwitchController(c, connect)
+		es, err := newEdgeSwitchController(ctx, c, connect)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "initializing %s", name)
 		}

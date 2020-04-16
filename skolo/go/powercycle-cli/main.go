@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"flag"
 	"os"
@@ -33,7 +34,7 @@ func main() {
 		// powercycle without connecting first, the DeviceGroups won't be properly initialized.
 		*connect = true
 	}
-	devGroup, err := powercycle.ParseJSON5(*configFile, *connect)
+	devGroup, err := powercycle.ParseJSON5(context.Background(), *configFile, *connect)
 	if err != nil {
 		sklog.Fatalf("Unable to parse config file.  Got error: %s", err)
 	}
@@ -75,7 +76,7 @@ func main() {
 	}
 
 	for _, deviceID := range args {
-		if err := devGroup.PowerCycle(powercycle.DeviceID(deviceID), time.Duration(*delay)*time.Second); err != nil {
+		if err := devGroup.PowerCycle(context.Background(), powercycle.DeviceID(deviceID), time.Duration(*delay)*time.Second); err != nil {
 			sklog.Fatalf("Unable to power cycle device %s. Got error: %s", deviceID, err)
 		}
 	}
