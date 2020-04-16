@@ -1382,12 +1382,18 @@ func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			goldClient := CloudClient{
-				resultState: newResultState(tc.sharedConfig, &GoldClientConfig{
-					InstanceID: instanceId,
-				}),
-			}
+			wd, cleanup := testutils.TempDir(t)
+			defer cleanup()
 
+			auth, _, _, _ := makeMocks()
+			config := GoldClientConfig{
+				WorkDir:    wd,
+				InstanceID: instanceId,
+			}
+			goldClient, err := NewCloudClient(auth, config)
+			assert.NoError(t, err)
+
+			goldClient.resultState.SharedConfig = tc.sharedConfig
 			resultKey, traceId := goldClient.makeResultKeyAndTraceId(testName, tc.additionalKeys)
 			assert.Equal(t, tc.expectedResultKey, resultKey)
 			assert.Equal(t, tc.expectedTraceId, traceId)
