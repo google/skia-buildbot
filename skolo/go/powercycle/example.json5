@@ -1,7 +1,7 @@
 {
   "mpower": {
-    "mpower.01": {
-      "address": "192.168.2.212:22",
+    "rack02-shelf1-mpower1": {
+      "address": "192.168.2.212",
       "user": "ubnt",
       "ports": {
         "skia-e-linux-001": 1,
@@ -11,8 +11,8 @@
         "test-relay-1": 5
       }
     },
-    "mpower.02": {
-      "address": "192.168.2.212:23",
+    "rack02-shelf3-mpower2": {
+      "address": "192.168.1.212",
       "user": "ubnt",
       "ports": {
         "skia-e-linux-010": 1,
@@ -24,8 +24,10 @@
     }
   },
   "edgeswitch": {
-    "edgeswitch.01": {
-      "address": "192.168.1.41:22",
+    "rack01-shelf1-poe-switch": {
+      "address": "192.168.1.41",
+      "user": "power",
+      "password": "not the real password",
       "ports": {
         "skia-rpi-TEST": 23,
         "skia-i-rpi-096": 2,
@@ -34,8 +36,10 @@
         "skia-i-rpi-099": 5
       }
     },
-    "edgeswitch.02": {
-      "address": "192.168.1.41:23",
+    "rack01-shelf2-poe-switch": {
+      "address": "192.168.1.42",
+      "user": "power",
+      "password": "not the real password",
       "ports": {
         "skia-rpi-2-TEST": 23,
         "skia-i-rpi-196": 2,
@@ -44,8 +48,10 @@
         "skia-i-rpi-199": 5
       }
     },
-    "edgeswitch.03": {
-      "address": "192.168.1.41:24",
+    "rack01-shelf3-poe-switch": {
+      "address": "192.168.1.43",
+      "user": "power",
+      "password": "not the real password",
       "ports": {
         "skia-rpi-1-TEST": 23,
         "skia-i-rpi-296": 2,
