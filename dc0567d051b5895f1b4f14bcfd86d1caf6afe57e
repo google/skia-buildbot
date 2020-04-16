@@ -355,6 +355,30 @@
     },
     {
       "key": {
+        "uuid": "874d699f_9e254946",
+        "filename": "machine/go/machineserver/config/config.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T16:32:02Z",
+      "side": 1,
+      "message": "Ok, not a big deal for this CL, but I\u0027d be interested to know why.  In the case of autorollers, we have a whole bunch of nested and optional configs, and it would be chaos if they didn\u0027t live in the same package as they were used.",
+      "parentUuid": "e4c8797a_bfeb4cd7",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 20
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "068f8e85_c6936064",
         "filename": "machine/go/machineserver/config/config.go",
         "patchSetId": 3
