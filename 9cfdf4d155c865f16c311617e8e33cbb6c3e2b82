@@ -22,6 +22,30 @@
       "revId": "9cfdf4d155c865f16c311617e8e33cbb6c3e2b82",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "396510ea_c48b8403",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-16T18:30:19Z",
+      "side": 1,
+      "message": "They are not. (These used to be fmt.Printf() calls and forgot to cleanup the newlines.)",
+      "parentUuid": "a419c9be_19ddf361",
+      "range": {
+        "startLine": 467,
+        "startChar": 73,
+        "endLine": 467,
+        "endChar": 74
+      },
+      "revId": "9cfdf4d155c865f16c311617e8e33cbb6c3e2b82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
