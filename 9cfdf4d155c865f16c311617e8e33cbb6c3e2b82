@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a419c9be_19ddf361",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 467,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T18:19:01Z",
+      "side": 1,
+      "message": "Are the extra newlines necessary? I was under the impression Infof includes newlines already.",
+      "range": {
+        "startLine": 467,
+        "startChar": 73,
+        "endLine": 467,
+        "endChar": 74
+      },
+      "revId": "9cfdf4d155c865f16c311617e8e33cbb6c3e2b82",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
