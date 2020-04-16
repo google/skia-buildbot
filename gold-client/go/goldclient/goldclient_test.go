@@ -1619,6 +1619,36 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_InvalidParameters_R
 	}
 }
 
+func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDigests_ReturnsError(t *testing.T) {
+	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
+
+	const testName = types.TestName("my_test")
+	const traceId = tiling.TraceID(",name=my_test,")
+	const digest = types.Digest("11111111111111111111111111111111")
+	imageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+	1 1
+	0x00000000`))
+
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/latestpositivedigest/,name=my_test,"
+	const latestPositiveDigestResponse = `{"digest":""}`
+
+	goldClient, cleanup, httpClient, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
+	defer cleanup()
+	defer httpClient.AssertExpectations(t)
+
+	httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse([]byte(latestPositiveDigestResponse), "200 OK", http.StatusOK), nil)
+
+	optionalKeys := map[string]string{
+		imgmatching.AlgorithmNameOptKey:         string(imgmatching.FuzzyMatching),
+		string(imgmatching.MaxDifferentPixels):  "0",
+		string(imgmatching.PixelDeltaThreshold): "0",
+	}
+
+	_, err := goldClient.matchImageAgainstBaseline(testName, traceId, imageBytes, digest, optionalKeys)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), `no recent positive digests for trace with ID ",name=my_test,"`)
+}
+
 func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLabeled_Success(t *testing.T) {
 	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
