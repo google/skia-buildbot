@@ -1,6 +1,7 @@
 package powercycle
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -121,17 +122,17 @@ func (m *mPowerClient) DeviceIDs() []DeviceID {
 }
 
 // PowerCycle implements the Controller interface.
-func (m *mPowerClient) PowerCycle(devID DeviceID, delayOverride time.Duration) error {
+func (m *mPowerClient) PowerCycle(ctx context.Context, id DeviceID, delayOverride time.Duration) error {
 	delay := powerOffDelayMPower
 	if delayOverride > 0 {
 		delayOverride = delay
 	}
 
-	if !DeviceIn(devID, m.deviceIDs) {
-		return skerr.Fmt("Unknown device ID: %s", devID)
+	if !DeviceIn(id, m.deviceIDs) {
+		return skerr.Fmt("Unknown device ID: %s", id)
 	}
 
-	port := m.mPowerConfig.DevPortMap[devID]
+	port := m.mPowerConfig.DevPortMap[id]
 	if err := m.setPortValue(port, off); err != nil {
 		return err
 	}
