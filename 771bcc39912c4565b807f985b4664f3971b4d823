@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4b3925d6_f816db84",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T19:05:07Z",
+      "side": 1,
+      "message": "Nit: unknown",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 7
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30fe1cfb_2275f01a",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T19:05:07Z",
+      "side": 1,
+      "message": "Would it make sense for this to return an error?",
+      "range": {
+        "startLine": 45,
+        "startChar": 2,
+        "endLine": 46,
+        "endChar": 17
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8499b4c_b7a48cd6",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T19:05:07Z",
+      "side": 1,
+      "message": "I\u0027m a little confused; I thought quarantined and maintenance were distinct states?",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 88
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32027bdc_5691fa20",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T19:05:07Z",
+      "side": 1,
+      "message": "Nit: I like `ret :\u003d previous.Copy()` better",
+      "range": {
+        "startLine": 64,
+        "startChar": 8,
+        "endLine": 64,
+        "endChar": 40
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86bce565_70c37c18",
+        "filename": "machine/go/machine/source/pubsubsource/pubsubsource.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T19:05:07Z",
+      "side": 1,
+      "message": "We already do this ~everywhere we use pubsub, but unless they\u0027ve made the permissions more granular, topic creation requires \"PubSub Admin\" role, which is a little unfortunate.",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 66
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "500836d8_8a1c4f6e",
+        "filename": "machine/go/machine/source/pubsubsource/pubsubsource_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T19:05:07Z",
+      "side": 1,
+      "message": "Large tests should have access to the pubsub emulator, so I don\u0027t think this needs to be manual.",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 23
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30215630_b2b97977",
+        "filename": "machine/go/machine/store/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T19:05:07Z",
+      "side": 1,
+      "message": "This is eerily similar to https://skia.googlesource.com/buildbot/+/master/go/firestore/firestore.go#712 Any way we can refactor the two?  Maybe firestore.DocumentSnapshotChannel?",
+      "range": {
+        "startLine": 114,
+        "startChar": 0,
+        "endLine": 142,
+        "endChar": 4
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
