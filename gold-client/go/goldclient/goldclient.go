@@ -420,7 +420,8 @@ func (c *CloudClient) Check(name types.TestName, imgFileName string, keys, optio
 		fmt.Printf("Expectation for test: %s (%s)\n", expectHash, expectLabel.String())
 	}
 
-	return c.matchImageAgainstBaseline(name, tracestore.TraceIDFromParams(keys), imgBytes, imgHash, optionalKeys)
+	_, traceID := c.makeResultKeyAndTraceId(name, keys)
+	return c.matchImageAgainstBaseline(name, traceID, imgBytes, imgHash, optionalKeys)
 }
 
 // matchImageAgainstBaseline matches the given image against the baseline. A non-exact image
@@ -556,33 +557,53 @@ func (c *CloudClient) getResultStatePath() string {
 
 // addResult adds the given test to the overall results and returns the ID of the affected trace.
 func (c *CloudClient) addResult(name types.TestName, imgHash types.Digest, additionalKeys, optionalKeys map[string]string) tiling.TraceID {
+	key, traceID := c.makeResultKeyAndTraceId(name, additionalKeys)
+
 	newResult := &jsonio.Result{
 		Digest: imgHash,
-		Key:    map[string]string{types.PrimaryKeyField: string(name)},
+		Key:    key,
 
 		// We need to specify this is a png, otherwise the backend will refuse
 		// to ingest it.
 		Options: map[string]string{"ext": "png"},
 	}
-	for k, v := range additionalKeys {
-		newResult.Key[k] = v
-	}
 	for k, v := range optionalKeys {
 		newResult.Options[k] = v
 	}
 
-	// Set the CorpusField (e.g. source_type) to the default value of the instanceID
-	// if it is not set either on Key (via init) or additionalKeys (via add)
-	if c.resultState.SharedConfig.Key[types.CorpusField] == "" && newResult.Key[types.CorpusField] == "" {
-		newResult.Key[types.CorpusField] = c.resultState.InstanceID
-	}
 	c.resultState.SharedConfig.Results = append(c.resultState.SharedConfig.Results, newResult)
+
+	return traceID
+}
+
+// makeResultKeyAndTraceId computes the key for a jsonio.Result and its corresponding trace ID.
+func (c *CloudClient) makeResultKeyAndTraceId(name types.TestName, additionalKeys map[string]string) (map[string]string, tiling.TraceID) {
+	// Retrieve the shared keys given the via the "imgtest init" command with the --keys-file flag.
+	// If said command was not previously invoked (e.g. when calling "imgtest check") the shared
+	// config will be nil, in which case we initialize the shared keys as an empty map.
+	sharedKeys := map[string]string{}
+	if c.resultState.SharedConfig != nil {
+		sharedKeys = c.resultState.SharedConfig.Key
+	}
+
+	// Populate the result key with the test name and any test-specific keys.
+	resultKey := map[string]string{types.PrimaryKeyField: string(name)}
+	for k, v := range additionalKeys {
+		resultKey[k] = v
+	}
+
+	// Set the "source_type" field to the instance ID if it's not specified either via the
+	// test-specific keys or the shared keys.
+	if resultKey[types.CorpusField] == "" && sharedKeys[types.CorpusField] == "" {
+		resultKey[types.CorpusField] = c.resultState.InstanceID
+	}
 
 	// Compute trace ID from shared and test-specific keys. The latter overwrites the former in the
 	// rare case of a conflict.
 	traceParams := paramtools.Params{}
-	traceParams.Add(c.resultState.SharedConfig.Key, newResult.Key)
-	return tracestore.TraceIDFromParams(traceParams)
+	traceParams.Add(sharedKeys, resultKey)
+
+	return resultKey, tracestore.TraceIDFromParams(traceParams)
 }
 
 // downloadHashesAndBaselineFromGold downloads the hashes and baselines
