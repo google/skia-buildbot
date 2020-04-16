@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -24,23 +25,27 @@ type edgeswitchBotSource struct {
 
 // NewEdgeSwitchBotPortGetter returns an implementation of BotPortGetter
 func NewEdgeSwitchBotPortGetter(address string) *edgeswitchBotSource {
-	return &edgeswitchBotSource{client: powercycle.NewEdgeSwitchClient(address)}
+	target := fmt.Sprintf("ubnt@%s", address)
+	return &edgeswitchBotSource{
+		// TODO(kjlubick) pipe the password through from the CLI
+		client: powercycle.PasswordSSHCommandRunner("Not-the-real-password", target),
+	}
 }
 
 // GetBotPortsAddresses, see BotPortGetter
 func (e *edgeswitchBotSource) GetBotPortsAddresses() ([]Bot, error) {
-	lines, err := e.client.ExecCmds([]string{"show mac-addr-table all"})
+	lines, err := e.client.ExecCmds(context.TODO(), "show mac-addr-table all")
 	if err != nil {
 		return nil, err
 	}
-	bots, err := parseSSHResult(lines)
+	bots, err := parseSSHResult(strings.Split(lines, "\n"))
 	if err != nil {
 		return nil, err
 	}
 	return dedupeBots(bots), nil
 }
 
-var edgeswitchLine = regexp.MustCompile(`^\S+\s+(?P<mac_address>[0-9A-Fa-f\:]+)\s+\S+\s+(?P<interface>\d+)\s+\S+`)
+var edgeswitchLine = regexp.MustCompile(`^\S+\s+(?P<mac_address>[0-9A-Fa-f:]+)\s+\S+\s+(?P<interface>\d+)\s+\S+`)
 
 // parseSSHResult looks at the lines output by the EdgeSwitchClient. These are
 // already split by \n.  It then parses the lines into the various components.
