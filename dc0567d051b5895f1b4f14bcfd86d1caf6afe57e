@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a007114b_8c00bd77",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T15:08:16Z",
+      "side": 1,
+      "message": "Nit: I prefer having the type first, which helps with disambiguation and sorting when there are multiple sets of unrelated constants.",
+      "range": {
+        "startLine": 12,
+        "startChar": 1,
+        "endLine": 12,
+        "endChar": 6
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "09a675ac_23444749",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T15:08:16Z",
+      "side": 1,
+      "message": "Nit: func(d Description) Copy() Description {",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 49
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "856165c0_f05b3032",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T15:08:16Z",
+      "side": 1,
+      "message": "Not sure whether you plan to use assertdeep.Equal in tests, but util.CopyStringSlice does the right thing by distinguishing between nil and empty.",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 67,
+        "endChar": 25
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e912f055_879f4be0",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T15:08:16Z",
+      "side": 1,
+      "message": "Nit: \"from\"",
+      "range": {
+        "startLine": 90,
+        "startChar": 28,
+        "endLine": 90,
+        "endChar": 29
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18277d5b_f05e0b00",
+        "filename": "machine/go/machine/machine_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T15:08:16Z",
+      "side": 1,
+      "message": "Nit: please use assertdeep.Copy, which ensures that your test has filled in all of the struct fields.  That prevents bugs due to forgetting to add a field to the copy function.",
+      "range": {
+        "startLine": 13,
+        "startChar": 5,
+        "endLine": 13,
+        "endChar": 23
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "136e8073_1149a55f",
+        "filename": "machine/go/machineserver/config/config.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T15:08:16Z",
+      "side": 1,
+      "message": "Can we move these config structs to be next to the code they\u0027re configuring?",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 20
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
