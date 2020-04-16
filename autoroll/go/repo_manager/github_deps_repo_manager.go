@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
@@ -51,11 +52,13 @@ func (c *GithubDEPSRepoManagerConfig) Validate() error {
 
 // githubDEPSRepoManager is a struct used by the autoroller for managing checkouts.
 type githubDEPSRepoManager struct {
-	*depsRepoManager
-	githubClient   *github.GitHub
-	githubConfig   *codereview.GithubConfig
-	rollBranchName string
-	transitiveDeps map[string]string
+	*depotToolsRepoManager
+	childRepoUrl    string
+	childRepoUrlMtx sync.Mutex
+	githubClient    *github.GitHub
+	githubConfig    *codereview.GithubConfig
+	rollBranchName  string
+	transitiveDeps  map[string]string
 }
 
 // NewGithubDEPSRepoManager returns a RepoManager instance which operates in the given
@@ -69,17 +72,14 @@ func NewGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfi
 	if err != nil {
 		return nil, err
 	}
-	dr := &depsRepoManager{
-		depotToolsRepoManager: drm,
-	}
 	if c.GithubParentPath != "" {
-		dr.parentDir = path.Join(wd, c.GithubParentPath)
+		drm.parentDir = path.Join(wd, c.GithubParentPath)
 	}
 	gr := &githubDEPSRepoManager{
-		depsRepoManager: dr,
-		githubClient:    githubClient,
-		rollBranchName:  rollerName,
-		transitiveDeps:  c.TransitiveDeps,
+		depotToolsRepoManager: drm,
+		githubClient:          githubClient,
+		rollBranchName:        rollerName,
+		transitiveDeps:        c.TransitiveDeps,
 	}
 
 	return gr, nil
@@ -324,7 +324,7 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 
 	// Make third_party/ match the new DEPS.
 	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  rm.depsRepoManager.parentDir,
+		Dir:  rm.depotToolsRepoManager.parentDir,
 		Env:  rm.depotToolsEnv,
 		Name: rm.gclient,
 		Args: []string{"sync", "--delete_unversioned_trees", "--force"},
@@ -404,4 +404,18 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	}
 
 	return int64(pr.GetNumber()), nil
+}
+
+// getChildRepoUrl returns the URL of the child repo, obtaining it if necessary.
+func (rm *githubDEPSRepoManager) getChildRepoUrl(ctx context.Context) (string, error) {
+	rm.childRepoUrlMtx.Lock()
+	defer rm.childRepoUrlMtx.Unlock()
+	if rm.childRepoUrl == "" {
+		childRepoUrl, err := rm.childRepo.Git(ctx, "remote", "get-url", "origin")
+		if err != nil {
+			return "", err
+		}
+		rm.childRepoUrl = strings.TrimSpace(childRepoUrl)
+	}
+	return rm.childRepoUrl, nil
 }

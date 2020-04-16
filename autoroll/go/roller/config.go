@@ -316,6 +316,8 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 		rm = append(rm, c.CopyRepoManager)
 	}
 	if c.DEPSRepoManager != nil {
+		// TODO(borenet): De-duplicate the Gerrit config.
+		c.DEPSRepoManager.Gerrit = c.Gerrit
 		rm = append(rm, c.DEPSRepoManager)
 	}
 	if c.FreeTypeRepoManager != nil {

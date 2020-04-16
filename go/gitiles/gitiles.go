@@ -267,10 +267,10 @@ func commitToLongCommit(c *Commit) (*vcsinfo.LongCommit, error) {
 	subject := split[0]
 	split = split[1:]
 	body := ""
-	if len(split) > 1 && split[0] == "" {
+	if len(split) > 0 && split[0] == "" {
 		split = split[1:]
 	}
-	if len(split) > 1 {
+	if len(split) > 0 {
 		body = strings.Join(split, "\n")
 	}
 	return &vcsinfo.LongCommit{
@@ -282,6 +282,33 @@ func commitToLongCommit(c *Commit) (*vcsinfo.LongCommit, error) {
 		Parents:   c.Parents,
 		Body:      body,
 		Timestamp: ts,
+	}, nil
+}
+
+// LongCommitToCommit converts the given LongCommit to a Commit. Intended for
+// use in tests.
+func LongCommitToCommit(details *vcsinfo.LongCommit) (*Commit, error) {
+	// vcsinfo.LongCommit expresses authors in the form: "Author Name (author@email.com)"
+	split := strings.Split(details.Author, "(")
+	if len(split) != 2 {
+		return nil, skerr.Fmt("Bad author format: %q", details.Author)
+	}
+	authorName := strings.TrimSpace(split[0])
+	authorEmail := strings.TrimSpace(strings.TrimRight(split[1], ")"))
+	return &Commit{
+		Commit:  details.Hash,
+		Parents: details.Parents,
+		Author: &Author{
+			Name:  authorName,
+			Email: authorEmail,
+			Time:  details.Timestamp.Format(DATE_FORMAT_TZ),
+		},
+		Committer: &Author{
+			Name:  authorName,
+			Email: authorEmail,
+			Time:  details.Timestamp.Format(DATE_FORMAT_TZ),
+		},
+		Message: details.Subject + "\n\n" + details.Body,
 	}, nil
 }
 

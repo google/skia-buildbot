@@ -3,6 +3,7 @@ package gitiles
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -543,4 +544,64 @@ func TestLogOptionsToQuery(t *testing.T) {
 	test("n=5", 5, LogBatchSize(10), LogLimit(5))
 	test("n=5", 0, LogBatchSize(5), LogBatchSize(10))
 	test("n=3&reverse=true", 10, LogReverse(), LogLimit(10), LogBatchSize(3))
+}
+
+func TestDetails(t *testing.T) {
+	unittest.LargeTest(t)
+
+	// Setup.
+	ctx := context.Background()
+	repoUrl := "https://skia.googlesource.com/buildbot.git"
+	urlMock := mockhttpclient.NewURLMock()
+	repo := NewRepo(repoUrl, urlMock.Client())
+	gb := git_testutils.GitInit(t, ctx)
+
+	// Helper function which creates a commit, retrieves it from both
+	// Gitiles and the real Git repo using Details, and assert that the
+	// results are identical.
+	check := func(msg string) {
+		// Create the commit.
+		hash := gb.CommitGenMsg(ctx, "fake", msg)
+
+		// Retrieve the commit from Git.
+		expect, err := git.GitDir(gb.Dir()).Details(ctx, hash)
+		require.NoError(t, err)
+
+		// Mock the request to Gitiles. Caveat: the test results are
+		// only as good as the quality of our mocks.
+		c, err := LongCommitToCommit(expect)
+		require.NoError(t, err)
+		b, err := json.Marshal(c)
+		require.NoError(t, err)
+		b = append([]byte(")]}'\n"), b...)
+		urlMock.MockOnce(repoUrl+fmt.Sprintf("/+/%s?format=JSON", hash), mockhttpclient.MockGetDialogue(b))
+
+		// Perform the request.
+		actual, err := repo.Details(ctx, hash)
+		require.NoError(t, err)
+
+		// Assert that the results from Gitiles are identical to those
+		// from Git.
+		assertdeep.Equal(t, expect, actual)
+	}
+
+	// Test cases.
+	check("blahblahblah")
+	check(`subject
+`)
+	check(`subject
+no empty second line
+more stuff`)
+	check(`subject
+
+body
+`)
+	check(`subject
+
+body`)
+	check(`subject
+
+body
+body2
+`)
 }

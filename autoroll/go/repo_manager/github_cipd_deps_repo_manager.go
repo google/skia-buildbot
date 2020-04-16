@@ -106,16 +106,13 @@ func NewGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoMana
 	if err != nil {
 		return nil, err
 	}
-	dr := &depsRepoManager{
-		depotToolsRepoManager: drm,
-	}
 	if c.GithubParentPath != "" {
-		dr.parentDir = path.Join(wd, c.GithubParentPath)
+		drm.parentDir = path.Join(wd, c.GithubParentPath)
 	}
 	gr := &githubDEPSRepoManager{
-		depsRepoManager: dr,
-		githubClient:    githubClient,
-		rollBranchName:  rollerName,
+		depotToolsRepoManager: drm,
+		githubClient:          githubClient,
+		rollBranchName:        rollerName,
 	}
 	sklog.Infof("Roller name is: %s\n", rollerName)
 	cipdChild, err := child.NewCIPD(ctx, childCfg, httpClient, filepath.Join(workdir, "cipd"))
@@ -263,7 +260,7 @@ func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to
 	// Make the checkout match the new DEPS.
 	sklog.Info("Running gclient sync on the checkout")
 	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  rm.depsRepoManager.parentDir,
+		Dir:  rm.depotToolsRepoManager.parentDir,
 		Env:  rm.depotToolsEnv,
 		Name: rm.gclient,
 		Args: []string{"sync", "-D", "-f"},
