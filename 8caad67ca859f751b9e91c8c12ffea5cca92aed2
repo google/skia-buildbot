@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "689c8784_69c55a72",
+        "filename": "skolo/go/powercycle/command_runner.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T20:08:00Z",
+      "side": 1,
+      "message": "Correct - nothing complex, no retries, just a “Let’s all just keep our fingers crossed and hope for the best”. https://www.hp-lexicon.org/event/1972-the-chudley-cannons-adopt-a-new-motto/\n\nI added some comments stating that this is not a general purpose implementation and that if a command fails, it is unspecified what should happen.",
+      "parentUuid": "78064988_f5d34a49",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 62
+      },
+      "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4c026dbe_032f8d5e",
         "filename": "skolo/go/powercycle/command_runner.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "728d6ba2_06dd30b2",
+        "filename": "skolo/go/powercycle/command_runner.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T20:08:00Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "4c026dbe_032f8d5e",
+      "range": {
+        "startLine": 55,
+        "startChar": 27,
+        "endLine": 55,
+        "endChar": 35
+      },
+      "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "315c711a_9e67c496",
+        "filename": "skolo/go/powercycle/command_runner.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T20:08:00Z",
+      "side": 1,
+      "message": "Slim to none. As specified above, this is not meant to be a general purpose implementation.",
+      "parentUuid": "b7805aa1_bc59ef28",
+      "range": {
+        "startLine": 66,
+        "startChar": 17,
+        "endLine": 66,
+        "endChar": 28
+      },
+      "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "20c48f87_564c0db9",
         "filename": "skolo/go/powercycle/command_runner.go",
         "patchSetId": 6
@@ -82,6 +154,30 @@
       "writtenOn": "2020-04-16T17:43:11Z",
       "side": 1,
       "message": "The vast majority of code ignores the primary return value(s) if a non-nil error is returned. Could we include the output of the command in the error message instead?",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 79,
+        "endChar": 58
+      },
+      "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f59ee309_925f3e93",
+        "filename": "skolo/go/powercycle/command_runner.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T20:08:00Z",
+      "side": 1,
+      "message": "CombinedOutput is an example from the standard library where the primary value can be used even if the error is non-nil.  Since we call that directly, I think it\u0027s ok to mirror that idiom.\n\nAdditionally, skerr.Wrapf adds details about the stacktrace; I think it is more clear to keep the error and stdout/stderr separate, so it\u0027s easier to know what the executable said and what golang added on.",
+      "parentUuid": "20c48f87_564c0db9",
       "range": {
         "startLine": 79,
         "startChar": 0,
@@ -114,6 +210,30 @@
       "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0a0c598_c9e23de4",
+        "filename": "skolo/go/powercycle/edgeswitch.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T20:08:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "181258a0_bbe369df",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 2
+      },
+      "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
