@@ -163,8 +163,8 @@ func (i *imgTest) addCommonFlags(cmd *cobra.Command, optional bool) {
 func (i *imgTest) addKeysFlags(cmd *cobra.Command, flagsPrefix string) {
 	cmd.Flags().StringVar(&i.testKeysFile, flagsPrefix+"keys-file", "", "File with a JSON dictionary of test-specific keys.")
 	cmd.Flags().StringSliceVar(&i.testKeysStrings, flagsPrefix+"key", []string{}, "Any number of test-specific keys represented as key:value pairs.")
-	cmd.Flags().StringVar(&i.testKeysFile, flagsPrefix+"optional-keys-file", "", "File with a JSON dictionary of test-specific optional keys.")
-	cmd.Flags().StringSliceVar(&i.testKeysStrings, flagsPrefix+"optional-key", []string{}, "Any number of test-specific optional keys represented as key:value pairs.")
+	cmd.Flags().StringVar(&i.testOptionalKeysFile, flagsPrefix+"optional-keys-file", "", "File with a JSON dictionary of test-specific optional keys.")
+	cmd.Flags().StringSliceVar(&i.testOptionalKeysStrings, flagsPrefix+"optional-key", []string{}, "Any number of test-specific optional keys represented as key:value pairs.")
 }
 
 func (i *imgTest) validate(cmd *cobra.Command, args []string) error {
