@@ -36,6 +36,11 @@ func New() AdbImpl {
 
 // Adb is the interface that AdbImpl provides.
 type Adb interface {
+	// RawProperties returns the unfiltered output of running "adb shell getprop".
+	RawProperties(ctx context.Context) (string, error)
+
+	// RawDumpSys returns the unfiltered output of running "adb shell dumpsys <service>".
+	RawDumpSys(ctx context.Context, service string) (string, error)
 
 	// Properties returns a map[string]string from running "adb shell getprop".
 	Properties(ctx context.Context) (map[string]string, error)
@@ -50,6 +55,28 @@ type Adb interface {
 
 // Properties implements the Adb interface.
 func (a AdbImpl) Properties(ctx context.Context) (map[string]string, error) {
+	ret := map[string]string{}
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	// Note we use execCommandContext, not exec.CommandContext.
+	cmd := execCommandContext(ctx, "adb", "shell", "getprop")
+
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Err: %q", string(b))
+	}
+
+	matches := proplines.FindAllStringSubmatch(string(b), -1)
+	for _, line := range matches {
+		ret[line[1]] = line[2]
+	}
+
+	return ret, nil
+}
+
+// Properties implements the Adb interface.
+func (a AdbImpl) RawProperties(ctx context.Context) (string, error) {
 	ret := map[string]string{}
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
