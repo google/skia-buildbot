@@ -1,4 +1,4 @@
-package repo_manager
+package parent
 
 import (
 	"context"

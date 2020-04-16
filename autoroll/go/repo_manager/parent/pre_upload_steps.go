@@ -1,4 +1,4 @@
-package repo_manager
+package parent
 
 /*
    This file contains canned pre-upload steps for RepoManagers to use.
@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/uuid"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -32,17 +33,20 @@ var cipdRoot = path.Join(os.TempDir(), "cipd")
 // of the parent repo.
 type PreUploadStep func(context.Context, []string, *http.Client, string) error
 
+// preUploadSteps is the registry of known PreUploadStep instances.
+var preUploadSteps = map[string]PreUploadStep{
+	"ANGLECodeGeneration":             ANGLECodeGeneration,
+	"GoGenerateCipd":                  GoGenerateCipd,
+	"TrainInfra":                      TrainInfra,
+	"FlutterLicenseScripts":           FlutterLicenseScripts,
+	"FlutterLicenseScriptsForDart":    FlutterLicenseScriptsForDart,
+	"FlutterLicenseScriptsForFuchsia": FlutterLicenseScriptsForFuchsia,
+	"UpdateFlutterDepsForDart":        UpdateFlutterDepsForDart,
+}
+
 // Return the PreUploadStep with the given name.
 func GetPreUploadStep(s string) (PreUploadStep, error) {
-	rv, ok := map[string]PreUploadStep{
-		"ANGLECodeGeneration":             ANGLECodeGeneration,
-		"GoGenerateCipd":                  GoGenerateCipd,
-		"TrainInfra":                      TrainInfra,
-		"FlutterLicenseScripts":           FlutterLicenseScripts,
-		"FlutterLicenseScriptsForDart":    FlutterLicenseScriptsForDart,
-		"FlutterLicenseScriptsForFuchsia": FlutterLicenseScriptsForFuchsia,
-		"UpdateFlutterDepsForDart":        UpdateFlutterDepsForDart,
-	}[s]
+	rv, ok := preUploadSteps[s]
 	if !ok {
 		return nil, fmt.Errorf("No such pre-upload step: %s", s)
 	}
@@ -60,6 +64,15 @@ func GetPreUploadSteps(steps []string) ([]PreUploadStep, error) {
 		rv = append(rv, step)
 	}
 	return rv, nil
+}
+
+// AddPreUploadStepForTesting adds the given PreUploadStep to the global
+// registry to be used for testing. Returns a unique name for the step. Not safe
+// to be used concurrently with GetPreUploadStep(s).
+func AddPreUploadStepForTesting(s PreUploadStep) string {
+	id := uuid.New().String()
+	preUploadSteps[id] = s
+	return id
 }
 
 // Train the infra expectations.
@@ -120,7 +133,7 @@ func UpdateFlutterDepsForDart(ctx context.Context, env []string, _ *http.Client,
 		Dir:  parentRepoDir,
 		Env:  env,
 		Name: "python",
-		Args: []string{filepath.Join(parentRepoDir, "..", "..", "depot_tools", GCLIENT), "sync", "--delete_unversioned_trees", "--force"},
+		Args: []string{filepath.Join(parentRepoDir, "..", "..", "depot_tools", GClient), "sync", "--delete_unversioned_trees", "--force"},
 	}); err != nil {
 		return fmt.Errorf("Error when running \"gclient sync\" in %s: %s", parentRepoDir, err)
 	}

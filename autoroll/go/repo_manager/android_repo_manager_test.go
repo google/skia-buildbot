@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
@@ -164,7 +165,7 @@ func TestRanPreUploadStepsAndroid(t *testing.T) {
 	require.NoError(t, err)
 
 	ran := false
-	rm.(*androidRepoManager).preUploadSteps = []PreUploadStep{
+	rm.(*androidRepoManager).preUploadSteps = []parent.PreUploadStep{
 		func(context.Context, []string, *http.Client, string) error {
 			ran = true
 			return nil

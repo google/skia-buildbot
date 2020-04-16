@@ -9,7 +9,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,29 +49,10 @@ func (mr *MockRepo) MockReadFile(ctx context.Context, srcPath, ref string) {
 
 func (mr *MockRepo) getCommit(ctx context.Context, ref string) *gitiles.Commit {
 	details, err := mr.repo.Details(ctx, ref)
-	assert.NoError(mr.t, err)
-	// vcsinfo.LongCommit expresses authors in the form: "Author Name (author@email.com)"
-	split := strings.Split(details.Author, "(")
-	if len(split) != 2 {
-		mr.t.Fatalf("Bad author format: %q", details.Author)
-	}
-	authorName := strings.TrimSpace(split[0])
-	authorEmail := strings.TrimSpace(strings.TrimRight(split[1], ")"))
-	return &gitiles.Commit{
-		Commit:  details.Hash,
-		Parents: details.Parents,
-		Author: &gitiles.Author{
-			Name:  authorName,
-			Email: authorEmail,
-			Time:  details.Timestamp.Format(gitiles.DATE_FORMAT_TZ),
-		},
-		Committer: &gitiles.Author{
-			Name:  authorName,
-			Email: authorEmail,
-			Time:  details.Timestamp.Format(gitiles.DATE_FORMAT_TZ),
-		},
-		Message: details.Subject + "\n\n" + details.Body,
-	}
+	require.NoError(mr.t, err)
+	rv, err := gitiles.LongCommitToCommit(details)
+	require.NoError(mr.t, err)
+	return rv
 }
 
 func (mr *MockRepo) MockGetCommit(ctx context.Context, ref string) {

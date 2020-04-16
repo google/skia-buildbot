@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -25,7 +24,6 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -121,7 +119,7 @@ func (c *CommonRepoManagerConfig) Validate() error {
 		return errors.New("BugProject is non-empty but does not match the entry in issues.REPO_PROJECT_MAPPING.")
 	}
 	for _, s := range c.PreUploadSteps {
-		if _, err := GetPreUploadStep(s); err != nil {
+		if _, err := parent.GetPreUploadStep(s); err != nil {
 			return err
 		}
 	}
@@ -164,7 +162,7 @@ type commonRepoManager struct {
 	local            bool
 	bugProject       string
 	parentBranch     *config_vars.Template
-	preUploadSteps   []PreUploadStep
+	preUploadSteps   []parent.PreUploadStep
 	repoMtx          sync.RWMutex
 	serverURL        string
 	workdir          string
@@ -185,11 +183,11 @@ func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, reg *c
 	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
 
 	if _, err := os.Stat(workdir); err == nil {
-		if err := deleteGitLockFiles(ctx, workdir); err != nil {
+		if err := git.DeleteLockFiles(ctx, workdir); err != nil {
 			return nil, err
 		}
 	}
-	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps)
+	preUploadSteps, err := parent.GetPreUploadSteps(c.PreUploadSteps)
 	if err != nil {
 		return nil, err
 	}
@@ -365,7 +363,7 @@ func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig
 		commonRepoManager: crm,
 		depotTools:        depotTools,
 		depotToolsEnv:     append(depot_tools.Env(depotTools), "SKIP_GCE_AUTH_FOR_GIT=1"),
-		gclient:           path.Join(depotTools, GCLIENT),
+		gclient:           path.Join(depotTools, parent.GClient),
 		gclientSpec:       c.GClientSpec,
 		parentDir:         parentDir,
 		parentRepo:        c.ParentRepo,
@@ -457,29 +455,6 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx conte
 		Args: args,
 	}); err != nil {
 		return err
-	}
-	return nil
-}
-
-// deleteGitLockFiles finds and deletes Git lock files within the given workdir.
-func deleteGitLockFiles(ctx context.Context, workdir string) error {
-	sklog.Infof("Looking for git lockfiles in %s", workdir)
-	output, err := exec.RunCwd(ctx, workdir, "find", ".", "-name", "index.lock")
-	if err != nil {
-		return err
-	}
-	output = strings.TrimSpace(output)
-	if output == "" {
-		sklog.Info("No lockfiles found.")
-		return nil
-	}
-	lockfiles := strings.Split(output, "\n")
-	for _, f := range lockfiles {
-		fp := filepath.Join(workdir, f)
-		sklog.Warningf("Removing git lockfile: %s", fp)
-		if err := os.Remove(fp); err != nil {
-			return err
-		}
 	}
 	return nil
 }

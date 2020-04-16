@@ -402,7 +402,7 @@ func (rm *githubRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	// Update any transitive DEPS.
 	if len(rm.transitiveDeps) > 0 {
 		for childPath, parentPath := range rm.transitiveDeps {
-			output, err := exec.RunCwd(ctx, rm.childRepo.Dir(), "python", path.Join(rm.depotTools, GCLIENT), "getdep", "-r", childPath, "--spec={\"host_os\":\"linux\"}")
+			output, err := exec.RunCwd(ctx, rm.childRepo.Dir(), "python", path.Join(rm.depotTools, parent.GClient), "getdep", "-r", childPath, "--spec={\"host_os\":\"linux\"}")
 			if err != nil {
 				return 0, err
 			}

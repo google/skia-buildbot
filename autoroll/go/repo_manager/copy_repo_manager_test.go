@@ -3,7 +3,6 @@ package repo_manager
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"path"
 	"path/filepath"
@@ -75,21 +74,11 @@ func setupCopy(t *testing.T) (context.Context, string, *parentChildRepoManager, 
 	})
 	ctx = exec.NewContext(ctx, mockRun.Run)
 
-	g := setupFakeGerrit(t, wd)
+	urlmock := setupFakeGerrit(t, wd)
 	cfg := copyCfg(t)
 	cfg.ChildRepo = child.RepoUrl()
 	cfg.ParentRepo = parent.RepoUrl()
 	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
-	urlmock := mockhttpclient.NewURLMock()
-
-	// Create a dummy commit-msg hook.
-	changeId := "123"
-	respBody := []byte(fmt.Sprintf(`#!/bin/sh
-git interpret-trailers --trailer "Change-Id: %s" > $1
-`, changeId))
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/tools/hooks/commit-msg", mockhttpclient.MockGetDialogue(respBody))
-	rm, err := NewCopyRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
-	require.NoError(t, err)
 
 	// Mock requests for Update.
 	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.GitDir(child.Dir()), urlmock)
@@ -98,6 +87,10 @@ git interpret-trailers --trailer "Change-Id: %s" > $1
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
 	}
+
+	// Create the RepoManager.
+	rm, err := NewCopyRepoManager(ctx, cfg, setupRegistry(t), wd, nil, "fake.server.com", urlmock.Client(), nil, false)
+	require.NoError(t, err)
 
 	// Update.
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)

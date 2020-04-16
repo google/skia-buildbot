@@ -15,6 +15,7 @@ import (
 	github_api "github.com/google/go-github/v29/github"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/exec"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/github"
@@ -210,7 +211,7 @@ func TestRanPreUploadStepsGithub(t *testing.T) {
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 	ran := false
-	rm.(*githubRepoManager).preUploadSteps = []PreUploadStep{
+	rm.(*githubRepoManager).preUploadSteps = []parent.PreUploadStep{
 		func(context.Context, []string, *http.Client, string) error {
 			ran = true
 			return nil
@@ -240,7 +241,7 @@ func TestErrorPreUploadStepsGithub(t *testing.T) {
 	require.NoError(t, err)
 	ran := false
 	expectedErr := errors.New("Expected error")
-	rm.(*githubRepoManager).preUploadSteps = []PreUploadStep{
+	rm.(*githubRepoManager).preUploadSteps = []parent.PreUploadStep{
 		func(context.Context, []string, *http.Client, string) error {
 			ran = true
 			return expectedErr

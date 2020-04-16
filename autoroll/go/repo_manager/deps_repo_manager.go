@@ -2,30 +2,17 @@ package repo_manager
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"net/http"
-	"os"
-	"path"
-	"strings"
-	"sync"
-	"time"
+	"path/filepath"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/child"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
-	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
-)
-
-const (
-	GCLIENT = "gclient.py"
 )
 
 // issueJson is the structure of "git cl issue --json"
@@ -34,239 +21,90 @@ type issueJson struct {
 	IssueUrl string `json:"issue_url"`
 }
 
-// depsRepoManager is a struct used by DEPs AutoRoller for managing checkouts.
-type depsRepoManager struct {
-	*depotToolsRepoManager
-	childRepoUrl    string
-	childRepoUrlMtx sync.RWMutex
-}
-
 // DEPSRepoManagerConfig provides configuration for the DEPS RepoManager.
 type DEPSRepoManagerConfig struct {
 	DepotToolsRepoManagerConfig
+	Gerrit     *codereview.GerritConfig `json:"gerrit"`
+	ChildRepo  string                   `json:"childRepo"`
+	ParentPath string                   `json:"parentPath"`
+}
+
+// See documentation for util.Validator interface.
+func (c DEPSRepoManagerConfig) Validate() error {
+	if err := c.DepotToolsRepoManagerConfig.Validate(); err != nil {
+		return skerr.Wrap(err)
+	}
+	if _, _, err := c.splitParentChild(); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}
+
+// splitParentChild splits the NoCheckoutDEPSRepoManagerConfig into a
+// parent.DEPSLocalConfig and a child.GitCheckoutConfig.
+// TODO(borenet): Update the config format to directly define the parent
+// and child. We shouldn't need most of the New.*RepoManager functions.
+func (c DEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig, child.GitCheckoutConfig, error) {
+	parentCfg := parent.DEPSLocalConfig{
+		GitCheckoutGerritConfig: parent.GitCheckoutGerritConfig{
+			GitCheckoutConfig: parent.GitCheckoutConfig{
+				BaseConfig: parent.BaseConfig{
+					ChildPath:       c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
+					ChildRepo:       c.ChildRepo,
+					IncludeBugs:     c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
+					IncludeLog:      c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
+					CommitMsgTmpl:   c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
+					MonorailProject: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.BugProject,
+				},
+				GitCheckoutConfig: git_common.GitCheckoutConfig{
+					Branch:  c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
+					RepoURL: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+				},
+			},
+			Gerrit: c.Gerrit,
+		},
+		Dep:            c.ChildRepo,
+		CheckoutPath:   c.ParentPath,
+		GClientSpec:    c.GClientSpec,
+		PreUploadSteps: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.PreUploadSteps,
+	}
+	if err := parentCfg.Validate(); err != nil {
+		return parent.DEPSLocalConfig{}, child.GitCheckoutConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
+	}
+	childCfg := child.GitCheckoutConfig{
+		GitCheckoutConfig: git_common.GitCheckoutConfig{
+			Branch:      c.ChildBranch,
+			RepoURL:     c.ChildRepo,
+			RevLinkTmpl: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ChildRevLinkTmpl,
+		},
+	}
+	if err := childCfg.Validate(); err != nil {
+		return parent.DEPSLocalConfig{}, child.GitCheckoutConfig{}, skerr.Wrapf(err, "generated child config is invalid")
+	}
+	return parentCfg, childCfg, nil
 }
 
 // NewDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func NewDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, reg *config_vars.Registry, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
+func NewDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, reg *config_vars.Registry, workdir string, g *gerrit.Gerrit, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
 	if err := c.Validate(); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, reg, path.Join(workdir, "repo_manager"), recipeCfgFile, serverURL, g, client, cr, local)
+	parentCfg, childCfg, err := c.splitParentChild()
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
-	dr := &depsRepoManager{
-		depotToolsRepoManager: drm,
-	}
-
-	return dr, nil
-}
-
-// getChildRepoUrl returns the URL of the child repo, obtaining it if necessary.
-func (rm *depsRepoManager) getChildRepoUrl(ctx context.Context) (string, error) {
-	rm.childRepoUrlMtx.Lock()
-	defer rm.childRepoUrlMtx.Unlock()
-	if rm.childRepoUrl == "" {
-		childRepoUrl, err := rm.childRepo.Git(ctx, "remote", "get-url", "origin")
-		if err != nil {
-			return "", err
-		}
-		rm.childRepoUrl = strings.TrimSpace(childRepoUrl)
-	}
-	return rm.childRepoUrl, nil
-}
-
-// See documentation for RepoManager interface.
-func (dr *depsRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
-	// Sync the projects.
-	dr.repoMtx.Lock()
-	defer dr.repoMtx.Unlock()
-
-	if err := dr.createAndSyncParent(ctx); err != nil {
-		return nil, nil, nil, fmt.Errorf("Could not create and sync parent repo: %s", err)
-	}
-
-	// Get the last roll revision.
-	lastRollRev, err := dr.getLastRollRev(ctx)
+	parentRM, err := parent.NewDEPSLocal(ctx, parentCfg, reg, client, serverURL, workdir, recipeCfgFile)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, skerr.Wrap(err)
 	}
 
-	// Get the tip-of-tree revision.
-	tipRev, err := dr.getTipRev(ctx)
+	// Find the path to the child repo.
+	childPath := filepath.Join(workdir, parentCfg.ChildPath)
+	childCheckout := &git.Checkout{GitDir: git.GitDir(childPath)}
+	childRM, err := child.NewGitCheckout(ctx, childCfg, reg, workdir, childCheckout)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, skerr.Wrap(err)
 	}
-
-	// Find the not-rolled child repo commits.
-	notRolledRevs, err := dr.getCommitsNotRolled(ctx, lastRollRev, tipRev)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	return lastRollRev, tipRev, notRolledRevs, nil
-}
-
-func (dr *depsRepoManager) getLastRollRev(ctx context.Context) (*revision.Revision, error) {
-	output, err := exec.RunCwd(ctx, dr.parentDir, "python", dr.gclient, "getdep", "-r", dr.childPath)
-	if err != nil {
-		return nil, err
-	}
-	commit := strings.TrimSpace(output)
-	if len(commit) != 40 {
-		return nil, fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
-	}
-	details, err := dr.childRepo.Details(ctx, commit)
-	if err != nil {
-		return nil, err
-	}
-	return revision.FromLongCommit(dr.childRevLinkTmpl, details), nil
-}
-
-// See documentation for RepoManager interface.
-func (dr *depsRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
-	dr.repoMtx.Lock()
-	defer dr.repoMtx.Unlock()
-
-	// Clean the checkout, get onto a fresh branch.
-	if err := dr.cleanParent(ctx); err != nil {
-		return 0, err
-	}
-	if _, err := git.GitDir(dr.parentDir).Git(ctx, "checkout", "-b", ROLL_BRANCH, "-t", fmt.Sprintf("origin/%s", dr.parentBranch), "-f"); err != nil {
-		return 0, err
-	}
-
-	// Defer some more cleanup.
-	defer func() {
-		util.LogErr(dr.cleanParent(ctx))
-	}()
-
-	// Create the roll CL.
-	if !dr.local {
-		if _, err := git.GitDir(dr.parentDir).Git(ctx, "config", "user.name", dr.codereview.UserName()); err != nil {
-			return 0, err
-		}
-		if _, err := git.GitDir(dr.parentDir).Git(ctx, "config", "user.email", dr.codereview.UserEmail()); err != nil {
-			return 0, err
-		}
-	}
-
-	// Run "gclient setdep".
-	args := []string{"setdep", "-r", fmt.Sprintf("%s@%s", dr.childPath, to.Id)}
-	sklog.Infof("Running command: gclient %s", strings.Join(args, " "))
-	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:        dr.parentDir,
-		Env:        dr.depotToolsEnv,
-		InheritEnv: true,
-		Name:       dr.gclient,
-		Args:       args,
-	}); err != nil {
-		return 0, err
-	}
-
-	// Run "gclient sync" to get the DEPS to the correct new revisions.
-	sklog.Info("Running command: gclient sync --nohooks")
-	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:        dr.workdir,
-		Env:        dr.depotToolsEnv,
-		InheritEnv: true,
-		Name:       "python",
-		Args:       []string{dr.gclient, "sync", "--nohooks"},
-	}); err != nil {
-		return 0, err
-	}
-
-	// Build the commit message.
-	childRepoUrl, err := dr.getChildRepoUrl(ctx)
-	if err != nil {
-		return 0, err
-	}
-	commitMsg, err := dr.buildCommitMsg(&parent.CommitMsgVars{
-		ChildPath:      dr.childPath,
-		ChildRepo:      childRepoUrl,
-		CqExtraTrybots: cqExtraTrybots,
-		Reviewers:      emails,
-		Revisions:      rolling,
-		RollingFrom:    from,
-		RollingTo:      to,
-		ServerURL:      dr.serverURL,
-	})
-	if err != nil {
-		return 0, err
-	}
-
-	// Run the pre-upload steps.
-	sklog.Infof("Running pre-upload steps.")
-	for _, s := range dr.preUploadSteps {
-		if err := s(ctx, dr.depotToolsEnv, dr.httpClient, dr.parentDir); err != nil {
-			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
-		}
-	}
-
-	// Commit.
-	if _, err := git.GitDir(dr.parentDir).Git(ctx, "commit", "-a", "-m", commitMsg); err != nil {
-		return 0, err
-	}
-
-	// Upload the CL.
-	gitExec, err := git.Executable(ctx)
-	if err != nil {
-		return 0, skerr.Wrap(err)
-	}
-	sklog.Infof("Running command git %s", strings.Join(args, " "))
-	uploadCmd := &exec.Command{
-		Dir:        dr.parentDir,
-		Env:        dr.depotToolsEnv,
-		InheritEnv: true,
-		Name:       gitExec,
-		Args:       []string{"cl", "upload", "--bypass-hooks", "--squash", "-f", "-v", "-v"},
-		Timeout:    2 * time.Minute,
-	}
-	if dryRun {
-		uploadCmd.Args = append(uploadCmd.Args, "--cq-dry-run")
-	} else {
-		uploadCmd.Args = append(uploadCmd.Args, "--use-commit-queue")
-	}
-	if emails != nil && len(emails) > 0 {
-		emailStr := strings.Join(emails, ",")
-		uploadCmd.Args = append(uploadCmd.Args, "--send-mail", fmt.Sprintf("--tbrs=%s", emailStr))
-	}
-	uploadCmd.Args = append(uploadCmd.Args, "-m", commitMsg)
-
-	// Upload the CL.
-	sklog.Infof("Running command: git %s", strings.Join(uploadCmd.Args, " "))
-	if _, err := exec.RunCommand(ctx, uploadCmd); err != nil {
-		return 0, err
-	}
-
-	// Obtain the issue number.
-	sklog.Infof("Retrieving issue number of uploaded CL.")
-	tmp, err := ioutil.TempDir("", "")
-	if err != nil {
-		return 0, err
-	}
-	defer util.RemoveAll(tmp)
-	jsonFile := path.Join(tmp, "issue.json")
-	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:        dr.parentDir,
-		Env:        dr.depotToolsEnv,
-		InheritEnv: true,
-		Name:       gitExec,
-		Args:       []string{"cl", "issue", fmt.Sprintf("--json=%s", jsonFile)},
-	}); err != nil {
-		return 0, err
-	}
-	f, err := os.Open(jsonFile)
-	if err != nil {
-		return 0, err
-	}
-	var issue issueJson
-	if err := json.NewDecoder(f).Decode(&issue); err != nil {
-		return 0, err
-	}
-	if issue.Issue == 0 {
-		return 0, skerr.Fmt("Issue number returned by 'git cl issue' is zero!")
-	}
-	return issue.Issue, nil
+	return newParentChildRepoManager(ctx, parentRM, childRM)
 }

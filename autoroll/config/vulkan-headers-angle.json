@@ -28,6 +28,7 @@
   "depsRepoManager": {
     "childBranch": "master",
     "childPath": "third_party/vulkan-headers/src",
+    "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Headers.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Headers.git/+/%s",
     "childSubdir": "angle",
     "includeBugs": true,

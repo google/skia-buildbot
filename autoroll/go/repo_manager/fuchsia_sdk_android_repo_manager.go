@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
@@ -83,8 +84,10 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 				CommitMsgTmpl:   c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
 				MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
 			},
-			Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
-			RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+			GitCheckoutConfig: git_common.GitCheckoutConfig{
+				Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
+				RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+			},
 		},
 		Gerrit: c.Gerrit,
 	}
@@ -92,9 +95,9 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	update := parent.VersionFileGetLastRollRevFunc(FuchsiaSDKAndroidVersionFile)
+	update := parent.VersionFileGetLastRollRevFunc(FuchsiaSDKAndroidVersionFile, "FuchsiaSDK")
 	createRoll := fuchsiaSDKAndroidRepoManagerCreateRollFunc(genSdkBpRepo, c.GenSdkBpBranch, workdir)
-	parentRM, err := parent.NewGitCheckoutGerrit(ctx, parentCfg, reg, authClient, serverURL, workdir, update, createRoll)
+	parentRM, err := parent.NewGitCheckoutGerrit(ctx, parentCfg, reg, authClient, serverURL, workdir, nil, update, createRoll)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

@@ -113,7 +113,7 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *parentChildRepoMana
 	// Create a dummy commit-msg hook.
 	changeId := "123"
 	respBody := []byte(fmt.Sprintf(`#!/bin/sh
-git interpret-trailers --trailer "Change-Id: %s" > $1
+git interpret-trailers --trailer "Change-Id: %s" >> $1
 `, changeId))
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/tools/hooks/commit-msg", mockhttpclient.MockGetDialogue(respBody))
 

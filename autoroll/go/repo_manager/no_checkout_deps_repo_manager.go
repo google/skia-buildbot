@@ -79,7 +79,7 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 		return errors.New("ParentRepo is required.")
 	}
 	for _, s := range c.PreUploadSteps {
-		if _, err := GetPreUploadStep(s); err != nil {
+		if _, err := parent.GetPreUploadStep(s); err != nil {
 			return err
 		}
 	}
