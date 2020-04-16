@@ -1,6 +1,7 @@
 package powercycle
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,7 +12,7 @@ import (
 func TestParseJSON5_ConfigIsNonEmpty(t *testing.T) {
 	unittest.MediumTest(t)
 
-	agg, err := ParseJSON5("./example.json5", false)
+	agg, err := ParseJSON5(context.Background(), "./example.json5", false)
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []DeviceID{
 		"skia-e-linux-001",
