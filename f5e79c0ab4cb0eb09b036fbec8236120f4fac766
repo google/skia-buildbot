@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "32d090e3_169053d9",
+        "filename": "gold-client/cmd/goldctl/cmd_match.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T18:31:09Z",
+      "side": 1,
+      "message": "images on disk",
+      "range": {
+        "startLine": 27,
+        "startChar": 55,
+        "endLine": 27,
+        "endChar": 61
+      },
+      "revId": "f5e79c0ab4cb0eb09b036fbec8236120f4fac766",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce8fe3c7_ba7266ed",
+        "filename": "gold-client/cmd/goldctl/cmd_match.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T18:31:09Z",
+      "side": 1,
+      "message": "local",
+      "range": {
+        "startLine": 30,
+        "startChar": 32,
+        "endLine": 30,
+        "endChar": 37
+      },
+      "revId": "f5e79c0ab4cb0eb09b036fbec8236120f4fac766",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dceeaee4_74a997db",
+        "filename": "gold-client/cmd/goldctl/cmd_match.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T18:31:09Z",
+      "side": 1,
+      "message": "Println is fine if the input is static",
+      "range": {
+        "startLine": 65,
+        "startChar": 6,
+        "endLine": 65,
+        "endChar": 12
+      },
+      "revId": "f5e79c0ab4cb0eb09b036fbec8236120f4fac766",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
