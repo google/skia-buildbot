@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "9a4ac54e_2cb6d34e",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-16T18:23:11Z",
+      "side": 1,
+      "message": "I\u0027d forgotten about that, but I\u0027m not sure it\u0027ll be as clean, since it\u0027d require a type assertion:\n\nif githubConfig, ok :\u003d c.CodeReview.(*codereview.GithubConfig); ok {\n   ...\n} else if gerritConfig, ok :\u003d c.CodeReview.(*codereview.GerritConfig); ok {\n   ...\n}\n\nvs:\n\nif c.Github !\u003d nil {\n   ...\n} else if c.Gerrit !\u003d nil {\n   ...\n}\n\nWe\u0027ll have to see what this looks like once the dust settles a bit.",
+      "parentUuid": "fe94dbd7_d9acb15a",
+      "range": {
+        "startLine": 33,
+        "startChar": 24,
+        "endLine": 33,
+        "endChar": 36
+      },
+      "revId": "5c96472ab9a6a0c739e817c6b91a2a575542c86d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ff450633_6a73155f",
         "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
         "patchSetId": 6
