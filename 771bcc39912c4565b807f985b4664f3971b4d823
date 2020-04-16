@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "1d64970b_878fae41",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T19:48:59Z",
+      "side": 1,
+      "message": "Add a package level comment here. It would be nice if it gave a rough overview of what is supported (some android stuff) and what is not [yet] (ios, etc).",
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4b3925d6_f816db84",
         "filename": "machine/go/machine/processor/impl.go",
         "patchSetId": 1
@@ -46,6 +63,29 @@
       "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d376423d_f02057c9",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T19:48:59Z",
+      "side": 1,
+      "message": "unknown?",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 7
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
@@ -190,6 +230,115 @@
     },
     {
       "key": {
+        "uuid": "cbfefa02_241fbbee",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T19:48:59Z",
+      "side": 1,
+      "message": "As per our offline discussion, this is meant to be an incremental process of porting skia_mobile.py to do essentially nothing.\n\nOne key detail I would like an explicit TODO(kjlubick,jcgregorio) about is using ro.build.fingerprint to catch cases where the phone manufacturuers push and update but don\u0027t rev the android version:\n\nhttps://chrome-internal.googlesource.com/infradata/config/+/refs/heads/master/configs/chromium-swarm/scripts/skia_mobile.py#593",
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eb165850_a2848078",
+        "filename": "machine/go/machine/processor/impl_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T19:48:59Z",
+      "side": 1,
+      "message": "quarantine message, which tells swarming to quarantine this machine.",
+      "range": {
+        "startLine": 163,
+        "startChar": 0,
+        "endLine": 163,
+        "endChar": 23
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ebf4d47c_fba8f16c",
+        "filename": "machine/go/machine/processor/impl_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T19:48:59Z",
+      "side": 1,
+      "message": "Do you also want an assert for next.Mode? (It should be ModeAvailable, right?)",
+      "range": {
+        "startLine": 166,
+        "startChar": 1,
+        "endLine": 166,
+        "endChar": 43
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "824cf0bf_e2a8abba",
+        "filename": "machine/go/machine/processor/impl_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T19:48:59Z",
+      "side": 1,
+      "message": "Is this copypasta? I don\u0027t see the device added",
+      "range": {
+        "startLine": 173,
+        "startChar": 16,
+        "endLine": 173,
+        "endChar": 45
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "728e4c01_ab8b0de3",
+        "filename": "machine/go/machine/processor/impl_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T19:48:59Z",
+      "side": 1,
+      "message": "Also add an assert for next.Mode? ( should be ModeMaintenance, right?)",
+      "range": {
+        "startLine": 193,
+        "startChar": 0,
+        "endLine": 193,
+        "endChar": 1
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "86bce565_70c37c18",
         "filename": "machine/go/machine/source/pubsubsource/pubsubsource.go",
         "patchSetId": 1
@@ -284,6 +433,75 @@
     },
     {
       "key": {
+        "uuid": "7bf2c06f_f674b68a",
+        "filename": "machine/go/machine/store/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T19:48:59Z",
+      "side": 1,
+      "message": "Maybe expound on why they need to be mirrored?",
+      "range": {
+        "startLine": 61,
+        "startChar": 26,
+        "endLine": 61,
+        "endChar": 70
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9eab0817_650e11ca",
+        "filename": "machine/go/machine/store/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T19:48:59Z",
+      "side": 1,
+      "message": "For gold, I have found it cleaner to pass in the *firestore.Client to new. Then, for tests, I can use firestore.NewClientForTesting which would remove the need for setupForTest in your impl_test",
+      "range": {
+        "startLine": 67,
+        "startChar": 9,
+        "endLine": 67,
+        "endChar": 78
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e5f7660_bf085572",
+        "filename": "machine/go/machine/store/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T19:48:59Z",
+      "side": 1,
+      "message": "skerr.Wrap here and below?",
+      "range": {
+        "startLine": 97,
+        "startChar": 11,
+        "endLine": 97,
+        "endChar": 14
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "30215630_b2b97977",
         "filename": "machine/go/machine/store/impl.go",
         "patchSetId": 1
@@ -324,6 +542,75 @@
         "startChar": 0,
         "endLine": 142,
         "endChar": 4
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "102cb34b_2b67d398",
+        "filename": "machine/go/machine/store/impl_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T19:48:59Z",
+      "side": 1,
+      "message": "This is the default value, right? Do you want to assert anything about the default description?",
+      "range": {
+        "startLine": 73,
+        "startChar": 26,
+        "endLine": 73,
+        "endChar": 39
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0094357e_0f61a2b6",
+        "filename": "machine/go/machine/store/impl_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T19:48:59Z",
+      "side": 1,
+      "message": "You don\u0027t read this back in this test. Is that just because you are making sure it doesn\u0027t return error? If so, that would be a good thing to clarify with a comment (or maybe with a modification to the test name)",
+      "range": {
+        "startLine": 75,
+        "startChar": 21,
+        "endLine": 75,
+        "endChar": 36
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "549cd779_fb452398",
+        "filename": "machine/go/machine/store/impl_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T19:48:59Z",
+      "side": 1,
+      "message": "Similar question as above - if you don\u0027t assert this value was set later, do you need to write to it?",
+      "range": {
+        "startLine": 108,
+        "startChar": 2,
+        "endLine": 108,
+        "endChar": 62
       },
       "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
