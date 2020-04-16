@@ -71,6 +71,30 @@
     },
     {
       "key": {
+        "uuid": "acf0e814_fe95eb0f",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T15:20:23Z",
+      "side": 1,
+      "message": "dimension values should never be empty or nil when coming from swarming, IIRC",
+      "parentUuid": "856165c0_f05b3032",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 67,
+        "endChar": 25
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e912f055_879f4be0",
         "filename": "machine/go/machine/machine.go",
         "patchSetId": 3
@@ -117,6 +141,29 @@
     },
     {
       "key": {
+        "uuid": "12baa035_3b5cb127",
+        "filename": "machine/go/machine/store/store.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T15:20:23Z",
+      "side": 1,
+      "message": "Can you expand on why just passing in machine.Description may be insufficient? It wasn\u0027t obvious to me at first: it\u0027s because we might want to do logic on how it was versus how it is now to determine things like quarantined, right?",
+      "range": {
+        "startLine": 21,
+        "startChar": 47,
+        "endLine": 21,
+        "endChar": 68
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "136e8073_1149a55f",
         "filename": "machine/go/machineserver/config/config.go",
         "patchSetId": 3
@@ -133,6 +180,29 @@
         "startChar": 0,
         "endLine": 5,
         "endChar": 20
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "068f8e85_c6936064",
+        "filename": "machine/go/machineserver/config/config.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-16T15:20:23Z",
+      "side": 1,
+      "message": "This is hard to know w/o seeing the implementation, but is this just hostnames? Could that be spoofed? Would service account ids be better?",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 13
       },
       "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
