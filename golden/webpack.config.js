@@ -10,7 +10,6 @@ module.exports = (env, argv) => {
   config.resolve.modules = [resolve(__dirname, 'node_modules'), 'node_modules'];
 
   if (argv.mode !== 'production') {
-    console.log('serving demo assets');
     config.plugins.push(
       new CopyWebpackPlugin([
         {
