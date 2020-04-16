@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"flag"
 	"os"
@@ -75,7 +76,7 @@ func main() {
 	}
 
 	for _, deviceID := range args {
-		if err := devGroup.PowerCycle(powercycle.DeviceID(deviceID), time.Duration(*delay)*time.Second); err != nil {
+		if err := devGroup.PowerCycle(context.Background(), powercycle.DeviceID(deviceID), time.Duration(*delay)*time.Second); err != nil {
 			sklog.Fatalf("Unable to power cycle device %s. Got error: %s", deviceID, err)
 		}
 	}

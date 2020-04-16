@@ -2,6 +2,7 @@ package powercycle
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"time"
 
@@ -66,7 +67,7 @@ func (e *edgeSwitchClient) DeviceIDs() []DeviceID {
 }
 
 // PowerCycle implements the Client interface.
-func (e *edgeSwitchClient) PowerCycle(id DeviceID, delayOverride time.Duration) error {
+func (e *edgeSwitchClient) PowerCycle(ctx context.Context, id DeviceID, delayOverride time.Duration) error {
 	delay := powerOffDelayEdgeSwitch
 	if delayOverride > 0 {
 		delay = delayOverride
