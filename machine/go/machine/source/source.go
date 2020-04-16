@@ -13,5 +13,5 @@ import (
 // actually changed.
 type Source interface {
 	// Start the process of receiving events.
-	Start(ctx context.Context) (chan<- machine.Event, error)
+	Start(ctx context.Context) (<-chan machine.Event, error)
 }

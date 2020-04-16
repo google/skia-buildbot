@@ -1,3 +1,4 @@
+// Package store is for storing and retrieving machine.Descriptions.
 package store
 
 import (
@@ -6,14 +7,22 @@ import (
 	"go.skia.org/infra/machine/go/machine"
 )
 
-// Store and retrieve machine.Description.
+// TxCallback is the callback that Store.Update() takes to update a single
+// machine.Description. We use a callback because we want to compare the old
+// state to decide the new state, along with other bits of info we can include
+// in a closure, such as an incoming event. See also processor.Process.
+type TxCallback func(machine.Description) machine.Description
+
+// Store and retrieve machine.Descriptions.
 type Store interface {
-	// Get the current state.
-	Get(ctx context.Context, machineID string) (machine.Description, error)
+	// Update the machine with the given machineID using the given callback
+	// function.
+	//
+	// txCallback will be called inside a firestore transaction and may be
+	// called more than once.
+	Update(ctx context.Context, machineID string, txCallback TxCallback) error
 
-	// Put the current state.
-	Put(ctx context.Context, machineID string, state machine.Description)
-
-	// TODO(jcgregorio) This will obviously have to expand to support the needs
-	// of the web UI.
+	// Watch returns a channel that will produce a machine.Description every time
+	// the description for machineID changes.
+	Watch(ctx context.Context, machineID string) <-chan machine.Description
 }

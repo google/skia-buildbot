@@ -7,6 +7,15 @@ import "time"
 // https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/doc/Magic-Values.md#bot-dimensions
 type SwarmingDimensions map[string][]string
 
+// Well known swarming dimensions.
+//
+// TODO(jcgregorio) Change from *Dim to Dim*.
+const (
+	OSDim          = "os"
+	QuarantinedDim = "quarantined"
+	DeviceTypeDim  = "device_type"
+)
+
 // Mode is the mode we want the machine to be in. Note that this is the desired
 // state, it might not be the actual state, for example if we put a machine in
 // maintenance mode it will only get there after it finishes running the current
@@ -42,6 +51,27 @@ type Description struct {
 	LastUpdated time.Time
 }
 
+// NewDescription returns a new Description instance.
+func NewDescription() Description {
+	return Description{
+		Mode:        ModeAvailable,
+		Dimensions:  SwarmingDimensions{},
+		LastUpdated: time.Now(),
+	}
+}
+
+// Copy returns a deep copy of Description.
+func (d Description) Copy() Description {
+	ret := d
+	ret.Dimensions = SwarmingDimensions{}
+	for k, values := range d.Dimensions {
+		newValues := make([]string, len(values))
+		copy(newValues, values)
+		ret.Dimensions[k] = newValues
+	}
+	return ret
+}
+
 // EventType is the type of update we got from the machine.
 type EventType string
 
@@ -57,9 +87,19 @@ type Android struct {
 	DumpsysThermalService string `json:"dumpsys_thermal_service"`
 }
 
+// Host is information about the host machine.
+type Host struct {
+	// Name is the machine id, from SWARMING_BOT_ID environment variable or hostname().
+	Name string `json:"name"`
+
+	// Rack is the id of the rack, from the MY_RACK_NAME environment variable.
+	Rack string `json:"rack"`
+}
+
 // Event is the information a machine should send via Source when
 // its local state has changed.
 type Event struct {
 	EventType EventType `json:"type"`
 	Android   Android   `json:"android"`
+	Host      Host      `json:"host"`
 }
