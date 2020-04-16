@@ -32,7 +32,7 @@
     "pulito": "~4.4.0",
     "sinon": "~7.4.2",
     "webpack": "~4.40.2",
-    "webpack-cli": "~3.3.9",
+    "webpack-cli": "^3.3.11",
     "webpack-dev-server": "~3.8.1"
   }
 }
