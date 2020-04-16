@@ -469,6 +469,9 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 	if err != nil {
 		return false, skerr.Wrapf(err, "retrieving most recent positive image")
 	}
+	if mostRecentPositiveDigest == types.MissingDigest {
+		return false, skerr.Fmt("no recent positive digests for trace with ID %q", traceId)
+	}
 
 	// Download from GCS the image corresponding to the most recent positive digest.
 	mostRecentPositiveImage, _, err := c.getDigestFromCacheOrGCS(context.TODO(), mostRecentPositiveDigest)
