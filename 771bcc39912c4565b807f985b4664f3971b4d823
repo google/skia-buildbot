@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0e14fd77_2e9f3d71",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T19:29:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4b3925d6_f816db84",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 7
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "30fe1cfb_2275f01a",
         "filename": "machine/go/machine/processor/impl.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6542a6e_7ea22dff",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T19:29:54Z",
+      "side": 1,
+      "message": "I\u0027m just making sure we know if we add an EventType and fail to add a handler to Process().",
+      "parentUuid": "30fe1cfb_2275f01a",
+      "range": {
+        "startLine": 45,
+        "startChar": 2,
+        "endLine": 46,
+        "endChar": 17
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "8484bb50_5936c12d",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T19:29:54Z",
+      "side": 1,
+      "message": "Maintenance is just a \u0027state\u0027 that you can set that causes the quarantined \u0027dimension\u0027 to be set:\n\nhttps://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/doc/Magic-Values.md#bot-states",
+      "parentUuid": "b8499b4c_b7a48cd6",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 88
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "32027bdc_5691fa20",
         "filename": "machine/go/machine/processor/impl.go",
         "patchSetId": 1
@@ -91,6 +163,30 @@
       "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57f0521d_b06dd733",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T19:29:54Z",
+      "side": 1,
+      "message": "D\u0027oh, forgot to upload a patchset, this has already been switched to .Copy().",
+      "parentUuid": "32027bdc_5691fa20",
+      "range": {
+        "startLine": 64,
+        "startChar": 8,
+        "endLine": 64,
+        "endChar": 40
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "c4c793f6_efc580b7",
+        "filename": "machine/go/machine/source/pubsubsource/pubsubsource.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T19:29:54Z",
+      "side": 1,
+      "message": "Yeah, in a later CL I update the bot_config service account to add pubsub.admin.",
+      "parentUuid": "86bce565_70c37c18",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 66
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "500836d8_8a1c4f6e",
         "filename": "machine/go/machine/source/pubsubsource/pubsubsource_test.go",
         "patchSetId": 1
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "36ec9070_1491f605",
+        "filename": "machine/go/machine/source/pubsubsource/pubsubsource_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T19:29:54Z",
+      "side": 1,
+      "message": "My experience is that the pubsub emulator is a giant ball of flakiness.",
+      "parentUuid": "500836d8_8a1c4f6e",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 23
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "30215630_b2b97977",
         "filename": "machine/go/machine/store/impl.go",
         "patchSetId": 1
@@ -151,6 +295,30 @@
       "writtenOn": "2020-04-16T19:05:07Z",
       "side": 1,
       "message": "This is eerily similar to https://skia.googlesource.com/buildbot/+/master/go/firestore/firestore.go#712 Any way we can refactor the two?  Maybe firestore.DocumentSnapshotChannel?",
+      "range": {
+        "startLine": 114,
+        "startChar": 0,
+        "endLine": 142,
+        "endChar": 4
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8c14088_1d8bd298",
+        "filename": "machine/go/machine/store/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T19:29:54Z",
+      "side": 1,
+      "message": "Yup, I wanted QuerySnapshotChannel, but with type safety of the returned channel. Not sure how you get that w/o either adding templates to Go, unless we move to code generation.",
+      "parentUuid": "30215630_b2b97977",
       "range": {
         "startLine": 114,
         "startChar": 0,
