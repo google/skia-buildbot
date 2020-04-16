@@ -458,3 +458,25 @@ func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx conte
 	}
 	return nil
 }
+
+// NoCheckoutRepoManagerConfig provides configuration for RepoManagers which
+// don't use a local checkout.
+type NoCheckoutRepoManagerConfig struct {
+	CommonRepoManagerConfig
+}
+
+// See documentation for RepoManagerConfig interface.
+func (c *NoCheckoutRepoManagerConfig) NoCheckout() bool {
+	return true
+}
+
+// See documentation for util.Validator interface.
+func (c *NoCheckoutRepoManagerConfig) Validate() error {
+	if err := c.CommonRepoManagerConfig.Validate(); err != nil {
+		return err
+	}
+	if len(c.PreUploadSteps) > 0 {
+		return errors.New("Checkout-less rollers don't support pre-upload steps")
+	}
+	return nil
+}
