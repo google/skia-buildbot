@@ -1294,6 +1294,107 @@ func TestDiffCaching(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestMakeResultKeyAndTraceId_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const instanceId = "my_instance"
+	const testName = types.TestName("my_test")
+
+	tests := []struct {
+		name              string
+		sharedConfig      *jsonio.GoldResults
+		additionalKeys    map[string]string
+		expectedResultKey map[string]string
+		expectedTraceId   tiling.TraceID
+	}{
+		{
+			name: "no additional keys, nil shared config, corpus set to instance ID",
+			expectedResultKey: map[string]string{
+				types.PrimaryKeyField: "my_test",
+				types.CorpusField:     instanceId,
+			},
+			expectedTraceId: tiling.TraceID(",name=my_test,source_type=my_instance,"),
+		},
+		{
+			name:         "no additional keys, empty shared config, corpus set to instance ID",
+			sharedConfig: &jsonio.GoldResults{},
+			expectedResultKey: map[string]string{
+				types.PrimaryKeyField: "my_test",
+				types.CorpusField:     instanceId,
+			},
+			expectedTraceId: tiling.TraceID(",name=my_test,source_type=my_instance,"),
+		},
+		{
+			name: "no additional keys, shared config with corpus, uses corpus from shared config",
+			sharedConfig: &jsonio.GoldResults{
+				Key: map[string]string{types.CorpusField: "my_corpus"},
+			},
+			expectedResultKey: map[string]string{
+				types.PrimaryKeyField: "my_test",
+			},
+			expectedTraceId: tiling.TraceID(",name=my_test,source_type=my_corpus,"),
+		},
+		{
+			name:           "additional keys with corpus, empty shared config, uses corpus from additional keys",
+			sharedConfig:   &jsonio.GoldResults{},
+			additionalKeys: map[string]string{types.CorpusField: "my_corpus"},
+			expectedResultKey: map[string]string{
+				types.PrimaryKeyField: "my_test",
+				types.CorpusField:     "my_corpus",
+			},
+			expectedTraceId: tiling.TraceID(",name=my_test,source_type=my_corpus,"),
+		},
+		{
+			name: "additional keys with corpus, shared config with corpus, uses corpus from additional keys",
+			sharedConfig: &jsonio.GoldResults{
+				Key: map[string]string{types.CorpusField: "corpus_from_shared_config"},
+			},
+			additionalKeys: map[string]string{types.CorpusField: "my_corpus"},
+			expectedResultKey: map[string]string{
+				types.PrimaryKeyField: "my_test",
+				types.CorpusField:     "my_corpus",
+			},
+			expectedTraceId: tiling.TraceID(",name=my_test,source_type=my_corpus,"),
+		},
+		{
+			name: "overlapping shared and additional keys, additional keys take precedence",
+			sharedConfig: &jsonio.GoldResults{
+				Key: map[string]string{
+					types.CorpusField: "corpus_from_shared_config",
+					"overlapping_key": "alpha",
+					"shared_key":      "foo",
+				},
+			},
+			additionalKeys: map[string]string{
+				types.CorpusField: "my_corpus",
+				"overlapping_key": "beta",
+				"additional_key":  "bar",
+			},
+			expectedResultKey: map[string]string{
+				types.PrimaryKeyField: "my_test",
+				types.CorpusField:     "my_corpus",
+				"overlapping_key":     "beta",
+				"additional_key":      "bar",
+			},
+			expectedTraceId: tiling.TraceID(",additional_key=bar,name=my_test,overlapping_key=beta,shared_key=foo,source_type=my_corpus,"),
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			goldClient := CloudClient{
+				resultState: newResultState(tc.sharedConfig, &GoldClientConfig{
+					InstanceID: instanceId,
+				}),
+			}
+
+			resultKey, traceId := goldClient.makeResultKeyAndTraceId(testName, tc.additionalKeys)
+			assert.Equal(t, tc.expectedResultKey, resultKey)
+			assert.Equal(t, tc.expectedTraceId, traceId)
+		})
+	}
+}
+
 func TestCloudClient_MatchImageAgainstBaseline_NoAlgorithmSpecified_DefaultsToExactMatching_Success(t *testing.T) {
 	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
