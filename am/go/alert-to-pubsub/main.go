@@ -36,6 +36,7 @@ var (
 var (
 	failureCounter = metrics2.GetCounter("pubsub_send_failure", nil)
 	successCounter = metrics2.GetCounter("pubsub_send_success", nil)
+	liveness       = metrics2.NewLiveness("alert_to_pubsub_incoming_alerts")
 )
 
 var (
@@ -157,6 +158,7 @@ func NewServer(topic *pubsub.Topic) *Server {
 }
 
 func (s *Server) alertHandler(w http.ResponseWriter, r *http.Request) {
+	liveness.Reset()
 	var incomingAlerts []Alert
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
