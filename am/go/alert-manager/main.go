@@ -153,7 +153,7 @@ func New() (baseapp.App, error) {
 	}
 	reminder.StartReminderTicker(srv.incidentStore, srv.silenceStore, emailAuth)
 
-	locations := []string{"skia-public", "google.com:skia-corp"}
+	locations := []string{"skia-public"}
 	livenesses := map[string]metrics2.Liveness{}
 	for _, location := range locations {
 		livenesses[location] = metrics2.NewLiveness("alive", map[string]string{"location": location})
