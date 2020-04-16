@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d367dbf2_9d1309fc",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T15:57:03Z",
+      "side": 1,
+      "message": "Those vars are threaded through the impls I already have done. I\u0027ve added a TODO to do the rename after everything lands.",
+      "parentUuid": "a007114b_8c00bd77",
+      "range": {
+        "startLine": 12,
+        "startChar": 1,
+        "endLine": 12,
+        "endChar": 6
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "09a675ac_23444749",
         "filename": "machine/go/machine/machine.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce55c5c4_fd85bf1d",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T15:57:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "09a675ac_23444749",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 49
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -95,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "9f985b14_4b7b555e",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T15:57:03Z",
+      "side": 1,
+      "message": "NewDescription ensures that Dimensions is not nil.",
+      "parentUuid": "acf0e814_fe95eb0f",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 67,
+        "endChar": 25
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e912f055_879f4be0",
         "filename": "machine/go/machine/machine.go",
         "patchSetId": 3
@@ -115,6 +187,30 @@
       "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "671b5e29_6c161106",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T15:57:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e912f055_879f4be0",
+      "range": {
+        "startLine": 90,
+        "startChar": 28,
+        "endLine": 90,
+        "endChar": 29
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -141,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "5629c0c0_a2b643a7",
+        "filename": "machine/go/machine/machine_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T15:57:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "18277d5b_f05e0b00",
+      "range": {
+        "startLine": 13,
+        "startChar": 5,
+        "endLine": 13,
+        "endChar": 23
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "12baa035_3b5cb127",
         "filename": "machine/go/machine/store/store.go",
         "patchSetId": 3
@@ -161,6 +281,30 @@
       "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30cc67cc_a50c7b45",
+        "filename": "machine/go/machine/store/store.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T15:57:03Z",
+      "side": 1,
+      "message": "Add more comments to TxCallback.",
+      "parentUuid": "12baa035_3b5cb127",
+      "range": {
+        "startLine": 21,
+        "startChar": 47,
+        "endLine": 21,
+        "endChar": 68
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -187,6 +331,30 @@
     },
     {
       "key": {
+        "uuid": "e4c8797a_bfeb4cd7",
+        "filename": "machine/go/machineserver/config/config.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T15:57:03Z",
+      "side": 1,
+      "message": "I would prefer not to, I just did this same sort of change for Perf and having the entire config in a single place is better.",
+      "parentUuid": "136e8073_1149a55f",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 20
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "068f8e85_c6936064",
         "filename": "machine/go/machineserver/config/config.go",
         "patchSetId": 3
@@ -207,6 +375,30 @@
       "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6850679_706ab006",
+        "filename": "machine/go/machineserver/config/config.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-16T15:57:03Z",
+      "side": 1,
+      "message": "Clarified that this was solely for CORS.",
+      "parentUuid": "068f8e85_c6936064",
+      "range": {
+        "startLine": 28,
+        "startChar": 1,
+        "endLine": 28,
+        "endChar": 13
+      },
+      "revId": "dc0567d051b5895f1b4f14bcfd86d1caf6afe57e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
