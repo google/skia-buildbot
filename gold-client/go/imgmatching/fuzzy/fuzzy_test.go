@@ -10,10 +10,33 @@ import (
 )
 
 type testCase struct {
-	name            string
-	image1          image.Image
-	image2          image.Image
-	expectedToMatch bool
+	name                       string
+	image1                     image.Image
+	image2                     image.Image
+	expectedToMatch            bool
+	expectedNumDifferentPixels int
+	expectedMaxPixelDelta      int
+}
+
+func runTestCases(t *testing.T, maxDifferentPixels, pixelDeltaThreshold int, tests []testCase) {
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			matcher := Matcher{
+				MaxDifferentPixels:  maxDifferentPixels,
+				PixelDeltaThreshold: pixelDeltaThreshold,
+			}
+
+			// image1 vs. image2.
+			assert.Equal(t, tc.expectedToMatch, matcher.Match(tc.image1, tc.image2), "image1 vs image2: match")
+			assert.Equal(t, tc.expectedNumDifferentPixels, matcher.NumDifferentPixels(), "image1 vs image2: number of different pixels")
+			assert.Equal(t, tc.expectedMaxPixelDelta, matcher.MaxPixelDelta(), "image1 vs image2: max pixel delta")
+
+			// image2 vs. image1.
+			assert.Equal(t, tc.expectedToMatch, matcher.Match(tc.image2, tc.image1), "image2 vs image1")
+			assert.Equal(t, tc.expectedNumDifferentPixels, matcher.NumDifferentPixels(), "image2 vs image1: number of different pixels")
+			assert.Equal(t, tc.expectedMaxPixelDelta, matcher.MaxPixelDelta(), "image2 vs image1: max pixel delta")
+		})
+	}
 }
 
 func TestMatcher_ZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.T) {
@@ -56,17 +79,13 @@ func TestMatcher_ZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.T) {
 			2 2
 			0x00000001 0x00000000
 			0x00000000 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      1,
 		},
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			matcher := Matcher{}
-			assert.Equal(t, tc.expectedToMatch, matcher.Match(tc.image1, tc.image2), "image1 vs image2")
-			assert.Equal(t, tc.expectedToMatch, matcher.Match(tc.image2, tc.image1), "image2 vs image1")
-		})
-	}
+	runTestCases(t, 0 /* =maxDifferentPixels */, 0 /* =pixelDeltaThreshold */, tests)
 }
 
 func TestMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T) {
@@ -109,7 +128,9 @@ func TestMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T)
 			2 2
 			0x08070000 0x00000000
 			0x00000000 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      15,
 		},
 
 		{
@@ -122,7 +143,9 @@ func TestMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T)
 			2 2
 			0x04040403 0x00000000
 			0x00000000 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      15,
 		},
 
 		{
@@ -135,7 +158,9 @@ func TestMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T)
 			2 2
 			0x08080000 0x00000000
 			0x00000000 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      16,
 		},
 
 		{
@@ -148,7 +173,9 @@ func TestMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T)
 			2 2
 			0x04040404 0x00000000
 			0x00000000 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      16,
 		},
 
 		{
@@ -161,7 +188,9 @@ func TestMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T)
 			2 2
 			0x08090000 0x00000000
 			0x00000000 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      17,
 		},
 
 		{
@@ -174,19 +203,13 @@ func TestMatcher_ZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T)
 			2 2
 			0x04040405 0x00000000
 			0x00000000 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      17,
 		},
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			matcher := Matcher{
-				PixelDeltaThreshold: 16,
-			}
-			assert.Equal(t, tc.expectedToMatch, matcher.Match(tc.image1, tc.image2), "image1 vs image2")
-			assert.Equal(t, tc.expectedToMatch, matcher.Match(tc.image2, tc.image1), "image2 vs image1")
-		})
-	}
+	runTestCases(t, 0 /* =maxDifferentPixels */, 16 /* =pixelDeltaThreshold */, tests)
 }
 
 func TestMatcher_NonZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.T) {
@@ -229,7 +252,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.T)
 			2 2
 			0xFFFFFFFF 0x00000000
 			0x00000000 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      1020,
 		},
 
 		{
@@ -242,7 +267,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.T)
 			2 2
 			0xFFFFFFFF 0xFFFFFFFF
 			0x00000000 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 2,
+			expectedMaxPixelDelta:      1020,
 		},
 
 		{
@@ -255,19 +282,13 @@ func TestMatcher_NonZeroMaxDifferentPixels_ZeroPixelDeltaThreshold(t *testing.T)
 			2 2
 			0xFFFFFFFF 0xFFFFFFFF
 			0xFFFFFFFF 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 3,
+			expectedMaxPixelDelta:      1020,
 		},
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			matcher := Matcher{
-				MaxDifferentPixels: 2,
-			}
-			assert.Equal(t, tc.expectedToMatch, matcher.Match(tc.image1, tc.image2), "image1 vs image2")
-			assert.Equal(t, tc.expectedToMatch, matcher.Match(tc.image2, tc.image1), "image2 vs image1")
-		})
-	}
+	runTestCases(t, 2 /* =maxDifferentPixels */, 0 /* =pixelDeltaThreshold */, tests)
 }
 
 func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing.T) {
@@ -314,7 +335,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x08070000 0x00000000
 			0x00000000 0x00000000`),
-			expectedToMatch: true,
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      15,
 		},
 
 		{
@@ -327,7 +350,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x04040403 0x00000000
 			0x00000000 0x00000000`),
-			expectedToMatch: true,
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      15,
 		},
 
 		{
@@ -340,7 +365,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x08080000 0x00000000
 			0x00000000 0x00000000`),
-			expectedToMatch: true,
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      16,
 		},
 
 		{
@@ -353,7 +380,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x04040404 0x00000000
 			0x00000000 0x00000000`),
-			expectedToMatch: true,
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      16,
 		},
 
 		{
@@ -366,7 +395,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x08090000 0x00000000
 			0x00000000 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      17,
 		},
 
 		{
@@ -379,7 +410,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x04040405 0x00000000
 			0x00000000 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 1,
+			expectedMaxPixelDelta:      17,
 		},
 
 		/////////////////////////////////////////////////////
@@ -396,7 +429,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x08070000 0x00000001
 			0x00000000 0x00000000`),
-			expectedToMatch: true,
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 2,
+			expectedMaxPixelDelta:      15,
 		},
 
 		{
@@ -409,7 +444,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x04040403 0x00000001
 			0x00000000 0x00000000`),
-			expectedToMatch: true,
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 2,
+			expectedMaxPixelDelta:      15,
 		},
 
 		{
@@ -422,7 +459,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x08080000 0x00000001
 			0x00000000 0x00000000`),
-			expectedToMatch: true,
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 2,
+			expectedMaxPixelDelta:      16,
 		},
 
 		{
@@ -435,7 +474,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x04040404 0x00000001
 			0x00000000 0x00000000`),
-			expectedToMatch: true,
+			expectedToMatch:            true,
+			expectedNumDifferentPixels: 2,
+			expectedMaxPixelDelta:      16,
 		},
 
 		{
@@ -448,7 +489,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x08090000 0x00000001
 			0x00000000 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 2,
+			expectedMaxPixelDelta:      17,
 		},
 
 		{
@@ -461,7 +504,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x04040405 0x00000001
 			0x00000000 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 2,
+			expectedMaxPixelDelta:      17,
 		},
 
 		/////////////////////////////////////////////////////////
@@ -478,7 +523,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x08070000 0x00000001
 			0x00000001 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 3,
+			expectedMaxPixelDelta:      15,
 		},
 
 		{
@@ -491,7 +538,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x04040403 0x00000001
 			0x00000001 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 3,
+			expectedMaxPixelDelta:      15,
 		},
 
 		{
@@ -504,7 +553,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x08080000 0x00000001
 			0x00000001 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 3,
+			expectedMaxPixelDelta:      16,
 		},
 
 		{
@@ -517,7 +568,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x04040404 0x00000001
 			0x00000001 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 3,
+			expectedMaxPixelDelta:      16,
 		},
 
 		{
@@ -530,7 +583,9 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x08090000 0x00000001
 			0x00000001 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 3,
+			expectedMaxPixelDelta:      17,
 		},
 
 		{
@@ -543,18 +598,11 @@ func TestMatcher_NonZeroMaxDifferentPixels_NonZeroPixelDeltaThreshold(t *testing
 			2 2
 			0x04040405 0x00000001
 			0x00000001 0x00000000`),
-			expectedToMatch: false,
+			expectedToMatch:            false,
+			expectedNumDifferentPixels: 3,
+			expectedMaxPixelDelta:      17,
 		},
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			matcher := Matcher{
-				MaxDifferentPixels:  2,
-				PixelDeltaThreshold: 16,
-			}
-			assert.Equal(t, tc.expectedToMatch, matcher.Match(tc.image1, tc.image2), "image1 vs image2")
-			assert.Equal(t, tc.expectedToMatch, matcher.Match(tc.image2, tc.image1), "image2 vs image1")
-		})
-	}
+	runTestCases(t, 2 /* =maxDifferentPixels */, 16 /* =pixelDeltaThreshold */, tests)
 }

@@ -20,6 +20,10 @@ import (
 type Matcher struct {
 	MaxDifferentPixels  int
 	PixelDeltaThreshold int
+
+	// Debug information about the last pair of matched images.
+	actualNumDifferentPixels int
+	actualMaxPixelDelta      int
 }
 
 // Match implements the imagmatching.Matcher interface.
@@ -36,8 +40,9 @@ func (m *Matcher) Match(expected, actual image.Image) bool {
 	draw.Draw(expectedNRGBA, bounds, expected, bounds.Min, draw.Src)
 	draw.Draw(actualNRGBA, bounds, actual, bounds.Min, draw.Src)
 
-	// We'll track the number of different pixels between the two images.
-	numDiffPixels := 0
+	// Reset counters.
+	m.actualNumDifferentPixels = 0
+	m.actualMaxPixelDelta = 0
 
 	// Iterate over all pixels.
 	for x := bounds.Min.X; x <= bounds.Max.X; x++ {
@@ -45,24 +50,37 @@ func (m *Matcher) Match(expected, actual image.Image) bool {
 			p1 := expectedNRGBA.NRGBAAt(x, y)
 			p2 := actualNRGBA.NRGBAAt(x, y)
 
-			// Total number of different pixels must be below the given threshold.
+			// Track number of different pixels.
 			if p1 != p2 {
-				numDiffPixels++
-				if numDiffPixels > m.MaxDifferentPixels {
-					return false
-				}
+				m.actualNumDifferentPixels++
 			}
 
-			// Pixel-wise differences must be below the given threshold.
-			delta := absDiff(p1.R, p2.R) + absDiff(p1.G, p2.G) + absDiff(p1.B, p2.B) + absDiff(p1.A, p2.A)
-			if delta > m.PixelDeltaThreshold {
-				return false
+			// Track maximum pixel-wise difference.
+			pixelDelta := absDiff(p1.R, p2.R) + absDiff(p1.G, p2.G) + absDiff(p1.B, p2.B) + absDiff(p1.A, p2.A)
+			if pixelDelta > m.actualMaxPixelDelta {
+				m.actualMaxPixelDelta = pixelDelta
 			}
 		}
 	}
 
+	// Total number of different pixels must be below the given threshold.
+	if m.actualNumDifferentPixels > m.MaxDifferentPixels {
+		return false
+	}
+
+	// Pixel-wise differences must be below the given threshold.
+	if m.actualMaxPixelDelta > m.PixelDeltaThreshold {
+		return false
+	}
+
 	return true
 }
+
+// NumDifferentPixels returns the number of different pixels between the last two matched images.
+func (m *Matcher) NumDifferentPixels() int { return m.actualNumDifferentPixels }
+
+// MaxPixelDelta returns the maximum per-channel delta sum between the last two matched images.
+func (m *Matcher) MaxPixelDelta() int { return m.actualMaxPixelDelta }
 
 // absDiff takes two uint8 values m and n, computes |m - n|, and converts the result into an int
 // suitable for addition without the risk of overflowing.
