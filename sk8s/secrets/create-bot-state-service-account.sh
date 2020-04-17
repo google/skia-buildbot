@@ -10,4 +10,6 @@ set -e -x
   skolo-rack4-shelf1 \
   skolo-bot-service-account \
   "cluster service account for bots running in the skolo" \
-  roles/logging.logWriter
+  roles/logging.logWriter \
+  roles/pubsub.admin \
+  roles/datastore.user

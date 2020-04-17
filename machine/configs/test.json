@@ -1,0 +1,14 @@
+{
+  "source": {
+    "project": "skia-public",
+    "topic": "machine-events-test"
+  },
+  "store": {
+    "project": "skia-firestore",
+    "instance": "test"
+  },
+  "web": {
+    "allowed_users": ["google.com"],
+    "allowed_hosts": ["machines-test.skia.org"]
+  }
+}
