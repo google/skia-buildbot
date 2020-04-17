@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"os/exec"
 	"strings"
 
+	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -58,7 +58,7 @@ func PasswordSSHCommandRunner(password string, sshArgs ...string) *stdinRunner {
 func (s *stdinRunner) ExecCmds(ctx context.Context, cmds ...string) (string, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, s.executable, s.args...)
+	cmd := executil.CommandContext(ctx, s.executable, s.args...)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return "", skerr.Wrapf(err, "getting stdin pipe")

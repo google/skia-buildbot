@@ -95,7 +95,7 @@ func (m *mPowerClient) DeviceIDs() []DeviceID {
 func (m *mPowerClient) PowerCycle(ctx context.Context, id DeviceID, delayOverride time.Duration) error {
 	delay := powerOffDelayMPower
 	if delayOverride > 0 {
-		delayOverride = delay
+		delay = delayOverride
 	}
 
 	if !DeviceIn(id, m.deviceIDs) {
