@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9f2dacec_90b1811f",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-17T17:20:54Z",
+      "side": 1,
+      "message": "I don\u0027t see any conflicting names for this or machineStore. I don\u0027t care one way or the other about having aliases, but figured I\u0027d point it out in case it was leftover from somewhere.",
+      "range": {
+        "startLine": 19,
+        "startChar": 1,
+        "endLine": 19,
+        "endChar": 17
+      },
+      "revId": "7e38dc485acdb8f84628e5f8899d10bf663fc866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af7fbae0_8790561b",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-17T17:20:54Z",
+      "side": 1,
+      "message": "nit: configPath",
+      "range": {
+        "startLine": 27,
+        "startChar": 1,
+        "endLine": 27,
+        "endChar": 11
+      },
+      "revId": "7e38dc485acdb8f84628e5f8899d10bf663fc866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7807711d_80c4c88e",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-17T17:20:54Z",
+      "side": 1,
+      "message": "nit: doesn\u0027t use srv, could it just be a function not a method?",
+      "range": {
+        "startLine": 80,
+        "startChar": 6,
+        "endLine": 80,
+        "endChar": 9
+      },
+      "revId": "7e38dc485acdb8f84628e5f8899d10bf663fc866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "192b69f8_08283ad2",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-17T17:20:54Z",
+      "side": 1,
+      "message": "What\u0027s the long-term idea for this endpoint?",
+      "range": {
+        "startLine": 88,
+        "startChar": 19,
+        "endLine": 88,
+        "endChar": 30
+      },
+      "revId": "7e38dc485acdb8f84628e5f8899d10bf663fc866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b012dbd_5fcb412c",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-17T17:20:54Z",
+      "side": 1,
+      "message": "ubernit: \"one or two letter abbreviation\" - just \"s\"?\n\nhttps://github.com/golang/go/wiki/CodeReviewComments#receiver-names",
+      "range": {
+        "startLine": 97,
+        "startChar": 6,
+        "endLine": 97,
+        "endChar": 9
+      },
+      "revId": "7e38dc485acdb8f84628e5f8899d10bf663fc866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e08c0fe3_9853be02",
+        "filename": "machine/secrets/create-machine-state-server-service-account.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-17T17:20:54Z",
+      "side": 1,
+      "message": "Is this supposed to be here twice?",
+      "range": {
+        "startLine": 6,
+        "startChar": 2,
+        "endLine": 6,
+        "endChar": 13
+      },
+      "revId": "7e38dc485acdb8f84628e5f8899d10bf663fc866",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
