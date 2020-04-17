@@ -1185,6 +1185,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "machineserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "machineserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "machineserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "named-fiddles",
           "endpoints": [
             {
@@ -1386,6 +1412,32 @@
           ]
         },
         "name": "skiaperf-android-x",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
+          "cluster_name": "skiaperf-android-x2",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "skiaperf-android-x2",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "skiaperf-android-x2",
         "type": "STRICT_DNS"
       },
       {
@@ -3182,6 +3234,23 @@
                       ]
                     },
                     {
+                      "domains": "machines.skia.org",
+                      "name": "machines.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "machineserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
                       "domains": "named-fiddles.skia.org",
                       "name": "named-fiddles.skia.org",
                       "routes": [
@@ -3310,6 +3379,23 @@
                           },
                           "route": {
                             "cluster": "skiaperf-android-x",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "androidx2-perf.skia.org",
+                      "name": "androidx2-perf.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "skiaperf-android-x2",
                             "timeout": {
                               "seconds": 600
                             }
