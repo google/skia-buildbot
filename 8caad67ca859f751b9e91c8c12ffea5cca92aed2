@@ -191,6 +191,30 @@
     },
     {
       "key": {
+        "uuid": "4046790b_62d635ea",
+        "filename": "skolo/go/powercycle/command_runner.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-17T11:48:48Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "cffabe58_247c8ec9",
+      "range": {
+        "startLine": 66,
+        "startChar": 17,
+        "endLine": 66,
+        "endChar": 28
+      },
+      "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "20c48f87_564c0db9",
         "filename": "skolo/go/powercycle/command_runner.go",
         "patchSetId": 6
@@ -274,6 +298,30 @@
       "side": 1,
       "message": "output for edgeswitch is very long. output for mpower is typically none. I\u0027m going to leave it as is; the immediate callers here in powercycle log both where it\u0027s important anyway. If it bugs us later, we can fix it.",
       "parentUuid": "e4017c94_1f4fb045",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 79,
+        "endChar": 58
+      },
+      "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "44b5f310_56c85511",
+        "filename": "skolo/go/powercycle/command_runner.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-17T11:48:48Z",
+      "side": 1,
+      "message": "sgtm",
+      "parentUuid": "8c66e736_66768b78",
       "range": {
         "startLine": 79,
         "startChar": 0,
