@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "ea0bf922_80fa6a2c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-17T15:16:40Z",
+      "side": 1,
+      "message": "Can you go into more detail on this?  In my experience go/exec is much more natural and less clunky to use than the built in package.  I clicked on the referenced CL and spent a few minutes looking but didn\u0027t find anything.",
+      "range": {
+        "startLine": 9,
+        "startChar": 54,
+        "endLine": 11,
+        "endChar": 64
+      },
+      "revId": "1b1585ae4af7d0acb84a76312a4a4f0b9f23e16e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d19775e3_241b2389",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-17T15:16:40Z",
+      "side": 1,
+      "message": "Yes, it was created for timeouts and mocking for tests.  Since then we\u0027ve added a number of convenience functions to make running commands less verbose, eg.\n\nout, err :\u003d exec.RunCwd(ctx, dir, \"command\", \"arg1\", \"arg2\")\n\nvs\n\nout, err :\u003d \u0026exec.Command{\n  Path: \"command\",\n  Args: []string{\"arg1\", \"arg2\"},\n  Dir: dir,\n}.CombinedOutput()\n\nor\n\ncmd :\u003d exec.CommandContext(ctx, \"command\", \"arg1\", \"arg2\")\ncmd.Dir \u003d dir\nout, err :\u003d cmd.CombinedOutput()\n\nThe only problem I see in removing it at this point is that we would lose automatic step injection for subprocesses in task drivers, which is done via the same mechanism as mocking for tests.",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 45
+      },
+      "revId": "1b1585ae4af7d0acb84a76312a4a4f0b9f23e16e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "3fadb4b1_988cc4a1",
         "filename": "go/executil/executil.go",
         "patchSetId": 4
