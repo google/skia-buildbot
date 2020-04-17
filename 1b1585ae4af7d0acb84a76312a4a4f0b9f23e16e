@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "f3d977e2_28fa641a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-17T16:20:22Z",
+      "side": 1,
+      "message": "Ah, yeah, if you\u0027re doing anything interesting with streaming input and output, go/exec doesn\u0027t provide helpers for that.  What threw me was the use of \"inversion\", since both os/exec and go/exec use io.Reader for Stdin and io.Writer for Stdout/Stderr.  The difference is that os/exec provides the Std[out|err|in]Pipe helpers, which do exactly what you suggest, creating an io.Pipe and spinning up a goroutine to do the copy.\n\nI still think go/exec is more usable in the most common case, ie. run this command in this directory and give me the output, but that has more to do with the handy wrappers in that package than with the actual functionality.",
+      "parentUuid": "6efb3ccd_a5100c0a",
+      "range": {
+        "startLine": 9,
+        "startChar": 54,
+        "endLine": 11,
+        "endChar": 64
+      },
+      "revId": "1b1585ae4af7d0acb84a76312a4a4f0b9f23e16e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d19775e3_241b2389",
         "filename": "/COMMIT_MSG",
         "patchSetId": 4
