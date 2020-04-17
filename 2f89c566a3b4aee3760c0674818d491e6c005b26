@@ -22,6 +22,30 @@
       "revId": "2f89c566a3b4aee3760c0674818d491e6c005b26",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12a14e03_d38fb959",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-04-17T13:20:02Z",
+      "side": 1,
+      "message": "AFAICT buildbot doesn\u0027t have jobs.json, just https://cs.corp.google.com/skia/buildbot/infra/bots/gen_tasks.go?rcl\u003d35c8026a37371a22694a425b78d6b6fe81559435\u0026l\u003d55.  The few jobs we have are not explicitly targeted to OS in the name so this is all thats needed.",
+      "parentUuid": "272da279_4ca366f2",
+      "range": {
+        "startLine": 29,
+        "startChar": 1,
+        "endLine": 29,
+        "endChar": 17
+      },
+      "revId": "2f89c566a3b4aee3760c0674818d491e6c005b26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
