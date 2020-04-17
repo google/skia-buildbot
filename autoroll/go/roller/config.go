@@ -326,9 +326,13 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 		rm = append(rm, c.FreeTypeRepoManager)
 	}
 	if c.FuchsiaSDKAndroidRepoManager != nil {
+		// TODO(borenet): De-duplicate the Gerrit config.
+		c.FuchsiaSDKAndroidRepoManager.Gerrit = c.Gerrit
 		rm = append(rm, c.FuchsiaSDKAndroidRepoManager)
 	}
 	if c.FuchsiaSDKRepoManager != nil {
+		// TODO(borenet): De-duplicate the Gerrit config.
+		c.FuchsiaSDKRepoManager.Gerrit = c.Gerrit
 		rm = append(rm, c.FuchsiaSDKRepoManager)
 	}
 	if c.GithubRepoManager != nil {
