@@ -22,6 +22,30 @@
       "revId": "c3239672038f9030d3ead52cd0978b8ec7492b93",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b47306cd_702b46dc",
+        "filename": "skolo/go/powercycle/command_runner.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-17T12:06:55Z",
+      "side": 1,
+      "message": "My code hasn\u0027t even landed and already the documentation is out of date: consistently meets expectations.",
+      "parentUuid": "0dd2dff3_d9f4372f",
+      "range": {
+        "startLine": 83,
+        "startChar": 72,
+        "endLine": 83,
+        "endChar": 87
+      },
+      "revId": "c3239672038f9030d3ead52cd0978b8ec7492b93",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
