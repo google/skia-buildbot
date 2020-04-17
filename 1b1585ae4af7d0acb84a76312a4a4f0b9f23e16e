@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d68a93ad_a9e2638a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-17T15:40:07Z",
+      "side": 1,
+      "message": "@jcgregorio may have more, but here\u0027s from my perspective:\nCompare using os/exec.Cmd.StdinPipe() (returns a WriteCloser) and doing the same thing with //go/go/exec.Command. In the former, I just start writing and then close it when done. For the latter, I have to set up my own bytes.Buffer (or something) and pass it in.\n\nSimilar extra steps are needed for dealing standard out and error.",
+      "parentUuid": "ea0bf922_80fa6a2c",
+      "range": {
+        "startLine": 9,
+        "startChar": 54,
+        "endLine": 11,
+        "endChar": 64
+      },
+      "revId": "1b1585ae4af7d0acb84a76312a4a4f0b9f23e16e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d19775e3_241b2389",
         "filename": "/COMMIT_MSG",
         "patchSetId": 4
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "141b5054_d85eda8b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-17T15:40:07Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d19775e3_241b2389",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 45
+      },
+      "revId": "1b1585ae4af7d0acb84a76312a4a4f0b9f23e16e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3fadb4b1_988cc4a1",
         "filename": "go/executil/executil.go",
         "patchSetId": 4
@@ -59,6 +107,30 @@
       "writtenOn": "2020-04-17T14:50:20Z",
       "side": 1,
       "message": "My only nit would be that the context package is pretty consistent in calling these types of functions With*, i.e. WithTimeout, WithDelay, WithValue, etc.",
+      "range": {
+        "startLine": 32,
+        "startChar": 5,
+        "endLine": 32,
+        "endChar": 20
+      },
+      "revId": "1b1585ae4af7d0acb84a76312a4a4f0b9f23e16e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ec0ac93_48b9d6d6",
+        "filename": "go/executil/executil.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-17T15:40:07Z",
+      "side": 1,
+      "message": "WithFakeTests and WithFakeTestsAndParent ok?",
+      "parentUuid": "3fadb4b1_988cc4a1",
       "range": {
         "startLine": 32,
         "startChar": 5,
