@@ -777,6 +777,30 @@
     },
     {
       "key": {
+        "uuid": "8352c096_168ab179",
+        "filename": "machine/go/machine/store/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-17T11:25:58Z",
+      "side": 1,
+      "message": "We use wrapper channels in https://skia.googlesource.com/buildbot/+/master/task_scheduler/go/db/firestore/modified_chan.go, not sure whether that would work for this use case.",
+      "parentUuid": "c8c14088_1d8bd298",
+      "range": {
+        "startLine": 114,
+        "startChar": 0,
+        "endLine": 142,
+        "endChar": 4
+      },
+      "revId": "771bcc39912c4565b807f985b4664f3971b4d823",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "102cb34b_2b67d398",
         "filename": "machine/go/machine/store/impl_test.go",
         "patchSetId": 1
