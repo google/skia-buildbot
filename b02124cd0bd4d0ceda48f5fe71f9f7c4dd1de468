@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "af5cdcb1_84cc0047",
+        "filename": "skolo/go/powercycle/command_runner.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-17T16:39:51Z",
+      "side": 1,
+      "message": "Nit: standard input.",
+      "range": {
+        "startLine": 22,
+        "startChar": 87,
+        "endLine": 22,
+        "endChar": 98
+      },
+      "revId": "b02124cd0bd4d0ceda48f5fe71f9f7c4dd1de468",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4dc8cd03_b585a51f",
+        "filename": "skolo/go/powercycle/command_runner.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-17T16:39:51Z",
+      "side": 1,
+      "message": "Nit: standardInputRunner, or stdinRunner.",
+      "range": {
+        "startLine": 22,
+        "startChar": 3,
+        "endLine": 22,
+        "endChar": 19
+      },
+      "revId": "b02124cd0bd4d0ceda48f5fe71f9f7c4dd1de468",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d588fd70_e64701a1",
+        "filename": "skolo/go/powercycle/edgeswitch.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-17T16:39:51Z",
+      "side": 1,
+      "message": "Nit: First",
+      "range": {
+        "startLine": 141,
+        "startChar": 4,
+        "endLine": 141,
+        "endChar": 5
+      },
+      "revId": "b02124cd0bd4d0ceda48f5fe71f9f7c4dd1de468",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "505a4657_503131ba",
+        "filename": "skolo/go/powercycle/powercycle.go",
+        "patchSetId": 10
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-17T16:39:51Z",
+      "side": 1,
+      "message": "Nit: this is essentially a factory function for the Controller interface, so maybe renaming it to \"MakeController\" or \"MakeControllerFromJSON5\" would be more accurate / meaningful.",
+      "range": {
+        "startLine": 95,
+        "startChar": 5,
+        "endLine": 95,
+        "endChar": 15
+      },
+      "revId": "b02124cd0bd4d0ceda48f5fe71f9f7c4dd1de468",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
