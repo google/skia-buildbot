@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "6efb3ccd_a5100c0a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-17T16:02:35Z",
+      "side": 1,
+      "message": "Yeah, the inversion of the pipe directions is what made me move away from go/exec, for example look at:\n\n  https://github.com/google/skia-buildbot/blob/master/perf/go/git/git.go#L453\n\nNote that I can just pass the stdout, as an io.Reader, to parseGitRevLogStream which uses a bufio.Scanner.\n\nIn order to use go/exec I would have needed to spin up another Go routine and copy the io.Writer that go/exec returns to turn it into an io.Reader.",
+      "parentUuid": "d68a93ad_a9e2638a",
+      "range": {
+        "startLine": 9,
+        "startChar": 54,
+        "endLine": 11,
+        "endChar": 64
+      },
+      "revId": "1b1585ae4af7d0acb84a76312a4a4f0b9f23e16e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d19775e3_241b2389",
         "filename": "/COMMIT_MSG",
         "patchSetId": 4
@@ -131,6 +155,30 @@
       "side": 1,
       "message": "WithFakeTests and WithFakeTestsAndParent ok?",
       "parentUuid": "3fadb4b1_988cc4a1",
+      "range": {
+        "startLine": 32,
+        "startChar": 5,
+        "endLine": 32,
+        "endChar": 20
+      },
+      "revId": "1b1585ae4af7d0acb84a76312a4a4f0b9f23e16e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0148242_b72274cc",
+        "filename": "go/executil/executil.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-17T16:02:35Z",
+      "side": 1,
+      "message": "Actually only TextContextFrom should be renamed, and WithFakeTests is fine.\n\nThe TestContext is fine since it\u0027s creating a new Context, not adding to an existing Context.",
+      "parentUuid": "8ec0ac93_48b9d6d6",
       "range": {
         "startLine": 32,
         "startChar": 5,
