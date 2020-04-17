@@ -43,6 +43,11 @@ func githubRmCfg(t *testing.T) *GithubRepoManagerConfig {
 			ParentBranch: masterBranchTmpl(t),
 			ParentRepo:   "git@github.com:jorel/krypton.git",
 		},
+		Github: &codereview.GithubConfig{
+			RepoOwner:     "me",
+			RepoName:      "my-repo",
+			ChecksWaitFor: []string{"a", "b", "c"},
+		},
 		ChildRepoURL: "git@github.com:superman/earth.git",
 		RevisionFile: "dummy-file.txt",
 	}
@@ -156,7 +161,7 @@ func mockGithubRequests(t *testing.T, urlMock *mockhttpclient.URLMock) {
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345/comments", md)
 }
 
-// TestGithubRepoManager tests all aspects of the GithubRepoManager except for CreateNewRoll.
+// TestGithubRepoManager tests all aspects of the Github RepoManager except for CreateNewRoll.
 func TestGithubRepoManager(t *testing.T) {
 	unittest.LargeTest(t)
 
@@ -164,9 +169,9 @@ func TestGithubRepoManager(t *testing.T) {
 	defer cleanup()
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	g, _ := setupFakeGithub(t, childCommits)
+	g, urlMock := setupFakeGithub(t, childCommits)
 	cfg := githubRmCfg(t)
-	rm, err := NewGithubRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	rm, err := NewGithubRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", urlMock.Client(), githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
@@ -206,17 +211,17 @@ func TestRanPreUploadStepsGithub(t *testing.T) {
 
 	g, urlMock := setupFakeGithub(t, childCommits)
 	cfg := githubRmCfg(t)
+	// Create a dummy pre-upload step.
+	ran := false
+	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string) error {
+		ran = true
+		return nil
+	})
+	cfg.PreUploadSteps = []string{stepName}
 	rm, err := NewGithubRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
-	ran := false
-	rm.(*githubRepoManager).preUploadSteps = []parent.PreUploadStep{
-		func(context.Context, []string, *http.Client, string) error {
-			ran = true
-			return nil
-		},
-	}
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubRequests(t, urlMock)
@@ -235,18 +240,18 @@ func TestErrorPreUploadStepsGithub(t *testing.T) {
 
 	g, urlMock := setupFakeGithub(t, childCommits)
 	cfg := githubRmCfg(t)
+	// Create a dummy pre-upload step.
+	ran := false
+	expectedErr := errors.New("Expected error")
+	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string) error {
+		ran = true
+		return expectedErr
+	})
+	cfg.PreUploadSteps = []string{stepName}
 	rm, err := NewGithubRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
 	require.NoError(t, err)
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
-	ran := false
-	expectedErr := errors.New("Expected error")
-	rm.(*githubRepoManager).preUploadSteps = []parent.PreUploadStep{
-		func(context.Context, []string, *http.Client, string) error {
-			ran = true
-			return expectedErr
-		},
-	}
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubRequests(t, urlMock)

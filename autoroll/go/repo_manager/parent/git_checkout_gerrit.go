@@ -63,7 +63,7 @@ func GitCheckoutUploadGerritRollFunc(g gerrit.GerritInterface) GitCheckoutUpload
 
 // NewGitCheckoutGerrit returns an implementation of Parent which uses a local
 // git checkout and uploads changes to Gerrit.
-func NewGitCheckoutGerrit(ctx context.Context, c GitCheckoutGerritConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir string, co *git.Checkout, getLastRollRev GitCheckoutGetLastRollRevFunc, createRoll GitCheckoutCreateRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckoutGerrit(ctx context.Context, c GitCheckoutGerritConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, userName, userEmail string, co *git.Checkout, getLastRollRev GitCheckoutGetLastRollRevFunc, createRoll GitCheckoutCreateRollFunc) (*GitCheckoutParent, error) {
 	gc, err := c.Gerrit.GetConfig()
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get Gerrit config")
@@ -73,7 +73,7 @@ func NewGitCheckoutGerrit(ctx context.Context, c GitCheckoutGerritConfig, reg *c
 		return nil, skerr.Wrapf(err, "Failed to create Gerrit client")
 	}
 	uploadRoll := GitCheckoutUploadGerritRollFunc(g)
-	p, err := NewGitCheckout(ctx, c.GitCheckoutConfig, reg, client, serverURL, workdir, co, getLastRollRev, createRoll, uploadRoll)
+	p, err := NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, co, getLastRollRev, createRoll, uploadRoll)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

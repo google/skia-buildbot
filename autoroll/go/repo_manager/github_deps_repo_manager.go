@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -343,19 +342,6 @@ func (rm *githubDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *re
 	childRepoUrl, err := rm.getChildRepoUrl(ctx)
 	if err != nil {
 		return 0, skerr.Wrap(err)
-	}
-	user, repo := GetUserAndRepo(childRepoUrl)
-	details := make([]*vcsinfo.LongCommit, 0, len(rolling))
-	for _, c := range rolling {
-		d, err := rm.childRepo.Details(ctx, c.Id)
-		if err != nil {
-			return 0, fmt.Errorf("Failed to get commit details: %s", err)
-		}
-		// Github autolinks PR numbers to be of the same repository in logStr. Fix this by
-		// explicitly adding the child repo to the PR number.
-		d.Subject = pullRequestInLogRE.ReplaceAllString(d.Subject, fmt.Sprintf(" (%s/%s$1)", user, repo))
-		d.Body = pullRequestInLogRE.ReplaceAllString(d.Body, fmt.Sprintf(" (%s/%s$1)", user, repo))
-		details = append(details, d)
 	}
 	commitMsg, err := rm.buildCommitMsg(&parent.CommitMsgVars{
 		ChildPath:      rm.childPath,

@@ -65,7 +65,7 @@ func (c DEPSLocalConfig) Validate() error {
 
 // NewDEPSLocal returns a Parent which uses a local checkout and DEPS to manage
 // dependencies.
-func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, recipeCfgFile string) (*GitCheckoutParent, error) {
+func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, userName, userEmail, recipeCfgFile string) (*GitCheckoutParent, error) {
 	// Validation.
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
@@ -176,7 +176,7 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 		return nil, skerr.Wrap(err)
 	}
 	co := &git.Checkout{GitDir: git.GitDir(checkoutPath)}
-	return NewGitCheckoutGerrit(ctx, c.GitCheckoutGerritConfig, reg, client, serverURL, workdir, co, getLastRollRev, createRoll)
+	return NewGitCheckoutGerrit(ctx, c.GitCheckoutGerritConfig, reg, client, serverURL, workdir, userName, userEmail, co, getLastRollRev, createRoll)
 }
 
 // GetDEPSCheckoutPath returns the path to the checkout within the workdir,

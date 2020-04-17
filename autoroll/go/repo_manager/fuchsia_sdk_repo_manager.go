@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
@@ -82,9 +83,11 @@ func (c *FuchsiaSDKRepoManagerConfig) splitParentChild() (parent.GitilesFileConf
 			},
 			Gerrit: c.Gerrit,
 		},
-		Dep:            "TODO",
-		Path:           FuchsiaSDKVersionFilePathLinux,
-		TransitiveDeps: parentDeps,
+		VersionFileConfig: version_file_common.VersionFileConfig{
+			Dep:            "TODO",
+			Path:           FuchsiaSDKVersionFilePathLinux,
+			TransitiveDeps: parentDeps,
+		},
 	}
 	if err := parentCfg.Validate(); err != nil {
 		return parent.GitilesFileConfig{}, child.FuchsiaSDKConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
