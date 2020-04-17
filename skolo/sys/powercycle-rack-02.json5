@@ -1,7 +1,8 @@
 {
   mpower: {
-    "mpower-03.rack-02": {
-      address: "192.168.1.242:22",
+    // TODO(kjlubick) Make sure these labels are correct.
+    "rack02-shelf1-mpower1": {
+      address: "192.168.1.242",
       user: "ubnt",
       ports: {
         "skia-e-linux-213": 1,

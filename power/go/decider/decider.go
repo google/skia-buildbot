@@ -1,6 +1,7 @@
 package decider
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -39,7 +40,9 @@ func New(powercycleConfigFiles []string) (Decider, map[powercycle.DeviceID]strin
 	hm := map[powercycle.DeviceID]string{}
 	enabled := map[powercycle.DeviceID]bool{}
 	for _, file := range powercycleConfigFiles {
-		dg, err := powercycle.ParseJSON5(file, false)
+		// We can pass context.Background() safely here because we set connect
+		// to false, which means context won't be used.
+		dg, err := powercycle.ControllerFromJSON5(context.Background(), file, false)
 		if err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}

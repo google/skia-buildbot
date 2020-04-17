@@ -1,16 +1,3 @@
 {
-  edgeswitch: {
-    "edgeswitch.01": {
-      address: "192.168.1.58:22",
-      ports: {
-        "skia-i-rpi-019": 19,
-        "skia-i-rpi-020": 20,
-        "skia-i-rpi-021": 21,
-        "skia-i-rpi-022": 22,
-        "skia-i-rpi-023": 23,
-        "skia-i-rpi-024": 24
-      }
-    }
-  },
 
 }

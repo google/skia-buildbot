@@ -1,56 +1,21 @@
 {
-  mpower: {
-    "mpower.01": {
-      address: "192.168.1.43:22",
-      user: "ubnt",
+  edgeswitch: {
+    "rack01-shelf1-poe-switch": {
+      address: "192.168.1.38",
+      user: "power",
+      password: "", // We don't check this into the repo.
       ports: {
-        "skia-rpi-049-device": 1,
-        "skia-rpi-050-device": 2,
-        "skia-rpi-051-device": 3,
-        "skia-rpi-052-device": 4,
-        "skia-rpi-053-device": 5,
-        "skia-rpi-054-device": 6,
-        "skia-rpi-055-device": 7,
-        "skia-rpi-056-device": 8,
+        // TODO(kjlubick)
+        "skia-rpi-020": 20,
+        "skia-rpi-036": 36,
       }
     },
-    "mpower.02": {
-      address: "192.168.1.58:22",
-      user: "ubnt",
+    "rack01-shelf2-poe-switch": {
+      address: "192.168.1.39",
+      user: "power",
+      password: "", // We don't check this into the repo.
       ports: {
-        "skia-rpi-065-device": 1,
-        "skia-rpi-066-device": 2,
-        "skia-rpi-067-device": 3,
-        "skia-rpi-068-device": 4,
-        "skia-rpi-069-device": 5,
-        "skia-rpi-070-device": 6,
-        "skia-rpi-072-device": 8,
-      }
-    }
-  },
-  edgeswitch: {
-    "edgeswitch.01": {
-      address: "192.168.1.41:22",
-      ports: {
-        "skia-rpi-113": 18,
-        "skia-rpi-114": 17,
-        "skia-rpi-115": 12,
-        "skia-rpi-116": 13,
-        "skia-rpi-117": 16,
-        "skia-rpi-118": 15,
-        "skia-rpi-119": 14,
-        "skia-rpi-120": 11,
-        "skia-rpi-121": 10,
-        "skia-rpi-122": 9,
-        "skia-rpi-123": 8,
-        "skia-rpi-124": 7,
-        "skia-rpi-125": 6,
-        "skia-rpi-126": 5,
-        "skia-rpi-i-127": 4,
-        "skia-rpi-i-128": 3,
-        "skia-rpi-130": 22,
-        "skia-rpi-131": 23,
-        "skia-rpi-132": 24
+        // TODO(kjlubick)
       }
     }
   }

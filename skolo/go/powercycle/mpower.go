@@ -3,22 +3,17 @@ package powercycle
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path"
-	"strings"
 	"time"
 
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
-	"golang.org/x/crypto/ssh"
 )
 
 // mPowerConfig contains the necessary parameters to connect and control an mPower Pro power strip.
 // Authentication is handled via the mPower switch recognizing the host's SSH key.
+// See go/skolo-powercycle-setup for more.
 type mPowerConfig struct {
-	// IP address and port of the device, i.e. 192.168.1.33:22
+	// IP address of the device, i.e. 192.168.1.33
 	Address string `json:"address"`
 
 	// User of the ssh connection
@@ -28,92 +23,67 @@ type mPowerConfig struct {
 	DevPortMap map[DeviceID]int `json:"ports"`
 }
 
+// Validate returns an error if the configuration is not complete.
+func (c *mPowerConfig) Validate() error {
+	if c.User == "" || c.Address == "" {
+		return skerr.Fmt("You must specify a user and ip address.")
+	}
+	return nil
+}
+
 // Constants used to access the Ubiquiti mPower Pro.
 const (
-	// Location of the directory where files are that control the device.
-	rootDirMPower = "/proc/power"
-
 	// String template to address a relay.
-	relayTemplateMPower = "relay%d"
+	relayTemplateMPower = "/proc/power/relay%d"
 
-	// Amount of time to wait between turn off and on.
+	// Default amount of time to wait between turn off and on.
 	powerOffDelayMPower = 10 * time.Second
 
 	// Values to write to the relay file to disable/enable ports.
-	off = 0
-	on  = 1
+	mpowerOff = "0"
+	mpowerOn  = "1"
 )
-
-// Mapping between strings and port states.
-var powerValues = map[string]int{
-	"0": off,
-	"1": on,
-}
 
 // mPowerClient implements the Controller interface.
 type mPowerClient struct {
-	client       *ssh.Client
+	runner       CommandRunner
 	deviceIDs    []DeviceID
 	mPowerConfig *mPowerConfig
 }
 
 // newMPowerController returns a new instance of Controller for the mPowerPro power strip.
-func newMPowerController(mPowerConfig *mPowerConfig, connect bool) (*mPowerClient, error) {
-	var client *ssh.Client = nil
+func newMPowerController(ctx context.Context, conf *mPowerConfig, connect bool) (*mPowerClient, error) {
+	if err := conf.Validate(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	target := fmt.Sprintf("%s@%s", conf.User, conf.Address)
+	// The mPower switch is running old firmware that only supports older SSH algorithms. Golang no
+	// longer supports it, so we shell out to a native ssh binary and tell it to include the older
+	// diffie-hellman-group1-sha1 algorithm. The -T removes a warning SSH gives because we are not
+	// invoking it over TTY.
+	runner := PublicKeySSHCommandRunner("-oKexAlgorithms=+diffie-hellman-group1-sha1", "-T", target)
 	if connect {
-		pKey := os.ExpandEnv("${HOME}/.ssh/id_rsa")
-		key, err := ioutil.ReadFile(pKey)
+		out, err := runner.ExecCmds(ctx, "cat /proc/power/active_pwr1")
 		if err != nil {
-			return nil, skerr.Wrapf(err, "reading private key at %s", pKey)
+			return nil, skerr.Wrapf(err, "performing smoke test on mpower %s; output: %s", target, out)
 		}
-		sklog.Infof("Retrieved private key")
-
-		// Create the Signer for this private key.
-		signer, err := ssh.ParsePrivateKey(key)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "parsing private key at %s", pKey)
-		}
-		sklog.Infof("Parsed private key")
-
-		sshConfig := &ssh.ClientConfig{
-			User: mPowerConfig.User,
-			Auth: []ssh.AuthMethod{ssh.PublicKeys(signer)},
-			Config: ssh.Config{
-				Ciphers: []string{"aes128-cbc", "3des-cbc", "aes256-cbc",
-					"twofish256-cbc", "twofish-cbc", "twofish128-cbc", "blowfish-cbc"},
-			},
-			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		}
-
-		sklog.Infof("Signed private key")
-
-		client, err = ssh.Dial("tcp", mPowerConfig.Address, sshConfig)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "dialing %s", mPowerConfig.Address)
-		}
-
-		sklog.Infof("Dial successful")
+		sklog.Infof("connected successfully to mpower %s", target)
 	}
 
-	devIDs := make([]DeviceID, 0, len(mPowerConfig.DevPortMap))
-	for id := range mPowerConfig.DevPortMap {
+	devIDs := make([]DeviceID, 0, len(conf.DevPortMap))
+	for id, port := range conf.DevPortMap {
+		if port < 1 || port > 8 {
+			return nil, skerr.Fmt("invalid port for %s (%d)", id, port)
+		}
 		devIDs = append(devIDs, id)
 	}
 	sortIDs(devIDs)
 
-	ret := &mPowerClient{
-		client:       client,
+	return &mPowerClient{
+		runner:       runner,
 		deviceIDs:    devIDs,
-		mPowerConfig: mPowerConfig,
-	}
-
-	if connect {
-		if err := ret.ping(); err != nil {
-			return nil, skerr.Wrapf(err, "pinging the mPower")
-		}
-	}
-
-	return ret, nil
+		mPowerConfig: conf,
+	}, nil
 }
 
 // DeviceIDs implements the Controller interface.
@@ -133,105 +103,29 @@ func (m *mPowerClient) PowerCycle(ctx context.Context, id DeviceID, delayOverrid
 	}
 
 	port := m.mPowerConfig.DevPortMap[id]
-	if err := m.setPortValue(port, off); err != nil {
-		return err
+	if err := m.setPortValue(ctx, port, mpowerOff); err != nil {
+		return skerr.Wrapf(err, "turning port %d off", port)
 	}
 
-	sklog.Infof("Switched port %d off. Waiting for %s.", port, powerOffDelayMPower)
+	sklog.Infof("Switched port %d off. Waiting for %s.", port, delay)
 	time.Sleep(delay)
-	if err := m.setPortValue(port, on); err != nil {
-		return err
+	if err := m.setPortValue(ctx, port, mpowerOn); err != nil {
+		return skerr.Wrapf(err, "turning port %d back on", port)
 	}
 
 	sklog.Infof("Switched port %d on.", port)
 	return nil
 }
 
-// ping issues a command to the device to verify that the connection works.
-func (m *mPowerClient) ping() error {
-	sklog.Infof("Executing ping.")
-
-	session, err := m.client.NewSession()
-	if err != nil {
-		return skerr.Wrap(err)
+func (m *mPowerClient) setPortValue(ctx context.Context, port int, value string) error {
+	if out, err := m.runner.ExecCmds(ctx, fmt.Sprintf("echo %s > %s", value, getRelayFile(port))); err != nil {
+		return skerr.Wrapf(err, "while setting port value - got output %s", out)
 	}
-	defer util.Close(session)
-
-	out, err := session.CombinedOutput("pwd")
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	sklog.Infof("PWD: %s", string(out))
+	// echo doesn't return any output, so we ignore the out in a non error case.
 	return nil
-}
-
-// getPortValue returns the status of given port.
-func (m *mPowerClient) getPortValue(port int) (int, error) {
-	if !m.validPort(port) {
-		return off, skerr.Fmt("Invalid port. Expected 1-8 got %d", port)
-	}
-
-	session, err := m.client.NewSession()
-	if err != nil {
-		return off, skerr.Wrap(err)
-	}
-	defer util.Close(session)
-
-	cmd := fmt.Sprintf("cat %s", m.getRelayFile(port))
-	outBytes, err := session.CombinedOutput(cmd)
-	if err != nil {
-		return off, skerr.Wrap(err)
-	}
-	out := strings.TrimSpace(string(outBytes))
-	current, ok := powerValues[out]
-	if !ok {
-		return off, skerr.Fmt("unexpected relay value: %s", out)
-	}
-	return current, nil
 }
 
 // getRelayFile returns name of the relay file for the given port.
-func (m *mPowerClient) getRelayFile(port int) string {
-	return path.Join(rootDirMPower, fmt.Sprintf(relayTemplateMPower, port))
-}
-
-// validPort returns true if the given port is valid.
-func (m *mPowerClient) validPort(port int) bool {
-	return (port >= 1) && (port <= 8)
-}
-
-// setPortValue sets the value of the given port to the given value.
-func (m *mPowerClient) setPortValue(port int, newVal int) error {
-	if !m.validPort(port) {
-		return skerr.Fmt("Invalid port. Expected 1-8 got %d", port)
-	}
-
-	session, err := m.client.NewSession()
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	defer util.Close(session)
-
-	// Check if the value is already the target value.
-	if current, err := m.getPortValue(port); err != nil {
-		return skerr.Wrap(err)
-	} else if current == newVal {
-		return nil
-	}
-
-	cmd := fmt.Sprintf("echo '%d' > %s", newVal, m.getRelayFile(port))
-	sklog.Infof("Executing: %s", cmd)
-	_, err = session.CombinedOutput(cmd)
-	if err != nil {
-		return err
-	}
-
-	// Check if the value was set correctly.
-	if current, err := m.getPortValue(port); err != nil {
-		return skerr.Wrap(err)
-	} else if current != newVal {
-		return skerr.Fmt("Could not read back new value. Got %d", current)
-	}
-
-	return nil
+func getRelayFile(port int) string {
+	return fmt.Sprintf(relayTemplateMPower, port)
 }

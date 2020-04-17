@@ -34,7 +34,7 @@ func main() {
 		// powercycle without connecting first, the DeviceGroups won't be properly initialized.
 		*connect = true
 	}
-	devGroup, err := powercycle.ParseJSON5(*configFile, *connect)
+	devGroup, err := powercycle.ControllerFromJSON5(context.Background(), *configFile, *connect)
 	if err != nil {
 		sklog.Fatalf("Unable to parse config file.  Got error: %s", err)
 	}

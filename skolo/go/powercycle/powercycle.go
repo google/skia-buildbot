@@ -89,10 +89,10 @@ func (a *multiController) PowerCycle(ctx context.Context, id DeviceID, delayOver
 	return ctrl.PowerCycle(ctx, id, delayOverride)
 }
 
-// ParseJSON5 parses a JSON5 file and instantiates the defined devices. If connect is true, an
+// ControllerFromJSON5 parses a JSON5 file and instantiates the defined devices. If connect is true, an
 // attempt will be made to connect to the subclients and errors will be returned if they are not
 // accessible.
-func ParseJSON5(path string, connect bool) (Controller, error) {
+func ControllerFromJSON5(ctx context.Context, path string, connect bool) (Controller, error) {
 	conf, err := readConfig(path)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -104,7 +104,7 @@ func ParseJSON5(path string, connect bool) (Controller, error) {
 
 	// Add the mpower devices.
 	for name, c := range conf.MPower {
-		mp, err := newMPowerController(c, connect)
+		mp, err := newMPowerController(ctx, c, connect)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "initializing %s", name)
 		}
@@ -116,7 +116,7 @@ func ParseJSON5(path string, connect bool) (Controller, error) {
 
 	// Add the EdgeSwitch devices.
 	for name, c := range conf.EdgeSwitch {
-		es, err := newEdgeSwitchController(c, connect)
+		es, err := newEdgeSwitchController(ctx, c, connect)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "initializing %s", name)
 		}
