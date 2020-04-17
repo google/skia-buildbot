@@ -8,14 +8,13 @@ import (
 	"os"
 
 	"cloud.google.com/go/pubsub"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machine/source"
 	"go.skia.org/infra/machine/go/machineserver/config"
-	"google.golang.org/api/option"
+	"go.skia.org/infra/sk8s/go/bot_config/common"
 )
 
 const (
@@ -39,24 +38,10 @@ type Source struct {
 
 // New returns a new *Source.
 func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) (*Source, error) {
-	ts, err := auth.NewDefaultTokenSource(local, pubsub.ScopePubSub)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to create token source.")
-	}
 
-	pubsubClient, err := pubsub.NewClient(ctx, instanceConfig.Source.Project, option.WithTokenSource(ts))
+	pubsubClient, err := common.NewPubSubClient(ctx, local, instanceConfig)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to create PubSub client for project %s", instanceConfig.Source.Project)
-	}
-	t := pubsubClient.Topic(instanceConfig.Source.Topic)
-	exists, err := t.Exists(ctx)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to check existence of PubSub topic %q", t.ID())
-	}
-	if !exists {
-		if _, err := pubsubClient.CreateTopic(ctx, t.ID()); err != nil {
-			return nil, skerr.Wrapf(err, "Failed to create PubSub topic %q", t.ID())
-		}
+		return nil, skerr.Wrap(err)
 	}
 
 	// When running in production we have every instance use the same topic name so that
