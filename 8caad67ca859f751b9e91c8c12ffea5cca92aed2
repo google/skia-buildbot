@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "a3c5999e_7e0437a4",
+        "filename": "skolo/go/powercycle/command_runner.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-17T11:06:26Z",
+      "side": 1,
+      "message": "I agree that this is unlikely given the current set of commands and the fact that they\u0027re relatively static, but if we started sending eg. public keys this way, it wouldn\u0027t take long to hit 4K.  It seems reasonable to me to fix the bug while we\u0027re here and thinking about it.",
+      "parentUuid": "315c711a_9e67c496",
+      "range": {
+        "startLine": 66,
+        "startChar": 17,
+        "endLine": 66,
+        "endChar": 28
+      },
+      "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "20c48f87_564c0db9",
         "filename": "skolo/go/powercycle/command_runner.go",
         "patchSetId": 6
@@ -178,6 +202,30 @@
       "side": 1,
       "message": "CombinedOutput is an example from the standard library where the primary value can be used even if the error is non-nil.  Since we call that directly, I think it\u0027s ok to mirror that idiom.\n\nAdditionally, skerr.Wrapf adds details about the stacktrace; I think it is more clear to keep the error and stdout/stderr separate, so it\u0027s easier to know what the executable said and what golang added on.",
       "parentUuid": "20c48f87_564c0db9",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 79,
+        "endChar": 58
+      },
+      "revId": "8caad67ca859f751b9e91c8c12ffea5cca92aed2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e4017c94_1f4fb045",
+        "filename": "skolo/go/powercycle/command_runner.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-17T11:06:26Z",
+      "side": 1,
+      "message": "I don\u0027t feel strongly about this, but personally I like the error message to include all of the information I need to know what went wrong.  Keeping the output and error separate requires everyone in the call stack to remember to bubble the command output up, or we end up with an unhelpful \"Command failed with exit status 1\" message.  The exception would be when we know that the output of the command is going to be exceptionally long and make the error difficult to read.",
+      "parentUuid": "f59ee309_925f3e93",
       "range": {
         "startLine": 79,
         "startChar": 0,
