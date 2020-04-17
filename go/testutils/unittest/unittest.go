@@ -108,6 +108,14 @@ func ManualTest(t sktest.TestingT) {
 	}
 }
 
+// FakeExeTest masks a test from the uncategorized tests check. See executil.go for
+// more on what FakeTests are used for.
+func FakeExeTest(t sktest.TestingT) {
+	if *uncategorized {
+		t.Skip(`This is to appease the "uncategorized tests" check`)
+	}
+}
+
 // RequiresBigTableEmulator is a function that documents a unittest requires the
 // BigTable Emulator and checks that the appropriate environment variable is set.
 func RequiresBigTableEmulator(t sktest.TestingT) {
