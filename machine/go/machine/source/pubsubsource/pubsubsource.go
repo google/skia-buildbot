@@ -8,14 +8,13 @@ import (
 	"os"
 
 	"cloud.google.com/go/pubsub"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/machine/go/common"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machine/source"
 	"go.skia.org/infra/machine/go/machineserver/config"
-	"google.golang.org/api/option"
 )
 
 const (
@@ -39,24 +38,10 @@ type Source struct {
 
 // New returns a new *Source.
 func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) (*Source, error) {
-	ts, err := auth.NewDefaultTokenSource(local, pubsub.ScopePubSub)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to create token source.")
-	}
 
-	pubsubClient, err := pubsub.NewClient(ctx, instanceConfig.Source.Project, option.WithTokenSource(ts))
+	pubsubClient, topic, err := common.NewPubSubClient(ctx, local, instanceConfig)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to create PubSub client for project %s", instanceConfig.Source.Project)
-	}
-	t := pubsubClient.Topic(instanceConfig.Source.Topic)
-	exists, err := t.Exists(ctx)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to check existence of PubSub topic %q", t.ID())
-	}
-	if !exists {
-		if _, err := pubsubClient.CreateTopic(ctx, t.ID()); err != nil {
-			return nil, skerr.Wrapf(err, "Failed to create PubSub topic %q", t.ID())
-		}
+		return nil, skerr.Wrap(err)
 	}
 
 	// When running in production we have every instance use the same topic name so that
@@ -77,7 +62,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 	}
 	if !ok {
 		sub, err = pubsubClient.CreateSubscription(ctx, subName, pubsub.SubscriptionConfig{
-			Topic: t,
+			Topic: topic,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("Failed creating subscription: %s", err)
@@ -110,6 +95,9 @@ func (s *Source) Start(ctx context.Context) (<-chan machine.Event, error) {
 			}
 			err := s.sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 				s.eventsReceivedCounter.Inc(1)
+				// Log to stdout as raw JSON in a single line for StackDriver
+				// structured logging.
+				fmt.Println(string(msg.Data))
 				msg.Ack()
 				var event machine.Event
 				if err := json.Unmarshal(msg.Data, &event); err != nil {

@@ -159,6 +159,8 @@ func TestWatch_StartWatchAfterMachineExists(t *testing.T) {
 	err = store.Update(ctx, "skia-rpi2-rack2-shelf1-001", func(previous machine.Description) machine.Description {
 		ret := previous.Copy()
 		ret.Mode = machine.ModeMaintenance
+		ret.Dimensions[machine.OSDim] = []string{"Android"}
+		ret.Annotation.Message = "Hello World!"
 		return ret
 	})
 	require.NoError(t, err)
@@ -169,6 +171,8 @@ func TestWatch_StartWatchAfterMachineExists(t *testing.T) {
 	// Wait for first description.
 	m := <-ch
 	assert.Equal(t, machine.ModeMaintenance, m.Mode)
+	assert.Equal(t, machine.SwarmingDimensions{machine.OSDim: {"Android"}}, m.Dimensions)
+	assert.Equal(t, "Hello World!", m.Annotation.Message)
 	assert.NoError(t, store.firestoreClient.Close())
 }
 

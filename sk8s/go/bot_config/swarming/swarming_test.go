@@ -24,11 +24,11 @@ import (
 const metadataURL = "https://example.org"
 
 func setBotSwarmingIDEnvVar(t *testing.T, value string) util.CleanupFunc {
-	originalValue := os.Getenv(swarmingBotIDEnvVar)
-	err := os.Setenv(swarmingBotIDEnvVar, value)
+	originalValue := os.Getenv(SwarmingBotIDEnvVar)
+	err := os.Setenv(SwarmingBotIDEnvVar, value)
 	require.NoError(t, err)
 	cleanup := func() {
-		err := os.Setenv(swarmingBotIDEnvVar, originalValue)
+		err := os.Setenv(SwarmingBotIDEnvVar, originalValue)
 		require.NoError(t, err)
 	}
 	return cleanup
