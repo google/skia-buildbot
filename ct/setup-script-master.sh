@@ -8,7 +8,7 @@ mkdir --parents /b/storage/
 # Install necessary packages.
 sudo apt-get update
 sudo apt-get --assume-yes upgrade
-sudo apt-get --assume-yes install python-django python-setuptools lua5.2
+sudo apt-get --assume-yes install python-django python-setuptools
 sudo easy_install -U pip
 sudo pip install -U crcmod
 

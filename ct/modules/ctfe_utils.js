@@ -74,11 +74,6 @@ export const taskDescriptors = [
     delete_url: '/_/delete_capture_skps_task',
   },
   {
-    type: 'LuaScript',
-    get_url: '/_/get_lua_script_tasks',
-    delete_url: '/_/delete_lua_script_task',
-  },
-  {
     type: 'ChromiumBuild',
     get_url: '/_/get_chromium_build_tasks',
     delete_url: '/_/delete_chromium_build_task',

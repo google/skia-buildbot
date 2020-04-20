@@ -21,7 +21,6 @@ const (
 	REPO_DIR_NAME                    = "skia-repo"
 	TASKS_DIR_NAME                   = "tasks"
 	BINARIES_DIR_NAME                = "binaries"
-	LUA_TASKS_DIR_NAME               = "lua_runs"
 	BENCHMARK_TASKS_DIR_NAME         = "benchmark_runs"
 	CHROMIUM_PERF_TASKS_DIR_NAME     = "chromium_perf_runs"
 	CHROMIUM_ANALYSIS_TASKS_DIR_NAME = "chromium_analysis_runs"
@@ -51,11 +50,9 @@ const (
 	BINARY_ANALYZE_METRICS = "analyze_metrics_ct.py"
 	BINARY_GCLIENT         = "gclient"
 	BINARY_NINJA           = "ninja"
-	BINARY_LUA_PICTURES    = "lua_pictures"
 	BINARY_SKPINFO         = "skpinfo"
 	BINARY_ADB             = "adb"
 	BINARY_MAIL            = "mail"
-	BINARY_LUA             = "lua"
 
 	// Platforms supported by CT.
 	PLATFORM_ANDROID = "Android"
@@ -140,10 +137,6 @@ const (
 	CSV_MERGER_TIMEOUT             = 1 * time.Hour
 	CSV_COMPARER_TIMEOUT           = 2 * time.Hour
 
-	// Run Lua
-	LUA_PICTURES_TIMEOUT   = 2 * time.Hour
-	LUA_AGGREGATOR_TIMEOUT = 1 * time.Hour
-
 	// Poller
 	MAKE_ALL_TIMEOUT = 15 * time.Minute
 
@@ -161,7 +154,6 @@ const (
 	CREATE_PAGESETS_MASTER_ISOLATE   = "create_pagesets_on_workers.isolate"
 	CAPTURE_ARCHIVES_MASTER_ISOLATE  = "capture_archives_on_workers.isolate"
 	CAPTURE_SKPS_MASTER_ISOLATE      = "capture_skps_on_workers.isolate"
-	RUN_LUA_MASTER_ISOLATE           = "run_lua_on_workers.isolate"
 	CHROMIUM_ANALYSIS_MASTER_ISOLATE = "run_chromium_analysis_on_workers.isolate"
 	CHROMIUM_PERF_MASTER_ISOLATE     = "run_chromium_perf_on_workers.isolate"
 	METRICS_ANALYSIS_MASTER_ISOLATE  = "metrics_analysis_on_workers.isolate"
@@ -170,7 +162,6 @@ const (
 	CREATE_PAGESETS_ISOLATE   = "create_pagesets.isolate"
 	CAPTURE_ARCHIVES_ISOLATE  = "capture_archives.isolate"
 	CAPTURE_SKPS_ISOLATE      = "capture_skps.isolate"
-	RUN_LUA_ISOLATE           = "run_lua.isolate"
 	CHROMIUM_ANALYSIS_ISOLATE = "chromium_analysis.isolate"
 	CHROMIUM_PERF_ISOLATE     = "chromium_perf.isolate"
 	METRICS_ANALYSIS_ISOLATE  = "metrics_analysis.isolate"
@@ -244,7 +235,6 @@ var (
 
 	// Names of local and remote directories and files.
 	BinariesDir                    = filepath.Join(BINARIES_DIR_NAME)
-	LuaRunsDir                     = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
 	BenchmarkRunsDir               = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
 	BenchmarkRunsStorageDir        = path.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
 	ChromiumPerfRunsDir            = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)

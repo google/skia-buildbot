@@ -49,13 +49,6 @@ const (
 	DELETE_METRICS_ANALYSIS_TASK_POST_URI = "_/delete_metrics_analysis_task"
 	REDO_METRICS_ANALYSIS_TASK_POST_URI   = "_/redo_metrics_analysis_task"
 
-	LUA_SCRIPT_URI                  = "lua_script/"
-	LUA_SCRIPT_RUNS_URI             = "lua_script_runs/"
-	ADD_LUA_SCRIPT_TASK_POST_URI    = "_/add_lua_script_task"
-	GET_LUA_SCRIPT_TASKS_POST_URI   = "_/get_lua_script_tasks"
-	DELETE_LUA_SCRIPT_TASK_POST_URI = "_/delete_lua_script_task"
-	REDO_LUA_SCRIPT_TASK_POST_URI   = "_/redo_lua_script_task"
-
 	CHROMIUM_BUILD_URI                  = "chromium_builds/"
 	CHROMIUM_BUILD_RUNS_URI             = "chromium_builds_runs/"
 	CHROMIUM_REV_DATA_POST_URI          = "_/chromium_rev_data"

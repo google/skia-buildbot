@@ -70,9 +70,6 @@ const template = (ele) => html`
       <a href="/metrics_analysis/" tab-index=0>
         <search-icon-sk></search-icon-sk><span>Analysis<span>
       </a>
-      <a href="/lua_script/" tab-index=0>
-        <cloud-icon-sk></cloud-icon-sk><span>Lua Scripts</span>
-      </a>
       <a href="/capture_skps/" tab-index=0>
         <photo-camera-icon-sk></photo-camera-icon-sk><span>SKPictures</span>
       </a>

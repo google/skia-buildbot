@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
-	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
 	"go.skia.org/infra/ct/go/ctfe/pending_tasks"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
@@ -82,7 +81,6 @@ func reloadTemplates() {
 	chromium_analysis.ReloadTemplates(*resourcesDir)
 	chromium_builds.ReloadTemplates(*resourcesDir)
 	chromium_perf.ReloadTemplates(*resourcesDir)
-	lua_scripts.ReloadTemplates(*resourcesDir)
 	metrics_analysis.ReloadTemplates(*resourcesDir)
 	pending_tasks.ReloadTemplates(*resourcesDir)
 }
@@ -114,7 +112,6 @@ func runServer(serverURL string) {
 	chromium_analysis.AddHandlers(externalRouter)
 	chromium_builds.AddHandlers(externalRouter)
 	chromium_perf.AddHandlers(externalRouter) // Note: chromium_perf adds a handler for "/".
-	lua_scripts.AddHandlers(externalRouter)
 	metrics_analysis.AddHandlers(externalRouter)
 	pending_tasks.AddHandlers(externalRouter)
 

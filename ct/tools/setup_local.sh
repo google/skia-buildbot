@@ -15,7 +15,7 @@ set -e
 
 echo "Installing debs..."
 sudo apt-get update
-sudo apt-get -y install linux-tools-generic python-django libgif-dev lua5.2 && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod
+sudo apt-get -y install linux-tools-generic python-django libgif-dev && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod
 
 echo "Creating /usr/local/google/cluster-telemetry/b and linking to /b..."
 mkdir -p /usr/local/google/cluster-telemetry/b

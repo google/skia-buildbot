@@ -14,7 +14,7 @@ describe('ct-scaffold-sk', () => {
   beforeEach(() => {
     expect(fetchMock.done()).to.be.true;
     fetchMock.reset();
-    fetchMock.post('begin:/_/get_', 200, { repeat: 8 });
+    fetchMock.post('begin:/_/get_', 200, { repeat: 7 });
     scaffoldSk = newInstance((el) => {
       el.setAttribute('testing_offline', '');
       el.innerHTML = '<div>content</div>';
