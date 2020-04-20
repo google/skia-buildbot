@@ -17,6 +17,8 @@ import (
 func TestMachineToStoreDescription_NoDimensions(t *testing.T) {
 	unittest.SmallTest(t)
 	d := machine.NewDescription()
+	//b, err := json.Marshal(d)
+	//require.NoError(t, err)
 	m := machineDescriptionToStoreDescription(d)
 	assert.Equal(t, storeDescription{
 		Mode:               d.Mode,
@@ -31,6 +33,8 @@ func TestMachineToStoreDescription_WithDimensions(t *testing.T) {
 	d.Dimensions[machine.OSDim] = []string{"Android"}
 	d.Dimensions[machine.DeviceTypeDim] = []string{"sailfish"}
 	d.Dimensions[machine.QuarantinedDim] = []string{"Device sailfish too hot."}
+	//	b, err := json.Marshal(d)
+	//require.NoError(t, err)
 
 	m := machineDescriptionToStoreDescription(d)
 	assert.Equal(t, storeDescription{
@@ -159,6 +163,8 @@ func TestWatch_StartWatchAfterMachineExists(t *testing.T) {
 	err = store.Update(ctx, "skia-rpi2-rack2-shelf1-001", func(previous machine.Description) machine.Description {
 		ret := previous.Copy()
 		ret.Mode = machine.ModeMaintenance
+		ret.Dimensions[machine.OSDim] = []string{"Android"}
+		ret.Annotation.Message = "Hello World!"
 		return ret
 	})
 	require.NoError(t, err)
@@ -169,6 +175,8 @@ func TestWatch_StartWatchAfterMachineExists(t *testing.T) {
 	// Wait for first description.
 	m := <-ch
 	assert.Equal(t, machine.ModeMaintenance, m.Mode)
+	assert.Equal(t, machine.SwarmingDimensions{machine.OSDim: {"Android"}}, m.Dimensions)
+	assert.Equal(t, "Hello World!", m.Annotation.Message)
 	assert.NoError(t, store.firestoreClient.Close())
 }
 
