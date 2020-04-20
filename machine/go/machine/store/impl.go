@@ -130,14 +130,15 @@ func (st *StoreImpl) Watch(ctx context.Context, machineID string) <-chan machine
 			if !snap.Exists() {
 				continue
 			}
-			var m machine.Description
-			if err := snap.DataTo(&m); err != nil {
+			var storeDescription storeDescription
+			if err := snap.DataTo(&storeDescription); err != nil {
 				sklog.Errorf("Failed to read data from snapshot: %s", err)
 				st.watchDataToErrorCounter.Inc(1)
 				continue
 			}
+			machineDescription := storeToMachineDescription(storeDescription)
 			st.watchReceiveSnapshotCounter.Inc(1)
-			ch <- m
+			ch <- machineDescription
 		}
 	}()
 	return ch
