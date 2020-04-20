@@ -8,6 +8,10 @@ release:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/machineserver
 	./images/machineserver/release
 
+push: release
+	pushk machineserver
+
+
 # Make our own firestore emulator image.
 # https://issuetracker.google.com/issues/153087269
 release_firestore_emulator:
