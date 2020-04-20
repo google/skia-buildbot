@@ -68,10 +68,6 @@ create_pagesets_on_workers:
 capture_archives_on_workers:
 	go install -v ./go/master_scripts/capture_archives_on_workers/
 
-.PHONY: run_lua_on_workers
-run_lua_on_workers:
-	go install -v ./go/master_scripts/run_lua_on_workers/
-
 .PHONY: capture_skps_on_workers
 capture_skps_on_workers:
 	go install -v ./go/master_scripts/capture_skps_on_workers/
@@ -107,10 +103,6 @@ isolate_telemetry:
 capture_archives:
 	go install -v ./go/worker_scripts/capture_archives/
 
-.PHONY: run_lua
-run_lua:
-	go install -v ./go/worker_scripts/run_lua/
-
 .PHONY: capture_skps
 capture_skps:
 	go install -v ./go/worker_scripts/capture_skps/
@@ -141,12 +133,12 @@ test: test_js
 .PHONY: master_scripts
 master_scripts: build_chromium \
 	create_pagesets_on_workers capture_archives_on_workers \
-	run_lua_on_workers capture_skps_on_workers \
+	capture_skps_on_workers \
         run_chromium_perf_on_workers \
         run_chromium_analysis_on_workers metrics_analysis_on_workers
 
 .PHONY: worker_scripts
-worker_scripts: create_pagesets capture_archives run_lua capture_skps \
+worker_scripts: create_pagesets capture_archives capture_skps \
                 run_chromium_perf \
                 run_chromium_analysis build_repo metrics_analysis \
                 isolate_telemetry
@@ -194,13 +186,6 @@ e2e_tests:
 	@echo "Running repaint"
 	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=repaint --repeat_benchmark=2 --target_platform=Linux
 	@echo "Completed repaint. Sleeping for 15 seconds and continuing."
-	sleep 15
-	@echo
-	@echo
-
-	@echo "Running lua scripts"
-	go run go/worker_scripts/run_lua/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce --run_id=rmistry123 --logtostderr
-	@echo "Completed lua scripts. Sleeping for 15 seconds and continuing."
 	sleep 15
 	@echo
 	@echo

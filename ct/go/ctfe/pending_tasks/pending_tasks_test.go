@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
-	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -67,17 +66,6 @@ func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 		ChromiumRev: "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
 		SkiaRev:     "586101c79b0490b50623e76c71a5fd67d8d92b08",
 		Description: "description",
-	})
-	test(&lua_scripts.DatastoreTask{
-		CommonCols:          getCommonCols(ds.LUA_SCRIPT_TASKS),
-		PageSets:            "All",
-		ChromiumRev:         "c14d891d44f0afff64e56ed7c9702df1d807b1ee",
-		SkiaRev:             "586101c79b0490b50623e76c71a5fd67d8d92b08",
-		LuaScript:           `print("lualualua")`,
-		LuaAggregatorScript: `print("aaallluuu")`,
-		Description:         "description",
-		ScriptOutput:        "lualualua",
-		AggregatedOutput:    "aaallluuu",
 	})
 	test(&chromium_builds.DatastoreTask{
 		CommonCols:    getCommonCols(ds.CHROMIUM_BUILD_TASKS),

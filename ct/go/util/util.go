@@ -150,24 +150,6 @@ func BuildSkiaSKPInfo(ctx context.Context, runningOnSwarming bool) (string, erro
 	return outPath, ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
 }
 
-// BuildSkiaLuaPictures builds "lua_pictures" in the Skia trunk directory.
-// Returns the directory that contains the binary.
-func BuildSkiaLuaPictures(ctx context.Context, runningOnSwarming bool) (string, error) {
-	if err := os.Chdir(SkiaTreeDir); err != nil {
-		return "", fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
-	}
-	// Run gn gen
-	clangDir := filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "clang_linux")
-	if err := runSkiaGnGen(ctx, clangDir, "skia_use_lua=true"); err != nil {
-		return "", fmt.Errorf("Error while running gn: %s", err)
-	}
-	// Run "ninja -C out/Release -j100 lua_pictures".
-	// Use the full system env when building.
-	outPath := filepath.Join(SkiaTreeDir, "out", "Release")
-	args := []string{"-C", outPath, "-j100", BINARY_LUA_PICTURES}
-	return outPath, ExecuteCmd(ctx, filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
-}
-
 // GetCipdPackageFromAsset returns a string of the format "path:package_name:version".
 // It returns the latest version of the asset via gitiles.
 func GetCipdPackageFromAsset(assetName string) (string, error) {
@@ -1330,26 +1312,6 @@ func GetPerfNoPatchOutputLink(runID string) string {
 func GetPerfWithPatchOutputLink(runID string) string {
 	runIDWithPatch := fmt.Sprintf("%s-withpatch", runID)
 	return GCS_HTTP_LINK + path.Join(GCSBucketName, BenchmarkRunsDir, runIDWithPatch, "consolidated_outputs", runIDWithPatch+".output")
-}
-
-func GetLuaConsolidatedFileName() string {
-	return "lua-output"
-}
-
-func GetLuaAggregatorOutputFileName(runID string) string {
-	return runID + ".agg.output"
-}
-
-func GetLuaConsolidatedOutputRemoteDir(runID string) string {
-	return path.Join(LuaRunsDir, runID, "consolidated_outputs")
-}
-
-func GetLuaOutputRemoteLink(runID string) string {
-	return GCS_HTTP_LINK + path.Join(GCSBucketName, GetLuaConsolidatedOutputRemoteDir(runID), GetLuaConsolidatedFileName())
-}
-
-func GetLuaAggregatorOutputRemoteLink(runID string) string {
-	return GCS_HTTP_LINK + path.Join(GCSBucketName, GetLuaConsolidatedOutputRemoteDir(runID), GetLuaAggregatorOutputFileName(runID))
 }
 
 func GetMetricsAnalysisOutputLink(runID string) string {
