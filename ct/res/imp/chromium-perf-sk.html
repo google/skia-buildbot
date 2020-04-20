@@ -444,6 +444,7 @@
        }
        if (ctfe.missingLiveSitesWithCustomWebpages(
                this.$.custom_webpages.value, this.$.benchmark_args.value)) {
+         this.$.benchmark_args.focus();
          return;
        }
        if (ctfe.moreThanThreeActiveTasks($$$("drawer-sk").sizeOfUserQueue)) {
