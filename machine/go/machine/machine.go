@@ -103,3 +103,12 @@ type Event struct {
 	Android   Android   `json:"android"`
 	Host      Host      `json:"host"`
 }
+
+// NewEvent returns a new Event instance.
+func NewEvent() Event {
+	return Event{
+		EventType: EventTypeRawState,
+		Android:   Android{},
+		Host:      Host{},
+	}
+}
