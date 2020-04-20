@@ -41,7 +41,7 @@ const (
 	internalSwarmingServer = "https://chrome-swarming.appspot.com"
 	debugSwarmingServer    = "https://chromium-swarm-dev.appspot.com"
 
-	swarmingBotIDEnvVar = "SWARMING_BOT_ID"
+	SwarmingBotIDEnvVar = "SWARMING_BOT_ID"
 )
 
 // New creates a new *Bot instance.
@@ -49,9 +49,9 @@ const (
 // The pythonExe and swarmingBotZip values must be absolute paths.
 func New(pythonExeFilename, swarmingBotZipFilename, metadataURL string) (*Bot, error) {
 	// Figure out where we should be downloading the Python code from.
-	host := os.Getenv(swarmingBotIDEnvVar)
+	host := os.Getenv(SwarmingBotIDEnvVar)
 	if host == "" {
-		return nil, skerr.Fmt("Env variable %q must be set.", swarmingBotIDEnvVar)
+		return nil, skerr.Fmt("Env variable %q must be set.", SwarmingBotIDEnvVar)
 	}
 	swarmingURL := defaultSwarmingServer
 	if strings.HasPrefix(host, "skia-i-") {
