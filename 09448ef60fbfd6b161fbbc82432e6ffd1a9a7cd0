@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f5b81573_feb66785",
+        "filename": "ct/modules/ctfe_utils.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-04-20T14:27:22Z",
+      "side": 0,
+      "message": "Please `make test_js`.\n\nI believe ct-scaffold-sk_test.js and task-queue-sk_test.js use fetchMock to mathch expected requests on loading etc that will be 2(?) fewer now because there\u0027s one less type of task to fetch data for.",
+      "range": {
+        "startLine": 77,
+        "startChar": 4,
+        "endLine": 80,
+        "endChar": 4
+      },
+      "revId": "09448ef60fbfd6b161fbbc82432e6ffd1a9a7cd0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
