@@ -39,11 +39,6 @@
         Metrics Analysis
       </paper-item>
 
-      <paper-item data-href="/lua_script/">
-        <iron-icon icon="cloud" class="right_padded"></iron-icon>
-        Lua Scripts
-      </paper-item>
-
       <template is="dom-if" if="{{isAdmin}}">
 
         <paper-item data-href="/capture_skps/">
@@ -119,8 +114,6 @@
                     get_url: "/_/get_metrics_analysis_tasks"},
                    {type: "CaptureSkps",
                     get_url: "/_/get_capture_skp_tasks"},
-                   {type: "LuaScript",
-                    get_url: "/_/get_lua_script_tasks"},
                    {type: "ChromiumBuild",
                     get_url: "/_/get_chromium_build_tasks"},
                    {type: "RecreatePageSets",

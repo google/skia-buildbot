@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
-	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/metrics_analysis"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/ctfe/task_types"
@@ -170,7 +169,6 @@ type oldestPendingTask struct {
 	ChromiumAnalysis        *chromium_analysis.DatastoreTask
 	ChromiumBuild           *chromium_builds.DatastoreTask
 	ChromiumPerf            *chromium_perf.DatastoreTask
-	LuaScript               *lua_scripts.DatastoreTask
 	MetricsAnalysis         *metrics_analysis.DatastoreTask
 	RecreatePageSets        *admin_tasks.RecreatePageSetsDatastoreTask
 	RecreateWebpageArchives *admin_tasks.RecreateWebpageArchivesDatastoreTask
@@ -196,8 +194,6 @@ func EncodeTask(taskJson io.Writer, oldestTask task_common.Task) error {
 		oldestTaskJsonRepr.ChromiumBuild = task
 	case *chromium_perf.DatastoreTask:
 		oldestTaskJsonRepr.ChromiumPerf = task
-	case *lua_scripts.DatastoreTask:
-		oldestTaskJsonRepr.LuaScript = task
 	case *metrics_analysis.DatastoreTask:
 		oldestTaskJsonRepr.MetricsAnalysis = task
 	default:
@@ -223,8 +219,6 @@ func DecodeTask(taskJson io.Reader) (task_common.Task, error) {
 		return pending.ChromiumBuild, nil
 	case pending.ChromiumPerf != nil:
 		return pending.ChromiumPerf, nil
-	case pending.LuaScript != nil:
-		return pending.LuaScript, nil
 	case pending.MetricsAnalysis != nil:
 		return pending.MetricsAnalysis, nil
 	case pending.RecreatePageSets != nil:
