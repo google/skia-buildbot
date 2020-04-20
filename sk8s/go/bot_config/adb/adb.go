@@ -9,8 +9,13 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+)
+
+const (
+	commandTimeout = 5 * time.Second
 )
 
 var (
@@ -21,9 +26,6 @@ var (
 	// [ro.product.model]: [Nexus 7]
 	// [ro.product.name]: [razor]
 	proplines = regexp.MustCompile(`(?m)^\[(?P<key>.+)\]:\s*\[(?P<value>.*)\].*$`)
-
-	// execCommandContext captures exec.CommandContext, which makes testing easier.
-	execCommandContext = exec.CommandContext
 )
 
 // AdbImpl handles talking to the adb process.
@@ -36,6 +38,11 @@ func New() AdbImpl {
 
 // Adb is the interface that AdbImpl provides.
 type Adb interface {
+	// RawProperties returns the unfiltered output of running "adb shell getprop".
+	RawProperties(ctx context.Context) (string, error)
+
+	// RawDumpSys returns the unfiltered output of running "adb shell dumpsys <service>".
+	RawDumpSys(ctx context.Context, service string) (string, error)
 
 	// Properties returns a map[string]string from running "adb shell getprop".
 	Properties(ctx context.Context) (map[string]string, error)
@@ -52,10 +59,9 @@ type Adb interface {
 func (a AdbImpl) Properties(ctx context.Context) (map[string]string, error) {
 	ret := map[string]string{}
 
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, commandTimeout)
 	defer cancel()
-	// Note we use execCommandContext, not exec.CommandContext.
-	cmd := execCommandContext(ctx, "adb", "shell", "getprop")
+	cmd := executil.CommandContext(ctx, "adb", "shell", "getprop")
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {
@@ -68,6 +74,38 @@ func (a AdbImpl) Properties(ctx context.Context) (map[string]string, error) {
 	}
 
 	return ret, nil
+}
+
+// RawProperties implements the Adb interface.
+func (a AdbImpl) RawProperties(ctx context.Context) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, commandTimeout)
+	defer cancel()
+	cmd := executil.CommandContext(ctx, "adb", "shell", "getprop")
+
+	b, err := cmd.Output()
+	if err != nil {
+		if ee, ok := err.(*exec.ExitError); ok {
+			err = skerr.Wrapf(err, "adb failed with stderr: %q", ee.Stderr)
+		}
+		return "", err
+	}
+	return string(b), nil
+}
+
+// RawDumpSys implements the Adb interface.
+func (a AdbImpl) RawDumpSys(ctx context.Context, service string) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, commandTimeout)
+	defer cancel()
+	cmd := executil.CommandContext(ctx, "adb", "shell", "dumpsys", service)
+
+	b, err := cmd.Output()
+	if err != nil {
+		if ee, ok := err.(*exec.ExitError); ok {
+			err = skerr.Wrapf(err, "adb failed with stderr: %q", ee.Stderr)
+		}
+		return "", err
+	}
+	return string(b), nil
 }
 
 var (
