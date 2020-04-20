@@ -6,7 +6,7 @@ set -e
 
 sudo apt-get --assume-yes install build-essential mercurial libosmesa-dev libexpat1-dev clang llvm \
   poppler-utils netpbm gcc-multilib g++-multilib libxi-dev python-django \
-  libc++-dev libc++abi-dev gperf bison usbutils libncurses5
+  libc++-dev libc++abi-dev gperf bison usbutils libncurses5 locales
 
 # Catapult requires a lsb-release file even if it's empty.
 # TODO(rmistry): Remove this after https://github.com/catapult-project/catapult/issues/3705
@@ -22,6 +22,13 @@ deb-src http://security.debian.org/ jessie/updates main
 EOF
 sudo apt-get update
 sudo apt-get --assume-yes install gcc-4.8 g++-4.8
+
+# Buster locales need to be configured and set to avoid spurious bash
+# complaints.
+echo 'LC_ALL=en_US.UTF-8' | sudo tee --append /etc/environment
+echo 'en_US.UTF-8 UTF-8' | sudo tee --append /etc/locale.gen
+echo 'LANG=en_US.UTF-8' | sudo tee --append /etc/locale.conf
+sudo locale-gen en_US.UTF-8
 
 # Obtain and symlink i386 libs.
 sudo dpkg --add-architecture i386
