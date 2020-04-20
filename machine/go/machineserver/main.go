@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
@@ -34,6 +35,15 @@ type server struct {
 // See baseapp.Constructor.
 func new() (baseapp.App, error) {
 	ctx := context.Background()
+
+	var allow allowed.Allow
+	if !*baseapp.Local {
+		allowed.NewAllowedFromList([]string{"google.com"})
+	} else {
+		allow = allowed.NewAllowedFromList([]string{"barney@example.org"})
+	}
+
+	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, nil, nil, allow)
 
 	var instanceConfig config.InstanceConfig
 	err := util.WithReadFile(*configFlag, func(r io.Reader) error {
