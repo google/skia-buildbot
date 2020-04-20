@@ -26,7 +26,7 @@ const (
 	BUNDLE_RECIPES_NAME     = "Housekeeper-PerCommit-BundleRecipes"
 
 	DEFAULT_OS       = DEFAULT_OS_LINUX
-	DEFAULT_OS_LINUX = "Debian-9.8"
+	DEFAULT_OS_LINUX = "Debian-10.3"
 	DEFAULT_OS_WIN   = "Windows-Server-17763"
 
 	LOGDOG_ANNOTATION_URL = "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
