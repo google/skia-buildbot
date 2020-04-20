@@ -4,13 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
+	"text/template"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/baseapp"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
@@ -29,7 +31,8 @@ var (
 )
 
 type server struct {
-	store machineStore.Store
+	store     machineStore.Store
+	templates *template.Template
 }
 
 // See baseapp.Constructor.
@@ -95,9 +98,28 @@ func user(r *http.Request) string {
 	return user
 }
 
+func (s *server) loadTemplates() {
+	s.templates = template.Must(template.New("").ParseFiles(
+		filepath.Join(*baseapp.ResourcesDir, "index.html"),
+	))
+}
+
 func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	_, err := fmt.Fprintf(w, "Hello World!")
+	if *baseapp.Local {
+		s.loadTemplates()
+	}
+	descriptions, err := s.store.List(r.Context())
+	sklog.Infof("%#v", descriptions)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get list of machines.", http.StatusInternalServerError)
+		return
+	}
+
+	if err := s.templates.ExecuteTemplate(w, "index.html", descriptions); err != nil {
+		sklog.Error("Failed to expand template:", err)
+	}
+
 	if err != nil {
 		sklog.Errorf("Failed to write response: %s", err)
 	}
