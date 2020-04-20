@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
@@ -17,11 +18,14 @@ import (
 func TestMachineToStoreDescription_NoDimensions(t *testing.T) {
 	unittest.SmallTest(t)
 	d := machine.NewDescription()
-	m := machineDescriptionToStoreDescription(d)
+	b, err := json.Marshal(d)
+	require.NoError(t, err)
+	m, err := machineDescriptionToStoreDescription(d)
+	require.NoError(t, err)
 	assert.Equal(t, storeDescription{
 		Mode:               d.Mode,
 		LastUpdated:        d.LastUpdated,
-		MachineDescription: d,
+		MachineDescription: b,
 	}, m)
 }
 
@@ -31,15 +35,18 @@ func TestMachineToStoreDescription_WithDimensions(t *testing.T) {
 	d.Dimensions[machine.OSDim] = []string{"Android"}
 	d.Dimensions[machine.DeviceTypeDim] = []string{"sailfish"}
 	d.Dimensions[machine.QuarantinedDim] = []string{"Device sailfish too hot."}
+	b, err := json.Marshal(d)
+	require.NoError(t, err)
 
-	m := machineDescriptionToStoreDescription(d)
+	m, err := machineDescriptionToStoreDescription(d)
+	require.NoError(t, err)
 	assert.Equal(t, storeDescription{
 		OS:                 []string{"Android"},
 		DeviceType:         []string{"sailfish"},
 		Quarantined:        []string{"Device sailfish too hot."},
 		Mode:               d.Mode,
 		LastUpdated:        d.LastUpdated,
-		MachineDescription: d,
+		MachineDescription: b,
 	}, m)
 }
 
@@ -159,6 +166,7 @@ func TestWatch_StartWatchAfterMachineExists(t *testing.T) {
 	err = store.Update(ctx, "skia-rpi2-rack2-shelf1-001", func(previous machine.Description) machine.Description {
 		ret := previous.Copy()
 		ret.Mode = machine.ModeMaintenance
+		ret.Dimensions[machine.OSDim] = []string{"Android"}
 		return ret
 	})
 	require.NoError(t, err)
@@ -169,6 +177,7 @@ func TestWatch_StartWatchAfterMachineExists(t *testing.T) {
 	// Wait for first description.
 	m := <-ch
 	assert.Equal(t, machine.ModeMaintenance, m.Mode)
+	assert.Equal(t, machine.SwarmingDimensions{machine.OSDim: {"Android"}}, m.Dimensions)
 	assert.NoError(t, store.firestoreClient.Close())
 }
 

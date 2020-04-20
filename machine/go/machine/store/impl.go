@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	gcfirestore "cloud.google.com/go/firestore"
@@ -57,10 +58,8 @@ type storeDescription struct {
 	// LastUpdated is a mirror of MachineDescription.LastUpdated.
 	LastUpdated time.Time
 
-	// MachineDescription is the full machine.Description. The values that are
-	// mirrored to fields of storeDescription are still fully stored here and
-	// are considered the source of truth.
-	MachineDescription machine.Description
+	// MachineDescription is the full machine.Description serialized as JSON.
+	MachineDescription []byte
 }
 
 // New returns a new instance of StoreImpl.
@@ -96,13 +95,19 @@ func (st *StoreImpl) Update(ctx context.Context, machineID string, txCallback Tx
 				st.updateDataToErrorCounter.Inc(1)
 				return skerr.Wrapf(err, "Failed to deserialize firestore Get response for %q", machineID)
 			}
-			machineDescription = storeToMachineDescription(storeDescription)
+			machineDescription, err = storeToMachineDescription(storeDescription)
+			if err != nil {
+				return skerr.Wrapf(err, "Update failed to deserialize storeDescription.")
+			}
 		} else if st, ok := status.FromError(err); ok && st.Code() != codes.NotFound {
 			return skerr.Wrapf(err, "Failed querying firestore for %q", machineID)
 		}
 
 		updatedMachineDescription := txCallback(machineDescription)
-		updatedStoreDescription := machineDescriptionToStoreDescription(updatedMachineDescription)
+		updatedStoreDescription, err := machineDescriptionToStoreDescription(updatedMachineDescription)
+		if err != nil {
+			return skerr.Wrapf(err, "Failed to serialize machine description.")
+		}
 
 		return tx.Set(docRef, &updatedStoreDescription)
 	})
@@ -130,32 +135,46 @@ func (st *StoreImpl) Watch(ctx context.Context, machineID string) <-chan machine
 			if !snap.Exists() {
 				continue
 			}
-			var m machine.Description
-			if err := snap.DataTo(&m); err != nil {
+			var storeDescription storeDescription
+			if err := snap.DataTo(&storeDescription); err != nil {
 				sklog.Errorf("Failed to read data from snapshot: %s", err)
 				st.watchDataToErrorCounter.Inc(1)
 				continue
 			}
+			machineDescription, err := storeToMachineDescription(storeDescription)
+			if err != nil {
+				sklog.Errorf("Failed to deserialize data from snapshot: %s", err)
+				st.watchDataToErrorCounter.Inc(1)
+				continue
+			}
 			st.watchReceiveSnapshotCounter.Inc(1)
-			ch <- m
+			ch <- machineDescription
 		}
 	}()
 	return ch
 }
 
-func machineDescriptionToStoreDescription(m machine.Description) storeDescription {
+func machineDescriptionToStoreDescription(m machine.Description) (storeDescription, error) {
+	b, err := json.Marshal(m)
+	if err != nil {
+		return storeDescription{}, skerr.Wrapf(err, "Failed to serialize description.")
+	}
 	return storeDescription{
 		OS:                 m.Dimensions[machine.OSDim],
 		DeviceType:         m.Dimensions[machine.DeviceTypeDim],
 		Quarantined:        m.Dimensions[machine.QuarantinedDim],
 		Mode:               m.Mode,
 		LastUpdated:        m.LastUpdated,
-		MachineDescription: m,
-	}
+		MachineDescription: b,
+	}, nil
 }
 
-func storeToMachineDescription(s storeDescription) machine.Description {
-	return s.MachineDescription
+func storeToMachineDescription(s storeDescription) (machine.Description, error) {
+	var ret machine.Description
+	if err := json.Unmarshal(s.MachineDescription, &ret); err != nil {
+		return machine.Description{}, skerr.Wrapf(err, "Failed to deserialize description.")
+	}
+	return ret, nil
 }
 
 // Affirm that StoreImpl implements the Store interface.
