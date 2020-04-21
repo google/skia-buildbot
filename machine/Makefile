@@ -1,4 +1,6 @@
 default:
+	-mkdir -p ./dist
+	cp ./templates/* ./dist
 	go install -v ./go/...
 
 test:
