@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7098ca66_e761037b",
+        "filename": "gold-client/go/imgmatching/sobel/sobel.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T12:24:31Z",
+      "side": 1,
+      "message": "Match calls these expected and actual. Would you be able to name these in a similar fashion?",
+      "range": {
+        "startLine": 41,
+        "startChar": 1,
+        "endLine": 41,
+        "endChar": 7
+      },
+      "revId": "0b832f19312cea1868c1ca889df3c38d5108eadd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5421419_49653bc2",
+        "filename": "gold-client/go/imgmatching/sobel/sobel_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 698,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T12:24:31Z",
+      "side": 1,
+      "message": "I would keep the doc unchanged for this - if I look to see what assertImagesEqual does, I would rather not have to go read the function below to figure it out.",
+      "range": {
+        "startLine": 698,
+        "startChar": 27,
+        "endLine": 698,
+        "endChar": 55
+      },
+      "revId": "0b832f19312cea1868c1ca889df3c38d5108eadd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "07ee4926_0b4ea370",
+        "filename": "gold-client/go/imgmatching/sobel/sobel_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 704,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T12:24:31Z",
+      "side": 1,
+      "message": "Should probably mention what msg does.\n\nbikeshed: label instead of msg?",
+      "range": {
+        "startLine": 704,
+        "startChar": 68,
+        "endLine": 704,
+        "endChar": 73
+      },
+      "revId": "0b832f19312cea1868c1ca889df3c38d5108eadd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
