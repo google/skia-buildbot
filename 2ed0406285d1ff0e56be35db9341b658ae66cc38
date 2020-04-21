@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "28d0b194_e2e95a59",
+        "filename": "machine/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-21T16:20:04Z",
+      "side": 1,
+      "message": "This seems to overlap with the \"release\" target.  Any reason to to refactor it as \"build\"?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 0
+      },
+      "revId": "2ed0406285d1ff0e56be35db9341b658ae66cc38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5cb34a1c_664ad03b",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-21T16:20:04Z",
+      "side": 1,
+      "message": "If this is important, let\u0027s add a constant somewhere.",
+      "range": {
+        "startLine": 56,
+        "startChar": 12,
+        "endLine": 56,
+        "endChar": 16
+      },
+      "revId": "2ed0406285d1ff0e56be35db9341b658ae66cc38",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
