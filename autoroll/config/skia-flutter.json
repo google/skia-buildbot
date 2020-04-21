@@ -2,26 +2,19 @@
 // for documentation of the autoroller config.
 {
   "childName": "Skia",
-  "contacts": [
-    "brianosman@google.com",
-    "rmistry@google.com"
-  ],
+  "contacts": ["brianosman@google.com", "rmistry@google.com"],
   "isInternal": false,
   "ownerPrimary": "rmistry",
   "ownerSecondary": "borenet",
   "parentName": "Flutter",
-  "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
+  "parentWaterfall": "https://ci.chromium.org/p/flutter/g/engine/console",
   "rollerName": "skia-flutter-autoroll",
   "serviceAccount": "flutter-engine-autoroll@skia-public.iam.gserviceaccount.com",
-  "sheriff": [
-    "https://tree-status.skia.org/current-sheriff"
-  ],
+  "sheriff": ["https://tree-status.skia.org/current-sheriff"],
   "github": {
     "repoOwner": "flutter",
     "repoName": "engine",
-    "checksWaitFor": [
-      "luci-engine"
-    ]
+    "checksWaitFor": ["luci-engine"]
   },
   "githubDEPSRepoManager": {
     "childBranch": "master",
@@ -29,9 +22,7 @@
     "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+/%s",
     "includeLog": true,
     "parentBranch": "master",
-    "preUploadSteps": [
-      "FlutterLicenseScripts"
-    ],
+    "preUploadSteps": ["FlutterLicenseScripts"],
     "parentRepo": "git@github.com:flutter/engine.git",
     "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:skia-flutter-autoroll/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
     "githubParentPath": "src/flutter"
@@ -59,9 +50,7 @@
     {
       "filter": "warning",
       "email": {
-        "emails": [
-          "$SHERIFF"
-        ]
+        "emails": ["$SHERIFF"]
       }
     }
   ]
