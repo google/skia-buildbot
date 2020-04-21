@@ -115,10 +115,10 @@ func (st *StoreImpl) Update(ctx context.Context, machineID string, txCallback Tx
 
 // Watch implements the Store interface.
 func (st *StoreImpl) Watch(ctx context.Context, machineID string) <-chan machine.Description {
-	iter := st.machinesCollection.Doc(machineID).Snapshots(ctx)
 	ch := make(chan machine.Description)
 	go func() {
 		for {
+			iter := st.machinesCollection.Doc(machineID).Snapshots(ctx)
 			snap, err := iter.Next()
 			if err != nil {
 				if ctx.Err() == context.Canceled {
@@ -126,7 +126,8 @@ func (st *StoreImpl) Watch(ctx context.Context, machineID string) <-chan machine
 				} else if st, ok := status.FromError(err); ok && st.Code() == codes.Canceled {
 					sklog.Warningf("Context canceled; closing channel: %s", err)
 				} else {
-					sklog.Errorf("iter returned error; closing channel: %s", err)
+					sklog.Errorf("machine store.Store: iter returned error; starting a new snapshot: %s", err)
+					continue
 				}
 				iter.Stop()
 				close(ch)
