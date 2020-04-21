@@ -54,3 +54,45 @@ func (_m *Adb) RawProperties(ctx context.Context) (string, error) {
 
 	return r0, r1
 }
+
+// RawDumpSys provides a mock function with given fields: ctx, service
+func (_m *Adb) RawDumpSys(ctx context.Context, service string) (string, error) {
+	ret := _m.Called(ctx, service)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, service)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, service)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RawProperties provides a mock function with given fields: ctx
+func (_m *Adb) RawProperties(ctx context.Context) (string, error) {
+	ret := _m.Called(ctx)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(context.Context) string); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
