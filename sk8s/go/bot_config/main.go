@@ -3,16 +3,24 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
+	"io"
+	"os"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/machine/go/machineserver/config"
+	"go.skia.org/infra/sk8s/go/bot_config/machine"
 	"go.skia.org/infra/sk8s/go/bot_config/server"
 	"go.skia.org/infra/sk8s/go/bot_config/swarming"
 )
 
 // flags
 var (
+	configFlag     = flag.String("config", "", "The path to the configuration file.")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	metadataURL    = flag.String("metadata_url", "http://metadata:8000/computeMetadata/v1/instance/service-accounts/default/token", "The URL of the metadata server that provides service account tokens.")
 	port           = flag.String("port", ":11000", "HTTP service address (e.g., ':8000')")
 	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
@@ -27,9 +35,28 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
+	var instanceConfig config.InstanceConfig
+	err := util.WithReadFile(*configFlag, func(r io.Reader) error {
+		return json.NewDecoder(r).Decode(&instanceConfig)
+	})
+	if os.Getenv("PUBSUB_EMULATOR_HOST") != "" {
+		sklog.Fatal("Do not run with the pubsub emulator.")
+	}
+	if err != nil {
+		sklog.Fatalf("Failed to open config file: %q: %s", *configFlag, err)
+	}
+
+	ctx := context.Background()
+	m, err := machine.New(ctx, *local, instanceConfig)
+	if err != nil {
+		sklog.Fatal("Failed to create machine: %s", err)
+	}
+	if err := m.Start(ctx); err != nil {
+		sklog.Fatal("Failed to start machine: %s", err)
+	}
 
 	sklog.Infof("Starting the server.")
-	s, err := server.New()
+	s, err := server.New(m)
 	if err != nil {
 		sklog.Fatal(err)
 	}
