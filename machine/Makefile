@@ -1,10 +1,13 @@
-default:
+
+build:
+	-mkdir -p ./dist
+	cp ./templates/* ./dist
 	go install -v ./go/...
 
 test:
 	go test -cover ./go/...
 
-release:
+release: build
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/machineserver
 	./images/machineserver/release
 

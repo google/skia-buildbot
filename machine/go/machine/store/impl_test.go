@@ -28,9 +28,9 @@ func TestMachineToStoreDescription_NoDimensions(t *testing.T) {
 func TestMachineToStoreDescription_WithDimensions(t *testing.T) {
 	unittest.SmallTest(t)
 	d := machine.NewDescription()
-	d.Dimensions[machine.OSDim] = []string{"Android"}
-	d.Dimensions[machine.DeviceTypeDim] = []string{"sailfish"}
-	d.Dimensions[machine.QuarantinedDim] = []string{"Device sailfish too hot."}
+	d.Dimensions[machine.DimOS] = []string{"Android"}
+	d.Dimensions[machine.DimDeviceType] = []string{"sailfish"}
+	d.Dimensions[machine.DimQuarantined] = []string{"Device sailfish too hot."}
 
 	m := machineDescriptionToStoreDescription(d)
 	assert.Equal(t, storeDescription{
@@ -100,7 +100,7 @@ func TestUpdate_CanUpdateIfDescriptionExists(t *testing.T) {
 	err = store.Update(ctx, "skia-rpi2-rack2-shelf1-001", func(previous machine.Description) machine.Description {
 		ret := previous.Copy()
 		ret.Mode = machine.ModeMaintenance
-		ret.Dimensions[machine.OSDim] = []string{"Android"}
+		ret.Dimensions[machine.DimOS] = []string{"Android"}
 		return ret
 	})
 	require.NoError(t, err)
@@ -109,7 +109,7 @@ func TestUpdate_CanUpdateIfDescriptionExists(t *testing.T) {
 	err = store.Update(ctx, "skia-rpi2-rack2-shelf1-001", func(previous machine.Description) machine.Description {
 		assert.Equal(t, machine.ModeMaintenance, previous.Mode)
 		assert.Equal(t, []string{"Android"}, previous.Dimensions["os"])
-		assert.Empty(t, previous.Dimensions[machine.DeviceTypeDim])
+		assert.Empty(t, previous.Dimensions[machine.DimDeviceType])
 		ret := previous.Copy()
 		ret.Mode = machine.ModeAvailable
 		return ret
@@ -159,7 +159,7 @@ func TestWatch_StartWatchAfterMachineExists(t *testing.T) {
 	err = store.Update(ctx, "skia-rpi2-rack2-shelf1-001", func(previous machine.Description) machine.Description {
 		ret := previous.Copy()
 		ret.Mode = machine.ModeMaintenance
-		ret.Dimensions[machine.OSDim] = []string{"Android"}
+		ret.Dimensions[machine.DimOS] = []string{"Android"}
 		ret.Annotation.Message = "Hello World!"
 		return ret
 	})
@@ -171,7 +171,7 @@ func TestWatch_StartWatchAfterMachineExists(t *testing.T) {
 	// Wait for first description.
 	m := <-ch
 	assert.Equal(t, machine.ModeMaintenance, m.Mode)
-	assert.Equal(t, machine.SwarmingDimensions{machine.OSDim: {"Android"}}, m.Dimensions)
+	assert.Equal(t, machine.SwarmingDimensions{machine.DimOS: {"Android"}}, m.Dimensions)
 	assert.Equal(t, "Hello World!", m.Annotation.Message)
 	assert.NoError(t, store.firestoreClient.Close())
 }
@@ -201,4 +201,46 @@ func TestWatch_IsCancellable(t *testing.T) {
 	for range ch {
 	}
 	assert.NoError(t, store.firestoreClient.Close())
+}
+
+func TestList_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, cfg := setupForTest(t)
+	store, err := New(ctx, true, cfg)
+	require.NoError(t, err)
+
+	// List on an empty collection is OK.
+	descriptions, err := store.List(ctx)
+	require.NoError(t, err)
+	assert.Len(t, descriptions, 0)
+
+	// Add a single description.
+	err = store.Update(ctx, "skia-rpi2-rack2-shelf1-001", func(previous machine.Description) machine.Description {
+		assert.Equal(t, machine.ModeAvailable, previous.Mode)
+		ret := previous.Copy()
+		ret.Mode = machine.ModeMaintenance
+		ret.Dimensions["foo"] = []string{"bar", "baz"}
+		return ret
+	})
+	require.NoError(t, err)
+
+	// Confirm it appears in the list.
+	descriptions, err = store.List(ctx)
+	require.NoError(t, err)
+	assert.Len(t, descriptions, 1)
+	assert.Equal(t, machine.SwarmingDimensions{"foo": {"bar", "baz"}}, descriptions[0].Dimensions)
+
+	// Add a second description.
+	err = store.Update(ctx, "skia-rpi2-rack2-shelf1-002", func(previous machine.Description) machine.Description {
+		assert.Equal(t, machine.ModeAvailable, previous.Mode)
+		ret := previous.Copy()
+		ret.Mode = machine.ModeMaintenance
+		ret.Dimensions["foo"] = []string{"quux"}
+		return ret
+	})
+
+	// Confirm they both show up in the list.
+	descriptions, err = store.List(ctx)
+	require.NoError(t, err)
+	assert.Len(t, descriptions, 2)
 }

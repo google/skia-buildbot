@@ -53,19 +53,20 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		return previous
 	}
 	dimensions := dimensionsFromAndroidProperties(parseAndroidProperties(event.Android.GetProp))
+	dimensions[machine.DimID] = []string{event.Host.Name}
 
 	// If this machine previously had a connected device and it's no longer
 	// present then quarantine the machine.
 	//
 	// We use the device_type dimension because it is reported for both Android
 	// and iOS devices.
-	if len(previous.Dimensions[machine.DeviceTypeDim]) > 0 && len(dimensions[machine.DeviceTypeDim]) == 0 {
-		dimensions[machine.QuarantinedDim] = []string{fmt.Sprintf("Device %q has gone missing", previous.Dimensions[machine.DeviceTypeDim])}
+	if len(previous.Dimensions[machine.DimDeviceType]) > 0 && len(dimensions[machine.DimDeviceType]) == 0 {
+		dimensions[machine.DimQuarantined] = []string{fmt.Sprintf("Device %q has gone missing", previous.Dimensions[machine.DimDeviceType])}
 	}
 
 	// Quarantine devices in maintenance mode.
-	if previous.Mode == machine.ModeMaintenance && len(previous.Dimensions[machine.QuarantinedDim]) == 0 {
-		dimensions[machine.QuarantinedDim] = []string{"Device is quarantined for maintenance"}
+	if previous.Mode == machine.ModeMaintenance && len(previous.Dimensions[machine.DimQuarantined]) == 0 {
+		dimensions[machine.DimQuarantined] = []string{"Device is quarantined for maintenance"}
 	}
 
 	ret := previous.Copy()
@@ -75,8 +76,8 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 
 	// If the machine was quarantined, but hasn't been quarantined this trip
 	// through Process then take the machine out of quarantine.
-	if previous.Mode == machine.ModeAvailable && len(previous.Dimensions[machine.QuarantinedDim]) != 0 && len(dimensions[machine.QuarantinedDim]) == 0 {
-		delete(ret.Dimensions, machine.QuarantinedDim)
+	if previous.Mode == machine.ModeAvailable && len(previous.Dimensions[machine.DimQuarantined]) != 0 && len(dimensions[machine.DimQuarantined]) == 0 {
+		delete(ret.Dimensions, machine.DimQuarantined)
 	}
 
 	return ret
@@ -104,7 +105,7 @@ var (
 		"device_os":           {"ro.build.id"},
 		"device_os_flavor":    {"ro.product.brand", "ro.product.system.brand"},
 		"device_os_type":      {"ro.build.type"},
-		machine.DeviceTypeDim: {"ro.product.device", "ro.build.product", "ro.product.board"},
+		machine.DimDeviceType: {"ro.product.device", "ro.build.product", "ro.product.board"},
 	}
 )
 
@@ -156,7 +157,7 @@ func dimensionsFromAndroidProperties(prop map[string]string) map[string][]string
 
 	if len(ret["device_os"]) > 0 {
 		ret["android_devices"] = []string{"1"}
-		ret[machine.OSDim] = []string{"Android"}
+		ret[machine.DimOS] = []string{"Android"}
 	}
 
 	return ret

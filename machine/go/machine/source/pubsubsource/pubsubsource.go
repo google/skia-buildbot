@@ -43,6 +43,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	sklog.Infof("pubsub Source started for topic: %q", topic.String())
 
 	// When running in production we have every instance use the same topic name so that
 	// they load-balance pulling items from the topic.
@@ -68,6 +69,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 			return nil, fmt.Errorf("Failed creating subscription: %s", err)
 		}
 	}
+	sklog.Infof("Subsciption: %q", sub.String())
 
 	// How many Go routines should be processing messages.
 	sub.ReceiveSettings.MaxOutstandingMessages = maxParallelReceives

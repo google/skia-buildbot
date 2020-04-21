@@ -57,8 +57,8 @@ func TestDimensionsFromAndroidProperties_Success(t *testing.T) {
 		"device_os":           {"Q", "QQ2A.200305.002"},
 		"device_os_flavor":    {"google", "android"},
 		"device_os_type":      {"user"},
-		machine.DeviceTypeDim: {"sargo"},
-		machine.OSDim:         {"Android"},
+		machine.DimDeviceType: {"sargo"},
+		machine.DimOS:         {"Android"},
 	}
 	assert.Equal(t, expected, got)
 }
@@ -111,6 +111,9 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 		Android: machine.Android{
 			GetProp: props,
 		},
+		Host: machine.Host{
+			Name: "skia-rpi2-0001",
+		},
 	}
 
 	p := newProcessorForTest(t)
@@ -124,8 +127,9 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 		"device_os":           []string{"Q", "QQ2A.200305.002"},
 		"device_os_flavor":    []string{"google", "android"},
 		"device_os_type":      []string{"user"},
-		machine.DeviceTypeDim: []string{"sargo"},
-		machine.OSDim:         []string{"Android"},
+		machine.DimDeviceType: []string{"sargo"},
+		machine.DimOS:         []string{"Android"},
+		machine.DimID:         []string{"skia-rpi2-0001"},
 	}
 	assert.Equal(t, expected, next.Dimensions)
 	assert.Equal(t, machine.ModeAvailable, next.Mode)
@@ -142,8 +146,9 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 		"device_os":           []string{"Q", "QQ2A.200305.002"},
 		"device_os_flavor":    []string{"google", "android"},
 		"device_os_type":      []string{"user"},
-		machine.DeviceTypeDim: []string{"sargo"},
-		machine.OSDim:         []string{"Android"},
+		machine.DimDeviceType: []string{"sargo"},
+		machine.DimOS:         []string{"Android"},
+		machine.DimID:         []string{"skia-rpi2-0001"},
 	}
 
 	// An event arrives without any device info.
@@ -151,6 +156,9 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 		EventType: machine.EventTypeRawState,
 		Android: machine.Android{
 			GetProp: "",
+		},
+		Host: machine.Host{
+			Name: "skia-rpi2-0001",
 		},
 	}
 
@@ -162,7 +170,7 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 	// The dimensions should not change, except for the addition of the
 	// quarantine message, which tells swarming to quarantine this machine.
 	expected := previous.Dimensions
-	expected[machine.QuarantinedDim] = []string{"Device [\"sargo\"] has gone missing"}
+	expected[machine.DimQuarantined] = []string{"Device [\"sargo\"] has gone missing"}
 	assert.Equal(t, expected, next.Dimensions)
 	assert.Equal(t, machine.ModeAvailable, next.Mode)
 }
@@ -178,14 +186,18 @@ func TestProcess_QuarantineDevicesInMaintenanceMode(t *testing.T) {
 		"device_os":           []string{"Q", "QQ2A.200305.002"},
 		"device_os_flavor":    []string{"google", "android"},
 		"device_os_type":      []string{"user"},
-		machine.DeviceTypeDim: []string{"sargo"},
-		machine.OSDim:         []string{"Android"},
+		machine.DimDeviceType: []string{"sargo"},
+		machine.DimOS:         []string{"Android"},
+		machine.DimID:         []string{"skia-rpi2-0001"},
 	}
 	previous.Mode = machine.ModeMaintenance
 
 	// An event arrives without any device info.
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name: "skia-rpi2-0001",
+		},
 	}
 
 	p := newProcessorForTest(t)
@@ -196,7 +208,7 @@ func TestProcess_QuarantineDevicesInMaintenanceMode(t *testing.T) {
 	// The dimensions should not change, except for the addition of the
 	// quarantine message.
 	expected := previous.Dimensions
-	expected[machine.QuarantinedDim] = []string{"Device is quarantined for maintenance"}
+	expected[machine.DimQuarantined] = []string{"Device is quarantined for maintenance"}
 	assert.Equal(t, expected, next.Dimensions)
 	assert.Equal(t, machine.ModeMaintenance, next.Mode)
 }
@@ -212,9 +224,10 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		"device_os":            []string{"Q", "QQ2A.200305.002"},
 		"device_os_flavor":     []string{"google", "android"},
 		"device_os_type":       []string{"user"},
-		machine.DeviceTypeDim:  []string{"sargo"},
-		machine.OSDim:          []string{"Android"},
-		machine.QuarantinedDim: []string{"Device [\"sargo\"] has gone missing"},
+		machine.DimDeviceType:  []string{"sargo"},
+		machine.DimOS:          []string{"Android"},
+		machine.DimQuarantined: []string{"Device [\"sargo\"] has gone missing"},
+		machine.DimID:          []string{"skia-rpi2-0001"},
 	}
 
 	// An event arrives tith the device restored.
@@ -230,6 +243,9 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		Android: machine.Android{
 			GetProp: props,
 		},
+		Host: machine.Host{
+			Name: "skia-rpi2-0001",
+		},
 	}
 
 	p := newProcessorForTest(t)
@@ -243,8 +259,9 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		"device_os":           []string{"Q", "QQ2A.200305.002"},
 		"device_os_flavor":    []string{"google", "android"},
 		"device_os_type":      []string{"user"},
-		machine.DeviceTypeDim: []string{"sargo"},
-		machine.OSDim:         []string{"Android"},
+		machine.DimDeviceType: []string{"sargo"},
+		machine.DimOS:         []string{"Android"},
+		machine.DimID:         []string{"skia-rpi2-0001"},
 	}
 	assert.Equal(t, expected, next.Dimensions)
 }

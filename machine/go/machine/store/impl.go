@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machineserver/config"
+	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -35,6 +36,8 @@ type StoreImpl struct {
 	updateDataToErrorCounter    metrics2.Counter
 	watchReceiveSnapshotCounter metrics2.Counter
 	watchDataToErrorCounter     metrics2.Counter
+	listCounter                 metrics2.Counter
+	listIterFailureCounter      metrics2.Counter
 }
 
 // storeDescription is how machine.Description is mapped into firestore.
@@ -81,6 +84,8 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 		updateDataToErrorCounter:    metrics2.GetCounter("machine_store_update_datato_error"),
 		watchReceiveSnapshotCounter: metrics2.GetCounter("machine_store_watch_receive_snapshot"),
 		watchDataToErrorCounter:     metrics2.GetCounter("machine_store_watch_datato_error"),
+		listCounter:                 metrics2.GetCounter("machine_store_list"),
+		listIterFailureCounter:      metrics2.GetCounter("machine_store_list_iter_error"),
 	}, nil
 }
 
@@ -144,11 +149,38 @@ func (st *StoreImpl) Watch(ctx context.Context, machineID string) <-chan machine
 	return ch
 }
 
+// List implements the Store interface.
+func (st *StoreImpl) List(ctx context.Context) ([]machine.Description, error) {
+	st.listCounter.Inc(1)
+	ret := []machine.Description{}
+	iter := st.machinesCollection.Documents(ctx)
+	for {
+		snap, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			st.listIterFailureCounter.Inc(1)
+			return nil, skerr.Wrapf(err, "List failed to read description.")
+		}
+
+		var storeDescription storeDescription
+		if err := snap.DataTo(&storeDescription); err != nil {
+			st.listIterFailureCounter.Inc(1)
+			sklog.Errorf("Failed to read data from snapshot: %s", err)
+			continue
+		}
+		machineDescription := storeToMachineDescription(storeDescription)
+		ret = append(ret, machineDescription)
+	}
+	return ret, nil
+}
+
 func machineDescriptionToStoreDescription(m machine.Description) storeDescription {
 	return storeDescription{
-		OS:                 m.Dimensions[machine.OSDim],
-		DeviceType:         m.Dimensions[machine.DeviceTypeDim],
-		Quarantined:        m.Dimensions[machine.QuarantinedDim],
+		OS:                 m.Dimensions[machine.DimOS],
+		DeviceType:         m.Dimensions[machine.DimDeviceType],
+		Quarantined:        m.Dimensions[machine.DimQuarantined],
 		Mode:               m.Mode,
 		LastUpdated:        m.LastUpdated,
 		MachineDescription: m,
