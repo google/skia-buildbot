@@ -6,7 +6,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
+	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
@@ -14,147 +16,136 @@ import (
 
 	"cloud.google.com/go/datastore"
 	"github.com/gorilla/mux"
+	"github.com/unrolled/secure"
 
 	"go.skia.org/infra/android_compile/go/util"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/cleanup"
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 )
 
 const (
-	FORCE_SYNC_POST_URL = "/_/force_sync"
+	forceSyncPostUrl        = "/_/force_sync"
+	pendingTasksPostUrl     = "/_/pending_tasks"
+	compileInstancesPostUrl = "/_/compile_instances"
 )
 
 var (
 	// Flags
-	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	host         = flag.String("host", "localhost", "HTTP service host")
-	port         = flag.String("port", ":8000", "HTTP service port.")
-	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':20000')")
-	resourcesDir = flag.String("resources_dir", "", "The directory to find compile.sh and template files.  If blank then the directory two directories up from this source file will be used.")
+	host = flag.String("host", "skia-android-compile.corp.goog", "HTTP service host")
 
 	// Datastore params
 	namespace   = flag.String("namespace", "android-compile-staging", "The Cloud Datastore namespace, such as 'android-compile'.")
 	projectName = flag.String("project_name", "google.com:skia-corp", "The Google Cloud project name.")
 
-	// indexTemplate is the main index.html page we serve.
-	indexTemplate *template.Template = nil
-
 	serverURL string
 )
 
-func reloadTemplates() {
-	indexTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/index.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
+// Server is the state of the server.
+type Server struct {
+	templates *template.Template
+}
+
+func (srv *Server) loadTemplates() {
+	srv.templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
+		filepath.Join(*baseapp.ResourcesDir, "index.html"),
 	))
 }
 
-func loginHandler(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, login.LoginURL(w, r), http.StatusFound)
-	return
-}
-
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	if *local {
-		reloadTemplates()
-	}
+func (srv *Server) indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
-	if login.LoggedInAs(r) == "" {
-		http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
+	if err := srv.templates.ExecuteTemplate(w, "index.html", map[string]string{
+		// Look in webpack.config.js for where the nonce templates are injected.
+		"Nonce": secure.CSPNonce(r.Context()),
+	}); err != nil {
+		httputils.ReportError(w, err, "Failed to expand template", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (srv *Server) compileInstancesHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	compileInstances, err := util.GetAllCompileInstances(context.Background())
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to get android compile instances", http.StatusInternalServerError)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(compileInstances); err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode JSON: %v", err), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (srv *Server) pendingTasksHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 
 	unownedPendingTasks, ownedPendingTasks, err := util.GetPendingCompileTasks("" /* ownedByInstance */)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get unowned/owned compile tasks", http.StatusInternalServerError)
 		return
 	}
-	androidCompileInstances, err := util.GetAllCompileInstances(context.Background())
+
+	var pendingTasks = struct {
+		UnOwnedPendingTasks []*util.CompileTask `json:"unowned_pending_tasks"`
+		OwnedPendingTasks   []*util.CompileTask `json:"owned_pending_tasks"`
+	}{
+		UnOwnedPendingTasks: unownedPendingTasks,
+		OwnedPendingTasks:   ownedPendingTasks,
+	}
+
+	if err := json.NewEncoder(w).Encode(pendingTasks); err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode JSON: %v", err), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (srv *Server) forceSyncHandler(w http.ResponseWriter, r *http.Request) {
+	if err := util.SetForceMirrorUpdateOnAllInstances(context.Background()); err != nil {
+		httputils.ReportError(w, err, "Failed to set force mirror update on all instances", http.StatusInternalServerError)
+		return
+	}
+	sklog.Infof("Force sync button has been pressed by %s", login.LoggedInAs(r))
+
+	compileInstances, err := util.GetAllCompileInstances(context.Background())
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get android compile instances", http.StatusInternalServerError)
 		return
 	}
 
-	var info = struct {
-		AndroidCompileInstances []*util.AndroidCompileInstance
-		UnownedPendingTasks     []*util.CompileTask
-		OwnedPendingTasks       []*util.CompileTask
-	}{
-		AndroidCompileInstances: androidCompileInstances,
-		UnownedPendingTasks:     unownedPendingTasks,
-		OwnedPendingTasks:       ownedPendingTasks,
-	}
-
-	if err := indexTemplate.Execute(w, info); err != nil {
-		httputils.ReportError(w, err, "Failed to expand template", http.StatusInternalServerError)
+	if err := json.NewEncoder(w).Encode(compileInstances); err != nil {
+		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode JSON: %v", err), http.StatusInternalServerError)
 		return
 	}
 	return
 }
 
-func forceSyncHandler(w http.ResponseWriter, r *http.Request) {
-	if *local {
-		reloadTemplates()
-	}
-
-	if login.LoggedInAs(r) == "" {
-		http.Redirect(w, r, login.LoginURL(w, r), http.StatusSeeOther)
-		return
-	}
-
-	if err := util.SetForceMirrorUpdateOnAllInstances(context.Background()); err != nil {
-		httputils.ReportError(w, err, "Failed to set force mirror update on all instances", http.StatusInternalServerError)
-		return
-	}
-
-	sklog.Infof("Force sync button has been pressed by %s", login.LoggedInAs(r))
-	return
-}
-
-func runServer() {
-	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
-	r.HandleFunc("/", indexHandler)
-	r.HandleFunc(FORCE_SYNC_POST_URL, forceSyncHandler)
-
-	r.HandleFunc("/json/version", skiaversion.JsonHandler)
+// See baseapp.App.
+func (srv *Server) AddHandlers(r *mux.Router) {
+	// For login/logout.
 	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
-	r.HandleFunc("/login/", loginHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
-	h := httputils.LoggingGzipRequestResponse(r)
-	if !*local {
-		h = httputils.HealthzAndHTTPS(h)
-	}
-
-	http.Handle("/", h)
-	sklog.Infof("Ready to serve on %s", serverURL)
-	sklog.Fatal(http.ListenAndServe(*port, nil))
+	// The main page.
+	r.HandleFunc("/", srv.indexHandler).Methods("GET")
+	// POST handlers.
+	r.HandleFunc(forceSyncPostUrl, srv.forceSyncHandler).Methods("POST")
+	r.HandleFunc(pendingTasksPostUrl, srv.pendingTasksHandler).Methods("POST")
+	r.HandleFunc(compileInstancesPostUrl, srv.compileInstancesHandler).Methods("POST")
 }
 
-func main() {
-	flag.Parse()
-
-	common.InitWithMust("android_compile_fe", common.PrometheusOpt(promPort), common.MetricsLoggingOpt())
-	defer common.Defer()
-	skiaversion.MustLogVersion()
-
-	reloadTemplates()
-	serverURL = "https://" + *host
-	if *local {
-		serverURL = "http://" + *host + *port
-	}
-	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, allowed.Googlers(), allowed.Googlers(), nil)
+// See baseapp.Constructor
+func New() (baseapp.App, error) {
+	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, allowed.Googlers(), allowed.Googlers(), nil)
 
 	// Create token source.
-	ts, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_READ_WRITE, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore)
+	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, auth.SCOPE_READ_WRITE, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore)
 	if err != nil {
 		sklog.Fatalf("Problem setting up default token source: %s", err)
 	}
@@ -175,5 +166,21 @@ func main() {
 		}
 	}, nil)
 
-	runServer()
+	srv := &Server{}
+	srv.loadTemplates()
+
+	return srv, nil
+}
+
+// See baseapp.App.
+func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
+	ret := []mux.MiddlewareFunc{}
+	if !*baseapp.Local {
+		ret = append(ret, login.ForceAuthMiddleware(login.DEFAULT_REDIRECT_URL), login.RestrictViewer)
+	}
+	return ret
+}
+
+func main() {
+	baseapp.Serve(New, []string{*host})
 }
