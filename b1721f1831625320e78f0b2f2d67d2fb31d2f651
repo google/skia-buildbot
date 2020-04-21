@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "67d2108f_1d6e0b66",
+        "filename": "machine/go/machine/store/impl.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-21T18:40:04Z",
+      "side": 1,
+      "message": "I\u0027m a little confused, this creates a new iterator on every loop iteration, which I think will cause the code to just repeatedly see the current snapshot.  Did you mean to add an inner loop?  Either way, we should add a test for this case to ensure that it does the right thing.",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 121,
+        "endChar": 62
+      },
+      "revId": "b1721f1831625320e78f0b2f2d67d2fb31d2f651",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
