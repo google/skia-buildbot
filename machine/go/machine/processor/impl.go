@@ -12,12 +12,22 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/machine/go/machine"
+)
+
+const (
+	badBatteryLevel = -99
+
+	// minBatteryLevel is the minimum percentage that a battery needs to be
+	// charged before testing is allowed. Below this the device should be
+	// quarantined.
+	minBatteryLevel = 30
 )
 
 var (
@@ -28,6 +38,18 @@ var (
 	// [ro.product.model]: [Nexus 7]
 	// [ro.product.name]: [razor]
 	proplines = regexp.MustCompile(`(?m)^\[(?P<key>.+)\]:\s*\[(?P<value>.*)\].*$`)
+
+	// batteryLevel is a regex that matches the output of `adb shell dumpsys battery` and looks
+	// for the battery level which looks like:
+	//
+	//    level: 94
+	batteryLevel = regexp.MustCompile(`(?m)level:\s+(\d+)\n`)
+
+	// batteryScale is a regex that matches the output of `adb shell dumpsys battery` and looks
+	// for the battery scale which looks like:
+	//
+	//    scale: 100
+	batteryScale = regexp.MustCompile(`(?m)scale:\s+(\d+)\n`)
 )
 
 // ProcessorImpl implements the Processor interface.
@@ -52,13 +74,22 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		sklog.Errorf("Unknown event type: %q", event.EventType)
 		return previous
 	}
+	machineID := event.Host.Name
 	dimensions := dimensionsFromAndroidProperties(parseAndroidProperties(event.Android.GetProp))
-	dimensions[machine.DimID] = []string{event.Host.Name}
+	dimensions[machine.DimID] = []string{machineID}
 
 	// TODO(jcgregorio) Come up with a better test than this, maybe sent info
 	// from back in machine.Event?
 	if strings.HasPrefix(dimensions[machine.DimID][0], "skia-rpi2-") {
 		dimensions["inside_docker"] = []string{"1", "containerd"}
+	}
+
+	battery, ok := batteryFromAndroidDumpSys(event.Android.DumpsysBattery)
+	if ok {
+		if battery < minBatteryLevel {
+			dimensions[machine.DimQuarantined] = []string{fmt.Sprintf("Battery is too low: %d < %d (%%)", battery, minBatteryLevel)}
+		}
+		metrics2.GetInt64Metric("machine_processor_device_battery_charge", map[string]string{"machine": machineID}).Update(int64(battery))
 	}
 
 	// If this machine previously had a connected device and it's no longer
@@ -76,6 +107,7 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	}
 
 	ret := previous.Copy()
+	ret.Battery = battery
 	for k, values := range dimensions {
 		ret.Dimensions[k] = values
 	}
@@ -167,4 +199,29 @@ func dimensionsFromAndroidProperties(prop map[string]string) map[string][]string
 	}
 
 	return ret
+}
+
+// Return battery as an integer percentage, i.e. 50% charged returns 50.
+func batteryFromAndroidDumpSys(batteryDumpSys string) (int, bool) {
+	levelMatch := batteryLevel.FindStringSubmatch(batteryDumpSys)
+	if levelMatch == nil {
+		return badBatteryLevel, false
+	}
+	level, err := strconv.Atoi(levelMatch[1])
+	if err != nil {
+		return badBatteryLevel, false
+	}
+	scaleMatch := batteryScale.FindStringSubmatch(batteryDumpSys)
+	if scaleMatch == nil {
+		return badBatteryLevel, false
+	}
+	scale, err := strconv.Atoi(scaleMatch[1])
+	if err != nil {
+		return badBatteryLevel, false
+	}
+	if scale == 0 {
+		return badBatteryLevel, false
+	}
+	return (100 * level) / scale, true
+
 }
