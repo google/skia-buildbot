@@ -115,35 +115,38 @@ func (st *StoreImpl) Update(ctx context.Context, machineID string, txCallback Tx
 
 // Watch implements the Store interface.
 func (st *StoreImpl) Watch(ctx context.Context, machineID string) <-chan machine.Description {
-	iter := st.machinesCollection.Doc(machineID).Snapshots(ctx)
 	ch := make(chan machine.Description)
 	go func() {
 		for {
-			snap, err := iter.Next()
-			if err != nil {
-				if ctx.Err() == context.Canceled {
-					sklog.Warningf("Context canceled; closing channel: %s", err)
-				} else if st, ok := status.FromError(err); ok && st.Code() == codes.Canceled {
-					sklog.Warningf("Context canceled; closing channel: %s", err)
-				} else {
-					sklog.Errorf("iter returned error; closing channel: %s", err)
+			iter := st.machinesCollection.Doc(machineID).Snapshots(ctx)
+			for {
+				snap, err := iter.Next()
+				if err != nil {
+					if ctx.Err() == context.Canceled {
+						sklog.Warningf("Context canceled; closing channel: %s", err)
+					} else if st, ok := status.FromError(err); ok && st.Code() == codes.Canceled {
+						sklog.Warningf("Context canceled; closing channel: %s", err)
+					} else {
+						sklog.Errorf("machine store.Store: iter returned error; starting a new snapshot: %s", err)
+						break
+					}
+					iter.Stop()
+					close(ch)
+					return
 				}
-				iter.Stop()
-				close(ch)
-				return
+				if !snap.Exists() {
+					continue
+				}
+				var storeDescription storeDescription
+				if err := snap.DataTo(&storeDescription); err != nil {
+					sklog.Errorf("Failed to read data from snapshot: %s", err)
+					st.watchDataToErrorCounter.Inc(1)
+					continue
+				}
+				machineDescription := storeToMachineDescription(storeDescription)
+				st.watchReceiveSnapshotCounter.Inc(1)
+				ch <- machineDescription
 			}
-			if !snap.Exists() {
-				continue
-			}
-			var storeDescription storeDescription
-			if err := snap.DataTo(&storeDescription); err != nil {
-				sklog.Errorf("Failed to read data from snapshot: %s", err)
-				st.watchDataToErrorCounter.Inc(1)
-				continue
-			}
-			machineDescription := storeToMachineDescription(storeDescription)
-			st.watchReceiveSnapshotCounter.Inc(1)
-			ch <- machineDescription
 		}
 	}()
 	return ch
