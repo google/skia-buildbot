@@ -1,0 +1,464 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5b76c164_557b488c",
+        "filename": "sk8s/go/bot_config/adb/adb_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "Do you want to assert the error code is in the error message?",
+      "range": {
+        "startLine": 69,
+        "startChar": 8,
+        "endLine": 69,
+        "endChar": 15
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44e37212_1282e3f2",
+        "filename": "sk8s/go/bot_config/adb/adb_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "IIUC, this prevents go from printing junk related to tests passing, right? Might be worth a comment as a reminder (I had actually forgotten to do so with my tests, I\u0027ll send a CL that exits with code 0 in executil_test.go)",
+      "range": {
+        "startLine": 84,
+        "startChar": 1,
+        "endLine": 84,
+        "endChar": 11
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ba62cee_82443f8d",
+        "filename": "sk8s/go/bot_config/adb/adb_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "nit: RawDumpSysBattery",
+      "range": {
+        "startLine": 109,
+        "startChar": 48,
+        "endLine": 109,
+        "endChar": 58
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "99fcb75d_139f477d",
+        "filename": "sk8s/go/bot_config/adb/adb_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "nit: adb",
+      "range": {
+        "startLine": 139,
+        "startChar": 44,
+        "endLine": 139,
+        "endChar": 47
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3185871_fb5421c6",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 27,
+        "startChar": 57,
+        "endLine": 27,
+        "endChar": 61
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69a26d9b_d9609a4f",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "backend?",
+      "range": {
+        "startLine": 29,
+        "startChar": 27,
+        "endLine": 29,
+        "endChar": 37
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7784a20a_b7df5ce3",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 49,
+        "startChar": 19,
+        "endLine": 49,
+        "endChar": 30
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94063ee2_831cce49",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "Should we just return the error?",
+      "range": {
+        "startLine": 73,
+        "startChar": 3,
+        "endLine": 73,
+        "endChar": 32
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "02b25133_8395cb3c",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "Should this be a constant? Maybe something prefixed with SKIA_INFRA?",
+      "range": {
+        "startLine": 83,
+        "startChar": 41,
+        "endLine": 83,
+        "endChar": 53
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd5187c4_bffb7a16",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "Do we want to add the machineID as a tag to these metrics? Does that automatically get done somewhere?",
+      "range": {
+        "startLine": 84,
+        "startChar": 39,
+        "endLine": 84,
+        "endChar": 62
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdf5100e_3285b095",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "Do we want metrics to determine if certain devices are failing to send battery/thermal data regularly?",
+      "range": {
+        "startLine": 99,
+        "startChar": 8,
+        "endLine": 99,
+        "endChar": 13
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4a0e2b6_46aa9bec",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "Maybe add a comment indicating SetDimensions should only be called by tests",
+      "range": {
+        "startLine": 153,
+        "startChar": 58,
+        "endLine": 153,
+        "endChar": 66
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d2e9a7b_33f31740",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "If it\u0027s not too much effort, I would prefer this be SetDimensions and below to be Dimensions (or DimensionsToReport).",
+      "range": {
+        "startLine": 154,
+        "startChar": 18,
+        "endLine": 154,
+        "endChar": 25
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b07a8212_45846b80",
+        "filename": "sk8s/go/bot_config/machine/machine_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "TestStart_InterrogatesDeviceInitiallyAndOnTimer (or a comment outlining what all gets done in this test)",
+      "range": {
+        "startLine": 65,
+        "startChar": 5,
+        "endLine": 65,
+        "endChar": 14
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d042670_9e836e01",
+        "filename": "sk8s/go/bot_config/machine/machine_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "I think you would want require here - otherwise other tests may run with the wrong environment id set, which could confuse the set of failing tests.",
+      "range": {
+        "startLine": 81,
+        "startChar": 2,
+        "endLine": 81,
+        "endChar": 8
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d202252e_d8a40626",
+        "filename": "sk8s/go/bot_config/machine/machine_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "Add \"We expect the dimensions here to bubble down to the machine\".",
+      "range": {
+        "startLine": 89,
+        "startChar": 36,
+        "endLine": 89,
+        "endChar": 39
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba82f250_bb4cc0be",
+        "filename": "sk8s/go/bot_config/machine/machine_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "use the constants here",
+      "range": {
+        "startLine": 124,
+        "startChar": 27,
+        "endLine": 124,
+        "endChar": 62
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "be4dd4ab_55c329ae",
+        "filename": "sk8s/go/bot_config/machine/machine_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "TestStart_AdbFailsToTalkToDevice_EmptyEventsSentToServer",
+      "range": {
+        "startLine": 176,
+        "startChar": 5,
+        "endLine": 176,
+        "endChar": 37
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14db2097_15567572",
+        "filename": "sk8s/go/bot_config/server/server.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "machine would probably be a bit more readable",
+      "range": {
+        "startLine": 25,
+        "startChar": 1,
+        "endLine": 25,
+        "endChar": 2
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7b432e67_2b5471e1",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T13:34:04Z",
+      "side": 1,
+      "message": "Driveby comment: should we prefix this with SKIA_INFRA or something similar? I would like to avoid the unlikely collision with actual swarming environment vars.",
+      "range": {
+        "startLine": 44,
+        "startChar": 24,
+        "endLine": 44,
+        "endChar": 39
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
