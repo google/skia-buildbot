@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "dd9dea05_960de091",
+        "filename": "sk8s/go/bot_config/adb/adb_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "There is no error here, this is abd returning success with no output.",
+      "parentUuid": "5b76c164_557b488c",
+      "range": {
+        "startLine": 69,
+        "startChar": 8,
+        "endLine": 69,
+        "endChar": 15
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "44e37212_1282e3f2",
         "filename": "sk8s/go/bot_config/adb/adb_test.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60fff540_d9c29c9f",
+        "filename": "sk8s/go/bot_config/adb/adb_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "44e37212_1282e3f2",
+      "range": {
+        "startLine": 84,
+        "startChar": 1,
+        "endLine": 84,
+        "endChar": 11
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "413ea63f_83271933",
+        "filename": "sk8s/go/bot_config/adb/adb_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0ba62cee_82443f8d",
+      "range": {
+        "startLine": 109,
+        "startChar": 48,
+        "endLine": 109,
+        "endChar": 58
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "99fcb75d_139f477d",
         "filename": "sk8s/go/bot_config/adb/adb_test.go",
         "patchSetId": 2
@@ -91,6 +163,30 @@
       "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6dcb486e_11e2039e",
+        "filename": "sk8s/go/bot_config/adb/adb_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "99fcb75d_139f477d",
+      "range": {
+        "startLine": 139,
+        "startChar": 44,
+        "endLine": 139,
+        "endChar": 47
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "6705f8fc_ea523e1d",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a3185871_fb5421c6",
+      "range": {
+        "startLine": 27,
+        "startChar": 57,
+        "endLine": 27,
+        "endChar": 61
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "69a26d9b_d9609a4f",
         "filename": "sk8s/go/bot_config/machine/machine.go",
         "patchSetId": 2
@@ -137,6 +257,30 @@
       "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7c49265_1a2cde32",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "69a26d9b_d9609a4f",
+      "range": {
+        "startLine": 29,
+        "startChar": 27,
+        "endLine": 29,
+        "endChar": 37
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "2fa00aa0_1c89d1fe",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7784a20a_b7df5ce3",
+      "range": {
+        "startLine": 49,
+        "startChar": 19,
+        "endLine": 49,
+        "endChar": 30
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "94063ee2_831cce49",
         "filename": "sk8s/go/bot_config/machine/machine.go",
         "patchSetId": 2
@@ -183,6 +351,30 @@
       "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14dcfa82_ab88297f",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "94063ee2_831cce49",
+      "range": {
+        "startLine": 73,
+        "startChar": 3,
+        "endLine": 73,
+        "endChar": 32
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "569dea17_66b8e3e5",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "I\u0027m not even sure I\u0027m keeping MY_RACK_NAME around. Added TODO.",
+      "parentUuid": "02b25133_8395cb3c",
+      "range": {
+        "startLine": 83,
+        "startChar": 41,
+        "endLine": 83,
+        "endChar": 53
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fd5187c4_bffb7a16",
         "filename": "sk8s/go/bot_config/machine/machine.go",
         "patchSetId": 2
@@ -229,6 +445,30 @@
       "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79cc5a0a_dfeed525",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Done, here and all other files in bot_config.",
+      "parentUuid": "fd5187c4_bffb7a16",
+      "range": {
+        "startLine": 84,
+        "startChar": 39,
+        "endLine": 84,
+        "endChar": 62
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "fadf6bf5_812ca89b",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "We can gather that on the machine state server, not here in bot_config.",
+      "parentUuid": "bdf5100e_3285b095",
+      "range": {
+        "startLine": 99,
+        "startChar": 8,
+        "endLine": 99,
+        "endChar": 13
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a4a0e2b6_46aa9bec",
         "filename": "sk8s/go/bot_config/machine/machine.go",
         "patchSetId": 2
@@ -275,6 +539,30 @@
       "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ab8bc06c_bc4aae31",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a4a0e2b6_46aa9bec",
+      "range": {
+        "startLine": 153,
+        "startChar": 58,
+        "endLine": 153,
+        "endChar": 66
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "45bcc8d5_bb8be34b",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Added TODO since the rename would split across another CL I have out for review.",
+      "parentUuid": "9d2e9a7b_33f31740",
+      "range": {
+        "startLine": 154,
+        "startChar": 18,
+        "endLine": 154,
+        "endChar": 25
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b07a8212_45846b80",
         "filename": "sk8s/go/bot_config/machine/machine_test.go",
         "patchSetId": 2
@@ -321,6 +633,30 @@
       "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa9a5512_8b8a1527",
+        "filename": "sk8s/go/bot_config/machine/machine_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b07a8212_45846b80",
+      "range": {
+        "startLine": 65,
+        "startChar": 5,
+        "endLine": 65,
+        "endChar": 14
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -347,6 +683,30 @@
     },
     {
       "key": {
+        "uuid": "e7f116d1_b66d2fd3",
+        "filename": "sk8s/go/bot_config/machine/machine_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6d042670_9e836e01",
+      "range": {
+        "startLine": 81,
+        "startChar": 2,
+        "endLine": 81,
+        "endChar": 8
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d202252e_d8a40626",
         "filename": "sk8s/go/bot_config/machine/machine_test.go",
         "patchSetId": 2
@@ -367,6 +727,30 @@
       "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "117fe77f_92c73b61",
+        "filename": "sk8s/go/bot_config/machine/machine_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d202252e_d8a40626",
+      "range": {
+        "startLine": 89,
+        "startChar": 36,
+        "endLine": 89,
+        "endChar": 39
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -393,6 +777,30 @@
     },
     {
       "key": {
+        "uuid": "f04e2ebf_3ce07f3b",
+        "filename": "sk8s/go/bot_config/machine/machine_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba82f250_bb4cc0be",
+      "range": {
+        "startLine": 124,
+        "startChar": 27,
+        "endLine": 124,
+        "endChar": 62
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "be4dd4ab_55c329ae",
         "filename": "sk8s/go/bot_config/machine/machine_test.go",
         "patchSetId": 2
@@ -413,6 +821,30 @@
       "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3501e751_41e3d928",
+        "filename": "sk8s/go/bot_config/machine/machine_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "be4dd4ab_55c329ae",
+      "range": {
+        "startLine": 176,
+        "startChar": 5,
+        "endLine": 176,
+        "endChar": 37
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -439,6 +871,30 @@
     },
     {
       "key": {
+        "uuid": "3578b79e_966a7561",
+        "filename": "sk8s/go/bot_config/server/server.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "14db2097_15567572",
+      "range": {
+        "startLine": 25,
+        "startChar": 1,
+        "endLine": 25,
+        "endChar": 2
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7b432e67_2b5471e1",
         "filename": "sk8s/go/bot_config/swarming/swarming.go",
         "patchSetId": 2
@@ -459,6 +915,30 @@
       "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ae869ac_bc58901f",
+        "filename": "sk8s/go/bot_config/swarming/swarming.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T14:46:29Z",
+      "side": 1,
+      "message": "We want the actual swarming environment variable. Added comment.",
+      "parentUuid": "7b432e67_2b5471e1",
+      "range": {
+        "startLine": 44,
+        "startChar": 24,
+        "endLine": 44,
+        "endChar": 39
+      },
+      "revId": "b05d59a8d5b0e88d646531c1fa2e57142393f94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
