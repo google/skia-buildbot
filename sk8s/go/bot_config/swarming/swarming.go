@@ -34,6 +34,7 @@ type Bot struct {
 	pythonExeFilename      string
 	metadataURL            string
 	swarmingURL            string
+	swarmingBotID          string
 }
 
 const (
@@ -41,7 +42,9 @@ const (
 	internalSwarmingServer = "https://chrome-swarming.appspot.com"
 	debugSwarmingServer    = "https://chromium-swarm-dev.appspot.com"
 
-	swarmingBotIDEnvVar = "SWARMING_BOT_ID"
+	// SwarmingBotIDEnvVar is the swarming bot id environment variable name. See
+	// https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/doc/Magic-Values.md#task-runtime-environment-variables
+	SwarmingBotIDEnvVar = "SWARMING_BOT_ID"
 )
 
 // New creates a new *Bot instance.
@@ -49,9 +52,9 @@ const (
 // The pythonExe and swarmingBotZip values must be absolute paths.
 func New(pythonExeFilename, swarmingBotZipFilename, metadataURL string) (*Bot, error) {
 	// Figure out where we should be downloading the Python code from.
-	host := os.Getenv(swarmingBotIDEnvVar)
+	host := os.Getenv(SwarmingBotIDEnvVar)
 	if host == "" {
-		return nil, skerr.Fmt("Env variable %q must be set.", swarmingBotIDEnvVar)
+		return nil, skerr.Fmt("Env variable %q must be set.", SwarmingBotIDEnvVar)
 	}
 	swarmingURL := defaultSwarmingServer
 	if strings.HasPrefix(host, "skia-i-") {
@@ -68,6 +71,7 @@ func New(pythonExeFilename, swarmingBotZipFilename, metadataURL string) (*Bot, e
 		pythonExeFilename:      pythonExeFilename,
 		swarmingURL:            swarmingURL,
 		metadataURL:            metadataURL,
+		swarmingBotID:          host,
 	}, nil
 }
 
@@ -178,7 +182,7 @@ func (b *Bot) runSwarmingCommand(ctx context.Context) error {
 // bootstrap process to download the swarming bot code fails or if the context
 // is cancelled.
 func (b *Bot) Launch(ctx context.Context) error {
-	liveness := metrics2.NewLiveness("bot_config_swarming_sub_process")
+	liveness := metrics2.NewLiveness("bot_config_swarming_sub_process", map[string]string{"machine": b.swarmingBotID})
 	if _, err := os.Stat(b.swarmingBotZipFilename); os.IsNotExist(err) {
 		if err := b.bootstrap(ctx); err != nil {
 			return skerr.Wrapf(err, "Bootstrap failed.")

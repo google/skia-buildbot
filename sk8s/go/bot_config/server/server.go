@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/sk8s/go/bot_config/adb"
+	"go.skia.org/infra/sk8s/go/bot_config/machine"
 )
 
 const (
@@ -21,8 +21,8 @@ const (
 
 // Server is the core functionality of bot_config.
 type Server struct {
-	r *mux.Router
-	a adb.Adb
+	r       *mux.Router
+	machine *machine.Machine
 
 	getStateRequests             metrics2.Counter
 	getStateRequestsSuccess      metrics2.Counter
@@ -33,18 +33,18 @@ type Server struct {
 }
 
 // New returns a new instance of Server.
-func New() (*Server, error) {
+func New(m *machine.Machine) (*Server, error) {
 	r := mux.NewRouter()
 	ret := &Server{
-		r: r,
-		a: adb.New(),
+		r:       r,
+		machine: m,
 
-		getStateRequests:             metrics2.GetCounter("bot_config_server_get_state_requests"),
-		getStateRequestsSuccess:      metrics2.GetCounter("bot_config_server_get_state_requests_success"),
-		getSettingsRequests:          metrics2.GetCounter("bot_config_server_get_settings_requests"),
-		getSettingsRequestsSuccess:   metrics2.GetCounter("bot_config_server_get_settings_requests_success"),
-		getDimensionsRequests:        metrics2.GetCounter("bot_config_server_get_dimensions_requests"),
-		getDimensionsRequestsSuccess: metrics2.GetCounter("bot_config_server_get_dimensions_requests_success"),
+		getStateRequests:             metrics2.GetCounter("bot_config_server_get_state_requests", map[string]string{"machine": m.MachineID}),
+		getStateRequestsSuccess:      metrics2.GetCounter("bot_config_server_get_state_requests_success", map[string]string{"machine": m.MachineID}),
+		getSettingsRequests:          metrics2.GetCounter("bot_config_server_get_settings_requests", map[string]string{"machine": m.MachineID}),
+		getSettingsRequestsSuccess:   metrics2.GetCounter("bot_config_server_get_settings_requests_success", map[string]string{"machine": m.MachineID}),
+		getDimensionsRequests:        metrics2.GetCounter("bot_config_server_get_dimensions_requests", map[string]string{"machine": m.MachineID}),
+		getDimensionsRequestsSuccess: metrics2.GetCounter("bot_config_server_get_dimensions_requests_success", map[string]string{"machine": m.MachineID}),
 	}
 
 	r.HandleFunc("/get_state", ret.getState).Methods("POST")
@@ -137,16 +137,8 @@ func (s *Server) getDimensions(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON input.", http.StatusInternalServerError)
 		return
 	}
-	dim["zone"] = []string{"us", "us-skolo", "us-skolo-1"} // TODO(jcgregorio) Add rack number in here?
-	dim["inside_docker"] = []string{"1", "containerd"}
-
-	if updatedDim, err := s.a.DimensionsFromProperties(r.Context(), dim); err != nil {
-		sklog.Errorf("Failed getting dimensions from properties: %s", err)
-		// Don't return here, this just means we don't see a device attached.
-		// This will eventually be wired up to Machine State server which will
-		// handle the case of a device going missing.
-	} else {
-		dim = updatedDim
+	for key, values := range s.machine.Dims() {
+		dim[key] = values
 	}
 	if err := json.NewEncoder(w).Encode(dim); err != nil {
 		sklog.Errorf("Failed to encode JSON output: %s", err)
