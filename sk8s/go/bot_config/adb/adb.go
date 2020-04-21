@@ -5,12 +5,14 @@ import (
 	"context"
 	"os/exec"
 	"regexp"
-	"sort"
-	"strings"
 	"time"
 
+	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/util"
+)
+
+const (
+	commandTimeout = 5 * time.Second
 )
 
 var (
@@ -21,9 +23,6 @@ var (
 	// [ro.product.model]: [Nexus 7]
 	// [ro.product.name]: [razor]
 	proplines = regexp.MustCompile(`(?m)^\[(?P<key>.+)\]:\s*\[(?P<value>.*)\].*$`)
-
-	// execCommandContext captures exec.CommandContext, which makes testing easier.
-	execCommandContext = exec.CommandContext
 )
 
 // AdbImpl handles talking to the adb process.
@@ -36,105 +35,43 @@ func New() AdbImpl {
 
 // Adb is the interface that AdbImpl provides.
 type Adb interface {
+	// RawProperties returns the unfiltered output of running "adb shell getprop".
+	RawProperties(ctx context.Context) (string, error)
 
-	// Properties returns a map[string]string from running "adb shell getprop".
-	Properties(ctx context.Context) (map[string]string, error)
-
-	// DimensionsFromProperties mirrors android.py get_dimensions, adding new
-	// properties to the passed in 'dim' based on the values it receives from
-	// calling Properties.
-	//
-	// https://cs.chromium.org/chromium/infra/luci/appengine/swarming/swarming_bot/api/platforms/android.py?l=137
-	DimensionsFromProperties(ctx context.Context, dim map[string][]string) (map[string][]string, error)
+	// RawDumpSys returns the unfiltered output of running "adb shell dumpsys <service>".
+	RawDumpSys(ctx context.Context, service string) (string, error)
 }
 
-// Properties implements the Adb interface.
-func (a AdbImpl) Properties(ctx context.Context) (map[string]string, error) {
-	ret := map[string]string{}
-
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+// RawProperties implements the Adb interface.
+func (a AdbImpl) RawProperties(ctx context.Context) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, commandTimeout)
 	defer cancel()
-	// Note we use execCommandContext, not exec.CommandContext.
-	cmd := execCommandContext(ctx, "adb", "shell", "getprop")
+	cmd := executil.CommandContext(ctx, "adb", "shell", "getprop")
 
-	b, err := cmd.CombinedOutput()
+	b, err := cmd.Output()
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Err: %q", string(b))
+		if ee, ok := err.(*exec.ExitError); ok {
+			err = skerr.Wrapf(err, "adb failed with stderr: %q", ee.Stderr)
+		}
+		return "", err
 	}
-
-	matches := proplines.FindAllStringSubmatch(string(b), -1)
-	for _, line := range matches {
-		ret[line[1]] = line[2]
-	}
-
-	return ret, nil
+	return string(b), nil
 }
 
-var (
-	// dimensionProperties maps a dimension and its value is the list of all
-	// possible device properties that can define that dimension. The
-	// product.device should be read (and listed) first, that is, before
-	// build.product because the latter is deprecated.
-	// https://android.googlesource.com/platform/build/+/master/tools/buildinfo.sh
-	dimensionProperties = map[string][]string{
-		"device_os":        {"ro.build.id"},
-		"device_os_flavor": {"ro.product.brand", "ro.product.system.brand"},
-		"device_os_type":   {"ro.build.type"},
-		"device_type":      {"ro.product.device", "ro.build.product", "ro.product.board"},
-	}
-)
+// RawDumpSys implements the Adb interface.
+func (a AdbImpl) RawDumpSys(ctx context.Context, service string) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, commandTimeout)
+	defer cancel()
+	cmd := executil.CommandContext(ctx, "adb", "shell", "dumpsys", service)
 
-// DimensionsFromProperties implements the Adb interface.
-func (a AdbImpl) DimensionsFromProperties(ctx context.Context, dim map[string][]string) (map[string][]string, error) {
-	prop, err := a.Properties(ctx)
+	b, err := cmd.Output()
 	if err != nil {
-		return dim, skerr.Wrapf(err, "Failed to get properties.")
-	}
-	for dimName, propNames := range dimensionProperties {
-		for _, propName := range propNames {
-			if value, ok := prop[propName]; ok {
-				arr, ok := dim[dimName]
-				if util.In(value, arr) {
-					continue
-				}
-				if ok {
-					arr = append(arr, value)
-				} else {
-					arr = []string{value}
-				}
-				dim[dimName] = arr
-			}
+		if ee, ok := err.(*exec.ExitError); ok {
+			err = skerr.Wrapf(err, "adb failed with stderr: %q", ee.Stderr)
 		}
+		return "", err
 	}
-
-	// Add the first character of each device_os to the dimension.
-	osList := append([]string{}, dim["device_os"]...)
-	for _, os := range dim["device_os"] {
-		if os[:1] != "" && strings.ToUpper(os[:1]) == os[:1] {
-			osList = append(osList, os[:1])
-		}
-	}
-	sort.Strings(osList)
-	if len(osList) > 0 {
-		dim["device_os"] = osList
-	}
-
-	// Tweaks the 'product.brand' prop to be a little more readable.
-	flavors := dim["device_os_flavor"]
-	for i, flavor := range flavors {
-		flavors[i] = strings.ToLower(flavor)
-		if flavors[i] == "aosp" {
-			flavors[i] = "android"
-		}
-	}
-	if len(flavors) > 0 {
-		dim["device_os_flavor"] = flavors
-	}
-
-	dim["android_devices"] = []string{"1"}
-	dim["os"] = []string{"Android"}
-
-	return dim, nil
+	return string(b), nil
 }
 
 // Assert that AdbImpl implements the Adb interface.

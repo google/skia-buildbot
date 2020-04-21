@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Machine State</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+    <table>
+      <tr>
+        <th>Machine</th>
+        <th>Mode</th>
+        <th>Quarantined</th>
+        <th>Last Updated</th>
+      </tr>
+      {{ range . }}
+      <tr>
+        <td>{{.Dimensions.id}}</td>
+        <td>{{.Mode}}</td>
+        <td>{{.Dimensions.quarantined}}</td>
+        <td>{{.LastUpdated}}</td>
+      </tr>
+      {{ end }}
+    </table>
+  </body>
+</html>

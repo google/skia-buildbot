@@ -1,0 +1,42 @@
+Current Battery Service state:
+  AC powered: false
+  USB powered: false
+  Wireless powered: false
+  Max charging current: 0
+  Max charging voltage: 0
+  Charge counter: 3252480
+  status: 3
+  health: 9
+  present: true
+  level: 89
+  scale: 100
+  voltage: 4210
+  temperature: 244
+  technology: Li-ion
+  batteryMiscEvent: 65536
+  batteryCurrentEvent: 536870912
+  mSecPlugTypeSummary: 0
+  LED Charging: true
+  LED Low Battery: true
+  current now: -73
+  charge counter: 3252480
+  Adaptive Fast Charging Settings: false
+  Super Fast Charging Settings: true
+USE_FAKE_BATTERY: false
+FEATURE_WIRELESS_FAST_CHARGER_CONTROL: true
+  mWasUsedWirelessFastChargerPreviously: false
+  mWirelessFastChargingSettingsEnable: true
+LLB CAL: 20200131
+LLB MAN: 
+LLB CURRENT: YEAR2020M4D18
+LLB DIFF: 10
+FEATURE_HICCUP_CONTROL: true
+FEATURE_SUPPORTED_DAILY_BOARD: false
+SEC_FEATURE_USE_WIRELESS_POWER_SHARING: true
+BatteryInfoBackUp
+  mSavedBatteryAsoc: 99
+  mSavedBatteryMaxTemp: 527
+  mSavedBatteryMaxCurrent: 3110
+  mSavedBatteryUsage: 25
+  FEATURE_SAVE_BATTERY_CYCLE: true
+  SEC_FEATURE_PREVENT_SWELLING: false
