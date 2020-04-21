@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a3e2ec0_d1d6a282",
+        "filename": "machine/go/machine/sink/sink.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T12:20:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2158ff93_6de773e2",
+      "range": {
+        "startLine": 1,
+        "startChar": 47,
+        "endLine": 1,
+        "endChar": 57
+      },
+      "revId": "6397513de96a05e96104b01a02526df4cfaa2bc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "920d8fff_88e71539",
         "filename": "machine/go/machine/sink/sink.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "6397513de96a05e96104b01a02526df4cfaa2bc6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84d9bd42_a22fbf87",
+        "filename": "machine/go/machine/sink/sink.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T12:20:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "920d8fff_88e71539",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 43
+      },
+      "revId": "6397513de96a05e96104b01a02526df4cfaa2bc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

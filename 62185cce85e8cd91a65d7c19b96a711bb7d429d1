@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8302333c_e9b64cd9",
+        "filename": "machine/go/machine/sink/impl_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T12:20:26Z",
+      "side": 1,
+      "message": "\u003e Does it make sense to defer cancel() here?\n\nNo, because then sub.Receive would never return.",
+      "parentUuid": "227303b1_098bd87f",
+      "range": {
+        "startLine": 84,
+        "startChar": 17,
+        "endLine": 84,
+        "endChar": 23
+      },
+      "revId": "62185cce85e8cd91a65d7c19b96a711bb7d429d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fefd3e1f_f7568358",
         "filename": "machine/go/machine/sink/impl_test.go",
         "patchSetId": 2
@@ -39,6 +63,24 @@
       "revId": "62185cce85e8cd91a65d7c19b96a711bb7d429d1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4cb9eef_e39f237d",
+        "filename": "machine/go/machine/sink/impl_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T12:20:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fefd3e1f_f7568358",
+      "revId": "62185cce85e8cd91a65d7c19b96a711bb7d429d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
