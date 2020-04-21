@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "cc056989_c5130967",
+        "filename": "gold-client/go/imgmatching/sobel/sobel.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-21T18:25:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7098ca66_e761037b",
+      "range": {
+        "startLine": 41,
+        "startChar": 1,
+        "endLine": 41,
+        "endChar": 7
+      },
+      "revId": "0b832f19312cea1868c1ca889df3c38d5108eadd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c5421419_49653bc2",
         "filename": "gold-client/go/imgmatching/sobel/sobel_test.go",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "255b49e8_d6e61bd1",
+        "filename": "gold-client/go/imgmatching/sobel/sobel_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 698,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-21T18:25:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c5421419_49653bc2",
+      "range": {
+        "startLine": 698,
+        "startChar": 27,
+        "endLine": 698,
+        "endChar": 55
+      },
+      "revId": "0b832f19312cea1868c1ca889df3c38d5108eadd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "07ee4926_0b4ea370",
         "filename": "gold-client/go/imgmatching/sobel/sobel_test.go",
         "patchSetId": 1
@@ -68,6 +116,30 @@
       "revId": "0b832f19312cea1868c1ca889df3c38d5108eadd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "515455dc_68029b56",
+        "filename": "gold-client/go/imgmatching/sobel/sobel_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 704,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-21T18:25:38Z",
+      "side": 1,
+      "message": "\u003e Should probably mention what msg does.\n\nDone.\n\n\u003e bikeshed: label instead of msg?\n\nI prefer to stick with msg as that is the word used by assert.Equal:\n\n  func Equal(t TestingT, expected interface{}, actual interface{}, msgAndArgs ...interface{}) bool",
+      "parentUuid": "07ee4926_0b4ea370",
+      "range": {
+        "startLine": 704,
+        "startChar": 68,
+        "endLine": 704,
+        "endChar": 73
+      },
+      "revId": "0b832f19312cea1868c1ca889df3c38d5108eadd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
