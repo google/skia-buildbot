@@ -83,6 +83,7 @@ func TestSink(t *testing.T) {
 	called := false
 	cancellableCtx, cancel := context.WithCancel(ctx)
 	err = sub.Receive(cancellableCtx, func(ctx context.Context, m *pubsub.Message) {
+		// cancel so sub.Receive returns.
 		cancel()
 		called = true
 		m.Ack()

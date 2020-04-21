@@ -8,12 +8,11 @@ import "time"
 type SwarmingDimensions map[string][]string
 
 // Well known swarming dimensions.
-//
-// TODO(jcgregorio) Change from *Dim to Dim*.
 const (
-	OSDim          = "os"
-	QuarantinedDim = "quarantined"
-	DeviceTypeDim  = "device_type"
+	DimID          = "id"
+	DimOS          = "os"
+	DimQuarantined = "quarantined"
+	DimDeviceType  = "device_type"
 )
 
 // Mode is the mode we want the machine to be in. Note that this is the desired
