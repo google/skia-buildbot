@@ -53,6 +53,7 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		return previous
 	}
 	dimensions := dimensionsFromAndroidProperties(parseAndroidProperties(event.Android.GetProp))
+	dimensions["id"] = []string{event.Host.Name}
 
 	// If this machine previously had a connected device and it's no longer
 	// present then quarantine the machine.

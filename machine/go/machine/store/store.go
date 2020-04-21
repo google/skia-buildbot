@@ -25,4 +25,7 @@ type Store interface {
 	// Watch returns a channel that will produce a machine.Description every time
 	// the description for machineID changes.
 	Watch(ctx context.Context, machineID string) <-chan machine.Description
+
+	// List returns a slice containing all known machines.
+	List(ctx context.Context) ([]machine.Description, error)
 }

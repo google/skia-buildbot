@@ -111,6 +111,9 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 		Android: machine.Android{
 			GetProp: props,
 		},
+		Host: machine.Host{
+			Name: "skia-rpi2-0001",
+		},
 	}
 
 	p := newProcessorForTest(t)
@@ -126,6 +129,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 		"device_os_type":      []string{"user"},
 		machine.DeviceTypeDim: []string{"sargo"},
 		machine.OSDim:         []string{"Android"},
+		"id":                  []string{"skia-rpi2-0001"},
 	}
 	assert.Equal(t, expected, next.Dimensions)
 	assert.Equal(t, machine.ModeAvailable, next.Mode)
@@ -144,6 +148,7 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 		"device_os_type":      []string{"user"},
 		machine.DeviceTypeDim: []string{"sargo"},
 		machine.OSDim:         []string{"Android"},
+		"id":                  []string{"skia-rpi2-0001"},
 	}
 
 	// An event arrives without any device info.
@@ -151,6 +156,9 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 		EventType: machine.EventTypeRawState,
 		Android: machine.Android{
 			GetProp: "",
+		},
+		Host: machine.Host{
+			Name: "skia-rpi2-0001",
 		},
 	}
 
@@ -180,12 +188,16 @@ func TestProcess_QuarantineDevicesInMaintenanceMode(t *testing.T) {
 		"device_os_type":      []string{"user"},
 		machine.DeviceTypeDim: []string{"sargo"},
 		machine.OSDim:         []string{"Android"},
+		"id":                  []string{"skia-rpi2-0001"},
 	}
 	previous.Mode = machine.ModeMaintenance
 
 	// An event arrives without any device info.
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name: "skia-rpi2-0001",
+		},
 	}
 
 	p := newProcessorForTest(t)
@@ -215,6 +227,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		machine.DeviceTypeDim:  []string{"sargo"},
 		machine.OSDim:          []string{"Android"},
 		machine.QuarantinedDim: []string{"Device [\"sargo\"] has gone missing"},
+		"id":                   []string{"skia-rpi2-0001"},
 	}
 
 	// An event arrives tith the device restored.
@@ -229,6 +242,9 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		EventType: machine.EventTypeRawState,
 		Android: machine.Android{
 			GetProp: props,
+		},
+		Host: machine.Host{
+			Name: "skia-rpi2-0001",
 		},
 	}
 
@@ -245,6 +261,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		"device_os_type":      []string{"user"},
 		machine.DeviceTypeDim: []string{"sargo"},
 		machine.OSDim:         []string{"Android"},
+		"id":                  []string{"skia-rpi2-0001"},
 	}
 	assert.Equal(t, expected, next.Dimensions)
 }
