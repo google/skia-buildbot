@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "227303b1_098bd87f",
+        "filename": "machine/go/machine/sink/impl_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T12:00:50Z",
+      "side": 1,
+      "message": "Does it make sense to defer cancel() here? I don\u0027t think it\u0027s strictly necessary (since Receive returns).  Would it be better to maybe have context.WithTimeout? That way if Receive doesn\u0027t work right, the test doesn\u0027t hang? (WithTimeout also returns a cancel)",
+      "range": {
+        "startLine": 84,
+        "startChar": 17,
+        "endLine": 84,
+        "endChar": 23
+      },
+      "revId": "62185cce85e8cd91a65d7c19b96a711bb7d429d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fefd3e1f_f7568358",
+        "filename": "machine/go/machine/sink/impl_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T12:00:50Z",
+      "side": 1,
+      "message": "nit: add comment why we cancel the context upon recieve.",
+      "revId": "62185cce85e8cd91a65d7c19b96a711bb7d429d1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
