@@ -35,20 +35,25 @@ type Matcher struct {
 
 	// If set, fuzzyMatcherForTesting will be used instead of the embedded fuzzy.Matcher.
 	fuzzyMatcherForTesting testMatcher
+
+	// Debug information about the last pair of matched images.
+	sobelOutput                   *image.Gray
+	expectedImageWithEdgesRemoved image.Image
+	actualImageWithEdgesRemoved   image.Image
 }
 
 // Match implements the imgmatching.Matcher interface.
 func (m *Matcher) Match(expected, actual image.Image) bool {
 	// Extract edges from the expected image.
-	edges := sobel(imageToGray(expected))
+	m.sobelOutput = sobel(imageToGray(expected))
 
 	// Zero-out edges on *both* the expected and actual images, using the edges from the former in
 	// both cases.
 	//
 	// Note that the [0, 255] value range for EdgeThreshold is enforced by the
 	// imgmatching.MakeMatcher() factory function, so it's safe to cast to uint8.
-	expectedNoEdges := zeroOutEdges(expected, edges, uint8(m.EdgeThreshold))
-	actualNoEdges := zeroOutEdges(actual, edges, uint8(m.EdgeThreshold))
+	m.expectedImageWithEdgesRemoved = zeroOutEdges(expected, m.sobelOutput, uint8(m.EdgeThreshold))
+	m.actualImageWithEdgesRemoved = zeroOutEdges(actual, m.sobelOutput, uint8(m.EdgeThreshold))
 
 	// Determine whether to use the embedded fuzzy.Matcher or the fuzzyMatcherForTesting.
 	fuzzyMatcher := m.fuzzyMatcherForTesting
@@ -57,8 +62,20 @@ func (m *Matcher) Match(expected, actual image.Image) bool {
 	}
 
 	// Delegate to the fuzzy matcher.
-	return fuzzyMatcher.Match(expectedNoEdges, actualNoEdges)
+	return fuzzyMatcher.Match(m.expectedImageWithEdgesRemoved, m.actualImageWithEdgesRemoved)
 }
+
+// SobelOutput returns an image with the output of applying the Sobel operator to the expected
+// image from the last Match method call.
+func (m *Matcher) SobelOutput() image.Image { return m.sobelOutput }
+
+// ExpectedImageWithEdgesRemoved returns the left image from the last Match method call with its edges
+// removed.
+func (m *Matcher) ExpectedImageWithEdgesRemoved() image.Image { return m.expectedImageWithEdgesRemoved }
+
+// ActualImageWithEdgesRemoved returns the right image from the last Match method call with its edges
+// removed.
+func (m *Matcher) ActualImageWithEdgesRemoved() image.Image { return m.actualImageWithEdgesRemoved }
 
 // sobel returns a grayscale image with the result of applying the Sobel operator[1] to each pixel
 // in the input image.
