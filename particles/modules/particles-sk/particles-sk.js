@@ -54,11 +54,11 @@ const jsonEditor = (ele) => {
 
 const gallery = (ele) => html`
 Check out these examples ==>
-<a href="/4d646d4d5244569a540c65c13ad45804">fireworks</a>
-<a href="/15d71dad0c4a141a1ac10ecaa1bb20b3">spiral</a>
-<a href="/63b1970cc212740e5a44870691c49307">swirl</a>
-<a href="/7c13116e4b61c18b828bfc281903efe8">text</a>
-<a href="/09ad8d7b78da045b8349616f7f4ad252">wave</a>
+<a href="/4d2befa962190e14575075d5676b98bf">fireworks</a>
+<a href="/c68434463e7620b60b0bf05f82dc9679">spiral</a>
+<a href="/632d713dacfa01d8905ffee98bc46acc">swirl</a>
+<a href="/9c18c154a286e7c5d64192c9d6661ce0">text</a>
+<a href="/a42f717ffa5f84326e59af238612d1b9">wave</a>
 `;
 
 const displayLoaded = (ele) => html`
