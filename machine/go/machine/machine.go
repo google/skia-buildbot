@@ -48,6 +48,7 @@ type Description struct {
 	Annotation  Annotation
 	Dimensions  SwarmingDimensions
 	LastUpdated time.Time
+	Battery     int // Charge as an integer percent, e.g. 50% = 50.
 }
 
 // NewDescription returns a new Description instance.
