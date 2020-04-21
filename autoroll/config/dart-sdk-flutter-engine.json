@@ -2,27 +2,20 @@
 // for documentation of the autoroller config.
 {
   "childName": "Dart SDK",
-  "contacts": [
-    "rmistry@google.com",
-    "aam@google.com"
-  ],
+  "contacts": ["rmistry@google.com", "aam@google.com"],
   "isInternal": false,
   "ownerPrimary": "rmistry",
   "ownerSecondary": "borenet",
   "parentName": "Flutter Engine",
-  "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
+  "parentWaterfall": "https://ci.chromium.org/p/flutter/g/engine/console",
   "rollerName": "dart-sdk-flutter-engine",
   "serviceAccount": "flutter-engine-autoroll@skia-public.iam.gserviceaccount.com",
-  "sheriff": [
-    "dart-vm-team@google.com"
-  ],
+  "sheriff": ["dart-vm-team@google.com"],
   "github": {
     "repoOwner": "flutter",
     "repoName": "engine",
     "checksNum": 10,
-    "checksWaitFor": [
-      "luci-engine"
-    ]
+    "checksWaitFor": ["luci-engine"]
   },
   "githubDEPSRepoManager": {
     "childBranch": "master",
@@ -61,9 +54,7 @@
     {
       "filter": "warning",
       "email": {
-        "emails": [
-          "$SHERIFF"
-        ]
+        "emails": ["$SHERIFF"]
       }
     }
   ]
