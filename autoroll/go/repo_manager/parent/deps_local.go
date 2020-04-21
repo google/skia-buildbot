@@ -3,14 +3,13 @@ package parent
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
@@ -27,13 +26,8 @@ const (
 // DEPSLocalConfig provides configuration for a Parent which uses a local
 // checkout and DEPS to manage dependencies.
 type DEPSLocalConfig struct {
-	// TODO(borenet): We want to use DEPSLocal for GitHub as well. Ideally, we'd
-	// like to combine any Parent with any code review service, which implies
-	// bubbling the code review configuration up a level or two.
-	GitCheckoutGerritConfig
-
-	// Dep is the ID of the dependency to be rolled, eg. a repo URL.
-	Dep string `json:"dep"`
+	GitCheckoutConfig
+	version_file_common.DependencyConfig
 
 	// Optional fields.
 
@@ -54,7 +48,10 @@ type DEPSLocalConfig struct {
 
 // See documentation for util.Validator interface.
 func (c DEPSLocalConfig) Validate() error {
-	if err := c.GitCheckoutGerritConfig.Validate(); err != nil {
+	if err := c.GitCheckoutConfig.Validate(); err != nil {
+		return skerr.Wrap(err)
+	}
+	if err := c.DependencyConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}
 	if c.Dep == "" {
@@ -65,7 +62,7 @@ func (c DEPSLocalConfig) Validate() error {
 
 // NewDEPSLocal returns a Parent which uses a local checkout and DEPS to manage
 // dependencies.
-func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, recipeCfgFile string) (*GitCheckoutParent, error) {
+func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, userName, userEmail, recipeCfgFile string, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
 	// Validation.
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
@@ -120,7 +117,10 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 
 	// See documentation for GitCheckoutGetLastRollRevFunc. This
 	// implementation also performs a "gclient sync".
-	getLastRollRevHelper := VersionFileGetLastRollRevFunc(deps_parser.DepsFileName, c.Dep)
+	getLastRollRevHelper := VersionFileGetLastRollRevFunc(version_file_common.VersionFileConfig{
+		Dep:  c.Dep,
+		Path: deps_parser.DepsFileName,
+	})
 	getLastRollRev := func(ctx context.Context, co *git.Checkout) (string, error) {
 		if err := sync(ctx); err != nil {
 			return "", skerr.Wrap(err)
@@ -129,20 +129,16 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 	}
 
 	// See documentation for GitCheckoutCreateRollFunc.
+	createRollHelper := gitCheckoutFileCreateRollFunc(version_file_common.DependencyConfig{
+		VersionFileConfig: version_file_common.VersionFileConfig{
+			Dep:  c.Dep,
+			Path: deps_parser.DepsFileName,
+		},
+		TransitiveDeps: c.TransitiveDeps,
+	})
 	createRoll := func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
-		// Read the current DEPS content.
-		depsFile := filepath.Join(co.Dir(), deps_parser.DepsFileName)
-		oldContent, err := ioutil.ReadFile(depsFile)
-		if err != nil {
-			return "", skerr.Wrap(err)
-		}
-
-		// Update the dep.
-		newContent, err := deps_parser.SetDep(string(oldContent), c.Dep, to.Id)
-		if err != nil {
-			return "", skerr.Wrap(err)
-		}
-		if err := ioutil.WriteFile(depsFile, []byte(newContent), os.ModePerm); err != nil {
+		// Run the helper to set the new dependency versions.
+		if _, err := createRollHelper(ctx, co, from, to, rolling, commitMsg); err != nil {
 			return "", skerr.Wrap(err)
 		}
 
@@ -160,7 +156,7 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 		}
 
 		// Commit.
-		if _, err := co.Git(ctx, "commit", "-a", "-m", commitMsg); err != nil {
+		if _, err := co.Git(ctx, "commit", "-a", "--amend", "--no-edit"); err != nil {
 			return "", skerr.Wrap(err)
 		}
 		out, err := co.RevParse(ctx, "HEAD")
@@ -176,7 +172,7 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 		return nil, skerr.Wrap(err)
 	}
 	co := &git.Checkout{GitDir: git.GitDir(checkoutPath)}
-	return NewGitCheckoutGerrit(ctx, c.GitCheckoutGerritConfig, reg, client, serverURL, workdir, co, getLastRollRev, createRoll)
+	return NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, co, getLastRollRev, createRoll, uploadRoll)
 }
 
 // GetDEPSCheckoutPath returns the path to the checkout within the workdir,
