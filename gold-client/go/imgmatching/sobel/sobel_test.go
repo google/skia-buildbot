@@ -19,15 +19,27 @@ import (
 
 // matcherTestCase represents a test case for the sobel.Matcher's Match() method.
 type matcherTestCase struct {
-	name                            string
-	inputImage1                     image.Image
-	inputImage2                     image.Image
-	edgeThreshold                   int
-	maxDifferentPixels              int
-	pixelDeltaThreshold             int
+	name        string
+	inputImage1 image.Image
+	inputImage2 image.Image
+
+	// Matcher parameters.
+	edgeThreshold       int
+	maxDifferentPixels  int
+	pixelDeltaThreshold int
+
+	// Expected images passed to the embedded fuzzy.Matcher.
 	expectedFuzzyMatcherInputImage1 image.Image
 	expectedFuzzyMatcherInputImage2 image.Image
-	expectImagesToMatch             bool
+
+	expectImagesToMatch bool // Expected matcher output.
+
+	// Debug information about the last matched pair of images.
+	expectedSobelOutput            image.Image
+	expectedImage1WithEdgesRemoved image.Image
+	expectedImage2WithEdgesRemoved image.Image
+	expectedNumDifferentPixels     int
+	expectedMaxPixelDelta          int
 }
 
 // makeMatcherTestCases returns a slice of test cases shared by the TestMatcher_Match_* tests
@@ -44,6 +56,11 @@ func makeMatcherTestCases() []matcherTestCase {
 			expectedFuzzyMatcherInputImage1: text.MustToNRGBA(image1),
 			expectedFuzzyMatcherInputImage2: text.MustToNRGBA(image2),
 			expectImagesToMatch:             false, // 10 pixels off, max per-channel delta sum of 36.
+			expectedSobelOutput:             text.MustToGray(image1Sobel),
+			expectedImage1WithEdgesRemoved:  text.MustToNRGBA(image1),
+			expectedImage2WithEdgesRemoved:  text.MustToNRGBA(image2),
+			expectedNumDifferentPixels:      10,
+			expectedMaxPixelDelta:           36,
 		},
 		{
 			name:                            "edge threshold 0xAA",
@@ -55,6 +72,11 @@ func makeMatcherTestCases() []matcherTestCase {
 			expectedFuzzyMatcherInputImage1: text.MustToNRGBA(image1NoEdgesAbove0xAA),
 			expectedFuzzyMatcherInputImage2: text.MustToNRGBA(image2NoEdgesAbove0xAA),
 			expectImagesToMatch:             false, // 5 pixels off, max per-channel delta sum of 15.
+			expectedSobelOutput:             text.MustToGray(image1Sobel),
+			expectedImage1WithEdgesRemoved:  text.MustToNRGBA(image1NoEdgesAbove0xAA),
+			expectedImage2WithEdgesRemoved:  text.MustToNRGBA(image2NoEdgesAbove0xAA),
+			expectedNumDifferentPixels:      5,
+			expectedMaxPixelDelta:           15,
 		},
 		{
 			name:                            "edge threshold 0x66",
@@ -66,6 +88,11 @@ func makeMatcherTestCases() []matcherTestCase {
 			expectedFuzzyMatcherInputImage1: text.MustToNRGBA(image1NoEdgesAbove0x66),
 			expectedFuzzyMatcherInputImage2: text.MustToNRGBA(image2NoEdgesAbove0x66),
 			expectImagesToMatch:             true, // 1 pixel off, max per-channel delta sum of 9.
+			expectedSobelOutput:             text.MustToGray(image1Sobel),
+			expectedImage1WithEdgesRemoved:  text.MustToNRGBA(image1NoEdgesAbove0x66),
+			expectedImage2WithEdgesRemoved:  text.MustToNRGBA(image2NoEdgesAbove0x66),
+			expectedNumDifferentPixels:      1,
+			expectedMaxPixelDelta:           9,
 		},
 		{
 			name:                            "edge threshold 0x00",
@@ -77,6 +104,11 @@ func makeMatcherTestCases() []matcherTestCase {
 			expectedFuzzyMatcherInputImage1: text.MustToNRGBA(image1NoEdgesAbove0x00),
 			expectedFuzzyMatcherInputImage2: text.MustToNRGBA(image2NoEdgesAbove0x00),
 			expectImagesToMatch:             true, // The above images are identical.
+			expectedSobelOutput:             text.MustToGray(image1Sobel),
+			expectedImage1WithEdgesRemoved:  text.MustToNRGBA(image1NoEdgesAbove0x00),
+			expectedImage2WithEdgesRemoved:  text.MustToNRGBA(image2NoEdgesAbove0x00),
+			expectedNumDifferentPixels:      0,
+			expectedMaxPixelDelta:           0,
 		},
 	}
 }
@@ -119,6 +151,11 @@ func TestMatcher_Match_Success(t *testing.T) {
 			}
 
 			assert.Equal(t, tc.expectImagesToMatch, matcher.Match(tc.inputImage1, tc.inputImage2))
+			assertImagesEqualWithMessage(t, tc.expectedSobelOutput, matcher.SobelOutput(), "sobel output")
+			assertImagesEqualWithMessage(t, tc.expectedImage1WithEdgesRemoved, matcher.ExpectedImageWithEdgesRemoved(), "image1 with edges removed")
+			assertImagesEqualWithMessage(t, tc.expectedImage2WithEdgesRemoved, matcher.ActualImageWithEdgesRemoved(), "image2 with edges removed")
+			assert.Equal(t, tc.expectedNumDifferentPixels, matcher.Matcher.NumDifferentPixels())
+			assert.Equal(t, tc.expectedMaxPixelDelta, matcher.Matcher.MaxPixelDelta())
 		})
 	}
 }
@@ -661,7 +698,19 @@ const image2NoEdgesAbove0x00 = `! SKTEXTSIMPLE
 // assertImagesEqual asserts that the two given images are equal, and prints out the actual image
 // encoded as SKTEXT if the assertion is false.
 func assertImagesEqual(t *testing.T, expected, actual image.Image) {
-	assert.Equal(t, expected, actual, fmt.Sprintf("SKTEXT-encoded actual output:\n%s", imageToText(t, actual)))
+	assertImagesEqualWithMessage(t, expected, actual, "")
+}
+
+// assertImagesEqualWithMessage asserts that the two given images are equal, and prints out the
+// actual image encoded as SKTEXT if the assertion is false, along with the given message if it is
+// not empty.
+func assertImagesEqualWithMessage(t *testing.T, expected, actual image.Image, msg string) {
+	// No need for newline if message is empty.
+	if msg != "" {
+		msg = msg + "\n"
+	}
+
+	assert.Equal(t, expected, actual, fmt.Sprintf("%sSKTEXT-encoded expected output:\n%s\nSKTEXT-encoded actual output:\n%s", msg, imageToText(t, expected), imageToText(t, actual)))
 }
 
 // imageToText returns the given image as an SKTEXT-encoded string.
