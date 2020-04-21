@@ -13,22 +13,20 @@ type Adb struct {
 	mock.Mock
 }
 
-// DimensionsFromProperties provides a mock function with given fields: ctx, dim
-func (_m *Adb) DimensionsFromProperties(ctx context.Context, dim map[string][]string) (map[string][]string, error) {
-	ret := _m.Called(ctx, dim)
+// RawDumpSys provides a mock function with given fields: ctx, service
+func (_m *Adb) RawDumpSys(ctx context.Context, service string) (string, error) {
+	ret := _m.Called(ctx, service)
 
-	var r0 map[string][]string
-	if rf, ok := ret.Get(0).(func(context.Context, map[string][]string) map[string][]string); ok {
-		r0 = rf(ctx, dim)
+	var r0 string
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, service)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string][]string)
-		}
+		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, map[string][]string) error); ok {
-		r1 = rf(ctx, dim)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, service)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -36,17 +34,15 @@ func (_m *Adb) DimensionsFromProperties(ctx context.Context, dim map[string][]st
 	return r0, r1
 }
 
-// Properties provides a mock function with given fields: ctx
-func (_m *Adb) Properties(ctx context.Context) (map[string]string, error) {
+// RawProperties provides a mock function with given fields: ctx
+func (_m *Adb) RawProperties(ctx context.Context) (string, error) {
 	ret := _m.Called(ctx)
 
-	var r0 map[string]string
-	if rf, ok := ret.Get(0).(func(context.Context) map[string]string); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(context.Context) string); ok {
 		r0 = rf(ctx)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]string)
-		}
+		r0 = ret.Get(0).(string)
 	}
 
 	var r1 error

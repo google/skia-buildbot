@@ -2,165 +2,158 @@
 package adb
 
 import (
-	"context"
-	"encoding/base64"
 	"fmt"
 	"os"
-	"os/exec"
-	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
 type cleanupFunc func()
 
-func TestProperties_HappyPath(t *testing.T) {
-	unittest.SmallTest(t)
-
-	const adbResponseHappyPath = `
-[ro.product.manufacturer]: [asus]
+const (
+	adbShellGetPropSuccess = `[ro.product.manufacturer]: [asus]
 [ro.product.model]: [Nexus 7]
 [ro.product.name]: [razor]
 `
-	want := map[string]string{
-		"ro.product.manufacturer": "asus",
-		"ro.product.model":        "Nexus 7",
-		"ro.product.name":         "razor",
-	}
-	cleanup := fakeExecCommandContext(adbResponseHappyPath, "", 0)
-	defer cleanup()
-	ctx := context.Background()
-	a := New()
-	got, err := a.Properties(ctx)
-	require.NoError(t, err)
-	assert.Equal(t, want, got)
-}
+	adbShellDumpSysBattery = `Current Battery Service state:
+AC powered: true
+USB powered: false
+Wireless powered: false
+Max charging current: 1500000
+Max charging voltage: 5000000
+Charge counter: 1928561
+status: 2
+health: 2
+present: true
+level: 75
+scale: 100
+voltage: 3997
+temperature: 248
+technology: Li-ion`
 
-// TestProperties_EmptyOutputFromAdb tests that we handle empty output from adb
-// without error.
-func TestProperties_EmptyOutputFromAdb(t *testing.T) {
+	nonZeroExitCode = 123
+)
+
+func TestRawProperties_HappyPath(t *testing.T) {
 	unittest.SmallTest(t)
 
-	cleanup := fakeExecCommandContext("", "", 0)
-	defer cleanup()
+	ctx := executil.FakeTestsContext("Test_FakeExe_AdbShellGetProp_Success")
 
-	ctx := context.Background()
 	a := New()
-	got, err := a.Properties(ctx)
+	got, err := a.RawProperties(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, adbShellGetPropSuccess, got)
+}
+
+func TestRawProperties_ErrFromAdbNonZeroExitCode(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := executil.FakeTestsContext("Test_FakeExe_AdbShellGetProp_NonZeroExitCode")
+
+	a := New()
+	_, err := a.RawProperties(ctx)
+	require.Error(t, err)
+}
+
+func TestRawProperties_EmptyOutputFromAdb(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := executil.FakeTestsContext("Test_FakeExe_AdbShellGetProp_EmptyOutput")
+
+	a := New()
+	got, err := a.RawProperties(ctx)
 	assert.NoError(t, err)
 	assert.Empty(t, got)
 }
 
-// TestProperties_Error tests that we catch adb returning an error and that we
-// capture the stderr output in the returned error.
-func TestProperties_ErrFromAdbNonZeroExitCode(t *testing.T) {
+func Test_FakeExe_AdbShellGetProp_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "shell", "getprop"}, args)
+
+	fmt.Print(adbShellGetPropSuccess)
+
+	// Force exit so we don't get PASS in the output.
+	os.Exit(0)
+}
+
+func Test_FakeExe_AdbShellGetProp_EmptyOutput(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Force exit so we don't get PASS in the output.
+	os.Exit(0)
+}
+
+func Test_FakeExe_AdbShellGetProp_NonZeroExitCode(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
+
+	os.Exit(nonZeroExitCode)
+}
+
+func TestRawDumpSys_HappyPath(t *testing.T) {
 	unittest.SmallTest(t)
 
-	const exitCode = 123
-
-	cleanup := fakeExecCommandContext("", "error: no devices/emulators found", exitCode)
-	defer cleanup()
-
-	ctx := context.Background()
+	ctx := executil.FakeTestsContext("Test_FakeExe_RawDumpSysBattery_Success")
 
 	a := New()
-	_, err := a.Properties(ctx)
-	// Confirm that both the exit code and the abd stderr make it into the returned error.
-	assert.Contains(t, err.Error(), fmt.Sprintf("exit status %d", exitCode))
+	got, err := a.RawDumpSys(ctx, "battery")
+	require.NoError(t, err)
+	assert.Equal(t, adbShellDumpSysBattery, got)
+}
+
+func Test_FakeExe_RawDumpSysBattery_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "shell", "dumpsys", "battery"}, args)
+
+	fmt.Print(adbShellDumpSysBattery)
+
+	// Force exit so we don't get PASS in the output.
+	os.Exit(0)
+}
+
+func TestRawDumpSys_ErrOnNonZeroExitCode(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := executil.FakeTestsContext("Test_FakeExe_RawDumpSys_NonZeroExitCode")
+
+	a := New()
+	_, err := a.RawDumpSys(ctx, "battery")
+	require.Error(t, err)
+	// Confirm that both the exit code and the adb stderr make it into the returned error.
+	assert.Contains(t, err.Error(), fmt.Sprintf("exit status %d", nonZeroExitCode))
 	assert.Contains(t, err.Error(), "error: no devices/emulators found")
 }
 
-// An exec.CommandContext fake that actually executes another test in this file
-// TestFakeAdbExecutable instead of the requested exe.
-//
-// See https://npf.io/2015/06/testing-exec-command/ for background on this technique.
-func fakeExecCommandContext(stdout, stderr string, exitCode int) cleanupFunc {
-
-	execCommandContext = func(ctx context.Context, command string, args ...string) *exec.Cmd {
-		extendedArgs := []string{"-test.run=TestFakeAdbExecutable", "--", command}
-		extendedArgs = append(extendedArgs, args...)
-		cmd := exec.CommandContext(ctx, os.Args[0], extendedArgs...)
-		// Since we are executing another process we can set environment
-		// variables to send test data to that process.
-		cmd.Env = []string{
-			"EMULATE_ADB_EXECUTABLE=1",
-			fmt.Sprintf("STDOUT=%s", base64.RawStdEncoding.EncodeToString([]byte(stdout))),
-			fmt.Sprintf("STDERR=%s", base64.RawStdEncoding.EncodeToString([]byte(stderr))),
-			fmt.Sprintf("EXIT_CODE=%d", exitCode),
-		}
-		return cmd
-	}
-
-	return func() {
-		execCommandContext = exec.CommandContext
-	}
-}
-
-// TestFakeAdbExecutable isn't really a test, but is used by
-// fakeExecCommandContext to fake out exec.CommandContext().
-func TestFakeAdbExecutable(t *testing.T) {
-	unittest.SmallTest(t)
-	if os.Getenv("EMULATE_ADB_EXECUTABLE") != "1" {
+func Test_FakeExe_RawDumpSys_NonZeroExitCode(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
 		return
 	}
-	if stdout := os.Getenv("STDOUT"); stdout != "" {
-		b, err := base64.RawStdEncoding.DecodeString(stdout)
-		if err != nil {
-			sklog.Fatalf("Failed to base64 decode the expected stdout: %s", err)
-		}
-		fmt.Print(string(b))
-	}
-	if stderr := os.Getenv("STDERR"); stderr != "" {
-		b, err := base64.RawStdEncoding.DecodeString(stderr)
-		if err != nil {
-			sklog.Fatalf("Failed to base64 decode the expected stdout: %s", err)
-		}
-		fmt.Fprint(os.Stderr, string(b))
-	}
-	exitCode, err := strconv.Atoi(os.Getenv("EXIT_CODE"))
-	if err != nil {
-		sklog.Fatal(err)
-	}
 
-	os.Exit(exitCode)
-}
+	fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
 
-func TestDimensionsFromProperties_Success(t *testing.T) {
-	unittest.SmallTest(t)
-
-	adbResponse := strings.Join([]string{
-		"[ro.product.manufacturer]: [Google]", // Ignored
-		"[ro.product.model]: [Pixel 3a]",      // Ignored
-		"[ro.build.id]: [QQ2A.200305.002]",    // device_os
-		"[ro.product.brand]: [google]",        // device_os_flavor
-		"[ro.build.type]: [user]",             // device_os_type
-		"[ro.product.device]: [sargo]",        // device_type
-		"[ro.product.system.brand]: [google]", // device_os_flavor (dup should be ignored)
-		"[ro.product.system.brand]: [aosp]",   // device_os_flavor (should be converted to "android")
-	}, "\n")
-
-	cleanup := fakeExecCommandContext(adbResponse, "", 0)
-	defer cleanup()
-	ctx := context.Background()
-	inputDim := map[string][]string{
-		"foo": {"bar"},
-	}
-	a := New()
-	got, err := a.DimensionsFromProperties(ctx, inputDim)
-	require.NoError(t, err)
-	expected := map[string][]string{
-		"android_devices":  {"1"},
-		"device_os":        {"Q", "QQ2A.200305.002"},
-		"device_os_flavor": {"google", "android"},
-		"device_os_type":   {"user"},
-		"device_type":      {"sargo"},
-		"os":               {"Android"},
-		"foo":              {"bar"},
-	}
-	assert.Equal(t, expected, got)
+	os.Exit(nonZeroExitCode)
 }
