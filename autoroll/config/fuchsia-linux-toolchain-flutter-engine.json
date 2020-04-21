@@ -2,34 +2,25 @@
 // for documentation of the autoroller config.
 {
   "childName": "Fuchsia Linux Toolchain",
-  "contacts": [
-    "liyuqian@google.com",
-    "rmistry@google.com"
-  ],
+  "contacts": ["liyuqian@google.com", "rmistry@google.com"],
   "isInternal": false,
   "ownerPrimary": "rmistry",
   "ownerSecondary": "borenet",
   "parentName": "Flutter",
-  "parentWaterfall": "https://build.chromium.org/p/client.flutter/console",
+  "parentWaterfall": "https://ci.chromium.org/p/flutter/g/engine/console",
   "rollerName": "fuchsia-linux-toolchain-flutter-engine",
   "serviceAccount": "flutter-engine-autoroll@skia-public.iam.gserviceaccount.com",
-  "sheriff": [
-    "https://rota-ng.appspot.com/legacy/sheriff_flutter_engine.json"
-  ],
+  "sheriff": ["https://rota-ng.appspot.com/legacy/sheriff_flutter_engine.json"],
   "github": {
     "repoOwner": "flutter",
     "repoName": "engine",
-    "checksWaitFor": [
-      "luci-engine"
-    ]
+    "checksWaitFor": ["luci-engine"]
   },
   "githubCipdDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/fuchsia/toolchain/linux",
     "parentBranch": "master",
-    "preUploadSteps": [
-      "FlutterLicenseScriptsForFuchsia"
-    ],
+    "preUploadSteps": ["FlutterLicenseScriptsForFuchsia"],
     "parentRepo": "git@github.com:flutter/engine.git",
     "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:skia-flutter-autoroll/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
     "githubParentPath": "src/flutter",
@@ -59,9 +50,7 @@
     {
       "filter": "warning",
       "email": {
-        "emails": [
-          "$SHERIFF"
-        ]
+        "emails": ["$SHERIFF"]
       }
     }
   ]
