@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "834586b7_b6c431cd",
+        "filename": "skolo/go/censustaker/arp.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T20:21:57Z",
+      "side": 1,
+      "message": "Why return a *arpNameGetter when the only method uses arpNameGetter?",
+      "range": {
+        "startLine": 14,
+        "startChar": 24,
+        "endLine": 14,
+        "endChar": 38
+      },
+      "revId": "521317e35782f9b9d2d6e618641fdcb169729d06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cdb4671b_8ceb8bf4",
+        "filename": "skolo/go/censustaker/arp.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-21T20:21:57Z",
+      "side": 1,
+      "message": "Example text of what this matches might help.",
+      "revId": "521317e35782f9b9d2d6e618641fdcb169729d06",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
