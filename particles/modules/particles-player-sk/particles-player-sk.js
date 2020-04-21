@@ -90,7 +90,6 @@ define('particles-player-sk', class extends HTMLElement {
     this._config = {
       width:      this.hasAttribute('width')  ? +this.getAttribute('width')  : 256,
       height:     this.hasAttribute('height') ? +this.getAttribute('height') : 256,
-      bgcolor:    this.hasAttribute('bgcolor') ? +this.getAttribute('bgcolor') : 4278190080, // black
     };
 
     this.render();
@@ -144,7 +143,7 @@ define('particles-player-sk', class extends HTMLElement {
     this._state.lastTs = Date.now();
 
     this._engine.kit.setCurrentContext(this._engine.context);
-    this._engine.canvas.clear(this._config.bgcolor);
+    this._engine.canvas.clear(this._engine.kit.BLACK);
 
     this._engine.animation.update(this._state.time / 1000.0);
     this._engine.animation.draw(this._engine.canvas);
@@ -226,7 +225,7 @@ define('particles-player-sk', class extends HTMLElement {
     }
     this.render();
 
-    this._engine.canvas.clear(this._config.bgcolor);
+    this._engine.canvas.clear(this._engine.kit.BLACK);
     // Center the animation
     this.resetView();
 
