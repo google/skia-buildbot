@@ -55,6 +55,12 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	dimensions := dimensionsFromAndroidProperties(parseAndroidProperties(event.Android.GetProp))
 	dimensions[machine.DimID] = []string{event.Host.Name}
 
+	// TODO(jcgregorio) Come up with a better test than this, maybe sent info
+	// from back in machine.Event?
+	if strings.HasPrefix(dimensions[machine.DimID][0], "skia-rpi2-") {
+		dimensions["inside_docker"] = []string{"1", "containerd"}
+	}
+
 	// If this machine previously had a connected device and it's no longer
 	// present then quarantine the machine.
 	//
