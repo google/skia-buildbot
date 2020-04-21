@@ -130,6 +130,68 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 		machine.DimDeviceType: []string{"sargo"},
 		machine.DimOS:         []string{"Android"},
 		machine.DimID:         []string{"skia-rpi2-0001"},
+		"inside_docker":       []string{"1", "containerd"},
+	}
+	assert.Equal(t, expected, next.Dimensions)
+	assert.Equal(t, machine.ModeAvailable, next.Mode)
+}
+
+func TestProcess_DetectInsideDocker(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	// The current machine has nothing attached.
+	previous := machine.NewDescription()
+	require.Empty(t, previous.Dimensions)
+
+	// An event arrives with the attachment of an Android device.
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Android:   machine.Android{},
+		Host: machine.Host{
+			Name: "skia-rpi2-0001",
+		},
+	}
+
+	p := newProcessorForTest(t)
+	next := p.Process(ctx, previous, event)
+	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
+	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
+
+	// The Android device should be reflected in the returned Dimensions.
+	expected := machine.SwarmingDimensions{
+		machine.DimID:   []string{"skia-rpi2-0001"},
+		"inside_docker": []string{"1", "containerd"},
+	}
+	assert.Equal(t, expected, next.Dimensions)
+	assert.Equal(t, machine.ModeAvailable, next.Mode)
+}
+
+func TestProcess_DetectNotInsideDocker(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	// The current machine has nothing attached.
+	previous := machine.NewDescription()
+	require.Empty(t, previous.Dimensions)
+
+	// An event arrives with the attachment of an Android device.
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Android:   machine.Android{},
+		Host: machine.Host{
+			Name: "skia-rpi-0001",
+		},
+	}
+
+	p := newProcessorForTest(t)
+	next := p.Process(ctx, previous, event)
+	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
+	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
+
+	// The Android device should be reflected in the returned Dimensions.
+	expected := machine.SwarmingDimensions{
+		machine.DimID: []string{"skia-rpi-0001"},
 	}
 	assert.Equal(t, expected, next.Dimensions)
 	assert.Equal(t, machine.ModeAvailable, next.Mode)
@@ -149,6 +211,7 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 		machine.DimDeviceType: []string{"sargo"},
 		machine.DimOS:         []string{"Android"},
 		machine.DimID:         []string{"skia-rpi2-0001"},
+		"inside_docker":       []string{"1", "containerd"},
 	}
 
 	// An event arrives without any device info.
@@ -189,6 +252,7 @@ func TestProcess_QuarantineDevicesInMaintenanceMode(t *testing.T) {
 		machine.DimDeviceType: []string{"sargo"},
 		machine.DimOS:         []string{"Android"},
 		machine.DimID:         []string{"skia-rpi2-0001"},
+		"inside_docker":       []string{"1", "containerd"},
 	}
 	previous.Mode = machine.ModeMaintenance
 
@@ -228,6 +292,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		machine.DimOS:          []string{"Android"},
 		machine.DimQuarantined: []string{"Device [\"sargo\"] has gone missing"},
 		machine.DimID:          []string{"skia-rpi2-0001"},
+		"inside_docker":        []string{"1", "containerd"},
 	}
 
 	// An event arrives tith the device restored.
@@ -262,6 +327,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		machine.DimDeviceType: []string{"sargo"},
 		machine.DimOS:         []string{"Android"},
 		machine.DimID:         []string{"skia-rpi2-0001"},
+		"inside_docker":       []string{"1", "containerd"},
 	}
 	assert.Equal(t, expected, next.Dimensions)
 }
