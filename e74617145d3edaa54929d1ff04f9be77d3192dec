@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d1ab9bab_1218e032",
+        "filename": "gold-client/cmd/goldctl/cmd_match.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T12:30:52Z",
+      "side": 1,
+      "message": "nit: the temporary directory.",
+      "range": {
+        "startLine": 125,
+        "startChar": 92,
+        "endLine": 125,
+        "endChar": 97
+      },
+      "revId": "e74617145d3edaa54929d1ff04f9be77d3192dec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3db65506_b670543b",
+        "filename": "gold-client/cmd/goldctl/cmd_match.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T12:30:52Z",
+      "side": 1,
+      "message": "\"If dir is the empty string, TempDir uses the default directory for temporary files (see os.TempDir)\"\n\nhttps://golang.org/pkg/io/ioutil/#TempDir",
+      "range": {
+        "startLine": 129,
+        "startChar": 32,
+        "endLine": 129,
+        "endChar": 44
+      },
+      "revId": "e74617145d3edaa54929d1ff04f9be77d3192dec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "992ef7fe_c3038042",
+        "filename": "gold-client/cmd/goldctl/cmd_match.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T12:30:52Z",
+      "side": 1,
+      "message": "I would prefer this returns an error instead of having to pass in cobra.Command",
+      "range": {
+        "startLine": 145,
+        "startChar": 5,
+        "endLine": 145,
+        "endChar": 18
+      },
+      "revId": "e74617145d3edaa54929d1ff04f9be77d3192dec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00efd7ab_f2bdba12",
+        "filename": "gold-client/cmd/goldctl/cmd_match.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-21T12:30:52Z",
+      "side": 1,
+      "message": "writer must be Closed.\n\nPrefer using util.WithWriteFile which remembers to close things for you.",
+      "range": {
+        "startLine": 146,
+        "startChar": 1,
+        "endLine": 146,
+        "endChar": 7
+      },
+      "revId": "e74617145d3edaa54929d1ff04f9be77d3192dec",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
