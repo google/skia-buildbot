@@ -32,7 +32,7 @@ func TestFakeTestsContext_SingleFakeTest_Success(t *testing.T) {
 	// normally, require.NoError is what I would do here, but doing so would mask the outputs of
 	// asserts made in the faked executable (which show up in the combined stdout/stderr.
 	assert.NoError(t, err)
-	assert.Contains(t, out, asciiArt)
+	assert.Equal(t, asciiArt, out)
 }
 
 func TestFakeTestsContext_SingleFakeTest_ReturnsErrorIfWrongArgumentsPassed(t *testing.T) {
@@ -96,7 +96,8 @@ func Test_FakeExe_Cowsay_ReturnsASCIIArt(t *testing.T) {
 	args := executil.OriginalArgs()
 	require.Equal(t, []string{"cowsay", "moo", "moooo"}, args)
 
-	fmt.Println(asciiArt)
+	fmt.Printf(asciiArt)
+	os.Exit(0) // exit 0 prevents golang from outputting test stuff like "=== RUN", "---Fail".
 }
 
 func Test_FakeExe_Cowsay_Crashes(t *testing.T) {
@@ -128,4 +129,5 @@ const asciiArt = ` ___________
          \  (oo)\_______
             (__)\       )\/\
                 ||----w |
-                ||     ||`
+                ||     ||
+`

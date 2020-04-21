@@ -42,6 +42,7 @@ func Test_FakeExe_MPowerSSHDisablePort7_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "echo 0 > /proc/power/relay7\n", string(input))
+	os.Exit(0)
 }
 
 // This is a fake executable used to assert that a correct call to enable port 7 of the mpower
@@ -59,6 +60,7 @@ func Test_FakeExe_MPowerSSHEnablePort7_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "echo 1 > /proc/power/relay7\n", string(input))
+	os.Exit(0)
 }
 
 const (
