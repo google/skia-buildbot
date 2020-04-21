@@ -1,0 +1,11 @@
+@import '../colors';
+
+force-sync-instances-sk {
+  display: block;
+  text-align: center;
+  padding-top: 2em;
+
+  tr.headers {
+    background-color: var(--purple)
+  }
+}
