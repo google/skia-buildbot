@@ -20,7 +20,7 @@ var (
 	Local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	Port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	PromPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	ResourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	ResourcesDir = flag.String("resources_dir", "./templates/", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
 const (
