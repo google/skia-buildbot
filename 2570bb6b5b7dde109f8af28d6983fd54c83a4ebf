@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ede85bf5_ab5aa765",
+        "filename": "autoroll/config/cros-proto-infra.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-22T15:16:18Z",
+      "side": 1,
+      "message": "Gerrit will reject the CL if the reviewer is not a registered user; is this group registered?",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 67
+      },
+      "revId": "2570bb6b5b7dde109f8af28d6983fd54c83a4ebf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
