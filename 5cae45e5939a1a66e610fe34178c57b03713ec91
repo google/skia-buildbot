@@ -22,6 +22,53 @@
       "revId": "5cae45e5939a1a66e610fe34178c57b03713ec91",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "879dc656_f763cd51",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-22T20:06:41Z",
+      "side": 1,
+      "message": "I think its obvious from the state.",
+      "parentUuid": "32a2d294_9c3cce86",
+      "range": {
+        "startLine": 131,
+        "startChar": 62,
+        "endLine": 131,
+        "endChar": 73
+      },
+      "revId": "5cae45e5939a1a66e610fe34178c57b03713ec91",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d31c8d57_3d487388",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-22T20:06:41Z",
+      "side": 1,
+      "message": "I also changed this to report the value of each sensor as its own metric.",
+      "range": {
+        "startLine": 132,
+        "startChar": 3,
+        "endLine": 133,
+        "endChar": 109
+      },
+      "revId": "5cae45e5939a1a66e610fe34178c57b03713ec91",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
