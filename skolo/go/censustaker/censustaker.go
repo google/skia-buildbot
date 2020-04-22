@@ -1,72 +1,119 @@
+// The censustaker executable combines data from multiple sources to generate a list of devices
+// which are attached to a given Ubiquiti EdgeSwitch. The switch can only tell us which mac
+// addresses are attached to which ports, so we need another source of data to give us a list of
+// hostnames and ip addresses to be able to generate the mapping of hostname to port number needed
+// by powercycle.
 package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
 
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/skolo/go/powercycle"
 )
 
-var (
-	scriptDir     = flag.String("script_dir", "/usr/local/share/trooper_tools/censustaker/", "Path in which the ansible scripts and configurations are stored. This will be the working dir when executing the ansible scripts to enumerate all bots on the network.")
-	ansibleOutput = flag.String("ansible_out", "/tmp/census_output", "File in which the ansible script should dump its intermediary output.")
+type poeDevice struct {
+	Hostname   string
+	POEPort    int
+	MACAddress string
+}
 
-	switchAddress = flag.String("switch_address", "", "The IP address of the switch to pull the port numbers from.")
-)
+// nameAddressGetter abstracts the logic to collect all information about the machines except
+// for which EdgeSwitch ports they are attached to.
+type nameAddressGetter interface {
+	// GetDeviceNamesAddresses returns a []poeDevice with the names and mac addresses filled out.
+	GetDeviceNamesAddresses(context.Context) ([]poeDevice, error)
+}
 
-func enumerateBots(ctx context.Context, names BotNameGetter, ports BotPortGetter) ([]Bot, error) {
-	nameList, err := names.GetBotNamesAddresses(ctx)
+// addressPortGetter abstracts the logic to collect the EdgeSwitch ports to which our devices
+// are connected.
+type addressPortGetter interface {
+	// GetDevicePortsAddresses returns a []poeDevice with the mac addresses and ports filled out.
+	GetDevicePortsAddresses(context.Context) ([]poeDevice, error)
+}
+
+func combineSources(ctx context.Context, names nameAddressGetter, ports addressPortGetter) ([]poeDevice, error) {
+	nameList, err := names.GetDeviceNamesAddresses(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Could not fetch bot names and mac addresses: %s", err)
+		return nil, skerr.Wrapf(err, "fetching device names and mac addresses")
 	}
 
-	portList, err := ports.GetBotPortsAddresses()
+	portList, err := ports.GetDevicePortsAddresses(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Could not fetch bot ports and mac addresses: %s", err)
+		return nil, skerr.Wrapf(err, "fetching device ports and mac addresses")
 	}
 
-	SENTINAL_PORT := -1
-	botMap := map[string]Bot{}
+	const sentinelPort = -1
+	byMacAddress := map[string]poeDevice{}
 	for _, b := range nameList {
 		if b.MACAddress != "" {
-			b.Port = SENTINAL_PORT
-			botMap[b.MACAddress] = b
+			b.POEPort = sentinelPort
+			byMacAddress[b.MACAddress] = b
 		}
 	}
 	for _, b := range portList {
-		if _, ok := botMap[b.MACAddress]; ok && b.MACAddress != "" {
-			a := botMap[b.MACAddress]
-			a.Port = b.Port
-			botMap[b.MACAddress] = a
+		if _, ok := byMacAddress[b.MACAddress]; ok && b.MACAddress != "" {
+			a := byMacAddress[b.MACAddress]
+			a.POEPort = b.POEPort
+			byMacAddress[b.MACAddress] = a
 		}
 	}
 
-	botList := []Bot{}
-	for _, b := range botMap {
-		if b.Port != SENTINAL_PORT {
-			botList = append(botList, b)
+	var devices []poeDevice
+	for _, b := range byMacAddress {
+		if b.POEPort != sentinelPort {
+			devices = append(devices, b)
 		}
 	}
 
-	return botList, nil
+	return devices, nil
+}
+
+func makeConfig(ctx context.Context, address, user, password string, hostnameMatcher *regexp.Regexp) (powercycle.EdgeSwitchConfig, error) {
+	output := powercycle.EdgeSwitchConfig{
+		Address:    address,
+		User:       user,
+		Password:   "", // leave this blank so as not to leak it
+		DevPortMap: map[powercycle.DeviceID]int{},
+	}
+	arp := newArpNameGetter()
+	edgeswitch := newSwitchPortGetter(address, user, password)
+	devices, err := combineSources(ctx, arp, edgeswitch)
+	if err != nil {
+		return output, skerr.Wrap(err)
+	}
+	for _, device := range devices {
+		if hostnameMatcher.MatchString(device.Hostname) {
+			output.DevPortMap[powercycle.DeviceID(device.Hostname)] = device.POEPort
+		}
+	}
+	return output, nil
 }
 
 func main() {
+	var (
+		switchAddress  = flag.String("switch_address", "", "The IP address of the switch to pull the port numbers from.")
+		switchUser     = flag.String("switch_user", "power", "Username of the switch")
+		switchPassword = flag.String("switch_password", "", "password for the switch user")
+		hostnameRegex  = flag.String("hostname_regex", "rpi", "Regex to match hostnames for")
+	)
 	flag.Parse()
 
-	if *scriptDir == "" || *switchAddress == "" {
-		sklog.Fatal("--script_dir and --switch_address cannot be empty")
-	}
-
-	if _, err := os.Stat(*scriptDir); os.IsNotExist(err) {
-		sklog.Fatalf("--script_dir %s points to a non-existent directory", *scriptDir)
-	}
-
 	ctx := context.Background()
-	ansible := NewAnsibleBotNameGetter(*scriptDir, *ansibleOutput)
-	edgeswitch := NewEdgeSwitchBotPortGetter(*switchAddress)
-	bots, err := enumerateBots(ctx, ansible, edgeswitch)
-	sklog.Infof("Found bots %v (With err %v)", bots, err)
+	out, err := makeConfig(ctx, *switchAddress, *switchUser, *switchPassword, regexp.MustCompile(*hostnameRegex))
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+		os.Exit(1)
+	}
+	b, err := json.MarshalIndent(out, "", "  ")
+	if err != nil {
+		fmt.Printf("Error making JSON: %s\n", err)
+		os.Exit(2)
+	}
+	fmt.Println(string(b))
 }

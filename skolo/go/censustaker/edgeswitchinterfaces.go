@@ -7,81 +7,87 @@ import (
 	"strconv"
 	"strings"
 
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/skolo/go/powercycle"
 )
 
-// The BotNameGetter interface abstracts the logic to collect the EdgeSwitch ports
-// to which our devices are connected.
-type BotPortGetter interface {
-	// Collects and returns a list of Bot with just the MAC addresses
-	// and port numbers. This is a cheap call (<10 seconds).
-	GetBotPortsAddresses() ([]Bot, error)
-}
-
-// Implements BotPortGetter
-type edgeswitchBotSource struct {
+type edgeswitchPortGetter struct {
 	client powercycle.CommandRunner
 }
 
-// NewEdgeSwitchBotPortGetter returns an implementation of BotPortGetter
-func NewEdgeSwitchBotPortGetter(address string) *edgeswitchBotSource {
-	target := fmt.Sprintf("ubnt@%s", address)
-	return &edgeswitchBotSource{
-		// TODO(kjlubick) pipe the password through from the CLI
-		client: powercycle.PasswordSSHCommandRunner("Not-the-real-password", target),
+// newSwitchPortGetter returns an implementation of addressPortGetter
+func newSwitchPortGetter(address, user, password string) *edgeswitchPortGetter {
+	target := fmt.Sprintf("%s@%s", user, address)
+	return &edgeswitchPortGetter{
+		client: powercycle.PasswordSSHCommandRunner(password, target),
 	}
 }
 
-// GetBotPortsAddresses, see BotPortGetter
-func (e *edgeswitchBotSource) GetBotPortsAddresses() ([]Bot, error) {
-	lines, err := e.client.ExecCmds(context.TODO(), "show mac-addr-table all")
-	if err != nil {
-		return nil, err
-	}
-	bots, err := parseSSHResult(strings.Split(lines, "\n"))
-	if err != nil {
-		return nil, err
+// GetDevicePortsAddresses implements addressPortGetter
+func (e *edgeswitchPortGetter) GetDevicePortsAddresses(ctx context.Context) ([]poeDevice, error) {
+	// ignore error because when talking to the edgeswitch, sshpass always returns an error
+	out, _ := e.client.ExecCmds(ctx,
+		"enable",
+		"show mac-addr-table all",
+		"mmmmmmmmm", // by default, the table only shows the first 20 entries. If we hit m, we see
+		// another 20. This is enough to see 200 entries, which should be plenty.
+	)
+	// It's hard to tell, but the raw output from the edgeswitch is full of carriage returns (\r),
+	// which can mess up regex searching. Treating them as newlines for the purpose of processing
+	// makes that easier.
+	out = strings.Replace(out, "\r", "\n", -1)
+	bots, err := parseSSHResult(strings.Split(out, "\n"))
+	if err != nil || len(bots) == 0 {
+		return nil, skerr.Wrapf(err, "parsing output from (possibly failed command): \n%s\n", out)
 	}
 	return dedupeBots(bots), nil
 }
 
+// Example line with named groups annotated:
+//   1        b8:27:eb:83:06:91   0/42                   42       Learned
+//            <mac_address    >                      <interface>
 var edgeswitchLine = regexp.MustCompile(`^\S+\s+(?P<mac_address>[0-9A-Fa-f:]+)\s+\S+\s+(?P<interface>\d+)\s+\S+`)
 
 // parseSSHResult looks at the lines output by the EdgeSwitchClient. These are
 // already split by \n.  It then parses the lines into the various components.
 // See the unit tests for an example of what this data looks like.
-func parseSSHResult(lines []string) ([]Bot, error) {
-	bots := []Bot{}
+func parseSSHResult(lines []string) ([]poeDevice, error) {
+	var devices []poeDevice
 	for _, l := range lines {
 		if matches := edgeswitchLine.FindStringSubmatch(l); matches != nil {
 			port, err := strconv.ParseInt(matches[2], 10, 0)
 			if err != nil {
-				return nil, fmt.Errorf("Unexpected formatting error. %s is not an int: %s", matches[2], err)
+				return nil, skerr.Wrapf(err, "formatting error. %s is not an int", matches[2])
 			}
-			bots = append(bots, Bot{MACAddress: strings.ToUpper(matches[1]), Port: int(port)})
+			devices = append(devices, poeDevice{
+				MACAddress: strings.ToUpper(matches[1]),
+				POEPort:    int(port),
+			})
 		}
 	}
-	return bots, nil
+	return devices, nil
 }
 
 // dedupeBots filters out the list of bots such that only bots whose port
 // assignments are unique are in the list. Bots with duplicate ports are
 // likely not directly attached to this switch.
-func dedupeBots(bots []Bot) []Bot {
+func dedupeBots(bots []poeDevice) []poeDevice {
 	uniquePorts := map[int]bool{}
 	for _, b := range bots {
-		if _, ok := uniquePorts[b.Port]; ok {
-			uniquePorts[b.Port] = false
+		if _, ok := uniquePorts[b.POEPort]; ok {
+			uniquePorts[b.POEPort] = false
 		} else {
-			uniquePorts[b.Port] = true
+			uniquePorts[b.POEPort] = true
 		}
 	}
 
-	unique := []Bot{}
+	var unique []poeDevice
 	for _, b := range bots {
-		if uniquePorts[b.Port] {
+		if uniquePorts[b.POEPort] {
 			unique = append(unique, b)
 		}
 	}
 	return unique
 }
+
+var _ addressPortGetter = (*edgeswitchPortGetter)(nil)
