@@ -16,6 +16,7 @@ import { stateReflector } from 'common-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../byblameentry-sk';
 import '../corpus-selector-sk';
+import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 
 const template = (el) => html`
 <div class=top-container>
@@ -123,7 +124,7 @@ define('byblame-page-sk', class extends ElementSk {
       signal: this._fetchController.signal,
     };
 
-    this._sendBusy();
+    sendBeginTask(this);
     // Step 1: Fetch ByBlameEntry objects from /json/byblame.
     fetch(url, options)
       .then(jsonOrThrow)
@@ -154,26 +155,8 @@ define('byblame-page-sk', class extends ElementSk {
       .then(() => {
         this._loaded = true;
         this._render();
-        this._sendDone();
+        sendEndTask(this);
       })
-      .catch((e) => this._sendError(e));
-  }
-
-  _sendBusy() {
-    this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
-  }
-
-  _sendDone() {
-    this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
-  }
-
-  _sendError(e) {
-    this.dispatchEvent(new CustomEvent('fetch-error', {
-      detail: {
-        error: e,
-        loading: 'by blame page',
-      },
-      bubbles: true,
-    }));
+      .catch((e) => sendFetchError(this, e, 'byblamepage'));
   }
 });

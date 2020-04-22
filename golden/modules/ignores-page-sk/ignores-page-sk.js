@@ -15,7 +15,9 @@ import { html } from 'lit-html';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
-import { humanReadableQuery } from '../common';
+import {
+  humanReadableQuery, sendBeginTask, sendEndTask, sendFetchError,
+} from '../common';
 import { jsonOrThrow } from '../../../common-sk/modules/jsonOrThrow';
 
 import '../../../infra-sk/modules/confirm-dialog-sk';
@@ -140,13 +142,13 @@ define('ignores-page-sk', class extends ElementSk {
     const dialog = $$('confirm-dialog-sk', this);
     dialog.open('Are you sure you want to delete '
       + 'this ignore rule?').then(() => {
-      this._sendBusy();
+      sendBeginTask(this);
       fetch(`/json/ignores/del/${rule.id}`, {
         method: 'POST',
       }).then(jsonOrThrow).then(() => {
         this._fetch();
-        this._sendDone();
-      }).catch((e) => this._sendFetchError(e, 'deleting ignore'));
+        sendEndTask(this);
+      }).catch((e) => sendFetchError(this, e, 'deleting ignore'));
     });
   }
 
@@ -174,8 +176,8 @@ define('ignores-page-sk', class extends ElementSk {
       signal: this._fetchController.signal,
     };
 
-    this._sendBusy();
-    this._sendBusy();
+    sendBeginTask(this);
+    sendBeginTask(this);
 
     // We always want the counts of the ignore rules, thus the parameter counts=1.
     fetch('/json/ignores?counts=1', extra)
@@ -183,18 +185,18 @@ define('ignores-page-sk', class extends ElementSk {
       .then((arr) => {
         this._rules = arr || [];
         this._render();
-        this._sendDone();
+        sendEndTask(this);
       })
-      .catch((e) => this._sendFetchError(e, 'ignores'));
+      .catch((e) => sendFetchError(this, e, 'ignores'));
 
     fetch('/json/paramset', extra)
       .then(jsonOrThrow)
       .then((paramset) => {
         this._paramset = paramset;
         this._render();
-        this._sendDone();
+        sendEndTask(this);
       })
-      .catch((e) => this._sendFetchError(e, 'ignores'));
+      .catch((e) => sendFetchError(this, e, 'ignores'));
   }
 
   _newIgnoreRule() {
@@ -219,7 +221,7 @@ define('ignores-page-sk', class extends ElementSk {
         url = `/json/ignores/save/${this._ruleID}`;
       }
 
-      this._sendBusy();
+      sendBeginTask(this);
       fetch(url, {
         method: 'POST',
         headers: {
@@ -228,30 +230,12 @@ define('ignores-page-sk', class extends ElementSk {
         body: JSON.stringify(body),
       }).then(jsonOrThrow).then(() => {
         this._fetch();
-        this._sendDone();
-      }).catch((e) => this._sendFetchError(e, 'saving ignore'));
+        sendEndTask(this);
+      }).catch((e) => sendFetchError(this, e, 'saving ignore'));
 
       editor.reset();
       this._editIgnoreRuleDialog.close();
     }
-  }
-
-  _sendBusy() {
-    this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
-  }
-
-  _sendDone() {
-    this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
-  }
-
-  _sendFetchError(e, what) {
-    this.dispatchEvent(new CustomEvent('fetch-error', {
-      detail: {
-        error: e,
-        loading: what,
-      },
-      bubbles: true,
-    }));
   }
 
   _toggleCountAll(e) {

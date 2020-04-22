@@ -22,7 +22,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { $$ } from '../../../common-sk/modules/dom';
 import { fromParamSet, fromObject } from '../../../common-sk/modules/query';
 import {
-  truncateWithEllipses, detailHref, diffPageHref,
+  truncateWithEllipses, detailHref, diffPageHref, sendBeginTask, sendEndTask, sendFetchError,
 } from '../common';
 
 import 'elements-sk/icon/group-work-icon-sk';
@@ -344,7 +344,7 @@ define('digest-details-sk', class extends ElementSk {
       postBody.issue = this.issue;
     }
 
-    this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
+    sendBeginTask(this);
 
     fetch('/json/triage', {
       method: 'POST',
@@ -361,7 +361,7 @@ define('digest-details-sk', class extends ElementSk {
           ts: Date.now(),
         });
         this._render();
-        this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+        sendEndTask(this);
       } else {
         // Triaging did not work (possibly because the user was not logged in). We want to set
         // the status of the triage-sk back to what it was to give a visual indication it did not
@@ -371,8 +371,8 @@ define('digest-details-sk', class extends ElementSk {
           + '(Are you logged in with the right account?)', 8000);
         $$('triage-sk', this).value = this._status;
         this._render();
-        this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+        sendEndTask(this);
       }
-    }).catch(errorMessage);
+    }).catch((e) => sendFetchError(this, e, 'triaging'));
   }
 });

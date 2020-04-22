@@ -13,6 +13,7 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../pagination-sk';
+import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 
 const template = (el) => html`
 <table>
@@ -89,7 +90,6 @@ define('triagelog-page-sk', class extends ElementSk {
     this._pageSize = 0; // Reflected in the URL.
     this._issue = 0; // Reflected in the URL.
     this._totalEntries = 0; // Total number of entries in the server.
-    this._urlParamsLoaded = false;
 
     // stateReflector will trigger on DomReady.
     this._stateChanged = stateReflector(
@@ -132,15 +132,15 @@ define('triagelog-page-sk', class extends ElementSk {
   }
 
   _undoEntry(entryId) {
-    this._sendBusy();
+    sendBeginTask(this);
     this._fetch(`/json/triagelog/undo?id=${entryId}`, 'POST')
     // The undo RPC returns the first page of results with details hidden.
     // But we always show details, so we need to make another request to
     // fetch the triage log with details from /json/triagelog.
     // TODO(lovisolo): Rethink this after we delete the old triage log page.
       .then(() => this._fetchEntries(/* sendBusyDoneEvents= */ false))
-      .then(() => this._sendDone())
-      .catch((e) => this._sendFetchError(e));
+      .then(() => sendEndTask(this))
+      .catch((e) => sendFetchError(this, e, 'undo'));
   }
 
   _fetchEntries(sendBusyDoneEvents = true) {
@@ -150,16 +150,16 @@ define('triagelog-page-sk', class extends ElementSk {
       url += `&issue=${this._issue}`;
     }
     if (sendBusyDoneEvents) {
-      this._sendBusy();
+      sendBeginTask(this);
     }
     return this._fetch(url, 'GET')
       .then(() => {
         this._render();
         if (sendBusyDoneEvents) {
-          this._sendDone();
+          sendEndTask(this);
         }
       })
-      .catch((e) => this._sendFetchError(e));
+      .catch((e) => sendFetchError(this, e, 'triagelog'));
   }
 
   // Both /json/triagelog and /json/triagelog/undo RPCs return the same kind of
@@ -190,23 +190,5 @@ define('triagelog-page-sk', class extends ElementSk {
 
   _toLocalDate(timeStampMS) {
     return new Date(timeStampMS).toLocaleString();
-  }
-
-  _sendBusy() {
-    this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
-  }
-
-  _sendDone() {
-    this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
-  }
-
-  _sendFetchError(error) {
-    this.dispatchEvent(new CustomEvent('fetch-error', {
-      detail: {
-        error: error,
-        loading: 'triagelog',
-      },
-      bubbles: true,
-    }));
   }
 });
