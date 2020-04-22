@@ -1,8 +1,8 @@
 /**
- * @module module/details-page-sk
- * @description <h2><code>details-page-sk</code></h2>
+ * @module module/diff-page-sk
+ * @description <h2><code>diff-page-sk</code></h2>
  *
- * Page to view details about a digest. This includes other digests similar to it and trace history.
+ * Page to view a specific diff between two digests. This does not include trace data.
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
@@ -17,29 +17,22 @@ const template = (ele) => {
   if (!ele._didInitialLoad) {
     return html`<h1>Loading...</h1>`;
   }
-  if (!ele._details.digest) {
-    return html`
-<div>
-  Could not load details for digest ${ele._digest} and test "${ele._grouping}".
-  <br>
-  It might not exist or be too new so as not to be indexed yet.
-</div>`;
-  }
   return html`
-<digest-details-sk .commits=${ele._commits} .issue=${ele._changeListID} .details=${ele._details}>
+<digest-details-sk .issue=${ele._changeListID} .details=${ele._leftDetails} .right=${ele._rightDetails}>
 </digest-details-sk>
   `;
 };
 
-define('details-page-sk', class extends ElementSk {
+define('diff-page-sk', class extends ElementSk {
   constructor() {
     super(template);
 
     this._grouping = '';
-    this._digest = '';
+    this._leftDigest = '';
+    this._rightDigest = '';
     this._changeListID = '';
-    this._commits = [];
-    this._details = {};
+    this._leftDetails = {};
+    this._rightDetails = {};
     this._didInitialLoad = false;
 
 
@@ -47,7 +40,8 @@ define('details-page-sk', class extends ElementSk {
       /* getState */() => ({
         // provide empty values
         test: this._grouping, // TODO(kjlubick) rename test -> grouping
-        digest: this._digest,
+        left: this._leftDigest,
+        right: this._rightDigest,
         issue: this._changeListID, // TODO(kjlubick) rename issue -> changeListID
       }), /* setState */(newState) => {
         if (!this._connected) {
@@ -55,7 +49,8 @@ define('details-page-sk', class extends ElementSk {
         }
         // default values if not specified.
         this._grouping = newState.test || '';
-        this._digest = newState.digest || '';
+        this._leftDigest = newState.left || '';
+        this._rightDigest = newState.right || '';
         this._changeListID = newState.issue || '';
         this._fetch();
         this._render();
@@ -85,23 +80,24 @@ define('details-page-sk', class extends ElementSk {
     };
     sendBeginTask(this);
 
-    const url = `/json/details?test=${encodeURIComponent(this._grouping)}`
-      + `&digest=${encodeURIComponent(this._digest)}&issue=${this._changeListID}`;
+    const url = `/json/diff?test=${encodeURIComponent(this._grouping)}`
+      + `&left=${encodeURIComponent(this._leftDigest)}`
+      + `&right=${encodeURIComponent(this._rightDigest)}&issue=${this._changeListID}`;
     fetch(url, extra)
       .then(jsonOrThrow)
       .then((obj) => {
-        this._commits = obj.commits || [];
-        this._details = obj.digest || {};
+        this._leftDetails = obj.left || {};
+        this._rightDetails = obj.right || {};
         this._didInitialLoad = true;
         this._render();
         sendEndTask(this);
       })
       .catch((e) => {
-        this._commits = [];
-        this._details = {};
-        this._didInitialLoad = true;
+        this._leftDetails = {};
+        this._rightDetails = {};
+        this._didInitialLoad = false;
         this._render();
-        sendFetchError(this, e, 'digest-details');
+        sendFetchError(this, e, 'diff-details');
       });
   }
 });
