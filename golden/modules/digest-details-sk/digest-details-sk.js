@@ -142,7 +142,7 @@ const traceInfo = (ele) => {
 };
 
 const paramset = (ele) => {
-  if (!ele._digest) {
+  if (!ele._digest || !ele._params) {
     return ''; // details might not be loaded yet.
   }
   const input = {
@@ -175,7 +175,7 @@ define('digest-details-sk', class extends ElementSk {
     this._digest = '';
     this._status = 'untriaged';
     this._triageHistory = [];
-    this._params = {};
+    this._params = null;
     this._traces = null;
     this._refDiffs = {};
     this._issue = '';
@@ -215,7 +215,7 @@ define('digest-details-sk', class extends ElementSk {
     this._grouping = obj.test || '';
     this._digest = obj.digest || '';
     this._traces = obj.traces || {};
-    this._params = obj.paramset || {};
+    this._params = obj.paramset;
     this._refDiffs = obj.refDiffs || {};
     this._rightRef = obj.closestRef || '';
     this._status = obj.status || '';
@@ -262,7 +262,7 @@ define('digest-details-sk', class extends ElementSk {
   }
 
   _clusterHref() {
-    if (!this._grouping) {
+    if (!this._grouping || !this._params) {
       return '';
     }
 
