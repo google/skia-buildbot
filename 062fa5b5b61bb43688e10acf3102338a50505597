@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "afd43b90_18005ae2",
+        "filename": "skolo/go/censustaker/bot.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-22T12:11:28Z",
+      "side": 0,
+      "message": "How did I not know about this?  I\u0027ve been using \"%+v\" and resorting to full-on JSON encoding when I need more information...",
+      "range": {
+        "startLine": 14,
+        "startChar": 21,
+        "endLine": 14,
+        "endChar": 24
+      },
+      "revId": "062fa5b5b61bb43688e10acf3102338a50505597",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
