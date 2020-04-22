@@ -105,3 +105,35 @@ export function diffPageHref(grouping, left, right, issue = '') {
   }
   return u;
 }
+
+/**
+ * Helper to tell gold-scaffold-sk that a task has started and the spinner should be set to active.
+ * @param ele - this
+ */
+export function sendBeginTask(ele) {
+  ele.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
+}
+
+/**
+ * Helper to tell gold-scaffold-sk that a task has finished and the spinner should maybe be stopped.
+ * @param ele - this
+ */
+export function sendEndTask(ele) {
+  ele.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+}
+
+/**
+ * Helper to tell gold-scaffold-sk that a fetch failed. This will pop up on the toast-sk.
+ * @param ele - this
+ * @param e - error received from promise rejection.
+ * @param what {string} - describing what was being fetched.
+ */
+export function sendFetchError(ele, e, what) {
+  ele.dispatchEvent(new CustomEvent('fetch-error', {
+    detail: {
+      error: e,
+      loading: what,
+    },
+    bubbles: true,
+  }));
+}
