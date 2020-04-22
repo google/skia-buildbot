@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "53f86b15_4ccea2b0",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-22T16:46:51Z",
+      "side": 1,
+      "message": "I think we will want to differentiate Host temperature and device temperature",
+      "range": {
+        "startLine": 52,
+        "startChar": 1,
+        "endLine": 52,
+        "endChar": 12
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b449664_7f048a7f",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-22T16:46:51Z",
+      "side": 1,
+      "message": "I am skeptical about condensing temperature down to a single value. I worry that this will lead to frustrations like \"Why is this device too hot?\" because all we have is a single number. \n\nI would probably go with a map of sensor_name -\u003e float32\n\nIn any case, it should be more clear if this is the maximum temperature, the average temperature, or something else.",
+      "range": {
+        "startLine": 52,
+        "startChar": 13,
+        "endLine": 52,
+        "endChar": 20
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c12b46b2_d8e899b9",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-22T16:46:51Z",
+      "side": 1,
+      "message": "We currently have this set to 35 (except for CT). Is the change intentional?",
+      "range": {
+        "startLine": 36,
+        "startChar": 27,
+        "endLine": 36,
+        "endChar": 29
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9543f603_4c5c38f5",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-22T16:46:51Z",
+      "side": 1,
+      "message": "Do we know how well this supports older devices? FWIW, swarming just reads /sys/class/thermal directly\nhttps://github.com/luci/luci-py/blob/e0a8a5640c4104e5c90781d833168aa8a8d1f24d/appengine/third_party/python-adb/adb/contrib/high.py#L626",
+      "range": {
+        "startLine": 288,
+        "startChar": 20,
+        "endLine": 288,
+        "endChar": 52
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b5288d2a_566248ec",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-22T16:46:51Z",
+      "side": 1,
+      "message": "We will probably need a way to conditionally ignore certain sensors - we\u0027ve discovered several that have a fixed temperature.\nhttps://chrome-internal.googlesource.com/infradata/config/+/refs/heads/master/configs/chromium-swarm/scripts/skia_mobile.py#717",
+      "range": {
+        "startLine": 312,
+        "startChar": 47,
+        "endLine": 312,
+        "endChar": 56
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24566043_11a4e512",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-22T16:46:51Z",
+      "side": 1,
+      "message": "Some temperatures are reported in non-Celsius.\n\nSwarming does some guesses to convert them:\nhttps://github.com/luci/luci-py/blob/e0a8a5640c4104e5c90781d833168aa8a8d1f24d/appengine/third_party/python-adb/adb/contrib/high.py#L649\nhttps://chrome-internal.googlesource.com/infradata/config/+/refs/heads/master/configs/chromium-swarm/scripts/skia_mobile.py#748\n\nShould we emulate this?",
+      "range": {
+        "startLine": 346,
+        "startChar": 3,
+        "endLine": 346,
+        "endChar": 7
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "560fbef2_71553999",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-22T16:46:51Z",
+      "side": 1,
+      "message": "Add comment: \"As a fallback, report the battery temperature\". Although, I think we might always want to include the battery temperature in the computation.",
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27fc0170_94671025",
+        "filename": "machine/go/machine/processor/impl_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-22T16:46:51Z",
+      "side": 1,
+      "message": "remove old code?",
+      "range": {
+        "startLine": 434,
+        "startChar": 3,
+        "endLine": 434,
+        "endChar": 9
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66eac728_6db3f774",
+        "filename": "machine/go/machine/processor/impl_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 594,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-22T16:46:51Z",
+      "side": 1,
+      "message": "nit: 281 to check that we don\u0027t do integer divison.",
+      "range": {
+        "startLine": 594,
+        "startChar": 14,
+        "endLine": 594,
+        "endChar": 17
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
