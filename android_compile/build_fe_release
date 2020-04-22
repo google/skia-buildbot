@@ -6,21 +6,11 @@ set -x -e
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
-INSTALL="install -D --verbose --backup=none"
-INSTALL_DIR="install -d --verbose --backup=none"
-
 ${INSTALL} --mode=644 -T ./go/android_compile_fe/Dockerfile ${ROOT}/Dockerfile
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}           ${ROOT}/usr/local/bin/${APPNAME}
 
-${INSTALL_DIR} --mode=755                             ${ROOT}/usr/local/share/${APPNAME}
-${INSTALL_DIR} --mode=755                             ${ROOT}/usr/local/share/${APPNAME}/res/img
-${INSTALL}     --mode=644 ./res/img/*                 ${ROOT}/usr/local/share/${APPNAME}/res/img
-${INSTALL_DIR} --mode=755                             ${ROOT}/usr/local/share/${APPNAME}/res/js
-${INSTALL}     --mode=644 -T ./res/js/core.js         ${ROOT}/usr/local/share/${APPNAME}/res/js/core.js
-${INSTALL_DIR} --mode=755                             ${ROOT}/usr/local/share/${APPNAME}/templates
-${INSTALL}     --mode=644 ./templates/*               ${ROOT}/usr/local/share/${APPNAME}/templates
-${INSTALL_DIR} --mode=755                             ${ROOT}/usr/local/share/${APPNAME}/res/img
-${INSTALL}     --mode=644 -T ./res/vul/elements.html  ${ROOT}/usr/local/share/${APPNAME}/res/vul/elements.html
+${INSTALL_DIR} --mode=755          ${ROOT}/usr/local/share/${APPNAME}
+${INSTALL}     --mode=644 ./dist/* ${ROOT}/usr/local/share/${APPNAME}
 }
 
 source ../bash/docker_build.sh

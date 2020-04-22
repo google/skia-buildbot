@@ -1,40 +1,30 @@
-# minified. These files should be either present in the project, brought
-# into third_party/bower_compoents via bower, or in node_modules.
-CORE_SOURCE_FILES = third_party/bower_components/webcomponentsjs/webcomponents.min.js \
-          ../res/js/common.js \
+default: android_compile_fe package-lock.json
+	npx webpack --mode=development
 
-BOWER_DIR=third_party/bower_components
+serve: package-lock.json
+	npx webpack-dev-server --mode=development --watch-poll
 
-VULCANIZE1=true
+watch: package-lock.json
+	npx webpack --mode=development --watch
 
-include ../webtools/webtools.mk
-include ../go/skiaversion/skiaversion.mk
+package-lock.json: package.json
+	npm install
 
-# Build debug versions of core.js and elements.html.
-.PHONY: debug_android_compile_fe
-debug_android_compile_fe: clean_webtools debug_core_js debug_elements_html skiaversion
-	go install -v ./go/android_compile_fe/...
-
-.PHONY: android_compile_fe
-android_compile_fe: clean_webtools elements_html
+android_compile_fe:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/android_compile_fe
 
-.PHONY: release_fe
-release_fe: android_compile_fe
+release_fe: android_compile_fe package-lock.json
+	npx webpack --mode=production
 	./build_fe_release
 
-.PHONY: android_compile_be
 android_compile_be:
 	GOOS=linux go install -v ./go/android_compile_be
 
-.PHONY: release_be
 release_be: android_compile_be
 	./build_be_release
 
-.PHONY: push_fe
 push_fe: release_fe
 	pushk android_compile_fe
 
-.PHONY: push_be
 push_be: release_be
 	pushk android_compile_be
