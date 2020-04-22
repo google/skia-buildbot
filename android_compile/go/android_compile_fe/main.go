@@ -138,6 +138,8 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	r.HandleFunc(forceSyncPostUrl, srv.forceSyncHandler).Methods("POST")
 	r.HandleFunc(pendingTasksPostUrl, srv.pendingTasksHandler).Methods("POST")
 	r.HandleFunc(compileInstancesPostUrl, srv.compileInstancesHandler).Methods("POST")
+	// Healthz.
+	r.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 }
 
 // See baseapp.Constructor
