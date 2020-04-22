@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1e27df3b_ea2a1cb5",
+        "filename": "android_compile/modules/compile-scaffold-sk/compile-scaffold-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-22T12:56:14Z",
+      "side": 1,
+      "message": "In theory you should also need:\n\n\n    static get observedAttributes() {\n        return [\u0027app_title\u0027];\n    }\n\n    attributeChangedCallback(name, oldValue, newValue) {\n        switch (name) {\n            case \u0027app_title\u0027:\n                this._render();\n                break;\n        }\n    }\n\nIn practice you don\u0027t because app_title is probably never changed dynamically.",
+      "revId": "246f55c94f9dd20369d16c7961a9dada084b29a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a9388f2_2a2371a3",
+        "filename": "android_compile/modules/force-sync-instances-sk/force-sync-instances-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-22T12:56:14Z",
+      "side": 1,
+      "message": "These can be done via CSS.",
+      "range": {
+        "startLine": 53,
+        "startChar": 26,
+        "endLine": 53,
+        "endChar": 53
+      },
+      "revId": "246f55c94f9dd20369d16c7961a9dada084b29a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "edb0acaa_cb959f02",
+        "filename": "android_compile/modules/list-tasks-sk/list-tasks-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-22T12:56:14Z",
+      "side": 1,
+      "message": "Can be done in CSS. Here and below.",
+      "range": {
+        "startLine": 58,
+        "startChar": 27,
+        "endLine": 58,
+        "endChar": 53
+      },
+      "revId": "246f55c94f9dd20369d16c7961a9dada084b29a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
