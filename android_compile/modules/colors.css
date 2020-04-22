@@ -1,0 +1,10 @@
+/* Common Android compile server colors via CSS Variables.
+
+  Can be imported via:
+
+    @import '../colors';
+*/
+
+html {
+  --purple: #CCCCFF;
+}
