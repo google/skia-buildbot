@@ -36,6 +36,7 @@
         <th>Mode</th>
         <th>Quarantined</th>
         <th>Battery</th>
+        <th>Temperature</th>
         <th>Last Updated</th>
       </tr>
       {{ range . }}
@@ -44,6 +45,10 @@
         <td>{{.Mode}}</td>
         <td>{{.Dimensions.quarantined}}</td>
         <td>{{.Battery}}</td>
+        <td>
+          {{range $key, $value := .Temperature}} {{$key}}={{$value}}<br />
+          {{end}}
+        </td>
         <td>{{.LastUpdated}}</td>
       </tr>
       {{ end }}

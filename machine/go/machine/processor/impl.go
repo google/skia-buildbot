@@ -28,6 +28,14 @@ const (
 	// charged before testing is allowed. Below this the device should be
 	// quarantined.
 	minBatteryLevel = 30
+
+	badTemperature float64 = -99
+
+	// maxTemperatureC is the highest we want to see a devices temperature. Over
+	// this the device should be quarantined.
+	maxTemperatureC float64 = 35
+
+	batteryTemperatureKey = "dumpsys_battery"
 )
 
 var (
@@ -50,6 +58,30 @@ var (
 	//
 	//    scale: 100
 	batteryScale = regexp.MustCompile(`(?m)scale:\s+(\d+)\n`)
+
+	// batteryTemperature is a regex that matches the output of `adb shell
+	// dumpsys battery` and looks for the battery temperature which looks like:
+	//
+	//      temperature: 280
+	batteryTemperature = regexp.MustCompile(`(?m)temperature:\s+(\d+)\n`)
+
+	// thermalServiceTemperature is a regex that matches the temperatures in the
+	// output of `adb shell dumpsys thermalservice`, which look like:
+	//
+	//      Temperature{mValue=28.000002, mType=2, mName=battery, mStatus=0}
+	//
+	// Note the regex doesn't match negative temperatures so those will be
+	// ignored. Some devices set a value of -99.9 for the temp of a device they
+	// aren't actually measuring.
+	//
+	// The groups in the regex are:
+	//   1. The temp as a float.
+	//   2. The name of the part being measured.
+	//   3. The status, which corresponds to different throttling levels.
+	//      See https://source.android.com/devices/architecture/hidl/thermal-mitigation#thermal-service
+	//
+	// The name and status are currently unused.
+	thermalServiceTemperature = regexp.MustCompile(`\tTemperature{mValue=([\d\.]+),\s+mType=\d+,\s+mName=([^,]+),\s+mStatus=(\d)`)
 )
 
 // ProcessorImpl implements the Processor interface.
@@ -92,6 +124,16 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": machineID}).Update(int64(battery))
 	}
 
+	temperatures, ok := temperatureFromAndroid(event.Android)
+	if ok {
+		temperature := findMaxTemperature(temperatures)
+		if temperature > maxTemperatureC {
+			dimensions[machine.DimQuarantined] = []string{fmt.Sprintf("Temperature is too hot: %g > %g (C)", temperature, maxTemperatureC)}
+		}
+		for sensor, temp := range temperatures {
+			metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": machineID, "sensor": sensor}).Update(temp)
+		}
+	}
 	// If this machine previously had a connected device and it's no longer
 	// present then quarantine the machine.
 	//
@@ -108,6 +150,7 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 
 	ret := previous.Copy()
 	ret.Battery = battery
+	ret.Temperature = temperatures
 	for k, values := range dimensions {
 		ret.Dimensions[k] = values
 	}
@@ -220,7 +263,6 @@ func dimensionsFromAndroidProperties(prop map[string]string) map[string][]string
 //  voltage: 4248
 //  temperature: 280
 //  technology: Li-ion
-
 func batteryFromAndroidDumpSys(batteryDumpSys string) (int, bool) {
 	levelMatch := batteryLevel.FindStringSubmatch(batteryDumpSys)
 	if levelMatch == nil {
@@ -243,4 +285,99 @@ func batteryFromAndroidDumpSys(batteryDumpSys string) (int, bool) {
 	}
 	return (100 * level) / scale, true
 
+}
+
+// Return the device temperature as a float. The returned boolean will be false if
+// no temperature could be extracted.
+//
+// The output from `adb shell dumpsys thermalservice` looks like:
+//
+//    IsStatusOverride: false
+//    ThermalEventListeners:
+//    	callbacks: 1
+//    	killed: false
+//    	broadcasts count: -1
+//    ThermalStatusListeners:
+//    	callbacks: 1
+//    	killed: false
+//    	broadcasts count: -1
+//    Thermal Status: 0
+//    Cached temperatures:
+//     Temperature{mValue=-99.9, mType=6, mName=TYPE_POWER_AMPLIFIER, mStatus=0}
+//    	Temperature{mValue=25.3, mType=4, mName=TYPE_SKIN, mStatus=0}
+//    	Temperature{mValue=24.0, mType=1, mName=TYPE_CPU, mStatus=0}
+//    	Temperature{mValue=24.4, mType=3, mName=TYPE_BATTERY, mStatus=0}
+//    	Temperature{mValue=24.2, mType=5, mName=TYPE_USB_PORT, mStatus=0}
+//    HAL Ready: true
+//    HAL connection:
+//    	Sdhms connected: yes
+//    Current temperatures from HAL:
+//    	Temperature{mValue=24.0, mType=1, mName=TYPE_CPU, mStatus=0}
+//    	Temperature{mValue=24.4, mType=3, mName=TYPE_BATTERY, mStatus=0}
+//    	Temperature{mValue=25.3, mType=4, mName=TYPE_SKIN, mStatus=0}
+//    	Temperature{mValue=24.2, mType=5, mName=TYPE_USB_PORT, mStatus=0}
+//    	Temperature{mValue=-99.9, mType=6, mName=TYPE_POWER_AMPLIFIER, mStatus=0}
+//    Current cooling devices from HAL:
+//    	CoolingDevice{mValue=0, mType=2, mName=TYPE_CPU}
+//    	CoolingDevice{mValue=0, mType=3, mName=TYPE_GPU}
+//    	CoolingDevice{mValue=0, mType=1, mName=TYPE_BATTERY}
+//    	CoolingDevice{mValue=1, mType=4, mName=TYPE_MODEM}
+//
+// We are only interested in the temperatures found in the 'Current temperatures from HAL'
+// section and we return the max of all the temperatures found there.
+//
+// TODO(jcgregorio) Add support for 'dumpsys hwthermal' which has a different format.
+func temperatureFromAndroid(android machine.Android) (map[string]float64, bool) {
+	ret := map[string]float64{}
+	if len(android.DumpsysThermalService) != 0 {
+		// Only use temperatures that appear after "Current temperatures from HAL".
+		inCurrentTemperatures := false
+		for _, line := range strings.Split(android.DumpsysThermalService, "\n") {
+			if !inCurrentTemperatures {
+				if strings.HasPrefix(line, "Current temperatures from HAL") {
+					inCurrentTemperatures = true
+				}
+				continue
+			}
+			// Stop when we get past the Temperature{} lines, i.e. we see a line
+			// that doesn't begin with a tab.
+			if !strings.HasPrefix(line, "\t") {
+				break
+			}
+			matches := thermalServiceTemperature.FindStringSubmatch(line)
+			if matches == nil {
+				continue
+			}
+			temp, err := strconv.ParseFloat(matches[1], 64)
+			if err != nil {
+				continue
+			}
+			ret[matches[2]] = temp
+		}
+	}
+	temperatureMatch := batteryTemperature.FindStringSubmatch(android.DumpsysBattery)
+	if temperatureMatch != nil {
+		// The value is an integer in units of 1/10 C.
+		temp10C, err := strconv.Atoi(temperatureMatch[1])
+		if err == nil {
+			ret[batteryTemperatureKey] = float64(temp10C) / 10
+		}
+	}
+	if len(ret) == 0 {
+		return nil, false
+	}
+	return ret, true
+}
+
+func findMaxTemperature(temps map[string]float64) float64 {
+	if len(temps) == 0 {
+		return badTemperature
+	}
+	max := badTemperature
+	for _, temp := range temps {
+		if temp > max {
+			max = temp
+		}
+	}
+	return max
 }

@@ -48,7 +48,8 @@ type Description struct {
 	Annotation  Annotation
 	Dimensions  SwarmingDimensions
 	LastUpdated time.Time
-	Battery     int // Charge as an integer percent, e.g. 50% = 50.
+	Battery     int                // Charge as an integer percent, e.g. 50% = 50.
+	Temperature map[string]float64 // In Celsius.
 }
 
 // NewDescription returns a new Description instance.
@@ -68,6 +69,10 @@ func (d Description) Copy() Description {
 		newValues := make([]string, len(values))
 		copy(newValues, values)
 		ret.Dimensions[k] = newValues
+	}
+	ret.Temperature = map[string]float64{}
+	for k, v := range d.Temperature {
+		ret.Temperature[k] = v
 	}
 	return ret
 }
