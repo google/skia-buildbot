@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "8cdd854f_a2e8daee",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-22T19:43:08Z",
+      "side": 1,
+      "message": "Changed to a map[string]float64.",
+      "parentUuid": "0b449664_7f048a7f",
+      "range": {
+        "startLine": 52,
+        "startChar": 13,
+        "endLine": 52,
+        "endChar": 20
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ef957583_59bbc9a9",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-22T19:43:08Z",
+      "side": 1,
+      "message": "If for some reason we want to collect the temperature of the thing we aren\u0027t testing, we can always add that as a unique key to the map.",
+      "parentUuid": "53f86b15_4ccea2b0",
+      "range": {
+        "startLine": 52,
+        "startChar": 1,
+        "endLine": 52,
+        "endChar": 12
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c12b46b2_d8e899b9",
         "filename": "machine/go/machine/processor/impl.go",
         "patchSetId": 4
@@ -68,6 +116,30 @@
       "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f313852a_5e45979f",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-22T19:43:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c12b46b2_d8e899b9",
+      "range": {
+        "startLine": 36,
+        "startChar": 27,
+        "endLine": 36,
+        "endChar": 29
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "87b6c7fb_0f63540d",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-22T19:43:08Z",
+      "side": 1,
+      "message": "AFAIK that requires root, and you are looking at raw device values as opposed to a higher level output from the service. If a device doesn\u0027t support thermalservice I\u0027d rather fall back to just battery temp.",
+      "parentUuid": "9543f603_4c5c38f5",
+      "range": {
+        "startLine": 288,
+        "startChar": 20,
+        "endLine": 288,
+        "endChar": 52
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b5288d2a_566248ec",
         "filename": "machine/go/machine/processor/impl.go",
         "patchSetId": 4
@@ -114,6 +210,30 @@
       "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e18bd585_29708ad5",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-22T19:43:08Z",
+      "side": 1,
+      "message": "I am going to presume that comes from mucking around in /sys/class/thermal directly. We can fix later if this shows up in thermalservice.",
+      "parentUuid": "b5288d2a_566248ec",
+      "range": {
+        "startLine": 312,
+        "startChar": 47,
+        "endLine": 312,
+        "endChar": 56
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "fa1d3d07_9daf35bb",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-22T19:43:08Z",
+      "side": 1,
+      "message": "I am going to presume this comes from mucking about in /sys/class/thermal.",
+      "parentUuid": "24566043_11a4e512",
+      "range": {
+        "startLine": 346,
+        "startChar": 3,
+        "endLine": 346,
+        "endChar": 7
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "560fbef2_71553999",
         "filename": "machine/go/machine/processor/impl.go",
         "patchSetId": 4
@@ -154,6 +298,24 @@
       "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "811458c6_32168914",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-22T19:43:08Z",
+      "side": 1,
+      "message": "Changed to always include battery temp.",
+      "parentUuid": "560fbef2_71553999",
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -180,6 +342,30 @@
     },
     {
       "key": {
+        "uuid": "c1048df1_bb758f31",
+        "filename": "machine/go/machine/processor/impl_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-22T19:43:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "27fc0170_94671025",
+      "range": {
+        "startLine": 434,
+        "startChar": 3,
+        "endLine": 434,
+        "endChar": 9
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "66eac728_6db3f774",
         "filename": "machine/go/machine/processor/impl_test.go",
         "patchSetId": 4
@@ -200,6 +386,30 @@
       "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ffe40e1a_ffe9d070",
+        "filename": "machine/go/machine/processor/impl_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 594,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-22T19:43:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "66eac728_6db3f774",
+      "range": {
+        "startLine": 594,
+        "startChar": 14,
+        "endLine": 594,
+        "endChar": 17
+      },
+      "revId": "17d7fc07141df4765aae91e2c8f8b42537a17a7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
