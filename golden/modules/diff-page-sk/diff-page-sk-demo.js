@@ -1,7 +1,7 @@
 import './index';
 import '../gold-scaffold-sk';
 
-import { typicalDetails, fakeNow, twoHundredCommits } from '../digest-details-sk/test_data';
+import { typicalDetails, fakeNow } from '../digest-details-sk/test_data';
 import { delay, isPuppeteerTest } from '../demo_util';
 import { setImageEndpointsForDemos } from '../common';
 import { $$ } from '../../../common-sk/modules/dom';
@@ -12,45 +12,39 @@ setImageEndpointsForDemos();
 
 // Load the demo page with some params to load if there aren't any already.
 if (window.location.search.length < 4) {
-  const query = '?digest=6246b773851984c726cb2e1cb13510c2&test=My%20test%20has%20spaces&issue=12353';
+  const query = '?left=6246b773851984c726cb2e1cb13510c2&right=99c58c7002073346ff55f446d47d6311&test=My%20test%20has%20spaces&issue=12353';
   history.pushState(null, '', window.location.origin + window.location.pathname + query);
 }
 
+const leftDetails = JSON.parse(JSON.stringify(typicalDetails));
+const rightDetails = typicalDetails.refDiffs.pos;
+
+// the server doesn't fill these out for the diff endpoint.
+leftDetails.traces = null;
+leftDetails.refDiffs = null;
 
 Date.now = () => fakeNow;
 
 const rpcDelay = isPuppeteerTest() ? 5 : 300;
 
-fetchMock.get('glob:/json/details*', delay(() => {
+fetchMock.get('glob:/json/diff*', delay(() => {
   if ($$('#simulate-rpc-error').checked) {
     return 500;
   }
-  if ($$('#simulate-not-found-in-index').checked) {
-    return JSON.stringify({
-      digest: {
-        digest: '6246b773851984c726cb2e1cb13510c2',
-        test: 'This test exists, but the digest does not',
-        status: 'untriaged',
-      },
-      commits: twoHundredCommits,
-      trace_comments: null,
-    });
-  }
   return JSON.stringify({
-    digest: typicalDetails,
-    commits: twoHundredCommits,
-    trace_comments: null,
+    left: leftDetails,
+    right: rightDetails,
   });
 }, rpcDelay));
 fetchMock.catch(404);
 
 // make the page reload when checkboxes change.
 document.addEventListener('change', () => {
-  $$('details-page-sk')._fetch();
+  $$('diff-page-sk')._fetch();
 });
 
 $$('#remove_btn').addEventListener('click', () => {
-  const ele = $$('details-page-sk');
+  const ele = $$('diff-page-sk');
   ele._changeListID = '';
   ele._render();
 });
