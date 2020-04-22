@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 )
@@ -330,4 +331,133 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		"inside_docker":       []string{"1", "containerd"},
 	}
 	assert.Equal(t, expected, next.Dimensions)
+}
+
+func TestProcess_QuarantineIfDeviceBatteryTooLow(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	previous := machine.NewDescription()
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name: "skia-rpi2-0001",
+		},
+		Android: machine.Android{
+			DumpsysBattery: `Current Battery Service state:
+  AC powered: true
+  USB powered: false
+  Wireless powered: false
+  Max charging current: 1500000
+  Max charging voltage: 5000000
+  Charge counter: 2448973
+  status: 2
+  health: 2
+  present: true
+  level: 9
+  scale: 100
+  voltage: 4248`,
+		},
+	}
+
+	p := newProcessorForTest(t)
+	next := p.Process(ctx, previous, event)
+	assert.Equal(t, "Battery is too low: 9 < 30 (%)", next.Dimensions[machine.DimQuarantined][0])
+	assert.Equal(t, 9, next.Battery)
+	assert.Equal(t, int64(9), metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": "skia-rpi2-0001"}).Get())
+
+}
+
+func TestProcess_DoNotQuarantineIfDeviceBatteryIsChargedEnough(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	previous := machine.NewDescription()
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name: "skia-rpi2-0001",
+		},
+		Android: machine.Android{
+			DumpsysBattery: `Current Battery Service state:
+  AC powered: true
+  USB powered: false
+  Wireless powered: false
+  Max charging current: 1500000
+  Max charging voltage: 5000000
+  Charge counter: 2448973
+  status: 2
+  health: 2
+  present: true
+  level: 95
+  scale: 100
+  voltage: 4248`,
+		},
+	}
+
+	p := newProcessorForTest(t)
+	next := p.Process(ctx, previous, event)
+	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
+	assert.Equal(t, 95, next.Battery)
+}
+
+func TestProcess_ReportBadBatteryIfDumpsysBatteryIsMissing(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	previous := machine.NewDescription()
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name: "skia-rpi2-0001",
+		},
+		Android: machine.Android{
+			DumpsysBattery: "",
+		},
+	}
+
+	p := newProcessorForTest(t)
+	next := p.Process(ctx, previous, event)
+	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
+	assert.Equal(t, badBatteryLevel, next.Battery)
+}
+
+func TestBatteryFromAndroidDumpSys_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	battery, ok := batteryFromAndroidDumpSys(`Current Battery Service state:
+  level: 94
+  scale: 100
+  `)
+	assert.True(t, ok)
+	assert.Equal(t, 94, battery)
+}
+
+func TestBatteryFromAndroidDumpSys_FalseOnEmptyString(t *testing.T) {
+	unittest.SmallTest(t)
+	_, ok := batteryFromAndroidDumpSys("")
+	assert.False(t, ok)
+}
+
+func TestBatteryFromAndroidDumpSys_FalseIfNoLevel(t *testing.T) {
+	unittest.SmallTest(t)
+	_, ok := batteryFromAndroidDumpSys(`Current Battery Service state:
+  scale: 100
+  `)
+	assert.False(t, ok)
+}
+func TestBatteryFromAndroidDumpSys_FalseIfNoScale(t *testing.T) {
+	unittest.SmallTest(t)
+	_, ok := batteryFromAndroidDumpSys(`Current Battery Service state:
+  level: 94
+  `)
+	assert.False(t, ok)
+}
+
+func TestBatteryFromAndroidDumpSys_FailOnBadScale(t *testing.T) {
+	unittest.SmallTest(t)
+	_, ok := batteryFromAndroidDumpSys(`Current Battery Service state:
+  level: 94
+  scale: 0
+  `)
+	assert.False(t, ok)
 }
