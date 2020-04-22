@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "32a2d294_9c3cce86",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-22T19:53:38Z",
+      "side": 1,
+      "message": "Should we include the name of the sensor or is that obvious from looking at the state?",
+      "range": {
+        "startLine": 131,
+        "startChar": 62,
+        "endLine": 131,
+        "endChar": 73
+      },
+      "revId": "5cae45e5939a1a66e610fe34178c57b03713ec91",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
