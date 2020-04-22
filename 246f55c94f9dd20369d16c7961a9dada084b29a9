@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "4972d70b_fbcc914a",
+        "filename": "android_compile/modules/compile-scaffold-sk/compile-scaffold-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-22T13:41:08Z",
+      "side": 1,
+      "message": "Yes it\u0027s not changed dynamically so leaving out the extra lines.",
+      "parentUuid": "1e27df3b_ea2a1cb5",
+      "revId": "246f55c94f9dd20369d16c7961a9dada084b29a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a9388f2_2a2371a3",
         "filename": "android_compile/modules/force-sync-instances-sk/force-sync-instances-sk.js",
         "patchSetId": 8
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "1db4d57b_df3f6a72",
+        "filename": "android_compile/modules/force-sync-instances-sk/force-sync-instances-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-22T13:41:08Z",
+      "side": 1,
+      "message": "Removed. Turns out did not need this.",
+      "parentUuid": "1a9388f2_2a2371a3",
+      "range": {
+        "startLine": 53,
+        "startChar": 26,
+        "endLine": 53,
+        "endChar": 53
+      },
+      "revId": "246f55c94f9dd20369d16c7961a9dada084b29a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "edb0acaa_cb959f02",
         "filename": "android_compile/modules/list-tasks-sk/list-tasks-sk.js",
         "patchSetId": 8
@@ -62,6 +104,30 @@
       "revId": "246f55c94f9dd20369d16c7961a9dada084b29a9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d90b42e7_af1ba6b4",
+        "filename": "android_compile/modules/list-tasks-sk/list-tasks-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-22T13:41:08Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "edb0acaa_cb959f02",
+      "range": {
+        "startLine": 58,
+        "startChar": 27,
+        "endLine": 58,
+        "endChar": 53
+      },
+      "revId": "246f55c94f9dd20369d16c7961a9dada084b29a9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
