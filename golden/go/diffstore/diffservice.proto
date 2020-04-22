@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package diffstore;
 
+option go_package = ".;diffstore";
+
 // DiffService implements a service for image diffs. The exposed functions
 // mirror the diff.DiffStore interface.
 service DiffService {
