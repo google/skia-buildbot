@@ -1,6 +1,7 @@
 package repo_manager
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -10,6 +11,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
+	"text/template"
 	"time"
 
 	"go.skia.org/infra/autoroll/go/codereview"
@@ -22,8 +25,10 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -83,9 +88,27 @@ func (r *AndroidRepoManagerConfig) ValidStrategies() []string {
 
 // androidRepoManager is a struct used by Android AutoRoller for managing checkouts.
 type androidRepoManager struct {
-	*commonRepoManager
-	repoUrl      string
-	repoToolPath string
+	childBranch      *config_vars.Template
+	childDir         string
+	childPath        string
+	childRepo        *git.Checkout
+	childRevLinkTmpl string
+	childSubdir      string
+	codereview       codereview.CodeReview
+	commitMsgTmpl    *template.Template
+	g                gerrit.GerritInterface
+	httpClient       *http.Client
+	includeBugs      bool
+	includeLog       bool
+	local            bool
+	bugProject       string
+	parentBranch     *config_vars.Template
+	preUploadSteps   []parent.PreUploadStep
+	repoMtx          sync.RWMutex
+	serverURL        string
+	workdir          string
+	repoUrl          string
+	repoToolPath     string
 }
 
 func NewAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
@@ -114,21 +137,74 @@ func NewAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, reg
 		}
 	}
 
-	wd := path.Join(workdir, "android_repo")
-
 	if c.CommitMsgTmpl == "" {
 		c.CommitMsgTmpl = TMPL_COMMIT_MSG_ANDROID
 	}
-	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, reg, wd, serverURL, g, client, cr, local)
+	wd := path.Join(workdir, "android_repo")
+	if err := os.MkdirAll(wd, os.ModePerm); err != nil {
+		return nil, err
+	}
+	childDir := path.Join(wd, c.ChildPath)
+	if c.ChildSubdir != "" {
+		childDir = path.Join(wd, c.ChildSubdir, c.ChildPath)
+	}
+	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
+
+	if _, err := os.Stat(wd); err == nil {
+		if err := git.DeleteLockFiles(ctx, wd); err != nil {
+			return nil, err
+		}
+	}
+	preUploadSteps, err := parent.GetPreUploadSteps(c.PreUploadSteps)
 	if err != nil {
 		return nil, err
 	}
+
+	commitMsgTmpl, err := parent.ParseCommitMsgTemplate(c.CommitMsgTmpl)
+	if err != nil {
+		return nil, err
+	}
+	if err := reg.Register(c.ChildBranch); err != nil {
+		return nil, err
+	}
+	if err := reg.Register(c.ParentBranch); err != nil {
+		return nil, err
+	}
+
 	r := &androidRepoManager{
-		commonRepoManager: crm,
-		repoUrl:           g.GetRepoUrl(),
-		repoToolPath:      repoToolPath,
+		bugProject:       c.BugProject,
+		childBranch:      c.ChildBranch,
+		childDir:         childDir,
+		childPath:        c.ChildPath,
+		childRepo:        childRepo,
+		childRevLinkTmpl: c.ChildRevLinkTmpl,
+		childSubdir:      c.ChildSubdir,
+		codereview:       cr,
+		commitMsgTmpl:    commitMsgTmpl,
+		g:                g,
+		httpClient:       client,
+		includeBugs:      c.IncludeBugs,
+		includeLog:       c.IncludeLog,
+		local:            local,
+		parentBranch:     c.ParentBranch,
+		preUploadSteps:   preUploadSteps,
+		repoUrl:          g.GetRepoUrl(),
+		repoToolPath:     repoToolPath,
+		serverURL:        serverURL,
+		workdir:          wd,
 	}
 	return r, nil
+}
+
+// See documentation for RepoManager interface.
+func (r *androidRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
+	r.repoMtx.RLock()
+	defer r.repoMtx.RUnlock()
+	details, err := r.childRepo.Details(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
 }
 
 // Helper function for updating the Android checkout.
@@ -207,6 +283,25 @@ func (r *androidRepoManager) Update(ctx context.Context) (*revision.Revision, *r
 	return lastRollRev, tipRev, notRolledRevs, nil
 }
 
+func (r *androidRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev, tipRev *revision.Revision) ([]*revision.Revision, error) {
+	if tipRev.Id == lastRollRev.Id {
+		return []*revision.Revision{}, nil
+	}
+	commits, err := r.childRepo.RevList(ctx, "--first-parent", git.LogFromTo(lastRollRev.Id, tipRev.Id))
+	if err != nil {
+		return nil, err
+	}
+	notRolled := make([]*vcsinfo.LongCommit, 0, len(commits))
+	for _, c := range commits {
+		detail, err := r.childRepo.Details(ctx, c)
+		if err != nil {
+			return nil, err
+		}
+		notRolled = append(notRolled, detail)
+	}
+	return revision.FromLongCommits(r.childRevLinkTmpl, notRolled), nil
+}
+
 // getLastRollRev returns the last-completed DEPS roll Revision.
 func (r *androidRepoManager) getLastRollRev(ctx context.Context) (*revision.Revision, error) {
 	output, err := r.childRepo.Git(ctx, "merge-base", fmt.Sprintf("refs/remotes/remote/%s", r.childBranch), fmt.Sprintf("refs/remotes/goog/%s", r.parentBranch))
@@ -246,6 +341,59 @@ func (r *androidRepoManager) getChangeForHash(hash string) (*gerrit.ChangeInfo, 
 func (r *androidRepoManager) setTopic(changeNum int64) error {
 	topic := fmt.Sprintf("%s_merge_%d", path.Base(r.childDir), changeNum)
 	return r.g.SetTopic(context.TODO(), topic, changeNum)
+}
+
+// buildCommitMsg executes the commit message template using the given
+// CommitMsgVars.
+func (r *androidRepoManager) buildCommitMsg(vars *parent.CommitMsgVars) (string, error) {
+	// Bugs.
+	vars.Bugs = nil
+	if r.includeBugs {
+		// TODO(borenet): Move this to a util.MakeBugLines utility?
+		bugMap := map[string]bool{}
+		for _, rev := range vars.Revisions {
+			for _, bug := range rev.Bugs[r.bugProject] {
+				bugMap[bug] = true
+			}
+		}
+		if len(bugMap) > 0 {
+			vars.Bugs = make([]string, 0, len(bugMap))
+			for bug := range bugMap {
+				bugStr := fmt.Sprintf("%s:%s", r.bugProject, bug)
+				if r.bugProject == util.BUG_PROJECT_BUGANIZER {
+					bugStr = fmt.Sprintf("b/%s", bug)
+				}
+				vars.Bugs = append(vars.Bugs, bugStr)
+			}
+			sort.Strings(vars.Bugs)
+		}
+	}
+
+	// IncludeLog.
+	vars.IncludeLog = r.includeLog
+
+	// Tests.
+	vars.Tests = nil
+	testsMap := map[string]bool{}
+	for _, rev := range vars.Revisions {
+		for _, test := range rev.Tests {
+			testsMap[test] = true
+		}
+	}
+	if len(testsMap) > 0 {
+		vars.Tests = make([]string, 0, len(testsMap))
+		for test := range testsMap {
+			vars.Tests = append(vars.Tests, test)
+		}
+		sort.Strings(vars.Tests)
+	}
+
+	// Create the commit message.
+	var buf bytes.Buffer
+	if err := r.commitMsgTmpl.Execute(&buf, vars); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
 // See documentation for RepoManager interface.

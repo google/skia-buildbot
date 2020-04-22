@@ -1,37 +1,14 @@
 package repo_manager
 
 import (
-	"bytes"
 	"context"
-	"errors"
-	"fmt"
-	"net/http"
-	"os"
-	"path"
-	"sort"
-	"strings"
-	"sync"
-	"text/template"
 
-	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/go/depot_tools"
-	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gerrit"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
-)
-
-const (
-	DEFAULT_REMOTE = "origin"
-
-	ROLL_BRANCH = "roll_branch"
 )
 
 // RepoManager is the interface used by different Autoroller implementations
@@ -95,32 +72,32 @@ type CommonRepoManagerConfig struct {
 // Validate the config.
 func (c *CommonRepoManagerConfig) Validate() error {
 	if c.ChildBranch == nil {
-		return errors.New("ChildBranch is required.")
+		return skerr.Fmt("ChildBranch is required.")
 	}
 	if err := c.ChildBranch.Validate(); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	if c.ChildPath == "" {
-		return errors.New("ChildPath is required.")
+		return skerr.Fmt("ChildPath is required.")
 	}
 	if c.ParentBranch == nil {
-		return errors.New("ParentBranch is required.")
+		return skerr.Fmt("ParentBranch is required.")
 	}
 	if err := c.ParentBranch.Validate(); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	if c.ParentRepo == "" {
-		return errors.New("ParentRepo is required.")
+		return skerr.Fmt("ParentRepo is required.")
 	}
 	if c.IncludeBugs && c.BugProject == "" {
-		return errors.New("IncludeBugs is true, but BugProject is empty.")
+		return skerr.Fmt("IncludeBugs is true, but BugProject is empty.")
 	}
 	if proj := issues.REPO_PROJECT_MAPPING[c.ParentRepo]; proj != "" && c.BugProject != "" && proj != c.BugProject {
-		return errors.New("BugProject is non-empty but does not match the entry in issues.REPO_PROJECT_MAPPING.")
+		return skerr.Fmt("BugProject is non-empty but does not match the entry in issues.REPO_PROJECT_MAPPING.")
 	}
 	for _, s := range c.PreUploadSteps {
 		if _, err := parent.GetPreUploadStep(s); err != nil {
-			return err
+			return skerr.Wrap(err)
 		}
 	}
 	return nil
@@ -144,180 +121,6 @@ func (r *CommonRepoManagerConfig) ValidStrategies() []string {
 	}
 }
 
-// commonRepoManager is a struct used by the AutoRoller implementations for
-// managing checkouts.
-type commonRepoManager struct {
-	childBranch      *config_vars.Template
-	childDir         string
-	childPath        string
-	childRepo        *git.Checkout
-	childRevLinkTmpl string
-	childSubdir      string
-	codereview       codereview.CodeReview
-	commitMsgTmpl    *template.Template
-	g                gerrit.GerritInterface
-	httpClient       *http.Client
-	includeBugs      bool
-	includeLog       bool
-	local            bool
-	bugProject       string
-	parentBranch     *config_vars.Template
-	preUploadSteps   []parent.PreUploadStep
-	repoMtx          sync.RWMutex
-	serverURL        string
-	workdir          string
-}
-
-// Returns a commonRepoManager instance.
-func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, reg *config_vars.Registry, workdir, serverURL string, g gerrit.GerritInterface, client *http.Client, cr codereview.CodeReview, local bool) (*commonRepoManager, error) {
-	if err := c.Validate(); err != nil {
-		return nil, err
-	}
-	if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
-		return nil, err
-	}
-	childDir := path.Join(workdir, c.ChildPath)
-	if c.ChildSubdir != "" {
-		childDir = path.Join(workdir, c.ChildSubdir, c.ChildPath)
-	}
-	childRepo := &git.Checkout{GitDir: git.GitDir(childDir)}
-
-	if _, err := os.Stat(workdir); err == nil {
-		if err := git.DeleteLockFiles(ctx, workdir); err != nil {
-			return nil, err
-		}
-	}
-	preUploadSteps, err := parent.GetPreUploadSteps(c.PreUploadSteps)
-	if err != nil {
-		return nil, err
-	}
-	commitMsgTmplStr := parent.TMPL_COMMIT_MSG_DEFAULT
-	if c.CommitMsgTmpl != "" {
-		commitMsgTmplStr = c.CommitMsgTmpl
-	}
-	commitMsgTmpl, err := parent.ParseCommitMsgTemplate(commitMsgTmplStr)
-	if err != nil {
-		return nil, err
-	}
-	if err := reg.Register(c.ChildBranch); err != nil {
-		return nil, err
-	}
-	if err := reg.Register(c.ParentBranch); err != nil {
-		return nil, err
-	}
-	return &commonRepoManager{
-		childBranch:      c.ChildBranch,
-		childDir:         childDir,
-		childPath:        c.ChildPath,
-		childRepo:        childRepo,
-		childRevLinkTmpl: c.ChildRevLinkTmpl,
-		childSubdir:      c.ChildSubdir,
-		codereview:       cr,
-		commitMsgTmpl:    commitMsgTmpl,
-		g:                g,
-		httpClient:       client,
-		includeBugs:      c.IncludeBugs,
-		includeLog:       c.IncludeLog,
-		local:            local,
-		bugProject:       c.BugProject,
-		parentBranch:     c.ParentBranch,
-		preUploadSteps:   preUploadSteps,
-		serverURL:        serverURL,
-		workdir:          workdir,
-	}, nil
-}
-
-func (r *commonRepoManager) getTipRev(ctx context.Context) (*revision.Revision, error) {
-	c, err := r.childRepo.Details(ctx, fmt.Sprintf("origin/%s", r.childBranch))
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return revision.FromLongCommit(r.childRevLinkTmpl, c), nil
-}
-
-func (r *commonRepoManager) getCommitsNotRolled(ctx context.Context, lastRollRev, tipRev *revision.Revision) ([]*revision.Revision, error) {
-	if tipRev.Id == lastRollRev.Id {
-		return []*revision.Revision{}, nil
-	}
-	commits, err := r.childRepo.RevList(ctx, "--first-parent", git.LogFromTo(lastRollRev.Id, tipRev.Id))
-	if err != nil {
-		return nil, err
-	}
-	notRolled := make([]*vcsinfo.LongCommit, 0, len(commits))
-	for _, c := range commits {
-		detail, err := r.childRepo.Details(ctx, c)
-		if err != nil {
-			return nil, err
-		}
-		notRolled = append(notRolled, detail)
-	}
-	return revision.FromLongCommits(r.childRevLinkTmpl, notRolled), nil
-}
-
-// See documentation for RepoManager interface.
-func (r *commonRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
-	r.repoMtx.RLock()
-	defer r.repoMtx.RUnlock()
-	details, err := r.childRepo.Details(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
-}
-
-// buildCommitMsg executes the commit message template using the given
-// CommitMsgVars.
-func (r *commonRepoManager) buildCommitMsg(vars *parent.CommitMsgVars) (string, error) {
-	// Bugs.
-	vars.Bugs = nil
-	if r.includeBugs {
-		// TODO(borenet): Move this to a util.MakeBugLines utility?
-		bugMap := map[string]bool{}
-		for _, rev := range vars.Revisions {
-			for _, bug := range rev.Bugs[r.bugProject] {
-				bugMap[bug] = true
-			}
-		}
-		if len(bugMap) > 0 {
-			vars.Bugs = make([]string, 0, len(bugMap))
-			for bug := range bugMap {
-				bugStr := fmt.Sprintf("%s:%s", r.bugProject, bug)
-				if r.bugProject == util.BUG_PROJECT_BUGANIZER {
-					bugStr = fmt.Sprintf("b/%s", bug)
-				}
-				vars.Bugs = append(vars.Bugs, bugStr)
-			}
-			sort.Strings(vars.Bugs)
-		}
-	}
-
-	// IncludeLog.
-	vars.IncludeLog = r.includeLog
-
-	// Tests.
-	vars.Tests = nil
-	testsMap := map[string]bool{}
-	for _, rev := range vars.Revisions {
-		for _, test := range rev.Tests {
-			testsMap[test] = true
-		}
-	}
-	if len(testsMap) > 0 {
-		vars.Tests = make([]string, 0, len(testsMap))
-		for test := range testsMap {
-			vars.Tests = append(vars.Tests, test)
-		}
-		sort.Strings(vars.Tests)
-	}
-
-	// Create the commit message.
-	var buf bytes.Buffer
-	if err := r.commitMsgTmpl.Execute(&buf, vars); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
-}
-
 // DepotToolsRepoManagerConfig provides configuration for depotToolsRepoManager.
 type DepotToolsRepoManagerConfig struct {
 	CommonRepoManagerConfig
@@ -329,134 +132,6 @@ type DepotToolsRepoManagerConfig struct {
 
 	// Run "gclient runhooks" if true.
 	RunHooks bool `json:"runhooks,omitempty"`
-}
-
-// depotToolsRepoManager is a struct used by AutoRoller implementations that use
-// depot_tools to manage checkouts.
-type depotToolsRepoManager struct {
-	*commonRepoManager
-	depotTools    string
-	depotToolsEnv []string
-	gclient       string
-	gclientSpec   string
-	parentDir     string
-	parentRepo    string
-	runhooks      bool
-}
-
-// Return a depotToolsRepoManager instance.
-func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig, reg *config_vars.Registry, workdir, recipeCfgFile, serverURL string, g gerrit.GerritInterface, client *http.Client, cr codereview.CodeReview, local bool) (*depotToolsRepoManager, error) {
-	if err := c.Validate(); err != nil {
-		return nil, err
-	}
-	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, reg, workdir, serverURL, g, client, cr, local)
-	if err != nil {
-		return nil, err
-	}
-	depotTools, err := depot_tools.GetDepotTools(ctx, workdir, recipeCfgFile)
-	if err != nil {
-		return nil, err
-	}
-	parentBase := strings.TrimSuffix(path.Base(c.ParentRepo), ".git")
-	parentDir := path.Join(workdir, parentBase)
-	return &depotToolsRepoManager{
-		commonRepoManager: crm,
-		depotTools:        depotTools,
-		depotToolsEnv:     append(depot_tools.Env(depotTools), "SKIP_GCE_AUTH_FOR_GIT=1"),
-		gclient:           path.Join(depotTools, parent.GClient),
-		gclientSpec:       c.GClientSpec,
-		parentDir:         parentDir,
-		parentRepo:        c.ParentRepo,
-		runhooks:          c.RunHooks,
-	}, nil
-}
-
-// cleanParent forces the parent checkout into a clean state.
-func (r *depotToolsRepoManager) cleanParent(ctx context.Context) error {
-	return r.cleanParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH, r.parentBranch.String())
-}
-
-func (r *depotToolsRepoManager) cleanParentWithRemoteAndBranch(ctx context.Context, remote, localBranch, remoteBranch string) error {
-	if _, err := git.GitDir(r.parentDir).Git(ctx, "clean", "-d", "-f", "-f"); err != nil {
-		return err
-	}
-	_, _ = git.GitDir(r.parentDir).Git(ctx, "rebase", "--abort")
-	if _, err := git.GitDir(r.parentDir).Git(ctx, "checkout", fmt.Sprintf("%s/%s", remote, remoteBranch), "-f"); err != nil {
-		return err
-	}
-	_, _ = git.GitDir(r.parentDir).Git(ctx, "branch", "-D", localBranch)
-	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  r.workdir,
-		Env:  r.depotToolsEnv,
-		Name: "python",
-		Args: []string{r.gclient, "revert", "--nohooks"},
-	}); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
-	return r.createAndSyncParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH, r.parentBranch.String())
-}
-
-func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx context.Context, remote, localBranch, remoteBranch string) error {
-	// Create the working directory if needed.
-	if _, err := os.Stat(r.workdir); err != nil {
-		if err := os.MkdirAll(r.workdir, 0755); err != nil {
-			return err
-		}
-	}
-
-	// Run "gclient config".
-	args := []string{r.gclient, "config"}
-	if r.gclientSpec != "" {
-		args = append(args, fmt.Sprintf("--spec=%s", r.gclientSpec))
-	} else {
-		args = append(args, r.parentRepo, "--unmanaged")
-	}
-	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  r.workdir,
-		Env:  r.depotToolsEnv,
-		Name: "python",
-		Args: args,
-	}); err != nil {
-		return err
-	}
-
-	// Clean/reset the parent and child checkouts.
-	if _, err := os.Stat(path.Join(r.parentDir, ".git")); err == nil {
-		if err := r.cleanParentWithRemoteAndBranch(ctx, remote, localBranch, remoteBranch); err != nil {
-			return err
-		}
-		// Update the repo.
-		if _, err := git.GitDir(r.parentDir).Git(ctx, "fetch", remote); err != nil {
-			return err
-		}
-		if _, err := git.GitDir(r.parentDir).Git(ctx, "reset", "--hard", fmt.Sprintf("%s/%s", remote, remoteBranch)); err != nil {
-			return err
-		}
-	}
-	if _, err := os.Stat(path.Join(r.childDir, ".git")); err == nil {
-		if _, err := r.childRepo.Git(ctx, "fetch"); err != nil {
-			return err
-		}
-	}
-
-	// Run "gclient sync".
-	args = []string{r.gclient, "sync"}
-	if !r.runhooks {
-		args = append(args, "--nohooks")
-	}
-	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  r.workdir,
-		Env:  r.depotToolsEnv,
-		Name: "python",
-		Args: args,
-	}); err != nil {
-		return err
-	}
-	return nil
 }
 
 // NoCheckoutRepoManagerConfig provides configuration for RepoManagers which
@@ -473,10 +148,10 @@ func (c *NoCheckoutRepoManagerConfig) NoCheckout() bool {
 // See documentation for util.Validator interface.
 func (c *NoCheckoutRepoManagerConfig) Validate() error {
 	if err := c.CommonRepoManagerConfig.Validate(); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	if len(c.PreUploadSteps) > 0 {
-		return errors.New("Checkout-less rollers don't support pre-upload steps")
+		return skerr.Fmt("Checkout-less rollers don't support pre-upload steps")
 	}
 	return nil
 }
