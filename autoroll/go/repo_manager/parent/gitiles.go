@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/skerr"
@@ -49,7 +50,7 @@ func (c GitilesConfig) Validate() error {
 // roll. These are returned in a map[string]string whose keys are file paths
 // within the repo and values are the new whole contents of the files. Also
 // returns any dependencies which are being transitively rolled.
-type gitilesGetChangesForRollFunc func(context.Context, *gitiles_common.GitilesRepo, string, *revision.Revision, *revision.Revision, []*revision.Revision) (map[string]string, []*TransitiveDep, error)
+type gitilesGetChangesForRollFunc func(context.Context, *gitiles_common.GitilesRepo, string, *revision.Revision, *revision.Revision, []*revision.Revision) (map[string]string, []*version_file_common.TransitiveDepUpdate, error)
 
 // gitilesGetLastRollRevFunc finds the last-rolled child revision ID from the
 // repo at the given base commit.

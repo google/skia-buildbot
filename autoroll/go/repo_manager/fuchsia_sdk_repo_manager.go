@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/gerrit"
@@ -56,10 +57,13 @@ func (c *FuchsiaSDKRepoManagerConfig) ValidStrategies() []string {
 // splitParentChild breaks the FuchsiaSDKRepoManagerConfig into parent and child
 // configs.
 func (c *FuchsiaSDKRepoManagerConfig) splitParentChild() (parent.GitilesFileConfig, child.FuchsiaSDKConfig, error) {
-	var parentDeps map[string]string
+	var parentDeps []*version_file_common.VersionFileConfig
 	if c.IncludeMacSDK {
-		parentDeps = map[string]string{
-			child.FuchsiaSDKGSLatestPathMac: FuchsiaSDKVersionFilePathMac,
+		parentDeps = []*version_file_common.VersionFileConfig{
+			{
+				ID:   child.FuchsiaSDKGSLatestPathMac,
+				Path: FuchsiaSDKVersionFilePathMac,
+			},
 		}
 	}
 	commitMsgTmpl := TmplCommitMsgFuchsiaSDK
@@ -82,9 +86,13 @@ func (c *FuchsiaSDKRepoManagerConfig) splitParentChild() (parent.GitilesFileConf
 			},
 			Gerrit: c.Gerrit,
 		},
-		Dep:            "TODO",
-		Path:           FuchsiaSDKVersionFilePathLinux,
-		TransitiveDeps: parentDeps,
+		DependencyConfig: version_file_common.DependencyConfig{
+			VersionFileConfig: version_file_common.VersionFileConfig{
+				ID:   "TODO",
+				Path: FuchsiaSDKVersionFilePathLinux,
+			},
+			TransitiveDeps: parentDeps,
+		},
 	}
 	if err := parentCfg.Validate(); err != nil {
 		return parent.GitilesFileConfig{}, child.FuchsiaSDKConfig{}, skerr.Wrapf(err, "generated parent config is invalid")

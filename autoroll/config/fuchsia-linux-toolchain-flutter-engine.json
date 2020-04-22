@@ -19,6 +19,7 @@
   "githubCipdDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/fuchsia/toolchain/linux",
+    "forkRepoURL": "git@github.com:skia-flutter-autoroll/engine.git",
     "parentBranch": "master",
     "preUploadSteps": ["FlutterLicenseScriptsForFuchsia"],
     "parentRepo": "git@github.com:flutter/engine.git",
