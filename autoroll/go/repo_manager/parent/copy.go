@@ -10,6 +10,7 @@ import (
 
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -69,8 +70,11 @@ func (c CopyConfig) Validate() error {
 
 // NewCopy returns a Parent implementation which copies the Child into itself.
 // It uses a local git checkout and uploads changes to Gerrit.
-func NewCopy(ctx context.Context, c CopyConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir string, dep child.Child) (*GitCheckoutParent, error) {
-	getLastRollRev := VersionFileGetLastRollRevFunc(c.VersionFile, c.ChildRepo)
+func NewCopy(ctx context.Context, c CopyConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, userName, userEmail string, dep child.Child, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
+	getLastRollRev := VersionFileGetLastRollRevFunc(version_file_common.VersionFileConfig{
+		ID:   c.ChildRepo,
+		Path: c.VersionFile,
+	})
 	createRoll := func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Create a temporary directory.
 		tmp, err := ioutil.TempDir("", "")
@@ -123,5 +127,6 @@ func NewCopy(ctx context.Context, c CopyConfig, reg *config_vars.Registry, clien
 		}
 		return strings.TrimSpace(out), nil
 	}
-	return NewGitCheckoutGerrit(ctx, c.GitCheckoutGerritConfig, reg, client, serverURL, workdir, nil, getLastRollRev, createRoll)
+
+	return NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, nil, getLastRollRev, createRoll, uploadRoll)
 }

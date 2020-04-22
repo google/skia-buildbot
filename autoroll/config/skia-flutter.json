@@ -19,7 +19,9 @@
   "githubDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/skia",
+    "childRepo": "https://skia.googlesource.com/skia.git",
     "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+/%s",
+    "forkRepoURL": "git@github.com:skia-flutter-autoroll/engine.git",
     "includeLog": true,
     "parentBranch": "master",
     "preUploadSteps": ["FlutterLicenseScripts"],

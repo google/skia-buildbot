@@ -6,11 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
 )
@@ -27,7 +26,7 @@ type GitilesConfig struct {
 	// these dependencies. The values must be either files whose entire
 	// contents are the version ID of the dependency, or "DEPS" which is a
 	// special case.
-	Dependencies map[string]string `json:"dependencies,omitempty"`
+	Dependencies []*version_file_common.VersionFileConfig `json:"dependencies,omitempty"`
 }
 
 // See documentation for util.Validator interface.
@@ -48,7 +47,7 @@ func (c *GitilesConfig) Validate() error {
 type GitilesRepo struct {
 	*gitiles.Repo
 	branch *config_vars.Template
-	deps   map[string]string
+	deps   []*version_file_common.VersionFileConfig
 }
 
 // NewGitilesRepo returns a GitilesRepo instance.
@@ -88,19 +87,19 @@ func (r *GitilesRepo) GetRevision(ctx context.Context, id string) (*revision.Rev
 		// Cache files in case multiple dependencies are versioned in
 		// the same file, eg. DEPS.
 		cache := map[string]string{}
-		for dep, path := range r.deps {
-			contents, ok := cache[path]
+		for _, dep := range r.deps {
+			contents, ok := cache[dep.Path]
 			if !ok {
-				contents, err = r.GetFile(ctx, path, rev.Id)
+				contents, err = r.GetFile(ctx, dep.Path, rev.Id)
 				if err != nil {
 					return nil, skerr.Wrap(err)
 				}
 			}
-			version, err := GetPinnedRev(path, dep, contents)
+			version, err := version_file_common.GetPinnedRev(*dep, contents)
 			if err != nil {
 				return nil, skerr.Wrap(err)
 			}
-			rev.Dependencies[dep] = version
+			rev.Dependencies[dep.ID] = version
 		}
 	}
 	return rev, nil
@@ -136,53 +135,4 @@ func (r *GitilesRepo) GetFile(ctx context.Context, file, ref string) (string, er
 		return "", skerr.Wrap(err)
 	}
 	return buf.String(), nil
-}
-
-// UpdateDep updates the dependency in the given file, writing the new contents
-// into the changes map and returning the previous version.
-func (r *GitilesRepo) UpdateDep(ctx context.Context, baseCommit, path, dep, newVersion string, changes map[string]string) (string, error) {
-	// Look up the path in our changes map to prevent overwriting
-	// modifications we've already made.
-	oldContents, ok := changes[path]
-	if !ok {
-		var err error
-		oldContents, err = r.GetFile(ctx, path, baseCommit)
-		if err != nil {
-			return "", skerr.Wrap(err)
-		}
-	}
-
-	// Find the currently-pinned revision.
-	oldVersion, err := GetPinnedRev(path, dep, oldContents)
-	if err != nil {
-		return "", skerr.Wrap(err)
-	}
-
-	// Create the new file content.
-	if newVersion != oldVersion {
-		var newContents string
-		if path == deps_parser.DepsFileName {
-			newContents, err = deps_parser.SetDep(oldContents, dep, newVersion)
-			if err != nil {
-				return "", skerr.Wrap(err)
-			}
-		} else {
-			newContents = newVersion
-		}
-		changes[path] = newContents
-	}
-	return oldVersion, nil
-}
-
-// GetPinnedRev reads the given file to find the pinned revision.
-func GetPinnedRev(path, dep, contents string) (string, error) {
-	if path == deps_parser.DepsFileName {
-		depsEntry, err := deps_parser.GetDep(contents, dep)
-		if err != nil {
-			return "", skerr.Wrap(err)
-		}
-		return depsEntry.Version, nil
-	} else {
-		return strings.TrimSpace(contents), nil
-	}
 }

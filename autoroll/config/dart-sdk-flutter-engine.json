@@ -20,7 +20,9 @@
   "githubDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/dart",
+    "childRepo": "https://dart.googlesource.com/sdk.git",
     "childRevLinkTmpl": "https://dart.googlesource.com/sdk.git/+/%s",
+    "forkRepoURL": "git@github.com:skia-flutter-autoroll/engine.git",
     "includeLog": true,
     "parentBranch": "master",
     "preUploadSteps": [
