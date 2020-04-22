@@ -138,6 +138,8 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 	r.HandleFunc(forceSyncPostUrl, srv.forceSyncHandler).Methods("POST")
 	r.HandleFunc(pendingTasksPostUrl, srv.pendingTasksHandler).Methods("POST")
 	r.HandleFunc(compileInstancesPostUrl, srv.compileInstancesHandler).Methods("POST")
+	// Healthz.
+	r.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 }
 
 // See baseapp.Constructor
@@ -174,11 +176,7 @@ func New() (baseapp.App, error) {
 
 // See baseapp.App.
 func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
-	ret := []mux.MiddlewareFunc{}
-	if !*baseapp.Local {
-		ret = append(ret, login.ForceAuthMiddleware(login.DEFAULT_REDIRECT_URL), login.RestrictViewer)
-	}
-	return ret
+	return []mux.MiddlewareFunc{}
 }
 
 func main() {
