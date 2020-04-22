@@ -78,6 +78,7 @@ const (
 
 // flags
 var (
+	authBypassList                 = flag.String("auth_bypass_list", "", "Space separated list of email addresses allowed access. Usually just service account emails. Bypasses the domain checks.")
 	configFilename                 = flag.String("config_filename", "./configs/nano.json", "The name of the config file to use.")
 	commitRangeURL                 = flag.String("commit_range_url", "", "A URI Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.")
 	defaultSparse                  = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
@@ -1437,6 +1438,14 @@ func main() {
 
 	initialize()
 	login.SimpleInitMust(*port, *local)
+
+	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
+	if !*local {
+		redirectURL = login.DEFAULT_REDIRECT_URL
+	}
+	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST, *authBypassList); err != nil {
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
+	}
 
 	// Start the internal server on the internal port if requested.
 	if *internalPort != "" {
