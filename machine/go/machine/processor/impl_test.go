@@ -461,3 +461,76 @@ func TestBatteryFromAndroidDumpSys_FailOnBadScale(t *testing.T) {
   `)
 	assert.False(t, ok)
 }
+
+func TestTemperatureFromAndroid_FindTempInThermalServiceOutput(t *testing.T) {
+	unittest.SmallTest(t)
+	thermalServiceOutput := `IsStatusOverride: false
+ThermalEventListeners:
+	callbacks: 1
+	killed: false
+	broadcasts count: -1
+ThermalStatusListeners:
+	callbacks: 1
+	killed: false
+	broadcasts count: -1
+Thermal Status: 0
+Cached temperatures:
+ Temperature{mValue=-99.9, mType=6, mName=TYPE_POWER_AMPLIFIER, mStatus=0}
+	Temperature{mValue=25.3, mType=4, mName=TYPE_SKIN, mStatus=0}
+	Temperature{mValue=24.0, mType=1, mName=TYPE_CPU, mStatus=0}
+	Temperature{mValue=24.4, mType=3, mName=TYPE_BATTERY, mStatus=0}
+	Temperature{mValue=24.2, mType=5, mName=TYPE_USB_PORT, mStatus=0}
+HAL Ready: true
+HAL connection:
+	Sdhms connected: yes
+Current temperatures from HAL:
+	Temperature{mValue=24.0, mType=1, mName=TYPE_CPU, mStatus=0}
+	Temperature{mValue=24.4, mType=3, mName=TYPE_BATTERY, mStatus=0}
+	Temperature{mValue=25.3, mType=4, mName=TYPE_SKIN, mStatus=0}
+	Temperature{mValue=24.2, mType=5, mName=TYPE_USB_PORT, mStatus=0}
+	Temperature{mValue=-99.9, mType=6, mName=TYPE_POWER_AMPLIFIER, mStatus=0}
+Current cooling devices from HAL:
+	CoolingDevice{mValue=0, mType=2, mName=TYPE_CPU}
+	CoolingDevice{mValue=0, mType=3, mName=TYPE_GPU}
+	CoolingDevice{mValue=0, mType=1, mName=TYPE_BATTERY}
+	CoolingDevice{mValue=1, mType=4, mName=TYPE_MODEM}`
+	a := machine.Android{
+		DumpsysThermalService: thermalServiceOutput,
+	}
+	temp, ok := temperatureFromAndroid(a)
+	assert.True(t, ok)
+	assert.Equal(t, float64(25.3), temp)
+}
+
+func TestTemperatureFromAndroid_ReturnFalseIfNoOutputFromThermalOrBatteryService(t *testing.T) {
+	unittest.SmallTest(t)
+	a := machine.Android{}
+	_, ok := temperatureFromAndroid(a)
+	assert.False(t, ok)
+}
+
+func TestTemperatureFromAndroid_FindTempInBatteryServiceOutput(t *testing.T) {
+	unittest.SmallTest(t)
+	batteryOutput := `Current Battery Service state:
+	AC powered: true
+	USB powered: false
+	Wireless powered: false
+	Max charging current: 1500000
+	Max charging voltage: 5000000
+	Charge counter: 2448973
+	status: 2
+	health: 2
+	present: true
+	level: 94
+	scale: 100
+	voltage: 4248
+	temperature: 280
+	technology: Li-ion
+  `
+	a := machine.Android{
+		DumpsysBattery: batteryOutput,
+	}
+	temp, ok := temperatureFromAndroid(a)
+	assert.True(t, ok)
+	assert.Equal(t, float64(28), temp)
+}
