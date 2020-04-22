@@ -1,142 +1,148 @@
 package main
 
 import (
-	"context"
-	"strings"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"regexp"
 	"testing"
 
-	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/executil"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/skolo/go/powercycle"
 )
 
-func TestMapping(t *testing.T) {
+func TestMakeConfig_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mn := MockBotNameGetter{}
-	mp := MockBotPortGetter{}
+	ctx := executil.FakeTestsContext(
+		"Test_FakeExe_Arp_ReturnsTable",
+		"Test_FakeExe_EdgeSwitch_ReturnsTable",
+	)
 
-	mn.On("GetBotNamesAddresses").Return([]Bot{
-		{Hostname: "rpi-001", MACAddress: "12:32", IPV4Address: "1.1.1.1"},
-		{Hostname: "rpi-002", MACAddress: "AB:BA", IPV4Address: "2.2.2.2"},
-		{Hostname: "rpi-003", MACAddress: "CA:11", IPV4Address: "3.3.3.3"},
-	}, nil)
-	mp.On("GetBotPortsAddresses").Return([]Bot{
-		{MACAddress: "12:32", Port: 10},
-		{MACAddress: "AB:BA", Port: 20},
-		{MACAddress: "not_seen_above", Port: 30},
-	}, nil)
-
-	defer mn.AssertExpectations(t)
-	defer mp.AssertExpectations(t)
-
-	ctx := context.Background()
-	botList, err := enumerateBots(ctx, &mn, &mp)
-
+	out, err := makeConfig(ctx, fakeAddress, fakeUser, fakePassword, regexp.MustCompile("rpi"))
 	require.NoError(t, err)
-	require.Len(t, botList, 2, "Only 2 bots have everything listed")
-	require.Contains(t, botList, Bot{Hostname: "rpi-001", MACAddress: "12:32", Port: 10, IPV4Address: "1.1.1.1"})
-	require.Contains(t, botList, Bot{Hostname: "rpi-002", MACAddress: "AB:BA", Port: 20, IPV4Address: "2.2.2.2"})
+
+	// The following machines have a mac address that appears in both the arpOutput as well as
+	// the edge switch output. Machine 192.168.1.100 also appears in both lists, but should not
+	// show up in the list because of the "rpi" matching.
+	assert.Equal(t, powercycle.EdgeSwitchConfig{
+		Address:  fakeAddress,
+		User:     fakeUser,
+		Password: "", // intentionally blanked out
+		DevPortMap: map[powercycle.DeviceID]int{
+			"skia-rpi-001": 1,
+			"skia-rpi-007": 7,
+			"skia-rpi-011": 11,
+			"skia-rpi-014": 14,
+			"skia-rpi-026": 26,
+			"skia-rpi-030": 30,
+			"skia-rpi-034": 34,
+			"skia-rpi-042": 42,
+		},
+	}, out)
 }
 
-const TEST_ANSIBLE_DATA = `skia-rpi-master 192.168.1.99 f4:4d:30:b6:22:01
-skia-rpi-master-spare 192.168.1.98 f4:4d:30:b6:25:02
-skia-rpi-002 192.168.1.102 b8:27:eb:66:6c:03
-skia-rpi-001 192.168.1.101 B8:27:eb:16:ba:04`
-
-func TestAnsibleParsing(t *testing.T) {
-	unittest.SmallTest(t)
-
-	bots := parseAnsibleResult(TEST_ANSIBLE_DATA)
-
-	var expected = []Bot{
-		{Hostname: "skia-rpi-master", MACAddress: "F4:4D:30:B6:22:01", IPV4Address: "192.168.1.99"},
-		{Hostname: "skia-rpi-master-spare", MACAddress: "F4:4D:30:B6:25:02", IPV4Address: "192.168.1.98"},
-		{Hostname: "skia-rpi-002", MACAddress: "B8:27:EB:66:6C:03", IPV4Address: "192.168.1.102"},
-		{Hostname: "skia-rpi-001", MACAddress: "B8:27:EB:16:BA:04", IPV4Address: "192.168.1.101"},
+func Test_FakeExe_Arp_ReturnsTable(t *testing.T) {
+	unittest.FakeExeTest(t)
+	// Since this is a normal go test, it will get run on the usual test suite. We check for the
+	// special environment variable and if it is not set, we do nothing.
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
 	}
 
-	require.Equal(t, expected, bots)
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"arp"}, args)
+
+	fmt.Println(arpOutput)
 }
 
-const TEST_EDGESWITCH_DATA = `VLAN ID  MAC Address         Interface              IfIndex  Status
+// This is real arp output from rack 1 circa April 2020. It has been edited for television and
+// formatted to fit this screen.
+const arpOutput = `Address                  HWtype  HWaddress           Flags Mask            Iface
+skia-rpi-072             ether   b8:27:eb:bc:62:2f   C                     eno1
+skia-rpi-034             ether   b8:27:eb:a5:2d:f4   C                     eno1
+skia-rpi-001             ether   b8:27:eb:4f:5f:60   C                     eno1
+skia-rpi-014             ether   b8:27:eb:75:41:da   C                     eno1
+skia-rpi-079             ether   b8:27:eb:f7:e1:4a   C                     eno1
+skia-rpi-049             ether   b8:27:eb:02:24:cd   C                     eno1
+skia-rpi-011             ether   b8:27:eb:40:8a:f1   C                     eno1
+skia-rpi-068             ether   b8:27:eb:f0:3c:43   C                     eno1
+skia-rpi-030             ether   b8:27:eb:8e:e7:36   C                     eno1
+192.168.1.100            ether   94:c6:91:18:57:d8   C                     eno1
+skia-rpi-026             ether   b8:27:eb:3e:a5:9c   C                     eno1
+skia-rpi-065             ether   b8:27:eb:1e:a9:95   C                     eno1
+skia-rpi-045             ether   b8:27:eb:28:ad:64   C                     eno1
+skia-rpi-007             ether   b8:27:eb:77:a5:1a   C                     eno1
+192.168.1.39             ether   fc:ec:da:7f:11:1f   C                     eno1
+skia-rpi-080             ether   b8:27:eb:cc:c9:43   C                     eno1
+skia-rpi-042             ether   b8:27:eb:83:06:91   C                     eno1
+skia-rpi-022             ether   b8:27:eb:80:ba:ce   C                     eno1`
+
+func Test_FakeExe_EdgeSwitch_ReturnsTable(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"sshpass", "-p", fakePassword, "ssh", "power@192.168.1.117"}, args)
+
+	// We expect the command to be sent over standard in once the ssh connection is established.
+	input, err := ioutil.ReadAll(os.Stdin)
+	require.NoError(t, err)
+
+	assert.Equal(t, "enable\nshow mac-addr-table all\nmmmmmmmmm\n", string(input))
+	fmt.Println(edgeOutput)
+}
+
+// This is mostly real edgeswitch output from rack 1 circa April 2020. Some entries have been
+// removed or replaced. Note that a lot of things claim to be on port 45 because that's what
+// connects switch 1 to switch 2.
+const edgeOutput = `____    _
+| ____|__| | __ _  ___          (c) 2010-2019
+|  _| / _  |/ _  |/ _ \         Ubiquiti Networks, Inc.
+| |__| (_| | (_| |  __/
+|_____\__._|\__. |\___|         https://www.ui.com
+|___/
+
+Welcome to EdgeSwitch
+
+By logging in, accessing or using Ubiquiti Inc. (UI) products, you
+acknowledge that you have read and understood the Ubiquiti Licence
+Agreement (available in the WebUI and at https://www.ui.com/eula/)
+and agree to be bound by its terms.
+
+
+(rack01-shelf1-poe-switch) >enable
+
+(rack01-shelf1-poe-switch) #show mac-addr-table all
+
+VLAN ID  MAC Address         Interface              IfIndex  Status
 -------  ------------------  ---------------------  -------  ------------
-1        40:40:4c:36:80:62   0/21                   21       Learned
-1        40:40:4C:36:83:62   0/19                   19       Learned
-1        40:41:03:00:13:D8   0/1                    1        Learned
-1        40:41:30:01:14:D0   0/1                    1        Learned
-`
+1        70:88:6B:80:B5:AF   0/45                   45       Learned
+1        b8:27:eb:cc:c9:43   0/45                   45       Learned
+1        70:88:6B:83:4C:03   0/45                   45       Learned
+1        b8:27:eb:83:06:91   0/42                   42       Learned
+1        b8:27:eb:77:a5:1a   0/7                    7        Learned
+1        94:C6:91:18:57:D8   0/45                   45       Learned
+1        94:c6:91:18:57:d8   0/20                   20       Learned
+1        b8:27:eb:3e:a5:9c   0/45                   45       Learned
+1        b8:27:eb:1e:a9:95   0/45                   45       Learned
+1        b8:27:eb:3e:a5:9c   0/26                   26       Learned
+1        b8:27:eb:8e:e7:36   0/30                   30       Learned
+1        b8:27:eb:40:8a:f1   0/11                   11       Learned
+1        b8:27:eb:a5:2d:f4   0/34                   34       Learned
+1        b8:27:eb:75:41:da   0/14                   14       Learned
+1        b8:27:eb:4f:5f:60   0/1                     1       Learned
+1        FC:EC:DA:7F:05:01   5/1                    65       Management
+1        FC:EC:DA:7F:11:1F   0/45                   45       Learned
+(rack01-shelf1-poe-switch) #mm`
 
-var expectedEdgeSwitchResults = []Bot{
-	{MACAddress: "40:40:4C:36:80:62", Port: 21},
-	{MACAddress: "40:40:4C:36:83:62", Port: 19},
-	{MACAddress: "40:41:03:00:13:D8", Port: 1},
-	{MACAddress: "40:41:30:01:14:D0", Port: 1},
-}
-
-func TestEdgeSwitchParsing(t *testing.T) {
-	unittest.SmallTest(t)
-
-	bots, err := parseSSHResult(strings.Split(TEST_EDGESWITCH_DATA, "\n"))
-	require.NoError(t, err)
-
-	require.Equal(t, expectedEdgeSwitchResults, bots)
-}
-
-func TestEdgeSwitchDeduping(t *testing.T) {
-	unittest.SmallTest(t)
-
-	deduped := dedupeBots(expectedEdgeSwitchResults)
-
-	require.Len(t, deduped, 2, "Only 2 bots have unique ports")
-	require.Contains(t, deduped, Bot{MACAddress: "40:40:4C:36:80:62", Port: 21})
-	require.Contains(t, deduped, Bot{MACAddress: "40:40:4C:36:83:62", Port: 19})
-}
-
-// MockBotNameGetter is an autogenerated mock type for the BotNameGetter type
-type MockBotNameGetter struct {
-	mock.Mock
-}
-
-// GetBotNamesAddresses provides a mock function with given fields:
-func (_m *MockBotNameGetter) GetBotNamesAddresses(ctx context.Context) ([]Bot, error) {
-	ret := _m.Called()
-
-	var r0 []Bot
-	if rf, ok := ret.Get(0).(func() []Bot); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]Bot)
-		}
-	}
-
-	return r0, ret.Error(1)
-}
-
-// Ensure MockBotNameGetter fulfills BotNameGetter
-var _ BotNameGetter = (*MockBotNameGetter)(nil)
-
-// MockBotPortGetter is an autogenerated mock type for the BotPortGetter type
-type MockBotPortGetter struct {
-	mock.Mock
-}
-
-// GetBotPortsAddresses provides a mock function with given fields:
-func (_m *MockBotPortGetter) GetBotPortsAddresses() ([]Bot, error) {
-	ret := _m.Called()
-
-	var r0 []Bot
-	if rf, ok := ret.Get(0).(func() []Bot); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]Bot)
-		}
-	}
-
-	return r0, ret.Error(1)
-}
-
-// Ensure MockDevNameGetter fulfills BotPortGetter
-var _ BotPortGetter = (*MockBotPortGetter)(nil)
+const (
+	fakePassword = "not-the-real-password"
+	fakeAddress  = "192.168.1.117"
+	fakeUser     = "power"
+)

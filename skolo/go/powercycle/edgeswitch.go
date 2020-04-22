@@ -19,9 +19,9 @@ const (
 	edgeSwitchOn  = "auto"
 )
 
-// edgeSwitchConfig contains configuration options for a single EdgeSwitch. Authentication is
+// EdgeSwitchConfig contains configuration options for a single EdgeSwitch. Authentication is
 // handled via a provided password. See go/skolo-powercycle-setup for more.
-type edgeSwitchConfig struct {
+type EdgeSwitchConfig struct {
 	// IP address of the device, i.e. 192.168.1.33
 	Address string `json:"address"`
 
@@ -36,7 +36,7 @@ type edgeSwitchConfig struct {
 }
 
 // Validate returns an error if the configuration is not complete.
-func (c *edgeSwitchConfig) Validate() error {
+func (c *EdgeSwitchConfig) Validate() error {
 	if c.User == "" || c.Address == "" {
 		return skerr.Fmt("You must specify a user and ip address.")
 	}
@@ -48,7 +48,7 @@ func (c *edgeSwitchConfig) Validate() error {
 
 // edgeSwitchClient implements the Client interface.
 type edgeSwitchClient struct {
-	conf       *edgeSwitchConfig
+	conf       *EdgeSwitchConfig
 	portDevMap map[int]DeviceID
 	devIDs     []DeviceID
 	runner     CommandRunner
@@ -56,7 +56,7 @@ type edgeSwitchClient struct {
 
 // newEdgeSwitchController connects to the EdgeSwitch identified by the given configuration and
 // returns a new instance of edgeSwitchClient.
-func newEdgeSwitchController(ctx context.Context, conf *edgeSwitchConfig, connect bool) (*edgeSwitchClient, error) {
+func newEdgeSwitchController(ctx context.Context, conf *EdgeSwitchConfig, connect bool) (*edgeSwitchClient, error) {
 	if err := conf.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}

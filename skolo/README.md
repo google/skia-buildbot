@@ -13,7 +13,9 @@ like all other infra code, using push/pull, via the master.
 
 The list of utilities are:
   - hotspare: the utility that allows for a hot spare of the master to become
-    live when the master fails.  Build with `make hotspare`
+    live when the master fails.  Build with `make hotspare`.
+  - powercycle: a utility that remote powercycles various machines.
+  - censustaker: a utility for generating the config for powercycle.
 
 The /bash/skolo.sh file is a set of shortcuts for interacting with the skolo.
 It can be 'source'd from your .bashrc.

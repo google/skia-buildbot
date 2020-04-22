@@ -51,7 +51,7 @@ type config struct {
 	MPower map[controllerName]*mPowerConfig `json:"mpower"`
 
 	// EdgeSwitch aggregates all EdgeSwitch configurations.
-	EdgeSwitch map[controllerName]*edgeSwitchConfig `json:"edgeswitch"`
+	EdgeSwitch map[controllerName]*EdgeSwitchConfig `json:"edgeswitch"`
 }
 
 // multiController allows us to combine multiple Controller implementations into one.
