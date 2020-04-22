@@ -46,6 +46,30 @@
       "revId": "2570bb6b5b7dde109f8af28d6983fd54c83a4ebf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "50e51564_514ff223",
+        "filename": "autoroll/config/cros-proto-infra.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-22T15:23:01Z",
+      "side": 1,
+      "message": "Great!",
+      "parentUuid": "3963e2c3_65df9ca3",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 67
+      },
+      "revId": "2570bb6b5b7dde109f8af28d6983fd54c83a4ebf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
