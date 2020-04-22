@@ -25,6 +25,7 @@ func TestCopy(t *testing.T) {
 		},
 		LastUpdated: testTime,
 		Battery:     91,
+		Temperature: 25,
 	}
 	out := in.Copy()
 	require.Equal(t, in, out)
