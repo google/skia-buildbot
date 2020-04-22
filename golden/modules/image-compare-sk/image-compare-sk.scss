@@ -48,4 +48,8 @@ image-compare-sk {
     object-fit: scale-down;
     object-position: top left;
   }
+
+  img.diff {
+    image-rendering: pixelated;
+  }
 }

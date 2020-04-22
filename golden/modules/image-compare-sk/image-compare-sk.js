@@ -49,7 +49,7 @@ const comparison = (ele) => {
   }
   const diffSrc = digestDiffImagePath(ele.left.digest, ele.right.digest);
   return html`
-<img class=thumbnail alt="diff between left and right image" src=${diffSrc}>
+<img class="thumbnail diff" alt="diff between left and right image" src=${diffSrc}>
 <a target=_blank rel=noopener href=${diffSrc}>
   <open-in-new-icon-sk></open-in-new-icon-sk>
 </a>
