@@ -1,6 +1,16 @@
 import {
-  humanReadableQuery, digestImagePath, digestDiffImagePath, detailHref, diffPageHref, truncateWithEllipses,
+  humanReadableQuery,
+  digestImagePath,
+  digestDiffImagePath,
+  detailHref,
+  diffPageHref,
+  truncateWithEllipses,
+  sendBeginTask,
+  sendEndTask,
+  sendFetchError,
 } from './common';
+import { eventPromise } from './test_util';
+import { $$ } from '../../common-sk/modules/dom';
 
 describe('humanReadableQuery', () => {
   it('turns url encoded queries into human readable version', () => {
@@ -66,7 +76,6 @@ describe('detailHref', () => {
   });
 });
 
-
 describe('diffPageHref', () => {
   it('returns a path with the digests in the expected order', () => {
     expect(diffPageHref('my-test', aDigest, bDigest)).to.equal(
@@ -81,5 +90,37 @@ describe('diffPageHref', () => {
     expect(diffPageHref('my-test', aDigest, bDigest, '12345')).to.equal(
       '/diff?test=my-test&left=aaab78c9711cb79197d47f448ba51338&right=bbb8b07beb4e1247c2cbafdb92b93e55&issue=12345',
     );
+  });
+});
+
+describe('event functions', () => {
+  let ele;
+  beforeEach(() => {
+    ele = document.createElement('div');
+    $$('body').appendChild(ele);
+  });
+
+  afterEach(() => {
+    $$('body').removeChild(ele);
+  });
+
+  it('sends a begin-task', async () => {
+    const evt = eventPromise('begin-task');
+    sendBeginTask(ele);
+    await evt;
+  });
+
+  it('sends a end-task', async () => {
+    const evt = eventPromise('end-task');
+    sendEndTask(ele);
+    await evt;
+  });
+
+  it('sends a fetch-error', async () => {
+    const evt = eventPromise('fetch-error');
+    sendFetchError(ele, 'some error', 'loading stuff');
+    const e = await evt;
+    expect(e.detail.error).to.equal('some error');
+    expect(e.detail.loading).to.equal('loading stuff');
   });
 });
