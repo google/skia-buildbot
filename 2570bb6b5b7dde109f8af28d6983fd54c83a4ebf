@@ -22,6 +22,30 @@
       "revId": "2570bb6b5b7dde109f8af28d6983fd54c83a4ebf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3963e2c3_65df9ca3",
+        "filename": "autoroll/config/cros-proto-infra.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 11424
+      },
+      "writtenOn": "2020-04-22T15:22:21Z",
+      "side": 1,
+      "message": "ah, thanks for catching that. OK, I just registered it (without the +autoroll).\n\nhttps://skia-review.googlesource.com/dashboard/11425",
+      "parentUuid": "ede85bf5_ab5aa765",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 67
+      },
+      "revId": "2570bb6b5b7dde109f8af28d6983fd54c83a4ebf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
