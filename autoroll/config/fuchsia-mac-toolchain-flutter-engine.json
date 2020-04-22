@@ -19,6 +19,7 @@
   "githubCipdDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/fuchsia/toolchain/mac",
+    "forkRepoURL": "git@github.com:skia-flutter-autoroll/engine.git",
     "parentBranch": "master",
     "parentRepo": "git@github.com:flutter/engine.git",
     "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:skia-flutter-autoroll/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"custom_vars\":{\"host_os\":\"mac\"},\"safesync_url\":\"\"}]",

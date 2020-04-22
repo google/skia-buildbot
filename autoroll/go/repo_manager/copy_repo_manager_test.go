@@ -74,11 +74,12 @@ func setupCopy(t *testing.T) (context.Context, string, *parentChildRepoManager, 
 	})
 	ctx = exec.NewContext(ctx, mockRun.Run)
 
-	urlmock := setupFakeGerrit(t, wd)
 	cfg := copyCfg(t)
 	cfg.ChildRepo = child.RepoUrl()
 	cfg.ParentRepo = parent.RepoUrl()
 	cfg.ChildPath = path.Join(path.Base(parent.RepoUrl()), childPath)
+	urlmock := mockhttpclient.NewURLMock()
+	g := setupFakeGerrit(t, cfg.Gerrit, urlmock)
 
 	// Mock requests for Update.
 	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.GitDir(child.Dir()), urlmock)
@@ -89,7 +90,7 @@ func setupCopy(t *testing.T) (context.Context, string, *parentChildRepoManager, 
 	}
 
 	// Create the RepoManager.
-	rm, err := NewCopyRepoManager(ctx, cfg, setupRegistry(t), wd, nil, "fake.server.com", urlmock.Client(), nil, false)
+	rm, err := NewCopyRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
 
 	// Update.
@@ -134,7 +135,7 @@ func TestCopyRepoManager(t *testing.T) {
 	require.Equal(t, len(childCommits), len(notRolledRevs))
 }
 
-func TestCopyCreateNewDEPSRoll(t *testing.T) {
+func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 	unittest.LargeTest(t)
 
 	ctx, _, rm, _, _, mockChild, childCommits, urlMock, cleanup := setupCopy(t)

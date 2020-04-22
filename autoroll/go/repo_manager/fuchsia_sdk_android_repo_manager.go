@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
@@ -74,31 +75,35 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 	if c.CommitMsgTmpl == "" {
 		c.CommitMsgTmpl = TmplCommitMsgFuchsiaSDKAndroid
 	}
-	parentCfg := parent.GitCheckoutGerritConfig{
-		GitCheckoutConfig: parent.GitCheckoutConfig{
-			BaseConfig: parent.BaseConfig{
-				ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-				ChildRepo:       "FuchsiaSDK",
-				IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-				IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-				CommitMsgTmpl:   c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
-				MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-			},
-			GitCheckoutConfig: git_common.GitCheckoutConfig{
-				Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
-				RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
-			},
+	parentCfg := parent.GitCheckoutConfig{
+		BaseConfig: parent.BaseConfig{
+			ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
+			ChildRepo:       "FuchsiaSDK",
+			IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
+			IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
+			CommitMsgTmpl:   c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
+			MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
 		},
-		Gerrit: c.Gerrit,
+		GitCheckoutConfig: git_common.GitCheckoutConfig{
+			Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
+			RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+		},
 	}
 	genSdkBpRepo, err := git.NewCheckout(ctx, c.GenSdkBpRepo, workdir)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	update := parent.VersionFileGetLastRollRevFunc(FuchsiaSDKAndroidVersionFile, "FuchsiaSDK")
+	update := parent.VersionFileGetLastRollRevFunc(version_file_common.VersionFileConfig{
+		ID:   "FuchsiaSDK",
+		Path: FuchsiaSDKAndroidVersionFile,
+	})
 	createRoll := fuchsiaSDKAndroidRepoManagerCreateRollFunc(genSdkBpRepo, c.GenSdkBpBranch, workdir)
-	parentRM, err := parent.NewGitCheckoutGerrit(ctx, parentCfg, reg, authClient, serverURL, workdir, nil, update, createRoll)
+	uploadRoll := parent.GitCheckoutUploadGerritRollFunc(g)
+	parentRM, err := parent.NewGitCheckout(ctx, parentCfg, reg, serverURL, workdir, cr.UserName(), cr.UserEmail(), nil, update, createRoll, uploadRoll)
 	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := parent.SetupGerrit(ctx, parentRM, g); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return newParentChildRepoManager(ctx, parentRM, childRM)
