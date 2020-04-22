@@ -18,7 +18,7 @@
   "rollerName": "cros-proto-infra-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "seanabraham+autoroll@google.com"
+    "chromeos-continuous-integration-fire-hose@google.com"
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
