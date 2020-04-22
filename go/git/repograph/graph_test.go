@@ -267,7 +267,7 @@ func TestTopoSortMergeTimestamp(t *testing.T) {
 }
 
 func TestIsAncestor(t *testing.T) {
-	unittest.MediumTest(t)
+	unittest.LargeTest(t)
 
 	ctx := context.Background()
 	gb := git_testutils.GitInit(t, ctx)
