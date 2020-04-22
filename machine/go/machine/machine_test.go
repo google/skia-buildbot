@@ -24,6 +24,7 @@ func TestCopy(t *testing.T) {
 			"foo": []string{"bar"},
 		},
 		LastUpdated: testTime,
+		Battery:     91,
 	}
 	out := in.Copy()
 	require.Equal(t, in, out)

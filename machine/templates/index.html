@@ -35,6 +35,7 @@
         <th>Machine</th>
         <th>Mode</th>
         <th>Quarantined</th>
+        <th>Battery</th>
         <th>Last Updated</th>
       </tr>
       {{ range . }}
@@ -42,6 +43,7 @@
         <td>{{.Dimensions.id}}</td>
         <td>{{.Mode}}</td>
         <td>{{.Dimensions.quarantined}}</td>
+        <td>{{.Battery}}</td>
         <td>{{.LastUpdated}}</td>
       </tr>
       {{ end }}
