@@ -20,6 +20,7 @@ import 'elements-sk/icon/cached-icon-sk';
 import 'elements-sk/icon/done-icon-sk';
 
 import '../pagination-sk';
+import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 
 const _statusIcon = (cl) => {
   if (cl.status === 'Open') {
@@ -126,7 +127,7 @@ define('changelists-page-sk', class extends ElementSk {
       signal: this._fetchController.signal,
     };
 
-    this._sendBusy();
+    sendBeginTask(this);
     let u = `/json/changelists?offset=${this._offset}&size=${this._page_size}`;
     if (!this._showAll) {
       u += '&active=true';
@@ -138,9 +139,9 @@ define('changelists-page-sk', class extends ElementSk {
         this._offset = json.pagination.offset;
         this._total = json.pagination.total;
         this._render();
-        this._sendDone();
+        sendEndTask(this);
       })
-      .catch((e) => this._sendFetchError(e, 'changelists'));
+      .catch((e) => sendFetchError(this, e, 'changelists'));
   }
 
   _pageChanged(e) {
@@ -152,24 +153,6 @@ define('changelists-page-sk', class extends ElementSk {
     this._stateChanged();
     this._render();
     this._fetch();
-  }
-
-  _sendBusy() {
-    this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
-  }
-
-  _sendDone() {
-    this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
-  }
-
-  _sendFetchError(e, what) {
-    this.dispatchEvent(new CustomEvent('fetch-error', {
-      detail: {
-        error: e,
-        loading: what,
-      },
-      bubbles: true,
-    }));
   }
 
   _toggleShowAll(e) {
