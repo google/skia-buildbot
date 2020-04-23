@@ -11,6 +11,7 @@ import (
 	"sort"
 	"text/template"
 
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
@@ -104,7 +105,7 @@ func newBaseParent(ctx context.Context, c BaseConfig, serverUrl string) (*basePa
 }
 
 // buildCommitMsg is a helper function used to create commit messages.
-func (p *baseParent) buildCommitMsg(from, to *revision.Revision, rolling []*revision.Revision, reviewers []string, cqExtraTrybots string, transitiveDeps []*TransitiveDep) (string, error) {
+func (p *baseParent) buildCommitMsg(from, to *revision.Revision, rolling []*revision.Revision, reviewers []string, cqExtraTrybots string, transitiveDeps []*version_file_common.TransitiveDepUpdate) (string, error) {
 	// Basic variables.
 	vars := &CommitMsgVars{
 		ChildPath:      p.childPath,
