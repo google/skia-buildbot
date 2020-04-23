@@ -31,6 +31,9 @@
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
+  "cqExtraTrybots": [
+    "luci.chromium.try:linux-perfetto-rel"
+  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
