@@ -60,14 +60,6 @@ func (c *GithubCipdDEPSRepoManagerConfig) Validate() error {
 func (c GithubCipdDEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig, child.CIPDConfig, error) {
 	parentCfg := parent.DEPSLocalConfig{
 		GitCheckoutConfig: parent.GitCheckoutConfig{
-			BaseConfig: parent.BaseConfig{
-				ChildPath:       c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-				ChildRepo:       c.CipdAssetName,
-				IncludeBugs:     c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-				IncludeLog:      c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-				CommitMsgTmpl:   c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
-				MonorailProject: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-			},
 			GitCheckoutConfig: git_common.GitCheckoutConfig{
 				Branch:  c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
 				RepoURL: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
@@ -106,9 +98,6 @@ func NewGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoMana
 	parentCfg, childCfg, err := c.splitParentChild()
 	if err != nil {
 		return nil, skerr.Wrap(err)
-	}
-	if parentCfg.CommitMsgTmpl == "" {
-		parentCfg.CommitMsgTmpl = TMPL_COMMIT_MSG_GITHUB_CIPD_DEPS
 	}
 	uploadRoll := parent.GitCheckoutUploadGithubRollFunc(githubClient, cr.UserName())
 	parentRM, err := parent.NewDEPSLocal(ctx, parentCfg, reg, httpClient, serverURL, workdir, cr.UserName(), cr.UserEmail(), recipeCfgFile, uploadRoll)

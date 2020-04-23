@@ -54,6 +54,44 @@ func (c DependencyConfig) Validate() error {
 	return nil
 }
 
+// TransitiveDepConfig provides configuration for a single transitive
+// dependency.
+type TransitiveDepConfig struct {
+	Child  *VersionFileConfig `json:"child"`
+	Parent *VersionFileConfig `json:"parent"`
+}
+
+// See documentation for util.Validator interface.
+func (c TransitiveDepConfig) Validate() error {
+	if c.Child == nil {
+		return skerr.Fmt("Child is required")
+	}
+	if err := c.Child.Validate(); err != nil {
+		return skerr.Wrap(err)
+	}
+	if c.Parent == nil {
+		return skerr.Fmt("Parent is required")
+	}
+	if err := c.Parent.Validate(); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}
+
+// TransitiveDepConfigs provide configuration for multiple transitive
+// dependencies.
+type TransitiveDepConfigs []*TransitiveDepConfig
+
+// See documentation for util.Validator interface.
+func (c TransitiveDepConfigs) Validate() error {
+	for _, elem := range c {
+		if err := elem.Validate(); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	return nil
+}
+
 // TransitiveDepUpdate represents an update to one transitive dependency.
 type TransitiveDepUpdate struct {
 	Dep         string
@@ -89,7 +127,7 @@ type GetFileFunc func(ctx context.Context, path string) (string, error)
 
 // updateSingleDep updates the dependency in the given file, writing the new
 // contents into the changes map and returning the previous version.
-func updateSingleDep(ctx context.Context, dep VersionFileConfig, newVersion string, changes map[string]string, getFile GetFileFunc) (string, error) {
+func updateSingleDep(ctx context.Context, dep VersionFileConfig, newVersion string, changes map[string]string, getFile GetFileFunc) error {
 	// Look up the path in our changes map to prevent overwriting
 	// modifications we've already made.
 	oldContents, ok := changes[dep.Path]
@@ -97,42 +135,40 @@ func updateSingleDep(ctx context.Context, dep VersionFileConfig, newVersion stri
 		var err error
 		oldContents, err = getFile(ctx, dep.Path)
 		if err != nil {
-			return "", skerr.Wrap(err)
+			return skerr.Wrap(err)
 		}
 	}
 
 	// Find the currently-pinned revision.
 	oldVersion, err := GetPinnedRev(dep, oldContents)
 	if err != nil {
-		return "", skerr.Wrap(err)
+		return skerr.Wrap(err)
 	}
 
 	// Create the new file content.
 	if newVersion != oldVersion {
 		newContents, err := SetPinnedRev(dep, newVersion, oldContents)
 		if err != nil {
-			return "", skerr.Wrap(err)
+			return skerr.Wrap(err)
 		}
 		changes[dep.Path] = newContents
 	}
-	return oldVersion, nil
+	return nil
 }
 
 // UpdateDep updates the given dependency to the given revision, also updating
 // any transitive dependencies to the revisions specified in the new revision of
 // the primary dependency. Returns a map whose keys are file names to update and
 // values are their updated contents.
-func UpdateDep(ctx context.Context, primaryDep DependencyConfig, rev *revision.Revision, getFile GetFileFunc) (map[string]string, []*TransitiveDepUpdate, error) {
+func UpdateDep(ctx context.Context, primaryDep DependencyConfig, rev *revision.Revision, getFile GetFileFunc) (map[string]string, error) {
 	// Update the primary dependency.
 	changes := make(map[string]string, 1+len(primaryDep.TransitiveDeps))
-	if _, err := updateSingleDep(ctx, primaryDep.VersionFileConfig, rev.Id, changes, getFile); err != nil {
-		return nil, nil, skerr.Wrap(err)
+	if err := updateSingleDep(ctx, primaryDep.VersionFileConfig, rev.Id, changes, getFile); err != nil {
+		return nil, skerr.Wrap(err)
 	}
 
 	// Handle transitive dependencies.
-	var td []*TransitiveDepUpdate
 	if len(primaryDep.TransitiveDeps) > 0 {
-		//td = make([]*TransitiveDep, 0, len(transitiveDeps))
 		for _, dep := range primaryDep.TransitiveDeps {
 			// Find the new revision.
 			newVersion, ok := rev.Dependencies[dep.ID]
@@ -141,18 +177,11 @@ func UpdateDep(ctx context.Context, primaryDep DependencyConfig, rev *revision.R
 				continue
 			}
 			// Update.
-			oldVersion, err := updateSingleDep(ctx, *dep, newVersion, changes, getFile)
-			if err != nil {
-				return nil, nil, skerr.Wrap(err)
+			if err := updateSingleDep(ctx, *dep, newVersion, changes, getFile); err != nil {
+				return nil, skerr.Wrap(err)
 			}
-			// Add the transitive dep to the list.
-			td = append(td, &TransitiveDepUpdate{
-				Dep:         dep.ID,
-				RollingFrom: oldVersion,
-				RollingTo:   newVersion,
-			})
 		}
 	}
 
-	return changes, td, nil
+	return changes, nil
 }

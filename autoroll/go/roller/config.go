@@ -11,6 +11,7 @@ import (
 
 	"github.com/flynn/json5"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/commit_msg"
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -170,6 +171,9 @@ type AutoRollerConfig struct {
 	// for Sheriff.
 	SheriffBackup []string `json:"sheriffBackup,omitempty"`
 
+	// Commit message configuration.
+	CommitMsgConfig *commit_msg.CommitMsgConfig `json:"commitMsg"`
+
 	// Code review settings.
 	Gerrit        *codereview.GerritConfig  `json:"gerrit,omitempty"`
 	Github        *codereview.GithubConfig  `json:"github,omitempty"`
@@ -243,6 +247,10 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 	if c.Sheriff == nil || len(c.Sheriff) == 0 {
 		return errors.New("Sheriff is required.")
+	}
+
+	if err := c.CommitMsgConfig.Validate(); err != nil {
+		return skerr.Wrap(err)
 	}
 
 	cr := []util.Validator{}
