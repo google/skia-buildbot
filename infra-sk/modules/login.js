@@ -13,14 +13,16 @@
  *
  * The Email will be the empty string if the user is not logged in.
  */
-export var Login = fetch('https://skia.org/loginstatus/', {
-  credentials: 'include',
-}).then(res => {
-  if (res.ok) {
-    return res.json()
-  }
-  throw new Error('Problem reading /loginstatus/:' + res.statusText);
-});
+export var Login = function(loginStatusURL) {
+  return fetch(loginStatusURL, {
+    credentials: 'include',
+  }).then(res => {
+    if (res.ok) {
+      return res.json()
+    }
+    throw new Error('Problem reading /loginstatus/:' + res.statusText);
+  });
+};
 
 // Add to the global sk namespace while we migrate away from Polymer.
 if (window.sk !== undefined) {

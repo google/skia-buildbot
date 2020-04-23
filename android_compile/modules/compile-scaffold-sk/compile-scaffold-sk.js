@@ -31,7 +31,7 @@ const template = (ele) => html`
       <a href="https://github.com/google/skia-buildbot/tree/master/android_compile" tab-index=0 ><folder-icon-sk></folder-icon-sk><span>Code</span></a>
     </nav-links-sk>
     <h1 class=name>${ele.appTitle}</h1>
-    <login-sk></login-sk>
+    <login-sk login_host="skia-android-compile.corp.goog"></login-sk>
   </nav>
   <main>
   </main>
