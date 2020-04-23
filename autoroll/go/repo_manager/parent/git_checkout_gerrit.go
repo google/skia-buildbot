@@ -3,10 +3,8 @@ package parent
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"go.skia.org/infra/autoroll/go/codereview"
-	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -61,25 +59,15 @@ func GitCheckoutUploadGerritRollFunc(g gerrit.GerritInterface) GitCheckoutUpload
 	}
 }
 
-// NewGitCheckoutGerrit returns an implementation of Parent which uses a local
-// git checkout and uploads changes to Gerrit.
-func NewGitCheckoutGerrit(ctx context.Context, c GitCheckoutGerritConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir string, co *git.Checkout, getLastRollRev GitCheckoutGetLastRollRevFunc, createRoll GitCheckoutCreateRollFunc) (*GitCheckoutParent, error) {
-	gc, err := c.Gerrit.GetConfig()
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to get Gerrit config")
-	}
-	g, err := gerrit.NewGerritWithConfig(gc, c.Gerrit.URL, client)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to create Gerrit client")
-	}
-	uploadRoll := GitCheckoutUploadGerritRollFunc(g)
-	p, err := NewGitCheckout(ctx, c.GitCheckoutConfig, reg, client, serverURL, workdir, co, getLastRollRev, createRoll, uploadRoll)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
+// SetupGerrit performs additional setup for a GitCheckoutParent which uses
+// Gerrit. This is required for all users of GitCheckoutUploadGerritRollFunc.
+// TODO(borenet): This is needed for RepoManagers which use NewDEPSLocal, since
+// they need to pass in a GitCheckoutUploadRollFunc but can't do other
+// initialization. Find a way to make this unnecessary.
+func SetupGerrit(ctx context.Context, p *GitCheckoutParent, g gerrit.GerritInterface) error {
 	// Install the Gerrit Change-Id hook.
 	if err := gerrit_common.DownloadCommitMsgHook(ctx, g, p.Checkout.Checkout); err != nil {
-		return nil, skerr.Wrap(err)
+		return skerr.Wrap(err)
 	}
-	return p, nil
+	return nil
 }

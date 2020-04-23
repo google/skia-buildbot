@@ -2,25 +2,18 @@ package repo_manager
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"os"
-	"path"
-	"path/filepath"
-	"strings"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
-	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -48,273 +41,86 @@ type GithubCipdDEPSRepoManagerConfig struct {
 }
 
 // See documentation for RepoManagerConfig interface.
-func (r *GithubCipdDEPSRepoManagerConfig) ValidStrategies() []string {
+func (c *GithubCipdDEPSRepoManagerConfig) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_BATCH,
 	}
 }
 
-// Validate the config.
+// See documentation for util.Validator interface.
 func (c *GithubCipdDEPSRepoManagerConfig) Validate() error {
-	if c.CipdAssetName == "" {
-		return fmt.Errorf("CipdAssetName is required.")
-	}
-	if c.CipdAssetTag == "" {
-		return fmt.Errorf("CipdAssetTag is required.")
-	}
-	if _, err := c.splitChild(); err != nil {
-		return skerr.Wrap(err)
-	}
-	return c.GithubDEPSRepoManagerConfig.Validate()
+	_, _, err := c.splitParentChild()
+	return skerr.Wrap(err)
 }
 
-// splitChild breaks out a child.CIPDConfig from the
-// GithubCipdDEPSRepoManagerConfig.
-func (c GithubCipdDEPSRepoManagerConfig) splitChild() (child.CIPDConfig, error) {
-	rv := child.CIPDConfig{
+// splitParentChild splits the GithubCipdDEPSRepoManagerConfig into a
+// parent.DEPSLocalConfig and a child.GitCheckoutConfig.
+// TODO(borenet): Update the config format to directly define the parent
+// and child. We shouldn't need most of the New.*RepoManager functions.
+func (c GithubCipdDEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig, child.CIPDConfig, error) {
+	parentCfg := parent.DEPSLocalConfig{
+		GitCheckoutConfig: parent.GitCheckoutConfig{
+			BaseConfig: parent.BaseConfig{
+				ChildPath:       c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
+				ChildRepo:       c.CipdAssetName,
+				IncludeBugs:     c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
+				IncludeLog:      c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
+				CommitMsgTmpl:   c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
+				MonorailProject: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.BugProject,
+			},
+			GitCheckoutConfig: git_common.GitCheckoutConfig{
+				Branch:  c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
+				RepoURL: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+			},
+		},
+		DependencyConfig: version_file_common.DependencyConfig{
+			VersionFileConfig: version_file_common.VersionFileConfig{
+				ID:   c.CipdAssetName,
+				Path: deps_parser.DepsFileName,
+			},
+		},
+		CheckoutPath:   c.GithubParentPath,
+		GClientSpec:    c.GClientSpec,
+		PreUploadSteps: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.PreUploadSteps,
+		RunHooks:       c.RunHooks,
+	}
+	if err := parentCfg.Validate(); err != nil {
+		return parent.DEPSLocalConfig{}, child.CIPDConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
+	}
+	childCfg := child.CIPDConfig{
 		Name: c.CipdAssetName,
 		Tag:  c.CipdAssetTag,
 	}
-	if err := rv.Validate(); err != nil {
-		return child.CIPDConfig{}, skerr.Wrapf(err, "generated child.CIPDConfig is invalid")
+	if err := childCfg.Validate(); err != nil {
+		return parent.DEPSLocalConfig{}, child.CIPDConfig{}, skerr.Wrapf(err, "generated child.CIPDConfig is invalid")
 	}
-	return rv, nil
-}
-
-// githubCipdDEPSRepoManager is a struct used by the autoroller for managing checkouts.
-type githubCipdDEPSRepoManager struct {
-	*githubDEPSRepoManager
-	child         *child.CIPDChild
-	cipdAssetName string
+	return parentCfg, childCfg, nil
 }
 
 // NewGithubCipdDEPSRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func NewGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName string, githubClient *github.GitHub, recipeCfgFile, serverURL string, httpClient *http.Client, cr codereview.CodeReview, local bool) (*githubCipdDEPSRepoManager, error) {
+func NewGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName string, githubClient *github.GitHub, recipeCfgFile, serverURL string, httpClient *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
 	if err := c.Validate(); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
-	childCfg, err := c.splitChild()
+	parentCfg, childCfg, err := c.splitParentChild()
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	wd := path.Join(workdir, strings.TrimSuffix(path.Base(c.DepotToolsRepoManagerConfig.ParentRepo), ".git"))
-	if c.CommitMsgTmpl == "" {
-		c.CommitMsgTmpl = TMPL_COMMIT_MSG_GITHUB_CIPD_DEPS
+	if parentCfg.CommitMsgTmpl == "" {
+		parentCfg.CommitMsgTmpl = TMPL_COMMIT_MSG_GITHUB_CIPD_DEPS
 	}
-	drm, err := newDepotToolsRepoManager(ctx, c.DepotToolsRepoManagerConfig, reg, wd, recipeCfgFile, serverURL, nil, httpClient, cr, local)
-	if err != nil {
-		return nil, err
-	}
-	if c.GithubParentPath != "" {
-		drm.parentDir = path.Join(wd, c.GithubParentPath)
-	}
-	gr := &githubDEPSRepoManager{
-		depotToolsRepoManager: drm,
-		githubClient:          githubClient,
-		rollBranchName:        rollerName,
-	}
-	sklog.Infof("Roller name is: %s\n", rollerName)
-	cipdChild, err := child.NewCIPD(ctx, childCfg, httpClient, filepath.Join(workdir, "cipd"))
+	uploadRoll := parent.GitCheckoutUploadGithubRollFunc(githubClient, cr.UserName())
+	parentRM, err := parent.NewDEPSLocal(ctx, parentCfg, reg, httpClient, serverURL, workdir, cr.UserName(), cr.UserEmail(), recipeCfgFile, uploadRoll)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	gcr := &githubCipdDEPSRepoManager{
-		githubDEPSRepoManager: gr,
-		child:                 cipdChild,
-		cipdAssetName:         c.CipdAssetName,
+	if err := parent.SetupGithub(ctx, parentRM, c.ForkRepoURL); err != nil {
+		return nil, skerr.Wrap(err)
 	}
-
-	return gcr, nil
-}
-
-// See documentation for RepoManager interface.
-func (rm *githubCipdDEPSRepoManager) Update(ctx context.Context) (*revision.Revision, *revision.Revision, []*revision.Revision, error) {
-	// Sync the projects.
-	rm.repoMtx.Lock()
-	defer rm.repoMtx.Unlock()
-
-	sklog.Info("Updating github repository")
-
-	// If parentDir does not exist yet then create the directory structure and
-	// populate it.
-	if _, err := os.Stat(rm.parentDir); err != nil {
-		if os.IsNotExist(err) {
-			if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, "origin", rm.rollBranchName, rm.rollBranchName); err != nil {
-				return nil, nil, nil, fmt.Errorf("Could not create and sync %s: %s", rm.parentDir, err)
-			}
-			// Run gclient hooks to bring in any required binaries.
-			if _, err := exec.RunCommand(ctx, &exec.Command{
-				Dir:  rm.parentDir,
-				Env:  rm.depotToolsEnv,
-				Name: rm.gclient,
-				Args: []string{"runhooks"},
-			}); err != nil {
-				return nil, nil, nil, fmt.Errorf("Error when running gclient runhooks on %s: %s", rm.parentDir, err)
-			}
-		} else {
-			return nil, nil, nil, fmt.Errorf("Error when running os.Stat on %s: %s", rm.parentDir, err)
-		}
-	}
-
-	// Check to see whether there is an upstream yet.
-	remoteOutput, err := git.GitDir(rm.parentDir).Git(ctx, "remote", "show")
+	childRM, err := child.NewCIPD(ctx, childCfg, httpClient, workdir)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, skerr.Wrap(err)
 	}
-	remoteFound := false
-	remoteLines := strings.Split(remoteOutput, "\n")
-	for _, remoteLine := range remoteLines {
-		if remoteLine == GITHUB_UPSTREAM_REMOTE_NAME {
-			remoteFound = true
-			break
-		}
-	}
-	if !remoteFound {
-		if _, err := git.GitDir(rm.parentDir).Git(ctx, "remote", "add", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentRepo); err != nil {
-			return nil, nil, nil, err
-		}
-	}
-	// Fetch upstream.
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "fetch", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch.String()); err != nil {
-		return nil, nil, nil, err
-	}
-	// gclient sync to get latest version of child repo to find the next roll
-	// rev from.
-	if err := rm.createAndSyncParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch.String()); err != nil {
-		return nil, nil, nil, fmt.Errorf("Could not create and sync parent repo: %s", err)
-	}
-
-	// Get the last roll revision.
-	lastRollRev, err := rm.getLastRollRev(ctx)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	// Find the not-rolled child repo commits.
-	tipRev, notRolledRevs, err := rm.child.Update(ctx, lastRollRev)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	return lastRollRev, tipRev, notRolledRevs, nil
-}
-
-func (rm *githubCipdDEPSRepoManager) getLastRollRev(ctx context.Context) (*revision.Revision, error) {
-	output, err := exec.RunCwd(ctx, rm.parentDir, "python", rm.gclient, "getdep", "-r", fmt.Sprintf("%s:%s", rm.childPath, rm.cipdAssetName))
-	if err != nil {
-		return nil, err
-	}
-	hash := strings.TrimSpace(output)
-	if hash == "" {
-		return nil, fmt.Errorf("Got invalid output for `gclient getdep`: %s", output)
-	}
-	return rm.child.GetRevision(ctx, hash)
-}
-
-// See documentation for RepoManager interface.
-func (rm *githubCipdDEPSRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
-	rm.repoMtx.Lock()
-	defer rm.repoMtx.Unlock()
-
-	sklog.Info("Creating a new Github Roll")
-
-	// Clean the checkout, get onto a fresh branch.
-	if err := rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch.String()); err != nil {
-		return 0, err
-	}
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "checkout", fmt.Sprintf("%s/%s", GITHUB_UPSTREAM_REMOTE_NAME, rm.parentBranch), "-b", rm.rollBranchName); err != nil {
-		return 0, err
-	}
-	// Defer cleanup.
-	defer func() {
-		util.LogErr(rm.cleanParentWithRemoteAndBranch(ctx, GITHUB_UPSTREAM_REMOTE_NAME, rm.rollBranchName, rm.parentBranch.String()))
-	}()
-
-	// Make sure the forked repo is at the same hash as the target repo before
-	// creating the pull request.
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.rollBranchName, "-f"); err != nil {
-		return 0, err
-	}
-
-	// Make sure the right name and email are set.
-	if !rm.local {
-		if _, err := git.GitDir(rm.parentDir).Git(ctx, "config", "user.name", rm.codereview.UserName()); err != nil {
-			return 0, err
-		}
-		if _, err := git.GitDir(rm.parentDir).Git(ctx, "config", "user.email", rm.codereview.UserEmail()); err != nil {
-			return 0, err
-		}
-	}
-
-	// Run "gclient setdep".
-	args := []string{"setdep", "-r", fmt.Sprintf("%s:%s@%s", rm.childPath, rm.cipdAssetName, to.Id)}
-	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  rm.parentDir,
-		Env:  rm.depotToolsEnv,
-		Name: rm.gclient,
-		Args: args,
-	}); err != nil {
-		return 0, err
-	}
-
-	// Make the checkout match the new DEPS.
-	sklog.Info("Running gclient sync on the checkout")
-	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  rm.depotToolsRepoManager.parentDir,
-		Env:  rm.depotToolsEnv,
-		Name: rm.gclient,
-		Args: []string{"sync", "-D", "-f"},
-	}); err != nil {
-		return 0, fmt.Errorf("Error when running gclient sync to make checkout match the new DEPS: %s", err)
-	}
-
-	// Run the pre-upload steps.
-	for _, s := range rm.preUploadSteps {
-		if err := s(ctx, rm.depotToolsEnv, rm.httpClient, rm.parentDir); err != nil {
-			return 0, fmt.Errorf("Error when running pre-upload step: %s", err)
-		}
-	}
-
-	// Build the commitMsg.
-	commitMsg, err := rm.buildCommitMsg(&parent.CommitMsgVars{
-		ChildPath:   rm.cipdAssetName,
-		RollingFrom: from,
-		RollingTo:   to,
-		ServerURL:   rm.serverURL,
-	})
-	if err != nil {
-		return 0, err
-	}
-
-	// Commit.
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "commit", "-a", "-m", commitMsg); err != nil {
-		return 0, err
-	}
-
-	// Push to the forked repository.
-	if _, err := git.GitDir(rm.parentDir).Git(ctx, "push", "origin", rm.rollBranchName, "-f"); err != nil {
-		return 0, err
-	}
-
-	// Create a pull request.
-	title := strings.Split(commitMsg, "\n")[0]
-	headBranch := fmt.Sprintf("%s:%s", rm.codereview.UserName(), rm.rollBranchName)
-	pr, err := rm.githubClient.CreatePullRequest(title, rm.parentBranch.String(), headBranch, commitMsg)
-	if err != nil {
-		return 0, err
-	}
-
-	// Add appropriate label to the pull request.
-	if !dryRun {
-		if err := rm.githubClient.AddLabel(pr.GetNumber(), github.WAITING_FOR_GREEN_TREE_LABEL); err != nil {
-			return 0, err
-		}
-	}
-
-	return int64(pr.GetNumber()), nil
-}
-
-// See documentation for RepoManager interface.
-func (r *githubCipdDEPSRepoManager) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
-	return r.child.GetRevision(ctx, id)
+	return newParentChildRepoManager(ctx, parentRM, childRM)
 }

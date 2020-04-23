@@ -47,11 +47,13 @@ func githubDEPSCfg(t *testing.T) *GithubDEPSRepoManagerConfig {
 	}
 }
 
-func TestGithubDEPSConfigValidation(t *testing.T) {
+func TestGithubDEPSRepoManagerConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
 	cfg := githubDEPSCfg(t)
-	cfg.ParentRepo = "repo" // Excluded from githubCfg.
+	cfg.ChildRepo = "git@github.com:fake/child.git"
+	cfg.ParentRepo = "git@github.com:fake/parent.git" // Excluded from githubCfg.
+	cfg.ForkRepoURL = "git@github.com:fake/fork.git"
 	require.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and
@@ -60,32 +62,43 @@ func TestGithubDEPSConfigValidation(t *testing.T) {
 	require.Error(t, cfg.Validate())
 }
 
-func setupGithubDEPS(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, func()) {
+func setupGithubDEPS(t *testing.T, c *GithubDEPSRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
+	ctx := context.Background()
 
 	// Create child and parent repos.
-	grandchild := git_testutils.GitInit(t, context.Background())
+	grandchild := git_testutils.GitInit(t, ctx)
 	f := "somefile.txt"
-	grandchildA := grandchild.CommitGen(context.Background(), f)
-	grandchildB := grandchild.CommitGen(context.Background(), f)
+	grandchildA := grandchild.CommitGen(ctx, f)
+	grandchildB := grandchild.CommitGen(ctx, f)
 
-	child := git_testutils.GitInit(t, context.Background())
-	child.Add(context.Background(), "DEPS", fmt.Sprintf(`deps = {
+	child := git_testutils.GitInit(t, ctx)
+	child.Add(ctx, "DEPS", fmt.Sprintf(`deps = {
   "child/dep": "%s@%s"
 }`, grandchild.RepoUrl(), grandchildB))
-	child.Commit(context.Background())
+	child.Commit(ctx)
 	childCommits := make([]string, 0, 10)
 	for i := 0; i < numChildCommits; i++ {
-		childCommits = append(childCommits, child.CommitGen(context.Background(), f))
+		childCommits = append(childCommits, child.CommitGen(ctx, f))
 	}
 
-	parent := git_testutils.GitInit(t, context.Background())
-	parent.Add(context.Background(), "DEPS", fmt.Sprintf(`deps = {
+	parent := git_testutils.GitInit(t, ctx)
+	parent.Add(ctx, "DEPS", fmt.Sprintf(`deps = {
   "%s": "%s@%s",
   "parent/dep": "%s@%s",
 }`, childPath, child.RepoUrl(), childCommits[0], grandchild.RepoUrl(), grandchildA))
-	parent.Commit(context.Background())
+	parent.Commit(ctx)
+
+	fork := git_testutils.GitInit(t, ctx)
+	fork.Git(ctx, "remote", "set-url", "origin", parent.RepoUrl())
+	fork.Git(ctx, "fetch", "origin")
+	fork.Git(ctx, "checkout", "master")
+	fork.Git(ctx, "reset", "--hard", "origin/master")
+
+	c.ChildRepo = child.RepoUrl()
+	c.ParentRepo = parent.RepoUrl()
+	c.ForkRepoURL = fork.RepoUrl()
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
@@ -96,7 +109,13 @@ func setupGithubDEPS(t *testing.T) (context.Context, string, *git_testutils.GitB
 		}
 		return exec.DefaultRun(ctx, cmd)
 	})
-	ctx := exec.NewContext(context.Background(), mockRun.Run)
+	ctx = exec.NewContext(ctx, mockRun.Run)
+
+	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
+
+	g, urlmock := setupFakeGithubDEPS(t, ctx)
+	rm, err := NewGithubDEPSRepoManager(ctx, c, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	require.NoError(t, err)
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
@@ -104,10 +123,10 @@ func setupGithubDEPS(t *testing.T) (context.Context, string, *git_testutils.GitB
 		parent.Cleanup()
 	}
 
-	return ctx, wd, child, childCommits, parent, mockRun, cleanup
+	return ctx, rm, wd, child, childCommits, parent, mockRun, urlmock, cleanup
 }
 
-func setupFakeGithubDEPS(t *testing.T) (*github.GitHub, *mockhttpclient.URLMock) {
+func setupFakeGithubDEPS(t *testing.T, ctx context.Context) (*github.GitHub, *mockhttpclient.URLMock) {
 	urlMock := mockhttpclient.NewURLMock()
 
 	// Mock /user endpoint.
@@ -131,7 +150,7 @@ func setupFakeGithubDEPS(t *testing.T) (*github.GitHub, *mockhttpclient.URLMock)
 	patchMd := mockhttpclient.MockPatchDialogue(patchReqType, patchReqBody, patchRespBody)
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345", patchMd)
 
-	g, err := github.NewGitHub(context.Background(), "superman", "krypton", urlMock.Client())
+	g, err := github.NewGitHub(ctx, "superman", "krypton", urlMock.Client())
 	require.NoError(t, err)
 	return g, urlMock
 }
@@ -158,15 +177,10 @@ func mockGithubDEPSRequests(t *testing.T, urlMock *mockhttpclient.URLMock) {
 func TestGithubDEPSRepoManager(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, child, childCommits, parentRepo, _, cleanup := setupGithubDEPS(t)
-	defer cleanup()
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-
-	g, _ := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg(t)
-	cfg.ParentRepo = parentRepo.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	require.NoError(t, err)
+	ctx, rm, _, child, childCommits, _, _, _, cleanup := setupGithubDEPS(t, cfg)
+	defer cleanup()
+
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 	require.Equal(t, childCommits[0], lastRollRev.Id)
@@ -174,24 +188,19 @@ func TestGithubDEPSRepoManager(t *testing.T) {
 	require.Equal(t, len(childCommits)-1, len(notRolledRevs))
 
 	// Test update.
-	lastCommit := child.CommitGen(context.Background(), "abc.txt")
+	lastCommit := child.CommitGen(ctx, "abc.txt")
 	_, tipRev, _, err = rm.Update(ctx)
 	require.NoError(t, err)
 	require.Equal(t, lastCommit, tipRev.Id)
 }
 
-func TestCreateNewGithubDEPSRoll(t *testing.T) {
+func TestGithubDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, _, _, parentRepo, _, cleanup := setupGithubDEPS(t)
-	defer cleanup()
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-
-	g, urlMock := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg(t)
-	cfg.ParentRepo = parentRepo.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	require.NoError(t, err)
+	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithubDEPS(t, cfg)
+	defer cleanup()
+
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
@@ -202,21 +211,16 @@ func TestCreateNewGithubDEPSRoll(t *testing.T) {
 	require.Equal(t, issueNum, issue)
 }
 
-func TestCreateNewGithubDEPSRollTransitive(t *testing.T) {
+func TestGithubDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, _, _, parentRepo, _, cleanup := setupGithubDEPS(t)
-	defer cleanup()
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-
-	g, urlMock := setupFakeGithubDEPS(t)
 	cfg := githubDEPSCfg(t)
-	cfg.ParentRepo = parentRepo.RepoUrl()
 	cfg.TransitiveDeps = map[string]string{
 		"child/dep": "parent/dep",
 	}
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	require.NoError(t, err)
+	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithubDEPS(t, cfg)
+	defer cleanup()
+
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
@@ -228,27 +232,21 @@ func TestCreateNewGithubDEPSRollTransitive(t *testing.T) {
 }
 
 // Verify that we ran the PreUploadSteps.
-func TestRanPreUploadStepsGithubDEPS(t *testing.T) {
+func TestGithubDEPSRepoManagerPreUploadSteps(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, _, _, parentRepo, _, cleanup := setupGithubDEPS(t)
-	defer cleanup()
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-
-	g, urlMock := setupFakeGithubDEPS(t)
+	// Create a dummy pre-upload step.
+	ran := false
+	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string) error {
+		ran = true
+		return nil
+	})
 	cfg := githubDEPSCfg(t)
-	cfg.ParentRepo = parentRepo.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	require.NoError(t, err)
+	cfg.PreUploadSteps = []string{stepName}
+	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithubDEPS(t, cfg)
+	defer cleanup()
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
-	ran := false
-	rm.(*githubDEPSRepoManager).preUploadSteps = []parent.PreUploadStep{
-		func(context.Context, []string, *http.Client, string) error {
-			ran = true
-			return nil
-		},
-	}
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubDEPSRequests(t, urlMock)
@@ -258,28 +256,23 @@ func TestRanPreUploadStepsGithubDEPS(t *testing.T) {
 }
 
 // Verify that we fail when a PreUploadStep fails.
-func TestErrorPreUploadStepsGithubDEPS(t *testing.T) {
+func TestGithubDEPSRepoManagerPreUploadStepsError(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, _, _, parentRepo, _, cleanup := setupGithubDEPS(t)
-	defer cleanup()
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-
-	g, urlMock := setupFakeGithubDEPS(t)
-	cfg := githubDEPSCfg(t)
-	cfg.ParentRepo = parentRepo.RepoUrl()
-	rm, err := NewGithubDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	require.NoError(t, err)
-	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
-	require.NoError(t, err)
+	// Create a dummy pre-upload step.
 	ran := false
 	expectedErr := errors.New("Expected error")
-	rm.(*githubDEPSRepoManager).preUploadSteps = []parent.PreUploadStep{
-		func(context.Context, []string, *http.Client, string) error {
-			ran = true
-			return expectedErr
-		},
-	}
+	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string) error {
+		ran = true
+		return expectedErr
+	})
+	cfg := githubDEPSCfg(t)
+	cfg.PreUploadSteps = []string{stepName}
+	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithubDEPS(t, cfg)
+	defer cleanup()
+
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubDEPSRequests(t, urlMock)

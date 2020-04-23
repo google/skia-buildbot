@@ -16,10 +16,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/cipd/client/cipd"
 	"go.chromium.org/luci/cipd/common"
+	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/cipd/mocks"
 	"go.skia.org/infra/go/exec"
 	git_testutils "go.skia.org/infra/go/git/testutils"
+	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -51,16 +53,17 @@ func githubCipdDEPSRmCfg(t *testing.T) *GithubCipdDEPSRepoManagerConfig {
 	}
 }
 
-func setupGithubCipdDEPS(t *testing.T) (context.Context, string, *git_testutils.GitBuilder, *exec.CommandCollector, func()) {
+func setupGithubCipdDEPS(t *testing.T, cfg *GithubCipdDEPSRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, *exec.CommandCollector, *mocks.CIPDClient, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
+	ctx := context.Background()
 
 	// Create child and parent repos.
 	childPath := filepath.Join(wd, "github_repos", "earth")
 	require.NoError(t, os.MkdirAll(childPath, 0755))
 
-	parent := git_testutils.GitInit(t, context.Background())
-	parent.Add(context.Background(), "DEPS", fmt.Sprintf(`
+	parent := git_testutils.GitInit(t, ctx)
+	parent.Add(ctx, "DEPS", fmt.Sprintf(`
 deps = {
   "%s": {
     "packages": [
@@ -71,7 +74,13 @@ deps = {
 	],
   },
 }`, GITHUB_CIPD_DEPS_CHILD_PATH, GITHUB_CIPD_ASSET_NAME, GITHUB_CIPD_LAST_ROLLED))
-	parent.Commit(context.Background())
+	parent.Commit(ctx)
+
+	fork := git_testutils.GitInit(t, ctx)
+	fork.Git(ctx, "remote", "set-url", "origin", parent.RepoUrl())
+	fork.Git(ctx, "fetch", "origin")
+	fork.Git(ctx, "checkout", "master")
+	fork.Git(ctx, "reset", "--hard", "origin/master")
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
@@ -86,14 +95,25 @@ deps = {
 		}
 		return exec.DefaultRun(ctx, cmd)
 	})
-	ctx := exec.NewContext(context.Background(), mockRun.Run)
+	ctx = exec.NewContext(ctx, mockRun.Run)
+
+	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
+
+	g, urlMock := setupFakeGithub(t, ctx, nil)
+
+	cfg.ParentRepo = parent.RepoUrl()
+	cfg.ForkRepoURL = fork.RepoUrl()
+	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	require.NoError(t, err)
+	mockCipd := getCipdMock(ctx)
+	rm.Child.(*child.CIPDChild).SetClientForTesting(mockCipd)
 
 	cleanup := func() {
 		testutils.RemoveAll(t, wd)
 		parent.Cleanup()
 	}
 
-	return ctx, wd, parent, mockRun, cleanup
+	return ctx, rm, wd, parent, mockRun, mockCipd, urlMock, cleanup
 }
 
 type instanceEnumeratorImpl struct {
@@ -158,17 +178,10 @@ func getCipdMock(ctx context.Context) *mocks.CIPDClient {
 func TestGithubCipdDEPSRepoManager(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, parentRepo, _, cleanup := setupGithubCipdDEPS(t)
-	defer cleanup()
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-
-	g, _ := setupFakeGithub(t, nil)
 	cfg := githubCipdDEPSRmCfg(t)
-	cfg.ParentRepo = parentRepo.RepoUrl()
-	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	require.NoError(t, err)
-	mockCipd := getCipdMock(ctx)
-	rm.child.SetClientForTesting(mockCipd)
+	ctx, rm, _, _, _, _, _, cleanup := setupGithubCipdDEPS(t, cfg)
+	defer cleanup()
+
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
@@ -180,19 +193,12 @@ func TestGithubCipdDEPSRepoManager(t *testing.T) {
 	require.Equal(t, GITHUB_CIPD_NOT_ROLLED_1[:5]+"...", notRolledRevs[0].Display)
 }
 
-func TestCreateNewGithubCipdDEPSRoll(t *testing.T) {
+func TestGithubCipdDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, parentRepo, _, cleanup := setupGithubCipdDEPS(t)
-	defer cleanup()
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-
-	g, urlMock := setupFakeGithub(t, nil)
 	cfg := githubCipdDEPSRmCfg(t)
-	cfg.ParentRepo = parentRepo.RepoUrl()
-	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	require.NoError(t, err)
-	rm.child.SetClientForTesting(getCipdMock(ctx))
+	ctx, rm, _, _, _, _, urlMock, cleanup := setupGithubCipdDEPS(t, cfg)
+	defer cleanup()
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
 
@@ -204,29 +210,23 @@ func TestCreateNewGithubCipdDEPSRoll(t *testing.T) {
 }
 
 // Verify that we ran the PreUploadSteps.
-func TestRanPreUploadStepsGithubCipdDEPS(t *testing.T) {
+func TestGithubCipdDEPSRepoManagerPreUploadSteps(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, wd, parentRepo, _, cleanup := setupGithubCipdDEPS(t)
-	defer cleanup()
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-
-	g, urlMock := setupFakeGithub(t, nil)
+	// Create a dummy pre-upload step.
+	ran := false
+	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string) error {
+		ran = true
+		return nil
+	})
 	cfg := githubCipdDEPSRmCfg(t)
-	cfg.ParentRepo = parentRepo.RepoUrl()
-	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	require.NoError(t, err)
-	rm.child.SetClientForTesting(getCipdMock(ctx))
+	cfg.PreUploadSteps = []string{stepName}
+
+	ctx, rm, _, _, _, _, urlMock, cleanup := setupGithubCipdDEPS(t, cfg)
+	defer cleanup()
+
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 	require.NoError(t, err)
-
-	ran := false
-	rm.preUploadSteps = []parent.PreUploadStep{
-		func(context.Context, []string, *http.Client, string) error {
-			ran = true
-			return nil
-		},
-	}
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubRequests(t, urlMock)
@@ -236,30 +236,23 @@ func TestRanPreUploadStepsGithubCipdDEPS(t *testing.T) {
 }
 
 // Verify that we fail when a PreUploadStep fails.
-func TestErrorPreUploadStepsGithubCipdDEPS(t *testing.T) {
+func TestGithubCipdDEPSRepoManagerPreUploadStepsError(t *testing.T) {
 	unittest.LargeTest(t)
-
-	ctx, wd, parentRepo, _, cleanup := setupGithubCipdDEPS(t)
-	defer cleanup()
-	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-
-	g, urlMock := setupFakeGithub(t, nil)
-	cfg := githubCipdDEPSRmCfg(t)
-	cfg.ParentRepo = parentRepo.RepoUrl()
-	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
-	require.NoError(t, err)
-	rm.child.SetClientForTesting(getCipdMock(ctx))
-	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
-	require.NoError(t, err)
 
 	ran := false
 	expectedErr := errors.New("Expected error")
-	rm.preUploadSteps = []parent.PreUploadStep{
-		func(context.Context, []string, *http.Client, string) error {
-			ran = true
-			return expectedErr
-		},
-	}
+	stepName := parent.AddPreUploadStepForTesting(func(context.Context, []string, *http.Client, string) error {
+		ran = true
+		return expectedErr
+	})
+	cfg := githubCipdDEPSRmCfg(t)
+	cfg.PreUploadSteps = []string{stepName}
+
+	ctx, rm, _, _, _, _, urlMock, cleanup := setupGithubCipdDEPS(t, cfg)
+	defer cleanup()
+
+	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubRequests(t, urlMock)
