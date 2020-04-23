@@ -574,6 +574,9 @@ func main() {
 	loggedRouter.HandleFunc("/changelists", templateHandler("changelists.html"))
 	loggedRouter.HandleFunc("/triagelog", templateHandler("triagelog.html"))
 	loggedRouter.HandleFunc("/ignores", templateHandler("ignorelist.html"))
+	loggedRouter.HandleFunc("/diff", templateHandler("diff.html"))
+	loggedRouter.HandleFunc("/detail", templateHandler("details.html"))
+	loggedRouter.HandleFunc("/details", templateHandler("details.html"))
 
 	// This route handles the legacy polymer "single page" app model
 	loggedRouter.PathPrefix("/").Handler(templateHandler("index.html"))

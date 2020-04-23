@@ -150,7 +150,7 @@ const paramset = (ele) => {
     paramsets: [ele._params],
   };
 
-  if (ele.right) {
+  if (ele.right && ele.right.paramset) {
     input.titles.push(truncateWithEllipses(ele.right.digest));
     input.paramsets.push(ele.right.paramset);
   }
