@@ -276,6 +276,7 @@ func TestProcess_QuarantineDevicesInMaintenanceMode(t *testing.T) {
 	expected[machine.DimQuarantined] = []string{"Device is quarantined for maintenance"}
 	assert.Equal(t, expected, next.Dimensions)
 	assert.Equal(t, machine.ModeMaintenance, next.Mode)
+	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_quarantined", map[string]string{"machine": "skia-rpi2-0001"}).Get())
 }
 
 func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
@@ -331,6 +332,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		"inside_docker":       []string{"1", "containerd"},
 	}
 	assert.Equal(t, expected, next.Dimensions)
+	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_quarantined", map[string]string{"machine": "skia-rpi2-0001"}).Get())
 }
 
 func TestProcess_QuarantineIfDeviceBatteryTooLow(t *testing.T) {
