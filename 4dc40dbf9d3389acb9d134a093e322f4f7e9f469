@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f565fd94_70d4bbb0",
+        "filename": "golden/modules/details-page-sk/details-page-sk-demo.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-23T07:13:47Z",
+      "side": 1,
+      "message": "A comment explaining where the number 4 comes from might be useful.",
+      "range": {
+        "startLine": 14,
+        "startChar": 34,
+        "endLine": 14,
+        "endChar": 37
+      },
+      "revId": "4dc40dbf9d3389acb9d134a093e322f4f7e9f469",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f196af6_f15d13f3",
+        "filename": "golden/modules/details-page-sk/details-page-sk-demo.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-23T07:13:47Z",
+      "side": 1,
+      "message": "Nit: extra blank line.",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 0
+      },
+      "revId": "4dc40dbf9d3389acb9d134a093e322f4f7e9f469",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
