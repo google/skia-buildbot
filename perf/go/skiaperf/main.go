@@ -23,6 +23,7 @@ import (
 	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/gorilla/mux"
 	"go.opencensus.io/trace"
+	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/calc"
 	"go.skia.org/infra/go/common"
@@ -494,6 +495,7 @@ func frameStartHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
+	auditlog.Log(r, "query", fr)
 	// Remove all empty queries.
 	q := []string{}
 	for _, s := range fr.Queries {
@@ -656,6 +658,7 @@ func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
 	}
+	auditlog.Log(r, "cluster", req)
 	id, err := clusterRequests.Add(context.Background(), req)
 	if err != nil {
 		httputils.ReportError(w, err, "Cluster request was invalid", http.StatusInternalServerError)
@@ -833,6 +836,7 @@ func triageHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
+	auditlog.Log(r, "triage", tr)
 	detail, err := cidl.Lookup(context.Background(), []*cid.CommitID{tr.Cid})
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to find CommitID.", http.StatusInternalServerError)
@@ -1322,6 +1326,7 @@ func alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
+	auditlog.Log(r, "alert-update", cfg)
 	if err := alertStore.Save(r.Context(), cfg); err != nil {
 		httputils.ReportError(w, err, "Failed to save alerts.Config.", http.StatusInternalServerError)
 	}
@@ -1339,6 +1344,7 @@ func alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to parse alert id.", http.StatusInternalServerError)
 	}
+	auditlog.Log(r, "alert-delete", sid)
 	if err := alertStore.Delete(r.Context(), int(id)); err != nil {
 		httputils.ReportError(w, err, "Failed to delete the alerts.Config.", http.StatusInternalServerError)
 		return
@@ -1365,6 +1371,7 @@ func alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
+	auditlog.Log(r, "alert-bug-try", req)
 	resp := &tryBugResponse{
 		URL: bug.ExampleExpand(req.BugURITemplate),
 	}
@@ -1385,7 +1392,7 @@ func alertNotifyTryHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-
+	auditlog.Log(r, "alert-notify-try", req)
 	if err := notifier.ExampleSend(req); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to send email: %s", err), http.StatusInternalServerError)
 	}
