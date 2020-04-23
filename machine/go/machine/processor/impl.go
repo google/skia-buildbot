@@ -161,6 +161,14 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		delete(ret.Dimensions, machine.DimQuarantined)
 	}
 
+	// Record the quarantined state in a metric.
+	quarantinedMetric := metrics2.GetInt64Metric("machine_processor_device_quarantined", map[string]string{"machine": machineID})
+	if len(ret.Dimensions[machine.DimQuarantined]) > 0 {
+		quarantinedMetric.Update(1)
+	} else {
+		quarantinedMetric.Update(0)
+	}
+
 	return ret
 }
 
