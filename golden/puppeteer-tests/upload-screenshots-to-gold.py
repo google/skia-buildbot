@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import glob
 import os
 import subprocess
 import sys
@@ -11,8 +12,10 @@ def main():
   parser = argparse.ArgumentParser(
       description='Upload screenshots produced by Puppeteer tests to Gold.')
   parser.add_argument(
-      '--images_dir', metavar="IMAGES_DIR", type=str, required=True,
-      help='path to directory with PNG images to upload to Gold')
+      '--images_glob', metavar="IMAGES_GLOB", type=str, required=True,
+      action='append',
+      help='one or more patterns for the PNG images to upload to Gold ' +
+           '(e.g. "./**/out/*.png")')
   parser.add_argument(
       '--path_to_goldctl', metavar='PATH_TO_GOLDCTL', type=str, required=True,
       help='path to the goldctl binary')
@@ -107,16 +110,29 @@ def main():
         ]
       goldctl(cmd)
 
+      # Find images.
+      image_paths = []
+      for pattern in args.images_glob:
+        paths = glob.glob(pattern, recursive=True)
+
+        # Print warning if no images were found,.
+        if len(paths) == 0:
+          print('Warning: pattern "%s" did not match any images.' % pattern)
+
+        for path in paths:
+          if not path.lower().endswith('.png'):
+            print('Ignoring non-PNG file: ' + path)
+            continue
+          image_paths.append(path)
+
       # Add images.
-      for filename in os.listdir(args.images_dir):
-        if not filename.lower().endswith('.png'):
-          print('Ignoring non-PNG file: ' + filename)
-          continue
+      for image in image_paths:
+        test_name = os.path.basename(image)[:-4]  # Remove .png extension.
         goldctl([
             'imgtest', 'add',
             '--work-dir', work_dir,
-            '--png-file', os.path.join(args.images_dir, filename),
-            '--test-name', filename[:-4], # Remove .png extension.
+            '--png-file', image,
+            '--test-name', test_name,
         ])
 
       # Finalize and clean up.

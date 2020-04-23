@@ -41,7 +41,7 @@ def RunSteps(api):
     upload_digests_cmd = [
         'python3',
         'upload-screenshots-to-gold.py',
-        '--images_dir', './output',
+        '--images_glob', './output/*.png',
         # This is [START_DIR]/cipd_bin_packages/goldctl.
         '--path_to_goldctl', '../../../cipd_bin_packages/goldctl',
         '--revision', revision,
