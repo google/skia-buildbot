@@ -336,7 +336,7 @@ func getSkps(ctx context.Context, headers []*ColumnHeader, perfGit *perfgit.Git)
 
 	commitNumbers, err := perfGit.CommitNumbersWhenFileChangesInCommitNumberRange(ctx, begin, end, config.Config.GitRepoConfig.FileChangeMarker)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to find skp changes for range: %d-%d", begin, end)
+		return []int{}, skerr.Wrapf(err, "Failed to find skp changes for range: %d-%d", begin, end)
 	}
 	ret := make([]int, len(commitNumbers))
 	for i, n := range commitNumbers {
@@ -359,7 +359,7 @@ func ResponseFromDataFrame(ctx context.Context, df *DataFrame, perfGit *perfgit.
 	// Determine where SKP changes occurred.
 	skps, err := getSkps(ctx, df.Header, perfGit)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to load skps: %s", err)
+		sklog.Errorf("Failed to load skps: %s", err)
 	}
 
 	// Truncate the result if it's too large.
