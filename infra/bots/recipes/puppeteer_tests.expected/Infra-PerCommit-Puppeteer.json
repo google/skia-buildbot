@@ -14,8 +14,8 @@
     "cmd": [
       "python3",
       "upload-screenshots-to-gold.py",
-      "--images_dir",
-      "./output",
+      "--images_glob",
+      "./output/*.png",
       "--path_to_goldctl",
       "../../../cipd_bin_packages/goldctl",
       "--revision",
