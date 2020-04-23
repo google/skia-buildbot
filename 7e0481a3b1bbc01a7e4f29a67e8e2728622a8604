@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "63dd5443_729f6858",
+        "filename": "autoroll/go/repo_manager/github_cipd_deps_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-23T16:07:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1dbaaba5_d9467e0a",
+      "range": {
+        "startLine": 56,
+        "startChar": 3,
+        "endLine": 56,
+        "endChar": 19
+      },
+      "revId": "7e0481a3b1bbc01a7e4f29a67e8e2728622a8604",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d5f64715_acc145e9",
         "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "7e0481a3b1bbc01a7e4f29a67e8e2728622a8604",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01e31242_338ecea9",
+        "filename": "autoroll/go/repo_manager/github_deps_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-23T16:07:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d5f64715_acc145e9",
+      "range": {
+        "startLine": 50,
+        "startChar": 3,
+        "endLine": 50,
+        "endChar": 19
+      },
+      "revId": "7e0481a3b1bbc01a7e4f29a67e8e2728622a8604",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

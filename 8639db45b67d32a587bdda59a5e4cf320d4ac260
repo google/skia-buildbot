@@ -22,6 +22,30 @@
       "revId": "8639db45b67d32a587bdda59a5e4cf320d4ac260",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ccbf2db_56674a92",
+        "filename": "autoroll/config/flutter-engine-flutter.json",
+        "patchSetId": 6
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-23T16:07:38Z",
+      "side": 0,
+      "message": "Previously we used eg. \"gclient setdep src/fuchsia/sdk/linux@\u003crev\u003e\", which uses the path where gclient will sync the dependency.  We also needed the dependency ID (repo URL or CIPD package) to look up the revisions. One of the changes in this refactor is moving everything to the new deps_parser package, which keys everything by ID, so now we don\u0027t need the path part.",
+      "parentUuid": "4ba409f2_619ea666",
+      "range": {
+        "startLine": 34,
+        "startChar": 7,
+        "endLine": 34,
+        "endChar": 28
+      },
+      "revId": "8639db45b67d32a587bdda59a5e4cf320d4ac260",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
