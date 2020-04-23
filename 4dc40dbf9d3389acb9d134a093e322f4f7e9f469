@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4f971cc5_6bfecdef",
+        "filename": "golden/modules/details-page-sk/details-page-sk-demo.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-23T11:34:02Z",
+      "side": 1,
+      "message": "Done (on the last CL in the chain to save some rebasing)",
+      "parentUuid": "f565fd94_70d4bbb0",
+      "range": {
+        "startLine": 14,
+        "startChar": 34,
+        "endLine": 14,
+        "endChar": 37
+      },
+      "revId": "4dc40dbf9d3389acb9d134a093e322f4f7e9f469",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9f196af6_f15d13f3",
         "filename": "golden/modules/details-page-sk/details-page-sk-demo.js",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "4dc40dbf9d3389acb9d134a093e322f4f7e9f469",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67bf2193_fe4d7d8d",
+        "filename": "golden/modules/details-page-sk/details-page-sk-demo.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-23T11:34:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9f196af6_f15d13f3",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 0
+      },
+      "revId": "4dc40dbf9d3389acb9d134a093e322f4f7e9f469",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
