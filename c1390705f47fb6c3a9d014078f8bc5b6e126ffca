@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b9409115_e90476be",
+        "filename": "puppeteer-tests/util.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T11:29:22Z",
+      "side": 1,
+      "message": "Will there need to be an update to the logic around goldctl to account for this?",
+      "range": {
+        "startLine": 212,
+        "startChar": 42,
+        "endLine": 212,
+        "endChar": 49
+      },
+      "revId": "c1390705f47fb6c3a9d014078f8bc5b6e126ffca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
