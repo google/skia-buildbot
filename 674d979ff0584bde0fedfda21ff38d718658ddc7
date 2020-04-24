@@ -1,0 +1,280 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a8547a7_e644cd3e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T11:28:00Z",
+      "side": 1,
+      "message": "very very optional: call this directory something more general \"screenshot-tests\", \"webapp-tests\", \"integration-tests\"?",
+      "range": {
+        "startLine": 10,
+        "startChar": 30,
+        "endLine": 10,
+        "endChar": 39
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1c373a6_3120ff06",
+        "filename": "Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T11:28:00Z",
+      "side": 1,
+      "message": "Did puppeteer-tests-nodocker go away? :( I would like it to remain if feasible.",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 15
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "55571537_cceb3359",
+        "filename": "golden/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T11:28:00Z",
+      "side": 1,
+      "message": "Does this change open up puppeteer tests to be in the module they affect?",
+      "range": {
+        "startLine": 39,
+        "startChar": 17,
+        "endLine": 39,
+        "endChar": 32
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a12eaf70_47cb631e",
+        "filename": "puppeteer-tests/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T11:28:00Z",
+      "side": 1,
+      "message": "What exactly is this for? Is this equivalent to running the tests w/o docker? (I found that to be quite handy and would like to know how to do that in the new flow)",
+      "range": {
+        "startLine": 3,
+        "startChar": 1,
+        "endLine": 3,
+        "endChar": 29
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0765bc5c_d46f760f",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T11:28:00Z",
+      "side": 1,
+      "message": "(e.g. click things, forward/back)",
+      "range": {
+        "startLine": 27,
+        "startChar": 15,
+        "endLine": 27,
+        "endChar": 19
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30dfef71_5d793adb",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T11:28:00Z",
+      "side": 1,
+      "message": "I don\u0027t actually see this target in Makefile",
+      "range": {
+        "startLine": 32,
+        "startChar": 14,
+        "endLine": 32,
+        "endChar": 29
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "73fffb05_cb242ff6",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T11:28:00Z",
+      "side": 1,
+      "message": "I would add a recommendation that puppeteer tests be added as a cousin folder to modules (unless that is changed at some point down the chain).",
+      "range": {
+        "startLine": 38,
+        "startChar": 14,
+        "endLine": 38,
+        "endChar": 19
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11f1cca0_66500845",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T11:28:00Z",
+      "side": 1,
+      "message": "changes as detailed in that file. (then add some concrete instructions there)",
+      "range": {
+        "startLine": 42,
+        "startChar": 48,
+        "endLine": 42,
+        "endChar": 71
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aaf2c7bd_977f9c58",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T11:28:00Z",
+      "side": 1,
+      "message": "from which folder - this one?",
+      "range": {
+        "startLine": 73,
+        "startChar": 5,
+        "endLine": 73,
+        "endChar": 18
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ced37c6_57eca09d",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T11:28:00Z",
+      "side": 1,
+      "message": "I don\u0027t get how this targets just Gold\u0027s tests",
+      "range": {
+        "startLine": 78,
+        "startChar": 13,
+        "endLine": 78,
+        "endChar": 19
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "852d74a4_1142fbf6",
+        "filename": "puppeteer-tests/docker/run-tests.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T11:28:00Z",
+      "side": 1,
+      "message": "I forget, why is this important to do? What goes wrong / is complicated if we naively copy the entire src or, just run the tests directly in /src?\n\nAre all projects who want to use screenshot-tests going to need to opt-in to this? If so, I would recommend adding an entry to //launch.md if you haven\u0027t already.",
+      "range": {
+        "startLine": 8,
+        "startChar": 2,
+        "endLine": 9,
+        "endChar": 42
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c09725b7_f8bd0153",
+        "filename": "puppeteer-tests/output/.gitignore",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T11:28:00Z",
+      "side": 1,
+      "message": "nit: I would add the .gitignore to //puppeteer-tests and have it target output/\nI try to have my .gitignore files be as close to top level as is feasible, just so they are easier to find/discover.\n\nOf note, you can check in output/README.md to git first, then add the .gitignore covering output/ and output/README.md will still be tracked, essentially \"grandfathered in\"\n\nOn second thought, if this folder exists so Docker doesn\u0027t recreate it (with root permissions), then it\u0027s totally fine to be checked in and this comment can be ignored.",
+      "range": {
+        "startLine": 1,
+        "startChar": 2,
+        "endLine": 1,
+        "endChar": 5
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
