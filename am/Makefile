@@ -32,6 +32,9 @@ test:
 	# Run the generated tests just once under Xvfb.
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
+testpptr:
+	npx mocha ./**/*_puppeteer_test.js
+
 testci:
 	rm -rf node_modules
 	npm install

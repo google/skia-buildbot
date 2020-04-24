@@ -40,6 +40,11 @@ cp -r /src/perf/package*            /tests/perf
 cp -r /src/perf/webpack.config.js   /tests/perf
 cp -r /src/perf/modules             /tests/perf
 
+mkdir /tests/am
+cp -r /src/am/package*              /tests/am
+cp -r /src/am/webpack.config.js     /tests/am
+cp -r /src/am/modules               /tests/am
+
 ################################################################################
 # Install node modules.                                                        #
 ################################################################################
@@ -59,6 +64,9 @@ npm ci
 cd /tests/perf
 npm ci
 
+cd /tests/am
+npm ci
+
 ################################################################################
 # Run tests.                                                                   #
 ################################################################################
@@ -70,6 +78,9 @@ cd /tests/golden
 npx mocha ./**/*_puppeteer_test.js
 
 cd /tests/perf
+npx mocha ./**/*_puppeteer_test.js
+
+cd /tests/am
 npx mocha ./**/*_puppeteer_test.js
 
 ################################################################################
