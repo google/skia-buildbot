@@ -23,8 +23,8 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 define('elix-date-combo-box', DateComboBox);
 
 const template = (ele) => html`
-  <label>Begin <elix-date-combo-box @date-changed=${ele._beginChanged} .date=${new Date(ele.begin * 1000)}></elix-date-combo-box></label>
-  <label>End <elix-date-combo-box @date-changed=${ele._endChanged} .date=${new Date(ele.end * 1000)}></elix-date-combo-box></label>
+  <label class=begin>Begin <elix-date-combo-box @date-changed=${ele._beginChanged} .date=${new Date(ele.begin * 1000)}></elix-date-combo-box></label>
+  <label class=end>End <elix-date-combo-box @date-changed=${ele._endChanged} .date=${new Date(ele.end * 1000)}></elix-date-combo-box></label>
 `;
 
 define('day-range-sk', class extends ElementSk {
