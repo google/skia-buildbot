@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "65f75c02_974b249a",
+        "filename": "autoroll/go/repo_manager/deps_repo_manager.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-24T18:40:59Z",
+      "side": 1,
+      "message": "This mimics https://skia.googlesource.com/buildbot/+/master/autoroll/go/repo_manager/repo_manager.go#179 and is needed for any local DEPS roller which has \"use_relative_paths \u003d True\"",
+      "range": {
+        "startLine": 111,
+        "startChar": 0,
+        "endLine": 115,
+        "endChar": 51
+      },
+      "revId": "af13807d8ca0f8974ac60f407e7d03fd9bba56ba",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
