@@ -1,6 +1,6 @@
 {
   "name": "common-sk",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "Common Skia JS modules.",
   "homepage": "https://github.com/google/skia-buildbot/tree/master/common-sk",
   "main": "index.js",
