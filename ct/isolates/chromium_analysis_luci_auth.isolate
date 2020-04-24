@@ -1,0 +1,46 @@
+# Copyright (c) 2016 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+{
+  'includes': [
+    'py.isolate',
+  ],
+  'conditions': [
+    ['OS=="linux"', {
+      'variables': {
+        'files': [
+          '../../../bin/run_chromium_analysis',
+        ],
+      },
+    }],
+    ['OS=="win"', {
+      'variables': {
+        'files': [
+          '../../../bin/run_chromium_analysis.exe',
+        ],
+      },
+    }],
+  ],
+  'variables': {
+    'command': [
+      'luci-auth',
+      'context',
+      '--',
+      '../../../bin/run_chromium_analysis',
+      '-logtostderr',
+      '--start_range=<(START_RANGE)',
+      '--num=<(NUM)',
+      '--pageset_type=<(PAGESET_TYPE)',
+      '--chromium_build=<(CHROMIUM_BUILD)',
+      '--run_id=<(RUN_ID)',
+      '--apk_gs_path=<(APK_GS_PATH)',
+      '--benchmark_name=<(BENCHMARK)',
+      '--benchmark_extra_args=<(BENCHMARK_ARGS)',
+      '--browser_extra_args=<(BROWSER_EXTRA_ARGS)',
+      '--run_in_parallel=<(RUN_IN_PARALLEL)',
+      '--target_platform=<(TARGET_PLATFORM)',
+      '--match_stdout_txt=<(MATCH_STDOUT_TXT)',
+      '--value_column_name=<(VALUE_COLUMN_NAME)',
+    ]
+  }
+}
