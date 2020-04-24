@@ -4,7 +4,6 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 const webpack = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
-const webpackConfigJs = require('../../webpack.config.js');
 
 /**
  * This function allows tests to catch document-level events in a Puppeteer
@@ -85,8 +84,7 @@ exports.launchBrowser = () => puppeteer.launch(
  */
 exports.outputDir = () => (exports.inDocker()
   ? '/out'
-// Resolves to $SKIA_INFRA_ROOT/golden/puppeteer-tests/output.
-  : path.join(__dirname, '..', 'output'));
+  : path.join(__dirname, 'output')); // Resolves to //puppeteer-tests/output for local development.
 
 /**
  * This function sets up the before(Each) and after(Each) hooks required for
@@ -101,8 +99,10 @@ exports.outputDir = () => (exports.inDocker()
  * means to detect whether they are running within Puppeteer or not.
  *
  * Call this function at the beginning of a Mocha describe() block.
+ *
+ * @param {string} pathToWebpackConfigJs Path to the webpack.config.js file.
  */
-exports.setUpPuppeteerAndDemoPageServer = () => {
+exports.setUpPuppeteerAndDemoPageServer = (pathToWebpackConfigJs) => {
   let browser;
   let stopDemoPageServer;
   const testBed = {
@@ -112,7 +112,7 @@ exports.setUpPuppeteerAndDemoPageServer = () => {
 
   before(async () => {
     let baseUrl;
-    ({ baseUrl, stopDemoPageServer } = await exports.startDemoPageServer());
+    ({ baseUrl, stopDemoPageServer } = await exports.startDemoPageServer(pathToWebpackConfigJs));
     testBed.baseUrl = baseUrl; // Make baseUrl available to tests.
     browser = await exports.launchBrowser();
   });
@@ -151,13 +151,17 @@ exports.setUpPuppeteerAndDemoPageServer = () => {
  * requires custom element demo pages. The returned function stopDemoPageServer
  * should be called at the end of the test suite.
  *
+ * @param {string} pathToWebpackConfigJs Path to the webpack.config.js file.
  * @return {Promise<{baseUrl: string, stopDemoPageServer: function}>}
  */
-exports.startDemoPageServer = async () => {
-  // Load and tweak Webpack configuration.
+exports.startDemoPageServer = async (pathToWebpackConfigJs) => {
+  // Load Webpack configuration.
+  const webpackConfigJs = require(pathToWebpackConfigJs);
   const configuration = webpackConfigJs(null, {});
+
   // See https://webpack.js.org/configuration/mode/.
   configuration.mode = 'development';
+
   // Quiet down the CleanWebpackPlugin.
   // TODO(lovisolo): Move this change to the Pulito repo.
   configuration

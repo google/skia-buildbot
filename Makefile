@@ -68,3 +68,11 @@ tags:
 .PHONY: buildall
 buildall:
 	go build ./...
+
+.PHONY: puppeteer-tests
+puppeteer-tests:
+	docker run --interactive --rm \
+		--mount type=bind,source=`pwd`,target=/src \
+		--mount type=bind,source=`pwd`/puppeteer-tests/output,target=/out \
+		gcr.io/skia-public/puppeteer-tests:latest \
+		/src/puppeteer-tests/docker/run-tests.sh
