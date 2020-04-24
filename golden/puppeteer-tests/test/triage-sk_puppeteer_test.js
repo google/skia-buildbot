@@ -18,33 +18,33 @@ describe('triage-sk', () => {
   describe('screenshots', async () => {
     it('should be untriaged by default', async () => {
       const triageSk = await testBed.page.$('triage-sk');
-      await takeScreenshot(triageSk, 'triage-sk_untriaged');
+      await takeScreenshot(triageSk, 'gold', 'triage-sk_untriaged');
     });
 
     it('should be negative', async () => {
       await testBed.page.click('triage-sk button.negative');
       await testBed.page.click('body'); // Remove focus from button.
       const triageSk = await testBed.page.$('triage-sk');
-      await takeScreenshot(triageSk, 'triage-sk_negative');
+      await takeScreenshot(triageSk, 'gold', 'triage-sk_negative');
     });
 
     it('should be positive', async () => {
       await testBed.page.click('triage-sk button.positive');
       await testBed.page.click('body'); // Remove focus from button.
       const triageSk = await testBed.page.$('triage-sk');
-      await takeScreenshot(triageSk, 'triage-sk_positive');
+      await takeScreenshot(triageSk, 'gold', 'triage-sk_positive');
     });
 
     it('should be positive, with button focused', async () => {
       await testBed.page.click('triage-sk button.positive');
       const triageSk = await testBed.page.$('triage-sk');
-      await takeScreenshot(triageSk, 'triage-sk_positive-button-focused');
+      await takeScreenshot(triageSk, 'gold', 'triage-sk_positive-button-focused');
     });
 
     it('should be empty', async () => {
       await testBed.page.click('#clear-selection');
       const triageSk = await testBed.page.$('triage-sk');
-      await takeScreenshot(triageSk, 'triage-sk_empty');
+      await takeScreenshot(triageSk, 'gold', 'triage-sk_empty');
     });
   });
 });

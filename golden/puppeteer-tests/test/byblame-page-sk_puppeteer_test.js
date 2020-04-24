@@ -22,6 +22,6 @@ describe('byblame-page-sk', () => {
 
   it('should take a screenshot', async () => {
     await testBed.page.setViewport({ width: 1200, height: 2700 });
-    await takeScreenshot(testBed.page, 'byblame-page-sk');
+    await takeScreenshot(testBed.page, 'gold', 'byblame-page-sk');
   });
 });

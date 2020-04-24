@@ -31,16 +31,16 @@ describe('corpus-selector-sk', () => {
 
   it('shows the default corpus renderer function', async () => {
     const selector = await testBed.page.$('#default');
-    await takeScreenshot(selector, 'corpus-selector-sk');
+    await takeScreenshot(selector, 'gold', 'corpus-selector-sk');
   });
 
   it('supports a custom corpus renderer function', async () => {
     const selector = await testBed.page.$('#custom-fn');
-    await takeScreenshot(selector, 'corpus-selector-sk_custom-fn');
+    await takeScreenshot(selector, 'gold', 'corpus-selector-sk_custom-fn');
   });
 
   it('handles very long strings', async () => {
     const selector = await testBed.page.$('#custom-fn-long-corpus');
-    await takeScreenshot(selector, 'corpus-selector-sk_long-strings');
+    await takeScreenshot(selector, 'gold', 'corpus-selector-sk_long-strings');
   });
 });
