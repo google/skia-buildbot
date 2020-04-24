@@ -110,7 +110,7 @@ func NewGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoMana
 	if parentCfg.CommitMsgTmpl == "" {
 		parentCfg.CommitMsgTmpl = TMPL_COMMIT_MSG_GITHUB_CIPD_DEPS
 	}
-	uploadRoll := parent.GitCheckoutUploadGithubRollFunc(githubClient, cr.UserName())
+	uploadRoll := parent.GitCheckoutUploadGithubRollFunc(githubClient, cr.UserName(), rollerName)
 	parentRM, err := parent.NewDEPSLocal(ctx, parentCfg, reg, httpClient, serverURL, workdir, cr.UserName(), cr.UserEmail(), recipeCfgFile, uploadRoll)
 	if err != nil {
 		return nil, skerr.Wrap(err)
