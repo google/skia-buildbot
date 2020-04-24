@@ -18,6 +18,6 @@ describe('gold-scaffold-sk', () => {
 
   it('should take a screenshot', async () => {
     await testBed.page.setViewport({ width: 1200, height: 600 });
-    await takeScreenshot(testBed.page, 'gold-scaffold-sk');
+    await takeScreenshot(testBed.page, 'gold', 'gold-scaffold-sk');
   });
 });

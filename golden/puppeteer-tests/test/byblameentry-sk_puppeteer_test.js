@@ -18,6 +18,6 @@ describe('byblameentry-sk', () => {
 
   it('should take a screenshot', async () => {
     const byBlameEntry = await testBed.page.$('byblameentry-sk');
-    await takeScreenshot(byBlameEntry, 'byblameentry-sk');
+    await takeScreenshot(byBlameEntry, 'gold', 'byblameentry-sk');
   });
 });
