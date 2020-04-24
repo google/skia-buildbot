@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6c6ee9aa_6b3dd58a",
+        "filename": "am/modules/email-chooser-sk/email-chooser-sk-demo.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T11:40:25Z",
+      "side": 1,
+      "message": "This script should go in email-chooser-sk-demo.js, not here.",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 7
+      },
+      "revId": "9afa964185c20d2139bd60403f09732fa8fa5189",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
