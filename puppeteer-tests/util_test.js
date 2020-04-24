@@ -1,10 +1,11 @@
 const expect = require('chai').expect;
 const express = require('express');
+const path = require('path');
 const addEventListenersToPuppeteerPage = require('./util').addEventListenersToPuppeteerPage;
 const launchBrowser = require('./util').launchBrowser;
 const startDemoPageServer = require('./util').startDemoPageServer;
 
-describe('util', async () => {
+describe('utility functions for Puppeteer tests', async () => {
   let browser;
   before(async () => { browser = await launchBrowser(); });
   after(async () => { await browser.close(); });
@@ -147,9 +148,13 @@ describe('util', async () => {
   describe('startDemoPageServer', () => {
     let baseUrl;
     let stopDemoPageServer;
+
     before(async () => {
-      ({ baseUrl, stopDemoPageServer } = await startDemoPageServer());
+      // Start a demo page server using Gold's webpack.config.js file.
+      const pathToGoldWebpackConfigJs = path.join(__dirname, '..', 'golden', 'webpack.config.js');
+      ({ baseUrl, stopDemoPageServer } = await startDemoPageServer(pathToGoldWebpackConfigJs));
     });
+
     after(async () => { await stopDemoPageServer(); });
 
     it('should serve a demo page', async () => {

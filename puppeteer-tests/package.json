@@ -1,0 +1,14 @@
+{
+  "name": "puppeteer-tests",
+  "private": true,
+  "description": "Utility functions for Puppeteer tests",
+  "devDependencies": {
+    "chai": "~4.2.0",
+    "copy-webpack-plugin": "~5.0.4",
+    "express": "^4.17.1",
+    "mocha": "~6.2.0",
+    "pulito": "~4.4.0",
+    "puppeteer": "2.0.0",
+    "webpack": "~4.40.2"
+  }
+}

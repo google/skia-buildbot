@@ -1,10 +1,12 @@
 const expect = require('chai').expect;
-const addEventListenersToPuppeteerPage = require('./util').addEventListenersToPuppeteerPage;
-const setUpPuppeteerAndDemoPageServer = require('./util').setUpPuppeteerAndDemoPageServer;
-const takeScreenshot = require('./util').takeScreenshot;
+const path = require('path');
+const addEventListenersToPuppeteerPage = require('../../../puppeteer-tests/util').addEventListenersToPuppeteerPage;
+const setUpPuppeteerAndDemoPageServer = require('../../../puppeteer-tests/util').setUpPuppeteerAndDemoPageServer;
+const takeScreenshot = require('../../../puppeteer-tests/util').takeScreenshot;
 
 describe('ignores-page-sk', () => {
-  const testBed = setUpPuppeteerAndDemoPageServer(); // Contains page and baseUrl.
+  // Contains page and baseUrl.
+  const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.js'));
 
   it('should render the demo page', async () => {
     await navigateTo(testBed.page, testBed.baseUrl, '');

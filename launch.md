@@ -56,6 +56,8 @@ Write your code with security in mind:
 
 If you add any critical TODOs while you're coding, file a blocking bug for the issue.
 
+If your application requires Puppeteer tests, it should be explicitly opted in
+by making any necessary changes to //puppeteer-tests/docker/run-tests.sh.
 
 ## Makefiles
 

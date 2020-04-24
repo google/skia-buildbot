@@ -2,9 +2,9 @@
   {
     "cmd": [
       "make",
-      "puppeteer-test"
+      "puppeteer-tests"
     ],
-    "cwd": "[START_DIR]/buildbot/golden",
+    "cwd": "[START_DIR]/buildbot",
     "env": {
       "DOCKER_CONFIG": "/home/chrome-bot/.docker"
     },
@@ -17,11 +17,11 @@
       "--images_dir",
       "./output",
       "--path_to_goldctl",
-      "../../../cipd_bin_packages/goldctl",
+      "../../cipd_bin_packages/goldctl",
       "--revision",
       "78e0b810cc3adc002a09c5190bb104afdcbbe3e1"
     ],
-    "cwd": "[START_DIR]/buildbot/golden/puppeteer-tests",
+    "cwd": "[START_DIR]/buildbot/puppeteer-tests",
     "name": "upload digests (non-tryjob)"
   },
   {
