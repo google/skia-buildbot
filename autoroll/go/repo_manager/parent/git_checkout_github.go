@@ -44,7 +44,8 @@ https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
 // git checkout and upload changes to GitHub.
 type GitCheckoutGithubConfig struct {
 	GitCheckoutConfig
-	ForkRepoURL string `json:"forkRepoURL"`
+	ForkBranchName string `json:"forkBranchName"`
+	ForkRepoURL    string `json:"forkRepoURL"`
 }
 
 // See documentation for util.Validator interface.
@@ -59,7 +60,7 @@ func (c GitCheckoutGithubConfig) Validate() error {
 }
 
 // GitCheckoutUploadGithubRollFunc returns
-func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName string) GitCheckoutUploadRollFunc {
+func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, forkBranchName string) GitCheckoutUploadRollFunc {
 	return func(ctx context.Context, co *git.Checkout, upstreamBranch, hash string, emails []string, dryRun bool) (int64, error) {
 		// Make sure the forked repo is at the same hash as the target repo
 		// before creating the pull request.
@@ -68,7 +69,7 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName strin
 		}
 
 		// Push the changes to the forked repository.
-		if _, err := co.Git(ctx, "push", "-f", githubForkRemoteName, rollBranch); err != nil {
+		if _, err := co.Git(ctx, "push", "-f", githubForkRemoteName, fmt.Sprintf("%s:%s", rollBranch, forkBranchName)); err != nil {
 			return 0, skerr.Wrap(err)
 		}
 
@@ -90,7 +91,7 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName strin
 			descComment = append(commitMsgLines[:50], "...")
 		}
 		// Create a pull request.
-		headBranch := fmt.Sprintf("%s:%s", userName, rollBranch)
+		headBranch := fmt.Sprintf("%s:%s", userName, forkBranchName)
 		pr, err := githubClient.CreatePullRequest(title, upstreamBranch, headBranch, strings.Join(descComment, "\n"))
 		if err != nil {
 			return 0, skerr.Wrap(err)
@@ -118,7 +119,7 @@ func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *c
 	}
 
 	// See documentation for GitCheckoutUploadRollFunc.
-	uploadRoll := GitCheckoutUploadGithubRollFunc(githubClient, userName)
+	uploadRoll := GitCheckoutUploadGithubRollFunc(githubClient, userName, c.ForkBranchName)
 
 	// Create the GitCheckout Parent.
 	p, err := NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, co, getLastRollRev, createRoll, uploadRoll)

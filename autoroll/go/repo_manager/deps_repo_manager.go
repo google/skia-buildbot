@@ -108,8 +108,12 @@ func NewDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, reg *conf
 	}
 
 	// Find the path to the child repo.
-	childPath := filepath.Join(workdir, parentCfg.ChildPath)
-	childCheckout := &git.Checkout{GitDir: git.GitDir(childPath)}
+	childPath := parentCfg.ChildPath
+	if c.ChildSubdir != "" {
+		childPath = filepath.Join(c.ChildSubdir, parentCfg.ChildPath)
+	}
+	childFullPath := filepath.Join(workdir, childPath)
+	childCheckout := &git.Checkout{GitDir: git.GitDir(childFullPath)}
 	childRM, err := child.NewGitCheckout(ctx, childCfg, reg, workdir, cr.UserName(), cr.UserEmail(), childCheckout)
 	if err != nil {
 		return nil, skerr.Wrap(err)

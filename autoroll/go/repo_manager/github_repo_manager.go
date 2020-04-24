@@ -106,7 +106,7 @@ func (c GithubRepoManagerConfig) splitParentChild() (parent.GitCheckoutGithubFil
 
 // NewGithubRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *config_vars.Registry, workdir string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
+func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -121,6 +121,7 @@ func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	parentCfg.ForkBranchName = rollerName
 	parentRM, err := parent.NewGitCheckoutGithubFile(ctx, parentCfg, reg, client, githubClient, serverURL, wd, cr.UserName(), cr.UserEmail(), nil)
 	if err != nil {
 		return nil, skerr.Wrap(err)
