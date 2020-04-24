@@ -46,6 +46,30 @@
       "revId": "473d856e44ed26119eb93bc2c1afd15cfeb4ed7d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "702aa2ab_e3169790",
+        "filename": "puppeteer-tests/docker/run-tests.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T18:29:28Z",
+      "side": 1,
+      "message": "Since this is purely personal preference, I\u0027ll leave it as is because I can never remember what the octal codes mean. I read \"ugo+w\" as \"user, group, others: plus write\", which doesn\u0027t require any mental arithmetic.",
+      "parentUuid": "fd07aa51_9a50e348",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 0
+      },
+      "revId": "473d856e44ed26119eb93bc2c1afd15cfeb4ed7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
