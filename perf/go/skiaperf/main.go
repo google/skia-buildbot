@@ -1444,13 +1444,15 @@ func main() {
 	)
 
 	initialize()
-	login.SimpleInitMust(*port, *local)
 
 	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
 		redirectURL = login.DEFAULT_REDIRECT_URL
 	}
-	if err := login.Init(redirectURL, login.DEFAULT_DOMAIN_WHITELIST, *authBypassList); err != nil {
+	if *authBypassList == "" {
+		*authBypassList = login.DEFAULT_DOMAIN_WHITELIST
+	}
+	if err := login.Init(redirectURL, *authBypassList, ""); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
