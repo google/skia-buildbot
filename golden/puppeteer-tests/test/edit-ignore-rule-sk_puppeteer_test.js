@@ -19,17 +19,17 @@ describe('edit-ignore-rule-sk', () => {
   describe('screenshots', () => {
     it('a view with nothing selected', async () => {
       const editor = await testBed.page.$('#empty');
-      await takeScreenshot(editor, 'edit-ignore-rule-sk');
+      await takeScreenshot(editor, 'gold', 'edit-ignore-rule-sk');
     });
 
     it('All inputs filled out', async () => {
       const editor = await testBed.page.$('#filled');
-      await takeScreenshot(editor, 'edit-ignore-rule-sk_with-data');
+      await takeScreenshot(editor, 'gold', 'edit-ignore-rule-sk_with-data');
     });
 
     it('invalid inputs', async () => {
       const editor = await testBed.page.$('#missing');
-      await takeScreenshot(editor, 'edit-ignore-rule-sk_missing-data');
+      await takeScreenshot(editor, 'gold', 'edit-ignore-rule-sk_missing-data');
     });
   });
 });
