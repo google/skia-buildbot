@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "add5cfbe_c90949f0",
+        "filename": "perf/karma.conf.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-24T13:10:49Z",
+      "side": 1,
+      "message": "This is the only part of the CL I don\u0027t understand. Does this mean that when I run Perf JS tests I won\u0027t be exercising the puppeteer tests? Is there something I run in //puppeteer-tests when locally trying to add tests for other elements?",
+      "range": {
+        "startLine": 6,
+        "startChar": 1,
+        "endLine": 9,
+        "endChar": 5
+      },
+      "revId": "3ac072d5512326b581456d73cf520dd8241362b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
