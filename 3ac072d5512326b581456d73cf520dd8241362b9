@@ -22,6 +22,30 @@
       "revId": "3ac072d5512326b581456d73cf520dd8241362b9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28fbbac2_1e7459a0",
+        "filename": "perf/karma.conf.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T17:28:42Z",
+      "side": 1,
+      "message": "I\u0027ve updated perf\u0027s Makefile as per our chat with separate targets for Puppeteer and JS tests.\n\nBasically Karma should not target Puppeteer tests because the latter run on Node.js, whereas the former run in a browser.",
+      "parentUuid": "add5cfbe_c90949f0",
+      "range": {
+        "startLine": 6,
+        "startChar": 1,
+        "endLine": 9,
+        "endChar": 5
+      },
+      "revId": "3ac072d5512326b581456d73cf520dd8241362b9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
