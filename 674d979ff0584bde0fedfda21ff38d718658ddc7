@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "049855ff_f5c9e766",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T17:17:12Z",
+      "side": 1,
+      "message": "I\u0027m not convinced that any of those options are more accurate than just puppeteer-tests, i.e. they all have exceptions. Can we leave it as is for now? It should be easy to change in the future.",
+      "parentUuid": "1a8547a7_e644cd3e",
+      "range": {
+        "startLine": 10,
+        "startChar": 30,
+        "endLine": 10,
+        "endChar": 39
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c1c373a6_3120ff06",
         "filename": "Makefile",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2020-04-24T11:28:00Z",
       "side": 1,
       "message": "Did puppeteer-tests-nodocker go away? :( I would like it to remain if feasible.",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 15
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d98c51e_0369b73e",
+        "filename": "Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T17:17:12Z",
+      "side": 1,
+      "message": "You can still \"make puppeteer-tests\" from the golden subdirectory, which should do the same.\n\nHaving a global \"make puppeteer-tests-nodocker\" target at the root directory is a bit tricky because it needs to be kept in sync with run-tests.sh, and generally if you\u0027re going to run all the Puppeteer tests, you might as well run them inside Docker, which at that point should only take about 25% longer.",
+      "parentUuid": "c1c373a6_3120ff06",
       "range": {
         "startLine": 73,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fcd32220_10b47a45",
+        "filename": "golden/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T17:17:12Z",
+      "side": 1,
+      "message": "Yes. In fact, I do just that on https://skia-review.googlesource.com/c/buildbot/+/285298.",
+      "parentUuid": "55571537_cceb3359",
+      "range": {
+        "startLine": 39,
+        "startChar": 17,
+        "endLine": 39,
+        "endChar": 32
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a12eaf70_47cb631e",
         "filename": "puppeteer-tests/Makefile",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2020-04-24T11:28:00Z",
       "side": 1,
       "message": "What exactly is this for? Is this equivalent to running the tests w/o docker? (I found that to be quite handy and would like to know how to do that in the new flow)",
+      "range": {
+        "startLine": 3,
+        "startChar": 1,
+        "endLine": 3,
+        "endChar": 29
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4709fc03_14010f5e",
+        "filename": "puppeteer-tests/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T17:17:12Z",
+      "side": 1,
+      "message": "This is just to run //puppeteer-tests/util_test.js.",
+      "parentUuid": "a12eaf70_47cb631e",
       "range": {
         "startLine": 3,
         "startChar": 1,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "b1ed1eb9_5c79bcb4",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T17:17:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0765bc5c_d46f760f",
+      "range": {
+        "startLine": 27,
+        "startChar": 15,
+        "endLine": 27,
+        "endChar": 19
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "30dfef71_5d793adb",
         "filename": "puppeteer-tests/README.md",
         "patchSetId": 2
@@ -128,6 +248,30 @@
       "writtenOn": "2020-04-24T11:28:00Z",
       "side": 1,
       "message": "I don\u0027t actually see this target in Makefile",
+      "range": {
+        "startLine": 32,
+        "startChar": 14,
+        "endLine": 32,
+        "endChar": 29
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce1e6f9e_a4ea18a6",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T17:17:12Z",
+      "side": 1,
+      "message": "This is the target it\u0027s referring to: https://skia-review.googlesource.com/c/buildbot/+/285296/2/Makefile#73.",
+      "parentUuid": "30dfef71_5d793adb",
       "range": {
         "startLine": 32,
         "startChar": 14,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "1a54faee_885dd4c9",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T17:17:12Z",
+      "side": 1,
+      "message": "It changes down the chain to be within the module folder, e.g.:\n\n//foo-app/modules/foo-sk/foo-sk.js\n//foo-app/modules/foo-sk/foo-sk_test.js\n//foo-app/modules/foo-sk/foo-sk_puppeteer_test.js\n\nBelow I mention that the best way to learn how to write Puppeteer tests is by example, and I point to Gold, which will follow this scheme after landing https://skia-review.googlesource.com/c/buildbot/+/285298.",
+      "parentUuid": "73fffb05_cb242ff6",
+      "range": {
+        "startLine": 38,
+        "startChar": 14,
+        "endLine": 38,
+        "endChar": 19
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "11f1cca0_66500845",
         "filename": "puppeteer-tests/README.md",
         "patchSetId": 2
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "3e1cbbf9_658c83ab",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T17:17:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "11f1cca0_66500845",
+      "range": {
+        "startLine": 42,
+        "startChar": 48,
+        "endLine": 42,
+        "endChar": 71
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aaf2c7bd_977f9c58",
         "filename": "puppeteer-tests/README.md",
         "patchSetId": 2
@@ -197,6 +389,30 @@
       "writtenOn": "2020-04-24T11:28:00Z",
       "side": 1,
       "message": "from which folder - this one?",
+      "range": {
+        "startLine": 73,
+        "startChar": 5,
+        "endLine": 73,
+        "endChar": 18
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3b30382_f2fbe9f1",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T17:17:12Z",
+      "side": 1,
+      "message": "From wherever your puppeteer tests live. This is independent from Docker. I changed the wording a bit to make this more explicit.",
+      "parentUuid": "aaf2c7bd_977f9c58",
       "range": {
         "startLine": 73,
         "startChar": 5,
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "57d749e0_f23a12df",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T17:17:12Z",
+      "side": 1,
+      "message": "It targets just Gold\u0027s tests because we are in the golden directory (see line 76).",
+      "parentUuid": "2ced37c6_57eca09d",
+      "range": {
+        "startLine": 78,
+        "startChar": 13,
+        "endLine": 78,
+        "endChar": 19
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "852d74a4_1142fbf6",
         "filename": "puppeteer-tests/docker/run-tests.sh",
         "patchSetId": 2
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "41d2df49_df6a9a8f",
+        "filename": "puppeteer-tests/docker/run-tests.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T17:17:12Z",
+      "side": 1,
+      "message": "IIRC copying the entire repository takes longer.\n\nProjects that want to use this will need to explicitly opt in. I mention this in //puppeteer-tests/README.md.\n\nI\u0027ve edited launch.md as per your suggestion.",
+      "parentUuid": "852d74a4_1142fbf6",
+      "range": {
+        "startLine": 8,
+        "startChar": 2,
+        "endLine": 9,
+        "endChar": 42
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c09725b7_f8bd0153",
         "filename": "puppeteer-tests/output/.gitignore",
         "patchSetId": 2
@@ -266,6 +530,30 @@
       "writtenOn": "2020-04-24T11:28:00Z",
       "side": 1,
       "message": "nit: I would add the .gitignore to //puppeteer-tests and have it target output/\nI try to have my .gitignore files be as close to top level as is feasible, just so they are easier to find/discover.\n\nOf note, you can check in output/README.md to git first, then add the .gitignore covering output/ and output/README.md will still be tracked, essentially \"grandfathered in\"\n\nOn second thought, if this folder exists so Docker doesn\u0027t recreate it (with root permissions), then it\u0027s totally fine to be checked in and this comment can be ignored.",
+      "range": {
+        "startLine": 1,
+        "startChar": 2,
+        "endLine": 1,
+        "endChar": 5
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "afa10b23_b219b9af",
+        "filename": "puppeteer-tests/output/.gitignore",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T17:17:12Z",
+      "side": 1,
+      "message": "Moved the .gitignore file one level up. Left README.md in place.\n\nThe folder exists so we don\u0027t have to recreate it every time.",
+      "parentUuid": "c09725b7_f8bd0153",
       "range": {
         "startLine": 1,
         "startChar": 2,
