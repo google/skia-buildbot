@@ -1,9 +1,11 @@
 const expect = require('chai').expect;
-const setUpPuppeteerAndDemoPageServer = require('./util').setUpPuppeteerAndDemoPageServer;
-const takeScreenshot = require('./util').takeScreenshot;
+const path = require('path');
+const setUpPuppeteerAndDemoPageServer = require('../../../puppeteer-tests/util').setUpPuppeteerAndDemoPageServer;
+const takeScreenshot = require('../../../puppeteer-tests/util').takeScreenshot;
 
 describe('triage-sk', () => {
-  const testBed = setUpPuppeteerAndDemoPageServer(); // Contains page and baseUrl.
+  // Contains page and baseUrl.
+  const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.js'));
 
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/dist/triage-sk.html`);

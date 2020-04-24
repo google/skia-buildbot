@@ -1,10 +1,13 @@
 const expect = require('chai').expect;
-const addEventListenersToPuppeteerPage = require('./util').addEventListenersToPuppeteerPage;
-const setUpPuppeteerAndDemoPageServer = require('./util').setUpPuppeteerAndDemoPageServer;
-const takeScreenshot = require('./util').takeScreenshot;
+const path = require('path');
+const addEventListenersToPuppeteerPage = require('../../../puppeteer-tests/util').addEventListenersToPuppeteerPage;
+const setUpPuppeteerAndDemoPageServer = require('../../../puppeteer-tests/util').setUpPuppeteerAndDemoPageServer;
+const takeScreenshot = require('../../../puppeteer-tests/util').takeScreenshot;
 
 describe('details-page-sk', () => {
-  const testBed = setUpPuppeteerAndDemoPageServer(); // Contains page and baseUrl.
+  // Contains page and baseUrl.
+  const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.js'));
+
   const baseParams = '?digest=6246b773851984c726cb2e1cb13510c2&test=My%20test%20has%20spaces';
 
   it('should render the demo page', async () => {

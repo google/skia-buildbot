@@ -30,20 +30,20 @@ def RunSteps(api):
   if api.path.c.base_paths['start_dir'][-1] == 'k':  # pragma: nocover
     api.path.c.base_paths['start_dir'] = api.path.c.base_paths['start_dir'][:-1]
 
-  # Run Puppeteer tests in Docker container.
-  golden_dir = api.path['start_dir'].join('buildbot').join('golden')
-  with api.context(cwd=golden_dir,
+  # Run Puppeteer tests inside a Docker container.
+  buildbot_dir = api.path['start_dir'].join('buildbot')
+  with api.context(cwd=buildbot_dir,
                    env={'DOCKER_CONFIG': '/home/chrome-bot/.docker'}):
-    api.step('run puppeteer tests', cmd=['make', 'puppeteer-test'])
+    api.step('run puppeteer tests', cmd=['make', 'puppeteer-tests'])
 
   # Upload any digests produced by Puppeteer tests to Gold.
-  with api.context(cwd=golden_dir.join('puppeteer-tests')):
+  with api.context(cwd=buildbot_dir.join('puppeteer-tests')):
     upload_digests_cmd = [
         'python3',
         'upload-screenshots-to-gold.py',
         '--images_dir', './output',
         # This is [START_DIR]/cipd_bin_packages/goldctl.
-        '--path_to_goldctl', '../../../cipd_bin_packages/goldctl',
+        '--path_to_goldctl', '../../cipd_bin_packages/goldctl',
         '--revision', revision,
     ]
     if is_trybot:
@@ -68,3 +68,4 @@ def GenTests(api):
                      revision='78e0b810cc3adc002a09c5190bb104afdcbbe3e1',
                      buildbucket_build_id='8894409419339087024')
   )
+
