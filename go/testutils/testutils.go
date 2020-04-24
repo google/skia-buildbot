@@ -2,6 +2,7 @@
 package testutils
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -13,8 +14,10 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"text/template"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/repo_root"
@@ -288,3 +291,13 @@ var AnyContext = mock.MatchedBy(func(c context.Context) bool {
 	// know it's a context.Context if execution flow makes it here.
 	return true
 })
+
+// ExecTemplate parses the given string as a text template, executes it using
+// the given data, and returns the result as a string.
+func ExecTemplate(t sktest.TestingT, tmpl string, data interface{}) string {
+	template, err := template.New(uuid.New().String()).Parse(tmpl)
+	require.NoError(t, err)
+	var buf bytes.Buffer
+	require.NoError(t, template.Execute(&buf, data))
+	return buf.String()
+}

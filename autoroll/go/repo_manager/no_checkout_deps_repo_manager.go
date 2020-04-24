@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/skerr"
@@ -19,32 +20,11 @@ var (
 	getDepRegex = regexp.MustCompile("[a-f0-9]+")
 )
 
-// TransitiveDepEntry provides one half of the configuration for a transitive
-// dependency, ie. the parent or the child.
-type TransitiveDepEntry struct {
-	// Id is the dependency ID, eg. repo URL.
-	Id string `json:"id"`
-	// Path is the path to the file within the repo which pins this
-	// dependency, eg. "DEPS".
-	Path string `json:"path"`
-}
-
-// See documentation for util.Validator interface.
-func (e TransitiveDepEntry) Validate() error {
-	if e.Id == "" {
-		return skerr.Fmt("Id is required for TransitiveDepEntry")
-	}
-	if e.Path == "" {
-		return skerr.Fmt("Path is required for TransitiveDepEntry")
-	}
-	return nil
-}
-
 // TransitiveDepConfig provides configuration for a single transitive
 // dependency.
 type TransitiveDepConfig struct {
-	Child  TransitiveDepEntry `json:"child"`
-	Parent TransitiveDepEntry `json:"parent"`
+	Child  *version_file_common.VersionFileConfig `json:"child"`
+	Parent *version_file_common.VersionFileConfig `json:"parent"`
 }
 
 // NoCheckoutDEPSRepoManagerConfig provides configuration for RepoManagers which
@@ -100,13 +80,13 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 // TODO(borenet): Update the config format to directly define the parent
 // and child. We shouldn't need most of the New.*RepoManager functions.
 func (c NoCheckoutDEPSRepoManagerConfig) splitParentChild() (parent.GitilesDEPSConfig, child.GitilesConfig, error) {
-	var childDeps, parentDeps map[string]string
+	var childDeps, parentDeps []*version_file_common.VersionFileConfig
 	if c.TransitiveDeps != nil {
-		childDeps = make(map[string]string, len(c.TransitiveDeps))
-		parentDeps = make(map[string]string, len(c.TransitiveDeps))
+		childDeps = make([]*version_file_common.VersionFileConfig, 0, len(c.TransitiveDeps))
+		parentDeps = make([]*version_file_common.VersionFileConfig, 0, len(c.TransitiveDeps))
 		for _, dep := range c.TransitiveDeps {
-			parentDeps[dep.Parent.Id] = dep.Parent.Path
-			childDeps[dep.Child.Id] = dep.Child.Path
+			parentDeps = append(parentDeps, dep.Parent)
+			childDeps = append(childDeps, dep.Child)
 		}
 	}
 	parentCfg := parent.GitilesDEPSConfig{
@@ -144,8 +124,8 @@ func (c NoCheckoutDEPSRepoManagerConfig) splitParentChild() (parent.GitilesDEPSC
 	return parentCfg, childCfg, nil
 }
 
-// NewNoCheckoutDEPSRepoManager returns a RepoManager instance which does not use
-// a local checkout.
+// NewNoCheckoutDEPSRepoManager returns a RepoManager instance which does not
+// use a local checkout.
 func NewNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
