@@ -10,7 +10,7 @@
   "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "@webcomponents/custom-elements": "~1.2.4",
-    "common-sk": "~3.2.4",
+    "common-sk": "~3.3.0",
     "dialog-polyfill": "^0.5.0",
     "elements-sk": "~3.0.1",
     "html-webpack-inject-attributes-plugin": "^1.0.1",

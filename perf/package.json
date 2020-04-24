@@ -14,7 +14,7 @@
     "@webcomponents/custom-elements": "^1.3.2",
     "autoprefixer": "~9.7.4",
     "chai": "~4.2.0",
-    "common-sk": "^3.2.4",
+    "common-sk": "^3.3.0",
     "cssmin": "",
     "d3-array": "^2.4.0",
     "d3-scale": "^3.2.1",
