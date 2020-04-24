@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/go/gcr"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -267,7 +268,9 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, lat
 				}
 				var cfg roller.AutoRollerConfig
 				if err := json.Unmarshal(dec, &cfg); err != nil {
-					return nil, skerr.Fmt("Failed to decode existing roller config as JSON: %s", err)
+					//return nil, skerr.Fmt("Failed to decode existing roller config as JSON: %s", err)
+					sklog.Errorf("Failed to decode existing roller config as JSON; skipping: %s", err)
+					continue
 				}
 				cfgBase64ByRollerName[cfg.RollerName] = cfgBase64
 			}

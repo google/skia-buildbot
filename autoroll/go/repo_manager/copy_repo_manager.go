@@ -96,8 +96,12 @@ func NewCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, reg *conf
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	parentRM, err := parent.NewCopy(ctx, parentCfg, reg, client, serverURL, workdir, childRM)
+	uploadRoll := parent.GitCheckoutUploadGerritRollFunc(g)
+	parentRM, err := parent.NewCopy(ctx, parentCfg, reg, client, serverURL, workdir, cr.UserName(), cr.UserEmail(), childRM, uploadRoll)
 	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := parent.SetupGerrit(ctx, parentRM, g); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return newParentChildRepoManager(ctx, parentRM, childRM)
