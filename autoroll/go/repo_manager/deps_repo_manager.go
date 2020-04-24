@@ -9,7 +9,9 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
+	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
@@ -40,30 +42,32 @@ func (c DEPSRepoManagerConfig) Validate() error {
 	return nil
 }
 
-// splitParentChild splits the NoCheckoutDEPSRepoManagerConfig into a
+// splitParentChild splits the DEPSRepoManagerConfig into a
 // parent.DEPSLocalConfig and a child.GitCheckoutConfig.
 // TODO(borenet): Update the config format to directly define the parent
 // and child. We shouldn't need most of the New.*RepoManager functions.
 func (c DEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig, child.GitCheckoutConfig, error) {
 	parentCfg := parent.DEPSLocalConfig{
-		GitCheckoutGerritConfig: parent.GitCheckoutGerritConfig{
-			GitCheckoutConfig: parent.GitCheckoutConfig{
-				BaseConfig: parent.BaseConfig{
-					ChildPath:       c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-					ChildRepo:       c.ChildRepo,
-					IncludeBugs:     c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-					IncludeLog:      c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-					CommitMsgTmpl:   c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
-					MonorailProject: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-				},
-				GitCheckoutConfig: git_common.GitCheckoutConfig{
-					Branch:  c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
-					RepoURL: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
-				},
+		GitCheckoutConfig: parent.GitCheckoutConfig{
+			BaseConfig: parent.BaseConfig{
+				ChildPath:       c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
+				ChildRepo:       c.ChildRepo,
+				IncludeBugs:     c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
+				IncludeLog:      c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
+				CommitMsgTmpl:   c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
+				MonorailProject: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.BugProject,
 			},
-			Gerrit: c.Gerrit,
+			GitCheckoutConfig: git_common.GitCheckoutConfig{
+				Branch:  c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
+				RepoURL: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+			},
 		},
-		Dep:            c.ChildRepo,
+		DependencyConfig: version_file_common.DependencyConfig{
+			VersionFileConfig: version_file_common.VersionFileConfig{
+				ID:   c.ChildRepo,
+				Path: deps_parser.DepsFileName,
+			},
+		},
 		CheckoutPath:   c.ParentPath,
 		GClientSpec:    c.GClientSpec,
 		PreUploadSteps: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.PreUploadSteps,
@@ -94,15 +98,19 @@ func NewDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, reg *conf
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	parentRM, err := parent.NewDEPSLocal(ctx, parentCfg, reg, client, serverURL, workdir, recipeCfgFile)
+	uploadRoll := parent.GitCheckoutUploadGerritRollFunc(g)
+	parentRM, err := parent.NewDEPSLocal(ctx, parentCfg, reg, client, serverURL, workdir, cr.UserName(), cr.UserEmail(), recipeCfgFile, uploadRoll)
 	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := parent.SetupGerrit(ctx, parentRM, g); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	// Find the path to the child repo.
 	childPath := filepath.Join(workdir, parentCfg.ChildPath)
 	childCheckout := &git.Checkout{GitDir: git.GitDir(childPath)}
-	childRM, err := child.NewGitCheckout(ctx, childCfg, reg, workdir, childCheckout)
+	childRM, err := child.NewGitCheckout(ctx, childCfg, reg, workdir, cr.UserName(), cr.UserEmail(), childCheckout)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

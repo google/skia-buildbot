@@ -35,13 +35,13 @@ func (c GitCheckoutConfig) Validate() error {
 // Checkout provides common functionality for git checkouts.
 type Checkout struct {
 	*git.Checkout
-	branch      *config_vars.Template
-	repoUrl     string
-	revLinkTmpl string
+	Branch      *config_vars.Template
+	RepoURL     string
+	RevLinkTmpl string
 }
 
 // NewCheckout returns a Checkout instance.
-func NewCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, workdir string, co *git.Checkout) (*Checkout, error) {
+func NewCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, workdir, userName, userEmail string, co *git.Checkout) (*Checkout, error) {
 	// Clean up any lockfiles, in case the process was interrupted.
 	if err := git.DeleteLockFiles(ctx, workdir); err != nil {
 		return nil, skerr.Wrap(err)
@@ -58,11 +58,18 @@ func NewCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Regi
 			return nil, skerr.Wrap(err)
 		}
 	}
+	// Set the git user name and email.
+	if _, err := co.Git(ctx, "config", "--local", "user.name", userName); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if _, err := co.Git(ctx, "config", "--local", "user.email", userEmail); err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	return &Checkout{
 		Checkout:    co,
-		branch:      c.Branch,
-		repoUrl:     c.RepoURL,
-		revLinkTmpl: c.RevLinkTmpl,
+		Branch:      c.Branch,
+		RepoURL:     c.RepoURL,
+		RevLinkTmpl: c.RevLinkTmpl,
 	}, nil
 }
 
@@ -72,19 +79,19 @@ func (c *Checkout) GetRevision(ctx context.Context, id string) (*revision.Revisi
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return revision.FromLongCommit(c.revLinkTmpl, details), nil
+	return revision.FromLongCommit(c.RevLinkTmpl, details), nil
 }
 
 // See documentation for child.Child interface.
 func (c *Checkout) Download(ctx context.Context, rev *revision.Revision, dest string) error {
-	return Clone(ctx, c.repoUrl, dest, rev)
+	return Clone(ctx, c.RepoURL, dest, rev)
 }
 
 // Update resolves the configured branch template, updates the Checkout to the
 // newest Revision on the resulting branch and returns both the revision and
 // resolved branch name.
 func (c *Checkout) Update(ctx context.Context) (*revision.Revision, string, error) {
-	branch := c.branch.String()
+	branch := c.Branch.String()
 	if err := c.UpdateBranch(ctx, branch); err != nil {
 		return nil, "", skerr.Wrap(err)
 	}

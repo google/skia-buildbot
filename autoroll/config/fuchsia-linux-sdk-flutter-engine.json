@@ -19,13 +19,15 @@
   "githubCipdDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/fuchsia/sdk/linux",
-    "parentBranch": "master",
-    "preUploadSteps": ["FlutterLicenseScriptsForFuchsia"],
-    "parentRepo": "git@github.com:flutter/engine.git",
-    "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:skia-flutter-autoroll/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
-    "githubParentPath": "src/flutter",
     "cipdAssetName": "fuchsia/sdk/core/linux-amd64",
-    "cipdAssetTag": "latest"
+    "cipdAssetTag": "latest",
+    "forkRepoURL": "git@github.com:skia-flutter-autoroll/engine.git",
+    "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:flutter/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
+    "githubParentPath": "src/flutter",
+    "parentBranch": "master",
+    "parentRepo": "git@github.com:flutter/engine.git",
+    "preUploadSteps": ["FlutterLicenseScriptsForFuchsia"],
+    "runHooks": true
   },
   "kubernetes": {
     "cpu": "1",

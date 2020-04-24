@@ -18,22 +18,43 @@
     "checksWaitFor": ["flutter-build"]
   },
   "githubRepoManager": {
-    "childBranch": "master",
-    "childPath": "engine",
-    "parentBranch": "master",
-    "parentRepo": "git@github.com:flutter/flutter.git",
-    "childRepoURL": "git@github.com:flutter/engine.git",
-    "childRevLinkTmpl": "https://github.com/flutter/engine/commit/%s",
-    "includeLog": true,
-    "revisionFile": "bin/internal/engine.version",
     "buildbucketFilter": {
       "project": "flutter",
       "bucket": "prod"
     },
-    "transitiveDeps": {
-      "src/fuchsia/sdk/linux:fuchsia/sdk/core/linux-amd64": "bin/internal/fuchsia-linux.version",
-      "src/fuchsia/sdk/mac:fuchsia/sdk/core/mac-amd64": "bin/internal/fuchsia-mac.version"
-    }
+    "childBranch": "master",
+    "childPath": "engine",
+    "childRepoName": "engine",
+    "childRepoURL": "git@github.com:flutter/engine.git",
+    "childRevLinkTmpl": "https://github.com/flutter/engine/commit/%s",
+    "childUserName": "flutter",
+    "forkRepoURL": "git@github.com:engine-flutter-autoroll/flutter.git",
+    "includeLog": true,
+    "parentBranch": "master",
+    "parentRepo": "git@github.com:flutter/flutter.git",
+    "revisionFile": "bin/internal/engine.version",
+    "transitiveDeps": [
+      {
+        "child": {
+          "id": "fuchsia/sdk/core/linux-amd64",
+          "path": "bin/internal/fuchsia-linux.version"
+        },
+        "parent": {
+          "id": "fuchsia/sdk/core/linux-amd64",
+          "path": "DEPS"
+        }
+      },
+      {
+        "child": {
+          "id": "fuchsia/sdk/core/mac-amd64",
+          "path": "bin/internal/fuchsia-mac.version"
+        },
+        "parent": {
+          "id": "fuchsia/sdk/core/mac-amd64",
+          "path": "DEPS"
+        }
+      }
+    ]
   },
   "kubernetes": {
     "cpu": "1",

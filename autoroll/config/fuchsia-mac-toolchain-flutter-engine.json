@@ -19,12 +19,14 @@
   "githubCipdDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/fuchsia/toolchain/mac",
+    "cipdAssetName": "fuchsia/clang/mac-amd64",
+    "cipdAssetTag": "goma",
+    "forkRepoURL": "git@github.com:skia-flutter-autoroll/engine.git",
+    "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:flutter/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"custom_vars\":{\"host_os\":\"mac\"},\"safesync_url\":\"\"}]",
+    "githubParentPath": "src/flutter",
     "parentBranch": "master",
     "parentRepo": "git@github.com:flutter/engine.git",
-    "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:skia-flutter-autoroll/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"custom_vars\":{\"host_os\":\"mac\"},\"safesync_url\":\"\"}]",
-    "githubParentPath": "src/flutter",
-    "cipdAssetName": "fuchsia/clang/mac-amd64",
-    "cipdAssetTag": "goma"
+    "runHooks": true
   },
   "kubernetes": {
     "cpu": "1",

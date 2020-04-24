@@ -19,13 +19,16 @@
   "githubDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/skia",
+    "childRepo": "https://skia.googlesource.com/skia.git",
     "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+/%s",
+    "forkRepoURL": "git@github.com:skia-flutter-autoroll/engine.git",
+    "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:flutter/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
+    "githubParentPath": "src/flutter",
     "includeLog": true,
     "parentBranch": "master",
-    "preUploadSteps": ["FlutterLicenseScripts"],
     "parentRepo": "git@github.com:flutter/engine.git",
-    "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:skia-flutter-autoroll/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
-    "githubParentPath": "src/flutter"
+    "preUploadSteps": ["FlutterLicenseScripts"],
+    "runHooks": true
   },
   "kubernetes": {
     "cpu": "8",

@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -288,12 +289,12 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	cfg := noCheckoutDEPSCfg(t)
 	cfg.TransitiveDeps = []*TransitiveDepConfig{
 		{
-			Child: TransitiveDepEntry{
-				Id:   "grandchild",
+			Child: &version_file_common.VersionFileConfig{
+				ID:   "grandchild",
 				Path: "DEPS",
 			},
-			Parent: TransitiveDepEntry{
-				Id:   "grandchild",
+			Parent: &version_file_common.VersionFileConfig{
+				ID:   "grandchild",
 				Path: "DEPS",
 			},
 		},

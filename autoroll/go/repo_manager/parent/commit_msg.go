@@ -2,11 +2,12 @@ package parent
 
 import (
 	"bytes"
-	"fmt"
 	"strings"
 	"text/template"
 
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/skerr"
 )
 
 const (
@@ -18,7 +19,7 @@ const (
 {{range .Revisions}}{{.Timestamp.Format "2006-01-02"}} {{.Author}} {{.Description}}
 {{end}}{{end}}{{if len .TransitiveDeps}}
 Also rolling transitive DEPS:
-{{range .TransitiveDeps}}  {{.ParentPath}} {{substr .RollingFrom 0 12}}..{{substr .RollingTo 0 12}}
+{{range .TransitiveDeps}}  {{.Dep}} {{substr .RollingFrom 0 12}}..{{substr .RollingTo 0 12}}
 {{end}}{{end}}
 Created with:
   gclient setdep -r {{.ChildPath}}@{{.RollingTo}}
@@ -53,14 +54,7 @@ type CommitMsgVars struct {
 	RollingTo      *revision.Revision
 	ServerURL      string
 	Tests          []string
-	TransitiveDeps []*TransitiveDep
-}
-
-// TransitiveDep represents one transitive dependency roll.
-type TransitiveDep struct {
-	ParentPath  string
-	RollingFrom string
-	RollingTo   string
+	TransitiveDeps []*version_file_common.TransitiveDepUpdate
 }
 
 // ParseCommitMsgTemplate parses the given commit message template string and
@@ -85,7 +79,7 @@ func ParseCommitMsgTemplate(tmpl string) (*template.Template, error) {
 func ValidateCommitMsgTemplate(tmpl string) error {
 	t, err := ParseCommitMsgTemplate(tmpl)
 	if err != nil {
-		return fmt.Errorf("Failed to parse template: %s:", err)
+		return skerr.Wrapf(err, "Failed to parse template")
 	}
 	a := &revision.Revision{
 		Id:      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -114,9 +108,9 @@ func ValidateCommitMsgTemplate(tmpl string) error {
 		RollingTo:      c,
 		ServerURL:      "https://fake.server.url",
 		Tests:          []string{"some-test"},
-		TransitiveDeps: []*TransitiveDep{
+		TransitiveDeps: []*version_file_common.TransitiveDepUpdate{
 			{
-				ParentPath:  "path/to/other",
+				Dep:         "path/to/other",
 				RollingFrom: "dddddddddddddddddddddddddddddddddddddddd",
 				RollingTo:   "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
 			},

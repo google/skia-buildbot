@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/skerr"
@@ -77,8 +78,12 @@ func (c SemVerGCSRepoManagerConfig) splitParentChild() (parent.GitilesFileConfig
 			},
 			Gerrit: c.Gerrit,
 		},
-		Dep:  c.GCSPath, // TODO
-		Path: c.VersionFile,
+		DependencyConfig: version_file_common.DependencyConfig{
+			VersionFileConfig: version_file_common.VersionFileConfig{
+				ID:   c.GCSPath, // TODO
+				Path: c.VersionFile,
+			},
+		},
 	}
 	if err := parentCfg.Validate(); err != nil {
 		return parent.GitilesFileConfig{}, child.SemVerGCSConfig{}, skerr.Wrapf(err, "generated parent config is invalid")

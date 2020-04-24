@@ -8,13 +8,13 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
@@ -68,14 +68,14 @@ type GitCheckoutGetLastRollRevFunc func(context.Context, *git.Checkout) (string,
 
 // NewGitCheckout returns a base for implementations of Parent which use
 // a local checkout to create changes.
-func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir string, co *git.Checkout, getLastRollRev GitCheckoutGetLastRollRevFunc, createRoll GitCheckoutCreateRollFunc, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, serverURL, workdir, userName, userEmail string, co *git.Checkout, getLastRollRev GitCheckoutGetLastRollRevFunc, createRoll GitCheckoutCreateRollFunc, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
 	// Create a baseParent.
 	base, err := newBaseParent(ctx, c.BaseConfig, serverURL)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	// Create the local checkout.
-	checkout, err := git_common.NewCheckout(ctx, c.GitCheckoutConfig, reg, workdir, co)
+	checkout, err := git_common.NewCheckout(ctx, c.GitCheckoutConfig, reg, workdir, userName, userEmail, co)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -151,15 +151,63 @@ func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revisio
 // VersionFileGetLastRollRevFunc returns a GitCheckoutGetLastRollRevFunc which
 // reads the given file path from the repo and returns its full contents as the
 // last-rolled revision ID.
-func VersionFileGetLastRollRevFunc(path, dep string) GitCheckoutGetLastRollRevFunc {
+func VersionFileGetLastRollRevFunc(dep version_file_common.VersionFileConfig) GitCheckoutGetLastRollRevFunc {
 	return func(ctx context.Context, co *git.Checkout) (string, error) {
-		contents, err := ioutil.ReadFile(filepath.Join(co.Dir(), path))
+		contents, err := ioutil.ReadFile(filepath.Join(co.Dir(), dep.Path))
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
 		// TODO(borenet): It's kind of weird that we're using a gitiles
 		// helper function here.
-		return gitiles_common.GetPinnedRev(path, dep, string(contents))
+		return version_file_common.GetPinnedRev(dep, string(contents))
+	}
+}
+
+// gitCheckoutFileGetLastRollRevFunc returns a GitCheckoutGetLastRollRevFunc
+// which uses a local Git checkout and pins dependencies using a file checked
+// into the repo.
+func gitCheckoutFileGetLastRollRevFunc(dep version_file_common.VersionFileConfig) GitCheckoutGetLastRollRevFunc {
+	return func(ctx context.Context, co *git.Checkout) (string, error) {
+		contents, err := co.GetFile(ctx, dep.Path, "HEAD")
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		return version_file_common.GetPinnedRev(dep, contents)
+	}
+}
+
+// gitCheckoutFileCreateRollFunc returns a GitCheckoutCreateRollFunc which uses
+// a local Git checkout and pins dependencies using a file checked into the
+// repo.
+func gitCheckoutFileCreateRollFunc(dep version_file_common.DependencyConfig) GitCheckoutCreateRollFunc {
+	return func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
+		// Determine what changes need to be made.
+		getFile := func(ctx context.Context, path string) (string, error) {
+			return co.GetFile(ctx, path, "HEAD")
+		}
+		changes, _, err := version_file_common.UpdateDep(ctx, dep, to, getFile)
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		// Perform the changes.
+		for path, contents := range changes {
+			fullPath := filepath.Join(co.Dir(), path)
+			if err := ioutil.WriteFile(fullPath, []byte(contents), os.ModePerm); err != nil {
+				return "", skerr.Wrap(err)
+			}
+			if _, err := co.Git(ctx, "add", path); err != nil {
+				return "", skerr.Wrap(err)
+			}
+		}
+		// Commit.
+		if _, err := co.Git(ctx, "commit", "-m", commitMsg); err != nil {
+			return "", skerr.Wrap(err)
+		}
+		out, err := co.RevParse(ctx, "HEAD")
+		if err != nil {
+			return "", skerr.Wrap(err)
+		}
+		return strings.TrimSpace(out), nil
 	}
 }
 
