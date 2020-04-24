@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "025d60e0_da6ad3e0",
+        "filename": "puppeteer-tests/docker/run-tests.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T18:21:46Z",
+      "side": 1,
+      "message": "I also added this as per our chat.",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 0
+      },
+      "revId": "473d856e44ed26119eb93bc2c1afd15cfeb4ed7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
