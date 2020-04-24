@@ -20,16 +20,19 @@
   "githubDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/dart",
+    "childRepo": "https://dart.googlesource.com/sdk.git",
     "childRevLinkTmpl": "https://dart.googlesource.com/sdk.git/+/%s",
+    "forkRepoURL": "git@github.com:skia-flutter-autoroll/engine.git",
     "includeLog": true,
+    "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:flutter/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
+    "githubParentPath": "src/flutter",
     "parentBranch": "master",
     "preUploadSteps": [
       "UpdateFlutterDepsForDart",
       "FlutterLicenseScriptsForDart"
     ],
     "parentRepo": "git@github.com:flutter/engine.git",
-    "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:skia-flutter-autoroll/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
-    "githubParentPath": "src/flutter"
+    "runHooks": true
   },
   "kubernetes": {
     "cpu": "1",
