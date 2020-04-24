@@ -144,7 +144,11 @@ func (srv *Server) AddHandlers(r *mux.Router) {
 
 // See baseapp.Constructor
 func New() (baseapp.App, error) {
-	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, allowed.Googlers(), allowed.Googlers(), nil)
+	serverURL := "https://" + *host
+	if *baseapp.Local {
+		serverURL = "http://" + *host + *baseapp.Port
+	}
+	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, allowed.Googlers(), allowed.Googlers(), nil)
 
 	// Create token source.
 	ts, err := auth.NewDefaultTokenSource(*baseapp.Local, auth.SCOPE_READ_WRITE, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, datastore.ScopeDatastore)
@@ -178,7 +182,7 @@ func New() (baseapp.App, error) {
 func (srv *Server) AddMiddleware() []mux.MiddlewareFunc {
 	ret := []mux.MiddlewareFunc{}
 	if !*baseapp.Local {
-		ret = append(ret, login.ForceAuthMiddleware(login.DEFAULT_REDIRECT_URL), login.RestrictViewer)
+		ret = append(ret, login.ForceAuthMiddleware(login.DEFAULT_OAUTH2_CALLBACK), login.RestrictViewer)
 	}
 	return ret
 }
