@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "2022eb02_fe667d87",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T17:26:33Z",
+      "side": 1,
+      "message": "Fine by me. As above \"very very optional\"",
+      "parentUuid": "049855ff_f5c9e766",
+      "range": {
+        "startLine": 10,
+        "startChar": 30,
+        "endLine": 10,
+        "endChar": 39
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c1c373a6_3120ff06",
         "filename": "Makefile",
         "patchSetId": 2
@@ -93,6 +117,30 @@
       "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3bddc31c_fe2e4ef1",
+        "filename": "Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T17:26:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "2d98c51e_0369b73e",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 15
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -178,6 +226,30 @@
       "side": 1,
       "message": "This is just to run //puppeteer-tests/util_test.js.",
       "parentUuid": "a12eaf70_47cb631e",
+      "range": {
+        "startLine": 3,
+        "startChar": 1,
+        "endLine": 3,
+        "endChar": 29
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b6732eef_96e13a43",
+        "filename": "puppeteer-tests/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T17:26:33Z",
+      "side": 1,
+      "message": "Can you make the comment more precise? Just \"tests puppeteer-tests/util_test.js\" is fine by me.",
+      "parentUuid": "4709fc03_14010f5e",
       "range": {
         "startLine": 3,
         "startChar": 1,
@@ -284,6 +356,30 @@
     },
     {
       "key": {
+        "uuid": "17d905a4_76ba4a37",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T17:26:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "ce1e6f9e_a4ea18a6",
+      "range": {
+        "startLine": 32,
+        "startChar": 14,
+        "endLine": 32,
+        "endChar": 29
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "73fffb05_cb242ff6",
         "filename": "puppeteer-tests/README.md",
         "patchSetId": 2
@@ -328,6 +424,30 @@
       "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e05be88e_052d389f",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T17:26:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "1a54faee_885dd4c9",
+      "range": {
+        "startLine": 38,
+        "startChar": 14,
+        "endLine": 38,
+        "endChar": 19
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -425,6 +545,30 @@
     },
     {
       "key": {
+        "uuid": "6ab5fa6b_37f8f88e",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T17:26:33Z",
+      "side": 1,
+      "message": "Run `npx mocha` from a sub-project\u0027s directory will run Puppeteer tests ...\n\nIs probably even more explicit (coupled with your example below)",
+      "parentUuid": "a3b30382_f2fbe9f1",
+      "range": {
+        "startLine": 73,
+        "startChar": 5,
+        "endLine": 73,
+        "endChar": 18
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2ced37c6_57eca09d",
         "filename": "puppeteer-tests/README.md",
         "patchSetId": 2
@@ -460,6 +604,30 @@
       "side": 1,
       "message": "It targets just Gold\u0027s tests because we are in the golden directory (see line 76).",
       "parentUuid": "2ced37c6_57eca09d",
+      "range": {
+        "startLine": 78,
+        "startChar": 13,
+        "endLine": 78,
+        "endChar": 19
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5676ed1a_b2dfe48b",
+        "filename": "puppeteer-tests/README.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T17:26:33Z",
+      "side": 1,
+      "message": "Maybe swap lines 80 and 78 then.",
+      "parentUuid": "57d749e0_f23a12df",
       "range": {
         "startLine": 78,
         "startChar": 13,
@@ -519,6 +687,30 @@
     },
     {
       "key": {
+        "uuid": "7e8e831e_3c33e5a4",
+        "filename": "puppeteer-tests/docker/run-tests.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T17:26:33Z",
+      "side": 1,
+      "message": "Please add that rationale here as a block comment.",
+      "parentUuid": "41d2df49_df6a9a8f",
+      "range": {
+        "startLine": 8,
+        "startChar": 2,
+        "endLine": 9,
+        "endChar": 42
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "c09725b7_f8bd0153",
         "filename": "puppeteer-tests/output/.gitignore",
         "patchSetId": 2
@@ -563,6 +755,30 @@
       "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74f1b92c_b1976ceb",
+        "filename": "puppeteer-tests/output/.gitignore",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T17:26:33Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "afa10b23_b219b9af",
+      "range": {
+        "startLine": 1,
+        "startChar": 2,
+        "endLine": 1,
+        "endChar": 5
+      },
+      "revId": "674d979ff0584bde0fedfda21ff38d718658ddc7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
