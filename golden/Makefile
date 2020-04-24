@@ -35,29 +35,12 @@ js-test-debug:
 	npx karma start --no-single-run
 
 .PHONY: puppeteer-test
-puppeteer-test: clean-puppeteer-tests-output
-	docker run --interactive --rm \
-		--mount type=bind,source=`pwd`/..,target=/src \
-		--mount type=bind,source=`pwd`/puppeteer-tests/output,target=/out \
-		gcr.io/skia-public/gold-puppeteer-tests:latest \
-		/src/golden/puppeteer-tests/docker/run-tests.sh
-
-.PHONY: puppeteer-test-nodocker
-puppeteer-test-nodocker: clean-puppeteer-tests-output
-	# If we run "npx mocha" outside of puppeteer-tests, file
-	# puppeteer-tests/.mocharc.json won't be read.
-	cd puppeteer-tests; npx mocha
+puppeteer-test:
+	npx mocha ./**/*_puppeteer_test.js
 
 .PHONY: puppeteer-test-debug
-puppeteer-test-debug: clean-puppeteer-tests-output
-	# If we run "npx mocha" outside of puppeteer-tests, file
-	# puppeteer-tests/.mocharc.json won't be read.
-	cd puppeteer-tests; npx mocha --inspect-brk
-
-.PHONY: clean-puppeteer-tests-output
-clean-puppeteer-tests-output:
-	rm -rf puppeteer-tests/output
-	mkdir -p puppeteer-tests/output
+puppeteer-test-debug:
+	npx mocha ./**/*_puppeteer_test.js --inspect-brk
 
 node_modules: package.json
 	npm ci
