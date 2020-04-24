@@ -19,14 +19,12 @@ describe('dots-legend-sk', () => {
   describe('screenshots', () => {
     it('some digests', async () => {
       const dotsLegendSk = await testBed.page.$('#some-digests');
-      await takeScreenshot(dotsLegendSk, 'dots-legend-sk');
+      await takeScreenshot(dotsLegendSk, 'gold', 'dots-legend-sk');
     });
 
     it('too many digests', async () => {
       const dotsLegendSk = await testBed.page.$('#too-many-digests');
-      await takeScreenshot(
-        dotsLegendSk, 'dots-legend-sk_too-many-digests',
-      );
+      await takeScreenshot(dotsLegendSk, 'gold', 'dots-legend-sk_too-many-digests');
     });
   });
 });

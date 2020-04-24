@@ -23,7 +23,7 @@ describe('details-page-sk', () => {
         width: 1300,
         height: 700,
       });
-      await takeScreenshot(testBed.page, 'details-page-sk');
+      await takeScreenshot(testBed.page, 'gold', 'details-page-sk');
     });
 
     it('should show the digest even if it is not in the index', async () => {
@@ -33,7 +33,7 @@ describe('details-page-sk', () => {
         height: 700,
       });
       await testBed.page.click('#simulate-not-found-in-index');
-      await takeScreenshot(testBed.page, 'details-page-sk_not-in-index');
+      await takeScreenshot(testBed.page, 'gold', 'details-page-sk_not-in-index');
     });
 
     it('should show a message if the backend had an error', async () => {
@@ -43,7 +43,7 @@ describe('details-page-sk', () => {
         height: 700,
       });
       await testBed.page.click('#simulate-rpc-error');
-      await takeScreenshot(testBed.page, 'details-page-sk_backend-error');
+      await takeScreenshot(testBed.page, 'gold', 'details-page-sk_backend-error');
     });
   });
 

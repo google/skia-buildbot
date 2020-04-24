@@ -22,7 +22,7 @@ describe('triage-history-sk', () => {
     // images.
     it('draws either empty or shows the last history object', async () => {
       await testBed.page.setViewport({ width: 400, height: 200 });
-      await takeScreenshot(testBed.page, 'triage-history-sk');
+      await takeScreenshot(testBed.page, 'gold', 'triage-history-sk');
     });
   });
 });

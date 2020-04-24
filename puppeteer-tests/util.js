@@ -198,10 +198,16 @@ exports.startDemoPageServer = async (pathToWebpackConfigJs) => {
 /**
  * Takes a screenshot and saves it to the tests output directory to be uploaded
  * to Gold.
+ *
+ * The screenshot will be saved as <appName>_<testName>.png. Using the
+ * application name as a prefix prevents name collisions between different apps
+ * and increases consistency among test names.
+ *
  * @param {Object} handle Puppeteer Page or ElementHandle instance.
- * @param {string} testName Test name, e.g. 'foo-bar_specific-component'.
+ * @param {string} appName Application name, e.g. 'gold'.
+ * @param {string} testName Test name, e.g. 'my-component-sk_mouse-over'.
  * @return {Promise}
  */
-exports.takeScreenshot = (handle, testName) => handle.screenshot({
-  path: path.join(exports.outputDir(), `${testName}.png`),
+exports.takeScreenshot = (handle, appName, testName) => handle.screenshot({
+  path: path.join(exports.outputDir(), `${appName}_${testName}.png`),
 });

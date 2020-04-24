@@ -18,6 +18,6 @@ describe('changelist-controls-sk', () => {
 
   it('should take a screenshot', async () => {
     const controls = await testBed.page.$('.search_response');
-    await takeScreenshot(controls, 'changelist-controls-sk');
+    await takeScreenshot(controls, 'gold', 'changelist-controls-sk');
   });
 });

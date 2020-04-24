@@ -23,7 +23,7 @@ describe('diff-page-sk', () => {
         width: 1300,
         height: 700,
       });
-      await takeScreenshot(testBed.page, 'diff-page-sk');
+      await takeScreenshot(testBed.page, 'gold', 'diff-page-sk');
     });
   });
 
