@@ -35,6 +35,11 @@ cp -r /src/golden/webpack.config.js /tests/golden
 cp -r /src/golden/modules           /tests/golden
 cp -r /src/golden/demo-page-assets  /tests/golden
 
+mkdir /tests/perf
+cp -r /src/perf/package*            /tests/perf
+cp -r /src/perf/webpack.config.js   /tests/perf
+cp -r /src/perf/modules             /tests/perf
+
 ################################################################################
 # Install node modules.                                                        #
 ################################################################################
@@ -51,6 +56,9 @@ npm ci
 cd /tests/golden
 npm ci
 
+cd /tests/perf
+npm ci
+
 ################################################################################
 # Run tests.                                                                   #
 ################################################################################
@@ -59,6 +67,9 @@ cd /tests/puppeteer-tests
 npx mocha .
 
 cd /tests/golden
+npx mocha ./**/*_puppeteer_test.js
+
+cd /tests/perf
 npx mocha ./**/*_puppeteer_test.js
 
 ################################################################################
