@@ -22,10 +22,15 @@ ctfe: res/css/ctfe.css clean_webtools core_js elements_html skiaversion
 ctfe_debug: res/css/ctfe.css debug skiaversion
 	npx webpack --mode=development
 	go install -v ./go/ctfe
+
 .PHONY: test_js
 test_js:
 	npx webpack --mode=development
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+.PHONY: puppeteer-tests
+puppeteer-tests:
+	npx mocha ./**/*_puppeteer_test.js
 
 .PHONY: serve
 serve:
@@ -127,7 +132,7 @@ testgo:
 	go test ./go/... -v -test.short
 
 .PHONY: test
-test: test_js
+test: test_js puppeteer-tests
 	go test ./go/...
 
 .PHONY: master_scripts
