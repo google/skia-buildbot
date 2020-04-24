@@ -22,6 +22,30 @@
       "revId": "473d856e44ed26119eb93bc2c1afd15cfeb4ed7d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd07aa51_9a50e348",
+        "filename": "puppeteer-tests/docker/run-tests.sh",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T18:25:46Z",
+      "side": 1,
+      "message": "Maybe just chmod 0666 *.png? The numbers are more familiar to me than the letters, but it\u0027s personal preference.",
+      "parentUuid": "025d60e0_da6ad3e0",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 0
+      },
+      "revId": "473d856e44ed26119eb93bc2c1afd15cfeb4ed7d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
