@@ -33,7 +33,6 @@ mkdir /tests/golden
 cp -r /src/golden/package*          /tests/golden
 cp -r /src/golden/webpack.config.js /tests/golden
 cp -r /src/golden/modules           /tests/golden
-cp -r /src/golden/puppeteer-tests   /tests/golden
 cp -r /src/golden/demo-page-assets  /tests/golden
 
 ################################################################################
