@@ -16,6 +16,24 @@
       "revId": "99316132238a3cc907b3841112e2b729007262e6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15e80235_91647e57",
+        "filename": "infra-sk/modules/login.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-24T15:14:32Z",
+      "side": 1,
+      "message": "Oh, I did not think about users of this outside of what we do. Done.",
+      "parentUuid": "0763a2f2_93d1d2c6",
+      "revId": "99316132238a3cc907b3841112e2b729007262e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
