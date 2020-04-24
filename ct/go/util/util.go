@@ -501,8 +501,8 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	cipdPkgs := []string{}
 	expirationTime := 7 * 24 * time.Hour
 	if targetPlatform == PLATFORM_ANDROID {
-		// Add adb CIPD package for Android runs.
-		cipdPkgs = append(cipdPkgs, ADB_CIPD_PACKAGE)
+		// Add adb and luci-auth CIPD packages for Android runs.
+		cipdPkgs = append(cipdPkgs, ADB_CIPD_PACKAGE, LUCI_AUTH_CIPD_PACKAGE)
 		// Android runs use task authentication in swarming (see https://chrome-internal-review.googlesource.com/c/infradata/config/+/2878799/2#message-e3328dd455c1110cd2286a0c343b932594296ea3).
 		// This does not allow more than 48hours validity duration (expiration timeout + hard timeoutout).
 		expirationTime = 2*24*time.Hour - hardTimeout - time.Hour // Remove one hour to be safe.
