@@ -22,6 +22,30 @@
       "revId": "c1390705f47fb6c3a9d014078f8bc5b6e126ffca",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b34500b_cf39033d",
+        "filename": "puppeteer-tests/util.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-24T17:21:14Z",
+      "side": 1,
+      "message": "This should be completely orthogonal to Gold.\n\nScript //puppeteer-tests/upload-screenshots-to-gold.py takes care of interfacing with goldctl. It calls \"goldctl imgtest add\" with any .png files in //puppeteer-tests/output, using the file name without the .png extension as the test name.",
+      "parentUuid": "b9409115_e90476be",
+      "range": {
+        "startLine": 212,
+        "startChar": 42,
+        "endLine": 212,
+        "endChar": 49
+      },
+      "revId": "c1390705f47fb6c3a9d014078f8bc5b6e126ffca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
