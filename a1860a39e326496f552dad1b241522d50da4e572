@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "19abd89f_6ed93f3c",
+        "filename": "demos/Makefile",
+        "patchSetId": 6
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T16:49:07Z",
+      "side": 1,
+      "message": "bikeshed: demoserver",
+      "range": {
+        "startLine": 14,
+        "startChar": 45,
+        "endLine": 14,
+        "endChar": 52
+      },
+      "revId": "a1860a39e326496f552dad1b241522d50da4e572",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ebb7de27_badee63e",
+        "filename": "demos/go/demosfe/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T16:49:07Z",
+      "side": 1,
+      "message": "clean these up. I strongly recommend finding an IDE that can add/remove go imports automatically for you.",
+      "range": {
+        "startLine": 13,
+        "startChar": 1,
+        "endLine": 13,
+        "endChar": 12
+      },
+      "revId": "a1860a39e326496f552dad1b241522d50da4e572",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41abac6b_a382925a",
+        "filename": "demos/go/demosfe/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T16:49:07Z",
+      "side": 1,
+      "message": "omit, I don\u0027t think that\u0027s true anymore",
+      "range": {
+        "startLine": 24,
+        "startChar": 108,
+        "endLine": 24,
+        "endChar": 152
+      },
+      "revId": "a1860a39e326496f552dad1b241522d50da4e572",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29024d2e_c303589f",
+        "filename": "demos/modules/header-sk/index.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T16:49:07Z",
+      "side": 1,
+      "message": "nit: run eslint --fix on your modules/",
+      "range": {
+        "startLine": 1,
+        "startChar": 16,
+        "endLine": 1,
+        "endChar": 20
+      },
+      "revId": "a1860a39e326496f552dad1b241522d50da4e572",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2648c632_9c35c567",
+        "filename": "demos/package.json",
+        "patchSetId": 6
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T16:49:07Z",
+      "side": 1,
+      "message": "ahem",
+      "range": {
+        "startLine": 5,
+        "startChar": 18,
+        "endLine": 5,
+        "endChar": 25
+      },
+      "revId": "a1860a39e326496f552dad1b241522d50da4e572",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48d3dcb0_84475743",
+        "filename": "demos/pages/main.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-24T16:49:07Z",
+      "side": 1,
+      "message": "Skia Demos",
+      "range": {
+        "startLine": 4,
+        "startChar": 13,
+        "endLine": 4,
+        "endChar": 18
+      },
+      "revId": "a1860a39e326496f552dad1b241522d50da4e572",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
