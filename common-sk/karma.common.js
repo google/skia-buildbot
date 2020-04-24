@@ -76,6 +76,8 @@ module.exports = function(dirname) {
 
       // list of files to exclude
       exclude: [
+        'modules/*_puppeteer_test.js',
+        'modules/**/*_puppeteer_test.js',
       ],
 
 
