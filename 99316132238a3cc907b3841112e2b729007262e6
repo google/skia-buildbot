@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0763a2f2_93d1d2c6",
+        "filename": "infra-sk/modules/login.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-24T15:01:05Z",
+      "side": 1,
+      "message": "This changes Login from being a Promise to being a function, which will break other users of Login. Instead make this a new function, LoginTo(loginStatusURL) in this same file and leave Login unchanged.",
+      "revId": "99316132238a3cc907b3841112e2b729007262e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
