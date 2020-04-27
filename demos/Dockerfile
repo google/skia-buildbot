@@ -4,6 +4,6 @@ COPY . /
 
 USER skia
 
-ENTRYPOINT ["/usr/local/bin/demosfe"]
-CMD ["--logtostderr", "--port=:8000", "--resources_dir=/usr/local/share/demosfe/"]
+ENTRYPOINT ["/usr/local/bin/demoserver"]
+CMD ["--logtostderr", "--port=:8000", "--resources_dir=/usr/local/share/demoserver/"]
 

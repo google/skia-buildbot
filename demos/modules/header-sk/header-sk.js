@@ -2,9 +2,6 @@
  * @fileoverview A custom element for the basic demos.skia.org header.
  */
 
-import { $$, DomReady } from 'common-sk/modules/dom';
-import { fromObject } from 'common-sk/modules/query';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 

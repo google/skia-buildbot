@@ -3,25 +3,19 @@ package main
 // The webserver for demos.skia.org. It serves the main page to navigate among JS demos.
 
 import (
-	//	"encoding/json"
 	"flag"
-	//"fmt"
-	//"io/ioutil"
-	//"mime"
 	"net/http"
 	"path/filepath"
-	//"strings"
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
-	//"go.skia.org/infra/go/util"
 )
 
 var (
 	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	resourcesDir = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	resourcesDir = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank ./dist will be used.")
 )
 func main() {
 	common.InitWithMust(
