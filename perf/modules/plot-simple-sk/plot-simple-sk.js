@@ -604,17 +604,17 @@ define('plot-simple-sk', class extends ElementSk {
       // Update crosshair.
       if (this._mouseMoveRaw.shiftKey && this._pointSearch) {
         this._crosshair = {
-          x: this._detail.range.x(this._hoverPt.x),
-          y: this._detail.range.y(this._hoverPt.y),
-          shift: true,
-        };
-      } else {
-        this._crosshair = {
           x: pt.x,
           y: pt.y,
           shift: false,
         };
         clampToRect(this._crosshair, this._detail.rect);
+      } else {
+        this._crosshair = {
+          x: this._detail.range.x(this._hoverPt.x),
+          y: this._detail.range.y(this._hoverPt.y),
+          shift: true,
+        };
       }
       this._drawOverlayCanvas();
       this._mouseMoveRaw = null;
