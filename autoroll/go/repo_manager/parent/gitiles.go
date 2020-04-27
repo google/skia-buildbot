@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/skerr"
@@ -22,7 +21,6 @@ import (
 
 // GitilesConfig provides configuration for a Parent which uses Gitiles.
 type GitilesConfig struct {
-	BaseConfig
 	gitiles_common.GitilesConfig
 	// Gerrit provides configuration for the Gerrit instance used for
 	// uploading rolls.
@@ -31,9 +29,6 @@ type GitilesConfig struct {
 
 // See documentation for util.Validator interface.
 func (c GitilesConfig) Validate() error {
-	if err := c.BaseConfig.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
 	if c.Gerrit == nil {
 		return skerr.Fmt("Gerrit is required")
 	}
@@ -50,7 +45,7 @@ func (c GitilesConfig) Validate() error {
 // roll. These are returned in a map[string]string whose keys are file paths
 // within the repo and values are the new whole contents of the files. Also
 // returns any dependencies which are being transitively rolled.
-type gitilesGetChangesForRollFunc func(context.Context, *gitiles_common.GitilesRepo, string, *revision.Revision, *revision.Revision, []*revision.Revision) (map[string]string, []*version_file_common.TransitiveDepUpdate, error)
+type gitilesGetChangesForRollFunc func(context.Context, *gitiles_common.GitilesRepo, string, *revision.Revision, *revision.Revision, []*revision.Revision) (map[string]string, error)
 
 // gitilesGetLastRollRevFunc finds the last-rolled child revision ID from the
 // repo at the given base commit.
@@ -58,7 +53,6 @@ type gitilesGetLastRollRevFunc func(context.Context, *gitiles_common.GitilesRepo
 
 // gitilesParent is a base for implementations of Parent which use Gitiles.
 type gitilesParent struct {
-	*baseParent
 	*gitiles_common.GitilesRepo
 	gerrit       gerrit.GerritInterface
 	gerritConfig *codereview.GerritConfig
@@ -91,12 +85,7 @@ func newGitiles(ctx context.Context, c GitilesConfig, reg *config_vars.Registry,
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create Gerrit client")
 	}
-	base, err := newBaseParent(ctx, c.BaseConfig, serverURL)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
 	return &gitilesParent{
-		baseParent:        base,
 		GitilesRepo:       gr,
 		gerrit:            g,
 		gerritConfig:      c.Gerrit,
@@ -127,20 +116,14 @@ func (p *gitilesParent) Update(ctx context.Context) (string, error) {
 }
 
 // See documentation for Parent interface.
-func (p *gitilesParent) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (p *gitilesParent) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool, commitMsg string) (int64, error) {
 	p.baseCommitMtx.Lock()
 	defer p.baseCommitMtx.Unlock()
 
-	nextRollChanges, transitiveDeps, err := p.getChangesForRoll(ctx, p.GitilesRepo, p.baseCommit, from, to, rolling)
+	nextRollChanges, err := p.getChangesForRoll(ctx, p.GitilesRepo, p.baseCommit, from, to, rolling)
 	if err != nil {
 		return 0, skerr.Wrapf(err, "getChangesForRoll func failed")
 	}
-
-	commitMsg, err := p.buildCommitMsg(from, to, rolling, emails, cqExtraTrybots, transitiveDeps)
-	if err != nil {
-		return 0, skerr.Wrap(err)
-	}
-
 	return CreateNewGerritRoll(ctx, p.gerrit, p.gerritConfig.Project, p.Branch(), commitMsg, p.baseCommit, nextRollChanges, emails, dryRun)
 }
 
