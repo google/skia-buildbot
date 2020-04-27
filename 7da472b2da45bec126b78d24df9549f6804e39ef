@@ -70,6 +70,30 @@
       "revId": "7da472b2da45bec126b78d24df9549f6804e39ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3dccb667_d6f1c5da",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-27T14:18:24Z",
+      "side": 1,
+      "message": "Container up time should be available through the k8s metrics. At this point I want to see if this is something we still need to worry about.",
+      "parentUuid": "5d45f3ba_44da1401",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 58
+      },
+      "revId": "7da472b2da45bec126b78d24df9549f6804e39ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
