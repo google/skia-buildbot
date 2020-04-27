@@ -1702,6 +1702,51 @@ func TestLatestPositiveDigest_SearchIndexerFailure_InternalServerError(t *testin
 	assert.Contains(t, w.Body.String(), "Could not retrieve most recent positive digest.")
 }
 
+func TestGetTile_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mockIndexSearcher := &mock_indexer.IndexSearcher{}
+	mockIndexSearcher.AssertExpectations(t)
+	mockIndexSource := &mock_indexer.IndexSource{}
+	mockIndexSource.AssertExpectations(t)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer: mockIndexSource,
+		},
+		anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	tile := &tiling.Tile{
+		Traces:    map[tiling.TraceID]tiling.Trace{
+			",foo=bar,baz=qux,": types.NewGoldenTrace([]types.Digest{
+					"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+					"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+				}, map[string]string{
+				"name": "Hello",
+				"foo": "bar",
+				"baz": "qux",
+			}),
+			",alpha=beta,": types.NewGoldenTrace([]types.Digest{
+				"cccccccccccccccccccccccccccccccc",
+			}, map[string]string{
+				"name": "World",
+				"alpha": "beta",
+			}),
+		},
+	}
+	cpxTile := types.NewComplexTile(tile)
+
+	mockIndexSource.On("GetIndex").Return(mockIndexSearcher)
+	mockIndexSearcher.On("Tile").Return(cpxTile)
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	wh.GetTile(w, r)
+	expectedResponse := `{"Hello":{",foo=bar,baz=qux,":["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"]},"World":{",alpha=beta,":["cccccccccccccccccccccccccccccccc"]}}`
+	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
+}
+
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
 // would only matter if we were calling into the router, so it knew which handler to call.
 const requestURL = "/does/not/matter"
