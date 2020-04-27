@@ -5,29 +5,6 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <style>
-      /* Placeholder CSS until we have the normal webpack tooling in place. */
-      body {
-        background: black;
-        color: white;
-      }
-      table {
-        font-family: 'Arial Black', sans-serif;
-        border: 2px solid #000000;
-        background-color: #4a4a4a;
-        text-align: center;
-        border-collapse: collapse;
-        color: #e6e6e6;
-      }
-      table td,
-      table th {
-        border: 1px solid #4a4a4a;
-        padding: 4px 10px;
-      }
-      table tr:nth-child(even) {
-        background: #888888;
-      }
-    </style>
   </head>
   <body>
     <table>
@@ -44,7 +21,9 @@
       <tr>
         <td>{{.Dimensions.id}}</td>
         <td>{{.Dimensions.device_type}}</td>
-        <td>{{.Mode}}</td>
+        <td>
+          <button>{{.Mode}}</button>
+        </td>
         <td>{{.Dimensions.quarantined}}</td>
         <td>{{.Battery}}</td>
         <td>
