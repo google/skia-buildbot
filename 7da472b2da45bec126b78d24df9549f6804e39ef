@@ -46,6 +46,30 @@
       "revId": "7da472b2da45bec126b78d24df9549f6804e39ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5d45f3ba_44da1401",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-27T14:11:43Z",
+      "side": 1,
+      "message": "Gotcha. Any way we could change it to report the container uptime?  Seems like that would be valuable.",
+      "parentUuid": "9c553394_bc106c16",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 58
+      },
+      "revId": "7da472b2da45bec126b78d24df9549f6804e39ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
