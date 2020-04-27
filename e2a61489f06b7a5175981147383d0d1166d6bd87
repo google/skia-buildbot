@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6f7fe364_8f5f1098",
+        "filename": "infra-sk/modules/login-sk/login-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-27T17:15:05Z",
+      "side": 1,
+      "message": "const",
+      "range": {
+        "startLine": 25,
+        "startChar": 4,
+        "endLine": 25,
+        "endChar": 7
+      },
+      "revId": "e2a61489f06b7a5175981147383d0d1166d6bd87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af50eb36_e392df86",
+        "filename": "infra-sk/modules/login.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-04-27T17:15:05Z",
+      "side": 1,
+      "message": "Promise",
+      "range": {
+        "startLine": 26,
+        "startChar": 29,
+        "endLine": 26,
+        "endChar": 36
+      },
+      "revId": "e2a61489f06b7a5175981147383d0d1166d6bd87",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
