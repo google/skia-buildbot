@@ -159,12 +159,14 @@ const (
 	METRICS_ANALYSIS_MASTER_ISOLATE  = "metrics_analysis_on_workers.isolate"
 	BUILD_CHROMIUM_MASTER_ISOLATE    = "build_chromium.isolate"
 	// Isolate files for worker scripts.
-	CREATE_PAGESETS_ISOLATE   = "create_pagesets.isolate"
-	CAPTURE_ARCHIVES_ISOLATE  = "capture_archives.isolate"
-	CAPTURE_SKPS_ISOLATE      = "capture_skps.isolate"
-	CHROMIUM_ANALYSIS_ISOLATE = "chromium_analysis.isolate"
-	CHROMIUM_PERF_ISOLATE     = "chromium_perf.isolate"
-	METRICS_ANALYSIS_ISOLATE  = "metrics_analysis.isolate"
+	CREATE_PAGESETS_ISOLATE             = "create_pagesets.isolate"
+	CAPTURE_ARCHIVES_ISOLATE            = "capture_archives.isolate"
+	CAPTURE_SKPS_ISOLATE                = "capture_skps.isolate"
+	CHROMIUM_ANALYSIS_ISOLATE           = "chromium_analysis.isolate"
+	CHROMIUM_ANALYSIS_LUCI_AUTH_ISOLATE = "chromium_analysis_luci_auth.isolate"
+	CHROMIUM_PERF_ISOLATE               = "chromium_perf.isolate"
+	CHROMIUM_PERF_LUCI_AUTH_ISOLATE     = "chromium_perf_luci_auth.isolate"
+	METRICS_ANALYSIS_ISOLATE            = "metrics_analysis.isolate"
 	// Isolate files for build scripts.
 	BUILD_REPO_ISOLATE        = "build_repo.isolate"
 	ISOLATE_TELEMETRY_ISOLATE = "isolate_telemetry.isolate"
@@ -188,7 +190,8 @@ const (
 	MASTER_SERVICE_ACCOUNT       = "ct-swarming-bots@ct-swarming-bots.iam.gserviceaccount.com"
 	GOLO_ANDROID_SERVICE_ACCOUNT = "ct-golo@ct-swarming-bots.iam.gserviceaccount.com"
 
-	ADB_CIPD_PACKAGE = "cipd_bin_packages:infra/adb/linux-amd64:adb_version:1.0.36"
+	ADB_CIPD_PACKAGE       = "cipd_bin_packages:infra/adb/linux-amd64:adb_version:1.0.36"
+	LUCI_AUTH_CIPD_PACKAGE = "cipd_bin_packages:infra/tools/luci-auth/linux-amd64:git_revision:41a7e9bcbf18718dcda83dd5c6188cfc44271e70"
 )
 
 type PagesetTypeInfo struct {

@@ -213,13 +213,15 @@ func runChromiumAnalysisOnWorkers() error {
 	if err != nil {
 		return fmt.Errorf("Error encountered when calculating number of pages: %s", err)
 	}
-	// Calculate the max pages to run per bot.
+	// Figure out the max pages to run per bot and which isolate file to use.
 	defaultMaxPagesPerSwarmingBot := MAX_PAGES_PER_SWARMING_BOT
+	isolateFile := util.CHROMIUM_ANALYSIS_ISOLATE
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		defaultMaxPagesPerSwarmingBot = MAX_PAGES_PER_ANDROID_SWARMING_BOT
+		isolateFile = util.CHROMIUM_ANALYSIS_LUCI_AUTH_ISOLATE
 	}
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, defaultMaxPagesPerSwarmingBot)
-	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, "", *targetPlatform, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", isolateFile, *runID, "", *targetPlatform, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
 	if err != nil {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
