@@ -174,8 +174,8 @@ const template = (ele) => html`
     <h2>Perf Help</h2>
     <table>
       <tr><td colspan=2><h3>Mouse Controls</h3></td></tr>
-      <tr><td class=mono>Hover</td><td>Highlight closest trace.</td></tr>
-      <tr><td class=mono>Shift + Hover</td><td>Snap crosshair to closest point.</td></tr>
+      <tr><td class=mono>Hover</td><td>Snap crosshair to closest point.</td></tr>
+      <tr><td class=mono>Shift + Hover</td><td>Highlight closest trace.</td></tr>
       <tr><td class=mono>Click</td><td>Select closest point.</td></tr>
       <tr><td colspan=2><h3>Keyboard Controls</h3></td></tr>
       <tr><td class=mono>'w'/'s'</td><td>Zoom in/out.<sup>1</sup></td></tr>
