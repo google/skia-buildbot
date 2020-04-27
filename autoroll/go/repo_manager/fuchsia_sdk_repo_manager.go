@@ -66,20 +66,8 @@ func (c *FuchsiaSDKRepoManagerConfig) splitParentChild() (parent.GitilesFileConf
 			},
 		}
 	}
-	commitMsgTmpl := TmplCommitMsgFuchsiaSDK
-	if c.CommitMsgTmpl != "" {
-		commitMsgTmpl = c.CommitMsgTmpl
-	}
 	parentCfg := parent.GitilesFileConfig{
 		GitilesConfig: parent.GitilesConfig{
-			BaseConfig: parent.BaseConfig{
-				ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-				ChildRepo:       "TODO",
-				IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-				IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-				CommitMsgTmpl:   commitMsgTmpl,
-				MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-			},
 			GitilesConfig: gitiles_common.GitilesConfig{
 				Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
 				RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,

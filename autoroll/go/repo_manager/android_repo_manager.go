@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
-	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/android_skia_checkout"
@@ -249,7 +248,7 @@ func (r *androidRepoManager) setTopic(changeNum int64) error {
 }
 
 // See documentation for RepoManager interface.
-func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool, commitMsg string) (int64, error) {
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 
@@ -343,23 +342,6 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		}
 		sort.Strings(emails)
 	}
-
-	// Create commit message.
-	commitMsg, err := r.buildCommitMsg(&parent.CommitMsgVars{
-		ChildPath:   r.childPath,
-		ChildRepo:   common.REPO_SKIA, // TODO(borenet): Don't hard-code.
-		Reviewers:   emails,
-		Revisions:   rolling,
-		RollingFrom: from,
-		RollingTo:   to,
-		ServerURL:   r.serverURL,
-	})
-	if err != nil {
-		return 0, err
-	}
-
-	// Temporary hack to substitute P4 for "Pixel4". See skbug.com/9595.
-	commitMsg = strings.Replace(commitMsg, "Pixel4", "P4", -1)
 
 	// Commit the change with the above message.
 	if _, commitErr := r.childRepo.Git(ctx, "commit", "-m", commitMsg); commitErr != nil {

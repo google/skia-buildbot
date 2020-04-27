@@ -39,10 +39,7 @@ func (e CopyEntry) Validate() error {
 // into itself. It uses a local git checkout and uploads changes to Gerrit.
 type CopyConfig struct {
 	GitCheckoutGerritConfig
-
-	// VersionFile is the path of the file within the repo which contains
-	// the current version of the Child.
-	VersionFile string `json:"versionFile"`
+	version_file_common.DependencyConfig
 
 	// Copies indicates which files and directories to copy from the
 	// Child into the Parent.
@@ -54,11 +51,8 @@ func (c CopyConfig) Validate() error {
 	if err := c.GitCheckoutGerritConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}
-	if c.VersionFile == "" {
-		return skerr.Fmt("VersionFile is required")
-	}
-	if len(c.Copies) == 0 {
-		return skerr.Fmt("Copies are required")
+	if err := c.VersionFileConfig.Validate(); err != nil {
+		return skerr.Wrap(err)
 	}
 	for _, copy := range c.Copies {
 		if err := copy.Validate(); err != nil {
@@ -71,10 +65,7 @@ func (c CopyConfig) Validate() error {
 // NewCopy returns a Parent implementation which copies the Child into itself.
 // It uses a local git checkout and uploads changes to Gerrit.
 func NewCopy(ctx context.Context, c CopyConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, userName, userEmail string, dep child.Child, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
-	getLastRollRev := VersionFileGetLastRollRevFunc(version_file_common.VersionFileConfig{
-		ID:   c.ChildRepo,
-		Path: c.VersionFile,
-	})
+	getLastRollRev := VersionFileGetLastRollRevFunc(c.VersionFileConfig)
 	createRoll := func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Create a temporary directory.
 		tmp, err := ioutil.TempDir("", "")
@@ -109,12 +100,21 @@ func NewCopy(ctx context.Context, c CopyConfig, reg *config_vars.Registry, clien
 		}
 
 		// Write the new version file.
-		versionFile := filepath.Join(co.Dir(), c.VersionFile)
-		if err := ioutil.WriteFile(versionFile, []byte(to.Id), os.ModePerm); err != nil {
-			return "", skerr.Wrap(err)
-		}
-		if _, err := co.Git(ctx, "add", c.VersionFile); err != nil {
-			return "", skerr.Wrap(err)
+		changes, err := version_file_common.UpdateDep(ctx, c.DependencyConfig, to, func(ctx context.Context, path string) (string, error) {
+			b, err := ioutil.ReadFile(path)
+			if err != nil {
+				return "", skerr.Wrap(err)
+			}
+			return string(b), nil
+		})
+		for path, contents := range changes {
+			fullPath := filepath.Join(co.Dir(), path)
+			if err := ioutil.WriteFile(fullPath, []byte(contents), os.ModePerm); err != nil {
+				return "", skerr.Wrap(err)
+			}
+			if _, err := co.Git(ctx, "add", path); err != nil {
+				return "", skerr.Wrap(err)
+			}
 		}
 
 		// Commit.

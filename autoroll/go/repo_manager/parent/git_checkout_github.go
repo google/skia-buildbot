@@ -113,9 +113,6 @@ func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *c
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if c.CommitMsgTmpl == "" {
-		c.CommitMsgTmpl = TMPL_COMMIT_MSG_GITHUB
-	}
 
 	// See documentation for GitCheckoutUploadRollFunc.
 	uploadRoll := GitCheckoutUploadGithubRollFunc(githubClient, userName)
