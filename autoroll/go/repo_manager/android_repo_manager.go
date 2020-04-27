@@ -333,22 +333,23 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	// for the master branch because developers would get spammed due to multiple
 	// rolls a day. Release branch rolls run rarely and developers should be
 	// aware that their changes are being rolled there.
+	rollEmails := []string{}
+	rollEmails = append(rollEmails, emails...)
 	if parentBranch != "master" {
-		emails = make([]string, 0, len(emails)+len(rolling))
 		for _, c := range rolling {
 			// Extract out the email if it is a Googler.
 			if strings.HasSuffix(c.Author, "@google.com") {
-				emails = append(emails, c.Author)
+				rollEmails = append(rollEmails, c.Author)
 			}
 		}
-		sort.Strings(emails)
+		sort.Strings(rollEmails)
 	}
 
 	// Create commit message.
 	commitMsg, err := r.buildCommitMsg(&parent.CommitMsgVars{
 		ChildPath:   r.childPath,
 		ChildRepo:   common.REPO_SKIA, // TODO(borenet): Don't hard-code.
-		Reviewers:   emails,
+		Reviewers:   rollEmails,
 		Revisions:   rolling,
 		RollingFrom: from,
 		RollingTo:   to,
@@ -378,7 +379,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	// Upload the CL to Gerrit.
 	uploadCommand := &exec.Command{
 		Name: r.repoToolPath,
-		Args: []string{"upload", fmt.Sprintf("--re=%s", strings.Join(emails, ",")), "--verify"},
+		Args: []string{"upload", fmt.Sprintf("--re=%s", strings.Join(rollEmails, ",")), "--verify"},
 		Dir:  r.childDir,
 		// The below is to bypass the blocking
 		// "ATTENTION: You are uploading an unusually high number of commits."
@@ -417,7 +418,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		labels = r.g.Config().SetDryRunLabels
 	}
 	labels = gerrit.MergeLabels(labels, r.g.Config().SelfApproveLabels)
-	if err = r.g.SetReview(ctx, change, "Roller setting labels to auto-land change.", labels, emails); err != nil {
+	if err = r.g.SetReview(ctx, change, "Roller setting labels to auto-land change.", labels, rollEmails); err != nil {
 		// Only throw exception here if parentBranch is master. This is
 		// because other branches will not have permissions setup for the
 		// bot to run CR+2.
