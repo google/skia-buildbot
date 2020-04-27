@@ -1649,6 +1649,39 @@ func (wh *Handlers) LatestPositiveDigestHandler(w http.ResponseWriter, r *http.R
 	sendJSONResponse(w, frontend.MostRecentPositiveDigestResponse{Digest: digest})
 }
 
+// GetPerTraceDigestsByTestName returns the digests in the current trace for the given test name,
+// grouped by trace ID.
+func (wh *Handlers) GetPerTraceDigestsByTestName(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+	}
+
+	testName, ok := mux.Vars(r)["testName"]
+	if !ok {
+		http.Error(w, "Must specify testName.", http.StatusBadRequest)
+		return
+	}
+
+	digestsByTraceId := frontend.GetPerTraceDigestsByTestNameResponse{}
+
+	// Iterate over all traces in the current tile.
+	tracesById := wh.Indexer.GetIndex().Tile().GetTile(types.IncludeIgnoredTraces).Traces
+	for traceId, trace := range tracesById {
+		goldenTrace := trace.(*types.GoldenTrace)
+
+		// Filter traces by test name.
+		if goldenTrace.TestName() != types.TestName(testName) {
+			continue
+		}
+
+		// Populate map with the trace's digests.
+		digestsByTraceId[traceId] = goldenTrace.Digests
+	}
+
+	sendJSONResponse(w, digestsByTraceId)
+}
+
 func (wh *Handlers) now() time.Time {
 	if !wh.testingNow.IsZero() {
 		return wh.testingNow
