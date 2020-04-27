@@ -94,6 +94,30 @@
       "revId": "7da472b2da45bec126b78d24df9549f6804e39ef",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5d43743e_25bf5b10",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-27T14:23:57Z",
+      "side": 1,
+      "message": "SGTM. Also seems like it might be reasonable to just recreate the container between every task.",
+      "parentUuid": "3dccb667_d6f1c5da",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 58
+      },
+      "revId": "7da472b2da45bec126b78d24df9549f6804e39ef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
