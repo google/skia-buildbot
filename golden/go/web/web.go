@@ -1649,6 +1649,34 @@ func (wh *Handlers) LatestPositiveDigestHandler(w http.ResponseWriter, r *http.R
 	sendJSONResponse(w, frontend.MostRecentPositiveDigestResponse{Digest: digest})
 }
 
+// GetTile returns the digests in the current tile grouped by test name and trace ID.
+func (wh *Handlers) GetTile(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+	}
+
+	digestsByTestNameAndTraceId := frontend.GetTileResponse{}
+
+	// Iteratre over all traces in the current tile.
+	tracesById := wh.Indexer.GetIndex().Tile().GetTile(types.IncludeIgnoredTraces).Traces
+	for traceId, trace := range tracesById {
+		goldenTrace := trace.(*types.GoldenTrace)
+
+		// Initialize TraceID -> []Digest map for the trace's test.
+		digestsByTraceId, ok := digestsByTestNameAndTraceId[goldenTrace.TestName()]
+		if !ok {
+			digestsByTraceId = map[tiling.TraceID][]types.Digest{}
+			digestsByTestNameAndTraceId[goldenTrace.TestName()] = digestsByTraceId
+		}
+
+		// Populate map with the trace's digests.
+		digestsByTraceId[traceId] = goldenTrace.Digests
+	}
+
+	sendJSONResponse(w, digestsByTestNameAndTraceId)
+}
+
 func (wh *Handlers) now() time.Time {
 	if !wh.testingNow.IsZero() {
 		return wh.testingNow
