@@ -499,13 +499,13 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	}()
 
 	cipdPkgs := []string{}
-	expirationTime := 7 * 24 * time.Hour
+	cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE)
+	// CT runs use task authentication in swarming (see https://chrome-internal-review.googlesource.com/c/infradata/config/+/2878799/2#message-e3328dd455c1110cd2286a0c343b932594296ea3).
+	// This does not allow more than 48hours validity duration (expiration time + hard timeout).
+	expirationTime := 2*24*time.Hour - hardTimeout - time.Hour // Remove one hour to be safe.
 	if targetPlatform == PLATFORM_ANDROID {
 		// Add adb CIPD package for Android runs.
 		cipdPkgs = append(cipdPkgs, ADB_CIPD_PACKAGE)
-		// Android runs use task authentication in swarming (see https://chrome-internal-review.googlesource.com/c/infradata/config/+/2878799/2#message-e3328dd455c1110cd2286a0c343b932594296ea3).
-		// This does not allow more than 48hours validity duration (expiration timeout + hard timeoutout).
-		expirationTime = 2*24*time.Hour - hardTimeout - time.Hour // Remove one hour to be safe.
 	}
 
 	// Trigger and collect swarming tasks.
@@ -553,15 +553,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 
 // getServiceAccount returns the service account that should be used when triggering swarming tasks.
 func getServiceAccount(dimensions map[string]string) string {
-	serviceAccount := ""
-	if util.MapsEqual(dimensions, GCE_LINUX_WORKER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_MASTER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_ANDROID_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_WINDOWS_BUILDER_DIMENSIONS) {
-		// GCE bots need to use "bot". See skbug.com/6611.
-		serviceAccount = "bot"
-	} else if util.MapsEqual(dimensions, GOLO_ANDROID_WORKER_DIMENSIONS) {
-		// Android runs use task authentication in swarming (see https://chrome-internal-review.googlesource.com/c/infradata/config/+/2878799/2#message-e3328dd455c1110cd2286a0c343b932594296ea3).
-		serviceAccount = GOLO_ANDROID_SERVICE_ACCOUNT
-	}
-	return serviceAccount
+	return WORKERS_SERVICE_ACCOUNT
 }
 
 // GetPathToIsolates returns the location of CT's isolates.

@@ -13,6 +13,7 @@ import (
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -25,7 +26,10 @@ var (
 
 func createPagesets() error {
 	ctx := context.Background()
-	worker_common.Init(ctx, false /* useDepotTools */)
+	httpClient, err := worker_common.Init(ctx, false /* useDepotTools */)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	if !*worker_common.Local {
 		defer util.CleanTmpDir()
 	}
@@ -45,7 +49,7 @@ func createPagesets() error {
 	userAgent := pagesetTypeInfo.UserAgent
 
 	// Download the CSV file from Google Storage.
-	gs, err := util.NewGcsUtil(nil)
+	gs, err := util.NewGcsUtil(httpClient)
 	if err != nil {
 		return err
 	}
