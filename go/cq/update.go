@@ -6,7 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/duration"
 	"go.chromium.org/luci/cq/api/config/v2"
 )
 
@@ -62,6 +63,7 @@ func CloneBranch(cfg *config.Config, oldBranch, newBranch string, includeExperim
 
 	// Create the CQ config for the new branch.
 	newCg := &config.ConfigGroup{
+		Name: newBranch,
 		Gerrit: []*config.ConfigGroup_Gerrit{
 			{
 				Url: oldGerrit.Url,
@@ -75,6 +77,15 @@ func CloneBranch(cfg *config.Config, oldBranch, newBranch string, includeExperim
 				},
 			},
 		},
+	}
+	if oldCg.CombineCls != nil {
+		newCg.CombineCls = &config.CombineCLs{}
+		if oldCg.CombineCls.StabilizationDelay != nil {
+			newCg.CombineCls.StabilizationDelay = &duration.Duration{
+				Seconds: oldCg.CombineCls.StabilizationDelay.Seconds,
+				Nanos:   oldCg.CombineCls.StabilizationDelay.Nanos,
+			}
+		}
 	}
 	if oldCg.Verifiers != nil {
 		newCg.Verifiers = &config.Verifiers{
