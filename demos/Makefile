@@ -4,6 +4,13 @@ core:
 serve:
 	npx webpack-dev-server --watch-poll --mode-development
 
+fetch_demos:
+	go run ./go/load-demo-assets/main.go \
+		--alsologtostderr \
+		--demos_dir "demos/internal" \
+		--out_dir "../../fetched_demos" \
+		--repo_url "https://skia.googlesource.com/infra-internal"
+
 build_resources:
 	npx webpack --mode=production
 
