@@ -845,7 +845,9 @@ func Truncate(s string, length int) string {
 // temporary intermediate file for more atomicity in case a long-running write
 // gets interrupted.
 func WithWriteFile(file string, writeFn func(io.Writer) error) error {
-	f, err := ioutil.TempFile(path.Dir(file), path.Base(file))
+	dir := path.Dir(file)
+	MkdirAll(dir, 0700)
+	f, err := ioutil.TempFile(dir, path.Base(file))
 	if err != nil {
 		return fmt.Errorf("Failed to create temporary file for WithWriteFile: %s", err)
 	}
