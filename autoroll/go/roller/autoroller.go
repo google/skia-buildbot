@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/commit_msg"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
@@ -57,6 +58,7 @@ type AutoRoller struct {
 	cfg             AutoRollerConfig
 	childName       string
 	codereview      codereview.CodeReview
+	commitMsgConfig *commit_msg.CommitMsgConfig
 	currentRoll     codereview.RollImpl
 	emails          []string
 	emailsMtx       sync.RWMutex
@@ -239,6 +241,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	arb := &AutoRoller{
 		cfg:             c,
 		codereview:      cr,
+		commitMsgConfig: c.CommitMsgConfig,
 		emails:          emails,
 		failureThrottle: failureThrottle,
 		lastRollRev:     lastRollRev,
@@ -471,7 +474,11 @@ func (r *AutoRoller) createNewRoll(ctx context.Context, from, to *revision.Revis
 		}
 	}
 	r.statusMtx.RUnlock()
-	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, revs, emails, strings.Join(r.cfg.CqExtraTrybots, ";"), dryRun)
+	commitMsg, err := r.commitMsgConfig.BuildCommitMsg(from, to, revs)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, revs, emails, strings.Join(r.cfg.CqExtraTrybots, ";"), dryRun, commitMsg)
 	if err != nil {
 		return nil, err
 	}
