@@ -225,7 +225,10 @@ func runChromiumAnalysisOnWorkers() error {
 	}
 
 	// Merge all CSV files and upload.
-	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local)
+	pathToPyFiles, err := util.GetPathToPyFiles(*master_common.Local)
+	if err != nil {
+		return fmt.Errorf("Could not get path to py files: %s", err)
+	}
 	outputCSVLocalPath, noOutputSlaves, err := util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1))
 	if err != nil {
 		return fmt.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
