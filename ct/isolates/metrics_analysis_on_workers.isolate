@@ -17,6 +17,9 @@
           'metrics_analysis.isolate',
         ],
       'command': [
+        'luci-auth',
+        'context',
+        '--',
         '../../../bin/metrics_analysis_on_workers',
         '-logtostderr',
         '--metric_name=<(METRIC_NAME)',

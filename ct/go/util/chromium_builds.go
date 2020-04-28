@@ -62,6 +62,9 @@ func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyF
 
 	// Run chromium sync command using the specified chromium hash.
 	// Construct path to the sync_skia_in_chrome python script.
+	fmt.Println("ABOUT TO RUN!!!")
+	fmt.Println(os.Getwd())
+	fmt.Println(pathToPyFiles)
 	syncArgs := []string{
 		filepath.Join(pathToPyFiles, "sync_skia_in_chrome.py"),
 		"--destination=" + chromiumBuildDir,
