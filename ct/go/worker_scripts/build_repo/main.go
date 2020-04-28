@@ -32,7 +32,10 @@ var (
 
 func buildRepo() error {
 	ctx := context.Background()
-	worker_common.Init(ctx, true /* useDepotTools */)
+	httpClient, err := worker_common.Init(ctx, true /* useDepotTools */)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	defer util.TimeTrack(time.Now(), "Building Repo")
 	defer sklog.Flush()
 
@@ -47,7 +50,7 @@ func buildRepo() error {
 	}
 
 	// Instantiate GcsUtil object.
-	gs, err := util.NewGcsUtil(nil)
+	gs, err := util.NewGcsUtil(httpClient)
 	if err != nil {
 		return err
 	}
@@ -76,8 +79,11 @@ func buildRepo() error {
 				}
 			}
 		}
-		pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local)
-		chromiumHash, skiaHash, err := util.CreateChromiumBuildOnSwarming(ctx, *runID, *targetPlatform, chromiumHash, skiaHash, pathToPyFiles, gitExec, applyPatches, *uploadSingleBuild)
+		pathToPyFiles, err := util.GetPathToPyFiles(*worker_common.Local)
+		if err != nil {
+			return fmt.Errorf("Could not get path to py files: %s", err)
+		}
+		chromiumHash, skiaHash, err = util.CreateChromiumBuildOnSwarming(ctx, *runID, *targetPlatform, chromiumHash, skiaHash, pathToPyFiles, gitExec, applyPatches, *uploadSingleBuild)
 		if err != nil {
 			return fmt.Errorf("Could not create chromium build: %s", err)
 		}
