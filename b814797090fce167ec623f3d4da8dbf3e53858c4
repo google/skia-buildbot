@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "07ad1527_df9770fe",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 513,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-28T10:53:54Z",
+      "side": 1,
+      "message": "If it\u0027s for debugging only, does that mean it is temporary? If so, should we have a TODO to remove it at some point?\n\nOtherwise, it might be nice to start a seperate list of \"debugging\" RPCs with a disclaimer about what it means to be debugging. Should we have a /debug/json/foo nomenclature for that so it is explicit which ones are debugging?",
+      "revId": "b814797090fce167ec623f3d4da8dbf3e53858c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b39db35_223a7961",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1669,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-28T10:53:54Z",
+      "side": 1,
+      "message": "Try .SlicedTraces(types.IncludeIgnoredTraces, map[string][]string{\n  types.PrimaryKeyField: {testName}\n})\nShould be faster than iterating through the whole tile every time.",
+      "range": {
+        "startLine": 1669,
+        "startChar": 37,
+        "endLine": 1669,
+        "endChar": 86
+      },
+      "revId": "b814797090fce167ec623f3d4da8dbf3e53858c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c6ab65d4_9612c3ab",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1709,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-28T10:53:54Z",
+      "side": 1,
+      "message": "I don\u0027t think you need these - if those two calls aren\u0027t made, the test should fail anyway.",
+      "range": {
+        "startLine": 1709,
+        "startChar": 19,
+        "endLine": 1709,
+        "endChar": 37
+      },
+      "revId": "b814797090fce167ec623f3d4da8dbf3e53858c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d05f242e_b6e0fcd6",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1729,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-28T10:53:54Z",
+      "side": 1,
+      "message": "foo\u003dbar and foo\u003dbaz are similar enough to make the test a bit confusing. Please make the trace ids more distinct (and ideally realistic; include the test name in there)",
+      "range": {
+        "startLine": 1729,
+        "startChar": 9,
+        "endLine": 1729,
+        "endChar": 12
+      },
+      "revId": "b814797090fce167ec623f3d4da8dbf3e53858c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
