@@ -499,13 +499,17 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	}()
 
 	cipdPkgs := []string{}
-	expirationTime := 7 * 24 * time.Hour
+	if targetPlatform == PLATFORM_WINDOWS {
+		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_WIN)
+	} else {
+		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
+	}
+	// CT runs use task authentication in swarming (see https://chrome-internal-review.googlesource.com/c/infradata/config/+/2878799/2#message-e3328dd455c1110cd2286a0c343b932594296ea3).
+	// This does not allow more than 48hours validity duration (expiration time + hard timeout).
+	expirationTime := 2*24*time.Hour - hardTimeout - time.Hour // Remove one hour to be safe.
 	if targetPlatform == PLATFORM_ANDROID {
 		// Add adb CIPD package for Android runs.
 		cipdPkgs = append(cipdPkgs, ADB_CIPD_PACKAGE)
-		// Android runs use task authentication in swarming (see https://chrome-internal-review.googlesource.com/c/infradata/config/+/2878799/2#message-e3328dd455c1110cd2286a0c343b932594296ea3).
-		// This does not allow more than 48hours validity duration (expiration timeout + hard timeoutout).
-		expirationTime = 2*24*time.Hour - hardTimeout - time.Hour // Remove one hour to be safe.
 	}
 
 	// Trigger and collect swarming tasks.
@@ -553,15 +557,7 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 
 // getServiceAccount returns the service account that should be used when triggering swarming tasks.
 func getServiceAccount(dimensions map[string]string) string {
-	serviceAccount := ""
-	if util.MapsEqual(dimensions, GCE_LINUX_WORKER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_MASTER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_LINUX_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_ANDROID_BUILDER_DIMENSIONS) || util.MapsEqual(dimensions, GCE_WINDOWS_BUILDER_DIMENSIONS) {
-		// GCE bots need to use "bot". See skbug.com/6611.
-		serviceAccount = "bot"
-	} else if util.MapsEqual(dimensions, GOLO_ANDROID_WORKER_DIMENSIONS) {
-		// Android runs use task authentication in swarming (see https://chrome-internal-review.googlesource.com/c/infradata/config/+/2878799/2#message-e3328dd455c1110cd2286a0c343b932594296ea3).
-		serviceAccount = GOLO_ANDROID_SERVICE_ACCOUNT
-	}
-	return serviceAccount
+	return WORKERS_SERVICE_ACCOUNT
 }
 
 // GetPathToIsolates returns the location of CT's isolates.
@@ -999,11 +995,14 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	}
 	dimensions := GCE_LINUX_BUILDER_DIMENSIONS
 	osType := "linux"
-	cipdPkgs := cipd.PkgsGit[cipd.PlatformLinuxAmd64]
+	cipdPkgs := []string{}
+	cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_WIN)
 	if targetPlatform == PLATFORM_WINDOWS {
 		dimensions = GCE_WINDOWS_BUILDER_DIMENSIONS
 		osType = "win"
-		cipdPkgs = cipd.PkgsGit[cipd.PlatformWindowsAmd64]
+		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformWindowsAmd64])...)
+	} else {
+		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformLinuxAmd64])...)
 	}
 
 	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, ISOLATE_TELEMETRY_ISOLATE), s.WorkDir, osType, taskName, isolateArgs, []string{})
@@ -1016,7 +1015,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 		return "", fmt.Errorf("Could not batch archive target: %s", err)
 	}
 	// Trigger swarming using the isolate hash. Specify CIPD git packages to use for isolate telemetry's git operations.
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipd.GetStrCIPDPkgs(cipdPkgs), swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPkgs, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -1053,10 +1052,13 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isola
 	}
 	defer s.Cleanup()
 	osType := "linux"
-	cipdPkgs := cipd.PkgsGit[cipd.PlatformLinuxAmd64]
+	cipdPkgs := []string{}
+	cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_WIN)
 	if targetPlatform == PLATFORM_WINDOWS {
 		osType = "win"
-		cipdPkgs = cipd.PkgsGit[cipd.PlatformWindowsAmd64]
+		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformWindowsAmd64])...)
+	} else {
+		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformLinuxAmd64])...)
 	}
 	// Create isolated.gen.json.
 	// Get path to isolate files.
@@ -1072,7 +1074,7 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isola
 	}
 	// Trigger swarming using the isolate hash. Specify CIPD git packages to use for the master script's git operations.
 	dimensions := GCE_LINUX_MASTER_DIMENSIONS
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipd.GetStrCIPDPkgs(cipdPkgs), swarming.RECOMMENDED_PRIORITY, 7*24*time.Hour, 3*24*time.Hour, 3*24*time.Hour, false, true, getServiceAccount(dimensions))
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPkgs, swarming.RECOMMENDED_PRIORITY, 7*24*time.Hour, 3*24*time.Hour, 3*24*time.Hour, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -1085,7 +1087,7 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isola
 // TriggerBuildRepoSwarmingTask creates a isolated.gen.json file using BUILD_REPO_ISOLATE,
 // archives it, and triggers it's swarming task. The swarming task will run the build_repo
 // worker script which will return a list of remote build directories.
-func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform, serviceAccountJSON string, hashes, patches, cipdPackages []string, singleBuild, local bool, hardTimeout, ioTimeout time.Duration) ([]string, error) {
+func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform, serviceAccountJSON string, hashes, patches, cipdPkgs []string, singleBuild, local bool, hardTimeout, ioTimeout time.Duration) ([]string, error) {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
@@ -1112,10 +1114,13 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 		"TARGET_PLATFORM": targetPlatform,
 	}
 	osType := "linux"
-	cipdPkgs := cipd.PkgsGit[cipd.PlatformLinuxAmd64]
 	if targetPlatform == PLATFORM_WINDOWS {
 		osType = "win"
-		cipdPkgs = cipd.PkgsGit[cipd.PlatformWindowsAmd64]
+		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformWindowsAmd64])...)
+		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_WIN)
+	} else {
+		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformLinuxAmd64])...)
+		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
 	}
 	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, BUILD_REPO_ISOLATE), s.WorkDir, osType, taskName, isolateArgs, []string{})
 	if err != nil {
@@ -1126,8 +1131,6 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	if err != nil {
 		return nil, fmt.Errorf("Could not batch archive target: %s", err)
 	}
-	// Specify CIPD git packages to use for build repo's git operations.
-	cipdPackages = append(cipdPackages, cipd.GetStrCIPDPkgs(cipdPkgs)...)
 	// Trigger swarming using the isolate hash.
 	var dimensions map[string]string
 	if targetPlatform == PLATFORM_WINDOWS {
@@ -1137,7 +1140,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	} else {
 		dimensions = GCE_LINUX_BUILDER_DIMENSIONS
 	}
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPackages, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
+	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPkgs, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false, true, getServiceAccount(dimensions))
 	if err != nil {
 		return nil, fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
