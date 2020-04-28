@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "48b30d1c_359e7876",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 513,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-28T17:38:50Z",
+      "side": 1,
+      "message": "I\u0027m fine with grouping the \"debugging\" RPCs under a common path. Maybe /json/debug instead of /debug/json, to keep the common prefix.\n\nI also wonder what debugging means, e.g. does /json/whoami fall under this definition?\n\nI think the grouping should probably be done in a separate CL after we decide what \"debugging\" means.\n\nWDYT?",
+      "parentUuid": "07ad1527_df9770fe",
+      "revId": "b814797090fce167ec623f3d4da8dbf3e53858c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6b39db35_223a7961",
         "filename": "golden/go/web/web.go",
         "patchSetId": 5
@@ -39,6 +57,30 @@
       "revId": "b814797090fce167ec623f3d4da8dbf3e53858c4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d522276e_ef135e54",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1669,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-28T17:38:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6b39db35_223a7961",
+      "range": {
+        "startLine": 1669,
+        "startChar": 37,
+        "endLine": 1669,
+        "endChar": 86
+      },
+      "revId": "b814797090fce167ec623f3d4da8dbf3e53858c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "06025f1a_e63c24fb",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1709,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-28T17:38:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c6ab65d4_9612c3ab",
+      "range": {
+        "startLine": 1709,
+        "startChar": 19,
+        "endLine": 1709,
+        "endChar": 37
+      },
+      "revId": "b814797090fce167ec623f3d4da8dbf3e53858c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d05f242e_b6e0fcd6",
         "filename": "golden/go/web/web_test.go",
         "patchSetId": 5
@@ -85,6 +151,30 @@
       "revId": "b814797090fce167ec623f3d4da8dbf3e53858c4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8231e2f4_81236140",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 1729,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-04-28T17:38:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d05f242e_b6e0fcd6",
+      "range": {
+        "startLine": 1729,
+        "startChar": 9,
+        "endLine": 1729,
+        "endChar": 12
+      },
+      "revId": "b814797090fce167ec623f3d4da8dbf3e53858c4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
