@@ -19,6 +19,9 @@
           'capture_skps.isolate',
         ],
       'command': [
+        'luci-auth',
+        'context',
+        '--',
         '../../../bin/capture_skps_on_workers',
         '-logtostderr',
         '--pageset_type=<(PAGESET_TYPE)',
