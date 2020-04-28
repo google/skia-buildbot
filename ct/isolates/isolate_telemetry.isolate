@@ -24,6 +24,9 @@
   ],
   'variables': {
     'command': [
+      'luci-auth',
+      'context',
+      '--',
       '../../../bin/isolate_telemetry',
       '-logtostderr',
       '--run_id=<(RUN_ID)',
