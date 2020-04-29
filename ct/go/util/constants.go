@@ -74,9 +74,6 @@ const (
 	BENCHMARK_GENERIC_TRACE            = "generic_trace_ct"
 	BENCHMARK_AD_TAGGING               = "ad_tagging.cluster_telemetry"
 
-	// Logserver link. This is only accessible from Google corp.
-	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
-
 	// Default browser args when running benchmarks.
 	DEFAULT_BROWSER_ARGS = ""
 	// Default value column name to use when merging CSVs.
@@ -185,10 +182,14 @@ const (
 	CT_PERF_BUCKET = "cluster-telemetry-perf"
 	CT_PERF_REPO   = "https://skia.googlesource.com/perf-ct"
 
-	MASTER_SERVICE_ACCOUNT       = "ct-swarming-bots@ct-swarming-bots.iam.gserviceaccount.com"
-	GOLO_ANDROID_SERVICE_ACCOUNT = "ct-golo@ct-swarming-bots.iam.gserviceaccount.com"
+	// The CT service account is unfortunately named, it runs on not just Golo
+	// bots but also on GCE instances. Would be nice to rename this one day following
+	// the steps in https://bugs.chromium.org/p/skia/issues/detail?id=10187#c1
+	CT_SERVICE_ACCOUNT = "ct-golo@ct-swarming-bots.iam.gserviceaccount.com"
 
-	ADB_CIPD_PACKAGE = "cipd_bin_packages:infra/adb/linux-amd64:adb_version:1.0.36"
+	ADB_CIPD_PACKAGE             = "cipd_bin_packages:infra/adb/linux-amd64:adb_version:1.0.36"
+	LUCI_AUTH_CIPD_PACKAGE_LINUX = "cipd_bin_packages:infra/tools/luci-auth/linux-amd64:git_revision:41a7e9bcbf18718dcda83dd5c6188cfc44271e70"
+	LUCI_AUTH_CIPD_PACKAGE_WIN   = "cipd_bin_packages:infra/tools/luci-auth/windows-amd64:git_revision:41a7e9bcbf18718dcda83dd5c6188cfc44271e70"
 )
 
 type PagesetTypeInfo struct {
