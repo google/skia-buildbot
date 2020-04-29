@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f573cf61_6401b044",
+        "filename": "go/util/util.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 847,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-04-29T19:04:26Z",
+      "side": 1,
+      "message": "Let me know if this needs to be optional. Seems like a reasonable behavior as-is though.",
+      "range": {
+        "startLine": 847,
+        "startChar": 5,
+        "endLine": 847,
+        "endChar": 18
+      },
+      "revId": "d32689e5d52c0fdb722cd97b117ef6a712d6e4e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
