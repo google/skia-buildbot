@@ -1717,36 +1717,42 @@ func TestGetPerTraceDigestsByTestName_Success(t *testing.T) {
 
 	mockIndexSource.On("GetIndex").Return(mockIndexSearcher)
 	mockIndexSearcher.On("SlicedTraces", types.IncludeIgnoredTraces, map[string][]string{
+		types.CorpusField:     {"MyCorpus"},
 		types.PrimaryKeyField: {"MyTest"},
 	}).Return([]*types.TracePair{
 		{
-			ID: ",foo=alpha,",
+			ID: ",name=MyTest,foo=alpha,source_type=MyCorpus,",
 			Trace: types.NewGoldenTrace([]types.Digest{
 				"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 				"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
 			}, map[string]string{
-				"name": "MyTest",
-				"foo":  "alpha",
+				"name":        "MyTest",
+				"foo":         "alpha",
+				"source_type": "MyCorpus",
 			}),
 		},
 		{
-			ID: ",foo=beta,",
+			ID: ",name=MyTest,foo=beta,source_type=MyCorpus,",
 			Trace: types.NewGoldenTrace([]types.Digest{
 				"",
 				"cccccccccccccccccccccccccccccccc",
 			}, map[string]string{
-				"name": "MyTest",
-				"foo":  "beta",
+				"name":        "MyTest",
+				"foo":         "beta",
+				"source_type": "MyCorpus",
 			}),
 		},
 	})
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
-	r = mux.SetURLVars(r, map[string]string{"testName": "MyTest"})
+	r = mux.SetURLVars(r, map[string]string{
+		"corpus":   "MyCorpus",
+		"testName": "MyTest",
+	})
 
 	wh.GetPerTraceDigestsByTestName(w, r)
-	expectedResponse := `{",foo=alpha,":["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],",foo=beta,":["","cccccccccccccccccccccccccccccccc"]}`
+	expectedResponse := `{",name=MyTest,foo=alpha,source_type=MyCorpus,":["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],",name=MyTest,foo=beta,source_type=MyCorpus,":["","cccccccccccccccccccccccccccccccc"]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
 }
 

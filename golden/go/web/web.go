@@ -1649,12 +1649,18 @@ func (wh *Handlers) LatestPositiveDigestHandler(w http.ResponseWriter, r *http.R
 	sendJSONResponse(w, frontend.MostRecentPositiveDigestResponse{Digest: digest})
 }
 
-// GetPerTraceDigestsByTestName returns the digests in the current trace for the given test name,
-// grouped by trace ID.
+// GetPerTraceDigestsByTestName returns the digests in the current trace for the given test name
+// and corpus, grouped by trace ID.
 func (wh *Handlers) GetPerTraceDigestsByTestName(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+	}
+
+	corpus, ok := mux.Vars(r)["corpus"]
+	if !ok {
+		http.Error(w, "Must specify corpus.", http.StatusBadRequest)
+		return
 	}
 
 	testName, ok := mux.Vars(r)["testName"]
@@ -1667,6 +1673,7 @@ func (wh *Handlers) GetPerTraceDigestsByTestName(w http.ResponseWriter, r *http.
 
 	// Iterate over all traces in the current tile for the given test name.
 	tracesById := wh.Indexer.GetIndex().SlicedTraces(types.IncludeIgnoredTraces, map[string][]string{
+		types.CorpusField:     {corpus},
 		types.PrimaryKeyField: {testName},
 	})
 	for _, tracePair := range tracesById {
