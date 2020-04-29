@@ -220,18 +220,10 @@ func dimensionsFromAndroidProperties(prop map[string]string) map[string][]string
 		}
 	}
 
-	// Devices such as the Galaxy S7 update build w/o updating android,
-	// so we merge them together to catch subtle updates.
-	incremental := prop["ro.build.version.incremental"]
-	if incremental != "" {
-		ret["device_os"] = append(ret["device_os"], fmt.Sprintf("%s_%s", ret["device_os"][0], incremental))
-	}
-
 	// Add the first character of each device_os to the dimension.
 	osList := append([]string{}, ret["device_os"]...)
 	for _, os := range ret["device_os"] {
-		firstChar := os[:1]
-		if firstChar != "" && strings.ToUpper(firstChar) == firstChar && !util.In(firstChar, osList) {
+		if os[:1] != "" && strings.ToUpper(os[:1]) == os[:1] {
 			osList = append(osList, os[:1])
 		}
 	}
