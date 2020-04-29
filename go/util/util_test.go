@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"regexp"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -19,24 +18,6 @@ import (
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
-
-func TestAtMost(t *testing.T) {
-	unittest.SmallTest(t)
-	a := AtMost([]string{"a", "b"}, 3)
-	if got, want := len(a), 2; got != want {
-		t.Errorf("Wrong length: Got %v Want %v", got, want)
-	}
-
-	a = AtMost([]string{"a", "b"}, 1)
-	if got, want := len(a), 1; got != want {
-		t.Errorf("Wrong length: Got %v Want %v", got, want)
-	}
-
-	a = AtMost([]string{"a", "b"}, 0)
-	if got, want := len(a), 0; got != want {
-		t.Errorf("Wrong length: Got %v Want %v", got, want)
-	}
-}
 
 func TestSSliceEqual(t *testing.T) {
 	unittest.SmallTest(t)
@@ -81,10 +62,10 @@ func TestSSliceEqual(t *testing.T) {
 
 func TestInsertString(t *testing.T) {
 	unittest.SmallTest(t)
-	assertdeep.Equal(t, []string{"a"}, InsertString([]string{}, 0, "a"))
-	assertdeep.Equal(t, []string{"b", "a"}, InsertString([]string{"a"}, 0, "b"))
-	assertdeep.Equal(t, []string{"b", "c", "a"}, InsertString([]string{"b", "a"}, 1, "c"))
-	assertdeep.Equal(t, []string{"b", "c", "a", "d"}, InsertString([]string{"b", "c", "a"}, 3, "d"))
+	assertdeep.Equal(t, []string{"a"}, insertString([]string{}, 0, "a"))
+	assertdeep.Equal(t, []string{"b", "a"}, insertString([]string{"a"}, 0, "b"))
+	assertdeep.Equal(t, []string{"b", "c", "a"}, insertString([]string{"b", "a"}, 1, "c"))
+	assertdeep.Equal(t, []string{"b", "c", "a", "d"}, insertString([]string{"b", "c", "a"}, 3, "d"))
 }
 
 func TestInsertStringSorted(t *testing.T) {
@@ -94,147 +75,6 @@ func TestInsertStringSorted(t *testing.T) {
 	assertdeep.Equal(t, []string{"a", "b"}, InsertStringSorted([]string{"a"}, "b"))
 	assertdeep.Equal(t, []string{"0", "a", "b"}, InsertStringSorted([]string{"a", "b"}, "0"))
 	assertdeep.Equal(t, []string{"0", "a", "b"}, InsertStringSorted([]string{"0", "a", "b"}, "b"))
-}
-
-func TestIntersectIntSets(t *testing.T) {
-	unittest.SmallTest(t)
-	sets := []map[int]bool{
-		{1: true, 2: true, 3: true, 4: true},
-		{2: true, 4: true, 5: true, 7: true},
-	}
-	minIdx := 1
-	intersect := IntersectIntSets(sets, minIdx)
-	require.Equal(t, map[int]bool{2: true, 4: true}, intersect)
-}
-
-func TestAddParamsToParamSet(t *testing.T) {
-	unittest.SmallTest(t)
-	testCases := []struct {
-		a       map[string][]string
-		b       map[string]string
-		wantFoo []string
-	}{
-		{
-			a: map[string][]string{
-				"foo": {"a", "b"},
-			},
-			b: map[string]string{
-				"foo": "c",
-			},
-			wantFoo: []string{"a", "b", "c"},
-		},
-		{
-			a: map[string][]string{
-				"foo": {},
-			},
-			b: map[string]string{
-				"foo": "c",
-			},
-			wantFoo: []string{"c"},
-		},
-		{
-			a: map[string][]string{
-				"foo": {"c"},
-			},
-			b: map[string]string{
-				"foo": "c",
-			},
-			wantFoo: []string{"c"},
-		},
-		{
-			a: map[string][]string{},
-			b: map[string]string{
-				"foo": "c",
-			},
-			wantFoo: []string{"c"},
-		},
-		{
-			a: map[string][]string{
-				"foo": {"c"},
-			},
-			b:       map[string]string{},
-			wantFoo: []string{"c"},
-		},
-	}
-	for _, tc := range testCases {
-		if got, want := AddParamsToParamSet(tc.a, tc.b)["foo"], tc.wantFoo; !SSliceEqual(got, want) {
-			t.Errorf("Merge failed: Got %v Want %v", got, want)
-		}
-	}
-}
-
-func TestAddParamSetToParamSet(t *testing.T) {
-	unittest.SmallTest(t)
-	testCases := []struct {
-		a       map[string][]string
-		b       map[string][]string
-		wantFoo []string
-	}{
-		{
-			a: map[string][]string{
-				"foo": {"a", "b"},
-			},
-			b: map[string][]string{
-				"foo": {"c"},
-			},
-			wantFoo: []string{"a", "b", "c"},
-		},
-		{
-			a: map[string][]string{
-				"foo": {},
-			},
-			b: map[string][]string{
-				"foo": {"c"},
-			},
-			wantFoo: []string{"c"},
-		},
-		{
-			a: map[string][]string{
-				"foo": {"c"},
-			},
-			b: map[string][]string{
-				"foo": {},
-			},
-			wantFoo: []string{"c"},
-		},
-		{
-			a: map[string][]string{
-				"foo": {"c"},
-			},
-			b: map[string][]string{
-				"bar": {"b"},
-			},
-			wantFoo: []string{"c"},
-		},
-	}
-	for _, tc := range testCases {
-		if got, want := AddParamSetToParamSet(tc.a, tc.b)["foo"], tc.wantFoo; !SSliceEqual(got, want) {
-			t.Errorf("Merge failed: Got %v Want %v", got, want)
-		}
-	}
-}
-
-func TestAnyMatch(t *testing.T) {
-	unittest.SmallTest(t)
-	slice := []*regexp.Regexp{
-		regexp.MustCompile("somestring"),
-		regexp.MustCompile("^abcdefg$"),
-		regexp.MustCompile("^defg123"),
-		regexp.MustCompile("abc\\.xyz"),
-	}
-	tc := map[string]bool{
-		"somestring":      true,
-		"somestringother": true,
-		"abcdefg":         true,
-		"abcdefgh":        false,
-		"defg1234":        true,
-		"cdefg123":        false,
-		"abc.xyz":         true,
-		"abcqxyz":         false,
-	}
-	for s, e := range tc {
-		require.Equal(t, e, AnyMatch(slice, s))
-	}
 }
 
 func TestIsNil(t *testing.T) {
@@ -534,40 +374,6 @@ type DomainTestCase struct {
 	Match   bool
 }
 
-func TestCookieDomainMatch(t *testing.T) {
-	unittest.SmallTest(t)
-	// Test cases borrowed from test_domain_match in
-	// https://svn.python.org/projects/python/trunk/Lib/test/test_cookielib.py
-	testCases := []DomainTestCase{
-		{DomainA: "x.y.com", DomainB: "x.Y.com", Match: true},
-		{DomainA: "x.y.com", DomainB: ".Y.com", Match: true},
-		{DomainA: "x.y.com", DomainB: "Y.com", Match: false},
-		{DomainA: "a.b.c.com", DomainB: ".c.com", Match: true},
-		{DomainA: ".c.com", DomainB: "a.b.c.com", Match: false},
-		{DomainA: "example.local", DomainB: ".local", Match: true},
-		{DomainA: "blah.blah", DomainB: "", Match: false},
-		{DomainA: "", DomainB: ".rhubarb.rhubarb", Match: false},
-		{DomainA: "", DomainB: "", Match: true},
-
-		{DomainA: "acme.com", DomainB: "acme.com", Match: true},
-		{DomainA: "acme.com", DomainB: ".acme.com", Match: false},
-		{DomainA: "rhubarb.acme.com", DomainB: ".acme.com", Match: true},
-		{DomainA: "www.rhubarb.acme.com", DomainB: ".acme.com", Match: true},
-		{DomainA: "y.com", DomainB: "Y.com", Match: true},
-		{DomainA: ".y.com", DomainB: "Y.com", Match: false},
-		{DomainA: ".y.com", DomainB: ".Y.com", Match: true},
-		{DomainA: "x.y.com", DomainB: ".com", Match: true},
-		{DomainA: "x.y.com", DomainB: "com", Match: false},
-		{DomainA: "x.y.com", DomainB: "m", Match: false},
-		{DomainA: "x.y.com", DomainB: ".m", Match: false},
-		{DomainA: "x.y.com", DomainB: "", Match: false},
-		{DomainA: "x.y.com", DomainB: ".", Match: false},
-	}
-	for _, tc := range testCases {
-		require.Equal(t, tc.Match, CookieDomainMatch(tc.DomainA, tc.DomainB))
-	}
-}
-
 func TestValidateCommit(t *testing.T) {
 	unittest.SmallTest(t)
 	tc := map[string]bool{
@@ -582,90 +388,6 @@ func TestValidateCommit(t *testing.T) {
 	for input, expect := range tc {
 		require.Equal(t, ValidateCommit(input), expect)
 	}
-}
-
-func TestPermute(t *testing.T) {
-	unittest.SmallTest(t)
-
-	require.Equal(t, [][]int{}, Permute([]int{}))
-	require.Equal(t, [][]int{{0}}, Permute([]int{0}))
-	require.Equal(t, [][]int{{0, 1}, {1, 0}}, Permute([]int{0, 1}))
-	require.Equal(t, [][]int{
-		{0, 1, 2},
-		{0, 2, 1},
-		{1, 0, 2},
-		{1, 2, 0},
-		{2, 0, 1},
-		{2, 1, 0},
-	}, Permute([]int{0, 1, 2}))
-	require.Equal(t, [][]int{
-		{0, 1, 2, 3},
-		{0, 1, 3, 2},
-		{0, 2, 1, 3},
-		{0, 2, 3, 1},
-		{0, 3, 1, 2},
-		{0, 3, 2, 1},
-		{1, 0, 2, 3},
-		{1, 0, 3, 2},
-		{1, 2, 0, 3},
-		{1, 2, 3, 0},
-		{1, 3, 0, 2},
-		{1, 3, 2, 0},
-		{2, 0, 1, 3},
-		{2, 0, 3, 1},
-		{2, 1, 0, 3},
-		{2, 1, 3, 0},
-		{2, 3, 0, 1},
-		{2, 3, 1, 0},
-		{3, 0, 1, 2},
-		{3, 0, 2, 1},
-		{3, 1, 0, 2},
-		{3, 1, 2, 0},
-		{3, 2, 0, 1},
-		{3, 2, 1, 0},
-	}, Permute([]int{0, 1, 2, 3}))
-}
-
-func TestPermuteStrings(t *testing.T) {
-	unittest.SmallTest(t)
-
-	require.Equal(t, [][]string{}, PermuteStrings([]string{}))
-	require.Equal(t, [][]string{{"a"}}, PermuteStrings([]string{"a"}))
-	require.Equal(t, [][]string{{"a", "b"}, {"b", "a"}}, PermuteStrings([]string{"a", "b"}))
-	require.Equal(t, [][]string{
-		{"a", "b", "c"},
-		{"a", "c", "b"},
-		{"b", "a", "c"},
-		{"b", "c", "a"},
-		{"c", "a", "b"},
-		{"c", "b", "a"},
-	}, PermuteStrings([]string{"a", "b", "c"}))
-	require.Equal(t, [][]string{
-		{"a", "b", "c", "d"},
-		{"a", "b", "d", "c"},
-		{"a", "c", "b", "d"},
-		{"a", "c", "d", "b"},
-		{"a", "d", "b", "c"},
-		{"a", "d", "c", "b"},
-		{"b", "a", "c", "d"},
-		{"b", "a", "d", "c"},
-		{"b", "c", "a", "d"},
-		{"b", "c", "d", "a"},
-		{"b", "d", "a", "c"},
-		{"b", "d", "c", "a"},
-		{"c", "a", "b", "d"},
-		{"c", "a", "d", "b"},
-		{"c", "b", "a", "d"},
-		{"c", "b", "d", "a"},
-		{"c", "d", "a", "b"},
-		{"c", "d", "b", "a"},
-		{"d", "a", "b", "c"},
-		{"d", "a", "c", "b"},
-		{"d", "b", "a", "c"},
-		{"d", "b", "c", "a"},
-		{"d", "c", "a", "b"},
-		{"d", "c", "b", "a"},
-	}, PermuteStrings([]string{"a", "b", "c", "d"}))
 }
 
 func TestParseIntSet(t *testing.T) {
@@ -692,128 +414,6 @@ func TestParseIntSet(t *testing.T) {
 	test("1-3,11-13,21-23", []int{1, 2, 3, 11, 12, 13, 21, 22, 23}, "")
 	test("-2", nil, "Invalid expression \"-2\"")
 	test("2-", nil, "Invalid expression \"2-\"")
-}
-
-func TestContainsMap(t *testing.T) {
-	unittest.SmallTest(t)
-	child := map[string]string{
-		"a": "1",
-		"b": "2",
-	}
-	parent := map[string]string{
-		"a": "1",
-		"b": "2",
-		"c": "3",
-	}
-	// Test success
-	require.True(t, ContainsMap(parent, child))
-	// Test map with itself.
-	require.True(t, ContainsMap(parent, parent))
-	// Test failure.
-	delete(parent, "b")
-	require.False(t, ContainsMap(parent, child))
-	// Test edge cases.
-	require.True(t, ContainsMap(parent, map[string]string{}))
-	require.True(t, ContainsMap(map[string]string{}, map[string]string{}))
-	require.False(t, ContainsMap(map[string]string{}, map[string]string{"a": "1"}))
-}
-
-func TestContainsAnyMap(t *testing.T) {
-	unittest.SmallTest(t)
-	child1 := map[string]string{
-		"a": "1",
-		"b": "2",
-	}
-	child2 := map[string]string{
-		"a": "1",
-		"b": "2",
-		"c": "3",
-	}
-	parent := map[string]string{
-		"a": "1",
-		"b": "2",
-		"c": "3",
-	}
-	// Test success
-	require.True(t, ContainsAnyMap(parent, child1, child2))
-	// Test map with itself
-	require.True(t, ContainsAnyMap(parent, parent))
-	// Test failure
-	delete(parent, "b")
-	require.False(t, ContainsAnyMap(parent, child1, child2))
-	require.False(t, ContainsAnyMap(parent, map[string]string{"a": "1", "c": "4"}))
-	// Test success with new parent
-	require.True(t, ContainsAnyMap(parent, map[string]string{"a": "1", "c": "3"}))
-	require.True(t, ContainsAnyMap(parent, child1, parent))
-	// Test edge cases.
-	require.True(t, ContainsAnyMap(parent, map[string]string{}, child1))
-	require.True(t, ContainsAnyMap(parent, map[string]string{}))
-	require.True(t, ContainsAnyMap(map[string]string{}, map[string]string{}))
-	require.False(t, ContainsAnyMap(map[string]string{}, child1, child2))
-}
-
-func TestContainsMapInSliceValues(t *testing.T) {
-	unittest.SmallTest(t)
-	child := map[string]string{
-		"a": "1",
-		"b": "2",
-	}
-	parent := map[string][]string{
-		"a": {"1", "2"},
-		"b": {"2", "4"},
-		"c": {"3"},
-	}
-	// Test success
-	require.True(t, ContainsMapInSliceValues(parent, child))
-	child["b"] = "4"
-	require.True(t, ContainsMapInSliceValues(parent, child))
-	// Test failure.
-	child["b"] = "3"
-	require.False(t, ContainsMapInSliceValues(parent, child))
-	delete(parent, "b")
-	require.False(t, ContainsMapInSliceValues(parent, child))
-	// Test edge cases.
-	require.True(t, ContainsMapInSliceValues(parent, map[string]string{}))
-	require.True(t, ContainsMapInSliceValues(map[string][]string{}, map[string]string{}))
-	require.False(t, ContainsMapInSliceValues(map[string][]string{}, map[string]string{"a": "1"}))
-}
-
-func TestContainsAnyMapInSliceValues(t *testing.T) {
-	unittest.SmallTest(t)
-	child1 := map[string]string{
-		"a": "1",
-		"b": "2",
-	}
-	child2 := map[string]string{
-		"a": "1",
-		"b": "2",
-		"c": "3",
-	}
-	parent := map[string][]string{
-		"a": {"1", "4"},
-		"b": {"2", "5"},
-		"c": {"3"},
-	}
-	// Test success
-	require.True(t, ContainsAnyMapInSliceValues(parent, child1, child2))
-	child2["b"] = "5"
-	require.True(t, ContainsAnyMapInSliceValues(parent, child1, child2))
-	// Test failure
-	child1["a"] = "2"
-	child2["b"] = "6"
-	require.False(t, ContainsAnyMapInSliceValues(parent, child1, child2))
-	delete(parent, "b")
-	require.False(t, ContainsAnyMapInSliceValues(parent, child1, child2))
-	require.False(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "1", "c": "4"}))
-	require.False(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "2"}))
-	// Test success with new parent
-	require.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "1", "c": "3"}))
-	require.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{"a": "4", "c": "3"}))
-	// Test edge cases.
-	require.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{}, child1))
-	require.True(t, ContainsAnyMapInSliceValues(parent, map[string]string{}))
-	require.True(t, ContainsAnyMapInSliceValues(map[string][]string{}, map[string]string{}))
-	require.False(t, ContainsAnyMapInSliceValues(map[string][]string{}, child1, child2))
 }
 
 func TestTruncate(t *testing.T) {

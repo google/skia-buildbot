@@ -83,14 +83,7 @@ func Index(s string, a []string) int {
 	return -1
 }
 
-// AtMost returns a subslice of at most the first n members of a.
-func AtMost(a []string, n int) []string {
-	if n > len(a) {
-		n = len(a)
-	}
-	return a[:n]
-}
-
+// SSliceEqual returns true if the given string slices are equal
 func SSliceEqual(a, b []string) bool {
 	if a == nil && b == nil {
 		return true
@@ -120,8 +113,8 @@ func Reverse(s []string) []string {
 	return r
 }
 
-// InsertString inserts the given string into the slice at the given index.
-func InsertString(strs []string, idx int, s string) []string {
+// insertString inserts the given string into the slice at the given index.
+func insertString(strs []string, idx int, s string) []string {
 	oldLen := len(strs)
 	strs = append(strs, "")
 	copy(strs[idx+1:], strs[idx:oldLen])
@@ -134,7 +127,7 @@ func InsertString(strs []string, idx int, s string) []string {
 func InsertStringSorted(strs []string, s string) []string {
 	idx := sort.SearchStrings(strs, s)
 	if idx == len(strs) || strs[idx] != s {
-		return InsertString(strs, idx, s)
+		return insertString(strs, idx, s)
 	}
 	return strs
 }
@@ -144,74 +137,6 @@ type Int64Slice []int64
 func (p Int64Slice) Len() int           { return len(p) }
 func (p Int64Slice) Less(i, j int) bool { return p[i] < p[j] }
 func (p Int64Slice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
-// MapsEqual checks if the two maps are equal.
-func MapsEqual(a, b map[string]string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	// Since they are the same size we only need to check from one side, i.e.
-	// compare a's values to b's values.
-	for k, v := range a {
-		if bv, ok := b[k]; !ok || bv != v {
-			return false
-		}
-	}
-	return true
-}
-
-// ContainsMap checks if child map is contained within the parent map
-func ContainsMap(parent, child map[string]string) bool {
-	if len(child) > len(parent) {
-		return false
-	}
-	// Since we know child is less than or equal to parent we only need to
-	// compare child's values to parent's values.
-	for k, v := range child {
-		if pv, ok := parent[k]; !ok || pv != v {
-			return false
-		}
-	}
-	return true
-}
-
-// ContainsAnyMap checks to see if any of the children maps are contained in
-// the parent map.
-func ContainsAnyMap(parent map[string]string, children ...map[string]string) bool {
-	for _, child := range children {
-		if ContainsMap(parent, child) {
-			return true
-		}
-	}
-	return false
-}
-
-// ContainsMapInSliceValues checks if child map is contained within the
-// parent map.
-func ContainsMapInSliceValues(parent map[string][]string, child map[string]string) bool {
-	if len(child) > len(parent) {
-		return false
-	}
-	// Since we know child is less than or equal to parent we only need to
-	// compare child's values to parent's values.
-	for k, v := range child {
-		if pv, ok := parent[k]; !ok || !In(v, pv) {
-			return false
-		}
-	}
-	return true
-}
-
-// ContainsAnyMapInSliceValues checks to see if any of the children maps are
-// contained in the parent map.
-func ContainsAnyMapInSliceValues(parent map[string][]string, children ...map[string]string) bool {
-	for _, child := range children {
-		if ContainsMapInSliceValues(parent, child) {
-			return true
-		}
-	}
-	return false
-}
 
 // MaxInt returns the largest integer of the arguments provided.
 func MaxInt(intList ...int) int {
@@ -285,25 +210,6 @@ func TimeStamp(targetUnit time.Duration) int64 {
 	return time.Now().UnixNano() / int64(targetUnit)
 }
 
-// IntersectIntSets calculates the intersection of a list
-// of integer sets.
-func IntersectIntSets(sets []map[int]bool, minIdx int) map[int]bool {
-	resultSet := make(map[int]bool, len(sets[minIdx]))
-	for val := range sets[minIdx] {
-		resultSet[val] = true
-	}
-
-	for _, oneSet := range sets {
-		for k := range resultSet {
-			if !oneSet[k] {
-				delete(resultSet, k)
-			}
-		}
-	}
-
-	return resultSet
-}
-
 // RepeatJoin repeats a given string N times with the given separator between
 // each instance.
 func RepeatJoin(str, sep string, n int) string {
@@ -311,34 +217,6 @@ func RepeatJoin(str, sep string, n int) string {
 		return ""
 	}
 	return str + strings.Repeat(sep+str, n-1)
-}
-
-func AddParamsToParamSet(a map[string][]string, b map[string]string) map[string][]string {
-	for k, v := range b {
-		// You might be tempted to replace this with
-		// sort.SearchStrings(), but that's actually slower for short
-		// slices. The breakpoint seems to around 50, and since most
-		// of our ParamSet lists are short that ends up being slower.
-		if _, ok := a[k]; !ok {
-			a[k] = []string{v}
-		} else if !In(v, a[k]) {
-			a[k] = append(a[k], v)
-		}
-	}
-	return a
-}
-
-func AddParamSetToParamSet(a map[string][]string, b map[string][]string) map[string][]string {
-	for k, arr := range b {
-		for _, v := range arr {
-			if _, ok := a[k]; !ok {
-				a[k] = []string{v}
-			} else if !In(v, a[k]) {
-				a[k] = append(a[k], v)
-			}
-		}
-	}
-	return a
 }
 
 // AddParams adds the second instance of map[string]string to the first and
@@ -427,16 +305,6 @@ func LogErr(err error) {
 	if err != nil {
 		sklog.ErrorfWithDepth(1, "Unexpected error: %s", err)
 	}
-}
-
-// AnyMatch returns true iff the given string matches any regexp in the slice.
-func AnyMatch(re []*regexp.Regexp, s string) bool {
-	for _, r := range re {
-		if r.MatchString(s) {
-			return true
-		}
-	}
-	return false
 }
 
 // IsNil returns true if i is nil or is an interface containing a nil or invalid value.
@@ -663,32 +531,6 @@ func IsDirEmpty(dir string) (bool, error) {
 	return false, err
 }
 
-// CookieDomainMatch returns True if domainA domain-matches domainB, according to RFC 2965.
-// domainA and domainB may only be host domain names. IP addresses are currently not supported.
-//
-// RFC 2965, section 1:
-//   Host names can be specified either as an IP address or a HDN string.
-//   Sometimes we compare one host name with another.  (Such comparisons SHALL
-//   be case-insensitive.)  Host A's name domain-matches host B's if
-//   * their host name strings string-compare equal; or
-//   * A is a HDN string and has the form NB, where N is a non-empty
-//     name string, B has the form .B', and B' is a HDN string.  (So,
-//     x.y.com domain-matches .Y.com but not Y.com.)
-//   Note that domain-match is not a commutative operation: a.b.c.com
-//   domain-matches .c.com, but not the reverse.
-func CookieDomainMatch(domainA, domainB string) bool {
-	a := strings.ToLower(domainA)
-	b := strings.ToLower(domainB)
-	initialDot := strings.HasPrefix(b, ".")
-	if initialDot && strings.HasSuffix(a, b) {
-		return true
-	}
-	if !initialDot && a == b {
-		return true
-	}
-	return false
-}
-
 // ValidateCommit returns true iff the given commit hash looks valid. Does not
 // perform any check as to whether the commit means anything in a particular
 // repository.
@@ -702,50 +544,6 @@ func ValidateCommit(hash string) bool {
 		}
 	}
 	return true
-}
-
-// Permute returns all permutations of the given slice of ints. Duplicates in
-// the input slice will result in duplicate permutations returned.
-func Permute(ints []int) [][]int {
-	if len(ints) == 1 {
-		return [][]int{{ints[0]}}
-	}
-	rv := [][]int{}
-	for _, i := range ints {
-		remaining := make([]int, 0, len(ints)-1)
-		for _, j := range ints {
-			if j != i {
-				remaining = append(remaining, j)
-			}
-		}
-		got := Permute(remaining)
-		for _, list := range got {
-			// TODO(borenet): These temporary lists are expensive.
-			// If we need this to be performant, we should re-
-			// implement without copies.
-			rv = append(rv, append([]int{i}, list...))
-		}
-	}
-	return rv
-}
-
-// PermuteStrings returns all permutations of the given slice of strings.
-// Duplicates in the input slice will result in duplicate permutations returned.
-func PermuteStrings(strs []string) [][]string {
-	idxs := make([]int, 0, len(strs))
-	for i := range strs {
-		idxs = append(idxs, i)
-	}
-	permuteIdxs := Permute(idxs)
-	rv := make([][]string, 0, len(permuteIdxs))
-	for _, idxPerm := range permuteIdxs {
-		strPerm := make([]string, 0, len(idxPerm))
-		for _, idx := range idxPerm {
-			strPerm = append(strPerm, strs[idx])
-		}
-		rv = append(rv, strPerm)
-	}
-	return rv
 }
 
 // ParseIntSet parses a string expression like "5", "3-8", or "3,4,9" into a
