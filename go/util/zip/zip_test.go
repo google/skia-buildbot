@@ -1,4 +1,4 @@
-package util
+package zip
 
 import (
 	"io/ioutil"
@@ -51,7 +51,7 @@ func TestZipE2E(t *testing.T) {
 	outputDir, err := ioutil.TempDir("", "zip_location")
 	defer testutils.RemoveAll(t, outputDir)
 	zipPath := filepath.Join(outputDir, "test.zip")
-	err = ZipIt(zipPath, targetDir)
+	err = Directory(zipPath, targetDir)
 	require.NoError(t, err)
 	// Assert that zip was created
 	_, err = os.Stat(zipPath)

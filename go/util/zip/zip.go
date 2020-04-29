@@ -1,4 +1,4 @@
-package util
+package zip
 
 import (
 	"archive/zip"
@@ -16,7 +16,7 @@ func forZipFile(zipRC *zip.ReadCloser, fn func(f *zip.File, r io.Reader) error) 
 			return err
 		}
 		if err := fn(f, rc); err != nil {
-			Close(rc)
+			_ = rc.Close()
 			return err
 		}
 		if err := rc.Close(); err != nil {
@@ -53,16 +53,16 @@ func UnZip(dest, src string) error {
 	}
 
 	if err := forZipFile(r, fn); err != nil {
-		Close(r)
+		_ = r.Close()
 		return err
 	}
 
 	return r.Close()
 }
 
-// ZipIt zips the specified directory into the target file.
+// Directory zips the specified directory into the target file.
 // Note: source must be an absolute path. Also, this is untested with symlinks.
-func ZipIt(target, source string) error {
+func Directory(target, source string) error {
 	zipfile, err := os.Create(target)
 	if err != nil {
 		return err
@@ -105,7 +105,7 @@ func ZipIt(target, source string) error {
 			return err
 		}
 		if _, err = io.Copy(writer, file); err != nil {
-			Close(file)
+			_ = file.Close()
 			return err
 		}
 		if err := file.Close(); err != nil {
@@ -115,13 +115,11 @@ func ZipIt(target, source string) error {
 	})
 
 	if err := archive.Close(); err != nil {
-		Close(zipfile)
-		LogErr(walkErr)
-		return fmt.Errorf("Failed to close writer to zipfile %s: %s", zipfile.Name(), err)
+		_ = zipfile.Close()
+		return fmt.Errorf("Failed to close writer to zipfile %s: %s : %v", zipfile.Name(), err, walkErr)
 	}
 	if err := zipfile.Close(); err != nil {
-		LogErr(walkErr)
-		return fmt.Errorf("Failed to close the zipfile %s: %s", zipfile.Name(), err)
+		return fmt.Errorf("Failed to close the zipfile %s: %s : %v", zipfile.Name(), err, walkErr)
 	}
 
 	return walkErr

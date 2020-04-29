@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/util/zip"
 	"google.golang.org/api/googleapi"
 	storage "google.golang.org/api/storage/v1"
 )
@@ -226,7 +227,7 @@ func (gs *GcsUtil) DownloadChromiumBuild(chromiumBuild string) error {
 
 	// Unzip the build.
 	zipFilePath := filepath.Join(localDir, CHROMIUM_BUILD_ZIP_NAME)
-	if err := util.UnZip(localDir, zipFilePath); err != nil {
+	if err := zip.UnZip(localDir, zipFilePath); err != nil {
 		return fmt.Errorf("Error when unzipping %s: %s", zipFilePath, err)
 	}
 
