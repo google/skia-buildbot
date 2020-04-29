@@ -195,6 +195,15 @@ func RunStepFunc(ctx context.Context) (rvErr error) {
 	return nil
 }
 
+func SubprocessExample(ctx context.Context) error {
+	ctx = td.StartStep(ctx, td.Props("execute llamasay (demonstration of mocking calls)"))
+	defer td.EndStep(ctx)
+	if _, err := exec.RunSimple(ctx, "llamasay helloworld"); err != nil {
+		return td.FailStep(ctx, err)
+	}
+	return nil
+}
+
 // doSomething is a dummy function used to take the place of actual work in
 // this example.
 func doSomething() error {
