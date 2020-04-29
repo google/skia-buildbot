@@ -1649,6 +1649,34 @@ func (wh *Handlers) LatestPositiveDigestHandler(w http.ResponseWriter, r *http.R
 	sendJSONResponse(w, frontend.MostRecentPositiveDigestResponse{Digest: digest})
 }
 
+// GetPerTraceDigestsByTestName returns the digests in the current trace for the given test name,
+// grouped by trace ID.
+func (wh *Handlers) GetPerTraceDigestsByTestName(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+	}
+
+	testName, ok := mux.Vars(r)["testName"]
+	if !ok {
+		http.Error(w, "Must specify testName.", http.StatusBadRequest)
+		return
+	}
+
+	digestsByTraceId := frontend.GetPerTraceDigestsByTestNameResponse{}
+
+	// Iterate over all traces in the current tile for the given test name.
+	tracesById := wh.Indexer.GetIndex().SlicedTraces(types.IncludeIgnoredTraces, map[string][]string{
+		types.PrimaryKeyField: {testName},
+	})
+	for _, tracePair := range tracesById {
+		// Populate map with the trace's digests.
+		digestsByTraceId[tracePair.ID] = tracePair.Trace.Digests
+	}
+
+	sendJSONResponse(w, digestsByTraceId)
+}
+
 func (wh *Handlers) now() time.Time {
 	if !wh.testingNow.IsZero() {
 		return wh.testingNow
