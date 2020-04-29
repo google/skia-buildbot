@@ -84,7 +84,7 @@ func AddCTRunDataToPerf(ctx context.Context, groupName, runID, pathToCSVResults,
 	// Set uniqueID and create the workdir.
 	uniqueID := fmt.Sprintf("%s-%d", runID, time.Now().Unix())
 	workdir := path.Join(CTPerfWorkDir, uniqueID)
-	util.MkdirAll(workdir, 0700)
+	MkdirAll(workdir, 0700)
 	defer util.RemoveAll(workdir)
 
 	// Step 1: Add a commit to CT Perf's synthetic repo in CT_PERF_REPO

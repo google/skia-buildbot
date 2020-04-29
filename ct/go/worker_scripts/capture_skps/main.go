@@ -123,7 +123,7 @@ func captureSkps() error {
 	pathToSkps := filepath.Join(util.SkpsDir, *pagesetType, *chromiumBuild)
 	// Delete and remake the local SKPs directory.
 	skutil.RemoveAll(pathToSkps)
-	skutil.MkdirAll(pathToSkps, 0700)
+	util.MkdirAll(pathToSkps, 0700)
 	defer skutil.RemoveAll(pathToSkps)
 
 	// Construct path to the ct_run_benchmark python script.

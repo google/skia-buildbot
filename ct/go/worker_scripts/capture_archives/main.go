@@ -48,7 +48,7 @@ func captureArchives() error {
 	// Delete and remake the local webpage archives directory.
 	pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)
 	skutil.RemoveAll(pathToArchives)
-	skutil.MkdirAll(pathToArchives, 0700)
+	util.MkdirAll(pathToArchives, 0700)
 	defer skutil.RemoveAll(pathToArchives)
 
 	// Instantiate GcsUtil object.

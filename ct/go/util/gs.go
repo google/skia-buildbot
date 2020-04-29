@@ -122,7 +122,7 @@ func (gs *GcsUtil) downloadRemoteDir(localDir, gsDir string) error {
 	// Empty the local dir.
 	util.RemoveAll(localDir)
 	// Create the local dir.
-	util.MkdirAll(localDir, 0700)
+	MkdirAll(localDir, 0700)
 	// The channel where the storage objects to be downloaded will be sent to.
 	chStorageObjects := make(chan filePathToStorageObject, DOWNLOAD_UPLOAD_GOROUTINE_POOL_SIZE)
 
@@ -151,7 +151,7 @@ func (gs *GcsUtil) downloadRemoteDir(localDir, gsDir string) error {
 						fileName = filepath.Join(dirTokens[len(dirTokens)-i-1], fileName)
 					}
 					// Create the local directory.
-					util.MkdirAll(filepath.Join(localDir, filepath.Dir(fileName)), 0700)
+					MkdirAll(filepath.Join(localDir, filepath.Dir(fileName)), 0700)
 				}
 				chStorageObjects <- filePathToStorageObject{storageObject: result, filePath: fileName}
 			}
@@ -364,7 +364,7 @@ func (gs *GcsUtil) DownloadSwarmingArtifacts(localDir, remoteDirName, pagesetTyp
 	// Empty the local dir.
 	util.RemoveAll(localDir)
 	// Create the local dir.
-	util.MkdirAll(localDir, 0700)
+	MkdirAll(localDir, 0700)
 
 	gsDir := path.Join(SWARMING_DIR_NAME, remoteDirName, pagesetType)
 	endRange := num + startRange - 1
