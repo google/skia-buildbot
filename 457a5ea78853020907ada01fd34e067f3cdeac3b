@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "37e238c8_6eb4f78a",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-29T19:59:36Z",
+      "side": 1,
+      "message": "nit: typo",
+      "range": {
+        "startLine": 18,
+        "startChar": 77,
+        "endLine": 18,
+        "endChar": 86
+      },
+      "revId": "457a5ea78853020907ada01fd34e067f3cdeac3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "072ef3d4_5be59266",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-29T19:59:36Z",
+      "side": 1,
+      "message": "nit: while there are no line limits for go code, we tend to wrap comments to 100 columns",
+      "range": {
+        "startLine": 29,
+        "startChar": 92,
+        "endLine": 29,
+        "endChar": 96
+      },
+      "revId": "457a5ea78853020907ada01fd34e067f3cdeac3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ba01fa7_f38c8fe5",
+        "filename": "demos/go/load-demo-assets/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-29T19:59:36Z",
+      "side": 1,
+      "message": "nit: 100 cols for comments",
+      "range": {
+        "startLine": 3,
+        "startChar": 94,
+        "endLine": 3,
+        "endChar": 101
+      },
+      "revId": "457a5ea78853020907ada01fd34e067f3cdeac3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "34cf167b_b9cf2203",
+        "filename": "demos/webpack.config.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-29T19:59:36Z",
+      "side": 1,
+      "message": "Also include canvaskit.js (it is not included in particles/jsfiddle because it\u0027s built into the JS served there; with demos, that won\u0027t happen",
+      "range": {
+        "startLine": 13,
+        "startChar": 40,
+        "endLine": 13,
+        "endChar": 49
+      },
+      "revId": "457a5ea78853020907ada01fd34e067f3cdeac3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b220f858_b1446500",
+        "filename": "demos/webpack.config.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-29T19:59:36Z",
+      "side": 1,
+      "message": "Skip pathkit",
+      "range": {
+        "startLine": 14,
+        "startChar": 48,
+        "endLine": 14,
+        "endChar": 55
+      },
+      "revId": "457a5ea78853020907ada01fd34e067f3cdeac3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "77aa8e82_c5908d4a",
+        "filename": "go/util/util.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 849,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-04-29T19:59:36Z",
+      "side": 1,
+      "message": "We should probably get rid of MkdirAll and the other \"log errors instead of return them\", since they are misleading and can lead to error-prone [hehehe] code.\n\nUse os.MkdirAll directly instead.",
+      "range": {
+        "startLine": 849,
+        "startChar": 1,
+        "endLine": 849,
+        "endChar": 9
+      },
+      "revId": "457a5ea78853020907ada01fd34e067f3cdeac3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
