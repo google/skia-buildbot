@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -18,14 +17,14 @@ import (
 // It returns the path to the repo directory and a cleanup function that should
 // be called in a deferred.
 func InitTempRepo() (string, func()) {
-	tr := util.NewTempRepo()
+	tr := newTempRepo()
 	sklog.Infof("YYY: %s", tr.Dir)
 	return tr.Dir, tr.Cleanup
 }
 
 func TestDisplay(t sktest.TestingT, vcs vcsinfo.VCS) {
 	ctx := context.Background()
-	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
+	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by newTempRepo().
 	testCases := []struct {
 		hash    string
 		author  string
@@ -57,7 +56,7 @@ func TestDisplay(t sktest.TestingT, vcs vcsinfo.VCS) {
 }
 
 func TestFrom(t sktest.TestingT, vcs vcsinfo.VCS) {
-	// All timestamps refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
+	// All timestamps refer to the repository in ./testdata/testrepo.zip unzipped by newTempRepo().
 	// The two commits in the master branch of the repo have timestamps:
 	// 1406721715 and 1406721642.
 	testCases := []struct {
@@ -90,7 +89,7 @@ func TestFrom(t sktest.TestingT, vcs vcsinfo.VCS) {
 }
 
 func TestByIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
-	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
+	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by newTempRepo().
 	ctx := context.Background()
 	commit, err := vcs.ByIndex(ctx, 0)
 	require.NoError(t, err)
@@ -105,7 +104,7 @@ func TestByIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
 }
 
 func TestLastNIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
-	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
+	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by newTempRepo().
 	c1 := &vcsinfo.IndexCommit{
 		Hash:      "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
 		Index:     0,
@@ -145,7 +144,7 @@ func TestLastNIndex(t sktest.TestingT, vcs vcsinfo.VCS) {
 }
 
 func TestIndexOf(t sktest.TestingT, vcs vcsinfo.VCS) {
-	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
+	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by newTempRepo().
 	ctx := context.Background()
 	idx, err := vcs.IndexOf(ctx, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f")
 	require.NoError(t, err)
@@ -158,7 +157,7 @@ func TestIndexOf(t sktest.TestingT, vcs vcsinfo.VCS) {
 }
 
 func TestRange(t sktest.TestingT, vcs vcsinfo.VCS) {
-	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
+	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by newTempRepo().
 	ts1 := time.Unix(1406721642, 0).UTC()
 	ts2 := time.Unix(1406721715, 0).UTC()
 
@@ -223,7 +222,7 @@ func TestRange(t sktest.TestingT, vcs vcsinfo.VCS) {
 }
 
 func TestBranchInfo(t require.TestingT, vcs vcsinfo.VCS, branches []string) {
-	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by NewTempRepo().
+	// All hashes refer to the repository in ./testdata/testrepo.zip unzipped by newTempRepo().
 	ctx := context.Background()
 	require.Equal(t, 2, len(branches))
 

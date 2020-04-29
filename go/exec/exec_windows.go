@@ -4,15 +4,13 @@ package exec
 
 import (
 	"context"
-
-	"go.skia.org/infra/go/util"
 )
 
 // NoInterruptContext returns a context.Context instance which launches
 // subprocesses in a difference process group so that they are not killed when
 // this process is killed.
 //
-// On Windows, this function just returns util.WithoutCancel(ctx).
+// On Windows, this function just returns withoutCancel(ctx).
 func NoInterruptContext(ctx context.Context) context.Context {
-	return util.WithoutCancel(ctx)
+	return withoutCancel(ctx)
 }

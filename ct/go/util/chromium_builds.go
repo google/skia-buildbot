@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/util/zip"
 )
 
 const (
@@ -271,7 +272,7 @@ func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GcsUtil)
 
 	zipFilePath := filepath.Join(ChromiumBuildsDir, CHROMIUM_BUILD_ZIP_NAME)
 	defer util.Remove(zipFilePath)
-	if err := util.ZipIt(zipFilePath, localUploadDir); err != nil {
+	if err := zip.Directory(zipFilePath, localUploadDir); err != nil {
 		return fmt.Errorf("Error when zipping %s to %s: %s", localUploadDir, zipFilePath, err)
 	}
 	return gs.UploadFile(CHROMIUM_BUILD_ZIP_NAME, ChromiumBuildsDir, gsDir)
