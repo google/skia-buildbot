@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/tiling"
@@ -1036,8 +1037,8 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 		Test:             types.TestName(testName),
 		Nodes:            []Node{},
 		Links:            []Link{},
-		ParamsetByDigest: map[types.Digest]map[string][]string{},
-		ParamsetsUnion:   map[string][]string{},
+		ParamsetByDigest: map[types.Digest]paramtools.ParamSet{},
+		ParamsetsUnion:   paramtools.ParamSet{},
 	}
 	for i, d := range searchResponse.Digests {
 		d3.Nodes = append(d3.Nodes, Node{
@@ -1061,7 +1062,7 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 		for _, p := range d3.ParamsetByDigest[d.Digest] {
 			sort.Strings(p)
 		}
-		d3.ParamsetsUnion = util.AddParamSetToParamSet(d3.ParamsetsUnion, d3.ParamsetByDigest[d.Digest])
+		d3.ParamsetsUnion.AddParamSet(d3.ParamsetByDigest[d.Digest])
 	}
 
 	for _, p := range d3.ParamsetsUnion {
@@ -1091,8 +1092,8 @@ type ClusterDiffResult struct {
 	Links []Link `json:"links"`
 
 	Test             types.TestName                       `json:"test"`
-	ParamsetByDigest map[types.Digest]map[string][]string `json:"paramsetByDigest"`
-	ParamsetsUnion   map[string][]string                  `json:"paramsetsUnion"`
+	ParamsetByDigest map[types.Digest]paramtools.ParamSet `json:"paramsetByDigest"`
+	ParamsetsUnion   paramtools.ParamSet                  `json:"paramsetsUnion"`
 }
 
 // ListTestsHandler returns a JSON list with high level information about
