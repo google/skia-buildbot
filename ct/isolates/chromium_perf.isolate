@@ -23,6 +23,9 @@
   ],
   'variables': {
     'command': [
+      'luci-auth',
+      'context',
+      '--',
       '../../../bin/run_chromium_perf',
       '-logtostderr',
       '--start_range=<(START_RANGE)',
