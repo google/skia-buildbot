@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/code_review"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/expectations"
@@ -193,3 +194,6 @@ type IgnoreRuleBody struct {
 type MostRecentPositiveDigestResponse struct {
 	Digest types.Digest `json:"digest"`
 }
+
+// GetPerTraceDigestsByTestNameResponse is the response for /json/digestsbytestname.
+type GetPerTraceDigestsByTestNameResponse map[tiling.TraceID][]types.Digest
