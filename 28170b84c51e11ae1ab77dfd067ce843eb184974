@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c3696356_eccc651d",
+        "filename": "task_driver/examples/basic/basic_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-29T15:25:10Z",
+      "side": 1,
+      "message": "Mind adding a TODO for me to look into unifying those things?",
+      "range": {
+        "startLine": 18,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 25
+      },
+      "revId": "28170b84c51e11ae1ab77dfd067ce843eb184974",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
