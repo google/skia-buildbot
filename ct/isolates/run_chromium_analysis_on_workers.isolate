@@ -19,6 +19,9 @@
           'chromium_analysis.isolate',
         ],
       'command': [
+        'luci-auth',
+        'context',
+        '--',
         '../../../bin/run_chromium_analysis_on_workers',
         '-logtostderr',
         '--pageset_type=<(PAGESET_TYPE)',

@@ -15,6 +15,9 @@
           'build_repo.isolate',
         ],
       'command': [
+        'luci-auth',
+        'context',
+        '--',
         '../../../bin/build_chromium',
         '-logtostderr',
         '--target_platform=<(TARGET_PLATFORM)',

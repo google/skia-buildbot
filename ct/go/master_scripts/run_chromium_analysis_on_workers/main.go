@@ -225,7 +225,10 @@ func runChromiumAnalysisOnWorkers() error {
 	}
 
 	// Merge all CSV files and upload.
-	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local)
+	pathToPyFiles, err := util.GetPathToPyFiles(*master_common.Local)
+	if err != nil {
+		return fmt.Errorf("Could not get path to py files: %s", err)
+	}
 	outputCSVLocalPath, noOutputSlaves, err := util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1))
 	if err != nil {
 		return fmt.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
@@ -250,7 +253,7 @@ func runChromiumAnalysisOnWorkers() error {
 		if err != nil {
 			return err
 		}
-		if _, err := gitauth.New(ts, filepath.Join(os.TempDir(), "gitcookies"), true, util.MASTER_SERVICE_ACCOUNT); err != nil {
+		if _, err := gitauth.New(ts, filepath.Join(os.TempDir(), "gitcookies"), true, util.CT_SERVICE_ACCOUNT); err != nil {
 			return fmt.Errorf("Failed to create git cookie updater: %s", err)
 		}
 

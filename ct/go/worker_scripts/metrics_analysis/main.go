@@ -22,6 +22,7 @@ import (
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -49,7 +50,10 @@ var (
 
 func metricsAnalysis() error {
 	ctx := context.Background()
-	worker_common.Init(ctx, false /* useDepotTools */)
+	httpClient, err := worker_common.Init(ctx, false /* useDepotTools */)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	if !*worker_common.Local {
 		defer util.CleanTmpDir()
 	}
@@ -70,7 +74,7 @@ func metricsAnalysis() error {
 	}
 
 	// Instantiate GcsUtil object.
-	gs, err := util.NewGcsUtil(nil)
+	gs, err := util.NewGcsUtil(httpClient)
 	if err != nil {
 		return fmt.Errorf("GcsUtil instantiation failed: %s", err)
 	}
@@ -173,7 +177,10 @@ func metricsAnalysis() error {
 	// If "--output-format=csv" was specified then merge all CSV files and upload.
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
 		// Construct path to CT's python scripts.
-		pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local)
+		pathToPyFiles, err := util.GetPathToPyFiles(*worker_common.Local)
+		if err != nil {
+			return fmt.Errorf("Could not get path to py files: %s", err)
+		}
 		if err := util.MergeUploadCSVFilesOnWorkers(ctx, localOutputDir, pathToPyFiles, *runID, remoteDir, *valueColumnName, gs, *startRange, true /* handleStrings */, false /* addRanks */, map[string]map[string]string{} /* pageRankToAdditionalFields */); err != nil {
 			return fmt.Errorf("Error while processing withpatch CSV files: %s", err)
 		}

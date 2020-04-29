@@ -13,6 +13,9 @@
           '../../../bin/create_pagesets',
         ],
         'command': [
+          'luci-auth',
+          'context',
+          '--',
           '../../../bin/create_pagesets',
           '-logtostderr',
           '--start_range=<(START_RANGE)',

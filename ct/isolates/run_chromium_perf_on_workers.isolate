@@ -19,6 +19,9 @@
           'chromium_perf.isolate',
         ],
       'command': [
+        'luci-auth',
+        'context',
+        '--',
         '../../../bin/run_chromium_perf_on_workers',
         '-logtostderr',
         '--run_requester=<(RUN_REQUESTER)',

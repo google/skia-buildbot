@@ -8,7 +8,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -19,9 +18,8 @@ import (
 	"go.skia.org/infra/ct/go/adb"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
-	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -54,7 +52,10 @@ var (
 
 func runChromiumPerf() error {
 	ctx := context.Background()
-	worker_common.Init(ctx, false /* useDepotTools */)
+	httpClient, err := worker_common.Init(ctx, false /* useDepotTools */)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	if !*worker_common.Local {
 		defer util.CleanTmpDir()
 	}
@@ -78,16 +79,6 @@ func runChromiumPerf() error {
 	// Use defaults.
 	if *valueColumnName == "" {
 		*valueColumnName = util.DEFAULT_VALUE_COLUMN_NAME
-	}
-
-	var httpClient *http.Client
-	if *targetPlatform == util.PLATFORM_ANDROID {
-		// Android runs use task based authentication and need to use Luci context.
-		ts, err := auth.NewLUCIContextTokenSource(auth.SCOPE_FULL_CONTROL)
-		if err != nil {
-			return fmt.Errorf("Could not get token source: %s", err)
-		}
-		httpClient = httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 	}
 
 	// Instantiate GcsUtil object.
@@ -176,7 +167,10 @@ func runChromiumPerf() error {
 	remoteDirWithPatch := path.Join(util.BenchmarkRunsStorageDir, runIDWithPatch)
 
 	// Construct path to the ct_run_benchmark python script.
-	pathToPyFiles := util.GetPathToPyFiles(*worker_common.Local)
+	pathToPyFiles, err := util.GetPathToPyFiles(*worker_common.Local)
+	if err != nil {
+		return fmt.Errorf("Could not get path to py files: %s", err)
+	}
 
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {

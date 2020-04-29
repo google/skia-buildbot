@@ -13,6 +13,9 @@
           '../../../bin/capture_skps',
         ],
         'command': [
+          'luci-auth',
+          'context',
+          '--',
           '../../../bin/capture_skps',
           '-logtostderr',
           '--start_range=<(START_RANGE)',

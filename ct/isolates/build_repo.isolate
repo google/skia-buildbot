@@ -24,6 +24,9 @@
   ],
   'variables': {
     'command': [
+      'luci-auth',
+      'context',
+      '--',
       '../../../bin/build_repo',
       '-logtostderr',
       '--run_id=<(RUN_ID)',

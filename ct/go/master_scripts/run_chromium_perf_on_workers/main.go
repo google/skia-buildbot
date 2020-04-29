@@ -259,7 +259,10 @@ func runChromiumPerfOnWorkers() error {
 	// If "--output-format=csv" is specified then merge all CSV files and upload.
 	runIDNoPatch := fmt.Sprintf("%s-nopatch", *runID)
 	runIDWithPatch := fmt.Sprintf("%s-withpatch", *runID)
-	pathToPyFiles := util.GetPathToPyFiles(*master_common.Local)
+	pathToPyFiles, err := util.GetPathToPyFiles(*master_common.Local)
+	if err != nil {
+		return fmt.Errorf("Could not get path to py files: %s", err)
+	}
 	var noOutputSlaves []string
 
 	// Nopatch CSV file processing.
@@ -342,7 +345,7 @@ func runChromiumPerfOnWorkers() error {
 		if err != nil {
 			return err
 		}
-		if _, err := gitauth.New(ts, filepath.Join(os.TempDir(), "gitcookies"), true, util.MASTER_SERVICE_ACCOUNT); err != nil {
+		if _, err := gitauth.New(ts, filepath.Join(os.TempDir(), "gitcookies"), true, util.CT_SERVICE_ACCOUNT); err != nil {
 			return fmt.Errorf("Failed to create git cookie updater: %s", err)
 		}
 

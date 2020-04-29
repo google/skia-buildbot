@@ -15,6 +15,9 @@
           'create_pagesets.isolate',
         ],
       'command': [
+        'luci-auth',
+        'context',
+        '--',
         '../../../bin/create_pagesets_on_workers',
         '-logtostderr',
         '--run_on_gce=<(RUN_ON_GCE)',

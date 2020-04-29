@@ -12,6 +12,9 @@
           '../../../bin/metrics_analysis',
         ],
         'command': [
+          'luci-auth',
+          'context',
+          '--',
           '../../../bin/metrics_analysis',
           '-logtostderr',
           '--start_range=<(START_RANGE)',

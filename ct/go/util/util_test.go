@@ -27,11 +27,13 @@ func TestGetPathToPyFiles(t *testing.T) {
 	expectedSwarmingPathSuffix := "py"
 
 	// Test local path.
-	pathToPyFiles := GetPathToPyFiles(true /* local */)
+	pathToPyFiles, err := GetPathToPyFiles(true /* local */)
+	require.NoError(t, err)
 	require.True(t, strings.HasSuffix(pathToPyFiles, expectedLocalPathSuffix))
 
 	// Test swarming path.
-	pathToPyFiles = GetPathToPyFiles(false /* local */)
+	pathToPyFiles, err = GetPathToPyFiles(false /* local */)
+	require.NoError(t, err)
 	require.True(t, strings.HasSuffix(pathToPyFiles, expectedSwarmingPathSuffix))
 }
 

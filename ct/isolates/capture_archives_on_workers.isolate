@@ -17,6 +17,9 @@
           'capture_archives.isolate',
         ],
       'command': [
+        'luci-auth',
+        'context',
+        '--',
         '../../../bin/capture_archives_on_workers',
         '-logtostderr',
         '--run_on_gce=<(RUN_ON_GCE)',
