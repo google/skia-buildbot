@@ -1702,6 +1702,54 @@ func TestLatestPositiveDigest_SearchIndexerFailure_InternalServerError(t *testin
 	assert.Contains(t, w.Body.String(), "Could not retrieve most recent positive digest.")
 }
 
+func TestGetPerTraceDigestsByTestName_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mockIndexSearcher := &mock_indexer.IndexSearcher{}
+	mockIndexSource := &mock_indexer.IndexSource{}
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer: mockIndexSource,
+		},
+		anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+
+	mockIndexSource.On("GetIndex").Return(mockIndexSearcher)
+	mockIndexSearcher.On("SlicedTraces", types.IncludeIgnoredTraces, map[string][]string{
+		types.PrimaryKeyField: {"MyTest"},
+	}).Return([]*types.TracePair{
+		{
+			ID: ",foo=alpha,",
+			Trace: types.NewGoldenTrace([]types.Digest{
+				"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+				"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+			}, map[string]string{
+				"name": "MyTest",
+				"foo":  "alpha",
+			}),
+		},
+		{
+			ID: ",foo=beta,",
+			Trace: types.NewGoldenTrace([]types.Digest{
+				"",
+				"cccccccccccccccccccccccccccccccc",
+			}, map[string]string{
+				"name": "MyTest",
+				"foo":  "beta",
+			}),
+		},
+	})
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	r = mux.SetURLVars(r, map[string]string{"testName": "MyTest"})
+
+	wh.GetPerTraceDigestsByTestName(w, r)
+	expectedResponse := `{",foo=alpha,":["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],",foo=beta,":["","cccccccccccccccccccccccccccccccc"]}`
+	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
+}
+
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
 // would only matter if we were calling into the router, so it knew which handler to call.
 const requestURL = "/does/not/matter"
