@@ -120,7 +120,7 @@ func runChromiumAnalysis() error {
 		chromiumBinary = util.ApkName
 		if *apkGsPath != "" {
 			pathToBinaryDir = filepath.Join(util.ChromiumBuildsDir, util.CUSTOM_APK_DIR_NAME)
-			skutil.MkdirAll(pathToBinaryDir, 0700)
+			util.MkdirAll(pathToBinaryDir, 0700)
 			defer skutil.RemoveAll(pathToBinaryDir)
 
 			// Download the specified APK from Google storage.
@@ -163,7 +163,7 @@ func runChromiumAnalysis() error {
 	// Establish nopatch output paths.
 	localOutputDir := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID)
 	skutil.RemoveAll(localOutputDir)
-	skutil.MkdirAll(localOutputDir, 0700)
+	util.MkdirAll(localOutputDir, 0700)
 	defer skutil.RemoveAll(localOutputDir)
 	remoteDir := path.Join(util.BenchmarkRunsStorageDir, *runID)
 

@@ -297,7 +297,7 @@ func runChromiumPerfOnWorkers() error {
 	// Compare the resultant CSV files using csv_comparer.py
 	_, skiaHash := util.GetHashesFromBuild(chromiumBuildNoPatch)
 	htmlOutputDir := filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir, *runID, "html")
-	skutil.MkdirAll(htmlOutputDir, 0700)
+	util.MkdirAll(htmlOutputDir, 0700)
 	htmlRemoteDir := util.GetPerfRemoteHTMLDir(*runID)
 	htmlOutputLinkBase := util.GetPerfOutputLinkBase(*runID)
 	noPatchOutputLink := util.GetPerfNoPatchOutputLink(*runID)

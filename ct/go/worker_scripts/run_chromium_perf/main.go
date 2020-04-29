@@ -154,7 +154,7 @@ func runChromiumPerf() error {
 	runIDNoPatch := fmt.Sprintf("%s-nopatch", *runID)
 	localOutputDirNoPatch := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch)
 	skutil.RemoveAll(localOutputDirNoPatch)
-	skutil.MkdirAll(localOutputDirNoPatch, 0700)
+	util.MkdirAll(localOutputDirNoPatch, 0700)
 	defer skutil.RemoveAll(localOutputDirNoPatch)
 	remoteDirNoPatch := path.Join(util.BenchmarkRunsStorageDir, runIDNoPatch)
 
@@ -162,7 +162,7 @@ func runChromiumPerf() error {
 	runIDWithPatch := fmt.Sprintf("%s-withpatch", *runID)
 	localOutputDirWithPatch := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDWithPatch)
 	skutil.RemoveAll(localOutputDirWithPatch)
-	skutil.MkdirAll(localOutputDirWithPatch, 0700)
+	util.MkdirAll(localOutputDirWithPatch, 0700)
 	defer skutil.RemoveAll(localOutputDirWithPatch)
 	remoteDirWithPatch := path.Join(util.BenchmarkRunsStorageDir, runIDWithPatch)
 

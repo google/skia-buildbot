@@ -39,7 +39,7 @@ func createPagesets() error {
 	// Delete and remake the local pagesets directory.
 	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
 	skutil.RemoveAll(pathToPagesets)
-	skutil.MkdirAll(pathToPagesets, 0700)
+	util.MkdirAll(pathToPagesets, 0700)
 	defer skutil.RemoveAll(pathToPagesets)
 
 	// Get info about the specified pageset type.

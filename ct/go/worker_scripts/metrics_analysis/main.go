@@ -81,7 +81,7 @@ func metricsAnalysis() error {
 
 	// Download the trace URLs for this run from Google storage.
 	tracesFilename := *runID + ".traces.csv"
-	skutil.MkdirAll(util.PagesetsDir, 0700)
+	util.MkdirAll(util.PagesetsDir, 0700)
 	tmpDir, err := ioutil.TempDir(util.PagesetsDir, "traces")
 	if err != nil {
 		return fmt.Errorf("Could not create tmpdir: %s", err)
@@ -106,12 +106,12 @@ func metricsAnalysis() error {
 	// Establish output paths for trace downloads and metrics.
 	traceDownloadDir := filepath.Join(util.StorageDir, util.TraceDownloadsDir, *runID)
 	skutil.RemoveAll(traceDownloadDir)
-	skutil.MkdirAll(traceDownloadDir, 0700)
+	util.MkdirAll(traceDownloadDir, 0700)
 	defer skutil.RemoveAll(traceDownloadDir)
 
 	localOutputDir := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID)
 	skutil.RemoveAll(localOutputDir)
-	skutil.MkdirAll(localOutputDir, 0700)
+	util.MkdirAll(localOutputDir, 0700)
 	defer skutil.RemoveAll(localOutputDir)
 	remoteDir := filepath.Join(util.BenchmarkRunsDir, *runID)
 

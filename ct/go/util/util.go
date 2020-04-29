@@ -315,7 +315,7 @@ func ValidateSKPs(ctx context.Context, pathToSkps, pathToPyFiles, pathToSkpinfo 
 				if largestLayerInfo.Size() > 6000 {
 					layerPath := filepath.Join(pathToSkps, index, skpName, largestLayerInfo.Name())
 					destSKP := filepath.Join(pathToSkps, index, skpName+".skp")
-					util.Rename(layerPath, destSKP)
+					Rename(layerPath, destSKP)
 					skps = append(skps, destSKP)
 				} else {
 					sklog.Warningf("Skipping %s because size was less than 6000 bytes", skpName)
@@ -600,7 +600,7 @@ func GetPathToTelemetryCTBinaries(local bool) string {
 
 func MergeUploadCSVFiles(ctx context.Context, runID, pathToPyFiles string, gs *GcsUtil, totalPages, maxPagesPerBot int, handleStrings bool, repeatValue int) (string, []string, error) {
 	localOutputDir := filepath.Join(StorageDir, BenchmarkRunsDir, runID)
-	util.MkdirAll(localOutputDir, 0700)
+	MkdirAll(localOutputDir, 0700)
 	noOutputSlaves := []string{}
 	// Copy outputs from all slaves locally.
 	numPagesPerBot := GetNumPagesPerBot(repeatValue, maxPagesPerBot)
@@ -1288,7 +1288,7 @@ func CreateCustomPagesets(webpages []string, pagesetsDir, targetPlatform string)
 	// Empty the local dir.
 	util.RemoveAll(pagesetsDir)
 	// Create the local dir.
-	util.MkdirAll(pagesetsDir, 0700)
+	MkdirAll(pagesetsDir, 0700)
 	// Figure out which user agent to use.
 	var userAgent string
 	if targetPlatform == PLATFORM_ANDROID {
@@ -1442,4 +1442,18 @@ func (t *TimeoutTracker) Read() int {
 	t.timeoutCounterMutex.Lock()
 	defer t.timeoutCounterMutex.Unlock()
 	return t.timeoutCounter
+}
+
+// MkdirAll creates the specified path and logs an error if one is returned.
+func MkdirAll(name string, perm os.FileMode) {
+	if err := os.MkdirAll(name, perm); err != nil {
+		sklog.ErrorfWithDepth(1, "Failed to MkdirAll(%s, %v): %v", name, perm, err)
+	}
+}
+
+// Rename renames the specified file and logs an error if one is returned.
+func Rename(oldpath, newpath string) {
+	if err := os.Rename(oldpath, newpath); err != nil {
+		sklog.ErrorfWithDepth(1, "Failed to Rename(%s, %s): %v", oldpath, newpath, err)
+	}
 }

@@ -53,7 +53,7 @@ func ChromiumBuildDir(chromiumHash, skiaHash, runID string) string {
 // applyPatches if true looks for Chromium/Skia/V8/Catapult patches in the temp dir.
 func CreateTelemetryIsolates(ctx context.Context, runID, chromiumHash, pathToPyFiles, gitExec string, applyPatches bool) error {
 	chromiumBuildDir, _ := filepath.Split(ChromiumSrcDir)
-	util.MkdirAll(chromiumBuildDir, 0700)
+	MkdirAll(chromiumBuildDir, 0700)
 
 	// Make sure we are starting from a clean slate before the sync.
 	if err := ResetChromiumCheckout(ctx, ChromiumSrcDir, gitExec); err != nil {
@@ -139,7 +139,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 	} else {
 		return "", "", fmt.Errorf("Unrecognized target_platform %s", targetPlatform)
 	}
-	util.MkdirAll(chromiumBuildDir, 0700)
+	MkdirAll(chromiumBuildDir, 0700)
 
 	// Find which Chromium commit hash should be used.
 	var err error
@@ -241,7 +241,7 @@ func GetChromiumHash(ctx context.Context, gitExec string) (string, error) {
 }
 
 func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GcsUtil) error {
-	util.MkdirAll(ChromiumBuildsDir, 0755)
+	MkdirAll(ChromiumBuildsDir, 0755)
 	localUploadDir := localOutDir
 	if targetPlatform == "Android" {
 		localUploadDir = filepath.Join(localUploadDir, "apks")
@@ -257,7 +257,7 @@ func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GcsUtil)
 		if err := os.Rename(genDir, genTmpDir); err != nil {
 			return fmt.Errorf("Could not rename gen dir: %s", err)
 		}
-		defer util.Rename(genTmpDir, genDir)
+		defer Rename(genTmpDir, genDir)
 
 		objDir := filepath.Join(localOutDir, "obj")
 		objTmpDir := filepath.Join(ChromiumBuildsDir, "obj")
@@ -266,7 +266,7 @@ func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GcsUtil)
 		if err := os.Rename(objDir, objTmpDir); err != nil {
 			return fmt.Errorf("Could not rename obj dir: %s", err)
 		}
-		defer util.Rename(objTmpDir, objDir)
+		defer Rename(objTmpDir, objDir)
 	}
 
 	zipFilePath := filepath.Join(ChromiumBuildsDir, CHROMIUM_BUILD_ZIP_NAME)

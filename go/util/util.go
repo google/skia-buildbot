@@ -421,27 +421,6 @@ func Remove(name string) {
 	}
 }
 
-// Rename renames the specified file and logs an error if one is returned.
-func Rename(oldpath, newpath string) {
-	if err := os.Rename(oldpath, newpath); err != nil {
-		sklog.ErrorfWithDepth(1, "Failed to Rename(%s, %s): %v", oldpath, newpath, err)
-	}
-}
-
-// Mkdir creates the specified path and logs an error if one is returned.
-func Mkdir(name string, perm os.FileMode) {
-	if err := os.Mkdir(name, perm); err != nil {
-		sklog.ErrorfWithDepth(1, "Failed to Mkdir(%s, %v): %v", name, perm, err)
-	}
-}
-
-// MkdirAll creates the specified path and logs an error if one is returned.
-func MkdirAll(name string, perm os.FileMode) {
-	if err := os.MkdirAll(name, perm); err != nil {
-		sklog.ErrorfWithDepth(1, "Failed to MkdirAll(%s, %v): %v", name, perm, err)
-	}
-}
-
 // LogErr logs err if it's not nil. This is intended to be used
 // for calls where generally a returned error can be ignored.
 func LogErr(err error) {
