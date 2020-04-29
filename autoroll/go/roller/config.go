@@ -11,8 +11,10 @@ import (
 
 	"github.com/flynn/json5"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/commit_msg"
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/repo_manager"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/time_window"
 	"go.skia.org/infra/go/human"
@@ -170,6 +172,9 @@ type AutoRollerConfig struct {
 	// for Sheriff.
 	SheriffBackup []string `json:"sheriffBackup,omitempty"`
 
+	// Commit message configuration.
+	CommitMsgConfig *commit_msg.CommitMsgConfig `json:"commitMsg"`
+
 	// Code review settings.
 	Gerrit        *codereview.GerritConfig  `json:"gerrit,omitempty"`
 	Github        *codereview.GithubConfig  `json:"github,omitempty"`
@@ -195,21 +200,22 @@ type AutoRollerConfig struct {
 
 	// Optional Fields.
 
-	// Comma-separated list of trybots to add to roll CLs, in addition to
-	// the default set of commit queue trybots.
-	CqExtraTrybots []string `json:"cqExtraTrybots,omitempty"`
 	// Limit to one successful roll within this time period.
 	MaxRollFrequency string `json:"maxRollFrequency,omitempty"`
 	// Any extra notification systems to be used for this roller.
 	Notifiers []*notifier.Config `json:"notifiers,omitempty"`
-	// Time window in which the roller is allowed to upload roll CLs. See
-	// the go/time_window package for supported format.
-	TimeWindow string `json:"timeWindow,omitempty"`
 	// Throttling configuration to prevent uploading too many CLs within
 	// too short a time period.
 	SafetyThrottle *ThrottleConfig `json:"safetyThrottle,omitempty"`
 	// If true, this roller supports one-click "manual" rolls.
 	SupportsManualRolls bool `json:"supportsManualRolls,omitempty"`
+	// Time window in which the roller is allowed to upload roll CLs. See
+	// the go/time_window package for supported format.
+	TimeWindow string `json:"timeWindow,omitempty"`
+	// TransitiveDeps is an optional mapping of dependency ID (eg. repo URL)
+	// to the paths within the parent and child repo, respectively, where
+	// those dependencies are versioned, eg. "DEPS".
+	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps"`
 }
 
 // Validate the config.
@@ -243,6 +249,13 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 	if c.Sheriff == nil || len(c.Sheriff) == 0 {
 		return errors.New("Sheriff is required.")
+	}
+
+	if c.CommitMsgConfig == nil {
+		return skerr.Fmt("CommitMsgConfig is required")
+	}
+	if err := c.CommitMsgConfig.Validate(); err != nil {
+		return skerr.Wrap(err)
 	}
 
 	cr := []util.Validator{}
