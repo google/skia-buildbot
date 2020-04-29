@@ -7,13 +7,17 @@ package worker_common
 import (
 	"context"
 	"flag"
+	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 
 	"go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -22,7 +26,8 @@ var (
 	Local = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 )
 
-func Init(ctx context.Context, useDepotTools bool) {
+// Init initializes common worker tasks and returns an authenticated httpClient.
+func Init(ctx context.Context, useDepotTools bool) (*http.Client, error) {
 	common.Init()
 	if *Local {
 		util.SetVarsForLocal()
@@ -58,4 +63,10 @@ func Init(ctx context.Context, useDepotTools bool) {
 			}
 		}
 	}
+	// Use task based authentication and Luci context.
+	ts, err := auth.NewLUCIContextTokenSource(auth.SCOPE_FULL_CONTROL)
+	if err != nil {
+		return nil, fmt.Errorf("Could not get token source: %s", err)
+	}
+	return httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client(), nil
 }
