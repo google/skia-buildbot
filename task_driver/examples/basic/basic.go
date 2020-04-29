@@ -164,7 +164,8 @@ func RunStepFunc(ctx context.Context) (rvErr error) {
 	// 1. Subprocesses. You can pass a context.Context associated with a
 	//    step to any of the Run functions in the go.skia.org/infra/go/exec
 	//    package. This causes any subprocess to run as its own step, which
-	//    is a sub-step of the one associated with the Context.
+	//    is a sub-step of the one associated with the Context. See below and
+	//    in basic_test for example code on mocking this subprocess call out.
 	if _, err := exec.RunSimple(ctx, "echo helloworld"); err != nil {
 		return td.FailStep(ctx, err)
 	}
@@ -192,6 +193,21 @@ func RunStepFunc(ctx context.Context) (rvErr error) {
 			rvErr = td.FailStep(ctx, err)
 		}
 	}()
+	return nil
+}
+
+// subprocessExample is accompanied by a test in basic_test.go. The test shows off how to mock out
+// a call to creating a subprocess.
+func subprocessExample(ctx context.Context) error {
+	ctx = td.StartStep(ctx, td.Props("execute llamasay (demonstration of mocking calls)"))
+	defer td.EndStep(ctx)
+	if _, err := exec.RunSimple(ctx, "llamasay hello world"); err != nil {
+		return td.FailStep(ctx, err)
+	}
+
+	if _, err := exec.RunSimple(ctx, "bearsay good night moon"); err != nil {
+		return td.FailStep(ctx, err)
+	}
 	return nil
 }
 
