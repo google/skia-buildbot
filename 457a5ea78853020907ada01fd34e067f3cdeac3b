@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f40d5fa7_99ae0ead",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-04-30T13:40:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37e238c8_6eb4f78a",
+      "range": {
+        "startLine": 18,
+        "startChar": 77,
+        "endLine": 18,
+        "endChar": 86
+      },
+      "revId": "457a5ea78853020907ada01fd34e067f3cdeac3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "072ef3d4_5be59266",
         "filename": "demos/go/demoserver/main.go",
         "patchSetId": 8
@@ -45,6 +69,30 @@
       "revId": "457a5ea78853020907ada01fd34e067f3cdeac3b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61d6eb1d_bc79c56a",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-04-30T13:40:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "072ef3d4_5be59266",
+      "range": {
+        "startLine": 29,
+        "startChar": 92,
+        "endLine": 29,
+        "endChar": 96
+      },
+      "revId": "457a5ea78853020907ada01fd34e067f3cdeac3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "6129cd55_8e435afc",
+        "filename": "demos/go/load-demo-assets/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-04-30T13:40:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2ba01fa7_f38c8fe5",
+      "range": {
+        "startLine": 3,
+        "startChar": 94,
+        "endLine": 3,
+        "endChar": 101
+      },
+      "revId": "457a5ea78853020907ada01fd34e067f3cdeac3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "34cf167b_b9cf2203",
         "filename": "demos/webpack.config.js",
         "patchSetId": 8
@@ -91,6 +163,30 @@
       "revId": "457a5ea78853020907ada01fd34e067f3cdeac3b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2655732a_0ad624b4",
+        "filename": "demos/webpack.config.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-04-30T13:40:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "34cf167b_b9cf2203",
+      "range": {
+        "startLine": 13,
+        "startChar": 40,
+        "endLine": 13,
+        "endChar": 49
+      },
+      "revId": "457a5ea78853020907ada01fd34e067f3cdeac3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "27c41f55_369c8c9d",
+        "filename": "demos/webpack.config.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-04-30T13:40:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b220f858_b1446500",
+      "range": {
+        "startLine": 14,
+        "startChar": 48,
+        "endLine": 14,
+        "endChar": 55
+      },
+      "revId": "457a5ea78853020907ada01fd34e067f3cdeac3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "77aa8e82_c5908d4a",
         "filename": "go/util/util.go",
         "patchSetId": 8
@@ -137,6 +257,30 @@
       "revId": "457a5ea78853020907ada01fd34e067f3cdeac3b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d40b1f98_e9aa0029",
+        "filename": "go/util/util.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 849,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-04-30T13:40:24Z",
+      "side": 1,
+      "message": "Done. Guessing this is what prompted your cleanup CLs :)",
+      "parentUuid": "77aa8e82_c5908d4a",
+      "range": {
+        "startLine": 849,
+        "startChar": 1,
+        "endLine": 849,
+        "endChar": 9
+      },
+      "revId": "457a5ea78853020907ada01fd34e067f3cdeac3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
