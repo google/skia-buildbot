@@ -5,7 +5,7 @@
   },
   "store": {
     "project": "skia-firestore",
-    "instance": "test"
+    "instance": "prod"
   },
   "web": {
     "allowed_users": ["google.com"],

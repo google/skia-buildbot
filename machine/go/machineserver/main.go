@@ -10,6 +10,7 @@ import (
 	"text/template"
 
 	"github.com/gorilla/mux"
+	"github.com/unrolled/secure"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/httputils"
@@ -100,7 +101,7 @@ func user(r *http.Request) string {
 }
 
 func (s *server) loadTemplates() {
-	s.templates = template.Must(template.New("").ParseFiles(
+	s.templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
 		filepath.Join(*baseapp.ResourcesDir, "index.html"),
 	))
 }
@@ -110,18 +111,23 @@ func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *baseapp.Local {
 		s.loadTemplates()
 	}
+	if err := s.templates.ExecuteTemplate(w, "index.html", map[string]string{
+		// Look in webpack.config.js for where the nonce templates are injected.
+		"Nonce": secure.CSPNonce(r.Context()),
+	}); err != nil {
+		sklog.Errorf("Failed to expand template: %s", err)
+	}
+}
+
+func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	descriptions, err := s.store.List(r.Context())
-	sklog.Infof("%#v", descriptions)
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to get list of machines.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to read from datastore", http.StatusInternalServerError)
 		return
 	}
 
-	if err := s.templates.ExecuteTemplate(w, "index.html", descriptions); err != nil {
-		sklog.Error("Failed to expand template:", err)
-	}
-
-	if err != nil {
+	if err := json.NewEncoder(w).Encode(descriptions); err != nil {
 		sklog.Errorf("Failed to write response: %s", err)
 	}
 }
@@ -129,6 +135,7 @@ func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 // See baseapp.App.
 func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", s.mainHandler)
+	r.HandleFunc("/_/machines", s.machinesHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 }
 

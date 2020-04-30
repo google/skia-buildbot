@@ -1,0 +1,21 @@
+@import '~elements-sk/colors.css';
+
+machine-server-sk {
+  table {
+    border: 2px solid var(--black);
+    background-color: var(--gray);
+    text-align: center;
+    border-collapse: collapse;
+    color: var(--white);
+  }
+
+  table td,
+  table th {
+    border: 1px solid var(--gray);
+    padding: 4px 10px;
+  }
+
+  table tr:nth-child(even) {
+    background: var(--light-gray);
+  }
+}
