@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/gorilla/mux"
@@ -132,10 +133,34 @@ func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := strings.TrimSpace(vars["id"])
+	if id == "" {
+		httputils.ReportError(w, skerr.Fmt("ID must be supplied."), "ID must be supplied.", http.StatusInternalServerError)
+		return
+	}
+	err := s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
+		ret := in.Copy()
+		if ret.Mode == machine.ModeAvailable {
+			ret.Mode = machine.ModeMaintenance
+		} else {
+			ret.Mode = machine.ModeAvailable
+		}
+		return ret
+	})
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 // See baseapp.App.
 func (s *server) AddHandlers(r *mux.Router) {
-	r.HandleFunc("/", s.mainHandler)
-	r.HandleFunc("/_/machines", s.machinesHandler)
+	r.HandleFunc("/", s.mainHandler).Methods("GET")
+	r.HandleFunc("/_/machines", s.machinesHandler).Methods("GET")
+	r.HandleFunc("/_/machine/toggle_mode/{id:.+}", s.machineToggleModeHandler).Methods("GET")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 }
 
