@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "995ea8a7_5598ee6d",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-30T19:37:11Z",
+      "side": 1,
+      "message": "That simplifies things. We\u0027ll see if something complains about this being required.",
+      "parentUuid": "dbaa5929_6b14222e",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 36
+      },
+      "revId": "ee7e3e7d18c18d21a3efd0e52e8044ded8376bd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f6b34660_c13d1acb",
         "filename": "docker/Dockerfile",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2020-04-30T19:18:09Z",
       "side": 1,
       "message": "This should be:\n\n...\n\u0026\u0026 git fetch https://skia.googlesource.com/buildbot ${PATCH_REF} \\\n\u0026\u0026 git checkout FETCH_HEAD \\\n\u0026\u0026 git rebase ${HASH}",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 39
+      },
+      "revId": "ee7e3e7d18c18d21a3efd0e52e8044ded8376bd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82b909b0_1c3cb016",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-30T19:37:11Z",
+      "side": 1,
+      "message": "I tried this but the build fails with:\n\"\"\"\nStep 12/18 : RUN if [ ! -z \"${PATCH_REF}\" ] ; then cd $GOPATH/src/go.skia.org/infra     \u0026\u0026 git fetch https://skia.googlesource.com/buildbot ${PATCH_REF}     \u0026\u0026 git checkout FETCH_HEAD     \u0026\u0026 git rebase ${HASH}; fi\n ---\u003e Running in 11464ce79ee8\nFrom https://skia.googlesource.com/buildbot\n * branch                refs/changes/37/286437/1 -\u003e FETCH_HEAD\nNote: checking out \u0027FETCH_HEAD\u0027.\n\nYou are in \u0027detached HEAD\u0027 state. You can look around, make experimental\nchanges and commit them, and you can discard any commits you make in this\nstate without impacting any branches by performing another checkout.\n\nIf you want to create a new branch to retain commits you create, you may\ndo so (now or later) by using -b with the checkout command again. Example:\n\n  git checkout -b \u003cnew-branch-name\u003e\n\nHEAD is now at dc267d6a9 Testing\nFirst, rewinding head to replay your work on top of it...\n\n*** Please tell me who you are.\n\nRun\n\n  git config --global user.email \"you@example.com\"\n  git config --global user.name \"Your Name\"\n\nto set your account\u0027s default identity.\nOmit --global to set the identity only in this repository.\n\nfatal: unable to auto-detect email address (got \u0027skia@11464ce79ee8.(none)\u0027)\n\n\"\"\"\n\nI guess it needs the identity to do a rebase, any suggestions?\n\n\nAnother reason I had a reset --hard FETCH_HEAD was that it ended up staying on the same master branch. Those other sequence of commands keeps it in a detached HEAD state. Maybe I shouldn\u0027t worry about which branch this goes it, any Dockerfile that pulls this image should not care (hopefully).",
+      "parentUuid": "f6b34660_c13d1acb",
       "range": {
         "startLine": 43,
         "startChar": 0,
@@ -68,6 +116,30 @@
       "revId": "ee7e3e7d18c18d21a3efd0e52e8044ded8376bd8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b647fca_0480e27a",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-04-30T19:37:11Z",
+      "side": 1,
+      "message": "IIRC, Joe made this Dockerfile for cloudbuild automatic deployments of fiddle. It has been extended to include other apps too now.",
+      "parentUuid": "d7f685f9_5e53a7ad",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 24
+      },
+      "revId": "ee7e3e7d18c18d21a3efd0e52e8044ded8376bd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
