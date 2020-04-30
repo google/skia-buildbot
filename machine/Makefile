@@ -1,19 +1,28 @@
+default: build package-lock.json
+	npx webpack --mode=development
 
 build:
-	-mkdir -p ./dist
-	cp ./templates/* ./dist
 	go install -v ./go/...
 
 test:
 	go test -cover ./go/...
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
-release: build
+testci:
+	rm -rf node_modules
+	npm install
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+release: build package-lock.json
+	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/machineserver
 	./images/machineserver/release
 
+watch: package-lock.json
+	npx webpack --mode=development --watch
+
 push: release
 	pushk machineserver
-
 
 # Make our own firestore emulator image.
 # https://issuetracker.google.com/issues/153087269
@@ -26,3 +35,6 @@ start_firestore_emulator:
 start_pubsub_emulator:
 	docker run -ti -p 8010:8010 google/cloud-sdk:latest gcloud beta emulators pubsub start \
 		  --project test-project --host-port 0.0.0.0:8010
+
+package-lock.json: package.json
+	npm install
