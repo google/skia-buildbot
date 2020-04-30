@@ -30,6 +30,8 @@ type Server struct {
 	getSettingsRequestsSuccess   metrics2.Counter
 	getDimensionsRequests        metrics2.Counter
 	getDimensionsRequestsSuccess metrics2.Counter
+	onBeforeTaskSuccess          metrics2.Counter
+	onAfterTaskSuccess           metrics2.Counter
 }
 
 // New returns a new instance of Server.
@@ -45,11 +47,15 @@ func New(m *machine.Machine) (*Server, error) {
 		getSettingsRequestsSuccess:   metrics2.GetCounter("bot_config_server_get_settings_requests_success", map[string]string{"machine": m.MachineID}),
 		getDimensionsRequests:        metrics2.GetCounter("bot_config_server_get_dimensions_requests", map[string]string{"machine": m.MachineID}),
 		getDimensionsRequestsSuccess: metrics2.GetCounter("bot_config_server_get_dimensions_requests_success", map[string]string{"machine": m.MachineID}),
+		onBeforeTaskSuccess:          metrics2.GetCounter("bot_config_server_on_before_task_requests_success", map[string]string{"machine": m.MachineID}),
+		onAfterTaskSuccess:           metrics2.GetCounter("bot_config_server_on_after_task_requests_success", map[string]string{"machine": m.MachineID}),
 	}
 
 	r.HandleFunc("/get_state", ret.getState).Methods("POST")
 	r.HandleFunc("/get_settings", ret.getSettings).Methods("GET")
 	r.HandleFunc("/get_dimensions", ret.getDimensions).Methods("POST")
+	r.HandleFunc("/on_before_task", ret.onBeforeTask).Methods("GET")
+	r.HandleFunc("/on_after_task", ret.onAfterTask).Methods("GET")
 	r.Use(
 		httputils.HealthzAndHTTPS,
 		httputils.LoggingGzipRequestResponse,
@@ -137,7 +143,7 @@ func (s *Server) getDimensions(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode JSON input.", http.StatusInternalServerError)
 		return
 	}
-	for key, values := range s.machine.Dims() {
+	for key, values := range s.machine.DimensionsForSwarming() {
 		dim[key] = values
 	}
 	if err := json.NewEncoder(w).Encode(dim); err != nil {
@@ -145,6 +151,26 @@ func (s *Server) getDimensions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.getDimensionsRequestsSuccess.Inc(1)
+}
+
+// onBeforeTask is called when bot_config.py calls on_before_task.
+//
+// No other data is passed with this call.
+//
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/swarming_bot/config/bot_config.py
+func (s *Server) onBeforeTask(w http.ResponseWriter, r *http.Request) {
+	s.machine.SetIsRunningSwarmingTask(true)
+	s.onBeforeTaskSuccess.Inc(1)
+}
+
+// onAfterTask is called when bot_config.py calls on_after_task.
+//
+// No other data is passed with this call.
+//
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/swarming_bot/config/bot_config.py
+func (s *Server) onAfterTask(w http.ResponseWriter, r *http.Request) {
+	s.machine.SetIsRunningSwarmingTask(false)
+	s.onAfterTaskSuccess.Inc(1)
 }
 
 // Start the http server. This function never returns.
