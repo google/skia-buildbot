@@ -147,7 +147,7 @@ func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 	assert.Equal(t, int64(0), m.interrogateAndSendFailures.Get())
 
 	// Confirm the firestore write make it all the way to Dims().
-	assert.Equal(t, machine.SwarmingDimensions{"foo": {"bar"}}, m.Dims())
+	assert.Equal(t, machine.SwarmingDimensions{"foo": {"bar"}}, m.DimensionsForSwarming())
 }
 
 func Test_FakeExe_AdbShellGetProp_Success(t *testing.T) {
