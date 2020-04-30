@@ -79,7 +79,7 @@ func TestGetDimensions_Success(t *testing.T) {
 
 	s, err := New(&botmachine.Machine{})
 	require.NoError(t, err)
-	s.machine.SetDims(machine.SwarmingDimensions{"foo": {"baz", "quux"}})
+	s.machine.SetDimensionsForSwarming(machine.SwarmingDimensions{"foo": {"baz", "quux"}})
 
 	w := httptest.NewRecorder()
 
@@ -95,4 +95,49 @@ func TestGetDimensions_Success(t *testing.T) {
 		"foo": []interface{}{"baz", "quux"},
 	}
 	assert.Equal(t, expected, dict)
+}
+
+func TestOnBeginTask_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	r := httptest.NewRequest("GET", "/on_begin_task", nil)
+
+	s, err := New(&botmachine.Machine{})
+	require.NoError(t, err)
+	require.False(t, s.machine.IsRunningSwarmingTask())
+	s.onBeforeTaskSuccess.Reset()
+	s.onAfterTaskSuccess.Reset()
+
+	w := httptest.NewRecorder()
+
+	s.onBeforeTask(w, r)
+
+	res := w.Result()
+	assert.Equal(t, 200, res.StatusCode)
+	require.True(t, s.machine.IsRunningSwarmingTask())
+	assert.Equal(t, int64(1), s.onBeforeTaskSuccess.Get())
+	assert.Equal(t, int64(0), s.onAfterTaskSuccess.Get())
+}
+
+func TestOnAfterTask_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	r := httptest.NewRequest("GET", "/on_after_task", nil)
+
+	s, err := New(&botmachine.Machine{})
+	require.NoError(t, err)
+	s.machine.SetIsRunningSwarmingTask(true)
+	require.True(t, s.machine.IsRunningSwarmingTask())
+	s.onBeforeTaskSuccess.Reset()
+	s.onAfterTaskSuccess.Reset()
+
+	w := httptest.NewRecorder()
+
+	s.onAfterTask(w, r)
+
+	res := w.Result()
+	assert.Equal(t, 200, res.StatusCode)
+	require.False(t, s.machine.IsRunningSwarmingTask())
+	assert.Equal(t, int64(0), s.onBeforeTaskSuccess.Get())
+	assert.Equal(t, int64(1), s.onAfterTaskSuccess.Get())
 }

@@ -147,7 +147,7 @@ func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 	assert.Equal(t, int64(0), m.interrogateAndSendFailures.Get())
 
 	// Confirm the firestore write make it all the way to Dims().
-	assert.Equal(t, machine.SwarmingDimensions{"foo": {"bar"}}, m.Dims())
+	assert.Equal(t, machine.SwarmingDimensions{"foo": {"bar"}}, m.DimensionsForSwarming())
 }
 
 func Test_FakeExe_AdbShellGetProp_Success(t *testing.T) {
@@ -254,4 +254,80 @@ func Test_FakeExe_AdbFail(t *testing.T) {
 	}
 
 	os.Exit(1)
+}
+
+func TestStart_RunningSwarmingTaskInMachineIsSentInEvent(t *testing.T) {
+	// Manual because we are testing pubsub.
+	unittest.ManualTest(t)
+	ctx, _, instanceConfig := setupConfig(t)
+	ctx, cancel := context.WithCancel(ctx)
+
+	// Use source to read pubsub events.
+	source, err := pubsubsource.New(ctx, true, instanceConfig)
+	require.NoError(t, err)
+
+	// Set the SWARMING_BOT_ID env variable.
+	oldVar := os.Getenv(swarming.SwarmingBotIDEnvVar)
+	err = os.Setenv(swarming.SwarmingBotIDEnvVar, "my-test-bot-001")
+	require.NoError(t, err)
+	defer func() {
+		err = os.Setenv(swarming.SwarmingBotIDEnvVar, oldVar)
+		assert.NoError(t, err)
+	}()
+
+	// Create a Machine instance.
+	m, err := New(ctx, true, instanceConfig)
+	// We are running a task.
+	m.runningTask = true
+	require.NoError(t, err)
+
+	// Set up fakes for adb. We have two sets of 3 since Start calls
+	// interrogateAndSend, and then util.RepeatCtx, which also calls
+	// interrogateAndSend.
+	ctx = executil.WithFakeTests(ctx,
+		"Test_FakeExe_AdbFail",
+		"Test_FakeExe_AdbFail",
+		"Test_FakeExe_AdbFail",
+		"Test_FakeExe_AdbFail",
+		"Test_FakeExe_AdbFail",
+		"Test_FakeExe_AdbFail",
+	)
+
+	// Call Start().
+	err = m.Start(ctx)
+	require.NoError(t, err)
+
+	// Start() emits a pubsub event before it returns, so check we received the
+	// expected machine.Event.
+	ch, err := source.Start(ctx)
+	require.NoError(t, err)
+	event := <-ch
+
+	assert.Equal(t,
+		machine.Event{
+			EventType: "raw_state",
+			Android: machine.Android{
+				GetProp:               "",
+				DumpsysBattery:        "",
+				DumpsysThermalService: "",
+			},
+			Host: machine.Host{
+				Name: "my-test-bot-001",
+				Rack: "",
+			},
+			RunningSwarmingTask: true,
+		},
+		event)
+
+	// Let the machine.Event get sent via pubsub. OK since this is a manual test.
+	time.Sleep(time.Second)
+
+	// Cancel both Go routines inside Start().
+	cancel()
+
+	// Confirm the context is cancelled by waiting for the channel to close.
+	for range ch {
+	}
+
+	assert.Equal(t, int64(0), m.interrogateAndSendFailures.Get())
 }
