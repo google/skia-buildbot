@@ -3,6 +3,8 @@
  * @description <h2><code>machine-server</code></h2>
  *
  * The main machine server landing page.
+ *
+ * @attr waiting - If present then display the waiting cursor.
  */
 import { html } from 'lit-html';
 
@@ -19,10 +21,10 @@ const temps = (temperatures) => {
 };
 
 const rows = (ele) => ele._machines.map((machine) => html`
-<tr>
+<tr id=${machine.Dimensions.id}>
   <td>${machine.Dimensions.id}</td>
   <td>${machine.Dimensions.device_type}</td>
-  <td>${machine.Mode}</td>
+  <td><button @click=${() => ele._toggleMode(machine.Dimensions.id)}>${machine.Mode}</button></td>
   <td>${machine.Dimensions.quarantined}</td>
   <td>${machine.Battery}</td>
   <td>
@@ -30,7 +32,6 @@ const rows = (ele) => ele._machines.map((machine) => html`
   </td>
   <td>${machine.LastUpdated}</td>
 </tr>
-
 `);
 
 const template = (ele) => html`
@@ -66,13 +67,27 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
     this._update();
   }
 
-  _update() {
-    this._machines = fetch('/_/machines').then(jsonOrThrow).then((json) => {
-      this._machines = json;
-      this._render();
-    }).catch(errorMessage);
+  _onError(msg) {
+    this.removeAttribute('waiting');
+    errorMessage(msg);
   }
 
+  _update() {
+    this.setAttribute('waiting', '');
+    this._machines = fetch('/_/machines').then(jsonOrThrow).then((json) => {
+      this.removeAttribute('waiting');
+      this._machines = json;
+      this._render();
+    }).catch((msg) => this._onError(msg));
+  }
+
+  _toggleMode(id) {
+    this.setAttribute('waiting', '');
+    this._machines = fetch(`/_/machine/toggle_mode/${id}`).then(() => {
+      this.removeAttribute('waiting');
+      this._update();
+    }).catch((msg) => this._onError(msg));
+  }
 
   disconnectedCallback() {
   }
