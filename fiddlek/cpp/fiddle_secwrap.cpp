@@ -14,6 +14,8 @@
 
 using namespace std;
 
+fail_compilation
+
 static bool install_syscall_filter() {
     struct sock_filter filter[] = {
         VALIDATE_ARCHITECTURE,
