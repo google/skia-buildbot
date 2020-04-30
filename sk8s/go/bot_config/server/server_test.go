@@ -79,7 +79,7 @@ func TestGetDimensions_Success(t *testing.T) {
 
 	s, err := New(&botmachine.Machine{})
 	require.NoError(t, err)
-	s.machine.SetDims(machine.SwarmingDimensions{"foo": {"baz", "quux"}})
+	s.machine.SetDimensionsForSwarming(machine.SwarmingDimensions{"foo": {"baz", "quux"}})
 
 	w := httptest.NewRecorder()
 
