@@ -8,10 +8,14 @@ copy_release_files()
 {
 INSTALL="install -D --verbose --backup=none"
 INSTALL_DIR="install -d --verbose --backup=none"
-${INSTALL} --mode=644 -T Dockerfile               ${ROOT}/Dockerfile
-${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${APPNAME}
-${INSTALL_DIR} --mode=755                         ${ROOT}/usr/local/share/${APPNAME}/
-${INSTALL} --mode=644    ./dist/*                 ${ROOT}/usr/local/share/${APPNAME}/
+${INSTALL}     --mode=644 -T Dockerfile               ${ROOT}/Dockerfile
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${APPNAME}
+# Resources for the main page.
+${INSTALL_DIR} --mode=755                             ${ROOT}/usr/local/share/${APPNAME}/
+${INSTALL}     --mode=755 ./dist/*                    ${ROOT}/usr/local/share/${APPNAME}/
+# Demo pages. 'install' isn't recursive.
+cp -r                     ./fetched_demos             ${ROOT}/usr/local/share/${APPNAME}/demos
+chmod -R       a=rX,u=rwX                             ${ROOT}/usr/local/share/${APPNAME}/demos
 }
 
 source ../bash/docker_build.sh

@@ -1,6 +1,6 @@
 package main
 
-// The webserver for demos.skia.org. It serves the main page to navigate among JS demos.
+// The webserver for demos.skia.org. It serves a main page and a set of js+html+css demos.
 
 import (
 	"flag"
@@ -15,6 +15,7 @@ import (
 
 var (
 	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	demosDir     = flag.String("demos_dir", "./demos/public", "The directory to find named subdirectories for each demo. If blank ./demos/public")
 	resourcesDir = flag.String("resources_dir", "./dist", "The directory to find templates, JS, and CSS files. If blank ./dist will be used.")
 )
 
@@ -22,7 +23,12 @@ func main() {
 	common.InitWithMust(
 		"demos",
 	)
+
 	r := mux.NewRouter()
+	r.PathPrefix("/demo/").Handler(http.StripPrefix("/demo", http.FileServer(http.Dir(*demosDir))))
+	// PathPrefix above needs a slash to make FileServer relative paths work.
+	// For cleanliness, make sure users get to the directory listing even without the slash.
+	r.Handle("/demo", http.RedirectHandler("/demo/", 301))
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.FileServer(http.Dir(*resourcesDir))))
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, filepath.Join(*resourcesDir, "main.html"))
