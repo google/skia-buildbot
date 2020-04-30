@@ -1,0 +1,24 @@
+@import '~elements-sk/colors.css';
+
+@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500|Material+Icons');
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: Roboto, sans-serif;
+}
+table {
+  border: 2px solid var(--black);
+  background-color: var(--gray);
+  text-align: center;
+  border-collapse: collapse;
+  color: var(--white);
+}
+table td,
+table th {
+  border: 1px solid var(--gray);
+  padding: 4px 10px;
+}
+table tr:nth-child(even) {
+  background: var(--light-gray);
+}
