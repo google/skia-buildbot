@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dbaa5929_6b14222e",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-30T19:18:09Z",
+      "side": 1,
+      "message": "We need to make HASH required, or caching is going to bite us.  We also need to \"git fetch\" in this RUN statement for the same reason, otherwise the hash we requested may not be present because the repo was cloned in an older, cached image.",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 36
+      },
+      "revId": "ee7e3e7d18c18d21a3efd0e52e8044ded8376bd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6b34660_c13d1acb",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-30T19:18:09Z",
+      "side": 1,
+      "message": "This should be:\n\n...\n\u0026\u0026 git fetch https://skia.googlesource.com/buildbot ${PATCH_REF} \\\n\u0026\u0026 git checkout FETCH_HEAD \\\n\u0026\u0026 git rebase ${HASH}",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 39
+      },
+      "revId": "ee7e3e7d18c18d21a3efd0e52e8044ded8376bd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d7f685f9_5e53a7ad",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-04-30T19:18:09Z",
+      "side": 1,
+      "message": "What is this Dockerfile used for?  Why are we building fiddle?",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 24
+      },
+      "revId": "ee7e3e7d18c18d21a3efd0e52e8044ded8376bd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
