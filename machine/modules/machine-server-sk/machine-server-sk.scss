@@ -19,3 +19,7 @@ machine-server-sk {
     background: var(--light-gray);
   }
 }
+
+machine-server-sk[waiting] * {
+  cursor: wait;
+}
