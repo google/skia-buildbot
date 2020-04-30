@@ -4,18 +4,13 @@
 
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { SKIA_VERSION } from '../../build/version';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 const template = (el) => html`
 <style>
-header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  background-color: cyan;
-}
 </style>
 <header>
   <div class=title>Skia Demos</div>
@@ -25,13 +20,24 @@ header {
   </div>
 </header>
 <div>
-<h1>TODO(westont): demos.skia.org</h1>
+<a href="/demo/skottiekit0">Demo2</a>
+${el._demos.map((demoname) => demolinkTemplate(demoname))}
 </div>
 `;
+const demolinkTemplate = (demoname) => html`
+<a href="/demo/${demoname}">${demoname}</a>
+`;
 
-define('header-sk', class extends ElementSk {
+define('demo-list-sk', class extends ElementSk {
   constructor() {
     super(template);
+    this._demos = [];
+    fetch('/demolist', { method: 'GET' })
+      .then(jsonOrThrow)
+      .then((json) => {
+        this._demos = json.Demos;
+        this._render();
+      });
   }
 
   connectedCallback() {
