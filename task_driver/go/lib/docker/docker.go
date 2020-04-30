@@ -222,7 +222,7 @@ func Run(ctx context.Context, image, configDir string, cmd, volumes, env []strin
 // There must be a Dockerfile in the 'directory' and the resulting output is
 // tagged with 'tag'.
 func BuildHelper(ctx context.Context, directory, tag, configDir string, buildArgs map[string]string) error {
-	cmdArgs := []string{"--config", configDir, "build", "--pull", "--no-cache", "-t", tag, directory}
+	cmdArgs := []string{"--config", configDir, "build", "--pull", "-t", tag, directory}
 	if buildArgs != nil {
 		for k, v := range buildArgs {
 			cmdArgs = append(cmdArgs, "--build-arg", fmt.Sprintf("%s=%s", k, v))
