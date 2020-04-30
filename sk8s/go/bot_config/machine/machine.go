@@ -46,12 +46,15 @@ type Machine struct {
 	interrogateAndSendFailures metrics2.Counter
 	storeWatchArrivalCounter   metrics2.Counter
 
-	// mutex protects dimensions.
+	// mutex protects dimensions and runningTask.
 	mutex sync.Mutex
 
 	// dimensions are the dimensions the machine state server wants us to report
 	// to swarming.
 	dimensions machine.SwarmingDimensions
+
+	// runningTask is true if the machine is currently running a swarming task.
+	runningTask bool
 }
 
 // New return an instance of *Machine.
@@ -113,6 +116,8 @@ func (m *Machine) interrogate(ctx context.Context) machine.Event {
 		ret.Android.DumpsysThermalService = thermal
 	}
 
+	ret.RunningSwarmingTask = m.runningTask
+
 	return ret
 }
 
@@ -144,25 +149,37 @@ func (m *Machine) Start(ctx context.Context) error {
 	go func() {
 		for desc := range m.store.Watch(ctx, m.MachineID) {
 			m.storeWatchArrivalCounter.Inc(1)
-			m.SetDims(desc.Dimensions)
+			m.SetDimensionsForSwarming(desc.Dimensions)
 		}
 	}()
 	return nil
 }
 
-// SetDims sets the dimensions that should be reported to swarming. Should only
+// SetDimensionsForSwarming sets the dimensions that should be reported to swarming. Should only
 // be called by tests.
-func (m *Machine) SetDims(dims machine.SwarmingDimensions) {
+func (m *Machine) SetDimensionsForSwarming(dims machine.SwarmingDimensions) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.dimensions = dims
 }
 
-// Dims returns the dimensions that should be reported to swarming.
-//
-// TODO(jcgregorio) Rename to DimensionsForSwarming.
-func (m *Machine) Dims() machine.SwarmingDimensions {
+// DimensionsForSwarming returns the dimensions that should be reported to swarming.
+func (m *Machine) DimensionsForSwarming() machine.SwarmingDimensions {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	return m.dimensions
+}
+
+// SetIsRunningSwarmingTask records if a swarming task is being run.
+func (m *Machine) SetIsRunningSwarmingTask(isRunning bool) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	m.runningTask = isRunning
+}
+
+// IsRunningSwarmingTask returns true is a swarming task is currently running.
+func (m *Machine) IsRunningSwarmingTask() bool {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	return m.runningTask
 }

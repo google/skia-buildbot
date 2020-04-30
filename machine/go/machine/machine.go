@@ -44,12 +44,13 @@ type Annotation struct {
 
 // Description is the current state of a single machine.
 type Description struct {
-	Mode        Mode
-	Annotation  Annotation
-	Dimensions  SwarmingDimensions
-	LastUpdated time.Time
-	Battery     int                // Charge as an integer percent, e.g. 50% = 50.
-	Temperature map[string]float64 // In Celsius.
+	Mode                Mode
+	Annotation          Annotation
+	Dimensions          SwarmingDimensions
+	LastUpdated         time.Time
+	Battery             int                // Charge as an integer percent, e.g. 50% = 50.
+	Temperature         map[string]float64 // In Celsius.
+	RunningSwarmingTask bool
 }
 
 // NewDescription returns a new Description instance.
@@ -104,9 +105,10 @@ type Host struct {
 // Event is the information a machine should send via Source when
 // its local state has changed.
 type Event struct {
-	EventType EventType `json:"type"`
-	Android   Android   `json:"android"`
-	Host      Host      `json:"host"`
+	EventType           EventType `json:"type"`
+	Android             Android   `json:"android"`
+	Host                Host      `json:"host"`
+	RunningSwarmingTask bool      `json:"running_swarming_task"`
 }
 
 // NewEvent returns a new Event instance.
