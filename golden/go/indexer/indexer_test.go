@@ -458,7 +458,7 @@ func makeSearchIndexWithSingleTrace(digests ...types.Digest) (*SearchIndex, tili
 
 	// Generate tile with the given digests.
 	tile := &tiling.Tile{
-		Traces: map[tiling.TraceID]tiling.Trace{
+		Traces: map[tiling.TraceID]*tiling.GoldenTrace{
 			traceID: tiling.NewGoldenTrace(digests, map[string]string{
 				"device":              device,
 				types.PrimaryKeyField: string(testName),

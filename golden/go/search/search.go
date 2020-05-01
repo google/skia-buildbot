@@ -205,13 +205,12 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 		// We know a digest is somewhere in at least one trace. Iterate through all of them
 		// to find which ones.
 		byTrace := idx.DigestCountsByTrace(types.IncludeIgnoredTraces)
-		for traceId, t := range tile.Traces {
-			gTrace := t.(*tiling.GoldenTrace)
-			if gTrace.TestName() != test {
+		for traceId, trace := range tile.Traces {
+			if trace.TestName() != test {
 				continue
 			}
 			if _, ok := byTrace[traceId][digest]; ok {
-				oneInter.add(traceId, t, nil)
+				oneInter.add(traceId, trace, nil)
 			}
 		}
 	}

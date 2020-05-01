@@ -144,7 +144,7 @@ func (s *CachedTileSourceImpl) filterTile(tile *tiling.Tile) *tiling.Tile {
 
 	// filter tile.
 	ret := &tiling.Tile{
-		Traces:  make(map[tiling.TraceID]tiling.Trace, len(tile.Traces)),
+		Traces:  make(map[tiling.TraceID]*tiling.GoldenTrace, len(tile.Traces)),
 		Commits: tile.Commits,
 	}
 
@@ -152,7 +152,7 @@ func (s *CachedTileSourceImpl) filterTile(tile *tiling.Tile) *tiling.Tile {
 	// Build the paramset in the process.
 	paramSet := paramtools.ParamSet{}
 	for traceID, trace := range tile.Traces {
-		if tiling.Matches(trace, s.PubliclyViewableParams) {
+		if trace.Matches(s.PubliclyViewableParams) {
 			ret.Traces[traceID] = trace
 			paramSet.AddParams(trace.Params())
 		}

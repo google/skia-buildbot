@@ -265,7 +265,7 @@ func makeBugRevertIndexWithIgnores(ir []ignore.Rule, multiplier int) *indexer.Se
 	for i := 1; i < multiplier; i++ {
 		for id, tr := range tile.Traces {
 			newID := tiling.TraceID(fmt.Sprintf("%s,copy=%d", id, i))
-			add = append(add, tiling.TracePair{ID: newID, Trace: tr.(*tiling.GoldenTrace)})
+			add = append(add, tiling.TracePair{ID: newID, Trace: tr})
 		}
 	}
 	for _, tp := range add {

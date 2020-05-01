@@ -768,7 +768,7 @@ func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []*frontend.Ignor
 			if err := ctx.Err(); err != nil {
 				return skerr.Wrap(err)
 			}
-			id, gt := tp.ID, tp.Trace
+			id, trace := tp.ID, tp.Trace
 			if _, ok := nonIgnoredTraces[id]; ok {
 				// This wasn't ignored, so we can skip having to count it
 				continue
@@ -778,13 +778,13 @@ func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []*frontend.Ignor
 			numMatched := 0
 			untMatched := 0
 			for i, r := range rules {
-				if ruleMatches(r.ParsedQuery, gt) {
+				if trace.Matches(r.ParsedQuery) {
 					numMatched++
 					ruleCounts[i].Count++
 					idxMatched = i
 
 					// Check to see if the digest is untriaged at head
-					if d := gt.AtHead(); d != tiling.MissingDigest && exp.Classification(gt.TestName(), d) == expectations.Untriaged {
+					if d := trace.AtHead(); d != tiling.MissingDigest && exp.Classification(trace.TestName(), d) == expectations.Untriaged {
 						ruleCounts[i].UntriagedCount++
 						untMatched++
 						untIdxMatched = i
@@ -810,16 +810,6 @@ func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []*frontend.Ignor
 		return nil
 	})
 	return skerr.Wrap(err)
-}
-
-// ruleMatches returns true if the parsed rule applies to a given trace.
-func ruleMatches(parsedQuery map[string][]string, t tiling.Trace) bool {
-	for k, values := range parsedQuery {
-		if p, ok := t.Params()[k]; !ok || !util.In(p, values) {
-			return false
-		}
-	}
-	return true
 }
 
 // UpdateIgnoreRule updates an existing ignores rule.
