@@ -4,8 +4,8 @@ package digest_counter
 import (
 	"net/url"
 
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/shared"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
 

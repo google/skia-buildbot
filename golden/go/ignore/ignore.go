@@ -9,8 +9,8 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/tiling"
 )
 
 // Store is an interface for a database that saves ignore rules.

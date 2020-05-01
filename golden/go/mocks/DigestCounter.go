@@ -6,7 +6,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	digest_counter "go.skia.org/infra/golden/go/digest_counter"
 
-	tiling "go.skia.org/infra/go/tiling"
+	tiling "go.skia.org/infra/golden/go/tiling"
 
 	types "go.skia.org/infra/golden/go/types"
 
