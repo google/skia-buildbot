@@ -170,7 +170,7 @@ func newOpsCacheEntryFromRow(row bigtable.Row) (*opsCacheEntry, error) {
 }
 
 // Define this as a type so we can define some helper functions.
-type traceMap map[tiling.TraceID]tiling.Trace
+type traceMap map[tiling.TraceID]*tiling.GoldenTrace
 
 // CommitIndicesWithData returns the indexes of the commits with at least one non-missing
 // digest in at least one trace. Since the traces always have DefaultTraceSize commits
@@ -208,8 +208,7 @@ func (t traceMap) CommitIndicesWithData(maxIndex int) []int {
 			defer wg.Done()
 			for i := start; i < start+chunkSize && i < maxIndex && i < nCommits; i++ {
 				for _, trace := range t {
-					gt := trace.(*tiling.GoldenTrace)
-					if !gt.IsMissing(i) {
+					if !trace.IsMissing(i) {
 						haveData[i] = true
 						break
 					}
@@ -236,14 +235,13 @@ func (t traceMap) MakeFromCommitIndexes(indices []int) traceMap {
 	}
 	r := make(traceMap, len(t))
 	for id, trace := range t {
-		gt := trace.(*tiling.GoldenTrace)
 
 		newDigests := make([]types.Digest, len(indices))
 		for i, idx := range indices {
-			newDigests[i] = gt.Digests[idx]
+			newDigests[i] = trace.Digests[idx]
 		}
 
-		r[id] = tiling.NewGoldenTrace(newDigests, gt.Keys)
+		r[id] = tiling.NewGoldenTrace(newDigests, trace.Keys)
 	}
 	return r
 }
@@ -267,7 +265,7 @@ func (t traceMap) PrependTraces(other traceMap) {
 			t[id] = trace.Merge(original)
 		} else {
 			// if we stopped seeing the trace in t, we need to pad the end with MissingDigest
-			trace.Grow(numOtherCommits+numCommits, tiling.FILL_AFTER) // Assumes we can modify other
+			trace.Grow(numOtherCommits+numCommits, tiling.FillAfter) // Assumes we can modify other
 			t[id] = trace
 		}
 	}
@@ -275,7 +273,7 @@ func (t traceMap) PrependTraces(other traceMap) {
 	// if we saw a trace in t, but not in other, we need to pad the beginning with MissingDigest
 	for id, trace := range t {
 		if _, ok := other[id]; !ok {
-			trace.Grow(numOtherCommits+numCommits, tiling.FILL_BEFORE)
+			trace.Grow(numOtherCommits+numCommits, tiling.FillBefore)
 		}
 	}
 }

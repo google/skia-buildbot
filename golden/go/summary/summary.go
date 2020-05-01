@@ -97,7 +97,7 @@ func (s *Data) Calculate(testNames types.TestNameSet, query paramtools.ParamSet,
 		if len(testNames) > 0 && !testNames[tp.Trace.TestName()] {
 			continue
 		}
-		if len(query) == 0 || tiling.Matches(tp.Trace, query) {
+		if len(query) == 0 || tp.Trace.Matches(query) {
 			k := grouping{test: tp.Trace.TestName(), corpus: tp.Trace.Corpus()}
 			if slice, ok := filtered[k]; ok {
 				filtered[k] = append(slice, tp)

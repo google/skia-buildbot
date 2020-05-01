@@ -226,10 +226,9 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 		if err := ctx.Err(); err != nil {
 			return skerr.Wrap(err)
 		}
-		gTrace := trace.(*tiling.GoldenTrace)
 
 		idx := tileLen - 1
-		for (idx >= 0) && (gTrace.Digests[idx] == tiling.MissingDigest) {
+		for (idx >= 0) && (trace.Digests[idx] == tiling.MissingDigest) {
 			idx--
 		}
 
@@ -239,7 +238,7 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 		}
 
 		// If this corpus doesn't exist yet, we initialize it.
-		corpus := gTrace.Corpus()
+		corpus := trace.Corpus()
 		if _, ok := byCorpus[corpus]; !ok {
 			okByCorpus[corpus] = true
 			byCorpus[corpus] = map[expectations.Label]map[string]bool{
@@ -258,8 +257,8 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 		}
 
 		// Account for the corpus and testname.
-		digest := gTrace.Digests[idx]
-		testName := gTrace.TestName()
+		digest := trace.Digests[idx]
+		testName := trace.TestName()
 		status := exp.Classification(testName, digest)
 
 		okByCorpus[corpus] = okByCorpus[corpus] &&
