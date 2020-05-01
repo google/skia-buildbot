@@ -356,13 +356,13 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 				if opts, ok := options[idx][pair.ID]; ok {
 					params.Add(opts)
 				}
-				gt := types.NewEmptyGoldenTrace(nCommits, params)
+				gt := tiling.NewEmptyGoldenTrace(nCommits, params)
 				tileTraces[traceKey] = gt
 
 				// Build up the total set of params
 				paramSet.AddParams(params)
 			}
-			trace := tileTraces[traceKey].(*types.GoldenTrace)
+			trace := tileTraces[traceKey].(*tiling.GoldenTrace)
 			digests := pair.Digests[startOffset : startOffset+segLen]
 			copy(trace.Digests[traceIdx:traceIdx+segLen], digests)
 		}
@@ -669,7 +669,7 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 					// It might be due to a bug in golang and/or just that the GC gets a
 					// little confused due to the complex procedure of passing things around.
 					for i := range pair.Digests {
-						pair.Digests[i] = types.MissingDigest
+						pair.Digests[i] = tiling.MissingDigest
 					}
 
 					for _, col := range row[traceFamily] {

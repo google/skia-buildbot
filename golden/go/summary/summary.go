@@ -69,7 +69,7 @@ const computeDiameter = false
 
 // Data is a helper struct containing the data that goes into computing a summary.
 type Data struct {
-	Traces       []*types.TracePair
+	Traces       []*tiling.TracePair
 	Expectations expectations.ReadOnly
 	// ByTrace maps all traces in Trace to the counts of digests that appeared
 	// in those traces.
@@ -92,7 +92,7 @@ func (s *Data) Calculate(testNames types.TestNameSet, query paramtools.ParamSet,
 	defer metrics2.FuncTimer().Stop()
 
 	// Filter down to just the traces we are interested in, based on query.
-	filtered := map[grouping][]*types.TracePair{}
+	filtered := map[grouping][]*tiling.TracePair{}
 	for _, tp := range s.Traces {
 		if len(testNames) > 0 && !testNames[tp.Trace.TestName()] {
 			continue
@@ -102,7 +102,7 @@ func (s *Data) Calculate(testNames types.TestNameSet, query paramtools.ParamSet,
 			if slice, ok := filtered[k]; ok {
 				filtered[k] = append(slice, tp)
 			} else {
-				filtered[k] = []*types.TracePair{tp}
+				filtered[k] = []*tiling.TracePair{tp}
 			}
 		}
 	}
@@ -114,7 +114,7 @@ func (s *Data) Calculate(testNames types.TestNameSet, query paramtools.ParamSet,
 		for _, pair := range traces {
 			if head {
 				// Find the last non-missing value in the trace.
-				if d := pair.Trace.AtHead(); d != types.MissingDigest {
+				if d := pair.Trace.AtHead(); d != tiling.MissingDigest {
 					digestMap[d] = true
 				}
 			} else {

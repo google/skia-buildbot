@@ -469,7 +469,7 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 	if err != nil {
 		return false, skerr.Wrapf(err, "retrieving most recent positive image")
 	}
-	if mostRecentPositiveDigest == types.MissingDigest {
+	if mostRecentPositiveDigest == tiling.MissingDigest {
 		return false, skerr.Fmt("no recent positive digests for trace with ID %q", traceId)
 	}
 

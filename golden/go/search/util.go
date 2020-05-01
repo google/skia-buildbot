@@ -31,7 +31,7 @@ type acceptFn func(params paramtools.Params, digests types.DigestSlice) (bool, i
 // addFn is the callback function used by iterTile to add a digest and it's
 // trace to the result. acceptResult is the same value returned by the acceptFn.
 // It must be safe to be called from multiple goroutines.
-type addFn func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *types.GoldenTrace, acceptResult interface{})
+type addFn func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *tiling.GoldenTrace, acceptResult interface{})
 
 // iterTile is a generic function to extract information from a tile.
 // It iterates over the tile and filters against the given query. If calls
@@ -105,11 +105,11 @@ func iterTile(ctx context.Context, q *query.Search, addFn addFn, acceptFn accept
 }
 
 // traceViewFn returns a view of a trace that contains a subset of values but the same params.
-type traceViewFn func(*types.GoldenTrace) *types.GoldenTrace
+type traceViewFn func(*tiling.GoldenTrace) *tiling.GoldenTrace
 
 // traceViewIdentity is a no-op traceViewFn that returns the exact trace that it
 // receives. This is used when no commit range is provided in the query.
-func traceViewIdentity(tr *types.GoldenTrace) *types.GoldenTrace {
+func traceViewIdentity(tr *tiling.GoldenTrace) *tiling.GoldenTrace {
 	return tr
 }
 
@@ -140,8 +140,8 @@ func getTraceViewFn(commits []*tiling.Commit, startHash, endHash string) (traceV
 		return nil, skerr.Fmt("Start commit occurs later than end commit.")
 	}
 
-	ret := func(trace *types.GoldenTrace) *types.GoldenTrace {
-		return types.NewGoldenTrace(trace.Digests[startIdx:endIdx], trace.Params())
+	ret := func(trace *tiling.GoldenTrace) *tiling.GoldenTrace {
+		return tiling.NewGoldenTrace(trace.Digests[startIdx:endIdx], trace.Params())
 	}
 
 	return ret, nil
@@ -150,7 +150,7 @@ func getTraceViewFn(commits []*tiling.Commit, startHash, endHash string) (traceV
 // digestsFromTrace returns all the digests in the given trace, controlled by
 // 'head', and being robust to tallies not having been calculated for the
 // trace.
-func digestsFromTrace(id tiling.TraceID, tr *types.GoldenTrace, head bool, digestsByTrace map[tiling.TraceID]digest_counter.DigestCount) types.DigestSlice {
+func digestsFromTrace(id tiling.TraceID, tr *tiling.GoldenTrace, head bool, digestsByTrace map[tiling.TraceID]digest_counter.DigestCount) types.DigestSlice {
 	digests := types.DigestSet{}
 	if head {
 		// Find the last non-missing value in the trace.
@@ -244,7 +244,7 @@ func (s *srDigestSlice) Swap(i, j int)      { s.slice[i], s.slice[j] = s.slice[j
 type srIntermediate struct {
 	test   types.TestName
 	digest types.Digest
-	traces map[tiling.TraceID]*types.GoldenTrace
+	traces map[tiling.TraceID]*tiling.GoldenTrace
 	params paramtools.ParamSet
 }
 
@@ -255,7 +255,7 @@ func newSrIntermediate(test types.TestName, digest types.Digest, traceID tiling.
 		test:   test,
 		digest: digest,
 		params: paramtools.ParamSet{},
-		traces: map[tiling.TraceID]*types.GoldenTrace{},
+		traces: map[tiling.TraceID]*tiling.GoldenTrace{},
 	}
 	ret.add(traceID, trace, pset)
 	return ret
@@ -266,7 +266,7 @@ func newSrIntermediate(test types.TestName, digest types.Digest, traceID tiling.
 // 'params' will always be added to the internal parameter set.
 func (s *srIntermediate) add(traceID tiling.TraceID, trace tiling.Trace, pset paramtools.ParamSet) {
 	if (traceID != "") && (trace != nil) {
-		s.traces[traceID] = trace.(*types.GoldenTrace)
+		s.traces[traceID] = trace.(*tiling.GoldenTrace)
 		s.params.AddParams(trace.Params())
 	} else {
 		s.params.AddParamSet(pset)
@@ -280,7 +280,7 @@ func (s *srIntermediate) add(traceID tiling.TraceID, trace tiling.Trace, pset pa
 type srInterMap map[types.TestName]map[types.Digest]*srIntermediate
 
 // Add adds the paramset associated with the given test and digest to the srInterMap instance.
-func (sm srInterMap) Add(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *types.GoldenTrace, pset paramtools.ParamSet) {
+func (sm srInterMap) Add(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *tiling.GoldenTrace, pset paramtools.ParamSet) {
 	if testMap, ok := sm[test]; !ok {
 		sm[test] = map[types.Digest]*srIntermediate{digest: newSrIntermediate(test, digest, traceID, trace, pset)}
 	} else if entry, ok := testMap[digest]; !ok {
@@ -297,7 +297,7 @@ func (sm srInterMap) AddTestParams(test types.TestName, digest types.Digest, par
 			test:   test,
 			digest: digest,
 			params: paramtools.ParamSet{},
-			traces: map[tiling.TraceID]*types.GoldenTrace{},
+			traces: map[tiling.TraceID]*tiling.GoldenTrace{},
 		}
 		ns.params.AddParams(params)
 		sm[test] = map[types.Digest]*srIntermediate{
@@ -308,7 +308,7 @@ func (sm srInterMap) AddTestParams(test types.TestName, digest types.Digest, par
 			test:   test,
 			digest: digest,
 			params: paramtools.ParamSet{},
-			traces: map[tiling.TraceID]*types.GoldenTrace{},
+			traces: map[tiling.TraceID]*tiling.GoldenTrace{},
 		}
 		ns.params.AddParams(params)
 		testMap[digest] = ns

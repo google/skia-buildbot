@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/tracestore"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -58,7 +59,7 @@ func extractSubkey(rowName string) string {
 
 // toBytes turns a Digest into the bytes that will be stored in the table.
 func toBytes(d types.Digest) []byte {
-	if d == types.MissingDigest {
+	if d == tiling.MissingDigest {
 		return missingDigestBytes
 	}
 	b, err := hex.DecodeString(string(d))
@@ -77,7 +78,7 @@ func fromBytes(b []byte) types.Digest {
 		if len(b) > len(missingDigestBytes) {
 			sklog.Warningf("Possibly corrupt data: %#v", b)
 		}
-		return types.MissingDigest
+		return tiling.MissingDigest
 	}
 	return types.Digest(hex.EncodeToString(b))
 }

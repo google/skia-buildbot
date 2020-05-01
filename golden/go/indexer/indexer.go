@@ -42,9 +42,9 @@ type SearchIndex struct {
 	dCounters         [2]digest_counter.DigestCounter
 	summaries         [2]countsAndBlames
 	paramsetSummaries [2]paramsets.ParamSummary
-	preSliced         map[preSliceGroup][]*types.TracePair
+	preSliced         map[preSliceGroup][]*tiling.TracePair
 
-	cpxTile types.ComplexTile
+	cpxTile tiling.ComplexTile
 	blamer  blame.Blamer
 
 	// This is set by the indexing pipeline when we just want to update
@@ -71,21 +71,21 @@ type searchIndexConfig struct {
 // newSearchIndex creates a new instance of SearchIndex. It is not intended to
 // be used outside of this package. SearchIndex instances are created by the
 // Indexer and retrieved via GetIndex().
-func newSearchIndex(sic searchIndexConfig, cpxTile types.ComplexTile) *SearchIndex {
+func newSearchIndex(sic searchIndexConfig, cpxTile tiling.ComplexTile) *SearchIndex {
 	return &SearchIndex{
 		searchIndexConfig: sic,
 		// The indices of these slices are the int values of types.IgnoreState
 		dCounters:         [2]digest_counter.DigestCounter{},
 		summaries:         [2]countsAndBlames{},
 		paramsetSummaries: [2]paramsets.ParamSummary{},
-		preSliced:         map[preSliceGroup][]*types.TracePair{},
+		preSliced:         map[preSliceGroup][]*tiling.TracePair{},
 		cpxTile:           cpxTile,
 	}
 }
 
 // SearchIndexForTesting returns filled in search index to be used when testing. Note that the
 // indices of the arrays are the int values of types.IgnoreState
-func SearchIndexForTesting(cpxTile types.ComplexTile, dc [2]digest_counter.DigestCounter, pm [2]paramsets.ParamSummary, exp expectations.Store, b blame.Blamer) (*SearchIndex, error) {
+func SearchIndexForTesting(cpxTile tiling.ComplexTile, dc [2]digest_counter.DigestCounter, pm [2]paramsets.ParamSummary, exp expectations.Store, b blame.Blamer) (*SearchIndex, error) {
 	s := &SearchIndex{
 		searchIndexConfig: searchIndexConfig{
 			expectationsStore: exp,
@@ -93,7 +93,7 @@ func SearchIndexForTesting(cpxTile types.ComplexTile, dc [2]digest_counter.Diges
 		dCounters:         dc,
 		summaries:         [2]countsAndBlames{},
 		paramsetSummaries: pm,
-		preSliced:         map[preSliceGroup][]*types.TracePair{},
+		preSliced:         map[preSliceGroup][]*tiling.TracePair{},
 		blamer:            b,
 		cpxTile:           cpxTile,
 	}
@@ -101,7 +101,7 @@ func SearchIndexForTesting(cpxTile types.ComplexTile, dc [2]digest_counter.Diges
 }
 
 // Tile implements the IndexSearcher interface.
-func (idx *SearchIndex) Tile() types.ComplexTile {
+func (idx *SearchIndex) Tile() tiling.ComplexTile {
 	return idx.cpxTile
 }
 
@@ -145,7 +145,7 @@ func (idx *SearchIndex) SummarizeByGrouping(ctx context.Context, corpus string, 
 	// The summaries are broken down by grouping (currently corpus and test name). Conveniently,
 	// we already have the traces broken down by those areas, and summaries are independent, so we
 	// can calculate them in parallel.
-	type groupedTracePairs []*types.TracePair
+	type groupedTracePairs []*tiling.TracePair
 	var groups []groupedTracePairs
 	for g, traces := range idx.preSliced {
 		if g.IgnoreState == is && g.Corpus == corpus && g.Test != "" {
@@ -208,13 +208,13 @@ func (idx *SearchIndex) GetBlame(test types.TestName, digest types.Digest, commi
 // SlicedTraces returns a slice of TracePairs that match the query and the ignore state.
 // This is meant to be a superset of traces, as only the corpus and testname from the query are
 // used for this pre-filter step.
-func (idx *SearchIndex) SlicedTraces(is types.IgnoreState, query map[string][]string) []*types.TracePair {
+func (idx *SearchIndex) SlicedTraces(is types.IgnoreState, query map[string][]string) []*tiling.TracePair {
 	if len(query[types.CorpusField]) == 0 {
 		return idx.preSliced[preSliceGroup{
 			IgnoreState: is,
 		}]
 	}
-	var rv []*types.TracePair
+	var rv []*tiling.TracePair
 	for _, corpus := range query[types.CorpusField] {
 		if len(query[types.PrimaryKeyField]) == 0 {
 			rv = append(rv, idx.preSliced[preSliceGroup{
@@ -241,9 +241,9 @@ func (idx *SearchIndex) MostRecentPositiveDigest(ctx context.Context, traceID ti
 	// Retrieve GoldenTrace for the given traceID.
 	trace, ok := idx.cpxTile.GetTile(types.IncludeIgnoredTraces).Traces[traceID]
 	if !ok {
-		return types.MissingDigest, nil
+		return tiling.MissingDigest, nil
 	}
-	goldTrace := trace.(*types.GoldenTrace)
+	goldTrace := trace.(*tiling.GoldenTrace)
 
 	// Retrieve expectations.
 	exps, err := idx.expectationsStore.Get(ctx)
@@ -254,11 +254,11 @@ func (idx *SearchIndex) MostRecentPositiveDigest(ctx context.Context, traceID ti
 	// Find and return the most recent positive digest in the GoldenTrace.
 	for i := len(goldTrace.Digests) - 1; i >= 0; i-- {
 		digest := goldTrace.Digests[i]
-		if digest != types.MissingDigest && exps.Classification(goldTrace.TestName(), digest) == expectations.Positive {
+		if digest != tiling.MissingDigest && exps.Classification(goldTrace.TestName(), digest) == expectations.Positive {
 			return digest, nil
 		}
 	}
-	return types.MissingDigest, nil
+	return tiling.MissingDigest, nil
 }
 
 type IndexerConfig struct {
@@ -378,7 +378,7 @@ func (ix *Indexer) start(ctx context.Context, interval time.Duration) error {
 	// Keep building indices for different types of events. This is the central
 	// event loop of the indexer.
 	go func() {
-		var cpxTile types.ComplexTile
+		var cpxTile tiling.ComplexTile
 		for {
 			if err := ctx.Err(); err != nil {
 				sklog.Warningf("Stopping indexer - context error: %s", err)
@@ -429,7 +429,7 @@ func (ix *Indexer) start(ctx context.Context, interval time.Duration) error {
 
 // executePipeline runs the given tile through the the indexing pipeline.
 // pipeline.Trigger blocks until everything is done, so this function will as well.
-func (ix *Indexer) executePipeline(ctx context.Context, cpxTile types.ComplexTile) error {
+func (ix *Indexer) executePipeline(ctx context.Context, cpxTile tiling.ComplexTile) error {
 	defer shared.NewMetricsTimer("indexer_execute_pipeline").Stop()
 	// Create a new index from the given tile.
 	sic := searchIndexConfig{
@@ -527,12 +527,12 @@ func preSliceData(_ context.Context, state interface{}) error {
 	for _, is := range types.IgnoreStates {
 		t := idx.cpxTile.GetTile(is)
 		for id, tr := range t.Traces {
-			gt, ok := tr.(*types.GoldenTrace)
+			gt, ok := tr.(*tiling.GoldenTrace)
 			if !ok || gt == nil {
 				sklog.Warningf("Unexpected trace type for id %s: %#v", id, gt)
 				continue
 			}
-			tp := types.TracePair{
+			tp := tiling.TracePair{
 				ID:    id,
 				Trace: gt,
 			}

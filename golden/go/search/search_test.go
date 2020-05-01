@@ -1124,7 +1124,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 	ie.Set(data.AlphaTest, gammaNegativeTryJobDigest, expectations.Negative)
 	addChangeListExpectations(mes, crs, clID, &ie)
 
-	cpxTile := types.NewComplexTile(data.MakeTestTile())
+	cpxTile := tiling.NewComplexTile(data.MakeTestTile())
 	reduced := data.MakeTestTile()
 	delete(reduced.Traces, data.BullheadBetaTraceID)
 	// The following rule exclusively matches BullheadBetaTraceID, for which the tryjob produced
@@ -1221,7 +1221,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
 	unittest.SmallTest(t)
 	// Add some shorthand aliases for easier-to-read test inputs.
-	const mm = types.MissingDigest
+	const mm = tiling.MissingDigest
 	const mdi = missingDigestIndex
 	// These constants are not actual md5 digests, but that's ok for the purposes of this test -
 	// any string constants will do.
@@ -1234,7 +1234,7 @@ func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
 		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
 		t.Run(desc, func(t *testing.T) {
 			s := SearchImpl{}
-			traces := map[tiling.TraceID]*types.GoldenTrace{
+			traces := map[tiling.TraceID]*tiling.GoldenTrace{
 				"not-a-real-trace-id-and-that's-ok": {
 					Digests: inputDigests,
 					// Keys can be omitted because they are not read here,
@@ -1280,7 +1280,7 @@ func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
 func TestGetDrawableTraces_TotalDigestsCorrect(t *testing.T) {
 	unittest.SmallTest(t)
 	// Add some shorthand aliases for easier-to-read test inputs.
-	const md = types.MissingDigest
+	const md = tiling.MissingDigest
 	// This constant is not an actual md5 digest, but that's ok for the purposes of this test -
 	// any string constants will do.
 	const d0 = types.Digest("d0")
@@ -1292,10 +1292,10 @@ func TestGetDrawableTraces_TotalDigestsCorrect(t *testing.T) {
 		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
 		t.Run(desc, func(t *testing.T) {
 			s := SearchImpl{}
-			traces := map[tiling.TraceID]*types.GoldenTrace{}
+			traces := map[tiling.TraceID]*tiling.GoldenTrace{}
 			for i, digests := range inputTraceDigests {
 				id := tiling.TraceID(fmt.Sprintf("trace-%d", i))
-				traces[id] = &types.GoldenTrace{
+				traces[id] = &tiling.GoldenTrace{
 					Digests: digests,
 					// Keys can be omitted because they are not read here,
 				}
@@ -1558,7 +1558,7 @@ func makeThreeDevicesIndexer() indexer.IndexSource {
 // makeThreeDevicesIndex returns a search index corresponding to the three_devices_data
 // (which currently has nothing ignored).
 func makeThreeDevicesIndex() *indexer.SearchIndex {
-	cpxTile := types.NewComplexTile(data.MakeTestTile())
+	cpxTile := tiling.NewComplexTile(data.MakeTestTile())
 	dc := digest_counter.New(data.MakeTestTile())
 	ps := paramsets.NewParamSummary(data.MakeTestTile(), dc)
 	si, err := indexer.SearchIndexForTesting(cpxTile, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{ps, ps}, nil, nil)

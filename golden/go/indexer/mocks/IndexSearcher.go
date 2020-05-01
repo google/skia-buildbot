@@ -189,15 +189,15 @@ func (_m *IndexSearcher) MostRecentPositiveDigest(ctx context.Context, traceID t
 }
 
 // SlicedTraces provides a mock function with given fields: is, query
-func (_m *IndexSearcher) SlicedTraces(is types.IgnoreState, query map[string][]string) []*types.TracePair {
+func (_m *IndexSearcher) SlicedTraces(is types.IgnoreState, query map[string][]string) []*tiling.TracePair {
 	ret := _m.Called(is, query)
 
-	var r0 []*types.TracePair
-	if rf, ok := ret.Get(0).(func(types.IgnoreState, map[string][]string) []*types.TracePair); ok {
+	var r0 []*tiling.TracePair
+	if rf, ok := ret.Get(0).(func(types.IgnoreState, map[string][]string) []*tiling.TracePair); ok {
 		r0 = rf(is, query)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*types.TracePair)
+			r0 = ret.Get(0).([]*tiling.TracePair)
 		}
 	}
 
@@ -228,15 +228,15 @@ func (_m *IndexSearcher) SummarizeByGrouping(ctx context.Context, corpus string,
 }
 
 // Tile provides a mock function with given fields:
-func (_m *IndexSearcher) Tile() types.ComplexTile {
+func (_m *IndexSearcher) Tile() tiling.ComplexTile {
 	ret := _m.Called()
 
-	var r0 types.ComplexTile
-	if rf, ok := ret.Get(0).(func() types.ComplexTile); ok {
+	var r0 tiling.ComplexTile
+	if rf, ok := ret.Get(0).(func() tiling.ComplexTile); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(types.ComplexTile)
+			r0 = ret.Get(0).(tiling.ComplexTile)
 		}
 	}
 

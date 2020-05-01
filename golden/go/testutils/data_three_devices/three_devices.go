@@ -103,7 +103,7 @@ func MakeTestTile() *tiling.Tile {
 		TileIndex: 0,
 
 		Traces: map[tiling.TraceID]tiling.Trace{
-			AnglerAlphaTraceID: types.NewGoldenTrace(
+			AnglerAlphaTraceID: tiling.NewGoldenTrace(
 				types.DigestSlice{AlphaNegativeDigest, AlphaNegativeDigest, AlphaPositiveDigest},
 				map[string]string{
 					"device":              AnglerDevice,
@@ -111,7 +111,7 @@ func MakeTestTile() *tiling.Tile {
 					types.CorpusField:     "gm",
 				},
 			),
-			AnglerBetaTraceID: types.NewGoldenTrace(
+			AnglerBetaTraceID: tiling.NewGoldenTrace(
 				types.DigestSlice{BetaPositiveDigest, BetaPositiveDigest, BetaPositiveDigest},
 				map[string]string{
 					"device":              AnglerDevice,
@@ -120,7 +120,7 @@ func MakeTestTile() *tiling.Tile {
 				},
 			),
 
-			BullheadAlphaTraceID: types.NewGoldenTrace(
+			BullheadAlphaTraceID: tiling.NewGoldenTrace(
 				types.DigestSlice{AlphaNegativeDigest, AlphaNegativeDigest, AlphaUntriagedDigest},
 				map[string]string{
 					"device":              BullheadDevice,
@@ -128,7 +128,7 @@ func MakeTestTile() *tiling.Tile {
 					types.CorpusField:     "gm",
 				},
 			),
-			BullheadBetaTraceID: types.NewGoldenTrace(
+			BullheadBetaTraceID: tiling.NewGoldenTrace(
 				types.DigestSlice{BetaPositiveDigest, BetaPositiveDigest, BetaPositiveDigest},
 				map[string]string{
 					"device":              BullheadDevice,
@@ -137,7 +137,7 @@ func MakeTestTile() *tiling.Tile {
 				},
 			),
 
-			CrosshatchAlphaTraceID: types.NewGoldenTrace(
+			CrosshatchAlphaTraceID: tiling.NewGoldenTrace(
 				types.DigestSlice{AlphaNegativeDigest, AlphaNegativeDigest, AlphaPositiveDigest},
 				map[string]string{
 					"device":              CrosshatchDevice,
@@ -145,8 +145,8 @@ func MakeTestTile() *tiling.Tile {
 					types.CorpusField:     "gm",
 				},
 			),
-			CrosshatchBetaTraceID: types.NewGoldenTrace(
-				types.DigestSlice{BetaUntriagedDigest, types.MissingDigest, types.MissingDigest},
+			CrosshatchBetaTraceID: tiling.NewGoldenTrace(
+				types.DigestSlice{BetaUntriagedDigest, tiling.MissingDigest, tiling.MissingDigest},
 				map[string]string{
 					"device":              CrosshatchDevice,
 					types.PrimaryKeyField: string(BetaTest),

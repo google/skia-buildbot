@@ -206,7 +206,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 		// to find which ones.
 		byTrace := idx.DigestCountsByTrace(types.IncludeIgnoredTraces)
 		for traceId, t := range tile.Traces {
-			gTrace := t.(*types.GoldenTrace)
+			gTrace := t.(*tiling.GoldenTrace)
 			if gTrace.TestName() != test {
 				continue
 			}
@@ -493,7 +493,7 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, exp expect
 	// Add digest/trace to the result.
 	ret := srInterMap{}
 	mutex := sync.Mutex{}
-	addFn := func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *types.GoldenTrace, _ interface{}) {
+	addFn := func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *tiling.GoldenTrace, _ interface{}) {
 		mutex.Lock()
 		defer mutex.Unlock()
 		ret.Add(test, digest, traceID, trace, nil)
@@ -654,7 +654,7 @@ const missingDigestIndex = -1
 
 // getDrawableTraces returns an instance of TraceGroup which allows us
 // to draw the traces for the given test/digest.
-func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp expectations.Classifier, traces map[tiling.TraceID]*types.GoldenTrace, comments []frontend.TraceComment) *frontend.TraceGroup {
+func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest, last int, exp expectations.Classifier, traces map[tiling.TraceID]*tiling.GoldenTrace, comments []frontend.TraceComment) *frontend.TraceGroup {
 	// Get the information necessary to draw the traces.
 	traceIDs := make([]tiling.TraceID, 0, len(traces))
 	for traceID := range traces {
@@ -687,7 +687,7 @@ func (s *SearchImpl) getDrawableTraces(test types.TestName, digest types.Digest,
 		// maxDistinctDigestsToPresent.
 		for j := last; j >= 0; j-- {
 			d := oneTrace.Digests[j]
-			if d == types.MissingDigest {
+			if d == tiling.MissingDigest {
 				tr.Data[j] = missingDigestIndex
 				continue
 			}
