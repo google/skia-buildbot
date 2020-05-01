@@ -238,7 +238,7 @@ func (idx *SearchIndex) SlicedTraces(is types.IgnoreState, query map[string][]st
 func (idx *SearchIndex) MostRecentPositiveDigest(ctx context.Context, traceID tiling.TraceID) (types.Digest, error) {
 	defer metrics2.FuncTimer().Stop()
 
-	// Retrieve GoldenTrace for the given traceID.
+	// Retrieve Trace for the given traceID.
 	trace, ok := idx.cpxTile.GetTile(types.IncludeIgnoredTraces).Traces[traceID]
 	if !ok {
 		return tiling.MissingDigest, nil
@@ -250,7 +250,7 @@ func (idx *SearchIndex) MostRecentPositiveDigest(ctx context.Context, traceID ti
 		return "", skerr.Wrapf(err, "retrieving expectations (traceID=%q)", traceID)
 	}
 
-	// Find and return the most recent positive digest in the GoldenTrace.
+	// Find and return the most recent positive digest in the Trace.
 	for i := len(trace.Digests) - 1; i >= 0; i-- {
 		digest := trace.Digests[i]
 		if digest != tiling.MissingDigest && exps.Classification(trace.TestName(), digest) == expectations.Positive {

@@ -322,7 +322,7 @@ func TestBTTraceStorePutGetGrouped(t *testing.T) {
 
 	// Group the traces by device, so we should have 3 groups of 2 traces.
 	traces := data.MakeTestTile().Traces
-	byDevice := map[string][]*tiling.GoldenTrace{
+	byDevice := map[string][]*tiling.Trace{
 		data.AnglerDevice:     nil,
 		data.BullheadDevice:   nil,
 		data.CrosshatchDevice: nil,

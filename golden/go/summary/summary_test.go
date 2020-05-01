@@ -225,7 +225,7 @@ func computeHelper(t *testing.T, tile *tiling.Tile, testNames types.TestNameSet,
 	return d.Calculate(testNames, query, head)
 }
 
-func asSlice(traces map[tiling.TraceID]*tiling.GoldenTrace) []*tiling.TracePair {
+func asSlice(traces map[tiling.TraceID]*tiling.Trace) []*tiling.TracePair {
 	xt := make([]*tiling.TracePair, 0, len(traces))
 	for id, trace := range traces {
 		xt = append(xt, &tiling.TracePair{
@@ -365,8 +365,8 @@ func TestSummaryMap_OverlappingCorpora(t *testing.T) {
 		Scale:     0, // tile contains every data point.
 		TileIndex: 0,
 
-		Traces: map[tiling.TraceID]*tiling.GoldenTrace{
-			",device=alpha,name=test_one,source_type=corpusOne,": tiling.NewGoldenTrace(
+		Traces: map[tiling.TraceID]*tiling.Trace{
+			",device=alpha,name=test_one,source_type=corpusOne,": tiling.NewTrace(
 				types.DigestSlice{
 					bug_revert.AlfaPositiveDigest, corpusOneUntriaged,
 				},
@@ -376,7 +376,7 @@ func TestSummaryMap_OverlappingCorpora(t *testing.T) {
 					types.CorpusField:     corpusOne,
 				},
 			),
-			",device=beta,name=test_one,source_type=corpusTwo,": tiling.NewGoldenTrace(
+			",device=beta,name=test_one,source_type=corpusTwo,": tiling.NewTrace(
 				types.DigestSlice{
 					corpusTwoUntriaged, corpusTwoUntriaged,
 				},
@@ -583,7 +583,7 @@ const (
 // makeFullTile returns a tile that matches the description at the top of the file.
 func makeFullTile() *tiling.Tile {
 	return &tiling.Tile{
-		Traces: map[tiling.TraceID]*tiling.GoldenTrace{
+		Traces: map[tiling.TraceID]*tiling.Trace{
 			// These trace ids have been shortened for test terseness.
 			// A real trace id would be like "8888:gm:test_first"
 			"a": {
@@ -648,7 +648,7 @@ func makeFullTile() *tiling.Tile {
 // "config=565" applied (which as removed one trace compared to makeFullTile()).
 func makeTileWithIgnores() *tiling.Tile {
 	return &tiling.Tile{
-		Traces: map[tiling.TraceID]*tiling.GoldenTrace{
+		Traces: map[tiling.TraceID]*tiling.Trace{
 			// These trace ids have been shortened for test terseness.
 			// A real trace id would be like "8888:gm:test_first"
 			"a": {
