@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "b23d5f09_dba96fba",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-01T12:57:57Z",
+      "side": 1,
+      "message": "I think I\u0027d actually keep the clone and fetch+reset separate. Having the initial clone cached will save some time even if it\u0027s old.",
+      "parentUuid": "995ea8a7_5598ee6d",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 36
+      },
+      "revId": "ee7e3e7d18c18d21a3efd0e52e8044ded8376bd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f6b34660_c13d1acb",
         "filename": "docker/Dockerfile",
         "patchSetId": 5
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "9ac778db_804d86d1",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-01T12:57:57Z",
+      "side": 1,
+      "message": "I guess we\u0027ll need to add those config lines with fake account details.  They changed the backend for \"git rebase\" in 2.26.0[1] which causes it to prompt for a new commit message.  I\u0027m not sure whether that will affect this flow, but we may need to \"git config --global rebase.backend apply\", in addition to or instead of setting the account details.  Alternatively, always run \"GIT_EDITOR\u003dtrue git rebase ...\" to avoid having to edit the message.\n\nWe do the rebase to ensure that we apply the patch on top of the desired commit, as opposed to whatever it was uploaded on top of.  This is really important for accuracy of try jobs, otherwise we\u0027re testing the patch against old code.  The downside is that it will fail if the patch does not apply cleanly.  I don\u0027t think that\u0027s a big problem though, since it implies that the patch isn\u0027t going to land as-is anyway.\n\n\n[1] https://github.com/git/git/blob/master/Documentation/RelNotes/2.26.0.txt",
+      "parentUuid": "82b909b0_1c3cb016",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 39
+      },
+      "revId": "ee7e3e7d18c18d21a3efd0e52e8044ded8376bd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d7f685f9_5e53a7ad",
         "filename": "docker/Dockerfile",
         "patchSetId": 5
@@ -131,6 +179,30 @@
       "side": 1,
       "message": "IIRC, Joe made this Dockerfile for cloudbuild automatic deployments of fiddle. It has been extended to include other apps too now.",
       "parentUuid": "d7f685f9_5e53a7ad",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 24
+      },
+      "revId": "ee7e3e7d18c18d21a3efd0e52e8044ded8376bd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6ade8422_218215a7",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-01T12:57:57Z",
+      "side": 1,
+      "message": "I only seek fiddlek in this file. Maybe we could use another ARG for the app to build (probably need its path too)?",
+      "parentUuid": "4b647fca_0480e27a",
       "range": {
         "startLine": 52,
         "startChar": 0,
