@@ -4,7 +4,6 @@ package indexer
 
 import (
 	"context"
-	"net/url"
 	"sync"
 	"time"
 
@@ -127,7 +126,7 @@ func (idx *SearchIndex) DigestCountsByTrace(is types.IgnoreState) map[tiling.Tra
 }
 
 // DigestCountsByQuery implements the IndexSearcher interface.
-func (idx *SearchIndex) DigestCountsByQuery(query url.Values, is types.IgnoreState) digest_counter.DigestCount {
+func (idx *SearchIndex) DigestCountsByQuery(query paramtools.ParamSet, is types.IgnoreState) digest_counter.DigestCount {
 	return idx.dCounters[is].ByQuery(idx.cpxTile.GetTile(is), query)
 }
 
@@ -137,7 +136,7 @@ func (idx *SearchIndex) GetSummaries(is types.IgnoreState) []*summary.TriageStat
 }
 
 // SummarizeByGrouping implements the IndexSearcher interface.
-func (idx *SearchIndex) SummarizeByGrouping(ctx context.Context, corpus string, query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
+func (idx *SearchIndex) SummarizeByGrouping(ctx context.Context, corpus string, query paramtools.ParamSet, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
 	exp, err := idx.expectationsStore.Get(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)

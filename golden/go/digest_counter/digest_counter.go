@@ -2,8 +2,7 @@
 package digest_counter
 
 import (
-	"net/url"
-
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
@@ -32,7 +31,7 @@ type DigestCounter interface {
 
 	// ByQuery returns a DigestCount of all the digests that match the given query in
 	// the provided tile.
-	ByQuery(tile *tiling.Tile, query url.Values) DigestCount
+	ByQuery(tile *tiling.Tile, query paramtools.ParamSet) DigestCount
 }
 
 // Counter implements DigestCounter
@@ -69,12 +68,12 @@ func (t *Counter) MaxDigestsByTest() map[types.TestName]types.DigestSet {
 
 // ByQuery returns a DigestCount of all the digests that match the given query in
 // the provided tile.
-func (t *Counter) ByQuery(tile *tiling.Tile, query url.Values) DigestCount {
+func (t *Counter) ByQuery(tile *tiling.Tile, query paramtools.ParamSet) DigestCount {
 	return countByQuery(tile, t.traceDigestCount, query)
 }
 
 // countByQuery does the actual work of ByQuery.
-func countByQuery(tile *tiling.Tile, traceDigestCount map[tiling.TraceID]DigestCount, query url.Values) DigestCount {
+func countByQuery(tile *tiling.Tile, traceDigestCount map[tiling.TraceID]DigestCount, query paramtools.ParamSet) DigestCount {
 	ret := DigestCount{}
 	for k, tr := range tile.Traces {
 		if tiling.Matches(tr, query) {

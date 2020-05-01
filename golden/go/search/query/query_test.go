@@ -2,7 +2,6 @@ package query
 
 import (
 	"net/http"
-	"net/url"
 	"strings"
 	"testing"
 
@@ -33,7 +32,7 @@ func TestParseQuery(t *testing.T) {
 		Unt:            true,
 		IncludeIgnores: false,
 		QueryStr:       "",
-		TraceValues: url.Values{
+		TraceValues: paramtools.ParamSet{
 			"source_type": []string{"gm"},
 		},
 		RQueryStr:     "",

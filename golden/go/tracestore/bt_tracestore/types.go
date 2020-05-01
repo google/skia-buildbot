@@ -251,7 +251,6 @@ func (t traceMap) MakeFromCommitIndexes(indices []int) traceMap {
 // PrependTraces augments this traceMap with the data from the given one.
 // Specifically, it prepends that data, assuming the "other" data came
 // before the data in this map.
-// TODO(kjlubick): Deduplicate this with tiling.Merge
 func (t traceMap) PrependTraces(other traceMap) {
 	numCommits := 0
 	for _, trace := range t {

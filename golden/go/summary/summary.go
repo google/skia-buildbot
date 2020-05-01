@@ -3,11 +3,11 @@ package summary
 
 import (
 	"context"
-	"net/url"
 	"sort"
 	"sync"
 
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
@@ -85,7 +85,7 @@ type Data struct {
 // appear in the most recent commit. The return value will have its entries sorted by TestName
 // first, then sorted by Corpus in the event of a tie.
 // TODO(kjlubick): make CalculateWithDiameter its own function (needs context.Context too)
-func (s *Data) Calculate(testNames types.TestNameSet, query url.Values, head bool) []*TriageStatus {
+func (s *Data) Calculate(testNames types.TestNameSet, query paramtools.ParamSet, head bool) []*TriageStatus {
 	if len(s.Traces) == 0 {
 		return nil
 	}

@@ -1006,11 +1006,12 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Unable to parse query parameter.", http.StatusBadRequest)
 		return
 	}
-	testName := q.TraceValues.Get(types.PrimaryKeyField)
-	if testName == "" {
+	testNames := q.TraceValues[types.PrimaryKeyField]
+	if len(testNames) == 0 {
 		http.Error(w, "No test name provided.", http.StatusBadRequest)
 		return
 	}
+	testName := testNames[0]
 
 	idx := wh.Indexer.GetIndex()
 	searchResponse, err := wh.SearchAPI.Search(r.Context(), &q)
