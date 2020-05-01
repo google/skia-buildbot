@@ -22,6 +22,30 @@
       "revId": "4ab56bd821d09b62379e15652f80add5e0a5aa4d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14fb118d_5f996cd0",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-01T12:47:58Z",
+      "side": 1,
+      "message": "LOL, renaming RunningTask -\u003e RunningSwarmingTask was one of the last things I did while writing this CL, as it was a little ambiguous in some contexts. I\u0027m going to keep it as is.",
+      "parentUuid": "a9266c0b_086049db",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 20
+      },
+      "revId": "4ab56bd821d09b62379e15652f80add5e0a5aa4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
