@@ -3,6 +3,8 @@ package tiling
 import (
 	"fmt"
 
+	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -55,6 +57,16 @@ func (g *GoldenTrace) Params() map[string]string {
 	return g.Keys
 }
 
+// Matches returns true if the given Trace matches the given query.
+func (g *GoldenTrace) Matches(query paramtools.ParamSet) bool {
+	for k, values := range query {
+		if p, ok := g.Params()[k]; !ok || !util.In(p, values) {
+			return false
+		}
+	}
+	return true
+}
+
 // TestName is a helper for extracting just the test name for this
 // trace, of which there should always be exactly one.
 func (g *GoldenTrace) TestName() types.TestName {
@@ -84,7 +96,7 @@ func (g *GoldenTrace) IsMissing(i int) bool {
 }
 
 // DeepCopy implements the tiling.Trace interface.
-func (g *GoldenTrace) DeepCopy() Trace {
+func (g *GoldenTrace) DeepCopy() *GoldenTrace {
 	nd := make([]types.Digest, len(g.Digests))
 	copy(nd, g.Digests)
 	nk := make(map[string]string, len(g.Keys))
@@ -95,22 +107,29 @@ func (g *GoldenTrace) DeepCopy() Trace {
 }
 
 // Merge implements the tiling.Trace interface.
-func (g *GoldenTrace) Merge(next Trace) Trace {
-	nextGold := next.(*GoldenTrace)
-	n := len(g.Digests) + len(nextGold.Digests)
+func (g *GoldenTrace) Merge(next *GoldenTrace) *GoldenTrace {
+	n := len(g.Digests) + len(next.Digests)
 	n1 := len(g.Digests)
 
 	merged := NewEmptyGoldenTrace(n, g.Keys)
-	for k, v := range nextGold.Keys {
+	for k, v := range next.Keys {
 		merged.Keys[k] = v
 	}
 	copy(merged.Digests, g.Digests)
 
-	for i, v := range nextGold.Digests {
+	for i, v := range next.Digests {
 		merged.Digests[n1+i] = v
 	}
 	return merged
 }
+
+// FillType is how filling in of missing values should be done in Trace.Grow().
+type FillType int
+
+const (
+	FillBefore FillType = iota
+	FillAfter
+)
 
 // Grow implements the tiling.Trace interface.
 func (g *GoldenTrace) Grow(n int, fill FillType) {
@@ -120,7 +139,7 @@ func (g *GoldenTrace) Grow(n int, fill FillType) {
 	delta := n - len(g.Digests)
 	newDigests := make([]types.Digest, n)
 
-	if fill == FILL_AFTER {
+	if fill == FillAfter {
 		copy(newDigests, g.Digests)
 		for i := 0; i < delta; i++ {
 			newDigests[i+len(g.Digests)] = MissingDigest

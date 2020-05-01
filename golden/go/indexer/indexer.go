@@ -243,7 +243,6 @@ func (idx *SearchIndex) MostRecentPositiveDigest(ctx context.Context, traceID ti
 	if !ok {
 		return tiling.MissingDigest, nil
 	}
-	goldTrace := trace.(*tiling.GoldenTrace)
 
 	// Retrieve expectations.
 	exps, err := idx.expectationsStore.Get(ctx)
@@ -252,9 +251,9 @@ func (idx *SearchIndex) MostRecentPositiveDigest(ctx context.Context, traceID ti
 	}
 
 	// Find and return the most recent positive digest in the GoldenTrace.
-	for i := len(goldTrace.Digests) - 1; i >= 0; i-- {
-		digest := goldTrace.Digests[i]
-		if digest != tiling.MissingDigest && exps.Classification(goldTrace.TestName(), digest) == expectations.Positive {
+	for i := len(trace.Digests) - 1; i >= 0; i-- {
+		digest := trace.Digests[i]
+		if digest != tiling.MissingDigest && exps.Classification(trace.TestName(), digest) == expectations.Positive {
 			return digest, nil
 		}
 	}
@@ -526,15 +525,14 @@ func preSliceData(_ context.Context, state interface{}) error {
 	idx := state.(*SearchIndex)
 	for _, is := range types.IgnoreStates {
 		t := idx.cpxTile.GetTile(is)
-		for id, tr := range t.Traces {
-			gt, ok := tr.(*tiling.GoldenTrace)
-			if !ok || gt == nil {
-				sklog.Warningf("Unexpected trace type for id %s: %#v", id, gt)
+		for id, trace := range t.Traces {
+			if trace == nil {
+				sklog.Warningf("Unexpected nil trace id %s", id)
 				continue
 			}
 			tp := tiling.TracePair{
 				ID:    id,
-				Trace: gt,
+				Trace: trace,
 			}
 			// Pre-slice the data by IgnoreState, then by IgnoreState and Corpus, finally by all
 			// three of IgnoreState/Corpus/Test. We shouldn't allow queries by Corpus w/o specifying
@@ -547,14 +545,14 @@ func preSliceData(_ context.Context, state interface{}) error {
 
 			ignoreAndCorpus := preSliceGroup{
 				IgnoreState: is,
-				Corpus:      gt.Corpus(),
+				Corpus:      trace.Corpus(),
 			}
 			idx.preSliced[ignoreAndCorpus] = append(idx.preSliced[ignoreAndCorpus], &tp)
 
 			ignoreCorpusTest := preSliceGroup{
 				IgnoreState: is,
-				Corpus:      gt.Corpus(),
-				Test:        gt.TestName(),
+				Corpus:      trace.Corpus(),
+				Test:        trace.TestName(),
 			}
 			idx.preSliced[ignoreCorpusTest] = append(idx.preSliced[ignoreCorpusTest], &tp)
 		}

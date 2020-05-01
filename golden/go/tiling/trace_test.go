@@ -29,19 +29,19 @@ func TestGoldenTrace(t *testing.T) {
 	gm.Digests[1] = "another digest"
 	g2 := g.Merge(gm)
 	assert.Equal(t, N+M, g2.Len(), "merge length wrong")
-	assert.Equal(t, types.Digest("a digest"), g2.(*GoldenTrace).Digests[0])
-	assert.Equal(t, types.Digest("another digest"), g2.(*GoldenTrace).Digests[6])
+	assert.Equal(t, types.Digest("a digest"), g2.Digests[0])
+	assert.Equal(t, types.Digest("another digest"), g2.Digests[6])
 
 	// Test Grow.
 	g = NewEmptyGoldenTrace(N, nil)
 	g.Digests[0] = "foo"
-	g.Grow(2*N, FILL_BEFORE)
-	assert.Equal(t, types.Digest("foo"), g.Digests[N], "Grow didn't FILL_BEFORE correctly")
+	g.Grow(2*N, FillBefore)
+	assert.Equal(t, types.Digest("foo"), g.Digests[N], "Grow didn't FillBefore correctly")
 
 	g = NewEmptyGoldenTrace(N, nil)
 	g.Digests[0] = "foo"
-	g.Grow(2*N, FILL_AFTER)
-	assert.Equal(t, types.Digest("foo"), g.Digests[0], "Grow didn't FILL_AFTER correctly")
+	g.Grow(2*N, FillAfter)
+	assert.Equal(t, types.Digest("foo"), g.Digests[0], "Grow didn't FillAfter correctly")
 
 	// Test Trim
 	g = NewEmptyGoldenTrace(N, nil)
@@ -57,8 +57,6 @@ func TestGoldenTrace(t *testing.T) {
 	require.NoError(t, g.Trim(1, 1))
 	assert.Equal(t, 0, g.Len(), "final size wrong")
 }
-
-var _tn types.TestName
 
 // BenchmarkTraceTestName shows that a map-lookup in go for this example param map is about
 // 15 nanoseconds, whereas pre-caching that value makes it about 0.5 ns.
@@ -85,15 +83,15 @@ func BenchmarkTraceTestName(b *testing.B) {
 		"transfer_fn":      "untagged",
 	})
 
-	var r types.TestName
 	for n := 0; n < b.N; n++ {
 		// always record the result of TestName to prevent
 		// the compiler eliminating the function call.
-		r = gt.TestName()
+		r := gt.TestName()
+		// Use the result to make sure it doesn't get compiled away
+		if len(r) > 10000 {
+			panic("this keeps r around and should never happen")
+		}
 	}
-	// always store the result to a package level variable
-	// so the compiler cannot eliminate the Benchmark itself.
-	_tn = r
 }
 
 // BenchmarkTraceMapIteration shows that iterating through a map of 1.3 million traces
@@ -103,7 +101,7 @@ func BenchmarkTraceMapIteration(b *testing.B) {
 	const numTraces = 1300000
 	// When we make the traces in bt_tracestore, we don't know how big they can be, so
 	// we just start from an empty map
-	traces := map[TraceID]Trace{}
+	traces := map[TraceID]*GoldenTrace{}
 	for i := 0; i < numTraces; i++ {
 		id := randomString()
 		traces[TraceID(id)] = NewEmptyGoldenTrace(10, map[string]string{
@@ -130,7 +128,7 @@ func BenchmarkTraceSliceIteration(b *testing.B) {
 	const numTraces = 1300000
 	// When we make the traces in bt_tracestore, we wouldn't know how big they can be, so
 	// we just start from an empty slice
-	traces := []TracePair{}
+	var traces []TracePair
 	for i := 0; i < numTraces; i++ {
 		id := randomString()
 		traces = append(traces, TracePair{
