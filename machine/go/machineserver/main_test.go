@@ -57,6 +57,7 @@ func TestMachineToggleModeHandler_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, machines, 1)
 	assert.Equal(t, machine.ModeMaintenance, machines[0].Mode)
+	assert.Contains(t, machines[0].Annotation.Message, "Changed mode to")
 }
 
 func TestMachineToggleModeHandler_FailOnMissingID(t *testing.T) {

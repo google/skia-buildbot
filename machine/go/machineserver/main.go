@@ -4,15 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
 	"go.skia.org/infra/go/allowed"
+	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
@@ -140,12 +143,19 @@ func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request
 		httputils.ReportError(w, skerr.Fmt("ID must be supplied."), "ID must be supplied.", http.StatusInternalServerError)
 		return
 	}
+	auditlog.Log(r, "toggle-mode", id)
+
 	err := s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
 		ret := in.Copy()
 		if ret.Mode == machine.ModeAvailable {
 			ret.Mode = machine.ModeMaintenance
 		} else {
 			ret.Mode = machine.ModeAvailable
+		}
+		ret.Annotation = machine.Annotation{
+			User:      user(r),
+			Message:   fmt.Sprintf("Changed mode to %q", ret.Mode),
+			Timestamp: time.Now(),
 		}
 		return ret
 	})
