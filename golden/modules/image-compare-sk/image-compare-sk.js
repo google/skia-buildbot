@@ -13,12 +13,12 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import dialogPolyfill from 'dialog-polyfill';
+import { $$ } from 'common-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import 'elements-sk/icon/open-in-new-icon-sk';
 import 'elements-sk/styles/buttons';
 import { digestDiffImagePath, digestImagePath } from '../common';
-import { $$ } from '../../../common-sk/modules/dom';
 
 import '../multi-zoom-sk';
 

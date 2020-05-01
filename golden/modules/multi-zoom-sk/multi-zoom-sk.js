@@ -12,8 +12,8 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
+import { $$ } from 'common-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { $$ } from '../../../common-sk/modules/dom';
 
 import 'elements-sk/checkbox-sk';
 

@@ -18,9 +18,9 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { errorMessage } from 'elements-sk/errorMessage';
+import { $$ } from 'common-sk/modules/dom';
+import { fromParamSet, fromObject } from 'common-sk/modules/query';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { $$ } from '../../../common-sk/modules/dom';
-import { fromParamSet, fromObject } from '../../../common-sk/modules/query';
 import {
   truncateWithEllipses, detailHref, diffPageHref, sendBeginTask, sendEndTask, sendFetchError,
 } from '../common';
