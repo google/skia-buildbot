@@ -26,8 +26,8 @@ var (
 
 	REPOSITORY_HOST = "gcr.io"
 
-	// dockerStepPrefix is a regex that matches Step lines in Docker output.
-	dockerStepPrefix = regexp.MustCompile(`^Step \d+\/\d+ : `)
+	// dockerStepRegex is a regex that matches Step lines in Docker output.
+	dockerStepRegex = regexp.MustCompile(`^Step \d+\/\d+ : .*`)
 
 	// dockerCmd is the name of the executable to run Docker. A variable so we
 	// can change it at test time.
@@ -250,7 +250,7 @@ func BuildHelper(ctx context.Context, directory, tag, configDir string, buildArg
 //   Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
 //   Step 6/7 : USER skia
 func Build(ctx context.Context, args ...string) error {
-	return log_parser.RunRegexp(ctx, dockerStepPrefix, ".", append([]string{dockerCmd}, args...))
+	return log_parser.RunRegexp(ctx, dockerStepRegex, ".", append([]string{dockerCmd}, args...))
 }
 
 // BuildPushImageFromInfraImage is a utility function that pulls the infra image, runs the specified
