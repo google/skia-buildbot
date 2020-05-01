@@ -15,7 +15,7 @@ import (
 
 	summary "go.skia.org/infra/golden/go/summary"
 
-	tiling "go.skia.org/infra/go/tiling"
+	tiling "go.skia.org/infra/golden/go/tiling"
 
 	types "go.skia.org/infra/golden/go/types"
 
