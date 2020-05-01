@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/baseapp"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/machine/go/machine"
 	"go.skia.org/infra/machine/go/machine/store"
@@ -31,6 +32,7 @@ func setupForTest(t *testing.T) (context.Context, config.InstanceConfig) {
 
 func TestMachineToggleModeHandler_Success(t *testing.T) {
 	unittest.LargeTest(t)
+	*baseapp.Local = true
 
 	ctx, cfg := setupForTest(t)
 	store, err := store.New(ctx, true, cfg)
@@ -57,6 +59,8 @@ func TestMachineToggleModeHandler_Success(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, machines, 1)
 	assert.Equal(t, machine.ModeMaintenance, machines[0].Mode)
+	assert.Contains(t, machines[0].Annotation.Message, "Changed mode to")
+	assert.Equal(t, machines[0].Annotation.User, "barney@example.org")
 }
 
 func TestMachineToggleModeHandler_FailOnMissingID(t *testing.T) {
