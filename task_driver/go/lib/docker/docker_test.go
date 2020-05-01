@@ -32,7 +32,7 @@ func TestBuild(t *testing.T) {
 		subSteps      int
 		timeout       time.Duration
 		expected      td.StepResult
-		expectedSteps []td.StepResult
+		expectedSteps []td.StepReport
 		wantErr       bool
 		buildArgs     map[string]string
 	}{
@@ -43,14 +43,49 @@ func TestBuild(t *testing.T) {
 			},
 			timeout:  time.Minute,
 			expected: td.STEP_RESULT_SUCCESS,
-			expectedSteps: []td.StepResult{
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
+			expectedSteps: []td.StepReport{
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 1/7 : FROM debian:testing-slim",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 2/7 : RUN apt-get update && apt-get upgrade -y && apt-get install -y   git   python    curl",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 3/7 : RUN mkdir -p --mode=0777 /workspace/__cache   && groupadd -g 2000 skia   && useradd -u 2000 -g 2000 --home /workspace/__cache skia",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 4/7 : ENV VPYTHON_VIRTUALENV_ROOT /workspace/__cache",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 6/7 : USER skia",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 7/7 : RUN printenv   && cd /tmp   && git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'   && mkdir -p /tmp/skia   && cd /tmp/skia   && export PATH=/usr/local/google/home/borenet/go_1.13.5/go/bin:/usr/local/google/home/borenet/go/bin:/usr/local/google/android-sdk-linux/platform-tools:/usr/local/google/android-sdk-linux/tools:/usr/local/google/chrome_infra/depot_tools:/usr/local/google/home/borenet/.vscode-server/bin/a9f8623ec050e5f0b44cc8ce8204a1455884749f/bin:/usr/local/google/home/borenet/bin:/usr/local/google/home/borenet/google-cloud-sdk/bin:/usr/local/google/home/borenet/go_1.13.5/go/bin:/usr/local/google/home/borenet/go/bin:/usr/local/google/android-sdk-linux/platform-tools:/usr/local/google/android-sdk-linux/tools:/usr/local/google/chrome_infra/depot_tools:/usr/local/google/home/borenet/.vscode-server/bin/a9f8623ec050e5f0b44cc8ce8204a1455884749f/bin:/usr/local/google/home/borenet/bin:/usr/lib/google-golang/bin:/usr/local/buildtools/java/jdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/google/home/borenet/bin:/usr/local/google/appengine_go/go_appengine:/usr/local/google/home/borenet/node-v10.15.3-linux-x64/bin:/usr/local/google/chrome_infra/luci-py/client:/usr/local/google/home/borenet/bin:/usr/local/google/appengine_go/go_appengine:/usr/local/google/home/borenet/node-v10.15.3-linux-x64/bin:/usr/local/google/chrome_infra/luci-py/client:/tmp/depot_tools   && touch noop.py   && vpython noop.py   && ls -al /tmp/depot_tools   && /tmp/depot_tools/fetch skia   && ls -al /workspace/__cache   && printenv",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
 			},
 			wantErr:   false,
 			buildArgs: map[string]string{"arg1": "value1"},
@@ -62,14 +97,49 @@ func TestBuild(t *testing.T) {
 			},
 			timeout:  time.Minute,
 			expected: td.STEP_RESULT_FAILURE,
-			expectedSteps: []td.StepResult{
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_FAILURE,
+			expectedSteps: []td.StepReport{
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 1/7 : FROM debian:testing-slim",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 2/7 : RUN apt-get update && apt-get upgrade -y && apt-get install -y   git   python    curl",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 3/7 : RUN mkdir -p --mode=0777 /workspace/__cache   && groupadd -g 2000 skia   && useradd -u 2000 -g 2000 --home /workspace/__cache skia",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 4/7 : ENV VPYTHON_VIRTUALENV_ROOT /workspace/__cache",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 6/7 : USER skia",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 7/7 : RUN printenv   && cd /tmp   && git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'   && mkdir -p /tmp/skia   && cd /tmp/skia   && export PATH=/usr/local/google/home/borenet/go_1.13.5/go/bin:/usr/local/google/home/borenet/go/bin:/usr/local/google/android-sdk-linux/platform-tools:/usr/local/google/android-sdk-linux/tools:/usr/local/google/chrome_infra/depot_tools:/usr/local/google/home/borenet/.vscode-server/bin/a9f8623ec050e5f0b44cc8ce8204a1455884749f/bin:/usr/local/google/home/borenet/bin:/usr/local/google/home/borenet/google-cloud-sdk/bin:/usr/local/google/home/borenet/go_1.13.5/go/bin:/usr/local/google/home/borenet/go/bin:/usr/local/google/android-sdk-linux/platform-tools:/usr/local/google/android-sdk-linux/tools:/usr/local/google/chrome_infra/depot_tools:/usr/local/google/home/borenet/.vscode-server/bin/a9f8623ec050e5f0b44cc8ce8204a1455884749f/bin:/usr/local/google/home/borenet/bin:/usr/lib/google-golang/bin:/usr/local/buildtools/java/jdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/google/home/borenet/bin:/usr/local/google/appengine_go/go_appengine:/usr/local/google/home/borenet/node-v10.15.3-linux-x64/bin:/usr/local/google/chrome_infra/luci-py/client:/usr/local/google/home/borenet/bin:/usr/local/google/appengine_go/go_appengine:/usr/local/google/home/borenet/node-v10.15.3-linux-x64/bin:/usr/local/google/chrome_infra/luci-py/client:/tmp/depot_tools   && touch noop.py   && vpython noop.py   && ls -al /tmp/depot_tools   && /tmp/depot_tools/fetch skia   && ls -al /workspace/__cache   && printenv",
+					},
+					Result: td.STEP_RESULT_FAILURE,
+				},
 			},
 			wantErr:   true,
 			buildArgs: nil,
@@ -81,7 +151,7 @@ func TestBuild(t *testing.T) {
 			},
 			timeout:       time.Minute,
 			expected:      td.STEP_RESULT_FAILURE,
-			expectedSteps: []td.StepResult{},
+			expectedSteps: []td.StepReport{},
 			wantErr:       true,
 			buildArgs:     nil,
 		},
@@ -92,14 +162,49 @@ func TestBuild(t *testing.T) {
 			},
 			timeout:  100 * time.Millisecond,
 			expected: td.STEP_RESULT_FAILURE,
-			expectedSteps: []td.StepResult{
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_SUCCESS,
-				td.STEP_RESULT_FAILURE,
+			expectedSteps: []td.StepReport{
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 1/7 : FROM debian:testing-slim",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 2/7 : RUN apt-get update && apt-get upgrade -y && apt-get install -y   git   python    curl",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 3/7 : RUN mkdir -p --mode=0777 /workspace/__cache   && groupadd -g 2000 skia   && useradd -u 2000 -g 2000 --home /workspace/__cache skia",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 4/7 : ENV VPYTHON_VIRTUALENV_ROOT /workspace/__cache",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 6/7 : USER skia",
+					},
+					Result: td.STEP_RESULT_SUCCESS,
+				},
+				{
+					StepProperties: &td.StepProperties{
+						Name: "Step 7/7 : RUN printenv   && cd /tmp   && git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'   && mkdir -p /tmp/skia   && cd /tmp/skia   && export PATH=/usr/local/google/home/borenet/go_1.13.5/go/bin:/usr/local/google/home/borenet/go/bin:/usr/local/google/android-sdk-linux/platform-tools:/usr/local/google/android-sdk-linux/tools:/usr/local/google/chrome_infra/depot_tools:/usr/local/google/home/borenet/.vscode-server/bin/a9f8623ec050e5f0b44cc8ce8204a1455884749f/bin:/usr/local/google/home/borenet/bin:/usr/local/google/home/borenet/google-cloud-sdk/bin:/usr/local/google/home/borenet/go_1.13.5/go/bin:/usr/local/google/home/borenet/go/bin:/usr/local/google/android-sdk-linux/platform-tools:/usr/local/google/android-sdk-linux/tools:/usr/local/google/chrome_infra/depot_tools:/usr/local/google/home/borenet/.vscode-server/bin/a9f8623ec050e5f0b44cc8ce8204a1455884749f/bin:/usr/local/google/home/borenet/bin:/usr/lib/google-golang/bin:/usr/local/buildtools/java/jdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/google/home/borenet/bin:/usr/local/google/appengine_go/go_appengine:/usr/local/google/home/borenet/node-v10.15.3-linux-x64/bin:/usr/local/google/chrome_infra/luci-py/client:/usr/local/google/home/borenet/bin:/usr/local/google/appengine_go/go_appengine:/usr/local/google/home/borenet/node-v10.15.3-linux-x64/bin:/usr/local/google/chrome_infra/luci-py/client:/tmp/depot_tools   && touch noop.py   && vpython noop.py   && ls -al /tmp/depot_tools   && /tmp/depot_tools/fetch skia   && ls -al /workspace/__cache   && printenv",
+					},
+					Result: td.STEP_RESULT_FAILURE,
+				},
 			},
 			wantErr:   true,
 			buildArgs: nil,
@@ -137,7 +242,8 @@ func TestBuild(t *testing.T) {
 			// Individual build steps.
 			require.Equal(t, len(tt.expectedSteps), len(dockerRun.Steps))
 			for idx, expectResult := range tt.expectedSteps {
-				require.Equal(t, expectResult, dockerRun.Steps[idx].Result)
+				require.Equal(t, expectResult.Name, dockerRun.Steps[idx].Name)
+				require.Equal(t, expectResult.Result, dockerRun.Steps[idx].Result)
 			}
 		})
 	}

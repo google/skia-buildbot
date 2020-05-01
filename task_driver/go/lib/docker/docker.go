@@ -27,7 +27,7 @@ var (
 	REPOSITORY_HOST = "gcr.io"
 
 	// dockerStepPrefix is a regex that matches Step lines in Docker output.
-	dockerStepPrefix = regexp.MustCompile(`^Step \d+\/\d+ : `)
+	dockerStepPrefix = regexp.MustCompile(`^Step \d+\/\d+ : .*`)
 
 	// dockerCmd is the name of the executable to run Docker. A variable so we
 	// can change it at test time.
