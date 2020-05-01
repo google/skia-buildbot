@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -53,10 +54,10 @@ func TestExtractKeyFromRowName(t *testing.T) {
 func TestDigestBytesSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
-	require.Equal(t, missingDigestBytes, toBytes(types.MissingDigest))
-	require.Equal(t, types.MissingDigest, fromBytes(missingDigestBytes))
-	require.Equal(t, types.MissingDigest, fromBytes(nil))
-	require.Equal(t, types.MissingDigest, fromBytes([]byte{}))
+	require.Equal(t, missingDigestBytes, toBytes(tiling.MissingDigest))
+	require.Equal(t, tiling.MissingDigest, fromBytes(missingDigestBytes))
+	require.Equal(t, tiling.MissingDigest, fromBytes(nil))
+	require.Equal(t, tiling.MissingDigest, fromBytes([]byte{}))
 
 	require.Equal(t, arbitraryDigestBytes, toBytes(arbitraryDigest))
 	require.Equal(t, arbitraryDigest, fromBytes(arbitraryDigestBytes))
@@ -69,7 +70,7 @@ func TestDigestBytesBadData(t *testing.T) {
 	require.Equal(t, missingDigestBytes, toBytes(corruptDigest))
 
 	require.Equal(t, missingDigestBytes, toBytes(truncatedDigest))
-	require.Equal(t, types.MissingDigest, fromBytes(truncatedDigestBytes))
+	require.Equal(t, tiling.MissingDigest, fromBytes(truncatedDigestBytes))
 }
 
 const (

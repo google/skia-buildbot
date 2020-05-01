@@ -173,7 +173,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 			digest_counter.New(partialTile),
 			digest_counter.New(fullTile),
 		},
-		preSliced: map[preSliceGroup][]*types.TracePair{},
+		preSliced: map[preSliceGroup][]*tiling.TracePair{},
 
 		cpxTile: ct,
 	}
@@ -221,7 +221,7 @@ func TestPreSlicedTracesCreatedCorrectly(t *testing.T) {
 	ct, _, _ := makeComplexTileWithCrosshatchIgnores()
 
 	si := &SearchIndex{
-		preSliced: map[preSliceGroup][]*types.TracePair{},
+		preSliced: map[preSliceGroup][]*tiling.TracePair{},
 		cpxTile:   ct,
 	}
 	require.NoError(t, preSliceData(context.Background(), si))
@@ -276,7 +276,7 @@ func TestPreSlicedTracesQuery(t *testing.T) {
 	ct, _, _ := makeComplexTileWithCrosshatchIgnores()
 
 	si := &SearchIndex{
-		preSliced: map[preSliceGroup][]*types.TracePair{},
+		preSliced: map[preSliceGroup][]*tiling.TracePair{},
 		cpxTile:   ct,
 	}
 	require.NoError(t, preSliceData(context.Background(), si))
@@ -381,7 +381,7 @@ func TestSearchIndex_MostRecentPositiveDigest_MultiplePositiveDigests_Success(t 
 func TestSearchIndex_MostRecentPositiveDigest_LastPositiveNotAtHead_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	si, traceID := makeSearchIndexWithSingleTrace(goodDigest1, badDigest1, goodDigest2, badDigest2, untriagedDigest1, types.MissingDigest)
+	si, traceID := makeSearchIndexWithSingleTrace(goodDigest1, badDigest1, goodDigest2, badDigest2, untriagedDigest1, tiling.MissingDigest)
 
 	digest, err := si.MostRecentPositiveDigest(context.Background(), traceID)
 	require.NoError(t, err)
@@ -391,11 +391,11 @@ func TestSearchIndex_MostRecentPositiveDigest_LastPositiveNotAtHead_Success(t *t
 func TestSearchIndex_MostRecentPositiveDigest_NoRecentPositive_ReturnsMissingDigest(t *testing.T) {
 	unittest.SmallTest(t)
 
-	si, traceID := makeSearchIndexWithSingleTrace(untriagedDigest1, types.MissingDigest, badDigest1, untriagedDigest2, types.MissingDigest, badDigest2)
+	si, traceID := makeSearchIndexWithSingleTrace(untriagedDigest1, tiling.MissingDigest, badDigest1, untriagedDigest2, tiling.MissingDigest, badDigest2)
 
 	digest, err := si.MostRecentPositiveDigest(context.Background(), traceID)
 	require.NoError(t, err)
-	assert.Equal(t, types.MissingDigest, digest)
+	assert.Equal(t, tiling.MissingDigest, digest)
 }
 
 func TestSearchIndex_MostRecentPositiveDigest_TraceNotFound_ReturnsMissingDigest(t *testing.T) {
@@ -413,7 +413,7 @@ func TestSearchIndex_MostRecentPositiveDigest_TraceNotFound_ReturnsMissingDigest
 
 	digest, err := si.MostRecentPositiveDigest(context.Background(), missingTraceID)
 	require.NoError(t, err)
-	assert.Equal(t, types.MissingDigest, digest)
+	assert.Equal(t, tiling.MissingDigest, digest)
 }
 
 func TestSearchIndex_MostRecentPositiveDigest_ExpectationsStoreFailure_ReturnsError(t *testing.T) {
@@ -459,7 +459,7 @@ func makeSearchIndexWithSingleTrace(digests ...types.Digest) (*SearchIndex, tili
 	// Generate tile with the given digests.
 	tile := &tiling.Tile{
 		Traces: map[tiling.TraceID]tiling.Trace{
-			traceID: types.NewGoldenTrace(digests, map[string]string{
+			traceID: tiling.NewGoldenTrace(digests, map[string]string{
 				"device":              device,
 				types.PrimaryKeyField: string(testName),
 				types.CorpusField:     corpus,
@@ -489,7 +489,7 @@ func makeSearchIndexWithSingleTrace(digests ...types.Digest) (*SearchIndex, tili
 		searchIndexConfig: searchIndexConfig{
 			expectationsStore: mockExpStore,
 		},
-		cpxTile: types.NewComplexTile(tile),
+		cpxTile: tiling.NewComplexTile(tile),
 	}
 
 	return searchIndex, traceID
@@ -501,13 +501,13 @@ func makeSearchIndexWithSingleTrace(digests ...types.Digest) (*SearchIndex, tili
 // mock B is used elsewhere. There's a race because mock B is keeping track of what was
 // called on it while mock A records what it was called with. Additionally, the general guidelines
 // are to prefer to use the real thing instead of a mock.
-func makeComplexTileWithCrosshatchIgnores() (types.ComplexTile, *tiling.Tile, *tiling.Tile) {
+func makeComplexTileWithCrosshatchIgnores() (tiling.ComplexTile, *tiling.Tile, *tiling.Tile) {
 	fullTile := data.MakeTestTile()
 	partialTile := data.MakeTestTile()
 	delete(partialTile.Traces, data.CrosshatchAlphaTraceID)
 	delete(partialTile.Traces, data.CrosshatchBetaTraceID)
 
-	ct := types.NewComplexTile(fullTile)
+	ct := tiling.NewComplexTile(fullTile)
 	ct.SetIgnoreRules(partialTile, []paramtools.ParamSet{
 		{
 			"device": []string{"crosshatch"},

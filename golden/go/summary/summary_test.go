@@ -225,12 +225,12 @@ func computeHelper(t *testing.T, tile *tiling.Tile, testNames types.TestNameSet,
 	return d.Calculate(testNames, query, head)
 }
 
-func asSlice(t *testing.T, traces map[tiling.TraceID]tiling.Trace) []*types.TracePair {
-	xt := make([]*types.TracePair, 0, len(traces))
+func asSlice(t *testing.T, traces map[tiling.TraceID]tiling.Trace) []*tiling.TracePair {
+	xt := make([]*tiling.TracePair, 0, len(traces))
 	for id, tr := range traces {
-		gt, ok := tr.(*types.GoldenTrace)
+		gt, ok := tr.(*tiling.GoldenTrace)
 		require.True(t, ok)
-		xt = append(xt, &types.TracePair{
+		xt = append(xt, &tiling.TracePair{
 			ID:    id,
 			Trace: gt,
 		})
@@ -368,7 +368,7 @@ func TestSummaryMap_OverlappingCorpora(t *testing.T) {
 		TileIndex: 0,
 
 		Traces: map[tiling.TraceID]tiling.Trace{
-			",device=alpha,name=test_one,source_type=corpusOne,": types.NewGoldenTrace(
+			",device=alpha,name=test_one,source_type=corpusOne,": tiling.NewGoldenTrace(
 				types.DigestSlice{
 					bug_revert.AlfaPositiveDigest, corpusOneUntriaged,
 				},
@@ -378,7 +378,7 @@ func TestSummaryMap_OverlappingCorpora(t *testing.T) {
 					types.CorpusField:     corpusOne,
 				},
 			),
-			",device=beta,name=test_one,source_type=corpusTwo,": types.NewGoldenTrace(
+			",device=beta,name=test_one,source_type=corpusTwo,": tiling.NewGoldenTrace(
 				types.DigestSlice{
 					corpusTwoUntriaged, corpusTwoUntriaged,
 				},
@@ -588,7 +588,7 @@ func makeFullTile() *tiling.Tile {
 		Traces: map[tiling.TraceID]tiling.Trace{
 			// These trace ids have been shortened for test terseness.
 			// A real trace id would be like "8888:gm:test_first"
-			"a": &types.GoldenTrace{
+			"a": &tiling.GoldenTrace{
 				Digests: types.DigestSlice{"aaa", "bbb"},
 				Keys: map[string]string{
 					"config":              "8888",
@@ -596,7 +596,7 @@ func makeFullTile() *tiling.Tile {
 					types.PrimaryKeyField: string(FirstTest),
 				},
 			},
-			"b": &types.GoldenTrace{
+			"b": &tiling.GoldenTrace{
 				Digests: types.DigestSlice{"ccc", "ddd"},
 				Keys: map[string]string{
 					"config":              "565",
@@ -604,15 +604,15 @@ func makeFullTile() *tiling.Tile {
 					types.PrimaryKeyField: string(FirstTest),
 				},
 			},
-			"c": &types.GoldenTrace{
-				Digests: types.DigestSlice{"eee", types.MissingDigest},
+			"c": &tiling.GoldenTrace{
+				Digests: types.DigestSlice{"eee", tiling.MissingDigest},
 				Keys: map[string]string{
 					"config":              "gpu",
 					types.CorpusField:     "gm",
 					types.PrimaryKeyField: string(FirstTest),
 				},
 			},
-			"d": &types.GoldenTrace{
+			"d": &tiling.GoldenTrace{
 				Digests: types.DigestSlice{"fff", "ggg"},
 				Keys: map[string]string{
 					"config":              "8888",
@@ -620,8 +620,8 @@ func makeFullTile() *tiling.Tile {
 					types.PrimaryKeyField: string(SecondTest),
 				},
 			},
-			"e": &types.GoldenTrace{
-				Digests: types.DigestSlice{"jjj", types.MissingDigest},
+			"e": &tiling.GoldenTrace{
+				Digests: types.DigestSlice{"jjj", tiling.MissingDigest},
 				Keys: map[string]string{
 					"config":              "8888",
 					types.CorpusField:     "image",
@@ -653,7 +653,7 @@ func makeTileWithIgnores() *tiling.Tile {
 		Traces: map[tiling.TraceID]tiling.Trace{
 			// These trace ids have been shortened for test terseness.
 			// A real trace id would be like "8888:gm:test_first"
-			"a": &types.GoldenTrace{
+			"a": &tiling.GoldenTrace{
 				Digests: types.DigestSlice{"aaa", "bbb"},
 				Keys: map[string]string{
 					"config":              "8888",
@@ -661,15 +661,15 @@ func makeTileWithIgnores() *tiling.Tile {
 					types.PrimaryKeyField: string(FirstTest),
 				},
 			},
-			"c": &types.GoldenTrace{
-				Digests: types.DigestSlice{"eee", types.MissingDigest},
+			"c": &tiling.GoldenTrace{
+				Digests: types.DigestSlice{"eee", tiling.MissingDigest},
 				Keys: map[string]string{
 					"config":              "gpu",
 					types.CorpusField:     "gm",
 					types.PrimaryKeyField: string(FirstTest),
 				},
 			},
-			"d": &types.GoldenTrace{
+			"d": &tiling.GoldenTrace{
 				Digests: types.DigestSlice{"fff", "ggg"},
 				Keys: map[string]string{
 					"config":              "8888",
@@ -677,8 +677,8 @@ func makeTileWithIgnores() *tiling.Tile {
 					types.PrimaryKeyField: string(SecondTest),
 				},
 			},
-			"e": &types.GoldenTrace{
-				Digests: types.DigestSlice{"jjj", types.MissingDigest},
+			"e": &tiling.GoldenTrace{
+				Digests: types.DigestSlice{"jjj", tiling.MissingDigest},
 				Keys: map[string]string{
 					"config":              "8888",
 					types.CorpusField:     "image",

@@ -199,7 +199,7 @@ func (s *StatusWatcher) calcAndWatchStatus(ctx context.Context) error {
 	return nil
 }
 
-func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile types.ComplexTile) error {
+func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTile) error {
 	defer s.updateLastCommitAge()
 	defer shared.NewMetricsTimer("calculate_status").Stop()
 
@@ -226,10 +226,10 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile types.ComplexTil
 		if err := ctx.Err(); err != nil {
 			return skerr.Wrap(err)
 		}
-		gTrace := trace.(*types.GoldenTrace)
+		gTrace := trace.(*tiling.GoldenTrace)
 
 		idx := tileLen - 1
-		for (idx >= 0) && (gTrace.Digests[idx] == types.MissingDigest) {
+		for (idx >= 0) && (gTrace.Digests[idx] == tiling.MissingDigest) {
 			idx--
 		}
 

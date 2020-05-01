@@ -131,7 +131,7 @@ func makePartialTileOne() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
 		Traces: map[tiling.TraceID]tiling.Trace{
-			x86TestAlphaTraceID: &types.GoldenTrace{
+			x86TestAlphaTraceID: &tiling.GoldenTrace{
 				Digests: types.DigestSlice{FirstDigest, FirstDigest, SecondDigest},
 				Keys: map[string]string{
 					"config":              "x86",
@@ -139,8 +139,8 @@ func makePartialTileOne() *tiling.Tile {
 					types.CorpusField:     "gm",
 				},
 			},
-			x64TestAlphaTraceID: &types.GoldenTrace{
-				Digests: types.DigestSlice{ThirdDigest, FirstDigest, types.MissingDigest},
+			x64TestAlphaTraceID: &tiling.GoldenTrace{
+				Digests: types.DigestSlice{ThirdDigest, FirstDigest, tiling.MissingDigest},
 				Keys: map[string]string{
 					"config":              "x86_64",
 					types.PrimaryKeyField: string(AlphaTest),
@@ -159,7 +159,7 @@ func makePartialTileTwo() *tiling.Tile {
 		Traces: map[tiling.TraceID]tiling.Trace{
 			// Reminder that the ids for the traces are created by concatenating
 			// all the values in alphabetical order of the keys.
-			x86TestAlphaTraceID: &types.GoldenTrace{
+			x86TestAlphaTraceID: &tiling.GoldenTrace{
 				Digests: types.DigestSlice{FirstDigest, FirstDigest, SecondDigest, SecondDigest},
 				Keys: map[string]string{
 					"config":              "x86",
@@ -167,7 +167,7 @@ func makePartialTileTwo() *tiling.Tile {
 					types.CorpusField:     "gm",
 				},
 			},
-			x64TestBetaTraceID: &types.GoldenTrace{
+			x64TestBetaTraceID: &tiling.GoldenTrace{
 				Digests: types.DigestSlice{ThirdDigest, FirstDigest, ThirdDigest, FirstDigest},
 				Keys: map[string]string{
 					"config":              "x86_64",

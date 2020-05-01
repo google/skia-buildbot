@@ -1,8 +1,8 @@
-package types
+package tiling
 
 import (
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/golden/go/tiling"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // ComplexTile contains an enriched version of a tile loaded through the ingestion process.
@@ -15,12 +15,12 @@ import (
 type ComplexTile interface {
 	// AllCommits returns all commits that were processed to get the data commits.
 	// Its first commit should match the first commit returned when calling DataCommits.
-	AllCommits() []*tiling.Commit
+	AllCommits() []*Commit
 
 	// DataCommits returns all commits that contain data. In some busy repos, there are commits that
 	// don't get tested directly because the commits are batched in with others. DataCommits
 	// is a way to get just the commits where some data has been ingested.
-	DataCommits() []*tiling.Commit
+	DataCommits() []*Commit
 
 	// FilledCommits returns how many commits in the tile have data.
 	FilledCommits() int
@@ -28,35 +28,35 @@ type ComplexTile interface {
 	// GetTile returns a simple tile either with or without ignored traces depending on the argument.
 	// TODO(kjlubick) Maybe diverge from the map of traces and instead of a slice, so we can
 	//  query things in parallel more easily.
-	GetTile(is IgnoreState) *tiling.Tile
+	GetTile(is types.IgnoreState) *Tile
 
 	// SetIgnoreRules adds ignore rules to the tile and a sub-tile with the ignores removed.
 	// In other words this function assumes that original tile has been filtered by the
 	// ignore rules that are being passed.
-	SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules paramtools.ParamMatcher)
+	SetIgnoreRules(reducedTile *Tile, ignoreRules paramtools.ParamMatcher)
 
 	// IgnoreRules returns the ignore rules for this tile.
 	IgnoreRules() paramtools.ParamMatcher
 
 	// SetSparse tells the tile what the full range of commits analyzed was.
-	SetSparse(allCommits []*tiling.Commit)
+	SetSparse(allCommits []*Commit)
 }
 
 type ComplexTileImpl struct {
 	// tileExcludeIgnoredTraces is the current tile without ignored traces.
-	tileExcludeIgnoredTraces *tiling.Tile
+	tileExcludeIgnoredTraces *Tile
 
 	// tileIncludeIgnoredTraces is the current tile containing all available data.
-	tileIncludeIgnoredTraces *tiling.Tile
+	tileIncludeIgnoredTraces *Tile
 
 	// ignoreRules contains the rules used to created the TileWithIgnores.
 	ignoreRules paramtools.ParamMatcher
 
 	// sparseCommits are all the commits that were used condense the underlying tile.
-	sparseCommits []*tiling.Commit
+	sparseCommits []*Commit
 }
 
-func NewComplexTile(completeTile *tiling.Tile) *ComplexTileImpl {
+func NewComplexTile(completeTile *Tile) *ComplexTileImpl {
 	return &ComplexTileImpl{
 		tileExcludeIgnoredTraces: completeTile,
 		tileIncludeIgnoredTraces: completeTile,
@@ -64,13 +64,13 @@ func NewComplexTile(completeTile *tiling.Tile) *ComplexTileImpl {
 }
 
 // SetIgnoreRules fulfills the ComplexTile interface.
-func (c *ComplexTileImpl) SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules paramtools.ParamMatcher) {
+func (c *ComplexTileImpl) SetIgnoreRules(reducedTile *Tile, ignoreRules paramtools.ParamMatcher) {
 	c.tileExcludeIgnoredTraces = reducedTile
 	c.ignoreRules = ignoreRules
 }
 
 // SetSparse fulfills the ComplexTile interface.
-func (c *ComplexTileImpl) SetSparse(sparseCommits []*tiling.Commit) {
+func (c *ComplexTileImpl) SetSparse(sparseCommits []*Commit) {
 	c.sparseCommits = sparseCommits
 }
 
@@ -80,18 +80,18 @@ func (c *ComplexTileImpl) FilledCommits() int {
 }
 
 // DataCommits fulfills the ComplexTile interface.
-func (c *ComplexTileImpl) DataCommits() []*tiling.Commit {
+func (c *ComplexTileImpl) DataCommits() []*Commit {
 	return c.tileIncludeIgnoredTraces.Commits
 }
 
 // AllCommits fulfills the ComplexTile interface.
-func (c *ComplexTileImpl) AllCommits() []*tiling.Commit {
+func (c *ComplexTileImpl) AllCommits() []*Commit {
 	return c.sparseCommits
 }
 
 // GetTile fulfills the ComplexTile interface.
-func (c *ComplexTileImpl) GetTile(is IgnoreState) *tiling.Tile {
-	if is == IncludeIgnoredTraces {
+func (c *ComplexTileImpl) GetTile(is types.IgnoreState) *Tile {
+	if is == types.IncludeIgnoredTraces {
 		return c.tileIncludeIgnoredTraces
 	}
 	return c.tileExcludeIgnoredTraces

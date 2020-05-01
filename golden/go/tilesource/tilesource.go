@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/tracestore"
-	"go.skia.org/infra/golden/go/types"
 )
 
 const (
@@ -26,7 +25,7 @@ const (
 
 type TileSource interface {
 	// GetTile returns the most recently loaded Tile.
-	GetTile() types.ComplexTile
+	GetTile() tiling.ComplexTile
 }
 
 type CachedTileSourceConfig struct {
@@ -47,7 +46,7 @@ type CachedTileSourceConfig struct {
 type CachedTileSourceImpl struct {
 	CachedTileSourceConfig
 
-	lastCpxTile types.ComplexTile
+	lastCpxTile tiling.ComplexTile
 	mutex       sync.RWMutex
 }
 
@@ -74,7 +73,7 @@ func (s *CachedTileSourceImpl) StartUpdater(ctx context.Context, interval time.D
 }
 
 // GetTile implements the TileSource interface.
-func (s *CachedTileSourceImpl) GetTile() types.ComplexTile {
+func (s *CachedTileSourceImpl) GetTile() tiling.ComplexTile {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
@@ -109,7 +108,7 @@ func (s *CachedTileSourceImpl) updateTile(ctx context.Context) error {
 	// that's part of the Gold config.
 	computeMetricsOnTile(denseTile, allCommits)
 
-	cpxTile := types.NewComplexTile(denseTile)
+	cpxTile := tiling.NewComplexTile(denseTile)
 	cpxTile.SetSparse(allCommits)
 
 	// Get the tile without the ignored traces and update the complex tile.

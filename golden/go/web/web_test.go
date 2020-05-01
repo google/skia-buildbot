@@ -237,7 +237,7 @@ func makeBugRevertIndex(endIndex int) *indexer.SearchIndex {
 		panic(err) // this means our static data is horribly broken
 	}
 
-	cpxTile := types.NewComplexTile(tile)
+	cpxTile := tiling.NewComplexTile(tile)
 	dc := digest_counter.New(tile)
 	ps := paramsets.NewParamSummary(tile, dc)
 	exp := &mock_expectations.Store{}
@@ -261,17 +261,17 @@ func makeBugRevertIndex(endIndex int) *indexer.SearchIndex {
 // bigger.
 func makeBugRevertIndexWithIgnores(ir []ignore.Rule, multiplier int) *indexer.SearchIndex {
 	tile := bug_revert.MakeTestTile()
-	add := make([]types.TracePair, 0, multiplier*len(tile.Traces))
+	add := make([]tiling.TracePair, 0, multiplier*len(tile.Traces))
 	for i := 1; i < multiplier; i++ {
 		for id, tr := range tile.Traces {
 			newID := tiling.TraceID(fmt.Sprintf("%s,copy=%d", id, i))
-			add = append(add, types.TracePair{ID: newID, Trace: tr.(*types.GoldenTrace)})
+			add = append(add, tiling.TracePair{ID: newID, Trace: tr.(*tiling.GoldenTrace)})
 		}
 	}
 	for _, tp := range add {
 		tile.Traces[tp.ID] = tp.Trace
 	}
-	cpxTile := types.NewComplexTile(tile)
+	cpxTile := tiling.NewComplexTile(tile)
 
 	subtile, combinedRules, err := ignore.FilterIgnored(tile, ir)
 	if err != nil {
@@ -1684,7 +1684,7 @@ func TestLatestPositiveDigest_SearchIndexerFailure_InternalServerError(t *testin
 	const traceId = tiling.TraceID(",foo=bar,")
 
 	mockIndexSource.On("GetIndex").Return(mockIndexSearcher)
-	mockIndexSearcher.On("MostRecentPositiveDigest", testutils.AnyContext, traceId).Return(types.MissingDigest, errors.New("kaboom"))
+	mockIndexSearcher.On("MostRecentPositiveDigest", testutils.AnyContext, traceId).Return(tiling.MissingDigest, errors.New("kaboom"))
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
@@ -1719,10 +1719,10 @@ func TestGetPerTraceDigestsByTestName_Success(t *testing.T) {
 	mockIndexSearcher.On("SlicedTraces", types.IncludeIgnoredTraces, map[string][]string{
 		types.CorpusField:     {"MyCorpus"},
 		types.PrimaryKeyField: {"MyTest"},
-	}).Return([]*types.TracePair{
+	}).Return([]*tiling.TracePair{
 		{
 			ID: ",name=MyTest,foo=alpha,source_type=MyCorpus,",
-			Trace: types.NewGoldenTrace([]types.Digest{
+			Trace: tiling.NewGoldenTrace([]types.Digest{
 				"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 				"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
 			}, map[string]string{
@@ -1733,7 +1733,7 @@ func TestGetPerTraceDigestsByTestName_Success(t *testing.T) {
 		},
 		{
 			ID: ",name=MyTest,foo=beta,source_type=MyCorpus,",
-			Trace: types.NewGoldenTrace([]types.Digest{
+			Trace: tiling.NewGoldenTrace([]types.Digest{
 				"",
 				"cccccccccccccccccccccccccccccccc",
 			}, map[string]string{

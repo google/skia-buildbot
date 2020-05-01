@@ -99,7 +99,7 @@ func TestTraceViewFn(t *testing.T) {
 		assert.NotNil(t, fn, tc.name)
 		// Run through all the traces and make sure they are properly trimmed
 		for _, trace := range data.MakeTestTile().Traces {
-			tr := trace.(*types.GoldenTrace)
+			tr := trace.(*tiling.GoldenTrace)
 			reducedTr := fn(tr)
 			assert.Equal(t, tr.Digests[tc.trimmedStartIndex:tc.trimmedEndIndex+1], reducedTr.Digests, "test case %s with trace %v", tc.name, tr.Keys)
 		}
@@ -132,7 +132,7 @@ var (
 		"param-03": "robato",
 	}
 
-	goldTrace = types.GoldenTrace{
+	goldTrace = tiling.GoldenTrace{
 		Keys: map[string]string{"param-01": "dog"},
 	}
 )
@@ -158,7 +158,7 @@ func TestIntermediate(t *testing.T) {
 					"param-02": {"val-02"},
 					"param-03": {"robato"},
 				},
-				traces: map[tiling.TraceID]*types.GoldenTrace{},
+				traces: map[tiling.TraceID]*tiling.GoldenTrace{},
 			},
 		},
 		testTwo: map[types.Digest]*srIntermediate{
@@ -169,7 +169,7 @@ func TestIntermediate(t *testing.T) {
 					"param-01": {"gato", "dog"},
 					"param-03": {"robato"},
 				},
-				traces: map[tiling.TraceID]*types.GoldenTrace{
+				traces: map[tiling.TraceID]*tiling.GoldenTrace{
 					"mytrace": &goldTrace,
 				},
 			},

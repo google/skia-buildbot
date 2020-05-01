@@ -1,4 +1,4 @@
-package types
+package tiling
 
 import (
 	"crypto/rand"
@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/golden/go/tiling"
+	"go.skia.org/infra/golden/go/types"
 )
 
 func TestGoldenTrace(t *testing.T) {
@@ -29,25 +29,25 @@ func TestGoldenTrace(t *testing.T) {
 	gm.Digests[1] = "another digest"
 	g2 := g.Merge(gm)
 	assert.Equal(t, N+M, g2.Len(), "merge length wrong")
-	assert.Equal(t, Digest("a digest"), g2.(*GoldenTrace).Digests[0])
-	assert.Equal(t, Digest("another digest"), g2.(*GoldenTrace).Digests[6])
+	assert.Equal(t, types.Digest("a digest"), g2.(*GoldenTrace).Digests[0])
+	assert.Equal(t, types.Digest("another digest"), g2.(*GoldenTrace).Digests[6])
 
 	// Test Grow.
 	g = NewEmptyGoldenTrace(N, nil)
 	g.Digests[0] = "foo"
-	g.Grow(2*N, tiling.FILL_BEFORE)
-	assert.Equal(t, Digest("foo"), g.Digests[N], "Grow didn't FILL_BEFORE correctly")
+	g.Grow(2*N, FILL_BEFORE)
+	assert.Equal(t, types.Digest("foo"), g.Digests[N], "Grow didn't FILL_BEFORE correctly")
 
 	g = NewEmptyGoldenTrace(N, nil)
 	g.Digests[0] = "foo"
-	g.Grow(2*N, tiling.FILL_AFTER)
-	assert.Equal(t, Digest("foo"), g.Digests[0], "Grow didn't FILL_AFTER correctly")
+	g.Grow(2*N, FILL_AFTER)
+	assert.Equal(t, types.Digest("foo"), g.Digests[0], "Grow didn't FILL_AFTER correctly")
 
 	// Test Trim
 	g = NewEmptyGoldenTrace(N, nil)
 	g.Digests[1] = "foo"
 	require.NoError(t, g.Trim(1, 3))
-	assert.Equal(t, Digest("foo"), g.Digests[0], "Trim didn't copy correctly")
+	assert.Equal(t, types.Digest("foo"), g.Digests[0], "Trim didn't copy correctly")
 	assert.Equal(t, 2, g.Len(), "Trim wrong length")
 
 	assert.Error(t, g.Trim(-1, 1))
@@ -58,7 +58,7 @@ func TestGoldenTrace(t *testing.T) {
 	assert.Equal(t, 0, g.Len(), "final size wrong")
 }
 
-var _tn TestName
+var _tn types.TestName
 
 // BenchmarkTraceTestName shows that a map-lookup in go for this example param map is about
 // 15 nanoseconds, whereas pre-caching that value makes it about 0.5 ns.
@@ -85,7 +85,7 @@ func BenchmarkTraceTestName(b *testing.B) {
 		"transfer_fn":      "untagged",
 	})
 
-	var r TestName
+	var r types.TestName
 	for n := 0; n < b.N; n++ {
 		// always record the result of TestName to prevent
 		// the compiler eliminating the function call.
@@ -103,10 +103,10 @@ func BenchmarkTraceMapIteration(b *testing.B) {
 	const numTraces = 1300000
 	// When we make the traces in bt_tracestore, we don't know how big they can be, so
 	// we just start from an empty map
-	traces := map[tiling.TraceID]tiling.Trace{}
+	traces := map[TraceID]Trace{}
 	for i := 0; i < numTraces; i++ {
 		id := randomString()
-		traces[tiling.TraceID(id)] = NewEmptyGoldenTrace(10, map[string]string{
+		traces[TraceID(id)] = NewEmptyGoldenTrace(10, map[string]string{
 			"alpha_type": "Premul",
 			"arch":       "arm64",
 			"name":       id,
@@ -134,7 +134,7 @@ func BenchmarkTraceSliceIteration(b *testing.B) {
 	for i := 0; i < numTraces; i++ {
 		id := randomString()
 		traces = append(traces, TracePair{
-			ID: tiling.TraceID(id),
+			ID: TraceID(id),
 			Trace: NewEmptyGoldenTrace(10, map[string]string{
 				"alpha_type": "Premul",
 				"arch":       "arm64",

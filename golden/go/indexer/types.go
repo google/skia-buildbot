@@ -21,7 +21,7 @@ type IndexSource interface {
 type IndexSearcher interface {
 	// Tile returns the current complex tile from which simpler tiles, like one without ignored
 	// traces, can be retrieved
-	Tile() types.ComplexTile
+	Tile() tiling.ComplexTile
 
 	// GetIgnoreMatcher returns a matcher for the ignore rules that were used to
 	// build the tile with ignores.
@@ -58,7 +58,7 @@ type IndexSearcher interface {
 	// SlicedTraces returns a slice of TracePairs that match the query and the ignore state.
 	// This is meant to be a partial slice, as only the corpus and testname from the query are
 	// used to create the subslice.
-	SlicedTraces(is types.IgnoreState, query map[string][]string) []*types.TracePair
+	SlicedTraces(is types.IgnoreState, query map[string][]string) []*tiling.TracePair
 
 	// MostRecentPositiveDigest returns the most recent positive digest for the given trace.
 	MostRecentPositiveDigest(ctx context.Context, traceID tiling.TraceID) (types.Digest, error)

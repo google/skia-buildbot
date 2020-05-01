@@ -4,6 +4,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // FillType is how filling in of missing values should be done in Trace.Grow().
@@ -137,4 +138,16 @@ func (t Tile) Trim(begin, end int) (*Tile, error) {
 		ret.Traces[k] = t
 	}
 	return ret, nil
+}
+
+const (
+	// MissingDigest is a sentinel value meaning no digest is available at the given commit.
+	MissingDigest = types.Digest("")
+)
+
+// TracePair represents a single Golden trace and its ID. A slice of TracePair is faster to
+// iterate over than a map of TraceID -> Trace
+type TracePair struct {
+	ID    TraceID
+	Trace *GoldenTrace
 }
