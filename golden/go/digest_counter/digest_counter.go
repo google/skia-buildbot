@@ -93,10 +93,9 @@ func calculate(tile *tiling.Tile) (map[tiling.TraceID]DigestCount, map[types.Tes
 	defer shared.NewMetricsTimer("digest_counter_calculate").Stop()
 	traceDigestCount := map[tiling.TraceID]DigestCount{}
 	testDigestCount := map[types.TestName]DigestCount{}
-	for k, tr := range tile.Traces {
-		gtr := tr.(*tiling.GoldenTrace)
+	for k, trace := range tile.Traces {
 		dCount := DigestCount{}
-		for _, d := range gtr.Digests {
+		for _, d := range trace.Digests {
 			if d == tiling.MissingDigest {
 				continue
 			}
@@ -107,7 +106,7 @@ func calculate(tile *tiling.Tile) (map[tiling.TraceID]DigestCount, map[types.Tes
 			}
 		}
 		traceDigestCount[k] = dCount
-		testName := gtr.TestName()
+		testName := trace.TestName()
 		if t, ok := testDigestCount[testName]; ok {
 			for digest, n := range dCount {
 				t[digest] += n

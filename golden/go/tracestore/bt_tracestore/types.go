@@ -170,7 +170,7 @@ func newOpsCacheEntryFromRow(row bigtable.Row) (*opsCacheEntry, error) {
 }
 
 // Define this as a type so we can define some helper functions.
-type traceMap map[tiling.TraceID]tiling.Trace
+type traceMap map[tiling.TraceID]*tiling.GoldenTrace
 
 // CommitIndicesWithData returns the indexes of the commits with at least one non-missing
 // digest in at least one trace. Since the traces always have DefaultTraceSize commits
@@ -208,8 +208,7 @@ func (t traceMap) CommitIndicesWithData(maxIndex int) []int {
 			defer wg.Done()
 			for i := start; i < start+chunkSize && i < maxIndex && i < nCommits; i++ {
 				for _, trace := range t {
-					gt := trace.(*tiling.GoldenTrace)
-					if !gt.IsMissing(i) {
+					if !trace.IsMissing(i) {
 						haveData[i] = true
 						break
 					}
@@ -236,14 +235,13 @@ func (t traceMap) MakeFromCommitIndexes(indices []int) traceMap {
 	}
 	r := make(traceMap, len(t))
 	for id, trace := range t {
-		gt := trace.(*tiling.GoldenTrace)
 
 		newDigests := make([]types.Digest, len(indices))
 		for i, idx := range indices {
-			newDigests[i] = gt.Digests[idx]
+			newDigests[i] = trace.Digests[idx]
 		}
 
-		r[id] = tiling.NewGoldenTrace(newDigests, gt.Keys)
+		r[id] = tiling.NewGoldenTrace(newDigests, trace.Keys)
 	}
 	return r
 }

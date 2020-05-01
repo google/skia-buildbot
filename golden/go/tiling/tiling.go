@@ -22,12 +22,6 @@ type Trace interface {
 	// For example, os:Android, gpu:nVidia
 	Params() map[string]string
 
-	// Merge this trace with the given trace. The given trace is expected to come
-	// after this trace.
-	Merge(Trace) Trace
-
-	DeepCopy() Trace
-
 	// Grow the measurements, filling in with sentinel values either before or
 	// after based on FillType.
 	Grow(int, FillType)
@@ -89,14 +83,14 @@ func FindCommit(commits []*Commit, targetHash string) (int, *Commit) {
 // The length of the Commits array is the same length as all of the Values
 // arrays in all of the Traces.
 type Tile struct {
-	Traces   map[TraceID]Trace   `json:"traces"`
-	ParamSet map[string][]string `json:"param_set"`
-	Commits  []*Commit           `json:"commits"`
+	Traces   map[TraceID]*GoldenTrace
+	ParamSet map[string][]string
+	Commits  []*Commit
 
 	// What is the scale of this Tile, i.e. it contains every Nth point, where
 	// N=const.TILE_SCALE^Scale.
-	Scale     int `json:"scale"`
-	TileIndex int `json:"tileIndex"`
+	Scale     int
+	TileIndex int
 }
 
 // LastCommitIndex returns the index of the last valid Commit.
@@ -119,7 +113,7 @@ func (t Tile) Trim(begin, end int) (*Tile, error) {
 		return nil, skerr.Fmt("Invalid Trim range [%d, %d) of [0, %d]", begin, end, length)
 	}
 	ret := &Tile{
-		Traces:    map[TraceID]Trace{},
+		Traces:    map[TraceID]*GoldenTrace{},
 		ParamSet:  t.ParamSet,
 		Scale:     t.Scale,
 		TileIndex: t.TileIndex,

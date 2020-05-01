@@ -130,8 +130,8 @@ const (
 func makePartialTileOne() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
-		Traces: map[tiling.TraceID]tiling.Trace{
-			x86TestAlphaTraceID: &tiling.GoldenTrace{
+		Traces: map[tiling.TraceID]*tiling.GoldenTrace{
+			x86TestAlphaTraceID: {
 				Digests: types.DigestSlice{FirstDigest, FirstDigest, SecondDigest},
 				Keys: map[string]string{
 					"config":              "x86",
@@ -139,7 +139,7 @@ func makePartialTileOne() *tiling.Tile {
 					types.CorpusField:     "gm",
 				},
 			},
-			x64TestAlphaTraceID: &tiling.GoldenTrace{
+			x64TestAlphaTraceID: {
 				Digests: types.DigestSlice{ThirdDigest, FirstDigest, tiling.MissingDigest},
 				Keys: map[string]string{
 					"config":              "x86_64",
@@ -156,25 +156,23 @@ func makePartialTileTwo() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
 
-		Traces: map[tiling.TraceID]tiling.Trace{
+		Traces: map[tiling.TraceID]*tiling.GoldenTrace{
 			// Reminder that the ids for the traces are created by concatenating
 			// all the values in alphabetical order of the keys.
-			x86TestAlphaTraceID: &tiling.GoldenTrace{
-				Digests: types.DigestSlice{FirstDigest, FirstDigest, SecondDigest, SecondDigest},
-				Keys: map[string]string{
+			x86TestAlphaTraceID: tiling.NewGoldenTrace(
+				types.DigestSlice{FirstDigest, FirstDigest, SecondDigest, SecondDigest},
+				map[string]string{
 					"config":              "x86",
 					types.PrimaryKeyField: string(AlphaTest),
 					types.CorpusField:     "gm",
-				},
-			},
-			x64TestBetaTraceID: &tiling.GoldenTrace{
-				Digests: types.DigestSlice{ThirdDigest, FirstDigest, ThirdDigest, FirstDigest},
-				Keys: map[string]string{
+				}),
+			x64TestBetaTraceID: tiling.NewGoldenTrace(
+				types.DigestSlice{ThirdDigest, FirstDigest, ThirdDigest, FirstDigest},
+				map[string]string{
 					"config":              "x86_64",
 					types.PrimaryKeyField: string(BetaTest),
 					types.CorpusField:     "image",
-				},
-			},
+				}),
 		},
 	}
 }

@@ -84,7 +84,7 @@ func (g *GoldenTrace) IsMissing(i int) bool {
 }
 
 // DeepCopy implements the tiling.Trace interface.
-func (g *GoldenTrace) DeepCopy() Trace {
+func (g *GoldenTrace) DeepCopy() *GoldenTrace {
 	nd := make([]types.Digest, len(g.Digests))
 	copy(nd, g.Digests)
 	nk := make(map[string]string, len(g.Keys))
@@ -95,18 +95,17 @@ func (g *GoldenTrace) DeepCopy() Trace {
 }
 
 // Merge implements the tiling.Trace interface.
-func (g *GoldenTrace) Merge(next Trace) Trace {
-	nextGold := next.(*GoldenTrace)
-	n := len(g.Digests) + len(nextGold.Digests)
+func (g *GoldenTrace) Merge(next *GoldenTrace) *GoldenTrace {
+	n := len(g.Digests) + len(next.Digests)
 	n1 := len(g.Digests)
 
 	merged := NewEmptyGoldenTrace(n, g.Keys)
-	for k, v := range nextGold.Keys {
+	for k, v := range next.Keys {
 		merged.Keys[k] = v
 	}
 	copy(merged.Digests, g.Digests)
 
-	for i, v := range nextGold.Digests {
+	for i, v := range next.Digests {
 		merged.Digests[n1+i] = v
 	}
 	return merged

@@ -156,10 +156,10 @@ func makeTestDigestCounts() map[tiling.TraceID]digest_counter.DigestCount {
 func makePartialTestTile() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
-		Traces: map[tiling.TraceID]tiling.Trace{
+		Traces: map[tiling.TraceID]*tiling.GoldenTrace{
 			// These trace ids have been shortened for test terseness.
 			// A real trace id would be like ",config=8888,source_type=gm,name=foo,"
-			"a": &tiling.GoldenTrace{
+			"a": {
 				Digests: types.DigestSlice{DigestA, DigestB},
 				Keys: map[string]string{
 					"config":              "8888",
@@ -167,7 +167,7 @@ func makePartialTestTile() *tiling.Tile {
 					types.PrimaryKeyField: string(testOne),
 				},
 			},
-			"b": &tiling.GoldenTrace{
+			"b": {
 				Digests: types.DigestSlice{DigestC, DigestD, DigestA},
 				Keys: map[string]string{
 					"config":              "565",
@@ -175,7 +175,7 @@ func makePartialTestTile() *tiling.Tile {
 					types.PrimaryKeyField: string(testOne),
 				},
 			},
-			"c": &tiling.GoldenTrace{
+			"c": {
 				Digests: types.DigestSlice{DigestE, tiling.MissingDigest},
 				Keys: map[string]string{
 					"config":              "gpu",
@@ -183,7 +183,7 @@ func makePartialTestTile() *tiling.Tile {
 					types.PrimaryKeyField: string(testOne),
 				},
 			},
-			"e": &tiling.GoldenTrace{
+			"e": {
 				Digests: types.DigestSlice{DigestF, DigestG, DigestG},
 				Keys: map[string]string{
 					"config":              "565",
@@ -191,7 +191,7 @@ func makePartialTestTile() *tiling.Tile {
 					types.PrimaryKeyField: string(testTwo),
 				},
 			},
-			"f": &tiling.GoldenTrace{
+			"f": {
 				Digests: types.DigestSlice{DigestF, tiling.MissingDigest},
 				Keys: map[string]string{
 					"config":              "gpu",

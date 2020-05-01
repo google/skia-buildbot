@@ -29,8 +29,8 @@ func TestGoldenTrace(t *testing.T) {
 	gm.Digests[1] = "another digest"
 	g2 := g.Merge(gm)
 	assert.Equal(t, N+M, g2.Len(), "merge length wrong")
-	assert.Equal(t, types.Digest("a digest"), g2.(*GoldenTrace).Digests[0])
-	assert.Equal(t, types.Digest("another digest"), g2.(*GoldenTrace).Digests[6])
+	assert.Equal(t, types.Digest("a digest"), g2.Digests[0])
+	assert.Equal(t, types.Digest("another digest"), g2.Digests[6])
 
 	// Test Grow.
 	g = NewEmptyGoldenTrace(N, nil)
@@ -58,8 +58,6 @@ func TestGoldenTrace(t *testing.T) {
 	assert.Equal(t, 0, g.Len(), "final size wrong")
 }
 
-var _tn types.TestName
-
 // BenchmarkTraceTestName shows that a map-lookup in go for this example param map is about
 // 15 nanoseconds, whereas pre-caching that value makes it about 0.5 ns.
 func BenchmarkTraceTestName(b *testing.B) {
@@ -85,15 +83,15 @@ func BenchmarkTraceTestName(b *testing.B) {
 		"transfer_fn":      "untagged",
 	})
 
-	var r types.TestName
 	for n := 0; n < b.N; n++ {
 		// always record the result of TestName to prevent
 		// the compiler eliminating the function call.
-		r = gt.TestName()
+		r := gt.TestName()
+		// Use the result to make sure it doesn't get compiled away
+		if len(r) > 10000 {
+			panic("this keeps r around and should never happen")
+		}
 	}
-	// always store the result to a package level variable
-	// so the compiler cannot eliminate the Benchmark itself.
-	_tn = r
 }
 
 // BenchmarkTraceMapIteration shows that iterating through a map of 1.3 million traces
