@@ -2,6 +2,22 @@
 // for documentation of the autoroller config.
 {
   "childName": "GoogleTest",
+  "commitMsg": {
+    "childName": "src/third_party/googletest/src",
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/google/googletest.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "cqExtraTrybots": [
+      "luci.chromium.try:android_optional_gpu_tests_rel",
+      "luci.chromium.try:mac_optional_gpu_tests_rel",
+      "luci.chromium.try:linux_chromium_cfi_rel_ng",
+      "luci.chrome.try:win-chrome"
+    ],
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "isamsonov@google.com",
     "pwnall@chromium.org"
@@ -27,17 +43,9 @@
     "childPath": "src/third_party/googletest/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/google/googletest.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/google/googletest.git/+/%s",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
-  "cqExtraTrybots": [
-    "luci.chromium.try:android_optional_gpu_tests_rel",
-    "luci.chromium.try:mac_optional_gpu_tests_rel",
-    "luci.chromium.try:linux_chromium_cfi_rel_ng",
-    "luci.chrome.try:win-chrome"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",

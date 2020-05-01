@@ -2,6 +2,23 @@
 // for documentation of the autoroller config.
 {
   "childName": "Dawn",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childName": "src/third_party/dawn",
+    "childLogURLTmpl": "https://dawn.googlesource.com/dawn.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "cqExtraTrybots": [
+      "luci.chromium.try:dawn-linux-x64-deps-rel",
+      "luci.chromium.try:dawn-mac-x64-deps-rel",
+      "luci.chromium.try:dawn-win10-x64-deps-rel",
+      "luci.chromium.try:dawn-win10-x86-deps-rel"
+    ],
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "cwallez@google.com"
   ],
@@ -28,18 +45,9 @@
     "childPath": "src/third_party/dawn",
     "childRepo": "https://dawn.googlesource.com/dawn.git",
     "childRevLinkTmpl": "https://dawn.googlesource.com/dawn.git/+/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
-  "cqExtraTrybots": [
-    "luci.chromium.try:dawn-linux-x64-deps-rel",
-    "luci.chromium.try:dawn-mac-x64-deps-rel",
-    "luci.chromium.try:dawn-win10-x64-deps-rel",
-    "luci.chromium.try:dawn-win10-x86-deps-rel"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",

@@ -2,6 +2,16 @@
 // for documentation of the autoroller config.
 {
   "childName": "chromiumos/config",
+  "commitMsg": {
+    "childName": "infra/go/src/go.chromium.org/chromiumos/config",
+    "childLogURLTmpl": "https://chromium.googlesource.com/chromiumos/config.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "chromeos-infra-discuss@google.com",
     "pprabhu@google.com",
@@ -28,9 +38,6 @@
     "childPath": "infra/go/src/go.chromium.org/chromiumos/config",
     "childRepo": "https://chromium.googlesource.com/chromiumos/config.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/chromiumos/config.git/+/%s",
-    "includeBugs": false,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/infra/infra.git"
   },
