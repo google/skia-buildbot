@@ -22,6 +22,22 @@ const temps = (temperatures) => {
 
 const isRunning = (machine) => (machine.RunningSwarmingTask ? '&check;' : '');
 
+const asList = (arr) => arr.join(' | ');
+
+const dimensions = (machine) => {
+  if (!machine.Dimensions) {
+    return '';
+  }
+  return html`
+<details>
+  <summary>Dimensions</summary>
+  <table>
+  ${Object.entries(machine.Dimensions).map((pair) => html`<tr><td>${pair[0]}</td><td>${asList(pair[1])}</td></tr>`)}
+  </table>
+</details>
+`;
+};
+
 const rows = (ele) => ele._machines.map((machine) => html`
 <tr id=${machine.Dimensions.id}>
   <td>${machine.Dimensions.id}</td>
@@ -34,6 +50,7 @@ const rows = (ele) => ele._machines.map((machine) => html`
     ${temps(machine.Temperature)}
   </td>
   <td>${machine.LastUpdated}</td>
+  <td>${dimensions(machine)}</td>
 </tr>
 `);
 
@@ -52,6 +69,7 @@ const template = (ele) => html`
     <th>Battery</th>
     <th>Temperature</th>
     <th>Last Updated</th>
+    <th>Dimensions</th>
   </tr>
   ${rows(ele)}
   </table>
