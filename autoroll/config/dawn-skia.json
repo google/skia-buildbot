@@ -2,6 +2,17 @@
 // for documentation of the autoroller config.
 {
   "childName": "dawn",
+  "commitMsg": {
+    "bugProject": "skia",
+    "childName": "third_party/externals/dawn",
+    "childLogURLTmpl": "https://dawn.googlesource.com/dawn.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "cwallez@google.com"
   ],
@@ -26,55 +37,9 @@
     "childPath": "third_party/externals/dawn",
     "childRepo": "https://dawn.googlesource.com/dawn.git",
     "childRevLinkTmpl": "https://dawn.googlesource.com/dawn.git/+/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "skia",
     "parentBranch": "master",
-    "parentRepo": "https://skia.googlesource.com/skia.git",
-    "transitiveDeps": [
-      {
-        "child": {
-          "id": "https://chromium.googlesource.com/chromium/src/third_party/jinja2",
-          "path": "DEPS"
-        },
-        "parent": {
-          "id": "https://chromium.googlesource.com/chromium/src/third_party/jinja2",
-          "path": "DEPS"
-        }
-      },
-      {
-        "child": {
-          "id": "https://chromium.googlesource.com/chromium/src/third_party/markupsafe",
-          "path": "DEPS"
-        },
-        "parent": {
-          "id": "https://chromium.googlesource.com/chromium/src/third_party/markupsafe",
-          "path": "DEPS"
-        }
-      },
-      {
-        "child": {
-          "id": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang",
-          "path": "DEPS"
-        },
-        "parent": {
-          "id": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang",
-          "path": "DEPS"
-        }
-      },
-      {
-        "child": {
-          "id": "https://chromium.googlesource.com/external/github.com/google/shaderc",
-          "path": "DEPS"
-        },
-        "parent": {
-          "id": "https://chromium.googlesource.com/external/github.com/google/shaderc",
-          "path": "DEPS"
-        }
-      }
-    ]
+    "parentRepo": "https://skia.googlesource.com/skia.git"
   },
-  "cqExtraTrybots": [],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
@@ -83,5 +48,47 @@
     "readinessFailureThreshold": "10"
   },
   "maxRollFrequency": "6h",
-  "timeWindow": "M-F 04:00-08:00"
+  "timeWindow": "M-F 04:00-08:00",
+  "transitiveDeps": [
+    {
+      "child": {
+        "id": "https://chromium.googlesource.com/chromium/src/third_party/jinja2",
+        "path": "DEPS"
+      },
+      "parent": {
+        "id": "https://chromium.googlesource.com/chromium/src/third_party/jinja2",
+        "path": "DEPS"
+      }
+    },
+    {
+      "child": {
+        "id": "https://chromium.googlesource.com/chromium/src/third_party/markupsafe",
+        "path": "DEPS"
+      },
+      "parent": {
+        "id": "https://chromium.googlesource.com/chromium/src/third_party/markupsafe",
+        "path": "DEPS"
+      }
+    },
+    {
+      "child": {
+        "id": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang",
+        "path": "DEPS"
+      },
+      "parent": {
+        "id": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang",
+        "path": "DEPS"
+      }
+    },
+    {
+      "child": {
+        "id": "https://chromium.googlesource.com/external/github.com/google/shaderc",
+        "path": "DEPS"
+      },
+      "parent": {
+        "id": "https://chromium.googlesource.com/external/github.com/google/shaderc",
+        "path": "DEPS"
+      }
+    }
+  ]
 }

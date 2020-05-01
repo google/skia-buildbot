@@ -2,6 +2,16 @@
 // for documentation of the autoroller config.
 {
   "childName": "emscripten",
+  "commitMsg": {
+    "childName": "emscripten-releases/emscripten",
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/emscripten-core/emscripten.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "dschuff@google.com"
   ],
@@ -25,8 +35,6 @@
     "childPath": "emscripten-releases/emscripten",
     "childRepo": "https://chromium.googlesource.com/external/github.com/emscripten-core/emscripten.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/emscripten-core/emscripten.git/+/%s",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/emscripten-releases.git"
   },

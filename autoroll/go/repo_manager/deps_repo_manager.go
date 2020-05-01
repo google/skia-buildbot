@@ -49,14 +49,6 @@ func (c DEPSRepoManagerConfig) Validate() error {
 func (c DEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig, child.GitCheckoutConfig, error) {
 	parentCfg := parent.DEPSLocalConfig{
 		GitCheckoutConfig: parent.GitCheckoutConfig{
-			BaseConfig: parent.BaseConfig{
-				ChildPath:       c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-				ChildRepo:       c.ChildRepo,
-				IncludeBugs:     c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-				IncludeLog:      c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-				CommitMsgTmpl:   c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
-				MonorailProject: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-			},
 			GitCheckoutConfig: git_common.GitCheckoutConfig{
 				Branch:  c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
 				RepoURL: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
@@ -108,9 +100,9 @@ func NewDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, reg *conf
 	}
 
 	// Find the path to the child repo.
-	childPath := parentCfg.ChildPath
+	childPath := c.ChildPath
 	if c.ChildSubdir != "" {
-		childPath = filepath.Join(c.ChildSubdir, parentCfg.ChildPath)
+		childPath = filepath.Join(c.ChildSubdir, c.ChildPath)
 	}
 	childFullPath := filepath.Join(workdir, childPath)
 	childCheckout := &git.Checkout{GitDir: git.GitDir(childFullPath)}

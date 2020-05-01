@@ -2,6 +2,25 @@
 // for documentation of the autoroller config.
 {
   "childName": "Skia",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childName": "src/third_party/skia",
+    "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "cqExtraTrybots": [
+      "luci.chromium.try:android_optional_gpu_tests_rel",
+      "luci.chromium.try:linux-blink-rel",
+      "luci.chromium.try:linux-chromeos-compile-dbg",
+      "luci.chromium.try:linux_optional_gpu_tests_rel",
+      "luci.chromium.try:mac_optional_gpu_tests_rel",
+      "luci.chromium.try:win_optional_gpu_tests_rel"
+    ],
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "borenet@google.com"
   ],
@@ -26,20 +45,9 @@
     "childPath": "src/third_party/skia",
     "childRepo": "https://skia.googlesource.com/skia.git",
     "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
-  "cqExtraTrybots": [
-    "luci.chromium.try:android_optional_gpu_tests_rel",
-    "luci.chromium.try:linux-blink-rel",
-    "luci.chromium.try:linux-chromeos-compile-dbg",
-    "luci.chromium.try:linux_optional_gpu_tests_rel",
-    "luci.chromium.try:mac_optional_gpu_tests_rel",
-    "luci.chromium.try:win_optional_gpu_tests_rel"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",

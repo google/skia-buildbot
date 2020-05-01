@@ -2,6 +2,24 @@
 // for documentation of the autoroller config.
 {
   "childName": "Catapult",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childName": "src/third_party/catapult",
+    "childLogURLTmpl": "https://chromium.googlesource.com/catapult.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "cqExtraTrybots": [
+      "luci.chromium.try:android_optional_gpu_tests_rel",
+      "luci.chromium.try:chromeos-kevin-rel",
+      "luci.chromium.try:linux_optional_gpu_tests_rel",
+      "luci.chromium.try:mac_optional_gpu_tests_rel",
+      "luci.chromium.try:win_optional_gpu_tests_rel"
+    ],
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "chrome-speed-operations@google.com",
     "johnchen@chromium.org",
@@ -33,19 +51,9 @@
     "childPath": "src/third_party/catapult",
     "childRepo": "https://chromium.googlesource.com/catapult.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/catapult.git/+/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
-  "cqExtraTrybots": [
-    "luci.chromium.try:android_optional_gpu_tests_rel",
-    "luci.chromium.try:chromeos-kevin-rel",
-    "luci.chromium.try:linux_optional_gpu_tests_rel",
-    "luci.chromium.try:mac_optional_gpu_tests_rel",
-    "luci.chromium.try:win_optional_gpu_tests_rel"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",

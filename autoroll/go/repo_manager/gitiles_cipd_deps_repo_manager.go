@@ -48,14 +48,6 @@ func (c *GitilesCIPDDEPSRepoManagerConfig) Validate() error {
 func (c GitilesCIPDDEPSRepoManagerConfig) splitParentChild() (parent.GitilesDEPSConfig, child.CIPDConfig, error) {
 	parentCfg := parent.GitilesDEPSConfig{
 		GitilesConfig: parent.GitilesConfig{
-			BaseConfig: parent.BaseConfig{
-				ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-				ChildRepo:       c.CipdAssetName,
-				IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-				IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-				CommitMsgTmpl:   c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
-				MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-			},
 			GitilesConfig: gitiles_common.GitilesConfig{
 				Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
 				RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,

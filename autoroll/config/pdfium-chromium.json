@@ -2,6 +2,17 @@
 // for documentation of the autoroller config.
 {
   "childName": "PDFium",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childName": "src/third_party/pdfium",
+    "childLogURLTmpl": "https://pdfium.googlesource.com/pdfium.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "thestig@chromium.org"
   ],
@@ -25,9 +36,6 @@
     "childPath": "src/third_party/pdfium",
     "childRepo": "https://pdfium.googlesource.com/pdfium.git",
     "childRevLinkTmpl": "https://pdfium.googlesource.com/pdfium.git/+/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
