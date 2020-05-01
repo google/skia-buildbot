@@ -20,6 +20,17 @@ const temps = (temperatures) => {
   return Object.entries(temperatures).map((pair) => html`<div>${pair[0]}=${pair[1]}</div>`);
 };
 
+const annotation = (machine) => {
+  if (!machine.Annotation.Message) {
+    return '';
+  }
+  return html`
+<div>${machine.Annotation.Message}</div>
+<div>${machine.Annotation.User}</div>
+<div>${machine.Annotation.Timestamp}</div>
+`;
+};
+
 const rows = (ele) => ele._machines.map((machine) => html`
 <tr id=${machine.Dimensions.id}>
   <td>${machine.Dimensions.id}</td>
@@ -31,6 +42,7 @@ const rows = (ele) => ele._machines.map((machine) => html`
     ${temps(machine.Temperature)}
   </td>
   <td>${machine.LastUpdated}</td>
+  <td>${annotation(machine)}</td>
 </tr>
 `);
 
@@ -48,6 +60,7 @@ const template = (ele) => html`
     <th>Battery</th>
     <th>Temperature</th>
     <th>Last Updated</th>
+    <th>Annotation</th>
   </tr>
   ${rows(ele)}
   </table>
