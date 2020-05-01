@@ -38,7 +38,7 @@ func FindCommit(commits []*Commit, targetHash string) (int, *Commit) {
 // The length of the Commits array is the same length as all of the Values
 // arrays in all of the Traces.
 type Tile struct {
-	Traces   map[TraceID]*GoldenTrace
+	Traces   map[TraceID]*Trace
 	ParamSet map[string][]string
 	Commits  []*Commit
 
@@ -68,7 +68,7 @@ func (t Tile) Trim(begin, end int) (*Tile, error) {
 		return nil, skerr.Fmt("Invalid Trim range [%d, %d) of [0, %d]", begin, end, length)
 	}
 	ret := &Tile{
-		Traces:    map[TraceID]*GoldenTrace{},
+		Traces:    map[TraceID]*Trace{},
 		ParamSet:  t.ParamSet,
 		Scale:     t.Scale,
 		TileIndex: t.TileIndex,
@@ -98,5 +98,5 @@ const (
 // iterate over than a map of TraceID -> Trace
 type TracePair struct {
 	ID    TraceID
-	Trace *GoldenTrace
+	Trace *Trace
 }

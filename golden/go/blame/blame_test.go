@@ -182,7 +182,7 @@ func TestBlamerCalculateBugRevertPossibleGlitch(t *testing.T) {
 
 	tile := bug_revert.MakeTestTile()
 
-	tile.Traces[",device=alpha,name=test_one,source_type=gm,"] = &tiling.GoldenTrace{
+	tile.Traces[",device=alpha,name=test_one,source_type=gm,"] = &tiling.Trace{
 		Digests: types.DigestSlice{
 			bug_revert.AlfaPositiveDigest, bug_revert.AlfaPositiveDigest, bug_revert.BravoUntriagedDigest,
 			bug_revert.AlfaPositiveDigest, bug_revert.AlfaPositiveDigest,

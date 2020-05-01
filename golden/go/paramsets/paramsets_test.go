@@ -156,7 +156,7 @@ func makeTestDigestCounts() map[tiling.TraceID]digest_counter.DigestCount {
 func makePartialTestTile() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
-		Traces: map[tiling.TraceID]*tiling.GoldenTrace{
+		Traces: map[tiling.TraceID]*tiling.Trace{
 			// These trace ids have been shortened for test terseness.
 			// A real trace id would be like ",config=8888,source_type=gm,name=foo,"
 			"a": {

@@ -131,7 +131,7 @@ var (
 		"param-03": "robato",
 	}
 
-	goldTrace = tiling.GoldenTrace{
+	goldTrace = tiling.Trace{
 		Keys: map[string]string{"param-01": "dog"},
 	}
 )
@@ -157,7 +157,7 @@ func TestIntermediate(t *testing.T) {
 					"param-02": {"val-02"},
 					"param-03": {"robato"},
 				},
-				traces: map[tiling.TraceID]*tiling.GoldenTrace{},
+				traces: map[tiling.TraceID]*tiling.Trace{},
 			},
 		},
 		testTwo: map[types.Digest]*srIntermediate{
@@ -168,7 +168,7 @@ func TestIntermediate(t *testing.T) {
 					"param-01": {"gato", "dog"},
 					"param-03": {"robato"},
 				},
-				traces: map[tiling.TraceID]*tiling.GoldenTrace{
+				traces: map[tiling.TraceID]*tiling.Trace{
 					"mytrace": &goldTrace,
 				},
 			},

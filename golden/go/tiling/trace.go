@@ -8,9 +8,9 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-// GoldenTrace represents all the Digests of a single test across a series
-// of Commits. GoldenTrace implements the Trace interface.
-type GoldenTrace struct {
+// Trace represents all the Digests of a single test across a series
+// of Commits.
+type Trace struct {
 	// The JSON keys are named this way to maintain backwards compatibility
 	// with JSON already written to disk.
 	Keys    map[string]string `json:"Params_"`
@@ -21,13 +21,13 @@ type GoldenTrace struct {
 	corpus   string
 }
 
-// NewEmptyGoldenTrace allocates a new Trace set up for the given number of samples.
+// NewEmptyTrace allocates a new Trace set up for the given number of samples.
 //
 // The Trace Digests are pre-filled in with the missing data sentinel since not
 // all tests will be run on all commits.
-func NewEmptyGoldenTrace(n int, keys map[string]string) *GoldenTrace {
-	g := &GoldenTrace{
-		Digests: make([]types.Digest, n),
+func NewEmptyTrace(numDigests int, keys map[string]string) *Trace {
+	g := &Trace{
+		Digests: make([]types.Digest, numDigests),
 		Keys:    keys,
 
 		// Prefetch these now, while we have the chance.
@@ -40,9 +40,9 @@ func NewEmptyGoldenTrace(n int, keys map[string]string) *GoldenTrace {
 	return g
 }
 
-// NewGoldenTrace creates a new GoldenTrace with the given data.
-func NewGoldenTrace(digests []types.Digest, keys map[string]string) *GoldenTrace {
-	return &GoldenTrace{
+// NewTrace creates a new Trace with the given data.
+func NewTrace(digests []types.Digest, keys map[string]string) *Trace {
+	return &Trace{
 		Digests: digests,
 		Keys:    keys,
 
@@ -53,12 +53,12 @@ func NewGoldenTrace(digests []types.Digest, keys map[string]string) *GoldenTrace
 }
 
 // Params implements the tiling.Trace interface.
-func (g *GoldenTrace) Params() map[string]string {
+func (g *Trace) Params() map[string]string {
 	return g.Keys
 }
 
 // Matches returns true if the given Trace matches the given query.
-func (g *GoldenTrace) Matches(query paramtools.ParamSet) bool {
+func (g *Trace) Matches(query paramtools.ParamSet) bool {
 	for k, values := range query {
 		if p, ok := g.Params()[k]; !ok || !util.In(p, values) {
 			return false
@@ -69,7 +69,7 @@ func (g *GoldenTrace) Matches(query paramtools.ParamSet) bool {
 
 // TestName is a helper for extracting just the test name for this
 // trace, of which there should always be exactly one.
-func (g *GoldenTrace) TestName() types.TestName {
+func (g *Trace) TestName() types.TestName {
 	if g.testName == "" {
 		g.testName = types.TestName(g.Keys[types.PrimaryKeyField])
 	}
@@ -78,7 +78,7 @@ func (g *GoldenTrace) TestName() types.TestName {
 
 // Corpus is a helper for extracting just the corpus key for this
 // trace, of which there should always be exactly one.
-func (g *GoldenTrace) Corpus() string {
+func (g *Trace) Corpus() string {
 	if g.corpus == "" {
 		g.corpus = g.Keys[types.CorpusField]
 	}
@@ -86,32 +86,32 @@ func (g *GoldenTrace) Corpus() string {
 }
 
 // Len implements the tiling.Trace interface.
-func (g *GoldenTrace) Len() int {
+func (g *Trace) Len() int {
 	return len(g.Digests)
 }
 
 // IsMissing implements the tiling.Trace interface.
-func (g *GoldenTrace) IsMissing(i int) bool {
+func (g *Trace) IsMissing(i int) bool {
 	return g.Digests[i] == MissingDigest
 }
 
 // DeepCopy implements the tiling.Trace interface.
-func (g *GoldenTrace) DeepCopy() *GoldenTrace {
+func (g *Trace) DeepCopy() *Trace {
 	nd := make([]types.Digest, len(g.Digests))
 	copy(nd, g.Digests)
 	nk := make(map[string]string, len(g.Keys))
 	for k, v := range g.Keys {
 		nk[k] = v
 	}
-	return NewGoldenTrace(nd, nk)
+	return NewTrace(nd, nk)
 }
 
 // Merge implements the tiling.Trace interface.
-func (g *GoldenTrace) Merge(next *GoldenTrace) *GoldenTrace {
+func (g *Trace) Merge(next *Trace) *Trace {
 	n := len(g.Digests) + len(next.Digests)
 	n1 := len(g.Digests)
 
-	merged := NewEmptyGoldenTrace(n, g.Keys)
+	merged := NewEmptyTrace(n, g.Keys)
 	for k, v := range next.Keys {
 		merged.Keys[k] = v
 	}
@@ -132,7 +132,7 @@ const (
 )
 
 // Grow implements the tiling.Trace interface.
-func (g *GoldenTrace) Grow(n int, fill FillType) {
+func (g *Trace) Grow(n int, fill FillType) {
 	if n < len(g.Digests) {
 		panic(fmt.Sprintf("Grow must take a value (%d) larger than the current Trace size: %d", n, len(g.Digests)))
 	}
@@ -154,7 +154,7 @@ func (g *GoldenTrace) Grow(n int, fill FillType) {
 }
 
 // Trim implements the tiling.Trace interface.
-func (g *GoldenTrace) Trim(begin, end int) error {
+func (g *Trace) Trim(begin, end int) error {
 	if end < begin || end > g.Len() || begin < 0 {
 		return fmt.Errorf("Invalid Trim range [%d, %d) of [0, %d]", begin, end, g.Len())
 	}
@@ -169,7 +169,7 @@ func (g *GoldenTrace) Trim(begin, end int) error {
 }
 
 // AtHead returns the last digest in the trace (HEAD) or the empty string otherwise.
-func (g *GoldenTrace) AtHead() types.Digest {
+func (g *Trace) AtHead() types.Digest {
 	if idx := g.LastIndex(); idx >= 0 {
 		return g.Digests[idx]
 	}
@@ -178,7 +178,7 @@ func (g *GoldenTrace) AtHead() types.Digest {
 
 // LastIndex returns the index of last non-empty value in this trace and -1 if
 // if the entire trace is empty.
-func (g *GoldenTrace) LastIndex() int {
+func (g *Trace) LastIndex() int {
 	for i := len(g.Digests) - 1; i >= 0; i-- {
 		if g.Digests[i] != MissingDigest {
 			return i
@@ -188,6 +188,6 @@ func (g *GoldenTrace) LastIndex() int {
 }
 
 // String prints a human friendly version of this trace.
-func (g *GoldenTrace) String() string {
+func (g *Trace) String() string {
 	return fmt.Sprintf("Keys: %#v, Digests: %q", g.Keys, g.Digests)
 }

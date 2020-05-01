@@ -102,8 +102,8 @@ func MakeTestTile() *tiling.Tile {
 		Scale:     0, // tile contains every data point.
 		TileIndex: 0,
 
-		Traces: map[tiling.TraceID]*tiling.GoldenTrace{
-			AnglerAlphaTraceID: tiling.NewGoldenTrace(
+		Traces: map[tiling.TraceID]*tiling.Trace{
+			AnglerAlphaTraceID: tiling.NewTrace(
 				types.DigestSlice{AlphaNegativeDigest, AlphaNegativeDigest, AlphaPositiveDigest},
 				map[string]string{
 					"device":              AnglerDevice,
@@ -111,7 +111,7 @@ func MakeTestTile() *tiling.Tile {
 					types.CorpusField:     "gm",
 				},
 			),
-			AnglerBetaTraceID: tiling.NewGoldenTrace(
+			AnglerBetaTraceID: tiling.NewTrace(
 				types.DigestSlice{BetaPositiveDigest, BetaPositiveDigest, BetaPositiveDigest},
 				map[string]string{
 					"device":              AnglerDevice,
@@ -120,7 +120,7 @@ func MakeTestTile() *tiling.Tile {
 				},
 			),
 
-			BullheadAlphaTraceID: tiling.NewGoldenTrace(
+			BullheadAlphaTraceID: tiling.NewTrace(
 				types.DigestSlice{AlphaNegativeDigest, AlphaNegativeDigest, AlphaUntriagedDigest},
 				map[string]string{
 					"device":              BullheadDevice,
@@ -128,7 +128,7 @@ func MakeTestTile() *tiling.Tile {
 					types.CorpusField:     "gm",
 				},
 			),
-			BullheadBetaTraceID: tiling.NewGoldenTrace(
+			BullheadBetaTraceID: tiling.NewTrace(
 				types.DigestSlice{BetaPositiveDigest, BetaPositiveDigest, BetaPositiveDigest},
 				map[string]string{
 					"device":              BullheadDevice,
@@ -137,7 +137,7 @@ func MakeTestTile() *tiling.Tile {
 				},
 			),
 
-			CrosshatchAlphaTraceID: tiling.NewGoldenTrace(
+			CrosshatchAlphaTraceID: tiling.NewTrace(
 				types.DigestSlice{AlphaNegativeDigest, AlphaNegativeDigest, AlphaPositiveDigest},
 				map[string]string{
 					"device":              CrosshatchDevice,
@@ -145,7 +145,7 @@ func MakeTestTile() *tiling.Tile {
 					types.CorpusField:     "gm",
 				},
 			),
-			CrosshatchBetaTraceID: tiling.NewGoldenTrace(
+			CrosshatchBetaTraceID: tiling.NewTrace(
 				types.DigestSlice{BetaUntriagedDigest, tiling.MissingDigest, tiling.MissingDigest},
 				map[string]string{
 					"device":              CrosshatchDevice,
