@@ -20,12 +20,15 @@ const temps = (temperatures) => {
   return Object.entries(temperatures).map((pair) => html`<div>${pair[0]}=${pair[1]}</div>`);
 };
 
+const isRunning = (machine) => (machine.RunningSwarmingTask ? '&check;' : '');
+
 const rows = (ele) => ele._machines.map((machine) => html`
 <tr id=${machine.Dimensions.id}>
   <td>${machine.Dimensions.id}</td>
   <td>${machine.Dimensions.device_type}</td>
   <td><button @click=${() => ele._toggleMode(machine.Dimensions.id)}>${machine.Mode}</button></td>
   <td>${machine.Dimensions.quarantined}</td>
+  <td>${isRunning(machine)}</td>
   <td>${machine.Battery}</td>
   <td>
     ${temps(machine.Temperature)}
@@ -45,6 +48,7 @@ const template = (ele) => html`
     <th>Device</th>
     <th>Mode</th>
     <th>Quarantined</th>
+    <th>Running Task</th>
     <th>Battery</th>
     <th>Temperature</th>
     <th>Last Updated</th>
