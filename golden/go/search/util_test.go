@@ -99,9 +99,8 @@ func TestTraceViewFn(t *testing.T) {
 		assert.NotNil(t, fn, tc.name)
 		// Run through all the traces and make sure they are properly trimmed
 		for _, trace := range data.MakeTestTile().Traces {
-			tr := trace.(*tiling.GoldenTrace)
-			reducedTr := fn(tr)
-			assert.Equal(t, tr.Digests[tc.trimmedStartIndex:tc.trimmedEndIndex+1], reducedTr.Digests, "test case %s with trace %v", tc.name, tr.Keys)
+			reducedTr := fn(trace)
+			assert.Equal(t, trace.Digests[tc.trimmedStartIndex:tc.trimmedEndIndex+1], reducedTr.Digests, "test case %s with trace %v", tc.name, trace.Keys)
 		}
 	}
 }

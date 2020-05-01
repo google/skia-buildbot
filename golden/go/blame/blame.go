@@ -158,14 +158,13 @@ func (b *BlamerImpl) calculate(tile *tiling.Tile, exp expectations.ReadOnly) err
 	ret := map[types.TestName]map[types.Digest]blameCounts{}
 
 	for _, trace := range tile.Traces {
-		gtr := trace.(*tiling.GoldenTrace)
-		testName := gtr.TestName()
+		testName := trace.TestName()
 
 		// lastIdx tracks the index of the last digest that is definitely
 		// not in the blamelist.
 		lastIdx := -1
 		found := types.DigestSet{}
-		for idx, digest := range gtr.Digests[:tileLen] {
+		for idx, digest := range trace.Digests[:tileLen] {
 			if digest == tiling.MissingDigest {
 				continue
 			}

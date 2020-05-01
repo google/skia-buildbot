@@ -63,7 +63,7 @@ func iterTile(ctx context.Context, q *query.Search, addFn addFn, acceptFn accept
 			}
 			id, trace := tp.ID, tp.Trace
 			// Check if the query matches.
-			if tiling.Matches(trace, q.TraceValues) {
+			if trace.Matches(q.TraceValues) {
 				params := trace.Params()
 				reducedTr := traceView(trace)
 				digests := digestsFromTrace(id, reducedTr, q.Head, digestCountsByTrace)
@@ -250,7 +250,7 @@ type srIntermediate struct {
 
 // newSrIntermediate creates a new srIntermediate for a digest and adds
 // the given trace to it.
-func newSrIntermediate(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace tiling.Trace, pset paramtools.ParamSet) *srIntermediate {
+func newSrIntermediate(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *tiling.GoldenTrace, pset paramtools.ParamSet) *srIntermediate {
 	ret := &srIntermediate{
 		test:   test,
 		digest: digest,
@@ -264,9 +264,9 @@ func newSrIntermediate(test types.TestName, digest types.Digest, traceID tiling.
 // add adds a new trace to an existing intermediate value for a digest
 // found in search. If traceID or trace are "" or nil they will not be added.
 // 'params' will always be added to the internal parameter set.
-func (s *srIntermediate) add(traceID tiling.TraceID, trace tiling.Trace, pset paramtools.ParamSet) {
+func (s *srIntermediate) add(traceID tiling.TraceID, trace *tiling.GoldenTrace, pset paramtools.ParamSet) {
 	if (traceID != "") && (trace != nil) {
-		s.traces[traceID] = trace.(*tiling.GoldenTrace)
+		s.traces[traceID] = trace
 		s.params.AddParams(trace.Params())
 	} else {
 		s.params.AddParamSet(pset)

@@ -72,15 +72,11 @@ func assertTilesEqual(t *testing.T, a *tiling.Tile, b *tiling.Tile) {
 	// We can't do a naive comparison of the traces because unexported values may not exactly match
 	// and don't care if they do (i.e. the cached values for TestName, Corpus)
 	assert.Equal(t, len(a.Traces), len(b.Traces))
-	for id, tr := range a.Traces {
+	for id, traceA := range a.Traces {
 		assert.Contains(t, b.Traces, id)
-		gta, ok := tr.(*tiling.GoldenTrace)
-		require.True(t, ok)
-		gtb, ok := b.Traces[id].(*tiling.GoldenTrace)
-		require.True(t, ok)
-
-		assert.Equal(t, gta.Keys, gtb.Keys)
-		assert.Equal(t, gta.Digests, gtb.Digests)
+		traceB := b.Traces[id]
+		assert.Equal(t, traceA.Keys, traceB.Keys)
+		assert.Equal(t, traceA.Digests, traceB.Digests)
 	}
 }
 
@@ -91,17 +87,15 @@ func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []*tili
 	// Build a tile up from the individual data points, one at a time
 	traces := data.MakeTestTile().Traces
 	for _, trace := range traces {
-		gTrace, ok := trace.(*tiling.GoldenTrace)
-		require.True(t, ok)
 
 		// Put them in backwards, just to test that order doesn't matter
-		for i := len(gTrace.Digests) - 1; i >= 0; i-- {
-			if gTrace.Digests[i] == tiling.MissingDigest {
+		for i := len(trace.Digests) - 1; i >= 0; i-- {
+			if trace.Digests[i] == tiling.MissingDigest {
 				continue
 			}
 			e := tracestore.Entry{
-				Digest: gTrace.Digests[i],
-				Params: gTrace.Keys,
+				Digest: trace.Digests[i],
+				Params: trace.Keys,
 			}
 			if options {
 				if i == 0 {
@@ -176,7 +170,7 @@ func TestBTTraceStorePutGetOverride(t *testing.T) {
 
 	expectedTile := data.MakeTestTile()
 	// This is the edit we applied
-	gt := expectedTile.Traces[data.AnglerAlphaTraceID].(*tiling.GoldenTrace)
+	gt := expectedTile.Traces[data.AnglerAlphaTraceID]
 	gt.Digests[2] = veryNewDigest
 
 	assertTilesEqual(t, expectedTile, actualTile)
@@ -334,11 +328,9 @@ func TestBTTraceStorePutGetGrouped(t *testing.T) {
 		data.CrosshatchDevice: nil,
 	}
 	for _, trace := range traces {
-		gTrace, ok := trace.(*tiling.GoldenTrace)
-		require.True(t, ok)
-		require.Len(t, gTrace.Digests, len(commits), "test data should have one digest per commit")
-		dev := gTrace.Keys["device"]
-		byDevice[dev] = append(byDevice[dev], gTrace)
+		require.Len(t, trace.Digests, len(commits), "test data should have one digest per commit")
+		dev := trace.Keys["device"]
+		byDevice[dev] = append(byDevice[dev], trace)
 	}
 	require.Len(t, byDevice, 3, "test data should have exactly 3 devices")
 
@@ -410,22 +402,19 @@ func TestBTTraceStorePutGetThreaded(t *testing.T) {
 
 	// Build a tile up from the individual data points, one at a time
 	traces := data.MakeTestTile().Traces
-	for _, trace := range traces {
-		gTrace, ok := trace.(*tiling.GoldenTrace)
-		require.True(t, ok)
-
+	for _, tr := range traces {
 		// Put them in backwards, just to test that order doesn't matter
-		for i := len(gTrace.Digests) - 1; i >= 0; i-- {
+		for i := len(tr.Digests) - 1; i >= 0; i-- {
 			wg.Add(1)
-			go func(now time.Time, i int) {
+			go func(now time.Time, i int, trace *tiling.GoldenTrace) {
 				defer wg.Done()
 				e := tracestore.Entry{
-					Digest: gTrace.Digests[i],
-					Params: gTrace.Keys,
+					Digest: trace.Digests[i],
+					Params: trace.Keys,
 				}
 				err := traceStore.Put(ctx, commits[i].Hash, []*tracestore.Entry{&e}, now)
 				require.NoError(t, err)
-			}(now, i)
+			}(now, i, tr)
 			now = now.Add(7 * time.Second)
 		}
 	}
@@ -561,14 +550,11 @@ func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits 
 	// Build a tile up from the individual data points, one at a time
 	traces := tile.Traces
 	for _, trace := range traces {
-		gTrace, ok := trace.(*tiling.GoldenTrace)
-		require.True(t, ok)
-
 		// Put them in backwards, just to test that order doesn't matter
-		for i := len(gTrace.Digests) - 1; i >= 0; i-- {
+		for i := len(trace.Digests) - 1; i >= 0; i-- {
 			e := tracestore.Entry{
-				Digest: gTrace.Digests[i],
-				Params: gTrace.Keys,
+				Digest: trace.Digests[i],
+				Params: trace.Keys,
 			}
 			err := traceStore.Put(ctx, commits[i].Hash, []*tracestore.Entry{&e}, now)
 			require.NoError(t, err)
@@ -951,7 +937,6 @@ func mockSparseVCSWithCommits(commits []*tiling.Commit, realCommitIndices []int,
 func makeTestTileWithOptions() *tiling.Tile {
 	tile := data.MakeTestTile()
 	for id, trace := range tile.Traces {
-		gt := trace.(*tiling.GoldenTrace)
 		// CrosshatchBetaTraceID has a digest at index 0 and is missing in all
 		// other indices (and this is the only trace for which this occurs).
 		// optionsOne are written to index 0 and optionsTwo are for all other
@@ -959,14 +944,14 @@ func makeTestTileWithOptions() *tiling.Tile {
 		// optionsOne applied.
 		if id == data.CrosshatchBetaTraceID {
 			for k, v := range makeOptionsOne() {
-				gt.Keys[k] = v
+				trace.Keys[k] = v
 			}
 		} else {
 			for k, v := range makeOptionsTwo() {
-				gt.Keys[k] = v
+				trace.Keys[k] = v
 			}
 		}
-		tile.Traces[id] = gt
+		tile.Traces[id] = trace
 	}
 	tile.ParamSet["resolution"] = []string{"1080p", "4k"}
 	tile.ParamSet["color"] = []string{"orange"}
