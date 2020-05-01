@@ -130,7 +130,7 @@ const (
 func makePartialTileOne() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
-		Traces: map[tiling.TraceID]*tiling.GoldenTrace{
+		Traces: map[tiling.TraceID]*tiling.Trace{
 			x86TestAlphaTraceID: {
 				Digests: types.DigestSlice{FirstDigest, FirstDigest, SecondDigest},
 				Keys: map[string]string{
@@ -156,17 +156,17 @@ func makePartialTileTwo() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
 
-		Traces: map[tiling.TraceID]*tiling.GoldenTrace{
+		Traces: map[tiling.TraceID]*tiling.Trace{
 			// Reminder that the ids for the traces are created by concatenating
 			// all the values in alphabetical order of the keys.
-			x86TestAlphaTraceID: tiling.NewGoldenTrace(
+			x86TestAlphaTraceID: tiling.NewTrace(
 				types.DigestSlice{FirstDigest, FirstDigest, SecondDigest, SecondDigest},
 				map[string]string{
 					"config":              "x86",
 					types.PrimaryKeyField: string(AlphaTest),
 					types.CorpusField:     "gm",
 				}),
-			x64TestBetaTraceID: tiling.NewGoldenTrace(
+			x64TestBetaTraceID: tiling.NewTrace(
 				types.DigestSlice{ThirdDigest, FirstDigest, ThirdDigest, FirstDigest},
 				map[string]string{
 					"config":              "x86_64",

@@ -94,7 +94,7 @@ func TestUpdateTileEmptyTile(t *testing.T) {
 		Commits:   nil,
 		Scale:     0,
 		TileIndex: 0,
-		Traces:    map[tiling.TraceID]*tiling.GoldenTrace{},
+		Traces:    map[tiling.TraceID]*tiling.Trace{},
 	}
 
 	mts.On("GetDenseTile", testutils.AnyContext, nCommits).Return(empty, makeSparseTilingCommits(), nil)

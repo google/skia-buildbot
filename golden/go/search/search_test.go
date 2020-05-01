@@ -1234,7 +1234,7 @@ func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
 		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
 		t.Run(desc, func(t *testing.T) {
 			s := SearchImpl{}
-			traces := map[tiling.TraceID]*tiling.GoldenTrace{
+			traces := map[tiling.TraceID]*tiling.Trace{
 				"not-a-real-trace-id-and-that's-ok": {
 					Digests: inputDigests,
 					// Keys can be omitted because they are not read here,
@@ -1292,10 +1292,10 @@ func TestGetDrawableTraces_TotalDigestsCorrect(t *testing.T) {
 		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
 		t.Run(desc, func(t *testing.T) {
 			s := SearchImpl{}
-			traces := map[tiling.TraceID]*tiling.GoldenTrace{}
+			traces := map[tiling.TraceID]*tiling.Trace{}
 			for i, digests := range inputTraceDigests {
 				id := tiling.TraceID(fmt.Sprintf("trace-%d", i))
-				traces[id] = &tiling.GoldenTrace{
+				traces[id] = &tiling.Trace{
 					Digests: digests,
 					// Keys can be omitted because they are not read here,
 				}
