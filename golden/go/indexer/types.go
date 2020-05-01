@@ -5,10 +5,10 @@ import (
 	"net/url"
 
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/summary"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
 

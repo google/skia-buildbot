@@ -9,7 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
-	tiling "go.skia.org/infra/go/tiling"
+	tiling "go.skia.org/infra/golden/go/tiling"
 
 	types "go.skia.org/infra/golden/go/types"
 )

@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/tiling"
 )
 
 const (

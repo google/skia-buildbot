@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/comment/trace"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/search/common"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
 

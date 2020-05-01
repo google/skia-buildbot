@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
@@ -24,6 +23,7 @@ import (
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tilesource"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 )

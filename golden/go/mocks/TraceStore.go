@@ -6,7 +6,7 @@ import (
 	context "context"
 
 	mock "github.com/stretchr/testify/mock"
-	tiling "go.skia.org/infra/go/tiling"
+	tiling "go.skia.org/infra/golden/go/tiling"
 
 	time "time"
 

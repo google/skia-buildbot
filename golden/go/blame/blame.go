@@ -3,10 +3,10 @@ package blame
 import (
 	"sort"
 
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/shared"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
 

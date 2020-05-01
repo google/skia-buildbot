@@ -14,11 +14,11 @@ import (
 	"go.skia.org/infra/go/bt"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/vcsinfo"
 	mock_vcs "go.skia.org/infra/go/vcsinfo/mocks"
 	"go.skia.org/infra/golden/go/testutils/data_bug_revert"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/tracestore"
 	"go.skia.org/infra/golden/go/types"
 )

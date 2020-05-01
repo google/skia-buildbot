@@ -10,7 +10,7 @@ import (
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
 

@@ -20,8 +20,8 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/gold-client/go/imgmatching"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/tracestore"
 	"golang.org/x/sync/errgroup"
 

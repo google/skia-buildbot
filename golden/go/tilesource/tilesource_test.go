@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/vcsinfo"
 	mock_vcs "go.skia.org/infra/go/vcsinfo/mocks"
 	mock_updater "go.skia.org/infra/golden/go/code_review/mocks"
@@ -20,6 +19,7 @@ import (
 	mock_ignorestore "go.skia.org/infra/golden/go/ignore/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
 
