@@ -2,6 +2,15 @@
 // for documentation of the autoroller config.
 {
   "childName": "Fuchsia SDK",
+  "commitMsg": {
+    "childName": "Fuchsia SDK",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": false,
+    "includeRevisionCount": false,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "jbudorick@chromium.org",
     "cr-fuchsia+bot@chromium.org"

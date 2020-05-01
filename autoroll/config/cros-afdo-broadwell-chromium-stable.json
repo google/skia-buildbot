@@ -2,6 +2,15 @@
 // for documentation of the autoroller config.
 {
   "childName": "ChromeOS Broadwell AFDO profile",
+  "commitMsg": {
+    "childName": "broadwell AFDO profile",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": false,
+    "includeRevisionCount": false,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "gbiv@google.com",
     "tcwang@google.com"
@@ -24,23 +33,6 @@
   "semVerGCSRepoManager": {
     "childBranch": "master",
     "childPath": "chromeos/profiles/broadwell.afdo.newest.txt",
-    "commitMsgTmpl": "Roll broadwell AFDO profile from {{.RollingFrom.String}} to {{.RollingTo.String}}\n\
-\n\
-If this roll has caused a breakage, revert this CL and stop the roller\n\
-using the controls here:\n\
-{{.ServerURL}}\n\
-Please CC {{stringsJoin .Reviewers \",\"}} on the revert to ensure that a human\n\
-is aware of the problem.\n\
-\n\
-To report a problem with the AutoRoller itself, please file a bug:\n\
-https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug\n\
-\n\
-Documentation for the AutoRoller is here:\n\
-https://skia.googlesource.com/buildbot/+/master/autoroll/README.md\n\
-\n\
-{{if .CqExtraTrybots}}Cq-Include-Trybots: {{.CqExtraTrybots}}\n\
-{{end}}Tbr: {{stringsJoin .Reviewers \",\"}}\n\
-",
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/vetted/release",
     "parentBranch": "{{.Branches.Chromium.Stable.Ref}}",

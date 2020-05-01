@@ -19,24 +19,6 @@ import (
 const (
 	FuchsiaSDKVersionFilePathLinux = "build/fuchsia/linux.sdk.sha1"
 	FuchsiaSDKVersionFilePathMac   = "build/fuchsia/mac.sdk.sha1"
-
-	TmplCommitMsgFuchsiaSDK = `Roll Fuchsia SDK from {{.RollingFrom.String}} to {{.RollingTo.String}}
-
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
-{{.ServerURL}}
-Please CC {{stringsJoin .Reviewers ","}} on the revert to ensure that a human
-is aware of the problem.
-
-To report a problem with the AutoRoller itself, please file a bug:
-https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
-
-Documentation for the AutoRoller is here:
-https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
-
-{{if .CqExtraTrybots}}Cq-Include-Trybots: {{.CqExtraTrybots}}
-{{end}}Tbr: {{stringsJoin .Reviewers ","}}
-`
 )
 
 // FuchsiaSDKRepoManagerConfig provides configuration for the Fuchia SDK
@@ -66,20 +48,8 @@ func (c *FuchsiaSDKRepoManagerConfig) splitParentChild() (parent.GitilesFileConf
 			},
 		}
 	}
-	commitMsgTmpl := TmplCommitMsgFuchsiaSDK
-	if c.CommitMsgTmpl != "" {
-		commitMsgTmpl = c.CommitMsgTmpl
-	}
 	parentCfg := parent.GitilesFileConfig{
 		GitilesConfig: parent.GitilesConfig{
-			BaseConfig: parent.BaseConfig{
-				ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-				ChildRepo:       "TODO",
-				IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-				IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-				CommitMsgTmpl:   commitMsgTmpl,
-				MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-			},
 			GitilesConfig: gitiles_common.GitilesConfig{
 				Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
 				RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,

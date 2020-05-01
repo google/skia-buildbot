@@ -2,6 +2,17 @@
 // for documentation of the autoroller config.
 {
   "childName": "WebRTC",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childName": "src/third_party/webrtc",
+    "childLogURLTmpl": "https://webrtc.googlesource.com/src.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "comms-engprod-sto@google.com"
   ],
@@ -25,9 +36,6 @@
     "childPath": "src/third_party/webrtc",
     "childRepo": "https://webrtc.googlesource.com/src.git",
     "childRevLinkTmpl": "https://webrtc.googlesource.com/src.git/+/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },

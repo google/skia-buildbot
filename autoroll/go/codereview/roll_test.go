@@ -47,7 +47,7 @@ Tbr: some-sheriff
 		ChangeId:      fmt.Sprintf("%d", issueNum),
 		Issue:         issueNum,
 		Labels:        map[string]*gerrit.LabelEntry{},
-		Owner: &gerrit.Owner{
+		Owner: &gerrit.Person{
 			Email: "fake-deps-roller@chromium.org",
 		},
 		Project: "skia",
@@ -403,7 +403,7 @@ func testUpdateFromGerritChangeInfo(t *testing.T, cfg *gerrit.Config) {
 		ChangeId:      fmt.Sprintf("%d", a.Issue),
 		Issue:         a.Issue,
 		Labels:        map[string]*gerrit.LabelEntry{},
-		Owner: &gerrit.Owner{
+		Owner: &gerrit.Person{
 			Email: "fake@chromium.org",
 		},
 		Project: "skia",

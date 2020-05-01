@@ -2,6 +2,17 @@
 // for documentation of the autoroller config.
 {
   "childName": "DevTools Frontend",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childName": "src/third_party/devtools-frontend/src",
+    "childLogURLTmpl": "https://chromium.googlesource.com/devtools/devtools-frontend.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "v8-infra@google.com"
   ],
@@ -25,9 +36,6 @@
     "childPath": "src/third_party/devtools-frontend/src",
     "childRepo": "https://chromium.googlesource.com/devtools/devtools-frontend.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/devtools/devtools-frontend.git/+/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },

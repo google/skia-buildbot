@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/commit_msg"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/deepequal/assertdeep"
@@ -19,7 +20,10 @@ import (
 // validBaseConfig returns a minimal valid AutoRollerConfig.
 func validBaseConfig() *AutoRollerConfig {
 	return &AutoRollerConfig{
-		ChildName:       "childName",
+		ChildName: "childName",
+		CommitMsgConfig: &commit_msg.CommitMsgConfig{
+			CommitMsgTmpl: commit_msg.TmplDefault,
+		},
 		Contacts:        []string{"me@gmail.com"},
 		OwnerPrimary:    "me",
 		OwnerSecondary:  "you",
@@ -150,10 +154,6 @@ func TestConfigs(t *testing.T) {
 	// Test cases.
 
 	testNoErr(func(c *AutoRollerConfig) {
-		c.CqExtraTrybots = []string{"extra-bot"}
-	})
-
-	testNoErr(func(c *AutoRollerConfig) {
 		c.MaxRollFrequency = "1h"
 	})
 
@@ -207,7 +207,6 @@ func TestConfigSerialization(t *testing.T) {
 
 	test()
 
-	a.CqExtraTrybots = []string{"extra-bot"}
 	a.MaxRollFrequency = "1h"
 	a.Notifiers = []*notifier.Config{
 		{

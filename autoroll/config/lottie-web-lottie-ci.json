@@ -2,6 +2,16 @@
 // for documentation of the autoroller config.
 {
   "childName": "Lottie Web",
+  "commitMsg": {
+    "childName": "lottie",
+    "childLogURLTmpl": "https://skia.googlesource.com/external/github.com/airbnb/lottie-web.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "borenet@google.com"
   ],

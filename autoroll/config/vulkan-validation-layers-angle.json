@@ -2,6 +2,17 @@
 // for documentation of the autoroller config.
 {
   "childName": "Vulkan-ValidationLayers",
+  "commitMsg": {
+    "bugProject": "angleproject",
+    "childName": "third_party/vulkan-validation-layers/src",
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-ValidationLayers.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "angle-team@google.com",
     "jmadill@chromium.org"
@@ -30,9 +41,6 @@
     "childPath": "third_party/vulkan-validation-layers/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-ValidationLayers.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-ValidationLayers.git/+/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "angleproject",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
   },

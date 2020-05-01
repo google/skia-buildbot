@@ -2,6 +2,28 @@
 // for documentation of the autoroller config.
 {
   "childName": "SPIRV-Tools",
+  "commitMsg": {
+    "childName": "src/third_party/SPIRV-Tools/src",
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "cqExtraTrybots": [
+      "luci.chromium.try:android_angle_vk32_deqp_rel_ng",
+      "luci.chromium.try:android_angle_vk32_rel_ng",
+      "luci.chromium.try:android_angle_vk64_deqp_rel_ng",
+      "luci.chromium.try:android_angle_vk64_rel_ng",
+      "luci.chromium.try:linux_angle_deqp_rel_ng",
+      "luci.chromium.try:linux-angle-rel",
+      "luci.chromium.try:win-angle-rel-32",
+      "luci.chromium.try:win-angle-rel-64",
+      "luci.chromium.try:win-angle-deqp-rel-32",
+      "luci.chromium.try:win-angle-deqp-rel-64"
+    ],
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "dsinclair@chromium.org",
     "geofflang@chromium.org",
@@ -31,35 +53,9 @@
     "childPath": "src/third_party/SPIRV-Tools/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git/+/%s",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
-    "transitiveDeps": [
-      {
-        "child": {
-          "id": "https://github.com/KhronosGroup/SPIRV-Headers",
-          "path": "DEPS"
-        },
-        "parent": {
-          "id": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers",
-          "path": "DEPS"
-        }
-      }
-    ]
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
-  "cqExtraTrybots": [
-    "luci.chromium.try:android_angle_vk32_deqp_rel_ng",
-    "luci.chromium.try:android_angle_vk32_rel_ng",
-    "luci.chromium.try:android_angle_vk64_deqp_rel_ng",
-    "luci.chromium.try:android_angle_vk64_rel_ng",
-    "luci.chromium.try:linux_angle_deqp_rel_ng",
-    "luci.chromium.try:linux-angle-rel",
-    "luci.chromium.try:win-angle-rel-32",
-    "luci.chromium.try:win-angle-rel-64",
-    "luci.chromium.try:win-angle-deqp-rel-32",
-    "luci.chromium.try:win-angle-deqp-rel-64"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",
@@ -68,5 +64,17 @@
     "readinessFailureThreshold": "10"
   },
   "maxRollFrequency": "6h",
-  "timeWindow": "M-F 08:00-09:00"
+  "timeWindow": "M-F 08:00-09:00",
+  "transitiveDeps": [
+    {
+      "child": {
+        "id": "https://github.com/KhronosGroup/SPIRV-Headers",
+        "path": "DEPS"
+      },
+      "parent": {
+        "id": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers",
+        "path": "DEPS"
+      }
+    }
+  ]
 }

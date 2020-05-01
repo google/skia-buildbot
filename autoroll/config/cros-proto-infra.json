@@ -2,6 +2,17 @@
 // for documentation of the autoroller config.
 {
   "childName": "chromiumos/infra/proto",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childName": "infra/go/src/go.chromium.org/chromiumos/infra/proto",
+    "childLogURLTmpl": "https://chromium.googlesource.com/chromiumos/infra/proto.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "seanabraham@google.com"
   ],
@@ -25,9 +36,6 @@
     "childPath": "infra/go/src/go.chromium.org/chromiumos/infra/proto",
     "childRepo": "https://chromium.googlesource.com/chromiumos/infra/proto.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/chromiumos/infra/proto.git/+/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/infra/infra.git"
   },

@@ -2,6 +2,16 @@
 // for documentation of the autoroller config.
 {
   "childName": "Skia",
+  "commitMsg": {
+    "childName": "src/third_party/skia",
+    "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": false,
+    "includeTests": false
+  },
   "contacts": ["brianosman@google.com", "rmistry@google.com"],
   "isInternal": false,
   "ownerPrimary": "rmistry",
@@ -24,7 +34,6 @@
     "forkRepoURL": "git@github.com:skia-flutter-autoroll/engine.git",
     "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:flutter/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
     "githubParentPath": "src/flutter",
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "git@github.com:flutter/engine.git",
     "preUploadSteps": ["FlutterLicenseScripts"],

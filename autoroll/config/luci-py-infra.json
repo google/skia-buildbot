@@ -2,6 +2,16 @@
 // for documentation of the autoroller config.
 {
   "childName": "luci-py",
+  "commitMsg": {
+    "childName": "infra/luci",
+    "childLogURLTmpl": "https://chromium.googlesource.com/infra/luci/luci-py.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "tikuta@chromium.org"
   ],
@@ -25,9 +35,6 @@
     "childPath": "infra/luci",
     "childRepo": "https://chromium.googlesource.com/infra/luci/luci-py.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/infra/luci/luci-py.git/+/%s",
-    "includeBugs": false,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/infra/infra.git"
   },
