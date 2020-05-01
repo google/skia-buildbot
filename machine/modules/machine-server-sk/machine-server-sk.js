@@ -20,7 +20,7 @@ const temps = (temperatures) => {
   return Object.entries(temperatures).map((pair) => html`<div>${pair[0]}=${pair[1]}</div>`);
 };
 
-const isRunning = (machine) => (machine.RunningSwarmingTask ? '&check;' : '');
+const isRunning = (machine) => (machine.RunningSwarmingTask ? html`&check;` : '');
 
 const asList = (arr) => arr.join(' | ');
 
