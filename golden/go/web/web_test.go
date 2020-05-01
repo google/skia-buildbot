@@ -1722,7 +1722,7 @@ func TestGetPerTraceDigestsByTestName_Success(t *testing.T) {
 	}).Return([]*tiling.TracePair{
 		{
 			ID: ",name=MyTest,foo=alpha,source_type=MyCorpus,",
-			Trace: tiling.NewGoldenTrace([]types.Digest{
+			Trace: tiling.NewTrace([]types.Digest{
 				"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 				"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
 			}, map[string]string{
@@ -1733,7 +1733,7 @@ func TestGetPerTraceDigestsByTestName_Success(t *testing.T) {
 		},
 		{
 			ID: ",name=MyTest,foo=beta,source_type=MyCorpus,",
-			Trace: tiling.NewGoldenTrace([]types.Digest{
+			Trace: tiling.NewTrace([]types.Digest{
 				"",
 				"cccccccccccccccccccccccccccccccc",
 			}, map[string]string{

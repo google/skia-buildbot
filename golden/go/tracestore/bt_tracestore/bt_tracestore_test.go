@@ -322,7 +322,7 @@ func TestBTTraceStorePutGetGrouped(t *testing.T) {
 
 	// Group the traces by device, so we should have 3 groups of 2 traces.
 	traces := data.MakeTestTile().Traces
-	byDevice := map[string][]*tiling.GoldenTrace{
+	byDevice := map[string][]*tiling.Trace{
 		data.AnglerDevice:     nil,
 		data.BullheadDevice:   nil,
 		data.CrosshatchDevice: nil,
@@ -406,7 +406,7 @@ func TestBTTraceStorePutGetThreaded(t *testing.T) {
 		// Put them in backwards, just to test that order doesn't matter
 		for i := len(tr.Digests) - 1; i >= 0; i-- {
 			wg.Add(1)
-			go func(now time.Time, i int, trace *tiling.GoldenTrace) {
+			go func(now time.Time, i int, trace *tiling.Trace) {
 				defer wg.Done()
 				e := tracestore.Entry{
 					Digest: trace.Digests[i],

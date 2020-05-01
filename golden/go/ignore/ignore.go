@@ -79,7 +79,7 @@ func AsMatcher(ignores []Rule) (paramtools.ParamMatcher, error) {
 func FilterIgnored(inputTile *tiling.Tile, ignores []Rule) (*tiling.Tile, paramtools.ParamMatcher, error) {
 	// Make a shallow copy with a new Traces map
 	ret := &tiling.Tile{
-		Traces:   map[tiling.TraceID]*tiling.GoldenTrace{},
+		Traces:   map[tiling.TraceID]*tiling.Trace{},
 		ParamSet: inputTile.ParamSet,
 		Commits:  inputTile.Commits,
 
