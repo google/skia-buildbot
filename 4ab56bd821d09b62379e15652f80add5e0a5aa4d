@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a9266c0b_086049db",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-01T10:46:56Z",
+      "side": 1,
+      "message": "bikeshed: do you anticipate non-swarming tasks to be running? if not, maybe just RunningTask?",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 20
+      },
+      "revId": "4ab56bd821d09b62379e15652f80add5e0a5aa4d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
