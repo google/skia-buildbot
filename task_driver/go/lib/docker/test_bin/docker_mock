@@ -29,7 +29,7 @@ Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
 Step 6/7 : USER skia
  ---> Using cache
  ---> 44bafbc9a59e
-Step 7/7 : RUN printenv   && cd /tmp   && git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'   && mkdir -p /tmp/skia   && cd /tmp/skia   && export PATH=$PATH:/tmp/depot_tools   && touch noop.py   && vpython noop.py   && ls -al /tmp/depot_tools   && /tmp/depot_tools/fetch skia   && ls -al /workspace/__cache   && printenv
+Step 7/7 : RUN printenv   && cd /tmp   && git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'   && mkdir -p /tmp/skia   && cd /tmp/skia   && export PATH=\$PATH:/tmp/depot_tools   && touch noop.py   && vpython noop.py   && ls -al /tmp/depot_tools   && /tmp/depot_tools/fetch skia   && ls -al /workspace/__cache   && printenv
  ---> Using cache
  ---> 29c6670a45e8
 Successfully built 29c6670a45e8
@@ -58,7 +58,7 @@ Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
 Step 6/7 : USER skia
  ---> Using cache
  ---> 44bafbc9a59e
-Step 7/7 : RUN printenv   && cd /tmp   && git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'   && mkdir -p /tmp/skia   && cd /tmp/skia   && export PATH=$PATH:/tmp/depot_tools   && touch noop.py   && vpython noop.py   && ls -al /tmp/depot_tools   && /tmp/depot_tools/fetch skia   && ls -al /workspace/__cache   && printenv
+Step 7/7 : RUN printenv   && cd /tmp   && git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'   && mkdir -p /tmp/skia   && cd /tmp/skia   && export PATH=\$PATH:/tmp/depot_tools   && touch noop.py   && vpython noop.py   && ls -al /tmp/depot_tools   && /tmp/depot_tools/fetch skia   && ls -al /workspace/__cache   && printenv
 Failed to do the thing!!1
 EOF
         exit 1
@@ -83,7 +83,7 @@ Step 5/7 : ENV CIPD_CACHE_DIR /workspace/__cache
 Step 6/7 : USER skia
  ---> Using cache
  ---> 44bafbc9a59e
-Step 7/7 : RUN printenv   && cd /tmp   && git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'   && mkdir -p /tmp/skia   && cd /tmp/skia   && export PATH=$PATH:/tmp/depot_tools   && touch noop.py   && vpython noop.py   && ls -al /tmp/depot_tools   && /tmp/depot_tools/fetch skia   && ls -al /workspace/__cache   && printenv
+Step 7/7 : RUN printenv   && cd /tmp   && git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'   && mkdir -p /tmp/skia   && cd /tmp/skia   && export PATH=\$PATH:/tmp/depot_tools   && touch noop.py   && vpython noop.py   && ls -al /tmp/depot_tools   && /tmp/depot_tools/fetch skia   && ls -al /workspace/__cache   && printenv
 EOF
         sleep 10
     ;;
