@@ -4,7 +4,6 @@ package indexer
 
 import (
 	"context"
-	"net/url"
 	"sync"
 	"time"
 
@@ -12,7 +11,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digest_counter"
@@ -24,6 +22,7 @@ import (
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tilesource"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 )
@@ -127,7 +126,7 @@ func (idx *SearchIndex) DigestCountsByTrace(is types.IgnoreState) map[tiling.Tra
 }
 
 // DigestCountsByQuery implements the IndexSearcher interface.
-func (idx *SearchIndex) DigestCountsByQuery(query url.Values, is types.IgnoreState) digest_counter.DigestCount {
+func (idx *SearchIndex) DigestCountsByQuery(query paramtools.ParamSet, is types.IgnoreState) digest_counter.DigestCount {
 	return idx.dCounters[is].ByQuery(idx.cpxTile.GetTile(is), query)
 }
 
@@ -137,7 +136,7 @@ func (idx *SearchIndex) GetSummaries(is types.IgnoreState) []*summary.TriageStat
 }
 
 // SummarizeByGrouping implements the IndexSearcher interface.
-func (idx *SearchIndex) SummarizeByGrouping(ctx context.Context, corpus string, query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
+func (idx *SearchIndex) SummarizeByGrouping(ctx context.Context, corpus string, query paramtools.ParamSet, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error) {
 	exp, err := idx.expectationsStore.Get(ctx)
 	if err != nil {
 		return nil, skerr.Wrap(err)

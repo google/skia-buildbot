@@ -9,8 +9,8 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/tiling"
 )
 
 // Store is an interface for a database that saves ignore rules.
@@ -95,7 +95,7 @@ func FilterIgnored(inputTile *tiling.Tile, ignores []Rule) (*tiling.Tile, paramt
 nextTrace:
 	for id, tr := range inputTile.Traces {
 		for _, q := range ignoreQueries {
-			if tiling.Matches(tr, url.Values(q)) {
+			if tiling.Matches(tr, q) {
 				continue nextTrace
 			}
 		}

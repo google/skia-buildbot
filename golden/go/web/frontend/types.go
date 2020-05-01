@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/code_review"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
 

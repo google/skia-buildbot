@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/baseline"
@@ -37,6 +36,7 @@ import (
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tilesource"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
@@ -1006,11 +1006,12 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Unable to parse query parameter.", http.StatusBadRequest)
 		return
 	}
-	testName := q.TraceValues.Get(types.PrimaryKeyField)
-	if testName == "" {
+	testNames := q.TraceValues[types.PrimaryKeyField]
+	if len(testNames) == 0 {
 		http.Error(w, "No test name provided.", http.StatusBadRequest)
 		return
 	}
+	testName := testNames[0]
 
 	idx := wh.Indexer.GetIndex()
 	searchResponse, err := wh.SearchAPI.Search(r.Context(), &q)

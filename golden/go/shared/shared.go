@@ -120,7 +120,7 @@ func (v *Validation) Int64SliceFormValue(r *http.Request, name string, defaultVa
 }
 
 // QueryFormValue extracts a URL-encoded query from the form values and decodes it.
-// If the named field was not available in the given request an empty set url.Values
+// If the named field was not available in the given request an empty paramtools.ParamSet
 // is returned. If an error occurs it will be added to the error list of the validation
 // object.
 func (v *Validation) QueryFormValue(r *http.Request, name string) map[string][]string {

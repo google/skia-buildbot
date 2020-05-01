@@ -3,11 +3,11 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"net/url"
 	"os"
 	"strings"
 
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// Write the output file.
-	output := url.Values{"model": models.Keys()}
+	output := paramtools.ParamSet{"model": models.Keys()}
 	if f, err = os.Create(*outputFile); err != nil {
 		sklog.Fatalf("Error creating output file: %s", err)
 	}

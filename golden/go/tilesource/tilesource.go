@@ -2,7 +2,6 @@ package tilesource
 
 import (
 	"context"
-	"net/url"
 	"sync"
 	"time"
 
@@ -12,10 +11,10 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/tracestore"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -154,7 +153,7 @@ func (s *CachedTileSourceImpl) filterTile(tile *tiling.Tile) *tiling.Tile {
 	// Build the paramset in the process.
 	paramSet := paramtools.ParamSet{}
 	for traceID, trace := range tile.Traces {
-		if tiling.Matches(trace, url.Values(s.PubliclyViewableParams)) {
+		if tiling.Matches(trace, s.PubliclyViewableParams) {
 			ret.Traces[traceID] = trace
 			paramSet.AddParams(trace.Params())
 		}

@@ -1,8 +1,7 @@
 package tiling
 
 import (
-	"net/url"
-
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
@@ -50,9 +49,7 @@ type Trace interface {
 type TraceID string
 
 // Matches returns true if the given Trace matches the given query.
-// TODO(kjlubick) remove the dependency on net/url by using paramtools.ParamSet or just a
-//   native map.
-func Matches(tr Trace, query url.Values) bool {
+func Matches(tr Trace, query paramtools.ParamSet) bool {
 	for k, values := range query {
 		if p, ok := tr.Params()[k]; !ok || !util.In(p, values) {
 			return false
@@ -62,11 +59,13 @@ func Matches(tr Trace, query url.Values) bool {
 }
 
 // Commit is information about each Git commit.
+// TODO(kjlubick) Why does this need to have its own type? Can't it use one of the other Commit
+//   types?
 type Commit struct {
 	// CommitTime is in seconds since the epoch
-	CommitTime int64  `json:"commit_time" bq:"timestamp" db:"ts"`
-	Hash       string `json:"hash"        bq:"gitHash"   db:"githash"`
-	Author     string `json:"author"                     db:"author"`
+	CommitTime int64  `json:"commit_time"`
+	Hash       string `json:"hash"`
+	Author     string `json:"author"`
 }
 
 // FindCommit searches the given commits for the given hash and returns the
@@ -109,31 +108,6 @@ func (t Tile) LastCommitIndex() int {
 	return 0
 }
 
-// CommitRange returns the hashes of the first and last commits in the Tile.
-func (t Tile) CommitRange() (string, string) {
-	return t.Commits[0].Hash, t.Commits[t.LastCommitIndex()].Hash
-}
-
-// Copy makes a copy of the tile where the Traces and Commits are deep copies and
-// all the rest of the data is a shallow copy.
-func (t Tile) Copy() *Tile {
-	ret := &Tile{
-		Traces:    map[TraceID]Trace{},
-		ParamSet:  t.ParamSet,
-		Scale:     t.Scale,
-		TileIndex: t.TileIndex,
-		Commits:   make([]*Commit, len(t.Commits)),
-	}
-	for i, c := range t.Commits {
-		cp := *c
-		ret.Commits[i] = &cp
-	}
-	for k, v := range t.Traces {
-		ret.Traces[k] = v.DeepCopy()
-	}
-	return ret
-}
-
 // Trim trims the measurements to just the range from [begin, end).
 //
 // Just like a Go [:] slice this is inclusive of begin and exclusive of end.
@@ -163,69 +137,4 @@ func (t Tile) Trim(begin, end int) (*Tile, error) {
 		ret.Traces[k] = t
 	}
 	return ret, nil
-}
-
-// GetParamSet finds the paramSet for the given slice of traces.
-func GetParamSet(traces map[TraceID]Trace, paramSet map[string][]string) {
-	for _, trace := range traces {
-		for k, v := range trace.Params() {
-			if _, ok := paramSet[k]; !ok {
-				paramSet[k] = []string{v}
-			} else if !util.In(v, paramSet[k]) {
-				paramSet[k] = append(paramSet[k], v)
-			}
-		}
-	}
-}
-
-// Merge the two Tiles, presuming tile1 comes before tile2.
-func Merge(tile1, tile2 *Tile) *Tile {
-	n := len(tile1.Commits) + len(tile2.Commits)
-	n1 := len(tile1.Commits)
-	t := &Tile{
-		Traces:   make(map[TraceID]Trace),
-		ParamSet: make(map[string][]string),
-		Commits:  make([]*Commit, n, n),
-	}
-	for i := range t.Commits {
-		t.Commits[i] = &Commit{}
-	}
-
-	// Merge the Commits.
-	for i, c := range tile1.Commits {
-		t.Commits[i] = c
-	}
-	for i, c := range tile2.Commits {
-		t.Commits[n1+i] = c
-	}
-
-	// Merge the Traces.
-	seen := map[TraceID]bool{}
-	for key, trace := range tile1.Traces {
-		seen[key] = true
-		if trace2, ok := tile2.Traces[key]; ok {
-			t.Traces[key] = trace.Merge(trace2)
-		} else {
-			cp := trace.DeepCopy()
-			cp.Grow(n, FILL_AFTER)
-			t.Traces[key] = cp
-		}
-	}
-	// Now add in the traces that are only in tile2.
-	for key, trace := range tile2.Traces {
-		if _, ok := seen[key]; ok {
-			continue
-		}
-		cp := trace.DeepCopy()
-		cp.Grow(n, FILL_BEFORE)
-		t.Traces[key] = cp
-	}
-
-	// Recreate the ParamSet.
-	GetParamSet(t.Traces, t.ParamSet)
-
-	t.Scale = tile1.Scale
-	t.TileIndex = tile1.TileIndex
-
-	return t
 }
