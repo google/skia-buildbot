@@ -22,7 +22,7 @@ const (
 	DeltaUntriagedDigest   = types.Digest("ddd3199bda4b909d3ba2ab14120998cd")
 	FoxtrotUntriagedDigest = types.Digest("fff13007fba3a6edd4d600eb891286ca")
 	// Less typing below
-	missingDigest = types.MissingDigest
+	missingDigest = tiling.MissingDigest
 
 	TestOne = types.TestName("test_one")
 	TestTwo = types.TestName("test_two")
@@ -83,7 +83,7 @@ func MakeTestTile() *tiling.Tile {
 		TileIndex: 0,
 
 		Traces: map[tiling.TraceID]tiling.Trace{
-			",device=alpha,name=test_one,source_type=gm,": types.NewGoldenTrace(
+			",device=alpha,name=test_one,source_type=gm,": tiling.NewGoldenTrace(
 				types.DigestSlice{
 					// A very clear history showing 2nd commit as the change to bravo
 					// The next three traces are the same data, just with various bits missing.
@@ -95,7 +95,7 @@ func MakeTestTile() *tiling.Tile {
 					types.CorpusField:     "gm",
 				},
 			),
-			",device=beta,name=test_one,source_type=gm,": types.NewGoldenTrace(
+			",device=beta,name=test_one,source_type=gm,": tiling.NewGoldenTrace(
 				types.DigestSlice{
 					AlfaPositiveDigest, missingDigest, BravoUntriagedDigest, missingDigest, AlfaPositiveDigest,
 				},
@@ -105,7 +105,7 @@ func MakeTestTile() *tiling.Tile {
 					types.CorpusField:     "gm",
 				},
 			),
-			",device=gamma,name=test_one,source_type=gm,": types.NewGoldenTrace(
+			",device=gamma,name=test_one,source_type=gm,": tiling.NewGoldenTrace(
 				types.DigestSlice{
 					AlfaPositiveDigest, BravoUntriagedDigest, missingDigest, missingDigest, AlfaPositiveDigest,
 				},
@@ -115,7 +115,7 @@ func MakeTestTile() *tiling.Tile {
 					types.CorpusField:     "gm",
 				},
 			),
-			",device=delta,name=test_one,source_type=gm,": types.NewGoldenTrace(
+			",device=delta,name=test_one,source_type=gm,": tiling.NewGoldenTrace(
 				types.DigestSlice{
 					missingDigest, BravoUntriagedDigest, missingDigest, missingDigest, AlfaPositiveDigest,
 				},
@@ -126,7 +126,7 @@ func MakeTestTile() *tiling.Tile {
 				},
 			),
 
-			",device=alpha,name=test_two,source_type=gm,": types.NewGoldenTrace(
+			",device=alpha,name=test_two,source_type=gm,": tiling.NewGoldenTrace(
 				types.DigestSlice{
 					// A very clear history showing 2nd commit as the change to bravo
 					// The next trace is the same data, just with various bits missing.
@@ -138,7 +138,7 @@ func MakeTestTile() *tiling.Tile {
 					types.CorpusField:     "gm",
 				},
 			),
-			",device=beta,name=test_two,source_type=gm,": types.NewGoldenTrace(
+			",device=beta,name=test_two,source_type=gm,": tiling.NewGoldenTrace(
 				types.DigestSlice{
 					CharliePositiveDigest, missingDigest, missingDigest, missingDigest, CharliePositiveDigest,
 				},
@@ -148,7 +148,7 @@ func MakeTestTile() *tiling.Tile {
 					types.CorpusField:     "gm",
 				},
 			),
-			",device=gamma,name=test_two,source_type=gm,": types.NewGoldenTrace(
+			",device=gamma,name=test_two,source_type=gm,": tiling.NewGoldenTrace(
 				types.DigestSlice{
 					// A somewhat flaky trace, using multiple positive/untriaged digests.
 					CharliePositiveDigest, DeltaUntriagedDigest, FoxtrotUntriagedDigest, missingDigest, EchoPositiveDigest,
@@ -159,7 +159,7 @@ func MakeTestTile() *tiling.Tile {
 					types.CorpusField:     "gm",
 				},
 			),
-			",device=delta,name=test_two,source_type=gm,": types.NewGoldenTrace(
+			",device=delta,name=test_two,source_type=gm,": tiling.NewGoldenTrace(
 				types.DigestSlice{
 					// Here's an interesting case where the culprit isn't accurately identified
 					// due to missing data. Here, both the authors of the 2nd and 3rd commit

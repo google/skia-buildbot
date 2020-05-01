@@ -15,30 +15,30 @@ func TestTraceMapCommitIndicesWithData(t *testing.T) {
 	unittest.SmallTest(t)
 
 	tm := traceMap{
-		",key=first,": &types.GoldenTrace{
+		",key=first,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
-				types.MissingDigest, types.MissingDigest, AlphaDigest,
-				AlphaDigest, types.MissingDigest, BetaDigest,
+				tiling.MissingDigest, tiling.MissingDigest, AlphaDigest,
+				AlphaDigest, tiling.MissingDigest, BetaDigest,
 			},
 		},
-		",key=second,": &types.GoldenTrace{
+		",key=second,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
-				GammaDigest, types.MissingDigest, types.MissingDigest,
-				GammaDigest, types.MissingDigest, GammaDigest,
+				GammaDigest, tiling.MissingDigest, tiling.MissingDigest,
+				GammaDigest, tiling.MissingDigest, GammaDigest,
 			},
 		},
 	}
 	require.Equal(t, []int{0, 2, 3, 5}, tm.CommitIndicesWithData(10))
 
 	empty := traceMap{
-		",key=first,": &types.GoldenTrace{
+		",key=first,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
-				types.MissingDigest, types.MissingDigest, types.MissingDigest,
+				tiling.MissingDigest, tiling.MissingDigest, tiling.MissingDigest,
 			},
 		},
-		",key=second,": &types.GoldenTrace{
+		",key=second,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
-				types.MissingDigest, types.MissingDigest, types.MissingDigest,
+				tiling.MissingDigest, tiling.MissingDigest, tiling.MissingDigest,
 			},
 		},
 	}
@@ -52,19 +52,19 @@ func TestTraceMapCommitIndicesWithDataTricky(t *testing.T) {
 
 	for i := 0; i < 100; i++ {
 		tm := traceMap{
-			",key=first,": &types.GoldenTrace{
+			",key=first,": &tiling.GoldenTrace{
 				Digests: []types.Digest{
-					AlphaDigest, types.MissingDigest,
+					AlphaDigest, tiling.MissingDigest,
 				},
 			},
-			",key=second,": &types.GoldenTrace{
+			",key=second,": &tiling.GoldenTrace{
 				Digests: []types.Digest{
-					types.MissingDigest, GammaDigest,
+					tiling.MissingDigest, GammaDigest,
 				},
 			},
-			",key=third,": &types.GoldenTrace{
+			",key=third,": &tiling.GoldenTrace{
 				Digests: []types.Digest{
-					AlphaDigest, types.MissingDigest,
+					AlphaDigest, tiling.MissingDigest,
 				},
 			},
 		}
@@ -76,44 +76,44 @@ func TestTraceMapMakeFromCommitIndexes(t *testing.T) {
 	unittest.SmallTest(t)
 
 	tm := traceMap{
-		",key=first,": &types.GoldenTrace{
+		",key=first,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
-				types.MissingDigest, types.MissingDigest, AlphaDigest,
-				AlphaDigest, types.MissingDigest, BetaDigest,
+				tiling.MissingDigest, tiling.MissingDigest, AlphaDigest,
+				AlphaDigest, tiling.MissingDigest, BetaDigest,
 			},
 		},
-		",key=second,": &types.GoldenTrace{
+		",key=second,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
-				GammaDigest, types.MissingDigest, types.MissingDigest,
-				GammaDigest, types.MissingDigest, GammaDigest,
+				GammaDigest, tiling.MissingDigest, tiling.MissingDigest,
+				GammaDigest, tiling.MissingDigest, GammaDigest,
 			},
 		},
 	}
 
 	require.Equal(t, traceMap{
-		",key=first,": &types.GoldenTrace{
+		",key=first,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
-				types.MissingDigest, AlphaDigest,
+				tiling.MissingDigest, AlphaDigest,
 				AlphaDigest, BetaDigest,
 			},
 		},
-		",key=second,": &types.GoldenTrace{
+		",key=second,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
-				GammaDigest, types.MissingDigest,
+				GammaDigest, tiling.MissingDigest,
 				GammaDigest, GammaDigest,
 			},
 		},
 	}, tm.MakeFromCommitIndexes([]int{0, 2, 3, 5}))
 
 	require.Equal(t, traceMap{
-		",key=first,": &types.GoldenTrace{
+		",key=first,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
-				types.MissingDigest, types.MissingDigest, types.MissingDigest,
+				tiling.MissingDigest, tiling.MissingDigest, tiling.MissingDigest,
 			},
 		},
-		",key=second,": &types.GoldenTrace{
+		",key=second,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
-				GammaDigest, types.MissingDigest, types.MissingDigest,
+				GammaDigest, tiling.MissingDigest, tiling.MissingDigest,
 			},
 		},
 	}, tm.MakeFromCommitIndexes([]int{0, 1, 4}))
@@ -126,25 +126,25 @@ func TestTraceMapPrependTraces(t *testing.T) {
 	unittest.SmallTest(t)
 
 	tm1 := traceMap{
-		",key=first,": &types.GoldenTrace{
+		",key=first,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
-				types.MissingDigest, types.MissingDigest, AlphaDigest,
+				tiling.MissingDigest, tiling.MissingDigest, AlphaDigest,
 			},
 		},
-		",key=second,": &types.GoldenTrace{
+		",key=second,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
-				GammaDigest, types.MissingDigest, types.MissingDigest,
+				GammaDigest, tiling.MissingDigest, tiling.MissingDigest,
 			},
 		},
 	}
 
 	tm2 := traceMap{
-		",key=first,": &types.GoldenTrace{
+		",key=first,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
-				types.MissingDigest, GammaDigest,
+				tiling.MissingDigest, GammaDigest,
 			},
 		},
-		",key=third,": &types.GoldenTrace{
+		",key=third,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
 				GammaDigest, BetaDigest,
 			},
@@ -154,22 +154,22 @@ func TestTraceMapPrependTraces(t *testing.T) {
 	tm1.PrependTraces(tm2)
 
 	require.Equal(t, traceMap{
-		",key=first,": &types.GoldenTrace{
+		",key=first,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
-				types.MissingDigest, GammaDigest,
-				types.MissingDigest, types.MissingDigest, AlphaDigest,
+				tiling.MissingDigest, GammaDigest,
+				tiling.MissingDigest, tiling.MissingDigest, AlphaDigest,
 			},
 		},
-		",key=second,": &types.GoldenTrace{
+		",key=second,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
-				types.MissingDigest, types.MissingDigest,
-				GammaDigest, types.MissingDigest, types.MissingDigest,
+				tiling.MissingDigest, tiling.MissingDigest,
+				GammaDigest, tiling.MissingDigest, tiling.MissingDigest,
 			},
 		},
-		",key=third,": &types.GoldenTrace{
+		",key=third,": &tiling.GoldenTrace{
 			Digests: []types.Digest{
 				GammaDigest, BetaDigest,
-				types.MissingDigest, types.MissingDigest, types.MissingDigest,
+				tiling.MissingDigest, tiling.MissingDigest, tiling.MissingDigest,
 			},
 		},
 	}, tm1)
@@ -217,7 +217,7 @@ func makeRandomTraceMap(density float32) traceMap {
 	tm := make(traceMap, numTraces)
 	for i := 0; i < numTraces; i++ {
 		traceID := tiling.TraceID(randomDigest()) // any string should do
-		gt := &types.GoldenTrace{
+		gt := &tiling.GoldenTrace{
 			// Keys can be blank for the CommitIndicesWithData bench
 			Digests: make([]types.Digest, numCommits),
 		}
@@ -225,7 +225,7 @@ func makeRandomTraceMap(density float32) traceMap {
 			if commitsWithData[j] && rand.Float32() < density {
 				gt.Digests[j] = randomDigest()
 			} else {
-				gt.Digests[j] = types.MissingDigest
+				gt.Digests[j] = tiling.MissingDigest
 			}
 		}
 		tm[traceID] = gt

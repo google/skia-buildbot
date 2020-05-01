@@ -159,7 +159,7 @@ func makePartialTestTile() *tiling.Tile {
 		Traces: map[tiling.TraceID]tiling.Trace{
 			// These trace ids have been shortened for test terseness.
 			// A real trace id would be like ",config=8888,source_type=gm,name=foo,"
-			"a": &types.GoldenTrace{
+			"a": &tiling.GoldenTrace{
 				Digests: types.DigestSlice{DigestA, DigestB},
 				Keys: map[string]string{
 					"config":              "8888",
@@ -167,7 +167,7 @@ func makePartialTestTile() *tiling.Tile {
 					types.PrimaryKeyField: string(testOne),
 				},
 			},
-			"b": &types.GoldenTrace{
+			"b": &tiling.GoldenTrace{
 				Digests: types.DigestSlice{DigestC, DigestD, DigestA},
 				Keys: map[string]string{
 					"config":              "565",
@@ -175,15 +175,15 @@ func makePartialTestTile() *tiling.Tile {
 					types.PrimaryKeyField: string(testOne),
 				},
 			},
-			"c": &types.GoldenTrace{
-				Digests: types.DigestSlice{DigestE, types.MissingDigest},
+			"c": &tiling.GoldenTrace{
+				Digests: types.DigestSlice{DigestE, tiling.MissingDigest},
 				Keys: map[string]string{
 					"config":              "gpu",
 					types.CorpusField:     "gm",
 					types.PrimaryKeyField: string(testOne),
 				},
 			},
-			"e": &types.GoldenTrace{
+			"e": &tiling.GoldenTrace{
 				Digests: types.DigestSlice{DigestF, DigestG, DigestG},
 				Keys: map[string]string{
 					"config":              "565",
@@ -191,8 +191,8 @@ func makePartialTestTile() *tiling.Tile {
 					types.PrimaryKeyField: string(testTwo),
 				},
 			},
-			"f": &types.GoldenTrace{
-				Digests: types.DigestSlice{DigestF, types.MissingDigest},
+			"f": &tiling.GoldenTrace{
+				Digests: types.DigestSlice{DigestF, tiling.MissingDigest},
 				Keys: map[string]string{
 					"config":              "gpu",
 					types.CorpusField:     "gm",

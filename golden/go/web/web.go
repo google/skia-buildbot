@@ -784,7 +784,7 @@ func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []*frontend.Ignor
 					idxMatched = i
 
 					// Check to see if the digest is untriaged at head
-					if d := gt.AtHead(); d != types.MissingDigest && exp.Classification(gt.TestName(), d) == expectations.Untriaged {
+					if d := gt.AtHead(); d != tiling.MissingDigest && exp.Classification(gt.TestName(), d) == expectations.Untriaged {
 						ruleCounts[i].UntriagedCount++
 						untMatched++
 						untIdxMatched = i

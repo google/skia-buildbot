@@ -208,7 +208,7 @@ func (t traceMap) CommitIndicesWithData(maxIndex int) []int {
 			defer wg.Done()
 			for i := start; i < start+chunkSize && i < maxIndex && i < nCommits; i++ {
 				for _, trace := range t {
-					gt := trace.(*types.GoldenTrace)
+					gt := trace.(*tiling.GoldenTrace)
 					if !gt.IsMissing(i) {
 						haveData[i] = true
 						break
@@ -236,14 +236,14 @@ func (t traceMap) MakeFromCommitIndexes(indices []int) traceMap {
 	}
 	r := make(traceMap, len(t))
 	for id, trace := range t {
-		gt := trace.(*types.GoldenTrace)
+		gt := trace.(*tiling.GoldenTrace)
 
 		newDigests := make([]types.Digest, len(indices))
 		for i, idx := range indices {
 			newDigests[i] = gt.Digests[idx]
 		}
 
-		r[id] = types.NewGoldenTrace(newDigests, gt.Keys)
+		r[id] = tiling.NewGoldenTrace(newDigests, gt.Keys)
 	}
 	return r
 }
@@ -289,7 +289,7 @@ type digestCache map[[md5.Size]byte]types.Digest
 
 func (c digestCache) FromBytesOrCache(b []byte) types.Digest {
 	if len(b) != md5.Size {
-		return types.MissingDigest
+		return tiling.MissingDigest
 	}
 	// Allocate a small array on the stack, then copy the bytes
 	// into it and use that as the key in the map.

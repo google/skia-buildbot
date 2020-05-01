@@ -7,6 +7,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
 	three_devices "go.skia.org/infra/golden/go/testutils/data_three_devices"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -181,7 +182,7 @@ func TestBlamerCalculateBugRevertPossibleGlitch(t *testing.T) {
 
 	tile := bug_revert.MakeTestTile()
 
-	tile.Traces[",device=alpha,name=test_one,source_type=gm,"] = &types.GoldenTrace{
+	tile.Traces[",device=alpha,name=test_one,source_type=gm,"] = &tiling.GoldenTrace{
 		Digests: types.DigestSlice{
 			bug_revert.AlfaPositiveDigest, bug_revert.AlfaPositiveDigest, bug_revert.BravoUntriagedDigest,
 			bug_revert.AlfaPositiveDigest, bug_revert.AlfaPositiveDigest,

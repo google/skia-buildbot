@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/golden/go/tiling"
 
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
@@ -14,7 +15,6 @@ import (
 	mock_expectations "go.skia.org/infra/golden/go/expectations/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
-	"go.skia.org/infra/golden/go/types"
 )
 
 // TODO(kjlubick) it would be nice to test this with multiple corpora
@@ -28,7 +28,7 @@ func TestStatusWatcherInitialLoad(t *testing.T) {
 	defer mes.AssertExpectations(t)
 	defer mts.AssertExpectations(t)
 
-	cpxTile := types.NewComplexTile(data.MakeTestTile())
+	cpxTile := tiling.NewComplexTile(data.MakeTestTile())
 	cpxTile.SetSparse(data.MakeTestCommits())
 	mts.On("GetTile").Return(cpxTile)
 
@@ -73,7 +73,7 @@ func TestStatusWatcherExpectationsChange(t *testing.T) {
 	defer mes.AssertExpectations(t)
 	defer mts.AssertExpectations(t)
 
-	cpxTile := types.NewComplexTile(data.MakeTestTile())
+	cpxTile := tiling.NewComplexTile(data.MakeTestTile())
 	cpxTile.SetSparse(data.MakeTestCommits())
 	mts.On("GetTile").Return(cpxTile)
 
