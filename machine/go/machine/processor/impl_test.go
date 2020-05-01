@@ -39,15 +39,16 @@ func TestDimensionsFromAndroidProperties_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	adbResponse := strings.Join([]string{
-		"[ro.product.manufacturer]: [Google]", // Ignored
-		"[ro.product.model]: [Pixel 3a]",      // Ignored
-		"[ro.build.id]: [QQ2A.200305.002]",    // device_os
-		"[ro.product.brand]: [google]",        // device_os_flavor
-		"[ro.build.type]: [user]",             // device_os_type
-		"[ro.product.device]: [sargo]",        // device_type
-		"[ro.build.product]: [sargo]",         // device_type (dup should be ignored)
-		"[ro.product.system.brand]: [google]", // device_os_flavor (dup should be ignored)
-		"[ro.product.system.brand]: [aosp]",   // device_os_flavor (should be converted to "android")
+		"[ro.product.manufacturer]: [Google]",   // Ignored
+		"[ro.product.model]: [Pixel 3a]",        // Ignored
+		"[ro.build.id]: [QQ2A.200305.002]",      // device_os
+		"[ro.product.brand]: [google]",          // device_os_flavor
+		"[ro.build.type]: [user]",               // device_os_type
+		"[ro.product.board]: []",                // Ignore empty values.
+		"[ro.product.device]: [4560MMX_sprout]", // Should be ignored.
+		"[ro.build.product]: [sargo]",           // device_type
+		"[ro.product.system.brand]: [google]",   // device_os_flavor (dup should be ignored)
+		"[ro.product.system.brand]: [aosp]",     // device_os_flavor (should be converted to "android")
 	}, "\n")
 
 	dimensions := parseAndroidProperties(adbResponse)
@@ -119,7 +120,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 		"[ro.build.id]: [QQ2A.200305.002]",  // device_os
 		"[ro.product.brand]: [google]",      // device_os_flavor
 		"[ro.build.type]: [user]",           // device_os_type
-		"[ro.product.device]: [sargo]",      // device_type
+		"[ro.build.product]: [sargo]",       // device_type
 		"[ro.product.system.brand]: [aosp]", // device_os_flavor
 	}, "\n")
 	event := machine.Event{
@@ -317,7 +318,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 		"[ro.build.id]: [QQ2A.200305.002]",  // device_os
 		"[ro.product.brand]: [google]",      // device_os_flavor
 		"[ro.build.type]: [user]",           // device_os_type
-		"[ro.product.device]: [sargo]",      // device_type
+		"[ro.build.product]: [sargo]",       // device_type
 		"[ro.product.system.brand]: [aosp]", // device_os_flavor
 	}, "\n")
 	event := machine.Event{

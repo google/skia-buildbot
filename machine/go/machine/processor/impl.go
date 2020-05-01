@@ -195,7 +195,7 @@ var (
 		"device_os":           {"ro.build.id"},
 		"device_os_flavor":    {"ro.product.brand", "ro.product.system.brand"},
 		"device_os_type":      {"ro.build.type"},
-		machine.DimDeviceType: {"ro.product.device", "ro.build.product", "ro.product.board"},
+		machine.DimDeviceType: {"ro.build.product", "ro.product.board"},
 	}
 )
 
@@ -207,6 +207,9 @@ func dimensionsFromAndroidProperties(prop map[string]string) map[string][]string
 	for dimName, propNames := range dimensionProperties {
 		for _, propName := range propNames {
 			if value, ok := prop[propName]; ok {
+				if value == "" {
+					continue
+				}
 				arr, ok := ret[dimName]
 				if util.In(value, arr) {
 					continue
