@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/gold-client/go/imgmatching"
 	"go.skia.org/infra/gold-client/go/mocks"
@@ -30,6 +29,7 @@ import (
 	"go.skia.org/infra/golden/go/image/text"
 	"go.skia.org/infra/golden/go/jsonio"
 	one_by_five "go.skia.org/infra/golden/go/testutils/data_one_by_five"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
 

@@ -2,7 +2,7 @@ package types
 
 import (
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/tiling"
 )
 
 // ComplexTile contains an enriched version of a tile loaded through the ingestion process.

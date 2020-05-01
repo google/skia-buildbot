@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/code_review"
@@ -27,6 +26,7 @@ import (
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/search/ref_differ"
 	"go.skia.org/infra/golden/go/shared"
+	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/types"
 )
