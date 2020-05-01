@@ -4,7 +4,7 @@ import '../gold-scaffold-sk';
 import { typicalDetails, fakeNow } from '../digest-details-sk/test_data';
 import { delay, isPuppeteerTest } from '../demo_util';
 import { setImageEndpointsForDemos } from '../common';
-import { $$ } from '../../../common-sk/modules/dom';
+import { $$ } from 'common-sk/modules/dom';
 
 const fetchMock = require('fetch-mock');
 

@@ -1,5 +1,5 @@
 import './index';
-import { $$ } from '../../../common-sk/modules/dom';
+import { $$ } from 'common-sk/modules/dom';
 import { setImageEndpointsForDemos } from '../common';
 
 const aDigest = '6246b773851984c726cb2e1cb13510c2';

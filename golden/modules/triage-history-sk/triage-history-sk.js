@@ -6,8 +6,8 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
+import { diffDate } from 'common-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { diffDate } from '../../../common-sk/modules/human';
 
 const template = (ele) => {
   if (!ele.history.length) {

@@ -6,12 +6,12 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 import '../digest-details-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
-import { jsonOrThrow } from '../../../common-sk/modules/jsonOrThrow';
 
 const template = (ele) => {
   if (!ele._didInitialLoad) {

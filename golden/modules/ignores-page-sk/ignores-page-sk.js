@@ -13,12 +13,12 @@ import { classMap } from 'lit-html/directives/class-map';
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { stateReflector } from 'common-sk/modules/stateReflector';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { escapeAndLinkify } from '../../../infra-sk/modules/linkify';
 import {
   humanReadableQuery, sendBeginTask, sendEndTask, sendFetchError,
 } from '../common';
-import { jsonOrThrow } from '../../../common-sk/modules/jsonOrThrow';
 
 import '../../../infra-sk/modules/confirm-dialog-sk';
 import '../edit-ignore-rule-sk';

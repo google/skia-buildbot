@@ -1,3 +1,4 @@
+import { $$ } from 'common-sk/modules/dom';
 import {
   humanReadableQuery,
   digestImagePath,
@@ -10,7 +11,6 @@ import {
   sendFetchError,
 } from './common';
 import { eventPromise } from './test_util';
-import { $$ } from '../../common-sk/modules/dom';
 
 describe('humanReadableQuery', () => {
   it('turns url encoded queries into human readable version', () => {

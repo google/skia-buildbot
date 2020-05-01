@@ -1,9 +1,9 @@
 import './index';
 import { fetchMock } from 'fetch-mock';
+import { $$ } from 'common-sk/modules/dom';
 import {
   typicalDetails, negativeOnly, noRefs, noTraces, twoHundredCommits, fakeNow,
 } from './test_data';
-import { $$ } from '../../../common-sk/modules/dom';
 import { setImageEndpointsForDemos } from '../common';
 import { delay } from '../demo_util';
 

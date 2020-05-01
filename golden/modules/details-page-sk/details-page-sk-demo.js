@@ -1,10 +1,10 @@
 import './index';
 import '../gold-scaffold-sk';
 
+import { $$ } from 'common-sk/modules/dom';
 import { typicalDetails, fakeNow, twoHundredCommits } from '../digest-details-sk/test_data';
 import { delay, isPuppeteerTest } from '../demo_util';
 import { setImageEndpointsForDemos } from '../common';
-import { $$ } from '../../../common-sk/modules/dom';
 
 const fetchMock = require('fetch-mock');
 
