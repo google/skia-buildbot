@@ -95,7 +95,7 @@ func FilterIgnored(inputTile *tiling.Tile, ignores []Rule) (*tiling.Tile, paramt
 nextTrace:
 	for id, tr := range inputTile.Traces {
 		for _, q := range ignoreQueries {
-			if tiling.Matches(tr, url.Values(q)) {
+			if tiling.Matches(tr, q) {
 				continue nextTrace
 			}
 		}

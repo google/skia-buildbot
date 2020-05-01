@@ -1,8 +1,7 @@
 package tiling
 
 import (
-	"net/url"
-
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
@@ -50,9 +49,7 @@ type Trace interface {
 type TraceID string
 
 // Matches returns true if the given Trace matches the given query.
-// TODO(kjlubick) remove the dependency on net/url by using paramtools.ParamSet or just a
-//   native map.
-func Matches(tr Trace, query url.Values) bool {
+func Matches(tr Trace, query paramtools.ParamSet) bool {
 	for k, values := range query {
 		if p, ok := tr.Params()[k]; !ok || !util.In(p, values) {
 			return false
@@ -62,11 +59,13 @@ func Matches(tr Trace, query url.Values) bool {
 }
 
 // Commit is information about each Git commit.
+// TODO(kjlubick) Why does this need to have its own type? Can't it use one of the other Commit
+//   types?
 type Commit struct {
 	// CommitTime is in seconds since the epoch
-	CommitTime int64  `json:"commit_time" bq:"timestamp" db:"ts"`
-	Hash       string `json:"hash"        bq:"gitHash"   db:"githash"`
-	Author     string `json:"author"                     db:"author"`
+	CommitTime int64  `json:"commit_time"`
+	Hash       string `json:"hash"`
+	Author     string `json:"author"`
 }
 
 // FindCommit searches the given commits for the given hash and returns the

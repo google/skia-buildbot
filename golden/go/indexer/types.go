@@ -2,7 +2,6 @@ package indexer
 
 import (
 	"context"
-	"net/url"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/golden/go/blame"
@@ -38,14 +37,14 @@ type IndexSearcher interface {
 	DigestCountsByTrace(is types.IgnoreState) map[tiling.TraceID]digest_counter.DigestCount
 
 	// DigestCountsByQuery returns a DigestCount of all the digests that match the given query.
-	DigestCountsByQuery(query url.Values, is types.IgnoreState) digest_counter.DigestCount
+	DigestCountsByQuery(query paramtools.ParamSet, is types.IgnoreState) digest_counter.DigestCount
 
 	// GetSummaries returns all summaries that were computed for this index.
 	GetSummaries(is types.IgnoreState) []*summary.TriageStatus
 
 	// SummarizeByGrouping returns those summaries from a given corpus that match the given inputs.
 	// They may be filtered by any of: query, is at head or not.
-	SummarizeByGrouping(ctx context.Context, corpus string, query url.Values, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error)
+	SummarizeByGrouping(ctx context.Context, corpus string, query paramtools.ParamSet, is types.IgnoreState, head bool) ([]*summary.TriageStatus, error)
 
 	// GetParamsetSummary Returns the ParamSetSummary that matches the given test/digest.
 	GetParamsetSummary(test types.TestName, digest types.Digest, is types.IgnoreState) paramtools.ParamSet

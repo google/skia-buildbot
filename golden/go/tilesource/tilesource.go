@@ -2,7 +2,6 @@ package tilesource
 
 import (
 	"context"
-	"net/url"
 	"sync"
 	"time"
 
@@ -154,7 +153,7 @@ func (s *CachedTileSourceImpl) filterTile(tile *tiling.Tile) *tiling.Tile {
 	// Build the paramset in the process.
 	paramSet := paramtools.ParamSet{}
 	for traceID, trace := range tile.Traces {
-		if tiling.Matches(trace, url.Values(s.PubliclyViewableParams)) {
+		if tiling.Matches(trace, s.PubliclyViewableParams) {
 			ret.Traces[traceID] = trace
 			paramSet.AddParams(trace.Params())
 		}

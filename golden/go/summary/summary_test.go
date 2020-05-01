@@ -1,11 +1,11 @@
 package summary
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/paramtools"
 
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/blame"
@@ -85,7 +85,7 @@ import (
 func TestSummaryMap_AllGMsWithIgnores(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := computeHelper(t, makeTileWithIgnores(), nil, url.Values{types.CorpusField: {"gm"}}, false)
+	sum := computeHelper(t, makeTileWithIgnores(), nil, paramtools.ParamSet{types.CorpusField: {"gm"}}, false)
 	require.Len(t, sum, 2)
 	s1 := find(sum, FirstTest)
 	require.NotNil(t, s1)
@@ -103,7 +103,7 @@ func TestSummaryMap_AllGMsWithIgnores(t *testing.T) {
 func TestSummaryMap_AllGMsFullTile(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := computeHelper(t, makeFullTile(), nil, url.Values{types.CorpusField: {"gm"}}, false)
+	sum := computeHelper(t, makeFullTile(), nil, paramtools.ParamSet{types.CorpusField: {"gm"}}, false)
 	require.Len(t, sum, 2)
 	s1 := find(sum, FirstTest)
 	require.NotNil(t, s1)
@@ -120,7 +120,7 @@ func TestSummaryMap_AllGMsFullTile(t *testing.T) {
 func TestSummaryMap_FirstTestFullTile(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := computeHelper(t, makeFullTile(), types.TestNameSet{FirstTest: true}, url.Values{types.CorpusField: {"gm"}}, false)
+	sum := computeHelper(t, makeFullTile(), types.TestNameSet{FirstTest: true}, paramtools.ParamSet{types.CorpusField: {"gm"}}, false)
 	require.Len(t, sum, 1)
 	s1 := find(sum, FirstTest)
 	require.NotNil(t, s1)
@@ -144,7 +144,7 @@ func TestSummaryMap_FirstTestIgnores(t *testing.T) {
 func TestSummaryMap_8888Or565Ignores(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := computeHelper(t, makeTileWithIgnores(), nil, url.Values{"config": {"8888", "565"}}, false)
+	sum := computeHelper(t, makeTileWithIgnores(), nil, paramtools.ParamSet{"config": {"8888", "565"}}, false)
 	require.Len(t, sum, 3)
 	s1 := find(sum, FirstTest)
 	require.NotNil(t, s1)
@@ -166,7 +166,7 @@ func TestSummaryMap_8888Or565Ignores(t *testing.T) {
 func TestSummaryMap_8888Or565IgnoresHead(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := computeHelper(t, makeTileWithIgnores(), nil, url.Values{"config": {"8888", "565"}}, true)
+	sum := computeHelper(t, makeTileWithIgnores(), nil, paramtools.ParamSet{"config": {"8888", "565"}}, true)
 	require.Len(t, sum, 3)
 	s1 := find(sum, FirstTest)
 	require.NotNil(t, s1)
@@ -189,7 +189,7 @@ func TestSummaryMap_8888Or565IgnoresHead(t *testing.T) {
 func TestSummaryMap_GPUConfigIgnores(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := computeHelper(t, makeTileWithIgnores(), nil, url.Values{"config": {"gpu"}}, false)
+	sum := computeHelper(t, makeTileWithIgnores(), nil, paramtools.ParamSet{"config": {"gpu"}}, false)
 	require.Len(t, sum, 1)
 	s1 := find(sum, FirstTest)
 	require.NotNil(t, s1)
@@ -202,11 +202,11 @@ func TestSummaryMap_GPUConfigIgnores(t *testing.T) {
 func TestSummaryMap_UnknownConfigIgnores(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := computeHelper(t, makeTileWithIgnores(), nil, url.Values{"config": {"unknown"}}, false)
+	sum := computeHelper(t, makeTileWithIgnores(), nil, paramtools.ParamSet{"config": {"unknown"}}, false)
 	require.Empty(t, sum)
 }
 
-func computeHelper(t *testing.T, tile *tiling.Tile, testNames types.TestNameSet, query url.Values, head bool) []*TriageStatus {
+func computeHelper(t *testing.T, tile *tiling.Tile, testNames types.TestNameSet, query paramtools.ParamSet, head bool) []*TriageStatus {
 	dc := digest_counter.New(makeFullTile())
 	blamer, err := blame.New(makeFullTile(), makeExpectations())
 	require.NoError(t, err)
@@ -243,7 +243,7 @@ func asSlice(t *testing.T, traces map[tiling.TraceID]tiling.Trace) []*types.Trac
 func TestSummaryMap_FullBugRevert(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := bugRevertHelper(t, url.Values{types.CorpusField: {"gm"}}, false)
+	sum := bugRevertHelper(t, paramtools.ParamSet{types.CorpusField: {"gm"}}, false)
 	require.Equal(t, []*TriageStatus{
 		{
 			Name:      bug_revert.TestOne,
@@ -285,7 +285,7 @@ func TestSummaryMap_FullBugRevert(t *testing.T) {
 func TestSummaryMap_FullBugRevertHead(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := bugRevertHelper(t, url.Values{types.CorpusField: {"gm"}}, true)
+	sum := bugRevertHelper(t, paramtools.ParamSet{types.CorpusField: {"gm"}}, true)
 	require.Equal(t, []*TriageStatus{
 		{
 			Name:      bug_revert.TestOne,
@@ -327,11 +327,11 @@ func TestSummaryMap_FullBugRevertHead(t *testing.T) {
 func TestSummaryMap_NoMatch(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sum := bugRevertHelper(t, url.Values{types.CorpusField: {"does-not-exist"}}, false)
+	sum := bugRevertHelper(t, paramtools.ParamSet{types.CorpusField: {"does-not-exist"}}, false)
 	require.Empty(t, sum)
 }
 
-func bugRevertHelper(t *testing.T, query url.Values, head bool) []*TriageStatus {
+func bugRevertHelper(t *testing.T, query paramtools.ParamSet, head bool) []*TriageStatus {
 	dc := digest_counter.New(bug_revert.MakeTestTile())
 	blamer, err := blame.New(bug_revert.MakeTestTile(), bug_revert.MakeTestExpectations())
 	require.NoError(t, err)

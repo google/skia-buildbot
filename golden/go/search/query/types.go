@@ -1,8 +1,6 @@
 package query
 
 import (
-	"net/url"
-
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/types"
@@ -26,8 +24,8 @@ type Search struct {
 	IncludeIgnores bool `json:"include"`
 
 	// URL encoded query string
-	QueryStr    string     `json:"query"`
-	TraceValues url.Values `json:"-"`
+	QueryStr    string              `json:"query"`
+	TraceValues paramtools.ParamSet `json:"-"`
 
 	// URL encoded query string to select the right hand side of comparisons.
 	RQueryStr    string              `json:"rquery"`
