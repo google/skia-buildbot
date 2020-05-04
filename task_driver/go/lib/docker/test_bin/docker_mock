@@ -4,10 +4,10 @@
 # provided tag to control the output and exit code. Presumes it is called as
 # `docker --config test_config_dir build -t tag .`
 
-case $7 in
+case $6 in
     success)
 	# Make sure build args also showed up.
-        if [ "$9" != "--build_arg" ] && [ "${10}" != "arg1=value1" ]; then
+        if [ "$8" != "--build_arg" ] && [ "$9" != "arg1=value1" ]; then
           exit 1
         fi
         cat << EOF
