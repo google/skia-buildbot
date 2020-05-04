@@ -107,6 +107,12 @@ func main() {
 		}
 	}()
 
+	buildArgs := map[string]string{
+		"HASH": rs.Revision,
+	}
+	if rs.Issue != "" && rs.Patchset != "" {
+		buildArgs["PATCH_REF"] = fmt.Sprintf("refs/changes/%s/%s/%s", rs.Issue[len(rs.Issue)-2:], rs.Issue, rs.Patchset)
+	}
 	// Retry docker commands if there are errors. Sometimes the access token expires between the
 	// login and the push.
 	NUM_ATTEMPTS := 2
@@ -129,7 +135,7 @@ func main() {
 		}
 
 		// Build docker image.
-		if buildErr := docker.BuildHelper(ctx, filepath.Join(co.Dir(), *dockerfileDir), imageWithTag, configDir, nil); buildErr != nil {
+		if buildErr := docker.BuildHelper(ctx, filepath.Join(co.Dir(), *dockerfileDir), imageWithTag, configDir, buildArgs); buildErr != nil {
 			dockerErr = buildErr
 			continue
 		}
