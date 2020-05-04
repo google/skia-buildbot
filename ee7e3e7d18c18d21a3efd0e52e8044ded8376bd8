@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "ab217a15_20877fd5",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-04T14:50:06Z",
+      "side": 1,
+      "message": "Makes sense. Done.",
+      "parentUuid": "b23d5f09_dba96fba",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 36
+      },
+      "revId": "ee7e3e7d18c18d21a3efd0e52e8044ded8376bd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f6b34660_c13d1acb",
         "filename": "docker/Dockerfile",
         "patchSetId": 5
@@ -144,6 +168,30 @@
     },
     {
       "key": {
+        "uuid": "2ec98929_9f87b97a",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-04T14:50:06Z",
+      "side": 1,
+      "message": "I added fake details with a comment. Done.",
+      "parentUuid": "9ac778db_804d86d1",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 39
+      },
+      "revId": "ee7e3e7d18c18d21a3efd0e52e8044ded8376bd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d7f685f9_5e53a7ad",
         "filename": "docker/Dockerfile",
         "patchSetId": 5
@@ -203,6 +251,30 @@
       "side": 1,
       "message": "I only seek fiddlek in this file. Maybe we could use another ARG for the app to build (probably need its path too)?",
       "parentUuid": "4b647fca_0480e27a",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 24
+      },
+      "revId": "ee7e3e7d18c18d21a3efd0e52e8044ded8376bd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7f03a34b_938dee0d",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 5
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-04T14:50:06Z",
+      "side": 1,
+      "message": "Leaving it as-is for now since want to only concentrate on hashes/patches.",
+      "parentUuid": "6ade8422_218215a7",
       "range": {
         "startLine": 52,
         "startChar": 0,
