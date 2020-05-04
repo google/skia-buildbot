@@ -1,0 +1,42 @@
+@import '~elements-sk/colors';
+@import '../colors';
+
+body {
+  margin: 0;
+}
+
+header-sk {
+  * {
+    font-family: Roboto, Helvetica, Arial, 'Bitstream Vera Sans', sans-serif;
+  }
+
+  header,
+  header * {
+    background-color: var(--primary);
+    color: var(--on-primary);
+    fill: var(--on-primary);
+  }
+
+  header {
+    padding: 1em;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    .title {
+      font-size: 1.5em;
+      font-weight: 700;
+    }
+
+    theme-chooser-sk {
+      border-right: .1em solid;
+      padding: .5em;
+      margin-right: .5em;
+    }
+
+    a {
+      display: inline;
+    }
+
+  }
+}

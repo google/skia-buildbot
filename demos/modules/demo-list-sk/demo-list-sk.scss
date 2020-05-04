@@ -1,0 +1,14 @@
+@import '~elements-sk/colors';
+@import '../colors';
+
+demo-list-sk {
+  div {
+    margin: 1em;
+    padding: 1em;
+  }
+
+  a {
+    display: block;
+    padding: .2em;
+  }
+}
