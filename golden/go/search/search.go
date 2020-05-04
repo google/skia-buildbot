@@ -738,12 +738,22 @@ func findDigestIndex(d types.Digest, digestInfo []frontend.DigestStatus) int {
 
 // UntriagedUnignoredTryJobExclusiveDigests implements the SearchAPI interface. It uses the cached
 // TryJobResults, so as to improve performance.
-// TODO(kjlubick) when we have indexes for changelist results, use those.
 func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Context, psID tjstore.CombinedPSID) (*frontend.DigestList, error) {
-	xtr, err := s.getTryJobResults(ctx, psID)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "getting tryjob results for %v", psID)
+	var resultsForThisPS []tjstore.TryJobResult
+	listTS := time.Now()
+	clIdx := s.indexSource.GetIndexForCL(psID.CRS, psID.CL)
+	if clIdx != nil {
+		resultsForThisPS = clIdx.UntriagedResultsProduced[psID]
+		listTS = clIdx.ComputedTS
+	} else {
+		// Index either has not yet been created for this CL or was too old to have been indexed.
+		var err error
+		resultsForThisPS, err = s.getTryJobResults(ctx, psID)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "getting tryjob results for %v", psID)
+		}
 	}
+
 	exp, err := s.getExpectations(ctx, psID.CL, psID.CRS)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -755,7 +765,7 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 
 	var returnDigests []types.Digest
 
-	for _, tr := range xtr {
+	for _, tr := range resultsForThisPS {
 		if err := ctx.Err(); err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -782,7 +792,10 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 	sort.Slice(returnDigests, func(i, j int) bool {
 		return returnDigests[i] < returnDigests[j]
 	})
-	return &frontend.DigestList{Digests: returnDigests}, nil
+	return &frontend.DigestList{
+		Digests: returnDigests,
+		TS:      listTS,
+	}, nil
 }
 
 // getTriageHistory returns all TriageHistory for a given name and digest.

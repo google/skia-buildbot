@@ -282,6 +282,12 @@ type Indexer struct {
 	mutex          sync.RWMutex
 }
 
+// GetIndexForCL implements the IndexSource interface.
+func (ix *Indexer) GetIndexForCL(crs, clID string) *ChangeListIndex {
+	// TODO(kjlubick)
+	return nil
+}
+
 // New returns a new IndexSource instance. It synchronously indexes the initially
 // available tile. If the indexing fails an error is returned.
 // The provided interval defines how often the index should be refreshed.
