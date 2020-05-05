@@ -138,4 +138,7 @@ type DigestComparison struct {
 // DigestList represents multiple returned digests.
 type DigestList struct {
 	Digests []types.Digest `json:"digests"`
+	// TS is the time that this data was created. It might be served from a cache, so this time will
+	// not necessarily be "now".
+	TS time.Time `json:"ts"`
 }
