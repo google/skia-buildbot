@@ -195,7 +195,7 @@ var (
 		"device_os":           {"ro.build.id"},
 		"device_os_flavor":    {"ro.product.brand", "ro.product.system.brand"},
 		"device_os_type":      {"ro.build.type"},
-		machine.DimDeviceType: {"ro.build.product", "ro.product.board"},
+		machine.DimDeviceType: {"ro.product.device", "ro.build.product", "ro.product.board"},
 	}
 )
 
