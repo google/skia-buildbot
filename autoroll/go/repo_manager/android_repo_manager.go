@@ -315,6 +315,13 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 		return 0, addGifErr
 	}
 
+	// Test to directly run the new preupload step.
+	if err := parent.UpdateAndroidMetadataForSkia(ctx, nil, r.httpClient, r.workdir); err != nil {
+		fmt.Println("XXXXXXXXXX")
+		fmt.Println("XXXXXXXXXX")
+		fmt.Println("XXXXXXXXXX")
+		fmt.Printf("%s", err)
+	}
 	// Run the pre-upload steps.
 	for _, s := range r.preUploadSteps {
 		if err := s(ctx, nil, r.httpClient, r.workdir); err != nil {

@@ -7,11 +7,13 @@ package parent
 import (
 	"context"
 	"fmt"
+	//	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"go.skia.org/infra/go/cipd"
@@ -41,6 +43,7 @@ var preUploadSteps = map[string]PreUploadStep{
 	"FlutterLicenseScripts":           FlutterLicenseScripts,
 	"FlutterLicenseScriptsForDart":    FlutterLicenseScriptsForDart,
 	"FlutterLicenseScriptsForFuchsia": FlutterLicenseScriptsForFuchsia,
+	"UpdateAndroidMetadataForSkia":    UpdateAndroidMetadataForSkia,
 	"UpdateFlutterDepsForDart":        UpdateFlutterDepsForDart,
 }
 
@@ -113,6 +116,87 @@ func TrainInfra(ctx context.Context, env []string, client *http.Client, parentRe
 	}); err != nil {
 		return err
 	}
+	return nil
+}
+
+// HERE
+func UpdateAndroidMetadataForSkia(ctx context.Context, env []string, _ *http.Client, parentRepoDir string) error {
+	sklog.Info("Updating METADATA")
+	skiaDir := filepath.Join(parentRepoDir, "external", "skia")
+	metadataFile := filepath.Join(skiaDir, "METADATA")
+
+	// Get SHA.
+	output, err := git.GitDir(skiaDir).Git(ctx, "rev-parse", "HEAD^2")
+	if err != nil {
+		return fmt.Errorf("Could not run rev-parse: %s", err)
+	}
+	hash := strings.TrimRight(output, "\n")
+
+	// Testinging SHAs here.
+	output, err = git.GitDir(skiaDir).Git(ctx, "rev-parse", "HEAD")
+	if err != nil {
+		return fmt.Errorf("Could not run merge-base: %s", err)
+	}
+	fmt.Println("_________")
+	fmt.Println(output)
+	output, err = git.GitDir(skiaDir).Git(ctx, "rev-parse", "HEAD^2")
+	if err != nil {
+		return fmt.Errorf("Could not run rev-parse: %s", err)
+	}
+	fmt.Println("_________")
+	fmt.Println(output)
+	output, err = git.GitDir(skiaDir).Git(ctx, "rev-parse", "MERGE_HEAD")
+	if err != nil {
+		return fmt.Errorf("Could not run rev-parse: %s", err)
+	}
+	fmt.Println("_________")
+	fmt.Println(output)
+	output, err = git.GitDir(skiaDir).Git(ctx, "rev-parse", "MERGE_HEAD^")
+	if err != nil {
+		return fmt.Errorf("Could not run rev-parse: %s", err)
+	}
+	fmt.Println("_________")
+	fmt.Println(output)
+
+	// Get current date for year/month/day.
+	d := time.Now()
+
+	// Populate metadata file and add it.
+	metadataContents := fmt.Sprintf(`name: "skia"
+description: "Skia Graphics Library"
+third_party {
+  url {
+    type: HOMEPAGE
+    value: "https://www.skia.org/"
+  }
+  url {
+    type: GIT
+    value: "https://skia.googlesource.com/skia"
+  }
+  version: "%s"
+  license_type: RECIPROCAL
+  last_upgrade_date {
+    year: %d
+    month: %d
+    day: %d
+  }
+}
+`, hash, d.Year(), d.Month(), d.Day())
+	fmt.Println("======================")
+	fmt.Println(metadataFile)
+	fmt.Println("These are the contents of metdata:")
+	fmt.Println(metadataContents)
+
+	/*
+		// Populate file and add it.
+		if err := ioutil.WriteFile(metadataFile, []byte(metadataContents), os.ModePerm); err != nil {
+			return fmt.Errorf("Error when writing to %s: %s", metadataFile, err)
+		}
+		if _, err := git.GitDir(skiaDir).Git(ctx, "add", metadataFile); err != nil {
+			return fmt.Errorf("Could not git add %s: %s", metadataFile, err)
+		}
+	*/
+
 	return nil
 }
 
