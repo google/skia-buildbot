@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ed7cacc_cb4fda71",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 9
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-05T11:31:25Z",
+      "side": 1,
+      "message": "Does it work if you move the HASH related lines to 39 and PATCH_REF to 43?  I think the way it\u0027s currently written will force everything after this point to run again if HASH and PATCH_REF have not been seen before.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 13
+      },
+      "revId": "411e2f3789dfd416c9568e24bdd62470ce6c250e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "516918bf_46a49304",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 9
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-05T11:31:25Z",
+      "side": 1,
+      "message": "Nit: I think we probably want to move these lines to 25, since they don\u0027t need to re-run every time.",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 36
+      },
+      "revId": "411e2f3789dfd416c9568e24bdd62470ce6c250e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
