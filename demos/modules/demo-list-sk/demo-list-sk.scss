@@ -1,0 +1,29 @@
+@import '~elements-sk/colors';
+@import '../colors';
+
+demo-list-sk {
+  a {
+    display: block;
+    padding: .2em;
+  }
+
+  .demolist {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em;
+    padding: 1em;
+    color: var(--on-surface);
+    background-color: var(--surface);
+  }
+
+  td,
+  th {
+    border: none;
+    padding: 0.5rem;
+    text-align: left;
+  }
+}
+/* Outside demo-list-sk because darkmode exists outside it. */
+.darkmode .demolist a {
+  color: var(--secondary);
+}
