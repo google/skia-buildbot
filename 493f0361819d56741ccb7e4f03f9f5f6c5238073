@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3885bcec_cb7fcea4",
+        "filename": "infra/bots/task_drivers/build_push_docker_image/build_push_docker_image.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-05T15:24:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4fd87ca7_a518219a",
+      "range": {
+        "startLine": 114,
+        "startChar": 27,
+        "endLine": 114,
+        "endChar": 114
+      },
+      "revId": "493f0361819d56741ccb7e4f03f9f5f6c5238073",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e36bae8a_7dfa1d51",
         "filename": "task_driver/go/lib/docker/docker.go",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "493f0361819d56741ccb7e4f03f9f5f6c5238073",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e7c2b0f_e1aef60e",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-05T15:24:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e36bae8a_7dfa1d51",
+      "range": {
+        "startLine": 234,
+        "startChar": 14,
+        "endLine": 234,
+        "endChar": 50
+      },
+      "revId": "493f0361819d56741ccb7e4f03f9f5f6c5238073",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
