@@ -11,11 +11,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/blame"
+	"go.skia.org/infra/golden/go/clstore"
+	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
+	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/diff"
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
@@ -27,20 +29,24 @@ import (
 	gtestutils "go.skia.org/infra/golden/go/testutils"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/tiling"
+	"go.skia.org/infra/golden/go/tjstore"
+	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 	mock_warmer "go.skia.org/infra/golden/go/warmer/mocks"
 )
 
-// TestIndexerInitialTriggerSunnyDay tests a full indexing run, assuming
-// nothing crashes or returns an error.
-func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
+// TestIndexer_ExecutePipeline_NoChangeListsToIndex_Success tests a full indexing run, assuming
+// nothing crashes or returns an error. For simplicity, we pretend there are no ChangeLists to
+// index. This is because CL indexing is independent from the master index and quite involved.
+func TestIndexer_ExecutePipeline_NoChangeListsToIndex_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mds := &mock_diffstore.DiffStore{}
 	mdw := &mock_warmer.DiffWarmer{}
 	mes := &mock_expectations.Store{}
 	mgc := &mocks.GCSClient{}
+	mcs := &mock_clstore.Store{}
 
 	defer mds.AssertExpectations(t)
 	defer mdw.AssertExpectations(t)
@@ -54,6 +60,7 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 		ExpectationsStore: mes,
 		GCSClient:         mgc,
 		Warmer:            mdw,
+		CLStore:           mcs,
 	}
 	wg, async, _ := gtestutils.AsyncHelpers()
 
@@ -104,6 +111,9 @@ func TestIndexerInitialTriggerSunnyDay(t *testing.T) {
 	})
 
 	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, dataMatcher, mock.AnythingOfType("*digesttools.Impl")).Return(nil))
+
+	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(nil, 0, nil)
+	mcs.On("System").Return("doesn't matter")
 
 	ixr, err := New(context.Background(), ic, 0)
 	require.NoError(t, err)
@@ -163,7 +173,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 		},
 	}
 
-	ixr.lastIndex = &SearchIndex{
+	ixr.lastMasterIndex = &SearchIndex{
 		searchIndexConfig: searchIndexConfig{
 			expectationsStore: mes,
 			warmer:            mdw,
@@ -177,7 +187,7 @@ func TestIndexerPartialUpdate(t *testing.T) {
 
 		cpxTile: ct,
 	}
-	require.NoError(t, preSliceData(context.Background(), ixr.lastIndex))
+	require.NoError(t, preSliceData(context.Background(), ixr.lastMasterIndex))
 
 	ixr.indexTests(context.Background(), []expectations.ID{
 		{
@@ -211,6 +221,235 @@ func TestIndexerPartialUpdate(t *testing.T) {
 	// Block until all async calls are finished so the assertExpectations calls
 	// can properly check that their functions were called.
 	wg.Wait()
+}
+
+func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const crs = "gerrit"
+	const firstCLID = "111111"
+	const patchsetFoxtrot = "foxtrot"
+	const secondCLID = "22222"
+	const patchsetSam = "sam"
+
+	mcs := &mock_clstore.Store{}
+	mes := &mock_expectations.Store{}
+	mts := &mock_tjstore.Store{}
+
+	masterExp := expectations.Expectations{}
+	masterExp.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive)
+
+	firstCLExp := expectations.Expectations{}
+	firstCLExp.Set(data.AlphaTest, data.AlphaNegativeDigest, expectations.Negative)
+
+	// secondCL has no additional expectations
+	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
+	loadChangeListExpectations(mes, crs, map[string]*expectations.Expectations{
+		firstCLID:  &firstCLExp,
+		secondCLID: {},
+	})
+
+	searchOptionsMatcher := mock.MatchedBy(func(so clstore.SearchOptions) bool {
+		assert.Zero(t, so.StartIdx)
+		assert.True(t, so.OpenCLsOnly)
+		assert.Equal(t, maxCLsToIndex, so.Limit)
+		assert.NotZero(t, so.After)
+		return true
+	})
+	mcs.On("GetChangeLists", testutils.AnyContext, searchOptionsMatcher).Return([]code_review.ChangeList{
+		// We don't look at the other fields since the index doesn't previously exist for this CL.
+		{SystemID: firstCLID},
+		{SystemID: secondCLID},
+	}, 0, nil)
+	// Reminder: only the most recent patchset is indexed.
+	mcs.On("GetPatchSets", testutils.AnyContext, firstCLID).Return([]code_review.PatchSet{
+		{SystemID: patchsetFoxtrot}, // all other fields ignored from PatchSet.
+	}, nil)
+	mcs.On("GetPatchSets", testutils.AnyContext, secondCLID).Return([]code_review.PatchSet{
+		{SystemID: "not the most recent, so it is ignored"},
+		{SystemID: patchsetSam},
+	}, nil)
+	mcs.On("System").Return(crs)
+
+	mts.On("GetResults", testutils.AnyContext, tjstore.CombinedPSID{CL: firstCLID, CRS: crs, PS: patchsetFoxtrot}).Return([]tjstore.TryJobResult{
+		{
+			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			Digest:       data.AlphaPositiveDigest,
+			// Other fields ignored
+		},
+		{
+			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			Digest:       data.AlphaNegativeDigest,
+		},
+		{
+			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			Digest:       data.AlphaUntriagedDigest,
+		},
+	}, nil)
+	mts.On("GetResults", testutils.AnyContext, tjstore.CombinedPSID{CL: secondCLID, CRS: crs, PS: patchsetSam}).Return([]tjstore.TryJobResult{
+		{
+			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			Digest:       data.AlphaPositiveDigest,
+		},
+		{
+			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			Digest:       data.AlphaNegativeDigest, // Note, for this CL, this digest has not yet been triaged.
+		},
+		{
+			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			Digest:       data.AlphaUntriagedDigest,
+		},
+	}, nil)
+
+	ctx := context.Background()
+	ic := IndexerConfig{
+		CLStore:           mcs,
+		ExpectationsStore: mes,
+		TryJobStore:       mts,
+	}
+	ixr, err := New(ctx, ic, 0)
+	require.NoError(t, err)
+
+	assert.NoError(t, ixr.calcChangeListIndices(ctx, nil))
+
+	clIdx := ixr.GetIndexForCL(crs, firstCLID)
+	assert.NotNil(t, clIdx)
+	assert.Len(t, clIdx.UntriagedResultsProduced, 1)
+	xtr, ok := clIdx.UntriagedResultsProduced[tjstore.CombinedPSID{CL: firstCLID, CRS: crs, PS: patchsetFoxtrot}]
+	require.True(t, ok)
+	assert.Len(t, xtr, 1)
+	assert.Equal(t, data.AlphaUntriagedDigest, xtr[0].Digest)
+
+	clIdx = ixr.GetIndexForCL(crs, secondCLID)
+	assert.NotNil(t, clIdx)
+	assert.Len(t, clIdx.UntriagedResultsProduced, 1)
+	xtr, ok = clIdx.UntriagedResultsProduced[tjstore.CombinedPSID{CL: secondCLID, CRS: crs, PS: patchsetSam}]
+	require.True(t, ok)
+	assert.Len(t, xtr, 2)
+	// Reminder, AlphaNegativeDigest was not triaged in the CL expectations for secondCLID
+	assert.Equal(t, data.AlphaNegativeDigest, xtr[0].Digest)
+	assert.Equal(t, data.AlphaUntriagedDigest, xtr[1].Digest)
+}
+
+func TestIndexer_CalcChangeListIndices_HasPreviousIndices_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const crs = "gerrit"
+	const clID = "111111"
+	const firstPatchSet = "firstPS"
+	const secondPatchSet = "secondPS"
+	var firstPatchSetCombinedID = tjstore.CombinedPSID{CL: clID, CRS: crs, PS: firstPatchSet}
+	var secondPatchSetCombinedID = tjstore.CombinedPSID{CL: clID, CRS: crs, PS: secondPatchSet}
+
+	var longAgo = time.Date(2020, time.April, 15, 15, 15, 0, 0, time.UTC)
+	var recently = time.Date(2020, time.May, 5, 12, 12, 0, 0, time.UTC)
+
+	mcs := &mock_clstore.Store{}
+	mes := &mock_expectations.Store{}
+	mts := &mock_tjstore.Store{}
+
+	masterExp := expectations.Expectations{}
+	masterExp.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive)
+	masterExp.Set(data.AlphaTest, data.AlphaNegativeDigest, expectations.Negative)
+
+	// secondCL has no additional expectations
+	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
+	loadChangeListExpectations(mes, crs, map[string]*expectations.Expectations{
+		clID: {},
+	})
+
+	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return([]code_review.ChangeList{
+		{
+			SystemID: clID,
+			Updated:  recently,
+		},
+	}, 0, nil)
+
+	mcs.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
+		{SystemID: firstPatchSet}, // all other fields ignored from patch set.
+		{SystemID: secondPatchSet},
+	}, nil)
+	mcs.On("System").Return(crs)
+
+	mts.On("GetResults", testutils.AnyContext, secondPatchSetCombinedID).Return([]tjstore.TryJobResult{
+		{
+			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			Digest:       data.AlphaPositiveDigest,
+			// Other fields ignored
+		},
+		{
+			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			Digest:       data.AlphaNegativeDigest,
+		},
+		{
+			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			Digest:       data.AlphaUntriagedDigest,
+		},
+	}, nil)
+
+	ctx := context.Background()
+	ic := IndexerConfig{
+		CLStore:           mcs,
+		ExpectationsStore: mes,
+		TryJobStore:       mts,
+	}
+	ixr, err := New(ctx, ic, 0)
+	require.NoError(t, err)
+
+	// The scenario here is that the first PatchSet generated three untriaged digests. Then, a second
+	// patchset was uploaded and had partially generated its results when the last index was taken.
+	// Thus, the previous index shows 3 untriaged digests for firstPatchset and 1 for secondPatchSet.
+	// After that index was computed, the user triaged AlphaPositiveDigest and AlphaNegativeDigest,
+	// and the remainder of the data was uploaded to secondPatchSet. After the index is recomputed,
+	// we should see the results from firstPatchSet be filtered down to reflect the new expectations.
+	// Additionally, the secondPatchset index should be updated to show the 1 correct untriaged
+	// digest.
+	previousIdx := ChangeListIndex{
+		UntriagedResultsProduced: map[tjstore.CombinedPSID][]tjstore.TryJobResult{
+			firstPatchSetCombinedID: {
+				{
+					ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+					Digest:       data.AlphaPositiveDigest,
+					// Other fields ignored
+				},
+				{
+					ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+					Digest:       data.AlphaNegativeDigest,
+				},
+				{
+					ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+					Digest:       data.AlphaUntriagedDigest,
+				},
+			},
+			secondPatchSetCombinedID: {
+				{
+					ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+					Digest:       data.AlphaPositiveDigest,
+				},
+			},
+		},
+		ComputedTS: longAgo,
+	}
+	ixr.changeListIndices.Set("gerrit_111111", &previousIdx, 0)
+
+	assert.NoError(t, ixr.calcChangeListIndices(ctx, nil))
+
+	clIdx := ixr.GetIndexForCL(crs, clID)
+	assert.NotNil(t, clIdx)
+	assert.True(t, clIdx.ComputedTS.After(longAgo)) // should be updated
+	assert.Len(t, clIdx.UntriagedResultsProduced, 2)
+	xtr, ok := clIdx.UntriagedResultsProduced[firstPatchSetCombinedID]
+	require.True(t, ok)
+	assert.Len(t, xtr, 1)
+	assert.Equal(t, data.AlphaUntriagedDigest, xtr[0].Digest)
+	xtr, ok = clIdx.UntriagedResultsProduced[secondPatchSetCombinedID]
+	require.True(t, ok)
+	assert.Len(t, xtr, 1)
+	assert.Equal(t, data.AlphaUntriagedDigest, xtr[0].Digest)
+
+	// make sure the original index wasn't modified (avoiding errors with modifying maps at the same
+	// time as they are being read).
+	assert.Len(t, previousIdx.UntriagedResultsProduced[firstPatchSetCombinedID], 3)
 }
 
 // TestPreSlicedTracesCreatedCorrectly makes sure that we pre-slice the data based on IgnoreState,
@@ -514,4 +753,12 @@ func makeComplexTileWithCrosshatchIgnores() (tiling.ComplexTile, *tiling.Tile, *
 		},
 	})
 	return ct, fullTile, partialTile
+}
+
+func loadChangeListExpectations(masterExp *mock_expectations.Store, crs string, clExps map[string]*expectations.Expectations) {
+	for clID, exp := range clExps {
+		clStore := &mock_expectations.Store{}
+		clStore.On("Get", testutils.AnyContext).Return(exp, nil)
+		masterExp.On("ForChangeList", clID, crs).Return(clStore)
+	}
 }
