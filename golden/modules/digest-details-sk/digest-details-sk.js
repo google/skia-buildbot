@@ -35,6 +35,7 @@ import '../../../infra-sk/modules/paramset-sk';
 
 const template = (ele) => html`
 <div class=container>
+Intentional diff
   <div class=top_bar>
     <span class=grouping_name>Test: ${ele._grouping}</span>
     <span class=expand></span>
