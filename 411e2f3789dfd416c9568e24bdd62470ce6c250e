@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "73f0cbbd_303b235c",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 9
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-05T15:13:37Z",
+      "side": 1,
+      "message": "Seems to work. Done.",
+      "parentUuid": "5ed7cacc_cb4fda71",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 13
+      },
+      "revId": "411e2f3789dfd416c9568e24bdd62470ce6c250e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "516918bf_46a49304",
         "filename": "docker/Dockerfile",
         "patchSetId": 9
@@ -45,6 +69,30 @@
       "revId": "411e2f3789dfd416c9568e24bdd62470ce6c250e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "418c0eec_929a6266",
+        "filename": "docker/Dockerfile",
+        "patchSetId": 9
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-05T15:13:37Z",
+      "side": 1,
+      "message": "Doing it after repo is checked out so it can be done in that directory. Done.",
+      "parentUuid": "516918bf_46a49304",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 36
+      },
+      "revId": "411e2f3789dfd416c9568e24bdd62470ce6c250e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
