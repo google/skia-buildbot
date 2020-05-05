@@ -1,0 +1,15 @@
+/* Common skia-demos colors via CSS Variables.
+   Assumes use of infra-sk/modules/theme-chooser-sk.
+
+ Can be imported via:
+
+    @import '../colors';
+*/
+
+/* Use the default theme except for the primary colors, and we'll use
+ * complete default dark theme.
+ */
+:root {
+  --primary: var(--teal-300);
+  --on-primary: var(--white);
+}

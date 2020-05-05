@@ -26,9 +26,6 @@ func main() {
 
 	r := mux.NewRouter()
 	r.PathPrefix("/demo/").Handler(http.StripPrefix("/demo", http.FileServer(http.Dir(*demosDir))))
-	// PathPrefix above needs a slash to make FileServer relative paths work.
-	// For cleanliness, make sure users get to the directory listing even without the slash.
-	r.Handle("/demo", http.RedirectHandler("/demo/", 301))
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.FileServer(http.Dir(*resourcesDir))))
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, filepath.Join(*resourcesDir, "main.html"))
