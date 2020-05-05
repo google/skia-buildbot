@@ -129,6 +129,9 @@ func main() {
 			td.Fatal(ctx, err)
 		}
 		deps := strings.Split(strings.TrimSpace(buf.String()), "\n")
+		for idx := range deps {
+			deps[idx] = deps[idx] + "/..."
+		}
 
 		// Perform the update.
 		getCmd := append([]string{
