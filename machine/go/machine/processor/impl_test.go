@@ -45,7 +45,7 @@ func TestDimensionsFromAndroidProperties_Success(t *testing.T) {
 		"[ro.product.brand]: [google]",          // device_os_flavor
 		"[ro.build.type]: [user]",               // device_os_type
 		"[ro.product.board]: []",                // Ignore empty values.
-		"[ro.product.device]: [4560MMX_sprout]", // Should be ignored.
+		"[ro.product.device]: [4560MMX_sprout]", // device_type
 		"[ro.build.product]: [sargo]",           // device_type
 		"[ro.product.system.brand]: [google]",   // device_os_flavor (dup should be ignored)
 		"[ro.product.system.brand]: [aosp]",     // device_os_flavor (should be converted to "android")
@@ -59,7 +59,7 @@ func TestDimensionsFromAndroidProperties_Success(t *testing.T) {
 		"device_os":           {"Q", "QQ2A.200305.002"},
 		"device_os_flavor":    {"google", "android"},
 		"device_os_type":      {"user"},
-		machine.DimDeviceType: {"sargo"},
+		machine.DimDeviceType: {"4560MMX_sprout", "sargo"},
 		machine.DimOS:         {"Android"},
 	}
 	assert.Equal(t, expected, got)
