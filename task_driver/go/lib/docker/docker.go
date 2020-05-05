@@ -222,7 +222,7 @@ func Run(ctx context.Context, image, configDir string, cmd, volumes, env []strin
 // There must be a Dockerfile in the 'directory' and the resulting output is
 // tagged with 'tag'.
 func BuildHelper(ctx context.Context, directory, tag, configDir string, buildArgs map[string]string) error {
-	cmdArgs := []string{"--config", configDir, "build", "--pull", "--no-cache", "-t", tag, directory}
+	cmdArgs := []string{"--config", configDir, "build", "--pull", "-t", tag, directory}
 	if buildArgs != nil {
 		for k, v := range buildArgs {
 			cmdArgs = append(cmdArgs, "--build-arg", fmt.Sprintf("%s=%s", k, v))
@@ -231,7 +231,7 @@ func BuildHelper(ctx context.Context, directory, tag, configDir string, buildArg
 	return Build(ctx, cmdArgs...)
 }
 
-// Build runs "docker build -t <some tag name> ." in 'directory' and streams the
+// Build runs "docker build <args>" in 'directory' and streams the
 // output. The log output is parsed into sub-steps for each line starting with
 // "Step N/M : ACTION value"
 //
