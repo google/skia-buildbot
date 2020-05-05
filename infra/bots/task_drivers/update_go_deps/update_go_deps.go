@@ -52,6 +52,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/lib/auth_steps"
 	"go.skia.org/infra/task_driver/go/lib/checkout"
@@ -119,25 +120,45 @@ func main() {
 		// is, the modules containing packages which are imported directly by
 		// our code.
 		var buf bytes.Buffer
+		// Print the package import path and the module path for every package
+		// imported in this repo.
+		const format = "{{if .Module}}{{if not (or .Module.Main .Module.Indirect)}}{{.ImportPath}} {{.Module.Path}}{{end}}{{end}}"
 		listCmd := &exec.Command{
 			Name:   "go",
-			Args:   []string{"list", "-m", "-f", "{{if not (or .Main .Indirect)}}{{.Path}}{{end}}", "all"},
+			Args:   []string{"list", "-f", format, "all"},
 			Dir:    co.Dir(),
 			Stdout: &buf,
 		}
 		if _, err := exec.RunCommand(ctx, listCmd); err != nil {
 			td.Fatal(ctx, err)
 		}
-		deps := strings.Split(strings.TrimSpace(buf.String()), "\n")
+		// Organize the direct dependencies by module.
+		deps := map[string][]string{}
+		for _, line := range strings.Split(strings.TrimSpace(buf.String()), "\n") {
+			split := strings.Split(line, " ")
+			if len(split) != 2 {
+				td.Fatalf(ctx, "Incorrect format for line; expected \"<package path> <module path>\" but got: %s", line)
+			}
+			deps[split[0]] = append(deps[split[0]], split[1])
+		}
 
 		// Perform the update.
-		getCmd := append([]string{
+		getCmd := []string{
 			"get",
 			"-u", // Update the named modules.
 			"-t", // Also update modules only used in tests.
 			"-d", // Download the updated modules but don't build or install them.
-		}, deps...)
-		if _, err := golang.Go(ctx, co.Dir(), getCmd...); err != nil {
+		}
+		if err := td.Do(ctx, td.Props(strings.Join(getCmd, " ")), func(ctx context.Context) error {
+			for _, pkgs := range deps {
+				// Only update one package per module, to prevent duplicate module
+				// lookup+updates.
+				if _, err := golang.Go(ctx, co.Dir(), append(getCmd, pkgs[0])...); err != nil {
+					return skerr.Wrap(err)
+				}
+			}
+			return nil
+		}); err != nil {
 			td.Fatal(ctx, err)
 		}
 
