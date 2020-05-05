@@ -70,7 +70,7 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
 	github.com/golang/mock v1.4.3
-	github.com/golang/protobuf v1.4.0
+	github.com/golang/protobuf v1.4.1
 	github.com/google/go-github/v29 v29.0.3
 	github.com/google/go-licenses v0.0.0-20200227160636-0fa8c766a591
 	github.com/google/licenseclassifier v0.0.0-20200402202327-879cb1424de0 // indirect
@@ -125,16 +125,17 @@ require (
 	go.chromium.org/luci v0.0.0-20200422113612-5e97843a5fd2
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200420201142-3c4aac89819a // indirect
-	golang.org/x/net v0.0.0-20200421231249-e086a090c8fd // indirect
+	golang.org/x/net v0.0.0-20200505041828-1ed23360d12c // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
-	golang.org/x/sys v0.0.0-20200420163511-1957bb5e6d1f // indirect
+	golang.org/x/sys v0.0.0-20200501145240-bc7a7d42d5c3 // indirect
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
-	golang.org/x/tools v0.0.0-20200422022333-3d57cf2e726e
-	google.golang.org/api v0.22.0
-	google.golang.org/genproto v0.0.0-20200420144010-e5e8543f8aeb
-	google.golang.org/grpc v1.29.0
-	google.golang.org/protobuf v1.21.0
+	golang.org/x/tools v0.0.0-20200505023115-26f46d2f7ef8
+	google.golang.org/api v0.23.0
+	google.golang.org/appengine v1.6.6 // indirect
+	google.golang.org/genproto v0.0.0-20200430143042-b979b6f78d84
+	google.golang.org/grpc v1.29.1
+	google.golang.org/protobuf v1.22.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/ini.v1 v1.55.0 // indirect
