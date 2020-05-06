@@ -404,6 +404,7 @@ function makeCommits(n) {
       commit_time: tsStartTime + i * 123, // arbitrary spacing
       hash: `${i}`.padStart(32, '0'), // make a deterministic "md5 hash", which is 32 chars long
       author: `user${i % 7}@example.com`,
+      message: `This is a nice message. I've repeated it ${i + 1} time(s)`,
     });
   }
   return rv;
