@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	ttlcache "github.com/patrickmn/go-cache"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -649,7 +651,7 @@ func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
 	assert.Equal(t, 6, traceCount, "Not all traces were in the final result")
 }
 
-// TestSearchThreeDevicesChangeListSunnyDay covers the case
+// TestSearch_ChangeListResults_ChangeListIndexMiss_Success covers the case
 // where two tryjobs have been run on a given CL and PS, one on the
 // angler bot and one on the bullhead bot. The master branch
 // looks like in the ThreeDevices data set. The outputs produced are
@@ -665,13 +667,13 @@ func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
 // With this setup, we do a default query (don't show master,
 // only untriaged digests) and expect to see only an entry about
 // BetaBrandNewDigest.
-func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
+func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	clID := "1234"
-	crs := "gerrit"
-	AlphaNowGoodDigest := data.AlphaUntriagedDigest
-	BetaBrandNewDigest := types.Digest("be7a03256511bec3a7453c3186bb2e07")
+	const clID = "1234"
+	const crs = "gerrit"
+	const AlphaNowGoodDigest = data.AlphaUntriagedDigest
+	const BetaBrandNewDigest = types.Digest("be7a03256511bec3a7453c3186bb2e07")
 
 	mcls := &mock_clstore.Store{}
 	mtjs := &mock_tjstore.Store{}
@@ -830,6 +832,102 @@ func TestSearchThreeDevicesChangeListSunnyDay(t *testing.T) {
 	// Validate that we cache the .*Store values in two quick responses.
 	_, err = s.Search(context.Background(), q)
 	require.NoError(t, err)
+}
+
+// TestSearchImpl_ExtractChangeListDigests_CacheHit_Success tests the case where the ChangeList
+// index can be used (because we are only searching for untriaged data) and makes sure the results
+// are used as if they were freshly queried from firestore.
+func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const clID = "1234"
+	const psID = "the_patchset"
+	const crs = "gerrit"
+
+	combinedID := tjstore.CombinedPSID{CRS: crs, CL: clID, PS: psID}
+
+	mi := &mock_index.IndexSource{}
+	mis := &mock_index.IndexSearcher{}
+	mcs := &mock_clstore.Store{}
+
+	mcs.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
+		{
+			SystemID:     psID,
+			ChangeListID: clID,
+			Order:        1,
+			// other fields are ignored
+		},
+	}, nil)
+	mcs.On("System").Return(crs)
+
+	anglerGroup := map[string]string{
+		"device": data.AnglerDevice,
+	}
+	bullheadGroup := map[string]string{
+		"device": data.BullheadDevice,
+	}
+	options := map[string]string{
+		"ext": "png",
+	}
+	mi.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{
+		UntriagedResultsProduced: map[tjstore.CombinedPSID][]tjstore.TryJobResult{
+			combinedID: {
+				{
+					GroupParams: anglerGroup,
+					Options:     options,
+					Digest:      data.AlphaUntriagedDigest,
+					ResultParams: map[string]string{
+						types.PrimaryKeyField: string(data.AlphaTest),
+						types.CorpusField:     "gm",
+					},
+				},
+				{
+					GroupParams: bullheadGroup,
+					Options:     options,
+					Digest:      data.BetaUntriagedDigest,
+					ResultParams: map[string]string{
+						types.PrimaryKeyField: string(data.BetaTest),
+						types.CorpusField:     "gm",
+					},
+				},
+			},
+		},
+	})
+
+	// No ignore rules
+	mis.On("GetIgnoreMatcher").Return(paramtools.ParamMatcher{})
+
+	s := SearchImpl{
+		indexSource:     mi,
+		changeListStore: mcs,
+		tryJobStore:     nil, // we should not actually hit the TryJobStore, because the cache was used.
+		storeCache:      ttlcache.New(0, 0),
+	}
+
+	q := &query.Search{
+		ChangeListID:  clID,
+		NewCLStore:    true,
+		IncludeMaster: false,
+
+		Unt: true,
+	}
+
+	alphaSeenCount := int32(0)
+	betaSeenCount := int32(0)
+	testAddFn := func(test types.TestName, digest types.Digest, _ paramtools.Params) {
+		if test == data.AlphaTest && digest == data.AlphaUntriagedDigest {
+			atomic.AddInt32(&alphaSeenCount, 1)
+		} else if test == data.BetaTest && digest == data.BetaUntriagedDigest {
+			atomic.AddInt32(&betaSeenCount, 1)
+		} else {
+			assert.Failf(t, "unrecognized input", "%s %s", test, digest)
+		}
+	}
+
+	err := s.extractChangeListDigests(context.Background(), q, mis, expectations.EmptyClassifier(), testAddFn)
+	require.NoError(t, err)
+	assert.Equal(t, int32(1), alphaSeenCount)
+	assert.Equal(t, int32(1), betaSeenCount)
 }
 
 func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
@@ -1092,13 +1190,14 @@ func TestDiffDigestsChangeList(t *testing.T) {
 	assert.Equal(t, cd.Left.Status, expectations.Negative.String())
 }
 
-// TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay models the case where a set of TryJobs has
-// produced five digests that were "untriaged on master" (and one good digest). We are testing that
-// we can properly deduce which are untriaged, "newly seen" and unignored. One of these untriaged
-// digests was already seen on master (data.AlphaUntriagedDigest), one was already triaged negative
-// for this CL (gammaNegativeTryJobDigest), and one trace matched an ignore rule (deltaIgnoredTryJobDigest). Thus,
-// We only expect tjUntriagedAlpha and tjUntriagedBeta to be reported to us.
-func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
+// TestUntriagedUnignoredTryJobExclusiveDigests_NoIndexBuilt_Success models the case where a set of
+// TryJobs has produced five digests that were "untriaged on master" (and one good digest). We are
+// testing that we can properly deduce which are untriaged, "newly seen" and unignored. One of
+// these untriaged digests was already seen on master (data.AlphaUntriagedDigest), one was already
+// triaged negative for this CL (gammaNegativeTryJobDigest), and one trace matched an ignore rule
+// (deltaIgnoredTryJobDigest). Thus, we only expect tjUntriagedAlpha and tjUntriagedBeta to be
+// reported to us.
+func TestUntriagedUnignoredTryJobExclusiveDigests_NoIndexBuilt_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const clID = "44474"
@@ -1139,6 +1238,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 	fis, err := indexer.SearchIndexForTesting(cpxTile, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{}, mes, nil)
 	require.NoError(t, err)
 	mi.On("GetIndex").Return(fis)
+	mi.On("GetIndexForCL", crs, clID).Return(nil)
 
 	anglerGroup := map[string]string{
 		"device": data.AnglerDevice,
@@ -1156,7 +1256,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 		{
 			GroupParams: anglerGroup,
 			Options:     options,
-			Digest:      betaUntriagedTryJobDigest,
+			Digest:      betaUntriagedTryJobDigest, // should be reported
 			ResultParams: map[string]string{
 				types.PrimaryKeyField: string(data.AlphaTest),
 				types.CorpusField:     "gm",
@@ -1165,7 +1265,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 		{
 			GroupParams: bullheadGroup,
 			Options:     options,
-			Digest:      data.AlphaUntriagedDigest,
+			Digest:      data.AlphaUntriagedDigest, // already seen on master as untriaged.
 			ResultParams: map[string]string{
 				types.PrimaryKeyField: string(data.AlphaTest),
 				types.CorpusField:     "gm",
@@ -1174,7 +1274,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 		{
 			GroupParams: anglerGroup,
 			Options:     options,
-			Digest:      alphaUntriagedTryJobDigest,
+			Digest:      alphaUntriagedTryJobDigest, // should be reported.
 			ResultParams: map[string]string{
 				types.PrimaryKeyField: string(data.BetaTest),
 				types.CorpusField:     "gm",
@@ -1183,7 +1283,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 		{
 			GroupParams: bullheadGroup,
 			Options:     options,
-			Digest:      deltaIgnoredTryJobDigest,
+			Digest:      deltaIgnoredTryJobDigest, // matches an ignore rule; should be filtered.
 			ResultParams: map[string]string{
 				types.PrimaryKeyField: string(data.BetaTest),
 				types.CorpusField:     "gm",
@@ -1192,7 +1292,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 		{
 			GroupParams: crosshatchGroup,
 			Options:     options,
-			Digest:      gammaNegativeTryJobDigest,
+			Digest:      gammaNegativeTryJobDigest, // already triaged as negative; should be filtered.
 			ResultParams: map[string]string{
 				types.PrimaryKeyField: string(data.AlphaTest),
 				types.CorpusField:     "gm",
@@ -1201,7 +1301,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 		{
 			GroupParams: crosshatchGroup,
 			Options:     options,
-			Digest:      data.BetaPositiveDigest,
+			Digest:      data.BetaPositiveDigest, // seen on master as positive; should be filtered.
 			ResultParams: map[string]string{
 				types.PrimaryKeyField: string(data.BetaTest),
 				types.CorpusField:     "gm",
@@ -1214,6 +1314,143 @@ func TestUntriagedUnignoredTryJobExclusiveDigestsSunnyDay(t *testing.T) {
 	dl, err := s.UntriagedUnignoredTryJobExclusiveDigests(context.Background(), expectedID)
 	require.NoError(t, err)
 	assert.Equal(t, []types.Digest{alphaUntriagedTryJobDigest, betaUntriagedTryJobDigest}, dl.Digests)
+	// TS should be very recent, since the results were freshly computed.
+	assert.True(t, dl.TS.After(time.Now().Add(-time.Minute)))
+}
+
+// TestUntriagedUnignoredTryJobExclusiveDigests_UsesIndex_Success is the same as the previous test,
+// except it uses the pre-built index, which only returns the untriaged digests (that then need
+// to be filtered to check for ignore rules and those seen on master).
+func TestUntriagedUnignoredTryJobExclusiveDigests_UsesIndex_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const clID = "44474"
+	const crs = "github"
+	expectedID := tjstore.CombinedPSID{
+		CL:  clID,
+		CRS: crs,
+		PS:  "abcdef",
+	}
+
+	someOtherID := tjstore.CombinedPSID{
+		CL:  "made up id",
+		CRS: crs,
+		PS:  "gasdf",
+	}
+
+	const alphaUntriagedTryJobDigest = types.Digest("aaaa65e567de97c8a62918401731c7ec")
+	const betaUntriagedTryJobDigest = types.Digest("bbbb34f7c915a1ac3a5ba524c741946c")
+	const gammaNegativeTryJobDigest = types.Digest("cccc41bf4584e51be99e423707157277")
+	const deltaIgnoredTryJobDigest = types.Digest("dddd84e51be99e42370715727765e563")
+
+	mi := &mock_index.IndexSource{}
+
+	// Set up the expectations such that for this CL, we have one extra expectation - marking
+	// gammaNegativeTryJobDigest negative (it would be untriaged on master).
+	mes := makeThreeDevicesExpectationStore()
+	var ie expectations.Expectations
+	ie.Set(data.AlphaTest, gammaNegativeTryJobDigest, expectations.Negative)
+	addChangeListExpectations(mes, crs, clID, &ie)
+
+	cpxTile := tiling.NewComplexTile(data.MakeTestTile())
+	reduced := data.MakeTestTile()
+	delete(reduced.Traces, data.BullheadBetaTraceID)
+	// The following rule exclusively matches BullheadBetaTraceID, for which the tryjob produced
+	// deltaIgnoredTryJobDigest
+	cpxTile.SetIgnoreRules(reduced, paramtools.ParamMatcher{
+		{
+			"device":              []string{data.BullheadDevice},
+			types.PrimaryKeyField: []string{string(data.BetaTest)},
+		},
+	})
+	dc := digest_counter.New(data.MakeTestTile())
+	fis, err := indexer.SearchIndexForTesting(cpxTile, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{}, mes, nil)
+	require.NoError(t, err)
+	mi.On("GetIndex").Return(fis)
+
+	anglerGroup := map[string]string{
+		"device": data.AnglerDevice,
+	}
+	bullheadGroup := map[string]string{
+		"device": data.BullheadDevice,
+	}
+	crosshatchGroup := map[string]string{
+		"device": data.CrosshatchDevice,
+	}
+	options := map[string]string{
+		"ext": "png",
+	}
+	indexTS := time.Date(2020, time.May, 1, 2, 3, 4, 0, time.UTC)
+	mi.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{
+		ComputedTS: indexTS,
+		UntriagedResultsProduced: map[tjstore.CombinedPSID][]tjstore.TryJobResult{
+			expectedID: {
+				{
+					GroupParams: anglerGroup,
+					Options:     options,
+					Digest:      betaUntriagedTryJobDigest, // should be reported.
+					ResultParams: map[string]string{
+						types.PrimaryKeyField: string(data.AlphaTest),
+						types.CorpusField:     "gm",
+					},
+				},
+				{
+					GroupParams: bullheadGroup,
+					Options:     options,
+					Digest:      data.AlphaUntriagedDigest, // already seen on master as untriaged.
+					ResultParams: map[string]string{
+						types.PrimaryKeyField: string(data.AlphaTest),
+						types.CorpusField:     "gm",
+					},
+				},
+				{
+					GroupParams: anglerGroup,
+					Options:     options,
+					Digest:      alphaUntriagedTryJobDigest, // should be reported.
+					ResultParams: map[string]string{
+						types.PrimaryKeyField: string(data.BetaTest),
+						types.CorpusField:     "gm",
+					},
+				},
+				{
+					GroupParams: bullheadGroup,
+					Options:     options,
+					Digest:      deltaIgnoredTryJobDigest, // matches an ignore rule; should be filtered.
+					ResultParams: map[string]string{
+						types.PrimaryKeyField: string(data.BetaTest),
+						types.CorpusField:     "gm",
+					},
+				},
+				{
+					GroupParams: crosshatchGroup,
+					Options:     options,
+					Digest:      gammaNegativeTryJobDigest, // already triaged as negative; should be filtered.
+					ResultParams: map[string]string{
+						types.PrimaryKeyField: string(data.AlphaTest),
+						types.CorpusField:     "gm",
+					},
+				},
+			},
+			someOtherID: { // this map entry should be ignored
+				{
+					GroupParams: anglerGroup,
+					Options:     options,
+					Digest:      "should be ignored",
+					ResultParams: map[string]string{
+						types.PrimaryKeyField: string(data.BetaTest),
+						types.CorpusField:     "gm",
+					},
+				},
+			},
+		},
+	})
+
+	s := New(nil, mes, nil, mi, nil, nil, nil, everythingPublic)
+
+	dl, err := s.UntriagedUnignoredTryJobExclusiveDigests(context.Background(), expectedID)
+	require.NoError(t, err)
+	assert.Equal(t, []types.Digest{alphaUntriagedTryJobDigest, betaUntriagedTryJobDigest}, dl.Digests)
+	assert.Equal(t, indexTS, dl.TS)
 }
 
 // TestGetDrawableTraces_DigestIndicesAreCorrect tests that we generate the output required to draw
@@ -1552,6 +1789,7 @@ func makeThreeDevicesIndexer() indexer.IndexSource {
 
 	fis := makeThreeDevicesIndex()
 	mi.On("GetIndex").Return(fis)
+	mi.On("GetIndexForCL", mock.Anything, mock.Anything).Return(nil)
 	return mi
 }
 
