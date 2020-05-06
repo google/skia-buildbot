@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dae95157_98969eb1",
+        "filename": "machine/go/machine/processor/impl.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-06T15:02:42Z",
+      "side": 1,
+      "message": "It just occurred to me that we don\u0027t ever use the single letter dimension. We could probably do away with it, since I don\u0027t believe it\u0027s vital to swarming interop.\n\nDoesn\u0027t need to get addressed in this CL. In future reviews, I\u0027ll try to be more critical about noticing things swarming logic does that we don\u0027t need to do.",
+      "range": {
+        "startLine": 234,
+        "startChar": 4,
+        "endLine": 234,
+        "endChar": 63
+      },
+      "revId": "8db7cc2e3feab2923ef47a8d5c4303f7ec012613",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
