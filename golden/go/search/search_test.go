@@ -870,7 +870,7 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 		"ext": "png",
 	}
 	mi.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{
-		UntriagedResultsProduced: map[tjstore.CombinedPSID][]tjstore.TryJobResult{
+		UntriagedResults: map[tjstore.CombinedPSID][]tjstore.TryJobResult{
 			combinedID: {
 				{
 					GroupParams: anglerGroup,
@@ -1383,7 +1383,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_UsesIndex_Success(t *testing.T
 	indexTS := time.Date(2020, time.May, 1, 2, 3, 4, 0, time.UTC)
 	mi.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{
 		ComputedTS: indexTS,
-		UntriagedResultsProduced: map[tjstore.CombinedPSID][]tjstore.TryJobResult{
+		UntriagedResults: map[tjstore.CombinedPSID][]tjstore.TryJobResult{
 			expectedID: {
 				{
 					GroupParams: anglerGroup,

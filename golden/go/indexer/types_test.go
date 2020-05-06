@@ -16,7 +16,7 @@ func TestChangeListIndex_Copy(t *testing.T) {
 	betaPSID := tjstore.CombinedPSID{CRS: "github", CL: "beta", PS: "whatever"}
 
 	clIdx := &ChangeListIndex{
-		UntriagedResultsProduced: map[tjstore.CombinedPSID][]tjstore.TryJobResult{
+		UntriagedResults: map[tjstore.CombinedPSID][]tjstore.TryJobResult{
 			alphaPSID: {{Digest: "1111"}, {Digest: "2222"}},
 		},
 		ComputedTS: time.Date(2020, time.April, 1, 2, 3, 4, 0, time.UTC),
@@ -29,11 +29,11 @@ func TestChangeListIndex_Copy(t *testing.T) {
 	assert.NotEqual(t, clIdx, copiedIdx)
 
 	// Mutate the map of the copy.
-	copiedIdx.UntriagedResultsProduced[alphaPSID] = []tjstore.TryJobResult{{Digest: "3333"}}
-	copiedIdx.UntriagedResultsProduced[betaPSID] = []tjstore.TryJobResult{{Digest: "3333"}}
+	copiedIdx.UntriagedResults[alphaPSID] = []tjstore.TryJobResult{{Digest: "3333"}}
+	copiedIdx.UntriagedResults[betaPSID] = []tjstore.TryJobResult{{Digest: "3333"}}
 
 	// Make sure the original map didn't get changed.
-	assert.Len(t, clIdx.UntriagedResultsProduced, 1) // still should just have one psID entry
+	assert.Len(t, clIdx.UntriagedResults, 1) // still should just have one psID entry
 	assert.Equal(t, []tjstore.TryJobResult{{Digest: "1111"}, {Digest: "2222"}},
-		clIdx.UntriagedResultsProduced[alphaPSID])
+		clIdx.UntriagedResults[alphaPSID])
 }

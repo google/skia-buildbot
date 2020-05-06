@@ -314,16 +314,16 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 
 	clIdx := ixr.GetIndexForCL(crs, firstCLID)
 	assert.NotNil(t, clIdx)
-	assert.Len(t, clIdx.UntriagedResultsProduced, 1)
-	xtr, ok := clIdx.UntriagedResultsProduced[tjstore.CombinedPSID{CL: firstCLID, CRS: crs, PS: patchsetFoxtrot}]
+	assert.Len(t, clIdx.UntriagedResults, 1)
+	xtr, ok := clIdx.UntriagedResults[tjstore.CombinedPSID{CL: firstCLID, CRS: crs, PS: patchsetFoxtrot}]
 	require.True(t, ok)
 	assert.Len(t, xtr, 1)
 	assert.Equal(t, data.AlphaUntriagedDigest, xtr[0].Digest)
 
 	clIdx = ixr.GetIndexForCL(crs, secondCLID)
 	assert.NotNil(t, clIdx)
-	assert.Len(t, clIdx.UntriagedResultsProduced, 1)
-	xtr, ok = clIdx.UntriagedResultsProduced[tjstore.CombinedPSID{CL: secondCLID, CRS: crs, PS: patchsetSam}]
+	assert.Len(t, clIdx.UntriagedResults, 1)
+	xtr, ok = clIdx.UntriagedResults[tjstore.CombinedPSID{CL: secondCLID, CRS: crs, PS: patchsetSam}]
 	require.True(t, ok)
 	assert.Len(t, xtr, 2)
 	// Reminder, AlphaNegativeDigest was not triaged in the CL expectations for secondCLID
@@ -405,7 +405,7 @@ func TestIndexer_CalcChangeListIndices_HasPreviousIndices_Success(t *testing.T) 
 	// Additionally, the secondPatchset index should be updated to show the 1 correct untriaged
 	// digest.
 	previousIdx := ChangeListIndex{
-		UntriagedResultsProduced: map[tjstore.CombinedPSID][]tjstore.TryJobResult{
+		UntriagedResults: map[tjstore.CombinedPSID][]tjstore.TryJobResult{
 			firstPatchSetCombinedID: {
 				{
 					ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
@@ -437,19 +437,19 @@ func TestIndexer_CalcChangeListIndices_HasPreviousIndices_Success(t *testing.T) 
 	clIdx := ixr.GetIndexForCL(crs, clID)
 	assert.NotNil(t, clIdx)
 	assert.True(t, clIdx.ComputedTS.After(longAgo)) // should be updated
-	assert.Len(t, clIdx.UntriagedResultsProduced, 2)
-	xtr, ok := clIdx.UntriagedResultsProduced[firstPatchSetCombinedID]
+	assert.Len(t, clIdx.UntriagedResults, 2)
+	xtr, ok := clIdx.UntriagedResults[firstPatchSetCombinedID]
 	require.True(t, ok)
 	assert.Len(t, xtr, 1)
 	assert.Equal(t, data.AlphaUntriagedDigest, xtr[0].Digest)
-	xtr, ok = clIdx.UntriagedResultsProduced[secondPatchSetCombinedID]
+	xtr, ok = clIdx.UntriagedResults[secondPatchSetCombinedID]
 	require.True(t, ok)
 	assert.Len(t, xtr, 1)
 	assert.Equal(t, data.AlphaUntriagedDigest, xtr[0].Digest)
 
 	// make sure the original index wasn't modified (avoiding errors with modifying maps at the same
 	// time as they are being read).
-	assert.Len(t, previousIdx.UntriagedResultsProduced[firstPatchSetCombinedID], 3)
+	assert.Len(t, previousIdx.UntriagedResults[firstPatchSetCombinedID], 3)
 }
 
 // TestPreSlicedTracesCreatedCorrectly makes sure that we pre-slice the data based on IgnoreState,
