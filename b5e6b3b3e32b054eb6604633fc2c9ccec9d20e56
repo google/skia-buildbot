@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "de8f351a_ef29fd3a",
+        "filename": "golden/go/code_review/commenter/commenter_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 535,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-06T01:15:06Z",
+      "side": 1,
+      "message": "Nit: ninety?",
+      "range": {
+        "startLine": 535,
+        "startChar": 1,
+        "endLine": 535,
+        "endChar": 6
+      },
+      "revId": "b5e6b3b3e32b054eb6604633fc2c9ccec9d20e56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
