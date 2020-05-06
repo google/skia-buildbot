@@ -10,6 +10,7 @@ import (
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/isolate"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/syncer"
@@ -70,6 +71,9 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 	})
 	if err != nil {
 		return nil, err
+	}
+	if cv.Err != "" {
+		return nil, skerr.Fmt(cv.Err)
 	}
 
 	// Obtain the IsolatedFiles.

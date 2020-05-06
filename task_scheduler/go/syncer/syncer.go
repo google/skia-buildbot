@@ -248,8 +248,6 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 			fmt.Sprintf("PATH=%s:%s", depotToolsDir, os.Getenv("PATH")),
 		},
 		InheritEnv: true,
-		LogStdout:  true,
-		LogStderr:  true,
 	})
 	dur := t.Stop()
 	if err != nil {
