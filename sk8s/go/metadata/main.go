@@ -36,12 +36,12 @@ var (
 )
 
 type server struct {
-	tokenSource       oauth2.TokenSource
 	successfulRefresh metrics2.Counter
 	failedRefresh     metrics2.Counter
 
-	// mutex protects latestToken.
+	// mutex protects tokenSource and latestToken.
 	mutex       sync.Mutex
+	tokenSource oauth2.TokenSource
 	latestToken *oauth2.Token
 }
 
@@ -94,6 +94,15 @@ func (s *server) handleTokenRequest(w http.ResponseWriter, r *http.Request) {
 func (s *server) step() error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+
+	// We need to re-create the tokenSource to force it to fetch a fresh token.
+	// See https://github.com/golang/oauth2/pull/396.
+	tokenSource, err := auth.NewDefaultTokenSource(*local, auth.SCOPE_USERINFO_EMAIL)
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to create token source.")
+	}
+	s.tokenSource = tokenSource
+
 	latestToken, err := s.tokenSource.Token()
 	if err != nil {
 		s.failedRefresh.Inc(1)
