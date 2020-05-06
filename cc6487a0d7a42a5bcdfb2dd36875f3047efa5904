@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f536276f_bdf5c5c2",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-06T01:04:49Z",
+      "side": 1,
+      "message": "Maybe add a comment indicating this is not yet implemented and will always return null, and a TODO to remove it when the implementation lands.",
+      "range": {
+        "startLine": 350,
+        "startChar": 0,
+        "endLine": 350,
+        "endChar": 19
+      },
+      "revId": "cc6487a0d7a42a5bcdfb2dd36875f3047efa5904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
