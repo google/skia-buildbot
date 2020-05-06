@@ -113,7 +113,7 @@ The following licenses are used in dependent packages.
 | golang.org/x/net                                                  | BSD-3-Clause  |
 | golang.org/x/oauth2                                               | BSD-3-Clause  |
 | golang.org/x/sync                                                 | BSD-3-Clause  |
-| golang.org/x/sys/unix                                             | BSD-3-Clause  |
+| golang.org/x/sys                                                  | BSD-3-Clause  |
 | golang.org/x/text                                                 | BSD-3-Clause  |
 | golang.org/x/time/rate                                            | BSD-3-Clause  |
 | golang.org/x/xerrors                                              | BSD-3-Clause  |
@@ -122,6 +122,7 @@ The following licenses are used in dependent packages.
 | google.golang.org/appengine                                       | Apache-2.0    |
 | google.golang.org/genproto                                        | Apache-2.0    |
 | google.golang.org/grpc                                            | Apache-2.0    |
+| google.golang.org/protobuf                                        | BSD-3-Clause  |
 | go.opencensus.io                                                  | Apache-2.0    |
 | gopkg.in/fsnotify.v1                                              | BSD-3-Clause  |
 | gopkg.in/inf.v0                                                   | BSD-3-Clause  |
