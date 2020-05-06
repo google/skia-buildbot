@@ -4,7 +4,6 @@ android_hashlookup:
 
 .PHONY: packages
 packages:
-	go install go.chromium.org/luci/client/cmd/isolate
 	go install -v ./...
 
 .PHONY: testgo
