@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4a895f9c_5479648f",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-06T12:35:31Z",
+      "side": 1,
+      "message": "I\u0027m trying to move Skia specific stuff out of android_repo_manager to make it more generic. If it turns out other projects need similar METADATA structure then we can move it there.",
+      "parentUuid": "24dd5a26_cd3b084a",
+      "range": {
+        "startLine": 122,
+        "startChar": 5,
+        "endLine": 122,
+        "endChar": 33
+      },
+      "revId": "8c966e9b02bc55a4fa2d65d2a8e03c9bfcd86ffe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bcf4e286_fa455572",
         "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2020-05-06T12:03:05Z",
       "side": 1,
       "message": "Is this hash supposed to be the equivalent hash in skia.git, or the hash of the merge commit?",
+      "range": {
+        "startLine": 128,
+        "startChar": 0,
+        "endLine": 128,
+        "endChar": 71
+      },
+      "revId": "8c966e9b02bc55a4fa2d65d2a8e03c9bfcd86ffe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8b8e753_11528455",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-06T12:35:31Z",
+      "side": 1,
+      "message": "It\u0027s the skia.git hash, I thought about changing preupload step parameters to take in revisions but that touches a lot of other files. That\u0027s the other option though.",
+      "parentUuid": "bcf4e286_fa455572",
       "range": {
         "startLine": 128,
         "startChar": 0,
