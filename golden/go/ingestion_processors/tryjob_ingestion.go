@@ -1,7 +1,6 @@
 package ingestion_processors
 
 import (
-	"bytes"
 	"context"
 	"io/ioutil"
 	"net/http"
@@ -15,7 +14,6 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -28,25 +26,18 @@ import (
 	"go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis"
 	"go.skia.org/infra/golden/go/continuous_integration/dummy_cis"
-	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
-	"go.skia.org/infra/golden/go/ignore"
-	"go.skia.org/infra/golden/go/ignore/fs_ignorestore"
 	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/jsonio"
 	"go.skia.org/infra/golden/go/shared"
-	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tjstore"
 	"go.skia.org/infra/golden/go/tjstore/fs_tjstore"
-	"go.skia.org/infra/golden/go/types"
 )
 
 const (
 	firestoreTryJobIngester = "gold-tryjob-fs"
 	firestoreProjectIDParam = "FirestoreProjectID"
 	firestoreNamespaceParam = "FirestoreNamespace"
-
-	gcsKnownHashesParam = "GCSKnownHashes"
 
 	codeReviewSystemParam      = "CodeReviewSystem"
 	gerritURLParam             = "GerritURL"
@@ -71,11 +62,7 @@ type goldTryjobProcessor struct {
 	reviewClient code_review.Client
 	cisClients   map[string]continuous_integration.Client
 
-	gcsClient storage.GCSClient
-
 	changeListStore clstore.Store
-	expStore        expectations.Store
-	ignoreStore     ignore.Store
 	tryJobStore     tjstore.Store
 
 	crsName string
@@ -128,27 +115,11 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config *share
 		return nil, skerr.Wrapf(err, "initializing expectation store")
 	}
 
-	hashesPath := config.ExtraParams[gcsKnownHashesParam]
-	if strings.TrimSpace(hashesPath) == "" {
-		return nil, skerr.Fmt("missing GCS known hashes path (e.g. '[bucket]/hashes_files/gold-[instance]-hashes.txt')")
-	}
-	gsClientOpt := storage.GCSClientOptions{
-		KnownHashesGCSPath: hashesPath,
-		Dryrun:             true,
-	}
-	gsClient, err := storage.NewGCSClient(client, gsClientOpt)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "creating GCSClient with opts %v", gsClientOpt)
-	}
-
 	return &goldTryjobProcessor{
 		reviewClient:    crs,
 		cisClients:      cisClients,
-		gcsClient:       gsClient,
-		ignoreStore:     fs_ignorestore.New(ctx, fsClient),
 		changeListStore: fs_clstore.New(fsClient, crsName),
 		tryJobStore:     fs_tjstore.New(fsClient),
-		expStore:        expStore,
 		crsName:         crsName,
 	}, nil
 }
@@ -307,30 +278,6 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 
 	// Store the results from the file.
 	tjr := toTryJobResults(gr)
-
-	if !ps.HasUntriagedDigests {
-		exp, err := g.getExpectations(ctx, clID, crs)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-		r, err := g.ignoreStore.List(ctx)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-		rules, err := ignore.AsMatcher(r)
-		if err != nil {
-			// This should never happen - it means an invalid rule has gotten into the ignore
-			// store.
-			return skerr.Wrap(err)
-		}
-		knownDigests, err := g.getKnownDigests(ctx)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-		if g.hasUntriagedDigests(tjr, exp, rules, knownDigests) {
-			ps.HasUntriagedDigests = true
-		}
-	}
 	if err := g.changeListStore.PutPatchSet(ctx, ps); err != nil {
 		return skerr.Wrapf(err, "could not store PS %s of CL %q to clstore", psID, clID)
 	}
@@ -392,62 +339,6 @@ func (g *goldTryjobProcessor) getPatchSet(ctx context.Context, psOrder int, psID
 	}
 	// already found the PS in the store
 	return ps, nil
-}
-
-// hasUntriagedDigests returns true if any of the results corresponds to a digest that is untriaged,
-// false otherwise.
-func (g *goldTryjobProcessor) hasUntriagedDigests(results []tjstore.TryJobResult, exp expectations.Classifier, ignoreRules paramtools.ParamMatcher, knownDigests types.DigestSet) bool {
-	for _, tr := range results {
-		tn := types.TestName(tr.ResultParams[types.PrimaryKeyField])
-		if exp.Classification(tn, tr.Digest) != expectations.Untriaged {
-			continue
-		}
-		if _, ok := knownDigests[tr.Digest]; ok {
-			// It's already been seen on master
-			continue
-		}
-		p := make(paramtools.Params, len(tr.ResultParams)+len(tr.GroupParams)+len(tr.Options))
-		p.Add(tr.GroupParams)
-		p.Add(tr.Options)
-		p.Add(tr.ResultParams)
-		if ignoreRules.MatchAnyParams(p) {
-			// This trace matches an ignore
-			continue
-		}
-		return true
-	}
-	return false
-}
-
-// getExpectations returns an expectations.Classifier corresponding to the expectations at a given
-// CL. Any expectations changed by the CL override those on the master branch.
-func (g *goldTryjobProcessor) getExpectations(ctx context.Context, clID string, crs string) (expectations.Classifier, error) {
-	issueExpStore := g.expStore.ForChangeList(clID, crs)
-	tjExp, err := issueExpStore.Get(ctx)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "loading expectations for cl %s (%s)", clID, crs)
-	}
-
-	exp, err := g.expStore.Get(ctx)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "loading expectations for master")
-	}
-	return expectations.Join(tjExp, exp), nil
-}
-
-// getKnownDigests returns a DigestSet of the currently seen digests on the master branch.
-func (g *goldTryjobProcessor) getKnownDigests(ctx context.Context) (types.DigestSet, error) {
-	var buf bytes.Buffer
-	if err := g.gcsClient.LoadKnownDigests(ctx, &buf); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	xs := strings.Split(buf.String(), "\n")
-	rv := make(types.DigestSet, len(xs))
-	for _, s := range xs {
-		s = strings.TrimSpace(s)
-		rv[types.Digest(s)] = true
-	}
-	return rv, nil
 }
 
 // toTryJobResults converts the JSON file to a slice of TryJobResult.
