@@ -619,7 +619,7 @@ func main() {
 func startCommenter(ctx context.Context, cmntr code_review.ChangeListCommenter) {
 	go func() {
 		// TODO(kjlubick): tune this time, maybe make it a flag
-		util.RepeatCtx(ctx, 2*time.Minute, func(ctx context.Context) {
+		util.RepeatCtx(ctx, 3*time.Minute, func(ctx context.Context) {
 			err := cmntr.CommentOnChangeListsWithUntriagedDigests(ctx)
 			if err != nil {
 				sklog.Errorf("Could not comment on CLs with Untriaged Digests: %s", err)

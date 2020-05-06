@@ -306,10 +306,6 @@ func New(ctx context.Context, ic IndexerConfig, interval time.Duration) (*Indexe
 	// Set up the processing pipeline.
 	root := pdag.NewNodeWithParents(pdag.NoOp)
 
-	// We can start indexing the ChangeLists right away since it only depends on the expectations
-	// (and nothing from the master branch index).
-	pdag.NewNodeWithParents(ret.calcChangeListIndices, root)
-
 	// At the top level, Add the DigestCounters...
 	countsNodeInclude := root.Child(calcDigestCountsInclude)
 	// These are run in parallel because they can take tens of seconds
@@ -375,6 +371,11 @@ func (ix *Indexer) start(ctx context.Context, interval time.Duration) error {
 		sklog.Warning("Not starting indexer because duration was 0")
 		return nil
 	}
+
+	// We can start indexing the ChangeLists right away since it only depends on the expectations
+	// (and nothing from the master branch index).
+	go util.RepeatCtx(ctx, interval, ix.calcChangeListIndices)
+
 	defer shared.NewMetricsTimer("initial_synchronous_index").Stop()
 	// Build the first index synchronously.
 	tileStream := tilesource.GetTileStreamNow(ix.TileSource, interval, "gold-indexer")
@@ -733,17 +734,20 @@ const (
 	maxCLsToIndex = 1000
 )
 
-func (ix *Indexer) calcChangeListIndices(ctx context.Context, state interface{}) error {
+// calcChangeListIndices goes through all open changelists within a given window and computes
+// an index of them (e.g. the untriaged digests).
+func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 	// Update the metric when we return (either from error or because we completed indexing).
 	defer metrics2.GetInt64Metric(indexedCLsMetric).Update(int64(ix.changeListIndices.ItemCount()))
 	defer shared.NewMetricsTimer("indexer_calculate_changelist_indices").Stop()
 	// Make sure this doesn't take arbitrarily long.
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 	now := time.Now()
 	masterExp, err := ix.ExpectationsStore.Get(ctx)
 	if err != nil {
-		return skerr.Wrap(err)
+		sklog.Errorf("Could not get expectations for changelist indices: %s", err)
+		return
 	}
 
 	// An arbitrary cut off to the amount of recent, open CLs we try to index.
@@ -777,7 +781,6 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context, state interface{})
 
 			clKey := fmt.Sprintf("%s_%s", crs, cl.SystemID)
 			clIdx, ok := ix.getCLIndex(clKey)
-			var alreadyFilteredPS tjstore.CombinedPSID
 			if !ok || clIdx.ComputedTS.Before(cl.Updated) {
 				// Compute it from scratch and store
 				xps, err := ix.CLStore.GetPatchSets(ctx, cl.SystemID)
@@ -799,35 +802,19 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context, state interface{})
 				}
 				filtered := filterUntriagedResults(xtjr, exps)
 				if !ok {
-					clIdx = &ChangeListIndex{
-						UntriagedResults: map[tjstore.CombinedPSID][]tjstore.TryJobResult{},
-					}
+					clIdx = &ChangeListIndex{}
 				}
-				clIdx.UntriagedResults[psID] = filtered
-				alreadyFilteredPS = psID
-			}
-			if ok {
-				// Make a copy of the existing index so as we update maps, etc, it doesn't cause a race
-				// with anybody retrieving them.
-				clIdx = clIdx.Copy()
-			}
-
-			// Re-apply expectations on existing TryJob results. Then, update the timestamp and update the
-			// cache.
-			for psID, xtjr := range clIdx.UntriagedResults {
-				// One of these entries might be newly created (and therefore was already filtered).
-				if psID.Equal(alreadyFilteredPS) {
-					continue
-				}
-				clIdx.UntriagedResults[psID] = filterUntriagedResults(xtjr, exps)
+				clIdx.LatestPatchSet = psID
+				clIdx.UntriagedResults = filtered
 			}
 			clIdx.ComputedTS = now
 			ix.changeListIndices.Set(clKey, clIdx, ttlcache.DefaultExpiration)
 		}
 		return nil
 	})
-	// Wrap err if non-nil.
-	return skerr.Wrap(err)
+	if err != nil {
+		sklog.Errorf("Error indexing changelists: %s", err)
+	}
 }
 
 // filterUntriagedResults goes through all the TryJobResults and returns a slice with just the

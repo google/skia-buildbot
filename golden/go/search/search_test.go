@@ -870,25 +870,24 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 		"ext": "png",
 	}
 	mi.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{
-		UntriagedResults: map[tjstore.CombinedPSID][]tjstore.TryJobResult{
-			combinedID: {
-				{
-					GroupParams: anglerGroup,
-					Options:     options,
-					Digest:      data.AlphaUntriagedDigest,
-					ResultParams: map[string]string{
-						types.PrimaryKeyField: string(data.AlphaTest),
-						types.CorpusField:     "gm",
-					},
+		LatestPatchSet: combinedID,
+		UntriagedResults: []tjstore.TryJobResult{
+			{
+				GroupParams: anglerGroup,
+				Options:     options,
+				Digest:      data.AlphaUntriagedDigest,
+				ResultParams: map[string]string{
+					types.PrimaryKeyField: string(data.AlphaTest),
+					types.CorpusField:     "gm",
 				},
-				{
-					GroupParams: bullheadGroup,
-					Options:     options,
-					Digest:      data.BetaUntriagedDigest,
-					ResultParams: map[string]string{
-						types.PrimaryKeyField: string(data.BetaTest),
-						types.CorpusField:     "gm",
-					},
+			},
+			{
+				GroupParams: bullheadGroup,
+				Options:     options,
+				Digest:      data.BetaUntriagedDigest,
+				ResultParams: map[string]string{
+					types.PrimaryKeyField: string(data.BetaTest),
+					types.CorpusField:     "gm",
 				},
 			},
 		},
@@ -1332,12 +1331,6 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_UsesIndex_Success(t *testing.T
 		PS:  "abcdef",
 	}
 
-	someOtherID := tjstore.CombinedPSID{
-		CL:  "made up id",
-		CRS: crs,
-		PS:  "gasdf",
-	}
-
 	const alphaUntriagedTryJobDigest = types.Digest("aaaa65e567de97c8a62918401731c7ec")
 	const betaUntriagedTryJobDigest = types.Digest("bbbb34f7c915a1ac3a5ba524c741946c")
 	const gammaNegativeTryJobDigest = types.Digest("cccc41bf4584e51be99e423707157277")
@@ -1382,64 +1375,52 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_UsesIndex_Success(t *testing.T
 	}
 	indexTS := time.Date(2020, time.May, 1, 2, 3, 4, 0, time.UTC)
 	mi.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{
-		ComputedTS: indexTS,
-		UntriagedResults: map[tjstore.CombinedPSID][]tjstore.TryJobResult{
-			expectedID: {
-				{
-					GroupParams: anglerGroup,
-					Options:     options,
-					Digest:      betaUntriagedTryJobDigest, // should be reported.
-					ResultParams: map[string]string{
-						types.PrimaryKeyField: string(data.AlphaTest),
-						types.CorpusField:     "gm",
-					},
-				},
-				{
-					GroupParams: bullheadGroup,
-					Options:     options,
-					Digest:      data.AlphaUntriagedDigest, // already seen on master as untriaged.
-					ResultParams: map[string]string{
-						types.PrimaryKeyField: string(data.AlphaTest),
-						types.CorpusField:     "gm",
-					},
-				},
-				{
-					GroupParams: anglerGroup,
-					Options:     options,
-					Digest:      alphaUntriagedTryJobDigest, // should be reported.
-					ResultParams: map[string]string{
-						types.PrimaryKeyField: string(data.BetaTest),
-						types.CorpusField:     "gm",
-					},
-				},
-				{
-					GroupParams: bullheadGroup,
-					Options:     options,
-					Digest:      deltaIgnoredTryJobDigest, // matches an ignore rule; should be filtered.
-					ResultParams: map[string]string{
-						types.PrimaryKeyField: string(data.BetaTest),
-						types.CorpusField:     "gm",
-					},
-				},
-				{
-					GroupParams: crosshatchGroup,
-					Options:     options,
-					Digest:      gammaNegativeTryJobDigest, // already triaged as negative; should be filtered.
-					ResultParams: map[string]string{
-						types.PrimaryKeyField: string(data.AlphaTest),
-						types.CorpusField:     "gm",
-					},
+		ComputedTS:     indexTS,
+		LatestPatchSet: expectedID,
+		UntriagedResults: []tjstore.TryJobResult{
+			{
+				GroupParams: anglerGroup,
+				Options:     options,
+				Digest:      betaUntriagedTryJobDigest, // should be reported.
+				ResultParams: map[string]string{
+					types.PrimaryKeyField: string(data.AlphaTest),
+					types.CorpusField:     "gm",
 				},
 			},
-			someOtherID: { // this map entry should be ignored
-				{
-					GroupParams: anglerGroup,
-					Options:     options,
-					Digest:      "should be ignored",
-					ResultParams: map[string]string{
-						types.PrimaryKeyField: string(data.BetaTest),
-						types.CorpusField:     "gm",
-					},
+			{
+				GroupParams: bullheadGroup,
+				Options:     options,
+				Digest:      data.AlphaUntriagedDigest, // already seen on master as untriaged.
+				ResultParams: map[string]string{
+					types.PrimaryKeyField: string(data.AlphaTest),
+					types.CorpusField:     "gm",
+				},
+			},
+			{
+				GroupParams: anglerGroup,
+				Options:     options,
+				Digest:      alphaUntriagedTryJobDigest, // should be reported.
+				ResultParams: map[string]string{
+					types.PrimaryKeyField: string(data.BetaTest),
+					types.CorpusField:     "gm",
+				},
+			},
+			{
+				GroupParams: bullheadGroup,
+				Options:     options,
+				Digest:      deltaIgnoredTryJobDigest, // matches an ignore rule; should be filtered.
+				ResultParams: map[string]string{
+					types.PrimaryKeyField: string(data.BetaTest),
+					types.CorpusField:     "gm",
+				},
+			},
+			{
+				GroupParams: crosshatchGroup,
+				Options:     options,
+				Digest:      gammaNegativeTryJobDigest, // already triaged as negative; should be filtered.
+				ResultParams: map[string]string{
+					types.PrimaryKeyField: string(data.AlphaTest),
+					types.CorpusField:     "gm",
 				},
 			},
 		},
