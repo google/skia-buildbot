@@ -3,6 +3,7 @@ package repo_manager
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/user"
@@ -71,6 +72,16 @@ var (
 // AndroidRepoManagerConfig provides configuration for the Android RepoManager.
 type AndroidRepoManagerConfig struct {
 	CommonRepoManagerConfig
+	ProjectMetadataFileConfig
+}
+
+type ProjectMetadataFileConfig struct {
+	FilePath    string `json:"metadata_file_path"`
+	Name        string `json:"metadata_project_name"`
+	Description string `json:"metadata_project_description"`
+	HomePage    string `json:"metadata_project_home_page"`
+	GitURL      string `json:"metadata_project_git_url"`
+	LicenseType string `json:"metadata_project_license_type"`
 }
 
 // See documentation for RepoManagerConfig interface.
@@ -86,6 +97,13 @@ type androidRepoManager struct {
 	*commonRepoManager
 	repoUrl      string
 	repoToolPath string
+
+	metadataFilePath           string
+	metadataProjectName        string
+	metadataProjectDesc        string
+	metadataProjectHomePage    string
+	metadataProjectGitURL      string
+	metadataProjectLicenseType string
 }
 
 func NewAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
@@ -127,6 +145,13 @@ func NewAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, reg
 		commonRepoManager: crm,
 		repoUrl:           g.GetRepoUrl(),
 		repoToolPath:      repoToolPath,
+
+		metadataFilePath:           c.ProjectMetadataFileConfig.FilePath,
+		metadataProjectName:        c.ProjectMetadataFileConfig.Name,
+		metadataProjectDesc:        c.ProjectMetadataFileConfig.Description,
+		metadataProjectHomePage:    c.ProjectMetadataFileConfig.HomePage,
+		metadataProjectGitURL:      c.ProjectMetadataFileConfig.GitURL,
+		metadataProjectLicenseType: c.ProjectMetadataFileConfig.LicenseType,
 	}
 	return r, nil
 }
@@ -313,6 +338,38 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 
 	if _, addGifErr := r.childRepo.Git(ctx, "add", android_skia_checkout.LibGifRelPath); addGifErr != nil {
 		return 0, addGifErr
+	}
+
+	if r.metadataFilePath != "" {
+		// Populate the METADATA file.
+		d := time.Now()
+		metadataContents := fmt.Sprintf(`name: "%s"
+description: "%s"
+third_party {
+  url {
+    type: HOMEPAGE
+    value: "%s"
+  }
+  url {
+    type: GIT
+    value: "%s"
+  }
+  version: "%s"
+  license_type: %s
+  last_upgrade_date {
+    year: %d
+    month: %d
+    day: %d
+  }
+}
+`, r.metadataProjectName, r.metadataProjectDesc, r.metadataProjectHomePage, r.metadataProjectGitURL, to.Id, r.metadataProjectLicenseType, d.Year(), d.Month(), d.Day())
+
+		if err := ioutil.WriteFile(r.metadataFilePath, []byte(metadataContents), os.ModePerm); err != nil {
+			return 0, fmt.Errorf("Error when writing to %s: %s", r.metadataFilePath, err)
+		}
+		if _, addGifErr := r.childRepo.Git(ctx, "add", r.metadataFilePath); addGifErr != nil {
+			return 0, addGifErr
+		}
 	}
 
 	// Run the pre-upload steps.
