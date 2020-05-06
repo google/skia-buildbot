@@ -22,6 +22,30 @@
       "revId": "1cf17199719dfc420ff56015c04d1a1b484bbe50",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d2fbbec_55fe0a72",
+        "filename": "sk8s/go/metadata/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-06T13:53:57Z",
+      "side": 1,
+      "message": "On rack1 the get_oauth2_token application is a separate app that is run under cron, so it is effectively doing the same thing as we are doing here.",
+      "parentUuid": "6529ccf2_42039ab8",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 50
+      },
+      "revId": "1cf17199719dfc420ff56015c04d1a1b484bbe50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
