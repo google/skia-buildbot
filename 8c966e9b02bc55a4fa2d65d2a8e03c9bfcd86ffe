@@ -141,6 +141,30 @@
       "revId": "8c966e9b02bc55a4fa2d65d2a8e03c9bfcd86ffe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d593d0a7_46e09d68",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-06T15:45:27Z",
+      "side": 1,
+      "message": "Something like this?",
+      "parentUuid": "cd53d9fb_329304b6",
+      "range": {
+        "startLine": 128,
+        "startChar": 0,
+        "endLine": 128,
+        "endChar": 71
+      },
+      "revId": "8c966e9b02bc55a4fa2d65d2a8e03c9bfcd86ffe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
