@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aa947293_f7842402",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-06T18:13:42Z",
+      "side": 1,
+      "message": "Nit: if you make this a pointer and add a json tag, it\u0027ll be more obviously optional, and you could remove \"metadata\" from the tags on ProjectMetadataFileConfig.",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 75,
+        "endChar": 26
+      },
+      "revId": "bf648569d0c28ab696649bf008fe7d618514d0f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "785608d6_84760dcf",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-06T18:13:42Z",
+      "side": 1,
+      "message": "Let\u0027s add validation for this",
+      "range": {
+        "startLine": 78,
+        "startChar": 5,
+        "endLine": 78,
+        "endChar": 30
+      },
+      "revId": "bf648569d0c28ab696649bf008fe7d618514d0f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "984e109c_106c3ff4",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-06T18:13:42Z",
+      "side": 1,
+      "message": "nit: camel case, here and below",
+      "range": {
+        "startLine": 79,
+        "startChar": 27,
+        "endLine": 79,
+        "endChar": 45
+      },
+      "revId": "bf648569d0c28ab696649bf008fe7d618514d0f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9283d895_74932837",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-06T18:13:42Z",
+      "side": 1,
+      "message": "Nit: I think you could just store the ProjectMetadataFileConfig.",
+      "range": {
+        "startLine": 101,
+        "startChar": 1,
+        "endLine": 106,
+        "endChar": 34
+      },
+      "revId": "bf648569d0c28ab696649bf008fe7d618514d0f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a05f772a_95d5047f",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-06T18:13:42Z",
+      "side": 1,
+      "message": "Nit: I think we can remove this now",
+      "range": {
+        "startLine": 122,
+        "startChar": 5,
+        "endLine": 122,
+        "endChar": 33
+      },
+      "revId": "bf648569d0c28ab696649bf008fe7d618514d0f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
