@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "588bcadf_1ba27bd1",
+        "filename": "golden/go/indexer/types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-06T11:27:47Z",
+      "side": 1,
+      "message": "Ok, will do in a CL at the end of the chain for easier refactoring.",
+      "parentUuid": "39b5549d_d45cec98",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 75,
+        "endChar": 25
+      },
+      "revId": "f9af9de9ffdf3c0bec8c9fb660e28358141c4da6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "43c82816_aeb8f945",
         "filename": "golden/go/indexer/types.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "f9af9de9ffdf3c0bec8c9fb660e28358141c4da6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e918b45_65603927",
+        "filename": "golden/go/indexer/types.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-06T11:27:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "43c82816_aeb8f945",
+      "range": {
+        "startLine": 85,
+        "startChar": 26,
+        "endLine": 85,
+        "endChar": 30
+      },
+      "revId": "f9af9de9ffdf3c0bec8c9fb660e28358141c4da6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
