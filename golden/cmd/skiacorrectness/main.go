@@ -365,9 +365,6 @@ func main() {
 	var clUpdater code_review.ChangeListLandedUpdater
 	if *authoritative && crs != nil && *changeListTracking {
 		clUpdater = updater.New(crs, expStore, cls)
-
-		clCommenter := commenter.New(crs, cls, clTemplates[*clCommentTemplateIndex], *siteURL, *clCommentDryRun)
-		startCommenter(ctx, clCommenter)
 	}
 
 	ctc := tilesource.CachedTileSourceConfig{
@@ -410,6 +407,11 @@ func main() {
 	searchAPI := search.New(diffStore, expStore, expChangeHandler, ixr, cls, tjs, nil, publiclyViewableParams)
 
 	sklog.Infof("Search API created")
+
+	if *authoritative && crs != nil && *changeListTracking {
+		clCommenter := commenter.New(crs, cls, searchAPI, clTemplates[*clCommentTemplateIndex], *siteURL, *clCommentDryRun)
+		startCommenter(ctx, clCommenter)
+	}
 
 	swc := status.StatusWatcherConfig{
 		VCS:               vcs,
@@ -657,7 +659,7 @@ func loadParamFile(fName string) (paramtools.ParamSet, error) {
 	return params, nil
 }
 
-const basicCLTemplate = `Gold has detected one or more untriaged digests on patchset %d.
+const basicCLTemplate = `Gold has detected about %d untriaged digest(s) on patchset %d.
 Please triage them at %s/search?issue=%s.`
 
 const chromeCLTemplate = basicCLTemplate + `

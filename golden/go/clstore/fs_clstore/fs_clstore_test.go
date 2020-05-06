@@ -62,12 +62,12 @@ func TestPutGetPatchSet(t *testing.T) {
 	require.Equal(t, clstore.ErrNotFound, err)
 
 	ps := code_review.PatchSet{
-		SystemID:            expectedPSID,
-		ChangeListID:        expectedCLID,
-		Order:               3,
-		GitHash:             "fedcba98765443321",
-		HasUntriagedDigests: true,
-		CommentedOnCL:       true,
+		SystemID:                      expectedPSID,
+		ChangeListID:                  expectedCLID,
+		Order:                         3,
+		GitHash:                       "fedcba98765443321",
+		LastCheckedIfCommentNecessary: time.Date(2020, time.May, 1, 2, 3, 4, 0, time.UTC),
+		CommentedOnCL:                 true,
 	}
 
 	err = f.PutPatchSet(ctx, ps)
@@ -96,11 +96,10 @@ func TestPutGetPatchSetByOrder(t *testing.T) {
 	require.Equal(t, clstore.ErrNotFound, err)
 
 	ps := code_review.PatchSet{
-		SystemID:            "abcdef012345",
-		ChangeListID:        expectedCLID,
-		Order:               expectedPSOrder,
-		GitHash:             "fedcba98765443321",
-		HasUntriagedDigests: true,
+		SystemID:     "abcdef012345",
+		ChangeListID: expectedCLID,
+		Order:        expectedPSOrder,
+		GitHash:      "fedcba98765443321",
 	}
 
 	err = f.PutPatchSet(ctx, ps)

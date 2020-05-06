@@ -58,24 +58,24 @@ type changeListEntry struct {
 
 // patchSetEntry represents how a PatchSet is stored in Firestore.
 type patchSetEntry struct {
-	SystemID            string `firestore:"systemid"`
-	System              string `firestore:"system"`
-	ChangeListID        string `firestore:"changelistid"`
-	Order               int    `firestore:"order"`
-	GitHash             string `firestore:"githash"`
-	HasUntriagedDigests bool   `firestore:"has_untriaged_digests"`
-	CommentedOnCL       bool   `firestore:"did_comment"`
+	SystemID                      string    `firestore:"systemid"`
+	System                        string    `firestore:"system"`
+	ChangeListID                  string    `firestore:"changelistid"`
+	Order                         int       `firestore:"order"`
+	GitHash                       string    `firestore:"githash"`
+	CommentedOnCL                 bool      `firestore:"did_comment"`
+	LastCheckedIfCommentNecessary time.Time `firestore:"last_checked_about_comment"`
 }
 
 // toPatchSet converts the Firestore representation of a PatchSet to a code_review.PatchSet
 func (p patchSetEntry) toPatchSet() code_review.PatchSet {
 	return code_review.PatchSet{
-		SystemID:            p.SystemID,
-		ChangeListID:        p.ChangeListID,
-		Order:               p.Order,
-		GitHash:             p.GitHash,
-		HasUntriagedDigests: p.HasUntriagedDigests,
-		CommentedOnCL:       p.CommentedOnCL,
+		SystemID:                      p.SystemID,
+		ChangeListID:                  p.ChangeListID,
+		Order:                         p.Order,
+		GitHash:                       p.GitHash,
+		LastCheckedIfCommentNecessary: p.LastCheckedIfCommentNecessary,
+		CommentedOnCL:                 p.CommentedOnCL,
 	}
 }
 
@@ -281,13 +281,13 @@ func (s *StoreImpl) PutPatchSet(ctx context.Context, ps code_review.PatchSet) er
 	pd := s.client.Collection(changelistCollection).Doc(fID).
 		Collection(patchsetCollection).Doc(ps.SystemID)
 	record := patchSetEntry{
-		SystemID:            ps.SystemID,
-		System:              s.crsName,
-		ChangeListID:        ps.ChangeListID,
-		Order:               ps.Order,
-		GitHash:             ps.GitHash,
-		HasUntriagedDigests: ps.HasUntriagedDigests,
-		CommentedOnCL:       ps.CommentedOnCL,
+		SystemID:                      ps.SystemID,
+		System:                        s.crsName,
+		ChangeListID:                  ps.ChangeListID,
+		Order:                         ps.Order,
+		GitHash:                       ps.GitHash,
+		LastCheckedIfCommentNecessary: ps.LastCheckedIfCommentNecessary,
+		CommentedOnCL:                 ps.CommentedOnCL,
 	}
 	_, err := s.client.Set(ctx, pd, record, maxWriteAttempts, maxOperationTime)
 	if err != nil {
