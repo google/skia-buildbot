@@ -4,8 +4,14 @@ package indexer
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
+
+	ttlcache "github.com/patrickmn/go-cache"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/clstore"
+	"go.skia.org/infra/golden/go/tjstore"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
@@ -30,6 +36,8 @@ import (
 const (
 	// Metric to track the number of digests that do not have be uploaded by bots.
 	knownHashesMetric = "known_digests"
+	// Metric to track the number of changelists we currently have indexed.
+	indexedCLsMetric = "gold_indexed_changelists"
 )
 
 // SearchIndex contains everything that is necessary to search
@@ -267,6 +275,8 @@ type IndexerConfig struct {
 	GCSClient         storage.GCSClient
 	TileSource        tilesource.TileSource
 	Warmer            warmer.DiffWarmer
+	TryJobStore       tjstore.Store
+	CLStore           clstore.Store
 }
 
 // Indexer is the type that continuously processes data as the underlying
@@ -276,10 +286,12 @@ type IndexerConfig struct {
 type Indexer struct {
 	IndexerConfig
 
-	pipeline       *pdag.Node
-	indexTestsNode *pdag.Node
-	lastIndex      *SearchIndex
-	mutex          sync.RWMutex
+	pipeline         *pdag.Node
+	indexTestsNode   *pdag.Node
+	lastMasterIndex  *SearchIndex
+	masterIndexMutex sync.RWMutex
+
+	changeListIndices *ttlcache.Cache
 }
 
 // New returns a new IndexSource instance. It synchronously indexes the initially
@@ -287,11 +299,16 @@ type Indexer struct {
 // The provided interval defines how often the index should be refreshed.
 func New(ctx context.Context, ic IndexerConfig, interval time.Duration) (*Indexer, error) {
 	ret := &Indexer{
-		IndexerConfig: ic,
+		IndexerConfig:     ic,
+		changeListIndices: ttlcache.New(changelistCacheExpirationDuration, changelistCacheExpirationDuration),
 	}
 
 	// Set up the processing pipeline.
 	root := pdag.NewNodeWithParents(pdag.NoOp)
+
+	// We can start indexing the ChangeLists right away since it only depends on the expectations
+	// (and nothing from the master branch index).
+	pdag.NewNodeWithParents(ret.calcChangeListIndices, root)
 
 	// At the top level, Add the DigestCounters...
 	countsNodeInclude := root.Child(calcDigestCountsInclude)
@@ -346,9 +363,9 @@ func (ix *Indexer) GetIndex() IndexSearcher {
 // getIndex is like GetIndex but returns the bare struct, for
 // internal package use.
 func (ix *Indexer) getIndex() *SearchIndex {
-	ix.mutex.RLock()
-	defer ix.mutex.RUnlock()
-	return ix.lastIndex
+	ix.masterIndexMutex.RLock()
+	defer ix.masterIndexMutex.RUnlock()
+	return ix.lastMasterIndex
 }
 
 // start builds the initial index and starts the background
@@ -492,12 +509,12 @@ func (ix *Indexer) cloneLastIndex() *SearchIndex {
 	}
 }
 
-// setIndex sets the lastIndex value at the very end of the pipeline.
+// setIndex sets the lastMasterIndex value at the very end of the pipeline.
 func (ix *Indexer) setIndex(_ context.Context, state interface{}) error {
 	newIndex := state.(*SearchIndex)
-	ix.mutex.Lock()
-	defer ix.mutex.Unlock()
-	ix.lastIndex = newIndex
+	ix.masterIndexMutex.Lock()
+	defer ix.masterIndexMutex.Unlock()
+	ix.lastMasterIndex = newIndex
 	return nil
 }
 
@@ -703,10 +720,147 @@ func runWarmer(ctx context.Context, state interface{}) error {
 	return nil
 }
 
+const (
+	// maxAgeOfOpenCLsToIndex is the maximum time between now and a CL's last updated time that we
+	// will still index.
+	maxAgeOfOpenCLsToIndex = 3 * 24 * time.Hour
+	// We only keep around open CLs in the index. When a CL is closed, we don't update the indices
+	// any more. These entries will expire and be removed from the cache after
+	// changelistCacheExpirationDuration time has passed.
+	changelistCacheExpirationDuration = 24 * time.Hour
+	// maxCLsToIndex is the maximum number of CLs we query each loop to index them. Hopefully this
+	// limit isn't reached regularly.
+	maxCLsToIndex = 1000
+)
+
+func (ix *Indexer) calcChangeListIndices(ctx context.Context, state interface{}) error {
+	// Update the metric when we return (either from error or because we completed indexing).
+	defer metrics2.GetInt64Metric(indexedCLsMetric).Update(int64(ix.changeListIndices.ItemCount()))
+	defer shared.NewMetricsTimer("indexer_calculate_changelist_indices").Stop()
+	// Make sure this doesn't take arbitrarily long.
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+	now := time.Now()
+	masterExp, err := ix.ExpectationsStore.Get(ctx)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// An arbitrary cut off to the amount of recent, open CLs we try to index.
+	recent := time.Now().Add(-maxAgeOfOpenCLsToIndex)
+	xcl, _, err := ix.CLStore.GetChangeLists(ctx, clstore.SearchOptions{
+		StartIdx:    0,
+		Limit:       maxCLsToIndex,
+		OpenCLsOnly: true,
+		After:       recent,
+	})
+
+	sklog.Infof("Indexing %d CLs", len(xcl))
+
+	crs := ix.CLStore.System()
+	const numChunks = 8 // arbitrarily picked, could likely be tuned based on contention of
+	// changelistCache
+	chunkSize := (len(xcl) / numChunks) + 1 // add one to avoid integer truncation.
+	err = util.ChunkIterParallel(ctx, len(xcl), chunkSize, func(ctx context.Context, startIdx int, endIdx int) error {
+		for _, cl := range xcl[startIdx:endIdx] {
+			if err := ctx.Err(); err != nil {
+				sklog.Errorf("ChangeList indexing timed out (%v)", err)
+				return nil
+			}
+
+			issueExpStore := ix.ExpectationsStore.ForChangeList(cl.SystemID, crs)
+			clExps, err := issueExpStore.Get(ctx)
+			if err != nil {
+				return skerr.Wrapf(err, "loading expectations for cl %s (%s)", cl.SystemID, crs)
+			}
+			exps := expectations.Join(clExps, masterExp)
+
+			clKey := fmt.Sprintf("%s_%s", crs, cl.SystemID)
+			clIdx, ok := ix.getCLIndex(clKey)
+			var alreadyFilteredPS tjstore.CombinedPSID
+			if !ok || clIdx.ComputedTS.Before(cl.Updated) {
+				// Compute it from scratch and store
+				xps, err := ix.CLStore.GetPatchSets(ctx, cl.SystemID)
+				if err != nil {
+					return skerr.Wrap(err)
+				}
+				if len(xps) == 0 {
+					continue
+				}
+				latestPS := xps[len(xps)-1]
+				psID := tjstore.CombinedPSID{
+					CL:  cl.SystemID,
+					CRS: crs,
+					PS:  latestPS.SystemID,
+				}
+				xtjr, err := ix.TryJobStore.GetResults(ctx, psID)
+				if err != nil {
+					return skerr.Wrap(err)
+				}
+				filtered := filterUntriagedResults(xtjr, exps)
+				if !ok {
+					clIdx = &ChangeListIndex{
+						UntriagedResultsProduced: map[tjstore.CombinedPSID][]tjstore.TryJobResult{},
+					}
+				}
+				clIdx.UntriagedResultsProduced[psID] = filtered
+				alreadyFilteredPS = psID
+			}
+			if ok {
+				// Make a copy of the existing index so as we update maps, etc, it doesn't cause a race
+				// with anybody retrieving them.
+				clIdx = clIdx.Copy()
+			}
+
+			// Re-apply expectations on existing TryJob results. Then, update the timestamp and update the
+			// cache.
+			for psID, xtjr := range clIdx.UntriagedResultsProduced {
+				// One of these entries might be newly created (and therefore was already filtered).
+				if psID.Equal(alreadyFilteredPS) {
+					continue
+				}
+				clIdx.UntriagedResultsProduced[psID] = filterUntriagedResults(xtjr, exps)
+			}
+			clIdx.ComputedTS = now
+			ix.changeListIndices.Set(clKey, clIdx, ttlcache.DefaultExpiration)
+		}
+		return nil
+	})
+	// Wrap err if non-nil.
+	return skerr.Wrap(err)
+}
+
+// filterUntriagedResults goes through all the TryJobResults and returns a slice with just the
+// untriaged results.
+func filterUntriagedResults(xtjr []tjstore.TryJobResult, exps expectations.Classifier) []tjstore.TryJobResult {
+	var rv []tjstore.TryJobResult
+	for _, tjr := range xtjr {
+		tn := types.TestName(tjr.ResultParams[types.PrimaryKeyField])
+		if exps.Classification(tn, tjr.Digest) == expectations.Untriaged {
+			rv = append(rv, tjr)
+		}
+	}
+	return rv
+}
+
+// getCLIndex is a helper that returns the appropriately typed element from changeListIndices
+func (ix *Indexer) getCLIndex(key string) (*ChangeListIndex, bool) {
+	clIdx, ok := ix.changeListIndices.Get(key)
+	if !ok {
+		return nil, false
+	}
+	return clIdx.(*ChangeListIndex), true
+}
+
 // GetIndexForCL implements the IndexSource interface.
 func (ix *Indexer) GetIndexForCL(crs, clID string) *ChangeListIndex {
-	// TODO(kjlubick)
-	return nil
+	key := fmt.Sprintf("%s_%s", crs, clID)
+	clIdx, ok := ix.getCLIndex(key)
+	if !ok {
+		return nil
+	}
+	// Return a copy to prevent clients from messing with the cached version.
+	return clIdx.Copy()
 }
 
 // Make sure SearchIndex fulfills the IndexSearcher interface
