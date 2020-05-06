@@ -27,3 +27,19 @@ func (_m *IndexSource) GetIndex() indexer.IndexSearcher {
 
 	return r0
 }
+
+// GetIndexForCL provides a mock function with given fields: crs, clID
+func (_m *IndexSource) GetIndexForCL(crs string, clID string) *indexer.ChangeListIndex {
+	ret := _m.Called(crs, clID)
+
+	var r0 *indexer.ChangeListIndex
+	if rf, ok := ret.Get(0).(func(string, string) *indexer.ChangeListIndex); ok {
+		r0 = rf(crs, clID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*indexer.ChangeListIndex)
+		}
+	}
+
+	return r0
+}

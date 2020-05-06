@@ -703,6 +703,12 @@ func runWarmer(ctx context.Context, state interface{}) error {
 	return nil
 }
 
+// GetIndexForCL implements the IndexSource interface.
+func (ix *Indexer) GetIndexForCL(crs, clID string) *ChangeListIndex {
+	// TODO(kjlubick)
+	return nil
+}
+
 // Make sure SearchIndex fulfills the IndexSearcher interface
 var _ IndexSearcher = (*SearchIndex)(nil)
 
