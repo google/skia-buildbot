@@ -93,6 +93,30 @@
       "revId": "8c966e9b02bc55a4fa2d65d2a8e03c9bfcd86ffe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1ffd55b_20b88bc6",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-06T14:18:27Z",
+      "side": 1,
+      "message": "Ok, I think my comments here are related; I don\u0027t love how much this code knows about the structure of the checkouts, how to get the hash, etc.  Writing the new revision ID to a file is very similar to what other rollers do in their normal flow, the only difference being that this file has some structure.  I think I\u0027d prefer to either integrate this into version_file_common by adding a Template field to the VersionFileConfig struct (https://skia.googlesource.com/buildbot/+/master/autoroll/go/repo_manager/common/version_file_common/version_file_common.go#13), or add something similar to the AndroidRepoManagerConfig.\n\nOut of curiosity, where does the structure of this file come from?  Is it intended to be parsed?  If so, is there a proto definition we can use to write it rather than a hard-coded template?",
+      "parentUuid": "b8b8e753_11528455",
+      "range": {
+        "startLine": 128,
+        "startChar": 0,
+        "endLine": 128,
+        "endChar": 71
+      },
+      "revId": "8c966e9b02bc55a4fa2d65d2a8e03c9bfcd86ffe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
