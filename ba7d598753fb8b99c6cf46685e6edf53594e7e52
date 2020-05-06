@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ac887e01_96c2428d",
+        "filename": "demos/go/load-demo-assets/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-06T20:00:51Z",
+      "side": 1,
+      "message": "It doesn\u0027t matter too much for this CLI program, but I\u0027d like to get you used to context conventions.\n1) strive to only have context.Background() in the main function (or in tests).\n2) if a function needs a context, it should be passed in as the first param, named ctx.\n3) if 2) cannot easily be done, context.TODO() should be used a short-term fix until things can be properly refactored.\n4) Never store context.Context in a struct.\n5) Make use of r.Context() for web requests.\n6) Make use of context.WithTimeout() where appropriate.",
+      "range": {
+        "startLine": 30,
+        "startChar": 22,
+        "endLine": 30,
+        "endChar": 42
+      },
+      "revId": "ba7d598753fb8b99c6cf46685e6edf53594e7e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe3dd7e5_c43454b4",
+        "filename": "demos/go/load-demo-assets/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-06T20:00:51Z",
+      "side": 1,
+      "message": "driveby comment: I\u0027m surprised Gerrit permissions are needed.",
+      "range": {
+        "startLine": 42,
+        "startChar": 77,
+        "endLine": 42,
+        "endChar": 89
+      },
+      "revId": "ba7d598753fb8b99c6cf46685e6edf53594e7e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff9acc6c_6eed3ae4",
+        "filename": "demos/go/load-demo-assets/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-06T20:00:51Z",
+      "side": 1,
+      "message": "Please add a comment describing the key/values in this map. It\u0027s not initially clear to me what they are.",
+      "range": {
+        "startLine": 53,
+        "startChar": 30,
+        "endLine": 53,
+        "endChar": 36
+      },
+      "revId": "ba7d598753fb8b99c6cf46685e6edf53594e7e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0ed9824_5f856bab",
+        "filename": "demos/go/load-demo-assets/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-06T20:00:51Z",
+      "side": 1,
+      "message": "more context nits: It\u0027s fine to have ctx :\u003d context.Background() near the top of your main() and pass ctx in everywhere.",
+      "range": {
+        "startLine": 56,
+        "startChar": 27,
+        "endLine": 56,
+        "endChar": 47
+      },
+      "revId": "ba7d598753fb8b99c6cf46685e6edf53594e7e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "266f1be3_1455da08",
+        "filename": "demos/go/load-demo-assets/main.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-06T20:00:51Z",
+      "side": 1,
+      "message": "optional: Have your top level JSON object be an array instead of an object\n\nrationale:\n1) It\u0027s easier to iterate over when making the main page.\n   ele._demos.map((demo) \u003d\u003e demoTemplate(demo)) is a little cleaner IMO.\n2) The iteration order is deterministic and easier to sort (if we ever wanted to add filtering/sorting).",
+      "range": {
+        "startLine": 73,
+        "startChar": 65,
+        "endLine": 73,
+        "endChar": 68
+      },
+      "revId": "ba7d598753fb8b99c6cf46685e6edf53594e7e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ec648ca_25f13fc1",
+        "filename": "demos/modules/demo-list-sk/demo-list-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-06T20:00:51Z",
+      "side": 1,
+      "message": "nit: 4 spaces of indent, since we are inside \u003cthead\u003e\n\nSimilar logic on line 18",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 2
+      },
+      "revId": "ba7d598753fb8b99c6cf46685e6edf53594e7e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23df5d36_db4edfe5",
+        "filename": "demos/modules/demo-list-sk/demo-list-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-06T20:00:51Z",
+      "side": 1,
+      "message": "I would recommend not making fetch calls in the constructor. connectedCallback is almost always the right place to put initial fetches, IMO.",
+      "range": {
+        "startLine": 40,
+        "startChar": 4,
+        "endLine": 40,
+        "endChar": 9
+      },
+      "revId": "ba7d598753fb8b99c6cf46685e6edf53594e7e52",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
