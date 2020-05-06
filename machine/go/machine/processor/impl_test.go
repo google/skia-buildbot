@@ -65,6 +65,25 @@ func TestDimensionsFromAndroidProperties_Success(t *testing.T) {
 	assert.Equal(t, expected, got)
 }
 
+func TestDimensionsFromAndroidProperties_AppendIncrementalBuildToDeviceOS(t *testing.T) {
+	unittest.SmallTest(t)
+
+	adbResponse := strings.Join([]string{
+		"[ro.build.id]: [QQ2A.200305.002]",          // device_os
+		"[ro.build.version.incremental]: [6254899]", // device_os additional data.
+	}, "\n")
+
+	dimensions := parseAndroidProperties(adbResponse)
+	got := dimensionsFromAndroidProperties(dimensions)
+
+	expected := map[string][]string{
+		"android_devices": {"1"},
+		"device_os":       {"Q", "QQ2A.200305.002", "QQ2A.200305.002_6254899"},
+		machine.DimOS:     {"Android"},
+	}
+	assert.Equal(t, expected, got)
+}
+
 func TestDimensionsFromAndroidProperties_EmptyFromEmpty(t *testing.T) {
 	unittest.SmallTest(t)
 
