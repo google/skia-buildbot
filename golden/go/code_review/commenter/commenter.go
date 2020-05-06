@@ -14,6 +14,8 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/code_review"
+	"go.skia.org/infra/golden/go/search"
+	"go.skia.org/infra/golden/go/tjstore"
 )
 
 const (
@@ -29,11 +31,14 @@ type Impl struct {
 	instanceURL     string
 	logCommentsOnly bool
 	messageTemplate string
+	search          search.SearchAPI
 
 	liveness metrics2.Liveness
+	// used to mock the time in tests
+	now func() time.Time
 }
 
-func New(c code_review.Client, s clstore.Store, messageTemplate, instanceURL string, logCommentsOnly bool) *Impl {
+func New(c code_review.Client, s clstore.Store, search search.SearchAPI, messageTemplate, instanceURL string, logCommentsOnly bool) *Impl {
 	return &Impl{
 		crs:             c,
 		store:           s,
@@ -41,6 +46,8 @@ func New(c code_review.Client, s clstore.Store, messageTemplate, instanceURL str
 		logCommentsOnly: logCommentsOnly,
 		messageTemplate: messageTemplate,
 		liveness:        metrics2.NewLiveness(completedCommentCycle),
+		search:          search,
+		now:             time.Now,
 	}
 }
 
@@ -54,7 +61,7 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 	// Due to the fact that cl.Updated gets set in ingestion when new data is seen, we only need
 	// to look at CLs that were Updated "recently". We make the range of time that we search
 	// much wider than we need to account for either glitches in ingestion or outages of the CRS.
-	recent := time.Now().Add(-timePeriodOfCLsToCheck)
+	recent := i.now().Add(-timePeriodOfCLsToCheck)
 	xcl, _, err := i.store.GetChangeLists(ctx, clstore.SearchOptions{
 		StartIdx:    0,
 		Limit:       pageSize,
@@ -134,18 +141,17 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 		// We only want to comment on the most recent PS and only if it has untriaged digests.
 		// Earlier PS are probably obsolete.
 		mostRecentPS := xps[len(xps)-1]
-		if mostRecentPS.HasUntriagedDigests && !mostRecentPS.CommentedOnCL {
-			if i.logCommentsOnly {
-				sklog.Infof("Should comment on CL %s with message %s", cl.SystemID, i.untriagedMessage(cl, mostRecentPS))
-			} else {
-				err := i.crs.CommentOn(ctx, cl.SystemID, i.untriagedMessage(cl, mostRecentPS))
-				if err != nil {
-					return skerr.Wrapf(err, "commenting on %s CL %s", i.crs.System(), cl.SystemID)
+		if !mostRecentPS.CommentedOnCL && cl.Updated.After(mostRecentPS.LastCheckedIfCommentNecessary) {
+			numUntriaged, lastCheckTS := i.searchIndexForNewUntriagedDigests(ctx, cl.SystemID, mostRecentPS.SystemID)
+			mostRecentPS.LastCheckedIfCommentNecessary = lastCheckTS
+			if numUntriaged > 0 {
+				if err := i.maybeCommentOn(ctx, cl, mostRecentPS, numUntriaged); err != nil {
+					return skerr.Wrap(err)
 				}
+				mostRecentPS.CommentedOnCL = true
 			}
-			mostRecentPS.CommentedOnCL = true
 			if err := i.store.PutPatchSet(ctx, mostRecentPS); err != nil {
-				return skerr.Wrapf(err, "updating PS %#v that we commented on it", mostRecentPS)
+				return skerr.Wrapf(err, "updating PS %#v", mostRecentPS)
 			}
 		}
 	}
@@ -153,9 +159,22 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 	return nil
 }
 
+// maybeCommentOn either comments on the given CL/PS that there are untriaged digests on it or
+// logs if this commenter is configured to not actually comment.
+func (i *Impl) maybeCommentOn(ctx context.Context, cl code_review.ChangeList, ps code_review.PatchSet, untriagedDigests int) error {
+	if i.logCommentsOnly {
+		sklog.Infof("Should comment on CL %s with message %s", cl.SystemID, i.untriagedMessage(cl, ps, untriagedDigests))
+		return nil
+	}
+	if err := i.crs.CommentOn(ctx, cl.SystemID, i.untriagedMessage(cl, ps, untriagedDigests)); err != nil {
+		return skerr.Wrapf(err, "commenting on %s CL %s", i.crs.System(), cl.SystemID)
+	}
+	return nil
+}
+
 // untriagedMessage returns a message about untriaged images on the given CL/PS.
-func (i *Impl) untriagedMessage(cl code_review.ChangeList, ps code_review.PatchSet) string {
-	return fmt.Sprintf(i.messageTemplate, ps.Order, i.instanceURL, cl.SystemID)
+func (i *Impl) untriagedMessage(cl code_review.ChangeList, ps code_review.PatchSet, untriagedDigests int) string {
+	return fmt.Sprintf(i.messageTemplate, untriagedDigests, ps.Order, i.instanceURL, cl.SystemID)
 }
 
 // updateCLInStoreIfAbandoned checks with the CRS to see if the cl is still Open. If it is, it
@@ -182,11 +201,28 @@ func (i *Impl) updateCLInStoreIfAbandoned(ctx context.Context, cl code_review.Ch
 	// Store the latest one from the CRS (with new timestamp) to the clstore so we
 	// remember it is abandoned in the future. This also catches things like the cl Subject
 	// changing since it was opened.
-	up.Updated = time.Now()
+	up.Updated = i.now()
 	if err := i.store.PutChangeList(ctx, up); err != nil {
 		return false, skerr.Wrapf(err, "storing CL %s", up.SystemID)
 	}
 	return false, nil
+}
+
+// searchIndexForNewUntriagedDigests returns the number of digests for a given CL and patchset that
+// are untriaged, unignored and not on the master branch. It also returns the freshness of this
+// data. If there is an error querying the search index, it is logged and 0 is returned.
+func (i *Impl) searchIndexForNewUntriagedDigests(ctx context.Context, clID, psID string) (int, time.Time) {
+	digestList, err := i.search.UntriagedUnignoredTryJobExclusiveDigests(ctx, tjstore.CombinedPSID{
+		CL:  clID,
+		CRS: i.crs.System(),
+		PS:  psID,
+	})
+	if err != nil {
+		sklog.Errorf("could not check search index for untriaged digests for CL %s: %s", clID, err)
+		return 0, i.now()
+	}
+	return len(digestList.Digests), digestList.TS
+
 }
 
 // Make sure Impl fulfills the code_review.ChangeListCommenter interface.
