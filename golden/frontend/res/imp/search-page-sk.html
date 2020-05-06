@@ -207,6 +207,9 @@
 
       ready: function() {
         this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
+        this.listen(this.$.searchControls, 'query-dialog-open', '_disableDigestListKeybindings');
+        this.listen(this.$.searchControls, 'query-dialog-close', '_enableDigestListKeybindings');
+
         this.$.changeListControls.addEventListener('cl-control-change', (e) => {
           this._state.master = e.detail.include_master;
           this._state.patchsets = e.detail.ps_order;
@@ -227,7 +230,7 @@
       pageSelected: function(ctx) {
         this.set('data', {});
         this.set('_allData', {});
-        this.$.detailList.startUse();
+        this._enableDigestListKeybindings();
 
         // Initialize the state and set values of the controls.
         this._initState(ctx, this._getDefaultStateWithCorpus());
@@ -242,7 +245,15 @@
       },
 
       pageDeselected: function() {
+        this._disableDigestListKeybindings();
+      },
+
+      _disableDigestListKeybindings: function() {
         this.$.detailList.endUse();
+      },
+
+      _enableDigestListKeybindings: function() {
+        this.$.detailList.startUse();
       },
 
       _handleSearchButton: function(ev) {
