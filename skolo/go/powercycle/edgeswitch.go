@@ -64,10 +64,10 @@ func newEdgeSwitchController(ctx context.Context, conf *EdgeSwitchConfig, connec
 	// The -T removes a warning SSH gives because we are not invoking it over TTY.
 	runner := PasswordSSHCommandRunner(conf.Password, "-T", target)
 	if connect {
-		out, _ := runner.ExecCmds(ctx, "show clock")
+		out, _ := runner.ExecCmds(ctx, "help")
 		// When using sshpass, we always seem to get exit code 255 (from ssh) and any actual errors are
 		// in stderr. So, we check the returned output for evidence that things actually worked
-		if !strings.Contains(out, "Time source is") {
+		if !strings.Contains(out, "HELP") {
 			return nil, skerr.Fmt("smoke test on edge switch %s failed; output: %s", target, out)
 		}
 		sklog.Infof("connected successfully to edge switch %s", target)
