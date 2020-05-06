@@ -22,6 +22,30 @@
       "revId": "cc6487a0d7a42a5bcdfb2dd36875f3047efa5904",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "611d7ac8_a7378d3a",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 350,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-06T11:29:39Z",
+      "side": 1,
+      "message": "clIdx being nil is a normal result even after the implementation happens - it happens on there being a cache miss of the CL.",
+      "parentUuid": "f536276f_bdf5c5c2",
+      "range": {
+        "startLine": 350,
+        "startChar": 0,
+        "endLine": 350,
+        "endChar": 19
+      },
+      "revId": "cc6487a0d7a42a5bcdfb2dd36875f3047efa5904",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
