@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ebea4e3b_cc2b393c",
+        "filename": "task_scheduler/go/cacher/cacher.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-06T17:52:12Z",
+      "side": 1,
+      "message": "For context, this code gets run when we find a request for a new job (either when a commit lands, or a try job is requested).  The TasksCfg, which tells us which tasks and jobs are defined at a given commit + optional patch (called a RepoState), is cached so that we don\u0027t have to sync again after the first time.  The code above checks the cache for the presence of the given entry and, if it isn\u0027t found, syncs to the desired RepoState, reads the TasksCfg, and stores it in the cache.\n\nThere\u0027s a wrinkle though, which is that the patch may not apply cleanly.  We try to differentiate between transient errors (eg. network flakes) and permanent ones (patch doesn\u0027t apply).  In the latter case, we store the error in the cache so that we can avoid trying to sync that RepoState again, since it can be expensive due to retries with exponential backoff.\n\nThere was a bug here, in that SetIfUnset returns no error if the cache entry was successfully stored or retrieved, even if the entry itself contains an error, and we weren\u0027t checking that error.  That was causing a panic when we tried to use the cached TasksCfg (which is nil in this case) below.",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 2
+      },
+      "revId": "23e99b04a3aa5d7e1deb80bcaa05c5b496ddbfa2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

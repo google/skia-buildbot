@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6fefc242_202e8924",
+        "filename": "task_scheduler/go/syncer/syncer.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-06T17:52:12Z",
+      "side": 0,
+      "message": "This was creating so much log output that it was impossible to learn anything interesting from the logs.",
+      "range": {
+        "startLine": 251,
+        "startChar": 0,
+        "endLine": 252,
+        "endChar": 19
+      },
+      "revId": "8db7cc2e3feab2923ef47a8d5c4303f7ec012613",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
