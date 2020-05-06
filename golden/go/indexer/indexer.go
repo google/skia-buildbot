@@ -800,10 +800,10 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context, state interface{})
 				filtered := filterUntriagedResults(xtjr, exps)
 				if !ok {
 					clIdx = &ChangeListIndex{
-						UntriagedResultsProduced: map[tjstore.CombinedPSID][]tjstore.TryJobResult{},
+						UntriagedResults: map[tjstore.CombinedPSID][]tjstore.TryJobResult{},
 					}
 				}
-				clIdx.UntriagedResultsProduced[psID] = filtered
+				clIdx.UntriagedResults[psID] = filtered
 				alreadyFilteredPS = psID
 			}
 			if ok {
@@ -814,12 +814,12 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context, state interface{})
 
 			// Re-apply expectations on existing TryJob results. Then, update the timestamp and update the
 			// cache.
-			for psID, xtjr := range clIdx.UntriagedResultsProduced {
+			for psID, xtjr := range clIdx.UntriagedResults {
 				// One of these entries might be newly created (and therefore was already filtered).
 				if psID.Equal(alreadyFilteredPS) {
 					continue
 				}
-				clIdx.UntriagedResultsProduced[psID] = filterUntriagedResults(xtjr, exps)
+				clIdx.UntriagedResults[psID] = filterUntriagedResults(xtjr, exps)
 			}
 			clIdx.ComputedTS = now
 			ix.changeListIndices.Set(clKey, clIdx, ttlcache.DefaultExpiration)

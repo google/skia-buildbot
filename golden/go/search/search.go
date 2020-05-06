@@ -348,7 +348,7 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 		// If the search is just for untriaged digests, we can use the CL index for this.
 		clIdx := s.indexSource.GetIndexForCL(id.CRS, id.CL)
 		if clIdx != nil {
-			xtr, wasCached = clIdx.UntriagedResultsProduced[id]
+			xtr, wasCached = clIdx.UntriagedResults[id]
 		}
 	}
 	if !wasCached {
@@ -758,7 +758,7 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 	clIdx := s.indexSource.GetIndexForCL(psID.CRS, psID.CL)
 	wasCached := false
 	if clIdx != nil {
-		resultsForThisPS, wasCached = clIdx.UntriagedResultsProduced[psID]
+		resultsForThisPS, wasCached = clIdx.UntriagedResults[psID]
 		if wasCached {
 			listTS = clIdx.ComputedTS
 		}
