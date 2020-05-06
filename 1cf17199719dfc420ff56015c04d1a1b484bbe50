@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6529ccf2_42039ab8",
+        "filename": "sk8s/go/metadata/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-06T13:46:49Z",
+      "side": 1,
+      "message": "After reading the linked PR I\u0027m still slightly confused about why we need to force a refresh when we never did before.",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 50
+      },
+      "revId": "1cf17199719dfc420ff56015c04d1a1b484bbe50",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
