@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e5b56a42_e96ace2b",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 772,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-06T01:05:27Z",
+      "side": 1,
+      "message": "Nit: clExps, to make it clear to the reader that it\u0027s a store and not just one expectation.\n\nSame with exp below.",
+      "range": {
+        "startLine": 772,
+        "startChar": 3,
+        "endLine": 772,
+        "endChar": 8
+      },
+      "revId": "2942c227d82d0aeeab1907c2fd897ed8a8b66679",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa34c2b0_4e45d75f",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 778,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-06T01:05:27Z",
+      "side": 1,
+      "message": "Nit: clKey, since there are other various keys in this context, and a more specific name could make this easier to follow.",
+      "range": {
+        "startLine": 778,
+        "startChar": 3,
+        "endLine": 778,
+        "endChar": 6
+      },
+      "revId": "2942c227d82d0aeeab1907c2fd897ed8a8b66679",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
