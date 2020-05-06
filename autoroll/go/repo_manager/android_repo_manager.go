@@ -2,7 +2,9 @@ package repo_manager
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/user"
@@ -68,9 +70,41 @@ var (
 	AUTHOR_EMAIL_RE = regexp.MustCompile(".* \\((.*)\\)")
 )
 
+// ProjectMetadataFileConfig provides configuration for METADATA files in the Android repo.
+type ProjectMetadataFileConfig struct {
+	FilePath    string `json:"filePath"`
+	Name        string `json:"projectName"`
+	Description string `json:"projectDescription"`
+	HomePage    string `json:"projectHomePage"`
+	GitURL      string `json:"projectGitURL"`
+	LicenseType string `json:"projectLicenseType"`
+}
+
+// See documentation for util.Validator interface.
+func (c *ProjectMetadataFileConfig) Validate() error {
+	if c.FilePath == "" || c.Name == "" || c.Description == "" || c.HomePage == "" || c.GitURL == "" || c.LicenseType == "" {
+		return errors.New("All parts of ProjectMetadataFileConfig are required")
+	}
+	return nil
+}
+
 // AndroidRepoManagerConfig provides configuration for the Android RepoManager.
 type AndroidRepoManagerConfig struct {
 	CommonRepoManagerConfig
+	*ProjectMetadataFileConfig `json:"projectMetadataFileConfig,omitempty"`
+}
+
+// See documentation for util.Validator interface.
+func (c *AndroidRepoManagerConfig) Validate() error {
+	if err := c.CommonRepoManagerConfig.Validate(); err != nil {
+		return err
+	}
+	if c.ProjectMetadataFileConfig != nil {
+		if err := c.ProjectMetadataFileConfig.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // See documentation for RepoManagerConfig interface.
@@ -86,6 +120,8 @@ type androidRepoManager struct {
 	*commonRepoManager
 	repoUrl      string
 	repoToolPath string
+
+	projectMetadataFileConfig *ProjectMetadataFileConfig
 }
 
 func NewAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL, serviceAccount string, client *http.Client, cr codereview.CodeReview, local bool) (RepoManager, error) {
@@ -124,9 +160,10 @@ func NewAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, reg
 		return nil, err
 	}
 	r := &androidRepoManager{
-		commonRepoManager: crm,
-		repoUrl:           g.GetRepoUrl(),
-		repoToolPath:      repoToolPath,
+		commonRepoManager:         crm,
+		repoUrl:                   g.GetRepoUrl(),
+		repoToolPath:              repoToolPath,
+		projectMetadataFileConfig: c.ProjectMetadataFileConfig,
 	}
 	return r, nil
 }
@@ -313,6 +350,38 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 
 	if _, addGifErr := r.childRepo.Git(ctx, "add", android_skia_checkout.LibGifRelPath); addGifErr != nil {
 		return 0, addGifErr
+	}
+
+	if r.projectMetadataFileConfig != nil {
+		// Populate the METADATA file.
+		d := time.Now()
+		metadataContents := fmt.Sprintf(`name: "%s"
+description: "%s"
+third_party {
+  url {
+    type: HOMEPAGE
+    value: "%s"
+  }
+  url {
+    type: GIT
+    value: "%s"
+  }
+  version: "%s"
+  license_type: %s
+  last_upgrade_date {
+    year: %d
+    month: %d
+    day: %d
+  }
+}
+`, r.projectMetadataFileConfig.Name, r.projectMetadataFileConfig.Description, r.projectMetadataFileConfig.HomePage, r.projectMetadataFileConfig.GitURL, to.Id, r.projectMetadataFileConfig.LicenseType, d.Year(), d.Month(), d.Day())
+
+		if err := ioutil.WriteFile(r.projectMetadataFileConfig.FilePath, []byte(metadataContents), os.ModePerm); err != nil {
+			return 0, fmt.Errorf("Error when writing to %s: %s", r.projectMetadataFileConfig.FilePath, err)
+		}
+		if _, addGifErr := r.childRepo.Git(ctx, "add", r.projectMetadataFileConfig.FilePath); addGifErr != nil {
+			return 0, addGifErr
+		}
 	}
 
 	// Run the pre-upload steps.
