@@ -394,6 +394,8 @@ func main() {
 		GCSClient:         gsClient,
 		TileSource:        tileSource,
 		Warmer:            warmer.New(),
+		TryJobStore:       tjs,
+		CLStore:           cls,
 	}
 
 	// Rebuild the index every few minutes.

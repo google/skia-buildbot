@@ -89,3 +89,8 @@ type CombinedPSID struct {
 func (c CombinedPSID) Key() string {
 	return fmt.Sprintf("%s__%s__%s", c.CL, c.CRS, c.PS)
 }
+
+// Equal returns true if the IDs are identical, false otherwise.
+func (c CombinedPSID) Equal(other CombinedPSID) bool {
+	return c.CL == other.CL && c.PS == other.PS && c.CRS == other.CRS
+}
