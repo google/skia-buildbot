@@ -39,7 +39,7 @@
       </paper-dialog-scrollable>
       <div class="buttons">
         <paper-button id="editButton" raised dialog-dismiss>[[submitLabel]]</paper-button>
-        <paper-button raised dialog-dismiss>Cancel</paper-button>
+        <paper-button id="closeButton" raised dialog-dismiss>Cancel</paper-button>
       </div>
     </paper-dialog>
   </template>
@@ -61,6 +61,8 @@
       ready: function() {
         this._setQueryEle(this.$.queryInput);
         this.listen(this.$.editButton, 'click', '_handleEditButton');
+        this.listen(this.$.closeButton, 'click', 'close');
+
         var dialogEl = this.$.queryDialog;
         var scrollable = Polymer.dom(dialogEl).querySelector('paper-dialog-scrollable');
         scrollable.dialogElement = dialogEl;
@@ -69,10 +71,12 @@
       open: function(selection) {
         this.$.queryInput.setSelections(selection);
         this.$.queryDialog.open();
+        this.fire('query-dialog-open');
       },
 
       close: function() {
         this.$.queryDialog.close();
+        this.fire('query-dialog-close');
       },
 
       _paramsetChanged: function() {
@@ -85,6 +89,7 @@
       _handleEditButton: function(ev) {
         ev.stopPropagation();
         this.fire('edit', this.$.queryInput.currentquery);
+        this.fire('query-dialog-close');
       }
     });
   </script>
