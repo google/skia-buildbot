@@ -347,8 +347,9 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 	if q.Unt && !q.Pos && !q.Neg {
 		// If the search is just for untriaged digests, we can use the CL index for this.
 		clIdx := s.indexSource.GetIndexForCL(id.CRS, id.CL)
-		if clIdx != nil {
-			xtr, wasCached = clIdx.UntriagedResults[id]
+		if clIdx != nil && clIdx.LatestPatchSet.Equal(id) {
+			xtr = clIdx.UntriagedResults
+			wasCached = true
 		}
 	}
 	if !wasCached {
@@ -756,14 +757,10 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 	var resultsForThisPS []tjstore.TryJobResult
 	listTS := time.Now()
 	clIdx := s.indexSource.GetIndexForCL(psID.CRS, psID.CL)
-	wasCached := false
-	if clIdx != nil {
-		resultsForThisPS, wasCached = clIdx.UntriagedResults[psID]
-		if wasCached {
-			listTS = clIdx.ComputedTS
-		}
-	}
-	if !wasCached {
+	if clIdx != nil && clIdx.LatestPatchSet.Equal(psID) {
+		resultsForThisPS = clIdx.UntriagedResults
+		listTS = clIdx.ComputedTS
+	} else {
 		// Index either has not yet been created for this CL or was too old to have been indexed.
 		var err error
 		resultsForThisPS, err = s.getTryJobResults(ctx, psID)
