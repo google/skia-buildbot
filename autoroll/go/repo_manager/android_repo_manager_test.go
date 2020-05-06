@@ -50,6 +50,14 @@ func androidCfg(t *testing.T) *AndroidRepoManagerConfig {
 			ParentBranch: masterBranchTmpl(t),
 			ParentRepo:   "https://my-repo.com",
 		},
+		&ProjectMetadataFileConfig{
+			FilePath:    "METADATA",
+			Name:        "skia",
+			Description: "Skia Graphics Library",
+			HomePage:    "https://www.skia.org/",
+			GitURL:      "https://skia.googlesource.com/skia",
+			LicenseType: "RECIPROCAL",
+		},
 	}
 }
 
