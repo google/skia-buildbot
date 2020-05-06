@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "afc721b1_94da71fc",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-06T18:56:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aa947293_f7842402",
+      "range": {
+        "startLine": 75,
+        "startChar": 1,
+        "endLine": 75,
+        "endChar": 26
+      },
+      "revId": "bf648569d0c28ab696649bf008fe7d618514d0f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "785608d6_84760dcf",
         "filename": "autoroll/go/repo_manager/android_repo_manager.go",
         "patchSetId": 8
@@ -45,6 +69,30 @@
       "revId": "bf648569d0c28ab696649bf008fe7d618514d0f5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03f1bc51_45f583cb",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-06T18:56:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "785608d6_84760dcf",
+      "range": {
+        "startLine": 78,
+        "startChar": 5,
+        "endLine": 78,
+        "endChar": 30
+      },
+      "revId": "bf648569d0c28ab696649bf008fe7d618514d0f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "e17ee1da_0230bbc5",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-06T18:56:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "984e109c_106c3ff4",
+      "range": {
+        "startLine": 79,
+        "startChar": 27,
+        "endLine": 79,
+        "endChar": 45
+      },
+      "revId": "bf648569d0c28ab696649bf008fe7d618514d0f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9283d895_74932837",
         "filename": "autoroll/go/repo_manager/android_repo_manager.go",
         "patchSetId": 8
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "594a3949_239d4d9c",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-06T18:56:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9283d895_74932837",
+      "range": {
+        "startLine": 101,
+        "startChar": 1,
+        "endLine": 106,
+        "endChar": 34
+      },
+      "revId": "bf648569d0c28ab696649bf008fe7d618514d0f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a05f772a_95d5047f",
         "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
         "patchSetId": 8
@@ -114,6 +210,30 @@
       "revId": "bf648569d0c28ab696649bf008fe7d618514d0f5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eee8f501_315d1a04",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-06T18:56:49Z",
+      "side": 1,
+      "message": "Done (I was waiting to see what you thought of the last patchset before removing it)",
+      "parentUuid": "a05f772a_95d5047f",
+      "range": {
+        "startLine": 122,
+        "startChar": 5,
+        "endLine": 122,
+        "endChar": 33
+      },
+      "revId": "bf648569d0c28ab696649bf008fe7d618514d0f5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
