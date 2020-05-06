@@ -117,6 +117,30 @@
       "revId": "8c966e9b02bc55a4fa2d65d2a8e03c9bfcd86ffe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd53d9fb_329304b6",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-06T14:43:47Z",
+      "side": 1,
+      "message": "\u003e Ok, I think my comments here are related; I don\u0027t love how much this code knows about the structure of the checkouts, how to get the hash, etc.  Writing the new revision ID to a file is very similar to what other rollers do in their normal flow, the only difference being that this file has some structure.  I think I\u0027d prefer to either integrate this into version_file_common by adding a Template field to the VersionFileConfig struct (https://skia.googlesource.com/buildbot/+/master/autoroll/go/repo_manager/common/version_file_common/version_file_common.go#13), or add something similar to the AndroidRepoManagerConfig.\n\u003e \n\nI\u0027m not sure, because that would be tying it with the repo manager and assuming that all other projects will have a revisionFile to update. Here I was assuming that only Skia needed it, which is why it made sense to me to be a pre-upload step.\nI could add a VersionFile to AndroidRepoManagerConfig and not do anything if it is empty, or maybe better a MetadataFileConfig.\n\n\u003e Out of curiosity, where does the structure of this file come from?  Is it intended to be parsed?  If so, is there a proto definition we can use to write it rather than a hard-coded template?\nI had looked but could not find it (I would not be surprised if it was internal)",
+      "parentUuid": "f1ffd55b_20b88bc6",
+      "range": {
+        "startLine": 128,
+        "startChar": 0,
+        "endLine": 128,
+        "endChar": 71
+      },
+      "revId": "8c966e9b02bc55a4fa2d65d2a8e03c9bfcd86ffe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
