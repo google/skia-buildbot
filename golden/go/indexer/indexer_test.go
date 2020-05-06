@@ -37,16 +37,14 @@ import (
 )
 
 // TestIndexer_ExecutePipeline_NoChangeListsToIndex_Success tests a full indexing run, assuming
-// nothing crashes or returns an error. For simplicity, we pretend there are no ChangeLists to
-// index. This is because CL indexing is independent from the master index and quite involved.
-func TestIndexer_ExecutePipeline_NoChangeListsToIndex_Success(t *testing.T) {
+// nothing crashes or returns an error..
+func TestIndexer_ExecutePipeline_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mds := &mock_diffstore.DiffStore{}
 	mdw := &mock_warmer.DiffWarmer{}
 	mes := &mock_expectations.Store{}
 	mgc := &mocks.GCSClient{}
-	mcs := &mock_clstore.Store{}
 
 	defer mds.AssertExpectations(t)
 	defer mdw.AssertExpectations(t)
@@ -60,7 +58,6 @@ func TestIndexer_ExecutePipeline_NoChangeListsToIndex_Success(t *testing.T) {
 		ExpectationsStore: mes,
 		GCSClient:         mgc,
 		Warmer:            mdw,
-		CLStore:           mcs,
 	}
 	wg, async, _ := gtestutils.AsyncHelpers()
 
@@ -111,9 +108,6 @@ func TestIndexer_ExecutePipeline_NoChangeListsToIndex_Success(t *testing.T) {
 	})
 
 	async(mdw.On("PrecomputeDiffs", testutils.AnyContext, dataMatcher, mock.AnythingOfType("*digesttools.Impl")).Return(nil))
-
-	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(nil, 0, nil)
-	mcs.On("System").Return("doesn't matter")
 
 	ixr, err := New(context.Background(), ic, 0)
 	require.NoError(t, err)
@@ -232,6 +226,9 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 	const secondCLID = "22222"
 	const patchsetSam = "sam"
 
+	var firstCombinedID = tjstore.CombinedPSID{CL: firstCLID, CRS: crs, PS: patchsetFoxtrot}
+	var secondCombinedID = tjstore.CombinedPSID{CL: secondCLID, CRS: crs, PS: patchsetSam}
+
 	mcs := &mock_clstore.Store{}
 	mes := &mock_expectations.Store{}
 	mts := &mock_tjstore.Store{}
@@ -271,7 +268,7 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 	}, nil)
 	mcs.On("System").Return(crs)
 
-	mts.On("GetResults", testutils.AnyContext, tjstore.CombinedPSID{CL: firstCLID, CRS: crs, PS: patchsetFoxtrot}).Return([]tjstore.TryJobResult{
+	mts.On("GetResults", testutils.AnyContext, firstCombinedID).Return([]tjstore.TryJobResult{
 		{
 			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
 			Digest:       data.AlphaPositiveDigest,
@@ -286,7 +283,7 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 			Digest:       data.AlphaUntriagedDigest,
 		},
 	}, nil)
-	mts.On("GetResults", testutils.AnyContext, tjstore.CombinedPSID{CL: secondCLID, CRS: crs, PS: patchsetSam}).Return([]tjstore.TryJobResult{
+	mts.On("GetResults", testutils.AnyContext, secondCombinedID).Return([]tjstore.TryJobResult{
 		{
 			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
 			Digest:       data.AlphaPositiveDigest,
@@ -310,28 +307,24 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 	ixr, err := New(ctx, ic, 0)
 	require.NoError(t, err)
 
-	assert.NoError(t, ixr.calcChangeListIndices(ctx, nil))
+	ixr.calcChangeListIndices(ctx)
 
 	clIdx := ixr.GetIndexForCL(crs, firstCLID)
 	assert.NotNil(t, clIdx)
+	assert.Equal(t, firstCombinedID, clIdx.LatestPatchSet)
 	assert.Len(t, clIdx.UntriagedResults, 1)
-	xtr, ok := clIdx.UntriagedResults[tjstore.CombinedPSID{CL: firstCLID, CRS: crs, PS: patchsetFoxtrot}]
-	require.True(t, ok)
-	assert.Len(t, xtr, 1)
-	assert.Equal(t, data.AlphaUntriagedDigest, xtr[0].Digest)
+	assert.Equal(t, data.AlphaUntriagedDigest, clIdx.UntriagedResults[0].Digest)
 
 	clIdx = ixr.GetIndexForCL(crs, secondCLID)
 	assert.NotNil(t, clIdx)
-	assert.Len(t, clIdx.UntriagedResults, 1)
-	xtr, ok = clIdx.UntriagedResults[tjstore.CombinedPSID{CL: secondCLID, CRS: crs, PS: patchsetSam}]
-	require.True(t, ok)
-	assert.Len(t, xtr, 2)
+	assert.Equal(t, secondCombinedID, clIdx.LatestPatchSet)
+	assert.Len(t, clIdx.UntriagedResults, 2)
 	// Reminder, AlphaNegativeDigest was not triaged in the CL expectations for secondCLID
-	assert.Equal(t, data.AlphaNegativeDigest, xtr[0].Digest)
-	assert.Equal(t, data.AlphaUntriagedDigest, xtr[1].Digest)
+	assert.Equal(t, data.AlphaNegativeDigest, clIdx.UntriagedResults[0].Digest)
+	assert.Equal(t, data.AlphaUntriagedDigest, clIdx.UntriagedResults[1].Digest)
 }
 
-func TestIndexer_CalcChangeListIndices_HasPreviousIndices_Success(t *testing.T) {
+func TestIndexer_CalcChangeListIndices_HasPreviousIndex_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const crs = "gerrit"
@@ -396,60 +389,39 @@ func TestIndexer_CalcChangeListIndices_HasPreviousIndices_Success(t *testing.T) 
 	ixr, err := New(ctx, ic, 0)
 	require.NoError(t, err)
 
-	// The scenario here is that the first PatchSet generated three untriaged digests. Then, a second
-	// patchset was uploaded and had partially generated its results when the last index was taken.
-	// Thus, the previous index shows 3 untriaged digests for firstPatchset and 1 for secondPatchSet.
-	// After that index was computed, the user triaged AlphaPositiveDigest and AlphaNegativeDigest,
-	// and the remainder of the data was uploaded to secondPatchSet. After the index is recomputed,
-	// we should see the results from firstPatchSet be filtered down to reflect the new expectations.
-	// Additionally, the secondPatchset index should be updated to show the 1 correct untriaged
-	// digest.
+	// The scenario here is that the first PatchSet generated three untriaged digests.After that
+	// index was computed, the user triaged AlphaPositiveDigest and AlphaNegativeDigest, and the
+	// remainder of the data was uploaded to secondPatchSet. After the index is recomputed, the index
+	// should be replaced with the new data (which reflects the new expectations).
 	previousIdx := ChangeListIndex{
-		UntriagedResults: map[tjstore.CombinedPSID][]tjstore.TryJobResult{
-			firstPatchSetCombinedID: {
-				{
-					ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
-					Digest:       data.AlphaPositiveDigest,
-					// Other fields ignored
-				},
-				{
-					ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
-					Digest:       data.AlphaNegativeDigest,
-				},
-				{
-					ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
-					Digest:       data.AlphaUntriagedDigest,
-				},
+		LatestPatchSet: firstPatchSetCombinedID,
+		UntriagedResults: []tjstore.TryJobResult{
+			{
+				ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+				Digest:       data.AlphaPositiveDigest,
+				// Other fields ignored
 			},
-			secondPatchSetCombinedID: {
-				{
-					ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
-					Digest:       data.AlphaPositiveDigest,
-				},
+			{
+				ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+				Digest:       data.AlphaNegativeDigest,
+			},
+			{
+				ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+				Digest:       data.AlphaUntriagedDigest,
 			},
 		},
 		ComputedTS: longAgo,
 	}
 	ixr.changeListIndices.Set("gerrit_111111", &previousIdx, 0)
 
-	assert.NoError(t, ixr.calcChangeListIndices(ctx, nil))
+	ixr.calcChangeListIndices(ctx)
 
 	clIdx := ixr.GetIndexForCL(crs, clID)
 	assert.NotNil(t, clIdx)
+	assert.Equal(t, secondPatchSetCombinedID, clIdx.LatestPatchSet)
 	assert.True(t, clIdx.ComputedTS.After(longAgo)) // should be updated
-	assert.Len(t, clIdx.UntriagedResults, 2)
-	xtr, ok := clIdx.UntriagedResults[firstPatchSetCombinedID]
-	require.True(t, ok)
-	assert.Len(t, xtr, 1)
-	assert.Equal(t, data.AlphaUntriagedDigest, xtr[0].Digest)
-	xtr, ok = clIdx.UntriagedResults[secondPatchSetCombinedID]
-	require.True(t, ok)
-	assert.Len(t, xtr, 1)
-	assert.Equal(t, data.AlphaUntriagedDigest, xtr[0].Digest)
-
-	// make sure the original index wasn't modified (avoiding errors with modifying maps at the same
-	// time as they are being read).
-	assert.Len(t, previousIdx.UntriagedResults[firstPatchSetCombinedID], 3)
+	assert.Len(t, clIdx.UntriagedResults, 1)
+	assert.Equal(t, data.AlphaUntriagedDigest, clIdx.UntriagedResults[0].Digest)
 }
 
 // TestPreSlicedTracesCreatedCorrectly makes sure that we pre-slice the data based on IgnoreState,
