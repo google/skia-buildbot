@@ -2,12 +2,10 @@
 @import '../colors';
 
 gold-scaffold-sk {
+  font-family:Roboto,Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+
   app-sk {
     --header-background-color: var(--gold);
-  }
-
-  * {
-    font-family:Roboto,Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
   }
 
   header {
