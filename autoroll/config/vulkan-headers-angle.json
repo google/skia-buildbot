@@ -42,8 +42,8 @@
     "runhooks": true
   },
   "kubernetes": {
-    "cpu": "1",
-    "memory": "2Gi",
+    "cpu": "2",
+    "memory": "4Gi",
     "disk": "50Gi",
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",
