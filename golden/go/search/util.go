@@ -115,14 +115,14 @@ func traceViewIdentity(tr *tiling.Trace) *tiling.Trace {
 
 // getTraceViewFn returns a traceViewFn for the given Git hashes.
 // If startHash occurs after endHash in the tile, an error is returned.
-func getTraceViewFn(commits []*tiling.Commit, startHash, endHash string) (traceViewFn, error) {
+func getTraceViewFn(commits []tiling.Commit, startHash, endHash string) (traceViewFn, error) {
 	if startHash == "" && endHash == "" {
 		return traceViewIdentity, nil
 	}
 
 	// Find the indices to slice the values of the trace.
-	startIdx, _ := tiling.FindCommit(commits, startHash)
-	endIdx, _ := tiling.FindCommit(commits, endHash)
+	startIdx, _ := findCommit(commits, startHash)
+	endIdx, _ := findCommit(commits, endHash)
 	if (startIdx == -1) && (endIdx == -1) {
 		return traceViewIdentity, nil
 	}
@@ -143,8 +143,22 @@ func getTraceViewFn(commits []*tiling.Commit, startHash, endHash string) (traceV
 	ret := func(trace *tiling.Trace) *tiling.Trace {
 		return tiling.NewTrace(trace.Digests[startIdx:endIdx], trace.Params())
 	}
-
 	return ret, nil
+}
+
+// findCommit searches the given commits for the given hash and returns the
+// index of the commit and the commit itself. If the commit cannot be
+// found -1 is returned for index.
+func findCommit(commits []tiling.Commit, targetHash string) (int, tiling.Commit) {
+	if targetHash == "" {
+		return -1, tiling.Commit{}
+	}
+	for idx, commit := range commits {
+		if commit.Hash == targetHash {
+			return idx, commit
+		}
+	}
+	return -1, tiling.Commit{}
 }
 
 // digestsFromTrace returns all the digests in the given trace, controlled by
@@ -183,8 +197,8 @@ func digestsFromTrace(id tiling.TraceID, tr *tiling.Trace, head bool, digestsByT
 // blameGroupID takes a blame distribution with just indices of commits and
 // returns an id for the blame group, which is just a string, the concatenated
 // git hashes in commit time order.
-func blameGroupID(b blame.BlameDistribution, commits []*tiling.Commit) string {
-	ret := []string{}
+func blameGroupID(b blame.BlameDistribution, commits []tiling.Commit) string {
+	var ret []string
 	for _, index := range b.Freq {
 		ret = append(ret, commits[index].Hash)
 	}

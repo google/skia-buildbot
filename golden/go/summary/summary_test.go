@@ -2,6 +2,7 @@ package summary
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -627,14 +628,14 @@ func makeFullTile() *tiling.Tile {
 				},
 			},
 		},
-		Commits: []*tiling.Commit{
+		Commits: []tiling.Commit{
 			{
-				CommitTime: 42,
+				CommitTime: time.Date(2020, time.May, 1, 2, 3, 4, 0, time.UTC),
 				Hash:       "ffffffffffffffffffffffffffffffffffffffff",
 				Author:     "test@example.com",
 			},
 			{
-				CommitTime: 45,
+				CommitTime: time.Date(2020, time.May, 5, 6, 7, 8, 0, time.UTC),
 				Hash:       "gggggggggggggggggggggggggggggggggggggggg",
 				Author:     "test@example.com",
 			},
@@ -645,7 +646,7 @@ func makeFullTile() *tiling.Tile {
 }
 
 // makeTileWithIgnores() returns a tile with the ignore rule
-// "config=565" applied (which as removed one trace compared to makeFullTile()).
+// "config=565" applied (which has removed one trace compared to makeFullTile()).
 func makeTileWithIgnores() *tiling.Tile {
 	return &tiling.Tile{
 		Traces: map[tiling.TraceID]*tiling.Trace{
@@ -684,14 +685,14 @@ func makeTileWithIgnores() *tiling.Tile {
 				},
 			},
 		},
-		Commits: []*tiling.Commit{
+		Commits: []tiling.Commit{
 			{
-				CommitTime: 42,
+				CommitTime: time.Date(2020, time.May, 1, 2, 3, 4, 0, time.UTC),
 				Hash:       "ffffffffffffffffffffffffffffffffffffffff",
 				Author:     "test@example.com",
 			},
 			{
-				CommitTime: 45,
+				CommitTime: time.Date(2020, time.May, 5, 6, 7, 8, 0, time.UTC),
 				Hash:       "gggggggggggggggggggggggggggggggggggggggg",
 				Author:     "test@example.com",
 			},
