@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/code_review"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/expectations"
@@ -197,3 +198,56 @@ type MostRecentPositiveDigestResponse struct {
 
 // GetPerTraceDigestsByTestNameResponse is the response for /json/digestsbytestname.
 type GetPerTraceDigestsByTestNameResponse map[tiling.TraceID][]types.Digest
+
+// Commit represents a git Commit for use on the frontend.
+type Commit struct {
+	// CommitTime is in seconds since the epoch
+	CommitTime int64  `json:"commit_time"`
+	Hash       string `json:"hash"`
+	Author     string `json:"author"`
+	Subject    string `json:"message"`
+}
+
+// FromTilingCommit converts a tiling.Commit into a frontend.Commit.
+func FromTilingCommit(tc tiling.Commit) Commit {
+	return Commit{
+		CommitTime: tc.CommitTime.Unix(),
+		Hash:       tc.Hash,
+		Author:     tc.Author,
+		Subject:    tc.Subject,
+	}
+}
+
+// FromTilingCommits converts a slice of tiling.Commit into a slice of frontend.Commit.
+func FromTilingCommits(xtc []tiling.Commit) []Commit {
+	rv := make([]Commit, len(xtc))
+	for i, tc := range xtc {
+		rv[i] = FromTilingCommit(tc)
+	}
+	return rv
+}
+
+// ByBlameEntry is a helper structure that is serialized to
+// JSON and sent to the front-end.
+type ByBlameEntry struct {
+	GroupID       string       `json:"groupID"`
+	NDigests      int          `json:"nDigests"`
+	NTests        int          `json:"nTests"`
+	AffectedTests []TestRollup `json:"affectedTests"`
+	Commits       []Commit     `json:"commits"`
+}
+
+// ByBlame describes a single digest and its blames.
+type ByBlame struct {
+	Test          types.TestName          `json:"test"`
+	Digest        types.Digest            `json:"digest"`
+	Blame         blame.BlameDistribution `json:"blame"`
+	CommitIndices []int                   `json:"commit_indices"`
+	Key           string
+}
+
+type TestRollup struct {
+	Test         types.TestName `json:"test"`
+	Num          int            `json:"num"`
+	SampleDigest types.Digest   `json:"sample_digest"`
+}
