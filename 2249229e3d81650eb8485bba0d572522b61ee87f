@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5f918425_fb418be0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 9
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-07T18:17:26Z",
+      "side": 1,
+      "message": "No googleplex links in commit messages (or in checked in files, if we can help it). I usually send them as a Gerrit comment.",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 48
+      },
+      "revId": "2249229e3d81650eb8485bba0d572522b61ee87f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b15ab86_59124229",
+        "filename": "demos/go/load-demo-assets/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-07T18:17:26Z",
+      "side": 1,
+      "message": "optional: As mentioned in chat, I would much prefer we (as a team) stop adding JSON tags to things that were not intended to go to the frontend (especially things shared between apps).\n\nI would recommend making a Commit type here with the exact fields and json tags you need, a helper to convert between vcsinfo.LongCommit and that, and then not marshal the LongCommit directly.",
+      "range": {
+        "startLine": 74,
+        "startChar": 9,
+        "endLine": 74,
+        "endChar": 28
+      },
+      "revId": "2249229e3d81650eb8485bba0d572522b61ee87f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
