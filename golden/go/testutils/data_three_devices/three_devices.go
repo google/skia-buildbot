@@ -75,23 +75,26 @@ func MakeTestBaseline() *baseline.Baseline {
 	return &b
 }
 
-func MakeTestCommits() []*tiling.Commit {
+func MakeTestCommits() []tiling.Commit {
 	// Three commits, with completely arbitrary data
-	return []*tiling.Commit{
+	return []tiling.Commit{
 		{
 			Hash:       FirstCommitHash,
-			CommitTime: time.Date(2019, time.April, 26, 12, 0, 3, 0, time.UTC).Unix(),
+			CommitTime: time.Date(2019, time.April, 26, 12, 0, 3, 0, time.UTC),
 			Author:     FirstCommitAuthor,
+			Subject:    "Making a list",
 		},
 		{
 			Hash:       SecondCommitHash,
-			CommitTime: time.Date(2019, time.April, 26, 12, 10, 18, 0, time.UTC).Unix(),
+			CommitTime: time.Date(2019, time.April, 26, 12, 10, 18, 0, time.UTC),
 			Author:     SecondCommitAuthor,
+			Subject:    "Checking it twice",
 		},
 		{
 			Hash:       ThirdCommitHash,
-			CommitTime: time.Date(2019, time.April, 26, 13, 10, 8, 0, time.UTC).Unix(),
+			CommitTime: time.Date(2019, time.April, 26, 13, 10, 8, 0, time.UTC),
 			Author:     ThirdCommitAuthor,
+			Subject:    "Gonna find out who's naughty or nice",
 		},
 	}
 }

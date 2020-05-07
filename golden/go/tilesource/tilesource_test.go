@@ -418,18 +418,18 @@ func makeSparseLongCommits() []*vcsinfo.LongCommit {
 
 // makeSparseLongCommits returns 5 tiling.Commit, 3 are from three_devices_data with two
 // extra commits, representing a "sparse" tile, where not every commit has data.
-func makeSparseTilingCommits() []*tiling.Commit {
+func makeSparseTilingCommits() []tiling.Commit {
 	denseCommits := data.MakeTestCommits()
-	return []*tiling.Commit{
+	return []tiling.Commit{
 		{
 			Hash:       zerothCommitHash,
-			CommitTime: time.Date(2019, time.April, 22, 12, 0, 3, 0, time.UTC).Unix(),
+			CommitTime: time.Date(2019, time.April, 22, 12, 0, 3, 0, time.UTC),
 			Author:     "zero@example.com",
 		},
 		denseCommits[0], denseCommits[1], denseCommits[2],
 		{
 			Hash:       fourthCommitHash,
-			CommitTime: time.Date(2019, time.April, 28, 12, 0, 3, 0, time.UTC).Unix(),
+			CommitTime: time.Date(2019, time.April, 28, 12, 0, 3, 0, time.UTC),
 			Author:     "four@example.com",
 		},
 	}
