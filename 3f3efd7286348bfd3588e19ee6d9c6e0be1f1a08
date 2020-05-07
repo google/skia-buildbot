@@ -22,6 +22,30 @@
       "revId": "3f3efd7286348bfd3588e19ee6d9c6e0be1f1a08",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb63c2eb_0d3ad42d",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-07T18:20:09Z",
+      "side": 1,
+      "message": "The puppeteer tests for digest-details-sk cover this enough (I think). It would be a bit tricky to test the exact issue I was seeing, since it involved some mouse interactions...",
+      "parentUuid": "3de176ef_75a3cf5c",
+      "range": {
+        "startLine": 130,
+        "startChar": 2,
+        "endLine": 136,
+        "endChar": 0
+      },
+      "revId": "3f3efd7286348bfd3588e19ee6d9c6e0be1f1a08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
