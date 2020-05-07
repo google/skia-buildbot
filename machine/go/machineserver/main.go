@@ -174,11 +174,15 @@ func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusOK)
 }
 
+func (s *server) podsToDeleteHandler(w http.ResponseWriter, r *http.Request) {
+}
+
 // See baseapp.App.
 func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", s.mainHandler).Methods("GET")
 	r.HandleFunc("/_/machines", s.machinesHandler).Methods("GET")
 	r.HandleFunc("/_/machine/toggle_mode/{id:.+}", s.machineToggleModeHandler).Methods("GET")
+	r.HandleFunc("/_/pods_to_delete", s.podsToDeleteHandler()).Methods("GET")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 }
 

@@ -119,3 +119,8 @@ func NewEvent() Event {
 		Host:      Host{},
 	}
 }
+
+// Pods is a list of pod names. Used to communicate the pods to delete to the pod-reaper.
+type Pods struct {
+	Names []string
+}
