@@ -74,11 +74,11 @@ func (_m *IndexSearcher) DigestCountsByTrace(is types.IgnoreState) map[tiling.Tr
 }
 
 // GetBlame provides a mock function with given fields: test, digest, commits
-func (_m *IndexSearcher) GetBlame(test types.TestName, digest types.Digest, commits []*tiling.Commit) blame.BlameDistribution {
+func (_m *IndexSearcher) GetBlame(test types.TestName, digest types.Digest, commits []tiling.Commit) blame.BlameDistribution {
 	ret := _m.Called(test, digest, commits)
 
 	var r0 blame.BlameDistribution
-	if rf, ok := ret.Get(0).(func(types.TestName, types.Digest, []*tiling.Commit) blame.BlameDistribution); ok {
+	if rf, ok := ret.Get(0).(func(types.TestName, types.Digest, []tiling.Commit) blame.BlameDistribution); ok {
 		r0 = rf(test, digest, commits)
 	} else {
 		r0 = ret.Get(0).(blame.BlameDistribution)

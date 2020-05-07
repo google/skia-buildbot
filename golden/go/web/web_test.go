@@ -148,13 +148,13 @@ func TestComputeByBlame_OneUntriagedDigest_Success(t *testing.T) {
 	output, err := wh.computeByBlame(context.Background(), "gm")
 	require.NoError(t, err)
 
-	assert.Equal(t, []ByBlameEntry{
+	assert.Equal(t, []frontend.ByBlameEntry{
 		{
 			GroupID:  bug_revert.ThirdCommitHash,
 			NDigests: 1,
 			NTests:   1,
-			Commits:  []*tiling.Commit{commits[2]},
-			AffectedTests: []TestRollup{
+			Commits:  []frontend.Commit{frontend.FromTilingCommit(commits[2])},
+			AffectedTests: []frontend.TestRollup{
 				{
 					Test:         bug_revert.TestTwo,
 					Num:          1,
@@ -189,13 +189,13 @@ func TestComputeByBlame_MultipleUntriagedDigests_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	commits := bug_revert.MakeTestCommits()
-	assert.Equal(t, []ByBlameEntry{
+	assert.Equal(t, []frontend.ByBlameEntry{
 		{
 			GroupID:  bug_revert.SecondCommitHash,
 			NDigests: 2,
 			NTests:   2,
-			Commits:  []*tiling.Commit{commits[1]},
-			AffectedTests: []TestRollup{
+			Commits:  []frontend.Commit{frontend.FromTilingCommit(commits[1])},
+			AffectedTests: []frontend.TestRollup{
 				{
 					Test:         bug_revert.TestOne,
 					Num:          1,
@@ -212,8 +212,8 @@ func TestComputeByBlame_MultipleUntriagedDigests_Success(t *testing.T) {
 			GroupID:  bug_revert.ThirdCommitHash,
 			NDigests: 1,
 			NTests:   1,
-			Commits:  []*tiling.Commit{commits[2]},
-			AffectedTests: []TestRollup{
+			Commits:  []frontend.Commit{frontend.FromTilingCommit(commits[2])},
+			AffectedTests: []frontend.TestRollup{
 				{
 					Test:         bug_revert.TestTwo,
 					Num:          1,
