@@ -1334,9 +1334,6 @@ func (wh *Handlers) ParamsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // CommitsHandler returns the commits from the most recent tile.
-// Note that this returns things of tiling.Commit, which lacks information
-// like the message. For a fuller commit, see GitLogHandler.
-// TODO(kjlubick) Delete the need for this handler.
 func (wh *Handlers) CommitsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
@@ -1350,7 +1347,7 @@ func (wh *Handlers) CommitsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(cpxTile.DataCommits()); err != nil {
+	if err := json.NewEncoder(w).Encode(frontend.FromTilingCommits(cpxTile.DataCommits())); err != nil {
 		sklog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
@@ -1374,6 +1371,7 @@ type commitInfo struct {
 // https://chromium.googlesource.com/chromium/src/+log/[start]~1..[end]
 // Essentially, we just need the commit Subject for each of the commits,
 // although this could easily be expanded to have more of the commit info.
+// TODO(kjlubick) remove the need for this function.
 func (wh *Handlers) GitLogHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {

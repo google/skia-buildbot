@@ -6,7 +6,7 @@
  *
  *   ooo-o-o-oo
  *
- * @evt show-commits - Event generated when a dot is clicked. e.detail contains
+ * @evt showblamelist - Event generated when a dot is clicked. e.detail contains
  *   the blamelist (an array of commits that could have made up that dot).
  *
  * @evt hover - Event generated when the mouse hovers over a trace. e.detail is
@@ -64,6 +64,8 @@ define('dots-sk', class extends ElementSk {
     // timer.
     this._lastMouseMove = null;
 
+    this._hasScrolledOnce = false;
+
     // Explicitly bind event handler methods to this.
     this._onMouseMove = this._onMouseMove.bind(this);
     this._onMouseLeave = this._onMouseLeave.bind(this);
@@ -85,6 +87,7 @@ define('dots-sk', class extends ElementSk {
     this._canvas.removeEventListener('mousemove', this._onMouseMove);
     this._canvas.removeEventListener('mouseleave', this._onMouseLeave);
     this._canvas.removeEventListener('click', this._onClick);
+    this._hasScrolledOnce = false;
   }
 
   /**
@@ -116,6 +119,18 @@ define('dots-sk', class extends ElementSk {
     this._value = value;
     if (this._connected) {
       this._draw();
+    }
+  }
+
+  /**
+   * Scrolls the traces all the way to the right, showing the newest first. It will only do this
+   * on the first call, so as to avoid undoing the user manually scrolling left to see older
+   * history.
+   */
+  autoscroll() {
+    if (!this._hasScrolledOnce) {
+      this._hasScrolledOnce = true;
+      this.scroll(this.scrollWidth, 0);
     }
   }
 
@@ -280,7 +295,7 @@ define('dots-sk', class extends ElementSk {
     this.style.cursor = (found) ? 'pointer' : 'auto';
   }
 
-  // When a dot is clicked on, produce the show-commits event with the
+  // When a dot is clicked on, produce the showblamelist event with the
   // blamelist; that is, all the commits that are included up to and including
   // that dot.
   _onClick(e) {
@@ -293,7 +308,7 @@ define('dots-sk', class extends ElementSk {
     if (!blamelist) {
       return; // No blamelist if there's no dot at that X coord, i.e. misclick.
     }
-    this.dispatchEvent(new CustomEvent('show-commits', {
+    this.dispatchEvent(new CustomEvent('showblamelist', {
       bubbles: true,
       detail: blamelist,
     }));

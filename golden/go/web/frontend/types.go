@@ -205,7 +205,7 @@ type Commit struct {
 	CommitTime int64  `json:"commit_time"`
 	Hash       string `json:"hash"`
 	Author     string `json:"author"`
-	Subject    string `json:"subject"`
+	Subject    string `json:"message"`
 }
 
 // FromTilingCommit converts a tiling.Commit into a frontend.Commit.
