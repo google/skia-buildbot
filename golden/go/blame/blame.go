@@ -23,13 +23,13 @@ type Blamer interface {
 	// caused the given test name/digest pair. If the result is empty we are not
 	// able to determine blame, because the test name/digest appeared prior
 	// to the current tile.
-	GetBlame(testName types.TestName, digest types.Digest, commits []*tiling.Commit) BlameDistribution
+	GetBlame(testName types.TestName, digest types.Digest, commits []tiling.Commit) BlameDistribution
 }
 
 // BlamerImpl implements the Blamer interface.
 type BlamerImpl struct {
 	// commits are the commits corresponding to the current blamelists.
-	commits []*tiling.Commit
+	commits []tiling.Commit
 
 	// blameLists are the blamelists keyed by testName and digest.
 	blameLists map[types.TestName]map[types.Digest]blameCounts
@@ -39,7 +39,7 @@ type BlamerImpl struct {
 // might have introduced Untriaged digests.
 // TODO(kjlubick): This type might not make it to the frontend at all, in which
 // case, it should be deleted. Otherwise, perhaps we can directly return
-// []*tiling.Commit.
+// []tiling.Commit.
 type BlameDistribution struct {
 	// Freq contains the indices of commits that are to blame for this
 	// Test producing the specified digest.
@@ -107,14 +107,14 @@ func (b *BlamerImpl) GetBlamesForTest(testName types.TestName) []WeightedBlame {
 }
 
 // GetBlame fulfills the Blamer interface.
-func (b *BlamerImpl) GetBlame(testName types.TestName, digest types.Digest, commits []*tiling.Commit) BlameDistribution {
+func (b *BlamerImpl) GetBlame(testName types.TestName, digest types.Digest, commits []tiling.Commit) BlameDistribution {
 	commitIndices, _ := b.getBlame(b.blameLists[testName][digest], b.commits, commits)
 	return BlameDistribution{
 		Freq: commitIndices,
 	}
 }
 
-func (b *BlamerImpl) getBlame(freq blameCounts, blameCommits, commits []*tiling.Commit) ([]int, int) {
+func (b *BlamerImpl) getBlame(freq blameCounts, blameCommits, commits []tiling.Commit) ([]int, int) {
 	if len(freq) == 0 {
 		return []int{}, 0
 	}
@@ -130,7 +130,9 @@ func (b *BlamerImpl) getBlame(freq blameCounts, blameCommits, commits []*tiling.
 		idx++
 	}
 	tgtCommit := blameCommits[len(blameCommits)-len(freq)+idx]
-	commitIdx := sort.Search(len(commits), func(i int) bool { return commits[i].CommitTime >= tgtCommit.CommitTime })
+	commitIdx := sort.Search(len(commits), func(i int) bool {
+		return commits[i].CommitTime.After(tgtCommit.CommitTime) || commits[i].CommitTime.Equal(tgtCommit.CommitTime)
+	})
 	for (idx < len(freq)) && (freq[idx] > 0) && (commitIdx < len(commits)) {
 		ret = append(ret, commitIdx)
 		idx++
@@ -210,7 +212,7 @@ func (b *BlamerImpl) calculate(tile *tiling.Tile, exp expectations.ReadOnly) err
 
 	// make a copy of the commits we hold onto, so as not to hold a reference
 	// to the tile, preventing GC.
-	commits := append([]*tiling.Commit{}, tile.Commits[:tileLen]...)
+	commits := append([]tiling.Commit{}, tile.Commits[:tileLen]...)
 	for testName, digests := range blameRange {
 		for digest, commitRanges := range digests {
 			start := blameStart[testName][digest]
