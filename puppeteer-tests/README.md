@@ -30,6 +30,8 @@ Examples of tests that make use of Puppeteer might include:
 
 ## Running Puppeteer tests
 
+First, make sure to run `npm ci` from `//puppeteer-tests` if you haven't already.
+
 Execute `make puppeteer-tests` from this repository's root directory. This will
 run all Puppeteer tests in the buildbot repository inside a Docker container.
 
