@@ -4,9 +4,6 @@
  *
  * Displays the current untriaged digests, grouped by blame.
  *
- * @attr default-corpus {string} Name of the corpus to use when not specified
- *     in the URL.
- * @attr base-repo-url {string} Base repository URL.
  */
 
 import { define } from 'elements-sk/define';
@@ -17,6 +14,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../byblameentry-sk';
 import '../corpus-selector-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
+import { defaultCorpus } from '../settings';
 
 const template = (el) => html`
 <div class=top-container>
@@ -45,8 +43,7 @@ const entryTemplate = (el, entry) => html`
 <byblameentry-sk
     .byBlameEntry=${entry}
     .gitLog=${el._gitLogByGroupID.get(entry.groupID)}
-    .corpus=${el._corpus}
-    .baseRepoUrl=${el._baseRepoUrl}>
+    .corpus=${el._corpus}>
 </byblameentry-sk>
 `;
 
@@ -77,7 +74,7 @@ define('byblame-page-sk', class extends ElementSk {
           return;
         }
 
-        this._corpus = newState.corpus || this._defaultCorpus;
+        this._corpus = newState.corpus || defaultCorpus();
         this._render(); // Update corpus selector immediately.
         this._fetchEntries();
       },
@@ -88,14 +85,6 @@ define('byblame-page-sk', class extends ElementSk {
     super.connectedCallback();
     // Show loading indicator while we wait for results from the server.
     this._render();
-  }
-
-  get _defaultCorpus() {
-    return this.getAttribute('default-corpus');
-  }
-
-  get _baseRepoUrl() {
-    return this.getAttribute('base-repo-url');
   }
 
   _handleCorpusChange(event) {

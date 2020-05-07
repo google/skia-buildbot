@@ -10,17 +10,16 @@ import {
   eventPromise,
   expectQueryStringToEqual,
 } from '../test_util';
+import { testOnlySetBaseRepoURL, testOnlySetDefaultCorpus } from '../settings';
 
 describe('byblame-page-sk', () => {
   const newInstance = setUpElementUnderTest('byblame-page-sk');
 
-  const newByblamePageSk = (opts = {}) => newInstance((el) => {
-    el.setAttribute('default-corpus', opts.defaultCorpus || 'gm');
-    el.setAttribute(
-      'base-repo-url',
-      opts.baseRepoUrl || 'https://skia.googlesource.com/skia.git',
-    );
-  });
+  const newByblamePageSk = (opts = {}) => {
+    testOnlySetBaseRepoURL(opts.baseRepoUrl || 'https://skia.googlesource.com/skia.git');
+    testOnlySetDefaultCorpus(opts.defaultCorpus || 'gm');
+    return newInstance();
+  };
 
   beforeEach(async () => {
     // Clear query string before each test case. This is needed for test cases
