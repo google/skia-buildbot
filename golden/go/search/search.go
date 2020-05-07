@@ -169,11 +169,10 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 
 	// Return all digests with the selected offset within the result set.
 	searchRet := &frontend.SearchResponse{
-		Digests: displayRet,
-		Offset:  offset,
-		Size:    len(ret),
-		// TODO(kjlubick) maybe omit Commits for ChangeList Queries.
-		Commits:       idx.Tile().GetTile(types.ExcludeIgnoredTraces).Commits,
+		Digests:       displayRet,
+		Offset:        offset,
+		Size:          len(ret),
+		Commits:       fromTilingCommits(idx.Tile().GetTile(types.ExcludeIgnoredTraces).Commits),
 		TraceComments: traceComments,
 	}
 	return searchRet, nil
@@ -238,9 +237,18 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 
 	return &frontend.DigestDetails{
 		Digest:        ret[0],
-		Commits:       tile.Commits,
+		Commits:       fromTilingCommits(tile.Commits),
 		TraceComments: traceComments,
 	}, nil
+}
+
+// fromTilingCommits converts a slice of tiling.Commit into a slice of frontend.Commit.
+func fromTilingCommits(xtc []tiling.Commit) []frontend.Commit {
+	rv := make([]frontend.Commit, len(xtc))
+	for i, tc := range xtc {
+		rv[i] = frontend.FromTilingCommit(tc)
+	}
+	return rv
 }
 
 // getExpectations returns a slice of expectations that should be

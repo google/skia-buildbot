@@ -219,7 +219,7 @@ func (wh *Handlers) computeByBlame(ctx context.Context, corpus string) ([]ByBlam
 	grouped := map[string][]ByBlame{}
 
 	// The Commit info for each group id.
-	commitinfo := map[string][]*tiling.Commit{}
+	commitinfo := map[string][]tiling.Commit{}
 	// map [groupid] [test] TestRollup
 	rollups := map[string]map[types.TestName]TestRollup{}
 
@@ -237,7 +237,7 @@ func (wh *Handlers) computeByBlame(ctx context.Context, corpus string) ([]ByBlam
 			groupid := strings.Join(lookUpCommits(dist.Freq, commits), ":")
 			// Only fill in commitinfo for each groupid only once.
 			if _, ok := commitinfo[groupid]; !ok {
-				ci := []*tiling.Commit{}
+				ci := []tiling.Commit{}
 				for _, index := range dist.Freq {
 					ci = append(ci, commits[index])
 				}
@@ -312,7 +312,7 @@ func (wh *Handlers) computeByBlame(ctx context.Context, corpus string) ([]ByBlam
 }
 
 // lookUpCommits returns the commit hashes for the commit indices in 'freq'.
-func lookUpCommits(freq []int, commits []*tiling.Commit) []string {
+func lookUpCommits(freq []int, commits []tiling.Commit) []string {
 	ret := []string{}
 	for _, index := range freq {
 		ret = append(ret, commits[index].Hash)
@@ -323,11 +323,11 @@ func lookUpCommits(freq []int, commits []*tiling.Commit) []string {
 // ByBlameEntry is a helper structure that is serialized to
 // JSON and sent to the front-end.
 type ByBlameEntry struct {
-	GroupID       string           `json:"groupID"`
-	NDigests      int              `json:"nDigests"`
-	NTests        int              `json:"nTests"`
-	AffectedTests []TestRollup     `json:"affectedTests"`
-	Commits       []*tiling.Commit `json:"commits"`
+	GroupID       string          `json:"groupID"`
+	NDigests      int             `json:"nDigests"`
+	NTests        int             `json:"nTests"`
+	AffectedTests []TestRollup    `json:"affectedTests"`
+	Commits       []tiling.Commit `json:"commits"`
 }
 
 // ByBlame describes a single digest and its blames.
@@ -340,10 +340,10 @@ type ByBlame struct {
 }
 
 // CommitSlice is a utility type simple for sorting Commit slices so earliest commits come first.
-type CommitSlice []*tiling.Commit
+type CommitSlice []tiling.Commit
 
 func (p CommitSlice) Len() int           { return len(p) }
-func (p CommitSlice) Less(i, j int) bool { return p[i].CommitTime > p[j].CommitTime }
+func (p CommitSlice) Less(i, j int) bool { return p[i].CommitTime.After(p[j].CommitTime) }
 func (p CommitSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 type TestRollup struct {

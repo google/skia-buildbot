@@ -80,7 +80,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 	require.NotNil(t, resp)
 
 	assert.Equal(t, &frontend.SearchResponse{
-		Commits: data.MakeTestCommits(),
+		Commits: fromTilingCommits(data.MakeTestCommits()),
 		Offset:  0,
 		Size:    2,
 		Digests: []*frontend.SRDigest{
@@ -784,7 +784,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 	assert.Len(t, options, 1)
 
 	assert.Equal(t, &frontend.SearchResponse{
-		Commits: data.MakeTestCommits(),
+		Commits: fromTilingCommits(data.MakeTestCommits()),
 		Offset:  0,
 		Size:    1,
 		Digests: []*frontend.SRDigest{
@@ -945,7 +945,7 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
 	assert.Equal(t, &frontend.DigestDetails{
-		Commits: data.MakeTestCommits(),
+		Commits: fromTilingCommits(data.MakeTestCommits()),
 		Digest: &frontend.SRDigest{
 			Test:   testWeWantDetailsAbout,
 			Digest: digestWeWantDetailsAbout,

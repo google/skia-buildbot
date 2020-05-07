@@ -153,7 +153,7 @@ func TestComputeByBlame_OneUntriagedDigest_Success(t *testing.T) {
 			GroupID:  bug_revert.ThirdCommitHash,
 			NDigests: 1,
 			NTests:   1,
-			Commits:  []*tiling.Commit{commits[2]},
+			Commits:  []tiling.Commit{commits[2]},
 			AffectedTests: []TestRollup{
 				{
 					Test:         bug_revert.TestTwo,
@@ -194,7 +194,7 @@ func TestComputeByBlame_MultipleUntriagedDigests_Success(t *testing.T) {
 			GroupID:  bug_revert.SecondCommitHash,
 			NDigests: 2,
 			NTests:   2,
-			Commits:  []*tiling.Commit{commits[1]},
+			Commits:  []tiling.Commit{commits[1]},
 			AffectedTests: []TestRollup{
 				{
 					Test:         bug_revert.TestOne,
@@ -212,7 +212,7 @@ func TestComputeByBlame_MultipleUntriagedDigests_Success(t *testing.T) {
 			GroupID:  bug_revert.ThirdCommitHash,
 			NDigests: 1,
 			NTests:   1,
-			Commits:  []*tiling.Commit{commits[2]},
+			Commits:  []tiling.Commit{commits[2]},
 			AffectedTests: []TestRollup{
 				{
 					Test:         bug_revert.TestTwo,

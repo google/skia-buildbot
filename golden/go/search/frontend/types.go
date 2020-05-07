@@ -13,6 +13,23 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
+type Commit struct {
+	// CommitTime is in seconds since the epoch
+	CommitTime int64  `json:"commit_time"`
+	Hash       string `json:"hash"`
+	Author     string `json:"author"`
+	Subject    string `json:"subject"`
+}
+
+func FromTilingCommit(tc tiling.Commit) Commit {
+	return Commit{
+		CommitTime: tc.CommitTime.Unix(),
+		Hash:       tc.Hash,
+		Author:     tc.Author,
+		Subject:    tc.Subject,
+	}
+}
+
 // SearchResponse is the structure returned by the
 // Search(...) function of SearchAPI and intended to be
 // returned as JSON in an HTTP response.
@@ -21,9 +38,9 @@ type SearchResponse struct {
 	// Offset is the offset of the digest into the total list of digests.
 	Offset int `json:"offset"`
 	// Size is the total number of Digests that match the current query.
-	Size          int              `json:"size"`
-	Commits       []*tiling.Commit `json:"commits"`
-	TraceComments []TraceComment   `json:"trace_comments"`
+	Size          int            `json:"size"`
+	Commits       []Commit       `json:"commits"`
+	TraceComments []TraceComment `json:"trace_comments"`
 }
 
 // TriageHistory represents who last triaged a certain digest for a certain test.
@@ -57,9 +74,9 @@ type SRDiffDigest struct {
 
 // DigestDetails contains details about a digest.
 type DigestDetails struct {
-	Digest        *SRDigest        `json:"digest"`
-	Commits       []*tiling.Commit `json:"commits"`
-	TraceComments []TraceComment   `json:"trace_comments"`
+	Digest        *SRDigest      `json:"digest"`
+	Commits       []Commit       `json:"commits"`
+	TraceComments []TraceComment `json:"trace_comments"`
 }
 
 // Trace describes a single trace, used in TraceGroup.
