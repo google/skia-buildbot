@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3de176ef_75a3cf5c",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-07T18:12:23Z",
+      "side": 1,
+      "message": "Can you add a test for this?",
+      "range": {
+        "startLine": 130,
+        "startChar": 2,
+        "endLine": 136,
+        "endChar": 0
+      },
+      "revId": "3f3efd7286348bfd3588e19ee6d9c6e0be1f1a08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
