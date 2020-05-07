@@ -88,7 +88,7 @@ func (s *CachedTileSourceImpl) updateTile(ctx context.Context) error {
 	if err := s.VCS.Update(ctx, true, false); err != nil {
 		return skerr.Wrapf(err, "updating VCS")
 	}
-	var prevCommit *tiling.Commit
+	var prevCommit tiling.Commit
 	if s.lastCpxTile != nil {
 		commits := s.lastCpxTile.AllCommits()
 		if len(commits) > 0 {
@@ -164,7 +164,7 @@ func (s *CachedTileSourceImpl) filterTile(tile *tiling.Tile) *tiling.Tile {
 }
 
 // computeMetricsOnTile calculates a few metrics related to the contents of the tile.
-func computeMetricsOnTile(denseTile *tiling.Tile, allCommits []*tiling.Commit) {
+func computeMetricsOnTile(denseTile *tiling.Tile, allCommits []tiling.Commit) {
 	tracesWithData := int64(0)
 	for _, trace := range denseTile.Traces {
 		if !trace.IsMissing(trace.Len() - 1) {
@@ -191,7 +191,7 @@ func computeMetricsOnTile(denseTile *tiling.Tile, allCommits []*tiling.Commit) {
 
 // checkForLandedChangeLists checks all commits of the current tile whether
 // the associated expectations have been added to the baseline of the master.
-func (s *CachedTileSourceImpl) checkForLandedChangeLists(ctx context.Context, prev *tiling.Commit, commits []*tiling.Commit) error {
+func (s *CachedTileSourceImpl) checkForLandedChangeLists(ctx context.Context, prev tiling.Commit, commits []tiling.Commit) error {
 	if s.CLUpdater == nil {
 		sklog.Infof("Not Updating clstore with landed CLs because no updater configured.")
 		return nil
@@ -200,7 +200,7 @@ func (s *CachedTileSourceImpl) checkForLandedChangeLists(ctx context.Context, pr
 		sklog.Warningf("No commits in tile?")
 		return nil
 	}
-	if prev != nil {
+	if !prev.CommitTime.IsZero() {
 		// re-slice commits after prev so as to avoid doing redundant work.
 		lastIdx := 0
 		for i, c := range commits {

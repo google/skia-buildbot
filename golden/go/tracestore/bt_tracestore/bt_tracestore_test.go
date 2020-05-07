@@ -80,7 +80,7 @@ func assertTilesEqual(t *testing.T, a *tiling.Tile, b *tiling.Tile) {
 	}
 }
 
-func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []*tiling.Commit, options bool) {
+func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []tiling.Commit, options bool) {
 	// This time is an arbitrary point in time
 	now := time.Date(2019, time.May, 5, 1, 3, 4, 0, time.UTC)
 
@@ -527,7 +527,7 @@ func TestBTTraceStoreGetDenseTile(t *testing.T) {
 
 // testDenseTile takes the data from tile, Puts it into BT, then pulls the tile given
 // the commit layout in VCS and returns it.
-func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits []*tiling.Commit, lCommits []*vcsinfo.LongCommit, realCommitIndices []int) {
+func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits []tiling.Commit, lCommits []*vcsinfo.LongCommit, realCommitIndices []int) {
 	defer mvcs.AssertExpectations(t)
 
 	btConf := BTConfig{
@@ -571,8 +571,8 @@ func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits 
 
 	// In mockSparseVCSWithCommits, we change the time of the commits, so we need
 	// to update the expected times to match.
-	for i, c := range commits {
-		c.CommitTime = lCommits[realCommitIndices[i]].Timestamp.Unix()
+	for i := range commits {
+		commits[i].CommitTime = lCommits[realCommitIndices[i]].Timestamp
 	}
 	tile.Commits = commits
 
@@ -815,32 +815,32 @@ func TestCommitsFromVCSSimultaneousCommits(t *testing.T) {
 
 	allCommits, denseCommits, err := b.commitsFromVCS(context.Background(), commitsWithData)
 	require.NoError(t, err)
-	assert.Equal(t, []*tiling.Commit{tCommits[1], tCommits[2], tCommits[4]}, denseCommits)
+	assert.Equal(t, []tiling.Commit{tCommits[1], tCommits[2], tCommits[4]}, denseCommits)
 	assert.Equal(t, tCommits[1:], allCommits)
 }
 
 // makeSimultaneousCommits returns the data for 5 commits, of which the first two share a timestamp.
-func makeSimultaneousCommits() ([]*tiling.Commit, []*vcsinfo.LongCommit, []string) {
+func makeSimultaneousCommits() ([]tiling.Commit, []*vcsinfo.LongCommit, []string) {
 	commits := data_bug_revert.MakeTestCommits()
 	commits[1].CommitTime = commits[0].CommitTime
 
 	longCommits := make([]*vcsinfo.LongCommit, 0, len(commits))
 	hashes := make([]string, 0, len(commits))
-	for i, c := range commits {
+	for _, c := range commits {
 		longCommits = append(longCommits, &vcsinfo.LongCommit{
 			ShortCommit: &vcsinfo.ShortCommit{
 				Hash:    c.Hash,
 				Author:  c.Author,
-				Subject: fmt.Sprintf("Commit #%d in test", i),
+				Subject: c.Subject,
 			},
-			Timestamp: time.Unix(c.CommitTime, 0),
+			Timestamp: c.CommitTime,
 		})
 		hashes = append(hashes, c.Hash)
 	}
 	return commits, longCommits, hashes
 }
 
-func mockVCSWithCommits(commits []*tiling.Commit, offset int) *mock_vcs.VCS {
+func mockVCSWithCommits(commits []tiling.Commit, offset int) *mock_vcs.VCS {
 	mvcs := &mock_vcs.VCS{}
 
 	indexCommits := make([]*vcsinfo.IndexCommit, 0, len(commits))
@@ -852,16 +852,16 @@ func mockVCSWithCommits(commits []*tiling.Commit, offset int) *mock_vcs.VCS {
 		indexCommits = append(indexCommits, &vcsinfo.IndexCommit{
 			Hash:      c.Hash,
 			Index:     i + offset,
-			Timestamp: time.Unix(c.CommitTime, 0),
+			Timestamp: c.CommitTime,
 		})
 		hashes = append(hashes, c.Hash)
 		longCommits = append(longCommits, &vcsinfo.LongCommit{
 			ShortCommit: &vcsinfo.ShortCommit{
 				Hash:    c.Hash,
 				Author:  c.Author,
-				Subject: fmt.Sprintf("Commit #%d in test", i),
+				Subject: c.Subject,
 			},
-			Timestamp: time.Unix(c.CommitTime, 0),
+			Timestamp: c.CommitTime,
 		})
 
 		mvcs.On("Details", testutils.AnyContext, c.Hash, false).Return(longCommits[i], nil).Maybe()
@@ -873,7 +873,7 @@ func mockVCSWithCommits(commits []*tiling.Commit, offset int) *mock_vcs.VCS {
 	return mvcs
 }
 
-func mockSparseVCSWithCommits(commits []*tiling.Commit, realCommitIndices []int, totalCommits int) (*mock_vcs.VCS, []*vcsinfo.LongCommit) {
+func mockSparseVCSWithCommits(commits []tiling.Commit, realCommitIndices []int, totalCommits int) (*mock_vcs.VCS, []*vcsinfo.LongCommit) {
 	mvcs := &mock_vcs.VCS{}
 	if len(commits) != len(realCommitIndices) {
 		panic("commits should be same length as realCommitIndices")
@@ -917,7 +917,7 @@ func mockSparseVCSWithCommits(commits []*tiling.Commit, realCommitIndices []int,
 			ShortCommit: &vcsinfo.ShortCommit{
 				Hash:    c.Hash,
 				Author:  c.Author,
-				Subject: fmt.Sprintf("Real commit #%d in test", i),
+				Subject: c.Subject,
 			},
 			Timestamp: time.Unix(int64(index*1700), 0),
 		}

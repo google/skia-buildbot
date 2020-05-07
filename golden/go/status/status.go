@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 const (
@@ -31,10 +32,10 @@ type GUIStatus struct {
 	// Indicates whether current HEAD is ok.
 	OK bool `json:"ok"`
 
-	FirstCommit *tiling.Commit `json:"firstCommit"`
+	FirstCommit frontend.Commit `json:"firstCommit"`
 
 	// Last commit currently know.
-	LastCommit *tiling.Commit `json:"lastCommit"`
+	LastCommit frontend.Commit `json:"lastCommit"`
 
 	TotalCommits  int `json:"totalCommits"`
 	FilledCommits int `json:"filledCommits"`
@@ -125,8 +126,8 @@ func (s *StatusWatcher) updateLastCommitAge() {
 		sklog.Warningf("GetStatus() was nil when computing metrics")
 		return
 	}
-	if st.LastCommit == nil {
-		sklog.Warningf("GetStatus() had nil LastCommit when computing metrics: %#v", st)
+	if st.LastCommit.CommitTime == 0 {
+		sklog.Warningf("GetStatus() had empty LastCommit when computing metrics: %#v", st)
 		return
 	}
 
@@ -299,8 +300,8 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 	allCommits := cpxTile.AllCommits()
 	result := &GUIStatus{
 		OK:            overallOk,
-		FirstCommit:   allCommits[0],
-		LastCommit:    allCommits[len(allCommits)-1],
+		FirstCommit:   frontend.FromTilingCommit(allCommits[0]),
+		LastCommit:    frontend.FromTilingCommit(allCommits[len(allCommits)-1]),
 		TotalCommits:  len(allCommits),
 		FilledCommits: cpxTile.FilledCommits(),
 		CorpStatus:    corpStatus,

@@ -15,12 +15,12 @@ import (
 type ComplexTile interface {
 	// AllCommits returns all commits that were processed to get the data commits.
 	// Its first commit should match the first commit returned when calling DataCommits.
-	AllCommits() []*Commit
+	AllCommits() []Commit
 
 	// DataCommits returns all commits that contain data. In some busy repos, there are commits that
 	// don't get tested directly because the commits are batched in with others. DataCommits
 	// is a way to get just the commits where some data has been ingested.
-	DataCommits() []*Commit
+	DataCommits() []Commit
 
 	// FilledCommits returns how many commits in the tile have data.
 	FilledCommits() int
@@ -39,7 +39,7 @@ type ComplexTile interface {
 	IgnoreRules() paramtools.ParamMatcher
 
 	// SetSparse tells the tile what the full range of commits analyzed was.
-	SetSparse(allCommits []*Commit)
+	SetSparse(allCommits []Commit)
 }
 
 type ComplexTileImpl struct {
@@ -53,7 +53,7 @@ type ComplexTileImpl struct {
 	ignoreRules paramtools.ParamMatcher
 
 	// sparseCommits are all the commits that were used condense the underlying tile.
-	sparseCommits []*Commit
+	sparseCommits []Commit
 }
 
 func NewComplexTile(completeTile *Tile) *ComplexTileImpl {
@@ -70,7 +70,7 @@ func (c *ComplexTileImpl) SetIgnoreRules(reducedTile *Tile, ignoreRules paramtoo
 }
 
 // SetSparse fulfills the ComplexTile interface.
-func (c *ComplexTileImpl) SetSparse(sparseCommits []*Commit) {
+func (c *ComplexTileImpl) SetSparse(sparseCommits []Commit) {
 	c.sparseCommits = sparseCommits
 }
 
@@ -80,12 +80,12 @@ func (c *ComplexTileImpl) FilledCommits() int {
 }
 
 // DataCommits fulfills the ComplexTile interface.
-func (c *ComplexTileImpl) DataCommits() []*Commit {
+func (c *ComplexTileImpl) DataCommits() []Commit {
 	return c.tileIncludeIgnoredTraces.Commits
 }
 
 // AllCommits fulfills the ComplexTile interface.
-func (c *ComplexTileImpl) AllCommits() []*Commit {
+func (c *ComplexTileImpl) AllCommits() []Commit {
 	return c.sparseCommits
 }
 
