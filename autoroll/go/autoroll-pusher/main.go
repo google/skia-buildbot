@@ -265,7 +265,12 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, lat
 				if err != nil {
 					return nil, skerr.Fmt("Failed to decode existing roller config as base64: %s", err)
 				}
-				var cfg roller.AutoRollerConfig
+				// Don't try to decode the whole AutoRollerConfig struct, since
+				// that could fail if its structure has changed since the k8s
+				// config file was last modified.
+				var cfg struct {
+					RollerName string `json:"rollerName"`
+				}
 				if err := json.Unmarshal(dec, &cfg); err != nil {
 					return nil, skerr.Fmt("Failed to decode existing roller config as JSON: %s", err)
 				}
