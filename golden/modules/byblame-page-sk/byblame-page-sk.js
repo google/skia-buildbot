@@ -25,11 +25,6 @@ const template = (el) => html`
 }
       @corpus-selected=${(e) => el._handleCorpusChange(e)}>
   </corpus-selector-sk>
-
-  <p class=go-back-to-old-page>
-    You're viewing the new Gold home page.
-    <a href="/old-byblame">Take me back to the old version</a>
-  </p>
 </div>
 
 <div class=entries>
