@@ -3,16 +3,21 @@ import { $, $$ } from 'common-sk/modules/dom';
 import { deepCopy } from 'common-sk/modules/object';
 import { setUpElementUnderTest } from '../test_util';
 import { entry, gitLog } from './test_data';
+import { testOnlySetSettings } from '../settings';
 
 describe('byblameentry-sk', () => {
   const newInstance = setUpElementUnderTest('byblameentry-sk');
 
-  const newByBlameEntrySk = (byBlameEntry, opts = {}) => newInstance((el) => {
-    el.byBlameEntry = byBlameEntry;
-    el.gitLog = opts.gitLog || gitLog;
-    el.baseRepoUrl = opts.baseRepoUrl || 'https://skia.googlesource.com/skia.git';
-    el.corpus = opts.corpus || 'gm';
-  });
+  const newByBlameEntrySk = (byBlameEntry, opts = {}) => {
+    testOnlySetSettings({
+      baseRepoURL: opts.baseRepoUrl || 'https://skia.googlesource.com/skia.git',
+    });
+    return newInstance((el) => {
+      el.byBlameEntry = byBlameEntry;
+      el.gitLog = opts.gitLog || gitLog;
+      el.corpus = opts.corpus || 'gm';
+    });
+  };
 
   let clock;
 
