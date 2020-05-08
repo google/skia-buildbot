@@ -2,6 +2,7 @@ package parent
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -57,9 +58,16 @@ func NewGitCheckoutGithubFile(ctx context.Context, c GitCheckoutGithubFileConfig
 
 	createRollHelper := gitCheckoutFileCreateRollFunc(c.DependencyConfig)
 	createRoll := func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
-		// Run the helper to set the new dependency version(s).
-		if _, err := createRollHelper(ctx, co, from, to, rolling, commitMsg); err != nil {
-			return "", skerr.Wrap(err)
+		// Run the helper to add commits pointing to each of the Revision in the
+		// roll.
+		// TODO(borenet): This should be optional and configured in
+		// GitCheckoutGithubFileConfig.
+		prev := from
+		for _, rev := range rolling {
+			msg := fmt.Sprintf("%s %s", rev.Id[:9], rev.Description)
+			if _, err := createRollHelper(ctx, co, prev, rev, []*revision.Revision{rev}, msg); err != nil {
+				return "", skerr.Wrap(err)
+			}
 		}
 
 		// Run the pre-upload steps.

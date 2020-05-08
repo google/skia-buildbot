@@ -60,7 +60,7 @@ type GitCheckoutCreateRollFunc func(context.Context, *git.Checkout, *revision.Re
 
 // GitCheckoutUploadRollFunc uploads a CL using the given commit hash and
 // returns its ID.
-type GitCheckoutUploadRollFunc func(context.Context, *git.Checkout, string, string, []string, bool) (int64, error)
+type GitCheckoutUploadRollFunc func(context.Context, *git.Checkout, string, string, []string, bool, string) (int64, error)
 
 // GitCheckoutGetLastRollRevFunc retrieves the last-rolled revision ID from the
 // local Git checkout. GitCheckoutParent handles updating the checkout itself.
@@ -145,7 +145,7 @@ func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revisio
 	}
 
 	// Upload the CL.
-	return p.uploadRoll(ctx, p.Checkout.Checkout, upstreamBranch, hash, emails, dryRun)
+	return p.uploadRoll(ctx, p.Checkout.Checkout, upstreamBranch, hash, emails, dryRun, commitMsg)
 }
 
 // VersionFileGetLastRollRevFunc returns a GitCheckoutGetLastRollRevFunc which
