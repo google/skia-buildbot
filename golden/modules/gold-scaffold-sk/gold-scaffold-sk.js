@@ -10,14 +10,13 @@
  *
  * The error-toast element responds to fetch-error events and normal error-sk events.
  *
- * @attr {string} app_title - The title to show in the page banner.
- *
  * @attr {boolean} testing_offline - If we should operate entirely in offline mode.
  */
 import { define } from 'elements-sk/define';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { title } from '../settings';
 
 import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/login-sk';
@@ -38,7 +37,7 @@ import 'elements-sk/spinner-sk';
 const template = (ele) => html`
 <app-sk>
   <header>
-    <h1>${ele.appTitle}</h1>
+    <h1>${title()}</h1>
     <div class=spinner-spacer>
       <spinner-sk></spinner-sk>
     </div>
@@ -149,11 +148,6 @@ define('gold-scaffold-sk', class extends ElementSk {
     this.removeEventListener('end-task', this._finishedTask);
     this.removeEventListener('fetch-error', this._fetchError);
   }
-
-  /** @prop appTitle {string} Reflects the app_title attribute for ease of use. */
-  get appTitle() { return this.getAttribute('app_title'); }
-
-  set appTitle(val) { this.setAttribute('app_title', val); }
 
   /** @prop {boolean} busy Indicates if there any on-going tasks (e.g. RPCs).
    *                  This also mirrors the status of the embedded spinner-sk.

@@ -5,8 +5,14 @@ import { $$ } from 'common-sk/modules/dom';
 import { typicalDetails, fakeNow, twoHundredCommits } from '../digest-details-sk/test_data';
 import { delay, isPuppeteerTest } from '../demo_util';
 import { setImageEndpointsForDemos } from '../common';
+import { testOnlySetSettings } from '../settings';
 
 const fetchMock = require('fetch-mock');
+
+testOnlySetSettings({
+  title: 'Skia Public',
+});
+$$('gold-scaffold-sk')._render(); // pick up title from settings.
 
 setImageEndpointsForDemos();
 

@@ -11,6 +11,7 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { diffDate } from 'common-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { baseRepoURL } from '../settings';
 
 const template = (el) => html`
 <div class=blame>
@@ -135,14 +136,6 @@ define('byblameentry-sk', class extends ElementSk {
     this._render();
   }
 
-  /** @prop baseRepoUrl {string} Base repository URL. */
-  get baseRepoUrl() { return this._baseRepoUrl; }
-
-  set baseRepoUrl(v) {
-    this._baseRepoUrl = v;
-    this._render();
-  }
-
   _blameHref() {
     const query = encodeURIComponent(`source_type=${this.corpus}`);
     const groupID = this.byBlameEntry.groupID;
@@ -150,11 +143,12 @@ define('byblameentry-sk', class extends ElementSk {
   }
 
   _commitHref(hash) {
-    if (!hash || !this.baseRepoUrl) {
+    const repo = baseRepoURL();
+    if (!hash || !repo) {
       return '';
     }
-    const path = this.baseRepoUrl.indexOf('github.com') !== -1 ? 'commit' : '+';
-    return `${this.baseRepoUrl}/${path}/${hash}`;
+    const path = repo.indexOf('github.com') !== -1 ? 'commit' : '+';
+    return `${repo}/${path}/${hash}`;
   }
 
   _commitMessage(hash) {

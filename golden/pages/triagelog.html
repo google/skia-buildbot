@@ -3,9 +3,16 @@
 <head>
   <title>{{.Title}} Triage Log</title>
   <link rel="shortcut icon" href="/res/img/favicon.ico">
+  <script>
+    window.GoldSettings = {
+      title: "{{.Title}}",
+      defaultCorpus: "{{.DefaultCorpus}}",
+      baseRepoURL: "{{.BaseRepoURL}}",
+    };
+  </script>
 </head>
 <body>
-<gold-scaffold-sk app_title={{.Title}}>
+<gold-scaffold-sk>
   <triagelog-page-sk></triagelog-page-sk>
 </gold-scaffold-sk>
 </body>
