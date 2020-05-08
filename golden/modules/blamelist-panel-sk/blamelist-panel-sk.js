@@ -5,9 +5,6 @@
  * A list of commits and authors. If the list is too long, the first several will be shown.
  *
  * This should typically go into some sort of dialog to show the user.
- *
- * This element makes use of the global, static, "data-repo" attribute on the body to generate
- * links to the source repo of a given commit.
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
