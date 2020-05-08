@@ -35,7 +35,7 @@ run_docker: release
 
 push: release
 	go install ../kube/go/pushk
-	pushk --message="$(MESSAGE)" status
+	pushk --message="$(MESSAGE)" --use-temp-checkout status
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug

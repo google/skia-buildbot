@@ -80,7 +80,7 @@ Examples:
 ENV:
 
   The config repo is checked out by default into '/tmp'. This can be
-  changed by setting the environment variable PUSKH_GITDIR.
+  changed by setting the environment variable PUSHK_GITDIR.
 `)
 		flag.PrintDefaults()
 	}
@@ -97,6 +97,7 @@ var (
 	rollback                = flag.Bool("rollback", false, "If true go back to the second most recent image, otherwise use most recent image.")
 	runningInK8s            = flag.Bool("running-in-k8s", false, "If true, then does not use flags that do not work in the k8s environment. Eg: '--cluster' when doing 'kubectl apply'.")
 	doNotOverrideDirtyImage = flag.Bool("do-not-override-dirty-image", false, "If true, then do not push if the latest checkedin image is dirty. Caveat: This only checks the k8s-config repository to determine if image is dirty, it does not check the live running k8s containers.")
+	useTempCheckout         = flag.Bool("use-temp-checkout", false, "If true, checks out the config repo into a temporary directory and pushes from there.")
 	verbose                 = flag.Bool("verbose", false, "Verbose runtime diagnostics.")
 )
 
@@ -203,12 +204,18 @@ func byClusterFromChanged(gitDir string, changed util.StringSet) (map[string][]s
 func main() {
 	common.Init()
 
-	var err error
-	var checkout *git.Checkout
 	ctx := context.Background()
-	_, checkout, err = clusterconfig.NewWithCheckout(ctx, *configFile)
+	cfg, checkout, err := clusterconfig.NewWithCheckout(ctx, *configFile)
 	if err != nil {
 		sklog.Fatal(err)
+	}
+	if *useTempCheckout {
+		tmp, err := git.NewTempCheckout(ctx, cfg.Repo)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		defer tmp.Delete()
+		checkout = (*git.Checkout)(tmp)
 	}
 
 	output, err := checkout.Git(ctx, "status", "-s")
