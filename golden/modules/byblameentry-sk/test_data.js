@@ -37,19 +37,11 @@ export const entry = {
     commit_time: 1573169814,
     hash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
     author: 'Elisa (elisa@example.com)',
+    message: 'One glyph() to rule them all!!!',
   }, {
     commit_time: 1573149564,
     hash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     author: 'Joe (joe@example.com)',
-  }],
-};
-
-export const gitLog = {
-  log: [{
-    commit: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-    message: 'One glyph() to rule them all!!!',
-  }, {
-    commit: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     message: 'flesh out blendmodes through Screen',
   }],
 };
