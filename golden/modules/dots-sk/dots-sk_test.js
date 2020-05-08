@@ -92,7 +92,7 @@ describe('dots-sk', () => {
     expect(event.detail).to.equal(',alpha=third-trace,beta=baz,gamma=qux,');
   });
 
-  it('emits "show-commits" event when a dot is clicked', async () => {
+  it('emits "showblamelist" event when a dot is clicked', async () => {
     // First trace, most recent commit.
     let event = await clickDotAndCatchShowCommitsEvent(dotsSk, 19, 0);
     expect(event.detail).to.deep.equal([commits[19]]);
@@ -298,10 +298,10 @@ function clickDot(dotsSk, x, y) {
   }));
 }
 
-// Simulate clicking on a dot, and return the "show-commits" CustomElement
+// Simulate clicking on a dot, and return the "showblamelist" CustomElement
 // emitted by the dots-sk instance.
 async function clickDotAndCatchShowCommitsEvent(dotsSk, x, y) {
-  const eventPromise = dotsSkEventPromise(dotsSk, 'show-commits');
+  const eventPromise = dotsSkEventPromise(dotsSk, 'showblamelist');
   clickDot(dotsSk, x, y);
   return eventPromise;
 }
