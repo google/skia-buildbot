@@ -94,7 +94,6 @@ func main() {
 		clientSecretFile       = flag.String("client_secret", "", "Client secret file for OAuth2 authentication.")
 		crsURLTemplate         = flag.String("crs_url_template", "", "A URL with %s where a CL ID should be placed to complete it.")
 		defaultCorpus          = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
-		defaultMatchFields     = flag.String("match_fields", "name", "A comma separated list of fields that need to match when finding closest images.")
 		diffServerGRPCAddr     = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
 		diffServerImageAddr    = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
 		forceLogin             = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
@@ -121,7 +120,6 @@ func main() {
 		pubWhiteList           = flag.String("public_whitelist", "", fmt.Sprintf("File name of a JSON5 file that contains a query with the traces to white list. If set to '%s' everything is included. This is required if force_login is false.", everythingPublic))
 		redirectURL            = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 		resourcesDir           = flag.String("resources_dir", "", "The directory to find Polymer templates, JS, and CSS files.")
-		showBotProgress        = flag.Bool("show_bot_progress", true, "Query status.skia.org for the progress of bot results.")
 		siteURL                = flag.String("site_url", "https://gold.skia.org", "URL where this app is hosted.")
 		tileFreshness          = flag.Duration("tile_freshness", time.Minute, "How often to re-fetch the tile")
 		traceBTTableID         = flag.String("trace_bt_table", "", "BigTable table ID for the traces.")
@@ -543,19 +541,15 @@ func main() {
 
 	// appConfig is injected into the header of the index file.
 	appConfig := &struct {
-		BaseRepoURL        string   `json:"baseRepoURL"`
-		DefaultCorpus      string   `json:"defaultCorpus"`
-		DefaultMatchFields []string `json:"defaultMatchFields"`
-		ShowBotProgress    bool     `json:"showBotProgress"`
-		Title              string   `json:"title"`
-		IsPublic           bool     `json:"isPublic"` // If true this is not open but restrictions apply.
+		BaseRepoURL   string `json:"baseRepoURL"`
+		DefaultCorpus string `json:"defaultCorpus"`
+		Title         string `json:"title"`
+		IsPublic      bool   `json:"isPublic"` // If true this is not open but restrictions apply.
 	}{
-		BaseRepoURL:        *gitRepoURL,
-		DefaultCorpus:      *defaultCorpus,
-		DefaultMatchFields: strings.Split(*defaultMatchFields, ","),
-		ShowBotProgress:    *showBotProgress,
-		Title:              *appTitle,
-		IsPublic:           !openSite,
+		BaseRepoURL:   *gitRepoURL,
+		DefaultCorpus: *defaultCorpus,
+		Title:         *appTitle,
+		IsPublic:      !openSite,
 	}
 
 	templateHandler := func(name string) http.HandlerFunc {
