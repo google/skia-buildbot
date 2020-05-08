@@ -52,6 +52,7 @@ const annotation = (machine) => {
 const rows = (ele) => ele._machines.map((machine) => html`
 <tr id=${machine.Dimensions.id}>
   <td>${machine.Dimensions.id}</td>
+  <td>${machine.PodName}</td>
   <td>${machine.Dimensions.device_type}</td>
   <td><button @click=${() => ele._toggleMode(machine.Dimensions.id)}>${machine.Mode}</button></td>
   <td>${machine.Dimensions.quarantined}</td>
@@ -74,6 +75,7 @@ const template = (ele) => html`
   <table>
   <tr>
     <th>Machine</th>
+    <th>Pod</th>
     <th>Device</th>
     <th>Mode</th>
     <th>Quarantined</th>

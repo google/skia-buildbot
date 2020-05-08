@@ -148,7 +148,8 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 			GetProp: props,
 		},
 		Host: machine.Host{
-			Name: "skia-rpi2-0001",
+			Name:    "skia-rpi2-0001",
+			PodName: "rpi-swarming-12345-987",
 		},
 	}
 
@@ -170,6 +171,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 	}
 	assert.Equal(t, expected, next.Dimensions)
 	assert.Equal(t, machine.ModeAvailable, next.Mode)
+	assert.Equal(t, event.Host.PodName, next.PodName)
 }
 
 func TestProcess_DetectInsideDocker(t *testing.T) {

@@ -63,7 +63,6 @@ func sendPubSubMessages(ctx context.Context, t *testing.T, pubsubClient *pubsub.
 	b, err := json.Marshal(machine.Event{
 		Host: machine.Host{
 			Name: "skia-rpi2-rack4-shelf1-001",
-			Rack: "rack4",
 		},
 	})
 	require.NoError(t, err)
