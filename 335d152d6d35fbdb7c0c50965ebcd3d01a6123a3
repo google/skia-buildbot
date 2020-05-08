@@ -16,6 +16,24 @@
       "revId": "335d152d6d35fbdb7c0c50965ebcd3d01a6123a3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8301da90_b6bde043",
+        "filename": "autoroll/go/repo_manager/parent/git_checkout_github_file.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-08T17:09:49Z",
+      "side": 1,
+      "message": "Currently, yes, that\u0027s the only roller which uses this code path. If you\u0027re concerned about rollers which explicitly don\u0027t want individual commits, I can go ahead and plumb this through as a configuration option.  I don\u0027t know whether it matters in general if the pull request contains multiple commits or just one.",
+      "parentUuid": "681d845f_cd7c10aa",
+      "revId": "335d152d6d35fbdb7c0c50965ebcd3d01a6123a3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

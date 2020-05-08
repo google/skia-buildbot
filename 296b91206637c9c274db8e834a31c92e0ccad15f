@@ -16,6 +16,24 @@
       "revId": "296b91206637c9c274db8e834a31c92e0ccad15f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8c713882_3b922636",
+        "filename": "autoroll/go/repo_manager/github_repo_manager.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-08T17:09:49Z",
+      "side": 1,
+      "message": "Same.",
+      "parentUuid": "c4e3d37e_2b6e7fca",
+      "revId": "296b91206637c9c274db8e834a31c92e0ccad15f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
