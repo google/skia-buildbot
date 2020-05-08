@@ -6,7 +6,7 @@
  *
  *   ooo-o-o-oo
  *
- * @evt show-commits - Event generated when a dot is clicked. e.detail contains
+ * @evt showblamelist - Event generated when a dot is clicked. e.detail contains
  *   the blamelist (an array of commits that could have made up that dot).
  *
  * @evt hover - Event generated when the mouse hovers over a trace. e.detail is
@@ -295,7 +295,7 @@ define('dots-sk', class extends ElementSk {
     this.style.cursor = (found) ? 'pointer' : 'auto';
   }
 
-  // When a dot is clicked on, produce the show-commits event with the
+  // When a dot is clicked on, produce the showblamelist event with the
   // blamelist; that is, all the commits that are included up to and including
   // that dot.
   _onClick(e) {
@@ -308,7 +308,7 @@ define('dots-sk', class extends ElementSk {
     if (!blamelist) {
       return; // No blamelist if there's no dot at that X coord, i.e. misclick.
     }
-    this.dispatchEvent(new CustomEvent('show-commits', {
+    this.dispatchEvent(new CustomEvent('showblamelist', {
       bubbles: true,
       detail: blamelist,
     }));
