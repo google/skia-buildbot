@@ -387,10 +387,12 @@
           sk.errorMessage(e);
         }.bind(this));
 
-        sk.get("/json/changelist/gerrit/"+this._state.issue).then(JSON.parse).then((json) => {
-          this.$.changeListControls.setSummary(json);
-          this.set('_changeListID', json.cl.id);
-        });
+        if (this._state.issue) {
+          sk.get("/json/changelist/gerrit/"+this._state.issue).then(JSON.parse).then((json) => {
+            this.$.changeListControls.setSummary(json);
+            this.set('_changeListID', json.cl.id);
+          });
+        }
       },
 
       _getUniqueTests: function(digests) {

@@ -38,7 +38,7 @@ const template = (ele) => html`
 </div>
 
 <button class=zoom_btn ?hidden=${!ele.right} @click=${ele._handleZoomClicked}>Zoom</button>
-<dialog @close=${ele._closeEvent}))}>
+<dialog class=zoom_dialog @close=${ele._closeEvent}))}>
   <button class=close_btn @click=${ele._closeDialog}>Close</button>
 </dialog>
 `;
@@ -82,7 +82,7 @@ define('image-compare-sk', class extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
-    dialogPolyfill.registerDialog($$('dialog', this));
+    dialogPolyfill.registerDialog($$('dialog.zoom_dialog', this));
   }
 
   /**
@@ -106,7 +106,7 @@ define('image-compare-sk', class extends ElementSk {
   }
 
   _closeDialog() {
-    const dialog = $$('dialog', this);
+    const dialog = $$('dialog.zoom_dialog', this);
     if (dialog) {
       dialog.close(); // this will fire a close event
     }
@@ -115,7 +115,7 @@ define('image-compare-sk', class extends ElementSk {
   _closeEvent() {
     // We clean up both when the user clicks the close button as well if they hit escape by waiting
     // for the close event (instead of handling this in _closeDialog().
-    const dialog = $$('dialog', this);
+    const dialog = $$('dialog.zoom_dialog', this);
     const zoom = $$('dialog multi-zoom-sk', this);
     if (dialog && zoom) {
       // Removing the element from the dom removes the keybinding handlers and lets the browser
@@ -134,7 +134,7 @@ define('image-compare-sk', class extends ElementSk {
       leftLabel: this.left.title,
       rightLabel: this.right.title,
     };
-    const dialog = $$('dialog', this);
+    const dialog = $$('dialog.zoom_dialog', this);
     // put the dialog before the button
     dialog.insertBefore(ele, dialog.childNodes[0]);
     dialog.showModal();
