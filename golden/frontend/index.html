@@ -22,10 +22,6 @@
       };
     </script>
     <link href="/dist/transitional-bundle.css" rel="stylesheet">
-    <script type="text/javascript" src="/dist/transitional-bundle.js"></script>
-
-    <script src="/res/js/core.js"></script>
-    <link href="/res/vul/elements.html" rel="import" />
     <style type="text/css" media="screen">
       body {
         margin:0;
@@ -33,7 +29,12 @@
     </style>
   </head>
 
-  <body class="fullbleed vertical layout">
+  <body class="fullbleed vertical layout" data-repo="{{.BaseRepoURL}}">
+    <script type="text/javascript" src="/dist/transitional-bundle.js"></script>
+
+    <script src="/res/js/core.js"></script>
+    <link href="/res/vul/elements.html" rel="import" />
+
     <gold-app-sk></gold-app-sk>
   </body>
 </html>
