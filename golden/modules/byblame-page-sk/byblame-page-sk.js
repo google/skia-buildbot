@@ -2,7 +2,8 @@
  * @module modules/byblame-page-sk
  * @description <h2><code>byblame-page-sk</code></h2>
  *
- * Displays the current untriaged digests, grouped by blame.
+ * Displays the current untriaged digests, grouped by the commits that may have caused them
+ * (i.e. the blamelist or blame, for short).
  *
  */
 
@@ -20,9 +21,7 @@ const template = (el) => html`
 <div class=top-container>
   <corpus-selector-sk
       .selectedCorpus=${el._corpus}
-      .corpusRendererFn=${
-  (c) => (c.untriagedCount ? `${c.name} (${c.untriagedCount})` : c.name)
-}
+      .corpusRendererFn=${(c) => (c.untriagedCount ? `${c.name} (${c.untriagedCount})` : c.name)}
       @corpus-selected=${(e) => el._handleCorpusChange(e)}>
   </corpus-selector-sk>
 </div>
@@ -37,7 +36,6 @@ const template = (el) => html`
 const entryTemplate = (el, entry) => html`
 <byblameentry-sk
     .byBlameEntry=${entry}
-    .gitLog=${el._gitLogByGroupID.get(entry.groupID)}
     .corpus=${el._corpus}>
 </byblameentry-sk>
 `;
@@ -50,9 +48,6 @@ define('byblame-page-sk', class extends ElementSk {
     // Will hold ByBlameEntry objects returned by /json/byblame for the selected
     // corpus.
     this._entries = [];
-    // Maps ByBlameEntry.groupID to the corresponding gitLog object returned by
-    // /json/gitlog.
-    this._gitLogByGroupID = new Map();
     this._loaded = false; // False if entries haven't been fetched yet.
 
     // stateReflector will trigger on DomReady.
@@ -89,10 +84,6 @@ define('byblame-page-sk', class extends ElementSk {
   }
 
   _fetchEntries() {
-    // Fetching is done in two steps:
-    // 1. ByBlameEntry objects are fetched from /json/byblame.
-    // 2. A gitLog object is retrieved from /json/gitlog for each ByBlameEntry.
-
     const query = encodeURIComponent(`source_type=${this._corpus}`);
     const url = `/json/byblame?query=${query}`;
 
@@ -102,41 +93,16 @@ define('byblame-page-sk', class extends ElementSk {
     }
     this._fetchController = new AbortController();
 
-    // The /json/byblame and /json/gitlog fetches share the same controller.
     const options = {
       method: 'GET',
       signal: this._fetchController.signal,
     };
 
     sendBeginTask(this);
-    // Step 1: Fetch ByBlameEntry objects from /json/byblame.
     fetch(url, options)
       .then(jsonOrThrow)
       .then((json) => {
         this._entries = json.data || [];
-
-        // TODO(lovisolo): Consider modifying /json/byblame to include
-        //                 commit messages in its response so we don't have to
-        //                 query the /json/gitlog endpoint.
-
-        const gitLogUrl = (entry) => {
-          const startHash = entry.commits[entry.commits.length - 1].hash;
-          const endHash = entry.commits[0].hash;
-          return `/json/gitlog?start=${startHash}&end=${endHash}`;
-        };
-
-        // Step 2: Fetch gitLog objects from /json/gitlog.
-        return Promise.all(
-          this._entries.map(
-            (entry) => fetch(gitLogUrl(entry), options)
-              .then(jsonOrThrow)
-              .then(
-                (gitLog) => this._gitLogByGroupID.set(entry.groupID, gitLog),
-              ),
-          ),
-        );
-      })
-      .then(() => {
         this._loaded = true;
         this._render();
         sendEndTask(this);

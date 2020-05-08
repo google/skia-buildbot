@@ -2,7 +2,7 @@ import './index';
 import { $, $$ } from 'common-sk/modules/dom';
 import { deepCopy } from 'common-sk/modules/object';
 import { setUpElementUnderTest } from '../test_util';
-import { entry, gitLog } from './test_data';
+import { entry } from './test_data';
 import { testOnlySetSettings } from '../settings';
 
 describe('byblameentry-sk', () => {
@@ -14,7 +14,6 @@ describe('byblameentry-sk', () => {
     });
     return newInstance((el) => {
       el.byBlameEntry = byBlameEntry;
-      el.gitLog = opts.gitLog || gitLog;
       el.corpus = opts.corpus || 'gm';
     });
   };
