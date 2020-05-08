@@ -219,9 +219,9 @@ func main() {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)
 		}
 	} else if cfg.Github != nil {
-		pathToGithubToken := path.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
+		pathToGithubToken := filepath.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
 		if !*local {
-			pathToGithubToken = path.Join(github.GITHUB_TOKEN_SERVER_PATH, github.GITHUB_TOKEN_FILENAME)
+			pathToGithubToken = filepath.Join(github.GITHUB_TOKEN_SERVER_PATH, github.GITHUB_TOKEN_FILENAME)
 			// Setup the required SSH key from secrets if we are not running
 			// locally and if the file does not already exist.
 			sshKeySrc := filepath.Join(github.SSH_KEY_SERVER_PATH, github.SSH_KEY_FILENAME)

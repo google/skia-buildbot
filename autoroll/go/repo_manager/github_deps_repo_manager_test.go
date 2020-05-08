@@ -13,6 +13,7 @@ import (
 
 	github_api "github.com/google/go-github/v29/github"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/exec"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -206,7 +207,7 @@ func TestGithubDEPSRepoManagerCreateNewRoll(t *testing.T) {
 
 	// Create a roll, assert that it's at tip of tree.
 	mockGithubDEPSRequests(t, urlMock)
-	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
 }
@@ -215,8 +216,17 @@ func TestGithubDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	unittest.LargeTest(t)
 
 	cfg := githubDEPSCfg(t)
-	cfg.TransitiveDeps = map[string]string{
-		"child/dep": "parent/dep",
+	cfg.TransitiveDeps = []*version_file_common.TransitiveDepConfig{
+		{
+			Child: &version_file_common.VersionFileConfig{
+				ID:   "grandchild",
+				Path: "DEPS",
+			},
+			Parent: &version_file_common.VersionFileConfig{
+				ID:   "grandchild",
+				Path: "DEPS",
+			},
+		},
 	}
 	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithubDEPS(t, cfg)
 	defer cleanup()
@@ -226,7 +236,7 @@ func TestGithubDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 
 	// Create a roll, assert that it's at tip of tree.
 	mockGithubDEPSRequests(t, urlMock)
-	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
 }
@@ -250,7 +260,7 @@ func TestGithubDEPSRepoManagerPreUploadSteps(t *testing.T) {
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubDEPSRequests(t, urlMock)
-	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
+	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, createErr)
 	require.True(t, ran)
 }
@@ -276,7 +286,7 @@ func TestGithubDEPSRepoManagerPreUploadStepsError(t *testing.T) {
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubDEPSRequests(t, urlMock)
-	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
+	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.Error(t, expectedErr, createErr)
 	require.True(t, ran)
 }

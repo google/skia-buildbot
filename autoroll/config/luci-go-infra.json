@@ -2,6 +2,16 @@
 // for documentation of the autoroller config.
 {
   "childName": "luci-go",
+  "commitMsg": {
+    "childName": "infra/go/src/go.chromium.org/luci",
+    "childLogURLTmpl": "https://chromium.googlesource.com/infra/luci/luci-go.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "tandrii@chromium.org"
   ],
@@ -25,9 +35,6 @@
     "childPath": "infra/go/src/go.chromium.org/luci",
     "childRepo": "https://chromium.googlesource.com/infra/luci/luci-go.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/infra/luci/luci-go.git/+/%s",
-    "includeBugs": false,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/infra/infra.git"
   },
