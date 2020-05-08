@@ -23,6 +23,7 @@ func TestCopy(t *testing.T) {
 		Dimensions: SwarmingDimensions{
 			"foo": []string{"bar"},
 		},
+		PodName:             "rpi-swarming-1235-987",
 		LastUpdated:         testTime,
 		Battery:             91,
 		Temperature:         map[string]float64{"cpu": 26.4},

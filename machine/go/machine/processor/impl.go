@@ -152,6 +152,7 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	ret.Battery = battery
 	ret.Temperature = temperatures
 	ret.RunningSwarmingTask = event.RunningSwarmingTask
+	ret.PodName = event.Host.PodName
 	for k, values := range dimensions {
 		ret.Dimensions[k] = values
 	}

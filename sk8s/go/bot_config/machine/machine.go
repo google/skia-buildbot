@@ -38,8 +38,8 @@ type Machine struct {
 	// MachineID is the swarming id of the machine.
 	MachineID string
 
-	// rack is the physical rack name, e.g. rack4.
-	rack string
+	// Hostname is the hostname(), which is the pod name under k8s.
+	Hostname string
 
 	// Metrics
 	interrogateTimer           metrics2.Float64SummaryMetric
@@ -69,12 +69,9 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 	}
 
 	machineID := os.Getenv(swarming.SwarmingBotIDEnvVar)
-	if machineID == "" {
-		var err error
-		machineID, err = os.Hostname()
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Could not determine hostname.")
-		}
+	hostname, err := os.Hostname()
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Could not determine hostname.")
 	}
 
 	return &Machine{
@@ -83,7 +80,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 		sink:                       sink,
 		adb:                        adb.New(),
 		MachineID:                  machineID,
-		rack:                       os.Getenv("MY_RACK_NAME"), // TODO(jcgregorio) Is this even needed?
+		Hostname:                   hostname,
 		interrogateTimer:           metrics2.GetFloat64SummaryMetric("bot_config_machine_interrogate_timer", map[string]string{"machine": machineID}),
 		interrogateAndSendFailures: metrics2.GetCounter("bot_config_machine_interrogate_and_send_errors", map[string]string{"machine": machineID}),
 		storeWatchArrivalCounter:   metrics2.GetCounter("bot_config_machine_store_watch_arrival", map[string]string{"machine": machineID}),
@@ -96,7 +93,7 @@ func (m *Machine) interrogate(ctx context.Context) machine.Event {
 
 	ret := machine.NewEvent()
 	ret.Host.Name = m.MachineID
-	ret.Host.Rack = m.rack
+	ret.Host.PodName = m.Hostname
 
 	if props, err := m.adb.RawProperties(ctx); err != nil {
 		sklog.Infof("Failed to read android properties: %s", err)
