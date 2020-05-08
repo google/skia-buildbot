@@ -255,13 +255,18 @@ func (t *TryJobIntegrator) sendHeartbeats(now time.Time, jobs []*types.Job) erro
 		for i, result := range resp.Results {
 			if result.Error != nil {
 				// Cancel the job.
-				// TODO(borenet): Should we return an error here?
-				sklog.Errorf("Error sending heartbeat for job; canceling %q: %s", jobs[i].Id, result.Error.Message)
+				if result.Error.Reason == BUILDBUCKET_API_ERROR_REASON_COMPLETED {
+					// This indicates that the build was canceled, eg. because
+					// a newer patchset was uploaded. This isn't an error, so we
+					// cancel the job but don't log an error.
+				} else {
+					sklog.Errorf("Error sending heartbeat for job; canceling %q: %s", jobs[i].Id, result.Error.Message)
+				}
 				cancelJobs = append(cancelJobs, jobs[i])
 			}
 		}
 		if len(cancelJobs) > 0 {
-			sklog.Errorf("Canceling %d jobs", len(cancelJobs))
+			sklog.Infof("Canceling %d jobs", len(cancelJobs))
 			if err := t.localCancelJobs(cancelJobs); err != nil {
 				errs = append(errs, err)
 			}
