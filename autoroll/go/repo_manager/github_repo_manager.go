@@ -95,8 +95,9 @@ func (c GithubRepoManagerConfig) splitParentChild() (parent.GitCheckoutGithubFil
 				RevLinkTmpl: c.ChildRevLinkTmpl,
 			},
 		},
-		GithubRepoName: c.ChildRepoName,
-		GithubUserName: c.ChildUserName,
+		BuildbucketRevisionFilter: c.BuildbucketRevisionFilter,
+		GithubRepoName:            c.ChildRepoName,
+		GithubUserName:            c.ChildUserName,
 	}
 	if err := childCfg.Validate(); err != nil {
 		return parent.GitCheckoutGithubFileConfig{}, child.GitCheckoutGithubConfig{}, skerr.Wrapf(err, "generated child config is invalid")

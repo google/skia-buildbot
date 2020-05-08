@@ -81,7 +81,9 @@ func SetPinnedRev(dep VersionFileConfig, newVersion, oldContents string) (string
 		newContents, err := deps_parser.SetDep(oldContents, dep.ID, newVersion)
 		return newContents, skerr.Wrap(err)
 	}
-	return newVersion, nil
+	// Various tools expect a newline at the end of the file.
+	// TODO(borenet): This should probably be configurable.
+	return newVersion + "\n", nil
 }
 
 // GetFileFunc is a function which retrieves the contents of a file.

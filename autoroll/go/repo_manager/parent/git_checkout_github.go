@@ -61,7 +61,7 @@ func (c GitCheckoutGithubConfig) Validate() error {
 
 // GitCheckoutUploadGithubRollFunc returns
 func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, forkBranchName string) GitCheckoutUploadRollFunc {
-	return func(ctx context.Context, co *git.Checkout, upstreamBranch, hash string, emails []string, dryRun bool) (int64, error) {
+	return func(ctx context.Context, co *git.Checkout, upstreamBranch, hash string, emails []string, dryRun bool, commitMsg string) (int64, error) {
 		// Make sure the forked repo is at the same hash as the target repo
 		// before creating the pull request.
 		if _, err := co.Git(ctx, "push", "-f", githubForkRemoteName, fmt.Sprintf("origin/%s", upstreamBranch)); err != nil {
@@ -74,11 +74,7 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, fork
 		}
 
 		// Build the commit message.
-		out, err := co.Git(ctx, "log", "-n1", "--pretty=format:%B", hash)
-		if err != nil {
-			return 0, skerr.Wrap(err)
-		}
-		commitMsgLines := strings.Split(out, "\n")
+		commitMsgLines := strings.Split(commitMsg, "\n")
 		// Grab the first line of the commit msg to use as the title of the pull
 		// request.
 		title := commitMsgLines[0]
