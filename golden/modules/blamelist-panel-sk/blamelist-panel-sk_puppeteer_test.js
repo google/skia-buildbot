@@ -24,7 +24,7 @@ describe('blamelist-panel-sk', () => {
 
     it('should show some commits commit', async () => {
       const blamelistPanelSk = await testBed.page.$('#some_commits');
-      await takeScreenshot(blamelistPanelSk, 'gold', 'blamelist-panel-sk');
+      await takeScreenshot(blamelistPanelSk, 'gold', 'blamelist-panel-sk_some-commits');
       expect(await testBed.page.$$('#some_commits tr')).to.have.length(3);
     });
 
