@@ -234,6 +234,9 @@ define('digest-details-sk', class extends ElementSk {
     this._render();
   }
 
+  /**
+   * @prop right {Object} Forces the left image to be compared to the given ref.
+   */
   get right() {
     if (this._overrideRight) {
       return this._overrideRight;
@@ -300,13 +303,12 @@ define('digest-details-sk', class extends ElementSk {
 
   _render() {
     super._render();
-    // TODO(kjlubick,lovisolo) would it make sense to have dots-sk scroll itself when its data
-    //   is updated?
+    // By default, the browser will show this long trace scrolled all the way to the left. This
+    // is the oldest traces and typically not helpful, so after we load, we ask the traces to
+    // scroll itself to the left, which it will do once (and not repeatedly on each render).
     const traces = $$('dots-sk', this);
     if (traces) {
-      // We have to wait until after the dots-sk is rendered to set this, otherwise the scrollWidth
-      // won't be correct.
-      traces.scroll(traces.scrollWidth, 0);
+      traces.autoscroll();
     }
   }
 
