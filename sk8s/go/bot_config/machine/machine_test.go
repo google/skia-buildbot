@@ -118,6 +118,9 @@ func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 	require.NoError(t, err)
 	event := <-ch
 
+	hostname, err := os.Hostname()
+	require.NoError(t, err)
+
 	assert.Equal(t,
 		machine.Event{
 			EventType: "raw_state",
@@ -127,8 +130,8 @@ func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 				DumpsysThermalService: adbShellDumpSysBattery,
 			},
 			Host: machine.Host{
-				Name: "my-test-bot-001",
-				Rack: "",
+				Name:    "my-test-bot-001",
+				PodName: hostname,
 			},
 		},
 		event)
@@ -219,6 +222,8 @@ func TestStart_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *testing.T) {
 	require.NoError(t, err)
 	event := <-ch
 
+	hostname, err := os.Hostname()
+	require.NoError(t, err)
 	assert.Equal(t,
 		machine.Event{
 			EventType: "raw_state",
@@ -228,8 +233,8 @@ func TestStart_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *testing.T) {
 				DumpsysThermalService: "",
 			},
 			Host: machine.Host{
-				Name: "my-test-bot-001",
-				Rack: "",
+				Name:    "my-test-bot-001",
+				PodName: hostname,
 			},
 		},
 		event)
@@ -303,6 +308,8 @@ func TestStart_RunningSwarmingTaskInMachineIsSentInEvent(t *testing.T) {
 	require.NoError(t, err)
 	event := <-ch
 
+	hostname, err := os.Hostname()
+	require.NoError(t, err)
 	assert.Equal(t,
 		machine.Event{
 			EventType: "raw_state",
@@ -312,8 +319,8 @@ func TestStart_RunningSwarmingTaskInMachineIsSentInEvent(t *testing.T) {
 				DumpsysThermalService: "",
 			},
 			Host: machine.Host{
-				Name: "my-test-bot-001",
-				Rack: "",
+				Name:    "my-test-bot-001",
+				PodName: hostname,
 			},
 			RunningSwarmingTask: true,
 		},

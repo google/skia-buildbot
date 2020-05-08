@@ -47,6 +47,7 @@ type Description struct {
 	Mode                Mode
 	Annotation          Annotation
 	Dimensions          SwarmingDimensions
+	PodName             string
 	LastUpdated         time.Time
 	Battery             int                // Charge as an integer percent, e.g. 50% = 50.
 	Temperature         map[string]float64 // In Celsius.
@@ -98,8 +99,8 @@ type Host struct {
 	// Name is the machine id, from SWARMING_BOT_ID environment variable or hostname().
 	Name string `json:"name"`
 
-	// Rack is the id of the rack, from the MY_RACK_NAME environment variable.
-	Rack string `json:"rack"`
+	// PodName is the kubernetes pod name.
+	PodName string `json:"pod_name"`
 }
 
 // Event is the information a machine should send via Source when
