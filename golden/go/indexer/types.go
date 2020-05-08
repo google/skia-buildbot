@@ -58,7 +58,7 @@ type IndexSearcher interface {
 	GetParamsetSummaryByTest(is types.IgnoreState) map[types.TestName]map[types.Digest]paramtools.ParamSet
 
 	// GetBlame returns the blame computed for the given test/digest.
-	GetBlame(test types.TestName, digest types.Digest, commits []*tiling.Commit) blame.BlameDistribution
+	GetBlame(test types.TestName, digest types.Digest, commits []tiling.Commit) blame.BlameDistribution
 
 	// SlicedTraces returns a slice of TracePairs that match the query and the ignore state.
 	// This is meant to be a partial slice, as only the corpus and testname from the query are

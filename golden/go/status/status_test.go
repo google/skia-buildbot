@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/golden/go/tiling"
 
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/testutils"
@@ -15,6 +14,8 @@ import (
 	mock_expectations "go.skia.org/infra/golden/go/expectations/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
+	"go.skia.org/infra/golden/go/tiling"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 // TODO(kjlubick) it would be nice to test this with multiple corpora
@@ -48,8 +49,8 @@ func TestStatusWatcherInitialLoad(t *testing.T) {
 	status := watcher.GetStatus()
 	require.Equal(t, &GUIStatus{
 		OK:            false,
-		FirstCommit:   commits[0],
-		LastCommit:    commits[2],
+		FirstCommit:   frontend.FromTilingCommit(commits[0]),
+		LastCommit:    frontend.FromTilingCommit(commits[2]),
 		TotalCommits:  3,
 		FilledCommits: 3,
 		CorpStatus: []*GUICorpusStatus{
@@ -111,8 +112,8 @@ func TestStatusWatcherExpectationsChange(t *testing.T) {
 		status := watcher.GetStatus()
 		return deepequal.DeepEqual(&GUIStatus{
 			OK:            true,
-			FirstCommit:   commits[0],
-			LastCommit:    commits[2],
+			FirstCommit:   frontend.FromTilingCommit(commits[0]),
+			LastCommit:    frontend.FromTilingCommit(commits[2]),
 			TotalCommits:  3,
 			FilledCommits: 3,
 			CorpStatus: []*GUICorpusStatus{

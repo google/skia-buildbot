@@ -19,7 +19,7 @@ type TraceStore struct {
 }
 
 // GetDenseTile provides a mock function with given fields: ctx, nCommits
-func (_m *TraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.Tile, []*tiling.Commit, error) {
+func (_m *TraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.Tile, []tiling.Commit, error) {
 	ret := _m.Called(ctx, nCommits)
 
 	var r0 *tiling.Tile
@@ -31,12 +31,12 @@ func (_m *TraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.T
 		}
 	}
 
-	var r1 []*tiling.Commit
-	if rf, ok := ret.Get(1).(func(context.Context, int) []*tiling.Commit); ok {
+	var r1 []tiling.Commit
+	if rf, ok := ret.Get(1).(func(context.Context, int) []tiling.Commit); ok {
 		r1 = rf(ctx, nCommits)
 	} else {
 		if ret.Get(1) != nil {
-			r1 = ret.Get(1).([]*tiling.Commit)
+			r1 = ret.Get(1).([]tiling.Commit)
 		}
 	}
 
@@ -51,7 +51,7 @@ func (_m *TraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.T
 }
 
 // GetTile provides a mock function with given fields: ctx, nCommits
-func (_m *TraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile, []*tiling.Commit, error) {
+func (_m *TraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile, []tiling.Commit, error) {
 	ret := _m.Called(ctx, nCommits)
 
 	var r0 *tiling.Tile
@@ -63,12 +63,12 @@ func (_m *TraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile, 
 		}
 	}
 
-	var r1 []*tiling.Commit
-	if rf, ok := ret.Get(1).(func(context.Context, int) []*tiling.Commit); ok {
+	var r1 []tiling.Commit
+	if rf, ok := ret.Get(1).(func(context.Context, int) []tiling.Commit); ok {
 		r1 = rf(ctx, nCommits)
 	} else {
 		if ret.Get(1) != nil {
-			r1 = ret.Get(1).([]*tiling.Commit)
+			r1 = ret.Get(1).([]tiling.Commit)
 		}
 	}
 

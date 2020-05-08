@@ -212,7 +212,7 @@ func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, tk tileKe
 // query both tile 4 starting at commit 10 and tile 5 (the whole thing), we'll just merge the
 // paramsets from both tiles, which includes the "device=alpha" params, but they don't exist in
 // any traces seen in the tile (since it ended prior to our cutoff point).
-func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile, []*tiling.Commit, error) {
+func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile, []tiling.Commit, error) {
 	defer metrics2.FuncTimer().Stop()
 	// Look up the commits we need to query from BT
 	idxCommits := b.vcs.LastNIndex(nCommits)
@@ -229,7 +229,7 @@ func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile,
 
 	var egroup errgroup.Group
 
-	var commits []*tiling.Commit
+	var commits []tiling.Commit
 	egroup.Go(func() error {
 		hashes := make([]string, 0, len(idxCommits))
 		for _, ic := range idxCommits {
@@ -377,7 +377,7 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 // GetDenseTile implements the TraceStore interface. It fetches the most recent tile and sees if
 // there is enough non-empty data, then queries the next oldest tile until it has nCommits
 // non-empty commits.
-func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.Tile, []*tiling.Commit, error) {
+func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.Tile, []tiling.Commit, error) {
 	sklog.Debugf("GetDenseTile(%d)", nCommits)
 	defer metrics2.FuncTimer().Stop()
 	// Figure out what index we are on.
@@ -471,7 +471,7 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 // from the VCS. It returns all commits that are between the first and last commit index
 // (inclusively) as well as just the commits specified. These are "allCommits" and "denseCommits",
 // respectively.
-func (b *BTTraceStore) commitsFromVCS(ctx context.Context, commitsWithData []int) ([]*tiling.Commit, []*tiling.Commit, error) {
+func (b *BTTraceStore) commitsFromVCS(ctx context.Context, commitsWithData []int) ([]tiling.Commit, []tiling.Commit, error) {
 	// put them in oldest to newest order
 	sort.Ints(commitsWithData)
 
@@ -499,7 +499,7 @@ func (b *BTTraceStore) commitsFromVCS(ctx context.Context, commitsWithData []int
 		return nil, nil, skerr.Wrapf(err, "could not make tile commits")
 	}
 
-	denseCommits := make([]*tiling.Commit, len(commitsWithData))
+	denseCommits := make([]tiling.Commit, len(commitsWithData))
 	for i, idx := range commitsWithData {
 		if idx-oldestIdx >= len(allCommits) {
 			// This happened once, causing a nil dereference. If it happens again, this logging may
@@ -901,23 +901,24 @@ func (b *BTTraceStore) getOPS(ctx context.Context, tk tileKey) (*opsCacheEntry, 
 }
 
 // makeTileCommits creates a slice of tiling.Commit from the given git hashes.
-// Specifically, we need to look up the details to get the author information.
-func (b *BTTraceStore) makeTileCommits(ctx context.Context, hashes []string) ([]*tiling.Commit, error) {
+// Specifically, we need to look up the details to get the author and subject information.
+func (b *BTTraceStore) makeTileCommits(ctx context.Context, hashes []string) ([]tiling.Commit, error) {
 	longCommits, err := b.vcs.DetailsMulti(ctx, hashes, false)
 	if err != nil {
 		// put hashes second in case they get truncated for being quite long.
 		return nil, skerr.Wrapf(err, "could not fetch commit data for commits with hashes %q", hashes)
 	}
 
-	commits := make([]*tiling.Commit, len(hashes))
+	commits := make([]tiling.Commit, len(hashes))
 	for i, lc := range longCommits {
 		if lc == nil {
 			return nil, skerr.Fmt("commit %s not found from VCS", hashes[i])
 		}
-		commits[i] = &tiling.Commit{
+		commits[i] = tiling.Commit{
 			Hash:       lc.Hash,
 			Author:     lc.Author,
-			CommitTime: lc.Timestamp.Unix(),
+			CommitTime: lc.Timestamp,
+			Subject:    lc.Subject,
 		}
 	}
 	return commits, nil

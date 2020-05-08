@@ -45,33 +45,38 @@ const (
 	RevertBugCommitIndex     = 4
 )
 
-func MakeTestCommits() []*tiling.Commit {
+func MakeTestCommits() []tiling.Commit {
 	// Five commits, with completely arbitrary data
-	return []*tiling.Commit{
+	return []tiling.Commit{
 		{
 			Hash:       FirstCommitHash,
-			CommitTime: time.Date(2019, time.May, 26, 12, 0, 3, 0, time.UTC).Unix(),
+			CommitTime: time.Date(2019, time.May, 26, 12, 0, 3, 0, time.UTC),
 			Author:     InnocentAuthor,
+			Subject:    "Just an ordinary commit",
 		},
 		{
 			Hash:       SecondCommitHash,
-			CommitTime: time.Date(2019, time.May, 26, 12, 10, 18, 0, time.UTC).Unix(),
+			CommitTime: time.Date(2019, time.May, 26, 12, 10, 18, 0, time.UTC),
 			Author:     BuggyAuthor,
+			Subject:    "I hope this doesn't have a bug",
 		},
 		{
 			Hash:       ThirdCommitHash,
-			CommitTime: time.Date(2019, time.May, 26, 13, 10, 8, 0, time.UTC).Unix(),
+			CommitTime: time.Date(2019, time.May, 26, 13, 10, 8, 0, time.UTC),
 			Author:     InnocentAuthor,
+			Subject:    "whitespace change",
 		},
 		{
 			Hash:       FourthCommitHash,
-			CommitTime: time.Date(2019, time.May, 26, 13, 15, 28, 0, time.UTC).Unix(),
+			CommitTime: time.Date(2019, time.May, 26, 13, 15, 28, 0, time.UTC),
 			Author:     BuggyAuthor,
+			Subject:    "revert 'I hope this doesn't have a bug'",
 		},
 		{
 			Hash:       FifthCommitHash,
-			CommitTime: time.Date(2019, time.May, 26, 13, 35, 38, 0, time.UTC).Unix(),
+			CommitTime: time.Date(2019, time.May, 26, 13, 35, 38, 0, time.UTC),
 			Author:     InnocentAuthor,
+			Subject:    "documentation change",
 		},
 	}
 }

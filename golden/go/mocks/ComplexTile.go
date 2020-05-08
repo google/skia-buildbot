@@ -17,15 +17,15 @@ type ComplexTile struct {
 }
 
 // AllCommits provides a mock function with given fields:
-func (_m *ComplexTile) AllCommits() []*tiling.Commit {
+func (_m *ComplexTile) AllCommits() []tiling.Commit {
 	ret := _m.Called()
 
-	var r0 []*tiling.Commit
-	if rf, ok := ret.Get(0).(func() []*tiling.Commit); ok {
+	var r0 []tiling.Commit
+	if rf, ok := ret.Get(0).(func() []tiling.Commit); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*tiling.Commit)
+			r0 = ret.Get(0).([]tiling.Commit)
 		}
 	}
 
@@ -33,15 +33,15 @@ func (_m *ComplexTile) AllCommits() []*tiling.Commit {
 }
 
 // DataCommits provides a mock function with given fields:
-func (_m *ComplexTile) DataCommits() []*tiling.Commit {
+func (_m *ComplexTile) DataCommits() []tiling.Commit {
 	ret := _m.Called()
 
-	var r0 []*tiling.Commit
-	if rf, ok := ret.Get(0).(func() []*tiling.Commit); ok {
+	var r0 []tiling.Commit
+	if rf, ok := ret.Get(0).(func() []tiling.Commit); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*tiling.Commit)
+			r0 = ret.Get(0).([]tiling.Commit)
 		}
 	}
 
@@ -100,6 +100,6 @@ func (_m *ComplexTile) SetIgnoreRules(reducedTile *tiling.Tile, ignoreRules para
 }
 
 // SetSparse provides a mock function with given fields: allCommits
-func (_m *ComplexTile) SetSparse(allCommits []*tiling.Commit) {
+func (_m *ComplexTile) SetSparse(allCommits []tiling.Commit) {
 	_m.Called(allCommits)
 }

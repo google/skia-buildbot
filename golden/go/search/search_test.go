@@ -37,6 +37,7 @@ import (
 	"go.skia.org/infra/golden/go/tjstore"
 	mock_tjstore "go.skia.org/infra/golden/go/tjstore/mocks"
 	"go.skia.org/infra/golden/go/types"
+	web_frontend "go.skia.org/infra/golden/go/web/frontend"
 )
 
 // TODO(kjlubick) Add tests for:
@@ -80,7 +81,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 	require.NotNil(t, resp)
 
 	assert.Equal(t, &frontend.SearchResponse{
-		Commits: data.MakeTestCommits(),
+		Commits: web_frontend.FromTilingCommits(data.MakeTestCommits()),
 		Offset:  0,
 		Size:    2,
 		Digests: []*frontend.SRDigest{
@@ -784,7 +785,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 	assert.Len(t, options, 1)
 
 	assert.Equal(t, &frontend.SearchResponse{
-		Commits: data.MakeTestCommits(),
+		Commits: web_frontend.FromTilingCommits(data.MakeTestCommits()),
 		Offset:  0,
 		Size:    1,
 		Digests: []*frontend.SRDigest{
@@ -945,7 +946,7 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
 	assert.Equal(t, &frontend.DigestDetails{
-		Commits: data.MakeTestCommits(),
+		Commits: web_frontend.FromTilingCommits(data.MakeTestCommits()),
 		Digest: &frontend.SRDigest{
 			Test:   testWeWantDetailsAbout,
 			Digest: digestWeWantDetailsAbout,

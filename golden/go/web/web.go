@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/baseline"
-	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expectations"
@@ -202,7 +201,7 @@ func (wh *Handlers) ByBlameHandler(w http.ResponseWriter, r *http.Request) {
 
 // computeByBlame creates several ByBlameEntry structs based on the state
 // of HEAD and returns them in a slice, for use by the frontend.
-func (wh *Handlers) computeByBlame(ctx context.Context, corpus string) ([]ByBlameEntry, error) {
+func (wh *Handlers) computeByBlame(ctx context.Context, corpus string) ([]frontend.ByBlameEntry, error) {
 	idx := wh.Indexer.GetIndex()
 	// At this point query contains at least a corpus.
 	untriagedSummaries, err := idx.SummarizeByGrouping(ctx, corpus, nil, types.ExcludeIgnoredTraces, true)
@@ -216,12 +215,12 @@ func (wh *Handlers) computeByBlame(ctx context.Context, corpus string) ([]ByBlam
 	// group id. All of the digests are then grouped by their group id.
 
 	// Collects a ByBlame for each untriaged digest, keyed by group id.
-	grouped := map[string][]ByBlame{}
+	grouped := map[string][]frontend.ByBlame{}
 
 	// The Commit info for each group id.
-	commitinfo := map[string][]*tiling.Commit{}
+	commitinfo := map[string][]tiling.Commit{}
 	// map [groupid] [test] TestRollup
-	rollups := map[string]map[types.TestName]TestRollup{}
+	rollups := map[string]map[types.TestName]frontend.TestRollup{}
 
 	for _, s := range untriagedSummaries {
 		test := s.Name
@@ -237,32 +236,34 @@ func (wh *Handlers) computeByBlame(ctx context.Context, corpus string) ([]ByBlam
 			groupid := strings.Join(lookUpCommits(dist.Freq, commits), ":")
 			// Only fill in commitinfo for each groupid only once.
 			if _, ok := commitinfo[groupid]; !ok {
-				ci := []*tiling.Commit{}
+				var blameCommits []tiling.Commit
 				for _, index := range dist.Freq {
-					ci = append(ci, commits[index])
+					blameCommits = append(blameCommits, commits[index])
 				}
-				sort.Sort(CommitSlice(ci))
-				commitinfo[groupid] = ci
+				sort.Slice(blameCommits, func(i, j int) bool {
+					return blameCommits[i].CommitTime.After(blameCommits[j].CommitTime)
+				})
+				commitinfo[groupid] = blameCommits
 			}
 			// Construct a ByBlame and add it to grouped.
-			value := ByBlame{
+			value := frontend.ByBlame{
 				Test:          test,
 				Digest:        d,
 				Blame:         dist,
 				CommitIndices: dist.Freq,
 			}
 			if _, ok := grouped[groupid]; !ok {
-				grouped[groupid] = []ByBlame{value}
+				grouped[groupid] = []frontend.ByBlame{value}
 			} else {
 				grouped[groupid] = append(grouped[groupid], value)
 			}
 			if _, ok := rollups[groupid]; !ok {
-				rollups[groupid] = map[types.TestName]TestRollup{}
+				rollups[groupid] = map[types.TestName]frontend.TestRollup{}
 			}
 			// Calculate the rollups.
 			r, ok := rollups[groupid][test]
 			if !ok {
-				r = TestRollup{
+				r = frontend.TestRollup{
 					Test:         test,
 					Num:          0,
 					SampleDigest: d,
@@ -274,15 +275,15 @@ func (wh *Handlers) computeByBlame(ctx context.Context, corpus string) ([]ByBlam
 	}
 
 	// Assemble the response.
-	blameEntries := make([]ByBlameEntry, 0, len(grouped))
+	blameEntries := make([]frontend.ByBlameEntry, 0, len(grouped))
 	for groupid, byBlames := range grouped {
 		rollup := rollups[groupid]
 		nTests := len(rollup)
-		var affectedTests []TestRollup
+		var affectedTests []frontend.TestRollup
 
 		// Only include the affected tests if there are no more than 10 of them.
 		if nTests <= 10 {
-			affectedTests = make([]TestRollup, 0, nTests)
+			affectedTests = make([]frontend.TestRollup, 0, nTests)
 			for _, testInfo := range rollup {
 				affectedTests = append(affectedTests, testInfo)
 			}
@@ -294,12 +295,12 @@ func (wh *Handlers) computeByBlame(ctx context.Context, corpus string) ([]ByBlam
 			})
 		}
 
-		blameEntries = append(blameEntries, ByBlameEntry{
+		blameEntries = append(blameEntries, frontend.ByBlameEntry{
 			GroupID:       groupid,
 			NDigests:      len(byBlames),
 			NTests:        nTests,
 			AffectedTests: affectedTests,
-			Commits:       commitinfo[groupid],
+			Commits:       frontend.FromTilingCommits(commitinfo[groupid]),
 		})
 	}
 	sort.Slice(blameEntries, func(i, j int) bool {
@@ -312,44 +313,12 @@ func (wh *Handlers) computeByBlame(ctx context.Context, corpus string) ([]ByBlam
 }
 
 // lookUpCommits returns the commit hashes for the commit indices in 'freq'.
-func lookUpCommits(freq []int, commits []*tiling.Commit) []string {
-	ret := []string{}
+func lookUpCommits(freq []int, commits []tiling.Commit) []string {
+	var ret []string
 	for _, index := range freq {
 		ret = append(ret, commits[index].Hash)
 	}
 	return ret
-}
-
-// ByBlameEntry is a helper structure that is serialized to
-// JSON and sent to the front-end.
-type ByBlameEntry struct {
-	GroupID       string           `json:"groupID"`
-	NDigests      int              `json:"nDigests"`
-	NTests        int              `json:"nTests"`
-	AffectedTests []TestRollup     `json:"affectedTests"`
-	Commits       []*tiling.Commit `json:"commits"`
-}
-
-// ByBlame describes a single digest and its blames.
-type ByBlame struct {
-	Test          types.TestName          `json:"test"`
-	Digest        types.Digest            `json:"digest"`
-	Blame         blame.BlameDistribution `json:"blame"`
-	CommitIndices []int                   `json:"commit_indices"`
-	Key           string
-}
-
-// CommitSlice is a utility type simple for sorting Commit slices so earliest commits come first.
-type CommitSlice []*tiling.Commit
-
-func (p CommitSlice) Len() int           { return len(p) }
-func (p CommitSlice) Less(i, j int) bool { return p[i].CommitTime > p[j].CommitTime }
-func (p CommitSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
-type TestRollup struct {
-	Test         types.TestName `json:"test"`
-	Num          int            `json:"num"`
-	SampleDigest types.Digest   `json:"sample_digest"`
 }
 
 // ChangeListsHandler returns the list of code_review.ChangeLists that have
@@ -1365,8 +1334,6 @@ func (wh *Handlers) ParamsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // CommitsHandler returns the commits from the most recent tile.
-// Note that this returns things of tiling.Commit, which lacks information
-// like the message. For a fuller commit, see GitLogHandler.
 func (wh *Handlers) CommitsHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {
@@ -1380,7 +1347,7 @@ func (wh *Handlers) CommitsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(cpxTile.DataCommits()); err != nil {
+	if err := json.NewEncoder(w).Encode(frontend.FromTilingCommits(cpxTile.DataCommits())); err != nil {
 		sklog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
@@ -1404,6 +1371,7 @@ type commitInfo struct {
 // https://chromium.googlesource.com/chromium/src/+log/[start]~1..[end]
 // Essentially, we just need the commit Subject for each of the commits,
 // although this could easily be expanded to have more of the commit info.
+// TODO(kjlubick) remove the need for this function.
 func (wh *Handlers) GitLogHandler(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.cheapLimitForAnonUsers(r); err != nil {

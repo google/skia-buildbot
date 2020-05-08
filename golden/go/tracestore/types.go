@@ -39,14 +39,14 @@ type TraceStore interface {
 
 	// GetTile reads the last n commits and returns them as a tile.
 	// The second return value is all commits that are in the tile.
-	GetTile(ctx context.Context, nCommits int) (*tiling.Tile, []*tiling.Commit, error)
+	GetTile(ctx context.Context, nCommits int) (*tiling.Tile, []tiling.Commit, error)
 
 	// GetDenseTile constructs a tile containing only commits that have data for at least one trace.
 	// The returned tile will always have length exactly nCommits unless there are fewer than
 	// nCommits commits with data. The second return value contains all commits starting with the
 	// first commit of the tile and ending with the most recent commit, in order; i.e. it includes
 	// all commits in the tile as well as the omitted commits.
-	GetDenseTile(ctx context.Context, nCommits int) (*tiling.Tile, []*tiling.Commit, error)
+	GetDenseTile(ctx context.Context, nCommits int) (*tiling.Tile, []tiling.Commit, error)
 }
 
 // TraceIDFromParams deterministically returns a TraceID that uniquely encodes
