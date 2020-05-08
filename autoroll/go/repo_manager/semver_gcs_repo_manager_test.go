@@ -351,7 +351,7 @@ Tbr: reviewer@chromium.org
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:message", mockhttpclient.MockPutDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to modify the version file.
-	reqBody = []byte(tipRev.Id)
+	reqBody = []byte(tipRev.Id + "\n")
 	url := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(AFDO_VERSION_FILE_PATH))
 	urlmock.MockOnce(url, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
