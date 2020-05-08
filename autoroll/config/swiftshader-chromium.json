@@ -2,6 +2,26 @@
 // for documentation of the autoroller config.
 {
   "childName": "SwiftShader",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childName": "src/third_party/swiftshader",
+    "childLogURLTmpl": "https://swiftshader.googlesource.com/SwiftShader.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "cqExtraTrybots": [
+      "luci.chromium.try:android_optional_gpu_tests_rel",
+      "luci.chromium.try:linux_chromium_msan_rel_ng",
+      "luci.chromium.try:linux_optional_gpu_tests_rel",
+      "luci.chromium.try:mac_optional_gpu_tests_rel",
+      "luci.chromium.try:win_optional_gpu_tests_rel",
+      "luci.chromium.try:linux-swangle-try-x64",
+      "luci.chromium.try:win-swangle-try-x86",
+    ],
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "capn@chromium.org"
   ],
@@ -26,21 +46,9 @@
     "childPath": "src/third_party/swiftshader",
     "childRepo": "https://swiftshader.googlesource.com/SwiftShader.git",
     "childRevLinkTmpl": "https://swiftshader.googlesource.com/SwiftShader.git/+/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
-  "cqExtraTrybots": [
-    "luci.chromium.try:android_optional_gpu_tests_rel",
-    "luci.chromium.try:linux_chromium_msan_rel_ng",
-    "luci.chromium.try:linux_optional_gpu_tests_rel",
-    "luci.chromium.try:mac_optional_gpu_tests_rel",
-    "luci.chromium.try:win_optional_gpu_tests_rel",
-    "luci.chromium.try:linux-swangle-try-x64",
-    "luci.chromium.try:win-swangle-try-x86",
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",

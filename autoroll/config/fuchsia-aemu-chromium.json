@@ -2,6 +2,15 @@
 // for documentation of the autoroller config.
 {
   "childName": "Fuchsia AEMU",
+  "commitMsg": {
+    "childName": "src/third_party/aemu-linux-x64",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": false,
+    "includeRevisionCount": false,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "chonggu@google.com"
   ],

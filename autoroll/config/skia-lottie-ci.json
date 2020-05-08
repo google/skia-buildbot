@@ -2,6 +2,19 @@
 // for documentation of the autoroller config.
 {
   "childName": "Skia",
+  "commitMsg": {
+    "childName": "skia",
+    "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "cqExtraTrybots": [
+      "skia/skia.primary:Housekeeper-PerCommit-InfraTests"
+    ],
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "borenet@google.com"
   ],
@@ -31,12 +44,7 @@
       "TrainInfra"
     ],
     "parentRepo": "https://skia.googlesource.com/lottie-ci.git",
-    "includeBugs": false,
-    "includeLog": true
   },
-  "cqExtraTrybots": [
-    "skia/skia.primary:Housekeeper-PerCommit-InfraTests"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "8Gi",

@@ -2,6 +2,16 @@
 // for documentation of the autoroller config.
 {
   "childName": "glslang",
+  "commitMsg": {
+    "childName": "third_party/glslang/src",
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": false,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "geofflang@chromium.org",
     "jmadill@chromium.org",
@@ -31,8 +41,6 @@
     "childPath": "third_party/glslang/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/+/%s",
-    "includeBugs": false,
-    "includeLog": false,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
   },

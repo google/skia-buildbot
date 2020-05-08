@@ -2,6 +2,16 @@
 // for documentation of the autoroller config.
 {
   "childName": "llvm-project",
+  "commitMsg": {
+    "childName": "src/third_party/devtools-frontend/src",
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/llvm/llvm-project.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "dschuff@google.com"
   ],
@@ -25,8 +35,6 @@
     "childPath": "emscripten-releases/llvm-project",
     "childRepo": "https://chromium.googlesource.com/external/github.com/llvm/llvm-project.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/llvm/llvm-project.git/+/%s",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/emscripten-releases.git"
   },

@@ -2,6 +2,17 @@
 // for documentation of the autoroller config.
 {
   "childName": "Depot Tools",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childName": "src/third_party/depot_tools",
+    "childLogURLTmpl": "https://chromium.googlesource.com/chromium/tools/depot_tools.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "agable@google.com"
   ],
@@ -25,9 +36,6 @@
     "childPath": "src/third_party/depot_tools",
     "childRepo": "https://chromium.googlesource.com/chromium/tools/depot_tools.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/chromium/tools/depot_tools.git/+/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },

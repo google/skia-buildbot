@@ -2,6 +2,17 @@
 // for documentation of the autoroller config.
 {
   "childName": "SwiftShader",
+  "commitMsg": {
+    "bugProject": "angleproject",
+    "childName": "third_party/SwiftShader",
+    "childLogURLTmpl": "https://swiftshader.googlesource.com/SwiftShader.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "geofflang@chromium.org",
     "jmadill@chromium.org",
@@ -32,9 +43,6 @@
     "childPath": "third_party/SwiftShader",
     "childRepo": "https://swiftshader.googlesource.com/SwiftShader.git",
     "childRevLinkTmpl": "https://swiftshader.googlesource.com/SwiftShader.git/+/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "angleproject",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
   },
