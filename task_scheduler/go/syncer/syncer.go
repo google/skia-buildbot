@@ -234,7 +234,7 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 	t := metrics2.NewTimer("gclient_sync", map[string]string{
 		"patchRepo": patchRepo,
 	})
-	sklog.Errorf("Executing: %s", strings.Join(cmd, " "))
+	sklog.Info("Executing: %s", strings.Join(cmd, " "))
 	out, err := exec.RunCommand(ctx, &exec.Command{
 		Name: cmd[0],
 		Args: cmd[1:],
