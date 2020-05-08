@@ -51,15 +51,15 @@ release-jc: task-scheduler-jc
 
 .PHONY: push-be
 push-be: release-be
-	pushk --message="$(MESSAGE)" task-scheduler-be
+	pushk --message="$(MESSAGE)" --use-temp-checkout task-scheduler-be
 
 .PHONY: push-fe
 push-fe: release-fe
-	pushk --message="$(MESSAGE)" task-scheduler-fe
+	pushk --message="$(MESSAGE)" --use-temp-checkout task-scheduler-fe
 
 .PHONY: push-jc
 push-jc: release-jc
-	pushk --message="$(MESSAGE)" task-scheduler-jc
+	pushk --message="$(MESSAGE)" --use-temp-checkout task-scheduler-jc
 
 .PHONY: validate_db
 validate_db:
