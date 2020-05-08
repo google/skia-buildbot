@@ -2,6 +2,17 @@
 // for documentation of the autoroller config.
 {
   "childName": "Vulkan-Headers",
+  "commitMsg": {
+    "bugProject": "angleproject",
+    "childName": "third_party/vulkan-headers/src",
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Headers.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "angle-team@google.com",
     "jmadill@chromium.org"
@@ -31,9 +42,6 @@
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Headers.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Headers.git/+/%s",
     "childSubdir": "angle",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "angleproject",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/angle/angle.git",
     "preUploadSteps": [

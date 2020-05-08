@@ -2,6 +2,20 @@
 // for documentation of the autoroller config.
 {
   "childName": "Perfetto",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childName": "src/third_party/perfetto",
+    "childLogURLTmpl": "https://android.googlesource.com/platform/external/perfetto.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "cqExtraTrybots": [
+      "luci.chromium.try:linux-perfetto-rel"
+    ],
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "primiano@chromium.org"
   ],
@@ -25,15 +39,9 @@
     "childPath": "src/third_party/perfetto",
     "childRepo": "https://android.googlesource.com/platform/external/perfetto.git",
     "childRevLinkTmpl": "https://android.googlesource.com/platform/external/perfetto.git/+/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
-  "cqExtraTrybots": [
-    "luci.chromium.try:linux-perfetto-rel"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",

@@ -2,6 +2,28 @@
 // for documentation of the autoroller config.
 {
   "childName": "glslang",
+  "commitMsg": {
+    "childName": "src/third_party/glslang/src",
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "cqExtraTrybots": [
+      "luci.chromium.try:android_angle_vk32_deqp_rel_ng",
+      "luci.chromium.try:android_angle_vk32_rel_ng",
+      "luci.chromium.try:android_angle_vk64_deqp_rel_ng",
+      "luci.chromium.try:android_angle_vk64_rel_ng",
+      "luci.chromium.try:linux_angle_deqp_rel_ng",
+      "luci.chromium.try:linux-angle-rel",
+      "luci.chromium.try:win-angle-rel-32",
+      "luci.chromium.try:win-angle-rel-64",
+      "luci.chromium.try:win-angle-deqp-rel-32",
+      "luci.chromium.try:win-angle-deqp-rel-64"
+    ],
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "dsinclair@chromium.org",
     "geofflang@chromium.org",
@@ -30,23 +52,9 @@
     "childPath": "src/third_party/glslang/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/+/%s",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
-  "cqExtraTrybots": [
-    "luci.chromium.try:android_angle_vk32_deqp_rel_ng",
-    "luci.chromium.try:android_angle_vk32_rel_ng",
-    "luci.chromium.try:android_angle_vk64_deqp_rel_ng",
-    "luci.chromium.try:android_angle_vk64_rel_ng",
-    "luci.chromium.try:linux_angle_deqp_rel_ng",
-    "luci.chromium.try:linux-angle-rel",
-    "luci.chromium.try:win-angle-rel-32",
-    "luci.chromium.try:win-angle-rel-64",
-    "luci.chromium.try:win-angle-deqp-rel-32",
-    "luci.chromium.try:win-angle-deqp-rel-64"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",

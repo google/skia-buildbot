@@ -2,6 +2,16 @@
 // for documentation of the autoroller config.
 {
   "childName": "Lottie Android",
+  "commitMsg": {
+    "childName": "lottie-android",
+    "childLogURLTmpl": "https://skia.googlesource.com/external/github.com/airbnb/lottie-android.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "borenet@google.com"
   ],
@@ -25,8 +35,6 @@
     "childPath": "lottie-android",
     "childRepo": "https://skia.googlesource.com/external/github.com/airbnb/lottie-android.git",
     "childRevLinkTmpl": "https://skia.googlesource.com/external/github.com/airbnb/lottie-android.git/+/%s",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/lottie-ci.git"
   },

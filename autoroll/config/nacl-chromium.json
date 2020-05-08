@@ -2,6 +2,17 @@
 // for documentation of the autoroller config.
 {
   "childName": "NaCl",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childName": "src/native_client",
+    "childLogURLTmpl": "https://chromium.googlesource.com/native_client/src/native_client.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "mseaborn@google.com"
   ],
@@ -25,9 +36,6 @@
     "childPath": "src/native_client",
     "childRepo": "https://chromium.googlesource.com/native_client/src/native_client.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/native_client/src/native_client.git/+/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },

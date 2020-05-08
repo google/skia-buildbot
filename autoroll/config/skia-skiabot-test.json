@@ -2,6 +2,16 @@
 // for documentation of the autoroller config.
 {
   "childName": "Skia",
+  "commitMsg": {
+    "childName": "skia",
+    "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "borenet@google.com"
   ],
@@ -26,8 +36,6 @@
     "childPath": "skia",
     "childRepo": "https://skia.googlesource.com/skia.git",
     "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+/%s",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skiabot-test.git"
   },

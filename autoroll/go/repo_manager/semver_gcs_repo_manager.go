@@ -64,14 +64,6 @@ func (c *SemVerGCSRepoManagerConfig) Validate() error {
 func (c SemVerGCSRepoManagerConfig) splitParentChild() (parent.GitilesFileConfig, child.SemVerGCSConfig, error) {
 	parentCfg := parent.GitilesFileConfig{
 		GitilesConfig: parent.GitilesConfig{
-			BaseConfig: parent.BaseConfig{
-				ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-				ChildRepo:       c.GCSPath, // TODO
-				IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-				IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-				CommitMsgTmpl:   c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
-				MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-			},
 			GitilesConfig: gitiles_common.GitilesConfig{
 				Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
 				RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,

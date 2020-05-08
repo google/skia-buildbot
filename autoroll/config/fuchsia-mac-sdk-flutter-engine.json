@@ -2,6 +2,15 @@
 // for documentation of the autoroller config.
 {
   "childName": "Fuchsia Mac SDK",
+  "commitMsg": {
+    "childName": "src/fuchsia/sdk/mac",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": false,
+    "includeRevisionCount": false,
+    "includeTbrLine": false,
+    "includeTests": false
+  },
   "contacts": ["liyuqian@google.com", "rmistry@google.com"],
   "isInternal": false,
   "ownerPrimary": "rmistry",

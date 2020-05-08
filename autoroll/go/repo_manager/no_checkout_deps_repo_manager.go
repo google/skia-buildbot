@@ -20,13 +20,6 @@ var (
 	getDepRegex = regexp.MustCompile("[a-f0-9]+")
 )
 
-// TransitiveDepConfig provides configuration for a single transitive
-// dependency.
-type TransitiveDepConfig struct {
-	Child  *version_file_common.VersionFileConfig `json:"child"`
-	Parent *version_file_common.VersionFileConfig `json:"parent"`
-}
-
 // NoCheckoutDEPSRepoManagerConfig provides configuration for RepoManagers which
 // don't use a local checkout.
 type NoCheckoutDEPSRepoManagerConfig struct {
@@ -38,7 +31,7 @@ type NoCheckoutDEPSRepoManagerConfig struct {
 	// TransitiveDeps is an optional mapping of dependency ID (eg. repo URL)
 	// to the paths within the parent and child repo, respectively, where
 	// those dependencies are versioned, eg. "DEPS".
-	TransitiveDeps []*TransitiveDepConfig `json:"transitiveDeps"`
+	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps"`
 }
 
 // See documentation for util.Validator interface.
@@ -91,14 +84,6 @@ func (c NoCheckoutDEPSRepoManagerConfig) splitParentChild() (parent.GitilesDEPSC
 	}
 	parentCfg := parent.GitilesDEPSConfig{
 		GitilesConfig: parent.GitilesConfig{
-			BaseConfig: parent.BaseConfig{
-				ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-				ChildRepo:       c.ChildRepo,
-				IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-				IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-				CommitMsgTmpl:   c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
-				MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-			},
 			GitilesConfig: gitiles_common.GitilesConfig{
 				Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
 				RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
