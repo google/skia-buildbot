@@ -64,6 +64,8 @@ define('dots-sk', class extends ElementSk {
     // timer.
     this._lastMouseMove = null;
 
+    this._hasScrolledOnce = false;
+
     // Explicitly bind event handler methods to this.
     this._onMouseMove = this._onMouseMove.bind(this);
     this._onMouseLeave = this._onMouseLeave.bind(this);
@@ -85,6 +87,7 @@ define('dots-sk', class extends ElementSk {
     this._canvas.removeEventListener('mousemove', this._onMouseMove);
     this._canvas.removeEventListener('mouseleave', this._onMouseLeave);
     this._canvas.removeEventListener('click', this._onClick);
+    this._hasScrolledOnce = false;
   }
 
   /**
@@ -116,6 +119,18 @@ define('dots-sk', class extends ElementSk {
     this._value = value;
     if (this._connected) {
       this._draw();
+    }
+  }
+
+  /**
+   * Scrolls the traces all the way to the right, showing the newest first. It will only do this
+   * on the first call, so as to avoid undoing the user manually scrolling left to see older
+   * history.
+   */
+  autoscroll() {
+    if (!this._hasScrolledOnce) {
+      this._hasScrolledOnce = true;
+      this.scroll(this.scrollWidth, 0);
     }
   }
 
