@@ -55,7 +55,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/a8m/envsubst v1.1.0
-	github.com/aws/aws-sdk-go v1.30.22 // indirect
+	github.com/aws/aws-sdk-go v1.30.23 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/danjacques/gofslock v0.0.0-20191023191349-0a45f885bc37 // indirect
@@ -123,7 +123,7 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20200507011831-6268d5c70562
+	go.chromium.org/luci v0.0.0-20200508033456-d92e37c72a39
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79 // indirect
 	golang.org/x/net v0.0.0-20200506145744-7e3656a0809f // indirect
@@ -131,9 +131,9 @@ require (
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
 	golang.org/x/sys v0.0.0-20200501145240-bc7a7d42d5c3 // indirect
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
-	golang.org/x/tools v0.0.0-20200507033352-be0c89d0d3ec
+	golang.org/x/tools v0.0.0-20200507205054-480da3ebd79c
 	google.golang.org/api v0.23.0
-	google.golang.org/genproto v0.0.0-20200430143042-b979b6f78d84
+	google.golang.org/genproto v0.0.0-20200507105951-43844f6eee31
 	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.22.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
