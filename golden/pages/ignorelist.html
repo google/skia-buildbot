@@ -3,9 +3,16 @@
 <head>
   <title>{{.Title}} Ignore Rules</title>
   <link rel="shortcut icon" href="/res/img/favicon.ico">
+  <script>
+    window.GoldSettings = {
+      title: "{{.Title}}",
+      defaultCorpus: "{{.DefaultCorpus}}",
+      baseRepoURL: "{{.BaseRepoURL}}",
+    };
+  </script>
 </head>
 <body>
-<gold-scaffold-sk app_title={{.Title}}>
+<gold-scaffold-sk>
   <ignores-page-sk></ignores-page-sk>
 </gold-scaffold-sk>
 </body>
