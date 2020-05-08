@@ -56,7 +56,7 @@ var gold = gold || {};
     sort: gold.SORT_DESC,
 
     // Configs that need to match during comparisons.
-    match: sk.app_config.defaultMatchFields,
+    match: ['name'],
 
     // Note: query is a URL encoded query over the test parameters
     // The fields of query are not fixed but change over time. This requires

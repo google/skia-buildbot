@@ -81,7 +81,6 @@ spec:
             {{end}}
             - "--redirect_url={{.SITE_URL}}/oauth2callback/"
             - "--resources_dir=/usr/local/share/skiacorrectness/frontend"
-            - "--show_bot_progress=false"
             - "--site_url={{.SITE_URL}}"
             - "--tile_freshness={{.TILE_FRESHNESS}}"
             - "--trace_bt_table={{.BIGTABLE_TABLE}}"
