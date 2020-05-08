@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a893fd8a_a965f82b",
+        "filename": "autoroll/go/commit_msg/cmd/mock-commit-msg/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-08T18:36:07Z",
+      "side": 1,
+      "message": "This is a tool which takes a roller config and simulates what the commit message would look like.  It also grabs the most recent roll from the actual roller and diffs the new commit message.  This was not intended to be landed, but if we find it to be useful we could. I wasn\u0027t able to get it working for github rollers.  I didn\u0027t run it for every roller, but the ones I did run looked good.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
