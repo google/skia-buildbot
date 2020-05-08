@@ -2,6 +2,24 @@
 // for documentation of the autoroller config.
 {
   "childName": "FreeType",
+  "commitMsg": {
+    "childName": "src/third_party/freetype/src",
+    "childLogURLTmpl": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "cqExtraTrybots": [
+      "luci.chromium.try:linux_chromium_msan_rel_ng",
+      "luci.chromium.try:linux-blink-rel",
+      "luci.chromium.try:mac10.12-blink-rel",
+      "luci.chromium.try:mac10.13_retina-blink-rel",
+      "luci.chromium.try:win10-blink-rel",
+      "luci.chromium.try:win7-blink-rel"
+    ],
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "bungeman@google.com",
     "drott@google.com"
@@ -29,19 +47,9 @@
     "childPath": "src/third_party/freetype/src",
     "childRepo": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git/+/%s",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
-  "cqExtraTrybots": [
-    "luci.chromium.try:linux_chromium_msan_rel_ng",
-    "luci.chromium.try:linux-blink-rel",
-    "luci.chromium.try:mac10.12-blink-rel",
-    "luci.chromium.try:mac10.13_retina-blink-rel",
-    "luci.chromium.try:win10-blink-rel",
-    "luci.chromium.try:win7-blink-rel"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",

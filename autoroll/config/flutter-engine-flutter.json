@@ -2,6 +2,16 @@
 // for documentation of the autoroller config.
 {
   "childName": "Engine",
+  "commitMsg": {
+    "childName": "engine",
+    "childLogURLTmpl": "https://github.com/flutter/engine/compare/{{.RollingFrom}}...{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": false,
+    "includeTests": false
+  },
   "contacts": ["liyuqian@google.com", "rmistry@google.com"],
   "isInternal": false,
   "ownerPrimary": "rmistry",
@@ -29,32 +39,9 @@
     "childRevLinkTmpl": "https://github.com/flutter/engine/commit/%s",
     "childUserName": "flutter",
     "forkRepoURL": "git@github.com:engine-flutter-autoroll/flutter.git",
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "git@github.com:flutter/flutter.git",
-    "revisionFile": "bin/internal/engine.version",
-    "transitiveDeps": [
-      {
-        "child": {
-          "id": "fuchsia/sdk/core/linux-amd64",
-          "path": "bin/internal/fuchsia-linux.version"
-        },
-        "parent": {
-          "id": "fuchsia/sdk/core/linux-amd64",
-          "path": "DEPS"
-        }
-      },
-      {
-        "child": {
-          "id": "fuchsia/sdk/core/mac-amd64",
-          "path": "bin/internal/fuchsia-mac.version"
-        },
-        "parent": {
-          "id": "fuchsia/sdk/core/mac-amd64",
-          "path": "DEPS"
-        }
-      }
-    ]
+    "revisionFile": "bin/internal/engine.version"
   },
   "kubernetes": {
     "cpu": "1",
@@ -80,6 +67,28 @@
       "filter": "warning",
       "email": {
         "emails": ["$SHERIFF"]
+      }
+    }
+  ],
+  "transitiveDeps": [
+    {
+      "child": {
+        "id": "fuchsia/sdk/core/linux-amd64",
+        "path": "bin/internal/fuchsia-linux.version"
+      },
+      "parent": {
+        "id": "fuchsia/sdk/core/linux-amd64",
+        "path": "DEPS"
+      }
+    },
+    {
+      "child": {
+        "id": "fuchsia/sdk/core/mac-amd64",
+        "path": "bin/internal/fuchsia-mac.version"
+      },
+      "parent": {
+        "id": "fuchsia/sdk/core/mac-amd64",
+        "path": "DEPS"
       }
     }
   ]

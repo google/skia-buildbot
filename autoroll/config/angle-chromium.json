@@ -2,6 +2,26 @@
 // for documentation of the autoroller config.
 {
   "childName": "ANGLE",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childName": "src/third_party/angle",
+    "childLogURLTmpl": "https://chromium.googlesource.com/angle/angle.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "cqExtraTrybots": [
+      "luci.chromium.try:android_optional_gpu_tests_rel",
+      "luci.chromium.try:linux_optional_gpu_tests_rel",
+      "luci.chromium.try:mac_optional_gpu_tests_rel",
+      "luci.chromium.try:win-asan",
+      "luci.chromium.try:win_optional_gpu_tests_rel",
+      "luci.chromium.try:linux-swangle-try-x64",
+      "luci.chromium.try:win-swangle-try-x86",
+    ],
+    "includeBugs": true,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "jmadill@google.com"
   ],
@@ -28,21 +48,9 @@
     "childPath": "src/third_party/angle",
     "childRepo": "https://chromium.googlesource.com/angle/angle.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/angle/angle.git/+/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
-  "cqExtraTrybots": [
-    "luci.chromium.try:android_optional_gpu_tests_rel",
-    "luci.chromium.try:linux_optional_gpu_tests_rel",
-    "luci.chromium.try:mac_optional_gpu_tests_rel",
-    "luci.chromium.try:win-asan",
-    "luci.chromium.try:win_optional_gpu_tests_rel",
-    "luci.chromium.try:linux-swangle-try-x64",
-    "luci.chromium.try:win-swangle-try-x86",
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",

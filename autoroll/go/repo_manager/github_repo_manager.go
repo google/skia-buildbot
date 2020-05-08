@@ -33,7 +33,7 @@ type GithubRepoManagerConfig struct {
 	// TransitiveDeps is an optional mapping of dependency ID (eg. repo URL)
 	// to the paths within the parent and child repo, respectively, where
 	// those dependencies are versioned, eg. "DEPS".
-	TransitiveDeps []*TransitiveDepConfig `json:"transitiveDeps"`
+	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps"`
 }
 
 // See documentation for util.Validator interface.
@@ -59,14 +59,6 @@ func (c GithubRepoManagerConfig) splitParentChild() (parent.GitCheckoutGithubFil
 	parentCfg := parent.GitCheckoutGithubFileConfig{
 		GitCheckoutGithubConfig: parent.GitCheckoutGithubConfig{
 			GitCheckoutConfig: parent.GitCheckoutConfig{
-				BaseConfig: parent.BaseConfig{
-					ChildPath:       c.CommonRepoManagerConfig.ChildPath,
-					ChildRepo:       c.ChildRepoURL,
-					IncludeBugs:     c.CommonRepoManagerConfig.IncludeBugs,
-					IncludeLog:      c.CommonRepoManagerConfig.IncludeLog,
-					CommitMsgTmpl:   c.CommonRepoManagerConfig.CommitMsgTmpl,
-					MonorailProject: c.CommonRepoManagerConfig.BugProject,
-				},
 				GitCheckoutConfig: git_common.GitCheckoutConfig{
 					Branch:      c.ParentBranch,
 					RepoURL:     c.ParentRepo,

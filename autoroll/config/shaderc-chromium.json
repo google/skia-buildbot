@@ -2,6 +2,16 @@
 // for documentation of the autoroller config.
 {
   "childName": "shaderc",
+  "commitMsg": {
+    "childName": "src/third_party/shaderc/src",
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/google/shaderc/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "commitMsgTmpl": "default",
+    "includeBugs": false,
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "dsinclair@chromium.org",
     "rharrison@chromium.org",
@@ -27,8 +37,6 @@
     "childPath": "src/third_party/shaderc/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/google/shaderc",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/google/shaderc/+/%s",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },

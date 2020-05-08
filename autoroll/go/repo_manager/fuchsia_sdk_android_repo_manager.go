@@ -21,9 +21,8 @@ import (
 )
 
 const (
-	FuchsiaSDKAndroidVersionFile   = "sdk_id"
-	FuchsiaSDKAndroidGenScript     = "scripts/update_fuchsia_sdk.py"
-	TmplCommitMsgFuchsiaSDKAndroid = TmplCommitMsgFuchsiaSDK + "Exempt-From-Owner-Approval: The autoroll bot does not require owner approval."
+	FuchsiaSDKAndroidVersionFile = "sdk_id"
+	FuchsiaSDKAndroidGenScript   = "scripts/update_fuchsia_sdk.py"
 )
 
 // FuchsiaSDKAndroidRepoManagerConfig provides configuration for
@@ -72,18 +71,7 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 	}
 
 	// Create the parent.
-	if c.CommitMsgTmpl == "" {
-		c.CommitMsgTmpl = TmplCommitMsgFuchsiaSDKAndroid
-	}
 	parentCfg := parent.GitCheckoutConfig{
-		BaseConfig: parent.BaseConfig{
-			ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-			ChildRepo:       "FuchsiaSDK",
-			IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-			IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-			CommitMsgTmpl:   c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
-			MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-		},
 		GitCheckoutConfig: git_common.GitCheckoutConfig{
 			Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
 			RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
