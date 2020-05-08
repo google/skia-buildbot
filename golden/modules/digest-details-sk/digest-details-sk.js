@@ -20,6 +20,7 @@ import { html } from 'lit-html';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { $$ } from 'common-sk/modules/dom';
 import { fromParamSet, fromObject } from 'common-sk/modules/query';
+import dialogPolyfill from 'dialog-polyfill';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import {
   truncateWithEllipses, detailHref, diffPageHref, sendBeginTask, sendEndTask, sendFetchError,
@@ -31,6 +32,7 @@ import '../dots-legend-sk';
 import '../triage-sk';
 import '../triage-history-sk';
 import '../image-compare-sk';
+import '../blamelist-panel-sk';
 import '../../../infra-sk/modules/paramset-sk';
 
 const template = (ele) => html`
@@ -67,7 +69,11 @@ const template = (ele) => html`
   </div>
 ${traceInfo(ele)}
 ${paramset(ele)}
-</div>`;
+</div>
+<dialog class=blamelist_dialog>
+  <blamelist-panel-sk></blamelist-panel-sk>
+  <button class=close_btn @click=${ele._closeBlamelistDialog}>Close</button>
+</dialog>`;
 
 const detailsAndTriage = (ele) => {
   if (!ele.right) {
@@ -135,7 +141,7 @@ const traceInfo = (ele) => {
   return html`
 <div class=trace_info>
   <dots-sk .value=${ele._traces} .commits=${ele._commits} @hover=${ele._hoverOverTrace}
-      @mouseleave=${ele._clearTraceHighlights}></dots-sk>
+      @mouseleave=${ele._clearTraceHighlights} @showblamelist=${ele._showBlamelist}></dots-sk>
   <dots-legend-sk .digests=${ele._traces.digests} .issue=${ele.issue} .test=${ele._grouping}
 .totalDigests=${ele._traces.total_digests || 0}></dots-legend-sk>
 </div>`;
@@ -182,7 +188,6 @@ define('digest-details-sk', class extends ElementSk {
     this._triageHistory = [];
 
     this._commits = [];
-
     // This tracks which ref we are showing on the right. It will default to the closest one, but
     // can be changed with the toggle.
     this._rightRef = '';
@@ -194,6 +199,7 @@ define('digest-details-sk', class extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
+    dialogPolyfill.registerDialog($$('dialog.blamelist_dialog', this));
   }
 
   /**
@@ -264,6 +270,13 @@ define('digest-details-sk', class extends ElementSk {
     this._render();
   }
 
+  _closeBlamelistDialog() {
+    const dialog = $$('dialog.blamelist_dialog', this);
+    if (dialog) {
+      dialog.close();
+    }
+  }
+
   _clusterHref() {
     if (!this._grouping || !this._params) {
       return '';
@@ -310,6 +323,14 @@ define('digest-details-sk', class extends ElementSk {
     if (traces) {
       traces.autoscroll();
     }
+  }
+
+  _showBlamelist(e) {
+    e.stopPropagation();
+    const dialog = $$('dialog.blamelist_dialog', this);
+    const blamelist = $$('blamelist-panel-sk', dialog);
+    blamelist.commits = e.detail;
+    dialog.showModal();
   }
 
   _toggleRightRef() {

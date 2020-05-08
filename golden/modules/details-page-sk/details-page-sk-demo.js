@@ -11,6 +11,7 @@ const fetchMock = require('fetch-mock');
 
 testOnlySetSettings({
   title: 'Skia Public',
+  baseRepoURL: 'https://skia.googlesource.com/skia.git',
 });
 $$('gold-scaffold-sk')._render(); // pick up title from settings.
 
