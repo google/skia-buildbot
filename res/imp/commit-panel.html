@@ -203,36 +203,14 @@
 
       _processCommitInfo: function () {
         if (this._commitinfo && this._commitinfo.length) {
-          var lastHash = this._commitinfo[0].hash;
           this._firstHash = this._commitinfo[this._commitinfo.length - 1].hash;
-          if (!this._commitinfo[0].message) {
-            var url = this._getCommitRangeURL(this._firstHash, lastHash);
-            // The git hashes are in time order, but not contiguous, so request
-            // the log range and them populate messages by matching git hashes.
-            sk.get(url).then(this._removeSecurityHeader).then(JSON.parse).then(function (json) {
-              var len = this._commitinfo.length;
-
-              for (var i = 0; i < json.log.length; i++) {
-                var commit = json.log[i].commit;
-
-                // Fill out the messages, matching the hashes of the commits in the JSON
-                // to what we have in _commitinfo.
-                for (var j = 0; j < len; j++) {
-                  if (this._commitinfo[j].hash === commit) {
-                    this.set('_commitinfo.'+j+'.message', json.log[i].message.slice(0, 60));
-                    break;
-                  }
-                }
-              }
-              // This can go away once we start filling in the message on the server side.
-              $$('commit-sk', this).forEach(function(ele) {
-                ele.refresh();
-              });
-              this.fire('commits-loaded', {});
-            }.bind(this)).catch(sk.errorMessage);
-          } else {
+          if (this._commitinfo[0].message) {
             // Fire the message even when the commit messages were cached.
             this.fire('commits-loaded', {});
+          } else {
+            // This should not happen anymore, because commits sent to the frontend include the
+            // message by default.
+            console.error('no messages?');
           }
           if (this.progress) {
             var url = 'https://status.skia.org/json/skia/buildProgress?commit=' + this._firstHash;
@@ -249,15 +227,6 @@
             }.bind(this)).catch(sk.errorMessage);
           }
         }
-      },
-
-      // _getCommitRangeURL returns the URL to retreive a commit range between
-      // startHash and endHash, inclusive on both ends.
-      _getCommitRangeURL: function(startHash, endHash) {
-        if (this.origin) {
-          return '/json/gitlog?start=' + startHash + '&end=' + endHash;
-        }
-        return this.repo + '/+log/' + startHash + '~' + 1 + '..' + endHash + '?format=json';
       },
 
       // _removeSecurityHeader strips the first 4 chars from the input. Needed

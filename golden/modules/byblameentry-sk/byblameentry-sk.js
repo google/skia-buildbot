@@ -51,7 +51,7 @@ const blameListTemplate = (el) => html`
               ${commit.hash.slice(0, 7)}
             </a>
             <span class=commit-message>
-              ${el._commitMessage(commit.hash)}
+              ${commit.message}
             </span>
             <br/>
             <small>
@@ -117,17 +117,6 @@ define('byblameentry-sk', class extends ElementSk {
     this._render();
   }
 
-  /**
-   * @prop gitLog {Object} A gitLog object fetched from /json/gitlog containing
-   *     commit messages for the commits referenced by the ByBlameEntry object.
-   */
-  get gitLog() { return this._gitLog; }
-
-  set gitLog(v) {
-    this._gitLog = v;
-    this._render();
-  }
-
   /** @prop corpus {string} The corpus corresponding to this blame group. */
   get corpus() { return this._corpus; }
 
@@ -149,10 +138,5 @@ define('byblameentry-sk', class extends ElementSk {
     }
     const path = repo.indexOf('github.com') !== -1 ? 'commit' : '+';
     return `${repo}/${path}/${hash}`;
-  }
-
-  _commitMessage(hash) {
-    const commitInfo = this.gitLog.log.find((commitInfo) => commitInfo.commit === hash);
-    return commitInfo ? commitInfo.message : '';
   }
 });

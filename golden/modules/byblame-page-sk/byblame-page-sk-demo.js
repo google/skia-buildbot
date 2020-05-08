@@ -4,7 +4,6 @@ import { $$ } from 'common-sk/modules/dom';
 import { fetchMock } from 'fetch-mock';
 import {
   canvaskit,
-  fakeGitlogRpc,
   fakeNow,
   gm,
   svg,
@@ -42,7 +41,6 @@ Date.now = () => fakeNow;
 fetchMock.get('/json/byblame?query=source_type%3Dcanvaskit', () => byBlame(canvaskit));
 fetchMock.get('/json/byblame?query=source_type%3Dgm', () => byBlame(gm));
 fetchMock.get('/json/byblame?query=source_type%3Dsvg', () => byBlame(svg));
-fetchMock.get('glob:/json/gitlog*', (url) => delay(fakeGitlogRpc(url), fakeRpcDelayMillis));
 fetchMock.get('/json/trstatus', () => {
   if ($$('#simulate-rpc-failure').checked) {
     return 500; // Fake an internal server error.
