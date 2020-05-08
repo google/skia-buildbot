@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "92c441f8_a5443372",
+        "filename": "golden/modules/blamelist-panel-sk/blamelist-panel-sk.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-08T17:31:36Z",
+      "side": 1,
+      "message": "Nit: We can probably remove the ellipses without losing any meaning, e.g \"And other commits.\". Or maybe just one ellipsis, e.g. \"... and other commits.\".\n\nCan we show the actual count? E.g. `And ${ele._commits.length} other commits.`, modulo pluralization.",
+      "range": {
+        "startLine": 24,
+        "startChar": 49,
+        "endLine": 24,
+        "endChar": 72
+      },
+      "revId": "682526860342b58f03d3c0571781645fce53bb7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "286b118a_27203346",
+        "filename": "golden/modules/blamelist-panel-sk/blamelist-panel-sk.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-08T17:31:36Z",
+      "side": 1,
+      "message": "Should we fail loudly if the base repo URL is missing?\n\nAs is, if the base repo URL is empty then the anchor tag in the template above will appear broken to the user (clicking will do nothing), which tells me an empty base repo URL is probably an abnormal situation (did we forget to set the base repo URL in the instance\u0027s settings?). So throwing an exception makes sense to me.",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 14
+      },
+      "revId": "682526860342b58f03d3c0571781645fce53bb7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "450dba02_3e5a2761",
+        "filename": "golden/modules/blamelist-panel-sk/blamelist-panel-sk_puppeteer_test.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-08T17:31:36Z",
+      "side": 1,
+      "message": "Since this Puppeteer test suite contains the only tests for this component (there\u0027s no Karma tests), can we make assertions in addition to taking screenshots? This will catch bugs automatically even if we forget to look at the screenshots.",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 6,
+        "endChar": 38
+      },
+      "revId": "682526860342b58f03d3c0571781645fce53bb7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a709c1b9_cc5e2d7a",
+        "filename": "golden/modules/blamelist-panel-sk/blamelist-panel-sk_puppeteer_test.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-08T17:31:36Z",
+      "side": 1,
+      "message": "Nit: The highlighted part of the test name makes me think there\u0027s a missing test case for the scenario where there\u0027s a single commit (\"just fine\" as opposed to what?). Maybe remove the \"just fine\" part?",
+      "range": {
+        "startLine": 19,
+        "startChar": 36,
+        "endLine": 19,
+        "endChar": 45
+      },
+      "revId": "682526860342b58f03d3c0571781645fce53bb7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f9436014_e34f857c",
+        "filename": "golden/modules/blamelist-panel-sk/blamelist-panel-sk_puppeteer_test.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-08T17:31:36Z",
+      "side": 1,
+      "message": "As per the comment above, please assert that there\u0027s only one commit visible.",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 75
+      },
+      "revId": "682526860342b58f03d3c0571781645fce53bb7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "34b26c7e_07c2ffd6",
+        "filename": "golden/modules/blamelist-panel-sk/blamelist-panel-sk_puppeteer_test.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-08T17:31:36Z",
+      "side": 1,
+      "message": "Can we add a test for when there\u0027s more than one commit, but without truncating the list?",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 0
+      },
+      "revId": "682526860342b58f03d3c0571781645fce53bb7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d25fb9bb_87180d0a",
+        "filename": "golden/modules/blamelist-panel-sk/blamelist-panel-sk_puppeteer_test.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-08T17:31:36Z",
+      "side": 1,
+      "message": "Please assert that there\u0027s a precise number of commits visible.",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 88
+      },
+      "revId": "682526860342b58f03d3c0571781645fce53bb7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
