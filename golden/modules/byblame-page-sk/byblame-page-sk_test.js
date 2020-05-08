@@ -3,7 +3,7 @@ import './index';
 import { $, $$ } from 'common-sk/modules/dom';
 import { fetchMock } from 'fetch-mock';
 import {
-  canvaskit, gm, svg, fakeGitlogRpc, trstatus,
+  canvaskit, gm, svg, trstatus,
 } from './demo_data';
 import {
   setUpElementUnderTest,
@@ -37,7 +37,6 @@ describe('byblame-page-sk', () => {
 
   it('shows loading indicator', async () => {
     fetchMock.get('/json/trstatus', trstatus);
-    fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
 
     // We'll resolve this RPC later to give the "loading" text a chance to show.
     let resolveByBlameRpc;
@@ -82,7 +81,6 @@ describe('byblame-page-sk', () => {
     async () => {
       fetchMock.get('/json/trstatus', trstatus);
       fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
-      fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
 
       const endTask = eventPromise('end-task');
       const byblamePageSk = newByblamePageSk({ defaultCorpus: 'gm' });
@@ -96,7 +94,6 @@ describe('byblame-page-sk', () => {
   it('renders blames for corpus specified in URL', async () => {
     fetchMock.get('/json/trstatus', trstatus);
     fetchMock.get('/json/byblame?query=source_type%3Dsvg', svg);
-    fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
     setQueryString('?corpus=svg');
 
     const endTask = eventPromise('end-task');
@@ -111,7 +108,6 @@ describe('byblame-page-sk', () => {
     fetchMock.get('/json/trstatus', trstatus);
     fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
     fetchMock.get('/json/byblame?query=source_type%3Dsvg', svg);
-    fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
 
     const endTask = eventPromise('end-task');
     const byblamePageSk = newByblamePageSk({ defaultCorpus: 'gm' });
@@ -133,7 +129,6 @@ describe('byblame-page-sk', () => {
     fetchMock.get('/json/byblame?query=source_type%3Dcanvaskit', canvaskit);
     fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
     fetchMock.get('/json/byblame?query=source_type%3Dsvg', svg);
-    fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
 
     // Populate window.history by setting the query string to a random value.
     // We'll then test that we can navigate back to this state by using the
@@ -198,7 +193,6 @@ describe('byblame-page-sk', () => {
     beforeEach(() => {
       fetchMock.get('/json/trstatus', trstatus);
       fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
-      fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
     });
 
     it('renders commit links correctly with repo hosted on googlesource',
@@ -240,7 +234,6 @@ describe('byblame-page-sk', () => {
     it('handles /json/trstatus RPC failure', async () => {
       fetchMock.get('/json/trstatus', 500);
       fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
-      fetchMock.get('glob:/json/gitlog*', fakeGitlogRpc);
 
       // The corpus-selector-sk will fetch /json/trstatus, fail and emit a
       // fetch-error event.
@@ -260,18 +253,6 @@ describe('byblame-page-sk', () => {
     it('handles /json/byblame RPC failure', async () => {
       fetchMock.get('/json/trstatus', trstatus);
       fetchMock.get('glob:/json/byblame*', 500);
-
-      const fetchError = eventPromise('fetch-error');
-      newByblamePageSk();
-      await fetchError;
-
-      expectHasEmptyBlames();
-    });
-
-    it('handles /json/gitlog RPC failure', async () => {
-      fetchMock.get('/json/trstatus', trstatus);
-      fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
-      fetchMock.get('glob:/json/gitlog*', 500);
 
       const fetchError = eventPromise('fetch-error');
       newByblamePageSk();
