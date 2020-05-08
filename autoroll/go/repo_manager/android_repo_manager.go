@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/user"
 	"path"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -376,7 +377,7 @@ third_party {
 }
 `, r.projectMetadataFileConfig.Name, r.projectMetadataFileConfig.Description, r.projectMetadataFileConfig.HomePage, r.projectMetadataFileConfig.GitURL, to.Id, r.projectMetadataFileConfig.LicenseType, d.Year(), d.Month(), d.Day())
 
-		if err := ioutil.WriteFile(r.projectMetadataFileConfig.FilePath, []byte(metadataContents), os.ModePerm); err != nil {
+		if err := ioutil.WriteFile(filepath.Join(r.workdir, r.projectMetadataFileConfig.FilePath), []byte(metadataContents), os.ModePerm); err != nil {
 			return 0, fmt.Errorf("Error when writing to %s: %s", r.projectMetadataFileConfig.FilePath, err)
 		}
 		if _, addGifErr := r.childRepo.Git(ctx, "add", r.projectMetadataFileConfig.FilePath); addGifErr != nil {
