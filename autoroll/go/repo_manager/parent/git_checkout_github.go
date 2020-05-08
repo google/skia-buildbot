@@ -61,7 +61,7 @@ func (c GitCheckoutGithubConfig) Validate() error {
 
 // GitCheckoutUploadGithubRollFunc returns
 func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, forkBranchName string) GitCheckoutUploadRollFunc {
-	return func(ctx context.Context, co *git.Checkout, upstreamBranch, hash string, emails []string, dryRun bool) (int64, error) {
+	return func(ctx context.Context, co *git.Checkout, upstreamBranch, hash string, emails []string, dryRun bool, commitMsg string) (int64, error) {
 		// Make sure the forked repo is at the same hash as the target repo
 		// before creating the pull request.
 		if _, err := co.Git(ctx, "push", "-f", githubForkRemoteName, fmt.Sprintf("origin/%s", upstreamBranch)); err != nil {
