@@ -11,6 +11,14 @@ import {
   trstatus,
 } from './demo_data';
 import { delay } from '../demo_util';
+import { testOnlySetSettings } from '../settings';
+
+testOnlySetSettings({
+  title: 'Skia Public',
+  defaultCorpus: 'gm',
+  baseRepoURL: 'https://skia.googlesource.com/skia.git',
+});
+$$('gold-scaffold-sk')._render(); // pick up title from settings.
 
 // Set up RPC failure simulation.
 const getSimulateRpcFailure = () => sessionStorage.getItem('simulateRpcFailure') === 'true';
@@ -44,6 +52,4 @@ fetchMock.get('/json/trstatus', () => {
 
 // Create the component after we've had a chance to mock the JSON endpoints.
 const page = document.createElement('byblame-page-sk');
-page.setAttribute('base-repo-url', 'https://skia.googlesource.com/skia.git');
-page.setAttribute('default-corpus', 'gm');
 $$('gold-scaffold-sk').appendChild(page);

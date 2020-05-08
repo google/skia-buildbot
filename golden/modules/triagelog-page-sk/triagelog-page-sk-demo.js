@@ -6,8 +6,14 @@ import { toObject } from 'common-sk/modules/query';
 import { fetchMock } from 'fetch-mock';
 import { delay } from '../demo_util';
 import { triageLogs } from './demo_data';
+import { testOnlySetSettings } from '../settings';
 
 const fakeRpcDelayMillis = 300;
+
+testOnlySetSettings({
+  title: 'Skia Public',
+});
+$$('gold-scaffold-sk')._render(); // pick up title from settings.
 
 // The mock /json/triagelog/undo RPC will populate this set.
 const undoneIds = new Set();

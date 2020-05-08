@@ -3,9 +3,16 @@
 <head>
   <title>{{.Title}} Diff Page</title>
   <link rel="shortcut icon" href="/res/img/favicon.ico">
+  <script>
+    window.GoldSettings = {
+      title: "{{.Title}}",
+      defaultCorpus: "{{.DefaultCorpus}}",
+      baseRepoURL: "{{.BaseRepoURL}}",
+    };
+  </script>
 </head>
 <body>
-<gold-scaffold-sk app_title={{.Title}}>
+<gold-scaffold-sk>
   <diff-page-sk></diff-page-sk>
 </gold-scaffold-sk>
 </body>

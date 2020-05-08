@@ -4,10 +4,16 @@ import '../gold-scaffold-sk';
 import { delay } from '../demo_util';
 import { ignoreRules_10, fakeNow } from './test_data';
 import { manyParams } from '../edit-ignore-rule-sk/demo_data';
+import { testOnlySetSettings } from '../settings';
+import { $$ } from 'common-sk/modules/dom';
 
 const fetchMock = require('fetch-mock');
 
 Date.now = () => fakeNow;
+testOnlySetSettings({
+  title: 'Skia Public',
+});
+$$('gold-scaffold-sk')._render(); // pick up title from settings.
 
 fetchMock.get('/json/paramset', delay(manyParams, 100));
 fetchMock.get('/json/ignores?counts=1', delay(ignoreRules_10, 300));
