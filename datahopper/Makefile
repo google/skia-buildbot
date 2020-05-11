@@ -1,12 +1,16 @@
+include ../kube/kube.mk
+
+.PHONY: datahopper
 datahopper:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/datahopper
 
+.PHONY: all
 all: datahopper
 
-testgo:
-	go test ./...
-
+.PHONY: release
 release: datahopper
-	./build_docker_release
+	./build_release
 
-.PHONY: datahopper release testgo
+.PHONY: push
+push: release pushk
+	pushk --message="$(MESSAGE)" --use-temp-checkout datahopper
