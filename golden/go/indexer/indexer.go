@@ -782,7 +782,7 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 			clKey := fmt.Sprintf("%s_%s", crs, cl.SystemID)
 			clIdx, ok := ix.getCLIndex(clKey)
 			if !ok || clIdx.ComputedTS.Before(cl.Updated) {
-				// Compute it from scratch and store
+				// Compute it from scratch and store it to the index.
 				xps, err := ix.CLStore.GetPatchSets(ctx, cl.SystemID)
 				if err != nil {
 					return skerr.Wrap(err)
@@ -800,15 +800,14 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 				if err != nil {
 					return skerr.Wrap(err)
 				}
-				filtered := filterUntriagedResults(xtjr, exps)
-				if !ok {
-					clIdx = &ChangeListIndex{}
-				}
+				untriagedResults, params := indexTryJobResults(xtjr, exps)
+				params.AddParamSet(clIdx.ParamSet)
+				clIdx.ParamSet = params
 				clIdx.LatestPatchSet = psID
-				clIdx.UntriagedResults = filtered
+				clIdx.UntriagedResults = untriagedResults
 			}
 			clIdx.ComputedTS = now
-			ix.changeListIndices.Set(clKey, clIdx, ttlcache.DefaultExpiration)
+			ix.changeListIndices.Set(clKey, &clIdx, ttlcache.DefaultExpiration)
 		}
 		return nil
 	})
@@ -817,26 +816,31 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 	}
 }
 
-// filterUntriagedResults goes through all the TryJobResults and returns a slice with just the
-// untriaged results.
-func filterUntriagedResults(xtjr []tjstore.TryJobResult, exps expectations.Classifier) []tjstore.TryJobResult {
-	var rv []tjstore.TryJobResult
+// indexTryJobResults goes through all the TryJobResults and returns results useful for indexing.
+// Concretely, these results are a slice with just the untriaged results and a ParamSet with the
+// observed params.
+func indexTryJobResults(xtjr []tjstore.TryJobResult, exps expectations.Classifier) ([]tjstore.TryJobResult, paramtools.ParamSet) {
+	var untriagedResults []tjstore.TryJobResult
+	params := paramtools.ParamSet{}
 	for _, tjr := range xtjr {
+		params.AddParams(tjr.GroupParams)
+		params.AddParams(tjr.ResultParams)
+		params.AddParams(tjr.Options)
 		tn := types.TestName(tjr.ResultParams[types.PrimaryKeyField])
 		if exps.Classification(tn, tjr.Digest) == expectations.Untriaged {
-			rv = append(rv, tjr)
+			untriagedResults = append(untriagedResults, tjr)
 		}
 	}
-	return rv
+	return untriagedResults, params
 }
 
 // getCLIndex is a helper that returns the appropriately typed element from changeListIndices
-func (ix *Indexer) getCLIndex(key string) (*ChangeListIndex, bool) {
+func (ix *Indexer) getCLIndex(key string) (ChangeListIndex, bool) {
 	clIdx, ok := ix.changeListIndices.Get(key)
-	if !ok {
-		return nil, false
+	if !ok || clIdx == nil {
+		return ChangeListIndex{}, false
 	}
-	return clIdx.(*ChangeListIndex), true
+	return *clIdx.(*ChangeListIndex), true
 }
 
 // GetIndexForCL implements the IndexSource interface.

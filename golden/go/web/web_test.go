@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/paramtools"
 	"golang.org/x/time/rate"
 
 	"go.skia.org/infra/go/httputils"
@@ -1752,7 +1753,114 @@ func TestGetPerTraceDigestsByTestName_Success(t *testing.T) {
 	})
 
 	wh.GetPerTraceDigestsByTestName(w, r)
-	expectedResponse := `{",name=MyTest,foo=alpha,source_type=MyCorpus,":["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],",name=MyTest,foo=beta,source_type=MyCorpus,":["","cccccccccccccccccccccccccccccccc"]}`
+	const expectedResponse = `{",name=MyTest,foo=alpha,source_type=MyCorpus,":["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],",name=MyTest,foo=beta,source_type=MyCorpus,":["","cccccccccccccccccccccccccccccccc"]}`
+	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
+}
+
+func TestParamsHandler_MasterBranch_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mockIndexSearcher := &mock_indexer.IndexSearcher{}
+	mockIndexSource := &mock_indexer.IndexSource{}
+
+	mockIndexSource.On("GetIndex").Return(mockIndexSearcher)
+
+	cpxTile := tiling.NewComplexTile(&tiling.Tile{
+		ParamSet: paramtools.ParamSet{
+			types.CorpusField:     []string{"first_corpus", "second_corpus"},
+			types.PrimaryKeyField: []string{"alpha_test", "beta_test", "gamma_test"},
+			"os":                  []string{"Android XYZ"},
+		},
+		// Other fields should be ignored.
+	})
+
+	mockIndexSearcher.On("Tile").Return(cpxTile)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer: mockIndexSource,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	wh.ParamsHandler(w, r)
+	const expectedResponse = `{"name":["alpha_test","beta_test","gamma_test"],"os":["Android XYZ"],"source_type":["first_corpus","second_corpus"]}`
+	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
+}
+
+func TestParamsHandler_ChangeListIndex_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mockCLStore := &mock_clstore.Store{}
+	mockIndexSource := &mock_indexer.IndexSource{}
+	defer mockIndexSource.AssertExpectations(t) // want to make sure fallback happened
+
+	const crs = "gerrit"
+	const clID = "1234"
+
+	clIdx := indexer.ChangeListIndex{
+		ParamSet: paramtools.ParamSet{
+			types.CorpusField:     []string{"first_corpus", "second_corpus"},
+			types.PrimaryKeyField: []string{"alpha_test", "beta_test", "gamma_test"},
+			"os":                  []string{"Android XYZ"},
+		},
+	}
+	mockIndexSource.On("GetIndexForCL", crs, clID).Return(&clIdx)
+	mockCLStore.On("System").Return(crs)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer:         mockIndexSource,
+			ChangeListStore: mockCLStore,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/paramset?changelist_id=1234", nil)
+	wh.ParamsHandler(w, r)
+	const expectedResponse = `{"name":["alpha_test","beta_test","gamma_test"],"os":["Android XYZ"],"source_type":["first_corpus","second_corpus"]}`
+	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
+}
+
+func TestParamsHandler_NoChangeListIndex_FallBackToMasterBranch(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mockCLStore := &mock_clstore.Store{}
+	mockIndexSearcher := &mock_indexer.IndexSearcher{}
+	mockIndexSource := &mock_indexer.IndexSource{}
+	defer mockIndexSource.AssertExpectations(t) // want to make sure fallback happened
+
+	const crs = "gerrit"
+	const clID = "1234"
+
+	mockIndexSource.On("GetIndex").Return(mockIndexSearcher)
+	mockIndexSource.On("GetIndexForCL", crs, clID).Return(nil)
+
+	cpxTile := tiling.NewComplexTile(&tiling.Tile{
+		ParamSet: paramtools.ParamSet{
+			types.CorpusField:     []string{"first_corpus", "second_corpus"},
+			types.PrimaryKeyField: []string{"alpha_test", "beta_test", "gamma_test"},
+			"os":                  []string{"Android XYZ"},
+		},
+		// Other fields should be ignored.
+	})
+
+	mockIndexSearcher.On("Tile").Return(cpxTile)
+
+	mockCLStore.On("System").Return(crs)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer:         mockIndexSource,
+			ChangeListStore: mockCLStore,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/json/paramset?changelist_id=1234", nil)
+	wh.ParamsHandler(w, r)
+	const expectedResponse = `{"name":["alpha_test","beta_test","gamma_test"],"os":["Android XYZ"],"source_type":["first_corpus","second_corpus"]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
 }
 

@@ -411,7 +411,11 @@
       },
 
       _loadParamset: function() {
-        sk.get("/json/paramset").then(JSON.parse).then(function (json) {
+        let url = '/json/paramset';
+        if (this._state.issue) {
+          url += '?changelist_id='+this._state.issue;
+        }
+        sk.get(url).then(JSON.parse).then(function (json) {
           this.$.searchControls.setParamSet(json);
           this._paramSet = json;
         }.bind(this)).catch(sk.errorMessage);
