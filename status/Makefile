@@ -9,6 +9,9 @@ CORE_SOURCE_FILES = third_party/bower_components/webcomponentsjs/webcomponents.m
 
 BOWER_DIR=third_party/bower_components
 
+include ../kube/kube.mk
+
+.PHONY: all
 all: clean_webtools status
 
 # Build the web assets in production mode.
@@ -28,13 +31,12 @@ status: web skiaversion
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/status
 
 release: status
-	./build_docker_release
+	./build_release
 
 run_docker: release
 	docker run status
 
-push: release
-	go install ../kube/go/pushk
+push: release pushk
 	pushk --message="$(MESSAGE)" --use-temp-checkout status
 
 # Build debug versions of core.js and elements.html.
