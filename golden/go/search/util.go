@@ -43,7 +43,7 @@ func iterTile(ctx context.Context, q *query.Search, addFn addFn, acceptFn accept
 		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) { return true, nil }
 	}
 	cpxTile := idx.Tile()
-	traceView, err := getTraceViewFn(cpxTile.DataCommits(), q.FCommitBegin, q.FCommitEnd)
+	traceView, err := getTraceViewFn(cpxTile.DataCommits(), q.CommitBeginFilter, q.CommitEndFilter)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -66,7 +66,7 @@ func iterTile(ctx context.Context, q *query.Search, addFn addFn, acceptFn accept
 			if trace.Matches(q.TraceValues) {
 				params := trace.Params()
 				reducedTr := traceView(trace)
-				digests := digestsFromTrace(id, reducedTr, q.Head, digestCountsByTrace)
+				digests := digestsFromTrace(id, reducedTr, q.OnlyIncludeDigestsProducedAtHead, digestCountsByTrace)
 
 				// If there is an acceptFn defined then check whether
 				// we should include this trace.
