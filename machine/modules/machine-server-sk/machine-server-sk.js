@@ -13,6 +13,8 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/error-toast-sk';
 
+const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
+
 const temps = (temperatures) => {
   if (!temperatures) {
     return '';
@@ -75,9 +77,17 @@ const rows = (ele) => ele._machines.map((machine) => html`
 </tr>
 `);
 
+const refreshButtonDisplayValue = (ele) => {
+  if (ele._isRefreshing()) {
+    return 'Pause';
+  }
+  return 'Auto-Refresh';
+};
+
 const template = (ele) => html`
 <header>
   <h1>Machines</h1>
+  <button @click=${() => ele._toggleRefresh()}>${refreshButtonDisplayValue(ele)}</button>
 </header>
 <main>
   <table>
@@ -105,12 +115,16 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._machines = [];
+    this._refresher = 0;
   }
 
   connectedCallback() {
     super.connectedCallback();
     this._render();
     this._update();
+    if (this._isRefreshing()) {
+      this._refreshStep();
+    }
   }
 
   _onError(msg) {
@@ -118,10 +132,14 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
     errorMessage(msg);
   }
 
-  _update() {
-    this.setAttribute('waiting', '');
+  _update(changeCursor = false) {
+    if (changeCursor) {
+      this.setAttribute('waiting', '');
+    }
     this._machines = fetch('/_/machines').then(jsonOrThrow).then((json) => {
-      this.removeAttribute('waiting');
+      if (changeCursor) {
+        this.removeAttribute('waiting');
+      }
       this._machines = json;
       this._render();
     }).catch((msg) => this._onError(msg));
@@ -131,7 +149,7 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
     this.setAttribute('waiting', '');
     this._machines = fetch(`/_/machine/toggle_mode/${id}`).then(() => {
       this.removeAttribute('waiting');
-      this._update();
+      this._update(true);
     }).catch((msg) => this._onError(msg));
   }
 
@@ -139,8 +157,28 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
     this.setAttribute('waiting', '');
     this._machines = fetch(`/_/machine/toggle_update/${id}`).then(() => {
       this.removeAttribute('waiting');
-      this._update();
+      this._update(true);
     }).catch((msg) => this._onError(msg));
+  }
+
+  _refreshStep() {
+    this._update();
+    this._refresher = window.setTimeout(() => this._refreshStep(), 2000);
+  }
+
+  _isRefreshing() {
+    return window.localStorage.getItem(REFRESH_LOCALSTORAGE_KEY) === 'true';
+  }
+
+  _toggleRefresh() {
+    const shouldRefresh = !this._isRefreshing();
+    window.localStorage.setItem(REFRESH_LOCALSTORAGE_KEY, shouldRefresh);
+    if (shouldRefresh) {
+      this._refreshStep();
+    } else {
+      this._update();
+      this._refresher = 0;
+    }
   }
 
   disconnectedCallback() {
