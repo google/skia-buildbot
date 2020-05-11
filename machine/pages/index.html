@@ -7,6 +7,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </head>
   <body>
-    <machine-server-sk></machine-server-sk>
+    <header>
+      <h1>Machines</h1>
+    </header>
+    <main>
+      <table>
+        <tr>
+          <th>Machine</th>
+          <th>Pod</th>
+          <th>Device</th>
+          <th>Mode</th>
+          <th>Quarantined</th>
+          <th>Running Task</th>
+          <th>Battery</th>
+          <th>Temperature</th>
+          <th>Last Updated</th>
+          <th>Dimensions</th>
+          <th>Annotation</th>
+        </tr>
+        {% range .Descriptions %}
+        <tr id="{% .Dimensions.id %}">
+          <td>{% .Dimensions.id %}</td>
+          <td>{% .PodName %}</td>
+          <td>{% .Dimensions.device_type %}</td>
+          <td>
+            <form
+              action="/_/machine/toggle_mode/"
+              method="post"
+              target="_inline"
+              accept-charset="utf-8"
+            >
+              {% template `mode` . %}
+            </form>
+          </td>
+          <td>{% .Dimensions.quarantined %}</td>
+          <td>
+            {% if .RunningSwarmingTask %} &check; {% end %}
+          </td>
+          <td>{% .Battery %}</td>
+          <td>
+            {% range $sensor, $value := .Temperature %}
+            <div>
+              {% $sensor %} = {% $value %}
+            </div>
+            {% end %}
+          </td>
+          <td>{% .LastUpdated %}</td>
+          <td>
+            <details>
+              <summary>Dimensions</summary>
+              <table>
+                {% range $key, $value := .Dimensions %}
+                <tr>
+                  <td>{% $key %}</td>
+                  <td>{% $value %}</td>
+                </tr>
+                {% end %}
+              </table>
+            </details>
+          </td>
+          <td>
+            {% if .Annotation.Message %}
+            <div>{% .Annotation.Message %}</div>
+            <div>{% .Annotation.User %}</div>
+            <div>{% .Annotation.Timestamp %}</div>
+            {% end %}
+          </td>
+        </tr>
+        {% end %}
+      </table>
+    </main>
+    <error-toast-sk></error-toast-sk>
   </body>
 </html>
