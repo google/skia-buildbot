@@ -44,7 +44,7 @@ describe('digest-details-sk', () => {
 
     it('had no trace data sent by the backend', async () => {
       const digestDetailsSk = await testBed.page.$('#no_traces');
-      await takeScreenshot(digestDetailsSk, 'gold', 'digest-details-sk_no-traces');
+      await takeScreenshot(digestDetailsSk, 'gold', 'digest-details-sk_new_test_name');
     });
   });
 });
