@@ -157,6 +157,10 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		ret.Dimensions[k] = values
 	}
 
+	// Once a pod has restarted it will have a new podname so clear the deletion.
+	if ret.ScheduledForDeletion != "" && ret.PodName != ret.ScheduledForDeletion {
+		ret.ScheduledForDeletion = ""
+	}
 	// If the machine was quarantined, but hasn't been quarantined this trip
 	// through Process then take the machine out of quarantine.
 	if previous.Mode == machine.ModeAvailable && len(previous.Dimensions[machine.DimQuarantined]) != 0 && len(dimensions[machine.DimQuarantined]) == 0 {
