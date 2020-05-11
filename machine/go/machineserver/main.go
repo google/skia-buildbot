@@ -115,24 +115,16 @@ func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *baseapp.Local {
 		s.loadTemplates()
 	}
-	if err := s.templates.ExecuteTemplate(w, "index.html", map[string]string{
-		// Look in webpack.config.js for where the nonce templates are injected.
-		"Nonce": secure.CSPNonce(r.Context()),
-	}); err != nil {
-		sklog.Errorf("Failed to expand template: %s", err)
-	}
-}
-
-func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	descriptions, err := s.store.List(r.Context())
 	if err != nil {
-		httputils.ReportError(w, err, "Failed to read from datastore", http.StatusInternalServerError)
-		return
+		httputils.ReportError(w, err, "Failed to retrieve Machines.", http.StatusInternalServerError)
 	}
-
-	if err := json.NewEncoder(w).Encode(descriptions); err != nil {
-		sklog.Errorf("Failed to write response: %s", err)
+	if err := s.templates.ExecuteTemplate(w, "index.html", map[string]interface{}{
+		// Look in webpack.config.js for where the nonce templates are injected.
+		"Descriptions": descriptions,
+		"Nonce":        secure.CSPNonce(r.Context()),
+	}); err != nil {
+		sklog.Errorf("Failed to expand template: %s", err)
 	}
 }
 
@@ -177,7 +169,6 @@ func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request
 // See baseapp.App.
 func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", s.mainHandler).Methods("GET")
-	r.HandleFunc("/_/machines", s.machinesHandler).Methods("GET")
 	r.HandleFunc("/_/machine/toggle_mode/{id:.+}", s.machineToggleModeHandler).Methods("GET")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 }
