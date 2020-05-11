@@ -226,7 +226,7 @@ func (p ParamSet) Size() int {
 // purpose is to match against a set of rules, e.g. ignore rules.
 type ParamMatcher []ParamSet
 
-// MatchAny returns true if the given Paramset matches any of the rules in the matcher.
+// MatchAny returns true if the given ParamSet matches any of the rules in the matcher.
 func (p ParamMatcher) MatchAny(params ParamSet) bool {
 	for _, oneRule := range p {
 		if oneRule.Matches(params) {

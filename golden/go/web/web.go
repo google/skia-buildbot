@@ -1326,11 +1326,23 @@ func (wh *Handlers) ParamsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tile := wh.Indexer.GetIndex().Tile().GetTile(types.IncludeIgnoredTraces)
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(tile.ParamSet); err != nil {
-		sklog.Errorf("Failed to write or encode result: %s", err)
+	if err := r.ParseForm(); err != nil {
+		httputils.ReportError(w, err, "Invalid form headers", http.StatusBadRequest)
+		return
 	}
+	clID := r.Form.Get("changelist_id")
+	if clID != "" {
+		crs := wh.ChangeListStore.System()
+		clIdx := wh.Indexer.GetIndexForCL(crs, clID)
+		if clIdx != nil {
+			sendJSONResponse(w, clIdx.ParamSet)
+			return
+		}
+		// Fallback to master branch
+	}
+
+	tile := wh.Indexer.GetIndex().Tile().GetTile(types.IncludeIgnoredTraces)
+	sendJSONResponse(w, tile.ParamSet)
 }
 
 // CommitsHandler returns the commits from the most recent tile.
