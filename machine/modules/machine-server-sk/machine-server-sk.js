@@ -49,12 +49,20 @@ const annotation = (machine) => {
 `;
 };
 
+const update = (machine) => {
+  if (machine.ScheduledForDeletion) {
+    return 'Waiting for update.';
+  }
+  return 'Update';
+};
+
 const rows = (ele) => ele._machines.map((machine) => html`
 <tr id=${machine.Dimensions.id}>
   <td>${machine.Dimensions.id}</td>
   <td>${machine.PodName}</td>
   <td>${machine.Dimensions.device_type}</td>
-  <td><button @click=${() => ele._toggleMode(machine.Dimensions.id)}>${machine.Mode}</button></td>
+  <td><button class=mode @click=${() => ele._toggleMode(machine.Dimensions.id)}>${machine.Mode}</button></td>
+  <td><button class=update @click=${() => ele._toggleUpdate(machine.Dimensions.id)}>${update(machine)}</button></td>
   <td>${machine.Dimensions.quarantined}</td>
   <td>${isRunning(machine)}</td>
   <td>${machine.Battery}</td>
@@ -78,6 +86,7 @@ const template = (ele) => html`
     <th>Pod</th>
     <th>Device</th>
     <th>Mode</th>
+    <th>Update</th>
     <th>Quarantined</th>
     <th>Running Task</th>
     <th>Battery</th>
@@ -121,6 +130,14 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
   _toggleMode(id) {
     this.setAttribute('waiting', '');
     this._machines = fetch(`/_/machine/toggle_mode/${id}`).then(() => {
+      this.removeAttribute('waiting');
+      this._update();
+    }).catch((msg) => this._onError(msg));
+  }
+
+  _toggleUpdate(id) {
+    this.setAttribute('waiting', '');
+    this._machines = fetch(`/_/machine/toggle_update/${id}`).then(() => {
       this.removeAttribute('waiting');
       this._update();
     }).catch((msg) => this._onError(msg));

@@ -11,6 +11,9 @@ test:
 testjs:
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
+debugjs:
+	npx karma start --no-single-run
+
 testci:
 	rm -rf node_modules
 	npm install

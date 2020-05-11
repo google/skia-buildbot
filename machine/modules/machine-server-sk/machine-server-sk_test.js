@@ -23,6 +23,11 @@ describe('machine-server-sk', () => {
           android_devices: ['1'],
           device_os: ['H', 'HUAWEIELE-L29'],
         },
+        Annotation: {
+          User: '',
+          Message: '',
+          LastUpdated: '2020-04-21T17:33:09.638275Z',
+        },
         LastUpdated: '2020-04-21T17:33:09.638275Z',
         Temperature: { dumpsys_battery: 26 },
       }]);
@@ -48,6 +53,11 @@ describe('machine-server-sk', () => {
           android_devices: ['1'],
           device_os: ['H', 'HUAWEIELE-L29'],
         },
+        Annotation: {
+          User: '',
+          Message: '',
+          LastUpdated: '2020-04-21T17:33:09.638275Z',
+        },
         LastUpdated: '2020-04-21T17:33:09.638275Z',
         Temperature: { dumpsys_battery: 26 },
       }]);
@@ -71,18 +81,85 @@ describe('machine-server-sk', () => {
             android_devices: ['1'],
             device_os: ['H', 'HUAWEIELE-L29'],
           },
+          Annotation: {
+            User: '',
+            Message: '',
+            LastUpdated: '2020-04-21T17:33:09.638275Z',
+          },
           LastUpdated: '2020-04-21T17:33:09.638275Z',
           Temperature: { dumpsys_battery: 26 },
         }]);
 
       // Click the button.
-      s.querySelector('button').click();
+      s.querySelector('button.mode').click();
 
       // Wait for all requests to finish.
       await fetchMock.flush(true);
 
       // Confirm the button text has been updated.
-      assert.equal('maintenance', s.querySelector('button').textContent);
+      assert.equal('maintenance', s.querySelector('button.mode').textContent);
+    }));
+  });
+
+  describe('toggles update mode on click', () => {
+    fetchMock.get('/_/machines', [
+      {
+        Mode: 'available',
+        Battery: 100,
+        PodName: 'rpi-swarming-123456-987',
+        ScheduledForDeletion: '',
+        Dimensions: {
+          id: ['skia-rpi2-rack4-shelf1-002'],
+          android_devices: ['1'],
+          device_os: ['H', 'HUAWEIELE-L29'],
+        },
+        Annotation: {
+          User: '',
+          Message: '',
+          LastUpdated: '2020-04-21T17:33:09.638275Z',
+        },
+        LastUpdated: '2020-04-21T17:33:09.638275Z',
+        Temperature: { dumpsys_battery: 26 },
+      }]);
+
+    it('updates ScheduledForDele when you click on the update button', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
+      container.innerHTML = '<machine-server-sk></machine-server-sk>';
+      const s = container.firstElementChild;
+
+      // Wait for the initial fetch to finish.
+      await fetchMock.flush(true);
+
+      // Now set up fetchMock for the requests that happen when the button is clicked.
+      fetchMock.reset();
+      fetchMock.get('/_/machine/toggle_update/skia-rpi2-rack4-shelf1-002', 200);
+      fetchMock.get('/_/machines', [
+        {
+          Mode: 'maintenance',
+          Battery: 100,
+          PodName: 'rpi-swarming-123456-987',
+          ScheduledForDeletion: 'rpi-swarming-123456-987',
+          Dimensions: {
+            id: ['skia-rpi2-rack4-shelf1-002'],
+            android_devices: ['1'],
+            device_os: ['H', 'HUAWEIELE-L29'],
+          },
+          Annotation: {
+            User: '',
+            Message: '',
+            LastUpdated: '2020-04-21T17:33:09.638275Z',
+          },
+          LastUpdated: '2020-04-21T17:33:09.638275Z',
+          Temperature: { dumpsys_battery: 26 },
+        }]);
+
+      // Click the button.
+      s.querySelector('button.update').click();
+
+      // Wait for all requests to finish.
+      await fetchMock.flush(true);
+
+      // Confirm the button text has been updated.
+      assert.equal('Waiting for update.', s.querySelector('button.update').textContent);
     }));
   });
 });
