@@ -74,10 +74,10 @@ func BenchmarkExtractChangeListDigests(b *testing.B) {
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		err := s.extractChangeListDigests(context.Background(), &query.Search{
-			PatchSets:    []int64{int64(psOrder)},
-			TraceValues:  map[string][]string{},
-			Unt:          true,
-			ChangeListID: clID,
+			PatchSets:               []int64{int64(psOrder)},
+			TraceValues:             map[string][]string{},
+			IncludeUntriagedDigests: true,
+			ChangeListID:            clID,
 		}, mis, expectations.EmptyClassifier(), fn)
 		require.NoError(b, err)
 	}

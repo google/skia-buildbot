@@ -45,7 +45,7 @@ import (
 //     or otherwise no results.
 //   - Use ignore matcher
 //   - When a CL specifies a PS
-//   - IncludeMaster=true
+//   - IncludeDigestsProducedOnMaster=true
 //   - UnavailableDigests is not empty
 //   - DiffSever/RefDiffer error
 
@@ -65,15 +65,15 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
 	q := &query.Search{
-		ChangeListID: "",
-		Unt:          true,
-		Head:         true,
+		ChangeListID:                     "",
+		IncludeUntriagedDigests:          true,
+		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:   diff.CombinedMetric,
-		FRGBAMin: 0,
-		FRGBAMax: 255,
-		FDiffMax: -1,
-		Sort:     query.SortAscending,
+		Metric:        diff.CombinedMetric,
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+		DiffMaxFilter: -1,
+		Sort:          query.SortAscending,
 	}
 
 	resp, err := s.Search(context.Background(), q)
@@ -214,17 +214,17 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
 
 	q := &query.Search{
-		ChangeListID: "",
-		Unt:          true,
+		ChangeListID:            "",
+		IncludeUntriagedDigests: true,
 
 		Offset: 0,
 		Limit:  1,
 
-		Metric:   diff.CombinedMetric,
-		FRGBAMin: 0,
-		FRGBAMax: 255,
-		FDiffMax: -1,
-		Sort:     query.SortAscending,
+		Metric:        diff.CombinedMetric,
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+		DiffMaxFilter: -1,
+		Sort:          query.SortAscending,
 	}
 
 	resp, err := s.Search(context.Background(), q)
@@ -303,14 +303,14 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	}
 
 	test("default query, but in reverse", &query.Search{
-		Unt:  true,
-		Head: true,
+		IncludeUntriagedDigests:          true,
+		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:   diff.CombinedMetric,
-		FRGBAMin: 0,
-		FRGBAMax: 255,
-		FDiffMax: -1,
-		Sort:     query.SortDescending,
+		Metric:        diff.CombinedMetric,
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+		DiffMaxFilter: -1,
+		Sort:          query.SortDescending,
 	}, []spotCheck{
 		{
 			test:            data.BetaTest,
@@ -329,14 +329,14 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	})
 
 	test("the closest RGBA diff should be at least 50 units away", &query.Search{
-		Unt:  true,
-		Head: true,
+		IncludeUntriagedDigests:          true,
+		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:   diff.CombinedMetric,
-		FRGBAMin: 50,
-		FRGBAMax: 255,
-		FDiffMax: -1,
-		Sort:     query.SortDescending,
+		Metric:        diff.CombinedMetric,
+		RGBAMinFilter: 50,
+		RGBAMaxFilter: 255,
+		DiffMaxFilter: -1,
+		Sort:          query.SortDescending,
 	}, []spotCheck{
 		{
 			test:            data.BetaTest,
@@ -349,14 +349,14 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 
 	// note: this matches only the makeSmallDiffMetric
 	test("the closest RGBA diff should be no more than 50 units away", &query.Search{
-		Unt:  true,
-		Head: true,
+		IncludeUntriagedDigests:          true,
+		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:   diff.CombinedMetric,
-		FRGBAMin: 0,
-		FRGBAMax: 50,
-		FDiffMax: -1,
-		Sort:     query.SortDescending,
+		Metric:        diff.CombinedMetric,
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 50,
+		DiffMaxFilter: -1,
+		Sort:          query.SortDescending,
 	}, []spotCheck{
 		{
 			test:            data.AlphaTest,
@@ -368,14 +368,14 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	})
 
 	test("combined diff metric less than 1", &query.Search{
-		Unt:  true,
-		Head: true,
+		IncludeUntriagedDigests:          true,
+		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:   diff.CombinedMetric,
-		FRGBAMin: 0,
-		FRGBAMax: 255,
-		FDiffMax: 1,
-		Sort:     query.SortDescending,
+		Metric:        diff.CombinedMetric,
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+		DiffMaxFilter: 1,
+		Sort:          query.SortDescending,
 	}, []spotCheck{
 		{
 			test:            data.AlphaTest,
@@ -387,14 +387,14 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	})
 
 	test("percent diff metric less than 1", &query.Search{
-		Unt:  true,
-		Head: true,
+		IncludeUntriagedDigests:          true,
+		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:   diff.PercentMetric,
-		FRGBAMin: 0,
-		FRGBAMax: 255,
-		FDiffMax: 1,
-		Sort:     query.SortDescending,
+		Metric:        diff.PercentMetric,
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+		DiffMaxFilter: 1,
+		Sort:          query.SortDescending,
 	}, []spotCheck{
 		{
 			test:            data.AlphaTest,
@@ -406,14 +406,14 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	})
 
 	test("Fewer than 10 different pixels", &query.Search{
-		Unt:  true,
-		Head: true,
+		IncludeUntriagedDigests:          true,
+		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:   diff.PixelMetric,
-		FRGBAMin: 0,
-		FRGBAMax: 255,
-		FDiffMax: 10,
-		Sort:     query.SortDescending,
+		Metric:        diff.PixelMetric,
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+		DiffMaxFilter: 10,
+		Sort:          query.SortDescending,
 	}, []spotCheck{
 		{
 			test:            data.AlphaTest,
@@ -425,26 +425,26 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	})
 
 	test("Nothing has fewer than 10 different pixels and min RGBA diff >50", &query.Search{
-		Unt:  true,
-		Head: true,
+		IncludeUntriagedDigests:          true,
+		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:   diff.PixelMetric,
-		FRGBAMin: 50,
-		FRGBAMax: 255,
-		FDiffMax: 10,
-		Sort:     query.SortDescending,
+		Metric:        diff.PixelMetric,
+		RGBAMinFilter: 50,
+		RGBAMaxFilter: 255,
+		DiffMaxFilter: 10,
+		Sort:          query.SortDescending,
 	}, nil)
 
 	test("default query, only those with a reference diff (all of them)", &query.Search{
-		Unt:  true,
-		Head: true,
-		FRef: true,
+		IncludeUntriagedDigests:          true,
+		OnlyIncludeDigestsProducedAtHead: true,
+		MustIncludeReferenceFilter:       true,
 
-		Metric:   diff.CombinedMetric,
-		FRGBAMin: 0,
-		FRGBAMax: 255,
-		FDiffMax: -1,
-		Sort:     query.SortAscending,
+		Metric:        diff.CombinedMetric,
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+		DiffMaxFilter: -1,
+		Sort:          query.SortAscending,
 	}, []spotCheck{
 		{
 			test:            data.AlphaTest,
@@ -463,15 +463,15 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	})
 
 	test("starting at the second commit, we only see alpha's untriaged commit at head", &query.Search{
-		Unt:          true,
-		Head:         true,
-		FCommitBegin: data.MakeTestCommits()[1].Hash,
+		IncludeUntriagedDigests:          true,
+		OnlyIncludeDigestsProducedAtHead: true,
+		CommitBeginFilter:                data.MakeTestCommits()[1].Hash,
 
-		Metric:   diff.CombinedMetric,
-		FRGBAMin: 0,
-		FRGBAMax: 255,
-		FDiffMax: -1,
-		Sort:     query.SortAscending,
+		Metric:        diff.CombinedMetric,
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+		DiffMaxFilter: -1,
+		Sort:          query.SortAscending,
 	}, []spotCheck{
 		{
 			test:            data.AlphaTest,
@@ -483,15 +483,15 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	})
 
 	test("starting at the second commit, we see both if we ignore the head restriction", &query.Search{
-		Unt:          true,
-		Head:         false,
-		FCommitBegin: data.MakeTestCommits()[1].Hash,
+		IncludeUntriagedDigests:          true,
+		OnlyIncludeDigestsProducedAtHead: false,
+		CommitBeginFilter:                data.MakeTestCommits()[1].Hash,
 
-		Metric:   diff.CombinedMetric,
-		FRGBAMin: 0,
-		FRGBAMax: 255,
-		FDiffMax: -1,
-		Sort:     query.SortAscending,
+		Metric:        diff.CombinedMetric,
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+		DiffMaxFilter: -1,
+		Sort:          query.SortAscending,
 	}, []spotCheck{
 		{
 			test:            data.AlphaTest,
@@ -510,15 +510,15 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	})
 
 	test("stopping at the second commit, we only see beta's untriaged", &query.Search{
-		Unt:        true,
-		Head:       true,
-		FCommitEnd: data.MakeTestCommits()[1].Hash,
+		IncludeUntriagedDigests:          true,
+		OnlyIncludeDigestsProducedAtHead: true,
+		CommitEndFilter:                  data.MakeTestCommits()[1].Hash,
 
-		Metric:   diff.CombinedMetric,
-		FRGBAMin: 0,
-		FRGBAMax: 255,
-		FDiffMax: -1,
-		Sort:     query.SortAscending,
+		Metric:        diff.CombinedMetric,
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+		DiffMaxFilter: -1,
+		Sort:          query.SortAscending,
 	}, []spotCheck{
 		{
 			test:            data.BetaTest,
@@ -530,17 +530,17 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	})
 
 	test("query matches nothing", &query.Search{
-		Unt:  true,
-		Head: true,
+		IncludeUntriagedDigests:          true,
+		OnlyIncludeDigestsProducedAtHead: true,
 		TraceValues: map[string][]string{
 			"blubber": {"nothing"},
 		},
 
-		Metric:   diff.CombinedMetric,
-		FRGBAMin: 0,
-		FRGBAMax: 255,
-		FDiffMax: -1,
-		Sort:     query.SortDescending,
+		Metric:        diff.CombinedMetric,
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+		DiffMaxFilter: -1,
+		Sort:          query.SortDescending,
 	}, []spotCheck{})
 }
 
@@ -606,16 +606,16 @@ func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
 
 	q := &query.Search{
 		// Set all to true so all 6 traces show up in the final results.
-		Unt:  true,
-		Pos:  true,
-		Neg:  true,
-		Head: true,
+		IncludeUntriagedDigests:          true,
+		IncludePositiveDigests:           true,
+		IncludeNegativeDigests:           true,
+		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:   diff.CombinedMetric,
-		FRGBAMin: 0,
-		FRGBAMax: 255,
-		FDiffMax: -1,
-		Sort:     query.SortAscending,
+		Metric:        diff.CombinedMetric,
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+		DiffMaxFilter: -1,
+		Sort:          query.SortAscending,
 	}
 
 	resp, err := s.Search(context.Background(), q)
@@ -762,17 +762,17 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 	s := New(mds, mes, nil, makeThreeDevicesIndexer(), mcls, mtjs, nil, everythingPublic)
 
 	q := &query.Search{
-		ChangeListID:  clID,
-		IncludeMaster: false,
+		ChangeListID:                   clID,
+		IncludeDigestsProducedOnMaster: false,
 
-		Unt:  true,
-		Head: true,
+		IncludeUntriagedDigests:          true,
+		OnlyIncludeDigestsProducedAtHead: true,
 
-		Metric:   diff.CombinedMetric,
-		FRGBAMin: 0,
-		FRGBAMax: 255,
-		FDiffMax: -1,
-		Sort:     query.SortAscending,
+		Metric:        diff.CombinedMetric,
+		RGBAMinFilter: 0,
+		RGBAMaxFilter: 255,
+		DiffMaxFilter: -1,
+		Sort:          query.SortAscending,
 	}
 
 	resp, err := s.Search(context.Background(), q)
@@ -904,10 +904,10 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 	}
 
 	q := &query.Search{
-		ChangeListID:  clID,
-		IncludeMaster: false,
+		ChangeListID:                   clID,
+		IncludeDigestsProducedOnMaster: false,
 
-		Unt: true,
+		IncludeUntriagedDigests: true,
 	}
 
 	alphaSeenCount := int32(0)

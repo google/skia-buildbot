@@ -1104,7 +1104,7 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	idx := wh.Indexer.GetIndex()
 	corpora, hasSourceType := q.TraceValues[types.CorpusField]
 	sumSlice := []*summary.TriageStatus{}
-	if !q.IncludeIgnores && q.Head && len(q.TraceValues) == 1 && hasSourceType {
+	if !q.IncludeIgnoredTraces && q.OnlyIncludeDigestsProducedAtHead && len(q.TraceValues) == 1 && hasSourceType {
 		sumMap := idx.GetSummaries(types.ExcludeIgnoredTraces)
 		for _, sum := range sumMap {
 			if util.In(sum.Corpus, corpora) && includeSummary(sum, &q) {
@@ -1117,7 +1117,7 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		sklog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
-		statuses, err := idx.SummarizeByGrouping(r.Context(), corpora[0], q.TraceValues, q.IgnoreState(), q.Head)
+		statuses, err := idx.SummarizeByGrouping(r.Context(), corpora[0], q.TraceValues, q.IgnoreState(), q.OnlyIncludeDigestsProducedAtHead)
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to calculate summaries.", http.StatusInternalServerError)
 			return
@@ -1139,9 +1139,9 @@ func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
 
 // includeSummary returns true if the given summary matches the query flags.
 func includeSummary(s *summary.TriageStatus, q *query.Search) bool {
-	return s != nil && ((s.Pos > 0 && q.Pos) ||
-		(s.Neg > 0 && q.Neg) ||
-		(s.Untriaged > 0 && q.Unt))
+	return s != nil && ((s.Pos > 0 && q.IncludePositiveDigests) ||
+		(s.Neg > 0 && q.IncludeNegativeDigests) ||
+		(s.Untriaged > 0 && q.IncludeUntriagedDigests))
 }
 
 type SummarySlice []*summary.TriageStatus

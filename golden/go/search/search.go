@@ -148,7 +148,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	if getRefDiffs {
 		// Diff stage: Compare all digests found in the previous stages and find
 		// reference points (positive, negative etc.) for each digest.
-		if err := s.getReferenceDiffs(ctx, ret, q.Metric, q.Match, q.RTraceValues, q.IgnoreState(), exp, idx); err != nil {
+		if err := s.getReferenceDiffs(ctx, ret, q.Metric, q.Match, q.RightTraceValues, q.IgnoreState(), exp, idx); err != nil {
 			return nil, skerr.Wrapf(err, "fetching reference diffs for %#v", q)
 		}
 
@@ -340,7 +340,7 @@ func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx i
 
 	// Adjust the add function to exclude digests already in the master branch
 	addFn := ret.AddTestParams
-	if !q.IncludeMaster {
+	if !q.IncludeDigestsProducedOnMaster {
 		talliesByTest := idx.DigestCountsByTest(q.IgnoreState())
 		addFn = func(test types.TestName, digest types.Digest, params paramtools.Params) {
 			// Include the digest if either the test or the digest is not in the master tile.
@@ -410,7 +410,7 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 
 	var xtr []tjstore.TryJobResult
 	wasCached := false
-	if q.Unt && !q.Pos && !q.Neg {
+	if q.IncludeUntriagedDigests && !q.IncludePositiveDigests && !q.IncludeNegativeDigests {
 		// If the search is just for untriaged digests, we can use the CL index for this.
 		clIdx := s.indexSource.GetIndexForCL(id.CRS, id.CL)
 		if clIdx != nil && clIdx.LatestPatchSet.Equal(id) {
@@ -453,7 +453,7 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 			p.Add(tr.Options)
 			p.Add(tr.ResultParams)
 			// Filter the ignored results
-			if !q.IncludeIgnores {
+			if !q.IncludeIgnoredTraces {
 				// Because ignores can happen on a mix of params from Result, Group, and Options,
 				// we have to invoke the matcher the whole set of params.
 				if ignoreMatcher.MatchAnyParams(p) {
@@ -557,7 +557,7 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 // that match the given query creating the initial search result.
 func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, exp expectations.Classifier, idx indexer.IndexSearcher) (srInterMap, error) {
 	var acceptFn acceptFn = nil
-	if q.FGroupTest == GROUP_TEST_MAX_COUNT {
+	if q.GroupTestFilter == GROUP_TEST_MAX_COUNT {
 		maxDigestsByTest := idx.MaxDigestsByTest(q.IgnoreState())
 		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) {
 			testName := types.TestName(params[types.PrimaryKeyField])
@@ -639,8 +639,8 @@ func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*fro
 // afterDiffResultFilter filters the results based on the diff results in 'digestInfo'.
 func (s *SearchImpl) afterDiffResultFilter(ctx context.Context, digestInfo []*frontend.SRDigest, q *query.Search) []*frontend.SRDigest {
 	newDigestInfo := make([]*frontend.SRDigest, 0, len(digestInfo))
-	filterRGBADiff := (q.FRGBAMin > 0) || (q.FRGBAMax < 255)
-	filterDiffMax := q.FDiffMax >= 0
+	filterRGBADiff := (q.RGBAMinFilter > 0) || (q.RGBAMaxFilter < 255)
+	filterDiffMax := q.DiffMaxFilter >= 0
 	for _, digest := range digestInfo {
 		ref, ok := digest.RefDiffs[digest.ClosestRef]
 
@@ -652,18 +652,18 @@ func (s *SearchImpl) afterDiffResultFilter(ctx context.Context, digestInfo []*fr
 			}
 
 			rgbaMaxDiff := int32(util.MaxInt(ref.MaxRGBADiffs[:]...))
-			if (rgbaMaxDiff < q.FRGBAMin) || (rgbaMaxDiff > q.FRGBAMax) {
+			if (rgbaMaxDiff < q.RGBAMinFilter) || (rgbaMaxDiff > q.RGBAMaxFilter) {
 				continue
 			}
 		}
 
 		// Filter all digests where the diff is below the given threshold.
-		if filterDiffMax && (!ok || (ref.Diffs[q.Metric] > q.FDiffMax)) {
+		if filterDiffMax && (!ok || (ref.Diffs[q.Metric] > q.DiffMaxFilter)) {
 			continue
 		}
 
 		// If selected only consider digests that have a reference to compare to.
-		if q.FRef && !ok {
+		if q.MustIncludeReferenceFilter && !ok {
 			continue
 		}
 
