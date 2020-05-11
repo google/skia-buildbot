@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8dcd7ed8_ffde589f",
+        "filename": "sk8s/images/podwatcher/Dockerfile",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-11T19:08:16Z",
+      "side": 1,
+      "message": "Is bash required or is this just to make debugging a little nicer than /bin/sh ?",
+      "range": {
+        "startLine": 5,
+        "startChar": 18,
+        "endLine": 5,
+        "endChar": 41
+      },
+      "revId": "6a832d2fd9db9f3080109f66dc9bba4218c450be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
