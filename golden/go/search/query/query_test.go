@@ -51,7 +51,6 @@ func TestParseQuery(t *testing.T) {
 		Offset:        0,
 		Limit:         50,
 		NoDiff:        false,
-		NewCLStore:    false,
 	}, q)
 }
 

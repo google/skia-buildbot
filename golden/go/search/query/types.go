@@ -52,10 +52,6 @@ type Search struct {
 
 	// Do not include diffs in search.
 	NoDiff bool `json:"nodiff"`
-
-	// Use the new (Aug 2019) clstore, instead of the old one
-	// skbug.com/9340
-	NewCLStore bool `json:"new_clstore"`
 }
 
 // IgnoreState returns the types.IgnoreState that this

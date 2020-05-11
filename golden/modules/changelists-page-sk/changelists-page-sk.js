@@ -39,7 +39,7 @@ const _changelist = (cl) => html`
     ${_statusIcon(cl)}
   </td>
   <td>
-    <a href="/search?issue=${cl.id}&new_clstore=true"
+    <a href="/search?issue=${cl.id}"
        target="_blank" rel="noopener">Triage</a>
   </td>
   <td class=owner>${cl.owner}</td>
