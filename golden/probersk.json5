@@ -29,12 +29,12 @@
    },
    "gold_baselines": {
      "urls": [
-       "https://chrome-gold.skia.org/json/expectations/commit/any",
-       "https://chrome-gpu-gold.skia.org/json/expectations/commit/any",
-       "https://flutter-engine-gold.skia.org/json/expectations/commit/any",
-       "https://flutter-gold.skia.org/json/expectations/commit/any",
-       "https://fuchsia-public-gold.skia.org/json/expectations/commit/any",
-       "https://skia-infra-gold.skia.org/json/expectations/commit/any",
+       "https://chrome-gold.skia.org/json/expectations",
+       "https://chrome-gpu-gold.skia.org/json/expectations",
+       "https://flutter-engine-gold.skia.org/json/expectations",
+       "https://flutter-gold.skia.org/json/expectations",
+       "https://fuchsia-public-gold.skia.org/json/expectations",
+       "https://skia-infra-gold.skia.org/json/expectations",
      ],
      "method": "GET",
      "expected": [200],
