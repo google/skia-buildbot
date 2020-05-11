@@ -268,32 +268,60 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 	}, nil)
 	mcs.On("System").Return(crs)
 
+	androidGroup := paramtools.Params{
+		"os":    "Android",
+		"model": "crosshatch",
+	}
+	iosGroup := paramtools.Params{
+		"os":    "iOS",
+		"model": "iphone3",
+	}
+	firstOptionalGroup := paramtools.Params{
+		"color_gamut": "wide",
+	}
+	secondOptionalGroup := paramtools.Params{
+		"color_gamut": "narrow",
+		"day_of_week": "wednesday",
+	}
+
 	mts.On("GetResults", testutils.AnyContext, firstCombinedID).Return([]tjstore.TryJobResult{
 		{
-			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			GroupParams:  androidGroup,
+			Options:      firstOptionalGroup,
 			Digest:       data.AlphaPositiveDigest,
 			// Other fields ignored
 		},
 		{
-			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			GroupParams:  iosGroup,
+			Options:      firstOptionalGroup,
 			Digest:       data.AlphaNegativeDigest,
 		},
 		{
-			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			GroupParams:  androidGroup,
+			Options:      secondOptionalGroup,
 			Digest:       data.AlphaUntriagedDigest,
 		},
 	}, nil)
 	mts.On("GetResults", testutils.AnyContext, secondCombinedID).Return([]tjstore.TryJobResult{
 		{
-			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			GroupParams:  androidGroup,
+			Options:      firstOptionalGroup,
 			Digest:       data.AlphaPositiveDigest,
 		},
 		{
-			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			GroupParams:  iosGroup,
+			Options:      firstOptionalGroup,
 			Digest:       data.AlphaNegativeDigest, // Note, for this CL, this digest has not yet been triaged.
 		},
 		{
-			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			GroupParams:  androidGroup,
+			Options:      firstOptionalGroup,
 			Digest:       data.AlphaUntriagedDigest,
 		},
 	}, nil)
@@ -314,6 +342,15 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 	assert.Equal(t, firstCombinedID, clIdx.LatestPatchSet)
 	assert.Len(t, clIdx.UntriagedResults, 1)
 	assert.Equal(t, data.AlphaUntriagedDigest, clIdx.UntriagedResults[0].Digest)
+	require.NotNil(t, clIdx.ParamSet)
+	clIdx.ParamSet.Normalize()
+	assert.Equal(t, paramtools.ParamSet{
+		"color_gamut": []string{"narrow", "wide"},
+		"day_of_week": []string{"wednesday"},
+		"model":       []string{"crosshatch", "iphone3"},
+		"name":        []string{"test_alpha"},
+		"os":          []string{"Android", "iOS"},
+	}, clIdx.ParamSet)
 
 	clIdx = ixr.GetIndexForCL(crs, secondCLID)
 	assert.NotNil(t, clIdx)
@@ -322,6 +359,15 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 	// Reminder, AlphaNegativeDigest was not triaged in the CL expectations for secondCLID
 	assert.Equal(t, data.AlphaNegativeDigest, clIdx.UntriagedResults[0].Digest)
 	assert.Equal(t, data.AlphaUntriagedDigest, clIdx.UntriagedResults[1].Digest)
+	require.NotNil(t, clIdx.ParamSet)
+	clIdx.ParamSet.Normalize()
+	// secondCLID does not have the secondOptionalGroup, so it lacks a few key/values
+	assert.Equal(t, paramtools.ParamSet{
+		"color_gamut": []string{"wide"},
+		"model":       []string{"crosshatch", "iphone3"},
+		"name":        []string{"test_alpha"},
+		"os":          []string{"Android", "iOS"},
+	}, clIdx.ParamSet)
 }
 
 func TestIndexer_CalcChangeListIndices_HasPreviousIndex_Success(t *testing.T) {
@@ -364,18 +410,26 @@ func TestIndexer_CalcChangeListIndices_HasPreviousIndex_Success(t *testing.T) {
 	}, nil)
 	mcs.On("System").Return(crs)
 
+	androidGroup := paramtools.Params{
+		"os":    "Android",
+		"model": "crosshatch",
+	}
+
 	mts.On("GetResults", testutils.AnyContext, secondPatchSetCombinedID).Return([]tjstore.TryJobResult{
 		{
-			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			GroupParams:  androidGroup,
 			Digest:       data.AlphaPositiveDigest,
 			// Other fields ignored
 		},
 		{
-			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			GroupParams:  androidGroup,
 			Digest:       data.AlphaNegativeDigest,
 		},
 		{
-			ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			GroupParams:  androidGroup,
 			Digest:       data.AlphaUntriagedDigest,
 		},
 	}, nil)
@@ -397,18 +451,25 @@ func TestIndexer_CalcChangeListIndices_HasPreviousIndex_Success(t *testing.T) {
 		LatestPatchSet: firstPatchSetCombinedID,
 		UntriagedResults: []tjstore.TryJobResult{
 			{
-				ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+				ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
 				Digest:       data.AlphaPositiveDigest,
 				// Other fields ignored
 			},
 			{
-				ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+				ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
 				Digest:       data.AlphaNegativeDigest,
 			},
 			{
-				ResultParams: map[string]string{types.PrimaryKeyField: string(data.AlphaTest)},
+				ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
 				Digest:       data.AlphaUntriagedDigest,
 			},
+		},
+		ParamSet: paramtools.ParamSet{
+			// This ParamSet is purposely incomplete (i.e. no data.AlphaTest) to make sure new data is
+			// merged in correctly.
+			types.PrimaryKeyField: []string{"this_test_was_here_before"},
+			"os":                  []string{"Android", "iOS"},
+			"model":               []string{"bluefish", "redfish"},
 		},
 		ComputedTS: longAgo,
 	}
@@ -422,6 +483,13 @@ func TestIndexer_CalcChangeListIndices_HasPreviousIndex_Success(t *testing.T) {
 	assert.True(t, clIdx.ComputedTS.After(longAgo)) // should be updated
 	assert.Len(t, clIdx.UntriagedResults, 1)
 	assert.Equal(t, data.AlphaUntriagedDigest, clIdx.UntriagedResults[0].Digest)
+	require.NotNil(t, clIdx.ParamSet)
+	clIdx.ParamSet.Normalize()
+	assert.Equal(t, paramtools.ParamSet{
+		"model": []string{"bluefish", "crosshatch", "redfish"},
+		"name":  []string{"test_alpha", "this_test_was_here_before"},
+		"os":    []string{"Android", "iOS"},
+	}, clIdx.ParamSet)
 }
 
 // TestPreSlicedTracesCreatedCorrectly makes sure that we pre-slice the data based on IgnoreState,
