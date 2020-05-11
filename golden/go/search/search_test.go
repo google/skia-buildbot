@@ -763,7 +763,6 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 
 	q := &query.Search{
 		ChangeListID:  clID,
-		NewCLStore:    true,
 		IncludeMaster: false,
 
 		Unt:  true,
@@ -906,7 +905,6 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 
 	q := &query.Search{
 		ChangeListID:  clID,
-		NewCLStore:    true,
 		IncludeMaster: false,
 
 		Unt: true,
