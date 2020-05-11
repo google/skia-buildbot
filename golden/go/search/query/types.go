@@ -17,34 +17,38 @@ type Search struct {
 	BlameGroupID string `json:"blame"`
 
 	// Image classification
-	Pos            bool `json:"pos"`
-	Neg            bool `json:"neg"`
-	Head           bool `json:"head"`
-	Unt            bool `json:"unt"`
-	IncludeIgnores bool `json:"include"`
+	IncludePositiveDigests           bool `json:"pos"`
+	IncludeNegativeDigests           bool `json:"neg"`
+	IncludeUntriagedDigests          bool `json:"unt"`
+	OnlyIncludeDigestsProducedAtHead bool `json:"head"`
+	IncludeIgnoredTraces             bool `json:"include"`
 
 	// URL encoded query string
 	QueryStr    string              `json:"query"`
 	TraceValues paramtools.ParamSet `json:"-"`
 
 	// URL encoded query string to select the right hand side of comparisons.
-	RQueryStr    string              `json:"rquery"`
-	RTraceValues paramtools.ParamSet `json:"-"`
+	RightQueryStr    string              `json:"rquery"`
+	RightTraceValues paramtools.ParamSet `json:"-"`
 
-	// Trybot support.
-	ChangeListID  string  `json:"issue"`
-	PatchSetsStr  string  `json:"patchsets"` // Comma-separated list of patchsets.
-	PatchSets     []int64 `json:"-"`
-	IncludeMaster bool    `json:"master"` // Include digests also contained in master when searching code review issues.
+	// TryJob support.
+	ChangeListID string `json:"issue"`
+	// TODO(kjlubick) Change this so only one patchset is allowed. It will simplify the backend code.
+	PatchSetsStr string  `json:"patchsets"` // Comma-separated list of patchsets.
+	PatchSets    []int64 `json:"-"`
+	// By default, we typically only want to see digests that were created exclusively on this CL,
+	// but sometimes the user wants to also see digests that are the same as on master, so this option
+	// allows for that.
+	IncludeDigestsProducedOnMaster bool `json:"master"`
 
 	// Filtering.
-	FCommitBegin string  `json:"fbegin"`     // Start commit
-	FCommitEnd   string  `json:"fend"`       // End commit
-	FRGBAMin     int32   `json:"frgbamin"`   // Min RGBA delta
-	FRGBAMax     int32   `json:"frgbamax"`   // Max RGBA delta
-	FDiffMax     float32 `json:"fdiffmax"`   // Max diff according to metric
-	FGroupTest   string  `json:"fgrouptest"` // Op within grouped by test.
-	FRef         bool    `json:"fref"`       // Only digests with reference.
+	CommitBeginFilter          string  `json:"fbegin"`     // Start commit
+	CommitEndFilter            string  `json:"fend"`       // End commit
+	RGBAMinFilter              int32   `json:"frgbamin"`   // Min RGBA delta
+	RGBAMaxFilter              int32   `json:"frgbamax"`   // Max RGBA delta
+	DiffMaxFilter              float32 `json:"fdiffmax"`   // Max diff according to metric
+	GroupTestFilter            string  `json:"fgrouptest"` // Op within grouped by test.
+	MustIncludeReferenceFilter bool    `json:"fref"`       // Only digests with reference.
 
 	// Pagination.
 	Offset int32 `json:"offset"`
@@ -58,7 +62,7 @@ type Search struct {
 // Search query is configured for.
 func (q *Search) IgnoreState() types.IgnoreState {
 	is := types.ExcludeIgnoredTraces
-	if q.IncludeIgnores {
+	if q.IncludeIgnoredTraces {
 		is = types.IncludeIgnoredTraces
 	}
 	return is
@@ -67,7 +71,7 @@ func (q *Search) IgnoreState() types.IgnoreState {
 // ExcludesClassification returns true if the given label/status for a digest
 // should be excluded based on the values in the query.
 func (q *Search) ExcludesClassification(cl expectations.Label) bool {
-	return ((cl == expectations.Negative) && !q.Neg) ||
-		((cl == expectations.Positive) && !q.Pos) ||
-		((cl == expectations.Untriaged) && !q.Unt)
+	return ((cl == expectations.Negative) && !q.IncludeNegativeDigests) ||
+		((cl == expectations.Positive) && !q.IncludePositiveDigests) ||
+		((cl == expectations.Untriaged) && !q.IncludeUntriagedDigests)
 }

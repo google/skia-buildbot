@@ -40,10 +40,9 @@ func ParseSearch(r *http.Request, q *Search) error {
 
 	validate := shared.Validation{}
 
-	// Parse the query strings. Note TraceValues and RTraceValues have different types, but the
-	// same underlying type: map[string][]string
+	// Parse the query strings.
 	q.TraceValues = validate.QueryFormValue(r, "query")
-	q.RTraceValues = validate.QueryFormValue(r, "rquery")
+	q.RightTraceValues = validate.QueryFormValue(r, "rquery")
 
 	q.Limit = int32(validate.Int64FormValue(r, "limit", 50))
 	q.Offset = int32(validate.Int64FormValue(r, "offset", 0))
@@ -53,9 +52,9 @@ func ParseSearch(r *http.Request, q *Search) error {
 	validate.StrFormValue(r, "sort", &q.Sort, []string{SortDescending, SortAscending}, SortDescending)
 
 	// Parse and validate the filter values.
-	q.FRGBAMin = int32(validate.Int64FormValue(r, "frgbamin", 0))
-	q.FRGBAMax = int32(validate.Int64FormValue(r, "frgbamax", 255))
-	q.FDiffMax = float32(validate.Float64FormValue(r, "fdiffmax", -1.0))
+	q.RGBAMinFilter = int32(validate.Int64FormValue(r, "frgbamin", 0))
+	q.RGBAMaxFilter = int32(validate.Int64FormValue(r, "frgbamax", 255))
+	q.DiffMaxFilter = float32(validate.Float64FormValue(r, "fdiffmax", -1.0))
 
 	// Parse out the issue and patchsets.
 	q.PatchSets = validate.Int64SliceFormValue(r, "patchsets", nil)
@@ -67,18 +66,18 @@ func ParseSearch(r *http.Request, q *Search) error {
 	}
 
 	q.BlameGroupID = r.FormValue("blame")
-	q.Pos = r.FormValue("pos") == "true"
-	q.Neg = r.FormValue("neg") == "true"
-	q.Unt = r.FormValue("unt") == "true"
-	q.Head = r.FormValue("head") == "true"
-	q.IncludeIgnores = r.FormValue("include") == "true"
-	q.IncludeMaster = r.FormValue("master") == "true"
+	q.IncludePositiveDigests = r.FormValue("pos") == "true"
+	q.IncludeNegativeDigests = r.FormValue("neg") == "true"
+	q.IncludeUntriagedDigests = r.FormValue("unt") == "true"
+	q.OnlyIncludeDigestsProducedAtHead = r.FormValue("head") == "true"
+	q.IncludeIgnoredTraces = r.FormValue("include") == "true"
+	q.IncludeDigestsProducedOnMaster = r.FormValue("master") == "true"
 
 	// Extract the filter values.
-	q.FCommitBegin = r.FormValue("fbegin")
-	q.FCommitEnd = r.FormValue("fend")
-	q.FGroupTest = r.FormValue("fgrouptest")
-	q.FRef = r.FormValue("fref") == "true"
+	q.CommitBeginFilter = r.FormValue("fbegin")
+	q.CommitEndFilter = r.FormValue("fend")
+	q.GroupTestFilter = r.FormValue("fgrouptest")
+	q.MustIncludeReferenceFilter = r.FormValue("fref") == "true"
 
 	// Check if we want diffs.
 	q.NoDiff = r.FormValue("nodiff") == "true"
