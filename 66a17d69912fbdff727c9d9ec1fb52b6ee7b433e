@@ -2,6 +2,103 @@
   "comments": [
     {
       "key": {
+        "uuid": "a2e36862_e46deb64",
+        "filename": "autoroll/config/binaryen-emscripten-releases.json",
+        "patchSetId": 12
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-11T15:04:03Z",
+      "side": 1,
+      "message": "Maybe we can get rid of includeBugs and make includeBugs\u003dfalse implicit when bugProject\u003d\"\" and includeBugs\u003dtrue implicit when bugProject\u003d\"xyz\"",
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "369dde9c_d166a17c",
+        "filename": "autoroll/config/chromite-chromium.json",
+        "patchSetId": 12
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-11T15:04:03Z",
+      "side": 1,
+      "message": "It was a little strange to see childName used here and at the top-level.\nMight be more clearer by calling this childDisplayName (or something better), if not specified then it will use childName from top-level. Up to you if we also want a parentDisplayName with similar logic. I can see it being useful to also be able to specify that.",
+      "range": {
+        "startLine": 6,
+        "startChar": 5,
+        "endLine": 6,
+        "endChar": 14
+      },
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "24108d3c_34a299d4",
+        "filename": "autoroll/go/autoroll-be/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-11T15:04:03Z",
+      "side": 1,
+      "message": "Might as well replace all the path.Joins? (there are a few above)",
+      "range": {
+        "startLine": 222,
+        "startChar": 23,
+        "endLine": 222,
+        "endChar": 31
+      },
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "11aec87d_cb4d130b",
+        "filename": "autoroll/go/commit_msg/afdo.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-11T15:04:03Z",
+      "side": 1,
+      "message": "Didn\u0027t we also use a template for orderfile? do we not need something different for that anymore?",
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62339ddb_fbb4cf9c",
+        "filename": "autoroll/go/commit_msg/afdo_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-11T15:04:03Z",
+      "side": 1,
+      "message": "Is it useful to also test cq extra trybots / include bugs / include tests ? (since the test says AllFeatures)",
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a893fd8a_a965f82b",
         "filename": "autoroll/go/commit_msg/cmd/mock-commit-msg/main.go",
         "patchSetId": 12
@@ -22,6 +119,104 @@
       "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9265c16f_810f87ed",
+        "filename": "autoroll/go/commit_msg/cmd/mock-commit-msg/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-11T15:04:03Z",
+      "side": 1,
+      "message": "Upto you if you want to land this. But might want to add some doc explaining what it is intended for (and that it does not work for github rollers).",
+      "parentUuid": "a893fd8a_a965f82b",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0f5bbf31_a4e2f976",
+        "filename": "autoroll/go/commit_msg/commit_msg.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-11T15:04:03Z",
+      "side": 1,
+      "message": "Should this be called defaultCommitMsgInfoText ? or is this intended to never be different? in theory could have a commit_msg/xyz.go that never uses it.",
+      "range": {
+        "startLine": 18,
+        "startChar": 1,
+        "endLine": 18,
+        "endChar": 18
+      },
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d84dd967_7230b688",
+        "filename": "autoroll/go/commit_msg/commit_msg.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-11T15:04:03Z",
+      "side": 1,
+      "message": "I expected to see some mandatory fields over here like commitMsgTmpl and maybe bugProject. Makes sense if everything else is optional.\nWhat happens if commitMsgTmpl is not specified?",
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "73075daf_aca33b69",
+        "filename": "autoroll/go/commit_msg/commit_msg.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-11T15:04:03Z",
+      "side": 1,
+      "message": "We probably do not want this done everywhere and I would hope this is no longer needed for Android. Let\u0027s remove and see what happens?\n\nBut these kinds of hacks maybe shows the need to be able to do something like this in commit_msg/android.go ?\nIt could be that one day some roller needs a special commit msg hack that does not make sense in any other roller, how would we do that hack? add an if stmt here using c.ChildName or serverURL maybe",
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21e96ba4_f1a007ef",
+        "filename": "autoroll/go/repo_manager/common/version_file_common/version_file_common.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-11T15:04:03Z",
+      "side": 1,
+      "message": "Could you describe how this is related to the commit msg refactoring?",
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
