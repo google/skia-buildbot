@@ -235,6 +235,35 @@ func TestProcess_DetectNotInsideDocker(t *testing.T) {
 	assert.Equal(t, machine.ModeAvailable, next.Mode)
 }
 
+func TestProcess_ClearScheduledForDelectionOnPodNameChange(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	// The current machine has nothing attached.
+	previous := machine.NewDescription()
+	require.Empty(t, previous.Dimensions)
+	previous.ScheduledForDeletion = "foo"
+	previous.PodName = "foo"
+
+	// An event arrives with the attachment of an Android device.
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Android:   machine.Android{},
+		Host: machine.Host{
+			Name:    "skia-rpi-0001",
+			PodName: "bar",
+		},
+	}
+
+	p := newProcessorForTest(t)
+	next := p.Process(ctx, previous, event)
+	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
+	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
+
+	// The Android should no longer be scheduled for deletion.
+	assert.Equal(t, "", next.ScheduledForDeletion)
+}
+
 func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := context.Background()
