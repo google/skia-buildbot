@@ -124,15 +124,12 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	}
 	idx := s.indexSource.GetIndex()
 
-	var inter srInterMap = nil
-
+	var inter srInterMap
 	// Find the digests (left hand side) we are interested in.
 	if isChangeListSearch {
-		if q.NewCLStore {
-			inter, err = s.queryChangeList(ctx, q, idx, exp)
-			if err != nil {
-				return nil, skerr.Wrapf(err, "getting digests from new clstore/tjstore")
-			}
+		inter, err = s.queryChangeList(ctx, q, idx, exp)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "getting digests from new clstore/tjstore")
 		}
 	} else {
 		// Iterate through the tile and get an intermediate

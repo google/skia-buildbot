@@ -45,7 +45,6 @@ func ParseSearch(r *http.Request, q *Search) error {
 	q.TraceValues = validate.QueryFormValue(r, "query")
 	q.RTraceValues = validate.QueryFormValue(r, "rquery")
 
-	// TODO(stephan) Add range limiting to the validation of limit and offset.
 	q.Limit = int32(validate.Int64FormValue(r, "limit", 50))
 	q.Offset = int32(validate.Int64FormValue(r, "offset", 0))
 	q.Offset = util.MaxInt32(q.Offset, 0)
@@ -83,7 +82,6 @@ func ParseSearch(r *http.Request, q *Search) error {
 
 	// Check if we want diffs.
 	q.NoDiff = r.FormValue("nodiff") == "true"
-	q.NewCLStore = r.FormValue("new_clstore") == "true"
 
 	return nil
 }
