@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
-	"strings"
 	"text/template"
 	"time"
 
@@ -36,8 +35,8 @@ var (
 )
 
 type server struct {
-	store     machineStore.Store
-	templates *template.Template
+	store         machineStore.Store
+	indexTemplate *template.Template
 }
 
 // See baseapp.Constructor.
@@ -105,9 +104,21 @@ func user(r *http.Request) string {
 }
 
 func (s *server) loadTemplates() {
-	s.templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
-		filepath.Join(*baseapp.ResourcesDir, "index.html"),
+	// common contains common template fragments used by all page templates, and
+	// also by inline form handlers.
+	common := template.Must(template.New("").Delims("{%", "%}").ParseGlob(
+		filepath.Join(*baseapp.ResourcesDir, "templates", "*.tmpl"),
 	))
+
+	var err error
+	// Now load the HTML files emitted by webpack, which may use templates
+	// from common.
+	s.indexTemplate, err = common.ParseFiles(
+		filepath.Join(*baseapp.ResourcesDir, "index.html"),
+	)
+	if err != nil {
+		sklog.Fatal(err)
+	}
 }
 
 func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
@@ -115,7 +126,12 @@ func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *baseapp.Local {
 		s.loadTemplates()
 	}
-	if err := s.templates.ExecuteTemplate(w, "index.html", map[string]string{
+	descriptions, err := s.store.List(r.Context())
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to retrieve Machines.", http.StatusInternalServerError)
+	}
+	if err := s.indexTemplate.ExecuteTemplate(w, "index.html", map[string]interface{}{
+		"Descriptions": descriptions,
 		// Look in webpack.config.js for where the nonce templates are injected.
 		"Nonce": secure.CSPNonce(r.Context()),
 	}); err != nil {
@@ -123,30 +139,16 @@ func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	descriptions, err := s.store.List(r.Context())
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to read from datastore", http.StatusInternalServerError)
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(descriptions); err != nil {
-		sklog.Errorf("Failed to write response: %s", err)
-	}
-}
-
 func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := strings.TrimSpace(vars["id"])
+	id := r.FormValue("id")
 	if id == "" {
 		httputils.ReportError(w, skerr.Fmt("ID must be supplied."), "ID must be supplied.", http.StatusInternalServerError)
 		return
 	}
 
-	resultMode := machine.ModeAvailable
+	var ret machine.Description
 	err := s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
-		ret := in.Copy()
+		ret = in.Copy()
 		if ret.Mode == machine.ModeAvailable {
 			ret.Mode = machine.ModeMaintenance
 		} else {
@@ -157,7 +159,6 @@ func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request
 			Message:   fmt.Sprintf("Changed mode to %q", ret.Mode),
 			Timestamp: time.Now(),
 		}
-		resultMode = ret.Mode
 		return ret
 	})
 	auditlog.Log(r, "toggle-mode", struct {
@@ -165,20 +166,22 @@ func (s *server) machineToggleModeHandler(w http.ResponseWriter, r *http.Request
 		Mode      machine.Mode
 	}{
 		MachineID: id,
-		Mode:      resultMode,
+		Mode:      ret.Mode,
 	})
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	// The "mode" template is found in templates/common.tmpl.
+	if err := s.indexTemplate.ExecuteTemplate(w, "mode", ret); err != nil {
+		sklog.Errorf("Failed to expand template: %s", err)
+	}
 }
 
 // See baseapp.App.
 func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", s.mainHandler).Methods("GET")
-	r.HandleFunc("/_/machines", s.machinesHandler).Methods("GET")
-	r.HandleFunc("/_/machine/toggle_mode/{id:.+}", s.machineToggleModeHandler).Methods("GET")
+	r.HandleFunc("/_/machine/toggle_mode/", s.machineToggleModeHandler).Methods("POST")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 }
 
