@@ -1352,19 +1352,6 @@ func (wh *Handlers) CommitsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// gitLog is a struct to mimic the return value of googlesource (see GitLogHandler)
-type gitLog struct {
-	Log []commitInfo `json:"log"`
-}
-
-// commitInfo is a simplified view of a commit. The author and timestamp should
-// already be on the frontend, as those are stored in tiling.Commit but Message
-// is not, so it needs to be provided in this struct.
-type commitInfo struct {
-	Commit  string `json:"commit"`
-	Message string `json:"message"`
-}
-
 // TextKnownHashesProxy returns known hashes that have been written to GCS in the background
 // Each line contains a single digest for an image. Bots will then only upload images which
 // have a hash not found on this list, avoiding significant amounts of unnecessary uploads.

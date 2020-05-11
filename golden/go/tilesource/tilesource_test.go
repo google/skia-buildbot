@@ -91,10 +91,8 @@ func TestUpdateTileEmptyTile(t *testing.T) {
 	}, false).Return(makeSparseLongCommits(), nil)
 
 	empty := &tiling.Tile{
-		Commits:   nil,
-		Scale:     0,
-		TileIndex: 0,
-		Traces:    map[tiling.TraceID]*tiling.Trace{},
+		Commits: nil,
+		Traces:  map[tiling.TraceID]*tiling.Trace{},
 	}
 
 	mts.On("GetDenseTile", testutils.AnyContext, nCommits).Return(empty, makeSparseTilingCommits(), nil)

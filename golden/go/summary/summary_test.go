@@ -362,10 +362,7 @@ func TestSummaryMap_OverlappingCorpora(t *testing.T) {
 	commits := bug_revert.MakeTestCommits()[:2]
 
 	tile := &tiling.Tile{
-		Commits:   commits,
-		Scale:     0, // tile contains every data point.
-		TileIndex: 0,
-
+		Commits: commits,
 		Traces: map[tiling.TraceID]*tiling.Trace{
 			",device=alpha,name=test_one,source_type=corpusOne,": tiling.NewTrace(
 				types.DigestSlice{
@@ -640,8 +637,6 @@ func makeFullTile() *tiling.Tile {
 				Author:     "test@example.com",
 			},
 		},
-		Scale:     0,
-		TileIndex: 0,
 	}
 }
 
@@ -697,8 +692,6 @@ func makeTileWithIgnores() *tiling.Tile {
 				Author:     "test@example.com",
 			},
 		},
-		Scale:     0,
-		TileIndex: 0,
 	}
 }
 

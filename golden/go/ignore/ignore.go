@@ -82,9 +82,6 @@ func FilterIgnored(inputTile *tiling.Tile, ignores []Rule) (*tiling.Tile, paramt
 		Traces:   map[tiling.TraceID]*tiling.Trace{},
 		ParamSet: inputTile.ParamSet,
 		Commits:  inputTile.Commits,
-
-		Scale:     inputTile.Scale,
-		TileIndex: inputTile.TileIndex,
 	}
 
 	// Then, add any traces that don't match any ignore rules
