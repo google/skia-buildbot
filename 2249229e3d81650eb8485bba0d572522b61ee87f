@@ -45,6 +45,30 @@
       "revId": "2249229e3d81650eb8485bba0d572522b61ee87f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "571c6017_5f5d99b9",
+        "filename": "demos/go/load-demo-assets/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-05-11T15:11:30Z",
+      "side": 1,
+      "message": "Noted, replacing this logic with using git directly in the demoserver. Will do it that way and not marshal the vcsinfo.LongCommits there.",
+      "parentUuid": "3b15ab86_59124229",
+      "range": {
+        "startLine": 74,
+        "startChar": 9,
+        "endLine": 74,
+        "endChar": 28
+      },
+      "revId": "2249229e3d81650eb8485bba0d572522b61ee87f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
