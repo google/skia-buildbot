@@ -26,6 +26,12 @@ type Store interface {
 	// the description for machineID changes.
 	Watch(ctx context.Context, machineID string) <-chan machine.Description
 
+	// WatchForDeletablePods returns a channel that will produce the name of a
+	// k8s pod for every pod that becomes eligible for deletion. Note that since
+	// these k8s pods are from a daemonset the pod will automatically be
+	// restarted, but with the latest image.
+	WatchForDeletablePods(ctx context.Context) <-chan string
+
 	// List returns a slice containing all known machines.
 	List(ctx context.Context) ([]machine.Description, error)
 }
