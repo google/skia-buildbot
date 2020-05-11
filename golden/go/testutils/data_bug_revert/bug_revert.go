@@ -83,10 +83,7 @@ func MakeTestCommits() []tiling.Commit {
 
 func MakeTestTile() *tiling.Tile {
 	return &tiling.Tile{
-		Commits:   MakeTestCommits(),
-		Scale:     0, // tile contains every data point.
-		TileIndex: 0,
-
+		Commits: MakeTestCommits(),
 		Traces: map[tiling.TraceID]*tiling.Trace{
 			",device=alpha,name=test_one,source_type=gm,": tiling.NewTrace(
 				types.DigestSlice{

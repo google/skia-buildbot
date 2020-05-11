@@ -28,11 +28,6 @@ type Tile struct {
 	Traces   map[TraceID]*Trace
 	ParamSet map[string][]string
 	Commits  []Commit
-
-	// What is the scale of this Tile, i.e. it contains every Nth point, where
-	// N=const.TILE_SCALE^Scale.
-	Scale     int
-	TileIndex int
 }
 
 // LastCommitIndex returns the index of the last valid Commit.
@@ -55,11 +50,9 @@ func (t *Tile) Trim(begin, end int) (*Tile, error) {
 		return nil, skerr.Fmt("Invalid Trim range [%d, %d) of [0, %d]", begin, end, length)
 	}
 	ret := &Tile{
-		Traces:    map[TraceID]*Trace{},
-		ParamSet:  t.ParamSet,
-		Scale:     t.Scale,
-		TileIndex: t.TileIndex,
-		Commits:   make([]Commit, length),
+		Traces:   map[TraceID]*Trace{},
+		ParamSet: t.ParamSet,
+		Commits:  make([]Commit, length),
 	}
 
 	for i := 0; i < length; i++ {

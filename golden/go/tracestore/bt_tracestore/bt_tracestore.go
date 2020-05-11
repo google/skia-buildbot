@@ -263,7 +263,6 @@ func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile,
 		Traces:   traces,
 		ParamSet: params,
 		Commits:  commits,
-		Scale:    0,
 	}
 
 	return ret, commits, nil
@@ -459,7 +458,6 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 		Traces:   allTraces,
 		ParamSet: paramSet,
 		Commits:  denseCommits,
-		Scale:    0,
 	}
 	sklog.Debugf("GetDenseTile complete")
 

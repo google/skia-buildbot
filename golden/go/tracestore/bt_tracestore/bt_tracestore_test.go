@@ -67,8 +67,6 @@ func TestBTTraceStorePutGet(t *testing.T) {
 func assertTilesEqual(t *testing.T, a *tiling.Tile, b *tiling.Tile) {
 	assert.Equal(t, a.ParamSet, b.ParamSet)
 	assert.Equal(t, a.Commits, b.Commits)
-	assert.Equal(t, a.Scale, b.Scale)
-	assert.Equal(t, a.TileIndex, b.TileIndex)
 	// We can't do a naive comparison of the traces because unexported values may not exactly match
 	// and don't care if they do (i.e. the cached values for TestName, Corpus)
 	assert.Equal(t, len(a.Traces), len(b.Traces))
