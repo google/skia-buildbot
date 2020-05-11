@@ -930,7 +930,7 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 	assert.Equal(t, int32(1), betaSeenCount)
 }
 
-func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
+func TestDigestDetails_MasterBranch_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const digestWeWantDetailsAbout = data.AlphaPositiveDigest
@@ -1015,7 +1015,7 @@ func TestDigestDetailsThreeDevicesSunnyDay(t *testing.T) {
 	}, details)
 }
 
-func TestDigestDetailsThreeDevicesChangeList(t *testing.T) {
+func TestDigestDetails_ChangeListAltersExpectations_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const digestWeWantDetailsAbout = data.AlphaPositiveDigest
@@ -1044,9 +1044,10 @@ func TestDigestDetailsThreeDevicesChangeList(t *testing.T) {
 	assert.Equal(t, details.Digest.Status, expectations.Negative.String())
 }
 
-// TestDigestDetailsThreeDevicesOldDigest represents the scenario in which a user is requesting
-// data about a digest that just went off the tile.
-func TestDigestDetailsThreeDevicesOldDigest(t *testing.T) {
+// TestDigestDetails_DigestTooOld_ReturnsComparisonToRecentDigest represents the scenario in which
+// a user is requesting data about a digest that just went off the tile. We should return the
+// triage status for this old digest and a comparison to digests for the same test that are current.
+func TestDigestDetails_DigestTooOld_ReturnsComparisonToRecentDigest(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const digestWeWantDetailsAbout = types.Digest("digest-too-old")
@@ -1079,12 +1080,12 @@ func TestDigestDetailsThreeDevicesOldDigest(t *testing.T) {
 	}, d.Digest.RefDiffs)
 }
 
-// TestDigestDetailsThreeDevicesOldDigest represents the scenario in which a user is requesting
+// TestDigestDetails_BadDigest_NoError represents the scenario in which a user is requesting
 // data about a digest that never existed. In the past, when this has happened, it has broken
 // Gold until that digest went away (e.g. because a bot only uploaded a subset of images).
 // Therefore, we shouldn't error the search request, because it could break all searches for
 // untriaged digests.
-func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
+func TestDigestDetails_BadDigest_NoError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const digestWeWantDetailsAbout = types.Digest("unknown-digest")
@@ -1102,7 +1103,7 @@ func TestDigestDetailsThreeDevicesBadDigest(t *testing.T) {
 	assert.Equal(t, r.Digest.ClosestRef, common.NoRef)
 }
 
-func TestDigestDetailsThreeDevicesBadTest(t *testing.T) {
+func TestDigestDetails_BadTest_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const digestWeWantDetailsAbout = data.AlphaPositiveDigest
@@ -1115,7 +1116,171 @@ func TestDigestDetailsThreeDevicesBadTest(t *testing.T) {
 	assert.Contains(t, err.Error(), "unknown")
 }
 
-func TestDigestDetailsThreeDevicesBadTestAndDigest(t *testing.T) {
+func TestDigestDetails_NewTestOnChangeList_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const digestWeWantDetailsAbout = data.AlphaPositiveDigest
+	const testWeWantDetailsAbout = types.TestName("added_new_test")
+	const latestPSID = "latestps"
+	const testCLID = "abc12345"
+	const testCRS = "gerritHub"
+
+	mes := &mock_expectations.Store{}
+	mis := &mock_index.IndexSource{}
+	mcs := &mock_clstore.Store{}
+	mts := &mock_tjstore.Store{}
+
+	empty := expectations.Expectations{}
+	mes.On("Get", testutils.AnyContext).Return(&empty, nil)
+	var ie expectations.Expectations
+	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.Positive)
+	addChangeListExpectations(mes, testCRS, testCLID, &ie)
+
+	// This index emulates the fact that master branch does not have the newly added test.
+	mis.On("GetIndex").Return(makeThreeDevicesIndex())
+	mis.On("GetIndexForCL", testCRS, testCLID).Return(&indexer.ChangeListIndex{
+		ParamSet: paramtools.ParamSet{
+			// The index is used to verify the test exists before searching through all the TryJob
+			// results for a given CL.
+			types.PrimaryKeyField: []string{string(data.AlphaTest), string(data.BetaTest), string(testWeWantDetailsAbout)},
+		},
+	})
+
+	mcs.On("GetPatchSets", testutils.AnyContext, testCLID).Return([]code_review.PatchSet{
+		{
+			SystemID:     latestPSID,
+			ChangeListID: testCLID,
+			// Only the ID is used.
+		},
+	}, nil)
+
+	// Return 4 results, 2 that match on digest and test, 1 that matches only on digest and 1 that
+	// matches only on test.
+	mts.On("GetResults", testutils.AnyContext, tjstore.CombinedPSID{CRS: testCRS, CL: testCLID, PS: latestPSID}).Return([]tjstore.TryJobResult{
+		{
+			Digest:       digestWeWantDetailsAbout,
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(testWeWantDetailsAbout)},
+			GroupParams:  paramtools.Params{"os": "Android"},
+			Options:      paramtools.Params{"ext": "png"},
+		},
+		{
+			Digest:       digestWeWantDetailsAbout,
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(testWeWantDetailsAbout)},
+			GroupParams:  paramtools.Params{"os": "iOS"},
+			Options:      paramtools.Params{"ext": "png"},
+		},
+		{
+			Digest:       digestWeWantDetailsAbout,
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.BetaTest)},
+			GroupParams:  paramtools.Params{"os": "Android"},
+			Options:      paramtools.Params{"ext": "png"},
+		},
+		{
+			Digest:       "some other digest",
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(testWeWantDetailsAbout)},
+			GroupParams:  paramtools.Params{"os": "Android"},
+			Options:      paramtools.Params{"ext": "png"},
+		},
+	}, nil)
+
+	s := New(nil, mes, nil, mis, mcs, mts, nil, everythingPublic)
+
+	rv, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
+	require.NoError(t, err)
+	rv.Digest.ParamSet.Normalize() // sort keys for determinism
+	assert.Equal(t, &frontend.DigestDetails{
+		Digest: &frontend.SRDigest{
+			Test:          testWeWantDetailsAbout,
+			Digest:        digestWeWantDetailsAbout,
+			Status:        "positive",
+			TriageHistory: nil, // TODO(skbug.com/10097)
+			ParamSet: paramtools.ParamSet{
+				types.PrimaryKeyField: []string{string(testWeWantDetailsAbout)},
+				"os":                  []string{"Android", "iOS"},
+				"ext":                 []string{"png"},
+			},
+		},
+	}, rv)
+}
+
+func TestDigestDetails_NewTestOnChangeList_WithPublicParams_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const digestWeWantDetailsAbout = data.AlphaPositiveDigest
+	const testWeWantDetailsAbout = types.TestName("added_new_test")
+	const latestPSID = "latestps"
+	const testCLID = "abc12345"
+	const testCRS = "gerritHub"
+
+	mes := &mock_expectations.Store{}
+	mis := &mock_index.IndexSource{}
+	mcs := &mock_clstore.Store{}
+	mts := &mock_tjstore.Store{}
+
+	empty := expectations.Expectations{}
+	mes.On("Get", testutils.AnyContext).Return(&empty, nil)
+	var ie expectations.Expectations
+	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.Positive)
+	addChangeListExpectations(mes, testCRS, testCLID, &ie)
+
+	// This index emulates the fact that master branch does not have the newly added test.
+	mis.On("GetIndex").Return(makeThreeDevicesIndex())
+	mis.On("GetIndexForCL", testCRS, testCLID).Return(&indexer.ChangeListIndex{
+		ParamSet: paramtools.ParamSet{
+			// The index is used to verify the test exists before searching through all the TryJob
+			// results for a given CL.
+			types.PrimaryKeyField: []string{string(data.AlphaTest), string(data.BetaTest), string(testWeWantDetailsAbout)},
+		},
+	})
+
+	mcs.On("GetPatchSets", testutils.AnyContext, testCLID).Return([]code_review.PatchSet{
+		{
+			SystemID:     latestPSID,
+			ChangeListID: testCLID,
+			// Only the ID is used.
+		},
+	}, nil)
+
+	// Return 2 results that match on digest and test, 1 of which has an OS that is not on the
+	// publicly viewable list and should be filtered.
+	mts.On("GetResults", testutils.AnyContext, tjstore.CombinedPSID{CRS: testCRS, CL: testCLID, PS: latestPSID}).Return([]tjstore.TryJobResult{
+		{
+			Digest:       digestWeWantDetailsAbout,
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(testWeWantDetailsAbout)},
+			GroupParams:  paramtools.Params{"os": "Android"},
+			Options:      paramtools.Params{"ext": "png"},
+		},
+		{
+			Digest:       digestWeWantDetailsAbout,
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(testWeWantDetailsAbout)},
+			GroupParams:  paramtools.Params{"os": "super_secret_device_do_not_leak"},
+			Options:      paramtools.Params{"ext": "png"},
+		},
+	}, nil)
+
+	s := New(nil, mes, nil, mis, mcs, mts, nil, paramtools.ParamSet{
+		"os": []string{"Android"},
+	})
+
+	rv, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
+	require.NoError(t, err)
+	rv.Digest.ParamSet.Normalize() // sort keys for determinism
+	assert.Equal(t, &frontend.DigestDetails{
+		Digest: &frontend.SRDigest{
+			Test:          testWeWantDetailsAbout,
+			Digest:        digestWeWantDetailsAbout,
+			Status:        "positive",
+			TriageHistory: nil, // TODO(skbug.com/10097)
+			ParamSet: paramtools.ParamSet{
+				types.PrimaryKeyField: []string{string(testWeWantDetailsAbout)},
+				"os":                  []string{"Android"},
+				"ext":                 []string{"png"},
+			},
+		},
+	}, rv)
+}
+
+func TestDigestDetails_BadTestAndDigest_ReturnsError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const digestWeWantDetailsAbout = types.Digest("invalid digest")

@@ -180,8 +180,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 }
 
 // GetDigestDetails implements the SearchAPI interface.
-// TODO(stephana): Make the metric, match and ignores parameters for the comparison.
-func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, digest types.Digest, clID string, crs string) (*frontend.DigestDetails, error) {
+func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, digest types.Digest, clID, crs string) (*frontend.DigestDetails, error) {
 	defer metrics2.FuncTimer().Stop()
 	idx := s.indexSource.GetIndex()
 
@@ -190,6 +189,13 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 
 	digests, ok := dct[test]
 	if !ok {
+		if clID != "" {
+			clIdx := s.indexSource.GetIndexForCL(crs, clID)
+			if clIdx == nil || !util.In(string(test), clIdx.ParamSet[types.PrimaryKeyField]) {
+				return nil, skerr.Fmt("unknown test %s for cl %s", test, clID)
+			}
+			return s.getCLOnlyDigestDetails(ctx, test, digest, clID, crs)
+		}
 		return nil, skerr.Fmt("unknown test %s", test)
 	}
 
@@ -223,8 +229,8 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 
 	// Wrap the intermediate value in a map so we can re-use the search function for this.
 	inter := srInterMap{test: {digest: oneInter}}
-	ret := getDigestRecs(inter, exp)
-	err = s.getReferenceDiffs(ctx, ret, diff.CombinedMetric, []string{types.PrimaryKeyField}, nil, types.ExcludeIgnoredTraces, exp, idx)
+	details := getDigestRecs(inter, exp)
+	err = s.getReferenceDiffs(ctx, details, diff.CombinedMetric, []string{types.PrimaryKeyField}, nil, types.ExcludeIgnoredTraces, exp, idx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Fetching reference diffs for test %s, digest %s", test, digest)
 	}
@@ -232,12 +238,12 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 	var traceComments []frontend.TraceComment
 	if hasTraces {
 		// Get the params and traces.
-		traceComments = s.addParamsTracesAndComments(ctx, ret, inter, exp, idx)
+		traceComments = s.addParamsTracesAndComments(ctx, details, inter, exp, idx)
 	}
-	s.addTriageHistory(ctx, ret[:1])
+	s.addTriageHistory(ctx, details[:1])
 
 	return &frontend.DigestDetails{
-		Digest:        ret[0],
+		Digest:        details[0],
 		Commits:       web_frontend.FromTilingCommits(tile.Commits),
 		TraceComments: traceComments,
 	}, nil
@@ -263,6 +269,69 @@ func (s *SearchImpl) getExpectations(ctx context.Context, clID, crs string) (exp
 	}
 
 	return exp, nil
+}
+
+// getCLOnlyDigestDetails returns details for a digest when it is newly added to a CL (and does
+// not exist on the master branch). This is handled as its own special case because the existing
+// master branch index, which normally aids in filling out these details (e.g. has a map from
+// digest to traces) does not help us here and we must re-scan the list of tryjob results
+// ourselves.
+func (s *SearchImpl) getCLOnlyDigestDetails(ctx context.Context, test types.TestName, digest types.Digest, clID, crs string) (*frontend.DigestDetails, error) {
+	exp, err := s.getExpectations(ctx, clID, crs)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	// We know xps is sorted by order, if it is non-nil.
+	xps, err := s.getPatchSets(ctx, clID)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "getting PatchSets for CL %s", clID)
+	}
+	if len(xps) == 0 {
+		return nil, skerr.Fmt("No data for CL %s", clID)
+	}
+
+	latestPatchSet := xps[len(xps)-1]
+	id := tjstore.CombinedPSID{
+		CL:  latestPatchSet.ChangeListID,
+		CRS: crs,
+		PS:  latestPatchSet.SystemID,
+	}
+	xtr, err := s.getTryJobResults(ctx, id)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "getting tryjob results for %v", id)
+	}
+	paramSet := paramtools.ParamSet{}
+	for _, tr := range xtr { // this could be done in parallel, if needed for performance reasons.
+		if tr.Digest != digest {
+			continue
+		}
+		if tr.ResultParams[types.PrimaryKeyField] != string(test) {
+			continue
+		}
+		p := paramtools.Params{}
+		p.Add(tr.GroupParams, tr.Options, tr.ResultParams)
+		// If we've been given a set of PubliclyViewableParams, only show those.
+		if len(s.publiclyViewableParams) > 0 {
+			if !s.publiclyViewableParams.MatchesParams(p) {
+				continue
+			}
+		}
+		paramSet.AddParams(p)
+	}
+
+	return &frontend.DigestDetails{
+		TraceComments: nil, // TODO(skbug.com/6630)
+		Digest: &frontend.SRDigest{
+			Test:          test,
+			Digest:        digest,
+			Status:        exp.Classification(test, digest).String(),
+			TriageHistory: nil, // TODO(skbug.com/10097)
+			ParamSet:      paramSet,
+			// The trace-related fields can be omitted because there are no traces on master branch of
+			// which to show the history
+		},
+	}, nil
 }
 
 // queryChangeList returns the digests associated with the ChangeList referenced by q.CRSAndCLID
