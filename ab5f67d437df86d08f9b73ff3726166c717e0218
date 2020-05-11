@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fc07e628_962188e3",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-11T15:54:41Z",
+      "side": 1,
+      "message": "Agreed that this was a bit fiddly. OTOH, if you rename ScheduledForDeletion to SoftwareUpdateScheduled then setting its value to be the PodName seems like a weird thing to do. I\u0027ll keep it as is for now, but will continue to think about how to change the naming.",
+      "parentUuid": "41d0c584_ac7344eb",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 21
+      },
+      "revId": "ab5f67d437df86d08f9b73ff3726166c717e0218",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "08d1ac1d_53d60ce9",
         "filename": "machine/go/machine/store/impl.go",
         "patchSetId": 11
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "e5ef01f4_fa2b7584",
+        "filename": "machine/go/machine/store/impl.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-11T15:54:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "08d1ac1d_53d60ce9",
+      "range": {
+        "startLine": 65,
+        "startChar": 4,
+        "endLine": 65,
+        "endChar": 15
+      },
+      "revId": "ab5f67d437df86d08f9b73ff3726166c717e0218",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa38a28e_a65b1c68",
         "filename": "sk8s/go/podwatcher/main.go",
         "patchSetId": 11
@@ -62,6 +110,24 @@
       "revId": "ab5f67d437df86d08f9b73ff3726166c717e0218",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3139842f_4c804421",
+        "filename": "sk8s/go/podwatcher/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-11T15:54:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa38a28e_a65b1c68",
+      "revId": "ab5f67d437df86d08f9b73ff3726166c717e0218",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
