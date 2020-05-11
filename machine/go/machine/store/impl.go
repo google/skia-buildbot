@@ -32,12 +32,14 @@ type StoreImpl struct {
 	firestoreClient    *firestore.Client
 	machinesCollection *gcfirestore.CollectionRef
 
-	updateCounter               metrics2.Counter
-	updateDataToErrorCounter    metrics2.Counter
-	watchReceiveSnapshotCounter metrics2.Counter
-	watchDataToErrorCounter     metrics2.Counter
-	listCounter                 metrics2.Counter
-	listIterFailureCounter      metrics2.Counter
+	updateCounter                               metrics2.Counter
+	updateDataToErrorCounter                    metrics2.Counter
+	watchReceiveSnapshotCounter                 metrics2.Counter
+	watchDataToErrorCounter                     metrics2.Counter
+	listCounter                                 metrics2.Counter
+	listIterFailureCounter                      metrics2.Counter
+	watchForDeletablePodsReceiveSnapshotCounter metrics2.Counter
+	watchForDeletablePodsDataToErrorCounter     metrics2.Counter
 }
 
 // storeDescription is how machine.Description is mapped into firestore.
@@ -60,6 +62,12 @@ type storeDescription struct {
 	// LastUpdated is a mirror of MachineDescription.LastUpdated.
 	LastUpdated time.Time
 
+	// ScheduledForDeletion is a mirror of MachineDescription.ScheduledForDeletion.
+	ScheduledForDeletion string
+
+	// RunningSwarmingTask is a mirror of MachineDescription.RunningSwarmingTask.
+	RunningSwarmingTask bool
+
 	// MachineDescription is the full machine.Description. The values that are
 	// mirrored to fields of storeDescription are still fully stored here and
 	// are considered the source of truth.
@@ -78,14 +86,16 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 		return nil, skerr.Wrapf(err, "Failed to create firestore client for app: %q instance: %q", appName, instanceConfig.Store.Instance)
 	}
 	return &StoreImpl{
-		firestoreClient:             firestoreClient,
-		machinesCollection:          firestoreClient.Collection(machinesCollectionName),
-		updateCounter:               metrics2.GetCounter("machine_store_update"),
-		updateDataToErrorCounter:    metrics2.GetCounter("machine_store_update_datato_error"),
-		watchReceiveSnapshotCounter: metrics2.GetCounter("machine_store_watch_receive_snapshot"),
-		watchDataToErrorCounter:     metrics2.GetCounter("machine_store_watch_datato_error"),
-		listCounter:                 metrics2.GetCounter("machine_store_list"),
-		listIterFailureCounter:      metrics2.GetCounter("machine_store_list_iter_error"),
+		firestoreClient:                             firestoreClient,
+		machinesCollection:                          firestoreClient.Collection(machinesCollectionName),
+		updateCounter:                               metrics2.GetCounter("machine_store_update"),
+		updateDataToErrorCounter:                    metrics2.GetCounter("machine_store_update_datato_error"),
+		watchReceiveSnapshotCounter:                 metrics2.GetCounter("machine_store_watch_receive_snapshot"),
+		watchDataToErrorCounter:                     metrics2.GetCounter("machine_store_watch_datato_error"),
+		listCounter:                                 metrics2.GetCounter("machine_store_list"),
+		listIterFailureCounter:                      metrics2.GetCounter("machine_store_list_iter_error"),
+		watchForDeletablePodsReceiveSnapshotCounter: metrics2.GetCounter("machine_store_watch_for_deletable_pods_receive_snapshot"),
+		watchForDeletablePodsDataToErrorCounter:     metrics2.GetCounter("machine_store_watch_for_deletable_pods_datato_error"),
 	}, nil
 }
 
@@ -149,6 +159,36 @@ func (st *StoreImpl) Watch(ctx context.Context, machineID string) <-chan machine
 	return ch
 }
 
+// WatchForDeletablePods implements the Store interface.
+func (st *StoreImpl) WatchForDeletablePods(ctx context.Context) <-chan string {
+	q := st.machinesCollection.Where("ScheduledForDeletion", ">", "").Where("RunningSwarmingTask", "==", false)
+	ch := make(chan string)
+	go func() {
+		defer close(ch)
+		for qsnap := range firestore.QuerySnapshotChannel(ctx, q) {
+			for {
+				snap, err := qsnap.Documents.Next()
+				if err == iterator.Done {
+					break
+				}
+				if err != nil {
+					sklog.Errorf("Failed to read document snapshot: %s", err)
+				}
+				var storeDescription storeDescription
+				if err := snap.DataTo(&storeDescription); err != nil {
+					sklog.Errorf("Failed to read data from snapshot: %s", err)
+					st.watchForDeletablePodsDataToErrorCounter.Inc(1)
+					continue
+				}
+				machineDescription := storeToMachineDescription(storeDescription)
+				st.watchForDeletablePodsReceiveSnapshotCounter.Inc(1)
+				ch <- machineDescription.PodName
+			}
+		}
+	}()
+	return ch
+}
+
 // List implements the Store interface.
 func (st *StoreImpl) List(ctx context.Context) ([]machine.Description, error) {
 	st.listCounter.Inc(1)
@@ -178,12 +218,14 @@ func (st *StoreImpl) List(ctx context.Context) ([]machine.Description, error) {
 
 func machineDescriptionToStoreDescription(m machine.Description) storeDescription {
 	return storeDescription{
-		OS:                 m.Dimensions[machine.DimOS],
-		DeviceType:         m.Dimensions[machine.DimDeviceType],
-		Quarantined:        m.Dimensions[machine.DimQuarantined],
-		Mode:               m.Mode,
-		LastUpdated:        m.LastUpdated,
-		MachineDescription: m,
+		OS:                   m.Dimensions[machine.DimOS],
+		DeviceType:           m.Dimensions[machine.DimDeviceType],
+		Quarantined:          m.Dimensions[machine.DimQuarantined],
+		Mode:                 m.Mode,
+		LastUpdated:          m.LastUpdated,
+		ScheduledForDeletion: m.ScheduledForDeletion,
+		RunningSwarmingTask:  m.RunningSwarmingTask,
+		MachineDescription:   m,
 	}
 }
 

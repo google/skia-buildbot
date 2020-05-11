@@ -73,7 +73,7 @@ require (
 	github.com/golang/mock v1.4.3
 	github.com/golang/protobuf v1.4.1
 	github.com/google/go-github/v29 v29.0.3
-	github.com/google/go-licenses v0.0.0-20200227160636-0fa8c766a591
+	github.com/google/go-licenses v0.0.0-20200511085313-e4cf7a36ee79
 	github.com/google/licenseclassifier v0.0.0-20200402202327-879cb1424de0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.4.0 // indirect
@@ -100,7 +100,6 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
-	github.com/otiai10/copy v1.1.1 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.7.0 // indirect
 	github.com/peterh/liner v1.2.0 // indirect
@@ -143,6 +142,7 @@ require (
 	gopkg.in/olivere/elastic.v5 v5.0.85
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.2.8
+	k8s.io/api v0.18.2
 	k8s.io/apimachinery v0.18.2
 	k8s.io/client-go v0.18.2
 	rsc.io/sampler v1.99.99 // indirect

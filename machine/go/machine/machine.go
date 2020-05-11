@@ -44,14 +44,17 @@ type Annotation struct {
 
 // Description is the current state of a single machine.
 type Description struct {
-	Mode                Mode
-	Annotation          Annotation
-	Dimensions          SwarmingDimensions
-	PodName             string
-	LastUpdated         time.Time
-	Battery             int                // Charge as an integer percent, e.g. 50% = 50.
-	Temperature         map[string]float64 // In Celsius.
-	RunningSwarmingTask bool
+	Mode       Mode
+	Annotation Annotation
+	Dimensions SwarmingDimensions
+	PodName    string
+	// ScheduledForDeletion will be a non-empty string and equal to PodName if
+	// the pod should be deleted.
+	ScheduledForDeletion string
+	LastUpdated          time.Time
+	Battery              int                // Charge as an integer percent, e.g. 50% = 50.
+	Temperature          map[string]float64 // In Celsius.
+	RunningSwarmingTask  bool
 }
 
 // NewDescription returns a new Description instance.
