@@ -115,9 +115,11 @@ func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *baseapp.Local {
 		s.loadTemplates()
 	}
-	if err := s.templates.ExecuteTemplate(w, "index.html", map[string]string{
+	descriptions, err := s.store.List(r.Context())
+	if err := s.templates.ExecuteTemplate(w, "index.html", map[string]interface{}{
 		// Look in webpack.config.js for where the nonce templates are injected.
-		"Nonce": secure.CSPNonce(r.Context()),
+		"Descriptions": descriptions,
+		"Nonce":        secure.CSPNonce(r.Context()),
 	}); err != nil {
 		sklog.Errorf("Failed to expand template: %s", err)
 	}
@@ -125,7 +127,6 @@ func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) machinesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	descriptions, err := s.store.List(r.Context())
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to read from datastore", http.StatusInternalServerError)
 		return
