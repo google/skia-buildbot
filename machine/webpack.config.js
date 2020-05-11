@@ -1,4 +1,5 @@
 const commonBuilder = require('pulito');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackInjectAttributesPlugin = require('html-webpack-inject-attributes-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { resolve } = require('path');
@@ -13,6 +14,14 @@ module.exports = (env, argv) => {
       c.options.minify = false;
     }
   });
+
+  config.plugins.push(
+    new CopyWebpackPlugin([
+      {
+        from: resolve(__dirname, 'templates', '*.tmpl'),
+      },
+    ]),
+  );
 
   config.plugins.push(
     new HtmlWebpackInjectAttributesPlugin({
