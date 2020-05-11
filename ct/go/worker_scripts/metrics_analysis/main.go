@@ -238,11 +238,11 @@ func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrac
 // downloadTrace downloads the traceURL from google storage into the specified
 // destDir.
 func downloadTrace(traceURL, destDir string, gs *util.GcsUtil) (string, error) {
-	traceName := getTraceName(traceURL)
+	tracePath := getTracePath(traceURL)
 	traceBucket := getBucketName(traceURL)
-	traceDest := filepath.Join(destDir, traceName)
-	if err := gs.DownloadRemoteFileFromBucket(traceBucket, traceName, traceDest); err != nil {
-		return "", fmt.Errorf("Error downloading %s from %s to %s: %s", traceName, traceBucket, traceDest, err)
+	traceDest := filepath.Join(destDir, tracePath)
+	if err := gs.DownloadRemoteFileFromBucket(traceBucket, tracePath, traceDest); err != nil {
+		return "", fmt.Errorf("Error downloading %s from %s to %s: %s", tracePath, traceBucket, traceDest, err)
 	}
 	return traceDest, nil
 }
@@ -260,9 +260,16 @@ func getBucketName(traceURL string) string {
 }
 
 // getTraceName parses the provided traceURI and returns the name of the trace.
-// traceURI could be a file path or a URL.
+// traceURI could be a file path (with file://) or a URL.
 func getTraceName(traceURI string) string {
 	traceTokens := strings.Split(traceURI, "/")
+	return traceTokens[len(traceTokens)-1]
+}
+
+// getTracePath parses the provided traceURI and returns the path of the trace.
+// traceURI could be a file path (with file://) or a URL.
+func getTracePath(traceURI string) string {
+	traceTokens := strings.Split(traceURI, "://")
 	return traceTokens[len(traceTokens)-1]
 }
 
