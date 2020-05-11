@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "de71b0b5_b5bc9c28",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1083,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-11T19:11:39Z",
+      "side": 1,
+      "message": "Looks like this needs to be updated.",
+      "range": {
+        "startLine": 1083,
+        "startChar": 3,
+        "endLine": 1083,
+        "endChar": 41
+      },
+      "revId": "2ec71bb13b05290701ab31e425bc484ae530f93e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
