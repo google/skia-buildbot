@@ -22,6 +22,30 @@
       "revId": "6a832d2fd9db9f3080109f66dc9bba4218c450be",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71407091_d1530239",
+        "filename": "sk8s/images/podwatcher/Dockerfile",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-11T19:17:43Z",
+      "side": 1,
+      "message": "Not required for running, only to make debugging a little nicer.",
+      "parentUuid": "8dcd7ed8_ffde589f",
+      "range": {
+        "startLine": 5,
+        "startChar": 18,
+        "endLine": 5,
+        "endChar": 41
+      },
+      "revId": "6a832d2fd9db9f3080109f66dc9bba4218c450be",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
