@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "41d0c584_ac7344eb",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-11T13:51:19Z",
+      "side": 1,
+      "message": "One thing I observe in this cl is a lot of \"...delete... (delete means the pod will get updated\". That is, we say \"delete\" and then need to clarify that it really means update.\n\nI wonder if the fact that we delete the pod is an implementation detail that we should abstract away. e.g. \nScheduledForDeletion \u003d\u003e \"SoftwareUpdateScheduled\", \nstore.WatchForDeletablePods \u003d\u003e store.WatchForUpdateRequests / WatchForPodsToUpdate\n\nKeep go/podwatcher/deleter unchanged, but upstack of that, what do you think about just calling it \"update\"?",
+      "range": {
+        "startLine": 53,
+        "startChar": 1,
+        "endLine": 53,
+        "endChar": 21
+      },
+      "revId": "ab5f67d437df86d08f9b73ff3726166c717e0218",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08d1ac1d_53d60ce9",
+        "filename": "machine/go/machine/store/impl.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-11T13:51:19Z",
+      "side": 1,
+      "message": "copypasta",
+      "range": {
+        "startLine": 65,
+        "startChar": 4,
+        "endLine": 65,
+        "endChar": 15
+      },
+      "revId": "ab5f67d437df86d08f9b73ff3726166c717e0218",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa38a28e_a65b1c68",
+        "filename": "sk8s/go/podwatcher/main.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-11T13:51:19Z",
+      "side": 1,
+      "message": "Add a continue here, or you will increment your success metrics also. (maybe add a test for this?)",
+      "revId": "ab5f67d437df86d08f9b73ff3726166c717e0218",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
