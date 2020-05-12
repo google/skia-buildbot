@@ -29,13 +29,13 @@ describe('demo-list-sk', () => {
 
   it('shows a single entry', async () => {
     const demolist = await loadDemolist(singleDemoEntry);
-    expect($('th', demolist).length).to.equal(2);
-    expect($('td', demolist).length).to.equal(2);
+    expect($('th', demolist).length).to.equal(1);
+    expect($('td', demolist).length).to.equal(1);
   });
 
   it('shows a multiple entries', async () => {
     const demolist = await loadDemolist(twoDemoEntries);
-    expect($('th', demolist).length).to.equal(2);
-    expect($('td', demolist).length).to.equal(4);
+    expect($('th', demolist).length).to.equal(1);
+    expect($('td', demolist).length).to.equal(2);
   });
 });
