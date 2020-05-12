@@ -58,18 +58,7 @@
       }
 
       .searchPageWrapper {
-        padding-left: 1em;
-        padding-top: 1em;
-        margin-left:1em;
-        margin-right: 3em;
-      }
-
-      #triggerSearchButton {
-        font-size: 18px;
-      }
-
-      .helpIconContainer {
-        padding-left: 3em;
+        padding: 5px;
       }
 
       paper-button {
@@ -80,7 +69,6 @@
 
       .actionMenu {
         max-width: 10em;
-        margin-left: 10em;
       }
 
       .actionButton {
@@ -109,15 +97,16 @@
       .searchStats {
         padding-bottom: 1em;
       }
+
+      #searchControls {
+        max-width: 100%;
+      }
     </style>
 
     <div class="searchPageWrapper layout vertical">
       <activity-sk id="activityBar" busy="{{_hideAll}}"></activity-sk>
       <div class="layout horizontal">
           <search-controls-sk id="searchControls" beta></search-controls-sk>
-          <div>
-            <paper-button id="triggerSearchButton" raised disabled="[[_hideAll]]">Search</paper-button>
-          </div>
 
           <paper-menu-button close-on-activate no-animations class="actionMenu">
             <paper-button class="dropdown-trigger actionButton" raised>Actions</paper-button>
@@ -215,7 +204,6 @@
           this._state.patchsets = e.detail.ps_order;
           this._redirectToState(this._state);
         });
-        this.listen(this.$.triggerSearchButton, 'tap', '_handleSearchButton');
         this.listen(this.$.actionTestView, 'tap', '_handleSwitchToByTest');
         this.listen(this.$.actionBulkTriage, 'tap', '_handleBulkButton');
         this.$.triageControls.addEventListener('change', (e) => {
@@ -254,11 +242,6 @@
 
       _enableDigestListKeybindings: function() {
         this.$.detailList.startUse();
-      },
-
-      _handleSearchButton: function(ev) {
-        // Reload the page with the current state of the controls.
-        this._redirectToState(this.$.searchControls.state);
       },
 
       _handleStateChange: function(ev) {
