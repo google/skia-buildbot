@@ -1,4 +1,4 @@
-import './index.js';
+import './index';
 import fetchMock from 'fetch-mock';
 
 fetchMock.config.overwriteRoutes = false;
@@ -160,6 +160,69 @@ describe('machine-server-sk', () => {
 
       // Confirm the button text has been updated.
       assert.equal('Waiting for update.', s.querySelector('button.update').textContent);
+    }));
+  });
+
+  describe('toggles refresh mode on click', () => {
+    fetchMock.get('/_/machines', [
+      {
+        Mode: 'available',
+        Battery: 100,
+        PodName: 'rpi-swarming-123456-987',
+        ScheduledForDeletion: '',
+        Dimensions: {
+          id: ['skia-rpi2-rack4-shelf1-002'],
+          android_devices: ['1'],
+          device_os: ['H', 'HUAWEIELE-L29'],
+        },
+        Annotation: {
+          User: '',
+          Message: '',
+          LastUpdated: '2020-04-21T17:33:09.638275Z',
+        },
+        LastUpdated: '2020-04-21T17:33:09.638275Z',
+        Temperature: { dumpsys_battery: 26 },
+      }]);
+
+    it('starts requesting updates when you click on the refresh button', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
+      container.innerHTML = '<machine-server-sk></machine-server-sk>';
+      const s = container.firstElementChild;
+
+      // Wait for the initial fetch to finish.
+      await fetchMock.flush(true);
+
+      // Now set up fetchMock for the requests that happen when the button is clicked.
+      fetchMock.reset();
+      fetchMock.get('/_/machines', [
+        {
+          Mode: 'maintenance',
+          Battery: 100,
+          PodName: 'rpi-swarming-123456-987',
+          ScheduledForDeletion: 'rpi-swarming-123456-987',
+          Dimensions: {
+            id: ['skia-rpi2-rack4-shelf1-002'],
+            android_devices: ['1'],
+            device_os: ['H', 'HUAWEIELE-L29'],
+          },
+          Annotation: {
+            User: '',
+            Message: '',
+            LastUpdated: '2020-04-21T17:33:09.638275Z',
+          },
+          LastUpdated: '2020-04-21T17:33:09.638275Z',
+          Temperature: { dumpsys_battery: 26 },
+        }]);
+
+      // Click the button.
+      s.querySelector('#refresh').click();
+
+      // Wait for all requests to finish.
+      await fetchMock.flush(true);
+
+      // Confirm that setTimeout is in progress.
+      assert.notEqual(0, s._timeout);
+      // Confirm we are displaying the right icon.
+      assert.isNotNull(s.querySelector('pause-icon-sk'));
     }));
   });
 });
