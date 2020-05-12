@@ -13,23 +13,28 @@ describe('edit-ignore-rule-sk', () => {
 
   it('should render the demo page', async () => {
     // Smoke test.
-    expect(await testBed.page.$$('edit-ignore-rule-sk')).to.have.length(3);
+    expect(await testBed.page.$$('edit-ignore-rule-sk')).to.have.length(4);
   });
 
   describe('screenshots', () => {
-    it('a view with nothing selected', async () => {
+    it('is a view with nothing selected', async () => {
       const editor = await testBed.page.$('#empty');
       await takeScreenshot(editor, 'gold', 'edit-ignore-rule-sk');
     });
 
-    it('All inputs filled out', async () => {
+    it('has all inputs filled out', async () => {
       const editor = await testBed.page.$('#filled');
       await takeScreenshot(editor, 'gold', 'edit-ignore-rule-sk_with-data');
     });
 
-    it('invalid inputs', async () => {
+    it('shows an error when missing data', async () => {
       const editor = await testBed.page.$('#missing');
       await takeScreenshot(editor, 'gold', 'edit-ignore-rule-sk_missing-data');
+    });
+
+    it('shows an error when one or more of custom key/value is not filled out', async () => {
+      const editor = await testBed.page.$('#partial_custom_values');
+      await takeScreenshot(editor, 'gold', 'edit-ignore-rule-sk_missing-custom-value');
     });
   });
 });
