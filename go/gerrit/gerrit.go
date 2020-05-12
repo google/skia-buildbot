@@ -109,28 +109,32 @@ var (
 
 // ChangeInfo contains information about a Gerrit issue.
 type ChangeInfo struct {
-	Id              string                 `json:"id"`
-	Insertions      int                    `json:"insertions"`
-	Deletions       int                    `json:"deletions"`
-	Created         time.Time              `json:"-"`
-	CreatedString   string                 `json:"created"`
-	Updated         time.Time              `json:"-"`
-	UpdatedString   string                 `json:"updated"`
-	Submitted       time.Time              `json:"-"`
-	SubmittedString string                 `json:"submitted"`
-	Project         string                 `json:"project"`
-	ChangeId        string                 `json:"change_id"`
-	Subject         string                 `json:"subject"`
-	Branch          string                 `json:"branch"`
-	Committed       bool                   `json:"committed"`
-	Revisions       map[string]*Revision   `json:"revisions"`
-	Patchsets       []*Revision            `json:"-"`
-	MoreChanges     bool                   `json:"_more_changes"`
-	Issue           int64                  `json:"_number"`
-	Labels          map[string]*LabelEntry `json:"labels"`
-	Owner           *Owner                 `json:"owner"`
-	Status          string                 `json:"status"`
-	WorkInProgress  bool                   `json:"work_in_progress"`
+	Id              string    `json:"id"`
+	Insertions      int       `json:"insertions"`
+	Deletions       int       `json:"deletions"`
+	Created         time.Time `json:"-"`
+	CreatedString   string    `json:"created"`
+	Updated         time.Time `json:"-"`
+	UpdatedString   string    `json:"updated"`
+	Submitted       time.Time `json:"-"`
+	SubmittedString string    `json:"submitted"`
+	Project         string    `json:"project"`
+	ChangeId        string    `json:"change_id"`
+	Subject         string    `json:"subject"`
+	Branch          string    `json:"branch"`
+	Committed       bool      `json:"committed"`
+	Reviewers       struct {
+		CC       []*Person `json:"CC"`
+		Reviewer []*Person `json:"REVIEWER"`
+	} `json:"reviewers"`
+	Revisions      map[string]*Revision   `json:"revisions"`
+	Patchsets      []*Revision            `json:"-"`
+	MoreChanges    bool                   `json:"_more_changes"`
+	Issue          int64                  `json:"_number"`
+	Labels         map[string]*LabelEntry `json:"labels"`
+	Owner          *Person                `json:"owner"`
+	Status         string                 `json:"status"`
+	WorkInProgress bool                   `json:"work_in_progress"`
 }
 
 // Find the set of non-trivial patchsets. Returns the Revisions in order of
@@ -185,9 +189,11 @@ func (ci *ChangeInfo) IsMerged() bool {
 	return ci.Status == CHANGE_STATUS_MERGED
 }
 
-// Owner gathers the owner information of a ChangeInfo instance. Some fields omitted.
-type Owner struct {
-	Email string `json:"email"`
+// Person describes a person in Gerrit.
+type Person struct {
+	AccountID int    `json:"_account_id"`
+	Email     string `json:"email"`
+	Name      string `json:"name"`
 }
 
 type LabelEntry struct {
@@ -489,6 +495,8 @@ func (g *Gerrit) GetPatch(ctx context.Context, issue int64, revision string) (st
 type CommitInfo struct {
 	Commit  string        `json:"commit"`
 	Parents []*CommitInfo `json:"parents"`
+	Subject string        `json:"subject"`
+	Message string        `json:"message"`
 }
 
 // GetCommit retrieves the commit that corresponds to the patch identified by issue and revision.
