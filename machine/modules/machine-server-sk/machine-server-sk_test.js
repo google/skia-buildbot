@@ -1,4 +1,4 @@
-import './index.js';
+import './index';
 import fetchMock from 'fetch-mock';
 
 fetchMock.config.overwriteRoutes = false;

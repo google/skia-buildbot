@@ -12,6 +12,10 @@ import { errorMessage } from 'elements-sk/errorMessage';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/error-toast-sk';
+import 'elements-sk/icon/play-arrow-icon-sk';
+import 'elements-sk/icon/pause-icon-sk';
+
+const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
 
 const temps = (temperatures) => {
   if (!temperatures) {
@@ -75,9 +79,17 @@ const rows = (ele) => ele._machines.map((machine) => html`
 </tr>
 `);
 
+const refreshButtonDisplayValue = (ele) => {
+  if (ele.refreshing) {
+    return html`<pause-icon-sk></pause-icon-sk>`;
+  }
+  return html`<play-arrow-icon-sk></play-arrow-icon-sk>`;
+};
+
 const template = (ele) => html`
 <header>
   <h1>Machines</h1>
+  <button @click=${() => ele._toggleRefresh()}>${refreshButtonDisplayValue(ele)}</button>
 </header>
 <main>
   <table>
@@ -110,7 +122,7 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
-    this._update();
+    this._refreshStep();
   }
 
   _onError(msg) {
@@ -118,20 +130,29 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
     errorMessage(msg);
   }
 
-  _update() {
-    this.setAttribute('waiting', '');
-    this._machines = fetch('/_/machines').then(jsonOrThrow).then((json) => {
-      this.removeAttribute('waiting');
+  async _update(changeCursor = false) {
+    if (changeCursor) {
+      this.setAttribute('waiting', '');
+    }
+
+    try {
+      const resp = await fetch('/_/machines');
+      const json = await jsonOrThrow(resp);
+      if (changeCursor) {
+        this.removeAttribute('waiting');
+      }
       this._machines = json;
       this._render();
-    }).catch((msg) => this._onError(msg));
+    } catch (error) {
+      this._onError(error);
+    }
   }
 
   _toggleMode(id) {
     this.setAttribute('waiting', '');
     this._machines = fetch(`/_/machine/toggle_mode/${id}`).then(() => {
       this.removeAttribute('waiting');
-      this._update();
+      this._update(true);
     }).catch((msg) => this._onError(msg));
   }
 
@@ -139,8 +160,25 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
     this.setAttribute('waiting', '');
     this._machines = fetch(`/_/machine/toggle_update/${id}`).then(() => {
       this.removeAttribute('waiting');
-      this._update();
+      this._update(true);
     }).catch((msg) => this._onError(msg));
+  }
+
+  async _refreshStep() {
+    await this._update();
+    if (this.refreshing) {
+      window.setTimeout(() => this._refreshStep(), 2000);
+    }
+  }
+
+  /** @prop refreshing {bool} True if the data on the page is periodically refreshed. */
+  get refreshing() { return window.localStorage.getItem(REFRESH_LOCALSTORAGE_KEY) === 'true'; }
+
+  set refreshing(val) { window.localStorage.setItem(REFRESH_LOCALSTORAGE_KEY, !!val); }
+
+  _toggleRefresh() {
+    this.refreshing = !this.refreshing;
+    this._refreshStep();
   }
 
   disconnectedCallback() {
