@@ -116,13 +116,15 @@
               </div>
             </div>
 
+            <!--These are disabled in https://skia-review.googlesource.com/c/buildbot/+/289247 in
+            an effort to remove unneeded features. If they are missed, they will be added back in.
+
             <div class="filterItem">
               Commit Range:
               <commit-picker-sk id="startCommitPicker" repo="[[_repo]]" origin></commit-picker-sk>
               <commit-picker-sk id="endCommitPicker" repo="[[_repo]]" origin></commit-picker-sk>
             </div>
 
-            <!-- group by test -->
             <div class="filterItem">
               <span class="selectLabel">Group By Test:</span>
               <paper-dropdown-menu class="groupTestSelect" no-label-float>
@@ -134,6 +136,7 @@
                 </paper-listbox>
               </paper-dropdown-menu>
             </div>
+          -->
 
             <!-- min RGBA delta  -->
             <div class="filterItem">
@@ -153,7 +156,7 @@
               <paper-slider value="{{_curr.fdiffmax}}" min="-1" max="1" step="0.05" editable></paper-slider>
             </div>
 
-            <!-- match -->
+            <!-- match
             <div class="filterItem horizontal layout justified">
                 <div>
                   <div class="selectLabel">Fields Must Match:</div>
@@ -162,8 +165,7 @@
                   </template>
                 </div>
                 <select-popup-sk id="paramsSelect" icon="icons:create"></select-popup-sk>
-                <!--<select-popup-sk id="paramsSelect"></select-popup-sk>-->
-            </div>
+            </div>-->
 
             <!-- metric -->
             <div class="filterItem layout horizontal">
@@ -233,14 +235,14 @@
 
         ready: function() {
           this.listen(this.$.editButton, 'tap', '_handleEditButton');
-          this.listen(this.$.paramsSelect, 'changed-selection', '_handleMatchChanged');
+          //this.listen(this.$.paramsSelect, 'changed-selection', '_handleMatchChanged');
           this.listen(this.$.rightQueryButton, 'tap', '_handleRightQueryButton');
           this.listen(this.$.rightQueryDialog, 'edit', '_handleRightQueryEdit');
           this.set('_metrics', gold.allMetrics.slice());
           this.set('_groupTests', gold.groupTestOps.slice());
           this.set('_sortOptions', gold.sortOptions.slice());
-          this.listen(this.$.startCommitPicker, 'commit-selected', '_handleCommitSelected');
-          this.listen(this.$.endCommitPicker, 'commit-selected', '_handleCommitSelected');
+          //this.listen(this.$.startCommitPicker, 'commit-selected', '_handleCommitSelected');
+          //this.listen(this.$.endCommitPicker, 'commit-selected', '_handleCommitSelected');
         },
 
         _handleCommitSelected: function(ev) {
@@ -257,7 +259,7 @@
 
         open: function() {
           this.set('_curr', sk.object.shallowCopy(this._value));
-          this.$.paramsSelect.setSelection(this._curr.match);
+          //this.$.paramsSelect.setSelection(this._curr.match);
           this.$.filterDialog.open();
         },
 
@@ -267,7 +269,7 @@
 
         setParamSet: function(params) {
           this.$.rightQueryDialog.queryEle.setParamSet(params);
-          this.$.paramsSelect.setParamSet(params);
+          //this.$.paramsSelect.setParamSet(params);
         },
 
         setValue: function(newVal) {
@@ -283,9 +285,9 @@
               }
             }
           }
-          this._setCommitPicker(this.$.startCommitPicker, newVal.fbegin);
-          this._setCommitPicker(this.$.endCommitPicker, newVal.fend);
-          this.$.paramsSelect.setSelection(value.match);
+          //this._setCommitPicker(this.$.startCommitPicker, newVal.fbegin);
+          //this._setCommitPicker(this.$.endCommitPicker, newVal.fend);
+          //this.$.paramsSelect.setSelection(value.match);
           this._value = value;
         },
 
@@ -295,8 +297,8 @@
 
         setCommitInfo: function(commits) {
           this._commits = commits;
-          this.$.startCommitPicker.setCommitInfo(commits);
-          this.$.endCommitPicker.setCommitInfo(commits);
+          //this.$.startCommitPicker.setCommitInfo(commits);
+          //this.$.endCommitPicker.setCommitInfo(commits);
         },
 
         _handleEditButton: function(ev) {
