@@ -31,7 +31,18 @@ const template = (ele) => html`
   <query-sk .paramset=${ele.paramset} .current_query=${ele.query} hide_invert hide_regex
     @query-change=${ele._queryChanged}></query-sk>
 
-   <div class=error ?hidden=${!ele._errMsg}>${ele._errMsg}</div>
+  <div>
+    <input class=custom_key placeholder="specify a key">
+    <input class=custom_value placeholder="specify a value">
+    <button class=add_custom @click=${ele._addCustomParam}
+      title="Add a custom key/value pair to ignore. For example, if adding a new test/corpus and you
+        want to avoid spurious comments about untriaged digests, use this to add a rule before the
+        CL lands.">
+      Add Custom Param
+     </button>
+  </div>
+
+  <div class=error ?hidden=${!ele._errMsg}>${ele._errMsg}</div>
 `;
 
 
@@ -104,6 +115,32 @@ define('edit-ignore-rule-sk', class extends ElementSk {
 
   set note(n) {
     this._note = n;
+    this._render();
+  }
+
+  _addCustomParam() {
+    const keyInput = $$('input.custom_key', this);
+    const valueInput = $$('input.custom_value', this);
+
+    const key = keyInput.value;
+    const value = valueInput.value;
+    if (!key || !value) {
+      this._errMsg = 'Must specify both a key and a value';
+      this._render();
+      return;
+    }
+    // Push the key/value to the _paramset so the query-sk can treat it like a normal value.
+    const values = this._paramset[key] || [];
+    values.push(value);
+    this._paramset[key] = values;
+    this._errMsg = '';
+    // Add the selection to the query so it shows up for the user.
+    const newParam = `${key}=${value}`;
+    if (this._query) {
+      this._query += `&${newParam}`;
+    } else {
+      this._query = newParam;
+    }
     this._render();
   }
 

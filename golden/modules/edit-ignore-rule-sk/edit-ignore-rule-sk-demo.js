@@ -21,3 +21,7 @@ newEditIgnoreRule('#filled',
 $$('#filled query-sk .selection div:nth-child(1)').click();
 newEditIgnoreRule('#missing');
 $$('#missing edit-ignore-rule-sk').verifyFields();
+
+newEditIgnoreRule('#partial_custom_values');
+$$('#partial_custom_values input.custom_key').value = 'oops';
+$$('#partial_custom_values button.add_custom').click();

@@ -58,6 +58,25 @@ describe('edit-ignore-rule-sk', () => {
       editIgnoreRuleSk.expires = 'invalid date';
       expect(editIgnoreRuleSk.expires).to.equal('');
     });
+
+    it('can add a custom key and value', () => {
+      editIgnoreRuleSk.query = 'arch=arm64';
+
+      // Add a new value to an existing param
+      getCustomKeyInput(editIgnoreRuleSk).value = 'arch';
+      getCustomValueInput(editIgnoreRuleSk).value = 'y75';
+      clickAddCustomParam(editIgnoreRuleSk);
+
+      // add a brand new key and value
+      getCustomKeyInput(editIgnoreRuleSk).value = 'custom';
+      getCustomValueInput(editIgnoreRuleSk).value = 'value';
+      clickAddCustomParam(editIgnoreRuleSk);
+
+      expect(editIgnoreRuleSk.query).to.equal('arch=arm64&arch=y75&custom=value');
+      // ParamSet should be mutated to have the new values
+      expect(editIgnoreRuleSk.paramset.arch).to.deep.equal(['arm', 'arm64', 'x86', 'x86_64', 'y75']);
+      expect(editIgnoreRuleSk.paramset.custom).to.deep.equal(['value']);
+    });
   });
 
   describe('validation', () => {
@@ -92,6 +111,31 @@ describe('edit-ignore-rule-sk', () => {
       expect(editIgnoreRuleSk.verifyFields()).to.be.true;
       expect(getErrorMessage(editIgnoreRuleSk).hasAttribute('hidden')).to.be.true;
     });
+
+    it('requires both a custom key and value', () => {
+      expect(editIgnoreRuleSk.query).to.equal('');
+
+      getCustomKeyInput(editIgnoreRuleSk).value = '';
+      getCustomValueInput(editIgnoreRuleSk).value = '';
+      clickAddCustomParam(editIgnoreRuleSk);
+
+      expect(editIgnoreRuleSk._errMsg).to.contain('both a key and a value');
+      expect(editIgnoreRuleSk.query).to.equal('');
+
+      getCustomKeyInput(editIgnoreRuleSk).value = 'custom';
+      getCustomValueInput(editIgnoreRuleSk).value = '';
+      clickAddCustomParam(editIgnoreRuleSk);
+
+      expect(editIgnoreRuleSk._errMsg).to.contain('both a key and a value');
+      expect(editIgnoreRuleSk.query).to.equal('');
+
+      getCustomKeyInput(editIgnoreRuleSk).value = '';
+      getCustomValueInput(editIgnoreRuleSk).value = 'value';
+      clickAddCustomParam(editIgnoreRuleSk);
+
+      expect(editIgnoreRuleSk._errMsg).to.contain('both a key and a value');
+      expect(editIgnoreRuleSk.query).to.equal('');
+    });
   });
 });
 
@@ -99,8 +143,14 @@ const getExpiresInput = (ele) => $$('#expires', ele);
 
 const getNoteInput = (ele) => $$('#note', ele);
 
+const getCustomKeyInput = (ele) => $$('input.custom_key', ele);
+
+const getCustomValueInput = (ele) => $$('input.custom_value', ele);
+
 const getErrorMessage = (ele) => $$('.error', ele);
 
 const getFirstQuerySkKey = (ele) => $$('query-sk .selection div:nth-child(1)', ele);
 
 const getFirstQuerySkValue = (ele) => $$('query-sk #values div:nth-child(1)', ele);
+
+const clickAddCustomParam = (ele) => $$('button.add_custom', ele).click();
