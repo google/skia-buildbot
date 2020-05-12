@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a1b6fb3e_fb671ee2",
+        "filename": "machine/modules/machine-server-sk/machine-server-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-12T12:59:46Z",
+      "side": 1,
+      "message": "nit: format this like\n  \u003ctd\u003e\n    \u003cbutton ...\u003e\n      ${update(machine)}\n    \u003c/button\u003e\n   \u003c/td\u003e\n\nI find that a little easier to read instead of multiple ${} on a line.",
+      "range": {
+        "startLine": 65,
+        "startChar": 7,
+        "endLine": 65,
+        "endChar": 13
+      },
+      "revId": "6174437da8d82506bcac2c928cca2e3fb120aa0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a2a4dfa2_75de25ac",
+        "filename": "machine/modules/machine-server-sk/machine-server-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-12T12:59:46Z",
+      "side": 1,
+      "message": "It might not matter, but if there are multiple outstanding requests for updating, the first one to return will remove the waiting attribute and make it appear like everything is done too early.\n\nIn gold, we have a counter that counts up when a request goes out and counts down when they finish (a la WaitGroup), but, it may not matter in practice here.",
+      "range": {
+        "startLine": 141,
+        "startChar": 11,
+        "endLine": 141,
+        "endChar": 26
+      },
+      "revId": "6174437da8d82506bcac2c928cca2e3fb120aa0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92e876bc_d8e5cde8",
+        "filename": "machine/modules/machine-server-sk/machine-server-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-12T12:59:46Z",
+      "side": 1,
+      "message": "Do you also want to add a fetch mock entry to the demo page for machine-server-sk?",
+      "range": {
+        "startLine": 105,
+        "startChar": 4,
+        "endLine": 105,
+        "endChar": 32
+      },
+      "revId": "6174437da8d82506bcac2c928cca2e3fb120aa0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6c48431_aef1aff9",
+        "filename": "machine/modules/machine-server-sk/machine-server-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-12T12:59:46Z",
+      "side": 1,
+      "message": "Leandro devised a clever way to clean up some of this boilerplate by adding a helper. I would recommend a similar approach here as well (this can be done during a general phase of cleanup if you prefer)\n\nSee https://github.com/google/skia-buildbot/blob/master/golden/modules/ignores-page-sk/ignores-page-sk_test.js#L18 and https://github.com/google/skia-buildbot/blob/abf69c2d68d7c1c7248963b7a56197148bf9313c/golden/modules/test_util.js#L44",
+      "range": {
+        "startLine": 125,
+        "startChar": 84,
+        "endLine": 125,
+        "endChar": 98
+      },
+      "revId": "6174437da8d82506bcac2c928cca2e3fb120aa0c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
