@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "4f275aa0_6f59e5a2",
+        "filename": "autoroll/config/binaryen-emscripten-releases.json",
+        "patchSetId": 12
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-12T19:12:33Z",
+      "side": 1,
+      "message": "Good idea, done.",
+      "parentUuid": "a2e36862_e46deb64",
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "369dde9c_d166a17c",
         "filename": "autoroll/config/chromite-chromium.json",
         "patchSetId": 12
@@ -30,6 +48,30 @@
       "writtenOn": "2020-05-11T15:04:03Z",
       "side": 1,
       "message": "It was a little strange to see childName used here and at the top-level.\nMight be more clearer by calling this childDisplayName (or something better), if not specified then it will use childName from top-level. Up to you if we also want a parentDisplayName with similar logic. I can see it being useful to also be able to specify that.",
+      "range": {
+        "startLine": 6,
+        "startChar": 5,
+        "endLine": 6,
+        "endChar": 14
+      },
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b65712b_e820127e",
+        "filename": "autoroll/config/chromite-chromium.json",
+        "patchSetId": 12
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-12T19:12:33Z",
+      "side": 1,
+      "message": "So these are both display names, the top-level one controls what\u0027s displayed on the server UI and in notifications, and this one controls what shows up in commit messages.  If I were writing this from scratch, they would be the same thing, but I didn\u0027t want to change the commit message too much, especially the subject line.  Currently we use the childPath from the RepoManager for this (which is nonsensical for some rollers, hence the change).  Not sure how many people (if any) would complain if we just switched to using the top-level childName, eg. \"Roll Chromite from A to B\".  I guess I could poll the (now very large) list of clients.\n\nI don\u0027t feel strongly about the name of the field, but calling it \"childDisplayName\" to differentiate from \"childName\", which is also a display name, seems confusing too.  Changing the top-level one to \"childDisplayName\" and this one to \"childDisplayNameForCommitMessage\" would be clear but way too verbose.  I think I felt okay about calling them the same thing because I thought that \"childName\" under \"commitMsg\" implied that this was the display name for commit messages only, whereas \"childName\" at the top level is for everything else.  I dunno.  I\u0027m open to suggestions.",
+      "parentUuid": "369dde9c_d166a17c",
       "range": {
         "startLine": 6,
         "startChar": 5,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "51f54b10_4d4ce2df",
+        "filename": "autoroll/go/autoroll-be/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-12T19:12:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "24108d3c_34a299d4",
+      "range": {
+        "startLine": 222,
+        "startChar": 23,
+        "endLine": 222,
+        "endChar": 31
+      },
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "11aec87d_cb4d130b",
         "filename": "autoroll/go/commit_msg/afdo.go",
         "patchSetId": 12
@@ -82,6 +148,24 @@
     },
     {
       "key": {
+        "uuid": "96cb70f7_2eef039f",
+        "filename": "autoroll/go/commit_msg/afdo.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-12T19:12:33Z",
+      "side": 1,
+      "message": "Yes, they had their own template which was only needed because they wanted the childName instead of the childPath and \"from A to B\" instead of \"A..B\".  I guess we could add a CustomText section to the default template which would  prevent us from needing this one.  This is now so small that I\u0027m strongly considering just moving into the config file for the single roller which uses this.",
+      "parentUuid": "11aec87d_cb4d130b",
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "62339ddb_fbb4cf9c",
         "filename": "autoroll/go/commit_msg/afdo_test.go",
         "patchSetId": 12
@@ -96,6 +180,24 @@
       "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "973e5511_f0b477cc",
+        "filename": "autoroll/go/commit_msg/afdo_test.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-12T19:12:33Z",
+      "side": 1,
+      "message": "Sure, done. I had disabled these things because the actual roller doesn\u0027t use them.",
+      "parentUuid": "62339ddb_fbb4cf9c",
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -146,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "444f1aa1_2cfa0920",
+        "filename": "autoroll/go/commit_msg/cmd/mock-commit-msg/main.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-12T19:12:33Z",
+      "side": 1,
+      "message": "I did find it useful this morning when writing a new roller config file.  It was nice to see a mockup of what the commit message would look like.  I\u0027ll see if I can either fix the github part (I didn\u0027t spend long on it) or just remove the comparison with real commit message part.  It would have been really nice when reviewing this CL to see the diffs for every roller.",
+      "parentUuid": "9265c16f_810f87ed",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0f5bbf31_a4e2f976",
         "filename": "autoroll/go/commit_msg/commit_msg.go",
         "patchSetId": 12
@@ -157,6 +283,30 @@
       "writtenOn": "2020-05-11T15:04:03Z",
       "side": 1,
       "message": "Should this be called defaultCommitMsgInfoText ? or is this intended to never be different? in theory could have a commit_msg/xyz.go that never uses it.",
+      "range": {
+        "startLine": 18,
+        "startChar": 1,
+        "endLine": 18,
+        "endChar": 18
+      },
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29f9ab56_bf64726c",
+        "filename": "autoroll/go/commit_msg/commit_msg.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-12T19:12:33Z",
+      "side": 1,
+      "message": "I renamed it to \"boilerplate\".  It\u0027s intended to be used verbatim in every commit message.  I started looking into how to do this cleanly, and I ended up completely changing how this package works with templates.  Now, there\u0027s a top-level \"skeleton\" template which outlines the different sections.  Each of the sections has a default definition but can be overridden.  When we build the commit message, we always execute the \"commitMsg\" template.  Other templates just override the individual sections that they want to change, though they can always override the \"commitMsg\" template itself for a completely custom message.  This results in the non-default templates being much smaller, with much better code reuse.",
+      "parentUuid": "0f5bbf31_a4e2f976",
       "range": {
         "startLine": 18,
         "startChar": 1,
@@ -186,6 +336,24 @@
     },
     {
       "key": {
+        "uuid": "ba163490_294b5e76",
+        "filename": "autoroll/go/commit_msg/commit_msg.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-12T19:12:33Z",
+      "side": 1,
+      "message": "As of the most recent patch set, I\u0027ve renamed this to \"template\u0027.  If it\u0027s not specified, we use the default.  If it matches one of the built in templates, we use that one.  Otherwise, we parse it as its own template.",
+      "parentUuid": "d84dd967_7230b688",
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "73075daf_aca33b69",
         "filename": "autoroll/go/commit_msg/commit_msg.go",
         "patchSetId": 12
@@ -203,6 +371,24 @@
     },
     {
       "key": {
+        "uuid": "c17496ae_64193acf",
+        "filename": "autoroll/go/commit_msg/commit_msg.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-12T19:12:33Z",
+      "side": 1,
+      "message": "Sure, removed it.  I\u0027m not sure what we\u0027ll do in the future if we need something like this.  For a similar scenario, we could add sanitizers to the config, basically regex find and replace.  But that may not necessarily cover all cases, for example we might have a github roller which creates a commit for each revision in the roll, and we may therefore need to run the sanitizer over the individual revisions as well.  Hard to say.  For now I\u0027m inclined to just hope it doesn\u0027t come up, and determine the best approach if it does.",
+      "parentUuid": "73075daf_aca33b69",
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "21e96ba4_f1a007ef",
         "filename": "autoroll/go/repo_manager/common/version_file_common/version_file_common.go",
         "patchSetId": 12
@@ -214,6 +400,24 @@
       "writtenOn": "2020-05-11T15:04:03Z",
       "side": 1,
       "message": "Could you describe how this is related to the commit msg refactoring?",
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f2413be0_abea9f5b",
+        "filename": "autoroll/go/repo_manager/common/version_file_common/version_file_common.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-12T19:12:33Z",
+      "side": 1,
+      "message": "I guess it wasn\u0027t strictly required for this refactor, but since this is now used by both the repo_manager and commit_msg packages it seemed nicer to move it into the common package.  Plus, it seems more closely related to the things in this package than repo_manager.",
+      "parentUuid": "21e96ba4_f1a007ef",
       "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
