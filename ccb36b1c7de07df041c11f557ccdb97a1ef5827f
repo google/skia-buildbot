@@ -22,6 +22,30 @@
       "revId": "ccb36b1c7de07df041c11f557ccdb97a1ef5827f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4434a8c_732fcccf",
+        "filename": "golden/frontend/res/imp/filter-dialog-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-12T19:37:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0917175c_6b0e4d22",
+      "range": {
+        "startLine": 119,
+        "startChar": 12,
+        "endLine": 119,
+        "endChar": 17
+      },
+      "revId": "ccb36b1c7de07df041c11f557ccdb97a1ef5827f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
