@@ -4,6 +4,8 @@
  *
  * The main machine server landing page.
  *
+ * Uses local storage to persist the user's choice of auto-refresh.
+ *
  * @attr waiting - If present then display the waiting cursor.
  */
 import { html } from 'lit-html';
@@ -12,6 +14,10 @@ import { errorMessage } from 'elements-sk/errorMessage';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/error-toast-sk';
+import 'elements-sk/icon/play-arrow-icon-sk';
+import 'elements-sk/icon/pause-icon-sk';
+
+const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
 
 const temps = (temperatures) => {
   if (!temperatures) {
@@ -75,9 +81,21 @@ const rows = (ele) => ele._machines.map((machine) => html`
 </tr>
 `);
 
+const refreshButtonDisplayValue = (ele) => {
+  if (ele.refreshing) {
+    return html`<pause-icon-sk></pause-icon-sk>`;
+  }
+  return html`<play-arrow-icon-sk></play-arrow-icon-sk>`;
+};
+
 const template = (ele) => html`
 <header>
   <h1>Machines</h1>
+  <button
+    id=refresh
+    @click=${() => ele._toggleRefresh()}
+    title="Start/Stop the automatic refreshing of data on the page."
+    >${refreshButtonDisplayValue(ele)}</button>
 </header>
 <main>
   <table>
@@ -105,42 +123,85 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._machines = [];
+
+    // The id of the running setTimeout, if any, otherwise 0.
+    this._timeout = 0;
   }
 
   connectedCallback() {
     super.connectedCallback();
     this._render();
-    this._update();
+    this._refreshStep();
   }
+
+  /** @prop refreshing {bool} True if the data on the page is periodically refreshed. */
+  get refreshing() { return window.localStorage.getItem(REFRESH_LOCALSTORAGE_KEY) === 'true'; }
+
+  set refreshing(val) { window.localStorage.setItem(REFRESH_LOCALSTORAGE_KEY, !!val); }
 
   _onError(msg) {
     this.removeAttribute('waiting');
     errorMessage(msg);
   }
 
-  _update() {
-    this.setAttribute('waiting', '');
-    this._machines = fetch('/_/machines').then(jsonOrThrow).then((json) => {
-      this.removeAttribute('waiting');
+  async _update(changeCursor = false) {
+    if (changeCursor) {
+      this.setAttribute('waiting', '');
+    }
+
+    try {
+      const resp = await fetch('/_/machines');
+      const json = await jsonOrThrow(resp);
+      if (changeCursor) {
+        this.removeAttribute('waiting');
+      }
       this._machines = json;
       this._render();
-    }).catch((msg) => this._onError(msg));
+    } catch (error) {
+      this._onError(error);
+    }
   }
 
-  _toggleMode(id) {
-    this.setAttribute('waiting', '');
-    this._machines = fetch(`/_/machine/toggle_mode/${id}`).then(() => {
+  async _toggleMode(id) {
+    try {
+      this.setAttribute('waiting', '');
+      await fetch(`/_/machine/toggle_mode/${id}`);
       this.removeAttribute('waiting');
-      this._update();
-    }).catch((msg) => this._onError(msg));
+      this._update(true);
+    } catch (error) {
+      this._onError(error);
+    }
   }
 
-  _toggleUpdate(id) {
-    this.setAttribute('waiting', '');
-    this._machines = fetch(`/_/machine/toggle_update/${id}`).then(() => {
+  async _toggleUpdate(id) {
+    try {
+      this.setAttribute('waiting', '');
+      await fetch(`/_/machine/toggle_update/${id}`);
       this.removeAttribute('waiting');
-      this._update();
-    }).catch((msg) => this._onError(msg));
+      this._update(true);
+    } catch (error) {
+      this._onError(error);
+    }
+  }
+
+  async _refreshStep() {
+    // Wait for _update to finish so we don't pile up requests if server latency
+    // rises.
+    await this._update();
+    if (this.refreshing && this._timeout === 0) {
+      this._timeout = window.setTimeout(() => {
+        // Only done here, so multiple calls to _refreshStep() won't start
+        // parallel setTimeout chains.
+        this._timeout = 0;
+
+        this._refreshStep();
+      }, 2000);
+    }
+  }
+
+  _toggleRefresh() {
+    this.refreshing = !this.refreshing;
+    this._refreshStep();
   }
 
   disconnectedCallback() {
