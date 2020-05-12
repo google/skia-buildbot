@@ -45,7 +45,7 @@ var (
 	metricName         = flag.String("metric_name", "", "The metric to parse the traces with. Eg: loadingMetric")
 	valueColumnName    = flag.String("value_column_name", "", "Which column's entries to use as field values when combining CSVs.")
 
-	cloudUrlBucketRegex = regexp.MustCompile(`/m/cloudstorage/b/(.+)/o/`)
+	cloudUrlBucketRegex = regexp.MustCompile(`/m/cloudstorage/b/(.+)/o/(.+)`)
 )
 
 func metricsAnalysis() error {
@@ -128,6 +128,10 @@ func metricsAnalysis() error {
 	erroredTraces := []string{}
 	// Mutex to control access to the above slice.
 	var erroredTracesMutex sync.Mutex
+	// Counter to keep directories of traces unique.
+	traceID := 0
+	// Mutex to control access to the above counter.
+	var traceIDMutex sync.Mutex
 
 	// Loop through workers in the worker pool.
 	for i := 0; i < WORKER_POOL_SIZE; i++ {
@@ -150,8 +154,12 @@ func metricsAnalysis() error {
 					continue
 				}
 
+				traceIDMutex.Lock()
+				traceID += 1
+				localOutputCSVDir := filepath.Join(localOutputDir, fmt.Sprintf("%d", traceID))
+				traceIDMutex.Unlock()
 				sklog.Infof("========== Processing %s ==========", t)
-				if err := runMetricsAnalysisBenchmark(ctx, localOutputDir, downloadedTrace, t); err != nil {
+				if err := runMetricsAnalysisBenchmark(ctx, localOutputCSVDir, downloadedTrace, t); err != nil {
 					sklog.Errorf("Error during run_benchmark: %s", err)
 				} else {
 					atleastOneBenchmarkSucceeded = true
@@ -190,8 +198,7 @@ func metricsAnalysis() error {
 }
 
 // runMetricsAnalysisBenchmark runs the analysis_metrics_ct benchmark on the provided trace.
-func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrace, cloudTraceLink string) error {
-	outputCSVDir := filepath.Join(outputPath, getTraceName(downloadedTrace))
+func runMetricsAnalysisBenchmark(ctx context.Context, outputCSVDir, downloadedTrace, cloudTraceLink string) error {
 	if err := os.MkdirAll(outputCSVDir, 0700); err != nil {
 		return fmt.Errorf("Could not create %s: %s", outputCSVDir, err)
 	}
@@ -235,35 +242,35 @@ func runMetricsAnalysisBenchmark(ctx context.Context, outputPath, downloadedTrac
 	return nil
 }
 
-// downloadTrace downloads the traceURL from google storage into the specified
-// destDir.
+// downloadTrace downloads the provided traceURL into the specified destDir.
 func downloadTrace(traceURL, destDir string, gs *util.GcsUtil) (string, error) {
-	traceName := getTraceName(traceURL)
-	traceBucket := getBucketName(traceURL)
-	traceDest := filepath.Join(destDir, traceName)
-	if err := gs.DownloadRemoteFileFromBucket(traceBucket, traceName, traceDest); err != nil {
-		return "", fmt.Errorf("Error downloading %s from %s to %s: %s", traceName, traceBucket, traceDest, err)
+	traceBucket, tracePath, err := parseTraceURL(traceURL)
+	if err != nil {
+		return "", fmt.Errorf("Could not parse the traceURL %s: %s", traceURL, err)
+	}
+
+	traceDest := filepath.Join(destDir, tracePath)
+	if err := os.MkdirAll(filepath.Dir(traceDest), 0700); err != nil {
+		return "", fmt.Errorf("Could not create %s: %s", filepath.Dir(traceDest), err)
+	}
+	if err := gs.DownloadRemoteFileFromBucket(traceBucket, tracePath, traceDest); err != nil {
+		return "", fmt.Errorf("Error downloading %s from %s to %s: %s", tracePath, traceBucket, traceDest, err)
 	}
 	return traceDest, nil
 }
 
-// getBucketName parses the provided traceURL and returns the name of the cloud bucket.
-// Returns DEFAULT_TRACE_OUTPUT_BUCKET if the provided URL is not in the form that
-// cloudUrlBucketRegex expects.
-func getBucketName(traceURL string) string {
+// parseTraceURL parses the provided traceURL and returns the name of the cloud bucket and
+// the path to the trace file within the cloud bucket.
+// Eg: For the traceURL https://console.developers.google.com/m/cloudstorage/b/chrome-telemetry-output/o/xyz/retry_0/trace.html
+//     "chrome-telemetry-output" and "xyz/retry_0/trace.html" will be returned.
+// If the provided URL is not in the form that cloudUrlBucketRegex expects then empty strings and an error is returned.
+func parseTraceURL(traceURL string) (string, string, error) {
 	m := cloudUrlBucketRegex.FindStringSubmatch(traceURL)
-	if len(m) == 2 {
-		return m[1]
+	if len(m) == 3 {
+		return m[1], m[2], nil
 	} else {
-		return DEFAULT_TRACE_OUTPUT_BUCKET
+		return "", "", fmt.Errorf("The traceURL %s is not of the form %s", traceURL, cloudUrlBucketRegex)
 	}
-}
-
-// getTraceName parses the provided traceURI and returns the name of the trace.
-// traceURI could be a file path or a URL.
-func getTraceName(traceURI string) string {
-	traceTokens := strings.Split(traceURI, "/")
-	return traceTokens[len(traceTokens)-1]
 }
 
 // getClosedChannelOfTraces returns a channel that contains all trace URLs.
