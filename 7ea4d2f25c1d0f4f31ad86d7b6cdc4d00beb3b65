@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4b930d28_c37c5525",
+        "filename": "machine/modules/machine-server-sk/machine-server-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-12T15:22:47Z",
+      "side": 1,
+      "message": "Yeah, kinda documented down in _refreshStep() where we need this to return a Promise.\n\nSwitched everthing to async/await for the sake of consistency.",
+      "parentUuid": "03e95129_976b0e02",
+      "range": {
+        "startLine": 142,
+        "startChar": 2,
+        "endLine": 142,
+        "endChar": 7
+      },
+      "revId": "7ea4d2f25c1d0f4f31ad86d7b6cdc4d00beb3b65",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0f393ea3_732e2645",
         "filename": "machine/modules/machine-server-sk/machine-server-sk.js",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "7ea4d2f25c1d0f4f31ad86d7b6cdc4d00beb3b65",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ae91c3d_6be76662",
+        "filename": "machine/modules/machine-server-sk/machine-server-sk.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-12T15:22:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0f393ea3_732e2645",
+      "range": {
+        "startLine": 192,
+        "startChar": 6,
+        "endLine": 192,
+        "endChar": 16
+      },
+      "revId": "7ea4d2f25c1d0f4f31ad86d7b6cdc4d00beb3b65",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
