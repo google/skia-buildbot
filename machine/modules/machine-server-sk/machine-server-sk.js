@@ -90,7 +90,6 @@ const refreshButtonDisplayValue = (ele) => {
 
 const template = (ele) => html`
 <header>
-  <h1>Machines</h1>
   <button
     id=refresh
     @click=${() => ele._toggleRefresh()}
