@@ -113,20 +113,36 @@ func getLiveAppContainersToImages(ctx context.Context, clientset *kubernetes.Cli
 	return liveAppContainersToImages, nil
 }
 
+type ContainersConfig struct {
+	Name  string `yaml:"name"`
+	Image string `yaml:"image"`
+}
+
+type TemplateSpecConfig struct {
+	Containers []ContainersConfig `yaml:"containers"`
+}
+
+type MetadataConfig struct {
+	Labels struct {
+		App string `yaml:"app"`
+	} `yaml:"labels"`
+}
+
 type K8sConfig struct {
+	Kind string `yaml:"kind"`
 	Spec struct {
-		Template struct {
-			Metadata struct {
-				Labels struct {
-					App string `yaml:"app"`
-				} `yaml:"labels"`
-			} `yaml:"metadata"`
-			TemplateSpec struct {
-				Containers []struct {
-					Name  string `yaml:"name"`
-					Image string `yaml:"image"`
-				} `yaml:"containers"`
+		Schedule    string `yaml:"schedule"`
+		JobTemplate struct {
+			Metadata MetadataConfig `yaml:"metadata"`
+			Spec     struct {
+				Template struct {
+					TemplateSpec TemplateSpecConfig `yaml:"spec"`
+				} `yaml:"template"`
 			} `yaml:"spec"`
+		} `yaml:"jobTemplate"`
+		Template struct {
+			Metadata     MetadataConfig     `yaml:"metadata"`
+			TemplateSpec TemplateSpecConfig `yaml:"spec"`
 		} `yaml:"template"`
 	} `yaml:"spec"`
 }
@@ -183,13 +199,78 @@ func performChecks(ctx context.Context, clientset *kubernetes.Clientset, g *giti
 			if err := yaml.Unmarshal([]byte(yamlDoc), &config); err != nil {
 				sklog.Fatalf("Error when parsing %s: %s", yamlDoc, err)
 			}
-			app := config.Spec.Template.Metadata.Labels.App
-			if app == "" {
-				// This YAML config does not have an app. Continue.
+
+			if config.Kind == "CronJob" {
+				// DO SPECIAL HANDLING HERE.
+				fmt.Println("-----")
+				fmt.Printf("%s IS A CRONJOB\n", f)
+				app := config.Spec.JobTemplate.Metadata.Labels.App
+				containers := config.Spec.JobTemplate.Spec.Template.TemplateSpec.Containers
+				for _, c := range containers {
+					fmt.Printf("\tAPP: %s\n", app) // NOT RELIABLE! USE THE NAME INSTEAD ALSO REMOVE APP FROM THE STRUCT ABOVE!!!
+					fmt.Printf("\tCONTAINER: %s\n", c)
+					fmt.Printf("\tYAML: %s\n", f)
+					fmt.Printf("\tREPO: %s\n", k8sYamlRepo)
+					fmt.Printf("\tliveImage: %s\n", c.Image)
+					fmt.Printf("\tNAME: %s\n", c.Name)
+					// fmt.Println(containers)
+					// fmt.Println(f)
+					// fmt.Println(k8sYamlRepo)
+					// fmt.Println(c.Image)
+					// fmt.Println(c.Name)
+					// fmt.Println("NewMetrics are fine")
+				}
+				fmt.Println("CONTINUING!!")
 				continue
+
+				// if err := addMetricForImageAge(app, container, f, k8sYamlRepo, liveImage, newMetrics); err != nil {
+				// 	sklog.Errorf("Could not add metric for image age: %s", err)
+				// }
 			}
+			// // IF IT IS CRONJOB DO SPECIAL HANDLING.
+			// // THEN CHECK FOR DEPLOYMENT AN DSTATEFUL SET. IF NONE OF THEM THEN EXIT LIKE APP=="" BELOW!
+
+			// // var containers []ContainersConfig
+			// switch k := config.Kind; k {
+			// case "CronJob":
+			// 	fmt.Println(f)
+			// 	fmt.Println("CRONJOB")
+			// 	fmt.Println(config.Spec.Schedule)
+			// case "Deployment":
+			// 	fmt.Println(f)
+			// 	fmt.Println("DEPLOYMENT")
+			// 	// fallthrough
+			// case "StatefulSet":
+			// 	fmt.Println(f)
+			// 	fmt.Println("STATEFULSET")
+			// default:
+			// 	fmt.Println(f)
+			// 	fmt.Println(k)
+			// 	fmt.Println("NO IDEA WHAT THIS IS")
+			// }
+
+			// app := config.Spec.Template.Metadata.Labels.App
+			// if app == "" {
+			// 	// This YAML config does not have an app. Continue.
+			// 	// fmt.Println("XXXXXX THIS YAML DOES NOT HAVE AN APP")
+			// 	// fmt.Println(config)
+			// 	// fmt.Println(f)
+			// 	// fmt.Println(config.Kind)
+			// 	// fmt.Println("XXXXXXXXX")
+			// 	// fmt.Println("XXXXXXXXX")
+			// 	continue
+			// }
+			// fmt.Printf("%s is what we process!!\n", config.Kind)
+
+			if config.Kind != "StatefulSet" && config.Kind != "Deployment" {
+				// We only process StatefulSet or Deployment kinds because only they have containers.
+				continue
+				// sklog.Fatalf("GOT A KIND WE DID NOT EXPECT!!!")
+			}
+			app := config.Spec.Template.Metadata.Labels.App
 			checkedInAppsToContainers[app] = util.StringSet{}
 			for _, c := range config.Spec.Template.TemplateSpec.Containers {
+				// LOOK TO SEE IF ALL KINDS ARE THE EXPECTED KINDS HERE!
 				container := c.Name
 				committedImage := c.Image
 				checkedInAppsToContainers[app][c.Name] = true
@@ -254,26 +335,9 @@ func performChecks(ctx context.Context, clientset *kubernetes.Clientset, g *giti
 							dirtyConfigMetric.Update(0)
 
 							// Now add a metric for how many days old the live/committed image is.
-							m := imageRegex.FindStringSubmatch(liveImage)
-							if len(m) == 2 {
-								t, err := time.Parse(time.RFC3339, strings.ReplaceAll(m[1], "_", ":"))
-								if err != nil {
-									sklog.Errorf("Could not time.Parse %s from image %s: %s", m[1], liveImage, err)
-								} else {
-									staleImageMetricTags := map[string]string{
-										"app":       app,
-										"container": container,
-										"yaml":      f,
-										"repo":      k8sYamlRepo,
-										"liveImage": liveImage,
-									}
-									staleImageMetric := metrics2.GetInt64Metric(STALE_IMAGE_METRIC, staleImageMetricTags)
-									newMetrics[staleImageMetric] = struct{}{}
-									numDaysOldImage := int64(time.Now().UTC().Sub(t).Hours() / 24)
-									staleImageMetric.Update(numDaysOldImage)
-								}
+							if err := addMetricForImageAge(app, container, f, k8sYamlRepo, liveImage, newMetrics); err != nil {
+								sklog.Errorf("Could not add metric for image age: %s", err)
 							}
-
 						}
 					} else {
 						sklog.Infof("There is no running container %s for the config file %s", container, f)
@@ -332,6 +396,29 @@ func performChecks(ctx context.Context, clientset *kubernetes.Clientset, g *giti
 		}
 	}
 	return newMetrics, nil
+}
+
+// addMetricForImageAge creates a metric for how old the specified image is, and adds it to the metrics map.
+func addMetricForImageAge(app, container, yaml, repo, image string, metrics map[metrics2.Int64Metric]struct{}) error {
+	m := imageRegex.FindStringSubmatch(image)
+	if len(m) == 2 {
+		t, err := time.Parse(time.RFC3339, strings.ReplaceAll(m[1], "_", ":"))
+		if err != nil {
+			return fmt.Errorf("Could not time.Parse %s from image %s: %s", m[1], image, err)
+		}
+		staleImageMetricTags := map[string]string{
+			"app":       app,
+			"container": container,
+			"yaml":      yaml,
+			"repo":      repo,
+			"liveImage": image,
+		}
+		staleImageMetric := metrics2.GetInt64Metric(STALE_IMAGE_METRIC, staleImageMetricTags)
+		metrics[staleImageMetric] = struct{}{}
+		numDaysOldImage := int64(time.Now().UTC().Sub(t).Hours() / 24)
+		staleImageMetric.Update(numDaysOldImage)
+	}
+	return nil
 }
 
 func main() {
