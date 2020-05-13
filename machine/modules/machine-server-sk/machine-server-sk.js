@@ -80,7 +80,7 @@ const update = (machine) => {
 
 const rows = (ele) => ele._machines.map((machine) => html`
 <tr id=${machine.Dimensions.id}>
-  <td>${machine.Dimensions.id}</td>
+  <td><a href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions.id}">${machine.Dimensions.id}</a></td>
   <td>${machine.PodName}</td>
   <td>${machine.Dimensions.device_type}</td>
   <td><button class=mode @click=${() => ele._toggleMode(machine.Dimensions.id)}>${machine.Mode}</button></td>
