@@ -1,1 +1,1 @@
-module.exports = require('common-sk/karma.common.js')(__dirname);
+module.exports = require('./karma.common.js')(__dirname);
