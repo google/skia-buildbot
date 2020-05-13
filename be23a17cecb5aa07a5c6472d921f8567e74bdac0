@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7925a4d1_b5d5fd84",
+        "filename": "jsdoc/go/jsdoc/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-13T14:16:21Z",
+      "side": 1,
+      "message": "I guess this is not using baseapp yet.",
+      "revId": "be23a17cecb5aa07a5c6472d921f8567e74bdac0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
