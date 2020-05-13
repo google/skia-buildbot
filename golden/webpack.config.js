@@ -1,4 +1,4 @@
-const commonBuilder = require('pulito');
+const commonBuilder = require('./pulito/webpack.common.js');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const { resolve } = require('path');
 
