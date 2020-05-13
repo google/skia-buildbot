@@ -1,0 +1,251 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0965fdf8_f702cef8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-13T18:23:15Z",
+      "side": 1,
+      "message": "Newlines are allowed in commit messages. Encouraged even, when keeping the commit subject to \u003c80 cols",
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb726fae_5bdc4e38",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-13T18:23:15Z",
+      "side": 1,
+      "message": "~all module level functions should have a documentation string.",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 4
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f88e1fb9_77947944",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-13T18:23:15Z",
+      "side": 1,
+      "message": "please add a comment like // writeMetadata writes a json file containing..... This is needed because...",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 4
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20c9520b_3871e865",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-13T18:23:15Z",
+      "side": 1,
+      "message": "I would probably move these structs to be outside this function, just for cleanliness. One anonymous struct is fine to \"inline\", but multiple named ones can be standalone.",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 1
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22973d99_cd0e0403",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-13T18:23:15Z",
+      "side": 1,
+      "message": "nit: wrap golang comments to 100 cols.",
+      "range": {
+        "startLine": 72,
+        "startChar": 85,
+        "endLine": 72,
+        "endChar": 89
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21227009_c5c96206",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-13T18:23:15Z",
+      "side": 1,
+      "message": "idiomatic Go would probably be metadata :\u003d Metadata {\n Rev: Revision {\n  Hash: rev,\n  URL: fmt.Sprintf(...)\n},\n}\n\nmetdata.DemoList, err \u003d ...\n\n(note the names of the fields when initializing structs. Golang lets you not name them, but it\u0027s frowned upon).",
+      "range": {
+        "startLine": 75,
+        "startChar": 5,
+        "endLine": 75,
+        "endChar": 13
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2e67ebf_18bb2ef8",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-13T18:23:15Z",
+      "side": 1,
+      "message": "skerr.Wrap(err)",
+      "range": {
+        "startLine": 85,
+        "startChar": 9,
+        "endLine": 85,
+        "endChar": 12
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3f1ce08_6ace4806",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-13T18:23:15Z",
+      "side": 1,
+      "message": "filepath.Join(s.repo.Dir(), s.demoPath, \"metadata.json\")",
+      "range": {
+        "startLine": 87,
+        "startChar": 17,
+        "endLine": 87,
+        "endChar": 70
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e134487_b36e2c81",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-13T18:23:15Z",
+      "side": 1,
+      "message": "oldHash, err :\u003d should suffice",
+      "range": {
+        "startLine": 101,
+        "startChar": 1,
+        "endLine": 101,
+        "endChar": 15
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "44381b5b_ee4293ab",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-13T18:23:15Z",
+      "side": 1,
+      "message": "newHash, err :\u003d should work fine here",
+      "range": {
+        "startLine": 110,
+        "startChar": 1,
+        "endLine": 110,
+        "endChar": 14
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9697a66d_3e3bc53d",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-13T18:23:15Z",
+      "side": 1,
+      "message": "skerr.Wrapf",
+      "range": {
+        "startLine": 138,
+        "startChar": 9,
+        "endLine": 138,
+        "endChar": 19
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
