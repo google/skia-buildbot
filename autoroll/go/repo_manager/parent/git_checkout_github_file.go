@@ -59,7 +59,8 @@ func NewGitCheckoutGithubFile(ctx context.Context, c GitCheckoutGithubFileConfig
 		// TODO(borenet): This should be optional and configured in
 		// GitCheckoutGithubFileConfig.
 		prev := from
-		for _, rev := range rolling {
+		for i := len(rolling) - 1; i >= 0; i-- {
+			rev := rolling[i]
 			msg := fmt.Sprintf("%s %s", rev.Id[:9], rev.Description)
 			if _, err := createRollHelper(ctx, co, prev, rev, []*revision.Revision{rev}, msg); err != nil {
 				return "", skerr.Wrap(err)

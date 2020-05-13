@@ -74,6 +74,7 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, fork
 		}
 
 		// Build the commit message.
+		commitMsg = strings.ReplaceAll(commitMsg, "git@github.com:", "https://github.com/")
 		commitMsgLines := strings.Split(commitMsg, "\n")
 		// Grab the first line of the commit msg to use as the title of the pull
 		// request.
