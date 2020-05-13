@@ -7,17 +7,22 @@
  * Uses local storage to persist the user's choice of auto-refresh.
  *
  * @attr waiting - If present then display the waiting cursor.
+ *
+ * @attr darkmode - If present then display in darkmode.
  */
 import { html } from 'lit-html';
 
 import { errorMessage } from 'elements-sk/errorMessage';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import '../../../infra-sk/modules/theme-chooser-sk';
 import 'elements-sk/error-toast-sk';
-import 'elements-sk/icon/play-arrow-icon-sk';
 import 'elements-sk/icon/pause-icon-sk';
+import 'elements-sk/icon/play-arrow-icon-sk';
+import 'elements-sk/styles/buttons';
 
 const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
+
 
 const temps = (temperatures) => {
   if (!temperatures) {
@@ -90,11 +95,14 @@ const refreshButtonDisplayValue = (ele) => {
 
 const template = (ele) => html`
 <header>
-  <button
+  <span
     id=refresh
     @click=${() => ele._toggleRefresh()}
     title="Start/Stop the automatic refreshing of data on the page."
-    >${refreshButtonDisplayValue(ele)}</button>
+    >${refreshButtonDisplayValue(ele)}</span>
+  <theme-chooser-sk
+    title="Toggle between light and dark mode."
+  ></theme-chooser-sk>
 </header>
 <main>
   <table>

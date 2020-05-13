@@ -1,7 +1,16 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500|Material+Icons');
 
+@import '~/elements-sk/themes/themes.css';
+
 body {
-  background: var(--black);
-  color: var(--white);
   font-family: Roboto, sans-serif;
+}
+
+header {
+  position: fixed;
+  top: 0;
+}
+
+main {
+  margin-top: 56px;
 }
