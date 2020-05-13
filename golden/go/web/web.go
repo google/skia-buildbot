@@ -934,6 +934,11 @@ func (wh *Handlers) triage(ctx context.Context, user string, req frontend.Triage
 		expStore = wh.ExpectationsStore.ForChangeList(req.ChangeListID, wh.ChangeListStore.System())
 	}
 
+	// If set, use the image matching algorithm's name as the author of this change.
+	if req.ImageMatchingAlgorithm != "" {
+		user = req.ImageMatchingAlgorithm
+	}
+
 	// Add the change.
 	if err := expStore.AddChange(ctx, tc, user); err != nil {
 		return skerr.Wrapf(err, "Failed to store the updated expectations.")

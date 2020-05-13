@@ -95,6 +95,15 @@ type TriageRequest struct {
 	// ChangeListID is the id of the ChangeList for which we want to change the expectations.
 	// "issue" is the JSON field for backwards compatibility.
 	ChangeListID string `json:"issue"`
+
+	// ImageMatchingAlgorithm is the name of the non-exact image matching algorithm requesting the
+	// triage (see http://go/gold-non-exact-matching). If set, the algorithm name will be used as
+	// the author of the triage action.
+	//
+	// An empty image matching algorithm indicates this is a manual triage operation, in which case
+	// the username that initiated the triage operation via Gold's UI will be used as the author of
+	// the operation.
+	ImageMatchingAlgorithm string `json:"imageMatchingAlgorithm"`
 }
 
 // TriageDelta represents one changed digest and the label that was
