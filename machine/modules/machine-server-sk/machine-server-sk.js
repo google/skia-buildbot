@@ -11,11 +11,15 @@
 import { html } from 'lit-html';
 
 import { errorMessage } from 'elements-sk/errorMessage';
+import { diffDate } from 'common-sk/modules/human';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import '../../../infra-sk/modules/theme-chooser-sk';
 import 'elements-sk/error-toast-sk';
-import 'elements-sk/icon/play-arrow-icon-sk';
+import 'elements-sk/icon/cached-icon-sk';
 import 'elements-sk/icon/pause-icon-sk';
+import 'elements-sk/icon/play-arrow-icon-sk';
+import 'elements-sk/styles/buttons';
 
 const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
 
@@ -23,10 +27,24 @@ const temps = (temperatures) => {
   if (!temperatures) {
     return '';
   }
-  return Object.entries(temperatures).map((pair) => html`<div>${pair[0]}=${pair[1]}</div>`);
+  const values = Object.values(temperatures);
+  if (!values.length) {
+    return '';
+  }
+  let total = 0;
+  values.forEach((x) => { total += x; });
+  const ave = total / values.length;
+  return html`
+  <details>
+    <summary>Avg: ${ave.toFixed(1)}</summary>
+    <table>
+    ${Object.entries(temperatures).map((pair) => html`<tr><td>${pair[0]}</td><td>${pair[1]}</td></tr>`)}
+    </table>
+  </details>
+  `;
 };
 
-const isRunning = (machine) => (machine.RunningSwarmingTask ? html`&check;` : '');
+const isRunning = (machine) => (machine.RunningSwarmingTask ? html`<cached-icon-sk title="Running"></cached-icon-sk>` : '');
 
 const asList = (arr) => arr.join(' | ');
 
@@ -49,9 +67,7 @@ const annotation = (machine) => {
     return '';
   }
   return html`
-<div>${machine.Annotation.Message}</div>
-<div>${machine.Annotation.User}</div>
-<div>${machine.Annotation.Timestamp}</div>
+${machine.Annotation.User} (${diffDate(machine.Annotation.Timestamp)}) - ${machine.Annotation.Message}
 `;
 };
 
@@ -75,7 +91,7 @@ const rows = (ele) => ele._machines.map((machine) => html`
   <td>
     ${temps(machine.Temperature)}
   </td>
-  <td>${machine.LastUpdated}</td>
+  <td>${diffDate(machine.LastUpdated)}</td>
   <td>${dimensions(machine)}</td>
   <td>${annotation(machine)}</td>
 </tr>
@@ -90,11 +106,14 @@ const refreshButtonDisplayValue = (ele) => {
 
 const template = (ele) => html`
 <header>
-  <button
+  <span
     id=refresh
     @click=${() => ele._toggleRefresh()}
     title="Start/Stop the automatic refreshing of data on the page."
-    >${refreshButtonDisplayValue(ele)}</button>
+    >${refreshButtonDisplayValue(ele)}</span>
+  <theme-chooser-sk
+    title="Toggle between light and dark mode."
+  ></theme-chooser-sk>
 </header>
 <main>
   <table>
@@ -105,10 +124,10 @@ const template = (ele) => html`
     <th>Mode</th>
     <th>Update</th>
     <th>Quarantined</th>
-    <th>Running Task</th>
+    <th>Task</th>
     <th>Battery</th>
     <th>Temperature</th>
-    <th>Last Updated</th>
+    <th>Last Seen</th>
     <th>Dimensions</th>
     <th>Annotation</th>
   </tr>
