@@ -38,6 +38,11 @@ machine-server-sk {
   main {
     margin-top: 40px;
   }
+
+  a:visited,
+  a {
+    color: var(--primary);
+  }
 }
 
 machine-server-sk[waiting] * {
