@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e71e1bc7_8f2e014f",
+        "filename": "machine/modules/machine-server-sk/machine-server-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-13T16:33:45Z",
+      "side": 1,
+      "message": "might want to check that this is non-empty",
+      "range": {
+        "startLine": 32,
+        "startChar": 22,
+        "endLine": 32,
+        "endChar": 28
+      },
+      "revId": "89fbf0a181d349a22b8ae3120b410d255c8067ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7e2d727_cac1b75d",
+        "filename": "machine/modules/machine-server-sk/machine-server-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-13T16:33:45Z",
+      "side": 1,
+      "message": "If this is clickable, should it be a \u003cbutton\u003e ?",
+      "range": {
+        "startLine": 105,
+        "startChar": 3,
+        "endLine": 105,
+        "endChar": 7
+      },
+      "revId": "89fbf0a181d349a22b8ae3120b410d255c8067ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1759bcb3_e65d5de5",
+        "filename": "machine/modules/machine-server-sk/machine-server-sk.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-13T16:33:45Z",
+      "side": 1,
+      "message": "Maybe add a reminder comment where these are defined",
+      "range": {
+        "startLine": 6,
+        "startChar": 23,
+        "endLine": 6,
+        "endChar": 33
+      },
+      "revId": "89fbf0a181d349a22b8ae3120b410d255c8067ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "941b7959_aab369c8",
+        "filename": "machine/pages/index.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-13T16:33:45Z",
+      "side": 1,
+      "message": "Is it strange to have to include this on the page itself and not in the element that makes use of the theming?",
+      "range": {
+        "startLine": 3,
+        "startChar": 1,
+        "endLine": 3,
+        "endChar": 7
+      },
+      "revId": "89fbf0a181d349a22b8ae3120b410d255c8067ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
