@@ -2,10 +2,7 @@
  * @module modules/corpus-selector-sk
  * @description <h2><code>corpus-selector-sk</code></h2>
  *
- * Lists the available corpora and lets the user select a corpus. Obtains the
- * available corpora from /json/trstatus.
- *
- * @attr update-freq-seconds {int} how often to ping the server for updates.
+ * Lists the available corpora and lets the user select a corpus.
  *
  * @evt corpus-selected - Sent when the user selects a different corpus. Field
  *      event.detail.corpus will contain the selected corpus.
@@ -13,76 +10,48 @@
 
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { classMap } from 'lit-html/directives/class-map';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-const template = (el) => html`
-${!el.corpora ? html`<p>Loading corpora details...</p>` : html`
-  <ul>
-    ${el.corpora.map((corpus) => html`
-      <li class=${classMap({ selected: el.selectedCorpus === corpus.name })}
-          title="${el.corpusRendererFn(corpus)}"
-          @click=${() => el._handleCorpusClick(corpus.name)}>
-        ${el.corpusRendererFn(corpus)}
-      </li>
-    `)}
-  </ul>
-`}
-`;
+const template = (ele) => {
+  if (!ele.corpora.length) {
+    return html`<p>Loading corpora details...</p>`;
+  }
+  return html`<ul>${ele.corpora.map((corpus) => corpusItem(ele, corpus))}</ul>`;
+};
+
+const corpusItem = (ele, corpus) => html`
+<li class=${ele.selectedCorpus === corpus.name ? 'selected' : ''}
+    title="${ele.corpusRendererFn(corpus)}"
+    @click=${() => ele._handleCorpusClick(corpus.name)}>
+  ${ele.corpusRendererFn(corpus)}
+</li>`;
 
 define('corpus-selector-sk', class extends ElementSk {
   constructor() {
     super(template);
+    this._corpora = [];
+    // Default to just showing the corpus name.
     this._corpusRendererFn = (corpus) => corpus.name;
   }
 
   connectedCallback() {
     super.connectedCallback();
-    this._render(); // Render loading indicator.
-    this._fetch();
-    if (this._updateFreqSeconds > 0) {
-      this._interval = setInterval(() => this._fetch(), this._updateFreqSeconds * 1000);
-    }
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    if (this._interval) {
-      clearInterval(this._interval);
-      this._interval = null;
-    }
-  }
-
-  _fetch() {
-    // Force only one fetch at a time. Abort any outstanding requests. Useful if
-    // a request takes longer than the update frequency.
-    if (this._fetchController) {
-      this._fetchController.abort();
-    }
-    this._fetchController = new AbortController();
-
-    fetch('/json/trstatus', {
-      method: 'GET',
-      signal: this._fetchController.signal,
-    })
-      .then(jsonOrThrow)
-      .then((json) => {
-        this.corpora = json.corpStatus;
-        this._render();
-        this._sendLoaded();
-      })
-      .catch((e) => {
-        this._sendError(e);
-      });
-  }
-
-  get _updateFreqSeconds() {
-    return +this.getAttribute('update-freq-seconds');
+    this._render();
   }
 
   /**
-   * @prop corpusRendererFn {function} A function that takes a corpus and
+   * @prop corpora {Array<Object>} An array of objects that have at least the name field. There
+   *    can be additional information that is made available through the corpusRendererFn.
+   */
+  get corpora() { return this._corpora; }
+
+  set corpora(arr) {
+    this._corpora = arr;
+    this._render();
+  }
+
+  /**
+   * @prop corpusRendererFn {function} A function that takes a corpus object and
    *     returns the text to be displayed on the corpus selector widget.
    */
   get corpusRendererFn() { return this._corpusRendererFn; }
@@ -107,13 +76,6 @@ define('corpus-selector-sk', class extends ElementSk {
     }
   }
 
-  // Intended to be used only from tests.
-  _sendLoaded() {
-    this.dispatchEvent(
-      new CustomEvent('corpus-selector-sk-loaded', { bubbles: true }),
-    );
-  }
-
   _sendCorpusSelected() {
     this.dispatchEvent(
       new CustomEvent('corpus-selected', {
@@ -123,15 +85,5 @@ define('corpus-selector-sk', class extends ElementSk {
         bubbles: true,
       }),
     );
-  }
-
-  _sendError(e) {
-    this.dispatchEvent(new CustomEvent('fetch-error', {
-      detail: {
-        error: e,
-        loading: 'corpus selector',
-      },
-      bubbles: true,
-    }));
   }
 });
