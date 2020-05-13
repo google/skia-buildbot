@@ -74,6 +74,7 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, fork
 		}
 
 		// Build the commit message.
+		commitMsg = strings.ReplaceAll(commitMsg, "git@github.com:", "https://github.com/")
 		commitMsgLines := strings.Split(commitMsg, "\n")
 		// Grab the first line of the commit msg to use as the title of the pull
 		// request.
@@ -106,7 +107,7 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, fork
 
 // NewGitCheckoutGithub returns an implementation of Parent which uses a local
 // git checkout and uploads pull requests to Github.
-func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *config_vars.Registry, githubClient *github.GitHub, serverURL, workdir, userName, userEmail string, co *git.Checkout, getLastRollRev GitCheckoutGetLastRollRevFunc, createRoll GitCheckoutCreateRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *config_vars.Registry, githubClient *github.GitHub, serverURL, workdir, userName, userEmail string, co *git.Checkout, createRoll GitCheckoutCreateRollFunc) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -118,7 +119,7 @@ func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *c
 	uploadRoll := GitCheckoutUploadGithubRollFunc(githubClient, userName, c.ForkBranchName)
 
 	// Create the GitCheckout Parent.
-	p, err := NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, co, getLastRollRev, createRoll, uploadRoll)
+	p, err := NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, co, createRoll, uploadRoll)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

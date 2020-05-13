@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/skerr"
@@ -61,11 +62,16 @@ func (c CopyRepoManagerConfig) splitParentChild() (parent.CopyConfig, child.Giti
 					Branch:  c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
 					RepoURL: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
 				},
+				DependencyConfig: version_file_common.DependencyConfig{
+					VersionFileConfig: version_file_common.VersionFileConfig{
+						ID:   c.ChildRepo,
+						Path: c.VersionFile,
+					},
+				},
 			},
 			Gerrit: c.Gerrit,
 		},
-		VersionFile: c.VersionFile,
-		Copies:      c.Copies,
+		Copies: c.Copies,
 	}
 	if err := parentCfg.Validate(); err != nil {
 		return parent.CopyConfig{}, child.GitilesConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
