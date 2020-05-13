@@ -550,9 +550,9 @@ func makeCodeReviewPSs() []code_review.PatchSet {
 	}
 }
 
-// TestTriage_SingleDigestOnMaster_SunnyDay_Success tests a common case of a developer triaging a
-// single test on the master branch.
-func TestTriage_SingleDigestOnMaster_SunnyDay_Success(t *testing.T) {
+// TestTriage_SingleDigestOnMaster_Success tests a common case of a developer triaging a single
+// test on the master branch.
+func TestTriage_SingleDigestOnMaster_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mes := &mock_expectations.Store{}
@@ -587,9 +587,46 @@ func TestTriage_SingleDigestOnMaster_SunnyDay_Success(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-// TestTriage_SingleDigestOnCL_SunnyDay_Success tests a common case of a developer triaging a single
-// test on a ChangeList.
-func TestTriage_SingleDigestOnCL_SunnyDay_Success(t *testing.T) {
+func TestTriage_SingleDigestOnMaster_ImageMatchingAlgorithmSet_UsesAlgorithmNameAsAuthor(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mes := &mock_expectations.Store{}
+	defer mes.AssertExpectations(t)
+
+	user := "user@example.com"
+	algorithmName := "fuzzy"
+
+	mes.On("AddChange", testutils.AnyContext, []expectations.Delta{
+		{
+			Grouping: bug_revert.TestOne,
+			Digest:   bug_revert.BravoUntriagedDigest,
+			Label:    expectations.Negative,
+		},
+	}, algorithmName).Return(nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ExpectationsStore: mes,
+		},
+	}
+
+	tr := frontend.TriageRequest{
+		ChangeListID: "",
+		TestDigestStatus: map[types.TestName]map[types.Digest]string{
+			bug_revert.TestOne: {
+				bug_revert.BravoUntriagedDigest: expectations.Negative.String(),
+			},
+		},
+		ImageMatchingAlgorithm: algorithmName,
+	}
+
+	err := wh.triage(context.Background(), user, tr)
+	assert.NoError(t, err)
+}
+
+// TestTriage_SingleDigestOnCL_Success tests a common case of a developer triaging a single test on
+// a ChangeList.
+func TestTriage_SingleDigestOnCL_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mes := &mock_expectations.Store{}
@@ -629,6 +666,54 @@ func TestTriage_SingleDigestOnCL_SunnyDay_Success(t *testing.T) {
 				bug_revert.BravoUntriagedDigest: expectations.Negative.String(),
 			},
 		},
+	}
+
+	err := wh.triage(context.Background(), user, tr)
+	assert.NoError(t, err)
+}
+
+func TestTriage_SingleDigestOnCL_ImageMatchingAlgorithmSet_UsesAlgorithmNameAsAuthor(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mes := &mock_expectations.Store{}
+	clExp := &mock_expectations.Store{}
+	mcs := &mock_clstore.Store{}
+	defer mes.AssertExpectations(t)
+	defer clExp.AssertExpectations(t)
+	defer mcs.AssertExpectations(t)
+
+	clID := "12345"
+	crs := "github"
+	user := "user@example.com"
+	algorithmName := "fuzzy"
+
+	mes.On("ForChangeList", clID, crs).Return(clExp)
+
+	clExp.On("AddChange", testutils.AnyContext, []expectations.Delta{
+		{
+			Grouping: bug_revert.TestOne,
+			Digest:   bug_revert.BravoUntriagedDigest,
+			Label:    expectations.Negative,
+		},
+	}, algorithmName).Return(nil)
+
+	mcs.On("System").Return(crs)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			ExpectationsStore: mes,
+			ChangeListStore:   mcs,
+		},
+	}
+
+	tr := frontend.TriageRequest{
+		ChangeListID: clID,
+		TestDigestStatus: map[types.TestName]map[types.Digest]string{
+			bug_revert.TestOne: {
+				bug_revert.BravoUntriagedDigest: expectations.Negative.String(),
+			},
+		},
+		ImageMatchingAlgorithm: algorithmName,
 	}
 
 	err := wh.triage(context.Background(), user, tr)
