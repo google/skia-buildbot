@@ -14,6 +14,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -153,6 +154,7 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	ret.Temperature = temperatures
 	ret.RunningSwarmingTask = event.RunningSwarmingTask
 	ret.PodName = event.Host.PodName
+	ret.LastUpdated = time.Now()
 	for k, values := range dimensions {
 		ret.Dimensions[k] = values
 	}
