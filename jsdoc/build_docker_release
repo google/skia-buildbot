@@ -7,9 +7,6 @@ set -x -e
 copy_release_files()
 {
 make docs
-cd ../common-sk
-make demos
-cd ../jsdoc
 cd ../infra-sk
 make
 cd ../jsdoc
@@ -19,15 +16,15 @@ mkdir ./dist
 cd ./dist
 git clone https://github.com/google/elements-sk.git
 cd ./elements-sk
-make release
+npm ci
+make
 cd ../..
 pwd
 
 INSTALL="install -D --verbose --backup=none"
 ${INSTALL} --mode=644 -T Dockerfile    ${ROOT}/Dockerfile
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}        ${ROOT}/${APPNAME}
-(cd ../jsdoc/out            && find . -type f -exec ${INSTALL} "{}" "${ROOT}/usr/local/share/${APPNAME}/docs/{}" \;)
-(cd ../common-sk/dist       && find . -type f -exec ${INSTALL} "{}" "${ROOT}/usr/local/share/${APPNAME}/common-sk/{}" \;)
+(cd ./out            && find . -type f -exec ${INSTALL} "{}" "${ROOT}/usr/local/share/${APPNAME}/docs/{}" \;)
 (cd ../infra-sk/dist        && find . -type f -exec ${INSTALL} "{}" "${ROOT}/usr/local/share/${APPNAME}/infra-sk/{}" \;)
 (cd ./dist/elements-sk/dist && find . -type f -exec ${INSTALL} "{}" "${ROOT}/usr/local/share/${APPNAME}/elements-sk/{}" \;)
 }

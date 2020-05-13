@@ -12,3 +12,6 @@ release:
 
 push: release
 	pushk jsdoc
+
+run-local:
+	docker run -p 8000:8000 -ti jsdoc
