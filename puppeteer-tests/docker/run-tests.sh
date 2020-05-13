@@ -2,7 +2,44 @@
 
 # This script is designed to run inside the puppeteer-tests Docker container.
 
+################################################################################
+# Set up script environment.                                                   #
+################################################################################
+
+# This function will be called before the script exits.
+#
+# It pipes through the exit code of the last command executed, so that the
+# tryjob responsible for running Puppeteer tests turns red upon a failing test
+# case (or any other error.)
+#
+# It also makes the output screenshots world-writable to avoid permission errors
+# during local development.
+function cleanup {
+  # Save the exit code of the last command executed.
+  exit_code=$?
+
+  # Output screenshots in //puppeteer-tests/output are owned by the user on the
+  # Docker container running this script. Therefore we must make the screenshots
+  # world-writable to avoid annoying permission errors when running the
+  # containerized tests locally during development.
+  cd /out
+  chmod ugo+w *.png
+
+  # Pipe through the exit code of the last command executed before this
+  # function was called.
+  exit $exit_code
+}
+
+# Print out any commands executed. This aids with debugging.
 set -x
+
+# End execution if a command returns a non-zero exit code.
+set -e
+
+# Execute the cleanup function defined above before exiting. This will happen
+# both when a command returns a non-zero exit code and when this script finishes
+# successfully.
+trap cleanup EXIT
 
 ################################################################################
 # Populate /tests with a subset of the buildbot repository that includes all   #
@@ -93,13 +130,3 @@ npx mocha ./**/*_puppeteer_test.js
 
 cd /tests/ct
 npx mocha ./**/*_puppeteer_test.js
-
-################################################################################
-# Output screenshots in //puppeteer-tests/output are owned by the user on the  #
-# Docker container running this script. Therefore we must make the screenshots #
-# world-writable to avoid annoying permission errors when running the          #
-# containerized tests locally during development.                              #
-################################################################################
-
-cd /out
-chmod ugo+w *.png
