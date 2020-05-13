@@ -1,22 +1,42 @@
-@import '~elements-sk/colors.css';
+@import '~elements-sk/themes/themes.css';
 
 machine-server-sk {
+  header {
+    padding: 8px;
+    background: var(--surface-1dp);
+    display: block;
+    width: 100%;
+    border-bottom: solid 1px var(--on-surface);
+    position: fixed;
+    top: 0;
+  }
+
+  button {
+    margin: 0;
+    padding: 4px;
+    height: auto;
+    text-transform: capitalize;
+  }
+
   table {
-    border: 2px solid var(--black);
-    background-color: var(--gray);
-    text-align: center;
     border-collapse: collapse;
-    color: var(--white);
   }
 
-  table td,
-  table th {
-    border: 1px solid var(--gray);
-    padding: 4px 10px;
+  tr {
+    border-top: 1px solid var(--on-background);
   }
 
-  table tr:nth-child(even) {
-    background: var(--light-gray);
+  th {
+    padding: 4px;
+  }
+
+  td {
+    vertical-align: top;
+    padding: 8px 4px 4px 4px;
+  }
+
+  main {
+    margin-top: 40px;
   }
 }
 
