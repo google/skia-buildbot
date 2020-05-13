@@ -7,9 +7,6 @@ set -x -e
 copy_release_files()
 {
 make docs
-cd ../common-sk
-make demos
-cd ../jsdoc
 cd ../infra-sk
 make
 cd ../jsdoc
@@ -19,6 +16,7 @@ mkdir ./dist
 cd ./dist
 git clone https://github.com/google/elements-sk.git
 cd ./elements-sk
+npm ci
 make release
 cd ../..
 pwd
