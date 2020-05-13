@@ -25,33 +25,33 @@
     "childBranch": "master",
     "childPath": "engine",
     "childRepoName": "engine",
-    "childRepoURL": "git@github.com:flutter/engine.git",
+    "childRepoURL": "git@github.com:flutter/engine",
     "childRevLinkTmpl": "https://github.com/flutter/engine/commit/%s",
     "childUserName": "flutter",
-    "forkRepoURL": "git@github.com:engine-flutter-autoroll/flutter.git",
+    "forkRepoURL": "git@github.com:engine-flutter-autoroll/flutter",
     "includeLog": true,
     "parentBranch": "master",
-    "parentRepo": "git@github.com:flutter/flutter.git",
+    "parentRepo": "git@github.com:flutter/flutter",
     "revisionFile": "bin/internal/engine.version",
     "transitiveDeps": [
       {
         "child": {
           "id": "fuchsia/sdk/core/linux-amd64",
-          "path": "bin/internal/fuchsia-linux.version"
+          "path": "DEPS"
         },
         "parent": {
           "id": "fuchsia/sdk/core/linux-amd64",
-          "path": "DEPS"
+          "path": "bin/internal/fuchsia-linux.version"
         }
       },
       {
         "child": {
           "id": "fuchsia/sdk/core/mac-amd64",
-          "path": "bin/internal/fuchsia-mac.version"
+          "path": "DEPS"
         },
         "parent": {
           "id": "fuchsia/sdk/core/mac-amd64",
-          "path": "DEPS"
+          "path": "bin/internal/fuchsia-mac.version"
         }
       }
     ]
