@@ -72,15 +72,15 @@ func (c GithubRepoManagerConfig) splitParentChild() (parent.GitCheckoutGithubFil
 					RepoURL:     c.ParentRepo,
 					RevLinkTmpl: "", // Not needed.
 				},
+				DependencyConfig: version_file_common.DependencyConfig{
+					VersionFileConfig: version_file_common.VersionFileConfig{
+						ID:   c.ChildRepoURL,
+						Path: c.RevisionFile,
+					},
+					TransitiveDeps: parentDeps,
+				},
 			},
 			ForkRepoURL: c.ForkRepoURL,
-		},
-		DependencyConfig: version_file_common.DependencyConfig{
-			VersionFileConfig: version_file_common.VersionFileConfig{
-				ID:   c.ChildRepoURL,
-				Path: c.RevisionFile,
-			},
-			TransitiveDeps: parentDeps,
 		},
 		PreUploadSteps: c.PreUploadSteps,
 	}
@@ -90,9 +90,10 @@ func (c GithubRepoManagerConfig) splitParentChild() (parent.GitCheckoutGithubFil
 	childCfg := child.GitCheckoutGithubConfig{
 		GitCheckoutConfig: child.GitCheckoutConfig{
 			GitCheckoutConfig: git_common.GitCheckoutConfig{
-				Branch:      c.ChildBranch,
-				RepoURL:     c.ChildRepoURL,
-				RevLinkTmpl: c.ChildRevLinkTmpl,
+				Branch:       c.ChildBranch,
+				Dependencies: childDeps,
+				RepoURL:      c.ChildRepoURL,
+				RevLinkTmpl:  c.ChildRevLinkTmpl,
 			},
 		},
 		BuildbucketRevisionFilter: c.BuildbucketRevisionFilter,

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
@@ -22,7 +21,6 @@ import (
 // special case.
 type GitCheckoutGithubFileConfig struct {
 	GitCheckoutGithubConfig
-	version_file_common.DependencyConfig
 
 	// Named steps to run before uploading roll CLs.
 	PreUploadSteps []string `json:"preUploadSteps,omitempty"`
@@ -47,8 +45,6 @@ func (c GitCheckoutGithubFileConfig) Validate() error {
 // NewGitCheckoutGithubFile returns a Parent which uses a local checkout and a
 // version file (eg. DEPS) to manage dependencies.
 func NewGitCheckoutGithubFile(ctx context.Context, c GitCheckoutGithubFileConfig, reg *config_vars.Registry, client *http.Client, githubClient *github.GitHub, serverURL, workdir, userName, userEmail string, co *git.Checkout) (*GitCheckoutParent, error) {
-	getLastRollRev := gitCheckoutFileGetLastRollRevFunc(c.VersionFileConfig)
-
 	// Pre-upload steps are run after setting the new dependency version and
 	// syncing, but before committing and uploading.
 	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps)
@@ -88,5 +84,5 @@ func NewGitCheckoutGithubFile(ctx context.Context, c GitCheckoutGithubFileConfig
 		}
 		return strings.TrimSpace(out), nil
 	}
-	return NewGitCheckoutGithub(ctx, c.GitCheckoutGithubConfig, reg, githubClient, serverURL, workdir, userName, userEmail, co, getLastRollRev, createRoll)
+	return NewGitCheckoutGithub(ctx, c.GitCheckoutGithubConfig, reg, githubClient, serverURL, workdir, userName, userEmail, co, createRoll)
 }

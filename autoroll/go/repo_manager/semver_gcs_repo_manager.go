@@ -58,26 +58,24 @@ func (c *SemVerGCSRepoManagerConfig) Validate() error {
 }
 
 // splitParentChild splits the SemVerGCSRepoManagerConfig into a
-// parent.GitilesFileConfig and a child.SemVerGCSConfig.
+// parent.GitilesConfig and a child.SemVerGCSConfig.
 // TODO(borenet): Update the config format to directly define the parent
 // and child. We shouldn't need most of the New.*RepoManager functions.
-func (c SemVerGCSRepoManagerConfig) splitParentChild() (parent.GitilesFileConfig, child.SemVerGCSConfig, error) {
-	parentCfg := parent.GitilesFileConfig{
-		GitilesConfig: parent.GitilesConfig{
-			BaseConfig: parent.BaseConfig{
-				ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-				ChildRepo:       c.GCSPath, // TODO
-				IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-				IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-				CommitMsgTmpl:   c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
-				MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-			},
-			GitilesConfig: gitiles_common.GitilesConfig{
-				Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
-				RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
-			},
-			Gerrit: c.Gerrit,
+func (c SemVerGCSRepoManagerConfig) splitParentChild() (parent.GitilesConfig, child.SemVerGCSConfig, error) {
+	parentCfg := parent.GitilesConfig{
+		BaseConfig: parent.BaseConfig{
+			ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
+			ChildRepo:       c.GCSPath, // TODO
+			IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
+			IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
+			CommitMsgTmpl:   c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
+			MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
 		},
+		GitilesConfig: gitiles_common.GitilesConfig{
+			Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
+			RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+		},
+		Gerrit: c.Gerrit,
 		DependencyConfig: version_file_common.DependencyConfig{
 			VersionFileConfig: version_file_common.VersionFileConfig{
 				ID:   c.GCSPath, // TODO
@@ -86,7 +84,7 @@ func (c SemVerGCSRepoManagerConfig) splitParentChild() (parent.GitilesFileConfig
 		},
 	}
 	if err := parentCfg.Validate(); err != nil {
-		return parent.GitilesFileConfig{}, child.SemVerGCSConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
+		return parent.GitilesConfig{}, child.SemVerGCSConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
 	}
 	childCfg := child.SemVerGCSConfig{
 		GCSConfig: child.GCSConfig{
@@ -97,7 +95,7 @@ func (c SemVerGCSRepoManagerConfig) splitParentChild() (parent.GitilesFileConfig
 		VersionRegex:  c.VersionRegex,
 	}
 	if err := childCfg.Validate(); err != nil {
-		return parent.GitilesFileConfig{}, child.SemVerGCSConfig{}, skerr.Wrapf(err, "generated child config is invalid")
+		return parent.GitilesConfig{}, child.SemVerGCSConfig{}, skerr.Wrapf(err, "generated child config is invalid")
 	}
 	return parentCfg, childCfg, nil
 }

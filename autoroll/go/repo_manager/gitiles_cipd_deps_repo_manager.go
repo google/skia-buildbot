@@ -8,8 +8,10 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/strategy"
+	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/skerr"
 )
@@ -42,37 +44,40 @@ func (c *GitilesCIPDDEPSRepoManagerConfig) Validate() error {
 }
 
 // splitParentChild splits the GitilesCIPDDEPSRepoManagerConfig into a
-// parent.GitilesDEPSConfig and a child.CIPDConfig.
+// parent.GitilesConfig and a child.CIPDConfig.
 // TODO(borenet): Update the config format to directly define the parent
 // and child. We shouldn't need most of the New.*RepoManager functions.
-func (c GitilesCIPDDEPSRepoManagerConfig) splitParentChild() (parent.GitilesDEPSConfig, child.CIPDConfig, error) {
-	parentCfg := parent.GitilesDEPSConfig{
-		GitilesConfig: parent.GitilesConfig{
-			BaseConfig: parent.BaseConfig{
-				ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-				ChildRepo:       c.CipdAssetName,
-				IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-				IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-				CommitMsgTmpl:   c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
-				MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-			},
-			GitilesConfig: gitiles_common.GitilesConfig{
-				Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
-				RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
-			},
-			Gerrit: c.Gerrit,
+func (c GitilesCIPDDEPSRepoManagerConfig) splitParentChild() (parent.GitilesConfig, child.CIPDConfig, error) {
+	parentCfg := parent.GitilesConfig{
+		BaseConfig: parent.BaseConfig{
+			ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
+			ChildRepo:       c.CipdAssetName,
+			IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
+			IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
+			CommitMsgTmpl:   c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
+			MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
 		},
-		Dep: c.CipdAssetName,
+		DependencyConfig: version_file_common.DependencyConfig{
+			VersionFileConfig: version_file_common.VersionFileConfig{
+				ID:   c.CipdAssetName,
+				Path: deps_parser.DepsFileName,
+			},
+		},
+		GitilesConfig: gitiles_common.GitilesConfig{
+			Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
+			RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+		},
+		Gerrit: c.Gerrit,
 	}
 	if err := parentCfg.Validate(); err != nil {
-		return parent.GitilesDEPSConfig{}, child.CIPDConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
+		return parent.GitilesConfig{}, child.CIPDConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
 	}
 	childCfg := child.CIPDConfig{
 		Name: c.CipdAssetName,
 		Tag:  c.CipdAssetTag,
 	}
 	if err := childCfg.Validate(); err != nil {
-		return parent.GitilesDEPSConfig{}, child.CIPDConfig{}, skerr.Wrapf(err, "generated child config is invalid")
+		return parent.GitilesConfig{}, child.CIPDConfig{}, skerr.Wrapf(err, "generated child config is invalid")
 	}
 	return parentCfg, childCfg, nil
 }
@@ -87,7 +92,7 @@ func NewGitilesCIPDDEPSRepoManager(ctx context.Context, c *GitilesCIPDDEPSRepoMa
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	parentRM, err := parent.NewGitilesDEPS(ctx, parentCfg, reg, client, serverURL)
+	parentRM, err := parent.NewGitilesFile(ctx, parentCfg, reg, client, serverURL)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

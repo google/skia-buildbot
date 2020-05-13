@@ -30,6 +30,7 @@ const (
 type GitCheckoutConfig struct {
 	BaseConfig
 	git_common.GitCheckoutConfig
+	version_file_common.DependencyConfig
 }
 
 // See documentation for util.Validator interface.
@@ -40,6 +41,12 @@ func (c GitCheckoutConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}
+	if err := c.DependencyConfig.Validate(); err != nil {
+		return skerr.Wrap(err)
+	}
+	if len(c.GitCheckoutConfig.Dependencies) != 0 {
+		return skerr.Fmt("Dependencies are inherited from the DependencyConfig and should not be set on the GitCheckoutConfig.")
+	}
 	return nil
 }
 
@@ -48,9 +55,9 @@ func (c GitCheckoutConfig) Validate() error {
 type GitCheckoutParent struct {
 	*baseParent
 	*git_common.Checkout
-	createRoll     GitCheckoutCreateRollFunc
-	getLastRollRev GitCheckoutGetLastRollRevFunc
-	uploadRoll     GitCheckoutUploadRollFunc
+	childID    string
+	createRoll GitCheckoutCreateRollFunc
+	uploadRoll GitCheckoutUploadRollFunc
 }
 
 // GitCheckoutCreateRollFunc generates commit(s) in the local Git checkout to
@@ -62,38 +69,46 @@ type GitCheckoutCreateRollFunc func(context.Context, *git.Checkout, *revision.Re
 // returns its ID.
 type GitCheckoutUploadRollFunc func(context.Context, *git.Checkout, string, string, []string, bool, string) (int64, error)
 
-// GitCheckoutGetLastRollRevFunc retrieves the last-rolled revision ID from the
-// local Git checkout. GitCheckoutParent handles updating the checkout itself.
-type GitCheckoutGetLastRollRevFunc func(context.Context, *git.Checkout) (string, error)
-
 // NewGitCheckout returns a base for implementations of Parent which use
 // a local checkout to create changes.
-func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, serverURL, workdir, userName, userEmail string, co *git.Checkout, getLastRollRev GitCheckoutGetLastRollRevFunc, createRoll GitCheckoutCreateRollFunc, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, serverURL, workdir, userName, userEmail string, co *git.Checkout, createRoll GitCheckoutCreateRollFunc, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
+	if err := c.Validate(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	// Create a baseParent.
 	base, err := newBaseParent(ctx, c.BaseConfig, serverURL)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	// Create the local checkout.
+	deps := make([]*version_file_common.VersionFileConfig, 0, len(c.DependencyConfig.TransitiveDeps)+1)
+	deps = append(deps, &c.DependencyConfig.VersionFileConfig)
+	deps = append(deps, c.DependencyConfig.TransitiveDeps...)
+	c.GitCheckoutConfig.Dependencies = deps
 	checkout, err := git_common.NewCheckout(ctx, c.GitCheckoutConfig, reg, workdir, userName, userEmail, co)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return &GitCheckoutParent{
-		baseParent:     base,
-		Checkout:       checkout,
-		createRoll:     createRoll,
-		getLastRollRev: getLastRollRev,
-		uploadRoll:     uploadRoll,
+		baseParent: base,
+		Checkout:   checkout,
+		childID:    c.DependencyConfig.ID,
+		createRoll: createRoll,
+		uploadRoll: uploadRoll,
 	}, nil
 }
 
 // See documentation for Parent interface.
 func (p *GitCheckoutParent) Update(ctx context.Context) (string, error) {
-	if _, _, err := p.Checkout.Update(ctx); err != nil {
+	rev, _, err := p.Checkout.Update(ctx)
+	if err != nil {
 		return "", skerr.Wrap(err)
 	}
-	return p.getLastRollRev(ctx, p.Checkout.Checkout)
+	lastRollRev, ok := rev.Dependencies[p.childID]
+	if !ok {
+		return "", skerr.Fmt("Unable to find dependency %q in %#v", p.childID, rev)
+	}
+	return lastRollRev, nil
 }
 
 // See documentation for Parent interface.
@@ -146,34 +161,6 @@ func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revisio
 
 	// Upload the CL.
 	return p.uploadRoll(ctx, p.Checkout.Checkout, upstreamBranch, hash, emails, dryRun, commitMsg)
-}
-
-// VersionFileGetLastRollRevFunc returns a GitCheckoutGetLastRollRevFunc which
-// reads the given file path from the repo and returns its full contents as the
-// last-rolled revision ID.
-func VersionFileGetLastRollRevFunc(dep version_file_common.VersionFileConfig) GitCheckoutGetLastRollRevFunc {
-	return func(ctx context.Context, co *git.Checkout) (string, error) {
-		contents, err := ioutil.ReadFile(filepath.Join(co.Dir(), dep.Path))
-		if err != nil {
-			return "", skerr.Wrap(err)
-		}
-		// TODO(borenet): It's kind of weird that we're using a gitiles
-		// helper function here.
-		return version_file_common.GetPinnedRev(dep, string(contents))
-	}
-}
-
-// gitCheckoutFileGetLastRollRevFunc returns a GitCheckoutGetLastRollRevFunc
-// which uses a local Git checkout and pins dependencies using a file checked
-// into the repo.
-func gitCheckoutFileGetLastRollRevFunc(dep version_file_common.VersionFileConfig) GitCheckoutGetLastRollRevFunc {
-	return func(ctx context.Context, co *git.Checkout) (string, error) {
-		contents, err := co.GetFile(ctx, dep.Path, "HEAD")
-		if err != nil {
-			return "", skerr.Wrap(err)
-		}
-		return version_file_common.GetPinnedRev(dep, contents)
-	}
 }
 
 // gitCheckoutFileCreateRollFunc returns a GitCheckoutCreateRollFunc which uses

@@ -61,11 +61,11 @@ func (c DEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig, child
 				Branch:  c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
 				RepoURL: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
 			},
-		},
-		DependencyConfig: version_file_common.DependencyConfig{
-			VersionFileConfig: version_file_common.VersionFileConfig{
-				ID:   c.ChildRepo,
-				Path: deps_parser.DepsFileName,
+			DependencyConfig: version_file_common.DependencyConfig{
+				VersionFileConfig: version_file_common.VersionFileConfig{
+					ID:   c.ChildRepo,
+					Path: deps_parser.DepsFileName,
+				},
 			},
 		},
 		CheckoutPath:   c.ParentPath,

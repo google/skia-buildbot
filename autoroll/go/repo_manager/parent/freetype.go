@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
@@ -41,23 +40,12 @@ var (
 	}
 )
 
-func NewFreeTypeParent(ctx context.Context, c GitilesDEPSConfig, reg *config_vars.Registry, workdir string, client *http.Client, serverURL string) (*gitilesParent, error) {
-	getLastRollRev := gitilesFileGetLastRollRevFunc(version_file_common.VersionFileConfig{
-		ID:   c.Dep,
-		Path: deps_parser.DepsFileName,
-	})
-
+func NewFreeTypeParent(ctx context.Context, c GitilesConfig, reg *config_vars.Registry, workdir string, client *http.Client, serverURL string) (*gitilesParent, error) {
 	localChildRepo, err := git.NewRepo(ctx, c.ChildRepo, workdir)
 	if err != nil {
 		return nil, err
 	}
-	getChangesHelper := gitilesFileGetChangesForRollFunc(version_file_common.DependencyConfig{
-		VersionFileConfig: version_file_common.VersionFileConfig{
-			ID:   c.Dep,
-			Path: deps_parser.DepsFileName,
-		},
-		TransitiveDeps: c.TransitiveDeps,
-	})
+	getChangesHelper := gitilesFileGetChangesForRollFunc(c.DependencyConfig)
 	getChangesForRoll := func(ctx context.Context, parentRepo *gitiles_common.GitilesRepo, baseCommit string, from, to *revision.Revision, rolling []*revision.Revision) (map[string]string, []*version_file_common.TransitiveDepUpdate, error) {
 		// Get the DEPS changes via gitilesDEPSGetChangesForRollFunc.
 		changes, transitiveDeps, err := getChangesHelper(ctx, parentRepo, baseCommit, from, to, rolling)
@@ -102,7 +90,7 @@ func NewFreeTypeParent(ctx context.Context, c GitilesDEPSConfig, reg *config_var
 		}
 		return changes, transitiveDeps, nil
 	}
-	return newGitiles(ctx, c.GitilesConfig, reg, client, serverURL, getLastRollRev, getChangesForRoll)
+	return newGitiles(ctx, c, reg, client, serverURL, getChangesForRoll)
 }
 
 // Perform a three-way merge for this header file in a temporary dir. Adds the

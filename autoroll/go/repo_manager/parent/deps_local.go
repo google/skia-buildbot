@@ -27,7 +27,6 @@ const (
 // checkout and DEPS to manage dependencies.
 type DEPSLocalConfig struct {
 	GitCheckoutConfig
-	version_file_common.DependencyConfig
 
 	// Optional fields.
 
@@ -120,19 +119,6 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 		return nil, skerr.Wrap(err)
 	}
 
-	// See documentation for GitCheckoutGetLastRollRevFunc. This
-	// implementation also performs a "gclient sync".
-	getLastRollRevHelper := VersionFileGetLastRollRevFunc(version_file_common.VersionFileConfig{
-		ID:   c.ID,
-		Path: deps_parser.DepsFileName,
-	})
-	getLastRollRev := func(ctx context.Context, co *git.Checkout) (string, error) {
-		if err := sync(ctx); err != nil {
-			return "", skerr.Wrap(err)
-		}
-		return getLastRollRevHelper(ctx, co)
-	}
-
 	// See documentation for GitCheckoutCreateRollFunc.
 	createRollHelper := gitCheckoutFileCreateRollFunc(version_file_common.DependencyConfig{
 		VersionFileConfig: version_file_common.VersionFileConfig{
@@ -177,7 +163,7 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 		return nil, skerr.Wrap(err)
 	}
 	co := &git.Checkout{GitDir: git.GitDir(checkoutPath)}
-	return NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, co, getLastRollRev, createRoll, uploadRoll)
+	return NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, co, createRoll, uploadRoll)
 }
 
 // GetDEPSCheckoutPath returns the path to the checkout within the workdir,
