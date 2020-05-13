@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "816a78cd_3f4096cb",
+        "filename": "autoroll/go/commit_msg/afdo.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-13T15:21:31Z",
+      "side": 1,
+      "message": "nig: tmplAfdo",
+      "range": {
+        "startLine": 11,
+        "startChar": 4,
+        "endLine": 11,
+        "endChar": 15
+      },
+      "revId": "a0f9132fe54bb8cf95eefe0e7d82d96d37a2d80c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dcafc755_5c7e94ed",
+        "filename": "autoroll/go/commit_msg/default.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-13T15:21:31Z",
+      "side": 1,
+      "message": "nit: tmplSkeleton",
+      "range": {
+        "startLine": 13,
+        "startChar": 4,
+        "endLine": 13,
+        "endChar": 12
+      },
+      "revId": "a0f9132fe54bb8cf95eefe0e7d82d96d37a2d80c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "31555427_c9ac4264",
+        "filename": "autoroll/go/commit_msg/default.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-13T15:21:31Z",
+      "side": 1,
+      "message": "nit: should we move tmplNameCommitMsg and tmplCommitMsg to the top above the skeleton?\nthis is to make it easier to find and we seem to be defining things in reverse order in this file",
+      "revId": "a0f9132fe54bb8cf95eefe0e7d82d96d37a2d80c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

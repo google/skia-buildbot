@@ -84,6 +84,30 @@
     },
     {
       "key": {
+        "uuid": "b1fb9544_7158ff07",
+        "filename": "autoroll/config/chromite-chromium.json",
+        "patchSetId": 12
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-13T15:21:31Z",
+      "side": 1,
+      "message": "Yea I was confused with commit msg child name and UI display child name, for some reason I assumed their were both the same but they are not the same.\n\n\u003e  I thought that \"childName\" under \"commitMsg\" implied that this was the display name for commit messages only, whereas \"childName\" at the top level is for everything else. \n\nI agree having childName under commitMsg implies that it is for commit messages only. I guess it would remove confusion if the top-level one was called something else, right now it is not clear what that is used for (childDisplayName actually SGTM). But I guess we always had that problem so maybe not that important.",
+      "parentUuid": "6b65712b_e820127e",
+      "range": {
+        "startLine": 6,
+        "startChar": 5,
+        "endLine": 6,
+        "endChar": 14
+      },
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "24108d3c_34a299d4",
         "filename": "autoroll/go/autoroll-be/main.go",
         "patchSetId": 12
@@ -319,6 +343,47 @@
     },
     {
       "key": {
+        "uuid": "ae31a02a_7cb9b7db",
+        "filename": "autoroll/go/commit_msg/commit_msg.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-13T15:21:31Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "29f9ab56_bf64726c",
+      "range": {
+        "startLine": 18,
+        "startChar": 1,
+        "endLine": 18,
+        "endChar": 18
+      },
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "522e53b2_6f3dace5",
+        "filename": "autoroll/go/commit_msg/commit_msg.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-13T15:21:31Z",
+      "side": 1,
+      "message": "This still exists in lots of config files",
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d84dd967_7230b688",
         "filename": "autoroll/go/commit_msg/commit_msg.go",
         "patchSetId": 12
@@ -386,6 +451,24 @@
       "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e891cbe6_acb6656a",
+        "filename": "autoroll/go/commit_msg/commit_msg.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-13T15:21:31Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "c17496ae_64193acf",
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
