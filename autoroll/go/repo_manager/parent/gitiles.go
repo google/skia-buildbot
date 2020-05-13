@@ -24,6 +24,7 @@ import (
 type GitilesConfig struct {
 	BaseConfig
 	gitiles_common.GitilesConfig
+	version_file_common.DependencyConfig
 	// Gerrit provides configuration for the Gerrit instance used for
 	// uploading rolls.
 	Gerrit *codereview.GerritConfig `json:"gerrit"`
@@ -43,6 +44,12 @@ func (c GitilesConfig) Validate() error {
 	if err := c.GitilesConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}
+	if err := c.DependencyConfig.Validate(); err != nil {
+		return skerr.Wrap(err)
+	}
+	if len(c.GitilesConfig.Dependencies) != 0 {
+		return skerr.Fmt("Dependencies are inherited from the DependencyConfig and should not be set on the GitilesConfig.")
+	}
 	return nil
 }
 
@@ -52,20 +59,16 @@ func (c GitilesConfig) Validate() error {
 // returns any dependencies which are being transitively rolled.
 type gitilesGetChangesForRollFunc func(context.Context, *gitiles_common.GitilesRepo, string, *revision.Revision, *revision.Revision, []*revision.Revision) (map[string]string, []*version_file_common.TransitiveDepUpdate, error)
 
-// gitilesGetLastRollRevFunc finds the last-rolled child revision ID from the
-// repo at the given base commit.
-type gitilesGetLastRollRevFunc func(context.Context, *gitiles_common.GitilesRepo, string) (string, error)
-
 // gitilesParent is a base for implementations of Parent which use Gitiles.
 type gitilesParent struct {
 	*baseParent
 	*gitiles_common.GitilesRepo
+	childID      string
 	gerrit       gerrit.GerritInterface
 	gerritConfig *codereview.GerritConfig
 	serverURL    string
 
 	getChangesForRoll gitilesGetChangesForRollFunc
-	update            gitilesGetLastRollRevFunc
 
 	// TODO(borenet): We could make this "stateless" by having Parent.Update
 	// also return the tip revision of the Parent and passing it through to
@@ -75,10 +78,14 @@ type gitilesParent struct {
 }
 
 // newGitiles returns a base for implementations of Parent which use Gitiles.
-func newGitiles(ctx context.Context, c GitilesConfig, reg *config_vars.Registry, client *http.Client, serverURL string, update gitilesGetLastRollRevFunc, getChangesForRoll gitilesGetChangesForRollFunc) (*gitilesParent, error) {
+func newGitiles(ctx context.Context, c GitilesConfig, reg *config_vars.Registry, client *http.Client, serverURL string, getChangesForRoll gitilesGetChangesForRollFunc) (*gitilesParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	deps := make([]*version_file_common.VersionFileConfig, 0, len(c.DependencyConfig.TransitiveDeps)+1)
+	deps = append(deps, &c.DependencyConfig.VersionFileConfig)
+	deps = append(deps, c.DependencyConfig.TransitiveDeps...)
+	c.GitilesConfig.Dependencies = deps
 	gr, err := gitiles_common.NewGitilesRepo(ctx, c.GitilesConfig, reg, client)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -97,11 +104,11 @@ func newGitiles(ctx context.Context, c GitilesConfig, reg *config_vars.Registry,
 	}
 	return &gitilesParent{
 		baseParent:        base,
+		childID:           c.DependencyConfig.ID,
 		GitilesRepo:       gr,
 		gerrit:            g,
 		gerritConfig:      c.Gerrit,
 		getChangesForRoll: getChangesForRoll,
-		update:            update,
 	}, nil
 }
 
@@ -112,11 +119,9 @@ func (p *gitilesParent) Update(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	// Call the provided gitilesGetLastRollRevFunc.
-	lastRollRev, err := p.update(ctx, p.GitilesRepo, baseCommit.Id)
-	if err != nil {
-		return "", err
+	lastRollRev, ok := baseCommit.Dependencies[p.childID]
+	if !ok {
+		return "", skerr.Fmt("Unable to find dependency %q in %#v", p.childID, lastRollRev)
 	}
 
 	// Save the data.

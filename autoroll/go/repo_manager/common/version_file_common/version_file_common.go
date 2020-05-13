@@ -7,7 +7,6 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
 )
 
 // VersionFileConfig provides configuration for a file in a git repository which
@@ -74,6 +73,32 @@ func GetPinnedRev(dep VersionFileConfig, contents string) (string, error) {
 	}
 }
 
+// GetPinnedRevs reads files using the given GetFileFunc to retrieve the given
+// pinned revisions. File retrievals are cached for efficiency.
+func GetPinnedRevs(ctx context.Context, deps []*VersionFileConfig, getFile GetFileFunc) (map[string]string, error) {
+	rv := make(map[string]string, len(deps))
+	// Cache files in case multiple dependencies are versioned in
+	// the same file, eg. DEPS.
+	cache := map[string]string{}
+	for _, dep := range deps {
+		contents, ok := cache[dep.Path]
+		if !ok {
+			var err error
+			contents, err = getFile(ctx, dep.Path)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+			cache[dep.Path] = contents
+		}
+		version, err := GetPinnedRev(*dep, contents)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv[dep.ID] = version
+	}
+	return rv, nil
+}
+
 // SetPinnedRev updates the given dependency pin in the given file, returning
 // the new contents.
 func SetPinnedRev(dep VersionFileConfig, newVersion, oldContents string) (string, error) {
@@ -134,13 +159,11 @@ func UpdateDep(ctx context.Context, primaryDep DependencyConfig, rev *revision.R
 	// Handle transitive dependencies.
 	var td []*TransitiveDepUpdate
 	if len(primaryDep.TransitiveDeps) > 0 {
-		//td = make([]*TransitiveDep, 0, len(transitiveDeps))
 		for _, dep := range primaryDep.TransitiveDeps {
 			// Find the new revision.
 			newVersion, ok := rev.Dependencies[dep.ID]
 			if !ok {
-				sklog.Errorf("Could not find transitive dependency %q in %+v", dep.ID, rev)
-				continue
+				return nil, nil, skerr.Fmt("Could not find transitive dependency %q in %#v", dep.ID, rev)
 			}
 			// Update.
 			oldVersion, err := updateSingleDep(ctx, *dep, newVersion, changes, getFile)
