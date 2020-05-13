@@ -11,11 +11,14 @@
 import { html } from 'lit-html';
 
 import { errorMessage } from 'elements-sk/errorMessage';
+import { diffDate } from 'common-sk/modules/human';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import '../../../infra-sk/modules/theme-chooser-sk';
 import 'elements-sk/error-toast-sk';
-import 'elements-sk/icon/play-arrow-icon-sk';
 import 'elements-sk/icon/pause-icon-sk';
+import 'elements-sk/icon/play-arrow-icon-sk';
+import 'elements-sk/styles/buttons';
 
 const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
 
@@ -23,7 +26,18 @@ const temps = (temperatures) => {
   if (!temperatures) {
     return '';
   }
-  return Object.entries(temperatures).map((pair) => html`<div>${pair[0]}=${pair[1]}</div>`);
+  let total = 0;
+  const values = Object.values(temperatures);
+  values.forEach((x) => { total += x; });
+  const ave = total / values.length;
+  return html`
+  <details>
+    <summary>Avg: ${ave.toFixed(1)}</summary>
+    <table>
+    ${Object.entries(temperatures).map((pair) => html`<tr><td>${pair[0]}</td><td>${pair[1]}</td></tr>`)}
+    </table>
+  </details>
+  `;
 };
 
 const isRunning = (machine) => (machine.RunningSwarmingTask ? html`&check;` : '');
@@ -49,9 +63,7 @@ const annotation = (machine) => {
     return '';
   }
   return html`
-<div>${machine.Annotation.Message}</div>
-<div>${machine.Annotation.User}</div>
-<div>${machine.Annotation.Timestamp}</div>
+${machine.Annotation.User} (${diffDate(machine.Annotation.Timestamp)}) - ${machine.Annotation.Message}
 `;
 };
 
@@ -75,7 +87,7 @@ const rows = (ele) => ele._machines.map((machine) => html`
   <td>
     ${temps(machine.Temperature)}
   </td>
-  <td>${machine.LastUpdated}</td>
+  <td>${diffDate(machine.LastUpdated)}</td>
   <td>${dimensions(machine)}</td>
   <td>${annotation(machine)}</td>
 </tr>
@@ -90,11 +102,14 @@ const refreshButtonDisplayValue = (ele) => {
 
 const template = (ele) => html`
 <header>
-  <button
+  <span
     id=refresh
     @click=${() => ele._toggleRefresh()}
     title="Start/Stop the automatic refreshing of data on the page."
-    >${refreshButtonDisplayValue(ele)}</button>
+    >${refreshButtonDisplayValue(ele)}</span>
+  <theme-chooser-sk
+    title="Toggle between light and dark mode."
+  ></theme-chooser-sk>
 </header>
 <main>
   <table>
