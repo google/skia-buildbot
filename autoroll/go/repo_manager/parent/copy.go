@@ -6,11 +6,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -40,10 +38,6 @@ func (e CopyEntry) Validate() error {
 type CopyConfig struct {
 	GitCheckoutGerritConfig
 
-	// VersionFile is the path of the file within the repo which contains
-	// the current version of the Child.
-	VersionFile string `json:"versionFile"`
-
 	// Copies indicates which files and directories to copy from the
 	// Child into the Parent.
 	Copies []CopyEntry `json:"copies,omitempty"`
@@ -53,9 +47,6 @@ type CopyConfig struct {
 func (c CopyConfig) Validate() error {
 	if err := c.GitCheckoutGerritConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
-	}
-	if c.VersionFile == "" {
-		return skerr.Fmt("VersionFile is required")
 	}
 	if len(c.Copies) == 0 {
 		return skerr.Fmt("Copies are required")
@@ -71,10 +62,10 @@ func (c CopyConfig) Validate() error {
 // NewCopy returns a Parent implementation which copies the Child into itself.
 // It uses a local git checkout and uploads changes to Gerrit.
 func NewCopy(ctx context.Context, c CopyConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, userName, userEmail string, dep child.Child, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
-	getLastRollRev := VersionFileGetLastRollRevFunc(version_file_common.VersionFileConfig{
-		ID:   c.ChildRepo,
-		Path: c.VersionFile,
-	})
+	if err := c.Validate(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	createRollHelper := gitCheckoutFileCreateRollFunc(c.DependencyConfig)
 	createRoll := func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Create a temporary directory.
 		tmp, err := ioutil.TempDir("", "")
@@ -109,24 +100,8 @@ func NewCopy(ctx context.Context, c CopyConfig, reg *config_vars.Registry, clien
 		}
 
 		// Write the new version file.
-		versionFile := filepath.Join(co.Dir(), c.VersionFile)
-		if err := ioutil.WriteFile(versionFile, []byte(to.Id), os.ModePerm); err != nil {
-			return "", skerr.Wrap(err)
-		}
-		if _, err := co.Git(ctx, "add", c.VersionFile); err != nil {
-			return "", skerr.Wrap(err)
-		}
-
-		// Commit.
-		if _, err := co.Git(ctx, "commit", "-m", commitMsg); err != nil {
-			return "", skerr.Wrap(err)
-		}
-		out, err := co.RevParse(ctx, "HEAD")
-		if err != nil {
-			return "", skerr.Wrap(err)
-		}
-		return strings.TrimSpace(out), nil
+		return createRollHelper(ctx, co, from, to, rolling, commitMsg)
 	}
 
-	return NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, nil, getLastRollRev, createRoll, uploadRoll)
+	return NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, nil, createRoll, uploadRoll)
 }

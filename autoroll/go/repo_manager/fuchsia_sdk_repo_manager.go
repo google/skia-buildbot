@@ -56,7 +56,7 @@ func (c *FuchsiaSDKRepoManagerConfig) ValidStrategies() []string {
 
 // splitParentChild breaks the FuchsiaSDKRepoManagerConfig into parent and child
 // configs.
-func (c *FuchsiaSDKRepoManagerConfig) splitParentChild() (parent.GitilesFileConfig, child.FuchsiaSDKConfig, error) {
+func (c *FuchsiaSDKRepoManagerConfig) splitParentChild() (parent.GitilesConfig, child.FuchsiaSDKConfig, error) {
 	var parentDeps []*version_file_common.VersionFileConfig
 	if c.IncludeMacSDK {
 		parentDeps = []*version_file_common.VersionFileConfig{
@@ -70,38 +70,36 @@ func (c *FuchsiaSDKRepoManagerConfig) splitParentChild() (parent.GitilesFileConf
 	if c.CommitMsgTmpl != "" {
 		commitMsgTmpl = c.CommitMsgTmpl
 	}
-	parentCfg := parent.GitilesFileConfig{
-		GitilesConfig: parent.GitilesConfig{
-			BaseConfig: parent.BaseConfig{
-				ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-				ChildRepo:       "TODO",
-				IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-				IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-				CommitMsgTmpl:   commitMsgTmpl,
-				MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-			},
-			GitilesConfig: gitiles_common.GitilesConfig{
-				Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
-				RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
-			},
-			Gerrit: c.Gerrit,
+	parentCfg := parent.GitilesConfig{
+		BaseConfig: parent.BaseConfig{
+			ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
+			ChildRepo:       "FuchsiaSDK",
+			IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
+			IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
+			CommitMsgTmpl:   commitMsgTmpl,
+			MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
 		},
 		DependencyConfig: version_file_common.DependencyConfig{
 			VersionFileConfig: version_file_common.VersionFileConfig{
-				ID:   "TODO",
+				ID:   "FuchsiaSDK",
 				Path: FuchsiaSDKVersionFilePathLinux,
 			},
 			TransitiveDeps: parentDeps,
 		},
+		GitilesConfig: gitiles_common.GitilesConfig{
+			Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
+			RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+		},
+		Gerrit: c.Gerrit,
 	}
 	if err := parentCfg.Validate(); err != nil {
-		return parent.GitilesFileConfig{}, child.FuchsiaSDKConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
+		return parent.GitilesConfig{}, child.FuchsiaSDKConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
 	}
 	childCfg := child.FuchsiaSDKConfig{
 		IncludeMacSDK: c.IncludeMacSDK,
 	}
 	if err := childCfg.Validate(); err != nil {
-		return parent.GitilesFileConfig{}, child.FuchsiaSDKConfig{}, skerr.Wrapf(err, "generated child config is invalid")
+		return parent.GitilesConfig{}, child.FuchsiaSDKConfig{}, skerr.Wrapf(err, "generated child config is invalid")
 	}
 	return parentCfg, childCfg, nil
 }
