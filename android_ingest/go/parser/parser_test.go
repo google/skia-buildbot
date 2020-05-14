@@ -19,6 +19,8 @@ func TestParse(t *testing.T) {
 	f, err := in.Metrics["android.platform.systemui.tests.jank.LauncherJankTests#testAppSwitchGMailtoHome"]["frame-avg-jank"].Float64()
 	assert.NoError(t, err)
 	assert.Equal(t, 8.4, f)
+	assert.Equal(t, "coral", in.DeviceName)
+	assert.Equal(t, "API_29_R", in.SDKReleaseName)
 }
 
 func TestParse2(t *testing.T) {
@@ -58,6 +60,8 @@ func TestConvert(t *testing.T) {
 	assert.Equal(t, 8.4, benchData.Results["android.platform.systemui.tests.jank.LauncherJankTests#testAppSwitchGMailtoHome"]["default"]["frame-avg-jank"])
 	assert.Equal(t, "marlin-userdebug", benchData.Key["build_flavor"])
 	assert.Equal(t, "google-marlin-marlin-O", benchData.Key["branch"])
+	assert.Equal(t, "coral", benchData.Key["device_name"])
+	assert.Equal(t, "API_29_R", benchData.Key["sdk_release_name"])
 }
 
 func TestConvertSecondBranch(t *testing.T) {
@@ -114,6 +118,8 @@ func TestConvert_IgnorePresubmitResults(t *testing.T) {
 const INCOMING = `{
 	"build_id": "3567162",
 	"build_flavor": "marlin-userdebug",
+	"device_name":"coral",
+	"sdk_release_name":"API_29_R",
 	"metrics": {
 		"android.platform.systemui.tests.jank.LauncherJankTests#testAppSwitchGMailtoHome": {
 			"frame-fps": "9.328892269753897",
