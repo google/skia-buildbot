@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "50b4a903_d3861dde",
+        "filename": "ct/res/imp/chromium-analysis-runs-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-14T17:02:06Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "47d8a07c_7b7d0185",
+      "range": {
+        "startLine": 219,
+        "startChar": 60,
+        "endLine": 219,
+        "endChar": 64
+      },
+      "revId": "654a91379aa51bdfd80d1f04bf165fe14fd74220",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3e69f896_b25214e7",
         "filename": "go/buildskia/buildskia.go",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2020-05-14T14:51:10Z",
       "side": 0,
       "message": "Looks like this will now be +refs%%2Fheads?format\u003dJSON\nis that correct? (just checking)",
+      "range": {
+        "startLine": 48,
+        "startChar": 58,
+        "endLine": 48,
+        "endChar": 75
+      },
+      "revId": "654a91379aa51bdfd80d1f04bf165fe14fd74220",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "53f4f07c_52ed3b01",
+        "filename": "go/buildskia/buildskia.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-14T17:02:06Z",
+      "side": 0,
+      "message": "The fmt.Sprintf removes the extra %, so it would be \"https://skia.googlesource.com/skia.git/+refs%2Fheads?format\u003dJSON\"\n\nThat limits the results to refs/heads/* rather than refs/*, which includes \"hidden\" refs and every CL ever uploaded to Skia.  So the behavior is different (better, IMO).  At any rate, this seems to be unused, so I deleted it.  Also changed a lot of this package to not duplicate code from elsewhere, ie. switch to gitiles client and use deps_parser rather than a regex. I removed the tests for those functions, since they just combine functionality which is already tested elsewhere.",
+      "parentUuid": "3e69f896_b25214e7",
       "range": {
         "startLine": 48,
         "startChar": 58,
