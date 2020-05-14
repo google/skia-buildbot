@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4fb5efae_5ca75a93",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-14T19:12:16Z",
+      "side": 1,
+      "message": "Maybe include the hash and test name?",
+      "range": {
+        "startLine": 378,
+        "startChar": 39,
+        "endLine": 378,
+        "endChar": 44
+      },
+      "revId": "a68fac59a0310409c0022a90256560850f2a631b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7c33a95b_69f146bb",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 804,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-14T19:12:16Z",
+      "side": 1,
+      "message": "Specifically, the user adds an image with digest 1111..., which is deemed to be an approximate match to the latest positive digest (22222...). Because it is deemed to be a match, we expect to see an RPC request to mark 1111... positive.",
+      "range": {
+        "startLine": 804,
+        "startChar": 42,
+        "endLine": 804,
+        "endChar": 47
+      },
+      "revId": "a68fac59a0310409c0022a90256560850f2a631b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0efaf29c_7bc86bce",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 811,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-14T19:12:16Z",
+      "side": 1,
+      "message": "newlySeenImgData is probably more clear, what do you think?",
+      "range": {
+        "startLine": 811,
+        "startChar": 1,
+        "endLine": 811,
+        "endChar": 8
+      },
+      "revId": "a68fac59a0310409c0022a90256560850f2a631b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "faaa48ba_9f272bbe",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 816,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-14T19:12:16Z",
+      "side": 1,
+      "message": "const newlySeenImageHash (for more clarity)",
+      "range": {
+        "startLine": 816,
+        "startChar": 1,
+        "endLine": 816,
+        "endChar": 8
+      },
+      "revId": "a68fac59a0310409c0022a90256560850f2a631b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "420deacf_bb6a855e",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 826,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-14T19:12:16Z",
+      "side": 1,
+      "message": "There\u0027s a lot going on here. I realize the existing tests are just as gnarly (sorry about that), but let\u0027s start with this one to tidy it up a little bit.  What do you think about adding a few comments explaining what each part of these mock bits are for? Example:\n\n// mock out getting the baselines\n\n// Expect an RPC for most recent positive digest on test ThisIsTheOnlyTest.\n// Return 22222...\n\n// Expect an RPC to triage 1111... as positive\n\nand so on.\n\nAt some point, we can revisit these tests and make them more DAMP and less difficult to read.",
+      "revId": "a68fac59a0310409c0022a90256560850f2a631b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
