@@ -78,6 +78,14 @@ const update = (machine) => {
   return 'Update';
 };
 
+const imageName = (machine) => {
+  const parts = machine.KubernetesImage.split(':');
+  if (parts.length < 2) {
+    return '(missing)';
+  }
+  return parts[1];
+};
+
 const rows = (ele) => ele._machines.map((machine) => html`
 <tr id=${machine.Dimensions.id}>
   <td><a href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions.id}">${machine.Dimensions.id}</a></td>
@@ -94,6 +102,7 @@ const rows = (ele) => ele._machines.map((machine) => html`
   <td>${diffDate(machine.LastUpdated)}</td>
   <td>${dimensions(machine)}</td>
   <td>${annotation(machine)}</td>
+  <td>${imageName(machine)}</td>
 </tr>
 `);
 
@@ -130,6 +139,7 @@ const template = (ele) => html`
     <th>Last Seen</th>
     <th>Dimensions</th>
     <th>Annotation</th>
+    <th>Image</th>
   </tr>
   ${rows(ele)}
   </table>
