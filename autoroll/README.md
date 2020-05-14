@@ -76,5 +76,5 @@ CL and uploads a new one.
 For Skia Infra Team Members
 ---------------------------
 
-See [PROD.md] (https://skia.googlesource.com/buildbot/+/master/autoroll/PROD.md)
+See [PROD.md] (https://skia.googlesource.com/buildbot/+doc/master/autoroll/PROD.md)
 for information about handling alerts.

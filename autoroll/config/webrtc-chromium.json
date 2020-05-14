@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "WebRTC",
@@ -24,7 +24,7 @@
     "childBranch": "lkgr",
     "childPath": "src/third_party/webrtc",
     "childRepo": "https://webrtc.googlesource.com/src.git",
-    "childRevLinkTmpl": "https://webrtc.googlesource.com/src.git/+/%s",
+    "childRevLinkTmpl": "https://webrtc.googlesource.com/src.git/+show/%s",
     "includeBugs": true,
     "includeLog": true,
     "bugProject": "chromium",

@@ -71,7 +71,7 @@ const players = (ele) => ele._ids.map((id, i) => html`
 
 const template = (ele) => html`
 <header>
-  <h2>Skia Lottie Drive Previewer</h2><span><a href='https://skia.googlesource.com/skia/+/${SKIA_VERSION}'>${SKIA_VERSION.slice(0, 7)}</a></span>
+  <h2>Skia Lottie Drive Previewer</h2><span><a href='https://skia.googlesource.com/skia/+show/${SKIA_VERSION}'>${SKIA_VERSION.slice(0, 7)}</a></span>
 </header>
 <main>
   ${players(ele)}

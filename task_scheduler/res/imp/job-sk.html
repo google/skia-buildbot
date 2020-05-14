@@ -230,7 +230,7 @@
 
       _computeRevisionLink: function(job) {
         // This assumes we use Gitiles, but that's a safe assumption for now.
-        return job.repo + "/+/" + job.revision;
+        return job.repo + "/+show/" + job.revision;
       },
 
       _computeSearchLink: function(job, ...fields) {

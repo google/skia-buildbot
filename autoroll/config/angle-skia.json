@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "ANGLE",
@@ -25,7 +25,7 @@
     "childBranch": "master",
     "childPath": "third_party/externals/angle2",
     "childRepo": "https://chromium.googlesource.com/angle/angle.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/angle/angle.git/+/%s",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/angle/angle.git/+show/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

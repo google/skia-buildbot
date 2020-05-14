@@ -27,8 +27,8 @@ import (
 // AddCTRunDataToPerf converts and uploads data from the CT run to CT's perf instance.
 //
 // It does the following:
-// 1) Adds a commit to CT Perf's synthetic repo in https://skia.googlesource.com/perf-ct/+/master
-// 2) Constructs a results struct in the format of https://github.com/google/skia-buildbot/blob/master/perf/FORMAT.md
+// 1) Adds a commit to CT Perf's synthetic repo in https://skia.googlesource.com/perf-ct/+show/master
+// 2) Constructs a results struct in the format of https://skia.googlesource.com/buildbot/+doc/master/perf/FORMAT.md
 //    Ensures that the results struct has as key the runID, groupName and the git hash from (1).
 //    Populates the results struct using the output CSV file from CT's run.
 // 3) Create JSON file from the results struct.

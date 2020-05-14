@@ -4,7 +4,7 @@ import "time"
 
 // SwarmingDimensions is for de/serializing swarming dimensions:
 //
-// https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/doc/Magic-Values.md#bot-dimensions
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+doc/master/appengine/swarming/doc/Magic-Values.md#bot-dimensions
 type SwarmingDimensions map[string][]string
 
 // Well known swarming dimensions.

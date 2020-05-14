@@ -24,7 +24,7 @@ func Expand(uriTemplate string, clusterLink string, c *cid.CommitDetail, message
 // ExampleExpand expands the given uriTemplate with example data.
 func ExampleExpand(uriTemplate string) string {
 	c := &cid.CommitDetail{
-		URL: "https://skia.googlesource.com/skia/+/d261e1075a93677442fdf7fe72aba7e583863664",
+		URL: "https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664",
 	}
 	clusterLink := "https://perf.skia.org/t/?begin=1498332791&end=1498528391&subset=flagged"
 	message := "Looks like a regression."

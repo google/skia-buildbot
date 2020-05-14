@@ -208,7 +208,7 @@ var (
 	// possible device properties that can define that dimension. The
 	// product.device should be read (and listed) first, that is, before
 	// build.product because the latter is deprecated.
-	// https://android.googlesource.com/platform/build/+/master/tools/buildinfo.sh
+	// https://android.googlesource.com/platform/build/+show/master/tools/buildinfo.sh
 	dimensionProperties = map[string][]string{
 		"device_os":           {"ro.build.id"},
 		"device_os_flavor":    {"ro.product.brand", "ro.product.system.brand"},
