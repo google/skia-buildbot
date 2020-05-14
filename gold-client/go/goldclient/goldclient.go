@@ -362,12 +362,18 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 		})
 
 		egroup.Go(func() error {
-			ret, err = c.matchImageAgainstBaseline(name, traceId, imgBytes, imgHash, optionalKeys)
+			match, err := c.matchImageAgainstBaseline(name, traceId, imgBytes, imgHash, optionalKeys)
 			if err != nil {
 				return skerr.Wrapf(err, "matching image against baseline")
 			}
 
-			if !ret {
+			if match == nonExactMatch {
+				// TODO(lovisolo): Triage image as positive if it's a non-exact match.
+			}
+
+			if match == noMatch {
+				ret = false
+
 				link := fmt.Sprintf("%s/detail?test=%s&digest=%s", c.resultState.GoldURL, name, imgHash)
 				if c.resultState.SharedConfig.ChangeListID != "" {
 					link += "&issue=" + c.resultState.SharedConfig.ChangeListID
@@ -421,8 +427,35 @@ func (c *CloudClient) Check(name types.TestName, imgFileName string, keys, optio
 	}
 
 	_, traceID := c.makeResultKeyAndTraceId(name, keys)
-	return c.matchImageAgainstBaseline(name, traceID, imgBytes, imgHash, optionalKeys)
+	match, err := c.matchImageAgainstBaseline(name, traceID, imgBytes, imgHash, optionalKeys)
+	if err != nil {
+		return false, err
+	}
+	return match != noMatch, err
 }
+
+// imageMatchingResult is the result of matching an image against its corresponding baseline.
+type imageMatchingResult int
+
+const (
+	// noMatch indicates that the image does not match its corresponding baseline.
+	//
+	// When performing exact matching, this can be either because the image was explicitly triaged as
+	// negative, or because it's new and hasn't been triaged yet.
+	//
+	// When performing non-exact matching, this can the be either because the image was explicitly
+	// triaged as negative, or because the non-exact comparison against the latest positive image in
+	// its baseline via the specified algorithm was negative.
+	noMatch imageMatchingResult = iota
+
+	// nonExactMatch indicates that the image wasn't explicitly triaged as positive, but it matches
+	// the latest positive image in its baseline via the specified non-exact matching algorithm.
+	nonExactMatch
+
+	// exactMatch indicates that the image image was explicitly triaged as positive, regardless of
+	// whether a non-exact image matching algorithm was specified or not.
+	exactMatch
+)
 
 // matchImageAgainstBaseline matches the given image against the baseline. A non-exact image
 // matching algorithm will be used if one is specified via the optionalKeys; otherwise exact
@@ -433,14 +466,14 @@ func (c *CloudClient) Check(name types.TestName, imgFileName string, keys, optio
 //
 // Returns true if the image matches the baseline, or false otherwise. A non-nil error is returned
 // if there are any problems parsing or instantiating the specified image matching algorithm.
-func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId tiling.TraceID, imageBytes []byte, imageHash types.Digest, optionalKeys map[string]string) (bool, error) {
+func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId tiling.TraceID, imageBytes []byte, imageHash types.Digest, optionalKeys map[string]string) (imageMatchingResult, error) {
 	// First we check whether the digest is a known positive or negative, regardless of the specified
 	// image matching algorithm.
 	if c.resultState.Expectations[testName][imageHash] == expectations.Positive {
-		return true, nil
+		return exactMatch, nil
 	}
 	if c.resultState.Expectations[testName][imageHash] == expectations.Negative {
-		return false, nil
+		return noMatch, nil
 	}
 
 	// Extract the specified image matching algorithm from the optionalKeys (defaulting to exact
@@ -448,40 +481,43 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 	// algorithm requires one (i.e. all but exact matching).
 	algorithmName, matcher, err := imgmatching.MakeMatcher(optionalKeys)
 	if err != nil {
-		return false, skerr.Wrapf(err, "parsing image matching algorithm from optional keys")
+		return noMatch, skerr.Wrapf(err, "parsing image matching algorithm from optional keys")
 	}
 
 	// Nothing else to do if performing exact matching: we've already checked whether the image is a
-	// known positive.
+	// known positive or negative, and it's neither. So the image is untriaged and we return noMatch.
 	if algorithmName == imgmatching.ExactMatching {
-		return false, nil
+		return noMatch, nil
 	}
 
 	// Decode test output PNG image.
 	image, err := png.Decode(bytes.NewReader(imageBytes))
 	if err != nil {
-		return false, skerr.Wrapf(err, "decoding PNG image")
+		return noMatch, skerr.Wrapf(err, "decoding PNG image")
 	}
 
 	// Fetch the most recent positive digest.
 	sklog.Infof("Fetching most recent positive digest for trace with ID %q.", traceId)
 	mostRecentPositiveDigest, err := c.MostRecentPositiveDigest(traceId)
 	if err != nil {
-		return false, skerr.Wrapf(err, "retrieving most recent positive image")
+		return noMatch, skerr.Wrapf(err, "retrieving most recent positive image")
 	}
 	if mostRecentPositiveDigest == tiling.MissingDigest {
-		return false, skerr.Fmt("no recent positive digests for trace with ID %q", traceId)
+		return noMatch, skerr.Fmt("no recent positive digests for trace with ID %q", traceId)
 	}
 
 	// Download from GCS the image corresponding to the most recent positive digest.
 	mostRecentPositiveImage, _, err := c.getDigestFromCacheOrGCS(context.TODO(), mostRecentPositiveDigest)
 	if err != nil {
-		return false, skerr.Wrapf(err, "downloading most recent positive image from GCS")
+		return noMatch, skerr.Wrapf(err, "downloading most recent positive image from GCS")
 	}
 
 	// Return algorithm's output.
 	sklog.Infof("Non-exact image comparison using algorithm %q against most recent positive digest %q.", algorithmName, mostRecentPositiveDigest)
-	return matcher.Match(mostRecentPositiveImage, image), nil
+	if matcher.Match(mostRecentPositiveImage, image) {
+		return nonExactMatch, nil
+	}
+	return noMatch, nil
 }
 
 // Finalize implements the GoldClient interface.

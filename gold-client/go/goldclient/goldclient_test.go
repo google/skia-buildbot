@@ -1402,7 +1402,7 @@ func TestCloudClient_MatchImageAgainstBaseline_NoAlgorithmSpecified_DefaultsToEx
 	const digest = types.Digest("11111111111111111111111111111111")
 	const unlabeled = expectations.Label(-1) // Sentinel value.
 
-	test := func(name string, label expectations.Label, want bool) {
+	test := func(name string, label expectations.Label, want imageMatchingResult) {
 		t.Run(name, func(t *testing.T) {
 			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer cleanup()
@@ -1423,10 +1423,10 @@ func TestCloudClient_MatchImageAgainstBaseline_NoAlgorithmSpecified_DefaultsToEx
 		})
 	}
 
-	test("image label positive, returns true", expectations.Positive, true)
-	test("image label negative, returns false", expectations.Negative, false)
-	test("image label untriaged, returns false", expectations.Untriaged, false)
-	test("image unlabeled, returns false", unlabeled, false)
+	test("image label positive, returns true", expectations.Positive, exactMatch)
+	test("image label negative, returns false", expectations.Negative, noMatch)
+	test("image label untriaged, returns false", expectations.Untriaged, noMatch)
+	test("image unlabeled, returns false", unlabeled, noMatch)
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_ExactMatching_Success(t *testing.T) {
@@ -1436,7 +1436,7 @@ func TestCloudClient_MatchImageAgainstBaseline_ExactMatching_Success(t *testing.
 	const digest = types.Digest("11111111111111111111111111111111")
 	const unlabeled = expectations.Label(-1) // Sentinel value.
 
-	test := func(name string, label expectations.Label, want bool) {
+	test := func(name string, label expectations.Label, want imageMatchingResult) {
 		t.Run(name, func(t *testing.T) {
 			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer cleanup()
@@ -1461,16 +1461,16 @@ func TestCloudClient_MatchImageAgainstBaseline_ExactMatching_Success(t *testing.
 		})
 	}
 
-	test("image labeled positive, returns true", expectations.Positive, true)
-	test("image labeled negative, returns false", expectations.Negative, false)
-	test("image labeled untriaged, returns false", expectations.Untriaged, false)
-	test("image unlabeled, returns false", unlabeled, false)
+	test("image labeled positive, returns true", expectations.Positive, exactMatch)
+	test("image labeled negative, returns false", expectations.Negative, noMatch)
+	test("image labeled untriaged, returns false", expectations.Untriaged, noMatch)
+	test("image unlabeled, returns false", unlabeled, noMatch)
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_ImageAlreadyLabeled_Success(t *testing.T) {
 	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
-	test := func(name string, label expectations.Label, want bool) {
+	test := func(name string, label expectations.Label, want imageMatchingResult) {
 		t.Run(name, func(t *testing.T) {
 			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer cleanup()
@@ -1496,8 +1496,8 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_ImageAlreadyLabeled
 		})
 	}
 
-	test("labeled positive, returns true", expectations.Positive, true)
-	test("labeled negative, returns false", expectations.Negative, false)
+	test("labeled positive, returns true", expectations.Positive, exactMatch)
+	test("labeled negative, returns false", expectations.Negative, noMatch)
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Success(t *testing.T) {
@@ -1522,31 +1522,41 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Succ
 	tests := []struct {
 		name       string
 		imageBytes []byte
-		expected   bool
+		expected   imageMatchingResult
 	}{
 		{
-			name: "identical images, returns true",
+			// This test case is unrealistic because if the test image and the latest positive image are
+			// identical pixel-by-pixel, then presumably they would have the same digest, which would be
+			// marked as positive in the baseline expectations. This would cause method
+			// CloudClient.matchImageAgainstBaseline() to return exactMatch without ever executing the
+			// specified non-exact image matching algorithm.
+			//
+			// However in this test the baseline expectations are empty (even though the mocked
+			// /json/latestpositivedigest RPC returns a non-empty digest for the test name). Therefore
+			// CloudClient.matchImageAgainstBaseline() is forced to execute the specified non-exact image
+			// matching algorithm, which results in the nonExactMatch return value.
+			name: "identical images, returns nonExactMatch",
 			imageBytes: imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
 			2 2
 			0x00000000 0x00000000
 			0x00000000 0x00000000`)),
-			expected: true,
+			expected: nonExactMatch,
 		},
 		{
-			name: "images different below threshold, returns true",
+			name: "images different below threshold, returns nonExactMatch",
 			imageBytes: imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
 			2 2
 			0x00000505 0x00000001
 			0x00000000 0x00000000`)),
-			expected: true,
+			expected: nonExactMatch,
 		},
 		{
-			name: "images different above threshold, returns false",
+			name: "images different above threshold, returns noMatch",
 			imageBytes: imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
 			2 2
 			0x00000506 0x00000001
 			0x00000001 0x00000000`)),
-			expected: false,
+			expected: noMatch,
 		},
 	}
 
@@ -1652,7 +1662,7 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDig
 func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLabeled_Success(t *testing.T) {
 	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
-	test := func(name string, label expectations.Label, want bool) {
+	test := func(name string, label expectations.Label, want imageMatchingResult) {
 		t.Run(name, func(t *testing.T) {
 			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer cleanup()
@@ -1679,8 +1689,8 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLa
 		})
 	}
 
-	test("labeled positive, returns true", expectations.Positive, true)
-	test("labeled negative, returns false", expectations.Negative, false)
+	test("labeled positive, returns true", expectations.Positive, exactMatch)
+	test("labeled negative, returns false", expectations.Negative, noMatch)
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage_Success(t *testing.T) {
@@ -1714,7 +1724,7 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage
 	0x49 0x83 0x88 0x88 0x88 0x88 0x88 0x88
 	0x83 0x88 0x88 0x88 0x88 0x88 0x88 0x88`))
 
-	test := func(name, edgeThreshold string, expected bool) {
+	test := func(name, edgeThreshold string, expected imageMatchingResult) {
 		t.Run(name, func(t *testing.T) {
 			goldClient, cleanup, httpClient, gcsClient := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer cleanup()
@@ -1737,8 +1747,8 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage
 		})
 	}
 
-	test("differences under threshold, returns true", "0x66", true)
-	test("differences above threshold, returns false", "0xAA", false)
+	test("differences under threshold, returns true", "0x66", nonExactMatch)
+	test("differences above threshold, returns false", "0xAA", noMatch)
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_InvalidParameters_ReturnsError(t *testing.T) {
