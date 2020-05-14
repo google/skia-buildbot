@@ -369,8 +369,13 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 			}
 			ret = match
 
+			// If the image is untriaged, but matches the latest positive digest in its baseline via the
+			// specified non-exact image matching algorithm, then triage the image as positive.
 			if match && algorithmName != imgmatching.ExactMatching {
-				// TODO(lovisolo): Triage image as positive.
+				err = c.TriageAsPositive(name, imgHash, string(algorithmName))
+				if err != nil {
+					return skerr.Wrapf(err, "triaging image as positive")
+				}
 			}
 
 			if !match {
