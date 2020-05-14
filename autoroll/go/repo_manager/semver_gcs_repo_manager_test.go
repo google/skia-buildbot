@@ -48,9 +48,9 @@ const (
 )
 
 func afdoCfg(t *testing.T) *SemVerGCSRepoManagerConfig {
-	shortRev, err := config_vars.NewTemplate("(\\d+)\\.(\\d+)\\.(\\d+)\\.0_rc-r(\\d+)-merged")
+	shortRev, err := config_vars.NewTemplate(AFDO_SHORT_REV_REGEX)
 	require.NoError(t, err)
-	version, err := config_vars.NewTemplate("^chromeos-chrome-amd64-(\\d+)\\.(\\d+)\\.(\\d+)\\.0_rc-r(\\d+)-merged\\.afdo\\.bz2$")
+	version, err := config_vars.NewTemplate(AFDO_VERSION_REGEX)
 	require.NoError(t, err)
 	return &SemVerGCSRepoManagerConfig{
 		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
@@ -66,9 +66,9 @@ func afdoCfg(t *testing.T) *SemVerGCSRepoManagerConfig {
 			Project: "fake-gerrit-project",
 			Config:  codereview.GERRIT_CONFIG_CHROMIUM,
 		},
-		GCSBucket:     "chromeos-prebuilt",
-		GCSPath:       "afdo-job/llvm",
-		VersionFile:   "chrome/android/profiles/newest.txt",
+		GCSBucket:     AFDO_GS_BUCKET,
+		GCSPath:       AFDO_GS_PATH,
+		VersionFile:   AFDO_VERSION_FILE_PATH,
 		ShortRevRegex: shortRev,
 		VersionRegex:  version,
 	}

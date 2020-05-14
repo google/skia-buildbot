@@ -116,6 +116,31 @@ func getSemanticGCSVersion(regex *regexp.Regexp, rev *revision.Revision) (gcsVer
 	}, nil
 }
 
+// shortRev shortens the revision ID using the given regular expression.
+func shortRev(reTmpl string, id string) string {
+	shortRevRegex, err := regexp.Compile(reTmpl)
+	if err != nil {
+		sklog.Errorf("Failed to compile ShortRevRegex: %s", err)
+		return id
+	}
+	matches := shortRevRegex.FindStringSubmatch(id)
+	if len(matches) == 0 {
+		// TODO(borenet): It'd be nice to log an error here to
+		// indicate that the regex might be incorrect, but this
+		// function may be called for revisions which are not
+		// valid and thus may not match the regex. That would
+		// cause an unhelpful error spew in the log.
+		return id
+	} else if len(matches) == 1 {
+		return matches[0]
+	} else {
+		// This indicates that there is at least one sub-match. We don't
+		// have any way of combining multiple sub-matches into one short
+		// revision, so just use the first one.
+		return matches[1]
+	}
+}
+
 // NewSemVerGCS returns a Child which uses semantic versioning to compare object
 // versions in GCS.
 func NewSemVerGCS(ctx context.Context, c SemVerGCSConfig, reg *config_vars.Registry, client *http.Client) (*gcsChild, error) {
@@ -137,24 +162,11 @@ func NewSemVerGCS(ctx context.Context, c SemVerGCSConfig, reg *config_vars.Regis
 		}
 		return getSemanticGCSVersion(versionRegex, rev)
 	}
-	shortRev := func(id string) string {
+	shortRevFn := func(id string) string {
 		if c.ShortRevRegex != nil {
-			shortRevRegex, err := regexp.Compile(c.ShortRevRegex.String())
-			if err != nil {
-				sklog.Errorf("Failed to compile c.ShortRevRegex: %s", err)
-				return id
-			}
-			matches := shortRevRegex.FindStringSubmatch(id)
-			if len(matches) > 0 {
-				return matches[0]
-			}
-			// TODO(borenet): It'd be nice to log an error here to
-			// indicate that the regex might be incorrect, but this
-			// function may be called for revisions which are not
-			// valid and thus may not match the regex. That would
-			// cause an unhelpful error spew in the log.
+			return shortRev(c.ShortRevRegex.String(), id)
 		}
 		return id
 	}
-	return newGCS(ctx, c.GCSConfig, client, getGCSVersion, shortRev)
+	return newGCS(ctx, c.GCSConfig, client, getGCSVersion, shortRevFn)
 }
