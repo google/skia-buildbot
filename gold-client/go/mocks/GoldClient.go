@@ -124,13 +124,13 @@ func (_m *GoldClient) Test(name types.TestName, imgFileName string, additionalKe
 	return r0, r1
 }
 
-// TriageAsPositive provides a mock function with given fields: testName, digest, changeListId
-func (_m *GoldClient) TriageAsPositive(testName types.TestName, digest types.Digest, changeListId string) error {
-	ret := _m.Called(testName, digest, changeListId)
+// TriageAsPositive provides a mock function with given fields: testName, digest, algorithmName
+func (_m *GoldClient) TriageAsPositive(testName types.TestName, digest types.Digest, algorithmName string) error {
+	ret := _m.Called(testName, digest, algorithmName)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(types.TestName, types.Digest, string) error); ok {
-		r0 = rf(testName, digest, changeListId)
+		r0 = rf(testName, digest, algorithmName)
 	} else {
 		r0 = ret.Error(0)
 	}
