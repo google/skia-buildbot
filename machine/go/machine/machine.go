@@ -56,6 +56,9 @@ type Description struct {
 	// the pod should be deleted.
 	ScheduledForDeletion string
 
+	// PowerCycle is true if the machine needs to be power-cycled.
+	PowerCycle bool
+
 	LastUpdated         time.Time
 	Battery             int                // Charge as an integer percent, e.g. 50% = 50.
 	Temperature         map[string]float64 // In Celsius.
