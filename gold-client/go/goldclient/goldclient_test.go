@@ -2004,7 +2004,7 @@ func TestCloudClient_TriageAsPositive_Success(t *testing.T) {
 
 	url := "https://testing-gold.skia.org/json/triage"
 	contentType := "application/json"
-	body := bytes.NewReader([]byte(`{"testDigestStatus":{"MyTest":{"deadbeefcafefe771d61bf0ed3d84bc2":"positive"}},"issue":"123456"}`))
+	body := bytes.NewReader([]byte(`{"testDigestStatus":{"MyTest":{"deadbeefcafefe771d61bf0ed3d84bc2":"positive"}},"issue":"123456","imageMatchingAlgorithm":""}`))
 	httpClient.On("Post", url, contentType, body).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
 
 	err = goldClient.TriageAsPositive("MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "123456")
@@ -2033,7 +2033,7 @@ func TestCloudClient_TriageAsPositive_InternalServerError_Failure(t *testing.T) 
 
 	url := "https://testing-gold.skia.org/json/triage"
 	contentType := "application/json"
-	body := bytes.NewReader([]byte(`{"testDigestStatus":{"MyTest":{"deadbeefcafefe771d61bf0ed3d84bc2":"positive"}},"issue":"123456"}`))
+	body := bytes.NewReader([]byte(`{"testDigestStatus":{"MyTest":{"deadbeefcafefe771d61bf0ed3d84bc2":"positive"}},"issue":"123456","imageMatchingAlgorithm":""}`))
 	httpClient.On("Post", url, contentType, body).Return(httpResponse([]byte{}, "500 Internal Server Error", http.StatusInternalServerError), nil)
 
 	err = goldClient.TriageAsPositive("MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "123456")

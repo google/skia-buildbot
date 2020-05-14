@@ -791,8 +791,9 @@ func (c *CloudClient) Whoami() (string, error) {
 func (c *CloudClient) TriageAsPositive(testName types.TestName, digest types.Digest, changeListId string) error {
 	// Build TriageRequest struct and encode it into JSON.
 	triageRequest := &frontend.TriageRequest{
-		TestDigestStatus: map[types.TestName]map[types.Digest]string{testName: {digest: expectations.Positive.String()}},
-		ChangeListID:     changeListId,
+		TestDigestStatus:       map[types.TestName]map[types.Digest]string{testName: {digest: expectations.Positive.String()}},
+		ChangeListID:           changeListId,
+		ImageMatchingAlgorithm: "", // TODO(lovisolo): Pipe through the image matching algorithm name.
 	}
 	jsonTriageRequest, err := json.Marshal(triageRequest)
 	if err != nil {
