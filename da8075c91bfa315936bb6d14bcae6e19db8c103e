@@ -160,6 +160,30 @@
     },
     {
       "key": {
+        "uuid": "29ee1444_b5eeda1b",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-14T15:24:22Z",
+      "side": 1,
+      "message": "I was unintentionally obtuse. Generally, the only times I see structs inside a function are\n1) test case helpers (named or anonymous)\n2) a single anonymous struct with few fields, typically being serialized.\n\nIt\u0027s unusual to see named structs inside functions outside of tests, is all.",
+      "parentUuid": "571eae25_5865fc14",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 1
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22973d99_cd0e0403",
         "filename": "demos/go/demoserver/main.go",
         "patchSetId": 4

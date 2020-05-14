@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2765ddfd_f61fd81b",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-14T15:24:22Z",
+      "side": 1,
+      "message": "nit: make this a named constant at the top (just for easier reference).",
+      "range": {
+        "startLine": 60,
+        "startChar": 24,
+        "endLine": 60,
+        "endChar": 36
+      },
+      "revId": "3c59b71b28e59170a09c3e01427c82a6b35d1670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "72aa35bb_2349c905",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-14T15:24:22Z",
+      "side": 1,
+      "message": "ubernit: you have some comments that go very close to 100 cols and then wrap and then comments like this that seem to be wrapped very early. I usually try to wrap between 90 and 100 cols (close, but gives me room to make a few edits w/o having to re-wrap the whole thing), just to make sure the comment blocks all sort of look alike.",
+      "range": {
+        "startLine": 115,
+        "startChar": 45,
+        "endLine": 115,
+        "endChar": 47
+      },
+      "revId": "3c59b71b28e59170a09c3e01427c82a6b35d1670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "df29b7ce_da6c885a",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-14T15:24:22Z",
+      "side": 1,
+      "message": "nit: demos.RLock is a touch confusing. \"returns a fileserver handler for a directory that won\u0027t serve while the underlying git repo is being updated\".",
+      "range": {
+        "startLine": 138,
+        "startChar": 22,
+        "endLine": 138,
+        "endChar": 73
+      },
+      "revId": "3c59b71b28e59170a09c3e01427c82a6b35d1670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c43f8ebe_a6e48191",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-14T15:24:22Z",
+      "side": 1,
+      "message": "Would this be more clear as a method on *syncedDemos?",
+      "range": {
+        "startLine": 139,
+        "startChar": 5,
+        "endLine": 139,
+        "endChar": 35
+      },
+      "revId": "3c59b71b28e59170a09c3e01427c82a6b35d1670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "486bfc0a_c8b53a37",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-14T15:24:22Z",
+      "side": 1,
+      "message": "unnecessary",
+      "range": {
+        "startLine": 157,
+        "startChar": 65,
+        "endLine": 157,
+        "endChar": 67
+      },
+      "revId": "3c59b71b28e59170a09c3e01427c82a6b35d1670",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
