@@ -148,8 +148,9 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 			GetProp: props,
 		},
 		Host: machine.Host{
-			Name:    "skia-rpi2-0001",
-			PodName: "rpi-swarming-12345-987",
+			Name:            "skia-rpi2-0001",
+			PodName:         "rpi-swarming-12345-987",
+			KubernetesImage: "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean",
 		},
 	}
 
@@ -172,6 +173,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 	assert.Equal(t, expected, next.Dimensions)
 	assert.Equal(t, machine.ModeAvailable, next.Mode)
 	assert.Equal(t, event.Host.PodName, next.PodName)
+	assert.Equal(t, event.Host.KubernetesImage, next.KubernetesImage)
 }
 
 func TestProcess_DetectInsideDocker(t *testing.T) {

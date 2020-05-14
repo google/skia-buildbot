@@ -155,6 +155,7 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	ret.RunningSwarmingTask = event.RunningSwarmingTask
 	ret.PodName = event.Host.PodName
 	ret.LastUpdated = time.Now()
+	ret.KubernetesImage = event.Host.KubernetesImage
 	for k, values := range dimensions {
 		ret.Dimensions[k] = values
 	}

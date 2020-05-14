@@ -48,13 +48,18 @@ type Description struct {
 	Annotation Annotation
 	Dimensions SwarmingDimensions
 	PodName    string
+
+	// KubernetesImage is the kubernetes image name.
+	KubernetesImage string
+
 	// ScheduledForDeletion will be a non-empty string and equal to PodName if
 	// the pod should be deleted.
 	ScheduledForDeletion string
-	LastUpdated          time.Time
-	Battery              int                // Charge as an integer percent, e.g. 50% = 50.
-	Temperature          map[string]float64 // In Celsius.
-	RunningSwarmingTask  bool
+
+	LastUpdated         time.Time
+	Battery             int                // Charge as an integer percent, e.g. 50% = 50.
+	Temperature         map[string]float64 // In Celsius.
+	RunningSwarmingTask bool
 }
 
 // NewDescription returns a new Description instance.
@@ -104,6 +109,9 @@ type Host struct {
 
 	// PodName is the kubernetes pod name.
 	PodName string `json:"pod_name"`
+
+	// KubernetesImage is the container image being run.
+	KubernetesImage string `json:"image"`
 }
 
 // Event is the information a machine should send via Source when

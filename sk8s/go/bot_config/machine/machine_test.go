@@ -81,6 +81,17 @@ func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
+	const imageName = "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean"
+
+	// Set the IMAGE_NAME env variable.
+	oldImageVar := os.Getenv(swarming.KubernetesImageEnvVar)
+	err = os.Setenv(swarming.KubernetesImageEnvVar, imageName)
+	require.NoError(t, err)
+	defer func() {
+		err = os.Setenv(swarming.KubernetesImageEnvVar, oldImageVar)
+		require.NoError(t, err)
+	}()
+
 	// Create a Machine instance.
 	m, err := New(ctx, true, instanceConfig)
 	require.NoError(t, err)
@@ -130,8 +141,9 @@ func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 				DumpsysThermalService: adbShellDumpSysBattery,
 			},
 			Host: machine.Host{
-				Name:    "my-test-bot-001",
-				PodName: hostname,
+				Name:            "my-test-bot-001",
+				PodName:         hostname,
+				KubernetesImage: imageName,
 			},
 		},
 		event)
