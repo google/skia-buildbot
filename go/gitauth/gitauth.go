@@ -1,4 +1,4 @@
-// A Go implementation of https://gerrit.googlesource.com/gcompute-tools/+/master/git-cookie-authdaemon
+// A Go implementation of https://gerrit.googlesource.com/gcompute-tools/+show/master/git-cookie-authdaemon
 package gitauth
 
 import (

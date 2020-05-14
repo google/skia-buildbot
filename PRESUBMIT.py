@@ -171,7 +171,7 @@ def CheckChange(input_api, output_api):
 
   The presubmit checks have been handpicked from the list of canned checks
   here:
-  https://chromium.googlesource.com/chromium/tools/depot_tools/+/master/presubmit_canned_checks.py
+  https://chromium.googlesource.com/chromium/tools/depot_tools/+show/master/presubmit_canned_checks.py
 
   The following are the presubmit checks:
   * Pylint is run if the change contains any .py files.

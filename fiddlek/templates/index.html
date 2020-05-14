@@ -9,7 +9,7 @@
     {%template "menu.html" .%}
     <h2>Skia Fiddle</h2>
     <div class="flex"></div>
-    <div class=version>Skia Version: <a href="https://skia.googlesource.com/skia/+/{%.Version%}">{%chop .Version%}</a></div>
+    <div class=version>Skia Version: <a href="https://skia.googlesource.com/skia/+show/{%.Version%}">{%chop .Version%}</a></div>
   </header>
   <section id=main>
     <fiddle-sk display_options bug_link width="{%.Options.Width%}" height="{%.Options.Height%}" source="{%.Options.Source%}" fiddlehash="{%.Hash%}" sources="{%.Sources%}"

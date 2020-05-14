@@ -76,7 +76,7 @@ func (r *GitilesRepo) GetRevision(ctx context.Context, id string) (*revision.Rev
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to retrieve revision %q", id)
 	}
-	rev := revision.FromLongCommit(fmt.Sprintf(gitiles.COMMIT_URL, r.URL, "%s"), details)
+	rev := revision.FromLongCommit(fmt.Sprintf(gitiles.CommitURL, r.URL, "%s"), details)
 
 	// Optionally load any dependencies.
 	if len(r.deps) > 0 {

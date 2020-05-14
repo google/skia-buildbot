@@ -8,7 +8,7 @@ job_metrics
 -----------
 
 The [job
-metrics](https://skia.googlesource.com/buildbot/+/master/datahopper/go/datahopper/jobs.go)
+metrics](https://skia.googlesource.com/buildbot/+show/master/datahopper/go/datahopper/jobs.go)
 goroutine has not successfully updated its job cache for some time.
 
 If there are Task Scheduler alerts, resolve those first.
@@ -20,7 +20,7 @@ bot_coverage_metrics
 --------------------
 
 The [bot coverage
-metrics](https://skia.googlesource.com/buildbot/+/master/datahopper/go/bot_metrics/bot_metrics.go)
+metrics](https://skia.googlesource.com/buildbot/+show/master/datahopper/go/bot_metrics/bot_metrics.go)
 goroutine has not successfully completed a cycle for some time. You should
 check the logs to try to diagnose what's failing.
 
@@ -29,7 +29,7 @@ swarming_task_metrics
 --------------------
 
 The [Swarming task
-metrics](https://skia.googlesource.com/buildbot/+/master/datahopper/go/swarming_metrics/tasks.go)
+metrics](https://skia.googlesource.com/buildbot/+show/master/datahopper/go/swarming_metrics/tasks.go)
 goroutine has not successfully queried for Swarming tasks for some time. You should
 check the logs to try to diagnose what's failing.
 
@@ -38,7 +38,7 @@ event_metrics
 -------------
 
 The [event
-metrics](https://skia.googlesource.com/buildbot/+/master/go/metrics2/events/events.go)
+metrics](https://skia.googlesource.com/buildbot/+show/master/go/metrics2/events/events.go)
 goroutine has not successfully updated metrics based on event data for some
 time. You should check the logs to try to diagnose what's failing. Double-check
 the instance name to verify which log stream to investigate.
@@ -48,7 +48,7 @@ swarming_bot_metrics
 --------------------
 
 The [Swarming bot
-metrics](https://skia.googlesource.com/buildbot/+/master/datahopper/go/swarming_metrics/bots.go)
+metrics](https://skia.googlesource.com/buildbot/+show/master/datahopper/go/swarming_metrics/bots.go)
 goroutine has not successfully queried for Swarming bots for some time. See the
 alert for which pool and server is failing. You should check the logs to try
 to diagnose what's failing.
@@ -58,7 +58,7 @@ firestore_backup_metrics
 ------------------------
 
 The [Firestore backup
-metrics](https://skia.googlesource.com/buildbot/+/master/datahopper/go/datahopper/firestore_backup_metrics.go)
+metrics](https://skia.googlesource.com/buildbot/+show/master/datahopper/go/datahopper/firestore_backup_metrics.go)
 goroutine has not successfully updated the metric for most recent Firestore
 backup for some time.
 
@@ -90,7 +90,7 @@ has not succeeded in more than 24 hours. There are several things to check:
 
  - Check the Datahopper logs for any warnings or errors. One likely
    problem is a change in the output of the REST API. See [the
-   code](https://skia.googlesource.com/buildbot/+/master/datahopper/go/datahopper/firestore_backup_metrics.go)
+   code](https://skia.googlesource.com/buildbot/+show/master/datahopper/go/datahopper/firestore_backup_metrics.go)
    for the URL used to retrieve Firestore export operations. You can also run
    Datahopper locally using the --local flag to set up a TokenSource to
    authenticate to this URL. Add logging of the HTTP response.
@@ -110,7 +110,7 @@ has not succeeded in more than 24 hours. There are several things to check:
    CronJob. If no recent run, check for misconfiguration. You can update the
    CronJob by running `make push` in the `firestore` directory. The
    configuration for the CronJob is
-   [here](https://skia.googlesource.com/skia-public-config/+/master/firestore-export-everything-weekly.yaml).
+   [here](https://skia.googlesource.com/k8s-config/+show/master/skia-public/firestore-export-everything-weekly.yaml).
 
  - To manually trigger a new export, run `gcloud beta firestore export
    --project=skia-firestore --async gs://skia-firestore-backup/everything/$(date

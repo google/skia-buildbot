@@ -28,22 +28,32 @@ import (
 */
 
 const (
-	COMMIT_URL        = "%s/+/%s"
-	COMMIT_URL_JSON   = COMMIT_URL + "?format=JSON"
-	DATE_FORMAT_NO_TZ = "Mon Jan 02 15:04:05 2006"
-	DATE_FORMAT_TZ    = "Mon Jan 02 15:04:05 2006 -0700"
-	DOWNLOAD_URL      = "%s/+/%s/%s?format=TEXT"
-	LOG_URL           = "%s/+log/%s?format=JSON"
-	REFS_URL          = "%s/+refs%%2Fheads?format=JSON"
-	TAGS_URL          = "%s/+refs%%2Ftags?format=JSON"
+	// CommitURL is the format of the URL used to retrieve a commit.
+	CommitURL = "%s/+show/%s"
+	// CommitURLJSON is the format of the URL used to retrieve a commit as JSON.
+	CommitURLJSON = CommitURL + "?format=JSON"
+
+	// DownloadURL is the format of the URL used to download a file.
+	DownloadURL = "%s/+show/%s/%s?format=TEXT"
+	// LogURL is the format of the URL used to view the git log.
+	LogURL = "%s/+log/%s?format=JSON"
+	// RefsURL is the format of the URL used to retrieve refs.
+	RefsURL = "%s/+refs%%2Fheads?format=JSON"
+	// TagsURL is the format of the URL used to retrieve tags.
+	TagsURL = "%s/+refs%%2Ftags?format=JSON"
+
+	dateFormatNoTZ = "Mon Jan 02 15:04:05 2006"
+	dateFormatTZ   = "Mon Jan 02 15:04:05 2006 -0700"
 
 	// These were copied from the defaults used by gitfs:
-	// https://gerrit.googlesource.com/gitfs/+/59c1163fd1737445281f2339399b2b986b0d30fe/gitiles/client.go#102
-	MAX_QPS   = rate.Limit(4.0)
-	MAX_BURST = 40
+	// https://gerrit.googlesource.com/gitfs/+show/59c1163fd1737445281f2339399b2b986b0d30fe/gitiles/client.go#102
+	maxQPS   = rate.Limit(4.0)
+	maxBurst = 40
 )
 
 var (
+	// ErrStopIteration is an error returned from a helper function passed to
+	// LogFn which indicates that iteration over commits should stop.
 	ErrStopIteration = errors.New("stop iteration")
 )
 
@@ -63,7 +73,7 @@ func NewRepo(url string, c *http.Client) *Repo {
 	}
 	return &Repo{
 		client: c,
-		rl:     rate.NewLimiter(MAX_QPS, MAX_BURST),
+		rl:     rate.NewLimiter(maxQPS, maxBurst),
 		URL:    url,
 	}
 }
@@ -80,14 +90,14 @@ func (r *Repo) get(ctx context.Context, url string) (*http.Response, error) {
 	}
 	if resp.StatusCode != http.StatusOK {
 		util.Close(resp.Body)
-		return nil, fmt.Errorf("Request got status %q", resp.Status)
+		return nil, skerr.Fmt("Request got status %q", resp.Status)
 	}
 	return resp, nil
 }
 
-// getJson executes a GET request to the given URL, reads the response and
+// getJSON executes a GET request to the given URL, reads the response and
 // unmarshals it to the given destination.
-func (r *Repo) getJson(ctx context.Context, url string, dest interface{}) error {
+func (r *Repo) getJSON(ctx context.Context, url string, dest interface{}) error {
 	resp, err := r.get(ctx, url)
 	if err != nil {
 		return err
@@ -104,7 +114,7 @@ func (r *Repo) getJson(ctx context.Context, url string, dest interface{}) error 
 
 // ReadFileAtRef reads the given file at the given ref.
 func (r *Repo) ReadFileAtRef(ctx context.Context, srcPath, ref string, w io.Writer) error {
-	resp, err := r.get(ctx, fmt.Sprintf(DOWNLOAD_URL, r.URL, ref, srcPath))
+	resp, err := r.get(ctx, fmt.Sprintf(DownloadURL, r.URL, ref, srcPath))
 	if err != nil {
 		return err
 	}
@@ -153,14 +163,14 @@ func (r *Repo) ListDirAtRef(ctx context.Context, dir, ref string) ([]string, []s
 		// mode tree|blob hash name
 		fields := strings.Fields(line)
 		if len(fields) != 4 {
-			return nil, nil, fmt.Errorf("Got invalid response from gitiles. Expected format \"mode tree|blob hash name\" but got:\n %s", buf.String())
+			return nil, nil, skerr.Fmt("Got invalid response from gitiles. Expected format \"mode tree|blob hash name\" but got:\n %s", buf.String())
 		}
 		if fields[1] == "tree" {
 			dirs = append(dirs, fields[3])
 		} else if fields[1] == "blob" {
 			files = append(files, fields[3])
 		} else {
-			return nil, nil, fmt.Errorf("Got invalid response from gitiles. Expected format \"mode tree|blob hash name\" but got %q instead of \"tree\" or \"blob\".", fields[1])
+			return nil, nil, skerr.Fmt("Got invalid response from gitiles. Expected format \"mode tree|blob hash name\" but got %q instead of \"tree\" or \"blob\".", fields[1])
 		}
 	}
 	return files, dirs, nil
@@ -222,12 +232,14 @@ func (r *Repo) ListFilesRecursive(ctx context.Context, dir string) ([]string, er
 	return r.ListFilesRecursiveAtRef(ctx, dir, "master")
 }
 
+// Author represents the author of a Commit.
 type Author struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
 	Time  string `json:"time"`
 }
 
+// TreeDiff represents a change to a file in a Commit.
 type TreeDiff struct {
 	// Type can be one of Copy, Rename, Add, Delete, Modify.
 	Type string `json:"type"`
@@ -237,6 +249,7 @@ type TreeDiff struct {
 	NewPath string `json:"new_path"`
 }
 
+// Commit contains information about one Git commit.
 type Commit struct {
 	Commit    string      `json:"commit"`
 	Parents   []string    `json:"parents"`
@@ -246,6 +259,7 @@ type Commit struct {
 	TreeDiffs []*TreeDiff `json:"tree_diff"`
 }
 
+// Log represents a series of Commits in the git log.
 type Log struct {
 	Log  []*Commit `json:"log"`
 	Next string    `json:"next"`
@@ -255,9 +269,9 @@ func commitToLongCommit(c *Commit) (*vcsinfo.LongCommit, error) {
 	var ts time.Time
 	var err error
 	if strings.Contains(c.Committer.Time, " +") || strings.Contains(c.Committer.Time, " -") {
-		ts, err = time.Parse(DATE_FORMAT_TZ, c.Committer.Time)
+		ts, err = time.Parse(dateFormatTZ, c.Committer.Time)
 	} else {
-		ts, err = time.Parse(DATE_FORMAT_NO_TZ, c.Committer.Time)
+		ts, err = time.Parse(dateFormatNoTZ, c.Committer.Time)
 	}
 	if err != nil {
 		return nil, err
@@ -301,12 +315,12 @@ func LongCommitToCommit(details *vcsinfo.LongCommit) (*Commit, error) {
 		Author: &Author{
 			Name:  authorName,
 			Email: authorEmail,
-			Time:  details.Timestamp.Format(DATE_FORMAT_TZ),
+			Time:  details.Timestamp.Format(dateFormatTZ),
 		},
 		Committer: &Author{
 			Name:  authorName,
 			Email: authorEmail,
-			Time:  details.Timestamp.Format(DATE_FORMAT_TZ),
+			Time:  details.Timestamp.Format(dateFormatTZ),
 		},
 		Message: details.Subject + "\n\n" + details.Body,
 	}, nil
@@ -315,7 +329,7 @@ func LongCommitToCommit(details *vcsinfo.LongCommit) (*Commit, error) {
 // getCommit returns a Commit for the given ref.
 func (r *Repo) getCommit(ctx context.Context, ref string) (*Commit, error) {
 	var c Commit
-	if err := r.getJson(ctx, fmt.Sprintf(COMMIT_URL_JSON, r.URL, ref), &c); err != nil {
+	if err := r.getJSON(ctx, fmt.Sprintf(CommitURLJSON, r.URL, ref), &c); err != nil {
 		return nil, err
 	}
 	return &c, nil
@@ -462,7 +476,7 @@ func (r *Repo) logHelper(ctx context.Context, url string, fn func(context.Contex
 		if start != "" {
 			u += "&s=" + start
 		}
-		if err := r.getJson(ctx, u, &l); err != nil {
+		if err := r.getJSON(ctx, u, &l); err != nil {
 			return err
 		}
 		// Convert to vcsinfo.LongCommit.
@@ -485,16 +499,15 @@ func (r *Repo) logHelper(ctx context.Context, url string, fn func(context.Contex
 		}
 		if l.Next == "" || (limit > 0 && seen >= limit) {
 			return nil
-		} else {
-			start = l.Next
 		}
+		start = l.Next
 	}
 }
 
 // Log returns Gitiles' equivalent to "git log" for the given expression.
 func (r *Repo) Log(ctx context.Context, logExpr string, opts ...LogOption) ([]*vcsinfo.LongCommit, error) {
 	rv := []*vcsinfo.LongCommit{}
-	url := fmt.Sprintf(LOG_URL, r.URL, logExpr)
+	url := fmt.Sprintf(LogURL, r.URL, logExpr)
 	if err := r.logHelper(ctx, url, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
 		rv = append(rv, commits...)
 		return nil
@@ -615,7 +628,7 @@ func (r *Repo) LogFn(ctx context.Context, logExpr string, fn func(context.Contex
 // LogFnBatch is the same as LogFn but it runs the given function over batches
 // of commits.
 func (r *Repo) LogFnBatch(ctx context.Context, logExpr string, fn func(context.Context, []*vcsinfo.LongCommit) error, opts ...LogOption) error {
-	url := fmt.Sprintf(LOG_URL, r.URL, logExpr)
+	url := fmt.Sprintf(LogURL, r.URL, logExpr)
 	return r.logHelper(ctx, url, fn, opts...)
 }
 
@@ -630,7 +643,7 @@ type RefsMap map[string]Ref
 // Branches returns the list of branches in the repo.
 func (r *Repo) Branches(ctx context.Context) ([]*git.Branch, error) {
 	branchMap := RefsMap{}
-	if err := r.getJson(ctx, fmt.Sprintf(REFS_URL, r.URL), &branchMap); err != nil {
+	if err := r.getJSON(ctx, fmt.Sprintf(RefsURL, r.URL), &branchMap); err != nil {
 		return nil, err
 	}
 	rv := make([]*git.Branch, 0, len(branchMap))
@@ -651,7 +664,7 @@ func (r *Repo) Tags(ctx context.Context) (map[string]string, error) {
 		Value  string `json:"value"`
 		Peeled string `json:"peeled"`
 	}{}
-	if err := r.getJson(ctx, fmt.Sprintf(TAGS_URL, r.URL), &tags); err != nil {
+	if err := r.getJSON(ctx, fmt.Sprintf(TagsURL, r.URL), &tags); err != nil {
 		return nil, err
 	}
 	rv := make(map[string]string, len(tags))

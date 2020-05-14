@@ -90,7 +90,7 @@ func Test_urlFromParts(t *testing.T) {
 				subject:  "https://android-master-ingest.skia.org/r/6146906?branch=aosp-androidx-master-dev",
 				debounce: false,
 			},
-			want: "https://skia.googlesource.com/perf-buildid/android-master/+/db4eaa1d0783df0fd4b630ac897c5cbc3c387d10",
+			want: "https://skia.googlesource.com/perf-buildid/android-master/+show/db4eaa1d0783df0fd4b630ac897c5cbc3c387d10",
 		},
 		{
 			name: "bounce",
