@@ -108,8 +108,9 @@ type GoldClient interface {
 	Whoami() (string, error)
 
 	// TriageAsPositive triages the given digest for the given test and optional changelist ID as
-	// positive by making a request to Gold's /json/triage endpoint.
-	TriageAsPositive(testName types.TestName, digest types.Digest, changeListId string) error
+	// positive by making a request to Gold's /json/triage endpoint. The image matching algorithm
+	// name will be used as the author of the triage operation.
+	TriageAsPositive(testName types.TestName, digest types.Digest, algorithmName imgmatching.AlgorithmName, changeListId string) error
 
 	// MostRecentPositiveDigest retrieves the most recent positive digest for the given trace via
 	// Gold's /json/latestpositivedigest/{traceId} endpoint.
@@ -788,12 +789,12 @@ func (c *CloudClient) Whoami() (string, error) {
 }
 
 // TriageAsPositive fulfills the GoldClient interface.
-func (c *CloudClient) TriageAsPositive(testName types.TestName, digest types.Digest, changeListId string) error {
+func (c *CloudClient) TriageAsPositive(testName types.TestName, digest types.Digest, algorithmName imgmatching.AlgorithmName, changeListId string) error {
 	// Build TriageRequest struct and encode it into JSON.
 	triageRequest := &frontend.TriageRequest{
 		TestDigestStatus:       map[types.TestName]map[types.Digest]string{testName: {digest: expectations.Positive.String()}},
 		ChangeListID:           changeListId,
-		ImageMatchingAlgorithm: "", // TODO(lovisolo): Pipe through the image matching algorithm name.
+		ImageMatchingAlgorithm: string(algorithmName),
 	}
 	jsonTriageRequest, err := json.Marshal(triageRequest)
 	if err != nil {
