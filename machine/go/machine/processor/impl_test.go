@@ -675,3 +675,22 @@ func TestTemperatureFromAndroid_FindTempInBatteryServiceOutput(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, map[string]float64{batteryTemperatureKey: 28.1}, temp)
 }
+
+func TestSanitizeKubernetesImageName_SuccessForExpectedValue(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t,
+		"gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean",
+		sanitizeKubernetesImageName("image: gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean\n"),
+	)
+}
+
+func TestSanitizeKubernetesImageName_PassesEmptyStringThrough(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, "", sanitizeKubernetesImageName(""))
+}
+
+func TestSanitizeKubernetesImageName_PassesStringWithoutImagePrefix(t *testing.T) {
+	unittest.SmallTest(t)
+	const imageName = "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean"
+	assert.Equal(t, imageName, sanitizeKubernetesImageName(imageName))
+}
