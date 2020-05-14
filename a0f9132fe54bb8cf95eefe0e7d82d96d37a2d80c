@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "0bff1f73_c8f13627",
+        "filename": "autoroll/go/commit_msg/afdo.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-14T15:19:05Z",
+      "side": 1,
+      "message": "Decided to just move this into the roller config file.",
+      "parentUuid": "816a78cd_3f4096cb",
+      "range": {
+        "startLine": 11,
+        "startChar": 4,
+        "endLine": 11,
+        "endChar": 15
+      },
+      "revId": "a0f9132fe54bb8cf95eefe0e7d82d96d37a2d80c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dcafc755_5c7e94ed",
         "filename": "autoroll/go/commit_msg/default.go",
         "patchSetId": 13
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "2b5c556a_d1a07b1e",
+        "filename": "autoroll/go/commit_msg/default.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-14T15:19:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dcafc755_5c7e94ed",
+      "range": {
+        "startLine": 13,
+        "startChar": 4,
+        "endLine": 13,
+        "endChar": 12
+      },
+      "revId": "a0f9132fe54bb8cf95eefe0e7d82d96d37a2d80c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "31555427_c9ac4264",
         "filename": "autoroll/go/commit_msg/default.go",
         "patchSetId": 13
@@ -62,6 +110,24 @@
       "revId": "a0f9132fe54bb8cf95eefe0e7d82d96d37a2d80c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e002df7_c6811d4b",
+        "filename": "autoroll/go/commit_msg/default.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-14T15:19:05Z",
+      "side": 1,
+      "message": "Done. I didn\u0027t realize you could reference things before they\u0027re defined in vars sections.",
+      "parentUuid": "31555427_c9ac4264",
+      "revId": "a0f9132fe54bb8cf95eefe0e7d82d96d37a2d80c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
