@@ -15,12 +15,22 @@ import { testOnlySetSettings } from '../settings';
 describe('byblame-page-sk', () => {
   const newInstance = setUpElementUnderTest('byblame-page-sk');
 
-  const newByblamePageSk = (opts = {}) => {
+  const loadedByblamePageSk = (opts = {}) => {
     testOnlySetSettings({
       defaultCorpus: opts.defaultCorpus || 'gm',
       baseRepoURL: opts.baseRepoUrl || 'https://skia.googlesource.com/skia.git',
     });
-    return newInstance();
+    return new Promise((resolve) => {
+      let endTaskCalls = 0;
+      const byBlamePageSk = newInstance((ele) => {
+        ele.addEventListener('end-task', () => {
+          endTaskCalls++;
+          if (endTaskCalls === 2) { // Wait for 2 RPCs to finish.
+            resolve(byBlamePageSk);
+          }
+        });
+      });
+    });
   };
 
   beforeEach(async () => {
@@ -48,7 +58,8 @@ describe('byblame-page-sk', () => {
     // Instantiate page, but don't wait for it to load as we want to see the
     // "loading" text.
     const event = eventPromise('end-task');
-    const byblamePageSk = newByblamePageSk();
+    testOnlySetSettings({ defaultCorpus: 'gm' });
+    const byblamePageSk = newInstance();
 
     // Make these assertions immediately, i.e. do not wait for the page to load.
     expect($$('.entries', byblamePageSk).innerText).to.equal('Loading untriaged digests...');
@@ -65,15 +76,13 @@ describe('byblame-page-sk', () => {
     fetchMock.get('/json/trstatus', trstatus);
     fetchMock.get('/json/byblame?query=source_type%3Dcanvaskit', canvaskit);
 
-    const endTask = eventPromise('end-task');
-    const byblamePageSk = newByblamePageSk({ defaultCorpus: 'canvaskit' });
-    await endTask;
+    const byblamePageSk = await loadedByblamePageSk({ defaultCorpus: 'canvaskit' });
 
     expectQueryStringToEqual('');
     expectCorporaToBe(byblamePageSk, ['canvaskit', 'gm (114)', 'svg (18)']);
     expectSelectedCorpusToBe(byblamePageSk, 'canvaskit');
     expect($$('.entries', byblamePageSk).innerText)
-      .to.equal('No untriaged digests.');
+      .to.equal('No untriaged digests for corpus canvaskit.');
     expectHasEmptyBlames(byblamePageSk);
   });
 
@@ -82,9 +91,7 @@ describe('byblame-page-sk', () => {
       fetchMock.get('/json/trstatus', trstatus);
       fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
 
-      const endTask = eventPromise('end-task');
-      const byblamePageSk = newByblamePageSk({ defaultCorpus: 'gm' });
-      await endTask;
+      const byblamePageSk = await loadedByblamePageSk({ defaultCorpus: 'gm' });
 
       expectQueryStringToEqual(''); // No state reflected to the URL.
       expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
@@ -96,9 +103,7 @@ describe('byblame-page-sk', () => {
     fetchMock.get('/json/byblame?query=source_type%3Dsvg', svg);
     setQueryString('?corpus=svg');
 
-    const endTask = eventPromise('end-task');
-    const byblamePageSk = newByblamePageSk({ defaultCorpus: 'gm' });
-    await endTask;
+    const byblamePageSk = await loadedByblamePageSk({ defaultCorpus: 'gm' });
 
     expectSelectedCorpusToBe(byblamePageSk, 'svg (18)');
     expectHasSvgBlames(byblamePageSk);
@@ -109,9 +114,7 @@ describe('byblame-page-sk', () => {
     fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
     fetchMock.get('/json/byblame?query=source_type%3Dsvg', svg);
 
-    const endTask = eventPromise('end-task');
-    const byblamePageSk = newByblamePageSk({ defaultCorpus: 'gm' });
-    await endTask;
+    const byblamePageSk = await loadedByblamePageSk({ defaultCorpus: 'gm' });
 
     expectQueryStringToEqual('');
     expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
@@ -122,71 +125,6 @@ describe('byblame-page-sk', () => {
     expectQueryStringToEqual('?corpus=svg');
     expectSelectedCorpusToBe(byblamePageSk, 'svg (18)');
     expectHasSvgBlames(byblamePageSk);
-  });
-
-  it('responds to back and forward browser buttons', async () => {
-    fetchMock.get('/json/trstatus', trstatus);
-    fetchMock.get('/json/byblame?query=source_type%3Dcanvaskit', canvaskit);
-    fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
-    fetchMock.get('/json/byblame?query=source_type%3Dsvg', svg);
-
-    // Populate window.history by setting the query string to a random value.
-    // We'll then test that we can navigate back to this state by using the
-    // browser's back button.
-    setQueryString('?hello=world');
-
-    // Clear the query string before loading the component. This will be the
-    // state at component instantiation. We'll test that the user doesn't get
-    // stuck at the state at component creation when pressing the back button.
-    setQueryString('');
-
-    const endTask = eventPromise('end-task');
-    const byblamePageSk = newByblamePageSk({ defaultCorpus: 'gm' });
-    await endTask;
-
-    expectQueryStringToEqual('');
-    expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
-    expectHasGmBlames(byblamePageSk);
-
-    await selectCorpus(byblamePageSk, 'svg (18)');
-    expectQueryStringToEqual('?corpus=svg');
-    expectSelectedCorpusToBe(byblamePageSk, 'svg (18)');
-    expectHasSvgBlames(byblamePageSk);
-
-    await selectCorpus(byblamePageSk, 'canvaskit');
-    expectQueryStringToEqual('?corpus=canvaskit');
-    expectSelectedCorpusToBe(byblamePageSk, 'canvaskit');
-    expectHasCanvaskitBlames(byblamePageSk);
-
-    await goBack();
-    expectQueryStringToEqual('?corpus=svg');
-    expectSelectedCorpusToBe(byblamePageSk, 'svg (18)');
-    expectHasSvgBlames(byblamePageSk);
-
-    // State at component instantiation.
-    await goBack();
-    expectQueryStringToEqual('');
-    expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
-    expectHasGmBlames(byblamePageSk);
-
-    // State before the component was instantiated.
-    await goBack();
-    expectQueryStringToEqual('?hello=world');
-
-    await goForward();
-    expectQueryStringToEqual('');
-    expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
-    expectHasGmBlames(byblamePageSk);
-
-    await goForward();
-    expectQueryStringToEqual('?corpus=svg');
-    expectSelectedCorpusToBe(byblamePageSk, 'svg (18)');
-    expectHasSvgBlames(byblamePageSk);
-
-    await goForward();
-    expectQueryStringToEqual('?corpus=canvaskit');
-    expectSelectedCorpusToBe(byblamePageSk, 'canvaskit');
-    expectHasCanvaskitBlames(byblamePageSk);
   });
 
   describe('Base repository URL', () => {
@@ -197,12 +135,10 @@ describe('byblame-page-sk', () => {
 
     it('renders commit links correctly with repo hosted on googlesource',
       async () => {
-        const endTask = eventPromise('end-task');
-        const byblamePageSk = newByblamePageSk({
+        const byblamePageSk = await loadedByblamePageSk({
           defaultCorpus: 'gm',
           baseRepoUrl: 'https://skia.googlesource.com/skia.git',
         });
-        await endTask;
 
         expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
         expectHasGmBlames(byblamePageSk);
@@ -214,12 +150,10 @@ describe('byblame-page-sk', () => {
 
     it('renders commit links correctly with repo hosted on GitHub',
       async () => {
-        const endTask = eventPromise('end-task');
-        const byblamePageSk = await newByblamePageSk({
+        const byblamePageSk = await loadedByblamePageSk({
           defaultCorpus: 'gm',
           baseRepoUrl: 'https://github.com/google/skia',
         });
-        await endTask;
 
         expectSelectedCorpusToBe(byblamePageSk, 'gm (114)');
         expectHasGmBlames(byblamePageSk);
@@ -228,38 +162,6 @@ describe('byblame-page-sk', () => {
           'https://github.com/google/skia/commit/05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
         );
       });
-  });
-
-  describe('RPC failures', () => {
-    it('handles /json/trstatus RPC failure', async () => {
-      fetchMock.get('/json/trstatus', 500);
-      fetchMock.get('/json/byblame?query=source_type%3Dgm', gm);
-
-      // The corpus-selector-sk will fetch /json/trstatus, fail and emit a
-      // fetch-error event.
-      const fetchError = eventPromise('fetch-error');
-      const endTask = eventPromise('end-task'); // But blames will load.
-      const byblamePageSk = await newByblamePageSk();
-      await endTask;
-      await fetchError;
-
-      // Empty corpus selector due to RPC error.
-      expect($('corpus-selector-sk li')).to.be.empty;
-
-      // But the page has a default corpus and thus loads successfully.
-      expectHasGmBlames(byblamePageSk);
-    });
-
-    it('handles /json/byblame RPC failure', async () => {
-      fetchMock.get('/json/trstatus', trstatus);
-      fetchMock.get('glob:/json/byblame*', 500);
-
-      const fetchError = eventPromise('fetch-error');
-      newByblamePageSk();
-      await fetchError;
-
-      expectHasEmptyBlames();
-    });
   });
 });
 
@@ -277,18 +179,6 @@ function selectCorpus(byblamePageSk, corpus) {
   return event;
 }
 
-function goBack() {
-  const event = eventPromise('end-task');
-  history.back();
-  return event;
-}
-
-function goForward() {
-  const event = eventPromise('end-task');
-  history.forward();
-  return event;
-}
-
 function expectCorporaToBe(byblamePageSk, corpora) {
   expect($('corpus-selector-sk li').map((li) => li.innerText))
     .to.deep.equal(corpora);
@@ -301,10 +191,6 @@ function expectSelectedCorpusToBe(byblamePageSk, corpus) {
 
 function expectHasEmptyBlames(byblamePageSk) {
   expectBlames(byblamePageSk, 0);
-}
-
-function expectHasCanvaskitBlames(byblamePageSk) {
-  expectHasEmptyBlames(byblamePageSk);
 }
 
 function expectHasGmBlames(byblamePageSk) {

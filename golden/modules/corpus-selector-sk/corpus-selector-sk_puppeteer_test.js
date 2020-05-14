@@ -1,6 +1,5 @@
 const expect = require('chai').expect;
 const path = require('path');
-const addEventListenersToPuppeteerPage = require('../../../puppeteer-tests/util').addEventListenersToPuppeteerPage;
 const setUpPuppeteerAndDemoPageServer = require('../../../puppeteer-tests/util').setUpPuppeteerAndDemoPageServer;
 const takeScreenshot = require('../../../puppeteer-tests/util').takeScreenshot;
 
@@ -9,19 +8,7 @@ describe('corpus-selector-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.js'));
 
   beforeEach(async () => {
-    // Listen for custom event triggered when component finishes loading.
-    const eventPromise = await addEventListenersToPuppeteerPage(
-      testBed.page, ['corpus-selector-sk-loaded'],
-    );
-
-    // Page has three corpus selectors so we wait until all of them have loaded.
-    const loaded = Promise.all([
-      eventPromise('corpus-selector-sk-loaded'),
-      eventPromise('corpus-selector-sk-loaded'),
-      eventPromise('corpus-selector-sk-loaded'),
-    ]);
     await testBed.page.goto(`${testBed.baseUrl}/dist/corpus-selector-sk.html`);
-    await loaded;
   });
 
   it('should render the demo page', async () => {
