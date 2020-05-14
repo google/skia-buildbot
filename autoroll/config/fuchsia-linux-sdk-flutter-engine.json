@@ -30,7 +30,7 @@
     "runHooks": true
   },
   "kubernetes": {
-    "cpu": "1",
+    "cpu": "8",
     "memory": "8Gi",
     "disk": "50Gi",
     "readinessInitialDelaySeconds": "600",
