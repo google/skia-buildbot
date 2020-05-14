@@ -49,7 +49,7 @@ const (
 	// KubernetesImageEnvVar is the environment variable that contains the
 	// daemonset image name.
 	//
-	// See https://skia.googlesource.com/k8s-config/+/refs/heads/master/skolo-rack4/rpi-swarming-daemonset.yaml
+	// See https://skia.googlesource.com/k8s-config/+show/refs/heads/master/skolo-rack4/rpi-swarming-daemonset.yaml
 	// where IMAGE_NAME is set.
 	KubernetesImageEnvVar = "IMAGE_NAME"
 )

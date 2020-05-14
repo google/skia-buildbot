@@ -190,44 +190,7 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 		// actually creates a checkout and uses that.
 	}
 
-	// Mock the initial change creation.
-	logStr := ""
-	childGitRepo := git.GitDir(childRepo.Dir())
-	for _, c := range notRolledRevs {
-		details, err := childGitRepo.Details(ctx, c.Id)
-		require.NoError(t, err)
-		ts := details.Timestamp.Format("2006-01-02")
-		author := details.Author
-		authorSplit := strings.Split(details.Author, "(")
-		if len(authorSplit) > 1 {
-			author = strings.TrimRight(strings.TrimSpace(authorSplit[1]), ")")
-		}
-		logStr += fmt.Sprintf("%s %s %s\n", ts, author, details.Subject)
-	}
-	commitMsg := fmt.Sprintf(`Roll %s %s..%s (%d commits)
-
-%s/+log/%s..%s
-
-git log %s..%s --date=short --first-parent --format='%%ad %%ae %%s'
-%s
-Created with:
-  gclient setdep -r %s@%s
-
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
-fake.server.com
-Please CC me@google.com on the revert to ensure that a human
-is aware of the problem.
-
-To report a problem with the AutoRoller itself, please file a bug:
-https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
-
-Documentation for the AutoRoller is here:
-https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md
-
-Bug: None
-Tbr: me@google.com`, ftChildPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRolledRevs), childRepo.RepoUrl(), lastRollRev.Id[:12], tipRev.Id[:12], lastRollRev.Id[:12], tipRev.Id[:12], logStr, ftChildPath, tipRev.Id[:12])
-	subject := strings.Split(commitMsg, "\n")[0]
+	subject := strings.Split(fakeCommitMsg, "\n")[0]
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, "master", parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
@@ -247,7 +210,7 @@ Tbr: me@google.com`, ftChildPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRo
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/", mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, 201))
 
 	// Mock the edit of the change to update the commit message.
-	reqBody = []byte(fmt.Sprintf(`{"message":"%s"}`, strings.Replace(commitMsg, "\n", "\\n", -1)))
+	reqBody = []byte(fmt.Sprintf(`{"message":"%s"}`, strings.Replace(fakeCommitMsg, "\n", "\\n", -1)))
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:message", mockhttpclient.MockPutDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to modify the DEPS file.
@@ -285,7 +248,7 @@ Tbr: me@google.com`, ftChildPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRo
 	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
-	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, []string{"me@google.com"}, "", false)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, []string{"me@google.com"}, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, issue)
 }
