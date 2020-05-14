@@ -1,4 +1,4 @@
-// Parser parses incoming JSON files from Android Testing and converts them
+// Package parser parses incoming JSON files from Android Testing and converts them
 // into a format acceptable to Skia Perf.
 package parser
 
@@ -25,9 +25,11 @@ var (
 // Incoming is the JSON structure of the data sent to us from the Android
 // testing infrastructure.
 type Incoming struct {
-	BuildId     string `json:"build_id"`
-	BuildFlavor string `json:"build_flavor"`
-	Branch      string `json:"branch"`
+	BuildId        string `json:"build_id"`
+	BuildFlavor    string `json:"build_flavor"`
+	Branch         string `json:"branch"`
+	DeviceName     string `json:"device_name"`
+	SDKReleaseName string `json:"sdk_release_name"`
 
 	// Metrics is a map[test name]map[metric]value, where value
 	// is a string encoded float, thus the use of json.Number.
@@ -43,7 +45,7 @@ func Parse(incoming io.Reader) (*Incoming, error) {
 	return ret, nil
 }
 
-// An interface for looking up a git hashes from a buildid.
+// Lookup is an interface for looking up a git hashes from a buildid.
 //
 // The *lookup.Cache satisfies this interface.
 type Lookup interface {
@@ -139,6 +141,12 @@ func (c *Converter) Convert(incoming io.Reader, txLogName string) (*format.Bench
 			"build_flavor": in.BuildFlavor,
 		},
 		Results: map[string]format.BenchResults{},
+	}
+	if in.DeviceName != "" {
+		benchData.Key["device_name"] = in.DeviceName
+	}
+	if in.SDKReleaseName != "" {
+		benchData.Key["sdk_release_name"] = in.SDKReleaseName
 	}
 
 	// Record the branch name.
