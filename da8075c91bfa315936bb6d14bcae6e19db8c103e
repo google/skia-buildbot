@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "99eeccce_86bb431f",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-05-14T15:07:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fb726fae_5bdc4e38",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 4
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f88e1fb9_77947944",
         "filename": "demos/go/demoserver/main.go",
         "patchSetId": 4
@@ -62,6 +86,30 @@
       "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "351cf4e0_4aa24226",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-05-14T15:07:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f88e1fb9_77947944",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 4
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -88,6 +136,30 @@
     },
     {
       "key": {
+        "uuid": "571eae25_5865fc14",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-05-14T15:07:13Z",
+      "side": 1,
+      "message": "Done. nit: either the meaning is different in golang, or you\u0027re overloading \u0027anonymous struct\u0027.",
+      "parentUuid": "20c9520b_3871e865",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 1
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "22973d99_cd0e0403",
         "filename": "demos/go/demoserver/main.go",
         "patchSetId": 4
@@ -108,6 +180,30 @@
       "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "65228fb6_9235b455",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-05-14T15:07:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22973d99_cd0e0403",
+      "range": {
+        "startLine": 72,
+        "startChar": 85,
+        "endLine": 72,
+        "endChar": 89
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -134,6 +230,30 @@
     },
     {
       "key": {
+        "uuid": "413864cb_090b042f",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-05-14T15:07:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "21227009_c5c96206",
+      "range": {
+        "startLine": 75,
+        "startChar": 5,
+        "endLine": 75,
+        "endChar": 13
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e2e67ebf_18bb2ef8",
         "filename": "demos/go/demoserver/main.go",
         "patchSetId": 4
@@ -154,6 +274,30 @@
       "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ac8e6119_eb132c36",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-05-14T15:07:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e2e67ebf_18bb2ef8",
+      "range": {
+        "startLine": 85,
+        "startChar": 9,
+        "endLine": 85,
+        "endChar": 12
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -180,6 +324,30 @@
     },
     {
       "key": {
+        "uuid": "1fcec093_0ee42596",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-05-14T15:07:13Z",
+      "side": 1,
+      "message": "heh, a product of iteration and tunnel vision I guess.",
+      "parentUuid": "e3f1ce08_6ace4806",
+      "range": {
+        "startLine": 87,
+        "startChar": 17,
+        "endLine": 87,
+        "endChar": 70
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0e134487_b36e2c81",
         "filename": "demos/go/demoserver/main.go",
         "patchSetId": 4
@@ -200,6 +368,30 @@
       "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5e61ffd_b64296dd",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-05-14T15:07:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0e134487_b36e2c81",
+      "range": {
+        "startLine": 101,
+        "startChar": 1,
+        "endLine": 101,
+        "endChar": 15
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -226,6 +418,30 @@
     },
     {
       "key": {
+        "uuid": "8ae3fe25_f9c99b40",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-05-14T15:07:13Z",
+      "side": 1,
+      "message": "ahhhhh as long as one variable is new. nice. Done.\n\nupdate: but only if the existing variable was declared in the same block. e.g. not struct members. fascinating.",
+      "parentUuid": "44381b5b_ee4293ab",
+      "range": {
+        "startLine": 110,
+        "startChar": 1,
+        "endLine": 110,
+        "endChar": 14
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9697a66d_3e3bc53d",
         "filename": "demos/go/demoserver/main.go",
         "patchSetId": 4
@@ -246,6 +462,30 @@
       "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97d8b87a_68f0a83c",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-05-14T15:07:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9697a66d_3e3bc53d",
+      "range": {
+        "startLine": 138,
+        "startChar": 9,
+        "endLine": 138,
+        "endChar": 19
+      },
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
