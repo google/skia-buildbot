@@ -7,7 +7,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func TestCompareSemanticVersions(t *testing.T) {
+func TestSemVerGCSCompareSemanticVersions(t *testing.T) {
 	unittest.SmallTest(t)
 
 	test := func(a, b []int, expect int) {
@@ -22,4 +22,15 @@ func TestCompareSemanticVersions(t *testing.T) {
 	test([]int{1, 1}, []int{1, 0}, -1)
 	test([]int{1}, []int{1, 0}, 1)
 	test([]int{1, 0}, []int{1}, -1)
+}
+
+func TestSemVerGCSShortRev(t *testing.T) {
+	unittest.SmallTest(t)
+	require.Equal(t, "123", shortRev("\\d+", "abc123def"))
+	require.Equal(t, "123", shortRev("\\d+", "abc123def456"))
+	require.Equal(t, "abc123def456", shortRev("[a-z]+\\d+[a-z]+\\d+", "abc123def456"))
+	require.Equal(t, "456", shortRev("[a-z]+\\d+[a-z]+(\\d+)", "abc123def456"))
+	require.Equal(t, "123", shortRev("[a-z]+(\\d+)[a-z]+(\\d+)", "abc123def456"))
+	require.Equal(t, "abcdef0123456789abcdef0123456789abcdef01", shortRev(".{7}.{33}", "abcdef0123456789abcdef0123456789abcdef01"))
+	require.Equal(t, "abcdef0", shortRev("(.{7}).{33}", "abcdef0123456789abcdef0123456789abcdef01"))
 }
