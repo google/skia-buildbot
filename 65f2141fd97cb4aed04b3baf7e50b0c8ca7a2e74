@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "57b9deb5_d161dbc7",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 596,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-14T18:44:52Z",
+      "side": 1,
+      "message": "nit: const these",
+      "range": {
+        "startLine": 596,
+        "startChar": 1,
+        "endLine": 596,
+        "endChar": 5
+      },
+      "revId": "65f2141fd97cb4aed04b3baf7e50b0c8ca7a2e74",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7c2d9417_0275bdef",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 685,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-14T18:44:52Z",
+      "side": 1,
+      "message": "nit: const these",
+      "range": {
+        "startLine": 685,
+        "startChar": 1,
+        "endLine": 685,
+        "endChar": 5
+      },
+      "revId": "65f2141fd97cb4aed04b3baf7e50b0c8ca7a2e74",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
