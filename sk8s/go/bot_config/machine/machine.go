@@ -41,6 +41,9 @@ type Machine struct {
 	// Hostname is the hostname(), which is the pod name under k8s.
 	Hostname string
 
+	// KubernetesImage is the container image being run.
+	KubernetesImage string
+
 	// Metrics
 	interrogateTimer           metrics2.Float64SummaryMetric
 	interrogateAndSendFailures metrics2.Counter
@@ -69,6 +72,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 	}
 
 	machineID := os.Getenv(swarming.SwarmingBotIDEnvVar)
+	kubernetesImage := os.Getenv(swarming.KubernetesImageEnvVar)
 	hostname, err := os.Hostname()
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not determine hostname.")
@@ -81,6 +85,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 		adb:                        adb.New(),
 		MachineID:                  machineID,
 		Hostname:                   hostname,
+		KubernetesImage:            kubernetesImage,
 		interrogateTimer:           metrics2.GetFloat64SummaryMetric("bot_config_machine_interrogate_timer", map[string]string{"machine": machineID}),
 		interrogateAndSendFailures: metrics2.GetCounter("bot_config_machine_interrogate_and_send_errors", map[string]string{"machine": machineID}),
 		storeWatchArrivalCounter:   metrics2.GetCounter("bot_config_machine_store_watch_arrival", map[string]string{"machine": machineID}),
@@ -94,6 +99,7 @@ func (m *Machine) interrogate(ctx context.Context) machine.Event {
 	ret := machine.NewEvent()
 	ret.Host.Name = m.MachineID
 	ret.Host.PodName = m.Hostname
+	ret.Host.KubernetesImage = m.KubernetesImage
 
 	if props, err := m.adb.RawProperties(ctx); err != nil {
 		sklog.Infof("Failed to read android properties: %s", err)

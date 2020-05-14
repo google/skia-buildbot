@@ -45,6 +45,13 @@ const (
 	// SwarmingBotIDEnvVar is the swarming bot id environment variable name. See
 	// https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/doc/Magic-Values.md#task-runtime-environment-variables
 	SwarmingBotIDEnvVar = "SWARMING_BOT_ID"
+
+	// KubernetesImageEnvVar is the environment variable that contains the
+	// daemonset image name.
+	//
+	// See https://skia.googlesource.com/k8s-config/+/refs/heads/master/skolo-rack4/rpi-swarming-daemonset.yaml
+	// where IMAGE_NAME is set.
+	KubernetesImageEnvVar = "IMAGE_NAME"
 )
 
 // New creates a new *Bot instance.
