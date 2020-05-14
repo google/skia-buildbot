@@ -99,6 +99,13 @@ func New(ctx context.Context) *ProcessorImpl {
 	}
 }
 
+func sanitizeKubernetesImageName(in string) string {
+	if strings.HasPrefix(in, "image:") {
+		in = in[6:]
+	}
+	return strings.TrimSpace(in)
+}
+
 // Process implements the Processor interface.
 func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Description, event machine.Event) machine.Description {
 	p.eventsProcessedCount.Inc(1)
@@ -155,7 +162,9 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	ret.RunningSwarmingTask = event.RunningSwarmingTask
 	ret.PodName = event.Host.PodName
 	ret.LastUpdated = time.Now()
-	ret.KubernetesImage = event.Host.KubernetesImage
+
+	// Strip off WS and the image: prefix.
+	ret.KubernetesImage = sanitizeKubernetesImageName(event.Host.KubernetesImage)
 	for k, values := range dimensions {
 		ret.Dimensions[k] = values
 	}
