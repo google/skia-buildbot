@@ -78,6 +78,17 @@ const update = (machine) => {
   return 'Update';
 };
 
+const imageName = (machine) => {
+  // KubernetesImage looks like:
+  // "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean".
+  // We just need to display everything after the ":".
+  const parts = machine.KubernetesImage.split(':');
+  if (parts.length < 2) {
+    return '(missing)';
+  }
+  return parts[1];
+};
+
 const rows = (ele) => ele._machines.map((machine) => html`
 <tr id=${machine.Dimensions.id}>
   <td><a href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions.id}">${machine.Dimensions.id}</a></td>
@@ -94,6 +105,7 @@ const rows = (ele) => ele._machines.map((machine) => html`
   <td>${diffDate(machine.LastUpdated)}</td>
   <td>${dimensions(machine)}</td>
   <td>${annotation(machine)}</td>
+  <td>${imageName(machine)}</td>
 </tr>
 `);
 
@@ -130,6 +142,7 @@ const template = (ele) => html`
     <th>Last Seen</th>
     <th>Dimensions</th>
     <th>Annotation</th>
+    <th>Image</th>
   </tr>
   ${rows(ele)}
   </table>
