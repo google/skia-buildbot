@@ -363,12 +363,17 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 		})
 
 		egroup.Go(func() error {
-			ret, err = c.matchImageAgainstBaseline(name, traceId, imgBytes, imgHash, optionalKeys)
+			match, algorithmName, err := c.matchImageAgainstBaseline(name, traceId, imgBytes, imgHash, optionalKeys)
 			if err != nil {
 				return skerr.Wrapf(err, "matching image against baseline")
 			}
+			ret = match
 
-			if !ret {
+			if match && algorithmName != imgmatching.ExactMatching {
+				// TODO(lovisolo): Triage image as positive.
+			}
+
+			if !match {
 				link := fmt.Sprintf("%s/detail?test=%s&digest=%s", c.resultState.GoldURL, name, imgHash)
 				if c.resultState.SharedConfig.ChangeListID != "" {
 					link += "&issue=" + c.resultState.SharedConfig.ChangeListID
@@ -422,7 +427,8 @@ func (c *CloudClient) Check(name types.TestName, imgFileName string, keys, optio
 	}
 
 	_, traceID := c.makeResultKeyAndTraceId(name, keys)
-	return c.matchImageAgainstBaseline(name, traceID, imgBytes, imgHash, optionalKeys)
+	match, _, err := c.matchImageAgainstBaseline(name, traceID, imgBytes, imgHash, optionalKeys)
+	return match, skerr.Wrap(err)
 }
 
 // matchImageAgainstBaseline matches the given image against the baseline. A non-exact image
@@ -432,16 +438,22 @@ func (c *CloudClient) Check(name types.TestName, imgFileName string, keys, optio
 //
 // It assumes that the baseline has already been downloaded from Gold.
 //
-// Returns true if the image matches the baseline, or false otherwise. A non-nil error is returned
-// if there are any problems parsing or instantiating the specified image matching algorithm.
-func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId tiling.TraceID, imageBytes []byte, imageHash types.Digest, optionalKeys map[string]string) (bool, error) {
+// Returns true if the image matches the baseline, or false otherwise.
+//
+// Returns the algorithm name used to determine the match. If the image's digest was labeled as
+// either positive or negative in the baseline, imgmatching.ExactMatching will be returned
+// regardless of whether a non-exact image matching algorithm was specified via the optionalKeys.
+//
+// A non-nil error is returned if there are any problems parsing or instantiating the specified
+// image matching algorithm, for example if there are any missing parameters.
+func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId tiling.TraceID, imageBytes []byte, imageHash types.Digest, optionalKeys map[string]string) (bool, imgmatching.AlgorithmName, error) {
 	// First we check whether the digest is a known positive or negative, regardless of the specified
 	// image matching algorithm.
 	if c.resultState.Expectations[testName][imageHash] == expectations.Positive {
-		return true, nil
+		return true, imgmatching.ExactMatching, nil
 	}
 	if c.resultState.Expectations[testName][imageHash] == expectations.Negative {
-		return false, nil
+		return false, imgmatching.ExactMatching, nil
 	}
 
 	// Extract the specified image matching algorithm from the optionalKeys (defaulting to exact
@@ -449,40 +461,40 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 	// algorithm requires one (i.e. all but exact matching).
 	algorithmName, matcher, err := imgmatching.MakeMatcher(optionalKeys)
 	if err != nil {
-		return false, skerr.Wrapf(err, "parsing image matching algorithm from optional keys")
+		return false, "", skerr.Wrapf(err, "parsing image matching algorithm from optional keys")
 	}
 
 	// Nothing else to do if performing exact matching: we've already checked whether the image is a
 	// known positive.
 	if algorithmName == imgmatching.ExactMatching {
-		return false, nil
+		return false, algorithmName, nil
 	}
 
 	// Decode test output PNG image.
 	image, err := png.Decode(bytes.NewReader(imageBytes))
 	if err != nil {
-		return false, skerr.Wrapf(err, "decoding PNG image")
+		return false, "", skerr.Wrapf(err, "decoding PNG image")
 	}
 
 	// Fetch the most recent positive digest.
 	sklog.Infof("Fetching most recent positive digest for trace with ID %q.", traceId)
 	mostRecentPositiveDigest, err := c.MostRecentPositiveDigest(traceId)
 	if err != nil {
-		return false, skerr.Wrapf(err, "retrieving most recent positive image")
+		return false, "", skerr.Wrapf(err, "retrieving most recent positive image")
 	}
 	if mostRecentPositiveDigest == tiling.MissingDigest {
-		return false, skerr.Fmt("no recent positive digests for trace with ID %q", traceId)
+		return false, "", skerr.Fmt("no recent positive digests for trace with ID %q", traceId)
 	}
 
 	// Download from GCS the image corresponding to the most recent positive digest.
 	mostRecentPositiveImage, _, err := c.getDigestFromCacheOrGCS(context.TODO(), mostRecentPositiveDigest)
 	if err != nil {
-		return false, skerr.Wrapf(err, "downloading most recent positive image from GCS")
+		return false, "", skerr.Wrapf(err, "downloading most recent positive image from GCS")
 	}
 
 	// Return algorithm's output.
 	sklog.Infof("Non-exact image comparison using algorithm %q against most recent positive digest %q.", algorithmName, mostRecentPositiveDigest)
-	return matcher.Match(mostRecentPositiveImage, image), nil
+	return matcher.Match(mostRecentPositiveImage, image), algorithmName, nil
 }
 
 // Finalize implements the GoldClient interface.
