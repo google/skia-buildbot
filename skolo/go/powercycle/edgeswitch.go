@@ -3,6 +3,7 @@ package powercycle
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -17,6 +18,8 @@ const (
 	// values for the poe opmode
 	edgeSwitchOff = "shutdown"
 	edgeSwitchOn  = "auto"
+
+	powerCyclePasswordEnvVar = "POWERCYCLE_PASSWORD"
 )
 
 // EdgeSwitchConfig contains configuration options for a single EdgeSwitch. Authentication is
@@ -28,7 +31,7 @@ type EdgeSwitchConfig struct {
 	// User of the ssh connection.
 	User string `json:"user"`
 
-	// Password for User.
+	// Password for User. This can also be set by the environment variable "POWERCYCLE_PASSWORD".
 	Password string `json:"password"`
 
 	// Mapping between device id and port on the power strip.
@@ -40,10 +43,18 @@ func (c *EdgeSwitchConfig) Validate() error {
 	if c.User == "" || c.Address == "" {
 		return skerr.Fmt("You must specify a user and ip address.")
 	}
-	if c.Password == "" {
+	if c.getPassword() == "" {
 		return skerr.Fmt("You must specify the password.")
 	}
 	return nil
+}
+
+// getPassword returns the password.
+func (c *EdgeSwitchConfig) getPassword() string {
+	if c.Password != "" {
+		return c.Password
+	}
+	return os.Getenv(powerCyclePasswordEnvVar)
 }
 
 // edgeSwitchClient implements the Client interface.
@@ -62,7 +73,7 @@ func newEdgeSwitchController(ctx context.Context, conf *EdgeSwitchConfig, connec
 	}
 	target := fmt.Sprintf("%s@%s", conf.User, conf.Address)
 	// The -T removes a warning SSH gives because we are not invoking it over TTY.
-	runner := PasswordSSHCommandRunner(conf.Password, "-T", target)
+	runner := PasswordSSHCommandRunner(conf.getPassword(), "-T", target)
 	if connect {
 		out, _ := runner.ExecCmds(ctx, "help")
 		// When using sshpass, we always seem to get exit code 255 (from ssh) and any actual errors are
