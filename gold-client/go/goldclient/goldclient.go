@@ -107,9 +107,10 @@ type GoldClient interface {
 	// response. For debugging purposes only.
 	Whoami() (string, error)
 
-	// TriageAsPositive triages the given digest for the given test and optional changelist ID as
-	// positive by making a request to Gold's /json/triage endpoint.
-	TriageAsPositive(testName types.TestName, digest types.Digest, changeListId string) error
+	// TriageAsPositive triages the given digest for the given test as positive by making a request
+	// to Gold's /json/triage endpoint. The image matching algorithm name will be used as the author
+	// of the triage operation.
+	TriageAsPositive(testName types.TestName, digest types.Digest, algorithmName string) error
 
 	// MostRecentPositiveDigest retrieves the most recent positive digest for the given trace via
 	// Gold's /json/latestpositivedigest/{traceId} endpoint.
@@ -788,22 +789,22 @@ func (c *CloudClient) Whoami() (string, error) {
 }
 
 // TriageAsPositive fulfills the GoldClient interface.
-func (c *CloudClient) TriageAsPositive(testName types.TestName, digest types.Digest, changeListId string) error {
+func (c *CloudClient) TriageAsPositive(testName types.TestName, digest types.Digest, algorithmName string) error {
 	// Build TriageRequest struct and encode it into JSON.
 	triageRequest := &frontend.TriageRequest{
 		TestDigestStatus:       map[types.TestName]map[types.Digest]string{testName: {digest: expectations.Positive.String()}},
-		ChangeListID:           changeListId,
-		ImageMatchingAlgorithm: "", // TODO(lovisolo): Pipe through the image matching algorithm name.
+		ChangeListID:           c.resultState.SharedConfig.ChangeListID,
+		ImageMatchingAlgorithm: algorithmName,
 	}
 	jsonTriageRequest, err := json.Marshal(triageRequest)
 	if err != nil {
-		return skerr.Wrapf(err, `encoding frontend.TriageRequest into JSON for test %q, digest %q and issue %q`, testName, digest, changeListId)
+		return skerr.Wrapf(err, `encoding frontend.TriageRequest into JSON for test %q, digest %q, algorithm %q and CL %q`, testName, digest, algorithmName, c.resultState.SharedConfig.ChangeListID)
 	}
 
 	// Make /json/triage request. Response is always empty.
 	_, err = post(c.httpClient, c.resultState.GoldURL+"/json/triage", "application/json", bytes.NewReader(jsonTriageRequest))
 	if err != nil {
-		return skerr.Wrapf(err, `making POST request to %s/json/triage for test %q, digest %q and issue %q`, c.resultState.GoldURL, testName, digest, changeListId)
+		return skerr.Wrapf(err, `making POST request to %s/json/triage for test %q, digest %q, algorithm %q and CL %q`, c.resultState.GoldURL, testName, digest, algorithmName, c.resultState.SharedConfig.ChangeListID)
 	}
 
 	return nil

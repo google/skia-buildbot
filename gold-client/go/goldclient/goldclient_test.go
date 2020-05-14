@@ -1982,7 +1982,7 @@ func TestCloudClient_Whoami_InternalServerError_Failure(t *testing.T) {
 	assert.Contains(t, err.Error(), "500")
 }
 
-func TestCloudClient_TriageAsPositive_Success(t *testing.T) {
+func TestCloudClient_TriageAsPositive_NoCL_Success(t *testing.T) {
 	// This test reads and writes a small amount of data from/to disk.
 	unittest.MediumTest(t)
 
@@ -1991,7 +1991,8 @@ func TestCloudClient_TriageAsPositive_Success(t *testing.T) {
 
 	// Pretend "goldctl imgtest init" was called.
 	j := resultState{
-		GoldURL: "https://testing-gold.skia.org",
+		GoldURL:      "https://testing-gold.skia.org",
+		SharedConfig: &jsonio.GoldResults{},
 	}
 	jsonToWrite := testutils.MarshalJSON(t, &j)
 	testutils.WriteFile(t, filepath.Join(wd, stateFile), jsonToWrite)
@@ -2004,10 +2005,42 @@ func TestCloudClient_TriageAsPositive_Success(t *testing.T) {
 
 	url := "https://testing-gold.skia.org/json/triage"
 	contentType := "application/json"
-	body := bytes.NewReader([]byte(`{"testDigestStatus":{"MyTest":{"deadbeefcafefe771d61bf0ed3d84bc2":"positive"}},"issue":"123456","imageMatchingAlgorithm":""}`))
+	body := bytes.NewReader([]byte(`{"testDigestStatus":{"MyTest":{"deadbeefcafefe771d61bf0ed3d84bc2":"positive"}},"issue":"","imageMatchingAlgorithm":"fuzzy"}`))
 	httpClient.On("Post", url, contentType, body).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
 
-	err = goldClient.TriageAsPositive("MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "123456")
+	err = goldClient.TriageAsPositive("MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "fuzzy")
+	assert.NoError(t, err)
+}
+
+func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
+	// This test reads and writes a small amount of data from/to disk.
+	unittest.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	// Pretend "goldctl imgtest init" was called.
+	j := resultState{
+		GoldURL: "https://testing-gold.skia.org",
+		SharedConfig: &jsonio.GoldResults{
+			ChangeListID: "123456",
+		},
+	}
+	jsonToWrite := testutils.MarshalJSON(t, &j)
+	testutils.WriteFile(t, filepath.Join(wd, stateFile), jsonToWrite)
+
+	auth, httpClient, _, _ := makeMocks()
+	defer httpClient.AssertExpectations(t)
+
+	goldClient, err := loadGoldClient(auth, wd)
+	assert.NoError(t, err)
+
+	url := "https://testing-gold.skia.org/json/triage"
+	contentType := "application/json"
+	body := bytes.NewReader([]byte(`{"testDigestStatus":{"MyTest":{"deadbeefcafefe771d61bf0ed3d84bc2":"positive"}},"issue":"123456","imageMatchingAlgorithm":"fuzzy"}`))
+	httpClient.On("Post", url, contentType, body).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
+
+	err = goldClient.TriageAsPositive("MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "fuzzy")
 	assert.NoError(t, err)
 }
 
@@ -2021,6 +2054,9 @@ func TestCloudClient_TriageAsPositive_InternalServerError_Failure(t *testing.T) 
 	// Pretend "goldctl imgtest init" was called.
 	j := resultState{
 		GoldURL: "https://testing-gold.skia.org",
+		SharedConfig: &jsonio.GoldResults{
+			ChangeListID: "123456",
+		},
 	}
 	jsonToWrite := testutils.MarshalJSON(t, &j)
 	testutils.WriteFile(t, filepath.Join(wd, stateFile), jsonToWrite)
@@ -2033,10 +2069,10 @@ func TestCloudClient_TriageAsPositive_InternalServerError_Failure(t *testing.T) 
 
 	url := "https://testing-gold.skia.org/json/triage"
 	contentType := "application/json"
-	body := bytes.NewReader([]byte(`{"testDigestStatus":{"MyTest":{"deadbeefcafefe771d61bf0ed3d84bc2":"positive"}},"issue":"123456","imageMatchingAlgorithm":""}`))
+	body := bytes.NewReader([]byte(`{"testDigestStatus":{"MyTest":{"deadbeefcafefe771d61bf0ed3d84bc2":"positive"}},"issue":"123456","imageMatchingAlgorithm":"fuzzy"}`))
 	httpClient.On("Post", url, contentType, body).Return(httpResponse([]byte{}, "500 Internal Server Error", http.StatusInternalServerError), nil)
 
-	err = goldClient.TriageAsPositive("MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "123456")
+	err = goldClient.TriageAsPositive("MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "fuzzy")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "500")
 }
