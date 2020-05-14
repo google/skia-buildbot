@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "Catapult",
@@ -32,7 +32,7 @@
     "childBranch": "master",
     "childPath": "src/third_party/catapult",
     "childRepo": "https://chromium.googlesource.com/catapult.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/catapult.git/+/%s",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/catapult.git/+show/%s",
     "includeBugs": true,
     "includeLog": true,
     "bugProject": "chromium",

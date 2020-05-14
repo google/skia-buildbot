@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "skcms",
@@ -30,7 +30,7 @@
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git",
     "childRepo": "https://skia.googlesource.com/skcms.git",
-    "childRevLinkTmpl": "https://skia.googlesource.com/skcms.git/+/%s",
+    "childRevLinkTmpl": "https://skia.googlesource.com/skcms.git/+show/%s",
     "copies": [
       { "srcRelPath": "LICENSE",          "dstRelPath": "third_party/skcms/LICENSE" },
       { "srcRelPath": "README.chromium",  "dstRelPath": "third_party/skcms/README.chromium" },

@@ -10,6 +10,6 @@ window.Login = Promise.resolve(
 
 ClusterSummary2Sk._lookupCids = () => new Promise(((resolve) => {
   resolve([{
-    offset: 24748, author: 'msarett@google.com', message: '313c463 - Safely handle unsupported color xforms in SkCodec', url: 'https://skia.googlesource.com/skia/+/313c4635e3f1005e6807f5b0ad52805f30902d66', ts: 1476984695,
+    offset: 24748, author: 'msarett@google.com', message: '313c463 - Safely handle unsupported color xforms in SkCodec', url: 'https://skia.googlesource.com/skia/+show/313c4635e3f1005e6807f5b0ad52805f30902d66', ts: 1476984695,
   }]);
 }));

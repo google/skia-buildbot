@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
@@ -545,7 +546,7 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 
 	d := commitsTemplateData{
 		Repo:     repoName,
-		RepoBase: fmt.Sprintf("%s/+/", repoUrl),
+		RepoBase: fmt.Sprintf(gitiles.CommitURL, repoUrl, ""),
 		Repos:    getRepoNames(),
 		Title:    fmt.Sprintf("Status: %s", repoName),
 	}

@@ -15,7 +15,7 @@ const template = (ele) => html`
   <div class=title>CanvasKit Fiddle</div>
   <div class=flex></div>
   <div class=version>
-    <a href="https://skia.googlesource.com/skia/+/${SKIA_VERSION}">${SKIA_VERSION.substring(0, 10)}</a>
+    <a href="https://skia.googlesource.com/skia/+show/${SKIA_VERSION}">${SKIA_VERSION.substring(0, 10)}</a>
   </div>
 </header>
 

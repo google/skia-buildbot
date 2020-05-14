@@ -15,8 +15,10 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/gitinfo"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -41,12 +43,10 @@ const (
 
 var (
 	skiaRevRegex = regexp.MustCompile(".*'skia_revision': '(?P<revision>[0-9a-fA-F]{2,40})'.*")
-)
 
-const (
-	CHROMIUM_DEPS_URL  = "https://chromium.googlesource.com/chromium/src/+/master/DEPS?format=TEXT"
-	SKIA_BRANCHES_JSON = "https://skia.googlesource.com/skia/+refs?format=JSON"
-	SKIA_HEAD_JSON     = "https://skia.googlesource.com/skia/+/master?format=JSON"
+	CHROMIUM_DEPS_URL  = fmt.Sprintf(gitiles.DownloadURL, common.REPO_CHROMIUM, "master", "DEPS")
+	SKIA_BRANCHES_JSON = fmt.Sprintf(gitiles.RefsURL, common.REPO_SKIA)
+	SKIA_HEAD_JSON     = fmt.Sprintf(gitiles.CommitURLJSON, common.REPO_SKIA, "master")
 )
 
 type SkiaHead struct {

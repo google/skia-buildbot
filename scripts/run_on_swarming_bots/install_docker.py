@@ -22,7 +22,7 @@ AUTH_HELPER_URL = ('https://storage.googleapis.com/skia-backups/'
                    'docker-credential-gcr/1.5.0/docker-credential-gcr')
 
 # Copied from
-# https://skia.googlesource.com/buildbot/+/d864d83d992f2968cf4d229cebf2d3104ee11ebf/go/gce/swarming/base-image/setup-script.sh#20
+# https://skia.googlesource.com/buildbot/+show/d864d83d992f2968cf4d229cebf2d3104ee11ebf/go/gce/swarming/base-image/setup-script.sh#20
 base_cmd = ['sudo', 'DEBIAN_FRONTEND=noninteractive', 'apt',
             '-o', 'quiet=2', '--assume-yes',
             '-o', 'Dpkg::Options::=--force-confdef',

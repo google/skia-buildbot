@@ -12,7 +12,7 @@ func TestExpand(t *testing.T) {
 	unittest.SmallTest(t)
 
 	c := &cid.CommitDetail{
-		URL: "https://skia.googlesource.com/skia/+/d261e1075a93677442fdf7fe72aba7e583863664",
+		URL: "https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664",
 	}
 	clusterLink := "https://perf.skia.org/t/?begin=1498332791&end=1498528391&subset=flagged"
 	message := "noise"

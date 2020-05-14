@@ -43,7 +43,7 @@ func (mr *MockRepo) MockReadFile(ctx context.Context, srcPath, ref string) {
 	assert.NoError(mr.t, err)
 	body := make([]byte, base64.StdEncoding.EncodedLen(len([]byte(contents))))
 	base64.StdEncoding.Encode(body, []byte(contents))
-	url := fmt.Sprintf(gitiles.DOWNLOAD_URL, mr.url, ref, srcPath)
+	url := fmt.Sprintf(gitiles.DownloadURL, mr.url, ref, srcPath)
 	mr.URLMock.MockOnce(url, mockhttpclient.MockGetDialogue(body))
 }
 
@@ -60,7 +60,7 @@ func (mr *MockRepo) MockGetCommit(ctx context.Context, ref string) {
 	b, err := json.Marshal(c)
 	assert.NoError(mr.t, err)
 	b = append([]byte(")]}'\n"), b...)
-	url := fmt.Sprintf(gitiles.COMMIT_URL_JSON, mr.url, ref)
+	url := fmt.Sprintf(gitiles.CommitURLJSON, mr.url, ref)
 	mr.URLMock.MockOnce(url, mockhttpclient.MockGetDialogue(b))
 }
 
@@ -76,7 +76,7 @@ func (mr *MockRepo) MockBranches(ctx context.Context) {
 	b, err := json.Marshal(res)
 	assert.NoError(mr.t, err)
 	b = append([]byte(")]}'\n"), b...)
-	url := fmt.Sprintf(gitiles.REFS_URL, mr.url)
+	url := fmt.Sprintf(gitiles.RefsURL, mr.url)
 	mr.URLMock.MockOnce(url, mockhttpclient.MockGetDialogue(b))
 }
 
@@ -92,7 +92,7 @@ func (mr *MockRepo) MockLog(ctx context.Context, logExpr string, opts ...gitiles
 	b, err := json.Marshal(log)
 	assert.NoError(mr.t, err)
 	b = append([]byte(")]}'\n"), b...)
-	url := fmt.Sprintf(gitiles.LOG_URL, mr.url, logExpr)
+	url := fmt.Sprintf(gitiles.LogURL, mr.url, logExpr)
 	query, _, err := gitiles.LogOptionsToQuery(opts)
 	require.NoError(mr.t, err)
 	if query != "" {

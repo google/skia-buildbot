@@ -46,7 +46,7 @@ to see if it is only affecting one backend (look for NoPatchLog to exist and
 NoPatchSucceeded to be false). If it is only affecting one backend then try syncing
 the mirrors again [here](https://skia-android-compile.corp.goog/).
 
-If nothing else works then make the bot an experimental bot in [commit-queue.cfg](https://skia.googlesource.com/skia/+/infra/config/commit-queue.cfg)
+If nothing else works then make the bot an experimental bot in [commit-queue.cfg](https://skia.googlesource.com/skia/+show/infra/config/commit-queue.cfg)
 and inform the Skia chat so developers are cautious with potentially breaking changes.
 Also contact the [robocop](http://tree-status.skia.org/robocop) with the
 contents of the failing NoPatchLog.
@@ -61,7 +61,7 @@ to see if it is only affecting one backend (look for NoPatchLog to exist and
 NoPatchSucceeded to be false). If it is only affecting one backend then try syncing
 the mirrors again [here](https://skia-android-compile.corp.goog/).
 
-If nothing else works then make the bot an experimental bot in [commit-queue.cfg](https://skia.googlesource.com/skia/+/infra/config/commit-queue.cfg)
+If nothing else works then make the bot an experimental bot in [commit-queue.cfg](https://skia.googlesource.com/skia/+show/infra/config/commit-queue.cfg)
 and inform the Skia chat so developers are cautious with potentially breaking changes.
 Also contact the [robocop](http://tree-status.skia.org/robocop) with the
 contents of the failing NoPatchLog.

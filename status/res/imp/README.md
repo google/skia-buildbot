@@ -28,4 +28,4 @@ For performance reasons, the drawing of the main table on status (commits-table-
 An excellent primer on D3 is [Interactive Data Visualization for the Web](http://chimera.labs.oreilly.com/books/1230000000345/index.html) by Scott Murray.
 
 The elements were previously written in Polymer 0.5.
-Many of these were deleted after commit [9b8bb9c04](https://skia.googlesource.com/buildbot/+/9b8bb9c044470b039fb5ee8e82cb106d16492829).
+Many of these were deleted after commit [9b8bb9c04](https://skia.googlesource.com/buildbot/+show/9b8bb9c044470b039fb5ee8e82cb106d16492829).

@@ -210,7 +210,7 @@
 
       _computeRevisionLink: function(task) {
         // This assumes we use Gitiles, but that's a safe assumption for now.
-        return task.repo + "/+/" + task.revision;
+        return task.repo + "/+show/" + task.revision;
       },
 
       _computeStatusText: function(task) {

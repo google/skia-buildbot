@@ -29,7 +29,7 @@ const (
 
 var (
 	// dimensionWhitelist includes all dimensions used in
-	// https://skia.googlesource.com/skia/+/42974b73cd6f3515af69c553aac8dd15e3fc1927/infra/bots/gen_tasks.go
+	// https://skia.googlesource.com/skia/+show/42974b73cd6f3515af69c553aac8dd15e3fc1927/infra/bots/gen_tasks.go
 	// (except for "image" which has a TODO to remove).
 	dimensionWhitelist = []string{
 		"cpu",

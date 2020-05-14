@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "Lottie Android",
@@ -24,7 +24,7 @@
     "childBranch": "master",
     "childPath": "lottie-android",
     "childRepo": "https://skia.googlesource.com/external/github.com/airbnb/lottie-android.git",
-    "childRevLinkTmpl": "https://skia.googlesource.com/external/github.com/airbnb/lottie-android.git/+/%s",
+    "childRevLinkTmpl": "https://skia.googlesource.com/external/github.com/airbnb/lottie-android.git/+show/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

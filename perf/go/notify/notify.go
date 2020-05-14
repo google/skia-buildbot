@@ -124,7 +124,7 @@ func (n *Notifier) Send(c *cid.CommitDetail, alert *alerts.Alert, cl *clustering
 func (n *Notifier) ExampleSend(alert *alerts.Alert) error {
 	c := &cid.CommitDetail{
 		Message: "Re-enable opList dependency tracking",
-		URL:     "https://skia.googlesource.com/skia/+/d261e1075a93677442fdf7fe72aba7e583863664",
+		URL:     "https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664",
 		Hash:    "d261e1075a93677442fdf7fe72aba7e583863664",
 	}
 	cl := &clustering2.ClusterSummary{
