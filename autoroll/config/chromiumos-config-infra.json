@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "chromiumos/config",
@@ -27,7 +27,7 @@
     "childBranch": "master",
     "childPath": "infra/go/src/go.chromium.org/chromiumos/config",
     "childRepo": "https://chromium.googlesource.com/chromiumos/config.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/chromiumos/config.git/+/%s",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/chromiumos/config.git/+show/%s",
     "includeBugs": false,
     "includeLog": true,
     "bugProject": "chromium",

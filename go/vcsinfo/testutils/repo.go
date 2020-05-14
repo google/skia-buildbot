@@ -17,7 +17,7 @@ type tempRepo struct {
 }
 
 // TODO(stephana): Use GitBuilder instead of checking in a Git repo.
-// See https://skia.googlesource.com/buildbot/+/master/go/git/testutils/git_builder.go#233
+// See https://skia.googlesource.com/buildbot/+show/master/go/git/testutils/git_builder.go#233
 // Note: This will require to refactor the tests in infra/go/vcsinfo/testutils.
 
 // newTempRepoFrom returns a tempRepo instance based on the contents of the

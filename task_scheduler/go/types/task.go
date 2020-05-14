@@ -11,6 +11,7 @@ import (
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -469,7 +470,7 @@ func TagsForTask(name, id string, attempt int, rs RepoState, retryOf string, dim
 	tags[SWARMING_TAG_RETRY_OF] = retryOf
 	tags[SWARMING_TAG_REVISION] = rs.Revision
 	tags[SWARMING_TAG_SOURCE_REVISION] = rs.Revision
-	tags[SWARMING_TAG_SOURCE_REPO] = rs.Repo + "/+/%s"
+	tags[SWARMING_TAG_SOURCE_REPO] = fmt.Sprintf(gitiles.CommitURL, rs.Repo, "%s")
 	if rs.IsTryJob() {
 		tags[SWARMING_TAG_SERVER] = rs.Server
 		tags[SWARMING_TAG_ISSUE] = rs.Issue

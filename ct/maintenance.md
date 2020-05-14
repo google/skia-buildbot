@@ -168,7 +168,7 @@ Poller logs are available [here](https://console.cloud.google.com/logs/viewer?pr
 Worker scripts are part of the docker build when `ctmaster_release` is run.
 However, from time to time, it may be necessary to perform maintenance
 tasks on all worker machines. In this case, the
-[run_on_swarming_bots](https://skia.googlesource.com/buildbot/+/master/scripts/run_on_swarming_bots/)
+[run_on_swarming_bots](https://skia.googlesource.com/buildbot/+show/master/scripts/run_on_swarming_bots/)
 script can be used to update all
 [CT bots](https://chrome-swarming.appspot.com/botlist?c=id&c=os&c=task&c=status&f=pool%3ACT&l=1000&s=id%3Aasc).
 
@@ -181,7 +181,7 @@ TODO(rmistry): Where do CSV files come from, where to put in GS.
 ## Access to Golo
 
 Follow instructions
-[here](https://chrome-internal.googlesource.com/infra/infra_internal/+/master/doc/ssh.md)
+[here](https://chrome-internal.googlesource.com/infra/infra_internal/+doc/master/doc/ssh.md)
 for basic security key and `.ssh/config` setup.
 
 Run `ssh -p 2150 skia-telemetry-ssh@chromegw` and use the password stored on

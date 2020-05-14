@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "Vulkan-Loader",
@@ -29,7 +29,7 @@
     "childBranch": "master",
     "childPath": "third_party/vulkan-loader/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Loader.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Loader.git/+/%s",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Loader.git/+show/%s",
     "includeBugs": true,
     "includeLog": true,
     "bugProject": "angleproject",

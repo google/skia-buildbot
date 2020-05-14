@@ -21,7 +21,7 @@ def RemoveDirectory(*path):
   """Recursively removes a directory, even if it's marked read-only.
 
   This was copied from:
-  https://chromium.googlesource.com/chromium/tools/build/+/f3e7ff03613cd59a463b2ccc49773c3813e77404/scripts/common/chromium_utils.py#491
+  https://chromium.googlesource.com/chromium/tools/build/+show/f3e7ff03613cd59a463b2ccc49773c3813e77404/scripts/common/chromium_utils.py#491
 
   Remove the directory located at *path, if it exists.
 

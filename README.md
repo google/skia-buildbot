@@ -62,7 +62,7 @@ Generated Code
 
 Some code is generated using `go generate` with external binaries. First,
 install the version of protoc referenced in the [asset creation
-script](https://skia.googlesource.com/skia/+/master/infra/bots/assets/protoc/create.py)
+script](https://skia.googlesource.com/skia/+show/master/infra/bots/assets/protoc/create.py)
 and ensure it is on your PATH before other versions of protoc.
 
 Install the necessary go packages:

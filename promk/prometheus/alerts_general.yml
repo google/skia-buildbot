@@ -329,7 +329,7 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.job_name }}'
-      description: '{{ $labels.job_name }} has not finished for any commit in the last 8 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
+      description: '{{ $labels.job_name }} has not finished for any commit in the last 8 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+show/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
 
 # These jobs have tasks with an expiration of 9 hours, and we allow 2 attempts, so they should
 # normally finish within 18 hours.
@@ -340,7 +340,7 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.job_name }}'
-      description: '{{ $labels.job_name }} has not finished for any commit in the last 9 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
+      description: '{{ $labels.job_name }} has not finished for any commit in the last 9 hours. Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+show/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
 
   - alert: OverdueJobSpecNightly
     expr: overdue_job_specs_s{job_trigger="nightly"}/60/60 > 28
@@ -349,7 +349,7 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.job_name }}'
-      description: '{{ $labels.job_name }} has not completed in the last 28 hours (nightly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
+      description: '{{ $labels.job_name }} has not completed in the last 28 hours (nightly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+show/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
 
   - alert: OverdueJobSpecWeekly
     expr: overdue_job_specs_s{job_trigger="weekly"}/60/60 > 7*24+4
@@ -358,7 +358,7 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.job_name }}'
-      description: '{{ $labels.job_name }} has not completed in the last week + 4 hours (weekly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
+      description: '{{ $labels.job_name }} has not completed in the last week + 4 hours (weekly job). Maybe the dimensions need changing? (Job defined here: {{ $labels.repo }}/+show/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#overdue_job_spec'
 
   - alert: LatestJobAgeNightly
     expr: latest_job_age_s{job_trigger="nightly"}/60/60 > 25
@@ -368,7 +368,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.job_name }}'
-      description: '{{ $labels.job_name }} has not been triggered in the last 25 hours (nightly job). Double check whether the periodic triggers are running correctly (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#latest_job_age'
+      description: '{{ $labels.job_name }} has not been triggered in the last 25 hours (nightly job). Double check whether the periodic triggers are running correctly (Job defined here: {{ $labels.repo }}/+show/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#latest_job_age'
 
   - alert: LatestJobAgeWeekly
     expr: latest_job_age_s{job_trigger="weekly"}/60/60 > 7*24+1
@@ -378,7 +378,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.job_name }}'
-      description: '{{ $labels.job_name }} has not been triggered in the last week + 1 hour (weekly job). Double check whether the periodic triggers are running correctly (Job defined here: {{ $labels.repo }}/+/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#latest_job_age'
+      description: '{{ $labels.job_name }} has not been triggered in the last week + 1 hour (weekly job). Double check whether the periodic triggers are running correctly (Job defined here: {{ $labels.repo }}/+show/master/infra/bots/tasks.json) Production Manual: https://skia.googlesource.com/buildbot/%2B/master/task_scheduler/PROD.md#latest_job_age'
 
 # Datahopper
 
@@ -511,7 +511,7 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.branch }}'
-      description: 'There is no commit queue config entry for supported branch {{ $labels.branch }} in {{ $labels.repo }}. Either an entry needs to be added to {{ $labels.repo }}/+/infra/config/commit-queue.cfg or the branch needs to be marked as not supported in {{ $labels.repo }}/+/infra/config/supported-branches.json'
+      description: 'There is no commit queue config entry for supported branch {{ $labels.branch }} in {{ $labels.repo }}. Either an entry needs to be added to {{ $labels.repo }}/+show/infra/config/commit-queue.cfg or the branch needs to be marked as not supported in {{ $labels.repo }}/+show/infra/config/supported-branches.json'
 
   - alert: NoSuchCQTryjobForSupportedBranch
     expr: cq_cfg_tryjob_exists == 0
@@ -520,7 +520,7 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.branch }}'
-      description: 'The commit queue config for supported branch {{ $labels.branch }} in {{ $labels.repo }} references unknown job {{ $labels.tryjob }}. Either the job needs to be removed or renamed in {{ $labels.repo }}/+/infra/config/commit-queue.cfg or the job needs to be added to {{ $labels.repo }}/+/{{ $labels.branch}}/infra/bots/tasks.json'
+      description: 'The commit queue config for supported branch {{ $labels.branch }} in {{ $labels.repo }} references unknown job {{ $labels.tryjob }}. Either the job needs to be removed or renamed in {{ $labels.repo }}/+show/infra/config/commit-queue.cfg or the job needs to be added to {{ $labels.repo }}/+show/{{ $labels.branch}}/infra/bots/tasks.json'
 
   - alert: NoBotsExistForTryjobOnSupportedBranch
     expr: cq_cfg_bot_exists_for_tryjob == 0
@@ -529,7 +529,7 @@ groups:
       severity: critical
     annotations:
       abbr: '{{ $labels.branch }}'
-      description: 'There are no bots which can run the tasks for {{ $labels.tryjob }} on supported branch {{ $labels.branch }} in {{ $labels.repo }}.  Either the dimensions for the tasks used by the job need to be updated in {{ $labels.repo }}/+/{{ $labels.branch}}/infra/bots/tasks.json or bots need to be added which can run the tasks. See the logs for details: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+      description: 'There are no bots which can run the tasks for {{ $labels.tryjob }} on supported branch {{ $labels.branch }} in {{ $labels.repo }}.  Either the dimensions for the tasks used by the job need to be updated in {{ $labels.repo }}/+show/{{ $labels.branch}}/infra/bots/tasks.json or bots need to be added which can run the tasks. See the logs for details: https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
 # K8s Checker
   - alert: K8sCheckerLiveness
@@ -559,7 +559,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.yaml }}'
-      description: 'There is a dirty committed image {{ $labels.committedImage }} in {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }}'
+      description: 'There is a dirty committed image {{ $labels.committedImage }} in {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.yaml }}'
 
   - alert: DirtyRunningK8sConfig
     expr: dirty_config_metric == 1
@@ -569,7 +569,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.container }}'
-      description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running image differs from the image in {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }} : {{ $labels.liveImage }} != {{ $labels.committedImage }}'
+      description: 'For app {{ $labels.exported_app }} and container {{ $labels.container }} the running image differs from the image in {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.yaml }} : {{ $labels.liveImage }} != {{ $labels.committedImage }}'
 
   - alert: StaleK8sImage
     expr: stale_image_metric > 30
@@ -589,7 +589,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.exported_app }}'
-      description: 'The app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
+      description: 'The app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
 
   - alert: CheckedInK8sContainerNotRunning
     expr: container_running_metric == 0
@@ -599,7 +599,7 @@ groups:
       severity: warning
     annotations:
       abbr: '{{ $labels.container }}'
-      description: 'The container {{ $labels.container }} of app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+/refs/heads/master/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
+      description: 'The container {{ $labels.container }} of app {{ $labels.exported_app }} is checked into {{ $labels.repo }}/+show/refs/heads/master/{{ $labels.yaml }} but is not running in {{ $labels.project }}'
 
   - alert: RunningK8sAppNotCheckedIn
     expr: running_app_has_config_metric == 0
@@ -630,7 +630,7 @@ groups:
       owner: borenet@google.com
     annotations:
       abbr: '{{ $labels.repo }}'
-      description: 'gitsync has failed to update {{ $labels.repo }} for the last 5 minutes. Check out pod {{ $labels.statefulset_kubernetes_io_pod_name }} in project {{ $labels.project }}. https://skia.googlesource.com/buildbot/+/refs/heads/master/gitsync/PROD.md#GitSyncStalled'
+      description: 'gitsync has failed to update {{ $labels.repo }} for the last 5 minutes. Check out pod {{ $labels.statefulset_kubernetes_io_pod_name }} in project {{ $labels.project }}. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/gitsync/PROD.md#GitSyncStalled'
 
   - alert: GitSyncErrorRate
     expr: rate(num_log_lines{level="ERROR",app=~"gitsync.*"}[5m]) > 0.005
@@ -641,7 +641,7 @@ groups:
     annotations:
       abbr: '{{ $labels.app }}'
       description: 'The error rate for {{ $labels.app }} is too high.
-      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }} https://skia.googlesource.com/buildbot/+/refs/heads/master/gitsync/PROD.md#GitSyncErrorRate'
+      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }} https://skia.googlesource.com/buildbot/+doc/refs/heads/master/gitsync/PROD.md#GitSyncErrorRate'
 
 # Gold Alerts
   - alert: GoldIgnoreMonitoring
@@ -652,7 +652,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has not checked for expired ignore rules in a while. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldignoremonitoring'
+      description: '{{ $labels.app }} has not checked for expired ignore rules in a while. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldignoremonitoring'
 
   - alert: GoldPollingIngestionStalled
     expr: liveness_gold_bt_s{metric="since-last-run"} > 150*60
@@ -662,7 +662,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has not been able to poll the bucket for missed files to ingest for a while. See https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldpollingingestionstalled'
+      description: '{{ $labels.app }} has not been able to poll the bucket for missed files to ingest for a while. See https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldpollingingestionstalled'
 
   - alert: GoldStreamingIngestionStalled
     expr: liveness_gold_bt_s{metric="last-successful-process"} > 24*60*60
@@ -672,7 +672,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: '{{ $labels.app }} has not successfully ingested files via streaming in a long time. See https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldstreamingingestionstalled'
+      description: '{{ $labels.app }} has not successfully ingested files via streaming in a long time. See https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldstreamingingestionstalled'
 
   - alert: GoldCommitTooOldWallTime
     expr: gold_last_commit_age_s{type="wall_time"} > 24*60*60
@@ -682,7 +682,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'It has been at least 24 hours since the last commit made it into Gold for {{ $labels.app }}. Some process might have hung, or perhaps that repo simply has not seen a commit in that period. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcommittoooldwalltime'
+      description: 'It has been at least 24 hours since the last commit made it into Gold for {{ $labels.app }}. Some process might have hung, or perhaps that repo simply has not seen a commit in that period. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldcommittoooldwalltime'
 
   - alert: GoldCommitTooOldNewerCommit
     expr: gold_last_commit_age_s{type="with_new_commit"} > 60*60
@@ -692,7 +692,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'It has been at least 1 hour since a new commit landed in {{ $labels.app }}, and Gold still has not picked it up. Some process might have hung. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcommittoooldnewercommit'
+      description: 'It has been at least 1 hour since a new commit landed in {{ $labels.app }}, and Gold still has not picked it up. Some process might have hung. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldcommittoooldnewercommit'
 
   - alert: GoldStatusStalled
     expr: liveness_gold_status_monitoring_s > 20*60
@@ -702,7 +702,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'It has been at least 20 minutes since the Gold status was re-computed for {{ $labels.app }}. Some process might have hung. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldstatusstalled'
+      description: 'It has been at least 20 minutes since the Gold status was re-computed for {{ $labels.app }}. Some process might have hung. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldstatusstalled'
 
   - alert: GoldExpectationsStale
     expr: stopped_expstore_shards > 0
@@ -712,7 +712,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'Shards of QuerySnapshotIterators have stopped. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldexpectationsstale'
+      description: 'Shards of QuerySnapshotIterators have stopped. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldexpectationsstale'
 
   - alert: GoldCorruptTryJobParamMaps
     expr: bad_param_maps > 0
@@ -722,7 +722,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'TryJobResults may be missing Params. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcorrupttryjobdata'
+      description: 'TryJobResults may be missing Params. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldcorrupttryjobdata'
 
   - alert: GoldTryJobResultsIncompleteData
     expr: bad_results > 0
@@ -732,7 +732,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'There are a nonzero amount of TryJobResults that were missing Params. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcorrupttryjobdata'
+      description: 'There are a nonzero amount of TryJobResults that were missing Params. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldcorrupttryjobdata'
 
   - alert: GoldNoDataAtHead
     expr: gold_empty_commits_at_head{appgroup!~"gold-chrome.*"} >= 20
@@ -742,7 +742,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'The most recent 20 commits for {{ $labels.app }} have no data. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldnodataathead'
+      description: 'The most recent 20 commits for {{ $labels.app }} have no data. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldnodataathead'
 
   - alert: GoldTooManyCLs
     expr: gold_num_recent_open_cls{appgroup!~"gold-chrome.*"} >= 50
@@ -752,7 +752,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'There are more than 50 recent, open CLs with tryjob data for {{ $labels.app }}. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldtoomanycls'
+      description: 'There are more than 50 recent, open CLs with tryjob data for {{ $labels.app }}. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldtoomanycls'
 
   - alert: GoldTooManyCLsChrome
     expr: gold_num_recent_open_cls{appgroup=~"gold-chrome.*"} >= 200
@@ -762,7 +762,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'There are more than 200 recent, open CLs with tryjob data for {{ $labels.app }}. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldtoomanycls'
+      description: 'There are more than 200 recent, open CLs with tryjob data for {{ $labels.app }}. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldtoomanycls'
 
   - alert: GoldCommentingStalled
     expr: liveness_gold_comment_monitoring_s > 20*60
@@ -772,7 +772,7 @@ groups:
       owner: kjlubick@google.com
     annotations:
       abbr: '{{ $labels.app }}'
-      description: 'It has been at least 20 minutes since the Gold went through all open CLs in for {{ $labels.app }} to maybe comment them on. Some process might have hung. https://skia.googlesource.com/buildbot/+/refs/heads/master/golden/docs/PROD.md#goldcommentingstalled'
+      description: 'It has been at least 20 minutes since the Gold went through all open CLs in for {{ $labels.app }} to maybe comment them on. Some process might have hung. https://skia.googlesource.com/buildbot/+doc/refs/heads/master/golden/docs/PROD.md#goldcommentingstalled'
 
 
 # Velero Backup
