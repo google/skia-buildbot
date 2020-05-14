@@ -132,6 +132,30 @@
     },
     {
       "key": {
+        "uuid": "ead68ddb_3771c90f",
+        "filename": "autoroll/config/chromite-chromium.json",
+        "patchSetId": 12
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-14T18:17:57Z",
+      "side": 1,
+      "message": "\u003e I\u0027m going to remove commitMsg.childName as part of this CL, and if anybody wants it the old way we can override it in their config file.\n\nHow would it be overriden? by specifying a full template in commitMsg or by re-introducing the childName config?",
+      "parentUuid": "d93c3cf5_ab98ec4d",
+      "range": {
+        "startLine": 6,
+        "startChar": 5,
+        "endLine": 6,
+        "endChar": 14
+      },
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "24108d3c_34a299d4",
         "filename": "autoroll/go/autoroll-be/main.go",
         "patchSetId": 12
