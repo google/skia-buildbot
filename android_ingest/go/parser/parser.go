@@ -25,9 +25,11 @@ var (
 // Incoming is the JSON structure of the data sent to us from the Android
 // testing infrastructure.
 type Incoming struct {
-	BuildId     string `json:"build_id"`
-	BuildFlavor string `json:"build_flavor"`
-	Branch      string `json:"branch"`
+	BuildId        string `json:"build_id"`
+	BuildFlavor    string `json:"build_flavor"`
+	Branch         string `json:"branch"`
+	DeviceName     string `json:"device_name"`
+	SDKReleaseName string `json:"sdk_release_name"`
 
 	// Metrics is a map[test name]map[metric]value, where value
 	// is a string encoded float, thus the use of json.Number.
