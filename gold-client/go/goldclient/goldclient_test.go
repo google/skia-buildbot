@@ -1416,9 +1416,10 @@ func TestCloudClient_MatchImageAgainstBaseline_NoAlgorithmSpecified_DefaultsToEx
 			}
 
 			// Parameters traceId and imageBytes are not used in exact matching.
-			got, err := goldClient.matchImageAgainstBaseline(testName, "" /* =traceId */, []byte{} /* =imageBytes */, digest, nil /* =optionalKeys */)
+			got, algorithmName, err := goldClient.matchImageAgainstBaseline(testName, "" /* =traceId */, []byte{} /* =imageBytes */, digest, nil /* =optionalKeys */)
 
 			assert.NoError(t, err)
+			assert.Equal(t, imgmatching.ExactMatching, algorithmName)
 			assert.Equal(t, want, got)
 		})
 	}
@@ -1454,9 +1455,10 @@ func TestCloudClient_MatchImageAgainstBaseline_ExactMatching_Success(t *testing.
 			}
 
 			// Parameters traceId and imageBytes are not used in exact matching.
-			got, err := goldClient.matchImageAgainstBaseline(testName, "" /* =traceId */, []byte{} /* =imageBytes */, digest, optionalKeys)
+			got, algorithmName, err := goldClient.matchImageAgainstBaseline(testName, "" /* =traceId */, []byte{} /* =imageBytes */, digest, optionalKeys)
 
 			assert.NoError(t, err)
+			assert.Equal(t, imgmatching.ExactMatching, algorithmName)
 			assert.Equal(t, want, got)
 		})
 	}
@@ -1490,8 +1492,9 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_ImageAlreadyLabeled
 				},
 			}
 
-			got, err := goldClient.matchImageAgainstBaseline(testName, "" /* =traceId */, nil /* =imageBytes */, digest, optionalKeys)
+			got, algorithmName, err := goldClient.matchImageAgainstBaseline(testName, "" /* =traceId */, nil /* =imageBytes */, digest, optionalKeys)
 			assert.NoError(t, err)
+			assert.Equal(t, imgmatching.ExactMatching, algorithmName)
 			assert.Equal(t, want, got)
 		})
 	}
@@ -1566,8 +1569,9 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Succ
 				string(imgmatching.PixelDeltaThreshold): pixelDeltaThreshold,
 			}
 
-			actual, err := goldClient.matchImageAgainstBaseline(testName, traceId, tc.imageBytes, digest, optionalKeys)
+			actual, algorithmName, err := goldClient.matchImageAgainstBaseline(testName, traceId, tc.imageBytes, digest, optionalKeys)
 			assert.NoError(t, err)
+			assert.Equal(t, imgmatching.FuzzyMatching, algorithmName)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
@@ -1612,7 +1616,7 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_InvalidParameters_R
 			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer cleanup()
 
-			_, err := goldClient.matchImageAgainstBaseline("my_test", "" /* =traceId */, nil /* =imageBytes */, "11111111111111111111111111111111", tc.optionalKeys)
+			_, _, err := goldClient.matchImageAgainstBaseline("my_test", "" /* =traceId */, nil /* =imageBytes */, "11111111111111111111111111111111", tc.optionalKeys)
 			assert.Error(t, err)
 			assert.Contains(t, err.Error(), tc.error)
 		})
@@ -1644,7 +1648,7 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDig
 		string(imgmatching.PixelDeltaThreshold): "0",
 	}
 
-	_, err := goldClient.matchImageAgainstBaseline(testName, traceId, imageBytes, digest, optionalKeys)
+	_, _, err := goldClient.matchImageAgainstBaseline(testName, traceId, imageBytes, digest, optionalKeys)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), `no recent positive digests for trace with ID ",name=my_test,"`)
 }
@@ -1673,8 +1677,9 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLa
 				},
 			}
 
-			got, err := goldClient.matchImageAgainstBaseline(testName, "" /* =traceId */, nil /* =imageBytes */, digest, optionalKeys)
+			got, algorithmName, err := goldClient.matchImageAgainstBaseline(testName, "" /* =traceId */, nil /* =imageBytes */, digest, optionalKeys)
 			assert.NoError(t, err)
+			assert.Equal(t, imgmatching.ExactMatching, algorithmName)
 			assert.Equal(t, want, got)
 		})
 	}
@@ -1731,8 +1736,9 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage
 				string(imgmatching.EdgeThreshold):       edgeThreshold,
 			}
 
-			actual, err := goldClient.matchImageAgainstBaseline(testName, traceId, testImageBytes, digest, optionalKeys)
+			actual, algorithmName, err := goldClient.matchImageAgainstBaseline(testName, traceId, testImageBytes, digest, optionalKeys)
 			assert.NoError(t, err)
+			assert.Equal(t, imgmatching.SobelFuzzyMatching, algorithmName)
 			assert.Equal(t, expected, actual)
 		})
 	}
@@ -1791,7 +1797,7 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_InvalidParamet
 			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer cleanup()
 
-			_, err := goldClient.matchImageAgainstBaseline("my_test", "" /* =traceId */, nil /* =imageBytes */, "11111111111111111111111111111111", tc.optionalKeys)
+			_, _, err := goldClient.matchImageAgainstBaseline("my_test", "" /* =traceId */, nil /* =imageBytes */, "11111111111111111111111111111111", tc.optionalKeys)
 			assert.Error(t, err)
 			assert.Contains(t, err.Error(), tc.error)
 		})
@@ -1808,7 +1814,7 @@ func TestCloudClient_MatchImageAgainstBaseline_UnknownAlgorithm_ReturnsError(t *
 		imgmatching.AlgorithmNameOptKey: "unknown algorithm",
 	}
 
-	_, err := goldClient.matchImageAgainstBaseline("" /* =testName */, "" /* =traceId */, nil /* =imageBytes */, "" /* =digest */, optionalKeys)
+	_, _, err := goldClient.matchImageAgainstBaseline("" /* =testName */, "" /* =traceId */, nil /* =imageBytes */, "" /* =digest */, optionalKeys)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unrecognized image matching algorithm")
 }
