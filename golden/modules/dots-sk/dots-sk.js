@@ -48,7 +48,7 @@ setInterval(() => {
   }
 }, 40);
 
-const template = () => html`<canvas></canvas>`;
+const template = () => html`<canvas></canvas>hello world`;
 
 define('dots-sk', class extends ElementSk {
   constructor() {
