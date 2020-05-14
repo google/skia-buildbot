@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7d93a751_1af9659e",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 431,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-14T19:02:01Z",
+      "side": 1,
+      "message": "skerr.Wrap(err)",
+      "range": {
+        "startLine": 431,
+        "startChar": 15,
+        "endLine": 431,
+        "endChar": 18
+      },
+      "revId": "fa75197b2b40a477672b3c49096e59c3aff711cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5cc321a6_c6e2e16c",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 441,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-14T19:02:01Z",
+      "side": 1,
+      "message": "Include that the algorithm will be returned.",
+      "range": {
+        "startLine": 441,
+        "startChar": 71,
+        "endLine": 441,
+        "endChar": 80
+      },
+      "revId": "fa75197b2b40a477672b3c49096e59c3aff711cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
