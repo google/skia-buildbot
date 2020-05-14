@@ -800,6 +800,126 @@ func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 	assert.True(t, pass)
 }
 
+// TestReportPassFailPassWithFuzzyMatching tests that a non-exact image matching algorithm is used
+// when one is specified via the optional keys. Specifically, the user adds an image with digest
+// "111...", which is deemed to be an approximate match to the latest positive digest "222...".
+// Because it is deemed to be a match, we expect to see an RPC to triage "111..." as positive.
+func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
+	unittest.MediumTest(t)
+
+	wd, cleanup := testutils.TempDir(t)
+	defer cleanup()
+
+	// The test name is defined in mockBaselineJSON. The image hashes below are not.
+	testName := types.TestName("ThisIsTheOnlyTest")
+
+	latestPositiveImageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+	2 2
+	0x00000000 0x00000000
+	0x00000000 0x00000000`))
+	const latestPositiveImageHash = types.Digest("22222222222222222222222222222222")
+
+	// New image differs from the latest positive image by one pixel, but the difference is below the
+	// fuzzy matching thresholds.
+	newImageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
+	2 2
+	0xFFFFFFFF 0x00000000
+	0x00000000 0x00000000`))
+	const newImageHash = types.Digest("11111111111111111111111111111111")
+
+	// Fuzzy matching with big thresholds to ensure the images above are always deemed equivalent.
+	const imageMatchingAlgorithm = imgmatching.FuzzyMatching
+	const maxDifferentPixels = "99999999"
+	const pixelDeltaThreshold = "1020"
+
+	overRiddenCorpus := "gtest-pixeltests"
+
+	auth, httpClient, uploader, downloader := makeMocks()
+	defer httpClient.AssertExpectations(t)
+	defer uploader.AssertExpectations(t)
+	defer downloader.AssertExpectations(t)
+
+	// Mock out getting the list of known hashes.
+	hashesResp := httpResponse([]byte(newImageHash), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+
+	// Mock out getting the test baselines.
+	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867").Return(exp, nil)
+
+	// Mock out retrieving the latest positive image hash for ThisIsTheOnlyTest.
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/latestpositivedigest/,another_notch=emeril,gpu=GPUTest,name=ThisIsTheOnlyTest,os=WinTest,source_type=gtest-pixeltests,"
+	const latestPositiveDigestResponse = `{"digest":"` + latestPositiveImageHash + `"}`
+	httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse([]byte(latestPositiveDigestResponse), "200 OK", http.StatusOK), nil)
+
+	// Mock out downloading the latest positive digest returned by the previous mocked RPC.
+	const latestPositiveDigestGcsPath = "gs://skia-gold-testing/dm-images-v1/" + string(latestPositiveImageHash) + ".png"
+	downloader.On("Download", testutils.AnyContext, latestPositiveDigestGcsPath, filepath.Join(wd, digestsDirectory)).Return(latestPositiveImageBytes, nil)
+
+	// Mock out RPC to automatically triage the new image as positive.
+	body := bytes.NewReader([]byte(`{"testDigestStatus":{"ThisIsTheOnlyTest":{"` + newImageHash + `":"positive"}},"issue":"867","imageMatchingAlgorithm":"fuzzy"}`))
+	httpClient.On("Post", "https://testing-gold.skia.org/json/triage", "application/json", body).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
+
+	// Mock out uploading the JSON file with the test results to Gold.
+	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
+	checkResults := func(g *jsonio.GoldResults) bool {
+		// spot check some of the properties
+		assert.Equal(t, "abcd1234", g.GitHash)
+		assert.Equal(t, testBuildBucketID, g.TryJobID)
+		assert.Equal(t, map[string]string{
+			"os":          "WinTest",
+			"gpu":         "GPUTest",
+			"source_type": overRiddenCorpus,
+		}, g.Key)
+
+		results := g.Results
+		assert.Len(t, results, 1)
+		r := results[0]
+		assert.Equal(t, &jsonio.Result{
+			Digest: newImageHash,
+			Options: map[string]string{
+				"ext":                                   "png",
+				imgmatching.AlgorithmNameOptKey:         string(imageMatchingAlgorithm),
+				string(imgmatching.MaxDifferentPixels):  maxDifferentPixels,
+				string(imgmatching.PixelDeltaThreshold): pixelDeltaThreshold,
+			},
+			Key: map[string]string{
+				"name":          string(testName),
+				"another_notch": "emeril",
+			},
+		}, r)
+		return true
+	}
+	uploader.On("UploadJSON", testutils.AnyContext, mock.MatchedBy(checkResults), filepath.Join(wd, jsonTempFile), expectedJSONPath).Return(nil)
+
+	goldClient, err := makeGoldClient(auth, true /*=passFail*/, false /*=uploadOnly*/, wd)
+	assert.NoError(t, err)
+	config := makeTestSharedConfig()
+	config.Key[types.CorpusField] = overRiddenCorpus
+	err = goldClient.SetSharedConfig(config, false)
+	assert.NoError(t, err)
+
+	overrideLoadAndHashImage(goldClient, func(path string) ([]byte, types.Digest, error) {
+		assert.Equal(t, testImgPath, path)
+		return newImageBytes, newImageHash, nil
+	})
+
+	extraKeys := map[string]string{
+		"another_notch": "emeril",
+	}
+
+	optionalKeys := map[string]string{
+		imgmatching.AlgorithmNameOptKey:         string(imageMatchingAlgorithm),
+		string(imgmatching.MaxDifferentPixels):  maxDifferentPixels,
+		string(imgmatching.PixelDeltaThreshold): pixelDeltaThreshold,
+	}
+
+	pass, err := goldClient.Test(testName, testImgPath, extraKeys, optionalKeys)
+	assert.NoError(t, err)
+	// Returns true because the test has been seen before and marked positive.
+	assert.True(t, pass)
+}
+
 // TestNegativePassFail ensures that a digest marked negative returns false in pass-fail mode.
 func TestNegativePassFail(t *testing.T) {
 	unittest.MediumTest(t)
