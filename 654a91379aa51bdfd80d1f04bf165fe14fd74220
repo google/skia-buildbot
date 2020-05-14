@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "47d8a07c_7b7d0185",
+        "filename": "ct/res/imp/chromium-analysis-runs-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-14T14:51:10Z",
+      "side": 0,
+      "message": "keep .com back x 10\nactually it\u0027s a lot more occurrences than that, might want to fix whichever replace command you used",
+      "range": {
+        "startLine": 219,
+        "startChar": 60,
+        "endLine": 219,
+        "endChar": 64
+      },
+      "revId": "654a91379aa51bdfd80d1f04bf165fe14fd74220",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3e69f896_b25214e7",
+        "filename": "go/buildskia/buildskia.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-14T14:51:10Z",
+      "side": 0,
+      "message": "Looks like this will now be +refs%%2Fheads?format\u003dJSON\nis that correct? (just checking)",
+      "range": {
+        "startLine": 48,
+        "startChar": 58,
+        "endLine": 48,
+        "endChar": 75
+      },
+      "revId": "654a91379aa51bdfd80d1f04bf165fe14fd74220",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

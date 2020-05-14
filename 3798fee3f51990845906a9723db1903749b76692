@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba7ef451_7a7c7cc8",
+        "filename": "ct/go/ctfe/chromium_builds/chromium_builds.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-14T14:51:10Z",
+      "side": 1,
+      "message": "Should this be an empty string?",
+      "range": {
+        "startLine": 45,
+        "startChar": 79,
+        "endLine": 45,
+        "endChar": 81
+      },
+      "revId": "3798fee3f51990845906a9723db1903749b76692",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c23af8f8_7cdb476b",
+        "filename": "ct/go/ctfe/chromium_builds/chromium_builds.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-14T14:51:10Z",
+      "side": 1,
+      "message": "Should this be an empty string?",
+      "range": {
+        "startLine": 49,
+        "startChar": 71,
+        "endLine": 49,
+        "endChar": 73
+      },
+      "revId": "3798fee3f51990845906a9723db1903749b76692",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
