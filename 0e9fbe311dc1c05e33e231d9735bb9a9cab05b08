@@ -22,6 +22,30 @@
       "revId": "0e9fbe311dc1c05e33e231d9735bb9a9cab05b08",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "33b57daa_ed6bfead",
+        "filename": "autoroll/go/roller/config.go",
+        "patchSetId": 14
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-14T18:37:49Z",
+      "side": 1,
+      "message": "Done. Also removed the word \"repo\" from this and other comments, since it\u0027s no longer always accurate.",
+      "parentUuid": "7e646945_89c70ccd",
+      "range": {
+        "startLine": 153,
+        "startChar": 4,
+        "endLine": 153,
+        "endChar": 17
+      },
+      "revId": "0e9fbe311dc1c05e33e231d9735bb9a9cab05b08",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

@@ -156,6 +156,30 @@
     },
     {
       "key": {
+        "uuid": "26cdfa39_b6a268de",
+        "filename": "autoroll/config/chromite-chromium.json",
+        "patchSetId": 12
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-14T18:37:49Z",
+      "side": 1,
+      "message": "We can override just the subject line, something like this:\n\n\"template\": \"{{ define \\\"subject\\\" }}Roll my/project/path {{.RollingFrom}}..{{.RollingTo}}{{ end }}\",",
+      "parentUuid": "ead68ddb_3771c90f",
+      "range": {
+        "startLine": 6,
+        "startChar": 5,
+        "endLine": 6,
+        "endChar": 14
+      },
+      "revId": "66a17d69912fbdff727c9d9ec1fb52b6ee7b433e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "24108d3c_34a299d4",
         "filename": "autoroll/go/autoroll-be/main.go",
         "patchSetId": 12
