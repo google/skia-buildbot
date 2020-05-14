@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "motion-transitioning-objc",
@@ -24,7 +24,7 @@
     "childBranch": "stable",
     "childPath": "src/ios/third_party/motion_transitioning_objc/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/material-motion/motion-transitioning-objc",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/material-motion/motion-transitioning-objc/+/%s",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/material-motion/motion-transitioning-objc/+show/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

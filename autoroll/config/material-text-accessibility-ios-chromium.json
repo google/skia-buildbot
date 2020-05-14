@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "material-text-accessibility-ios",
@@ -24,7 +24,7 @@
     "childBranch": "stable",
     "childPath": "src/ios/third_party/material_text_accessibility_ios/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/material-foundation/material-text-accessibility-ios",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/material-foundation/material-text-accessibility-ios/+/%s",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/material-foundation/material-text-accessibility-ios/+show/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

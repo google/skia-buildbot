@@ -113,7 +113,7 @@ const template = (ele) => html`
 <header>
   <h2>Particles</h2>
   <span>
-    <a href='https://skia.googlesource.com/skia/+/${SKIA_VERSION}'>
+    <a href='https://skia.googlesource.com/skia/+show/${SKIA_VERSION}'>
       ${SKIA_VERSION.slice(0, 7)}
     </a>
   </span>

@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "Perfetto",
@@ -24,7 +24,7 @@
     "childBranch": "master",
     "childPath": "src/third_party/perfetto",
     "childRepo": "https://android.googlesource.com/platform/external/perfetto.git",
-    "childRevLinkTmpl": "https://android.googlesource.com/platform/external/perfetto.git/+/%s",
+    "childRevLinkTmpl": "https://android.googlesource.com/platform/external/perfetto.git/+show/%s",
     "includeBugs": true,
     "includeLog": true,
     "bugProject": "chromium",

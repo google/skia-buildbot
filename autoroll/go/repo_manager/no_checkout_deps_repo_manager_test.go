@@ -208,7 +208,7 @@ To report a problem with the AutoRoller itself, please file a bug:
 https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 
 Documentation for the AutoRoller is here:
-https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
+https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md
 
 Bug: None
 Tbr: me@google.com`, childPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRolledRevs), childRepo.RepoUrl(), lastRollRev.Id[:12], tipRev.Id[:12], lastRollRev.Id[:12], tipRev.Id[:12], logStr, childPath, tipRev.Id[:12])
@@ -360,7 +360,7 @@ To report a problem with the AutoRoller itself, please file a bug:
 https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 
 Documentation for the AutoRoller is here:
-https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
+https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md
 
 Bug: None
 Tbr: me@google.com`, childPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRolledRevs), childRepo.RepoUrl(), lastRollRev.Id[:12], tipRev.Id[:12], lastRollRev.Id[:12], tipRev.Id[:12], logStr, childPath, tipRev.Id[:12])

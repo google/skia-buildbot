@@ -49,13 +49,13 @@ describe('byblameentry-sk', () => {
         byBlameEntrySk,
         [{
           linkText: 'bbbbbbb',
-          linkHref: 'https://skia.googlesource.com/skia.git/+/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          linkHref: 'https://skia.googlesource.com/skia.git/+show/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
           commitMessage: 'One glyph() to rule them all!!!',
           author: 'Elisa (elisa@example.com)',
           age: '6h',
         }, {
           linkText: 'aaaaaaa',
-          linkHref: 'https://skia.googlesource.com/skia.git/+/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          linkHref: 'https://skia.googlesource.com/skia.git/+show/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           commitMessage: 'flesh out blendmodes through Screen',
           author: 'Joe (joe@example.com)',
           age: '5m',
@@ -163,13 +163,13 @@ describe('byblameentry-sk', () => {
         byBlameEntrySk,
         [{
           linkText: 'bbbbbbb',
-          linkHref: 'https://skia.googlesource.com/skia.git/+/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          linkHref: 'https://skia.googlesource.com/skia.git/+show/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
           commitMessage: '',
           author: 'Elisa (elisa@example.com)',
           age: '6h',
         }, {
           linkText: 'aaaaaaa',
-          linkHref: 'https://skia.googlesource.com/skia.git/+/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          linkHref: 'https://skia.googlesource.com/skia.git/+show/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           commitMessage: '',
           author: 'Joe (joe@example.com)',
           age: '5m',

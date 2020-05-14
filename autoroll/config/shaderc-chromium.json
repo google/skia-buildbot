@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "shaderc",
@@ -26,7 +26,7 @@
     "childBranch": "master",
     "childPath": "src/third_party/shaderc/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/google/shaderc",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/google/shaderc/+/%s",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/google/shaderc/+show/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

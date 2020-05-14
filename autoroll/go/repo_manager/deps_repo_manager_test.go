@@ -364,7 +364,7 @@ func TestDEPSRepoManagerBugs(t *testing.T) {
 `, bugLine))
 		details, err := git.GitDir(childRepo.Dir()).Details(ctx, hash)
 		require.NoError(t, err)
-		rev := revision.FromLongCommit(fmt.Sprintf(gitiles.COMMIT_URL, cfg.ChildRepo, "%s"), details)
+		rev := revision.FromLongCommit(fmt.Sprintf(gitiles.CommitURL, cfg.ChildRepo, "%s"), details)
 		// Update.
 		lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
 		require.NoError(t, err)

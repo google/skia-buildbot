@@ -26,7 +26,7 @@ if [ ! -d "/b/s" ]; then
   echo "Bootstrapping $swarming, expect a reboot"
   # The following is based on this Ansible script, which was not used here
   # because it would've complicated the setup flow a bit:
-  # https://skia.googlesource.com/buildbot/+/master/skolo/common/ansible/bootstrap-swarming.yml
+  # https://skia.googlesource.com/buildbot/+show/master/skolo/common/ansible/bootstrap-swarming.yml
   script=$(cat << EOF
 import json
 import urllib2

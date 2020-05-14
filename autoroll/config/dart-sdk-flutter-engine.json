@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#13
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#13
 // for documentation of the autoroller config.
 {
   "childName": "Dart SDK",
@@ -21,7 +21,7 @@
     "childBranch": "master",
     "childPath": "src/third_party/dart",
     "childRepo": "https://dart.googlesource.com/sdk.git",
-    "childRevLinkTmpl": "https://dart.googlesource.com/sdk.git/+/%s",
+    "childRevLinkTmpl": "https://dart.googlesource.com/sdk.git/+show/%s",
     "forkRepoURL": "git@github.com:skia-flutter-autoroll/engine.git",
     "includeLog": true,
     "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:flutter/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",

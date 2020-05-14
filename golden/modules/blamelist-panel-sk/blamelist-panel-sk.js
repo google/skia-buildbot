@@ -44,7 +44,7 @@ const commitHref = (commit) => {
   if (repo.indexOf('github.com') !== -1) {
     return `${repo}/commit/${commit.hash}`;
   }
-  return `${repo}/+/${commit.hash}`;
+  return `${repo}/+show/${commit.hash}`;
 };
 
 define('blamelist-panel-sk', class extends ElementSk {

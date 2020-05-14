@@ -11,7 +11,7 @@ import { upgradeProperty } from 'elements-sk/upgradeProperty'
 import { diffDate } from 'common-sk/modules/human'
 
 function linkToCommit(hash) {
-  return 'https://skia.googlesource.com/buildbot/+/' + hash;
+  return 'https://skia.googlesource.com/buildbot/+show/' + hash;
 }
 
 function shorten(s) {

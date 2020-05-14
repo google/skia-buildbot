@@ -289,7 +289,7 @@ func (c *Client) ReportCQStatsForInFlightCL(cqBuilds []*buildbucketpb.Build, ger
 				// in totalTriggeredCQBots. See skbug.com/7340.
 				// Creation time is used above instead of completion time because
 				// that is what CQ does:
-				// https://chrome-internal.googlesource.com/infra/infra_internal/+/master/infra_internal/services/cq/verification/tryjob_utils.py#1271
+				// https://chrome-internal.googlesource.com/infra/infra_internal/+show/master/infra_internal/services/cq/verification/tryjob_utils.py#1271
 				totalTriggeredCQBots--
 			}
 			// The build has completed so move on.

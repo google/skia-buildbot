@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "dawn",
@@ -25,7 +25,7 @@
     "childBranch": "master",
     "childPath": "third_party/externals/dawn",
     "childRepo": "https://dawn.googlesource.com/dawn.git",
-    "childRevLinkTmpl": "https://dawn.googlesource.com/dawn.git/+/%s",
+    "childRevLinkTmpl": "https://dawn.googlesource.com/dawn.git/+show/%s",
     "includeBugs": true,
     "includeLog": true,
     "bugProject": "skia",

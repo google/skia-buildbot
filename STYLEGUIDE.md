@@ -20,7 +20,7 @@ AJAX requests
 -------------
 
 Instead of `<iron-ajax>`, prefer using the family of sk.request methods, found in
-[common.js](https://skia.googlesource.com/buildbot/+/d3624df97a7422c542a739f36668f4831a2cda0b/res/js/common.js)
+[common.js](https://skia.googlesource.com/buildbot/+show/d3624df97a7422c542a739f36668f4831a2cda0b/res/js/common.js)
 
 **Rationale:** It is easier to debug procedural code over the declarative element.
 iron-ajax requires looking between template and the JS in the element declaration, which is sometimes a lot of scrolling.
@@ -44,7 +44,7 @@ Elements
 Elements should exist one per file, with the file name being the same as the element.
 If an Element has a helper element that should not be used alone, it may be included
 in the same file.
-Example: [details-summary.html](https://skia.googlesource.com/buildbot/+/d3624df97a7422c542a739f36668f4831a2cda0b/res/imp/details-summary.html)
+Example: [details-summary.html](https://skia.googlesource.com/buildbot/+show/d3624df97a7422c542a739f36668f4831a2cda0b/res/imp/details-summary.html)
 
 Naming Things
 -------------

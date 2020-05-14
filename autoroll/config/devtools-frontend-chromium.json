@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "DevTools Frontend",
@@ -24,7 +24,7 @@
     "childBranch": "master",
     "childPath": "src/third_party/devtools-frontend/src",
     "childRepo": "https://chromium.googlesource.com/devtools/devtools-frontend.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/devtools/devtools-frontend.git/+/%s",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/devtools/devtools-frontend.git/+show/%s",
     "includeBugs": true,
     "includeLog": true,
     "bugProject": "chromium",

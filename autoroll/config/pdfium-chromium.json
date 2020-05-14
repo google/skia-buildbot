@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "PDFium",
@@ -24,7 +24,7 @@
     "childBranch": "master",
     "childPath": "src/third_party/pdfium",
     "childRepo": "https://pdfium.googlesource.com/pdfium.git",
-    "childRevLinkTmpl": "https://pdfium.googlesource.com/pdfium.git/+/%s",
+    "childRevLinkTmpl": "https://pdfium.googlesource.com/pdfium.git/+show/%s",
     "includeBugs": true,
     "includeLog": true,
     "bugProject": "chromium",

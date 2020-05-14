@@ -8,4 +8,4 @@ is the instance to generate. The configuration of that instance should be in `..
 as a JSON5 file.
 
 There may be some configurations that are checked into:
-<https://skia.googlesource.com/infra-internal/+/refs/heads/master/gold-instance-config/>
+<https://skia.googlesource.com/infra-internal/+show/refs/heads/master/gold-instance-config/>

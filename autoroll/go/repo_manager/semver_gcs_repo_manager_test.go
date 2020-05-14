@@ -66,7 +66,7 @@ To report a problem with the AutoRoller itself, please file a bug:
 https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 
 Documentation for the AutoRoller is here:
-https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
+https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md
 
 Tbr: {{stringsJoin .Reviewers ","}}
 `
@@ -324,7 +324,7 @@ To report a problem with the AutoRoller itself, please file a bug:
 https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
 
 Documentation for the AutoRoller is here:
-https://skia.googlesource.com/buildbot/+/master/autoroll/README.md
+https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md
 
 Tbr: reviewer@chromium.org
 `

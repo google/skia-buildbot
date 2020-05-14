@@ -69,7 +69,7 @@ func New(m *machine.Machine) (*Server, error) {
 // The input is a JSON dictionary via POST that is returned from os_utilities.get_state(), and will
 // emit an updated JSON dictionary on return.
 //
-// https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/swarming_bot/// config/bot_config.py
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/// config/bot_config.py
 func (s *Server) getState(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	s.getStateRequests.Inc(1)
@@ -109,7 +109,7 @@ type settings struct {
 //
 // Will emit a JSON dictionary on GET with the settings.
 //
-// https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/swarming_bot/// config/bot_config.py
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/// config/bot_config.py
 func (s *Server) getSettings(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	s.getSettingsRequests.Inc(1)
@@ -133,7 +133,7 @@ func (s *Server) getSettings(w http.ResponseWriter, r *http.Request) {
 // os_utilities.get_dimensions(). This command will emit an updated JSON
 // dictionary in the response.
 //
-// https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/swarming_bot/config/bot_config.py
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/config/bot_config.py
 func (s *Server) getDimensions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	s.getDimensionsRequests.Inc(1)
@@ -157,7 +157,7 @@ func (s *Server) getDimensions(w http.ResponseWriter, r *http.Request) {
 //
 // No other data is passed with this call.
 //
-// https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/swarming_bot/config/bot_config.py
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/config/bot_config.py
 func (s *Server) onBeforeTask(w http.ResponseWriter, r *http.Request) {
 	s.machine.SetIsRunningSwarmingTask(true)
 	s.onBeforeTaskSuccess.Inc(1)
@@ -167,7 +167,7 @@ func (s *Server) onBeforeTask(w http.ResponseWriter, r *http.Request) {
 //
 // No other data is passed with this call.
 //
-// https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/swarming_bot/config/bot_config.py
+// https://chromium.googlesource.com/infra/luci/luci-py.git/+show/master/appengine/swarming/swarming_bot/config/bot_config.py
 func (s *Server) onAfterTask(w http.ResponseWriter, r *http.Request) {
 	s.machine.SetIsRunningSwarmingTask(false)
 	s.onAfterTaskSuccess.Inc(1)

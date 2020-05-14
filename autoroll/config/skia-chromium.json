@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "Skia",
@@ -25,7 +25,7 @@
     "childBranch": "master",
     "childPath": "src/third_party/skia",
     "childRepo": "https://skia.googlesource.com/skia.git",
-    "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+/%s",
+    "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+show/%s",
     "includeBugs": true,
     "includeLog": true,
     "bugProject": "chromium",

@@ -120,14 +120,14 @@ this.ctfe = this.ctfe || function() {
    * Returns a URL with details about the given Chromium commit hash.
    **/
   ctfe.chromiumBuild.chromiumCommitUrl = function(commitHash) {
-    return "https://chromium.googlesource.com/chromium/src.git/+/" + commitHash;
+    return "https://chromium.googlesource.com/chromium/src.git/+show/" + commitHash;
   }
 
   /**
    * Returns a URL with details about the given Skia commit hash.
    **/
   ctfe.chromiumBuild.skiaCommitUrl = function(commitHash) {
-    return "https://skia.googlesource.com/skia/+/" + commitHash;
+    return "https://skia.googlesource.com/skia/+show/" + commitHash;
   }
 
   /**

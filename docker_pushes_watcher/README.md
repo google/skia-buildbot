@@ -8,15 +8,15 @@ Google Cloud Build for Skia. The tracking bug for this work was [skbug/9514](htt
 ## Previous Cloud Build framework
 
 Skia used to trigger builds on Google Cloud's [Cloud Build](https://cloud.google.com/cloud-build/)
-framework using this [cloudbuild.yaml](https://skia.googlesource.com/skia/+/6f217e0f8d2e5f06e36d426becd818aeefe39919/docker/cloudbuild.yaml) file.
+framework using this [cloudbuild.yaml](https://skia.googlesource.com/skia/+show/6f217e0f8d2e5f06e36d426becd818aeefe39919/docker/cloudbuild.yaml) file.
 
 Using cloud build, the "skia-release" and "skia-wasm-release" images were created and pushed per commit in the Skia
 repository. The "infra" image was created and pushed per commit in the Buildbot repository.
 
-Additionally [cloudbuild.yaml](https://skia.googlesource.com/skia/+/6f217e0f8d2e5f06e36d426becd818aeefe39919/docker/cloudbuild.yaml) created and pushed
+Additionally [cloudbuild.yaml](https://skia.googlesource.com/skia/+show/6f217e0f8d2e5f06e36d426becd818aeefe39919/docker/cloudbuild.yaml) created and pushed
 new images for various apps like fiddler, skottie, particles, debugger, etc.
 
-The [continuous-deploy](https://skia.googlesource.com/buildbot/+/1985cd594e9f8c7bdec82b89e110df7466ee3cf8/kube/go/continuous-deploy/) app then ran pushk
+The [continuous-deploy](https://skia.googlesource.com/buildbot/+show/1985cd594e9f8c7bdec82b89e110df7466ee3cf8/kube/go/continuous-deploy/) app then ran pushk
 on those apps and deployed them to k8s.
 
 
@@ -31,40 +31,40 @@ Failures in the docker-pushes-watcher app show up as alerts for the trooper to d
 
 ### Task Drivers
 
-A task driver was written to build and push a specified docker image ([build_push_docker_image](https://skia.googlesource.com/buildbot/+/master/infra/bots/task_drivers/build_push_docker_image/)).
+A task driver was written to build and push a specified docker image ([build_push_docker_image](https://skia.googlesource.com/buildbot/+show/master/infra/bots/task_drivers/build_push_docker_image/)).
 
 The following bots were then created in the different repositories:
-* [Infra-PerCommit-CreateDockerImage](https://status.skia.org/repo/infra?commit_label=author&filter=search&search_value=CreateDockerImage) bot to create and push the "gcr.io/skia-public/infra" image using this [Dockerfile](https://skia.googlesource.com/buildbot/+/master/docker/Dockerfile) in the Buildbot repository.
-* [Housekeeper-PerCommit-CreateDockerImage_Skia_Release](https://status.skia.org/repo/skia?commit_label=author&filter=search&search_value=CreateDockerImage_Skia_Release) bot to create and push the "gcr.io/skia-public/skia-release" image using this [Dockerfile](https://skia.googlesource.com/skia/+/master/docker/skia-release/Dockerfile) in the Skia repository.
-* [Housekeeper-PerCommit-CreateDockerImage_Skia_WASM_Release](https://status.skia.org/repo/skia?commit_label=author&filter=search&search_value=CreateDockerImage_Skia_WASM_Release) bot to create and push the "gcr.io/skia-public/skia-wasm-release" image using this [Dockerfile](https://skia.googlesource.com/skia/+/master/docker/skia-wasm-release/Dockerfile) in the Skia repository.
+* [Infra-PerCommit-CreateDockerImage](https://status.skia.org/repo/infra?commit_label=author&filter=search&search_value=CreateDockerImage) bot to create and push the "gcr.io/skia-public/infra" image using this [Dockerfile](https://skia.googlesource.com/buildbot/+show/master/docker/Dockerfile) in the Buildbot repository.
+* [Housekeeper-PerCommit-CreateDockerImage_Skia_Release](https://status.skia.org/repo/skia?commit_label=author&filter=search&search_value=CreateDockerImage_Skia_Release) bot to create and push the "gcr.io/skia-public/skia-release" image using this [Dockerfile](https://skia.googlesource.com/skia/+show/master/docker/skia-release/Dockerfile) in the Skia repository.
+* [Housekeeper-PerCommit-CreateDockerImage_Skia_WASM_Release](https://status.skia.org/repo/skia?commit_label=author&filter=search&search_value=CreateDockerImage_Skia_WASM_Release) bot to create and push the "gcr.io/skia-public/skia-wasm-release" image using this [Dockerfile](https://skia.googlesource.com/skia/+show/master/docker/skia-wasm-release/Dockerfile) in the Skia repository.
 
 These bots could run out of order because of backfilling. Due to this the "Docker Pushes Watcher" app (described below) calculates which image is the
 most recent and then tags it with the "prod" tag.
 
 Task Drivers were also written to create and push Docker images of various apps that depend on the "gcr.io/skia-public/skia-release" and "gcr.io/skia-public/skia-wasm-release" images:
-* [push_apps_from_skia_image](https://skia.googlesource.com/buildbot/+/master/infra/bots/task_drivers/push_apps_from_skia_image/)
-* [push_apps_from_wasm_image](https://skia.googlesource.com/buildbot/+/master/infra/bots/task_drivers/push_apps_from_wasm_image/)
-* [push_apps_from_skia_wasm_images](https://skia.googlesource.com/buildbot/+/master/infra/bots/task_drivers/push_apps_from_skia_wasm_images/)
+* [push_apps_from_skia_image](https://skia.googlesource.com/buildbot/+show/master/infra/bots/task_drivers/push_apps_from_skia_image/)
+* [push_apps_from_wasm_image](https://skia.googlesource.com/buildbot/+show/master/infra/bots/task_drivers/push_apps_from_wasm_image/)
+* [push_apps_from_skia_wasm_images](https://skia.googlesource.com/buildbot/+show/master/infra/bots/task_drivers/push_apps_from_skia_wasm_images/)
 
 The following bots were created using the above task drivers:
 * [Housekeeper-PerCommit-PushAppsFromSkiaDockerImage](https://status.skia.org/repo/skia?commit_label=author&filter=search&search_value=PushAppsFromSkiaDockerImage) bot to create and push docker images for fiddler, debugger and api apps.
 * [Housekeeper-PerCommit-PushAppsFromWASMDockerImage](https://status.skia.org/repo/skia?commit_label=author&filter=search&search_value=PushAppsFromWASMDockerImage) bot to create and push docker images for jsfiddle, skottie and particle apps.
 * [Housekeeper-PerCommit-PushAppsFromSkiaWASMDockerImages](https://status.skia.org/repo/skia?commit_label=author&filter=search&search_value=PushAppsFromSkiaWASMDockerImages) bot to create and push docker images for jsfiddle, skottie and particle apps.
 
-All above task drivers send a [pubsub message](https://skia.googlesource.com/buildbot/+/master/go/docker/build/pubsub/pubsub.go#15) when a docker image is created and pushed.
+All above task drivers send a [pubsub message](https://skia.googlesource.com/buildbot/+show/master/go/docker/build/pubsub/pubsub.go#15) when a docker image is created and pushed.
 
 
 ### Docker Pushes Watcher App
 
-The [docker pushes watcher](https://skia.googlesource.com/buildbot/+/master/docker_pushes_watcher/) app listens for [pubsub messages](https://skia.googlesource.com/buildbot/+/master/go/docker/build/pubsub/pubsub.go#15) for 2 main tasks:
+The [docker pushes watcher](https://skia.googlesource.com/buildbot/+show/master/docker_pushes_watcher/) app listens for [pubsub messages](https://skia.googlesource.com/buildbot/+show/master/go/docker/build/pubsub/pubsub.go#15) for 2 main tasks:
 * Tags images in the app's whitelist with the "prod" tag when they correspond to the latest commit in the Skia/Buildbot repository. This is done to account for bots running out of order because of backfilling.
 * Deploys apps to k8s using pushk for images in the app's whitelist when they correspond to the latest commit.
 
 
 ## Auto-deploying infra apps
 
-A task driver has been written to build and push images of infra apps ([push_apps_from_infra_image](https://skia.googlesource.com/buildbot/+/master/infra/bots/task_drivers/push_apps_from_infra_image/)). The task driver sends a pubsub message after the image is built, the docker_pushes_watcher app then pushks those apps.
+A task driver has been written to build and push images of infra apps ([push_apps_from_infra_image](https://skia.googlesource.com/buildbot/+show/master/infra/bots/task_drivers/push_apps_from_infra_image/)). The task driver sends a pubsub message after the image is built, the docker_pushes_watcher app then pushks those apps.
 
 The following steps will add new apps to the auto-deploying framework:
-* Add a new method to the task_driver, similar to [buildPushCTImage](https://skia.googlesource.com/buildbot/+/c7ce9ee7b475f4c8032301225baccbd4442f7f0f/infra/bots/task_drivers/push_apps_from_infra_image/push_apps_from_infra_image.go#189).
-* Add the app to the docker_pushs_watcher yaml file ([example](https://skia.googlesource.com/k8s-config/+/399dc9fbeca5f2c92a67d4d25d7273ee5cf4b680%5E%21/#F0)).
+* Add a new method to the task_driver, similar to [buildPushCTImage](https://skia.googlesource.com/buildbot/+show/c7ce9ee7b475f4c8032301225baccbd4442f7f0f/infra/bots/task_drivers/push_apps_from_infra_image/push_apps_from_infra_image.go#189).
+* Add the app to the docker_pushs_watcher yaml file ([example](https://skia.googlesource.com/k8s-config/+diff/399dc9fbeca5f2c92a67d4d25d7273ee5cf4b680%5E%21/#F0)).

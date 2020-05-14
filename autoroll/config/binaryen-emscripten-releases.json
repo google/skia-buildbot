@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "binaryen",
@@ -24,7 +24,7 @@
     "childBranch": "master",
     "childPath": "emscripten-releases/binaryen",
     "childRepo": "https://chromium.googlesource.com/external/github.com/WebAssembly/binaryen.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/WebAssembly/binaryen.git/+/%s",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/WebAssembly/binaryen.git/+show/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

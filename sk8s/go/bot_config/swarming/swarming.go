@@ -43,7 +43,7 @@ const (
 	debugSwarmingServer    = "https://chromium-swarm-dev.appspot.com"
 
 	// SwarmingBotIDEnvVar is the swarming bot id environment variable name. See
-	// https://chromium.googlesource.com/infra/luci/luci-py.git/+/master/appengine/swarming/doc/Magic-Values.md#task-runtime-environment-variables
+	// https://chromium.googlesource.com/infra/luci/luci-py.git/+doc/master/appengine/swarming/doc/Magic-Values.md#task-runtime-environment-variables
 	SwarmingBotIDEnvVar = "SWARMING_BOT_ID"
 
 	// KubernetesImageEnvVar is the environment variable that contains the

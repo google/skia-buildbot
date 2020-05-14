@@ -406,7 +406,7 @@ func TestMissingOldBranchHeadFallback(t *testing.T) {
 	require.Equal(t, orig, strings.TrimSpace(g.Git(ctx, "rev-parse", "HEAD")))
 	next := g.CommitGen(ctx, "fake")
 	ud.gitiles.MockBranches(ctx)
-	ud.gitiles.URLMock.MockOnce(fmt.Sprintf(gitiles.LOG_URL, g.RepoUrl(), git.LogFromTo(deleted, next)), mockhttpclient.MockGetError("404 Not Found", http.StatusNotFound))
+	ud.gitiles.URLMock.MockOnce(fmt.Sprintf(gitiles.LogURL, g.RepoUrl(), git.LogFromTo(deleted, next)), mockhttpclient.MockGetError("404 Not Found", http.StatusNotFound))
 	ud.gitiles.MockLog(ctx, next)
 	require.NoError(t, repo.Update(ctx))
 	require.True(t, ud.gitiles.Empty())

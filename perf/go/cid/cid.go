@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/config"
@@ -92,7 +93,7 @@ func urlFromParts(repoURL, hash, subject string, debounce bool) string {
 	if debounce {
 		return subject
 	} else {
-		return fmt.Sprintf("%s/+/%s", repoURL, hash)
+		return fmt.Sprintf(gitiles.CommitURL, repoURL, hash)
 	}
 }
 

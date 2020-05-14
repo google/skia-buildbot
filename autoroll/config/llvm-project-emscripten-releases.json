@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "llvm-project",
@@ -24,7 +24,7 @@
     "childBranch": "master",
     "childPath": "emscripten-releases/llvm-project",
     "childRepo": "https://chromium.googlesource.com/external/github.com/llvm/llvm-project.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/llvm/llvm-project.git/+/%s",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/llvm/llvm-project.git/+show/%s",
     "includeBugs": false,
     "includeLog": true,
     "parentBranch": "master",

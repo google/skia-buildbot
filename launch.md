@@ -161,7 +161,7 @@ via the package manager in your Docker image.
   under load.
 - Test on browsers that your users will be using, at least Chrome on desktop and
   ideally Chrome on Android.
-- Create an `app.yaml` in [skia-public-config](https://skia.googlesource.com/skia-public-config/+/master/)
+- Create an `app.yaml` in [k8s-config](https://skia.googlesource.com/k8s-config/+show/master/)
 This controls how your app will be run in GKE. See
 [these docs](https://kubernetes.io/docs/concepts/services-networking/connect-applications-service/)
 for more on the schema. Commit this, then run `pushk appname` to make the configuration
@@ -229,7 +229,7 @@ spec:
 
 - If you have simple routing needs, to make your service visible to the public
   add a [`skia.org.domain` annotation to your Service
-  YAML](https://skia.googlesource.com/buildbot/+/refs/heads/master/skfe/README.md)
+  YAML](https://skia.googlesource.com/buildbot/+doc/refs/heads/master/skfe/README.md)
   with the domain name and deploy your updated yaml with `kubectl apply`.
 
   If your routing is more complicated you can skip the YAML annotation and write
@@ -258,14 +258,14 @@ spec:
   `go.skia.org/infra/go/metrics2`, e.g. to ensure liveness/heartbeat of any
   background processes.
 
-- Add alert rules to [alerts_public](https://skia.googlesource.com/buildbot/+/master/promk/prometheus/alerts_public.yml).
+- Add alert rules to [alerts_public](https://skia.googlesource.com/buildbot/+show/master/promk/prometheus/alerts_public.yml).
    The alerts may link to a production manual, `PROD.md`, checked into the
   application source directory. Examples:
     - All prober rules.
     - Additional stats from metrics2.
   Legacy apps have their alert rules in `prometheus/sys/alert.rules`
 
-- Some [general metrics](https://skia.googlesource.com/buildbot/+/master/promk/prometheus/alerts_general.yml)
+- Some [general metrics](https://skia.googlesource.com/buildbot/+show/master/promk/prometheus/alerts_general.yml)
 apply to all apps and may not need to be added
   explicitly for your application, such as:
     - Too many goroutines.

@@ -208,7 +208,7 @@ describe('byblame-page-sk', () => {
         expectHasGmBlames(byblamePageSk);
         expectFirstCommitLinkHrefToBe(
           byblamePageSk,
-          'https://skia.googlesource.com/skia.git/+/05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
+          'https://skia.googlesource.com/skia.git/+show/05f6a01bf9fd25be9e5fff4af5505c3945058b1d',
         );
       });
 

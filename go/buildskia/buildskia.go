@@ -4,20 +4,19 @@ package buildskia
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/gitinfo"
-	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/util/limitwriter"
@@ -39,124 +38,30 @@ const (
 	CMAKE_LINK_ARGS_FILE    = "skia_link_arguments.txt"
 )
 
-var (
-	skiaRevRegex = regexp.MustCompile(".*'skia_revision': '(?P<revision>[0-9a-fA-F]{2,40})'.*")
-)
-
-const (
-	CHROMIUM_DEPS_URL  = "https://chromium.googlesource.com/chromium/src/+/master/DEPS?format=TEXT"
-	SKIA_BRANCHES_JSON = "https://skia.googlesource.com/skia/+refs?format=JSON"
-	SKIA_HEAD_JSON     = "https://skia.googlesource.com/skia/+/master?format=JSON"
-)
-
-type SkiaHead struct {
-	Commit string `json:"commit"`
-}
-
 // GetSkiaHead returns Skia's most recent commit hash to master.
 //
 // If client is nil then a default timeout client is used.
 func GetSkiaHead(client *http.Client) (string, error) {
-	if client == nil {
-		client = httputils.NewTimeoutClient()
-	}
-	resp, err := client.Get(SKIA_HEAD_JSON)
+	head, err := gitiles.NewRepo(common.REPO_SKIA, client).Details(context.TODO(), "master")
 	if err != nil {
-		return "", fmt.Errorf("Could not get Skia's HEAD: %s", err)
+		return "", skerr.Wrapf(err, "Could not get Skia's HEAD")
 	}
-	defer util.Close(resp.Body)
-	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("Got statuscode %d while accessing Skia's HEAD", resp.StatusCode)
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("Could not read Skia's HEAD: %s", err)
-	}
-	if len(body) < 5 {
-		return "", fmt.Errorf("Reponse too short.")
-	}
-	// Strip off the XSS protection chars.
-	parts := strings.SplitN(string(body), "\n", 2)
-	if len(parts) != 2 {
-		return "", fmt.Errorf("Reponse invalid format.")
-	}
-	parsed := &SkiaHead{}
-	if err := json.Unmarshal([]byte(parts[1]), parsed); err != nil {
-		return "", fmt.Errorf("Failed to parse JSON: %s", err)
-	}
-	if parsed.Commit == "" {
-		return "", fmt.Errorf("Failed to get a valid git hash.")
-	}
-	return parsed.Commit, nil
+	return head.Hash, nil
 }
 
 // GetSkiaHash returns Skia's LKGR commit hash as recorded in chromium's DEPS file.
 //
 // If client is nil then a default timeout client is used.
 func GetSkiaHash(client *http.Client) (string, error) {
-	if client == nil {
-		client = httputils.NewTimeoutClient()
+	var buf bytes.Buffer
+	if err := gitiles.NewRepo(common.REPO_CHROMIUM, client).ReadFile(context.TODO(), deps_parser.DepsFileName, &buf); err != nil {
+		return "", skerr.Wrapf(err, "Failed to read Chromium DEPS")
 	}
-	// Find Skia's LKGR commit hash.
-	resp, err := client.Get(CHROMIUM_DEPS_URL)
+	dep, err := deps_parser.GetDep(buf.String(), common.REPO_SKIA)
 	if err != nil {
-		return "", fmt.Errorf("Could not get Skia's LKGR: %s", err)
+		return "", skerr.Wrapf(err, "Failed to get Skia's LKGR")
 	}
-	defer util.Close(resp.Body)
-	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("Got statuscode %d while accessing Chromium's DEPS file", resp.StatusCode)
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("Could not read Skia's LKGR: %s", err)
-	}
-	base64Text := make([]byte, base64.StdEncoding.EncodedLen(len(string(body))))
-	l, _ := base64.StdEncoding.Decode(base64Text, []byte(string(body)))
-	chromiumDepsText := string(base64Text[:l])
-	if strings.Contains(chromiumDepsText, "skia_revision") {
-		return skiaRevRegex.FindStringSubmatch(chromiumDepsText)[1], nil
-	}
-	return "", fmt.Errorf("Could not find skia_revision in Chromium DEPS file")
-}
-
-type Branch struct {
-	Value string `json:"value"`
-	Time  time.Time
-}
-
-// GetSkiaBranches returns a list of the available branches for chrome along
-// with their associated githash.
-//
-// If client is nil then a default timeout client is used.
-func GetSkiaBranches(client *http.Client) (map[string]Branch, error) {
-	if client == nil {
-		client = httputils.NewTimeoutClient()
-	}
-	resp, err := client.Get(SKIA_BRANCHES_JSON)
-	if err != nil {
-		return nil, fmt.Errorf("Could not get Skia's branches: %s", err)
-	}
-	defer util.Close(resp.Body)
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Got statuscode %d while accessing Skia's branches", resp.StatusCode)
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("Could not read Skia's branches: %s", err)
-	}
-	if len(body) < 5 {
-		return nil, fmt.Errorf("Reponse too short.")
-	}
-	// Strip off the XSS protection chars.
-	parts := strings.SplitN(string(body), "\n", 2)
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("Reponse invalid format.")
-	}
-	ret := map[string]Branch{}
-	if err := json.Unmarshal([]byte(parts[1]), &ret); err != nil {
-		return nil, fmt.Errorf("Failed to parse JSON: %s", err)
-	}
-	return ret, nil
+	return dep.Version, nil
 }
 
 // DownloadSkia uses git to clone Skia from googlesource.com and check it out

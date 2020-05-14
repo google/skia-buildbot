@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/gcs/mem_gcsclient"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/git/testutils/mem_git"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/gitstore/mem_gitstore"
 	"go.skia.org/infra/go/isolate"
@@ -3494,7 +3495,7 @@ func TestTriggerTaskFailed(t *testing.T) {
 			"sk_dim_pool:Skia",
 			"sk_retry_of:",
 			fmt.Sprintf("source_revision:%s", commit),
-			fmt.Sprintf("source_repo:%s/+/%%s", rs1.Repo),
+			"source_repo:" + fmt.Sprintf(gitiles.CommitURL, rs1.Repo, "%s"),
 			fmt.Sprintf("sk_repo:%s", rs1.Repo),
 			fmt.Sprintf("sk_revision:%s", commit),
 			"sk_forced_job_id:",
@@ -3651,7 +3652,7 @@ func TestContinueOnTriggerTaskFailure(t *testing.T) {
 		fmt.Sprintf("sk_dim_pool:%s", badPool),
 		"sk_retry_of:",
 		fmt.Sprintf("source_revision:%s", badCommit),
-		fmt.Sprintf("source_repo:%s/+/%%s", rs1.Repo),
+		"source_repo:" + fmt.Sprintf(gitiles.CommitURL, rs1.Repo, "%s"),
 		fmt.Sprintf("sk_repo:%s", rs1.Repo),
 		fmt.Sprintf("sk_revision:%s", badCommit),
 		"sk_forced_job_id:",
@@ -3761,7 +3762,7 @@ func TestTriggerTaskDeduped(t *testing.T) {
 			"sk_dim_pool:Skia",
 			"sk_retry_of:",
 			fmt.Sprintf("source_revision:%s", commit),
-			fmt.Sprintf("source_repo:%s/+/%%s", rs1.Repo),
+			"source_repo:" + fmt.Sprintf(gitiles.CommitURL, rs1.Repo, "%s"),
 			fmt.Sprintf("sk_repo:%s", rs1.Repo),
 			fmt.Sprintf("sk_revision:%s", commit),
 			"sk_forced_job_id:",
@@ -3818,7 +3819,7 @@ func TestTriggerTaskNoResource(t *testing.T) {
 			"sk_dim_pool:Skia",
 			"sk_retry_of:",
 			fmt.Sprintf("source_revision:%s", commit),
-			fmt.Sprintf("source_repo:%s/+/%%s", rs1.Repo),
+			"source_repo:" + fmt.Sprintf(gitiles.CommitURL, rs1.Repo, "%s"),
 			fmt.Sprintf("sk_repo:%s", rs1.Repo),
 			fmt.Sprintf("sk_revision:%s", commit),
 			"sk_forced_job_id:",

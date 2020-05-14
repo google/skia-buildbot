@@ -1,4 +1,4 @@
-// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
   "childName": "ChromeOS Orderfiles",
@@ -35,7 +35,7 @@ To report a problem with the AutoRoller itself, please file a bug:\n\
 https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug\n\
 \n\
 Documentation for the AutoRoller is here:\n\
-https://skia.googlesource.com/buildbot/+/master/autoroll/README.md\n\
+https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md\n\
 \n\
 CQ_EXTRA_TRYBOTS={{.CqExtraTrybots}}\n\
 TBR={{stringsJoin .Reviewers \",\"}}\n\

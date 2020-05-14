@@ -6,7 +6,7 @@
 
 // Package monorail provides access to the .
 //
-// For product documentation, see: https://chromium.googlesource.com/infra/infra/+/master/appengine/monorail/doc/api.md
+// For product documentation, see: https://chromium.googlesource.com/infra/infra/+doc/master/appengine/monorail/doc/api.md
 //
 // Creating a client
 //

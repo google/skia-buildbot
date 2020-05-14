@@ -10,7 +10,7 @@ Code Locations
 
 The code for the server along with VM instance setup scripts is kept in:
 
-  * https://skia.googlesource.com/buildbot/+/master/perf/
+  * https://skia.googlesource.com/buildbot/+show/master/perf/
 
 
 Architecture

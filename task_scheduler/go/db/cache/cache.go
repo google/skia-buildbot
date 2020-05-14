@@ -344,7 +344,7 @@ func (c *taskCache) insertOrUpdateTask(task *types.Task) {
 		}
 	} else {
 		// If profiling indicates this code is slow or GCs too much, see
-		// https://skia.googlesource.com/buildbot/+/0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6
+		// https://skia.googlesource.com/buildbot/+show/0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6
 		// for a different implementation.
 		// Most common case is that the new task should be inserted at the end.
 		if len(c.tasksByTime) == 0 {
@@ -711,7 +711,7 @@ func (c *jobCache) insertOrUpdateJob(job *types.Job) {
 		}
 	} else {
 		// If profiling indicates this code is slow or GCs too much, see
-		// https://skia.googlesource.com/buildbot/+/0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6
+		// https://skia.googlesource.com/buildbot/+show/0cf94832dd57f0e7b5b9f1b28546181d15dbbbc6
 		// for a different implementation.
 		// Most common case is that the new job should be inserted at the end.
 		if len(c.jobsByTime) == 0 {

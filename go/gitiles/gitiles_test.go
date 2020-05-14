@@ -102,19 +102,19 @@ func TestLog(t *testing.T) {
 				Author: &Author{
 					Name:  "don't care",
 					Email: "don't care",
-					Time:  d.Timestamp.Format(DATE_FORMAT_NO_TZ),
+					Time:  d.Timestamp.Format(dateFormatNoTZ),
 				},
 				Committer: &Author{
 					Name:  "don't care",
 					Email: "don't care",
-					Time:  d.Timestamp.Format(DATE_FORMAT_NO_TZ),
+					Time:  d.Timestamp.Format(dateFormatNoTZ),
 				},
 				Message: d.Subject,
 			})
 		}
 		js := testutils.MarshalJSON(t, results)
 		js = ")]}'\n" + js
-		urlMock.MockOnce(fmt.Sprintf(LOG_URL, gb.RepoUrl(), git.LogFromTo(from, to)), mockhttpclient.MockGetDialogue([]byte(js)))
+		urlMock.MockOnce(fmt.Sprintf(LogURL, gb.RepoUrl(), git.LogFromTo(from, to)), mockhttpclient.MockGetDialogue([]byte(js)))
 	}
 
 	// Return a slice of the hashes for the given commits.
@@ -212,9 +212,9 @@ func TestLogPagination(t *testing.T) {
 
 	// Gitiles API paginates logs over 100 commits long.
 	ctx := context.Background()
-	repoUrl := "https://fake/repo"
+	repoURL := "https://fake/repo"
 	urlMock := mockhttpclient.NewURLMock()
-	repo := NewRepo(repoUrl, urlMock.Client())
+	repo := NewRepo(repoURL, urlMock.Client())
 	repo.rl.SetLimit(rate.Inf)
 	next := 0
 	hash := func() string {
@@ -253,20 +253,20 @@ func TestLogPagination(t *testing.T) {
 				Author: &Author{
 					Name:  "don't care",
 					Email: "don't care",
-					Time:  c.Timestamp.Format(DATE_FORMAT_NO_TZ),
+					Time:  c.Timestamp.Format(dateFormatNoTZ),
 				},
 				Committer: &Author{
 					Name:  "don't care",
 					Email: "don't care",
-					Time:  c.Timestamp.Format(DATE_FORMAT_NO_TZ),
+					Time:  c.Timestamp.Format(dateFormatNoTZ),
 				},
 				Message: "don't care",
 			})
 		}
 		js := testutils.MarshalJSON(t, results)
 		js = ")]}'\n" + js
-		url1 := fmt.Sprintf(LOG_URL, repoUrl, git.LogFromTo(from.Hash, to.Hash))
-		url2 := fmt.Sprintf(LOG_URL, repoUrl, to.Hash)
+		url1 := fmt.Sprintf(LogURL, repoURL, git.LogFromTo(from.Hash, to.Hash))
+		url2 := fmt.Sprintf(LogURL, repoURL, to.Hash)
 		if start != "" {
 			url1 += "&s=" + start
 			url2 += "&s=" + start
@@ -341,9 +341,9 @@ func TestLogLimit(t *testing.T) {
 		c.Index = 0
 	}
 
-	repoUrl := "https://fake/repo"
+	repoURL := "https://fake/repo"
 	urlMock := mockhttpclient.NewURLMock()
-	repo := NewRepo(repoUrl, urlMock.Client())
+	repo := NewRepo(repoURL, urlMock.Client())
 	repo.rl.SetLimit(rate.Inf)
 
 	mock := func(logExpr string, limit int, commits []*vcsinfo.LongCommit, start, next string) {
@@ -358,11 +358,11 @@ func TestLogLimit(t *testing.T) {
 				Parents: c.Parents,
 				Author: &Author{
 					Name: strings.TrimSuffix(c.Author, " ()"),
-					Time: c.Timestamp.Format(DATE_FORMAT_NO_TZ),
+					Time: c.Timestamp.Format(dateFormatNoTZ),
 				},
 				Committer: &Author{
 					Name: strings.TrimSuffix(c.Author, " ()"),
-					Time: c.Timestamp.Format(DATE_FORMAT_NO_TZ),
+					Time: c.Timestamp.Format(dateFormatNoTZ),
 				},
 				Message: c.Subject,
 			})
@@ -370,7 +370,7 @@ func TestLogLimit(t *testing.T) {
 		js := testutils.MarshalJSON(t, results)
 		js = ")]}'\n" + js
 		opt := LogLimit(limit)
-		url := fmt.Sprintf(LOG_URL, repo.URL, logExpr) + fmt.Sprintf("&%s=%s", opt.Key(), opt.Value())
+		url := fmt.Sprintf(LogURL, repo.URL, logExpr) + fmt.Sprintf("&%s=%s", opt.Key(), opt.Value())
 		if start != "" {
 			url += "&s=" + start
 		}
@@ -429,9 +429,9 @@ func TestGetTreeDiffs(t *testing.T) {
 	unittest.SmallTest(t)
 
 	ctx := context.Background()
-	repoUrl := "https://skia.googlesource.com/buildbot.git"
+	repoURL := "https://skia.googlesource.com/buildbot.git"
 	urlMock := mockhttpclient.NewURLMock()
-	repo := NewRepo(repoUrl, urlMock.Client())
+	repo := NewRepo(repoURL, urlMock.Client())
 	repo.rl.SetLimit(rate.Inf)
 
 	resp := `)]}'
@@ -466,7 +466,7 @@ func TestGetTreeDiffs(t *testing.T) {
   ]
 }
 `
-	urlMock.MockOnce(repoUrl+"/+/my/other/ref?format=JSON", mockhttpclient.MockGetDialogue([]byte(resp)))
+	urlMock.MockOnce(fmt.Sprintf(CommitURLJSON, repoURL, "my/other/ref"), mockhttpclient.MockGetDialogue([]byte(resp)))
 	treeDiffs, err := repo.GetTreeDiffs(ctx, "my/other/ref")
 	require.NoError(t, err)
 	require.Equal(t, 2, len(treeDiffs))
@@ -482,15 +482,15 @@ func TestListDir(t *testing.T) {
 	unittest.SmallTest(t)
 
 	ctx := context.Background()
-	repoUrl := "https://skia.googlesource.com/buildbot.git"
+	repoURL := "https://skia.googlesource.com/buildbot.git"
 	urlMock := mockhttpclient.NewURLMock()
-	repo := NewRepo(repoUrl, urlMock.Client())
+	repo := NewRepo(repoURL, urlMock.Client())
 	repo.rl.SetLimit(rate.Inf)
 
 	resp1 := base64.StdEncoding.EncodeToString([]byte(`100644 blob 573680d74f404d64a7c3441f8a502c007fdcd3b7    gitiles.go
 100644 blob c2b8be8049e8503391239bbf00877ebf5880493c    gitiles_test.go
 040000 tree 81b1fde7557bd75ad0392143a9d79ed78d0ed4ab    testutils`))
-	urlMock.MockOnce(repoUrl+"/+/my/ref/go/gitiles?format=TEXT", mockhttpclient.MockGetDialogue([]byte(resp1)))
+	urlMock.MockOnce(fmt.Sprintf(DownloadURL, repoURL, "my/ref", "go/gitiles"), mockhttpclient.MockGetDialogue([]byte(resp1)))
 
 	files, dirs, err := repo.ListDirAtRef(ctx, "go/gitiles", "my/ref")
 	require.NoError(t, err)
@@ -518,10 +518,10 @@ func TestListDir(t *testing.T) {
   "tree_diff": []
 }
 `
-	urlMock.MockOnce(repoUrl+"/+/my/other/ref?format=JSON", mockhttpclient.MockGetDialogue([]byte(resp2)))
-	urlMock.MockOnce(repoUrl+"/+/bbadbbadbbadbbadbbadbbadbbadbbadbbadbbad/go/gitiles?format=TEXT", mockhttpclient.MockGetDialogue([]byte(resp1)))
+	urlMock.MockOnce(fmt.Sprintf(CommitURLJSON, repoURL, "my/other/ref"), mockhttpclient.MockGetDialogue([]byte(resp2)))
+	urlMock.MockOnce(fmt.Sprintf(DownloadURL, repoURL, "bbadbbadbbadbbadbbadbbadbbadbbadbbadbbad", "go/gitiles"), mockhttpclient.MockGetDialogue([]byte(resp1)))
 	resp3 := base64.StdEncoding.EncodeToString([]byte(`100644 blob 6e5cdd994551045ab24a4246906c7723cb12c12e    testutils.go`))
-	urlMock.MockOnce(repoUrl+"/+/bbadbbadbbadbbadbbadbbadbbadbbadbbadbbad/go/gitiles/testutils?format=TEXT", mockhttpclient.MockGetDialogue([]byte(resp3)))
+	urlMock.MockOnce(fmt.Sprintf(DownloadURL, repoURL, "bbadbbadbbadbbadbbadbbadbbadbbadbbadbbad", "go/gitiles/testutils"), mockhttpclient.MockGetDialogue([]byte(resp3)))
 	files, err = repo.ListFilesRecursiveAtRef(ctx, "go/gitiles", "my/other/ref")
 	require.NoError(t, err)
 	assertdeep.Equal(t, []string{"gitiles.go", "gitiles_test.go", "testutils/testutils.go"}, files)
@@ -551,9 +551,9 @@ func TestDetails(t *testing.T) {
 
 	// Setup.
 	ctx := context.Background()
-	repoUrl := "https://skia.googlesource.com/buildbot.git"
+	repoURL := "https://skia.googlesource.com/buildbot.git"
 	urlMock := mockhttpclient.NewURLMock()
-	repo := NewRepo(repoUrl, urlMock.Client())
+	repo := NewRepo(repoURL, urlMock.Client())
 	gb := git_testutils.GitInit(t, ctx)
 
 	// Helper function which creates a commit, retrieves it from both
@@ -574,7 +574,7 @@ func TestDetails(t *testing.T) {
 		b, err := json.Marshal(c)
 		require.NoError(t, err)
 		b = append([]byte(")]}'\n"), b...)
-		urlMock.MockOnce(repoUrl+fmt.Sprintf("/+/%s?format=JSON", hash), mockhttpclient.MockGetDialogue(b))
+		urlMock.MockOnce(fmt.Sprintf(CommitURLJSON, repoURL, hash), mockhttpclient.MockGetDialogue(b))
 
 		// Perform the request.
 		actual, err := repo.Details(ctx, hash)
