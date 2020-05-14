@@ -1,26 +1,6 @@
 import './index';
 import { $$ } from 'common-sk/modules/dom';
-import { fetchMock } from 'fetch-mock';
-import { delay, isPuppeteerTest } from '../demo_util';
-import { trstatus } from './test_data';
-
-const fakeRpcDelayMillis = isPuppeteerTest() ? 5 : 300;
-
-fetchMock.get('/json/trstatus', () => {
-  if ($$('#simulate-rpc-failure').checked) {
-    return 500; // Fake an internal server error.
-  }
-
-  if (!isPuppeteerTest()) {
-    // Increase negative triaged count by 1 at every update cycle. Skip this for puppeteer tests
-    // to avoid non-determinism (e.g. with order of tests).
-    trstatus.corpStatus.forEach((corpus) => corpus.negativeCount++);
-  }
-
-  return delay(trstatus, fakeRpcDelayMillis);
-});
-
-// Create the components after we've had a chance to mock the JSON endpoint.
+import { exampleCorpora } from './test_data';
 
 const handleCorpusSelected = (e) => {
   const corpus = e.detail.corpus;
@@ -29,24 +9,24 @@ const handleCorpusSelected = (e) => {
 };
 
 // Default corpus renderer function.
-const el1 = document.createElement('corpus-selector-sk');
-el1.selectedCorpus = 'gm';
-el1.addEventListener('corpus-selected', handleCorpusSelected);
-$$('#default').appendChild(el1);
+const ele = document.createElement('corpus-selector-sk');
+ele.corpora = exampleCorpora;
+ele.selectedCorpus = 'gm';
+ele.addEventListener('corpus-selected', handleCorpusSelected);
+$$('#default').appendChild(ele);
 
 // Custom corpus renderer function.
-const el2 = document.createElement('corpus-selector-sk');
-el2.selectedCorpus = 'gm';
-if (!isPuppeteerTest()) {
-  el2.setAttribute('update-freq-seconds', '3');
-}
-el2.corpusRendererFn = (corpus) => `${corpus.name} : ${corpus.untriagedCount} / ${corpus.negativeCount}`;
-el2.addEventListener('corpus-selected', handleCorpusSelected);
-$$('#custom-fn').appendChild(el2);
+const eleCustom = document.createElement('corpus-selector-sk');
+eleCustom.corpora = exampleCorpora;
+eleCustom.selectedCorpus = 'gm';
+eleCustom.corpusRendererFn = (corpus) => `${corpus.name} : ${corpus.untriagedCount} / ${corpus.negativeCount}`;
+eleCustom.addEventListener('corpus-selected', handleCorpusSelected);
+$$('#custom-fn').appendChild(eleCustom);
 
 // Custom corpus renderer function (long).
-const el3 = document.createElement('corpus-selector-sk');
-el3.selectedCorpus = 'gm';
-el3.corpusRendererFn = (corpus) => `${corpus.name} : yadda yadda yadda yadda yadda`;
-el3.addEventListener('corpus-selected', handleCorpusSelected);
-$$('#custom-fn-long-corpus').appendChild(el3);
+const eleLong = document.createElement('corpus-selector-sk');
+eleLong.corpora = exampleCorpora;
+eleLong.selectedCorpus = 'gm';
+eleLong.corpusRendererFn = (corpus) => `${corpus.name} : yadda yadda yadda yadda yadda`;
+eleLong.addEventListener('corpus-selected', handleCorpusSelected);
+$$('#custom-fn-long-corpus').appendChild(eleLong);

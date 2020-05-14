@@ -24,4 +24,31 @@ describe('byblame-page-sk', () => {
     await testBed.page.setViewport({ width: 1200, height: 2700 });
     await takeScreenshot(testBed.page, 'gold', 'byblame-page-sk');
   });
+
+  it('responds to forward and back browser buttons', async () => {
+    const expectSelectedCorpusToBe = async (corpus) => {
+      const selectedTitle = await testBed.page.$eval('corpus-selector-sk li.selected', (e) => e.innerText);
+      expect(selectedTitle).to.contain(corpus);
+    };
+
+    await expectSelectedCorpusToBe('gm');
+
+    // click on canvaskit
+    await testBed.page.click('corpus-selector-sk > ul > li:nth-child(1)');
+    await expectSelectedCorpusToBe('canvaskit');
+    expect(testBed.page.url()).to.contain('?corpus=canvaskit');
+
+    // click on svg
+    await testBed.page.click('corpus-selector-sk > ul > li:nth-child(3)');
+    await expectSelectedCorpusToBe('svg');
+    expect(testBed.page.url()).to.contain('?corpus=svg');
+
+    await testBed.page.goBack();
+    await expectSelectedCorpusToBe('canvaskit');
+    expect(testBed.page.url()).to.contain('?corpus=canvaskit');
+
+    await testBed.page.goForward();
+    await expectSelectedCorpusToBe('svg');
+    expect(testBed.page.url()).to.contain('?corpus=svg');
+  });
 });

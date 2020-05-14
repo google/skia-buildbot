@@ -17,33 +17,48 @@ import '../corpus-selector-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { defaultCorpus } from '../settings';
 
-const template = (el) => html`
+const template = (ele) => html`
 <div class=top-container>
   <corpus-selector-sk
-      .selectedCorpus=${el._corpus}
-      .corpusRendererFn=${(c) => (c.untriagedCount ? `${c.name} (${c.untriagedCount})` : c.name)}
-      @corpus-selected=${(e) => el._handleCorpusChange(e)}>
+      .corpora=${ele._corpora}
+      .selectedCorpus=${ele._corpus}
+      .corpusRendererFn=${corpusRendererFn}
+      @corpus-selected=${ele._handleCorpusChange}>
   </corpus-selector-sk>
 </div>
 
 <div class=entries>
-  ${(!el._entries || el._entries.length === 0)
-    ? (el._loaded ? 'No untriaged digests.' : 'Loading untriaged digests...')
-    : el._entries.map((entry) => entryTemplate(el, entry))}
+  ${(!ele._entries || ele._entries.length === 0)
+    ? noEntries(ele) : ele._entries.map((entry) => entryTemplate(ele, entry))}
 </div>
 `;
 
-const entryTemplate = (el, entry) => html`
+const entryTemplate = (ele, entry) => html`
 <byblameentry-sk
     .byBlameEntry=${entry}
-    .corpus=${el._corpus}>
+    .corpus=${ele._corpus}>
 </byblameentry-sk>
 `;
+
+const noEntries = (ele) => {
+  if (!ele._loaded) {
+    return 'Loading untriaged digests...';
+  }
+  return `No untriaged digests for corpus ${ele._corpus}.`;
+};
+
+const corpusRendererFn = (corpus) => {
+  if (corpus.untriagedCount) {
+    return `${corpus.name} (${corpus.untriagedCount})`;
+  }
+  return corpus.name;
+};
 
 define('byblame-page-sk', class extends ElementSk {
   constructor() {
     super(template);
 
+    this._corpora = [];
     this._corpus = '';
     // Will hold ByBlameEntry objects returned by /json/byblame for the selected
     // corpus.
@@ -66,7 +81,7 @@ define('byblame-page-sk', class extends ElementSk {
 
         this._corpus = newState.corpus || defaultCorpus();
         this._render(); // Update corpus selector immediately.
-        this._fetchEntries();
+        this._fetch();
       },
     );
   }
@@ -80,13 +95,10 @@ define('byblame-page-sk', class extends ElementSk {
   _handleCorpusChange(event) {
     this._corpus = event.detail.corpus;
     this._stateChanged();
-    this._fetchEntries();
+    this._fetch();
   }
 
-  _fetchEntries() {
-    const query = encodeURIComponent(`source_type=${this._corpus}`);
-    const url = `/json/byblame?query=${query}`;
-
+  _fetch() {
     // Force only one fetch at a time. Abort any outstanding requests.
     if (this._fetchController) {
       this._fetchController.abort();
@@ -98,8 +110,11 @@ define('byblame-page-sk', class extends ElementSk {
       signal: this._fetchController.signal,
     };
 
+    const query = encodeURIComponent(`source_type=${this._corpus}`);
+    const byBlameURL = `/json/byblame?query=${query}`;
+
     sendBeginTask(this);
-    fetch(url, options)
+    fetch(byBlameURL, options)
       .then(jsonOrThrow)
       .then((json) => {
         this._entries = json.data || [];
@@ -107,6 +122,16 @@ define('byblame-page-sk', class extends ElementSk {
         this._render();
         sendEndTask(this);
       })
-      .catch((e) => sendFetchError(this, e, 'byblamepage'));
+      .catch((e) => sendFetchError(this, e, 'byblamepage_entries'));
+
+    sendBeginTask(this);
+    fetch('/json/trstatus', options)
+      .then(jsonOrThrow)
+      .then((json) => {
+        this._corpora = json.corpStatus;
+        this._render();
+        sendEndTask(this);
+      })
+      .catch((e) => sendFetchError(this, e, 'byblamepage_trstatus'));
   }
 });
