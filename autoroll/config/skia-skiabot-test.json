@@ -1,7 +1,14 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "Skia",
+  "childDisplayName": "Skia",
+  "commitMsg": {
+    "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "borenet@google.com"
   ],
@@ -13,7 +20,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "Skiabot Test",
+  "parentDisplayName": "Skiabot Test",
   "parentWaterfall": "https://status-staging.skia.org/repo/skiabot-test",
   "rollerName": "skia-skiabot-test-autoroll",
   "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
@@ -26,8 +33,6 @@
     "childPath": "skia",
     "childRepo": "https://skia.googlesource.com/skia.git",
     "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+show/%s",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skiabot-test.git"
   },

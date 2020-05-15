@@ -1,7 +1,15 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "Vulkan-ValidationLayers",
+  "childDisplayName": "Vulkan-ValidationLayers",
+  "commitMsg": {
+    "bugProject": "angleproject",
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-ValidationLayers.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "angle-team@google.com",
     "jmadill@chromium.org"
@@ -14,7 +22,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "ANGLE",
+  "parentDisplayName": "ANGLE",
   "parentWaterfall": "https://ci.chromium.org/p/angle/g/ci/console",
   "rollerName": "vulkan-validation-layers-angle-autoroll",
   "serviceAccount": "angle-autoroll@skia-public.iam.gserviceaccount.com",
@@ -30,9 +38,6 @@
     "childPath": "third_party/vulkan-validation-layers/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-ValidationLayers.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-ValidationLayers.git/+show/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "angleproject",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
   },

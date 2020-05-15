@@ -308,7 +308,7 @@ func getOpenChangeInfo() gerrit.ChangeInfo {
 		MoreChanges: false,
 		Issue:       235460,
 		// Labels omitted because it's complex and not needed
-		Owner: &gerrit.Owner{
+		Owner: &gerrit.Person{
 			Email: "test@example.com",
 		},
 		Status:         "NEW",

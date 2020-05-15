@@ -1,30 +1,23 @@
 package repo_manager
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	"path"
-	"sort"
-	"strings"
 	"sync"
-	"text/template"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/go/depot_tools"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -38,7 +31,7 @@ const (
 // to manage checkouts.
 type RepoManager interface {
 	// Create a new roll attempt.
-	CreateNewRoll(context.Context, *revision.Revision, *revision.Revision, []*revision.Revision, []string, string, bool) (int64, error)
+	CreateNewRoll(ctx context.Context, rollingFrom *revision.Revision, rollingTo *revision.Revision, revisions []*revision.Revision, reviewers []string, dryRun bool, commitMsg string) (int64, error)
 
 	// Update the RepoManager's view of the world. Depending on the
 	// implementation, this may sync repos and may take some time. Returns
@@ -61,9 +54,6 @@ type CommonRepoManagerConfig struct {
 	ChildBranch *config_vars.Template `json:"childBranch"`
 	// Path of the child repo within the parent repo.
 	ChildPath string `json:"childPath"`
-	// If false, roll CLs do not link to bugs from the commits in the child
-	// repo.
-	IncludeBugs bool `json:"includeBugs"`
 	// If true, include the "git log" (or other revision details) in the
 	// commit message. This should be false for internal -> external rollers
 	// to avoid leaking internal commit messages.
@@ -78,9 +68,6 @@ type CommonRepoManagerConfig struct {
 	// ChildRevLinkTmpl is a template used to create links to revisions of
 	// the child repo. If not supplied, no links will be created.
 	ChildRevLinkTmpl string `json:"childRevLinkTmpl"`
-	// CommitMsgTmpl is a template used to build commit messages. See the
-	// parent.CommitMsgVars type for more information.
-	CommitMsgTmpl string `json:"commitMsgTmpl"`
 	// ChildSubdir indicates the subdirectory of the workdir in which
 	// the childPath should be rooted. In most cases, this should be empty,
 	// but if ChildPath is relative to the parent repo dir (eg. when DEPS
@@ -111,9 +98,6 @@ func (c *CommonRepoManagerConfig) Validate() error {
 	}
 	if c.ParentRepo == "" {
 		return errors.New("ParentRepo is required.")
-	}
-	if c.IncludeBugs && c.BugProject == "" {
-		return errors.New("IncludeBugs is true, but BugProject is empty.")
 	}
 	if proj := issues.REPO_PROJECT_MAPPING[c.ParentRepo]; proj != "" && c.BugProject != "" && proj != c.BugProject {
 		return errors.New("BugProject is non-empty but does not match the entry in issues.REPO_PROJECT_MAPPING.")
@@ -152,19 +136,11 @@ type commonRepoManager struct {
 	childPath        string
 	childRepo        *git.Checkout
 	childRevLinkTmpl string
-	childSubdir      string
-	codereview       codereview.CodeReview
-	commitMsgTmpl    *template.Template
 	g                gerrit.GerritInterface
 	httpClient       *http.Client
-	includeBugs      bool
-	includeLog       bool
-	local            bool
-	bugProject       string
 	parentBranch     *config_vars.Template
 	preUploadSteps   []parent.PreUploadStep
 	repoMtx          sync.RWMutex
-	serverURL        string
 	workdir          string
 }
 
@@ -191,14 +167,6 @@ func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, reg *c
 	if err != nil {
 		return nil, err
 	}
-	commitMsgTmplStr := parent.TMPL_COMMIT_MSG_DEFAULT
-	if c.CommitMsgTmpl != "" {
-		commitMsgTmplStr = c.CommitMsgTmpl
-	}
-	commitMsgTmpl, err := parent.ParseCommitMsgTemplate(commitMsgTmplStr)
-	if err != nil {
-		return nil, err
-	}
 	if err := reg.Register(c.ChildBranch); err != nil {
 		return nil, err
 	}
@@ -211,18 +179,10 @@ func newCommonRepoManager(ctx context.Context, c CommonRepoManagerConfig, reg *c
 		childPath:        c.ChildPath,
 		childRepo:        childRepo,
 		childRevLinkTmpl: c.ChildRevLinkTmpl,
-		childSubdir:      c.ChildSubdir,
-		codereview:       cr,
-		commitMsgTmpl:    commitMsgTmpl,
 		g:                g,
 		httpClient:       client,
-		includeBugs:      c.IncludeBugs,
-		includeLog:       c.IncludeLog,
-		local:            local,
-		bugProject:       c.BugProject,
 		parentBranch:     c.ParentBranch,
 		preUploadSteps:   preUploadSteps,
-		serverURL:        serverURL,
 		workdir:          workdir,
 	}, nil
 }
@@ -265,59 +225,6 @@ func (r *commonRepoManager) GetRevision(ctx context.Context, id string) (*revisi
 	return revision.FromLongCommit(r.childRevLinkTmpl, details), nil
 }
 
-// buildCommitMsg executes the commit message template using the given
-// CommitMsgVars.
-func (r *commonRepoManager) buildCommitMsg(vars *parent.CommitMsgVars) (string, error) {
-	// Bugs.
-	vars.Bugs = nil
-	if r.includeBugs {
-		// TODO(borenet): Move this to a util.MakeBugLines utility?
-		bugMap := map[string]bool{}
-		for _, rev := range vars.Revisions {
-			for _, bug := range rev.Bugs[r.bugProject] {
-				bugMap[bug] = true
-			}
-		}
-		if len(bugMap) > 0 {
-			vars.Bugs = make([]string, 0, len(bugMap))
-			for bug := range bugMap {
-				bugStr := fmt.Sprintf("%s:%s", r.bugProject, bug)
-				if r.bugProject == util.BUG_PROJECT_BUGANIZER {
-					bugStr = fmt.Sprintf("b/%s", bug)
-				}
-				vars.Bugs = append(vars.Bugs, bugStr)
-			}
-			sort.Strings(vars.Bugs)
-		}
-	}
-
-	// IncludeLog.
-	vars.IncludeLog = r.includeLog
-
-	// Tests.
-	vars.Tests = nil
-	testsMap := map[string]bool{}
-	for _, rev := range vars.Revisions {
-		for _, test := range rev.Tests {
-			testsMap[test] = true
-		}
-	}
-	if len(testsMap) > 0 {
-		vars.Tests = make([]string, 0, len(testsMap))
-		for test := range testsMap {
-			vars.Tests = append(vars.Tests, test)
-		}
-		sort.Strings(vars.Tests)
-	}
-
-	// Create the commit message.
-	var buf bytes.Buffer
-	if err := r.commitMsgTmpl.Execute(&buf, vars); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
-}
-
 // DepotToolsRepoManagerConfig provides configuration for depotToolsRepoManager.
 type DepotToolsRepoManagerConfig struct {
 	CommonRepoManagerConfig
@@ -342,121 +249,6 @@ type depotToolsRepoManager struct {
 	parentDir     string
 	parentRepo    string
 	runhooks      bool
-}
-
-// Return a depotToolsRepoManager instance.
-func newDepotToolsRepoManager(ctx context.Context, c DepotToolsRepoManagerConfig, reg *config_vars.Registry, workdir, recipeCfgFile, serverURL string, g gerrit.GerritInterface, client *http.Client, cr codereview.CodeReview, local bool) (*depotToolsRepoManager, error) {
-	if err := c.Validate(); err != nil {
-		return nil, err
-	}
-	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, reg, workdir, serverURL, g, client, cr, local)
-	if err != nil {
-		return nil, err
-	}
-	depotTools, err := depot_tools.GetDepotTools(ctx, workdir, recipeCfgFile)
-	if err != nil {
-		return nil, err
-	}
-	parentBase := strings.TrimSuffix(path.Base(c.ParentRepo), ".git")
-	parentDir := path.Join(workdir, parentBase)
-	return &depotToolsRepoManager{
-		commonRepoManager: crm,
-		depotTools:        depotTools,
-		depotToolsEnv:     append(depot_tools.Env(depotTools), "SKIP_GCE_AUTH_FOR_GIT=1"),
-		gclient:           path.Join(depotTools, parent.GClient),
-		gclientSpec:       c.GClientSpec,
-		parentDir:         parentDir,
-		parentRepo:        c.ParentRepo,
-		runhooks:          c.RunHooks,
-	}, nil
-}
-
-// cleanParent forces the parent checkout into a clean state.
-func (r *depotToolsRepoManager) cleanParent(ctx context.Context) error {
-	return r.cleanParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH, r.parentBranch.String())
-}
-
-func (r *depotToolsRepoManager) cleanParentWithRemoteAndBranch(ctx context.Context, remote, localBranch, remoteBranch string) error {
-	if _, err := git.GitDir(r.parentDir).Git(ctx, "clean", "-d", "-f", "-f"); err != nil {
-		return err
-	}
-	_, _ = git.GitDir(r.parentDir).Git(ctx, "rebase", "--abort")
-	if _, err := git.GitDir(r.parentDir).Git(ctx, "checkout", fmt.Sprintf("%s/%s", remote, remoteBranch), "-f"); err != nil {
-		return err
-	}
-	_, _ = git.GitDir(r.parentDir).Git(ctx, "branch", "-D", localBranch)
-	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  r.workdir,
-		Env:  r.depotToolsEnv,
-		Name: "python",
-		Args: []string{r.gclient, "revert", "--nohooks"},
-	}); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *depotToolsRepoManager) createAndSyncParent(ctx context.Context) error {
-	return r.createAndSyncParentWithRemoteAndBranch(ctx, "origin", ROLL_BRANCH, r.parentBranch.String())
-}
-
-func (r *depotToolsRepoManager) createAndSyncParentWithRemoteAndBranch(ctx context.Context, remote, localBranch, remoteBranch string) error {
-	// Create the working directory if needed.
-	if _, err := os.Stat(r.workdir); err != nil {
-		if err := os.MkdirAll(r.workdir, 0755); err != nil {
-			return err
-		}
-	}
-
-	// Run "gclient config".
-	args := []string{r.gclient, "config"}
-	if r.gclientSpec != "" {
-		args = append(args, fmt.Sprintf("--spec=%s", r.gclientSpec))
-	} else {
-		args = append(args, r.parentRepo, "--unmanaged")
-	}
-	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  r.workdir,
-		Env:  r.depotToolsEnv,
-		Name: "python",
-		Args: args,
-	}); err != nil {
-		return err
-	}
-
-	// Clean/reset the parent and child checkouts.
-	if _, err := os.Stat(path.Join(r.parentDir, ".git")); err == nil {
-		if err := r.cleanParentWithRemoteAndBranch(ctx, remote, localBranch, remoteBranch); err != nil {
-			return err
-		}
-		// Update the repo.
-		if _, err := git.GitDir(r.parentDir).Git(ctx, "fetch", remote); err != nil {
-			return err
-		}
-		if _, err := git.GitDir(r.parentDir).Git(ctx, "reset", "--hard", fmt.Sprintf("%s/%s", remote, remoteBranch)); err != nil {
-			return err
-		}
-	}
-	if _, err := os.Stat(path.Join(r.childDir, ".git")); err == nil {
-		if _, err := r.childRepo.Git(ctx, "fetch"); err != nil {
-			return err
-		}
-	}
-
-	// Run "gclient sync".
-	args = []string{r.gclient, "sync"}
-	if !r.runhooks {
-		args = append(args, "--nohooks")
-	}
-	if _, err := exec.RunCommand(ctx, &exec.Command{
-		Dir:  r.workdir,
-		Env:  r.depotToolsEnv,
-		Name: "python",
-		Args: args,
-	}); err != nil {
-		return err
-	}
-	return nil
 }
 
 // NoCheckoutRepoManagerConfig provides configuration for RepoManagers which
