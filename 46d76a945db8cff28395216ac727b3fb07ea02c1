@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e395050d_be2e715a",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-15T11:11:30Z",
+      "side": 1,
+      "message": "repoPollInterval\n\nhttps://github.com/golang/go/wiki/CodeReviewComments#mixed-caps",
+      "range": {
+        "startLine": 29,
+        "startChar": 1,
+        "endLine": 29,
+        "endChar": 19
+      },
+      "revId": "46d76a945db8cff28395216ac727b3fb07ea02c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4ee3666_2eca2787",
+        "filename": "demos/go/demoserver/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-15T11:11:30Z",
+      "side": 1,
+      "message": "intentional comment out?",
+      "range": {
+        "startLine": 184,
+        "startChar": 1,
+        "endLine": 184,
+        "endChar": 2
+      },
+      "revId": "46d76a945db8cff28395216ac727b3fb07ea02c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
