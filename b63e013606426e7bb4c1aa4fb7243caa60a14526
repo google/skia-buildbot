@@ -140,6 +140,30 @@
       "revId": "b63e013606426e7bb4c1aa4fb7243caa60a14526",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7fa4288a_042d8eb0",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-15T18:42:17Z",
+      "side": 1,
+      "message": "Ok, I was just thinking about whether we can avoid hard-coding this list.  What if we diff before and after and add whatever changed?",
+      "parentUuid": "c28a3d53_d8914455",
+      "range": {
+        "startLine": 288,
+        "startChar": 8,
+        "endLine": 288,
+        "endChar": 69
+      },
+      "revId": "b63e013606426e7bb4c1aa4fb7243caa60a14526",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
