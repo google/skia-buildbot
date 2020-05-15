@@ -136,7 +136,7 @@ define('byblameentry-sk', class extends ElementSk {
     if (!hash || !repo) {
       return '';
     }
-    const path = repo.indexOf('github.com') !== -1 ? 'commit' : '+';
+    const path = repo.indexOf('github.com') !== -1 ? 'commit' : '+show';
     return `${repo}/${path}/${hash}`;
   }
 });
