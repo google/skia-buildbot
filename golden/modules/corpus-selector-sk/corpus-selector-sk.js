@@ -4,7 +4,7 @@
  *
  * Lists the available corpora and lets the user select a corpus.
  *
- * @evt corpus-selected - Sent when the user selects a different corpus. Field
+ * @evt corpus_selected - Sent when the user selects a different corpus. Field
  *      event.detail.corpus will contain the selected corpus.
  */
 
@@ -78,7 +78,7 @@ define('corpus-selector-sk', class extends ElementSk {
 
   _sendCorpusSelected() {
     this.dispatchEvent(
-      new CustomEvent('corpus-selected', {
+      new CustomEvent('corpus_selected', {
         detail: {
           corpus: this.selectedCorpus,
         },

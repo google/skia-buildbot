@@ -23,7 +23,7 @@ const template = (ele) => html`
       .corpora=${ele._corpora}
       .selectedCorpus=${ele._corpus}
       .corpusRendererFn=${corpusRendererFn}
-      @corpus-selected=${ele._handleCorpusChange}>
+      @corpus_selected=${ele._handleCorpusChange}>
   </corpus-selector-sk>
 </div>
 

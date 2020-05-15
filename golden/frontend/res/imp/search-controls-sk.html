@@ -7,7 +7,7 @@
     and send an update to the host element to reload data based
     on the new query state.
 
-    The state object contains these fiels:
+    The state object contains these fields:
       - pos: show positive (boolean).
       - neg: show negative (boolean).
       - unt: show untriaged (boolean).
@@ -18,7 +18,6 @@
     Attributes:
       state - The current query state.
 
-      orientation - Orientation of the controls. Values: 'horizontal', 'vertical'
       disabled - Boolean to indicate whether to disable all the controls.
       beta - Boolean to enable beta-level functions.
 
@@ -55,24 +54,12 @@
   <template>
     <style include="iron-flex iron-flex-alignment"></style>
     <style include="shared-styles">
-      .horizontalTopControl, .verticalTopControl {
+      .horizontalTopControl {
         font-weight: bold;
-      }
-
-      .verticalTopControl {
-        margin: 0 0 1em 0;
       }
 
       .horizontalTopControl {
         margin: 0 2em 0 0;
-      }
-
-      .buttonContainer {
-        width: 8em;
-      }
-
-      .buttonContainer.verticalTopControl {
-        margin-top: 2em;
       }
 
       .horizontal.currSelection {
@@ -81,30 +68,35 @@
         max-width: 20em;
       }
 
-      .vertical.currSelection {
-        padding-top: 1em;
-        max-width: 10em;
+      .corpus_label {
+        font-weight: bold;
+        margin: auto 0;
       }
-    </style>
-      <div class$="[[orientation]] layout">
-        <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.pos}}" disabled={{disabled}}>Positive</paper-toggle-button>
-        <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.neg}}" disabled={{disabled}}>Negative</paper-toggle-button>
-        <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.unt}}" disabled={{disabled}}>Untriaged</paper-toggle-button>
-        <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.head}}" disabled={{disabled}}>Head</paper-toggle-button>
-        <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.include}}" disabled={{disabled}}>Ignored</paper-toggle-button>
 
-        <div class="buttonContainer">
-          <paper-button id="searchButton" class$="topControl" raised disabled="[[disabled]]"
-                        title="Filter Traces"><iron-icon icon="image:tune"></iron-icon></paper-button>
-        </div>
-        <!-- TODO(stephana): Enable filter button when backend is ready -->
-        <div class$="{{_tcClass(orientation)}} buttonContainer">
+    </style>
+      <div class="vertical layout">
+        <div class="horizontal layout">
+          <paper-toggle-button class="horizontalTopControl" checked="{{state.pos}}" disabled={{disabled}}>Positive</paper-toggle-button>
+          <paper-toggle-button class="horizontalTopControl" checked="{{state.neg}}" disabled={{disabled}}>Negative</paper-toggle-button>
+          <paper-toggle-button class="horizontalTopControl" checked="{{state.unt}}" disabled={{disabled}}>Untriaged</paper-toggle-button>
+          <paper-toggle-button class="horizontalTopControl" checked="{{state.head}}" disabled={{disabled}}>Head</paper-toggle-button>
+          <paper-toggle-button class="horizontalTopControl" checked="{{state.include}}" disabled={{disabled}}>Ignored</paper-toggle-button>
+
           <paper-button id="filterButton" class$="topControl" raised disabled="[[disabled]]"
                         title="Metrics Filter"><iron-icon icon="icons:filter-list"></iron-icon>
           </paper-button>
         </div>
-        <div class$="[[orientation]] currSelection">
-          [[_splitAmp(state.query, orientation)]]
+        <div class="horizontal layout">
+          <span class=corpus_label>Corpus:</span>
+          <corpus-selector-sk id="corpusSelector"></corpus-selector-sk>
+        </div>
+        <div class="horizontal layout">
+          <paper-button id="searchButton" class$="topControl" raised disabled="[[disabled]]"
+                        title="Filter Traces"><iron-icon icon="image:tune"></iron-icon></paper-button>
+
+          <div class="horizontal currSelection">
+            [[_splitAmp(state.query)]]
+          </div>
         </div>
       </div>
 
@@ -119,11 +111,6 @@
         properties: {
           state: {
             type: Object
-          },
-
-          orientation: {
-            type: String,
-            value: "horizontal"
           },
 
           disabled: {
@@ -146,6 +133,7 @@
           this.listen(this.$.filterButton, 'tap', '_handleFilterButton');
           this.listen(this.$.queryDialog, 'edit', '_handleQueryEdit');
           this.listen(this.$.filterDialog, 'edit', '_handleFilterEdit');
+          this.listen(this.$.corpusSelector, 'corpus_selected', '_handleCorpusChange');
 
           // If the corpus changes make sure we do cleanup work.
           this.async(function() {
@@ -160,11 +148,26 @@
           this._noFire = !fireEvent;
           this.set('state', sk.object.shallowCopy(state));
           this.$.filterDialog.setValue(this.state);
+          const query = sk.query.toParamSet(state.query);
+          const corporaSelected = query['source_type'];
+          if (corporaSelected && corporaSelected.length) {
+            this.$.corpusSelector.selectedCorpus = corporaSelected[0];
+          } else {
+            this.$.corpusSelector.selectedCorpus = sk.app_config.defaultCorpus;
+          }
         },
 
         setParamSet: function(params) {
           this.$.queryDialog.queryEle.setParamSet(params);
           this.$.filterDialog.setParamSet(params);
+          // TODO(kjlubick) in the lit-html version, this should reflect of digests as matched by
+          //   the positive/negative/diff selector (i.e. the things above it).
+          const corpora = params['source_type'].map((name) => {
+            return {
+              name: name,
+            };
+          });
+          this.$.corpusSelector.corpora = corpora;
         },
 
         setCommitInfo: function(commits) {
@@ -195,6 +198,14 @@
 
         _handleCorpusChange: function(ev) {
           this.$.queryDialog.close();
+
+          // TODO(kjlubick) This is a dirty ugly hack, making the corpus change reload the entire
+          //   page. However, the port to lit-html is coming soon, and I don't feel like making
+          //   more changes to this Polymer code than is necessary.
+          const params = sk.query.toParamSet(this.state.query);
+          params.source_type = [ev.detail.corpus];
+          this.state.query = sk.query.fromParamSet(params);
+          window.location = window.location.pathname + gold.queryFromState(this.state);
         },
 
         _fireStateChange: function() {
@@ -207,12 +218,8 @@
           this.fire('state-change', detail);
         },
 
-        _tcClass: function(orientation) {
-          return (orientation==='horizontal') ? "horizontalTopControl" : "verticalTopControl";
-        },
-
-        _splitAmp: function(qStr, orientation) {
-          return sk.query.splitAmp(qStr, (orientation === 'horizontal') ? ', ':' \n');
+        _splitAmp: function(qStr) {
+          return sk.query.splitAmp(qStr, ', ');
         }
 
       });
