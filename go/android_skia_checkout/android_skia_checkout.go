@@ -21,6 +21,8 @@ var (
 	SkUserConfigWinRelPath     = path.Join("win", "include", "config", "SkUserConfig.h")
 	AndroidBpRelPath           = path.Join("Android.bp")
 	LibGifRelPath              = path.Join("third_party", "libgifcodec")
+
+	FilesGeneratedByGnToGp = []string{SkUserConfigAndroidRelPath, SkUserConfigLinuxRelPath, SkUserConfigMacRelPath, SkUserConfigWinRelPath, AndroidBpRelPath}
 )
 
 const (

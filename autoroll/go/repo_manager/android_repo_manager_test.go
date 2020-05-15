@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	gerrit_mocks "go.skia.org/infra/go/gerrit/mocks"
@@ -44,13 +45,13 @@ func androidGerrit(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview
 
 func androidCfg(t *testing.T) *AndroidRepoManagerConfig {
 	return &AndroidRepoManagerConfig{
-		CommonRepoManagerConfig{
+		CommonRepoManagerConfig: CommonRepoManagerConfig{
 			ChildBranch:  masterBranchTmpl(t),
 			ChildPath:    childPath,
 			ParentBranch: masterBranchTmpl(t),
 			ParentRepo:   "https://my-repo.com",
 		},
-		&ProjectMetadataFileConfig{
+		ProjectMetadataFileConfig: &ProjectMetadataFileConfig{
 			FilePath:    "METADATA",
 			Name:        "skia",
 			Description: "Skia Graphics Library",
@@ -58,6 +59,7 @@ func androidCfg(t *testing.T) *AndroidRepoManagerConfig {
 			GitURL:      "https://skia.googlesource.com/skia",
 			LicenseType: "RECIPROCAL",
 		},
+		ChildRepoURL: common.REPO_SKIA,
 	}
 }
 
