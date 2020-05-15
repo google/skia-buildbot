@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -41,6 +42,7 @@ var preUploadSteps = map[string]PreUploadStep{
 	"FlutterLicenseScripts":           FlutterLicenseScripts,
 	"FlutterLicenseScriptsForDart":    FlutterLicenseScriptsForDart,
 	"FlutterLicenseScriptsForFuchsia": FlutterLicenseScriptsForFuchsia,
+	"SkiaGnToBp":                      SkiaGnToBp,
 	"UpdateFlutterDepsForDart":        UpdateFlutterDepsForDart,
 }
 
@@ -273,6 +275,23 @@ func GoGenerateCipd(ctx context.Context, _ []string, client *http.Client, parent
 		Env:  envSlice,
 	}); err != nil {
 		return err
+	}
+	return nil
+}
+
+// SkiaGnToBp runs Skia's gn_to_bp.py script to roll into Android.
+func SkiaGnToBp(ctx context.Context, env []string, client *http.Client, parentRepoDir string) error {
+	skiaDir := filepath.Join(parentRepoDir, "external", "skia")
+	if err := android_skia_checkout.RunGnToBp(ctx, skiaDir); err != nil {
+		return fmt.Errorf("Error when running gn_to_bp: %s", err)
+	}
+	for _, genFile := range android_skia_checkout.FilesGeneratedByGnToGp {
+		if _, err := git.GitDir(skiaDir).Git(ctx, "add", genFile); err != nil {
+			return fmt.Errorf("Could not git add %s: %s", genFile, err)
+		}
+	}
+	if _, err := git.GitDir(skiaDir).Git(ctx, "add", android_skia_checkout.LibGifRelPath); err != nil {
+		return fmt.Errorf("Could not git add %s: %s", android_skia_checkout.LibGifRelPath, err)
 	}
 	return nil
 }

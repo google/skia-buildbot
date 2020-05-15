@@ -21,8 +21,6 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/go/android_skia_checkout"
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/sklog"
@@ -62,12 +60,6 @@ Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
 )
 
 var (
-	// Files which exist in Skia but do not exist in Android.
-	DELETE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigRelPath}
-	// Files which exist in Android but do not exist in Skia.
-	IGNORE_MERGE_CONFLICT_FILES = []string{android_skia_checkout.SkUserConfigAndroidRelPath, android_skia_checkout.SkUserConfigLinuxRelPath, android_skia_checkout.SkUserConfigMacRelPath, android_skia_checkout.SkUserConfigWinRelPath}
-	FILES_GENERATED_BY_GN_TO_GP = []string{android_skia_checkout.SkUserConfigAndroidRelPath, android_skia_checkout.SkUserConfigLinuxRelPath, android_skia_checkout.SkUserConfigMacRelPath, android_skia_checkout.SkUserConfigWinRelPath, android_skia_checkout.AndroidBpRelPath}
-
 	AUTHOR_EMAIL_RE = regexp.MustCompile(".* \\((.*)\\)")
 )
 
@@ -93,6 +85,12 @@ func (c *ProjectMetadataFileConfig) Validate() error {
 type AndroidRepoManagerConfig struct {
 	CommonRepoManagerConfig
 	*ProjectMetadataFileConfig `json:"projectMetadataFileConfig,omitempty"`
+	ChildRepoURL               string `json:"childRepoURL"`
+
+	// Files which exist in the child repo but do not exist in Android. Eg: [android_skia_checkout.SkUserConfigRelPath]
+	IgnoreMergeConflictFiles []string `json:"ignoreMergeConflictFiles"`
+	// Files which exist in Android but not in the child repo. Eg: [android_skia_checkout.SkUserConfigAndroidRelPath, android_skia_checkout.SkUserConfigLinuxRelPath, android_skia_checkout.SkUserConfigMacRelPath, android_skia_checkout.SkUserConfigWinRelPath]
+	DeleteMergeConflictFiles []string `json:"deleteMergeConflictFiles"`
 }
 
 // See documentation for util.Validator interface.
@@ -104,6 +102,9 @@ func (c *AndroidRepoManagerConfig) Validate() error {
 		if err := c.ProjectMetadataFileConfig.Validate(); err != nil {
 			return err
 		}
+	}
+	if c.ChildRepoURL == "" {
+		return errors.New("childRepoURL must be specified")
 	}
 	return nil
 }
@@ -119,8 +120,11 @@ func (r *AndroidRepoManagerConfig) ValidStrategies() []string {
 // androidRepoManager is a struct used by Android AutoRoller for managing checkouts.
 type androidRepoManager struct {
 	*commonRepoManager
-	repoUrl      string
-	repoToolPath string
+	childRepoURL             string
+	ignoreMergeConflictFiles []string
+	deleteMergeConflictFiles []string
+	repoUrl                  string
+	repoToolPath             string
 
 	projectMetadataFileConfig *ProjectMetadataFileConfig
 }
@@ -165,6 +169,7 @@ func NewAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, reg
 		repoUrl:                   g.GetRepoUrl(),
 		repoToolPath:              repoToolPath,
 		projectMetadataFileConfig: c.ProjectMetadataFileConfig,
+		childRepoURL:              c.ChildRepoURL,
 	}
 	return r, nil
 }
@@ -203,7 +208,7 @@ func (r *androidRepoManager) updateAndroidCheckout(ctx context.Context) error {
 		return err
 	}
 	if !strings.Contains(remoteOutput, UPSTREAM_REMOTE_NAME) {
-		if _, err := r.childRepo.Git(ctx, "remote", "add", UPSTREAM_REMOTE_NAME, common.REPO_SKIA); err != nil {
+		if _, err := r.childRepo.Git(ctx, "remote", "add", UPSTREAM_REMOTE_NAME, r.childRepoURL); err != nil {
 			return err
 		}
 	}
@@ -303,7 +308,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	// Start the merge.
 
 	if _, err := r.childRepo.Git(ctx, "merge", to.Id, "--no-commit"); err != nil {
-		// Check to see if this was a merge conflict with IGNORE_MERGE_CONFLICT_FILES.
+		// Check to see if this was a merge conflict with ignoreMergeConflictFiles and deleteMergeConflictFiles.
 		conflictsOutput, conflictsErr := r.childRepo.Git(ctx, "diff", "--name-only", "--diff-filter=U")
 		if conflictsErr != nil || conflictsOutput == "" {
 			util.LogErr(conflictsErr)
@@ -314,14 +319,14 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 				continue
 			}
 			ignoreConflict := false
-			for _, ignore := range IGNORE_MERGE_CONFLICT_FILES {
+			for _, ignore := range r.ignoreMergeConflictFiles {
 				if conflict == ignore {
 					ignoreConflict = true
 					sklog.Infof("Ignoring conflict in %s", conflict)
 					break
 				}
 			}
-			for _, del := range DELETE_MERGE_CONFLICT_FILES {
+			for _, del := range r.deleteMergeConflictFiles {
 				if conflict == del {
 					_, resetErr := r.childRepo.Git(ctx, "reset", "--", del)
 					util.LogErr(resetErr)
@@ -337,20 +342,6 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 				return 0, fmt.Errorf("Failed to roll to %s. Conflicts in %s: %s", to, conflictsOutput, err)
 			}
 		}
-	}
-
-	if err := android_skia_checkout.RunGnToBp(ctx, r.childDir); err != nil {
-		util.LogErr(r.abortMerge(ctx))
-		return 0, fmt.Errorf("Error when running gn_to_bp: %s", err)
-	}
-	for _, genFile := range FILES_GENERATED_BY_GN_TO_GP {
-		if _, err := r.childRepo.Git(ctx, "add", genFile); err != nil {
-			return 0, err
-		}
-	}
-
-	if _, addGifErr := r.childRepo.Git(ctx, "add", android_skia_checkout.LibGifRelPath); addGifErr != nil {
-		return 0, addGifErr
 	}
 
 	if r.projectMetadataFileConfig != nil {
@@ -389,6 +380,7 @@ third_party {
 	// Run the pre-upload steps.
 	for _, s := range r.preUploadSteps {
 		if err := s(ctx, nil, r.httpClient, r.workdir); err != nil {
+			util.LogErr(r.abortMerge(ctx))
 			return 0, fmt.Errorf("Failed pre-upload step: %s", err)
 		}
 	}
@@ -419,7 +411,7 @@ third_party {
 	// Create commit message.
 	commitMsg, err := r.buildCommitMsg(&parent.CommitMsgVars{
 		ChildPath:   r.childPath,
-		ChildRepo:   common.REPO_SKIA, // TODO(borenet): Don't hard-code.
+		ChildRepo:   r.childRepoURL,
 		Reviewers:   rollEmails,
 		Revisions:   rolling,
 		RollingFrom: from,
