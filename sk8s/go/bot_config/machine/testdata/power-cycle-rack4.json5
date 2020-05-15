@@ -1,0 +1,13 @@
+{
+  "edgeswitch": {
+    "rack4-shelf1-poe-switch": {
+      "address": "rack4-shelf1-poe-switch",
+      "user": "ubnt",
+      "ports": {
+        "skia-rpi2-rack4-shelf1-001": 3,
+        "skia-rpi2-rack4-shelf1-002": 4,
+        "skia-rpi2-rack4-shelf1-003": 5,
+      }
+    }
+  }
+}

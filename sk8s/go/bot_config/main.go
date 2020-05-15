@@ -19,14 +19,15 @@ import (
 
 // flags
 var (
-	configFlag     = flag.String("config", "", "The path to the configuration file.")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	metadataURL    = flag.String("metadata_url", "http://metadata:8000/computeMetadata/v1/instance/service-accounts/default/token", "The URL of the metadata server that provides service account tokens.")
-	port           = flag.String("port", ":11000", "HTTP service address (e.g., ':8000')")
-	promPort       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	pythonExe      = flag.String("python_exe", "/usr/bin/python2.7", "Absolute path to Python.")
-	startSwarming  = flag.Bool("start_swarming", false, "If true then start swarming_bot.zip.")
-	swarmingBotZip = flag.String("swarming_bot_zip", "/b/s/swarming_bot.zip", "Absolute path to where the swarming_bot.zip code should run from.")
+	configFlag               = flag.String("config", "", "The path to the configuration file.")
+	local                    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	metadataURL              = flag.String("metadata_url", "http://metadata:8000/computeMetadata/v1/instance/service-accounts/default/token", "The URL of the metadata server that provides service account tokens.")
+	port                     = flag.String("port", ":11000", "HTTP service address (e.g., ':8000')")
+	powercycleConfigFilename = flag.String("powercycle_config", "", "The name of the config file for powercycle.Controller.")
+	promPort                 = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	pythonExe                = flag.String("python_exe", "/usr/bin/python2.7", "Absolute path to Python.")
+	startSwarming            = flag.Bool("start_swarming", false, "If true then start swarming_bot.zip.")
+	swarmingBotZip           = flag.String("swarming_bot_zip", "/b/s/swarming_bot.zip", "Absolute path to where the swarming_bot.zip code should run from.")
 )
 
 func main() {
@@ -47,7 +48,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	m, err := machine.New(ctx, *local, instanceConfig)
+	m, err := machine.New(ctx, *local, instanceConfig, *powercycleConfigFilename)
 	if err != nil {
 		sklog.Fatal("Failed to create machine: %s", err)
 	}
