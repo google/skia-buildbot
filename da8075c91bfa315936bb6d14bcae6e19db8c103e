@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "ccc6d57a_27d44bb9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-05-15T10:14:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0965fdf8_f702cef8",
+      "revId": "da8075c91bfa315936bb6d14bcae6e19db8c103e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fb726fae_5bdc4e38",
         "filename": "demos/go/demoserver/main.go",
         "patchSetId": 4
