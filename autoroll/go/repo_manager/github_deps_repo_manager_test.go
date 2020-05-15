@@ -13,6 +13,7 @@ import (
 
 	github_api "github.com/google/go-github/v29/github"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/exec"
 	git_testutils "go.skia.org/infra/go/git/testutils"
@@ -68,16 +69,15 @@ func setupGithubDEPS(t *testing.T, c *GithubDEPSRepoManagerConfig) (context.Cont
 	ctx := context.Background()
 
 	// Create child and parent repos.
-	grandchild := git_testutils.GitInit(t, ctx)
-	f := "somefile.txt"
-	grandchildA := grandchild.CommitGen(ctx, f)
-	grandchildB := grandchild.CommitGen(ctx, f)
-
 	child := git_testutils.GitInit(t, ctx)
-	child.Add(ctx, "DEPS", fmt.Sprintf(`deps = {
-  "child/dep": "%s@%s"
-}`, grandchild.RepoUrl(), grandchildB))
+	child.Add(ctx, "DEPS", `deps = {
+  "child/dep": {
+    "url": "https://grandchild-in-child@def4560000def4560000def4560000def4560000",
+    "condition": "False",
+  },
+}`)
 	child.Commit(ctx)
+	f := "somefile.txt"
 	childCommits := make([]string, 0, 10)
 	for i := 0; i < numChildCommits; i++ {
 		childCommits = append(childCommits, child.CommitGen(ctx, f))
@@ -86,8 +86,11 @@ func setupGithubDEPS(t *testing.T, c *GithubDEPSRepoManagerConfig) (context.Cont
 	parent := git_testutils.GitInit(t, ctx)
 	parent.Add(ctx, "DEPS", fmt.Sprintf(`deps = {
   "%s": "%s@%s",
-  "parent/dep": "%s@%s",
-}`, childPath, child.RepoUrl(), childCommits[0], grandchild.RepoUrl(), grandchildA))
+  "parent/dep": {
+    "url": "https://grandchild-in-parent@abc1230000abc1230000abc1230000abc1230000",
+    "condition": "False",
+  },
+}`, childPath, child.RepoUrl(), childCommits[0]))
 	parent.Commit(ctx)
 
 	fork := git_testutils.GitInit(t, ctx)
@@ -215,8 +218,17 @@ func TestGithubDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	unittest.LargeTest(t)
 
 	cfg := githubDEPSCfg(t)
-	cfg.TransitiveDeps = map[string]string{
-		"child/dep": "parent/dep",
+	cfg.TransitiveDeps = []*version_file_common.TransitiveDepConfig{
+		{
+			Child: &version_file_common.VersionFileConfig{
+				ID:   "https://grandchild-in-child",
+				Path: "DEPS",
+			},
+			Parent: &version_file_common.VersionFileConfig{
+				ID:   "https://grandchild-in-parent",
+				Path: "DEPS",
+			},
+		},
 	}
 	ctx, rm, _, _, _, _, _, urlMock, cleanup := setupGithubDEPS(t, cfg)
 	defer cleanup()

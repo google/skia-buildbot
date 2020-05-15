@@ -83,7 +83,9 @@ func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.R
 	// Create the local checkout.
 	deps := make([]*version_file_common.VersionFileConfig, 0, len(c.DependencyConfig.TransitiveDeps)+1)
 	deps = append(deps, &c.DependencyConfig.VersionFileConfig)
-	deps = append(deps, c.DependencyConfig.TransitiveDeps...)
+	for _, td := range c.TransitiveDeps {
+		deps = append(deps, td.Parent)
+	}
 	c.GitCheckoutConfig.Dependencies = deps
 	checkout, err := git_common.NewCheckout(ctx, c.GitCheckoutConfig, reg, workdir, userName, userEmail, co)
 	if err != nil {

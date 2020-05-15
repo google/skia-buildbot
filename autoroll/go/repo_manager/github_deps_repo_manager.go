@@ -26,13 +26,10 @@ type GithubDEPSRepoManagerConfig struct {
 	// workdir + parent repo.
 	GithubParentPath string `json:"githubParentPath,omitempty"`
 
-	// Optional; transitive dependencies to roll. This is a mapping of
-	// dependencies of the child repo which are also dependencies of the
-	// parent repo and should be rolled at the same time. Keys are paths
-	// to transitive dependencies within the child repo (as specified in
-	// DEPS), and values are paths to those dependencies within the parent
-	// repo.
-	TransitiveDeps map[string]string `json:"transitiveDeps"`
+	// TransitiveDeps is an optional set of dependencies shared by the Parent
+	// and Child which are updated in the Parent to match the versions of the
+	// Child.
+	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps"`
 }
 
 // Validate the config.
@@ -52,6 +49,13 @@ func (c *GithubDEPSRepoManagerConfig) Validate() error {
 // TODO(borenet): Update the config format to directly define the parent
 // and child. We shouldn't need most of the New.*RepoManager functions.
 func (c GithubDEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig, child.GitCheckoutConfig, error) {
+	var childDeps []*version_file_common.VersionFileConfig
+	if c.TransitiveDeps != nil {
+		childDeps = make([]*version_file_common.VersionFileConfig, 0, len(c.TransitiveDeps))
+		for _, dep := range c.TransitiveDeps {
+			childDeps = append(childDeps, dep.Child)
+		}
+	}
 	parentCfg := parent.DEPSLocalConfig{
 		GitCheckoutConfig: parent.GitCheckoutConfig{
 			BaseConfig: parent.BaseConfig{
@@ -71,6 +75,7 @@ func (c GithubDEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig,
 					ID:   c.ChildRepo,
 					Path: deps_parser.DepsFileName,
 				},
+				TransitiveDeps: c.TransitiveDeps,
 			},
 		},
 		CheckoutPath:   c.GithubParentPath,
@@ -83,9 +88,10 @@ func (c GithubDEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig,
 	}
 	childCfg := child.GitCheckoutConfig{
 		GitCheckoutConfig: git_common.GitCheckoutConfig{
-			Branch:      c.ChildBranch,
-			RepoURL:     c.ChildRepo,
-			RevLinkTmpl: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ChildRevLinkTmpl,
+			Branch:       c.ChildBranch,
+			RepoURL:      c.ChildRepo,
+			RevLinkTmpl:  c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ChildRevLinkTmpl,
+			Dependencies: childDeps,
 		},
 	}
 	if err := childCfg.Validate(); err != nil {

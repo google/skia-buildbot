@@ -31,13 +31,37 @@ func (c VersionFileConfig) Validate() error {
 	return nil
 }
 
+// TransitiveDepConfig provides configuration for a single transitive
+// dependency.
+type TransitiveDepConfig struct {
+	Child  *VersionFileConfig `json:"child"`
+	Parent *VersionFileConfig `json:"parent"`
+}
+
+// See documentation for util.Validator interface.
+func (c *TransitiveDepConfig) Validate() error {
+	if c.Child == nil {
+		return skerr.Fmt("Child is required")
+	}
+	if err := c.Child.Validate(); err != nil {
+		return skerr.Wrap(err)
+	}
+	if c.Parent == nil {
+		return skerr.Fmt("Parent is required")
+	}
+	if err := c.Parent.Validate(); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}
+
 // DependencyConfig provides configuration for a dependency whose version is
 // pinned in a file and which may have transitive dependencies.
 type DependencyConfig struct {
 	// Primary dependency.
 	VersionFileConfig
 	// Transitive dependencies.
-	TransitiveDeps []*VersionFileConfig
+	TransitiveDeps []*TransitiveDepConfig
 }
 
 // See documentation for util.Validator interface.
@@ -161,18 +185,18 @@ func UpdateDep(ctx context.Context, primaryDep DependencyConfig, rev *revision.R
 	if len(primaryDep.TransitiveDeps) > 0 {
 		for _, dep := range primaryDep.TransitiveDeps {
 			// Find the new revision.
-			newVersion, ok := rev.Dependencies[dep.ID]
+			newVersion, ok := rev.Dependencies[dep.Child.ID]
 			if !ok {
-				return nil, nil, skerr.Fmt("Could not find transitive dependency %q in %#v", dep.ID, rev)
+				return nil, nil, skerr.Fmt("Could not find transitive dependency %q in %#v", dep.Child.ID, rev)
 			}
 			// Update.
-			oldVersion, err := updateSingleDep(ctx, *dep, newVersion, changes, getFile)
+			oldVersion, err := updateSingleDep(ctx, *dep.Parent, newVersion, changes, getFile)
 			if err != nil {
 				return nil, nil, skerr.Wrap(err)
 			}
 			// Add the transitive dep to the list.
 			td = append(td, &TransitiveDepUpdate{
-				Dep:         dep.ID,
+				Dep:         dep.Parent.ID,
 				RollingFrom: oldVersion,
 				RollingTo:   newVersion,
 			})

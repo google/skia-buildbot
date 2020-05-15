@@ -33,7 +33,7 @@ type GithubRepoManagerConfig struct {
 	// TransitiveDeps is an optional mapping of dependency ID (eg. repo URL)
 	// to the paths within the parent and child repo, respectively, where
 	// those dependencies are versioned, eg. "DEPS".
-	TransitiveDeps []*TransitiveDepConfig `json:"transitiveDeps"`
+	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps"`
 }
 
 // See documentation for util.Validator interface.
@@ -47,12 +47,10 @@ func (c *GithubRepoManagerConfig) Validate() error {
 // TODO(borenet): Update the config format to directly define the parent
 // and child. We shouldn't need most of the New.*RepoManager functions.
 func (c GithubRepoManagerConfig) splitParentChild() (parent.GitCheckoutGithubFileConfig, child.GitCheckoutGithubConfig, error) {
-	var childDeps, parentDeps []*version_file_common.VersionFileConfig
+	var childDeps []*version_file_common.VersionFileConfig
 	if c.TransitiveDeps != nil {
 		childDeps = make([]*version_file_common.VersionFileConfig, 0, len(c.TransitiveDeps))
-		parentDeps = make([]*version_file_common.VersionFileConfig, 0, len(c.TransitiveDeps))
 		for _, dep := range c.TransitiveDeps {
-			parentDeps = append(parentDeps, dep.Parent)
 			childDeps = append(childDeps, dep.Child)
 		}
 	}
@@ -77,7 +75,7 @@ func (c GithubRepoManagerConfig) splitParentChild() (parent.GitCheckoutGithubFil
 						ID:   c.ChildRepoURL,
 						Path: c.RevisionFile,
 					},
-					TransitiveDeps: parentDeps,
+					TransitiveDeps: c.TransitiveDeps,
 				},
 			},
 			ForkRepoURL: c.ForkRepoURL,
