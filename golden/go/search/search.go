@@ -819,7 +819,7 @@ func findDigestIndex(d types.Digest, digestInfo []frontend.DigestStatus) int {
 
 // UntriagedUnignoredTryJobExclusiveDigests implements the SearchAPI interface. It uses the cached
 // TryJobResults, so as to improve performance.
-func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Context, psID tjstore.CombinedPSID) (*frontend.DigestList, error) {
+func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Context, psID tjstore.CombinedPSID) (*frontend.UntriagedDigestList, error) {
 	var resultsForThisPS []tjstore.TryJobResult
 	listTS := time.Now()
 	clIdx := s.indexSource.GetIndexForCL(psID.CRS, psID.CL)
@@ -845,6 +845,7 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 	knownDigestsForTest := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
 
 	var returnDigests []types.Digest
+	var returnCorpora []string
 
 	for _, tr := range resultsForThisPS {
 		if err := ctx.Err(); err != nil {
@@ -867,14 +868,18 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 			// This trace matches an ignore
 			continue
 		}
+		if corpus := p[types.CorpusField]; !util.In(corpus, returnCorpora) {
+			returnCorpora = append(returnCorpora, corpus)
+		}
 		returnDigests = append(returnDigests, tr.Digest)
 	}
 	// Sort digests alphabetically for determinism.
 	sort.Slice(returnDigests, func(i, j int) bool {
 		return returnDigests[i] < returnDigests[j]
 	})
-	return &frontend.DigestList{
+	return &frontend.UntriagedDigestList{
 		Digests: returnDigests,
+		Corpora: returnCorpora,
 		TS:      listTS,
 	}, nil
 }

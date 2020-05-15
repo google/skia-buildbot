@@ -90,15 +90,15 @@ func (_m *SearchAPI) Search(_a0 context.Context, _a1 *query.Search) (*frontend.S
 }
 
 // UntriagedUnignoredTryJobExclusiveDigests provides a mock function with given fields: _a0, _a1
-func (_m *SearchAPI) UntriagedUnignoredTryJobExclusiveDigests(_a0 context.Context, _a1 tjstore.CombinedPSID) (*frontend.DigestList, error) {
+func (_m *SearchAPI) UntriagedUnignoredTryJobExclusiveDigests(_a0 context.Context, _a1 tjstore.CombinedPSID) (*frontend.UntriagedDigestList, error) {
 	ret := _m.Called(_a0, _a1)
 
-	var r0 *frontend.DigestList
-	if rf, ok := ret.Get(0).(func(context.Context, tjstore.CombinedPSID) *frontend.DigestList); ok {
+	var r0 *frontend.UntriagedDigestList
+	if rf, ok := ret.Get(0).(func(context.Context, tjstore.CombinedPSID) *frontend.UntriagedDigestList); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*frontend.DigestList)
+			r0 = ret.Get(0).(*frontend.UntriagedDigestList)
 		}
 	}
 

@@ -136,9 +136,14 @@ type DigestComparison struct {
 	Right *SRDiffDigest `json:"right"` // The right hand digest, its params and the diff result.
 }
 
-// DigestList represents multiple returned digests.
-type DigestList struct {
+// UntriagedDigestList represents multiple digests that are untriaged for a given query.
+type UntriagedDigestList struct {
 	Digests []types.Digest `json:"digests"`
+
+	// Corpora is filed with the strings representing a corpus that has one or more Digests belong
+	// to it. In other words, it summarizes where the Digests come from.
+	Corpora []string `json:"corpora"`
+
 	// TS is the time that this data was created. It might be served from a cache, so this time will
 	// not necessarily be "now".
 	TS time.Time `json:"ts"`

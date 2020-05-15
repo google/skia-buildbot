@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"sort"
@@ -471,17 +472,18 @@ func (wh *Handlers) ChangeListUntriagedHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	clID, ok := mux.Vars(r)["id"]
+	requestVars := mux.Vars(r)
+	clID, ok := requestVars["id"]
 	if !ok {
 		http.Error(w, "Must specify 'id' of ChangeList.", http.StatusBadRequest)
 		return
 	}
-	psID, ok := mux.Vars(r)["patchset"]
+	psID, ok := requestVars["patchset"]
 	if !ok {
 		http.Error(w, "Must specify 'patchset' of ChangeList.", http.StatusBadRequest)
 		return
 	}
-	crs, ok := mux.Vars(r)["system"]
+	crs, ok := requestVars["system"]
 	if !ok {
 		http.Error(w, "Must specify 'system' of ChangeList.", http.StatusBadRequest)
 		return
@@ -1557,6 +1559,57 @@ func (wh *Handlers) GetPerTraceDigestsByTestName(w http.ResponseWriter, r *http.
 	}
 
 	sendJSONResponse(w, digestsByTraceId)
+}
+
+// ChangeListSearchRedirect redirects the user to a search page showing the search results
+// for a given CL. It will do a quick scan of the untriaged digests - if it finds some, it will
+// include the corpus containing some of those untriaged digests in the search query so the user
+// will see results (instead of getting directed to a corpus with no results).
+func (wh *Handlers) ChangeListSearchRedirect(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+	}
+
+	requestVars := mux.Vars(r)
+	crs, ok := requestVars["system"]
+	if !ok {
+		http.Error(w, "Must specify 'system' of ChangeList.", http.StatusBadRequest)
+		return
+	}
+	clID, ok := requestVars["id"]
+	if !ok {
+		http.Error(w, "Must specify 'id' of ChangeList.", http.StatusBadRequest)
+		return
+	}
+
+	baseURL := fmt.Sprintf("/search?issue=%s", clID)
+
+	clIdx := wh.Indexer.GetIndexForCL(crs, clID)
+	if clIdx == nil {
+		// Not cached, so we can't cheaply determine the corpus to include
+		if _, err := wh.ChangeListStore.GetChangeList(r.Context(), clID); err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		http.Redirect(w, r, baseURL, http.StatusTemporaryRedirect)
+		return
+	}
+
+	digestList, err := wh.SearchAPI.UntriagedUnignoredTryJobExclusiveDigests(r.Context(), clIdx.LatestPatchSet)
+	if err != nil {
+		sklog.Errorf("Could not find corpus to redirect to for CL %s: %s", clID, err)
+		http.Redirect(w, r, baseURL, http.StatusTemporaryRedirect)
+		return
+	}
+	if len(digestList.Corpora) == 0 {
+		http.Redirect(w, r, baseURL, http.StatusTemporaryRedirect)
+		return
+	}
+
+	withCorpus := baseURL + "&query=source_type%3D" + digestList.Corpora[0]
+	sklog.Debugf("Redirecting to %s", withCorpus)
+	http.Redirect(w, r, withCorpus, http.StatusTemporaryRedirect)
 }
 
 func (wh *Handlers) now() time.Time {

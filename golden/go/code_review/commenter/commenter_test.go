@@ -242,7 +242,7 @@ func TestCommentOnCLsSunnyDay(t *testing.T) {
 	mcr.On("System").Return("github")
 
 	// Pretend all CLs queried have 2 untriaged digests.
-	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(&frontend.DigestList{
+	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(&frontend.UntriagedDigestList{
 		Digests: []types.Digest{"doesn't", "matter"},
 		TS:      indexTime,
 	}, nil)
@@ -289,7 +289,7 @@ func TestCommentOnChangeListsWithUntriagedDigests_NoUntriagedDigests_Success(t *
 	mcr.On("System").Return("github")
 
 	// Pretend all CLs queried have 2 untriaged digests.
-	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(&frontend.DigestList{
+	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(&frontend.UntriagedDigestList{
 		Digests: nil,
 		TS:      indexTime,
 	}, nil)
@@ -372,7 +372,7 @@ func TestCommentOnCLsLogCommentsOnly(t *testing.T) {
 	mcr.On("System").Return("github")
 
 	// Pretend all CLs queried have 2 untriaged digests.
-	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(&frontend.DigestList{
+	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(&frontend.UntriagedDigestList{
 		Digests: []types.Digest{"doesn't", "matter"},
 	}, nil)
 
@@ -458,7 +458,7 @@ func TestCommentOnCLsCommentError(t *testing.T) {
 	mcr.On("System").Return("gerritHub")
 
 	// Pretend all CLs queried have 2 untriaged digests.
-	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(&frontend.DigestList{
+	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(&frontend.UntriagedDigestList{
 		Digests: []types.Digest{"doesn't", "matter"},
 	}, nil)
 

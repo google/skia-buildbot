@@ -30,5 +30,5 @@ type SearchAPI interface {
 	// UntriagedUnignoredTryJobExclusiveDigests returns a list of untriaged, non-ignored,
 	// digests that are exclusive to a given CL (i.e. they don't also show up on the master branch
 	// in the last N commits).
-	UntriagedUnignoredTryJobExclusiveDigests(context.Context, tjstore.CombinedPSID) (*frontend.DigestList, error)
+	UntriagedUnignoredTryJobExclusiveDigests(context.Context, tjstore.CombinedPSID) (*frontend.UntriagedDigestList, error)
 }
