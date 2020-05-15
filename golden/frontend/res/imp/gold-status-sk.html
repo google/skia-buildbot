@@ -27,22 +27,10 @@
                        not fire a corpus-change event.
 -->
 <link rel="import" href="bower_components/polymer/polymer.html">
-<link rel="import" href="bower_components/paper-tabs/paper-tabs.html">
-<link rel="import" href="bower_components/paper-tabs/paper-tab.html">
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <dom-module id="gold-status-sk">
   <template>
     <style>
-    .wrapper {
-      min-height: 48px;
-      display: inline-block;
-      float: left;
-    }
-
-    #corpusSelector {
-      display: inline-block;
-    }
-
     .statusEntry {
       font-size: 12pt;
       display: inline-block;
@@ -56,41 +44,12 @@
     .statusEntry a {
       color: white;
     }
-
-    /* iron-selected is applied to paper-tab when selected */
-    paper-tab.iron-selected div.marker {
-      height: 6px;
-      background-color: white;
-      position:absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-    }
-
-    paper-tab.iron-selected {
-      font-weight: bold;
-    }
-
-    :host {
-      --paper-tabs-selection-bar-color: white;
-    };
     </style>
     <template is="dom-if" if="{{status}}">
-        <div class="wrapper">
-          <paper-tabs id="corpusSelector" attr-for-selected="data-tabid" selected="{{corpus}}" on-iron-select="_handleCorpusChanged" no-slide no-bar noink>
-            <template is="dom-repeat" items="{{status.corpStatus}}">
-              <paper-tab class="statusEntry" data-tabid$="{{item.name}}">
-                {{item.name}}:{{item.untriagedCount}} / {{item.negativeCount}}
-                <div class="marker"></marker>
-              </paper-tab>
-            </template>
-          </paper-tabs>
-        </div>
-        <div class="statusEntry">
-          <a href$="{{_commitURL(status.lastCommit.hash)}}" target="_blank">
-             Last Commit: {{_lastCommitText(status)}}
-          </a>
-        </div>
+      <div class="statusEntry">
+        <a href$="{{_commitURL(status.lastCommit.hash)}}" target="_blank">
+           Last Commit: {{_lastCommitText(status)}}
+        </a>
       </div>
     </template>
   </template>
@@ -118,31 +77,7 @@
       },
 
       setCorpus: function(corpus) {
-        if (this.corpus === corpus) {
-          return;
-        }
-        this._noFire = true;
-        if (this.status) {
-          for(var i=0, len=this.status.corpStatus.length; i < len; i++) {
-            if (this.status.corpStatus[i].name === corpus) {
-              this.set("corpus", corpus);
-              return;
-            }
-          }
-          // Since this is not a valid status set to default.
-          this.set("corpus", "gm");
-          return;
-        }
-        // If we have to way to validate the status, trust the client.
-        this.set("corpus", corpus);
-      },
-
-      // Called when the user selects a corpus.
-      _handleCorpusChanged: function(ev) {
-        if (!this._noFire) {
-          this.fire('corpus-change', ev.target.selected);
-        }
-        this._noFire = false;
+       // no longer used
       },
 
       // Load or reload the listing.
