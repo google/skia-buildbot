@@ -31,7 +31,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (contex
 	// Create child and parent repos.
 	child := git_testutils.GitInit(t, context.Background())
 	child.Add(context.Background(), "DEPS", `deps = {
-  "child/dep": "grandchild@def4560000def4560000def4560000def4560000",
+  "child/dep": "https://grandchild-in-child@def4560000def4560000def4560000def4560000",
 }`)
 	child.Commit(context.Background())
 	f := "somefile.txt"
@@ -47,7 +47,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (contex
 	parent := git_testutils.GitInit(t, context.Background())
 	parent.Add(context.Background(), "DEPS", fmt.Sprintf(`deps = {
   "%s": "%s@%s",
-  "parent/dep": "grandchild@abc1230000abc1230000abc1230000abc1230000",
+  "parent/dep": "https://grandchild-in-parent@abc1230000abc1230000abc1230000abc1230000",
 }`, childPath, child.RepoUrl(), childCommits[0]))
 	parent.Commit(context.Background())
 
@@ -238,7 +238,7 @@ Tbr: me@google.com`, childPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRoll
 	// Mock the request to modify the DEPS file.
 	reqBody = []byte(fmt.Sprintf(`deps = {
   "%s": "%s@%s",
-  "parent/dep": "grandchild@abc1230000abc1230000abc1230000abc1230000",
+  "parent/dep": "https://grandchild-in-parent@abc1230000abc1230000abc1230000abc1230000",
 }`, childPath, childRepo.RepoUrl(), tipRev.Id))
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit/DEPS", mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
@@ -287,14 +287,14 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollNoCQ(t *testing.T) {
 
 func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	cfg := noCheckoutDEPSCfg(t)
-	cfg.TransitiveDeps = []*TransitiveDepConfig{
+	cfg.TransitiveDeps = []*version_file_common.TransitiveDepConfig{
 		{
 			Child: &version_file_common.VersionFileConfig{
-				ID:   "grandchild",
+				ID:   "https://grandchild-in-child",
 				Path: "DEPS",
 			},
 			Parent: &version_file_common.VersionFileConfig{
-				ID:   "grandchild",
+				ID:   "https://grandchild-in-parent",
 				Path: "DEPS",
 			},
 		},
@@ -345,7 +345,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 git log %s..%s --date=short --first-parent --format='%%ad %%ae %%s'
 %s
 Also rolling transitive DEPS:
-  grandchild abc1230000ab..def4560000de
+  https://grandchild-in-parent abc1230000ab..def4560000de
 
 Created with:
   gclient setdep -r %s@%s
@@ -390,7 +390,7 @@ Tbr: me@google.com`, childPath, lastRollRev.Id[:12], tipRev.Id[:12], len(notRoll
 	// Mock the request to modify the DEPS file.
 	reqBody = []byte(fmt.Sprintf(`deps = {
   "%s": "%s@%s",
-  "parent/dep": "grandchild@def4560000def4560000def4560000def4560000",
+  "parent/dep": "https://grandchild-in-parent@def4560000def4560000def4560000def4560000",
 }`, childPath, childRepo.RepoUrl(), tipRev.Id))
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit/DEPS", mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 

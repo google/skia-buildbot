@@ -84,7 +84,9 @@ func newGitiles(ctx context.Context, c GitilesConfig, reg *config_vars.Registry,
 	}
 	deps := make([]*version_file_common.VersionFileConfig, 0, len(c.DependencyConfig.TransitiveDeps)+1)
 	deps = append(deps, &c.DependencyConfig.VersionFileConfig)
-	deps = append(deps, c.DependencyConfig.TransitiveDeps...)
+	for _, td := range c.DependencyConfig.TransitiveDeps {
+		deps = append(deps, td.Parent)
+	}
 	c.GitilesConfig.Dependencies = deps
 	gr, err := gitiles_common.NewGitilesRepo(ctx, c.GitilesConfig, reg, client)
 	if err != nil {

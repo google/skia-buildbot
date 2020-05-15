@@ -57,12 +57,18 @@ func (c *FuchsiaSDKRepoManagerConfig) ValidStrategies() []string {
 // splitParentChild breaks the FuchsiaSDKRepoManagerConfig into parent and child
 // configs.
 func (c *FuchsiaSDKRepoManagerConfig) splitParentChild() (parent.GitilesConfig, child.FuchsiaSDKConfig, error) {
-	var parentDeps []*version_file_common.VersionFileConfig
+	var transitiveDeps []*version_file_common.TransitiveDepConfig
 	if c.IncludeMacSDK {
-		parentDeps = []*version_file_common.VersionFileConfig{
+		transitiveDeps = []*version_file_common.TransitiveDepConfig{
 			{
-				ID:   child.FuchsiaSDKGSLatestPathMac,
-				Path: FuchsiaSDKVersionFilePathMac,
+				Child: &version_file_common.VersionFileConfig{
+					ID:   child.FuchsiaSDKGSLatestPathMac,
+					Path: FuchsiaSDKVersionFilePathMac,
+				},
+				Parent: &version_file_common.VersionFileConfig{
+					ID:   child.FuchsiaSDKGSLatestPathMac,
+					Path: FuchsiaSDKVersionFilePathMac,
+				},
 			},
 		}
 	}
@@ -84,7 +90,7 @@ func (c *FuchsiaSDKRepoManagerConfig) splitParentChild() (parent.GitilesConfig, 
 				ID:   "FuchsiaSDK",
 				Path: FuchsiaSDKVersionFilePathLinux,
 			},
-			TransitiveDeps: parentDeps,
+			TransitiveDeps: transitiveDeps,
 		},
 		GitilesConfig: gitiles_common.GitilesConfig{
 			Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,

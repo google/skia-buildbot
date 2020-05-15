@@ -21,13 +21,6 @@ var (
 	getDepRegex = regexp.MustCompile("[a-f0-9]+")
 )
 
-// TransitiveDepConfig provides configuration for a single transitive
-// dependency.
-type TransitiveDepConfig struct {
-	Child  *version_file_common.VersionFileConfig `json:"child"`
-	Parent *version_file_common.VersionFileConfig `json:"parent"`
-}
-
 // NoCheckoutDEPSRepoManagerConfig provides configuration for RepoManagers which
 // don't use a local checkout.
 type NoCheckoutDEPSRepoManagerConfig struct {
@@ -36,10 +29,10 @@ type NoCheckoutDEPSRepoManagerConfig struct {
 	// URL of the child repo.
 	ChildRepo string `json:"childRepo"` // TODO(borenet): Can we just get this from DEPS?
 
-	// TransitiveDeps is an optional mapping of dependency ID (eg. repo URL)
-	// to the paths within the parent and child repo, respectively, where
-	// those dependencies are versioned, eg. "DEPS".
-	TransitiveDeps []*TransitiveDepConfig `json:"transitiveDeps"`
+	// TransitiveDeps is an optional set of dependencies shared by the Parent
+	// and Child which are updated in the Parent to match the versions of the
+	// Child.
+	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps"`
 }
 
 // See documentation for util.Validator interface.
@@ -81,12 +74,10 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 // TODO(borenet): Update the config format to directly define the parent
 // and child. We shouldn't need most of the New.*RepoManager functions.
 func (c NoCheckoutDEPSRepoManagerConfig) splitParentChild() (parent.GitilesConfig, child.GitilesConfig, error) {
-	var childDeps, parentDeps []*version_file_common.VersionFileConfig
+	var childDeps []*version_file_common.VersionFileConfig
 	if c.TransitiveDeps != nil {
 		childDeps = make([]*version_file_common.VersionFileConfig, 0, len(c.TransitiveDeps))
-		parentDeps = make([]*version_file_common.VersionFileConfig, 0, len(c.TransitiveDeps))
 		for _, dep := range c.TransitiveDeps {
-			parentDeps = append(parentDeps, dep.Parent)
 			childDeps = append(childDeps, dep.Child)
 		}
 	}
@@ -104,7 +95,7 @@ func (c NoCheckoutDEPSRepoManagerConfig) splitParentChild() (parent.GitilesConfi
 				ID:   c.ChildRepo,
 				Path: deps_parser.DepsFileName,
 			},
-			TransitiveDeps: parentDeps,
+			TransitiveDeps: c.TransitiveDeps,
 		},
 		GitilesConfig: gitiles_common.GitilesConfig{
 			Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
