@@ -1,6 +1,7 @@
 package repo_manager
 
 import (
+	"go.skia.org/infra/go/common"
 	"context"
 	"fmt"
 	"io/ioutil"
@@ -44,13 +45,13 @@ func androidGerrit(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview
 
 func androidCfg(t *testing.T) *AndroidRepoManagerConfig {
 	return &AndroidRepoManagerConfig{
-		CommonRepoManagerConfig{
+		CommonRepoManagerConfig: CommonRepoManagerConfig{
 			ChildBranch:  masterBranchTmpl(t),
 			ChildPath:    childPath,
 			ParentBranch: masterBranchTmpl(t),
 			ParentRepo:   "https://my-repo.com",
 		},
-		&ProjectMetadataFileConfig{
+		ProjectMetadataFileConfig: &ProjectMetadataFileConfig{
 			FilePath:    "METADATA",
 			Name:        "skia",
 			Description: "Skia Graphics Library",
@@ -58,6 +59,7 @@ func androidCfg(t *testing.T) *AndroidRepoManagerConfig {
 			GitURL:      "https://skia.googlesource.com/skia",
 			LicenseType: "RECIPROCAL",
 		},
+		ChildRepoURL: common.REPO_SKIA,
 	}
 }
 
