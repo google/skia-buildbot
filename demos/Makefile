@@ -39,3 +39,12 @@ release: build_resources fetch_demos
 local_image: build_resources fetch_demos
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/demoserver
 	SKIP_UPLOAD=1 ./build_release
+
+test_puppeteer:
+	npx mocha ./**/*_puppeteer_test.js
+
+test_js:
+	npx webpack --mode=development
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+test: test_js test_puppeteer

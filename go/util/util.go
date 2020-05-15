@@ -623,8 +623,8 @@ func Truncate(s string, length int) string {
 // gets interrupted.
 func WithWriteFile(file string, writeFn func(io.Writer) error) error {
 	dir := path.Dir(file)
-	if err := os.MkdirAll(dir, 700); err != nil {
-		return fmt.Errorf("Failed to MkdirAll(%s, 700): %v", dir, err)
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return fmt.Errorf("Failed to MkdirAll(%s, 0700): %v", dir, err)
 	}
 	f, err := ioutil.TempFile(dir, path.Base(file))
 	if err != nil {
