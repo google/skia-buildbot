@@ -480,6 +480,7 @@ func main() {
 	loggedRouter.HandleFunc("/json/version", skiaversion.JsonHandler)
 	loggedRouter.HandleFunc("/loginstatus/", login.StatusHandler)
 	loggedRouter.HandleFunc("/logout/", login.LogoutHandler)
+	loggedRouter.HandleFunc("/cl/{system}/{id}", handlers.ChangeListSearchRedirect)
 
 	// Set up a subrouter for the '/json' routes which make up the Gold API.
 	// This makes routing faster, but also returns a failure when an /json route is
