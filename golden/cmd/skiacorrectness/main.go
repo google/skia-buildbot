@@ -575,6 +575,7 @@ func main() {
 	loggedRouter.HandleFunc("/diff", templateHandler("diff.html"))
 	loggedRouter.HandleFunc("/detail", templateHandler("details.html"))
 	loggedRouter.HandleFunc("/details", templateHandler("details.html"))
+	loggedRouter.HandleFunc("/cl/{system}/{id}", handlers.ChangeListSearchRedirect)
 
 	// This route handles the legacy polymer "single page" app model
 	loggedRouter.PathPrefix("/").Handler(templateHandler("index.html"))

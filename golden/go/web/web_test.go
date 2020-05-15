@@ -38,6 +38,8 @@ import (
 	mock_indexer "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/paramsets"
+	search_fe "go.skia.org/infra/golden/go/search/frontend"
+	mock_search "go.skia.org/infra/golden/go/search/mocks"
 	bug_revert "go.skia.org/infra/golden/go/testutils/data_bug_revert"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/tjstore"
@@ -1947,6 +1949,155 @@ func TestParamsHandler_NoChangeListIndex_FallBackToMasterBranch(t *testing.T) {
 	wh.ParamsHandler(w, r)
 	const expectedResponse = `{"name":["alpha_test","beta_test","gamma_test"],"os":["Android XYZ"],"source_type":["first_corpus","second_corpus"]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
+}
+
+func TestChangeListSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mockSearchAPI := &mock_search.SearchAPI{}
+	mockIndexSource := &mock_indexer.IndexSource{}
+
+	const crs = "gerrit"
+	const clID = "1234"
+
+	combinedID := tjstore.CombinedPSID{
+		CRS: crs,
+		CL:  clID,
+		PS:  "some patchset",
+	}
+
+	mockIndexSource.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{
+		LatestPatchSet: combinedID,
+		// Other fields should be ignored
+	})
+
+	mockSearchAPI.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, combinedID).Return(&search_fe.UntriagedDigestList{
+		Corpora: []string{"one_corpus", "two_corpus"},
+	}, nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer:   mockIndexSource,
+			SearchAPI: mockSearchAPI,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/1234", nil)
+	r = mux.SetURLVars(r, map[string]string{
+		"system": crs,
+		"id":     clID,
+	})
+	wh.ChangeListSearchRedirect(w, r)
+	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+	headers := w.Header()
+	assert.Equal(t, []string{"/search?issue=1234&query=source_type%3Done_corpus"}, headers["Location"])
+}
+
+func TestChangeListSearchRedirect_ErrorGettingUntriagedDigests_RedirectsWithoutCorpus(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mockSearchAPI := &mock_search.SearchAPI{}
+	mockIndexSource := &mock_indexer.IndexSource{}
+	defer mockSearchAPI.AssertExpectations(t) // make sure the error was returned
+
+	const crs = "gerrit"
+	const clID = "1234"
+
+	combinedID := tjstore.CombinedPSID{
+		CRS: crs,
+		CL:  clID,
+		PS:  "some patchset",
+	}
+
+	mockIndexSource.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{
+		LatestPatchSet: combinedID,
+		// Other fields should be ignored
+	})
+
+	mockSearchAPI.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, combinedID).Return(nil, errors.New("this shouldn't happen"))
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer:   mockIndexSource,
+			SearchAPI: mockSearchAPI,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/1234", nil)
+	r = mux.SetURLVars(r, map[string]string{
+		"system": crs,
+		"id":     clID,
+	})
+	wh.ChangeListSearchRedirect(w, r)
+	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+	headers := w.Header()
+	assert.Equal(t, []string{"/search?issue=1234"}, headers["Location"])
+}
+
+func TestChangeListSearchRedirect_CLExistsNotIndexed_RedirectsWithoutCorpus(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mockIndexSource := &mock_indexer.IndexSource{}
+	mockCLStore := &mock_clstore.Store{}
+
+	const crs = "gerrit"
+	const clID = "1234"
+
+	mockIndexSource.On("GetIndexForCL", crs, clID).Return(nil)
+
+	// all this cares about is a non-error return code
+	mockCLStore.On("GetChangeList", testutils.AnyContext, clID).Return(code_review.ChangeList{}, nil)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer:         mockIndexSource,
+			ChangeListStore: mockCLStore,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/1234", nil)
+	r = mux.SetURLVars(r, map[string]string{
+		"system": crs,
+		"id":     clID,
+	})
+	wh.ChangeListSearchRedirect(w, r)
+	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+	headers := w.Header()
+	assert.Equal(t, []string{"/search?issue=1234"}, headers["Location"])
+}
+
+func TestChangeListSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mockIndexSource := &mock_indexer.IndexSource{}
+	mockCLStore := &mock_clstore.Store{}
+
+	const crs = "gerrit"
+	const clID = "1234"
+
+	mockIndexSource.On("GetIndexForCL", crs, clID).Return(nil)
+
+	// all this cares about is a non-error return code
+	mockCLStore.On("GetChangeList", testutils.AnyContext, clID).Return(code_review.ChangeList{}, code_review.ErrNotFound)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer:         mockIndexSource,
+			ChangeListStore: mockCLStore,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/1234", nil)
+	r = mux.SetURLVars(r, map[string]string{
+		"system": crs,
+		"id":     clID,
+	})
+	wh.ChangeListSearchRedirect(w, r)
+	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL

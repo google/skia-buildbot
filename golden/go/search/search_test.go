@@ -1476,6 +1476,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_NoIndexBuilt_Success(t *testin
 
 	dl, err := s.UntriagedUnignoredTryJobExclusiveDigests(context.Background(), expectedID)
 	require.NoError(t, err)
+	assert.Equal(t, []string{"gm"}, dl.Corpora)
 	assert.Equal(t, []types.Digest{alphaUntriagedTryJobDigest, betaUntriagedTryJobDigest}, dl.Digests)
 	// TS should be very recent, since the results were freshly computed.
 	assert.True(t, dl.TS.After(time.Now().Add(-time.Minute)))
@@ -1594,8 +1595,11 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_UsesIndex_Success(t *testing.T
 
 	dl, err := s.UntriagedUnignoredTryJobExclusiveDigests(context.Background(), expectedID)
 	require.NoError(t, err)
-	assert.Equal(t, []types.Digest{alphaUntriagedTryJobDigest, betaUntriagedTryJobDigest}, dl.Digests)
-	assert.Equal(t, indexTS, dl.TS)
+	assert.Equal(t, &frontend.UntriagedDigestList{
+		Digests: []types.Digest{alphaUntriagedTryJobDigest, betaUntriagedTryJobDigest},
+		Corpora: []string{"gm"},
+		TS:      indexTS,
+	}, dl)
 }
 
 // TestGetDrawableTraces_DigestIndicesAreCorrect tests that we generate the output required to draw
