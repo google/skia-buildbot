@@ -228,11 +228,11 @@ func TestCommentOnCLsSunnyDay(t *testing.T) {
 		if i == 3 {
 			// On CL 0003, the most recent patchset with untriaged digests has order 4.
 			assert.Contains(t, msg, "patchset 4")
-			assert.Contains(t, msg, "gold.skia.org/search?issue=0003")
+			assert.Contains(t, msg, "gold.skia.org/cl/github/0003")
 		} else if i == 7 {
 			// On CL 0007, the most recent patchset with untriaged digests has order 9.
 			assert.Contains(t, msg, "patchset 9")
-			assert.Contains(t, msg, "gold.skia.org/search?issue=0007")
+			assert.Contains(t, msg, "gold.skia.org/cl/github/0007")
 		} else {
 			assert.Fail(t, "unexpected call")
 		}
@@ -526,7 +526,7 @@ func newTestCommenter(mcr *mock_codereview.Client, mcs *mock_clstore.Store, msa 
 const (
 	instanceURL   = "gold.skia.org"
 	basicTemplate = `Gold has detected about %d untriaged digest(s) on patchset %d.
-Please triage them at %s/search?issue=%s.`
+Please triage them at %s/cl/%s/%s.`
 )
 
 var (
