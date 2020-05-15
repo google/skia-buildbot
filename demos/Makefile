@@ -4,13 +4,6 @@ core:
 serve:
 	npx webpack-dev-server --watch-poll --mode-development
 
-fetch_demos:
-	go run ./go/load-demo-assets/main.go \
-		--alsologtostderr \
-		--demos_dir "demos/internal" \
-		--out_dir "fetched_demos" \
-		--repo_url "https://skia.googlesource.com/infra-internal"
-
 wasm_libs:
 	rm -rf build
 	mkdir -p build/canvaskit build/pathkit
@@ -26,17 +19,17 @@ build_resources: wasm_libs
 
 run: build_resources core
 	demoserver \
+	--local \
 	--alsologtostderr \
 	--port=:8000 \
-	--resources_dir="dist" \
-	--demos_dir="fetched_demos"
+	--resources_dir="dist"
 
 
-release: build_resources fetch_demos
+release: build_resources
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/demoserver
 	./build_release
 
-local_image: build_resources fetch_demos
+local_image: build_resources
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/demoserver
 	SKIP_UPLOAD=1 ./build_release
 

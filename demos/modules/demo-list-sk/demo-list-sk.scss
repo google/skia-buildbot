@@ -2,9 +2,11 @@
 @import '../colors';
 
 demo-list-sk {
-  a {
-    display: block;
-    padding: .2em;
+  td {
+    a {
+      display: block;
+      padding: .2em;
+    }
   }
 
   .demolist {
@@ -23,6 +25,7 @@ demo-list-sk {
     text-align: left;
   }
 }
+
 /* Outside demo-list-sk because darkmode exists outside it. */
 .darkmode .demolist a {
   color: var(--secondary);

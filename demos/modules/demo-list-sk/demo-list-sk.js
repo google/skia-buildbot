@@ -12,7 +12,9 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 const template = (el) => html`
 <table class=demolist>
   <thead>
-    <tr><th>Demo</th><th>Author</th></tr>
+    <tr>
+      <th>Available Demos (<a href="${el._repoURL}">${el._repoHash.substring(0, 10)}</a>)</th>
+    </tr>
   </thead>
   <tbody>
     ${el._demos.map((demo) => demoTemplate(demo))}
@@ -21,8 +23,7 @@ const template = (el) => html`
 `;
 const demoTemplate = (demo) => html`
 <tr>
-  <td><a href="/demo/${demo.name}">${demo.name}</a></td>
-  <td>${demo.commit.author}</td>
+  <td><a href="/demo/${demo}">${demo}</a></td>
 </tr>
 `;
 
@@ -30,6 +31,8 @@ define('demo-list-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._demos = [];
+    this._repoURL = '';
+    this._repoHash = '';
   }
 
   connectedCallback() {
@@ -37,7 +40,9 @@ define('demo-list-sk', class extends ElementSk {
     fetch('/demo/metadata.json', { method: 'GET' })
       .then(jsonOrThrow)
       .then((json) => {
-        this._demos = json;
+        this._demos = json.demos;
+        this._repoURL = json.revision.url;
+        this._repoHash = json.revision.hash;
         this._render();
         this.dispatchEvent(new CustomEvent('load-complete', { bubbles: true }));
       })
