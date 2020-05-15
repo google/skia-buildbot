@@ -32,6 +32,10 @@ type Store interface {
 	// restarted, but with the latest image.
 	WatchForDeletablePods(ctx context.Context) <-chan string
 
+	// WatchForPowerCycle returns a channel that will produce the name of a
+	// machine that needs to be power-cycled.
+	WatchForPowerCycle(ctx context.Context) <-chan string
+
 	// List returns a slice containing all known machines.
 	List(ctx context.Context) ([]machine.Description, error)
 }
