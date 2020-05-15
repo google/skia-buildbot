@@ -55,7 +55,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/a8m/envsubst v1.1.0
 	github.com/andybalholm/cascadia v1.2.0 // indirect
-	github.com/aws/aws-sdk-go v1.30.27 // indirect
+	github.com/aws/aws-sdk-go v1.30.28 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/danjacques/gofslock v0.0.0-20191023191349-0a45f885bc37 // indirect
@@ -70,7 +70,7 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e
 	github.com/golang/mock v1.4.3
-	github.com/golang/protobuf v1.4.1
+	github.com/golang/protobuf v1.4.2
 	github.com/google/go-github/v29 v29.0.3
 	github.com/google/go-licenses v0.0.0-20200511085313-e4cf7a36ee79
 	github.com/google/licenseclassifier v0.0.0-20200402202327-879cb1424de0 // indirect
@@ -122,25 +122,27 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20200514021706-fa8dd98fcf00
+	go.chromium.org/luci v0.0.0-20200515024543-2c12eb51855f
 	go.opencensus.io v0.22.3
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37 // indirect
+	golang.org/x/mod v0.3.0 // indirect
 	golang.org/x/net v0.0.0-20200513185701-a91f0712d120 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
 	golang.org/x/sys v0.0.0-20200513112337-417ce2331b5c // indirect
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
-	golang.org/x/tools v0.0.0-20200513201620-d5fe73897c97
+	golang.org/x/tools v0.0.0-20200515010526-7d3b6ebf133d
 	google.golang.org/api v0.24.0
-	google.golang.org/genproto v0.0.0-20200513103714-09dca8ec2884
+	google.golang.org/genproto v0.0.0-20200514193133-8feb7f20f2a2
 	google.golang.org/grpc v1.29.1
-	google.golang.org/protobuf v1.22.0
+	google.golang.org/protobuf v1.23.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/ini.v1 v1.56.0 // indirect
 	gopkg.in/olivere/elastic.v5 v5.0.85
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.3.0
+	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 	k8s.io/api v0.18.2
 	k8s.io/apimachinery v0.18.2
 	k8s.io/client-go v0.18.2
