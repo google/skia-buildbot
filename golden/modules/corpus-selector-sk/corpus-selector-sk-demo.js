@@ -12,7 +12,7 @@ const handleCorpusSelected = (e) => {
 const ele = document.createElement('corpus-selector-sk');
 ele.corpora = exampleCorpora;
 ele.selectedCorpus = 'gm';
-ele.addEventListener('corpus-selected', handleCorpusSelected);
+ele.addEventListener('corpus_selected', handleCorpusSelected);
 $$('#default').appendChild(ele);
 
 // Custom corpus renderer function.
@@ -20,7 +20,7 @@ const eleCustom = document.createElement('corpus-selector-sk');
 eleCustom.corpora = exampleCorpora;
 eleCustom.selectedCorpus = 'gm';
 eleCustom.corpusRendererFn = (corpus) => `${corpus.name} : ${corpus.untriagedCount} / ${corpus.negativeCount}`;
-eleCustom.addEventListener('corpus-selected', handleCorpusSelected);
+eleCustom.addEventListener('corpus_selected', handleCorpusSelected);
 $$('#custom-fn').appendChild(eleCustom);
 
 // Custom corpus renderer function (long).
@@ -28,5 +28,5 @@ const eleLong = document.createElement('corpus-selector-sk');
 eleLong.corpora = exampleCorpora;
 eleLong.selectedCorpus = 'gm';
 eleLong.corpusRendererFn = (corpus) => `${corpus.name} : yadda yadda yadda yadda yadda`;
-eleLong.addEventListener('corpus-selected', handleCorpusSelected);
+eleLong.addEventListener('corpus_selected', handleCorpusSelected);
 $$('#custom-fn-long-corpus').appendChild(eleLong);
