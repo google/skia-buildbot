@@ -13,9 +13,6 @@ ${INSTALL}     --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${AP
 # Resources for the main page.
 ${INSTALL_DIR} --mode=755                             ${ROOT}/usr/local/share/${APPNAME}/dist/
 ${INSTALL}     --mode=755 ./dist/*                    ${ROOT}/usr/local/share/${APPNAME}/dist/
-# Demo pages. 'install' isn't recursive.
-cp -r                     ./fetched_demos             ${ROOT}/usr/local/share/${APPNAME}/demos
-chmod -R       a=rX,u=rwX                             ${ROOT}/usr/local/share/${APPNAME}/demos
 }
 
 source ../bash/docker_build.sh
