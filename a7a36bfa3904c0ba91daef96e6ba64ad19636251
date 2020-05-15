@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5eff919d_913d9889",
+        "filename": "machine/go/machine/store/impl.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-15T20:32:47Z",
+      "side": 1,
+      "message": "If we error, do we want to add it to the channel also? If so, maybe comment to make it explicit?",
+      "revId": "a7a36bfa3904c0ba91daef96e6ba64ad19636251",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f018051b_9b490708",
+        "filename": "sk8s/images/podwatcher/power-cycle-rack4.json5",
+        "patchSetId": 15
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-15T20:32:47Z",
+      "side": 1,
+      "message": "These files currently live in //skolo/sys. Maybe we want to eventually be consistent?",
+      "range": {
+        "startLine": 2,
+        "startChar": 3,
+        "endLine": 2,
+        "endChar": 13
+      },
+      "revId": "a7a36bfa3904c0ba91daef96e6ba64ad19636251",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f26e12a6_15fb7807",
+        "filename": "sk8s/images/podwatcher/power-cycle-rack4.json5",
+        "patchSetId": 15
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-15T20:32:47Z",
+      "side": 1,
+      "message": "Were you able to generate/verify this with censustaker?",
+      "revId": "a7a36bfa3904c0ba91daef96e6ba64ad19636251",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
