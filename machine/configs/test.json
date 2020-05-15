@@ -10,5 +10,9 @@
   "web": {
     "allowed_users": ["google.com"],
     "allowed_hosts": ["machines-test.skia.org"]
+  },
+  "power_cycle": {
+    "filename": "./images/rpi-swarming-client/power-cycle-rack4.json5",
+    "connect_on_startip": false
   }
 }
