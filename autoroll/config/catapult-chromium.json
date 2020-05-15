@@ -1,7 +1,22 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "Catapult",
+  "childDisplayName": "Catapult",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childLogURLTmpl": "https://chromium.googlesource.com/catapult.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "cqExtraTrybots": [
+      "luci.chromium.try:android_optional_gpu_tests_rel",
+      "luci.chromium.try:chromeos-kevin-rel",
+      "luci.chromium.try:linux_optional_gpu_tests_rel",
+      "luci.chromium.try:mac_optional_gpu_tests_rel",
+      "luci.chromium.try:win_optional_gpu_tests_rel"
+    ],
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "chrome-speed-operations@google.com",
     "johnchen@chromium.org",
@@ -18,7 +33,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "Chromium",
+  "parentDisplayName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "catapult-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
@@ -33,19 +48,9 @@
     "childPath": "src/third_party/catapult",
     "childRepo": "https://chromium.googlesource.com/catapult.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/catapult.git/+show/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
-  "cqExtraTrybots": [
-    "luci.chromium.try:android_optional_gpu_tests_rel",
-    "luci.chromium.try:chromeos-kevin-rel",
-    "luci.chromium.try:linux_optional_gpu_tests_rel",
-    "luci.chromium.try:mac_optional_gpu_tests_rel",
-    "luci.chromium.try:win_optional_gpu_tests_rel"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",

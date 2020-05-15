@@ -1,7 +1,14 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "glslang",
+  "childDisplayName": "glslang",
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": false,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "geofflang@chromium.org",
     "jmadill@chromium.org",
@@ -16,7 +23,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "ANGLE",
+  "parentDisplayName": "ANGLE",
   "parentWaterfall": "https://ci.chromium.org/p/angle/g/ci/console",
   "rollerName": "glslang-angle-autoroll",
   "serviceAccount": "angle-autoroll@skia-public.iam.gserviceaccount.com",
@@ -31,8 +38,6 @@
     "childPath": "third_party/glslang/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/+show/%s",
-    "includeBugs": false,
-    "includeLog": false,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
   },

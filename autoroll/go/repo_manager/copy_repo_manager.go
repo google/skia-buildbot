@@ -50,14 +50,6 @@ func (c CopyRepoManagerConfig) splitParentChild() (parent.CopyConfig, child.Giti
 	parentCfg := parent.CopyConfig{
 		GitCheckoutGerritConfig: parent.GitCheckoutGerritConfig{
 			GitCheckoutConfig: parent.GitCheckoutConfig{
-				BaseConfig: parent.BaseConfig{
-					ChildPath:       c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-					ChildRepo:       c.ChildRepo,
-					IncludeBugs:     c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-					IncludeLog:      c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-					CommitMsgTmpl:   c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
-					MonorailProject: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-				},
 				GitCheckoutConfig: git_common.GitCheckoutConfig{
 					Branch:  c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
 					RepoURL: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,

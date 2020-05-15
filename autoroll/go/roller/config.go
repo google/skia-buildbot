@@ -5,16 +5,23 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/flynn/json5"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/commit_msg"
+	"go.skia.org/infra/autoroll/go/config_vars"
 	arb_notifier "go.skia.org/infra/autoroll/go/notifier"
 	"go.skia.org/infra/autoroll/go/repo_manager"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/time_window"
+	"go.skia.org/infra/go/gcs"
+	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/notifier"
 	"go.skia.org/infra/go/skerr"
@@ -143,8 +150,8 @@ func (c *KubernetesConfig) Validate() error {
 type AutoRollerConfig struct {
 	// Required Fields.
 
-	// User friendly name of the child repo.
-	ChildName string `json:"childName"`
+	// Display name of the child.
+	ChildDisplayName string `json:"childDisplayName"`
 	// List of email addresses of contacts for this roller, used for sending
 	// PSAs, asking questions, etc.
 	Contacts []string `json:"contacts"`
@@ -154,9 +161,9 @@ type AutoRollerConfig struct {
 	OwnerPrimary string `json:"ownerPrimary"`
 	// Secondary owner of this roller.
 	OwnerSecondary string `json:"ownerSecondary"`
-	// User friendly name of the parent repo.
-	ParentName string `json:"parentName"`
-	// URL of the waterfall/status display for the parent repo.
+	// Display name of the parent.
+	ParentDisplayName string `json:"parentDisplayName"`
+	// URL of the waterfall/status display for the parent.
 	ParentWaterfall string `json:"parentWaterfall"`
 	// Name of the roller, used for database keys.
 	RollerName string `json:"rollerName"`
@@ -169,6 +176,9 @@ type AutoRollerConfig struct {
 	// addresses from the URL fails.  Only required if a URL is specified
 	// for Sheriff.
 	SheriffBackup []string `json:"sheriffBackup,omitempty"`
+
+	// Commit message configuration.
+	CommitMsgConfig *commit_msg.CommitMsgConfig `json:"commitMsg"`
 
 	// Code review settings.
 	Gerrit        *codereview.GerritConfig  `json:"gerrit,omitempty"`
@@ -195,33 +205,34 @@ type AutoRollerConfig struct {
 
 	// Optional Fields.
 
-	// Comma-separated list of trybots to add to roll CLs, in addition to
-	// the default set of commit queue trybots.
-	CqExtraTrybots []string `json:"cqExtraTrybots,omitempty"`
 	// Limit to one successful roll within this time period.
 	MaxRollFrequency string `json:"maxRollFrequency,omitempty"`
 	// Any extra notification systems to be used for this roller.
 	Notifiers []*notifier.Config `json:"notifiers,omitempty"`
-	// Time window in which the roller is allowed to upload roll CLs. See
-	// the go/time_window package for supported format.
-	TimeWindow string `json:"timeWindow,omitempty"`
 	// Throttling configuration to prevent uploading too many CLs within
 	// too short a time period.
 	SafetyThrottle *ThrottleConfig `json:"safetyThrottle,omitempty"`
 	// If true, this roller supports one-click "manual" rolls.
 	SupportsManualRolls bool `json:"supportsManualRolls,omitempty"`
+	// Time window in which the roller is allowed to upload roll CLs. See
+	// the go/time_window package for supported format.
+	TimeWindow string `json:"timeWindow,omitempty"`
+	// TransitiveDeps is an optional mapping of dependency ID (eg. repo URL)
+	// to the paths within the parent and child repo, respectively, where
+	// those dependencies are versioned, eg. "DEPS".
+	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps"`
 }
 
 // Validate the config.
 func (c *AutoRollerConfig) Validate() error {
-	if c.ChildName == "" {
-		return errors.New("ChildName is required.")
+	if c.ChildDisplayName == "" {
+		return errors.New("ChildDisplayName is required.")
 	}
 	if len(c.Contacts) < 1 {
 		return errors.New("At least one contact is required.")
 	}
-	if c.ParentName == "" {
-		return errors.New("ParentName is required.")
+	if c.ParentDisplayName == "" {
+		return errors.New("ParentDisplayName is required.")
 	}
 	if c.ParentWaterfall == "" {
 		return errors.New("ParentWaterfall is required.")
@@ -243,6 +254,13 @@ func (c *AutoRollerConfig) Validate() error {
 	}
 	if c.Sheriff == nil || len(c.Sheriff) == 0 {
 		return errors.New("Sheriff is required.")
+	}
+
+	if c.CommitMsgConfig == nil {
+		return skerr.Fmt("CommitMsgConfig is required")
+	}
+	if err := c.CommitMsgConfig.Validate(); err != nil {
+		return skerr.Wrap(err)
 	}
 
 	cr := []util.Validator{}
@@ -323,6 +341,7 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 	if c.FreeTypeRepoManager != nil {
 		// TODO(borenet): De-duplicate the Gerrit config.
 		c.FreeTypeRepoManager.Gerrit = c.Gerrit
+		c.FreeTypeRepoManager.TransitiveDeps = c.TransitiveDeps
 		rm = append(rm, c.FreeTypeRepoManager)
 	}
 	if c.FuchsiaSDKAndroidRepoManager != nil {
@@ -336,12 +355,14 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 		rm = append(rm, c.FuchsiaSDKRepoManager)
 	}
 	if c.GithubRepoManager != nil {
+		c.GithubRepoManager.TransitiveDeps = c.TransitiveDeps
 		rm = append(rm, c.GithubRepoManager)
 	}
 	if c.GithubCipdDEPSRepoManager != nil {
 		rm = append(rm, c.GithubCipdDEPSRepoManager)
 	}
 	if c.GithubDEPSRepoManager != nil {
+		c.GithubDEPSRepoManager.TransitiveDeps = c.TransitiveDeps
 		rm = append(rm, c.GithubDEPSRepoManager)
 	}
 	if c.GitilesCIPDDEPSRepoManager != nil {
@@ -355,6 +376,7 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 	if c.NoCheckoutDEPSRepoManager != nil {
 		// TODO(borenet): De-duplicate the Gerrit config.
 		c.NoCheckoutDEPSRepoManager.Gerrit = c.Gerrit
+		c.NoCheckoutDEPSRepoManager.TransitiveDeps = c.TransitiveDeps
 		rm = append(rm, c.NoCheckoutDEPSRepoManager)
 	}
 	if c.SemVerGCSRepoManager != nil {
@@ -398,4 +420,46 @@ type RepoManagerConfig interface {
 
 	// Return the list of valid NextRollStrategy names for this RepoManager.
 	ValidStrategies() []string
+}
+
+// CreateRepoManager creates a RepoManager instance from the config.
+// TODO(borenet): If we can't remove this after refactoring RepoManager configs,
+// this should probably move into the repo_manager package.
+func (c *AutoRollerConfig) CreateRepoManager(ctx context.Context, cr codereview.CodeReview, reg *config_vars.Registry, g *gerrit.Gerrit, githubClient *github.GitHub, workdir, recipesCfgFile, serverURL, rollerName string, gcsClient gcs.GCSClient, client *http.Client, local bool) (repo_manager.RepoManager, error) {
+	if err := c.Validate(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	var rm repo_manager.RepoManager
+	var err error
+	if c.AndroidRepoManager != nil {
+		rm, err = repo_manager.NewAndroidRepoManager(ctx, c.AndroidRepoManager, reg, workdir, g, serverURL, c.ServiceAccount, client, cr, local)
+	} else if c.CopyRepoManager != nil {
+		rm, err = repo_manager.NewCopyRepoManager(ctx, c.CopyRepoManager, reg, workdir, g, serverURL, client, cr, local)
+	} else if c.DEPSRepoManager != nil {
+		rm, err = repo_manager.NewDEPSRepoManager(ctx, c.DEPSRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
+	} else if c.FuchsiaSDKAndroidRepoManager != nil {
+		rm, err = repo_manager.NewFuchsiaSDKAndroidRepoManager(ctx, c.FuchsiaSDKAndroidRepoManager, reg, workdir, g, serverURL, client, cr, local)
+	} else if c.FreeTypeRepoManager != nil {
+		rm, err = repo_manager.NewFreeTypeRepoManager(ctx, c.FreeTypeRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
+	} else if c.FuchsiaSDKRepoManager != nil {
+		rm, err = repo_manager.NewFuchsiaSDKRepoManager(ctx, c.FuchsiaSDKRepoManager, reg, workdir, g, serverURL, client, cr, local)
+	} else if c.GithubRepoManager != nil {
+		rm, err = repo_manager.NewGithubRepoManager(ctx, c.GithubRepoManager, reg, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
+	} else if c.GithubCipdDEPSRepoManager != nil {
+		rm, err = repo_manager.NewGithubCipdDEPSRepoManager(ctx, c.GithubCipdDEPSRepoManager, reg, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
+	} else if c.GithubDEPSRepoManager != nil {
+		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, reg, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
+	} else if c.GitilesCIPDDEPSRepoManager != nil {
+		rm, err = repo_manager.NewGitilesCIPDDEPSRepoManager(ctx, c.GitilesCIPDDEPSRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
+	} else if c.NoCheckoutDEPSRepoManager != nil {
+		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
+	} else if c.SemVerGCSRepoManager != nil {
+		rm, err = repo_manager.NewSemVerGCSRepoManager(ctx, c.SemVerGCSRepoManager, reg, workdir, g, serverURL, client, cr, local)
+	} else {
+		return nil, skerr.Fmt("Invalid roller config; no repo manager defined!")
+	}
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to create RepoManager")
+	}
+	return rm, nil
 }
