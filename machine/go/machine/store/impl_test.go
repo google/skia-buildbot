@@ -430,6 +430,14 @@ func TestWatchForPowerCycle_Success(t *testing.T) {
 
 	assert.Equal(t, int64(1), store.watchForPowerCycleReceiveSnapshotCounter.Get())
 	assert.Equal(t, int64(0), store.watchForPowerCycleDataToErrorCounter.Get())
+
+	// Confirm that PowerCycle has been set back to false.
+	err = store.Update(ctx, machineName, func(previous machine.Description) machine.Description {
+		require.False(t, previous.PowerCycle)
+		return previous
+	})
+	require.NoError(t, err)
+
 	assert.NoError(t, store.firestoreClient.Close())
 }
 

@@ -220,7 +220,16 @@ func (st *StoreImpl) WatchForPowerCycle(ctx context.Context) <-chan string {
 				}
 				machineDescription := storeToMachineDescription(storeDescription)
 				st.watchForPowerCycleReceiveSnapshotCounter.Inc(1)
-				ch <- machineDescription.Dimensions[machine.DimID][0]
+				machineID := machineDescription.Dimensions[machine.DimID][0]
+				err = st.Update(ctx, machineID, func(previous machine.Description) machine.Description {
+					ret := previous.Copy()
+					ret.PowerCycle = false
+					return ret
+				})
+				if err != nil {
+					sklog.Errorf("Failed to update machine.Description PowerCycle: %s", err)
+				}
+				ch <- machineID
 			}
 		}
 	}()
