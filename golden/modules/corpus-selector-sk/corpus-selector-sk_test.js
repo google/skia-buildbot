@@ -59,14 +59,14 @@ describe('corpus-selector-sk', () => {
       'svg : 19 / 21']);
   });
 
-  it('selects corpus and emits "corpus-selected" event when clicked', async () => {
+  it('selects corpus and emits "corpus_selected" event when clicked', async () => {
     const corpusSelectorSk = newCorpusSelectorSk({ selectedCorpus: 'gm' });
 
     expect(corpusSelectorSk.selectedCorpus).to.equal('gm');
     expect(selectedCorpusLiText(corpusSelectorSk)).to.equal('gm');
 
     // Click on 'svg' corpus.
-    const corpusSelected = eventPromise('corpus-selected');
+    const corpusSelected = eventPromise('corpus_selected');
     $$('li[title="svg"]', corpusSelectorSk).click();
     const ev = await corpusSelected;
 
