@@ -93,7 +93,7 @@ func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 	}()
 
 	// Create a Machine instance.
-	m, err := New(ctx, true, instanceConfig)
+	m, err := New(ctx, true, instanceConfig, "")
 	require.NoError(t, err)
 	assert.Equal(t, "my-test-bot-001", m.MachineID)
 
@@ -209,7 +209,7 @@ func TestStart_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *testing.T) {
 	}()
 
 	// Create a Machine instance.
-	m, err := New(ctx, true, instanceConfig)
+	m, err := New(ctx, true, instanceConfig, "")
 	require.NoError(t, err)
 
 	// Set up fakes for adb. We have two sets of 3 since Start calls
@@ -293,7 +293,7 @@ func TestStart_RunningSwarmingTaskInMachineIsSentInEvent(t *testing.T) {
 	}()
 
 	// Create a Machine instance.
-	m, err := New(ctx, true, instanceConfig)
+	m, err := New(ctx, true, instanceConfig, "")
 	// We are running a task.
 	m.runningTask = true
 	require.NoError(t, err)
