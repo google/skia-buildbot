@@ -654,7 +654,7 @@ func loadParamFile(fName string) (paramtools.ParamSet, error) {
 }
 
 const basicCLTemplate = `Gold has detected about %d untriaged digest(s) on patchset %d.
-Please triage them at %s/search?issue=%s.`
+Please triage them at %s/cl/%s/%s`
 
 const chromeCLTemplate = basicCLTemplate + `
 

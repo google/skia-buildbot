@@ -162,19 +162,20 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 // maybeCommentOn either comments on the given CL/PS that there are untriaged digests on it or
 // logs if this commenter is configured to not actually comment.
 func (i *Impl) maybeCommentOn(ctx context.Context, cl code_review.ChangeList, ps code_review.PatchSet, untriagedDigests int) error {
+	crs := i.crs.System()
 	if i.logCommentsOnly {
-		sklog.Infof("Should comment on CL %s with message %s", cl.SystemID, i.untriagedMessage(cl, ps, untriagedDigests))
+		sklog.Infof("Should comment on CL %s with message %s", cl.SystemID, i.untriagedMessage(crs, cl, ps, untriagedDigests))
 		return nil
 	}
-	if err := i.crs.CommentOn(ctx, cl.SystemID, i.untriagedMessage(cl, ps, untriagedDigests)); err != nil {
+	if err := i.crs.CommentOn(ctx, cl.SystemID, i.untriagedMessage(crs, cl, ps, untriagedDigests)); err != nil {
 		return skerr.Wrapf(err, "commenting on %s CL %s", i.crs.System(), cl.SystemID)
 	}
 	return nil
 }
 
 // untriagedMessage returns a message about untriaged images on the given CL/PS.
-func (i *Impl) untriagedMessage(cl code_review.ChangeList, ps code_review.PatchSet, untriagedDigests int) string {
-	return fmt.Sprintf(i.messageTemplate, untriagedDigests, ps.Order, i.instanceURL, cl.SystemID)
+func (i *Impl) untriagedMessage(crs string, cl code_review.ChangeList, ps code_review.PatchSet, untriagedDigests int) string {
+	return fmt.Sprintf(i.messageTemplate, untriagedDigests, ps.Order, i.instanceURL, crs, cl.SystemID)
 }
 
 // updateCLInStoreIfAbandoned checks with the CRS to see if the cl is still Open. If it is, it
