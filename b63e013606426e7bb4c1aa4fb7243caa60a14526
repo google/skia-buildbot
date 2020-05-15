@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9453f211_6cb7c536",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-15T18:27:33Z",
+      "side": 1,
+      "message": "I removed these merge conflict files. I was thinking about them and I cannot tell if they are even needed anymore. Will think about adding them back if something blows up because of this.\n\nNotes for future self:\n* https://bugs.chromium.org/p/skia/issues/detail?id\u003d9014\n* https://skia-review.googlesource.com/c/buildbot/+/9698/46/autoroll/go/repo_manager/android_repo_manager.go\n* https://skia-review.googlesource.com/c/buildbot/+/210185",
+      "parentUuid": "635165a2_a307be6f",
+      "range": {
+        "startLine": 90,
+        "startChar": 1,
+        "endLine": 93,
+        "endChar": 68
+      },
+      "revId": "b63e013606426e7bb4c1aa4fb7243caa60a14526",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "10e2e572_6a3dea16",
         "filename": "autoroll/go/repo_manager/android_repo_manager.go",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "a9f21b23_47cdf01e",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-15T18:27:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "10e2e572_6a3dea16",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 126,
+        "endChar": 32
+      },
+      "revId": "b63e013606426e7bb4c1aa4fb7243caa60a14526",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f80b58b0_b36cb879",
         "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
         "patchSetId": 2
@@ -68,6 +116,30 @@
       "revId": "b63e013606426e7bb4c1aa4fb7243caa60a14526",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c28a3d53_d8914455",
+        "filename": "autoroll/go/repo_manager/parent/pre_upload_steps.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-15T18:27:33Z",
+      "side": 1,
+      "message": "I think it\u0027s better to be explicit here so we do not end up adding any unintended artifacts.",
+      "parentUuid": "f80b58b0_b36cb879",
+      "range": {
+        "startLine": 288,
+        "startChar": 8,
+        "endLine": 288,
+        "endChar": 69
+      },
+      "revId": "b63e013606426e7bb4c1aa4fb7243caa60a14526",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
