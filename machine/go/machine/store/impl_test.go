@@ -43,6 +43,22 @@ func TestMachineToStoreDescription_WithDimensions(t *testing.T) {
 	}, m)
 }
 
+func TestMachineToStoreDescription_WithPowerCycle(t *testing.T) {
+	unittest.SmallTest(t)
+	d := machine.NewDescription()
+	d.Dimensions[machine.DimOS] = []string{"Android"}
+	d.PowerCycle = true
+
+	m := machineDescriptionToStoreDescription(d)
+	assert.Equal(t, storeDescription{
+		OS:                 []string{"Android"},
+		Mode:               d.Mode,
+		LastUpdated:        d.LastUpdated,
+		MachineDescription: d,
+		PowerCycle:         true,
+	}, m)
+}
+
 func setupForTest(t *testing.T) (context.Context, config.InstanceConfig) {
 	require.NotEmpty(t, os.Getenv("FIRESTORE_EMULATOR_HOST"), "This test requires the firestore emulator.")
 	cfg := config.InstanceConfig{
@@ -171,7 +187,10 @@ func TestWatch_StartWatchAfterMachineExists(t *testing.T) {
 	// Wait for first description.
 	m := <-ch
 	assert.Equal(t, machine.ModeMaintenance, m.Mode)
-	assert.Equal(t, machine.SwarmingDimensions{machine.DimOS: {"Android"}}, m.Dimensions)
+	assert.Equal(t, machine.SwarmingDimensions{
+		machine.DimID: {"skia-rpi2-rack2-shelf1-001"},
+		machine.DimOS: {"Android"},
+	}, m.Dimensions)
 	assert.Equal(t, "Hello World!", m.Annotation.Message)
 	assert.NoError(t, store.firestoreClient.Close())
 }
@@ -228,7 +247,10 @@ func TestList_Success(t *testing.T) {
 	descriptions, err = store.List(ctx)
 	require.NoError(t, err)
 	assert.Len(t, descriptions, 1)
-	assert.Equal(t, machine.SwarmingDimensions{"foo": {"bar", "baz"}}, descriptions[0].Dimensions)
+	assert.Equal(t, machine.SwarmingDimensions{
+		"foo":         {"bar", "baz"},
+		machine.DimID: {"skia-rpi2-rack2-shelf1-001"},
+	}, descriptions[0].Dimensions)
 
 	// Add a second description.
 	err = store.Update(ctx, "skia-rpi2-rack2-shelf1-002", func(previous machine.Description) machine.Description {
@@ -363,6 +385,129 @@ func TestWatchForDeletablePods_IsCancellable(t *testing.T) {
 		ret.PodName = podName
 		ret.ScheduledForDeletion = podName
 		ret.RunningSwarmingTask = false
+		return ret
+	})
+	require.NoError(t, err)
+
+	cancel()
+
+	// The test passes if we get past this loop since that means the channel was closed.
+	for range ch {
+	}
+	assert.NoError(t, store.firestoreClient.Close())
+}
+
+func TestWatchForPowerCycle_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, cfg := setupForTest(t)
+	store, err := New(ctx, true, cfg)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	defer store.watchForPowerCycleDataToErrorCounter.Reset()
+	defer store.watchForPowerCycleReceiveSnapshotCounter.Reset()
+
+	// First add the watch.
+	ch := store.WatchForPowerCycle(ctx)
+
+	const machineName = "skia-rpi2-rack2-shelf1-001"
+
+	// Then create the document.
+	err = store.Update(ctx, machineName, func(previous machine.Description) machine.Description {
+		ret := previous.Copy()
+		ret.Mode = machine.ModeMaintenance
+		ret.RunningSwarmingTask = false
+		ret.PowerCycle = true
+		return ret
+	})
+	require.NoError(t, err)
+
+	// Wait for first pod name.
+	m := <-ch
+	assert.Equal(t, machineName, m)
+
+	assert.Equal(t, int64(1), store.watchForPowerCycleReceiveSnapshotCounter.Get())
+	assert.Equal(t, int64(0), store.watchForPowerCycleDataToErrorCounter.Get())
+	assert.NoError(t, store.firestoreClient.Close())
+}
+
+func TestWatchForPowerCycle_OnlyMatchesTheRightMachines(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, cfg := setupForTest(t)
+	store, err := New(ctx, true, cfg)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	defer store.watchForPowerCycleDataToErrorCounter.Reset()
+	defer store.watchForPowerCycleReceiveSnapshotCounter.Reset()
+
+	// First add the watch.
+	ch := store.WatchForPowerCycle(ctx)
+
+	// Add some machines that don't match the query.
+	err = store.Update(ctx, "skia-rpi2-rack4-shelf2-013", func(previous machine.Description) machine.Description {
+		ret := previous.Copy()
+		ret.Mode = machine.ModeMaintenance
+		ret.RunningSwarmingTask = true
+		ret.PowerCycle = true
+		return ret
+	})
+	require.NoError(t, err)
+
+	err = store.Update(ctx, "skia-rpi2-rack4-shelf1-021", func(previous machine.Description) machine.Description {
+		ret := previous.Copy()
+		ret.Mode = machine.ModeMaintenance
+		ret.RunningSwarmingTask = false
+		ret.PowerCycle = false
+		return ret
+	})
+	require.NoError(t, err)
+
+	// Now add a machine that will match the query.
+	const machineName = "skia-rpi2-rack2-shelf1-001"
+
+	// Then create the document.
+	err = store.Update(ctx, machineName, func(previous machine.Description) machine.Description {
+		ret := previous.Copy()
+		ret.Mode = machine.ModeMaintenance
+		ret.RunningSwarmingTask = false
+		ret.PowerCycle = true
+		return ret
+	})
+	require.NoError(t, err)
+
+	// Wait for first pod name.
+	m := <-ch
+	assert.Equal(t, machineName, m)
+
+	assert.Equal(t, int64(1), store.watchForPowerCycleReceiveSnapshotCounter.Get())
+	assert.Equal(t, int64(0), store.watchForPowerCycleDataToErrorCounter.Get())
+	assert.NoError(t, store.firestoreClient.Close())
+}
+
+func TestWatchForPowerCycle_ISCancellable(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, cfg := setupForTest(t)
+	store, err := New(ctx, true, cfg)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(ctx)
+
+	// First add the watch.
+	ch := store.WatchForPowerCycle(ctx)
+
+	const machineName = "skia-rpi2-rack2-shelf1-001"
+
+	// Then create the document.
+	err = store.Update(ctx, machineName, func(previous machine.Description) machine.Description {
+		ret := previous.Copy()
+		ret.Mode = machine.ModeMaintenance
+		ret.RunningSwarmingTask = false
+		ret.PowerCycle = true
 		return ret
 	})
 	require.NoError(t, err)
