@@ -1,12 +1,18 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "Fuchsia Mac SDK",
+  "childDisplayName": "Fuchsia Mac SDK",
+  "commitMsg": {
+    "includeLog": false,
+    "includeRevisionCount": false,
+    "includeTbrLine": false,
+    "includeTests": false
+  },
   "contacts": ["liyuqian@google.com", "rmistry@google.com"],
   "isInternal": false,
   "ownerPrimary": "rmistry",
   "ownerSecondary": "borenet",
-  "parentName": "Flutter",
+  "parentDisplayName": "Flutter",
   "parentWaterfall": "https://ci.chromium.org/p/flutter/g/engine/console",
   "rollerName": "fuchsia-mac-sdk-flutter-engine",
   "serviceAccount": "flutter-engine-autoroll@skia-public.iam.gserviceaccount.com",

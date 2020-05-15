@@ -1,7 +1,14 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "skcms",
+  "childDisplayName": "skcms",
+  "commitMsg": {
+    "childLogURLTmpl": "https://skia.googlesource.com/skcms.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "brianosman@google.com",
     "mtklein@google.com"
@@ -14,7 +21,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "Skia",
+  "parentDisplayName": "Skia",
   "parentWaterfall": "https://status.skia.org",
   "rollerName": "skcms-skia-autoroll",
   "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
@@ -26,7 +33,6 @@
   "copyRepoManager": {
     "childBranch": "master",
     "childPath": "skia/third_party/skcms",
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git",
     "childRepo": "https://skia.googlesource.com/skcms.git",

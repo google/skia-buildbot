@@ -58,14 +58,6 @@ func (c GithubDEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig,
 	}
 	parentCfg := parent.DEPSLocalConfig{
 		GitCheckoutConfig: parent.GitCheckoutConfig{
-			BaseConfig: parent.BaseConfig{
-				ChildPath:       c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-				ChildRepo:       c.ChildRepo,
-				IncludeBugs:     c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-				IncludeLog:      c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-				CommitMsgTmpl:   c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
-				MonorailProject: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-			},
 			GitCheckoutConfig: git_common.GitCheckoutConfig{
 				Branch:  c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
 				RepoURL: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
@@ -120,7 +112,7 @@ func NewGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfi
 	}
 
 	// Find the path to the child repo.
-	childPath := filepath.Join(workdir, parentCfg.ChildPath)
+	childPath := filepath.Join(workdir, c.ChildPath)
 	childCheckout := &git.Checkout{GitDir: git.GitDir(childPath)}
 	childRM, err := child.NewGitCheckout(ctx, childCfg, reg, workdir, cr.UserName(), cr.UserEmail(), childCheckout)
 	if err != nil {

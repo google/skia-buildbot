@@ -1,7 +1,14 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "luci-py",
+  "childDisplayName": "luci-py",
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/infra/luci/luci-py.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "tikuta@chromium.org"
   ],
@@ -13,7 +20,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "infra",
+  "parentDisplayName": "infra",
   "parentWaterfall": "https://ci.chromium.org/p/infra/g/infra/console",
   "rollerName": "luci-py-infra-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
@@ -25,9 +32,6 @@
     "childPath": "infra/luci",
     "childRepo": "https://chromium.googlesource.com/infra/luci/luci-py.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/infra/luci/luci-py.git/+show/%s",
-    "includeBugs": false,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/infra/infra.git"
   },

@@ -1,7 +1,14 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "waterfall",
+  "childDisplayName": "waterfall",
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/WebAssembly/waterfall.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "dschuff@google.com"
   ],
@@ -13,7 +20,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "emscripten-releases",
+  "parentDisplayName": "emscripten-releases",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "waterfall-emscripten-releases",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
@@ -25,8 +32,6 @@
     "childPath": "emscripten-releases/waterfall",
     "childRepo": "https://chromium.googlesource.com/external/github.com/WebAssembly/waterfall.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/WebAssembly/waterfall.git/+show/%s",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/emscripten-releases.git"
   },

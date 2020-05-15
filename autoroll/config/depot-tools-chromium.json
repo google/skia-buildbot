@@ -1,7 +1,15 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "Depot Tools",
+  "childDisplayName": "Depot Tools",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childLogURLTmpl": "https://chromium.googlesource.com/chromium/tools/depot_tools.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "agable@google.com"
   ],
@@ -13,7 +21,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "Chromium",
+  "parentDisplayName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "depot-tools-chromium-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
@@ -25,9 +33,6 @@
     "childPath": "src/third_party/depot_tools",
     "childRepo": "https://chromium.googlesource.com/chromium/tools/depot_tools.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/chromium/tools/depot_tools.git/+show/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
