@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "15ad3fce_1617ec0d",
+        "filename": "golden/modules/byblame-page-sk/byblame-page-sk_test.js",
+        "patchSetId": 5
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-15T15:06:47Z",
+      "side": 1,
+      "message": "It appears our JS tests are not being run on the CQ, because this broke Gold\u0027s JS tests",
+      "range": {
+        "startLine": 211,
+        "startChar": 51,
+        "endLine": 211,
+        "endChar": 55
+      },
+      "revId": "7831c6b400d0135c2820a0a51ce7a2d16533d208",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
