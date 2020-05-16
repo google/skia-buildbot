@@ -69,6 +69,7 @@ cp -r /src/puppeteer-tests/*.js     /tests/puppeteer-tests
 mkdir /tests/golden
 cp -r /src/golden/package*          /tests/golden
 cp -r /src/golden/webpack.config.js /tests/golden
+cp -r /src/golden/tsconfig.json     /tests/golden
 cp -r /src/golden/pulito            /tests/golden
 cp -r /src/golden/modules           /tests/golden
 cp -r /src/golden/demo-page-assets  /tests/golden
@@ -121,7 +122,7 @@ cd /tests/puppeteer-tests
 npx mocha .
 
 cd /tests/golden
-npx mocha ./**/*_puppeteer_test.js
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/perf
 npx mocha ./**/*_puppeteer_test.js

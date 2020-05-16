@@ -1,7 +1,6 @@
-const expect = require('chai').expect;
-const path = require('path');
-const setUpPuppeteerAndDemoPageServer = require('../../../puppeteer-tests/util').setUpPuppeteerAndDemoPageServer;
-const takeScreenshot = require('../../../puppeteer-tests/util').takeScreenshot;
+import * as path from 'path';
+import { expect } from 'chai';
+import { setUpPuppeteerAndDemoPageServer, takeScreenshot } from '../../../puppeteer-tests/util';
 
 describe('dots-sk', () => {
   // Contains page and baseUrl.
@@ -27,9 +26,9 @@ describe('dots-sk', () => {
 
       // Get canvas position.
       const canvas = await testBed.page.$('canvas');
-      const boxModel = await canvas.boxModel();
-      const x = boxModel.content[0].x; const
-        y = boxModel.content[0].y;
+      const boxModel = await canvas!.boxModel();
+      const x = boxModel!.content[0].x
+      const y = boxModel!.content[0].y;
 
       // Hover over the leftmost dot of the first trace.
       await testBed.page.mouse.move(x + 10, y + 10);

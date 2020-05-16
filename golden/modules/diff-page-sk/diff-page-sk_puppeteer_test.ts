@@ -1,8 +1,7 @@
-const expect = require('chai').expect;
-const path = require('path');
-const addEventListenersToPuppeteerPage = require('../../../puppeteer-tests/util').addEventListenersToPuppeteerPage;
-const setUpPuppeteerAndDemoPageServer = require('../../../puppeteer-tests/util').setUpPuppeteerAndDemoPageServer;
-const takeScreenshot = require('../../../puppeteer-tests/util').takeScreenshot;
+import * as path from 'path';
+import { expect } from 'chai';
+import { setUpPuppeteerAndDemoPageServer, addEventListenersToPuppeteerPage, takeScreenshot } from '../../../puppeteer-tests/util';
+import { ElementHandle, Page } from 'puppeteer';
 
 describe('diff-page-sk', () => {
   // Contains page and baseUrl.
@@ -32,35 +31,35 @@ describe('diff-page-sk', () => {
       await navigateTo(testBed.page, testBed.baseUrl, baseParams);
       const diffPageSk = await testBed.page.$('diff-page-sk');
 
-      expect(await getPropertyAsJSON(diffPageSk, '_grouping')).to.equal('My test has spaces');
-      expect(await getPropertyAsJSON(diffPageSk, '_leftDigest')).to.equal('6246b773851984c726cb2e1cb13510c2');
-      expect(await getPropertyAsJSON(diffPageSk, '_rightDigest')).to.equal('99c58c7002073346ff55f446d47d6311');
-      expect(await getPropertyAsJSON(diffPageSk, '_changeListID')).to.equal('');
+      expect(await getPropertyAsJSON(diffPageSk!, '_grouping')).to.equal('My test has spaces');
+      expect(await getPropertyAsJSON(diffPageSk!, '_leftDigest')).to.equal('6246b773851984c726cb2e1cb13510c2');
+      expect(await getPropertyAsJSON(diffPageSk!, '_rightDigest')).to.equal('99c58c7002073346ff55f446d47d6311');
+      expect(await getPropertyAsJSON(diffPageSk!, '_changeListID')).to.equal('');
     });
 
     it('correctly extracts the changelistID (issue) if provided', async () => {
       await navigateTo(testBed.page, testBed.baseUrl, `${baseParams}&issue=65432`);
       const diffPageSk = await testBed.page.$('diff-page-sk');
 
-      expect(await getPropertyAsJSON(diffPageSk, '_grouping')).to.equal('My test has spaces');
-      expect(await getPropertyAsJSON(diffPageSk, '_leftDigest')).to.equal('6246b773851984c726cb2e1cb13510c2');
-      expect(await getPropertyAsJSON(diffPageSk, '_rightDigest')).to.equal('99c58c7002073346ff55f446d47d6311');
-      expect(await getPropertyAsJSON(diffPageSk, '_changeListID')).to.equal('65432');
+      expect(await getPropertyAsJSON(diffPageSk!, '_grouping')).to.equal('My test has spaces');
+      expect(await getPropertyAsJSON(diffPageSk!, '_leftDigest')).to.equal('6246b773851984c726cb2e1cb13510c2');
+      expect(await getPropertyAsJSON(diffPageSk!, '_rightDigest')).to.equal('99c58c7002073346ff55f446d47d6311');
+      expect(await getPropertyAsJSON(diffPageSk!, '_changeListID')).to.equal('65432');
 
       const digestDetails = await testBed.page.$('diff-page-sk digest-details-sk');
-      expect(await getPropertyAsJSON(digestDetails, '_issue')).to.equal('65432');
+      expect(await getPropertyAsJSON(digestDetails!, '_issue')).to.equal('65432');
     });
   });
 });
 
-async function navigateTo(page, base, queryParams = '') {
+async function navigateTo(page: Page, base: string, queryParams = '') {
   const eventPromise = await addEventListenersToPuppeteerPage(page, ['busy-end']);
   const loaded = eventPromise('busy-end'); // Emitted from gold-scaffold when page is loaded.
   await page.goto(`${base}/dist/diff-page-sk.html${queryParams}`);
   await loaded;
 }
 
-async function getPropertyAsJSON(ele, propName) {
+async function getPropertyAsJSON(ele: ElementHandle, propName: string) {
   const prop = await ele.getProperty(propName);
   return prop.jsonValue();
 }

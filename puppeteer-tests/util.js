@@ -6,6 +6,14 @@ const webpack = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
 
 /**
+ * https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html#import-types
+ *
+ * @typedef { import("puppeteer").Browser } Browser
+ * @typedef { import("puppeteer").Page } Page
+ * @typedef { import("puppeteer").ElementHandle } ElementHandle
+ */
+
+/**
  * This function allows tests to catch document-level events in a Puppeteer
  * page.
  *
@@ -19,7 +27,7 @@ const webpackDevMiddleware = require('webpack-dev-middleware');
  * order that they were created, i.e. one caught event resolves the oldest
  * pending promise.
  *
- * @param {Object} page A Puppeteer page.
+ * @param {Page} page A Puppeteer page.
  * @param {Array<string>} eventNames Event names to listen to.
  * @return {Promise<Function>} Event promise builder function.
  */
@@ -67,7 +75,7 @@ exports.inDocker = () => fs.existsSync('/.dockerenv');
 
 /**
  * Launches a Puppeteer browser with the right platform-specific arguments.
- * @return {Promise}
+ * @return {Promise<Browser>}
  */
 exports.launchBrowser = () => puppeteer.launch(
   // See
@@ -101,6 +109,7 @@ exports.outputDir = () => (exports.inDocker()
  * Call this function at the beginning of a Mocha describe() block.
  *
  * @param {string} pathToWebpackConfigJs Path to the webpack.config.js file.
+ * @return {{page: Page, baseUrl: string}} Test bed object.
  */
 exports.setUpPuppeteerAndDemoPageServer = (pathToWebpackConfigJs) => {
   let browser;
@@ -203,10 +212,10 @@ exports.startDemoPageServer = async (pathToWebpackConfigJs) => {
  * application name as a prefix prevents name collisions between different apps
  * and increases consistency among test names.
  *
- * @param {Object} handle Puppeteer Page or ElementHandle instance.
+ * @param {Page | ElementHandle} handle Puppeteer Page or ElementHandle instance.
  * @param {string} appName Application name, e.g. 'gold'.
  * @param {string} testName Test name, e.g. 'my-component-sk_mouse-over'.
- * @return {Promise}
+ * @return {Promise<Buffer>}
  */
 exports.takeScreenshot = (handle, appName, testName) => handle.screenshot({
   path: path.join(exports.outputDir(), `${appName}_${testName}.png`),
