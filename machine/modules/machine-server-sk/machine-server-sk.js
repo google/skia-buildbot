@@ -16,9 +16,11 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import 'elements-sk/error-toast-sk';
+import 'elements-sk/toast-sk'; // Work around bug in error-toast-sk for now.
 import 'elements-sk/icon/cached-icon-sk';
 import 'elements-sk/icon/pause-icon-sk';
 import 'elements-sk/icon/play-arrow-icon-sk';
+import 'elements-sk/icon/power-settings-new-icon-sk';
 import 'elements-sk/styles/buttons';
 
 const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
@@ -82,11 +84,21 @@ const imageName = (machine) => {
   // KubernetesImage looks like:
   // "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean".
   // We just need to display everything after the ":".
+  if (!machine.KubernetesImage) {
+    return '(missing)';
+  }
   const parts = machine.KubernetesImage.split(':');
   if (parts.length < 2) {
     return '(missing)';
   }
   return parts[1];
+};
+
+const powerCycle = (machine) => {
+  if (machine.PowerCycle) {
+    return 'Waiting for Power Cycle';
+  }
+  return html`<power-settings-new-icon-sk></power-settings-new-icon-sk>`;
 };
 
 const rows = (ele) => ele._machines.map((machine) => html`
@@ -96,6 +108,7 @@ const rows = (ele) => ele._machines.map((machine) => html`
   <td>${machine.Dimensions.device_type}</td>
   <td><button class=mode @click=${() => ele._toggleMode(machine.Dimensions.id)}>${machine.Mode}</button></td>
   <td><button class=update @click=${() => ele._toggleUpdate(machine.Dimensions.id)}>${update(machine)}</button></td>
+  <td class=powercycle @click=${() => ele._togglePowerCycle(machine.Dimensions.id)}>${powerCycle(machine)}</td>
   <td>${machine.Dimensions.quarantined}</td>
   <td>${isRunning(machine)}</td>
   <td>${machine.Battery}</td>
@@ -135,6 +148,7 @@ const template = (ele) => html`
     <th>Device</th>
     <th>Mode</th>
     <th>Update</th>
+    <th>Power Cycle</th>
     <th>Quarantined</th>
     <th>Task</th>
     <th>Battery</th>
@@ -208,6 +222,17 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_update/${id}`);
+      this.removeAttribute('waiting');
+      this._update(true);
+    } catch (error) {
+      this._onError(error);
+    }
+  }
+
+  async _togglePowerCycle(id) {
+    try {
+      this.setAttribute('waiting', '');
+      await fetch(`/_/machine/toggle_powercycle/${id}`);
       this.removeAttribute('waiting');
       this._update(true);
     } catch (error) {

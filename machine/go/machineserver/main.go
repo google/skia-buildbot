@@ -213,12 +213,48 @@ func (s *server) machineToggleUpdateHandler(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 }
 
+func (s *server) machineTogglePowerCycleHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := strings.TrimSpace(vars["id"])
+	if id == "" {
+		httputils.ReportError(w, skerr.Fmt("ID must be supplied."), "ID must be supplied.", http.StatusInternalServerError)
+		return
+	}
+
+	var ret machine.Description
+	err := s.store.Update(r.Context(), id, func(in machine.Description) machine.Description {
+		ret = in.Copy()
+		ret.PowerCycle = !ret.PowerCycle
+		ret.Annotation = machine.Annotation{
+			User:      user(r),
+			Message:   fmt.Sprintf("Requested powercycle for %q", ret.PodName),
+			Timestamp: time.Now(),
+		}
+		return ret
+	})
+	auditlog.Log(r, "toggle-powercycle", struct {
+		MachineID  string
+		PodName    string
+		PowerCycle bool
+	}{
+		MachineID:  id,
+		PodName:    ret.PodName,
+		PowerCycle: ret.PowerCycle,
+	})
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to update machine.", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 // See baseapp.App.
 func (s *server) AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", s.mainHandler).Methods("GET")
 	r.HandleFunc("/_/machines", s.machinesHandler).Methods("GET")
 	r.HandleFunc("/_/machine/toggle_mode/{id:.+}", s.machineToggleModeHandler).Methods("GET")
 	r.HandleFunc("/_/machine/toggle_update/{id:.+}", s.machineToggleUpdateHandler).Methods("GET")
+	r.HandleFunc("/_/machine/toggle_powercycle/{id:.+}", s.machineTogglePowerCycleHandler).Methods("GET")
 	r.HandleFunc("/loginstatus/", login.StatusHandler).Methods("GET")
 }
 

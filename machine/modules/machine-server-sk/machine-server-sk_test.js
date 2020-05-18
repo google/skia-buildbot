@@ -101,7 +101,7 @@ describe('machine-server-sk', () => {
     }));
   });
 
-  describe('toggles update mode on click', () => {
+  describe('toggles ScheduledForDeletion on click', () => {
     fetchMock.get('/_/machines', [
       {
         Mode: 'available',
@@ -122,7 +122,7 @@ describe('machine-server-sk', () => {
         Temperature: { dumpsys_battery: 26 },
       }]);
 
-    it('updates ScheduledForDele when you click on the update button', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
+    it('updates ScheduledForDeletion when you click on the update button', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
       container.innerHTML = '<machine-server-sk></machine-server-sk>';
       const s = container.firstElementChild;
 
@@ -223,6 +223,70 @@ describe('machine-server-sk', () => {
       assert.notEqual(0, s._timeout);
       // Confirm we are displaying the right icon.
       assert.isNotNull(s.querySelector('pause-icon-sk'));
+    }));
+  });
+
+  describe('toggles PowerCycle on click', () => {
+    fetchMock.get('/_/machines', [
+      {
+        Mode: 'available',
+        Battery: 100,
+        PodName: 'rpi-swarming-123456-987',
+        ScheduledForDeletion: '',
+        Dimensions: {
+          id: ['skia-rpi2-rack4-shelf1-002'],
+          android_devices: ['1'],
+          device_os: ['H', 'HUAWEIELE-L29'],
+        },
+        Annotation: {
+          User: '',
+          Message: '',
+          LastUpdated: '2020-04-21T17:33:09.638275Z',
+        },
+        PowerCycle: false,
+        LastUpdated: '2020-04-21T17:33:09.638275Z',
+        Temperature: { dumpsys_battery: 26 },
+      }]);
+
+    it('updates PowerCycle when you click on the button', () => window.customElements.whenDefined('machine-server-sk').then(async () => {
+      container.innerHTML = '<machine-server-sk></machine-server-sk>';
+      const s = container.firstElementChild;
+
+      // Wait for the initial fetch to finish.
+      await fetchMock.flush(true);
+
+      // Now set up fetchMock for the requests that happen when the button is clicked.
+      fetchMock.reset();
+      fetchMock.get('/_/machine/toggle_powercycle/skia-rpi2-rack4-shelf1-002', 200);
+      fetchMock.get('/_/machines', [
+        {
+          Mode: 'maintenance',
+          Battery: 100,
+          PodName: 'rpi-swarming-123456-987',
+          ScheduledForDeletion: 'rpi-swarming-123456-987',
+          Dimensions: {
+            id: ['skia-rpi2-rack4-shelf1-002'],
+            android_devices: ['1'],
+            device_os: ['H', 'HUAWEIELE-L29'],
+          },
+          Annotation: {
+            User: '',
+            Message: '',
+            LastUpdated: '2020-04-21T17:33:09.638275Z',
+          },
+          PowerCycle: true,
+          LastUpdated: '2020-04-21T17:33:09.638275Z',
+          Temperature: { dumpsys_battery: 26 },
+        }]);
+
+      // Click the button.
+      s.querySelector('.powercycle').click();
+
+      // Wait for all requests to finish.
+      await fetchMock.flush(true);
+
+      // Confirm the button text has been updated.
+      assert.equal('Waiting for Power Cycle', s.querySelector('.powercycle').textContent);
     }));
   });
 });
