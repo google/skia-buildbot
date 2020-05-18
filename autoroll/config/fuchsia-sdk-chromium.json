@@ -1,7 +1,13 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "Fuchsia SDK",
+  "childDisplayName": "Fuchsia SDK",
+  "commitMsg": {
+    "includeLog": false,
+    "includeRevisionCount": false,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "jbudorick@chromium.org",
     "cr-fuchsia+bot@chromium.org"
@@ -14,7 +20,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "Chromium",
+  "parentDisplayName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "fuchsia-sdk-chromium-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.google.com.iam.gserviceaccount.com",

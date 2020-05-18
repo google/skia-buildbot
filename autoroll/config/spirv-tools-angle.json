@@ -1,7 +1,14 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "SPIRV-Tools",
+  "childDisplayName": "SPIRV-Tools",
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": false,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "geofflang@chromium.org",
     "jmadill@chromium.org",
@@ -16,7 +23,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "ANGLE",
+  "parentDisplayName": "ANGLE",
   "parentWaterfall": "https://ci.chromium.org/p/angle/g/ci/console",
   "rollerName": "spirv-tools-angle-autoroll",
   "serviceAccount": "angle-autoroll@skia-public.iam.gserviceaccount.com",
@@ -32,22 +39,8 @@
     "childPath": "third_party/spirv-tools/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git/+show/%s",
-    "includeBugs": false,
-    "includeLog": false,
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/angle/angle.git",
-    "transitiveDeps": [
-      {
-        "child": {
-          "id": "https://github.com/KhronosGroup/SPIRV-Headers",
-          "path": "DEPS"
-        },
-        "parent": {
-          "id": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers",
-          "path": "DEPS"
-        }
-      }
-    ]
+    "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
   },
   "kubernetes": {
     "cpu": "1",
@@ -57,5 +50,17 @@
     "readinessFailureThreshold": "10"
   },
   "maxRollFrequency": "6h",
-  "timeWindow": "M-F 07:00-10:00"
+  "timeWindow": "M-F 07:00-10:00",
+  "transitiveDeps": [
+    {
+      "child": {
+        "id": "https://github.com/KhronosGroup/SPIRV-Headers",
+        "path": "DEPS"
+      },
+      "parent": {
+        "id": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers",
+        "path": "DEPS"
+      }
+    }
+  ]
 }

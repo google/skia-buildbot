@@ -1,7 +1,17 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "Skia",
+  "childDisplayName": "Skia",
+  "commitMsg": {
+    "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "cqExtraTrybots": [
+      "skia/skia.primary:Housekeeper-PerCommit-InfraTests"
+    ],
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "borenet@google.com"
   ],
@@ -13,7 +23,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "Lottie CI",
+  "parentDisplayName": "Lottie CI",
   "parentWaterfall": "https://status.skia.org/repo/lottie-ci",
   "rollerName": "skia-lottie-ci-autoroll",
   "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
@@ -31,12 +41,7 @@
       "TrainInfra"
     ],
     "parentRepo": "https://skia.googlesource.com/lottie-ci.git",
-    "includeBugs": false,
-    "includeLog": true
   },
-  "cqExtraTrybots": [
-    "skia/skia.primary:Housekeeper-PerCommit-InfraTests"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "8Gi",

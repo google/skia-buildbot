@@ -11,8 +11,8 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
-// Update the current sheriff list.
-func getSheriff(parentName, childName, metricsName string, sheriffSources, backupSheriffs []string) ([]string, error) {
+// GetSheriff retrieves the current sheriff list.
+func GetSheriff(metricsName string, sheriffSources, backupSheriffs []string) ([]string, error) {
 	tags := map[string]string{
 		"roller": metricsName,
 	}

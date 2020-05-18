@@ -14,7 +14,7 @@ import (
 // gitilesFileGetChangesForRollFunc returns a gitilesGetChangesForRollFunc which
 // update the given file.
 func gitilesFileGetChangesForRollFunc(dep version_file_common.DependencyConfig) gitilesGetChangesForRollFunc {
-	return func(ctx context.Context, repo *gitiles_common.GitilesRepo, baseCommit string, from, to *revision.Revision, rolling []*revision.Revision) (map[string]string, []*version_file_common.TransitiveDepUpdate, error) {
+	return func(ctx context.Context, repo *gitiles_common.GitilesRepo, baseCommit string, from, to *revision.Revision, rolling []*revision.Revision) (map[string]string, error) {
 		getFile := func(ctx context.Context, path string) (string, error) {
 			return repo.GetFile(ctx, path, baseCommit)
 		}

@@ -1,7 +1,15 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "binaryen",
+  "childDisplayName": "binaryen",
+  "commitMsg": {
+    "bugProject": "",
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/WebAssembly/binaryen.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "dschuff@google.com"
   ],
@@ -13,7 +21,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "emscripten-releases",
+  "parentDisplayName": "emscripten-releases",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "binaryen-emscripten-releases",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
@@ -25,8 +33,6 @@
     "childPath": "emscripten-releases/binaryen",
     "childRepo": "https://chromium.googlesource.com/external/github.com/WebAssembly/binaryen.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/WebAssembly/binaryen.git/+show/%s",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/emscripten-releases.git"
   },
