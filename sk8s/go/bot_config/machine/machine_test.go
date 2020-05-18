@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/machine/go/machine/source/pubsubsource"
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"go.skia.org/infra/sk8s/go/bot_config/swarming"
-	"go.skia.org/infra/skolo/go/powercycle"
 	"google.golang.org/api/option"
 )
 
@@ -63,26 +62,6 @@ func setupConfig(t *testing.T) (context.Context, *pubsub.Topic, config.InstanceC
 	return ctx, topic, instanceConfig
 }
 
-func TestNew_PowerCycleReadsInCorrectConfigFile(t *testing.T) {
-	// Manual because we are testing pubsub.
-	unittest.ManualTest(t)
-	ctx, _, instanceConfig := setupConfig(t)
-
-	// Set the POWERCYCLE_PASSWORD env variable.
-	oldVar := os.Getenv("POWERCYCLE_PASSWORD")
-	err := os.Setenv("POWERCYCLE_PASSWORD", "secret-stuff")
-	require.NoError(t, err)
-	defer func() {
-		err = os.Setenv("POWERCYCLE_PASSWORD", oldVar)
-		require.NoError(t, err)
-	}()
-
-	// Create a Machine instance.
-	m, err := New(ctx, true, instanceConfig, "./testdata/power-cycle-rack4.json5")
-	require.NoError(t, err)
-	assert.Equal(t, []powercycle.DeviceID{"skia-rpi2-rack4-shelf1-001", "skia-rpi2-rack4-shelf1-002", "skia-rpi2-rack4-shelf1-003"}, m.powercycleController.DeviceIDs())
-}
-
 func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 	// Manual because we are testing pubsub.
 	unittest.ManualTest(t)
@@ -114,7 +93,7 @@ func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 	}()
 
 	// Create a Machine instance.
-	m, err := New(ctx, true, instanceConfig, "")
+	m, err := New(ctx, true, instanceConfig)
 	require.NoError(t, err)
 	assert.Equal(t, "my-test-bot-001", m.MachineID)
 
@@ -230,7 +209,7 @@ func TestStart_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *testing.T) {
 	}()
 
 	// Create a Machine instance.
-	m, err := New(ctx, true, instanceConfig, "")
+	m, err := New(ctx, true, instanceConfig)
 	require.NoError(t, err)
 
 	// Set up fakes for adb. We have two sets of 3 since Start calls
@@ -314,7 +293,7 @@ func TestStart_RunningSwarmingTaskInMachineIsSentInEvent(t *testing.T) {
 	}()
 
 	// Create a Machine instance.
-	m, err := New(ctx, true, instanceConfig, "")
+	m, err := New(ctx, true, instanceConfig)
 	// We are running a task.
 	m.runningTask = true
 	require.NoError(t, err)
