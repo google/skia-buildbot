@@ -14,13 +14,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
-	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
-	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
 	"go.skia.org/infra/go/skerr"
@@ -36,6 +33,10 @@ const (
 	mockServer      = "https://skia-review.googlesource.com"
 	mockUser        = "user@chromium.org"
 	numChildCommits = 10
+	fakeCommitMsg   = `Roll fake-dep oldrev..newrev
+
+blah blah blah
+`
 )
 
 var (
@@ -221,7 +222,7 @@ func TestDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	mockGerritGetAndPublishChange(t, urlmock, cfg)
 
 	// Create a roll, assert that it's at tip of tree.
-	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, int64(123), issue)
 }
@@ -250,38 +251,9 @@ func TestDEPSRepoManagerPreUploadSteps(t *testing.T) {
 	mockGerritGetAndPublishChange(t, urlmock, cfg)
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
+	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.True(t, ran)
-}
-
-// Verify that we respect the includeLog parameter.
-func TestDEPSRepoManagerIncludeLog(t *testing.T) {
-	unittest.LargeTest(t)
-
-	test := func(includeLog bool) {
-		cfg := depsCfg(t)
-		cfg.IncludeLog = includeLog
-		ctx, rm, _, _, _, _, _, lastUpload, urlmock, cleanup := setupDEPSRepoManager(t, cfg)
-		defer cleanup()
-
-		lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
-		require.NoError(t, err)
-
-		// Mock the request to load the change.
-		mockGerritGetAndPublishChange(t, urlmock, cfg)
-
-		// Create a roll.
-		_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
-		require.NoError(t, err)
-
-		// Ensure that we included the log, or not, as appropriate.
-		require.NoError(t, err)
-		require.Equal(t, includeLog, strings.Contains(lastUpload.Body, "git log"))
-	}
-
-	test(true)
-	test(false)
 }
 
 // Verify that we properly utilize a gclient spec.
@@ -318,7 +290,7 @@ cache_dir=None
 	mockGerritGetAndPublishChange(t, urlmock, cfg)
 
 	// Create a roll.
-	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
+	_, err = rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 
 	// Ensure that we pass the spec into "gclient config".
@@ -333,77 +305,6 @@ cache_dir=None
 		}
 	}
 	require.True(t, found)
-}
-
-// Verify that we include the correct bug lings.
-func TestDEPSRepoManagerBugs(t *testing.T) {
-	unittest.LargeTest(t)
-
-	project := "skiatestproject"
-
-	test := func(bugLine, expect string) {
-		// Setup.
-		cfg := depsCfg(t)
-		cfg.IncludeBugs = true
-		cfg.BugProject = project
-		ctx, rm, _, childRepo, _, parentRepo, _, lastUpload, urlmock, cleanup := setupDEPSRepoManager(t, cfg)
-		defer cleanup()
-
-		// Initial update.
-		_, _, _, err := rm.Update(ctx)
-		require.NoError(t, err)
-
-		// Insert a fake entry into the repo mapping.
-		issues.REPO_PROJECT_MAPPING[parentRepo.RepoUrl()] = project
-
-		// Make a commit with the bug entry.
-		childRepo.AddGen(ctx, "myfile")
-		hash := childRepo.CommitMsg(ctx, fmt.Sprintf(`Some dummy commit
-
-%s
-`, bugLine))
-		details, err := git.GitDir(childRepo.Dir()).Details(ctx, hash)
-		require.NoError(t, err)
-		rev := revision.FromLongCommit(fmt.Sprintf(gitiles.CommitURL, cfg.ChildRepo, "%s"), details)
-		// Update.
-		lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
-		require.NoError(t, err)
-		require.Equal(t, hash, tipRev.Id)
-
-		// Mock the request to load the change.
-		mockGerritGetAndPublishChange(t, urlmock, cfg)
-
-		// Create a roll.
-		_, err = rm.CreateNewRoll(ctx, lastRollRev, rev, notRolledRevs, emails, cqExtraTrybots, false)
-		require.NoError(t, err)
-
-		// Verify that we passed the correct --bug argument to roll-dep.
-		found := false
-		for _, line := range strings.Split(lastUpload.Body, "\n") {
-			if strings.HasPrefix(line, "BUG=") {
-				found = true
-				require.Equal(t, expect, line[4:])
-			} else if strings.HasPrefix(line, "Bug: ") {
-				found = true
-				require.Equal(t, expect, line[5:])
-			}
-		}
-		if expect == "" {
-			require.False(t, found)
-		} else {
-			require.True(t, found)
-		}
-	}
-
-	// Test cases.
-	test("", "None")
-	test("BUG=skiatestproject:23", "skiatestproject:23")
-	test("BUG=skiatestproject:18,skiatestproject:58", "skiatestproject:18,skiatestproject:58")
-	// No prefix defaults to "chromium", which we don't include for rolls into "skiatestproject".
-	test("BUG=skiatestproject:18,58", "skiatestproject:18")
-	test("BUG=456", "None")
-	test("BUG=skia:123,chromium:4532,skiatestproject:21", "skiatestproject:21")
-	test("Bug: skiatestproject:33", "skiatestproject:33")
 }
 
 func TestDEPSRepoManagerConfigValidation(t *testing.T) {

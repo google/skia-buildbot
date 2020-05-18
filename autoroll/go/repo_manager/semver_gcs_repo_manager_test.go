@@ -45,31 +45,6 @@ const (
 	AFDO_SHORT_REV_REGEX = "(\\d+)\\.(\\d+)\\.(\\d+)\\.0_rc-r(\\d+)-merged"
 
 	AFDO_VERSION_FILE_PATH = "chrome/android/profiles/newest.txt"
-
-	TMPL_COMMIT_MSG_AFDO = `Roll AFDO from {{.RollingFrom.String}} to {{.RollingTo.String}}
-
-This CL may cause a small binary size increase, roughly proportional
-to how long it's been since our last AFDO profile roll. For larger
-increases (around or exceeding 100KB), please file a bug against
-gbiv@chromium.org. Additional context: https://crbug.com/805539
-
-Please note that, despite rolling to chrome/android, this profile is
-used for both Linux and Android.
-
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
-{{.ServerURL}}
-Please CC {{stringsJoin .Reviewers ","}} on the revert to ensure that a human
-is aware of the problem.
-
-To report a problem with the AutoRoller itself, please file a bug:
-https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
-
-Documentation for the AutoRoller is here:
-https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md
-
-Tbr: {{stringsJoin .Reviewers ","}}
-`
 )
 
 func afdoCfg(t *testing.T) *SemVerGCSRepoManagerConfig {
@@ -80,11 +55,10 @@ func afdoCfg(t *testing.T) *SemVerGCSRepoManagerConfig {
 	return &SemVerGCSRepoManagerConfig{
 		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:   masterBranchTmpl(t),
-				ChildPath:     "unused/by/afdo/repomanager",
-				CommitMsgTmpl: TMPL_COMMIT_MSG_AFDO,
-				ParentBranch:  masterBranchTmpl(t),
-				ParentRepo:    "", // Filled in after GitInit().
+				ChildBranch:  masterBranchTmpl(t),
+				ChildPath:    "unused/by/afdo/repomanager",
+				ParentBranch: masterBranchTmpl(t),
+				ParentRepo:   "", // Filled in after GitInit().
 			},
 		},
 		Gerrit: &codereview.GerritConfig{
@@ -304,31 +278,7 @@ func TestAFDORepoManager(t *testing.T) {
 	mockParent.MockReadFile(ctx, AFDO_VERSION_FILE_PATH, parentMaster)
 
 	// Mock the initial change creation.
-	commitMsg := `Roll AFDO from 66.0.3336.0_rc-r1-merged to 66.0.3337.0_rc-r1-merged
-
-This CL may cause a small binary size increase, roughly proportional
-to how long it's been since our last AFDO profile roll. For larger
-increases (around or exceeding 100KB), please file a bug against
-gbiv@chromium.org. Additional context: https://crbug.com/805539
-
-Please note that, despite rolling to chrome/android, this profile is
-used for both Linux and Android.
-
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
-fake.server.com
-Please CC reviewer@chromium.org on the revert to ensure that a human
-is aware of the problem.
-
-To report a problem with the AutoRoller itself, please file a bug:
-https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
-
-Documentation for the AutoRoller is here:
-https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md
-
-Tbr: reviewer@chromium.org
-`
-	subject := strings.Split(commitMsg, "\n")[0]
+	subject := strings.Split(fakeCommitMsg, "\n")[0]
 	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, "master", parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
@@ -347,7 +297,7 @@ Tbr: reviewer@chromium.org
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/", mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, 201))
 
 	// Mock the edit of the change to update the commit message.
-	reqBody = []byte(fmt.Sprintf(`{"message":"%s"}`, strings.Replace(commitMsg, "\n", "\\n", -1)))
+	reqBody = []byte(fmt.Sprintf(`{"message":"%s"}`, strings.Replace(fakeCommitMsg, "\n", "\\n", -1)))
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:message", mockhttpclient.MockPutDialogue("application/json", reqBody, []byte("")))
 
 	// Mock the request to modify the version file.
@@ -369,7 +319,7 @@ Tbr: reviewer@chromium.org
 	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
-	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, cqExtraTrybots, false)
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, ci.Issue, issue)
 }
@@ -380,7 +330,6 @@ func TestChromiumAFDOConfigValidation(t *testing.T) {
 	cfg := afdoCfg(t)
 	// Fill in some fields which are not supplied above.
 	cfg.ParentRepo = "dummy"
-	cfg.CommitMsgTmpl = TMPL_COMMIT_MSG_AFDO
 	cfg.GCSBucket = AFDO_GS_BUCKET
 	cfg.GCSPath = AFDO_GS_PATH
 	cfg.VersionFile = AFDO_VERSION_FILE_PATH

@@ -1,7 +1,14 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "Lottie Web",
+  "childDisplayName": "Lottie Web",
+  "commitMsg": {
+    "childLogURLTmpl": "https://skia.googlesource.com/external/github.com/airbnb/lottie-web.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "borenet@google.com"
   ],
@@ -13,7 +20,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "Lottie CI",
+  "parentDisplayName": "Lottie CI",
   "parentWaterfall": "https://status.skia.org/repo/lottie-ci",
   "rollerName": "lottie-web-lottie-ci-autoroll",
   "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
@@ -25,8 +32,6 @@
     "childPath": "lottie",
     "childRepo": "https://skia.googlesource.com/external/github.com/airbnb/lottie-web.git",
     "childRevLinkTmpl": "https://skia.googlesource.com/external/github.com/airbnb/lottie-web.git/+show/%s",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/lottie-ci.git"
   },
