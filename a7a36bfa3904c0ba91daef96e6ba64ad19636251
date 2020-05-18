@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "8a59e0e0_2794b21e",
+        "filename": "machine/go/machine/store/impl.go",
+        "patchSetId": 15
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-18T12:45:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5eff919d_913d9889",
+      "revId": "a7a36bfa3904c0ba91daef96e6ba64ad19636251",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f018051b_9b490708",
         "filename": "sk8s/images/podwatcher/power-cycle-rack4.json5",
         "patchSetId": 15
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "ab6e74f0_78bfa149",
+        "filename": "sk8s/images/podwatcher/power-cycle-rack4.json5",
+        "patchSetId": 15
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-18T12:45:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f018051b_9b490708",
+      "range": {
+        "startLine": 2,
+        "startChar": 3,
+        "endLine": 2,
+        "endChar": 13
+      },
+      "revId": "a7a36bfa3904c0ba91daef96e6ba64ad19636251",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f26e12a6_15fb7807",
         "filename": "sk8s/images/podwatcher/power-cycle-rack4.json5",
         "patchSetId": 15
@@ -56,6 +98,24 @@
       "revId": "a7a36bfa3904c0ba91daef96e6ba64ad19636251",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b9e1ba76_18f7f6aa",
+        "filename": "sk8s/images/podwatcher/power-cycle-rack4.json5",
+        "patchSetId": 15
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-18T12:45:53Z",
+      "side": 1,
+      "message": "No, just built this by hand so far.",
+      "parentUuid": "f26e12a6_15fb7807",
+      "revId": "a7a36bfa3904c0ba91daef96e6ba64ad19636251",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
