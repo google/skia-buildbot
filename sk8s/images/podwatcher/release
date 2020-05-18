@@ -12,11 +12,11 @@ copy_release_files()
 INSTALL="install -D --verbose --backup=none"
 
 # Add the dockerfile and binary.
-${INSTALL} --mode=644 -T ${IMAGE}/Dockerfile                ${ROOT}/Dockerfile
-${INSTALL} --mode=755 -T ${GOPATH}/bin/podwatcher           ${ROOT}/usr/local/bin/${APPNAME}
-${INSTALL_DIR} --mode=755                                   ${ROOT}/usr/local/share/${APPNAME}/
-${INSTALL} --mode=644 ../machine/configs/*                  ${ROOT}/usr/local/share/${APPNAME}/
-${INSTALL} --mode=755 -T ${IMAGE}/power-cycle-rack4.json5   ${ROOT}/usr/local/share/${APPNAME}/power-cycle-rack4.json5
+${INSTALL} --mode=644 -T ${IMAGE}/Dockerfile                                 ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/podwatcher                            ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL_DIR} --mode=755                                                    ${ROOT}/usr/local/share/${APPNAME}/
+${INSTALL} --mode=644 ../machine/configs/*                                   ${ROOT}/usr/local/share/${APPNAME}/
+${INSTALL} --mode=755 -T ${IMAGE}/../../../skolo/sys/power-cycle-rack4.json5 ${ROOT}/usr/local/share/${APPNAME}/power-cycle-rack4.json5
 }
 
 source ../bash/docker_build.sh
