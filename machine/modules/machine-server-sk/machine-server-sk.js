@@ -19,6 +19,7 @@ import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/cached-icon-sk';
 import 'elements-sk/icon/pause-icon-sk';
 import 'elements-sk/icon/play-arrow-icon-sk';
+import 'elements-sk/icon/power-settings-new-icon-sk';
 import 'elements-sk/styles/buttons';
 
 const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
@@ -89,6 +90,13 @@ const imageName = (machine) => {
   return parts[1];
 };
 
+const powerCycle = (machine) => {
+  if (machine.PowerCycle) {
+    return 'Waiting for Power Cycle';
+  }
+  return html`<power-settings-new-icon-sk></power-settings-new-icon-sk>`;
+};
+
 const rows = (ele) => ele._machines.map((machine) => html`
 <tr id=${machine.Dimensions.id}>
   <td><a href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions.id}">${machine.Dimensions.id}</a></td>
@@ -96,6 +104,7 @@ const rows = (ele) => ele._machines.map((machine) => html`
   <td>${machine.Dimensions.device_type}</td>
   <td><button class=mode @click=${() => ele._toggleMode(machine.Dimensions.id)}>${machine.Mode}</button></td>
   <td><button class=update @click=${() => ele._toggleUpdate(machine.Dimensions.id)}>${update(machine)}</button></td>
+  <td><button class=powercycle @click=${() => ele._togglePowerCycle(machine.Dimensions.id)}>${powerCycle(machine)}</button></td>
   <td>${machine.Dimensions.quarantined}</td>
   <td>${isRunning(machine)}</td>
   <td>${machine.Battery}</td>
@@ -135,6 +144,7 @@ const template = (ele) => html`
     <th>Device</th>
     <th>Mode</th>
     <th>Update</th>
+    <th>Power Cycle</th>
     <th>Quarantined</th>
     <th>Task</th>
     <th>Battery</th>
@@ -208,6 +218,17 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_update/${id}`);
+      this.removeAttribute('waiting');
+      this._update(true);
+    } catch (error) {
+      this._onError(error);
+    }
+  }
+
+  async _togglePowerCycle(id) {
+    try {
+      this.setAttribute('waiting', '');
+      await fetch(`/_/machine/toggle_powercycle/${id}`);
       this.removeAttribute('waiting');
       this._update(true);
     } catch (error) {
