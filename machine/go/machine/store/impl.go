@@ -228,6 +228,7 @@ func (st *StoreImpl) WatchForPowerCycle(ctx context.Context) <-chan string {
 				})
 				if err != nil {
 					sklog.Errorf("Failed to update machine.Description PowerCycle: %s", err)
+					// Just log the error, still powercycle the machine.
 				}
 				ch <- machineID
 			}
