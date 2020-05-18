@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/machine/go/machineserver/config"
 	"go.skia.org/infra/sk8s/go/bot_config/adb"
 	"go.skia.org/infra/sk8s/go/bot_config/swarming"
-	"go.skia.org/infra/skolo/go/powercycle"
 )
 
 const (
@@ -29,9 +28,6 @@ const (
 type Machine struct {
 	// store is the firestore backend store for machine state.
 	store *store.StoreImpl
-
-	// powercycleController allows power-cycling machines.
-	powercycleController powercycle.Controller
 
 	// sink is how we send machine.Events to the the machine state server.
 	sink sink.Sink
@@ -65,7 +61,7 @@ type Machine struct {
 }
 
 // New return an instance of *Machine.
-func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, powercycleConfigFilename string) (*Machine, error) {
+func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) (*Machine, error) {
 	store, err := store.New(ctx, false, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to build store instance.")
@@ -75,15 +71,6 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 		return nil, skerr.Wrapf(err, "Failed to build sink instance.")
 	}
 
-	var powercycleController powercycle.Controller
-	if powercycleConfigFilename != "" {
-		sklog.Info("Build powercycle.Controller from %q", powercycleConfigFilename)
-		connectOnStartup := !local
-		powercycleController, err = powercycle.ControllerFromJSON5(ctx, powercycleConfigFilename, connectOnStartup)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to instantiate powercycle.Controller.")
-		}
-	}
 	machineID := os.Getenv(swarming.SwarmingBotIDEnvVar)
 	kubernetesImage := os.Getenv(swarming.KubernetesImageEnvVar)
 	hostname, err := os.Hostname()
@@ -94,7 +81,6 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, 
 	return &Machine{
 		dimensions:                 machine.SwarmingDimensions{},
 		store:                      store,
-		powercycleController:       powercycleController,
 		sink:                       sink,
 		adb:                        adb.New(),
 		MachineID:                  machineID,
@@ -169,18 +155,6 @@ func (m *Machine) Start(ctx context.Context) error {
 			m.SetDimensionsForSwarming(desc.Dimensions)
 		}
 	}()
-
-	if m.powercycleController != nil {
-		// Start a loop that does a firestore onsnapshot watcher that gets machine names
-		// that need to be power-cycled.
-		go func() {
-			for machineID := range m.store.WatchForPowerCycle(ctx) {
-				if err := m.powercycleController.PowerCycle(ctx, powercycle.DeviceID(machineID), 0); err != nil {
-					sklog.Errorf("Failed to powercycle %q: %s", machineID, err)
-				}
-			}
-		}()
-	}
 
 	return nil
 }
