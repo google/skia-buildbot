@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/user"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -127,7 +126,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	chatbot.Init(fmt.Sprintf("%s -> %s AutoRoller", cfg.ChildName, cfg.ParentName))
+	chatbot.Init(fmt.Sprintf("%s -> %s AutoRoller", cfg.ChildDisplayName, cfg.ParentDisplayName))
 
 	user, err := user.Current()
 	if err != nil {
@@ -156,15 +155,15 @@ func main() {
 		gcsClient = gcsclient.New(s, GS_BUCKET_AUTOROLLERS)
 
 		// Emailing init.
-		emailClientId, err := ioutil.ReadFile(path.Join(*emailCreds, metadata.GMAIL_CLIENT_ID))
+		emailClientId, err := ioutil.ReadFile(filepath.Join(*emailCreds, metadata.GMAIL_CLIENT_ID))
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		emailClientSecret, err := ioutil.ReadFile(path.Join(*emailCreds, metadata.GMAIL_CLIENT_SECRET))
+		emailClientSecret, err := ioutil.ReadFile(filepath.Join(*emailCreds, metadata.GMAIL_CLIENT_SECRET))
 		if err != nil {
 			sklog.Fatal(err)
 		}
-		cachedGMailToken, err := ioutil.ReadFile(path.Join(*emailCreds, metadata.GMAIL_CACHED_TOKEN_AUTOROLL))
+		cachedGMailToken, err := ioutil.ReadFile(filepath.Join(*emailCreds, metadata.GMAIL_CACHED_TOKEN_AUTOROLL))
 		if err != nil {
 			sklog.Fatal(err)
 		}
@@ -219,9 +218,9 @@ func main() {
 			sklog.Fatalf("Failed to create Gerrit client: %s", err)
 		}
 	} else if cfg.Github != nil {
-		pathToGithubToken := path.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
+		pathToGithubToken := filepath.Join(user.HomeDir, github.GITHUB_TOKEN_FILENAME)
 		if !*local {
-			pathToGithubToken = path.Join(github.GITHUB_TOKEN_SERVER_PATH, github.GITHUB_TOKEN_FILENAME)
+			pathToGithubToken = filepath.Join(github.GITHUB_TOKEN_SERVER_PATH, github.GITHUB_TOKEN_FILENAME)
 			// Setup the required SSH key from secrets if we are not running
 			// locally and if the file does not already exist.
 			sshKeySrc := filepath.Join(github.SSH_KEY_SERVER_PATH, github.SSH_KEY_FILENAME)

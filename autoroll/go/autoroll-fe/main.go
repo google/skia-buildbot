@@ -282,8 +282,8 @@ func rollerHandler(w http.ResponseWriter, r *http.Request) {
 		ChildName  string
 		ParentName string
 	}{
-		ChildName:  roller.Cfg.ChildName,
-		ParentName: roller.Cfg.ParentName,
+		ChildName:  roller.Cfg.ChildDisplayName,
+		ParentName: roller.Cfg.ParentDisplayName,
 	}
 	if err := rollerTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
@@ -302,9 +302,9 @@ func jsonAllHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		statuses[name] = &autoRollMiniStatus{
 			AutoRollMiniStatus: status,
-			ChildName:          roller.Cfg.ChildName,
+			ChildName:          roller.Cfg.ChildDisplayName,
 			Mode:               modeStr,
-			ParentName:         roller.Cfg.ParentName,
+			ParentName:         roller.Cfg.ParentDisplayName,
 		}
 	}
 	if err := json.NewEncoder(w).Encode(statuses); err != nil {

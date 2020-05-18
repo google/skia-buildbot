@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/commit_msg"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/deepequal/assertdeep"
@@ -19,15 +20,18 @@ import (
 // validBaseConfig returns a minimal valid AutoRollerConfig.
 func validBaseConfig() *AutoRollerConfig {
 	return &AutoRollerConfig{
-		ChildName:       "childName",
-		Contacts:        []string{"me@gmail.com"},
-		OwnerPrimary:    "me",
-		OwnerSecondary:  "you",
-		ParentName:      "parentName",
-		ParentWaterfall: "parentWaterfall",
-		RollerName:      "test-roller",
-		ServiceAccount:  "test-account@google.com",
-		Sheriff:         []string{"sheriff@gmail.com"},
+		ChildDisplayName: "childDisplayName",
+		CommitMsgConfig: &commit_msg.CommitMsgConfig{
+			Template: commit_msg.TmplNameDefault,
+		},
+		Contacts:          []string{"me@gmail.com"},
+		OwnerPrimary:      "me",
+		OwnerSecondary:    "you",
+		ParentDisplayName: "parentName",
+		ParentWaterfall:   "parentWaterfall",
+		RollerName:        "test-roller",
+		ServiceAccount:    "test-account@google.com",
+		Sheriff:           []string{"sheriff@gmail.com"},
 		Gerrit: &codereview.GerritConfig{
 			URL:     "https://gerrit",
 			Project: "my/project",
@@ -67,8 +71,8 @@ func TestConfigs(t *testing.T) {
 	// Test cases.
 
 	testErr(func(c *AutoRollerConfig) {
-		c.ChildName = ""
-	}, "ChildName is required.")
+		c.ChildDisplayName = ""
+	}, "ChildDisplayName is required.")
 
 	testErr(func(c *AutoRollerConfig) {
 		c.Contacts = []string{}
@@ -79,8 +83,8 @@ func TestConfigs(t *testing.T) {
 	}, "Exactly one of Gerrit, Github, or Google3Review is required.")
 
 	testErr(func(c *AutoRollerConfig) {
-		c.ParentName = ""
-	}, "ParentName is required.")
+		c.ParentDisplayName = ""
+	}, "ParentDisplayName is required.")
 
 	testErr(func(c *AutoRollerConfig) {
 		c.ParentWaterfall = ""
@@ -150,10 +154,6 @@ func TestConfigs(t *testing.T) {
 	// Test cases.
 
 	testNoErr(func(c *AutoRollerConfig) {
-		c.CqExtraTrybots = []string{"extra-bot"}
-	})
-
-	testNoErr(func(c *AutoRollerConfig) {
 		c.MaxRollFrequency = "1h"
 	})
 
@@ -207,7 +207,6 @@ func TestConfigSerialization(t *testing.T) {
 
 	test()
 
-	a.CqExtraTrybots = []string{"extra-bot"}
 	a.MaxRollFrequency = "1h"
 	a.Notifiers = []*notifier.Config{
 		{

@@ -1,7 +1,15 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "chromiumos/infra/proto",
+  "childDisplayName": "chromiumos/infra/proto",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childLogURLTmpl": "https://chromium.googlesource.com/chromiumos/infra/proto.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "seanabraham@google.com"
   ],
@@ -13,7 +21,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "infra",
+  "parentDisplayName": "infra",
   "parentWaterfall": "https://ci.chromium.org/p/infra/g/infra/console",
   "rollerName": "cros-proto-infra-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
@@ -25,9 +33,6 @@
     "childPath": "infra/go/src/go.chromium.org/chromiumos/infra/proto",
     "childRepo": "https://chromium.googlesource.com/chromiumos/infra/proto.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/chromiumos/infra/proto.git/+show/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "chromium",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/infra/infra.git"
   },

@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
-	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
@@ -28,35 +27,8 @@ import (
 )
 
 const (
-	UPSTREAM_REMOTE_NAME    = "remote"
-	REPO_BRANCH_NAME        = "merge"
-	TMPL_COMMIT_MSG_ANDROID = `Roll {{.ChildPath}} {{.RollingFrom.String}}..{{.RollingTo.String}} ({{len .Revisions}} commits)
-
-{{.ChildRepo}}/+log/{{.RollingFrom.String}}..{{.RollingTo.String}}
-
-{{if .IncludeLog}}
-{{range .Revisions}}{{.Timestamp.Format "2006-01-02"}} {{.Author}} {{.Description}}
-{{end}}{{end}}
-
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
-{{.ServerURL}}
-Please CC {{stringsJoin .Reviewers ","}} on the revert to ensure that a human
-is aware of the problem.
-
-To report a problem with the AutoRoller itself, please file a bug:
-https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
-
-Documentation for the AutoRoller is here:
-https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md
-
-Test: Presubmit checks will test this change.
-Exempt-From-Owner-Approval: The autoroll bot does not require owner approval.
-
-{{range .Bugs}}Bug: {{.}}
-{{end}}{{range .Tests}}{{.}}
-{{end}}
-`
+	UPSTREAM_REMOTE_NAME = "remote"
+	REPO_BRANCH_NAME     = "merge"
 )
 
 var (
@@ -149,10 +121,6 @@ func NewAndroidRepoManager(ctx context.Context, c *AndroidRepoManagerConfig, reg
 	}
 
 	wd := path.Join(workdir, "android_repo")
-
-	if c.CommitMsgTmpl == "" {
-		c.CommitMsgTmpl = TMPL_COMMIT_MSG_ANDROID
-	}
 	crm, err := newCommonRepoManager(ctx, c.CommonRepoManagerConfig, reg, wd, serverURL, g, client, cr, local)
 	if err != nil {
 		return nil, err
@@ -285,7 +253,7 @@ func (r *androidRepoManager) setTopic(changeNum int64) error {
 }
 
 // See documentation for RepoManager interface.
-func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
 	r.repoMtx.Lock()
 	defer r.repoMtx.Unlock()
 
@@ -372,23 +340,6 @@ third_party {
 		}
 		sort.Strings(rollEmails)
 	}
-
-	// Create commit message.
-	commitMsg, err := r.buildCommitMsg(&parent.CommitMsgVars{
-		ChildPath:   r.childPath,
-		ChildRepo:   r.childRepoURL,
-		Reviewers:   rollEmails,
-		Revisions:   rolling,
-		RollingFrom: from,
-		RollingTo:   to,
-		ServerURL:   r.serverURL,
-	})
-	if err != nil {
-		return 0, err
-	}
-
-	// Temporary hack to substitute P4 for "Pixel4". See skbug.com/9595.
-	commitMsg = strings.Replace(commitMsg, "Pixel4", "P4", -1)
 
 	// Commit the change with the above message.
 	if _, commitErr := r.childRepo.Git(ctx, "commit", "-m", commitMsg); commitErr != nil {

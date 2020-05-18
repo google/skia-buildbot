@@ -1,7 +1,13 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "ChromeOS Orderfiles",
+  "childDisplayName": "ChromeOS Orderfiles",
+  "commitMsg": {
+    "includeLog": false,
+    "includeRevisionCount": false,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "tcwang@google.com"
   ],
@@ -13,7 +19,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "Chromium",
+  "parentDisplayName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "cros-orderfile-chromium",
   "serviceAccount": "chromium-autoroll@skia-public.google.com.iam.gserviceaccount.com",
@@ -23,23 +29,6 @@
   "semVerGCSRepoManager": {
     "childBranch": "master",
     "childPath": "chromeos/profiles/orderfile.newest.txt",
-    "commitMsgTmpl": "Roll ChromeOS orderfile from {{.RollingFrom.String}} to {{.RollingTo.String}}\n\
-\n\
-If this roll has caused a breakage, revert this CL and stop the roller\n\
-using the controls here:\n\
-{{.ServerURL}}\n\
-Please CC {{stringsJoin .Reviewers \",\"}} on the revert to ensure that a human\n\
-is aware of the problem.\n\
-\n\
-To report a problem with the AutoRoller itself, please file a bug:\n\
-https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug\n\
-\n\
-Documentation for the AutoRoller is here:\n\
-https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md\n\
-\n\
-{{if .CqExtraTrybots}}Cq-Include-Trybots: {{.CqExtraTrybots}}\n\
-{{end}}Tbr: {{stringsJoin .Reviewers \",\"}}\n\
-",
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/orderfiles/vetted",
     "parentBranch": "master",

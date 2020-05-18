@@ -57,14 +57,6 @@ func (c GithubRepoManagerConfig) splitParentChild() (parent.GitCheckoutGithubFil
 	parentCfg := parent.GitCheckoutGithubFileConfig{
 		GitCheckoutGithubConfig: parent.GitCheckoutGithubConfig{
 			GitCheckoutConfig: parent.GitCheckoutConfig{
-				BaseConfig: parent.BaseConfig{
-					ChildPath:       c.CommonRepoManagerConfig.ChildPath,
-					ChildRepo:       c.ChildRepoURL,
-					IncludeBugs:     c.CommonRepoManagerConfig.IncludeBugs,
-					IncludeLog:      c.CommonRepoManagerConfig.IncludeLog,
-					CommitMsgTmpl:   c.CommonRepoManagerConfig.CommitMsgTmpl,
-					MonorailProject: c.CommonRepoManagerConfig.BugProject,
-				},
 				GitCheckoutConfig: git_common.GitCheckoutConfig{
 					Branch:      c.ParentBranch,
 					RepoURL:     c.ParentRepo,

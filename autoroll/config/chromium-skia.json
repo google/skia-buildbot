@@ -1,7 +1,18 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "Chromium",
+  "childDisplayName": "Chromium",
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/chromium/src.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "cqExtraTrybots": [
+      "skia/skia.primary:Perf-Mac10.13-Clang-MacBookPro11.5-GPU-RadeonHD8870M-x86_64-Release-All-CommandBuffer",
+      "skia/skia.primary:Test-Mac10.13-Clang-MacBookPro11.5-GPU-RadeonHD8870M-x86_64-Debug-All-CommandBuffer"
+    ],
+    "includeLog": false,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "borenet@google.com"
   ],
@@ -13,7 +24,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "Skia",
+  "parentDisplayName": "Skia",
   "parentWaterfall": "https://status.skia.org",
   "rollerName": "chromium-skia-autoroll",
   "serviceAccount": "skia-autoroll@skia-public.iam.gserviceaccount.com",
@@ -25,15 +36,9 @@
     "childPath": "../src",
     "childRepo": "https://chromium.googlesource.com/chromium/src.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/chromium/src.git/+show/%s",
-    "includeBugs": false,
-    "includeLog": false,
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git"
   },
-  "cqExtraTrybots": [
-    "skia/skia.primary:Perf-Mac10.13-Clang-MacBookPro11.5-GPU-RadeonHD8870M-x86_64-Release-All-CommandBuffer",
-    "skia/skia.primary:Test-Mac10.13-Clang-MacBookPro11.5-GPU-RadeonHD8870M-x86_64-Debug-All-CommandBuffer"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",

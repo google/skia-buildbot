@@ -14,7 +14,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
@@ -41,30 +40,30 @@ var (
 )
 
 func NewFreeTypeParent(ctx context.Context, c GitilesConfig, reg *config_vars.Registry, workdir string, client *http.Client, serverURL string) (*gitilesParent, error) {
-	localChildRepo, err := git.NewRepo(ctx, c.ChildRepo, workdir)
+	localChildRepo, err := git.NewRepo(ctx, c.DependencyConfig.ID, workdir)
 	if err != nil {
 		return nil, err
 	}
 	getChangesHelper := gitilesFileGetChangesForRollFunc(c.DependencyConfig)
-	getChangesForRoll := func(ctx context.Context, parentRepo *gitiles_common.GitilesRepo, baseCommit string, from, to *revision.Revision, rolling []*revision.Revision) (map[string]string, []*version_file_common.TransitiveDepUpdate, error) {
+	getChangesForRoll := func(ctx context.Context, parentRepo *gitiles_common.GitilesRepo, baseCommit string, from, to *revision.Revision, rolling []*revision.Revision) (map[string]string, error) {
 		// Get the DEPS changes via gitilesDEPSGetChangesForRollFunc.
-		changes, transitiveDeps, err := getChangesHelper(ctx, parentRepo, baseCommit, from, to, rolling)
+		changes, err := getChangesHelper(ctx, parentRepo, baseCommit, from, to, rolling)
 		if err != nil {
-			return nil, nil, skerr.Wrap(err)
+			return nil, skerr.Wrap(err)
 		}
 
 		// Update README.chromium.
 		if err := localChildRepo.Update(ctx); err != nil {
-			return nil, nil, skerr.Wrap(err)
+			return nil, skerr.Wrap(err)
 		}
 		ftVersion, err := localChildRepo.Git(ctx, "describe", "--long", to.Id)
 		if err != nil {
-			return nil, nil, skerr.Wrap(err)
+			return nil, skerr.Wrap(err)
 		}
 		ftVersion = strings.TrimSpace(ftVersion)
 		var buf bytes.Buffer
 		if err := parentRepo.ReadFileAtRef(ctx, FtReadmePath, baseCommit, &buf); err != nil {
-			return nil, nil, skerr.Wrap(err)
+			return nil, skerr.Wrap(err)
 		}
 		oldReadmeContents := buf.String()
 		newReadmeContents := FtReadmeVersionRegex.ReplaceAllString(oldReadmeContents, fmt.Sprintf(FtReadmeVersionTmpl, "", ftVersion))
@@ -76,19 +75,19 @@ func NewFreeTypeParent(ctx context.Context, c GitilesConfig, reg *config_vars.Re
 		// Merge includes.
 		for _, include := range FtIncludesToMerge {
 			if err := mergeInclude(ctx, include, from.Id, to.Id, baseCommit, changes, parentRepo, localChildRepo); err != nil {
-				return nil, nil, skerr.Wrap(err)
+				return nil, skerr.Wrap(err)
 			}
 		}
 
 		// Check modules.cfg. Give up if it has changed.
 		diff, err := localChildRepo.Git(ctx, "diff", "--name-only", git.LogFromTo(from.Id, to.Id))
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		if strings.Contains(diff, "modules.cfg") {
-			return nil, nil, skerr.Fmt("modules.cfg has been modified; cannot roll automatically.")
+			return nil, skerr.Fmt("modules.cfg has been modified; cannot roll automatically.")
 		}
-		return changes, transitiveDeps, nil
+		return changes, nil
 	}
 	return newGitiles(ctx, c, reg, client, serverURL, getChangesForRoll)
 }

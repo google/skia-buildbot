@@ -12,31 +12,6 @@ import (
 )
 
 const (
-	TMPL_COMMIT_MSG_GITHUB = `Roll {{.ChildPath}} {{.RollingFrom.String}}..{{.RollingTo.String}} ({{len .Revisions}} commits)
-
-{{.ChildRepo}}/compare/{{.RollingFrom.String}}...{{.RollingTo.String}}
-
-{{if .IncludeLog}}git log {{.RollingFrom}}..{{.RollingTo}} --first-parent --oneline
-{{range .Revisions}}{{.Timestamp.Format "2006-01-02"}} {{.Author}} {{.Description}}
-{{end}}{{end}}{{if len .TransitiveDeps}}
-Also rolling transitive DEPS:
-{{range .TransitiveDeps}}  {{.Dep}} {{.RollingFrom}}..{{.RollingTo}}
-{{end}}{{end}}
-
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
-{{.ServerURL}}
-Please CC {{stringsJoin .Reviewers ","}} on the revert to ensure that a human
-is aware of the problem.
-
-To report a problem with the AutoRoller itself, please file a bug:
-https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
-
-Documentation for the AutoRoller is here:
-https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md
-
-`
-
 	githubForkRemoteName = "fork"
 )
 
@@ -110,9 +85,6 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, fork
 func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *config_vars.Registry, githubClient *github.GitHub, serverURL, workdir, userName, userEmail string, co *git.Checkout, createRoll GitCheckoutCreateRollFunc) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
-	}
-	if c.CommitMsgTmpl == "" {
-		c.CommitMsgTmpl = TMPL_COMMIT_MSG_GITHUB
 	}
 
 	// See documentation for GitCheckoutUploadRollFunc.

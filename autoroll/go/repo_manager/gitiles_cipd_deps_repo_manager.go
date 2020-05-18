@@ -49,14 +49,6 @@ func (c *GitilesCIPDDEPSRepoManagerConfig) Validate() error {
 // and child. We shouldn't need most of the New.*RepoManager functions.
 func (c GitilesCIPDDEPSRepoManagerConfig) splitParentChild() (parent.GitilesConfig, child.CIPDConfig, error) {
 	parentCfg := parent.GitilesConfig{
-		BaseConfig: parent.BaseConfig{
-			ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-			ChildRepo:       c.CipdAssetName,
-			IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-			IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-			CommitMsgTmpl:   c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
-			MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-		},
 		DependencyConfig: version_file_common.DependencyConfig{
 			VersionFileConfig: version_file_common.VersionFileConfig{
 				ID:   c.CipdAssetName,

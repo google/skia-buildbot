@@ -1,7 +1,26 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "glslang",
+  "childDisplayName": "glslang",
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "cqExtraTrybots": [
+      "luci.chromium.try:android_angle_vk32_deqp_rel_ng",
+      "luci.chromium.try:android_angle_vk32_rel_ng",
+      "luci.chromium.try:android_angle_vk64_deqp_rel_ng",
+      "luci.chromium.try:android_angle_vk64_rel_ng",
+      "luci.chromium.try:linux_angle_deqp_rel_ng",
+      "luci.chromium.try:linux-angle-rel",
+      "luci.chromium.try:win-angle-rel-32",
+      "luci.chromium.try:win-angle-rel-64",
+      "luci.chromium.try:win-angle-deqp-rel-32",
+      "luci.chromium.try:win-angle-deqp-rel-64"
+    ],
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "dsinclair@chromium.org",
     "geofflang@chromium.org",
@@ -17,7 +36,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "Chromium",
+  "parentDisplayName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "glslang-chromium-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
@@ -30,23 +49,9 @@
     "childPath": "src/third_party/glslang/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/glslang/+show/%s",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
-  "cqExtraTrybots": [
-    "luci.chromium.try:android_angle_vk32_deqp_rel_ng",
-    "luci.chromium.try:android_angle_vk32_rel_ng",
-    "luci.chromium.try:android_angle_vk64_deqp_rel_ng",
-    "luci.chromium.try:android_angle_vk64_rel_ng",
-    "luci.chromium.try:linux_angle_deqp_rel_ng",
-    "luci.chromium.try:linux-angle-rel",
-    "luci.chromium.try:win-angle-rel-32",
-    "luci.chromium.try:win-angle-rel-64",
-    "luci.chromium.try:win-angle-deqp-rel-32",
-    "luci.chromium.try:win-angle-deqp-rel-64"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",

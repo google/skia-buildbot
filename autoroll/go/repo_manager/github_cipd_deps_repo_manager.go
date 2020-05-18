@@ -16,23 +16,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 )
 
-const (
-	TMPL_COMMIT_MSG_GITHUB_CIPD_DEPS = `Roll {{.ChildPath}} from {{.RollingFrom.String}} to {{.RollingTo.String}}
-
-If this roll has caused a breakage, revert this CL and stop the roller
-using the controls here:
-{{.ServerURL}}
-Please CC {{stringsJoin .Reviewers ","}} on the revert to ensure that a human
-is aware of the problem.
-
-To report a problem with the AutoRoller itself, please file a bug:
-https://bugs.chromium.org/p/skia/issues/entry?template=Autoroller+Bug
-
-Documentation for the AutoRoller is here:
-https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md
-`
-)
-
 // GithubCipdDEPSRepoManagerConfig provides configuration for the Github RepoManager.
 type GithubCipdDEPSRepoManagerConfig struct {
 	GithubDEPSRepoManagerConfig
@@ -60,14 +43,6 @@ func (c *GithubCipdDEPSRepoManagerConfig) Validate() error {
 func (c GithubCipdDEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig, child.CIPDConfig, error) {
 	parentCfg := parent.DEPSLocalConfig{
 		GitCheckoutConfig: parent.GitCheckoutConfig{
-			BaseConfig: parent.BaseConfig{
-				ChildPath:       c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-				ChildRepo:       c.CipdAssetName,
-				IncludeBugs:     c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-				IncludeLog:      c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-				CommitMsgTmpl:   c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
-				MonorailProject: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-			},
 			GitCheckoutConfig: git_common.GitCheckoutConfig{
 				Branch:  c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
 				RepoURL: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
@@ -106,9 +81,6 @@ func NewGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoMana
 	parentCfg, childCfg, err := c.splitParentChild()
 	if err != nil {
 		return nil, skerr.Wrap(err)
-	}
-	if parentCfg.CommitMsgTmpl == "" {
-		parentCfg.CommitMsgTmpl = TMPL_COMMIT_MSG_GITHUB_CIPD_DEPS
 	}
 	uploadRoll := parent.GitCheckoutUploadGithubRollFunc(githubClient, cr.UserName(), rollerName)
 	parentRM, err := parent.NewDEPSLocal(ctx, parentCfg, reg, httpClient, serverURL, workdir, cr.UserName(), cr.UserEmail(), recipeCfgFile, uploadRoll)

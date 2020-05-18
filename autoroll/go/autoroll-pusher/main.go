@@ -323,7 +323,7 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, lat
 		tmplBe := "./go/autoroll-be/autoroll-be.yaml.template"
 		for cfgFile, config := range configs {
 			// Google3 uses a different type of backend.
-			if config.ParentName == GOOGLE3_PARENT_NAME {
+			if config.ParentDisplayName == GOOGLE3_PARENT_NAME {
 				continue
 			}
 			dst := filepath.Join(clusterCfgDir, fmt.Sprintf("autoroll-be-%s.yaml", strings.Split(cfgFile, ".")[0]))

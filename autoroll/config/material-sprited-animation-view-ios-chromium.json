@@ -1,7 +1,17 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "material-sprited-animation-view-ios",
+  "childDisplayName": "material-sprited-animation-view-ios",
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/material-foundation/material-sprited-animation-view-ios/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "cqExtraTrybots": [
+      "luci.chrome.try:ios-internal-mdc"
+    ],
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": true
+  },
   "contacts": [
     "jbudorick@chromium.org"
   ],
@@ -13,7 +23,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "Chromium",
+  "parentDisplayName": "Chromium",
   "parentWaterfall": "https://build.chromium.org",
   "rollerName": "material-sprited-ani-view-ios-chromium",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
@@ -25,14 +35,9 @@
     "childPath": "src/ios/third_party/material_sprited_animation_view_ios/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/material-foundation/material-sprited-animation-view-ios",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/material-foundation/material-sprited-animation-view-ios/+show/%s",
-    "includeBugs": false,
-    "includeLog": true,
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
-  "cqExtraTrybots": [
-    "luci.chrome.try:ios-internal-mdc"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",

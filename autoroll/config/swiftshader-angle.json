@@ -1,7 +1,15 @@
 // See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
 // for documentation of the autoroller config.
 {
-  "childName": "SwiftShader",
+  "childDisplayName": "SwiftShader",
+  "commitMsg": {
+    "bugProject": "angleproject",
+    "childLogURLTmpl": "https://swiftshader.googlesource.com/SwiftShader.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true,
+    "includeTests": false
+  },
   "contacts": [
     "geofflang@chromium.org",
     "jmadill@chromium.org",
@@ -16,7 +24,7 @@
   "isInternal": false,
   "ownerPrimary": "borenet",
   "ownerSecondary": "rmistry",
-  "parentName": "ANGLE",
+  "parentDisplayName": "ANGLE",
   "parentWaterfall": "https://ci.chromium.org/p/angle/g/ci/console",
   "rollerName": "swiftshader-angle-autoroll",
   "serviceAccount": "angle-autoroll@skia-public.iam.gserviceaccount.com",
@@ -32,9 +40,6 @@
     "childPath": "third_party/SwiftShader",
     "childRepo": "https://swiftshader.googlesource.com/SwiftShader.git",
     "childRevLinkTmpl": "https://swiftshader.googlesource.com/SwiftShader.git/+show/%s",
-    "includeBugs": true,
-    "includeLog": true,
-    "bugProject": "angleproject",
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
   },

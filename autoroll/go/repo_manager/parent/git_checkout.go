@@ -28,16 +28,12 @@ const (
 // GitCheckoutConfig provides configuration for a Parent which uses a local
 // checkout to create changes.
 type GitCheckoutConfig struct {
-	BaseConfig
 	git_common.GitCheckoutConfig
 	version_file_common.DependencyConfig
 }
 
 // See documentation for util.Validator interface.
 func (c GitCheckoutConfig) Validate() error {
-	if err := c.BaseConfig.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}
@@ -53,7 +49,6 @@ func (c GitCheckoutConfig) Validate() error {
 // GitCheckoutParent is a base for implementations of Parent which use a local
 // Git checkout.
 type GitCheckoutParent struct {
-	*baseParent
 	*git_common.Checkout
 	childID    string
 	createRoll GitCheckoutCreateRollFunc
@@ -75,11 +70,6 @@ func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.R
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	// Create a baseParent.
-	base, err := newBaseParent(ctx, c.BaseConfig, serverURL)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
 	// Create the local checkout.
 	deps := make([]*version_file_common.VersionFileConfig, 0, len(c.DependencyConfig.TransitiveDeps)+1)
 	deps = append(deps, &c.DependencyConfig.VersionFileConfig)
@@ -92,7 +82,6 @@ func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.R
 		return nil, skerr.Wrap(err)
 	}
 	return &GitCheckoutParent{
-		baseParent: base,
 		Checkout:   checkout,
 		childID:    c.DependencyConfig.ID,
 		createRoll: createRoll,
@@ -114,7 +103,7 @@ func (p *GitCheckoutParent) Update(ctx context.Context) (string, error) {
 }
 
 // See documentation for Parent interface.
-func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
+func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
 	// Create the roll branch.
 	_, upstreamBranch, err := p.Checkout.Update(ctx)
 	if err != nil {
@@ -125,13 +114,6 @@ func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revisio
 		return 0, skerr.Wrap(err)
 	}
 	if _, err := p.Git(ctx, "reset", "--hard", upstreamBranch); err != nil {
-		return 0, skerr.Wrap(err)
-	}
-
-	// Generate the commit message.
-	// TODO(borenet): This should probably move into parentChildRepoManager.
-	commitMsg, err := p.buildCommitMsg(from, to, rolling, emails, cqExtraTrybots, nil)
-	if err != nil {
 		return 0, skerr.Wrap(err)
 	}
 
@@ -174,7 +156,7 @@ func gitCheckoutFileCreateRollFunc(dep version_file_common.DependencyConfig) Git
 		getFile := func(ctx context.Context, path string) (string, error) {
 			return co.GetFile(ctx, path, "HEAD")
 		}
-		changes, _, err := version_file_common.UpdateDep(ctx, dep, to, getFile)
+		changes, err := version_file_common.UpdateDep(ctx, dep, to, getFile)
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}

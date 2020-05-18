@@ -82,14 +82,6 @@ func (c NoCheckoutDEPSRepoManagerConfig) splitParentChild() (parent.GitilesConfi
 		}
 	}
 	parentCfg := parent.GitilesConfig{
-		BaseConfig: parent.BaseConfig{
-			ChildPath:       c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ChildPath,
-			ChildRepo:       c.ChildRepo,
-			IncludeBugs:     c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeBugs,
-			IncludeLog:      c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.IncludeLog,
-			CommitMsgTmpl:   c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.CommitMsgTmpl,
-			MonorailProject: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.BugProject,
-		},
 		DependencyConfig: version_file_common.DependencyConfig{
 			VersionFileConfig: version_file_common.VersionFileConfig{
 				ID:   c.ChildRepo,

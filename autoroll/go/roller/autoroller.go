@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/commit_msg"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
@@ -54,41 +55,39 @@ const (
 // AutoRoller is a struct which automates the merging new revisions of one
 // project into another.
 type AutoRoller struct {
-	cfg             AutoRollerConfig
-	childName       string
-	codereview      codereview.CodeReview
-	currentRoll     codereview.RollImpl
-	emails          []string
-	emailsMtx       sync.RWMutex
-	failureThrottle *state_machine.Throttler
-	lastRollRev     *revision.Revision
-	liveness        metrics2.Liveness
-	manualRollDB    manual.DB
-	modeHistory     *modes.ModeHistory
-	nextRollRev     *revision.Revision
-	notifier        *arb_notifier.AutoRollNotifier
-	notifierConfigs []*notifier.Config
-	notRolledRevs   []*revision.Revision
-	parentName      string
-	recent          *recent_rolls.RecentRolls
-	reg             *config_vars.Registry
-	rm              repo_manager.RepoManager
-	rollIntoAndroid bool
-	roller          string
-	runningMtx      sync.Mutex
-	safetyThrottle  *state_machine.Throttler
-	serverURL       string
-	sheriff         []string
-	sheriffBackup   []string
-	sm              *state_machine.AutoRollStateMachine
-	status          *status.AutoRollStatusCache
-	statusMtx       sync.RWMutex
-	strategy        strategy.NextRollStrategy
-	strategyHistory *strategy.StrategyHistory
-	strategyMtx     sync.RWMutex // Protects strategy
-	successThrottle *state_machine.Throttler
-	timeWindow      *time_window.TimeWindow
-	tipRev          *revision.Revision
+	cfg              AutoRollerConfig
+	codereview       codereview.CodeReview
+	commitMsgBuilder *commit_msg.Builder
+	currentRoll      codereview.RollImpl
+	emails           []string
+	emailsMtx        sync.RWMutex
+	failureThrottle  *state_machine.Throttler
+	lastRollRev      *revision.Revision
+	liveness         metrics2.Liveness
+	manualRollDB     manual.DB
+	modeHistory      *modes.ModeHistory
+	nextRollRev      *revision.Revision
+	notifier         *arb_notifier.AutoRollNotifier
+	notifierConfigs  []*notifier.Config
+	notRolledRevs    []*revision.Revision
+	recent           *recent_rolls.RecentRolls
+	reg              *config_vars.Registry
+	rm               repo_manager.RepoManager
+	roller           string
+	runningMtx       sync.Mutex
+	safetyThrottle   *state_machine.Throttler
+	serverURL        string
+	sheriff          []string
+	sheriffBackup    []string
+	sm               *state_machine.AutoRollStateMachine
+	status           *status.AutoRollStatusCache
+	statusMtx        sync.RWMutex
+	strategy         strategy.NextRollStrategy
+	strategyHistory  *strategy.StrategyHistory
+	strategyMtx      sync.RWMutex // Protects strategy
+	successThrottle  *state_machine.Throttler
+	timeWindow       *time_window.TimeWindow
+	tipRev           *revision.Revision
 }
 
 // NewAutoRoller returns an AutoRoller instance.
@@ -107,36 +106,9 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	}
 
 	// Create the RepoManager.
-	var rm repo_manager.RepoManager
-	if c.AndroidRepoManager != nil {
-		rm, err = repo_manager.NewAndroidRepoManager(ctx, c.AndroidRepoManager, reg, workdir, g, serverURL, c.ServiceAccount, client, cr, local)
-	} else if c.CopyRepoManager != nil {
-		rm, err = repo_manager.NewCopyRepoManager(ctx, c.CopyRepoManager, reg, workdir, g, serverURL, client, cr, local)
-	} else if c.DEPSRepoManager != nil {
-		rm, err = repo_manager.NewDEPSRepoManager(ctx, c.DEPSRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
-	} else if c.FuchsiaSDKAndroidRepoManager != nil {
-		rm, err = repo_manager.NewFuchsiaSDKAndroidRepoManager(ctx, c.FuchsiaSDKAndroidRepoManager, reg, workdir, g, serverURL, client, cr, local)
-	} else if c.FreeTypeRepoManager != nil {
-		rm, err = repo_manager.NewFreeTypeRepoManager(ctx, c.FreeTypeRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
-	} else if c.FuchsiaSDKRepoManager != nil {
-		rm, err = repo_manager.NewFuchsiaSDKRepoManager(ctx, c.FuchsiaSDKRepoManager, reg, workdir, g, serverURL, client, cr, local)
-	} else if c.GithubRepoManager != nil {
-		rm, err = repo_manager.NewGithubRepoManager(ctx, c.GithubRepoManager, reg, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
-	} else if c.GithubCipdDEPSRepoManager != nil {
-		rm, err = repo_manager.NewGithubCipdDEPSRepoManager(ctx, c.GithubCipdDEPSRepoManager, reg, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
-	} else if c.GithubDEPSRepoManager != nil {
-		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, reg, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
-	} else if c.GitilesCIPDDEPSRepoManager != nil {
-		rm, err = repo_manager.NewGitilesCIPDDEPSRepoManager(ctx, c.GitilesCIPDDEPSRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
-	} else if c.NoCheckoutDEPSRepoManager != nil {
-		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
-	} else if c.SemVerGCSRepoManager != nil {
-		rm, err = repo_manager.NewSemVerGCSRepoManager(ctx, c.SemVerGCSRepoManager, reg, workdir, g, serverURL, client, cr, local)
-	} else {
-		return nil, skerr.Fmt("Invalid roller config; no repo manager defined!")
-	}
+	rm, err := c.CreateRepoManager(ctx, cr, reg, g, githubClient, workdir, recipesCfgFile, serverURL, rollerName, gcsClient, client, local)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to initialize repo manager")
+		return nil, skerr.Wrap(err)
 	}
 
 	sklog.Info("Creating strategy history.")
@@ -213,13 +185,13 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, skerr.Wrapf(err, "Failed to create success throttler")
 	}
 	sklog.Info("Getting sheriff")
-	emails, err := getSheriff(c.ParentName, c.ChildName, c.RollerName, c.Sheriff, c.SheriffBackup)
+	emails, err := GetSheriff(c.RollerName, c.Sheriff, c.SheriffBackup)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get sheriff")
 	}
 	sklog.Info("Creating notifier")
 	configCopies := replaceSheriffPlaceholder(c.Notifiers, emails)
-	n, err := arb_notifier.New(ctx, c.ChildName, c.ParentName, serverURL, client, emailer, chatBotConfigReader, configCopies)
+	n, err := arb_notifier.New(ctx, c.ChildDisplayName, c.ParentDisplayName, serverURL, client, emailer, chatBotConfigReader, configCopies)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create notifier")
 	}
@@ -236,33 +208,38 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 			return nil, skerr.Wrapf(err, "Failed to create TimeWindow")
 		}
 	}
+	commitMsgBuilder, err := commit_msg.NewBuilder(c.CommitMsgConfig, c.ChildDisplayName, serverURL, c.TransitiveDeps)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	arb := &AutoRoller{
-		cfg:             c,
-		codereview:      cr,
-		emails:          emails,
-		failureThrottle: failureThrottle,
-		lastRollRev:     lastRollRev,
-		liveness:        metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
-		manualRollDB:    manualRollDB,
-		modeHistory:     mh,
-		nextRollRev:     nextRollRev,
-		notifier:        n,
-		notifierConfigs: c.Notifiers,
-		notRolledRevs:   notRolledRevs,
-		recent:          recent,
-		reg:             reg,
-		rm:              rm,
-		roller:          rollerName,
-		safetyThrottle:  safetyThrottle,
-		serverURL:       serverURL,
-		sheriff:         c.Sheriff,
-		sheriffBackup:   c.SheriffBackup,
-		status:          statusCache,
-		strategy:        strat,
-		strategyHistory: sh,
-		successThrottle: successThrottle,
-		timeWindow:      tw,
-		tipRev:          tipRev,
+		cfg:              c,
+		codereview:       cr,
+		commitMsgBuilder: commitMsgBuilder,
+		emails:           emails,
+		failureThrottle:  failureThrottle,
+		lastRollRev:      lastRollRev,
+		liveness:         metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
+		manualRollDB:     manualRollDB,
+		modeHistory:      mh,
+		nextRollRev:      nextRollRev,
+		notifier:         n,
+		notifierConfigs:  c.Notifiers,
+		notRolledRevs:    notRolledRevs,
+		recent:           recent,
+		reg:              reg,
+		rm:               rm,
+		roller:           rollerName,
+		safetyThrottle:   safetyThrottle,
+		serverURL:        serverURL,
+		sheriff:          c.Sheriff,
+		sheriffBackup:    c.SheriffBackup,
+		status:           statusCache,
+		strategy:         strat,
+		strategyHistory:  sh,
+		successThrottle:  successThrottle,
+		timeWindow:       tw,
+		tipRev:           tipRev,
 	}
 	sklog.Info("Creating state machine")
 	sm, err := state_machine.New(ctx, arb, n, gcsClient, rollerName)
@@ -351,7 +328,7 @@ func (r *AutoRoller) Start(ctx context.Context, tickFrequency time.Duration) {
 
 	// Update the current sheriff in a loop.
 	cleanup.Repeat(30*time.Minute, func(ctx context.Context) {
-		emails, err := getSheriff(r.cfg.ParentName, r.cfg.ChildName, r.cfg.RollerName, r.cfg.Sheriff, r.cfg.SheriffBackup)
+		emails, err := GetSheriff(r.cfg.RollerName, r.cfg.Sheriff, r.cfg.SheriffBackup)
 		if err != nil {
 			sklog.Errorf("Failed to retrieve current sheriff: %s", err)
 		} else {
@@ -471,7 +448,11 @@ func (r *AutoRoller) createNewRoll(ctx context.Context, from, to *revision.Revis
 		}
 	}
 	r.statusMtx.RUnlock()
-	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, revs, emails, strings.Join(r.cfg.CqExtraTrybots, ";"), dryRun)
+	commitMsg, err := r.commitMsgBuilder.Build(from, to, revs, emails)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	issueNum, err := r.rm.CreateNewRoll(ctx, from, to, revs, emails, dryRun, commitMsg)
 	if err != nil {
 		return nil, err
 	}
@@ -683,7 +664,7 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: numNotRolled,
 		},
-		ChildName:          r.childName,
+		ChildName:          r.cfg.ChildDisplayName,
 		CurrentRoll:        r.recent.CurrentRoll(),
 		Error:              lastError,
 		FullHistoryUrl:     r.codereview.GetFullHistoryUrl(),
