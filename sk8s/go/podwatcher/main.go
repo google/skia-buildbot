@@ -1,4 +1,5 @@
-// podwatcher is an application that monitors pods in a k8s cluster running swarming tasks.
+// podwatcher is an application that monitors pods in a k8s cluster running
+// swarming tasks.
 //
 // store.WatchForDeletablePods returns a channel that will produce the name of a
 // k8s for every pod that becomes eligible for deletion. Note that since these
@@ -8,6 +9,9 @@
 //     spec:
 //       updateStrategy:
 //         type: OnDelete
+//
+// store.WatchForPowerCycle() returns a channel that will produce the name of a
+// machine to powercycle.
 package main
 
 import (
