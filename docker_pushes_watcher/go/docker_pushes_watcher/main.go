@@ -246,13 +246,26 @@ func deployImage(ctx context.Context, fullyQualifiedImageName string) error {
 	}
 	pushCmd := fmt.Sprintf("%s --do-not-override-dirty-image --logtostderr%s%s %s", pushk, cfgFile, runningInK8sArg, fullyQualifiedImageName)
 	sklog.Infof("About to execute: %q", pushCmd)
-	output, err := exec.RunSimple(ctx, pushCmd)
-	if err != nil {
-		return fmt.Errorf("Failed to run pushk: %s: %s", output, err)
-	} else {
+
+	// Retry pushk command if there is an error due to concurrent pushes (skbug.com/10261).
+	maxAttempts := 3
+	var pushkErr error
+	for i := 0; i < maxAttempts; i++ {
+		if pushkErr != nil {
+			sklog.Warning("Retrying")
+			pushkErr = nil
+		}
+		output, err := exec.RunSimple(ctx, pushCmd)
+		if err != nil {
+			pushkErr = err
+			sklog.Warningf("Pushk failed with %s. Output: %s", pushkErr, output)
+			continue
+		}
+		// Pushk cmd was successful, log and break out of the retry loop.
 		sklog.Info(output)
+		break
 	}
-	return nil
+	return pushkErr
 }
 
 func main() {
