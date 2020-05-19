@@ -1,12 +1,14 @@
 import './index';
 
+import { expect } from 'chai';
 import { $, $$ } from 'common-sk/modules/dom';
 import { setUpElementUnderTest } from '../test_util';
+import { PaginationSk, PaginationSkPageChangedEventDetail } from './pagination-sk';
 
 describe('pagination-sk', () => {
-  const newInstance = setUpElementUnderTest('pagination-sk');
+  const newInstance = setUpElementUnderTest<PaginationSk>('pagination-sk');
 
-  let paginationSk;
+  let paginationSk: PaginationSk;
   beforeEach(() => {
     paginationSk = newInstance((el) => {
       el.setAttribute('offset', '0');
@@ -27,28 +29,25 @@ describe('pagination-sk', () => {
       expect(btns[2].hasAttribute('disabled')).to.be.false;
 
       paginationSk.offset = 20;
-      paginationSk._render();
       expect(btns[0].hasAttribute('disabled')).to.be.false;
       expect(btns[1].hasAttribute('disabled')).to.be.false;
       expect(btns[2].hasAttribute('disabled')).to.be.false;
 
       paginationSk.offset = 40;
-      paginationSk._render();
       expect(btns[0].hasAttribute('disabled')).to.be.false;
       expect(btns[1].hasAttribute('disabled')).to.be.false;
       expect(btns[2].hasAttribute('disabled')).to.be.true;
 
       paginationSk.offset = 120;
-      paginationSk._render();
       expect(btns[0].hasAttribute('disabled')).to.be.false;
       expect(btns[1].hasAttribute('disabled')).to.be.true;
       expect(btns[2].hasAttribute('disabled')).to.be.true;
     });
 
     it('displays the page count', () => {
-      const cnt = $$('.counter', paginationSk);
+      const cnt = $$<HTMLDivElement>('.counter', paginationSk);
       expect(cnt).to.not.be.null;
-      expect(cnt.textContent).to.have.string('page 1');
+      expect(cnt!.textContent).to.have.string('page 1');
     });
 
     it('has several properties', () => {
@@ -61,8 +60,7 @@ describe('pagination-sk', () => {
   describe('paging behavior', () => {
     it('creates page events', (done) => {
       paginationSk.offset = 20;
-      paginationSk._render();
-      const btns = $('button', paginationSk);
+      const btns = $<HTMLButtonElement>('button', paginationSk);
       expect(btns.length).to.equal(3);
       const bck = btns[0];
       const fwd = btns[1];
@@ -70,8 +68,8 @@ describe('pagination-sk', () => {
 
       let d = 0;
       const deltas = [1, -1, 5];
-      paginationSk.addEventListener('page-changed', (e) => {
-        expect(e.detail.delta).to.equal(deltas[d]);
+      paginationSk.addEventListener('page-changed', (e: Event) => {
+        expect((e as CustomEvent<PaginationSkPageChangedEventDetail>).detail.delta).to.equal(deltas[d]);
         d++;
         if (d === 3) {
           done();
