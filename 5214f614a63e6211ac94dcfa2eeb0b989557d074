@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "53af8570_bb130bb3",
+        "filename": "golden/go/search/util_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-19T16:27:42Z",
+      "side": 1,
+      "message": "Nit: Add an underscore between the method name and the scenario under test.\n\nSame below.",
+      "range": {
+        "startLine": 188,
+        "startChar": 41,
+        "endLine": 188,
+        "endChar": 42
+      },
+      "revId": "5214f614a63e6211ac94dcfa2eeb0b989557d074",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
