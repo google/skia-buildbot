@@ -1,7 +1,6 @@
-const expect = require('chai').expect;
-const path = require('path');
-const setUpPuppeteerAndDemoPageServer = require('../../../puppeteer-tests/util').setUpPuppeteerAndDemoPageServer;
-const takeScreenshot = require('../../../puppeteer-tests/util').takeScreenshot;
+import * as path from 'path';
+import { expect } from 'chai';
+import { setUpPuppeteerAndDemoPageServer, takeScreenshot } from '../../../puppeteer-tests/util';
 
 describe('image-compare-sk', () => {
   // Contains page and baseUrl.
@@ -19,7 +18,7 @@ describe('image-compare-sk', () => {
   describe('screenshots', () => {
     it('has the left and right image', async () => {
       const imageCompareSk = await testBed.page.$('#normal');
-      await takeScreenshot(imageCompareSk, 'gold', 'image-compare-sk');
+      await takeScreenshot(imageCompareSk!, 'gold', 'image-compare-sk');
     });
 
     it('shows the multi-zoom-sk dialog when zoom button clicked', async () => {
@@ -31,7 +30,7 @@ describe('image-compare-sk', () => {
     it('has just the left image', async () => {
       const imageCompareSk = await testBed.page.$('#no_right');
       await takeScreenshot(
-        imageCompareSk, 'gold', 'image-compare-sk_no-right',
+        imageCompareSk!, 'gold', 'image-compare-sk_no-right',
       );
     });
   });
