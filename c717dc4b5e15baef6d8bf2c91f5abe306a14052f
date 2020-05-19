@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "57934bf4_a0778b41",
+        "filename": "docker_pushes_watcher/go/docker_pushes_watcher/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-19T16:53:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6d339d47_e8cb54c7",
+      "range": {
+        "startLine": 251,
+        "startChar": 1,
+        "endLine": 251,
+        "endChar": 12
+      },
+      "revId": "c717dc4b5e15baef6d8bf2c91f5abe306a14052f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eebbc4db_a99dfcae",
         "filename": "docker_pushes_watcher/go/docker_pushes_watcher/main.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "c717dc4b5e15baef6d8bf2c91f5abe306a14052f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d95b5c87_905f4c43",
+        "filename": "docker_pushes_watcher/go/docker_pushes_watcher/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-19T16:53:08Z",
+      "side": 1,
+      "message": "Logged the failed output and error. Keeping \"Retrying\" logging at the top.",
+      "parentUuid": "eebbc4db_a99dfcae",
+      "range": {
+        "startLine": 261,
+        "startChar": 3,
+        "endLine": 261,
+        "endChar": 11
+      },
+      "revId": "c717dc4b5e15baef6d8bf2c91f5abe306a14052f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
