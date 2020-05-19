@@ -1,6 +1,8 @@
+import { Commit } from './blamelist-panel-sk';
+
 export const fakeNow = Date.parse('2020-03-22T00:00:00.000Z');
 
-export const blamelist19 = [
+export const blamelist19: Commit[] = [
   {
     commit_time: 1584835000,
     hash: 'dded3c7506efc5635e60ffb7a908cbe8f1f028f1',
