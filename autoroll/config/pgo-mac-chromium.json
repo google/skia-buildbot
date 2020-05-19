@@ -37,7 +37,7 @@
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
     "versionFile": "chrome/build/mac.pgo.txt",
-    "versionRegex": "^chrome-mac-master-(\\d+)-\\.+.profdata$"
+    "versionRegex": "^chrome-mac-master-(\\d+)-.+\\.profdata$"
   },
   "kubernetes": {
     "cpu": "1",
