@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "111281a0_d3edbef1",
+        "filename": "bb_cfg_updater/build_docker_release",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-19T14:08:55Z",
+      "side": 1,
+      "message": "Nit: let\u0027s just call this build_release.  It\u0027s less wordy and docker is implied since this service doesn\u0027t have a non-docker build.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb818dfe_54d200ed",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-19T14:08:55Z",
+      "side": 1,
+      "message": "High-level note: this is almost exactly the flow we\u0027d want in order to automatically update commit-queue.cfg based on tasks.json.  Could we rename this to tryjob-updater or something like that, so that we could add that functionality in the future?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 82
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87308315_8d4e1253",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-19T14:08:55Z",
+      "side": 1,
+      "message": "Any reason we would want a separate instance of this app per repo, rather than one per cluster?",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 131
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9756df9_9b6adc9c",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-19T14:08:55Z",
+      "side": 1,
+      "message": "Nit: use skerr.Fmt (several in this file)",
+      "range": {
+        "startLine": 60,
+        "startChar": 13,
+        "endLine": 60,
+        "endChar": 23
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b747758c_f56ee387",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-19T14:08:55Z",
+      "side": 1,
+      "message": "Should we SetReview even if we\u0027re not going to submit?",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 13
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "981d7cca_16b5e624",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-19T14:08:55Z",
+      "side": 1,
+      "message": "Nit: you could add a error parameter and return an error, like this:\n\nfunc abandonGerritChange(ctx context.Context, g *gerrit.Gerrit, issue *gerrit.ChangeInfo, err error) error {\n\tif abandonErr :\u003d g.Abandon(ctx, issue, err.Error()); abandonErr !\u003d nil {\n\t\treturn skerr.Wrapf(err, \"failed to abandon CL with %s\", abandonErr)\n\t}\n\treturn err\n}\n\nWhich would give the reasoning on the CL itself as well as allow you to use it like this:\n\n\t\tif err :\u003d g.Submit(ctx, ci); err !\u003d nil {\n\t\t\treturn abandonGerritChange(ctx, g, ci, err)\n\t\t}",
+      "range": {
+        "startLine": 140,
+        "startChar": 0,
+        "endLine": 140,
+        "endChar": 91
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83007b67_30af26df",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-19T14:08:55Z",
+      "side": 1,
+      "message": "Can you please add a TODO to switch from polling to pubsub?",
+      "range": {
+        "startLine": 169,
+        "startChar": 0,
+        "endLine": 169,
+        "endChar": 67
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
