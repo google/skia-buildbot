@@ -20,7 +20,7 @@
     "GIT_BT_TABLE":            "git-repos2",
 
     // Settings for skiacorrectness instance.
-    "AUTH_USERS":              "google.com",
+    "AUTH_USERS":              "google.com chrome-gpu-gold@chops-service-accounts.iam.gserviceaccount.com",
     "AUTHORITATIVE":           true,
     "AUTHORIZED_PARAMS":       "", // defaults to "all"
     "CHANGELIST_TRACKING":     true,
