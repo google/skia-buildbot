@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7877dd77_4e3efd20",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-19T19:22:09Z",
+      "side": 1,
+      "message": "I see why you are excited about TypeScript. Lots of enthusiasm here in the code itself!",
+      "range": {
+        "startLine": 20,
+        "startChar": 25,
+        "endLine": 20,
+        "endChar": 34
+      },
+      "revId": "7178e38b50e8205a1d84465248baafc0553a8057",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bc7cdef9_0ce7c082",
+        "filename": "golden/tsconfig.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-19T19:22:09Z",
+      "side": 1,
+      "message": "Are these options something we\u0027ve agreed to standardize on?",
+      "range": {
+        "startLine": 2,
+        "startChar": 3,
+        "endLine": 2,
+        "endChar": 18
+      },
+      "revId": "7178e38b50e8205a1d84465248baafc0553a8057",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
