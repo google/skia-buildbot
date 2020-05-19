@@ -1,0 +1,50 @@
+// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childDisplayName": "Chrome Mac PGO profile",
+  "commitMsg": {
+    "cqExtraTrybots": [
+      "chrome/try:mac-chrome",
+    ],
+    "includeTbrLine": true
+  },
+  "contacts": [
+    "jeffyoon@google.com",
+    "liaoyuke@google.com",
+    "chrome-brapp-engprod@google.com"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentDisplayName": "Chromium master branch",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "pgo-mac-chromium",
+  "serviceAccount": "chromium-autoroll@skia-public.google.com.iam.gserviceaccount.com",
+  "sheriff": [
+    "jeffyoon@google.com",
+    "liaoyuke@google.com"
+  ],
+  "semVerGCSRepoManager": {
+    "childBranch": "master",
+    "childPath": "chrome/build/mac.pgo.txt",
+    "gcsBucket": "chromium-optimization-profiles",
+    "gcsPath": "pgo_profiles",
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "versionFile": "chrome/build/mac.pgo.txt",
+    "versionRegex": "^chrome-mac-master-(\\d+)-\\.+.profdata$"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
