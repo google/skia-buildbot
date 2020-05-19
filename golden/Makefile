@@ -36,11 +36,11 @@ js-test-debug:
 
 .PHONY: puppeteer-test
 puppeteer-test:
-	npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+	NODE_OPTIONS="--max-old-space-size=8192" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 .PHONY: puppeteer-test-debug
 puppeteer-test-debug:
-	npx mocha -r ts-node/register ./**/*_puppeteer_test.ts --inspect-brk
+	NODE_OPTIONS="--max-old-space-size=8192" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts --inspect-brk
 
 node_modules: package.json
 	npm ci

@@ -4,7 +4,7 @@ import { setUpPuppeteerAndDemoPageServer, takeScreenshot } from '../../../puppet
 
 describe('triage-sk', () => {
   // Contains page and baseUrl.
-  const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.js'));
+  const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.ts'));
 
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/dist/triage-sk.html`);
