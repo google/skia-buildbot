@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aa35c155_bb542150",
+        "filename": "golden/pulito/webpack.common.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-19T19:46:51Z",
+      "side": 0,
+      "message": "All this info seems to have been dropped in the migration to TypeScript.",
+      "range": {
+        "startLine": 16,
+        "startChar": 3,
+        "endLine": 57,
+        "endChar": 39
+      },
+      "revId": "7178e38b50e8205a1d84465248baafc0553a8057",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
