@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "45f46300_44d81a04",
+        "filename": "sk8s/go/podwatcher/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-19T11:33:48Z",
+      "side": 1,
+      "message": "update package docs with a note on powercycling?",
+      "revId": "556a65399bd33a175722ce68190419e7faa16da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e30af17c_aa8b7e37",
+        "filename": "skolo/go/powercycle/edgeswitch.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-19T11:33:48Z",
+      "side": 1,
+      "message": "Please add a comment explaining the no host key checking option (I\u0027m guessing because the pods don\u0027t have the authorized_keys file)",
+      "revId": "556a65399bd33a175722ce68190419e7faa16da5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
