@@ -675,6 +675,8 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 	const crs = "gerrit"
 	const AlphaNowGoodDigest = data.AlphaUntriagedDigest
 	const BetaBrandNewDigest = types.Digest("be7a03256511bec3a7453c3186bb2e07")
+	const clUser = "changeListUser@"
+	var changeListTriageTime = time.Date(2020, time.May, 19, 18, 17, 16, 0, time.UTC)
 
 	mcls := &mock_clstore.Store{}
 	mtjs := &mock_tjstore.Store{}
@@ -684,7 +686,13 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
 	ie.Set(data.AlphaTest, AlphaNowGoodDigest, expectations.Positive)
-	addChangeListExpectations(mes, crs, clID, &ie)
+	issueStore := addChangeListExpectations(mes, crs, clID, &ie)
+	issueStore.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return([]expectations.TriageHistory{
+		{
+			User: clUser,
+			TS:   changeListTriageTime,
+		},
+	}, nil)
 
 	mcls.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
 		{
@@ -792,6 +800,12 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 				Test:   data.BetaTest,
 				Digest: BetaBrandNewDigest,
 				Status: "untriaged",
+				TriageHistory: []frontend.TriageHistory{
+					{
+						User: clUser,
+						TS:   changeListTriageTime,
+					},
+				},
 				ParamSet: map[string][]string{
 					"device":              {data.BullheadDevice},
 					types.PrimaryKeyField: {string(data.BetaTest)},
@@ -1020,12 +1034,22 @@ func TestDigestDetails_ChangeListAltersExpectations_Success(t *testing.T) {
 	const testWeWantDetailsAbout = data.AlphaTest
 	const testCLID = "abc12345"
 	const testCRS = "gerritHub"
+	const clUser = "changeListUser@"
+	var changeListTriageTime = time.Date(2020, time.May, 19, 18, 17, 16, 0, time.UTC)
 
+	// Reminder, this includes triage history.
 	mes := makeThreeDevicesExpectationStore()
+
 	// Mock out some ChangeList expectations in which the digest we care about is negative
 	var ie expectations.Expectations
 	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.Negative)
-	addChangeListExpectations(mes, testCRS, testCLID, &ie)
+	issueStore := addChangeListExpectations(mes, testCRS, testCLID, &ie)
+	issueStore.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return([]expectations.TriageHistory{
+		{
+			User: clUser,
+			TS:   changeListTriageTime,
+		},
+	}, nil)
 
 	mds := makeDiffStoreWithNoFailures()
 	// There are no positive digests with which to compare
@@ -1040,6 +1064,16 @@ func TestDigestDetails_ChangeListAltersExpectations_Success(t *testing.T) {
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)
 	assert.Equal(t, details.Digest.Status, expectations.Negative.String())
+	assert.Equal(t, []frontend.TriageHistory{
+		{
+			User: clUser,
+			TS:   changeListTriageTime,
+		},
+		{
+			User: userWhoTriaged,
+			TS:   alphaPositiveTriageTS,
+		},
+	}, details.Digest.TriageHistory)
 }
 
 // TestDigestDetails_DigestTooOld_ReturnsComparisonToRecentDigest represents the scenario in which
@@ -1341,7 +1375,8 @@ func TestDiffDigestsChangeList(t *testing.T) {
 	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
 	ie.Set(data.AlphaTest, leftDigest, expectations.Negative)
-	addChangeListExpectations(mes, crs, clID, &ie)
+	issueStore := addChangeListExpectations(mes, crs, clID, &ie)
+	issueStore.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
 
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, leftDigest, rightDigest, makeSmallDiffMetric())
@@ -1763,7 +1798,7 @@ func TestGetDigestRecs_Success(t *testing.T) {
 func TestAddTriageHistory_HistoryExistsForAllEntries_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	mes := makeThreeDevicesExpectationStore()
-	s := New(nil, mes, nil, nil, nil, nil, nil, nil)
+	s := New(nil, nil, nil, nil, nil, nil, nil, nil)
 
 	input := []*frontend.SRDigest{
 		{
@@ -1780,7 +1815,7 @@ func TestAddTriageHistory_HistoryExistsForAllEntries_Success(t *testing.T) {
 			Digest: data.BetaPositiveDigest,
 		},
 	}
-	s.addTriageHistory(context.Background(), input)
+	s.addTriageHistory(context.Background(), mes, input)
 	assert.Equal(t, []frontend.TriageHistory{
 		{
 			User: userWhoTriaged,
@@ -1805,7 +1840,7 @@ func TestAddTriageHistory_EmptyTriageHistory_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	mes := &mock_expectations.Store{}
 	mes.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
-	s := New(nil, mes, nil, nil, nil, nil, nil, nil)
+	s := New(nil, nil, nil, nil, nil, nil, nil, nil)
 
 	input := []*frontend.SRDigest{
 		{
@@ -1822,7 +1857,7 @@ func TestAddTriageHistory_EmptyTriageHistory_Success(t *testing.T) {
 			Digest: data.BetaPositiveDigest,
 		},
 	}
-	s.addTriageHistory(context.Background(), input)
+	s.addTriageHistory(context.Background(), mes, input)
 	assert.Nil(t, input[0].TriageHistory)
 	assert.Nil(t, input[1].TriageHistory)
 	assert.Nil(t, input[2].TriageHistory)
@@ -1832,7 +1867,7 @@ func TestAddTriageHistory_ExpectationStoreError_ReturnedTriageHistoryIsEmpty(t *
 	unittest.SmallTest(t)
 	mes := &mock_expectations.Store{}
 	mes.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("kaboom"))
-	s := New(nil, mes, nil, nil, nil, nil, nil, nil)
+	s := New(nil, nil, nil, nil, nil, nil, nil, nil)
 
 	input := []*frontend.SRDigest{
 		{
@@ -1841,7 +1876,7 @@ func TestAddTriageHistory_ExpectationStoreError_ReturnedTriageHistoryIsEmpty(t *
 			// The rest of the fields don't matter for this test.
 		},
 	}
-	s.addTriageHistory(context.Background(), input)
+	s.addTriageHistory(context.Background(), mes, input)
 	assert.Nil(t, input[0].TriageHistory)
 }
 
@@ -1861,15 +1896,15 @@ func TestGetTriageHistory_CachesResults_CallsGetTriageHistoryOncePerEntry(t *tes
 		},
 	}, nil).Once()
 
-	s := New(nil, mes, nil, nil, nil, nil, nil, nil)
-	trBeta := s.getTriageHistory(context.Background(), data.BetaTest, data.BetaPositiveDigest)
+	s := New(nil, nil, nil, nil, nil, nil, nil, nil)
+	trBeta := s.getTriageHistory(context.Background(), mes, data.BetaTest, data.BetaPositiveDigest)
 	assert.Equal(t, []frontend.TriageHistory{
 		{
 			User: userWhoTriaged,
 			TS:   betaPositiveTriageTS,
 		},
 	}, trBeta)
-	trAlpha := s.getTriageHistory(context.Background(), data.AlphaTest, data.AlphaPositiveDigest)
+	trAlpha := s.getTriageHistory(context.Background(), mes, data.AlphaTest, data.AlphaPositiveDigest)
 	assert.Equal(t, []frontend.TriageHistory{
 		{
 			User: userWhoTriaged,
@@ -1878,9 +1913,9 @@ func TestGetTriageHistory_CachesResults_CallsGetTriageHistoryOncePerEntry(t *tes
 	}, trAlpha)
 
 	// This should be from the cache - the .Once() on the mocks ensures that.
-	tr := s.getTriageHistory(context.Background(), data.BetaTest, data.BetaPositiveDigest)
+	tr := s.getTriageHistory(context.Background(), mes, data.BetaTest, data.BetaPositiveDigest)
 	assert.Equal(t, trBeta, tr)
-	tr = s.getTriageHistory(context.Background(), data.AlphaTest, data.AlphaPositiveDigest)
+	tr = s.getTriageHistory(context.Background(), mes, data.AlphaTest, data.AlphaPositiveDigest)
 	assert.Equal(t, trAlpha, tr)
 }
 
@@ -1890,10 +1925,10 @@ func TestGetTriageHistory_CacheClearedWhenNotified(t *testing.T) {
 	mes := &mock_expectations.Store{}
 	mes.On("GetTriageHistory", testutils.AnyContext, data.AlphaTest, data.AlphaPositiveDigest).Return(nil, nil).Once()
 
-	s := New(nil, mes, notifier, nil, nil, nil, nil, nil)
+	s := New(nil, nil, notifier, nil, nil, nil, nil, nil)
 
 	// The first call to history is empty.
-	tr := s.getTriageHistory(context.Background(), data.AlphaTest, data.AlphaPositiveDigest)
+	tr := s.getTriageHistory(context.Background(), mes, data.AlphaTest, data.AlphaPositiveDigest)
 	assert.Empty(t, tr)
 	// Notify something that does not match our entry.
 	notifier.NotifyChange(expectations.ID{
@@ -1902,7 +1937,7 @@ func TestGetTriageHistory_CacheClearedWhenNotified(t *testing.T) {
 	})
 
 	// The empty value should still be cached.
-	tr = s.getTriageHistory(context.Background(), data.AlphaTest, data.AlphaPositiveDigest)
+	tr = s.getTriageHistory(context.Background(), mes, data.AlphaTest, data.AlphaPositiveDigest)
 	assert.Empty(t, tr)
 
 	mes.On("GetTriageHistory", testutils.AnyContext, data.AlphaTest, data.AlphaPositiveDigest).Return([]expectations.TriageHistory{
@@ -1917,7 +1952,7 @@ func TestGetTriageHistory_CacheClearedWhenNotified(t *testing.T) {
 	})
 
 	// Cache should be cleared for our entry, so we refetch and get the new results.
-	trAlpha := s.getTriageHistory(context.Background(), data.AlphaTest, data.AlphaPositiveDigest)
+	trAlpha := s.getTriageHistory(context.Background(), mes, data.AlphaTest, data.AlphaPositiveDigest)
 	assert.Equal(t, []frontend.TriageHistory{
 		{
 			User: userWhoTriaged,
@@ -1926,7 +1961,7 @@ func TestGetTriageHistory_CacheClearedWhenNotified(t *testing.T) {
 	}, trAlpha)
 
 	// This should now be from the cache.
-	tr = s.getTriageHistory(context.Background(), data.AlphaTest, data.AlphaPositiveDigest)
+	tr = s.getTriageHistory(context.Background(), mes, data.AlphaTest, data.AlphaPositiveDigest)
 	assert.Equal(t, trAlpha, tr)
 }
 
@@ -1992,10 +2027,11 @@ func makeThreeDevicesExpectationStore() *mock_expectations.Store {
 	return mes
 }
 
-func addChangeListExpectations(mes *mock_expectations.Store, crs string, clID string, issueExp *expectations.Expectations) {
+func addChangeListExpectations(mes *mock_expectations.Store, crs string, clID string, issueExp *expectations.Expectations) *mock_expectations.Store {
 	issueStore := &mock_expectations.Store{}
 	mes.On("ForChangeList", clID, crs).Return(issueStore, nil)
 	issueStore.On("Get", testutils.AnyContext).Return(issueExp, nil)
+	return issueStore
 }
 
 func makeDiffStoreWithNoFailures() *mock_diffstore.DiffStore {
