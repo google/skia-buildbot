@@ -22,6 +22,30 @@
       "revId": "d133780417645cc9077d658e146036d63b7c230a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6358b9ab_3cd97683",
+        "filename": "machine/modules/machine-server-sk/machine-server-sk.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-19T12:56:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6e21eaed_caba837f",
+      "range": {
+        "startLine": 111,
+        "startChar": 12,
+        "endLine": 111,
+        "endChar": 22
+      },
+      "revId": "d133780417645cc9077d658e146036d63b7c230a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
