@@ -73,6 +73,7 @@ func newEdgeSwitchController(ctx context.Context, conf *EdgeSwitchConfig, connec
 	}
 	target := fmt.Sprintf("%s@%s", conf.User, conf.Address)
 	// The -T removes a warning SSH gives because we are not invoking it over TTY.
+	// The -o StrictHostKeyChecking=no is added because pods don't have authorized_keys files.
 	runner := PasswordSSHCommandRunner(conf.getPassword(), "-T", target, "-o", "StrictHostKeyChecking=no")
 	if connect {
 		out, _ := runner.ExecCmds(ctx, "help")

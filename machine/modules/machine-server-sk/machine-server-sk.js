@@ -148,7 +148,7 @@ const template = (ele) => html`
     <th>Device</th>
     <th>Mode</th>
     <th>Update</th>
-    <th>Power Cycle</th>
+    <th>Host</th>
     <th>Quarantined</th>
     <th>Task</th>
     <th>Battery</th>
