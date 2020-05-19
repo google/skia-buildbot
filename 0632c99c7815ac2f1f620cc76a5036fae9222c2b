@@ -309,6 +309,30 @@
     },
     {
       "key": {
+        "uuid": "6f92cfc3_056fc2fb",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-19T17:49:57Z",
+      "side": 1,
+      "message": "Yea, I figured having the CL logged up there should be sufficient for local workflows.",
+      "parentUuid": "0e8c6917_40363f37",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 13
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "981d7cca_16b5e624",
         "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
         "patchSetId": 9
