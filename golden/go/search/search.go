@@ -162,7 +162,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	// bulk triage, but only the digests that are going to be shown are padded
 	// with additional information.
 	displayRet, offset := s.sortAndLimitDigests(ctx, q, ret, int(q.Offset), int(q.Limit))
-	s.addTriageHistory(ctx, displayRet)
+	s.addTriageHistory(ctx, s.makeTriageHistoryGetter(crs, q.ChangeListID), displayRet)
 	traceComments := s.addParamsTracesAndComments(ctx, displayRet, inter, exp, idx)
 
 	// Return all digests with the selected offset within the result set.
@@ -237,7 +237,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 		// Get the params and traces.
 		traceComments = s.addParamsTracesAndComments(ctx, details, inter, exp, idx)
 	}
-	s.addTriageHistory(ctx, details[:1])
+	s.addTriageHistory(ctx, s.makeTriageHistoryGetter(crs, clID), details[:1])
 
 	return &frontend.DigestDetails{
 		Digest:        details[0],
@@ -533,12 +533,15 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 	psLeft.Normalize()
 	psRight := idx.GetParamsetSummary(test, right, types.IncludeIgnoredTraces)
 	psRight.Normalize()
+
+	history := s.makeTriageHistoryGetter(crs, clID)
+
 	return &frontend.DigestComparison{
 		Left: &frontend.SRDigest{
 			Test:          test,
 			Digest:        left,
 			Status:        exp.Classification(test, left).String(),
-			TriageHistory: s.getTriageHistory(ctx, test, left),
+			TriageHistory: s.getTriageHistory(ctx, history, test, left),
 			ParamSet:      psLeft,
 		},
 		Right: &frontend.SRDiffDigest{
@@ -885,7 +888,7 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 }
 
 // getTriageHistory returns all TriageHistory for a given name and digest.
-func (s *SearchImpl) getTriageHistory(ctx context.Context, name types.TestName, digest types.Digest) []frontend.TriageHistory {
+func (s *SearchImpl) getTriageHistory(ctx context.Context, history triageHistoryGetter, name types.TestName, digest types.Digest) []frontend.TriageHistory {
 	id := expectations.ID{
 		Grouping: name,
 		Digest:   digest,
@@ -897,7 +900,7 @@ func (s *SearchImpl) getTriageHistory(ctx context.Context, name types.TestName, 
 		// purge the corrupt entry from the cache
 		s.triageHistoryCache.Delete(id)
 	}
-	xth, err := s.expectationsStore.GetTriageHistory(ctx, name, digest)
+	xth, err := history.GetTriageHistory(ctx, name, digest)
 	if err != nil {
 		metrics2.GetCounter("gold_search_triage_history_failures").Inc(1)
 		sklog.Errorf("Could not get triage history, falling back to no history: %s", err)
@@ -916,7 +919,7 @@ func (s *SearchImpl) getTriageHistory(ctx context.Context, name types.TestName, 
 
 // addTriageHistory fills in the TriageHistory field of the passed in SRDigests. It does so in
 // parallel to reduce latency of the response.
-func (s *SearchImpl) addTriageHistory(ctx context.Context, digestResults []*frontend.SRDigest) {
+func (s *SearchImpl) addTriageHistory(ctx context.Context, history triageHistoryGetter, digestResults []*frontend.SRDigest) {
 	defer shared.NewMetricsTimer("addTriageHistory").Stop()
 	wg := sync.WaitGroup{}
 	wg.Add(len(digestResults))
@@ -927,7 +930,7 @@ func (s *SearchImpl) addTriageHistory(ctx context.Context, digestResults []*fron
 				// This should never happen
 				return
 			}
-			digestResults[i].TriageHistory = s.getTriageHistory(ctx, dr.Test, dr.Digest)
+			digestResults[i].TriageHistory = s.getTriageHistory(ctx, history, dr.Test, dr.Digest)
 		}(i, dr)
 	}
 	wg.Wait()
