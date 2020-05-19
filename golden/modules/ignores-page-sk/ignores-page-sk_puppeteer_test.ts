@@ -1,8 +1,7 @@
-const expect = require('chai').expect;
-const path = require('path');
-const addEventListenersToPuppeteerPage = require('../../../puppeteer-tests/util').addEventListenersToPuppeteerPage;
-const setUpPuppeteerAndDemoPageServer = require('../../../puppeteer-tests/util').setUpPuppeteerAndDemoPageServer;
-const takeScreenshot = require('../../../puppeteer-tests/util').takeScreenshot;
+import * as path from 'path';
+import { expect } from 'chai';
+import { setUpPuppeteerAndDemoPageServer, addEventListenersToPuppeteerPage, takeScreenshot } from '../../../puppeteer-tests/util';
+import { Page } from 'puppeteer';
 
 describe('ignores-page-sk', () => {
   // Contains page and baseUrl.
@@ -57,7 +56,7 @@ describe('ignores-page-sk', () => {
   });
 });
 
-async function navigateTo(page, base, queryParams = '') {
+async function navigateTo(page: Page, base: string, queryParams = '') {
   const eventPromise = await addEventListenersToPuppeteerPage(page, ['end-task']);
   const loaded = eventPromise('end-task'); // Emitted when page is loaded.
   await page.goto(`${base}/dist/ignores-page-sk.html${queryParams}`);

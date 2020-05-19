@@ -1,7 +1,6 @@
-const expect = require('chai').expect;
-const path = require('path');
-const setUpPuppeteerAndDemoPageServer = require('../../../puppeteer-tests/util').setUpPuppeteerAndDemoPageServer;
-const takeScreenshot = require('../../../puppeteer-tests/util').takeScreenshot;
+import * as path from 'path';
+import { expect } from 'chai';
+import { setUpPuppeteerAndDemoPageServer, takeScreenshot } from '../../../puppeteer-tests/util';
 
 describe('blamelist-panel-sk', () => {
   // Contains page and baseUrl.
@@ -18,19 +17,19 @@ describe('blamelist-panel-sk', () => {
   describe('screenshots', async () => {
     it('should show a single commit', async () => {
       const blamelistPanelSk = await testBed.page.$('#single_commit');
-      await takeScreenshot(blamelistPanelSk, 'gold', 'blamelist-panel-sk');
+      await takeScreenshot(blamelistPanelSk!, 'gold', 'blamelist-panel-sk');
       expect(await testBed.page.$$('#single_commit tr')).to.have.length(1);
     });
 
     it('should show some commits commit', async () => {
       const blamelistPanelSk = await testBed.page.$('#some_commits');
-      await takeScreenshot(blamelistPanelSk, 'gold', 'blamelist-panel-sk_some-commits');
+      await takeScreenshot(blamelistPanelSk!, 'gold', 'blamelist-panel-sk_some-commits');
       expect(await testBed.page.$$('#some_commits tr')).to.have.length(3);
     });
 
     it('should truncate many commits', async () => {
       const blamelistPanelSk = await testBed.page.$('#many_commits');
-      await takeScreenshot(blamelistPanelSk, 'gold', 'blamelist-panel-sk_many-commits');
+      await takeScreenshot(blamelistPanelSk!, 'gold', 'blamelist-panel-sk_many-commits');
       expect(await testBed.page.$$('#many_commits tr')).to.have.length(15); // maxCommitsToDisplay
     });
   });

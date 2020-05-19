@@ -1,7 +1,6 @@
-const expect = require('chai').expect;
-const path = require('path');
-const setUpPuppeteerAndDemoPageServer = require('../../../puppeteer-tests/util').setUpPuppeteerAndDemoPageServer;
-const takeScreenshot = require('../../../puppeteer-tests/util').takeScreenshot;
+import * as path from 'path';
+import { expect } from 'chai';
+import { setUpPuppeteerAndDemoPageServer, takeScreenshot } from '../../../puppeteer-tests/util';
 
 describe('edit-ignore-rule-sk', () => {
   // Contains page and baseUrl.
@@ -19,22 +18,22 @@ describe('edit-ignore-rule-sk', () => {
   describe('screenshots', () => {
     it('is a view with nothing selected', async () => {
       const editor = await testBed.page.$('#empty');
-      await takeScreenshot(editor, 'gold', 'edit-ignore-rule-sk');
+      await takeScreenshot(editor!, 'gold', 'edit-ignore-rule-sk');
     });
 
     it('has all inputs filled out', async () => {
       const editor = await testBed.page.$('#filled');
-      await takeScreenshot(editor, 'gold', 'edit-ignore-rule-sk_with-data');
+      await takeScreenshot(editor!, 'gold', 'edit-ignore-rule-sk_with-data');
     });
 
     it('shows an error when missing data', async () => {
       const editor = await testBed.page.$('#missing');
-      await takeScreenshot(editor, 'gold', 'edit-ignore-rule-sk_missing-data');
+      await takeScreenshot(editor!, 'gold', 'edit-ignore-rule-sk_missing-data');
     });
 
     it('shows an error when one or more of custom key/value is not filled out', async () => {
       const editor = await testBed.page.$('#partial_custom_values');
-      await takeScreenshot(editor, 'gold', 'edit-ignore-rule-sk_missing-custom-value');
+      await takeScreenshot(editor!, 'gold', 'edit-ignore-rule-sk_missing-custom-value');
     });
   });
 });

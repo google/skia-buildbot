@@ -1,8 +1,6 @@
-const expect = require('chai').expect;
-const path = require('path');
-const addEventListenersToPuppeteerPage = require('../../../puppeteer-tests/util').addEventListenersToPuppeteerPage;
-const setUpPuppeteerAndDemoPageServer = require('../../../puppeteer-tests/util').setUpPuppeteerAndDemoPageServer;
-const takeScreenshot = require('../../../puppeteer-tests/util').takeScreenshot;
+import * as path from 'path';
+import { expect } from 'chai';
+import { setUpPuppeteerAndDemoPageServer, addEventListenersToPuppeteerPage, takeScreenshot } from '../../../puppeteer-tests/util';
 
 describe('byblame-page-sk', () => {
   // Contains page and baseUrl.
@@ -26,8 +24,11 @@ describe('byblame-page-sk', () => {
   });
 
   it('responds to forward and back browser buttons', async () => {
-    const expectSelectedCorpusToBe = async (corpus) => {
-      const selectedTitle = await testBed.page.$eval('corpus-selector-sk li.selected', (e) => e.innerText);
+    const expectSelectedCorpusToBe = async (corpus: string) => {
+      const selectedTitle =
+        await testBed.page.$eval(
+          'corpus-selector-sk li.selected',
+          (e: Element) => (e as HTMLLIElement).innerText);
       expect(selectedTitle).to.contain(corpus);
     };
 

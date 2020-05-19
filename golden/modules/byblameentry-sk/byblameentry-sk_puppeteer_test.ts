@@ -1,7 +1,6 @@
-const expect = require('chai').expect;
-const path = require('path');
-const setUpPuppeteerAndDemoPageServer = require('../../../puppeteer-tests/util').setUpPuppeteerAndDemoPageServer;
-const takeScreenshot = require('../../../puppeteer-tests/util').takeScreenshot;
+import * as path from 'path';
+import { expect } from 'chai';
+import { setUpPuppeteerAndDemoPageServer, takeScreenshot } from '../../../puppeteer-tests/util';
 
 describe('byblameentry-sk', () => {
   // Contains page and baseUrl.
@@ -18,6 +17,6 @@ describe('byblameentry-sk', () => {
 
   it('should take a screenshot', async () => {
     const byBlameEntry = await testBed.page.$('byblameentry-sk');
-    await takeScreenshot(byBlameEntry, 'gold', 'byblameentry-sk');
+    await takeScreenshot(byBlameEntry!, 'gold', 'byblameentry-sk');
   });
 });

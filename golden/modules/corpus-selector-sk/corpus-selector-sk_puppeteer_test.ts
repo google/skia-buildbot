@@ -1,7 +1,6 @@
-const expect = require('chai').expect;
-const path = require('path');
-const setUpPuppeteerAndDemoPageServer = require('../../../puppeteer-tests/util').setUpPuppeteerAndDemoPageServer;
-const takeScreenshot = require('../../../puppeteer-tests/util').takeScreenshot;
+import * as path from 'path';
+import { expect } from 'chai';
+import { setUpPuppeteerAndDemoPageServer, takeScreenshot } from '../../../puppeteer-tests/util';
 
 describe('corpus-selector-sk', () => {
   // Contains page and baseUrl.
@@ -18,16 +17,16 @@ describe('corpus-selector-sk', () => {
 
   it('shows the default corpus renderer function', async () => {
     const selector = await testBed.page.$('#default');
-    await takeScreenshot(selector, 'gold', 'corpus-selector-sk');
+    await takeScreenshot(selector!, 'gold', 'corpus-selector-sk');
   });
 
   it('supports a custom corpus renderer function', async () => {
     const selector = await testBed.page.$('#custom-fn');
-    await takeScreenshot(selector, 'gold', 'corpus-selector-sk_custom-fn');
+    await takeScreenshot(selector!, 'gold', 'corpus-selector-sk_custom-fn');
   });
 
   it('handles very long strings', async () => {
     const selector = await testBed.page.$('#custom-fn-long-corpus');
-    await takeScreenshot(selector, 'gold', 'corpus-selector-sk_long-strings');
+    await takeScreenshot(selector!, 'gold', 'corpus-selector-sk_long-strings');
   });
 });
