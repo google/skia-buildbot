@@ -1736,7 +1736,7 @@ func TestGetDrawableTraces_TotalDigestsCorrect(t *testing.T) {
 func TestGetDigestRecs_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sr := getDigestRecs(srInterMap{
+	sr := addExpectations(srInterMap{
 		data.AlphaTest: {
 			data.AlphaPositiveDigest: {
 				test:   data.AlphaTest,
