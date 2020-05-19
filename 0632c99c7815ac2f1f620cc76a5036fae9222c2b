@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d96eeb57_eb52087d",
+        "filename": "bb_cfg_updater/build_docker_release",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-19T15:24:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "111281a0_d3edbef1",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 11
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fb818dfe_54d200ed",
         "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
         "patchSetId": 9
@@ -45,6 +69,30 @@
       "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ddc285a7_9df197fb",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-19T15:24:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fb818dfe_54d200ed",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 82
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "8eb6eb51_4ee8599b",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-19T15:24:06Z",
+      "side": 1,
+      "message": "Yea I thought of that initially, but each repo had different requirements for bucket_name and empty_buckets so was just easier to think of it as being one per repo. Also, if we ever re-use this for commitqueue.cfg then would be better to have different permissions for that service account.",
+      "parentUuid": "87308315_8d4e1253",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 131
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e9756df9_9b6adc9c",
         "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
         "patchSetId": 9
@@ -91,6 +163,30 @@
       "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eaa50955_d00fddac",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-19T15:24:06Z",
+      "side": 1,
+      "message": "I should remember to use skerr, my muscle memory keeps using fmt everywhere.",
+      "parentUuid": "e9756df9_9b6adc9c",
+      "range": {
+        "startLine": 60,
+        "startChar": 13,
+        "endLine": 60,
+        "endChar": 23
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "8c2c4ea6_7c73258f",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-19T15:24:06Z",
+      "side": 1,
+      "message": "I had this so that nobody will be spammed when testing this locally.",
+      "parentUuid": "b747758c_f56ee387",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 13
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "981d7cca_16b5e624",
         "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
         "patchSetId": 9
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "78fc03d6_f287c2d8",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-19T15:24:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "981d7cca_16b5e624",
+      "range": {
+        "startLine": 140,
+        "startChar": 0,
+        "endLine": 140,
+        "endChar": 91
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "83007b67_30af26df",
         "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
         "patchSetId": 9
@@ -160,6 +304,30 @@
       "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d924d1e2_0b69d038",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-19T15:24:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "83007b67_30af26df",
+      "range": {
+        "startLine": 169,
+        "startChar": 0,
+        "endLine": 169,
+        "endChar": 67
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
