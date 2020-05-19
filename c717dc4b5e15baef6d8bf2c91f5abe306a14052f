@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d339d47_e8cb54c7",
+        "filename": "docker_pushes_watcher/go/docker_pushes_watcher/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-19T16:20:32Z",
+      "side": 1,
+      "message": "const maxAttempts \u003d 3",
+      "range": {
+        "startLine": 251,
+        "startChar": 1,
+        "endLine": 251,
+        "endChar": 12
+      },
+      "revId": "c717dc4b5e15baef6d8bf2c91f5abe306a14052f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eebbc4db_a99dfcae",
+        "filename": "docker_pushes_watcher/go/docker_pushes_watcher/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-19T16:20:32Z",
+      "side": 1,
+      "message": "Maybe log the failed output also, but that a retry will be attempted?",
+      "range": {
+        "startLine": 261,
+        "startChar": 3,
+        "endLine": 261,
+        "endChar": 11
+      },
+      "revId": "c717dc4b5e15baef6d8bf2c91f5abe306a14052f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
