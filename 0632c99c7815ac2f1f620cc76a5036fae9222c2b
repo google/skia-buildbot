@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "c56d7d48_dda9d42c",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-19T16:33:59Z",
+      "side": 1,
+      "message": "ack",
+      "parentUuid": "8eb6eb51_4ee8599b",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 131
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e9756df9_9b6adc9c",
         "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
         "patchSetId": 9
@@ -190,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "13cf846f_71fb4ef1",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-19T16:33:59Z",
+      "side": 1,
+      "message": "I guess we could add fmt.Errorf and errors.New to https://skia.googlesource.com/buildbot/+/master/PRESUBMIT.py#82",
+      "parentUuid": "eaa50955_d00fddac",
+      "range": {
+        "startLine": 60,
+        "startChar": 13,
+        "endLine": 60,
+        "endChar": 23
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b747758c_f56ee387",
         "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
         "patchSetId": 9
@@ -225,6 +273,30 @@
       "side": 1,
       "message": "I had this so that nobody will be spammed when testing this locally.",
       "parentUuid": "b747758c_f56ee387",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 13
+      },
+      "revId": "0632c99c7815ac2f1f620cc76a5036fae9222c2b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "0e8c6917_40363f37",
+        "filename": "bb_cfg_updater/go/bb-cfg-updater/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-19T16:33:59Z",
+      "side": 1,
+      "message": "sgtm, although you could instead add the authenticated user as the reviewer when --local is set.",
+      "parentUuid": "8c2c4ea6_7c73258f",
       "range": {
         "startLine": 122,
         "startChar": 0,

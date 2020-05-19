@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ea41465f_471eb91a",
+        "filename": "trybot_updater/Dockerfile",
+        "patchSetId": 11
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-19T16:33:59Z",
+      "side": 1,
+      "message": "Just a general note, I\u0027ve found that doing this makes it hard to debug the image (not that we\u0027d expect to need to in this case), and doesn\u0027t provide that much benefit over just specifying the command in the YAML file.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 43
+      },
+      "revId": "a9fccff6ab0c1b627b8da87f1d41266cce894a70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2713b21b_f2328c7a",
+        "filename": "trybot_updater/Makefile",
+        "patchSetId": 11
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-19T16:33:59Z",
+      "side": 1,
+      "message": "Nit: should include ../kube/kube.mk and add pushk as a dependency of this target.",
+      "range": {
+        "startLine": 11,
+        "startChar": 6,
+        "endLine": 11,
+        "endChar": 13
+      },
+      "revId": "a9fccff6ab0c1b627b8da87f1d41266cce894a70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fcf71eb4_2eee04dc",
+        "filename": "trybot_updater/Makefile",
+        "patchSetId": 11
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-19T16:33:59Z",
+      "side": 1,
+      "message": "FYI, I recently added the --use-temp-checkout flag to pushk, which makes pushk clone the k8s-config repo to a temporary directory and pushes the changes from there.  It has already saved me significant pain, since my /tmp/k8s-config checkout is always dirty or broken.",
+      "range": {
+        "startLine": 12,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 21
+      },
+      "revId": "a9fccff6ab0c1b627b8da87f1d41266cce894a70",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
