@@ -10,10 +10,10 @@
   "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "chai": "~4.2.0",
-    "common-sk": "^3.3.0",
+    "common-sk": "^3.4.0",
     "copy-webpack-plugin": "~5.1.1",
-    "elements-sk": "^3.3.0",
-    "fetch-mock": "^9.7.0",
+    "elements-sk": "^3.3.1",
+    "fetch-mock": "^9.9.0",
     "html-webpack-inject-attributes-plugin": "^1.0.3",
     "html-webpack-plugin": "^3.2.0",
     "karma": "~4.4.0",
