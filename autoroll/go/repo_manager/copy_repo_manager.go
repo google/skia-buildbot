@@ -99,7 +99,7 @@ func NewCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, reg *conf
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := parent.SetupGerrit(ctx, parentRM, g); err != nil {
+	if err := parentRM.SetupGerrit(ctx, g); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return newParentChildRepoManager(ctx, parentRM, childRM)
