@@ -1,0 +1,389 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e2abc15e_0ad00455",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "Normally, to annotate properties, we do so with the @prop jsdoc tag (and down below with the get/set functions)\n\nhttps://github.com/google/skia-buildbot/blob/3cbab1718eab37394513ea3bb0601229a9d3e846/perf/modules/plot-simple-sk/plot-simple-sk.js#L1222",
+      "range": {
+        "startLine": 5,
+        "startChar": 5,
+        "endLine": 5,
+        "endChar": 15
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68b2b272_6fedb240",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "these .sources confuse me. If they have some meaning, it\u0027s not clear to me - maybe add a sentance or two?",
+      "range": {
+        "startLine": 6,
+        "startChar": 57,
+        "endLine": 6,
+        "endChar": 71
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cbf6416a_f6e3d9f8",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "For attributes, we include these at the top with the @attr tag\nhttps://github.com/google/skia-buildbot/blob/3cbab1718eab37394513ea3bb0601229a9d3e846/perf/modules/plot-simple-sk/plot-simple-sk.js#L85",
+      "range": {
+        "startLine": 8,
+        "startChar": 51,
+        "endLine": 8,
+        "endChar": 72
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bd90f6e_4d1a5e9d",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "move this to SCSS",
+      "range": {
+        "startLine": 26,
+        "startChar": 6,
+        "endLine": 26,
+        "endChar": 35
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "23178eea_7a002767",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "I feel like this could be simplified somewhat to\n\n${ele._suggestions.map((s, i) \u003d\u003e {\n  return ele._suggestionSelected \u003d\u003d\u003d i ? selectedOption(s) : option(s);\n}}\n\nIt feels strange to call into ele to have it return a list of things; we typically use .map to make that happen.",
+      "range": {
+        "startLine": 27,
+        "startChar": 4,
+        "endLine": 27,
+        "endChar": 30
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3503b4f9_b249300a",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "Is this ever used or not empty string?",
+      "range": {
+        "startLine": 49,
+        "startChar": 9,
+        "endLine": 49,
+        "endChar": 15
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7755e720_2af4aac0",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "nit:_suggestionSelected",
+      "range": {
+        "startLine": 51,
+        "startChar": 9,
+        "endLine": 51,
+        "endChar": 29
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b564683_6b00a4fa",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "Prefer key (but use keyCode as a backup) See https://github.com/google/skia-buildbot/blob/3cbab1718eab37394513ea3bb0601229a9d3e846/golden/modules/multi-zoom-sk/multi-zoom-sk.js#L444",
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec87d50b_b735930d",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "_suggestionClick",
+      "range": {
+        "startLine": 136,
+        "startChar": 2,
+        "endLine": 136,
+        "endChar": 19
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "173965d7_578a7796",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "optional: I try to alphabetize my function calls, so it\u0027s easier to find things. You may consider the same.",
+      "range": {
+        "startLine": 155,
+        "startChar": 2,
+        "endLine": 155,
+        "endChar": 9
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f9c494ed_f9e97221",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "I would probably just inline this check.",
+      "range": {
+        "startLine": 166,
+        "startChar": 2,
+        "endLine": 166,
+        "endChar": 19
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0972d585_016145f3",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk.scss",
+        "patchSetId": 7
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 9,
+        "startChar": 8,
+        "endLine": 9,
+        "endChar": 15
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4be875f5_48b8fe5c",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk_test.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "Check out how https://github.com/google/skia-buildbot/blob/3cbab1718eab37394513ea3bb0601229a9d3e846/golden/modules/dots-sk/dots-sk_test.js#L36 does this.\n\nThe returned function from setUpElementUnderTest takes a callback that allows for the initialization to be done before connectedCallback (i.e. before the element is added to the DOM)\n\nAlso, I notice that you never use opts. Might it just be easier to put the initialization in a beforeEach?",
+      "range": {
+        "startLine": 18,
+        "startChar": 17,
+        "endLine": 18,
+        "endChar": 23
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16791d7c_1480c449",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk_test.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "Add a comment explaining that this simulates the user typing in the value. Maybe call this \"simulateUserTyping\" to make it extra explicit. Otherwise, readers have to go look up what an input event is...",
+      "range": {
+        "startLine": 26,
+        "startChar": 8,
+        "endLine": 26,
+        "endChar": 21
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1acb07a2_2b67d79d",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk_test.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "Add a newline before here to make a visual break in the two assertions going on.",
+      "range": {
+        "startLine": 78,
+        "startChar": 4,
+        "endLine": 78,
+        "endChar": 17
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "079863a5_c90e9ea2",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk_test.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "maybe add a helper \"simulateArrowNavigation\" This will help have nice DAMP tests: go/tott/598",
+      "range": {
+        "startLine": 125,
+        "startChar": 15,
+        "endLine": 127,
+        "endChar": 6
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "afe71ec5_636bd392",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk_test.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-20T18:13:15Z",
+      "side": 1,
+      "message": "Maybe add a helper \"simulateUserClicksAway\" so there\u0027s a meaningful explanation for the \"blur\" event",
+      "range": {
+        "startLine": 164,
+        "startChar": 4,
+        "endLine": 164,
+        "endChar": 37
+      },
+      "revId": "f4bb8b197e6bbdc2dc8995a82d3265af196d50e9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
