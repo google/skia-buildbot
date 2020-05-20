@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5fb714a1_e0969827",
+        "filename": "autoroll/config/glslang-angle.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-20T17:32:19Z",
+      "side": 1,
+      "message": "bugProject",
+      "range": {
+        "startLine": 6,
+        "startChar": 5,
+        "endLine": 6,
+        "endChar": 15
+      },
+      "revId": "73acb41f80982b193df0ee8102c64a9a813cc431",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1435e343_c8a67207",
+        "filename": "autoroll/config/spirv-tools-angle.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-20T17:32:19Z",
+      "side": 1,
+      "message": "bugProject",
+      "range": {
+        "startLine": 6,
+        "startChar": 5,
+        "endLine": 6,
+        "endChar": 15
+      },
+      "revId": "73acb41f80982b193df0ee8102c64a9a813cc431",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
