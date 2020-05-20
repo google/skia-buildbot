@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/baseapp"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
@@ -28,16 +29,19 @@ import (
 	"go.skia.org/infra/machine/go/machine/source/pubsubsource"
 	machineStore "go.skia.org/infra/machine/go/machine/store"
 	"go.skia.org/infra/machine/go/machineserver/config"
+	"go.skia.org/infra/skolo/go/powercycle"
 )
 
 // flags
 var (
-	configFlag = flag.String("config", "./configs/test.json", "The path to the configuration file.")
+	configFlag                = flag.String("config", "./configs/test.json", "The path to the configuration file.")
+	powercycleConfigFilenames = common.NewMultiStringFlag("powercycle_configs", []string{}, "The name of the config files for powercycle.Controllers.")
 )
 
 type server struct {
-	store     machineStore.Store
-	templates *template.Template
+	store                     machineStore.Store
+	templates                 *template.Template
+	powerCycleEnabledMachines []string
 }
 
 // See baseapp.Constructor.
@@ -88,8 +92,22 @@ func new() (baseapp.App, error) {
 			}
 		}
 	}()
+
+	powerCycleEnabledMachines := []string{}
+	for _, filename := range *powercycleConfigFilenames {
+		sklog.Info("Building powercycle.Controller from %q", filename)
+		powercycleController, err := powercycle.ControllerFromJSON5(ctx, filename, false)
+		if err != nil {
+			sklog.Fatalf("Failed to instantiate powercycle.Controller %q: %s", filename, err)
+		}
+		for _, machineID := range powercycleController.DeviceIDs() {
+			powerCycleEnabledMachines = append(powerCycleEnabledMachines, string(machineID))
+		}
+	}
+
 	s := &server{
-		store: store,
+		store:                     store,
+		powerCycleEnabledMachines: powerCycleEnabledMachines,
 	}
 	s.loadTemplates()
 	return s, nil
