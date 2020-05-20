@@ -1,2 +1,2 @@
-import './named-fiddle-sk.js'
-import './named-fiddle-sk.scss'
+import './named-fiddle-sk';
+import './named-fiddle-sk.scss';

@@ -14,12 +14,12 @@
  *   fiddle.
  *
  */
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
-import 'elements-sk/styles/buttons'
+import { define } from 'elements-sk/define';
+import { html, render } from 'lit-html';
+import 'elements-sk/styles/buttons';
 
 function statusValue(ele) {
-  return ele._state.status !== ''  ? 'Failed' : '';
+  return ele._state.status !== '' ? 'Failed' : '';
 }
 
 function statusClass(ele) {
@@ -46,25 +46,27 @@ define('named-fiddle-sk', class extends HTMLElement {
   }
 
   _editClick() {
-    let detail = Object.assign({}, this._state);
+    const detail = Object.assign({}, this._state);
     this.dispatchEvent(new CustomEvent('named-edit', { detail: detail, bubbles: true }));
   }
 
   _deleteClick() {
-    let detail = Object.assign({}, this._state);
+    const detail = Object.assign({}, this._state);
     this.dispatchEvent(new CustomEvent('named-delete', { detail: detail, bubbles: true }));
   }
 
 
   /** @prop state {object} A serialized Named struct.  */
-  get state() { return this._state }
+  get state() { return this._state; }
+
   set state(val) {
     this._state = val;
     this._render();
   }
 
   /** @prop inflight {Boolean} Is there a request inflight to determine if this fiddle is still invalid.  */
-  get inflight() { return this._inflight }
+  get inflight() { return this._inflight; }
+
   set inflight(val) {
     this._inflight = val;
     this._render();
@@ -75,7 +77,6 @@ define('named-fiddle-sk', class extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this, {eventContext: this});
+    render(template(this), this, { eventContext: this });
   }
-
 });
