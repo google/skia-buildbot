@@ -1,2 +1,2 @@
-import './silence-sk.js'
-import './silence-sk.scss'
+import './silence-sk';
+import './silence-sk.scss';

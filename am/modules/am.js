@@ -1,7 +1,7 @@
 // Functions used by more than one element.
-import { diffDate } from 'common-sk/modules/human'
-import { unsafeHTML } from 'lit-html/directives/unsafe-html'
-import { html, render } from 'lit-html'
+import { diffDate } from 'common-sk/modules/human';
+import { unsafeHTML } from 'lit-html/directives/unsafe-html';
+import { html } from 'lit-html';
 
 const linkRe = /(http[s]?:\/\/[^\s]*)/gm;
 
@@ -11,16 +11,16 @@ const linkRe = /(http[s]?:\/\/[^\s]*)/gm;
  * silence - The silence being displayed.
  */
 export function displaySilence(silence) {
-  let ret = [];
-  for (let key in silence.param_set) {
+  const ret = [];
+  for (const key in silence.param_set) {
     if (key.startsWith('__')) {
-      continue
+      continue;
     }
     ret.push(`${silence.param_set[key].join(', ')}`);
   }
   let s = ret.join(' ');
   if (s.length > 33) {
-    s = s.slice(0, 30) + '...';
+    s = `${s.slice(0, 30)}...`;
   }
   if (!s.length) {
     s = '(*)';
@@ -32,12 +32,11 @@ export function displaySilence(silence) {
  * Returns the params.abbr to be appended to a string, if present.
  */
 export function abbr(ele) {
-  let s = ele.params['abbr'];
+  const s = ele.params.abbr;
   if (s) {
     return ` - ${s}`;
-  } else {
-    return ``
   }
+  return '';
 }
 
 /**
@@ -58,18 +57,18 @@ export function notes(ele) {
   <p>${linkify(note.text)}</p>
   <div class=meta>
     <span class=author>${note.author}</span>
-    <span class=date>${diffDate(note.ts*1000)}</span>
+    <span class=date>${diffDate(note.ts * 1000)}</span>
     <delete-icon-sk title='Delete comment.' @click=${(e) => ele._deleteNote(e, index)}></delete-icon-sk>
   </div>
 </section>`);
 }
 
 const TIME_DELTAS = [
-  { units: "w", delta: 7*24*60*60 },
-  { units: "d", delta:   24*60*60 },
-  { units: "h", delta:      60*60 },
-  { units: "m", delta:         60 },
-  { units: "s", delta:          1 },
+  { units: 'w', delta: 7 * 24 * 60 * 60 },
+  { units: 'd', delta: 24 * 60 * 60 },
+  { units: 'h', delta: 60 * 60 },
+  { units: 'm', delta: 60 },
+  { units: 's', delta: 1 },
 ];
 
 /**
@@ -81,21 +80,20 @@ const TIME_DELTAS = [
  * TODO(jcgregorio) Move into common-sk/modules/human.js with tests.
  */
 export function parseDuration(d) {
-  let units = d.slice(-1);
-  let scalar = +d.slice(0, -1);
+  const units = d.slice(-1);
+  const scalar = +d.slice(0, -1);
   for (let i = 0; i < TIME_DELTAS.length; i++) {
-    let o = TIME_DELTAS[i];
+    const o = TIME_DELTAS[i];
     if (o.units === units) {
       return o.delta * scalar;
     }
   }
-  return 0
+  return 0;
 }
 
 export function expiresIn(silence) {
   if (silence.active) {
-    return diffDate((silence.created + parseDuration(silence.duration))*1000)
-  } else {
-    return ''
+    return diffDate((silence.created + parseDuration(silence.duration)) * 1000);
   }
+  return '';
 }

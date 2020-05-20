@@ -1,2 +1,2 @@
-import './incident-sk.js'
-import './incident-sk.scss'
+import './incident-sk';
+import './incident-sk.scss';

@@ -71,13 +71,13 @@ alert-manager-sk {
 
   tabs-sk {
     padding: 5px 0 0 5px;
-    border-bottom: solid var(--blue) 3px;
+    border-bottom: dotted var(--gray) 1px;
 
     button {
       border: none;
       background: var(--white);
       color: var(--gray);
-     }
+    }
   }
 
   .stats,
@@ -96,7 +96,6 @@ alert-manager-sk {
   .silences.selected {
     display: block;
   }
-
 
   .stats,
   .mine,
@@ -180,24 +179,23 @@ alert-manager-sk {
     border-left: solid 1px black;
   }
 
-
   display: grid;
   height: 100vh;
-  grid-template-columns: 22em 1fr;
+  grid-template-columns: 24em 1fr;
   grid-template-rows: 36px 1fr 5px;
   grid-template-areas:
-    "nav header"
-    "nav edit"
-    "nav footer";
+    'nav header'
+    'nav edit'
+    'nav footer';
 
   @media (max-width: 40em) {
     grid-template-columns: 1fr;
     grid-template-rows: 36px 1fr 1fr 5px;
     grid-template-areas:
-      "header"
-      "nav"
-      "edit"
-      "footer";
+      'header'
+      'nav'
+      'edit'
+      'footer';
 
     header,
     .edit,
@@ -208,8 +206,5 @@ alert-manager-sk {
     .edit {
       border-top: solid 1px black;
     }
-
-
   }
-
 }

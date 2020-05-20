@@ -1,2 +1,2 @@
-import './email-chooser-sk.js'
-import './email-chooser-sk.scss'
+import './email-chooser-sk';
+import './email-chooser-sk.scss';

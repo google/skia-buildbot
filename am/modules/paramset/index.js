@@ -6,12 +6,12 @@
  * @param {Array} ignored - List of keys to ignore.
  */
 export function add(paramset, params, ignored = []) {
-  for (let key in params) {
+  for (const key in params) {
     if (ignored.includes(key)) {
-      continue
+      continue;
     }
-    let value = params[key];
-    let values = paramset[key] || [];
+    const value = params[key];
+    const values = paramset[key] || [];
     if (!values.includes(value)) {
       values.push(value);
       paramset[key] = values;
@@ -38,7 +38,7 @@ export function match(paramset, params) {
     const values = paramset[key] || [];
     let valMatched = false;
     for (const i in values) {
-      const re = new RegExp("^" + values[i] + "$")
+      const re = new RegExp(`^${values[i]}$`);
       if (re.test(params[key])) {
         valMatched = true;
         break;
@@ -50,4 +50,3 @@ export function match(paramset, params) {
   }
   return true;
 }
-
