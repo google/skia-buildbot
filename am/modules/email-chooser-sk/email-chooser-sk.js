@@ -9,27 +9,26 @@
  * </p>
  *
  */
-import dialogPolyfill from 'dialog-polyfill'
-import { define } from 'elements-sk/define'
-import { html, render } from 'lit-html'
-import { $$ } from 'common-sk/modules/dom'
+import dialogPolyfill from 'dialog-polyfill';
+import { define } from 'elements-sk/define';
+import { html, render } from 'lit-html';
+import { $$ } from 'common-sk/modules/dom';
 
-import 'elements-sk/styles/buttons'
-import 'elements-sk/styles/select'
+import 'elements-sk/styles/buttons';
+import 'elements-sk/styles/select';
 
 function displayEmail(email, owner) {
   if (owner === email) {
     return html`<option value=${email}>${email} (alert owner)</option>`;
-  } else {
-    return html`<option value=${email}>${email}</option>`;
   }
+  return html`<option value=${email}>${email}</option>`;
 }
 
 const template = (ele) => html`<dialog>
   <h2>Assign</h2>
   <select size=10 @input=${ele._input}>
     <option value='' selected>(un-assign)</option>
-    ${ele._emails.map(email => displayEmail(email, ele._owner))}
+    ${ele._emails.map((email) => displayEmail(email, ele._owner))}
   </select>
   <div class=buttons>
     <button @click=${ele._dismiss}>Cancel</button>
@@ -88,6 +87,6 @@ define('email-chooser-sk', class extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this, {eventContext: this});
+    render(template(this), this, { eventContext: this });
   }
 });
