@@ -781,7 +781,11 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 
 			clKey := fmt.Sprintf("%s_%s", crs, cl.SystemID)
 			clIdx, ok := ix.getCLIndex(clKey)
-			if !ok || clIdx.ComputedTS.Before(cl.Updated) {
+			// Ingestion should update this timestamp when it has uploaded a new file belonging to this
+			// changelist. We add a bit of a buffer period to avoid potential issues with a file being
+			// uploaded at the exact same time we create an index (skbug.com/10265).
+			updatedWithGracePeriod := cl.Updated.Add(30 * time.Second)
+			if !ok || clIdx.ComputedTS.Before(updatedWithGracePeriod) {
 				// Compute it from scratch and store it to the index.
 				xps, err := ix.CLStore.GetPatchSets(ctx, cl.SystemID)
 				if err != nil {
