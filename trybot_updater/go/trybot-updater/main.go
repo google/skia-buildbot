@@ -117,7 +117,7 @@ func updateBuildbucketCfg(ctx context.Context, g *gerrit.Gerrit, repo *gitiles.R
 	if err != nil {
 		return skerr.Fmt("Could not create Gerrit change: %s", err)
 	}
-	sklog.Infof("Uploaded change https://%s-review.googlesource.com/%d", project, ci.Issue)
+	sklog.Infof("Uploaded change https://skia-review.googlesource.com/c/%s/+/%d", project, ci.Issue)
 
 	if *submit {
 		// TODO(rmistry): Change reviewer to be the trooper after verifying that things work.
@@ -128,7 +128,7 @@ func updateBuildbucketCfg(ctx context.Context, g *gerrit.Gerrit, repo *gitiles.R
 		if err := g.Submit(ctx, ci); err != nil {
 			return abandonGerritChange(ctx, g, ci, err)
 		}
-		sklog.Infof("Submitted change https://%s-review.googlesource.com/%d", project, ci.Issue)
+		sklog.Infof("Submitted change https://skia-review.googlesource.com/c/%s/+/%d", project, ci.Issue)
 	}
 
 	return nil
