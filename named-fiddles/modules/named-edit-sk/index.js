@@ -1,2 +1,2 @@
-import './named-edit-sk.js'
-import './named-edit-sk.scss'
+import './named-edit-sk';
+import './named-edit-sk.scss';

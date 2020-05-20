@@ -6,27 +6,25 @@
  *
  * @attr csrf - The csrf string to attach to POST requests, based64 encoded.
  */
-import '../named-edit-sk'
-import '../named-fiddle-sk'
-import 'elements-sk/error-toast-sk'
-import 'elements-sk/styles/buttons'
-import 'elements-sk/spinner-sk'
-import '../../../infra-sk/modules/login-sk'
-import { $$ } from 'common-sk/modules/dom'
-import { define } from 'elements-sk/define'
-import { errorMessage } from 'elements-sk/errorMessage'
-import { html, render } from 'lit-html'
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
+import '../named-edit-sk';
+import '../named-fiddle-sk';
+import 'elements-sk/error-toast-sk';
+import 'elements-sk/styles/buttons';
+import 'elements-sk/spinner-sk';
+import { $$ } from 'common-sk/modules/dom';
+import { define } from 'elements-sk/define';
+import { errorMessage } from 'elements-sk/errorMessage';
+import { html, render } from 'lit-html';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { repeat } from 'lit-html/directives/repeat';
 
 const template = (ele) => html`
 <header>
   <h1>Named Fiddles</h1>
-  <login-sk></login-sk>
 </header>
 <main>
   <section>
-   ${repeat(ele._named_fiddles, (i) => i.name, (i, index) => html`<named-fiddle-sk .inflight=${!!ele._inflight[i.name]} .state=${i}></named-fiddle-sk>`)}
+   ${repeat(ele._named_fiddles, (i) => i.name, (i) => html`<named-fiddle-sk .inflight=${!!ele._inflight[i.name]} .state=${i}></named-fiddle-sk>`)}
   </section>
   <button @click=${ele._new} class=fab>+</button>
   <spinner-sk id=busy></spinner-sk>
@@ -75,7 +73,7 @@ define('named-fiddles-sk', class extends HTMLElement {
     this._editor.show();
   }
 
-  _new(e) {
+  _new() {
     this._editor.state = {
       name: '',
       hash: '',
@@ -84,7 +82,7 @@ define('named-fiddles-sk', class extends HTMLElement {
   }
 
   _doUpdate(e) {
-    this._doImpl('/_/update', e.detail)
+    this._doImpl('/_/update', e.detail);
     // If the fiddle is failed, then wait a minute and reload
     // the data, since validation should be done by then.
     if (e.detail.status) {
@@ -92,12 +90,12 @@ define('named-fiddles-sk', class extends HTMLElement {
       window.setTimeout(() => {
         this._reloadAll();
         this._inflight[e.detail.name] = false;
-      }, 60*1000);
+      }, 60 * 1000);
     }
   }
 
   _doDelete(e) {
-    this._doImpl('/_/delete', e.detail)
+    this._doImpl('/_/delete', e.detail);
   }
 
   _doImpl(url, detail) {
@@ -110,19 +108,18 @@ define('named-fiddles-sk', class extends HTMLElement {
       },
       credentials: 'include',
       method: 'POST',
-    }).then(jsonOrThrow).then(json => {
+    }).then(jsonOrThrow).then((json) => {
       // Should return with updated config.
       this._named_fiddles = json;
       this._render();
       this._busy.active = false;
-    }).catch(msg => {
+    }).catch((msg) => {
       this._busy.active = false;
       msg.resp.text().then(errorMessage);
     });
   }
 
   _render() {
-    render(template(this), this, {eventContext: this});
+    render(template(this), this, { eventContext: this });
   }
-
 });

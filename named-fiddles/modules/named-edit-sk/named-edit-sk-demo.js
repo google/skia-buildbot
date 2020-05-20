@@ -1,11 +1,11 @@
-import './index.js'
-import { $$ } from 'common-sk/modules/dom'
+import './index';
+import { $$ } from 'common-sk/modules/dom';
 
-(function () {
+(function() {
   $$('named-edit-sk').state = {
     name: 'Octopus_Generator_Animated',
     hash: 'ad161cfe21bb38bcec264bbacecbe93a',
-    status:  'OK',
+    status: 'OK',
   };
   $$('named-edit-sk').show();
 
@@ -14,4 +14,4 @@ import { $$ } from 'common-sk/modules/dom'
   }
 
   document.addEventListener('named-edit-complete', display);
-})();
+}());

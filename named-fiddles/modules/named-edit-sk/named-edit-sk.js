@@ -17,11 +17,11 @@
  *   </pre>
  *
  */
-import { define } from 'elements-sk/define'
-import dialogPolyfill from 'dialog-polyfill'
-import { html, render } from 'lit-html'
-import { $$ } from 'common-sk/modules/dom'
-import 'elements-sk/styles/buttons'
+import { define } from 'elements-sk/define';
+import dialogPolyfill from 'dialog-polyfill';
+import { html, render } from 'lit-html';
+import { $$ } from 'common-sk/modules/dom';
+import 'elements-sk/styles/buttons';
 
 const template = (ele) => html`
 <dialog>
@@ -45,7 +45,8 @@ define('named-edit-sk', class extends HTMLElement {
   }
 
   /** @prop state {object} A serialized Named struct.  */
-  get state() { return this._state }
+  get state() { return this._state; }
+
   set state(val) {
     this._state = Object.assign({}, val);
     this._render();
@@ -77,7 +78,6 @@ define('named-edit-sk', class extends HTMLElement {
   }
 
   _render() {
-    render(template(this), this, {eventContext: this});
+    render(template(this), this, { eventContext: this });
   }
-
 });
