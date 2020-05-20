@@ -124,7 +124,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	}
 	idx := s.indexSource.GetIndex()
 
-	var results []*frontend.SRDigest
+	var results []*frontend.SearchResult
 	// Find the digests (left hand side) we are interested in.
 	if isChangeListSearch {
 		results, err = s.queryChangeList(ctx, q, idx, exp)
@@ -165,7 +165,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 
 	// Return all digests with the selected offset within the result set.
 	searchRet := &frontend.SearchResponse{
-		Digests:       displayRet,
+		Results:       displayRet,
 		Offset:        offset,
 		Size:          len(results),
 		Commits:       web_frontend.FromTilingCommits(idx.Tile().GetTile(types.ExcludeIgnoredTraces).Commits),
@@ -201,7 +201,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 		return nil, skerr.Wrap(err)
 	}
 
-	result := frontend.SRDigest{
+	result := frontend.SearchResult{
 		Test:     test,
 		Digest:   digest,
 		ParamSet: paramtools.ParamSet{},
@@ -217,7 +217,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 			}
 			if _, ok := byTrace[traceID][digest]; ok {
 				result.ParamSet.AddParams(trace.Params())
-				result.Traces.Traces = append(result.Traces.Traces, frontend.Trace{
+				result.TraceGroup.Traces = append(result.TraceGroup.Traces, frontend.Trace{
 					ID:       traceID,
 					RawTrace: trace,
 					Params:   trace.Params(),
@@ -227,7 +227,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 	}
 
 	// We wrap the result in a slice so we can re-use the search functions.
-	results := []*frontend.SRDigest{&result}
+	results := []*frontend.SearchResult{&result}
 	addExpectations(results, exp)
 	err = s.getReferenceDiffs(ctx, results, diff.CombinedMetric, []string{types.PrimaryKeyField}, nil, types.ExcludeIgnoredTraces, exp, idx)
 	if err != nil {
@@ -235,14 +235,14 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 	}
 
 	var traceComments []frontend.TraceComment
-	if len(result.Traces.Traces) > 0 {
+	if len(result.TraceGroup.Traces) > 0 {
 		// Get the params and traces.
 		traceComments = s.addParamsTracesAndComments(ctx, results, exp, idx)
 	}
 	s.addTriageHistory(ctx, s.makeTriageHistoryGetter(crs, clID), results)
 
 	return &frontend.DigestDetails{
-		Digest:        result,
+		Result:        result,
 		Commits:       web_frontend.FromTilingCommits(tile.Commits),
 		TraceComments: traceComments,
 	}, nil
@@ -321,7 +321,7 @@ func (s *SearchImpl) getCLOnlyDigestDetails(ctx context.Context, test types.Test
 
 	return &frontend.DigestDetails{
 		TraceComments: nil, // TODO(skbug.com/6630)
-		Digest: frontend.SRDigest{
+		Result: frontend.SearchResult{
 			Test:          test,
 			Digest:        digest,
 			Status:        exp.Classification(test, digest).String(),
@@ -336,16 +336,16 @@ func (s *SearchImpl) getCLOnlyDigestDetails(ctx context.Context, test types.Test
 // queryChangeList returns the digests associated with the ChangeList referenced by q.CRSAndCLID
 // in intermediate representation. It returns the filtered digests as specified by q. The param
 // exp should contain the expectations for the given ChangeList.
-func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp expectations.Classifier) ([]*frontend.SRDigest, error) {
+func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp expectations.Classifier) ([]*frontend.SearchResult, error) {
 	// Build the intermediate map to compare against the tile
-	byGroupingAndDigest := map[groupingAndDigest]*frontend.SRDigest{}
+	byGroupingAndDigest := map[groupingAndDigest]*frontend.SearchResult{}
 	addByGroupAndDigest := func(test types.TestName, digest types.Digest, params paramtools.Params) {
 		// TODO(kjlubick) If we want to include trace data in the CLs, we'll have to find a way to
 		//   derive the trace id here. This is a bit tricky because params includes optional keys.
 		key := groupingAndDigest{grouping: test, digest: digest}
 		existing := byGroupingAndDigest[key]
 		if existing == nil {
-			existing = &frontend.SRDigest{
+			existing = &frontend.SearchResult{
 				Test:     test,
 				Digest:   digest,
 				ParamSet: paramtools.ParamSet{},
@@ -371,7 +371,7 @@ func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx i
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	ret := make([]*frontend.SRDigest, 0, len(byGroupingAndDigest))
+	ret := make([]*frontend.SearchResult, 0, len(byGroupingAndDigest))
 	for _, srd := range byGroupingAndDigest {
 		ret = append(ret, srd)
 	}
@@ -558,7 +558,7 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 	history := s.makeTriageHistoryGetter(crs, clID)
 
 	return &frontend.DigestComparison{
-		Left: &frontend.SRDigest{
+		Left: frontend.SearchResult{
 			Test:          test,
 			Digest:        left,
 			Status:        exp.Classification(test, left).String(),
@@ -576,7 +576,7 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
-func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp expectations.Classifier) ([]*frontend.SRDigest, error) {
+func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp expectations.Classifier) ([]*frontend.SearchResult, error) {
 	var acceptFn acceptFn = nil
 	if q.GroupTestFilter == GROUP_TEST_MAX_COUNT {
 		maxDigestsByTest := idx.MaxDigestsByTest(q.IgnoreState())
@@ -592,7 +592,7 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, idx indexe
 	}
 
 	// We'll want to find all traces that generate a given digest for a given grouping.
-	byGroupingAndDigest := map[groupingAndDigest]*frontend.SRDigest{}
+	byGroupingAndDigest := map[groupingAndDigest]*frontend.SearchResult{}
 	mutex := sync.Mutex{}
 	// For each trace that does, we'll add the params the trace has to the paramset of associated
 	// with the digest and include the trace in slice of traces.
@@ -602,7 +602,7 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, idx indexe
 		key := groupingAndDigest{grouping: test, digest: digest}
 		existing := byGroupingAndDigest[key]
 		if existing == nil {
-			existing = &frontend.SRDigest{
+			existing = &frontend.SearchResult{
 				Test:     test,
 				Digest:   digest,
 				ParamSet: paramtools.ParamSet{},
@@ -613,7 +613,7 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, idx indexe
 		// It is tempting to think we could just convert the RawTrace into the frontend.Trace right
 		// here, but in fact we need all the traces for a given digest (i.e. in a given TraceGroup)
 		// to be able to do that. Specifically, we want to be able to share the digest indices.
-		existing.Traces.Traces = append(existing.Traces.Traces, frontend.Trace{
+		existing.TraceGroup.Traces = append(existing.TraceGroup.Traces, frontend.Trace{
 			ID:       traceID,
 			RawTrace: trace,
 			Params:   trace.Params(),
@@ -624,7 +624,7 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, idx indexe
 		return nil, skerr.Wrap(err)
 	}
 
-	results := make([]*frontend.SRDigest, 0, len(byGroupingAndDigest))
+	results := make([]*frontend.SearchResult, 0, len(byGroupingAndDigest))
 	for _, srd := range byGroupingAndDigest {
 		results = append(results, srd)
 	}
@@ -639,7 +639,7 @@ type groupingAndDigest struct {
 
 // addExpectations adds the expectations to the current set of results using the provided
 // Classifier.
-func addExpectations(results []*frontend.SRDigest, exp expectations.Classifier) {
+func addExpectations(results []*frontend.SearchResult, exp expectations.Classifier) {
 	for _, r := range results {
 		r.Status = exp.Classification(r.Test, r.Digest).String()
 	}
@@ -647,13 +647,13 @@ func addExpectations(results []*frontend.SRDigest, exp expectations.Classifier) 
 
 // getReferenceDiffs compares all digests collected in the intermediate representation
 // and compares them to the other known results for the test at hand.
-func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp expectations.Classifier, idx indexer.IndexSearcher) error {
+func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*frontend.SearchResult, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState, exp expectations.Classifier, idx indexer.IndexSearcher) error {
 	defer shared.NewMetricsTimer("getReferenceDiffs").Stop()
 	refDiffer := ref_differ.New(exp, s.diffStore, idx)
 	errGroup, gCtx := errgroup.WithContext(ctx)
 	sklog.Infof("Going to spawn %d goroutines to get reference diffs", len(resultDigests))
 	for _, retDigest := range resultDigests {
-		func(d *frontend.SRDigest) {
+		func(d *frontend.SearchResult) {
 			errGroup.Go(func() error {
 				defer metrics2.NewTimer("gold_find_closest_digests").Stop()
 				err := refDiffer.FillRefDiffs(gCtx, d, metric, match, rhsQuery, is)
@@ -672,8 +672,8 @@ func (s *SearchImpl) getReferenceDiffs(ctx context.Context, resultDigests []*fro
 }
 
 // afterDiffResultFilter filters the results based on the diff results in 'digestInfo'.
-func (s *SearchImpl) afterDiffResultFilter(ctx context.Context, digestInfo []*frontend.SRDigest, q *query.Search) []*frontend.SRDigest {
-	newDigestInfo := make([]*frontend.SRDigest, 0, len(digestInfo))
+func (s *SearchImpl) afterDiffResultFilter(ctx context.Context, digestInfo []*frontend.SearchResult, q *query.Search) []*frontend.SearchResult {
+	newDigestInfo := make([]*frontend.SearchResult, 0, len(digestInfo))
 	filterRGBADiff := (q.RGBAMinFilter > 0) || (q.RGBAMaxFilter < 255)
 	filterDiffMax := q.DiffMaxFilter >= 0
 	for _, digest := range digestInfo {
@@ -711,10 +711,10 @@ func (s *SearchImpl) afterDiffResultFilter(ctx context.Context, digestInfo []*fr
 // instance. It then paginates the digests according to the query and returns
 // the slice that should be shown on the page with its offset in the entire
 // result set.
-func (s *SearchImpl) sortAndLimitDigests(ctx context.Context, q *query.Search, digestInfo []*frontend.SRDigest, offset, limit int) ([]*frontend.SRDigest, int) {
+func (s *SearchImpl) sortAndLimitDigests(ctx context.Context, q *query.Search, digestInfo []*frontend.SearchResult, offset, limit int) ([]*frontend.SearchResult, int) {
 	fullLength := len(digestInfo)
 	if offset >= fullLength {
-		return []*frontend.SRDigest{}, 0
+		return []*frontend.SearchResult{}, 0
 	}
 
 	sortSlice := sort.Interface(newSRDigestSlice(q.Metric, digestInfo))
@@ -735,7 +735,7 @@ func (s *SearchImpl) sortAndLimitDigests(ctx context.Context, q *query.Search, d
 // to draw them, i.e. the information what digest/image appears at what commit and
 // what were the union of parameters that generate the digest. This should be
 // only done for digests that are intended to be displayed.
-func (s *SearchImpl) addParamsTracesAndComments(ctx context.Context, digestInfo []*frontend.SRDigest, exp expectations.Classifier, idx indexer.IndexSearcher) []frontend.TraceComment {
+func (s *SearchImpl) addParamsTracesAndComments(ctx context.Context, digestInfo []*frontend.SearchResult, exp expectations.Classifier, idx indexer.IndexSearcher) []frontend.TraceComment {
 	tile := idx.Tile().GetTile(types.ExcludeIgnoredTraces)
 	last := tile.LastCommitIndex()
 	var traceComments []frontend.TraceComment
@@ -758,8 +758,8 @@ func (s *SearchImpl) addParamsTracesAndComments(ctx context.Context, digestInfo 
 	for _, di := range digestInfo {
 		// Add the parameters and the drawable traces to the result.
 		di.ParamSet.Normalize()
-		di.Traces = s.getDrawableTraces(di.Test, di.Digest, last, exp, di.Traces.Traces, traceComments)
-		di.Traces.TileSize = len(tile.Commits)
+		di.TraceGroup = s.getDrawableTraces(di.Test, di.Digest, last, exp, di.TraceGroup.Traces, traceComments)
+		di.TraceGroup.TileSize = len(tile.Commits)
 	}
 	return traceComments
 }
@@ -943,12 +943,12 @@ func (s *SearchImpl) getTriageHistory(ctx context.Context, history triageHistory
 
 // addTriageHistory fills in the TriageHistory field of the passed in SRDigests. It does so in
 // parallel to reduce latency of the response.
-func (s *SearchImpl) addTriageHistory(ctx context.Context, history triageHistoryGetter, digestResults []*frontend.SRDigest) {
+func (s *SearchImpl) addTriageHistory(ctx context.Context, history triageHistoryGetter, digestResults []*frontend.SearchResult) {
 	defer shared.NewMetricsTimer("addTriageHistory").Stop()
 	wg := sync.WaitGroup{}
 	wg.Add(len(digestResults))
 	for i, dr := range digestResults {
-		go func(i int, dr *frontend.SRDigest) {
+		go func(i int, dr *frontend.SearchResult) {
 			defer wg.Done()
 			if dr == nil {
 				// This should never happen
