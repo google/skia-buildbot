@@ -159,7 +159,7 @@
         </paper-button>
       </div>
       <div hidden$="[[_noMore(_allData)]]">
-        <paper-toggle-button checked="{{_triageAll}}">Triage all [[_getBulkTriageCount(_allData.digests, _bulkStatus)]].</paper-toggle-button>
+        <paper-toggle-button checked="{{_triageAll}}">Triage all [[_allData.size]] digests.</paper-toggle-button>
       </div>
       <div class="buttons">
         <paper-button raise dialog-dismiss>Cancel</paper-button>
@@ -303,24 +303,6 @@
         return gold.POSITIVE;
       },
 
-      // _getBulkTriageCount returns the number of digests that will be triaged
-      // in a bulk triage operation.
-      _getBulkTriageCount: function(digests, bulkStatus) {
-        if (bulkStatus !== '=') {
-          return digests.length;
-        }
-
-        // If we compare to the closest we only show the number of digests
-        // that actually have a reference image.
-        var count = 0;
-        for(var i=0; i < digests.length; i++) {
-          if (digests[i].closestRef !== '') {
-            count++;
-          }
-        }
-        return count;
-      },
-
       _doBulkTriage: function(ev) {
         var targetStatus = this.get('_bulkStatus');
         var digests = (this._triageAll) ? this._allData.digests : this.data.digests;
@@ -424,7 +406,7 @@
       },
 
       _noMore: function(allData) {
-        return (allData.digests && allData.digests.length <= allData.size);
+        return (allData.digests && allData.digests.length >= allData.size);
       }
     });
   </script>
