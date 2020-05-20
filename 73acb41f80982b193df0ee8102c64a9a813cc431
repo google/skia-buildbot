@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "cf320a3e_06caf4a7",
+        "filename": "autoroll/config/glslang-angle.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-20T17:46:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5fb714a1_e0969827",
+      "range": {
+        "startLine": 6,
+        "startChar": 5,
+        "endLine": 6,
+        "endChar": 15
+      },
+      "revId": "73acb41f80982b193df0ee8102c64a9a813cc431",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1435e343_c8a67207",
         "filename": "autoroll/config/spirv-tools-angle.json",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "73acb41f80982b193df0ee8102c64a9a813cc431",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef38b4ff_ef5cb074",
+        "filename": "autoroll/config/spirv-tools-angle.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-20T17:46:37Z",
+      "side": 1,
+      "message": "That\u0027s... weird.  I copy/pasted this from a different ANGLE roller, but the others have it spelled correctly.",
+      "parentUuid": "1435e343_c8a67207",
+      "range": {
+        "startLine": 6,
+        "startChar": 5,
+        "endLine": 6,
+        "endChar": 15
+      },
+      "revId": "73acb41f80982b193df0ee8102c64a9a813cc431",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
