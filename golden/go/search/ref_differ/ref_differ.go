@@ -28,7 +28,7 @@ type RefDiffer interface {
 	// It uses "metric" to determine "closeness". If match is non-nil, it only returns those
 	// digests that match d's params for the keys in match. If rhsQuery is not empty, it only
 	// compares against digests that match rhsQuery.
-	FillRefDiffs(ctx context.Context, d *frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState) error
+	FillRefDiffs(ctx context.Context, d *frontend.SearchResult, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState) error
 }
 
 // DiffImpl aggregates the helper objects needed to calculate reference diffs.
@@ -48,7 +48,7 @@ func New(exp expectations.Classifier, diffStore diff.DiffStore, idx indexer.Inde
 }
 
 // FillRefDiffs implements the RefDiffer interface.
-func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SRDigest, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState) error {
+func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SearchResult, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState) error {
 	unavailableDigests, err := r.diffStore.UnavailableDigests(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "fetching unavailable digests")
@@ -99,7 +99,7 @@ func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SRDigest, metri
 // getDigestsWithLabel return all digests within the given test that
 // have the given label assigned to them and where the parameters
 // listed in 'match' match.
-func (r *DiffImpl) getDigestsWithLabel(s *frontend.SRDigest, match []string, paramsByDigest map[types.Digest]paramtools.ParamSet, unavailable map[types.Digest]*diff.DigestFailure, rhsQuery paramtools.ParamSet, targetLabel expectations.Label) types.DigestSlice {
+func (r *DiffImpl) getDigestsWithLabel(s *frontend.SearchResult, match []string, paramsByDigest map[types.Digest]paramtools.ParamSet, unavailable map[types.Digest]*diff.DigestFailure, rhsQuery paramtools.ParamSet, targetLabel expectations.Label) types.DigestSlice {
 	ret := types.DigestSlice{}
 	for d, digestParams := range paramsByDigest {
 		// Accept all digests that are: available, in the set of allowed digests
