@@ -3,6 +3,7 @@
 {
   "childDisplayName": "SPIRV-Tools",
   "commitMsg": {
+    "bugProject": "angleproject",
     "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
     "includeLog": false,
     "includeRevisionCount": true,
