@@ -16,7 +16,6 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import 'elements-sk/error-toast-sk';
-import 'elements-sk/toast-sk'; // Work around bug in error-toast-sk for now.
 import 'elements-sk/icon/cached-icon-sk';
 import 'elements-sk/icon/pause-icon-sk';
 import 'elements-sk/icon/play-arrow-icon-sk';
