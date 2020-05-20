@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ccef0dbc_c56d1974",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-20T21:33:39Z",
+      "side": 1,
+      "message": "Nit: Should this be \"to which the rest of the data in this struct belongs.\"?",
+      "range": {
+        "startLine": 37,
+        "startChar": 33,
+        "endLine": 37,
+        "endChar": 86
+      },
+      "revId": "61fde606d027468e8d33e036191e22fb6fec231c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4530fe7b_2bc0e22a",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-20T21:33:39Z",
+      "side": 1,
+      "message": "Nit: \"test that produced\".",
+      "range": {
+        "startLine": 39,
+        "startChar": 28,
+        "endLine": 39,
+        "endChar": 52
+      },
+      "revId": "61fde606d027468e8d33e036191e22fb6fec231c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16779189_5ced2a97",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-20T21:33:39Z",
+      "side": 1,
+      "message": "Nit: \"an image that\".",
+      "range": {
+        "startLine": 40,
+        "startChar": 18,
+        "endLine": 40,
+        "endChar": 52
+      },
+      "revId": "61fde606d027468e8d33e036191e22fb6fec231c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1e4401c_d5b7607e",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-20T21:33:39Z",
+      "side": 1,
+      "message": "This sounds like an enumeration. Does it make sense to have e.g. a Status type with consts for each of these? Probably out of scope since you\u0027re just renaming and documenting things in this CL.",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 43,
+        "endChar": 46
+      },
+      "revId": "61fde606d027468e8d33e036191e22fb6fec231c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba4d12ca_323fdcb7",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-20T21:33:39Z",
+      "side": 1,
+      "message": "Any chance you could document these as well?",
+      "range": {
+        "startLine": 68,
+        "startChar": 1,
+        "endLine": 69,
+        "endChar": 56
+      },
+      "revId": "61fde606d027468e8d33e036191e22fb6fec231c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
