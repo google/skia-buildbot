@@ -148,11 +148,10 @@ func (r *DiffImpl) getClosestDiff(ctx context.Context, metric string, digest typ
 	}, nil
 }
 
-// paramSetsMatch returns true if the two param sets have matching
-// values for the parameters listed in 'match'. If one of them is nil
-// there is always a match.
+// paramSetsMatch returns true if the two param sets have matching values for the parameters listed
+// in 'match'. If one of them is nil or completely empty there is always a match.
 func paramSetsMatch(match []string, p1, p2 paramtools.ParamSet) bool {
-	if (p1 == nil) || (p2 == nil) {
+	if len(p1) == 0 || len(p2) == 0 {
 		return true
 	}
 

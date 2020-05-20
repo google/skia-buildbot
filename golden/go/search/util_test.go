@@ -9,13 +9,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/expectations"
 	mock_expectations "go.skia.org/infra/golden/go/expectations/mocks"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
-	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -119,68 +117,6 @@ func TestTraceViewFnErr(t *testing.T) {
 	_, err := getTraceViewFn(data.MakeTestCommits(), data.ThirdCommitHash, data.SecondCommitHash)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "later than end")
-}
-
-const (
-	testOne   = types.TestName("test-1")
-	testTwo   = types.TestName("test-2")
-	digestOne = types.Digest("abcefgh")
-)
-
-var (
-	paramSetOne = paramtools.ParamSet{
-		"param-01": {"val-01"},
-		"param-02": {"val-02"},
-	}
-
-	paramsTwo = paramtools.Params{
-		"param-01": "gato",
-		"param-03": "robato",
-	}
-
-	goldTrace = tiling.Trace{
-		Keys: map[string]string{"param-01": "dog"},
-	}
-)
-
-// TestIntermediate adds a few entries to the intermediate
-// representation and makes sure that the data properly reflects it.
-func TestIntermediate(t *testing.T) {
-	unittest.SmallTest(t)
-
-	srMap := srInterMap{}
-	srMap.Add(testOne, digestOne, "", nil, paramSetOne)
-	srMap.AddTestParams(testOne, digestOne, paramsTwo)
-	srMap.AddTestParams(testTwo, digestOne, paramsTwo)
-	srMap.Add(testTwo, digestOne, "mytrace", &goldTrace, paramSetOne)
-
-	assert.Equal(t, srInterMap{
-		testOne: map[types.Digest]*srIntermediate{
-			digestOne: {
-				test:   testOne,
-				digest: digestOne,
-				params: paramtools.ParamSet{
-					"param-01": {"val-01", "gato"},
-					"param-02": {"val-02"},
-					"param-03": {"robato"},
-				},
-				traces: map[tiling.TraceID]*tiling.Trace{},
-			},
-		},
-		testTwo: map[types.Digest]*srIntermediate{
-			digestOne: {
-				test:   testTwo,
-				digest: digestOne,
-				params: paramtools.ParamSet{
-					"param-01": {"gato", "dog"},
-					"param-03": {"robato"},
-				},
-				traces: map[tiling.TraceID]*tiling.Trace{
-					"mytrace": &goldTrace,
-				},
-			},
-		},
-	}, srMap)
 }
 
 // TestJoinedHistories_GetTriageHistory_WithChangeList_Success tests the 4 cases of triage history
