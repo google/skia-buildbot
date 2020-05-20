@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f1b11e47_d1367a31",
+        "filename": "golden/modules/corpus-selector-sk/corpus-selector-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-20T20:46:39Z",
+      "side": 1,
+      "message": "😊",
+      "parentUuid": "7877dd77_4e3efd20",
+      "range": {
+        "startLine": 20,
+        "startChar": 25,
+        "endLine": 20,
+        "endChar": 34
+      },
+      "revId": "7178e38b50e8205a1d84465248baafc0553a8057",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bc7cdef9_0ce7c082",
         "filename": "golden/tsconfig.json",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "7178e38b50e8205a1d84465248baafc0553a8057",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0de7f3be_f6c5927a",
+        "filename": "golden/tsconfig.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-20T20:46:39Z",
+      "side": 1,
+      "message": "This is just the strictest set of options I could come up with that is compatible with our hybrid JS/TS codebase. We will probably want to change these as our codebase evolves over time (e.g. eventually we will set \"allowJs\" to \"false\"), and also as we learn more about both TypeScript itself and how it fits into our stack. But I think this is a good starting point.",
+      "parentUuid": "bc7cdef9_0ce7c082",
+      "range": {
+        "startLine": 2,
+        "startChar": 3,
+        "endLine": 2,
+        "endChar": 18
+      },
+      "revId": "7178e38b50e8205a1d84465248baafc0553a8057",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
