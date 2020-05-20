@@ -85,9 +85,7 @@ func TestInfo(t *testing.T) {
 		db:      db,
 		commits: mockCommits{},
 	}
-	if got, want := i.branchtargets(), []string{}; !util.SSliceEqual(got, want) {
-		t.Errorf("Wrong targets: Got %v Want %v", got, want)
-	}
+	assert.Equal(t, []string{}, i.branchtargets())
 	i.single_poll()
 
 	// The first time we Get on an unknown target well get nil, err.

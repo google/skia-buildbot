@@ -49,6 +49,11 @@ func TestSSliceEqual(t *testing.T) {
 		{
 			a:    []string{"foo", "bar"},
 			b:    []string{"bar", "foo"},
+			want: false,
+		},
+		{
+			a:    []string{"foo", "bar"},
+			b:    []string{"foo", "bar"},
 			want: true,
 		},
 	}

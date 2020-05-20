@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/util"
 )
 
 func TestParamsNew(t *testing.T) {
@@ -43,7 +42,7 @@ func TestParams(t *testing.T) {
 	assert.False(t, p.Equal(p2))
 	assert.False(t, p.Equal(nil))
 
-	assert.True(t, util.SSliceEqual([]string{"bar", "baz", "foo"}, p.Keys()))
+	assert.ElementsMatch(t, []string{"bar", "baz", "foo"}, p.Keys())
 
 	var pnil Params
 	assert.True(t, pnil.Equal(Params{}))
@@ -116,9 +115,7 @@ func TestAddParamsToParamSet(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		tc.a.AddParams(tc.b)
-		if got, want := tc.a["foo"], tc.wantFoo; !util.SSliceEqual(got, want) {
-			t.Errorf("Merge failed: Got %v Want %v", got, want)
-		}
+		assert.ElementsMatch(t, tc.wantFoo, tc.a["foo"])
 	}
 }
 
@@ -173,9 +170,7 @@ func TestAddParamSetToParamSet(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		tc.a.AddParamSet(tc.b)
-		if got, want := tc.a["foo"], tc.wantFoo; !util.SSliceEqual(got, want) {
-			t.Errorf("Merge failed: Got %v Want %v", got, want)
-		}
+		assert.ElementsMatch(t, tc.wantFoo, tc.a["foo"])
 	}
 }
 
