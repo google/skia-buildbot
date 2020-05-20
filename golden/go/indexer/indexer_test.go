@@ -226,8 +226,8 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 	const secondCLID = "22222"
 	const patchsetSam = "sam"
 
-	var firstCombinedID = tjstore.CombinedPSID{CL: firstCLID, CRS: crs, PS: patchsetFoxtrot}
-	var secondCombinedID = tjstore.CombinedPSID{CL: secondCLID, CRS: crs, PS: patchsetSam}
+	firstCombinedID := tjstore.CombinedPSID{CL: firstCLID, CRS: crs, PS: patchsetFoxtrot}
+	secondCombinedID := tjstore.CombinedPSID{CL: secondCLID, CRS: crs, PS: patchsetSam}
 
 	mcs := &mock_clstore.Store{}
 	mes := &mock_expectations.Store{}
@@ -377,11 +377,11 @@ func TestIndexer_CalcChangeListIndices_HasPreviousIndex_Success(t *testing.T) {
 	const clID = "111111"
 	const firstPatchSet = "firstPS"
 	const secondPatchSet = "secondPS"
-	var firstPatchSetCombinedID = tjstore.CombinedPSID{CL: clID, CRS: crs, PS: firstPatchSet}
-	var secondPatchSetCombinedID = tjstore.CombinedPSID{CL: clID, CRS: crs, PS: secondPatchSet}
+	firstPatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: crs, PS: firstPatchSet}
+	secondPatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: crs, PS: secondPatchSet}
 
-	var longAgo = time.Date(2020, time.April, 15, 15, 15, 0, 0, time.UTC)
-	var recently = time.Date(2020, time.May, 5, 12, 12, 0, 0, time.UTC)
+	longAgo := time.Date(2020, time.April, 15, 15, 15, 0, 0, time.UTC)
+	recently := time.Date(2020, time.May, 5, 12, 12, 0, 0, time.UTC)
 
 	mcs := &mock_clstore.Store{}
 	mes := &mock_expectations.Store{}
@@ -391,7 +391,7 @@ func TestIndexer_CalcChangeListIndices_HasPreviousIndex_Success(t *testing.T) {
 	masterExp.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive)
 	masterExp.Set(data.AlphaTest, data.AlphaNegativeDigest, expectations.Negative)
 
-	// secondCL has no additional expectations
+	// The CL has no additional expectations.
 	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
 	loadChangeListExpectations(mes, crs, map[string]*expectations.Expectations{
 		clID: {},
@@ -490,6 +490,84 @@ func TestIndexer_CalcChangeListIndices_HasPreviousIndex_Success(t *testing.T) {
 		"name":  []string{"test_alpha", "this_test_was_here_before"},
 		"os":    []string{"Android", "iOS"},
 	}, clIdx.ParamSet)
+}
+
+func TestIndexer_CalcChangeListIndices_PreviousIndexDoesNotNeedUpdating_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const crs = "gerrit"
+	const clID = "111111"
+	const thePatchSet = "firstPS"
+	thePatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: crs, PS: thePatchSet}
+
+	now := time.Date(2020, time.May, 15, 15, 15, 0, 0, time.UTC)
+	fiveMinAgo := now.Add(-5 * time.Minute)
+	tenMinAgo := now.Add(-10 * time.Minute)
+
+	mcs := &mock_clstore.Store{}
+	mes := &mock_expectations.Store{}
+
+	masterExp := expectations.Expectations{}
+	masterExp.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive)
+	masterExp.Set(data.AlphaTest, data.AlphaNegativeDigest, expectations.Negative)
+
+	// The CL has no additional expectations.
+	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
+	loadChangeListExpectations(mes, crs, map[string]*expectations.Expectations{
+		clID: {},
+	})
+
+	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return([]code_review.ChangeList{
+		{
+			SystemID: clID,
+			// CL was updated 10 minutes ago. That is, the ingester last got data from this CL 10 min
+			// ago.
+			Updated: tenMinAgo,
+		},
+	}, 0, nil)
+
+	mcs.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
+		{SystemID: thePatchSet}, // all other fields ignored from patch set.
+	}, nil)
+	mcs.On("System").Return(crs)
+
+	ctx := context.Background()
+	ic := IndexerConfig{
+		CLStore:           mcs,
+		ExpectationsStore: mes,
+	}
+	ixr, err := New(ctx, ic, 0)
+	require.NoError(t, err)
+
+	// The scenario here is that the CL has not been updated since the index was made, so the index
+	// should not be updated.
+	previousIdx := ChangeListIndex{
+		LatestPatchSet: thePatchSetCombinedID,
+		UntriagedResults: []tjstore.TryJobResult{
+			{
+				ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+				Digest:       data.AlphaUntriagedDigest,
+				// Other fields ignored
+			},
+		},
+		ParamSet: paramtools.ParamSet{
+			// This ParamSet is purposely incomplete (i.e. no data.AlphaTest) to make sure new data is
+			// merged in correctly.
+			types.PrimaryKeyField: []string{"this_test_was_here_before"},
+			"os":                  []string{"Android", "iOS"},
+			"model":               []string{"bluefish", "redfish"},
+		},
+		ComputedTS: fiveMinAgo,
+	}
+	ixr.changeListIndices.Set("gerrit_111111", &previousIdx, 0)
+
+	ixr.calcChangeListIndices(ctx)
+
+	clIdx := ixr.GetIndexForCL(crs, clID)
+	assert.NotNil(t, clIdx)
+	assert.Equal(t, thePatchSetCombinedID, clIdx.LatestPatchSet)
+	assert.Equal(t, clIdx.ComputedTS, fiveMinAgo) // should not be updated
+	assert.Len(t, clIdx.UntriagedResults, 1)
 }
 
 // TestPreSlicedTracesCreatedCorrectly makes sure that we pre-slice the data based on IgnoreState,
