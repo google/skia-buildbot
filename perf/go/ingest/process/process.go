@@ -68,6 +68,7 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 	badGitHash := metrics2.GetCounter("perfserver_ingest_bad_githash")
 	failedToWrite := metrics2.GetCounter("perfserver_ingest_failed_to_write")
 	successfulWrite := metrics2.GetCounter("perfserver_ingest_successful_write")
+	successfulWriteCount := metrics2.GetCounter("perfserver_ingest_num_points_written")
 
 	var pubSubClient *pubsub.Client
 	if instanceConfig.IngestionConfig.FileIngestionTopicName != "" {
@@ -153,6 +154,7 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 			sklog.Error("Failed to write %v: %s", f, err)
 		}
 		successfulWrite.Inc(1)
+		successfulWriteCount.Inc(int64(len(params)))
 
 		if err := sendPubSubEvent(ctx, pubSubClient, instanceConfig.IngestionConfig.FileIngestionTopicName, params, ps, f.Name); err != nil {
 			sklog.Errorf("Failed to send pubsub event: %s", err)
