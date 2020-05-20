@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a386725_26bebbfc",
+        "filename": "golden/go/tiling/trace_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-20T21:41:44Z",
+      "side": 0,
+      "message": "Are these obsolete? They look useful to me.\n\nIf we keep this, I\u0027d recommend breaking it into the following smaller test cases:\n\n- TestNewEmptyTrace_Success\n- TestTrace_Grow_FillBefore_Success\n- TestTrace_Grow_FillAfter_Success\n- TestTrace_Trim_Success\n- TestTrace_Trim_OutOfRangeIndexes_Error",
+      "range": {
+        "startLine": 14,
+        "startChar": 5,
+        "endLine": 60,
+        "endChar": 0
+      },
+      "revId": "392499ec4136b2f6de314901d88a9c999a90afda",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
