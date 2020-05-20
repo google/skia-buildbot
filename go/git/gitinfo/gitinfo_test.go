@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/util"
 	vcstu "go.skia.org/infra/go/vcsinfo/testutils"
 )
 
@@ -66,9 +66,7 @@ func TestLastN(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		if got, want := r.LastN(ctx, tc.n), tc.values; !util.SSliceEqual(got, want) {
-			t.Errorf("For N: %d Hashes returned is wrong: Got %#v Want %#v", tc.n, got, want)
-		}
+		assert.ElementsMatch(t, tc.values, r.LastN(ctx, tc.n))
 	}
 }
 
@@ -280,10 +278,9 @@ func TestRevList(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	revs := []string{
-		"8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
-		"7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
-	}
+	const rev1 = "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f"
+	const rev2 = "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18"
+	revs := []string{rev2, rev1} // rev-list is reverse-chronological.
 	testCases := []struct {
 		Input    []string
 		Expected []string
@@ -298,11 +295,11 @@ func TestRevList(t *testing.T) {
 		},
 		{
 			Input:    []string{"7a669cf..8652a6d"},
-			Expected: revs[1:],
+			Expected: []string{rev2},
 		},
 		{
 			Input:    []string{"8652a6d", "^7a669cf"},
-			Expected: revs[1:],
+			Expected: []string{rev2},
 		},
 		{
 			Input:    []string{"8652a6d..7a669cf"},
@@ -314,9 +311,7 @@ func TestRevList(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if !util.SSliceEqual(actual, tc.Expected) {
-			t.Fatalf("Failed test for: git rev-list %s\nGot:  %v\nWant: %v", strings.Join(tc.Input, " "), actual, tc.Expected)
-		}
+		assert.Equal(t, tc.Expected, actual, "Failed test for: git rev-list %s\nGot:  %v\nWant: %v", strings.Join(tc.Input, " "), actual, tc.Expected)
 	}
 }
 

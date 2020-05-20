@@ -360,7 +360,7 @@ func (c *apiClient) ListTasks(start, end time.Time, tags []string, state string)
 			TaskResult: t,
 		}
 		for i, r := range reqs {
-			if util.SSliceEqual(t.Tags, r.Tags) {
+			if util.NewStringSet(t.Tags).Equals(util.NewStringSet(r.Tags)) {
 				data.Request = r
 				reqs = append(reqs[:i], reqs[i+1:]...)
 				break
