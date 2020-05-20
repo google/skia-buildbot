@@ -71,7 +71,7 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 
 	metric := diff.CombinedMetric
 	matches := []string{types.PrimaryKeyField} // This is the default for several gold queries.
-	input := frontend.SRDigest{
+	input := frontend.SearchResult{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
 		Test:     testName,
@@ -150,7 +150,7 @@ func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 
 	metric := diff.CombinedMetric
 	matches := []string{types.PrimaryKeyField} // This is the default for several gold queries.
-	input := frontend.SRDigest{
+	input := frontend.SearchResult{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
 		Test:     testName,
@@ -218,7 +218,7 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 
 	metric := diff.CombinedMetric
 	matches := []string{types.PrimaryKeyField}
-	input := frontend.SRDigest{
+	input := frontend.SearchResult{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
 		Test:     testName,
@@ -255,7 +255,7 @@ func TestGetRefDiffsNoPrevious(t *testing.T) {
 
 	metric := diff.CombinedMetric
 	matches := []string{types.PrimaryKeyField}
-	input := frontend.SRDigest{
+	input := frontend.SearchResult{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
 		Test:     testName,
@@ -313,7 +313,7 @@ func TestGetRefDiffsMatches(t *testing.T) {
 
 	metric := diff.CombinedMetric
 	matches := []string{"arch", types.PrimaryKeyField} // Only Gamma has x86 in the "arch" values.
-	input := frontend.SRDigest{
+	input := frontend.SearchResult{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
 		Test:     testName,
@@ -381,7 +381,7 @@ func TestGetRefDiffsMatchRHS(t *testing.T) {
 	rd := New(es, mds, mis)
 
 	metric := diff.CombinedMetric
-	input := frontend.SRDigest{
+	input := frontend.SearchResult{
 		ParamSet: makeUntriagedParamSet(),
 		Digest:   untriagedDigest,
 		Test:     testName,
