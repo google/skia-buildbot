@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5f414b27_ae022792",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-20T21:17:11Z",
+      "side": 1,
+      "message": "Could you elaborate on what the \"raw trace\" is, and how it differs from a regular trace?",
+      "range": {
+        "startLine": 70,
+        "startChar": 45,
+        "endLine": 70,
+        "endChar": 54
+      },
+      "revId": "b2158fe96ac89d1bd256c50d8e96953bd2f612dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f03f4dcd_7663a69e",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-20T21:17:11Z",
+      "side": 1,
+      "message": "Maybe call this resultsByGroupingAndDigest? Same elsewhere.",
+      "range": {
+        "startLine": 341,
+        "startChar": 1,
+        "endLine": 341,
+        "endChar": 20
+      },
+      "revId": "b2158fe96ac89d1bd256c50d8e96953bd2f612dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bb49a4ba_f581f002",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-20T21:17:11Z",
+      "side": 1,
+      "message": "Would it be possible to define just one function as a closure that decides what to do based on a variable in queryChangeList()\u0027s body? I find it a bit difficult to follow as is.",
+      "range": {
+        "startLine": 342,
+        "startChar": 0,
+        "endLine": 368,
+        "endChar": 2
+      },
+      "revId": "b2158fe96ac89d1bd256c50d8e96953bd2f612dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78e9ca1d_d8ebd163",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 598,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-20T21:17:11Z",
+      "side": 1,
+      "message": "I think this is missing a word?",
+      "range": {
+        "startLine": 597,
+        "startChar": 72,
+        "endLine": 598,
+        "endChar": 19
+      },
+      "revId": "b2158fe96ac89d1bd256c50d8e96953bd2f612dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
