@@ -142,8 +142,8 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 		// Earlier PS are probably obsolete.
 		mostRecentPS := xps[len(xps)-1]
 		if !mostRecentPS.CommentedOnCL && cl.Updated.After(mostRecentPS.LastCheckedIfCommentNecessary) {
-			numUntriaged, lastCheckTS := i.searchIndexForNewUntriagedDigests(ctx, cl.SystemID, mostRecentPS.SystemID)
-			mostRecentPS.LastCheckedIfCommentNecessary = lastCheckTS
+			numUntriaged, indexTS := i.searchIndexForNewUntriagedDigests(ctx, cl.SystemID, mostRecentPS.SystemID)
+			mostRecentPS.LastCheckedIfCommentNecessary = indexTS
 			if numUntriaged > 0 {
 				if err := i.maybeCommentOn(ctx, cl, mostRecentPS, numUntriaged); err != nil {
 					return skerr.Wrap(err)

@@ -255,7 +255,6 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 		if err != nil {
 			return skerr.Wrapf(err, "storing tryjob %q to tryjobstore", tjID)
 		}
-		cl.Updated = time.Now()
 		// If we are seeing that a CL was marked as Abandoned, it probably means the CL was
 		// re-opened. If this is incorrect (e.g. TryJob was triggered, CL was abandoned, commenter
 		// noticed CL was abandoned, and then the TryJob results started being processed), this
@@ -266,9 +265,6 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 		// every TryJobResult that is being streamed in.
 		if cl.Status == code_review.Abandoned {
 			cl.Status = code_review.Open
-		}
-		if err = g.changeListStore.PutChangeList(ctx, cl); err != nil {
-			return skerr.Wrapf(err, "updating CL with id %q to clstore", clID)
 		}
 	} else if err != nil {
 		return skerr.Wrapf(err, "fetching TryJob with id %s", tjID)
@@ -286,6 +282,13 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 		return skerr.Wrapf(err, "putting %d results for CL %s, PS %d (%s), TJ %s, file %s", len(tjr), clID, psOrder, psID, tjID, rf.Name())
 	}
 
+	// Be sure to update this time now, so that other processes can use the cl.Update timestamp
+	// to determine if any changes have happened to the CL or any children PSes in a given time
+	// period.
+	cl.Updated = time.Now()
+	if err = g.changeListStore.PutChangeList(ctx, cl); err != nil {
+		return skerr.Wrapf(err, "updating CL with id %q to clstore", clID)
+	}
 	return nil
 }
 
