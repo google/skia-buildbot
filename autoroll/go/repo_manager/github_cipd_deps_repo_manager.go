@@ -87,7 +87,7 @@ func NewGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoMana
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := parent.SetupGithub(ctx, parentRM, c.ForkRepoURL); err != nil {
+	if err := parentRM.SetupGithub(ctx, c.ForkRepoURL); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	childRM, err := child.NewCIPD(ctx, childCfg, httpClient, workdir)

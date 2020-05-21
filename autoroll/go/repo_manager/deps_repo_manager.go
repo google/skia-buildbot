@@ -95,7 +95,7 @@ func NewDEPSRepoManager(ctx context.Context, c *DEPSRepoManagerConfig, reg *conf
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := parent.SetupGerrit(ctx, parentRM, g); err != nil {
+	if err := parentRM.SetupGerrit(ctx, g); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 

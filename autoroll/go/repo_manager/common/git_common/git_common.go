@@ -2,14 +2,27 @@ package git_common
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
+)
+
+const (
+	// RollBranch is the git branch which is used to create rolls.
+	RollBranch = "roll_branch"
+
+	// GithubForkRemoteName is the name of the git remote used by Checkouts
+	// which use GitHub.
+	GithubForkRemoteName = "fork"
 )
 
 // GitCheckoutConfig provides configuration for a Checkout.
@@ -140,6 +153,105 @@ func (c *Checkout) LogFirstParent(ctx context.Context, from, to *revision.Revisi
 		revs = append(revs, rev)
 	}
 	return revs, nil
+}
+
+// CreateRollFunc generates commit(s) in the local Git checkout to
+// be used in the next roll and returns the hash of the commit to be uploaded.
+// GitCheckoutParent handles creation of the roll branch.
+type CreateRollFunc func(context.Context, *git.Checkout, *revision.Revision, *revision.Revision, []*revision.Revision, string) (string, error)
+
+// UploadRollFunc uploads a CL using the given commit hash and
+// returns its ID.
+type UploadRollFunc func(context.Context, *git.Checkout, string, string, []string, bool, string) (int64, error)
+
+// CreateNewRoll uploads a new roll using the given createRoll and uploadRoll
+// functions.
+// See documentation for the Parent interface for more details.
+func (c *Checkout) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string, createRoll CreateRollFunc, uploadRoll UploadRollFunc) (int64, error) {
+	// Create the roll branch.
+	_, upstreamBranch, err := c.Update(ctx)
+	if err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	_, _ = c.Git(ctx, "branch", "-D", RollBranch) // Fails if the branch does not exist.
+	if _, err := c.Git(ctx, "checkout", "-b", RollBranch, "-t", fmt.Sprintf("origin/%s", upstreamBranch)); err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	if _, err := c.Git(ctx, "reset", "--hard", upstreamBranch); err != nil {
+		return 0, skerr.Wrap(err)
+	}
+
+	// Run the provided function to create the changes for the roll.
+	hash, err := createRoll(ctx, c.Checkout, from, to, rolling, commitMsg)
+	if err != nil {
+		return 0, skerr.Wrap(err)
+	}
+
+	// Ensure that createRoll generated at least one commit downstream of
+	// p.baseCommit, and that it did not leave uncommitted changes.
+	commits, err := c.RevList(ctx, "--ancestry-path", "--first-parent", fmt.Sprintf("%s..%s", upstreamBranch, hash))
+	if err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	if len(commits) == 0 {
+		return 0, skerr.Fmt("createRoll generated no commits!")
+	}
+	if _, err := c.Git(ctx, "diff", "--quiet"); err != nil {
+		return 0, skerr.Wrapf(err, "createRoll left uncommitted changes")
+	}
+	out, err := c.Git(ctx, "ls-files", "--others", "--exclude-standard")
+	if err != nil {
+		return 0, skerr.Wrap(err)
+	}
+	if len(strings.Fields(out)) > 0 {
+		return 0, skerr.Fmt("createRoll left untracked files:\n%s", out)
+	}
+
+	// Upload the CL.
+	return uploadRoll(ctx, c.Checkout, upstreamBranch, hash, emails, dryRun, commitMsg)
+}
+
+// SetupGerrit performs additional setup for a Checkout which uses Gerrit. This
+// is required for all users of GitCheckoutUploadGerritRollFunc.
+// TODO(borenet): This is needed for RepoManagers which use NewDEPSLocal, since
+// they need to pass in a GitCheckoutUploadRollFunc but can't do other
+// initialization. Find a way to make this unnecessary.
+func (c *Checkout) SetupGerrit(ctx context.Context, g gerrit.GerritInterface) error {
+	// Install the Gerrit Change-Id hook.
+	if err := gerrit_common.DownloadCommitMsgHook(ctx, g, c.Checkout); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}
+
+// SetupGithub performs additional setup for a Checkout which uses Github. This
+// is required when not using NewGitCheckoutGithub to create the Parent.
+// TODO(borenet): This is needed for RepoManagers which use NewDEPSLocal, since
+// they need to pass in a GitCheckoutUploadRollFunc but can't do other
+// initialization. Find a way to make this unnecessary.
+func (c *Checkout) SetupGithub(ctx context.Context, forkRepoURL string) error {
+	// Check to see whether we have a remote for the fork.
+	remoteOutput, err := c.Git(ctx, "remote", "show")
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	remoteFound := false
+	remoteLines := strings.Split(remoteOutput, "\n")
+	for _, remoteLine := range remoteLines {
+		if remoteLine == GithubForkRemoteName {
+			remoteFound = true
+			break
+		}
+	}
+	if !remoteFound {
+		if _, err := c.Git(ctx, "remote", "add", GithubForkRemoteName, forkRepoURL); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	if _, err := c.Git(ctx, "fetch", GithubForkRemoteName); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
 }
 
 // Clone clones the given repo into the given destination and syncs it to the
