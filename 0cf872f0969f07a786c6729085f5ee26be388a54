@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "276cadf4_14a18716",
+        "filename": "autoroll/config/perfetto-trace-processor-linux-chromium.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 11859
+      },
+      "writtenOn": "2020-05-21T14:52:14Z",
+      "side": 1,
+      "message": "Could you please add chrometto-team@google.com?",
+      "revId": "0cf872f0969f07a786c6729085f5ee26be388a54",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
