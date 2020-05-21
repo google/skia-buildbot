@@ -1,3 +1,5 @@
+// +build linux
+
 package repo_manager
 
 import (
