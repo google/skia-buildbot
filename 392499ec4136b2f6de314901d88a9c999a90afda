@@ -22,6 +22,30 @@
       "revId": "392499ec4136b2f6de314901d88a9c999a90afda",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92376b76_1dbb5fdf",
+        "filename": "golden/go/tiling/trace_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-21T20:30:01Z",
+      "side": 0,
+      "message": "Just a merge issue. I restored the test and split it up a bit.",
+      "parentUuid": "9a386725_26bebbfc",
+      "range": {
+        "startLine": 14,
+        "startChar": 5,
+        "endLine": 60,
+        "endChar": 0
+      },
+      "revId": "392499ec4136b2f6de314901d88a9c999a90afda",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
