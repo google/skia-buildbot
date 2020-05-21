@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "5e1f95e8_c9f5415d",
+        "filename": "autoroll/config/perfetto-trace-processor-linux-chromium.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 11859
+      },
+      "writtenOn": "2020-05-21T17:31:13Z",
+      "side": 1,
+      "message": "Let\u0027s put it instead of me, since I\u0027m on chrometto team, so will receive the message anyway.",
+      "parentUuid": "9a56ec7d_fe998d4b",
+      "revId": "0cf872f0969f07a786c6729085f5ee26be388a54",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "57837efe_27ed751f",
         "filename": "autoroll/config/perfetto-trace-processor-linux-chromium.json",
         "patchSetId": 3
@@ -57,6 +75,30 @@
       "revId": "0cf872f0969f07a786c6729085f5ee26be388a54",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97073b9f_7c7d1b08",
+        "filename": "autoroll/config/perfetto-trace-processor-linux-chromium.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 11859
+      },
+      "writtenOn": "2020-05-21T17:31:13Z",
+      "side": 1,
+      "message": "I think this is fine.",
+      "parentUuid": "57837efe_27ed751f",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 38
+      },
+      "revId": "0cf872f0969f07a786c6729085f5ee26be388a54",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
