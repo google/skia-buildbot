@@ -6,13 +6,11 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/github_common"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
-)
-
-const (
-	githubForkRemoteName = "fork"
 )
 
 // GitCheckoutGithubConfig provides configuration for Parents which use a local
@@ -35,16 +33,16 @@ func (c GitCheckoutGithubConfig) Validate() error {
 }
 
 // GitCheckoutUploadGithubRollFunc returns
-func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, forkBranchName string) GitCheckoutUploadRollFunc {
+func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, forkBranchName string) git_common.UploadRollFunc {
 	return func(ctx context.Context, co *git.Checkout, upstreamBranch, hash string, emails []string, dryRun bool, commitMsg string) (int64, error) {
 		// Make sure the forked repo is at the same hash as the target repo
 		// before creating the pull request.
-		if _, err := co.Git(ctx, "push", "-f", githubForkRemoteName, fmt.Sprintf("origin/%s", upstreamBranch)); err != nil {
+		if _, err := co.Git(ctx, "push", "-f", github_common.GithubForkRemoteName, fmt.Sprintf("origin/%s", upstreamBranch)); err != nil {
 			return 0, skerr.Wrap(err)
 		}
 
 		// Push the changes to the forked repository.
-		if _, err := co.Git(ctx, "push", "-f", githubForkRemoteName, fmt.Sprintf("%s:%s", rollBranch, forkBranchName)); err != nil {
+		if _, err := co.Git(ctx, "push", "-f", github_common.GithubForkRemoteName, fmt.Sprintf("%s:%s", git_common.RollBranch, forkBranchName)); err != nil {
 			return 0, skerr.Wrap(err)
 		}
 
@@ -82,7 +80,7 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, fork
 
 // NewGitCheckoutGithub returns an implementation of Parent which uses a local
 // git checkout and uploads pull requests to Github.
-func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *config_vars.Registry, githubClient *github.GitHub, serverURL, workdir, userName, userEmail string, co *git.Checkout, createRoll GitCheckoutCreateRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *config_vars.Registry, githubClient *github.GitHub, serverURL, workdir, userName, userEmail string, co *git.Checkout, createRoll git_common.CreateRollFunc) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -95,39 +93,8 @@ func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *c
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := SetupGithub(ctx, p, c.ForkRepoURL); err != nil {
+	if err := github_common.SetupGithub(ctx, p.Checkout.Checkout, c.ForkRepoURL); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return p, nil
-}
-
-// SetupGithub performs additional setup for a GitCheckoutParent which uses
-// Github. This is required when not using NewGitCheckoutGithub to create the
-// Parent.
-// TODO(borenet): This is needed for RepoManagers which use NewDEPSLocal, since
-// they need to pass in a GitCheckoutUploadRollFunc but can't do other
-// initialization. Find a way to make this unnecessary.
-func SetupGithub(ctx context.Context, p *GitCheckoutParent, forkRepoURL string) error {
-	// Check to see whether we have a remote for the fork.
-	remoteOutput, err := p.Git(ctx, "remote", "show")
-	if err != nil {
-		return skerr.Wrap(err)
-	}
-	remoteFound := false
-	remoteLines := strings.Split(remoteOutput, "\n")
-	for _, remoteLine := range remoteLines {
-		if remoteLine == githubForkRemoteName {
-			remoteFound = true
-			break
-		}
-	}
-	if !remoteFound {
-		if _, err := p.Git(ctx, "remote", "add", githubForkRemoteName, forkRepoURL); err != nil {
-			return skerr.Wrap(err)
-		}
-	}
-	if _, err := p.Git(ctx, "fetch", githubForkRemoteName); err != nil {
-		return skerr.Wrap(err)
-	}
-	return nil
 }
