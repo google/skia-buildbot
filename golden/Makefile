@@ -34,13 +34,16 @@ js-test:
 js-test-debug:
 	npx karma start --no-single-run
 
+# Increase Node's heap size to accommodate for ts-node's higher memory usage.
+NODE_MEMORY_LIMIT=4096
+
 .PHONY: puppeteer-test
 puppeteer-test:
-	npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 .PHONY: puppeteer-test-debug
 puppeteer-test-debug:
-	npx mocha -r ts-node/register ./**/*_puppeteer_test.ts --inspect-brk
+	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts --inspect-brk
 
 node_modules: package.json
 	npm ci
