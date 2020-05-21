@@ -107,7 +107,7 @@ func NewGithubDEPSRepoManager(ctx context.Context, c *GithubDEPSRepoManagerConfi
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := parent.SetupGithub(ctx, parentRM, c.ForkRepoURL); err != nil {
+	if err := parentRM.SetupGithub(ctx, c.ForkRepoURL); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 

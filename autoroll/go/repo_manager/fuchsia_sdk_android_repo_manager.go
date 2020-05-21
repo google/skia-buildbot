@@ -93,7 +93,7 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := parent.SetupGerrit(ctx, parentRM, g); err != nil {
+	if err := parentRM.SetupGerrit(ctx, g); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return newParentChildRepoManager(ctx, parentRM, childRM)
@@ -101,7 +101,7 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 
 // fuchsiaSDKAndroidRepoManagerCreateRollFunc returns a
 // parent.GitilesLocalCreateRollFunc which rolls the Fuchsia SDK.
-func fuchsiaSDKAndroidRepoManagerCreateRollFunc(genSdkBpRepo *git.Checkout, genSdkBpBranch, androidTop string) parent.GitCheckoutCreateRollFunc {
+func fuchsiaSDKAndroidRepoManagerCreateRollFunc(genSdkBpRepo *git.Checkout, genSdkBpBranch, androidTop string) git_common.CreateRollFunc {
 	return func(ctx context.Context, parentRepo *git.Checkout, from, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Sync the genSdkBpRepo.
 		if err := genSdkBpRepo.UpdateBranch(ctx, genSdkBpBranch); err != nil {
