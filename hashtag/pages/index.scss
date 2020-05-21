@@ -1,170 +1,173 @@
-@import '~elements-sk/colors.css';
+@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500|Material+Icons');
 
-html {
-  --dark-gray: rgb(49, 49, 49);
-  --gray-text: rgb(204, 204, 204);
-  --border: rgb(120, 120, 120);
-}
-
-section {
-  margin: 1rem;
-}
-
-section li {
-  line-height: 1.4rem;
-  max-width: 30rem;
-  overflow-wrap: break-word;
-}
-
-section p {
-  font-style: italic;
-}
-
-section h2 {
-  color: var(--dark-white);
-}
-
-header,
-header a {
-  padding: 0.4rem;
-  color: var(--light-gray);
-  background: var(--gray);
-  font-size: 1.2rem;
-}
-
-header {
-  border-bottom: solid thin var(--border);
-}
-
+@import '~elements-sk/themes/themes.css';
 body {
-  background: var(--dark-gray);
-  color: var(--gray-text);
-  font-family: helvetica, 'helvetica neue', ubuntu, roboto, noto, 'segoe ui', arial, sans-serif;
+  font-family: Roboto, sans-serif;
+  font-size: 12px;
   margin: 0;
   padding: 0;
-}
 
-a {
-  color: var(--gray-text);
-  text-decoration: underline;
-}
-
-form.search {
-  display: block;
-  margin: 1rem;
-
-  label {
-    margin: 0.4rem 0;
+  input {
+    color: var(--on-surface);
+    background: var(--surface-1dp);
+    border: solid 1px var(--on-surface);
+    padding: 4px;
   }
 
-  .range label {
-    display: block;
+  section {
+    margin: 1rem;
   }
 
-  .value {
-    display: block;
+  section li {
+    line-height: 1.4rem;
+    max-width: 30rem;
+    overflow-wrap: break-word;
   }
 
-  h3 {
+  section p {
+    font-style: italic;
+  }
+
+  header,
+  header a {
+    padding: 0.4rem;
+    color: var(--on-surface);
+    background: var(--surface-1dp);
     font-size: 1.2rem;
   }
 
-  .custom {
-    margin-left: 2rem;
+  header {
+    border-bottom: solid thin var(--on-surface);
+    display: flex;
+    justify-content: space-between;
   }
-}
 
-main {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-}
-
-main details {
-  background: var(--gray);
-  position: absolute;
-  top: 2.8rem;
-  left: 1rem;
-}
-
-main details h2 {
-  margin-left: 1rem;
-}
-
-main summary {
-  background: var(--dark-gray);
-}
-
-main.search {
-  justify-content: center;
-
-  > section {
-    margin: 0 4rem;
+  a {
+    text-decoration: underline;
+    color: var(--primary);
   }
-}
 
-li form {
-  display: inline-block;
-}
+  form.search {
+    display: block;
+    margin: 1rem;
 
-li.hidden {
-  display: none;
-}
+    label {
+      margin: 0.4rem 0;
+    }
 
-li button {
-  font-weight: bold;
-  font-size: 110%;
-  background: var(--dark-gray);
-  border-style: ridge;
-  margin-bottom: 2px;
-}
+    .range label {
+      display: block;
+    }
 
-/* Hide the buttons that toggle the hidden state of an Artifact by default. */
-button.hidden,
-button.nothidden {
-  display: none;
-}
+    .value {
+      display: block;
+    }
 
-button.hidden {
-  color: var(--red);
-}
+    h3 {
+      font-size: 1.2rem;
+    }
 
-button.nothidden {
-  color: var(--green);
-}
+    .custom {
+      margin-left: 2rem;
+    }
+  }
 
-/* When are in edit mode then display the correct buttons for toggling hidden
+  main {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  main details {
+    position: absolute;
+    top: 56px;
+    left: 1rem;
+    background: var(--surface);
+  }
+
+  main summary {
+    background: var(--background);
+  }
+
+  main details h2 {
+    margin-left: 1rem;
+  }
+
+  main.search {
+    justify-content: center;
+
+    > section {
+      margin: 0 4rem;
+    }
+  }
+
+  li form {
+    display: inline-block;
+  }
+
+  li.hidden {
+    display: none;
+  }
+
+  li button {
+    font-weight: bold;
+    font-size: 110%;
+    border-style: ridge;
+    margin-bottom: 2px;
+  }
+
+  /* Hide the buttons that toggle the hidden state of an Artifact by default. */
+  button.hidden,
+  button.nothidden {
+    display: none;
+    min-width: 0;
+    text-align: center;
+    text-transform: none;
+    outline: none;
+    padding: 4px;
+    height: 26px;
+  }
+
+  button.hidden {
+    background: var(--error);
+    color: var(--on-error);
+  }
+
+  button.nothidden {
+    background: var(--surface);
+    color: var(--primary);
+  }
+
+  /* When are in edit mode then display the correct buttons for toggling hidden
    state. */
-main.edit-mode button.nothidden {
-  display: inline-block;
-}
+  main.edit-mode button.nothidden {
+    display: inline-block;
+  }
 
-main.edit-mode li.hidden button.hidden {
-  display: inline-block;
-}
+  main.edit-mode li.hidden button.hidden {
+    display: inline-block;
+  }
 
-main.edit-mode li.hidden button.nothidden {
-  display: none;
-}
+  main.edit-mode li.hidden button.nothidden {
+    display: none;
+  }
 
-main.edit-mode li.hidden {
-  display: list-item;
-}
+  main.edit-mode li.hidden {
+    display: list-item;
+  }
 
-.edit-toggle {
-  background: var(--gray);
-  position: absolute;
-  top: 2.8rem;
-  right: 1rem;
-  border-style: outset;
-  padding: 3px;
-  color: var(--white);
-}
+  .edit-toggle {
+    position: absolute;
+    top: 56px;
+    right: 1rem;
+    padding: 3px;
+  }
 
-main.edit-mode .edit-toggle {
-  border-style: inset;
-}
+  main.edit-mode .edit-toggle {
+    border-style: inset;
+  }
 
-.edit-toggle input {
-  display: none;
+  .edit-toggle input {
+    display: none;
+  }
 }
