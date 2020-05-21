@@ -89,3 +89,16 @@ func DownloadCommitMsgHook(ctx context.Context, g gerrit.GerritInterface, co *gi
 	}
 	return nil
 }
+
+// SetupGerrit performs additional setup for a Checkout which uses Gerrit. This
+// is required for all users of GitCheckoutUploadGerritRollFunc.
+// TODO(borenet): This is needed for RepoManagers which use NewDEPSLocal, since
+// they need to pass in a GitCheckoutUploadRollFunc but can't do other
+// initialization. Find a way to make this unnecessary.
+func SetupGerrit(ctx context.Context, co *git.Checkout, g gerrit.GerritInterface) error {
+	// Install the Gerrit Change-Id hook.
+	if err := DownloadCommitMsgHook(ctx, g, co); err != nil {
+		return skerr.Wrap(err)
+	}
+	return nil
+}

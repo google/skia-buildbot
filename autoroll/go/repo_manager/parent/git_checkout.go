@@ -6,7 +6,6 @@ package parent
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -18,11 +17,6 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
-)
-
-const (
-	// rollBranch is the git branch which is used to create rolls.
-	rollBranch = "roll_branch"
 )
 
 // GitCheckoutConfig provides configuration for a Parent which uses a local
@@ -51,22 +45,13 @@ func (c GitCheckoutConfig) Validate() error {
 type GitCheckoutParent struct {
 	*git_common.Checkout
 	childID    string
-	createRoll GitCheckoutCreateRollFunc
-	uploadRoll GitCheckoutUploadRollFunc
+	createRoll git_common.CreateRollFunc
+	uploadRoll git_common.UploadRollFunc
 }
-
-// GitCheckoutCreateRollFunc generates commit(s) in the local Git checkout to
-// be used in the next roll and returns the hash of the commit to be uploaded.
-// GitCheckoutParent handles creation of the roll branch.
-type GitCheckoutCreateRollFunc func(context.Context, *git.Checkout, *revision.Revision, *revision.Revision, []*revision.Revision, string) (string, error)
-
-// GitCheckoutUploadRollFunc uploads a CL using the given commit hash and
-// returns its ID.
-type GitCheckoutUploadRollFunc func(context.Context, *git.Checkout, string, string, []string, bool, string) (int64, error)
 
 // NewGitCheckout returns a base for implementations of Parent which use
 // a local checkout to create changes.
-func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, serverURL, workdir, userName, userEmail string, co *git.Checkout, createRoll GitCheckoutCreateRollFunc, uploadRoll GitCheckoutUploadRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, serverURL, workdir, userName, userEmail string, co *git.Checkout, createRoll git_common.CreateRollFunc, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -104,53 +89,13 @@ func (p *GitCheckoutParent) Update(ctx context.Context) (string, error) {
 
 // See documentation for Parent interface.
 func (p *GitCheckoutParent) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
-	// Create the roll branch.
-	_, upstreamBranch, err := p.Checkout.Update(ctx)
-	if err != nil {
-		return 0, skerr.Wrap(err)
-	}
-	_, _ = p.Git(ctx, "branch", "-D", rollBranch) // Fails if the branch does not exist.
-	if _, err := p.Git(ctx, "checkout", "-b", rollBranch, "-t", fmt.Sprintf("origin/%s", upstreamBranch)); err != nil {
-		return 0, skerr.Wrap(err)
-	}
-	if _, err := p.Git(ctx, "reset", "--hard", upstreamBranch); err != nil {
-		return 0, skerr.Wrap(err)
-	}
-
-	// Run the provided function to create the changes for the roll.
-	hash, err := p.createRoll(ctx, p.Checkout.Checkout, from, to, rolling, commitMsg)
-	if err != nil {
-		return 0, skerr.Wrap(err)
-	}
-
-	// Ensure that createRoll generated at least one commit downstream of
-	// p.baseCommit, and that it did not leave uncommitted changes.
-	commits, err := p.RevList(ctx, "--ancestry-path", "--first-parent", fmt.Sprintf("%s..%s", upstreamBranch, hash))
-	if err != nil {
-		return 0, skerr.Wrap(err)
-	}
-	if len(commits) == 0 {
-		return 0, skerr.Fmt("createRoll generated no commits!")
-	}
-	if _, err := p.Git(ctx, "diff", "--quiet"); err != nil {
-		return 0, skerr.Wrapf(err, "createRoll left uncommitted changes")
-	}
-	out, err := p.Git(ctx, "ls-files", "--others", "--exclude-standard")
-	if err != nil {
-		return 0, skerr.Wrap(err)
-	}
-	if len(strings.Fields(out)) > 0 {
-		return 0, skerr.Fmt("createRoll left untracked files:\n%s", out)
-	}
-
-	// Upload the CL.
-	return p.uploadRoll(ctx, p.Checkout.Checkout, upstreamBranch, hash, emails, dryRun, commitMsg)
+	return p.Checkout.CreateNewRoll(ctx, from, to, rolling, emails, dryRun, commitMsg, p.createRoll, p.uploadRoll)
 }
 
 // gitCheckoutFileCreateRollFunc returns a GitCheckoutCreateRollFunc which uses
 // a local Git checkout and pins dependencies using a file checked into the
 // repo.
-func gitCheckoutFileCreateRollFunc(dep version_file_common.DependencyConfig) GitCheckoutCreateRollFunc {
+func gitCheckoutFileCreateRollFunc(dep version_file_common.DependencyConfig) git_common.CreateRollFunc {
 	return func(ctx context.Context, co *git.Checkout, from *revision.Revision, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Determine what changes need to be made.
 		getFile := func(ctx context.Context, path string) (string, error) {

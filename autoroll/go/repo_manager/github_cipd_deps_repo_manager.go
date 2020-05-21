@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/github_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/strategy"
@@ -87,7 +88,7 @@ func NewGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoMana
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := parent.SetupGithub(ctx, parentRM, c.ForkRepoURL); err != nil {
+	if err := github_common.SetupGithub(ctx, parentRM.Checkout.Checkout, c.ForkRepoURL); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	childRM, err := child.NewCIPD(ctx, childCfg, httpClient, workdir)

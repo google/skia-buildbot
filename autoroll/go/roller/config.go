@@ -187,6 +187,7 @@ type AutoRollerConfig struct {
 
 	// RepoManager configs. Exactly one must be provided.
 	AndroidRepoManager           *repo_manager.AndroidRepoManagerConfig           `json:"androidRepoManager,omitempty"`
+	CommandRepoManager           *repo_manager.CommandRepoManagerConfig           `json:"commandRepoManager"`
 	CopyRepoManager              *repo_manager.CopyRepoManagerConfig              `json:"copyRepoManager,omitempty"`
 	DEPSRepoManager              *repo_manager.DEPSRepoManagerConfig              `json:"depsRepoManager,omitempty"`
 	FreeTypeRepoManager          *repo_manager.FreeTypeRepoManagerConfig          `json:"freeTypeRepoManager"`
@@ -328,6 +329,9 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 	if c.AndroidRepoManager != nil {
 		rm = append(rm, c.AndroidRepoManager)
 	}
+	if c.CommandRepoManager != nil {
+		rm = append(rm, c.CommandRepoManager)
+	}
 	if c.CopyRepoManager != nil {
 		// TODO(borenet): De-duplicate the Gerrit config.
 		c.CopyRepoManager.Gerrit = c.Gerrit
@@ -433,6 +437,8 @@ func (c *AutoRollerConfig) CreateRepoManager(ctx context.Context, cr codereview.
 	var err error
 	if c.AndroidRepoManager != nil {
 		rm, err = repo_manager.NewAndroidRepoManager(ctx, c.AndroidRepoManager, reg, workdir, g, serverURL, c.ServiceAccount, client, cr, local)
+	} else if c.CommandRepoManager != nil {
+		rm, err = repo_manager.NewCommandRepoManager(ctx, *c.CommandRepoManager, reg, workdir, g, serverURL, cr)
 	} else if c.CopyRepoManager != nil {
 		rm, err = repo_manager.NewCopyRepoManager(ctx, c.CopyRepoManager, reg, workdir, g, serverURL, client, cr, local)
 	} else if c.DEPSRepoManager != nil {

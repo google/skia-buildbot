@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
@@ -93,7 +94,7 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := parent.SetupGerrit(ctx, parentRM, g); err != nil {
+	if err := gerrit_common.SetupGerrit(ctx, parentRM.Checkout.Checkout, g); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return newParentChildRepoManager(ctx, parentRM, childRM)
@@ -101,7 +102,7 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 
 // fuchsiaSDKAndroidRepoManagerCreateRollFunc returns a
 // parent.GitilesLocalCreateRollFunc which rolls the Fuchsia SDK.
-func fuchsiaSDKAndroidRepoManagerCreateRollFunc(genSdkBpRepo *git.Checkout, genSdkBpBranch, androidTop string) parent.GitCheckoutCreateRollFunc {
+func fuchsiaSDKAndroidRepoManagerCreateRollFunc(genSdkBpRepo *git.Checkout, genSdkBpBranch, androidTop string) git_common.CreateRollFunc {
 	return func(ctx context.Context, parentRepo *git.Checkout, from, to *revision.Revision, rolling []*revision.Revision, commitMsg string) (string, error) {
 		// Sync the genSdkBpRepo.
 		if err := genSdkBpRepo.UpdateBranch(ctx, genSdkBpBranch); err != nil {
