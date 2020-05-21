@@ -32,8 +32,9 @@ var (
 	output = flag.String("o", "", "If provided, dump a JSON blob of step data to the given file. Prints to stdout if '-' is given.")
 )
 
-func validateConfig(ctx context.Context, f string) error {
-	return td.Do(ctx, td.Props(fmt.Sprintf("Validate %s", f)), func(ctx context.Context) error {
+func validateConfig(ctx context.Context, f string) (string, error) {
+	var rollerName string
+	return rollerName, td.Do(ctx, td.Props(fmt.Sprintf("Validate %s", f)), func(ctx context.Context) error {
 		var cfg roller.AutoRollerConfig
 		if err := util.WithReadFile(f, func(r io.Reader) error {
 			// TODO(borenet): This will just ignore any extraneous keys!
@@ -44,6 +45,7 @@ func validateConfig(ctx context.Context, f string) error {
 		if err := cfg.Validate(); err != nil {
 			return fmt.Errorf("%s failed validation: %s", f, err)
 		}
+		rollerName = cfg.RollerName
 		return nil
 	})
 }
@@ -79,10 +81,16 @@ func main() {
 	}
 
 	// Validate the file(s).
+	rollers := make(map[string]string, len(configFiles))
 	for _, f := range configFiles {
-		if err := validateConfig(ctx, f); err != nil {
+		rollerName, err := validateConfig(ctx, f)
+		if err != nil {
 			td.Fatal(ctx, err)
 		}
+		if otherFile, ok := rollers[rollerName]; ok {
+			td.Fatalf(ctx, "Roller %q is defined in both %s and %s", rollerName, f, otherFile)
+		}
+		rollers[rollerName] = f
 	}
 	sklog.Infof("Validated %d files.", len(configFiles))
 }
