@@ -2,8 +2,11 @@ package tiling
 
 import (
 	"fmt"
+	"strings"
 
 	"go.skia.org/infra/go/paramtools"
+	"go.skia.org/infra/go/query"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -190,4 +193,61 @@ func (g *Trace) LastIndex() int {
 // String prints a human friendly version of this trace.
 func (g *Trace) String() string {
 	return fmt.Sprintf("Keys: %#v, Digests: %q", g.Keys, g.Digests)
+}
+
+// TraceIDFromParams deterministically returns a TraceID that uniquely encodes
+// the given params. It follows the same convention as perf's trace ids, that
+// is something like ",key1=value1,key2=value2,...," where the keys
+// are in alphabetical order.
+func TraceIDFromParams(params paramtools.Params) TraceID {
+	// Clean up any params with , or =
+	params = forceValid(params)
+	s, err := query.MakeKeyFast(params)
+	if err != nil {
+		// this should never happen given that forceValid fixes them up.
+		sklog.Warningf("Invalid params passed in for trace id %#v: %s", params, err)
+		return "invalid_trace_id"
+	}
+	return TraceID(s)
+}
+
+// clean replaces any special runes (',', '=') in a string such that
+// they can be turned into a trace id, which uses those special runes
+// as dividers.
+func clean(s string) string {
+	// In most cases, traces will be valid, so check that first.
+	// Allocating the string buffer and copying the runes can be expensive
+	// when done for no reason.
+	bad := false
+	for _, c := range s {
+		if c == ',' || c == '=' {
+			bad = true
+			break
+		}
+	}
+	if !bad {
+		return s
+	}
+	sb := strings.Builder{}
+	sb.Grow(len(s))
+	// Regexp doesn't handle being run from a large number of go routines
+	// very well. See https://github.com/golang/go/issues/8232.
+	for _, c := range s {
+		if c == ',' || c == '=' {
+			sb.WriteRune('_')
+		} else {
+			sb.WriteRune(c)
+		}
+	}
+	return sb.String()
+}
+
+// forceValid ensures that the resulting map will make a valid structured key.
+func forceValid(m map[string]string) map[string]string {
+	ret := make(map[string]string, len(m))
+	for key, value := range m {
+		ret[clean(key)] = clean(value)
+	}
+
+	return ret
 }
