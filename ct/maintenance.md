@@ -180,29 +180,6 @@ TODO(rmistry): Where do CSV files come from, where to put in GS.
 
 ## Access to Golo
 
-Follow instructions
-[here](https://chrome-internal.googlesource.com/infra/infra_internal/+doc/master/doc/ssh.md)
-for basic security key and `.ssh/config` setup.
+CT's Golo bots are visible [here](https://chrome-swarming.appspot.com/botlist?c=id&c=task&c=os&c=status&d=asc&f=pool%3ACT&k=zone&s=id).
 
-Run `ssh -p 2150 skia-telemetry-ssh@chromegw` and use the password stored on
-[Valentine](http://go/valentine) as "Chrome Labs (b5) -
-skia-telemetry-ssh". Then follow
-[these instructions](https://g3doc.corp.google.com/ops/cisre/corpssh/g3doc/faq/index.md?cl=head#pubkey_external)
-to add your gnubby public key to `~/.ssh/authorized_keys2` on vm0-m5 (please
-take care to append rather than overwrite).
-
-Add the following to your `.ssh/config`:
-```
-Host *5.golo
-  ProxyCommand ssh -p 2150 -oPasswordAuthentication=no skia-telemetry-ssh@chromegw nc %h.chromium.org %p
-```
-
-Run `ssh build101-m5.golo` and use the password stored on
-[Valentine](http://go/valentine) as
-"skia-telemetry-chrome-bot". Add your gnubby public key to
-`~/.ssh/authorized_keys2` on build101-m5 as well.
-
-You can now use `ssh build101-m5.golo` and tap your security key twice to log in
-without a password (although you will need enter your security key password once
-per powercycle). This setup does not require prodaccess.
-
+To log in to Golo bots, see [go/chrome-infra-build-access](http://go/chrome-infra-build-access).
