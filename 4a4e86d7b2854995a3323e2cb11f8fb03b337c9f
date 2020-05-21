@@ -46,6 +46,30 @@
       "revId": "4a4e86d7b2854995a3323e2cb11f8fb03b337c9f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "69083d6b_7e435d52",
+        "filename": "autoroll/go/repo_manager/common/git_common/git_common.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-21T13:41:13Z",
+      "side": 1,
+      "message": "Upto you. We might eventually need a gerrit_common / github_common anyway, maybe.",
+      "parentUuid": "bdd29bec_a491c97c",
+      "range": {
+        "startLine": 219,
+        "startChar": 19,
+        "endLine": 219,
+        "endChar": 30
+      },
+      "revId": "4a4e86d7b2854995a3323e2cb11f8fb03b337c9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
