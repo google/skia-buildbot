@@ -22,6 +22,30 @@
       "revId": "7178e38b50e8205a1d84465248baafc0553a8057",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43448128_7afc556f",
+        "filename": "golden/pulito/webpack.common.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-21T20:05:05Z",
+      "side": 0,
+      "message": "Readded this, updated to reflect the TypeScript port.",
+      "parentUuid": "aa35c155_bb542150",
+      "range": {
+        "startLine": 16,
+        "startChar": 3,
+        "endLine": 57,
+        "endChar": 39
+      },
+      "revId": "7178e38b50e8205a1d84465248baafc0553a8057",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

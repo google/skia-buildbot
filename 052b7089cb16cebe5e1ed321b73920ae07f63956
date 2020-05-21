@@ -22,6 +22,30 @@
       "revId": "052b7089cb16cebe5e1ed321b73920ae07f63956",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba447116_8e98f754",
+        "filename": "golden/Makefile",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-21T20:05:05Z",
+      "side": 1,
+      "message": "I did some quick profiling with process.memoryUsage()[1] and it looks like the test runner needs roughly 3.3 GB of RAM now that ts-node is being used.\n\nI\u0027ve reduced the max amount of RAM to 4 GB, which seems to be enough on my machine when running the tests both inside the puppeteer-tests Docker container and outside of the container as well.\n\n[1] https://nodejs.org/api/process.html#process_process_memoryusage",
+      "parentUuid": "72bc5bdb_375b48b2",
+      "range": {
+        "startLine": 39,
+        "startChar": 15,
+        "endLine": 39,
+        "endChar": 40
+      },
+      "revId": "052b7089cb16cebe5e1ed321b73920ae07f63956",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
