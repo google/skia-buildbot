@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1b811a9e_40c6c940",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-21T20:30:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ccef0dbc_c56d1974",
+      "range": {
+        "startLine": 37,
+        "startChar": 33,
+        "endLine": 37,
+        "endChar": 86
+      },
+      "revId": "61fde606d027468e8d33e036191e22fb6fec231c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4530fe7b_2bc0e22a",
         "filename": "golden/go/search/frontend/types.go",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "61fde606d027468e8d33e036191e22fb6fec231c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17a0e8e0_16756671",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-21T20:30:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4530fe7b_2bc0e22a",
+      "range": {
+        "startLine": 39,
+        "startChar": 28,
+        "endLine": 39,
+        "endChar": 52
+      },
+      "revId": "61fde606d027468e8d33e036191e22fb6fec231c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5e211e52_ac78e4b8",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-21T20:30:13Z",
+      "side": 1,
+      "message": "I think I prefer a more concrete example.",
+      "parentUuid": "16779189_5ced2a97",
+      "range": {
+        "startLine": 40,
+        "startChar": 18,
+        "endLine": 40,
+        "endChar": 52
+      },
+      "revId": "61fde606d027468e8d33e036191e22fb6fec231c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f1e4401c_d5b7607e",
         "filename": "golden/go/search/frontend/types.go",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2020-05-20T21:33:39Z",
       "side": 1,
       "message": "This sounds like an enumeration. Does it make sense to have e.g. a Status type with consts for each of these? Probably out of scope since you\u0027re just renaming and documenting things in this CL.",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 43,
+        "endChar": 46
+      },
+      "revId": "61fde606d027468e8d33e036191e22fb6fec231c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d71c0dc7_4f8f5b39",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-21T20:30:13Z",
+      "side": 1,
+      "message": "Maybe. This is a string version of an enum we already have, expectations.Label",
+      "parentUuid": "f1e4401c_d5b7607e",
       "range": {
         "startLine": 43,
         "startChar": 4,
@@ -114,6 +210,30 @@
       "revId": "61fde606d027468e8d33e036191e22fb6fec231c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3dee9892_fb935c1e",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-21T20:30:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba4d12ca_323fdcb7",
+      "range": {
+        "startLine": 68,
+        "startChar": 1,
+        "endLine": 69,
+        "endChar": 56
+      },
+      "revId": "61fde606d027468e8d33e036191e22fb6fec231c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
