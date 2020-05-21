@@ -10,6 +10,7 @@ import (
 
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -116,12 +117,15 @@ func getSemanticGCSVersion(regex *regexp.Regexp, rev *revision.Revision) (gcsVer
 	}, nil
 }
 
-// shortRev shortens the revision ID using the given regular expression.
-func shortRev(reTmpl string, id string) string {
+// ErrShortRevNoMatch is returned by ShortRev when the revision ID does not
+// match the regular expression.
+var ErrShortRevNoMatch = errors.New("Revision ID does not match provided regular expression")
+
+// ShortRev shortens the revision ID using the given regular expression.
+func ShortRev(reTmpl string, id string) (string, error) {
 	shortRevRegex, err := regexp.Compile(reTmpl)
 	if err != nil {
-		sklog.Errorf("Failed to compile ShortRevRegex: %s", err)
-		return id
+		return "", skerr.Wrapf(err, "Failed to compile ShortRevRegex")
 	}
 	matches := shortRevRegex.FindStringSubmatch(id)
 	if len(matches) == 0 {
@@ -130,15 +134,33 @@ func shortRev(reTmpl string, id string) string {
 		// function may be called for revisions which are not
 		// valid and thus may not match the regex. That would
 		// cause an unhelpful error spew in the log.
-		return id
+		return "", ErrShortRevNoMatch
 	} else if len(matches) == 1 {
-		return matches[0]
+		return matches[0], nil
 	} else {
 		// This indicates that there is at least one sub-match. We don't
 		// have any way of combining multiple sub-matches into one short
 		// revision, so just use the first one.
-		return matches[1]
+		return matches[1], nil
 	}
+}
+
+// semVerShortRev shortens the revision ID using the given regular expression.
+func semVerShortRev(reTmpl string, id string) string {
+	shortRev, err := ShortRev(reTmpl, id)
+	if err != nil {
+		if err == ErrShortRevNoMatch {
+			// TODO(borenet): It'd be nice to log an error here to
+			// indicate that the regex might be incorrect, but this
+			// function may be called for revisions which are not
+			// valid and thus may not match the regex. That would
+			// cause an unhelpful error spew in the log.
+		} else {
+			sklog.Error(err)
+		}
+		return id
+	}
+	return shortRev
 }
 
 // NewSemVerGCS returns a Child which uses semantic versioning to compare object
@@ -164,7 +186,7 @@ func NewSemVerGCS(ctx context.Context, c SemVerGCSConfig, reg *config_vars.Regis
 	}
 	shortRevFn := func(id string) string {
 		if c.ShortRevRegex != nil {
-			return shortRev(c.ShortRevRegex.String(), id)
+			return semVerShortRev(c.ShortRevRegex.String(), id)
 		}
 		return id
 	}
