@@ -207,19 +207,19 @@ func blameGroupID(b blame.BlameDistribution, commits []tiling.Commit) string {
 
 // TODO(kjlubick): The whole srDigestSlice might be able to be replaced
 // with a sort.Slice() call.
-// srDigestSlice is a utility type for sorting slices of frontend.SRDigest by their max diff.
-type srDigestSliceLessFn func(i, j *frontend.SRDigest) bool
+// srDigestSlice is a utility type for sorting slices of frontend.SearchResult by their max diff.
+type srDigestSliceLessFn func(i, j *frontend.SearchResult) bool
 type srDigestSlice struct {
-	slice  []*frontend.SRDigest
+	slice  []*frontend.SearchResult
 	lessFn srDigestSliceLessFn
 }
 
 // newSRDigestSlice creates a new instance of srDigestSlice that wraps around
 // a slice of result digests.
-func newSRDigestSlice(metric string, slice []*frontend.SRDigest) *srDigestSlice {
+func newSRDigestSlice(metric string, slice []*frontend.SearchResult) *srDigestSlice {
 	// Sort by increasing by diff metric. Not having a diff metric puts the item at the bottom
 	// of the list.
-	lessFn := func(i, j *frontend.SRDigest) bool {
+	lessFn := func(i, j *frontend.SearchResult) bool {
 		if (i.ClosestRef == "") && (j.ClosestRef == "") {
 			return i.Digest < j.Digest
 		}

@@ -991,7 +991,7 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	// // they will be displayed 'on top', because in SVG document order is z-order.
 
 	digests := types.DigestSlice{}
-	for _, digest := range searchResponse.Digests {
+	for _, digest := range searchResponse.Results {
 		digests = append(digests, digest.Digest)
 	}
 
@@ -1007,7 +1007,7 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 		ParamsetByDigest: map[types.Digest]paramtools.ParamSet{},
 		ParamsetsUnion:   paramtools.ParamSet{},
 	}
-	for i, d := range searchResponse.Digests {
+	for i, d := range searchResponse.Results {
 		d3.Nodes = append(d3.Nodes, Node{
 			Name:   d.Digest,
 			Status: d.Status,

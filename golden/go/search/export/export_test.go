@@ -17,7 +17,7 @@ func TestWriteReadExport(t *testing.T) {
 			TestName: "test-1",
 			Digests: []*DigestInfo{
 				{
-					SRDigest: &frontend.SRDigest{
+					SearchResult: &frontend.SearchResult{
 						Digest: "abc-efg",
 					},
 					URL: fmt.Sprintf(urlTemplate, "https://example.com", "abc-efg"),

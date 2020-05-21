@@ -20,8 +20,8 @@ const urlTemplate = "%s/img/images/%s.png"
 // DigestInfo contains information about one test result. This include
 // the parameter sets.
 type DigestInfo struct {
-	*frontend.SRDigest        // Same digest information as returned by search results.
-	URL                string // URL from which to retrieve the image.
+	*frontend.SearchResult        // Same digest information as returned by search results.
+	URL                    string // URL from which to retrieve the image.
 }
 
 // TestRecord accumulates the images/digests generated for one test.
@@ -35,7 +35,7 @@ type TestRecord struct {
 func ToTestRecords(searchResp *frontend.SearchResponse, imgBaseURL string) []*TestRecord {
 	// Group the results by test.
 	retMap := map[types.TestName]*TestRecord{}
-	for _, oneDigest := range searchResp.Digests {
+	for _, oneDigest := range searchResp.Results {
 		testNameVal := oneDigest.ParamSet[types.PrimaryKeyField]
 		if len(testNameVal) == 0 {
 			sklog.Errorf("Error: Digest '%s' has no primaryKey in paramset", oneDigest.Digest)
@@ -43,8 +43,8 @@ func ToTestRecords(searchResp *frontend.SearchResponse, imgBaseURL string) []*Te
 		}
 
 		digestInfo := &DigestInfo{
-			SRDigest: oneDigest,
-			URL:      DigestUrl(imgBaseURL, oneDigest.Digest),
+			SearchResult: oneDigest,
+			URL:          DigestUrl(imgBaseURL, oneDigest.Digest),
 		}
 
 		testName := types.TestName(oneDigest.ParamSet[types.PrimaryKeyField][0])

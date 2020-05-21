@@ -84,7 +84,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 		Commits: web_frontend.FromTilingCommits(data.MakeTestCommits()),
 		Offset:  0,
 		Size:    2,
-		Digests: []*frontend.SRDigest{
+		Results: []*frontend.SearchResult{
 			// AlphaTest comes first because we are sorting by ascending
 			// "combined" metric, and AlphaTest's closest match is the
 			// small diff metric, whereas BetaTest's only match is the
@@ -98,13 +98,13 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					types.PrimaryKeyField: {string(data.AlphaTest)},
 					types.CorpusField:     {"gm"},
 				},
-				Traces: frontend.TraceGroup{
+				TraceGroup: frontend.TraceGroup{
 					TileSize:     3, // 3 commits in tile
 					TotalDigests: 2,
 					Traces: []frontend.Trace{
 						{
-							Data: []int{1, 1, 0},
-							ID:   data.BullheadAlphaTraceID,
+							DigestIndices: []int{1, 1, 0},
+							ID:            data.BullheadAlphaTraceID,
 							Params: map[string]string{
 								"device":              data.BullheadDevice,
 								types.PrimaryKeyField: string(data.AlphaTest),
@@ -158,13 +158,13 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					types.PrimaryKeyField: {string(data.BetaTest)},
 					types.CorpusField:     {"gm"},
 				},
-				Traces: frontend.TraceGroup{
+				TraceGroup: frontend.TraceGroup{
 					TileSize:     3,
 					TotalDigests: 1,
 					Traces: []frontend.Trace{
 						{
-							Data: []int{0, missingDigestIndex, missingDigestIndex},
-							ID:   data.CrosshatchBetaTraceID,
+							DigestIndices: []int{0, missingDigestIndex, missingDigestIndex},
+							ID:            data.CrosshatchBetaTraceID,
 							Params: map[string]string{
 								"device":              data.CrosshatchDevice,
 								types.PrimaryKeyField: string(data.BetaTest),
@@ -230,11 +230,11 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	resp, err := s.Search(context.Background(), q)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
-	assert.Len(t, resp.Digests, 1)
+	assert.Len(t, resp.Results, 1)
 	assert.Equal(t, resp.Offset, 0)
 	assert.Equal(t, resp.Size, 2)
 	// This checks that the returned result is the first one of the results we expect.
-	assert.Equal(t, data.AlphaUntriagedDigest, resp.Digests[0].Digest)
+	assert.Equal(t, data.AlphaUntriagedDigest, resp.Results[0].Digest)
 
 	q.Offset = 1
 	q.Limit = 100 // There's only 2 results in the total search, i.e. one remaining, so set this
@@ -242,11 +242,11 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	resp, err = s.Search(context.Background(), q)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
-	assert.Len(t, resp.Digests, 1)
+	assert.Len(t, resp.Results, 1)
 	assert.Equal(t, resp.Offset, 1)
 	assert.Equal(t, resp.Size, 2)
 	// This checks that the returned result is the second one of the results we expect.
-	assert.Equal(t, data.BetaUntriagedDigest, resp.Digests[0].Digest)
+	assert.Equal(t, data.BetaUntriagedDigest, resp.Results[0].Digest)
 }
 
 // TestSearchThreeDevicesQueries searches over the three_devices test data using a variety
@@ -278,8 +278,8 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 
-			require.Len(t, resp.Digests, len(expectedOutputs))
-			for i, actualDigest := range resp.Digests {
+			require.Len(t, resp.Results, len(expectedOutputs))
+			for i, actualDigest := range resp.Results {
 				expected := expectedOutputs[i]
 				assert.Equal(t, expected.test, actualDigest.Test)
 				assert.Equal(t, expected.digest, actualDigest.Digest)
@@ -623,7 +623,7 @@ func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
 	require.NotNil(t, resp)
 	// There are 4 unique digests at HEAD on the three_devices corpus. Do a quick smoke test to make
 	// sure we have one search result for each of them.
-	require.Len(t, resp.Digests, 4)
+	require.Len(t, resp.Results, 4)
 	f := frontend.ToTraceComment
 	// This should be sorted by UpdatedTS.
 	assert.Equal(t, []frontend.TraceComment{
@@ -643,8 +643,8 @@ func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
 	// We only check that the traces have their associated comments. We rely on the other tests
 	// to make sure the other fields are correct.
 	traceCount := 0
-	for _, r := range resp.Digests {
-		for _, tr := range r.Traces.Traces {
+	for _, r := range resp.Results {
+		for _, tr := range r.TraceGroup.Traces {
 			traceCount++
 			assert.Equal(t, expectedComments[tr.ID], tr.CommentIndices, "trace id %q under digest", tr.ID, r.Digest)
 		}
@@ -789,7 +789,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 		Commits: web_frontend.FromTilingCommits(data.MakeTestCommits()),
 		Offset:  0,
 		Size:    1,
-		Digests: []*frontend.SRDigest{
+		Results: []*frontend.SearchResult{
 			{
 				Test:   data.BetaTest,
 				Digest: BetaBrandNewDigest,
@@ -800,7 +800,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 					types.CorpusField:     {"gm"},
 					"ext":                 {"png"},
 				},
-				Traces: frontend.TraceGroup{
+				TraceGroup: frontend.TraceGroup{
 					TileSize: 3,
 					Digests: []frontend.DigestStatus{
 						{
@@ -946,7 +946,7 @@ func TestDigestDetails_MasterBranch_Success(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, &frontend.DigestDetails{
 		Commits: web_frontend.FromTilingCommits(data.MakeTestCommits()),
-		Digest: frontend.SRDigest{
+		Result: frontend.SearchResult{
 			Test:   testWeWantDetailsAbout,
 			Digest: digestWeWantDetailsAbout,
 			Status: "positive",
@@ -961,13 +961,13 @@ func TestDigestDetails_MasterBranch_Success(t *testing.T) {
 				types.PrimaryKeyField: {string(data.AlphaTest)},
 				types.CorpusField:     {"gm"},
 			},
-			Traces: frontend.TraceGroup{
+			TraceGroup: frontend.TraceGroup{
 				TileSize:     3, // 3 commits in tile
 				TotalDigests: 2,
 				Traces: []frontend.Trace{ // the digest we care about appears in two traces
 					{
-						Data: []int{1, 1, 0},
-						ID:   data.AnglerAlphaTraceID,
+						DigestIndices: []int{1, 1, 0},
+						ID:            data.AnglerAlphaTraceID,
 						Params: map[string]string{
 							"device":              data.AnglerDevice,
 							types.PrimaryKeyField: string(data.AlphaTest),
@@ -975,8 +975,8 @@ func TestDigestDetails_MasterBranch_Success(t *testing.T) {
 						},
 					},
 					{
-						Data: []int{1, 1, 0},
-						ID:   data.CrosshatchAlphaTraceID,
+						DigestIndices: []int{1, 1, 0},
+						ID:            data.CrosshatchAlphaTraceID,
 						Params: map[string]string{
 							"device":              data.CrosshatchDevice,
 							types.PrimaryKeyField: string(data.AlphaTest),
@@ -1050,7 +1050,7 @@ func TestDigestDetails_ChangeListAltersExpectations_Success(t *testing.T) {
 
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)
-	assert.Equal(t, details.Digest.Status, expectations.Negative.String())
+	assert.Equal(t, details.Result.Status, expectations.Negative.String())
 	assert.Equal(t, []frontend.TriageHistory{
 		{
 			User: clUser,
@@ -1060,7 +1060,7 @@ func TestDigestDetails_ChangeListAltersExpectations_Success(t *testing.T) {
 			User: userWhoTriaged,
 			TS:   alphaPositiveTriageTS,
 		},
-	}, details.Digest.TriageHistory)
+	}, details.Result.TriageHistory)
 }
 
 // TestDigestDetails_DigestTooOld_ReturnsComparisonToRecentDigest represents the scenario in which
@@ -1081,8 +1081,8 @@ func TestDigestDetails_DigestTooOld_ReturnsComparisonToRecentDigest(t *testing.T
 	require.NoError(t, err)
 	// spot check is fine for this test because other tests do a more thorough check of the
 	// whole struct.
-	assert.Equal(t, digestWeWantDetailsAbout, d.Digest.Digest)
-	assert.Equal(t, testWeWantDetailsAbout, d.Digest.Test)
+	assert.Equal(t, digestWeWantDetailsAbout, d.Result.Digest)
+	assert.Equal(t, testWeWantDetailsAbout, d.Result.Test)
 	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.PositiveRef: {
 			DiffMetrics: makeSmallDiffMetric(),
@@ -1096,7 +1096,7 @@ func TestDigestDetails_DigestTooOld_ReturnsComparisonToRecentDigest(t *testing.T
 			OccurrencesInTile: 6,
 		},
 		common.NegativeRef: nil,
-	}, d.Digest.RefDiffs)
+	}, d.Result.RefDiffs)
 }
 
 // TestDigestDetails_BadDigest_NoError represents the scenario in which a user is requesting
@@ -1118,8 +1118,8 @@ func TestDigestDetails_BadDigest_NoError(t *testing.T) {
 	r, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
 	// Since we couldn't find the digest, we have nothing to compare against.
-	assert.Equal(t, r.Digest.Digest, digestWeWantDetailsAbout)
-	assert.Equal(t, r.Digest.ClosestRef, common.NoRef)
+	assert.Equal(t, r.Result.Digest, digestWeWantDetailsAbout)
+	assert.Equal(t, r.Result.ClosestRef, common.NoRef)
 }
 
 func TestDigestDetails_BadTest_ReturnsError(t *testing.T) {
@@ -1206,9 +1206,9 @@ func TestDigestDetails_NewTestOnChangeList_Success(t *testing.T) {
 
 	rv, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)
-	rv.Digest.ParamSet.Normalize() // sort keys for determinism
+	rv.Result.ParamSet.Normalize() // sort keys for determinism
 	assert.Equal(t, &frontend.DigestDetails{
-		Digest: frontend.SRDigest{
+		Result: frontend.SearchResult{
 			Test:          testWeWantDetailsAbout,
 			Digest:        digestWeWantDetailsAbout,
 			Status:        "positive",
@@ -1283,9 +1283,9 @@ func TestDigestDetails_NewTestOnChangeList_WithPublicParams_Success(t *testing.T
 
 	rv, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)
-	rv.Digest.ParamSet.Normalize() // sort keys for determinism
+	rv.Result.ParamSet.Normalize() // sort keys for determinism
 	assert.Equal(t, &frontend.DigestDetails{
-		Digest: frontend.SRDigest{
+		Result: frontend.SearchResult{
 			Test:          testWeWantDetailsAbout,
 			Digest:        digestWeWantDetailsAbout,
 			Status:        "positive",
@@ -1327,7 +1327,7 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 	cd, err := s.DiffDigests(context.Background(), testWeWantDetailsAbout, leftDigest, rightDigest, "", "")
 	require.NoError(t, err)
 	assert.Equal(t, &frontend.DigestComparison{
-		Left: &frontend.SRDigest{
+		Left: frontend.SearchResult{
 			Test:   testWeWantDetailsAbout,
 			Digest: leftDigest,
 			Status: expectations.Untriaged.String(),
@@ -1652,10 +1652,11 @@ func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
 					// Other fields don't matter for this test.
 				},
 			}
+			tg := frontend.TraceGroup{Traces: traces}
 
-			rv := s.getDrawableTraces("whatever", d0, len(inputDigests)-1, stubClassifier, traces, nil)
-			require.Len(t, rv.Traces, 1)
-			assert.Equal(t, expectedData, rv.Traces[0].Data)
+			s.fillInFrontEndTraceData("whatever", d0, len(inputDigests)-1, stubClassifier, &tg, nil)
+			require.Len(t, tg.Traces, 1)
+			assert.Equal(t, expectedData, tg.Traces[0].DigestIndices)
 		})
 	}
 
@@ -1717,9 +1718,10 @@ func TestGetDrawableTraces_TotalDigestsCorrect(t *testing.T) {
 					// Other fields don't matter for this test.
 				})
 			}
-			rv := s.getDrawableTraces("whatever", d0, len(inputTraceDigests[0])-1, stubClassifier, traces, nil)
-			require.Len(t, rv.Traces, len(inputTraceDigests))
-			assert.Equal(t, totalUniqueDigests, rv.TotalDigests)
+			tg := frontend.TraceGroup{Traces: traces}
+			s.fillInFrontEndTraceData("whatever", d0, len(inputTraceDigests[0])-1, stubClassifier, &tg, nil)
+			require.Len(t, tg.Traces, len(inputTraceDigests))
+			assert.Equal(t, totalUniqueDigests, tg.TotalDigests)
 		})
 	}
 	test("one distinct digest, repeated multiple times",
@@ -1744,7 +1746,7 @@ func TestGetDrawableTraces_TotalDigestsCorrect(t *testing.T) {
 func TestAddExpectations_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	results := []*frontend.SRDigest{
+	results := []*frontend.SearchResult{
 		{
 			Test:   data.AlphaTest,
 			Digest: data.AlphaPositiveDigest,
@@ -1764,7 +1766,7 @@ func TestAddExpectations_Success(t *testing.T) {
 	}
 	addExpectations(results, data.MakeTestExpectations())
 
-	assert.ElementsMatch(t, []*frontend.SRDigest{
+	assert.ElementsMatch(t, []*frontend.SearchResult{
 		{
 			Test:   data.AlphaTest,
 			Digest: data.AlphaPositiveDigest,
@@ -1793,7 +1795,7 @@ func TestAddTriageHistory_HistoryExistsForAllEntries_Success(t *testing.T) {
 	mes := makeThreeDevicesExpectationStore()
 	s := New(nil, nil, nil, nil, nil, nil, nil, nil)
 
-	input := []*frontend.SRDigest{
+	input := []*frontend.SearchResult{
 		{
 			Test:   data.AlphaTest,
 			Digest: data.AlphaPositiveDigest,
@@ -1835,7 +1837,7 @@ func TestAddTriageHistory_EmptyTriageHistory_Success(t *testing.T) {
 	mes.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
 	s := New(nil, nil, nil, nil, nil, nil, nil, nil)
 
-	input := []*frontend.SRDigest{
+	input := []*frontend.SearchResult{
 		{
 			Test:   data.AlphaTest,
 			Digest: data.AlphaPositiveDigest,
@@ -1862,7 +1864,7 @@ func TestAddTriageHistory_ExpectationStoreError_ReturnedTriageHistoryIsEmpty(t *
 	mes.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("kaboom"))
 	s := New(nil, nil, nil, nil, nil, nil, nil, nil)
 
-	input := []*frontend.SRDigest{
+	input := []*frontend.SearchResult{
 		{
 			Test:   data.AlphaTest,
 			Digest: data.AlphaPositiveDigest,
