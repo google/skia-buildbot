@@ -26,7 +26,7 @@ const kitReady = CanvasKitInit({
   locateFile: (file) => {
     return `${scriptOrigin}/static/${file}`;
   },
-}).ready();
+});
 
 const loadingTemplate = (ele) => html`
 <div class=player-loading title="Loading particles and engine."

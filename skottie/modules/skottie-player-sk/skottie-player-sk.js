@@ -107,7 +107,7 @@ const canvasReady = CanvasKitInit({
   locateFile: (file) => {
     return `${scriptOrigin}/static/${file}`;
   },
-}).ready();
+});
 
 define('skottie-player-sk', class extends HTMLElement {
   constructor() {

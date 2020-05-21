@@ -656,7 +656,7 @@ The main application element for the Skia Debugger.
         // it provides a reference to the module (called Debugger here).
         DebuggerInit({
           locateFile: (file) => '/res/'+file,
-        }).ready().then((Debugger) => {
+        }).then((Debugger) => {
           // Save a reference to the module somewhere we can use it later.
           this._debugwasm = Debugger;
           // Enable the file input element.

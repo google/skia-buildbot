@@ -45,7 +45,7 @@ const template = (ele) => html`
 
 const wasmPromise = CanvasKitInit({
   locateFile: (file) => `/res/${file}`,
-}).ready();
+});
 
 /**
  * @module jsfiddle/modules/canvaskit-fiddle
