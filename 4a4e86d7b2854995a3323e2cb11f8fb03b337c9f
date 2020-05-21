@@ -22,6 +22,30 @@
       "revId": "4a4e86d7b2854995a3323e2cb11f8fb03b337c9f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bdd29bec_a491c97c",
+        "filename": "autoroll/go/repo_manager/common/git_common/git_common.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-21T13:38:19Z",
+      "side": 1,
+      "message": "I could move these to gerrit_common and github_common (which doesn\u0027t yet exist) instead.  That might be more natural?  The reason I had to move these here was so that the new repo manager could use git_common.Checkout instead of parent.GitCheckout, which was needed because the latter assumes that there\u0027s a version file.  (heh, remember when I said that was a safe assumption?)  I guess we could go back to passing in the getLastRollRev func to parent.NewGitCheckout...",
+      "parentUuid": "a58352e6_f8c41e58",
+      "range": {
+        "startLine": 219,
+        "startChar": 19,
+        "endLine": 219,
+        "endChar": 30
+      },
+      "revId": "4a4e86d7b2854995a3323e2cb11f8fb03b337c9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
