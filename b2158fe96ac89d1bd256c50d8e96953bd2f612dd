@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8165225e_7ba707ba",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-21T15:25:17Z",
+      "side": 1,
+      "message": "I call it RawTrace to distinguish it from the Trace struct defined in this package. That is, the RawTrace has not been converted for display on the frontend.",
+      "parentUuid": "5f414b27_ae022792",
+      "range": {
+        "startLine": 70,
+        "startChar": 45,
+        "endLine": 70,
+        "endChar": 54
+      },
+      "revId": "b2158fe96ac89d1bd256c50d8e96953bd2f612dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f03f4dcd_7663a69e",
         "filename": "golden/go/search/search.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "b2158fe96ac89d1bd256c50d8e96953bd2f612dd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1f0a3be_f739e820",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-21T15:25:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f03f4dcd_7663a69e",
+      "range": {
+        "startLine": 341,
+        "startChar": 1,
+        "endLine": 341,
+        "endChar": 20
+      },
+      "revId": "b2158fe96ac89d1bd256c50d8e96953bd2f612dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "c94feb4a_ad887c18",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-21T15:25:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bb49a4ba_f581f002",
+      "range": {
+        "startLine": 342,
+        "startChar": 0,
+        "endLine": 368,
+        "endChar": 2
+      },
+      "revId": "b2158fe96ac89d1bd256c50d8e96953bd2f612dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "78e9ca1d_d8ebd163",
         "filename": "golden/go/search/search.go",
         "patchSetId": 6
@@ -91,6 +163,30 @@
       "revId": "b2158fe96ac89d1bd256c50d8e96953bd2f612dd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43f5b095_eb9ce5cf",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 598,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-21T15:25:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "78e9ca1d_d8ebd163",
+      "range": {
+        "startLine": 597,
+        "startChar": 72,
+        "endLine": 598,
+        "endChar": 19
+      },
+      "revId": "b2158fe96ac89d1bd256c50d8e96953bd2f612dd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
