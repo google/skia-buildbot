@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "18b2cfbe_fb830126",
+        "filename": "autoroll/go/repo_manager/command_repo_manager_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-21T18:56:58Z",
+      "side": 1,
+      "message": "I did not know this was a thing.",
+      "range": {
+        "startLine": 1,
+        "startChar": 4,
+        "endLine": 1,
+        "endChar": 9
+      },
+      "revId": "658a0bf4d11bb29815d1576c6039fbb1052b28e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
