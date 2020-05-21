@@ -1,9 +1,12 @@
-@import '~elements-sk/colors.css';
+@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic|Roboto+Mono:400,500|Material+Icons');
 
-html {
-  --dark-gray: rgb(49, 49, 49);
-  --gray-text: rgb(204, 204, 204);
-  --border: rgb(120, 120, 120);
+@import '~elements-sk/themes/themes.css';
+
+input {
+  color: var(--on-surface);
+  background: var(--surface-1dp);
+  border: solid 1px var(--on-surface);
+  padding: 4px;
 }
 
 section {
@@ -20,33 +23,30 @@ section p {
   font-style: italic;
 }
 
-section h2 {
-  color: var(--dark-white);
-}
-
 header,
 header a {
   padding: 0.4rem;
-  color: var(--light-gray);
-  background: var(--gray);
+  color: var(--on-surface);
+  background: var(--surface-1dp);
   font-size: 1.2rem;
 }
 
 header {
-  border-bottom: solid thin var(--border);
+  border-bottom: solid thin var(--on-surface);
+  display: flex;
+  justify-content: space-between;
 }
 
 body {
-  background: var(--dark-gray);
-  color: var(--gray-text);
-  font-family: helvetica, 'helvetica neue', ubuntu, roboto, noto, 'segoe ui', arial, sans-serif;
+  font-family: Roboto, sans-serif;
+  font-size: 12px;
   margin: 0;
   padding: 0;
 }
 
 a {
-  color: var(--gray-text);
   text-decoration: underline;
+  color: var(--primary);
 }
 
 form.search {
@@ -81,18 +81,18 @@ main {
 }
 
 main details {
-  background: var(--gray);
   position: absolute;
-  top: 2.8rem;
+  top: 56px;
   left: 1rem;
+  background: var(--surface);
+}
+
+main summary {
+  background: var(--background);
 }
 
 main details h2 {
   margin-left: 1rem;
-}
-
-main summary {
-  background: var(--dark-gray);
 }
 
 main.search {
@@ -114,7 +114,6 @@ li.hidden {
 li button {
   font-weight: bold;
   font-size: 110%;
-  background: var(--dark-gray);
   border-style: ridge;
   margin-bottom: 2px;
 }
@@ -123,14 +122,22 @@ li button {
 button.hidden,
 button.nothidden {
   display: none;
+  min-width: 0;
+  text-align: center;
+  text-transform: none;
+  outline: none;
+  padding: 4px;
+  height: 26px;
 }
 
 button.hidden {
-  color: var(--red);
+  background: var(--error);
+  color: var(--on-error);
 }
 
 button.nothidden {
-  color: var(--green);
+  background: var(--surface);
+  color: var(--primary);
 }
 
 /* When are in edit mode then display the correct buttons for toggling hidden
@@ -152,13 +159,10 @@ main.edit-mode li.hidden {
 }
 
 .edit-toggle {
-  background: var(--gray);
   position: absolute;
-  top: 2.8rem;
+  top: 56px;
   right: 1rem;
-  border-style: outset;
   padding: 3px;
-  color: var(--white);
 }
 
 main.edit-mode .edit-toggle {
