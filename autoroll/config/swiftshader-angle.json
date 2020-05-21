@@ -7,8 +7,7 @@
     "childLogURLTmpl": "https://swiftshader.googlesource.com/SwiftShader.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
     "includeLog": true,
     "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": false
+    "includeTbrLine": true
   },
   "contacts": [
     "geofflang@chromium.org",

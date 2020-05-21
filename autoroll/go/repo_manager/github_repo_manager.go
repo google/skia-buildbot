@@ -20,7 +20,7 @@ import (
 // GithubRepoManagerConfig provides configuration for the Github RepoManager.
 type GithubRepoManagerConfig struct {
 	CommonRepoManagerConfig
-	Github        *codereview.GithubConfig `json:"gerrit"`
+	Github        *codereview.GithubConfig `json:"gerrit,omitempty"`
 	ChildRepoName string                   `json:"childRepoName"`
 	ChildRepoURL  string                   `json:"childRepoURL"`
 	ChildUserName string                   `json:"childUserName"`
@@ -33,7 +33,7 @@ type GithubRepoManagerConfig struct {
 	// TransitiveDeps is an optional mapping of dependency ID (eg. repo URL)
 	// to the paths within the parent and child repo, respectively, where
 	// those dependencies are versioned, eg. "DEPS".
-	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps"`
+	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps,omitempty"`
 }
 
 // See documentation for util.Validator interface.

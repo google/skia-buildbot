@@ -111,7 +111,6 @@ func noCheckoutDEPSCfg(t *testing.T) *NoCheckoutDEPSRepoManagerConfig {
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
 				ChildBranch:  masterBranchTmpl(t),
 				ChildPath:    childPath,
-				IncludeLog:   true,
 				ParentBranch: masterBranchTmpl(t),
 			},
 		},

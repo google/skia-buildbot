@@ -25,14 +25,14 @@ var (
 // don't use a local checkout.
 type NoCheckoutDEPSRepoManagerConfig struct {
 	NoCheckoutRepoManagerConfig
-	Gerrit *codereview.GerritConfig `json:"gerrit"`
+	Gerrit *codereview.GerritConfig `json:"gerrit,omitempty"`
 	// URL of the child repo.
 	ChildRepo string `json:"childRepo"` // TODO(borenet): Can we just get this from DEPS?
 
 	// TransitiveDeps is an optional set of dependencies shared by the Parent
 	// and Child which are updated in the Parent to match the versions of the
 	// Child.
-	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps"`
+	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps,omitempty"`
 }
 
 // See documentation for util.Validator interface.

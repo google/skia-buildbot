@@ -5,10 +5,12 @@
   "commitMsg": {
     "bugProject": "skia",
     "childLogURLTmpl": "https://swiftshader.googlesource.com/SwiftShader.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "cqExtraTrybots": [
+      "skia/skia.primary:Test-Debian10-Clang-GCE-GPU-SwiftShader-x86_64-Debug-All-SwiftShader"
+    ],
     "includeLog": true,
     "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": false
+    "includeTbrLine": true
   },
   "contacts": [
     "bsalomon@google.com"
@@ -37,9 +39,6 @@
     "parentBranch": "master",
     "parentRepo": "https://skia.googlesource.com/skia.git"
   },
-  "cqExtraTrybots": [
-    "skia/skia.primary:Test-Debian10-Clang-GCE-GPU-SwiftShader-x86_64-Debug-All-SwiftShader"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",

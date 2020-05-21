@@ -30,7 +30,7 @@ type GithubDEPSRepoManagerConfig struct {
 	// TransitiveDeps is an optional set of dependencies shared by the Parent
 	// and Child which are updated in the Parent to match the versions of the
 	// Child.
-	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps"`
+	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps,omitempty"`
 }
 
 // Validate the config.

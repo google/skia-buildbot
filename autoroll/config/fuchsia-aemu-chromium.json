@@ -3,10 +3,7 @@
 {
   "childDisplayName": "Fuchsia AEMU",
   "commitMsg": {
-    "includeLog": false,
-    "includeRevisionCount": false,
-    "includeTbrLine": true,
-    "includeTests": false
+    "includeTbrLine": true
   },
   "contacts": [
     "chonggu@google.com"

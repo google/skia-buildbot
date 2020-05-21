@@ -20,7 +20,7 @@ import (
 // GitilesCIPDDEPSRepoManager.
 type GitilesCIPDDEPSRepoManagerConfig struct {
 	NoCheckoutRepoManagerConfig
-	Gerrit *codereview.GerritConfig `json:"gerrit"`
+	Gerrit *codereview.GerritConfig `json:"gerrit,omitempty"`
 	// Name of the CIPD package to roll.
 	CipdAssetName string `json:"cipdAssetName"`
 	// Tag used to find the CIPD package version to roll.

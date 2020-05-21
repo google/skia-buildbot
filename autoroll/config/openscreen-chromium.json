@@ -43,6 +43,5 @@
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"
   },
-  "maxRollFrequency": "0m",
-  "notifiers": []
+  "maxRollFrequency": "0m"
 }

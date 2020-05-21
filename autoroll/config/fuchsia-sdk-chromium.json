@@ -3,10 +3,11 @@
 {
   "childDisplayName": "Fuchsia SDK",
   "commitMsg": {
-    "includeLog": false,
-    "includeRevisionCount": false,
-    "includeTbrLine": true,
-    "includeTests": false
+    "cqExtraTrybots": [
+      "luci.chromium.try:fuchsia-arm64-cast",
+      "luci.chromium.try:fuchsia-x64-cast"
+    ],
+    "includeTbrLine": true
   },
   "contacts": [
     "jbudorick@chromium.org",
@@ -34,10 +35,6 @@
     "parentBranch": "master",
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
-  "cqExtraTrybots": [
-    "luci.chromium.try:fuchsia-arm64-cast",
-    "luci.chromium.try:fuchsia-x64-cast"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "2Gi",

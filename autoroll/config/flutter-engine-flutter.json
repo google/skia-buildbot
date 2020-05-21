@@ -5,9 +5,7 @@
   "commitMsg": {
     "childLogURLTmpl": "https://github.com/flutter/engine/compare/{{.RollingFrom}}...{{.RollingTo}}",
     "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": false,
-    "includeTests": false
+    "includeRevisionCount": true
   },
   "contacts": ["liyuqian@google.com", "rmistry@google.com"],
   "isInternal": false,

@@ -4,6 +4,9 @@
   "childDisplayName": "skcms",
   "commitMsg": {
     "childLogURLTmpl": "https://skia.googlesource.com/skcms.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "cqExtraTrybots": [
+      "luci.chromium.try:linux-blink-rel"
+    ],
     "includeLog": true,
     "includeRevisionCount": true,
     "includeTbrLine": true,
@@ -48,9 +51,6 @@
     ],
     "versionFile": "third_party/skcms/version.sha1"
   },
-  "cqExtraTrybots": [
-    "luci.chromium.try:linux-blink-rel"
-  ],
   "kubernetes": {
     "cpu": "1",
     "memory": "8Gi",

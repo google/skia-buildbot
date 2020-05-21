@@ -130,9 +130,23 @@ type KubernetesConfig struct {
 	CPU string `json:"cpu"`
 	// Requested memory, eg. "2Gi"
 	Memory string `json:"memory"`
+	// How many times the ready check may fail.
+	ReadinessFailureThreshold string `json:"readinessFailureThreshold"`
+	// Delay before starting to check whether the pod is ready.
+	ReadinessInitialDelaySeconds string `json:"readinessInitialDelaySeconds"`
+	// How often to perform the ready check after ReadinessInitialDelaySeconds.
+	ReadinessPeriodSeconds string `json:"readinessPeriodSeconds"`
 	// Requested persistent disk size, eg. "200Gi". If empty, no persistent
 	// disk is used.
-	Disk string `json:"disk"`
+	Disk string `json:"disk,omitempty"`
+	// Secrets provided to the pod.
+	Secrets []*KubernetesSecret `json:"secrets,omitempty"`
+}
+
+// KubernetesSecret describes a secret provided to a Kubernetes pod.
+type KubernetesSecret struct {
+	Name      string `json:"name"`
+	MountPath string `json:"mountPath"`
 }
 
 // Validate the KubernetesConfig.
@@ -187,10 +201,10 @@ type AutoRollerConfig struct {
 
 	// RepoManager configs. Exactly one must be provided.
 	AndroidRepoManager           *repo_manager.AndroidRepoManagerConfig           `json:"androidRepoManager,omitempty"`
-	CommandRepoManager           *repo_manager.CommandRepoManagerConfig           `json:"commandRepoManager"`
+	CommandRepoManager           *repo_manager.CommandRepoManagerConfig           `json:"commandRepoManager,omitempty"`
 	CopyRepoManager              *repo_manager.CopyRepoManagerConfig              `json:"copyRepoManager,omitempty"`
 	DEPSRepoManager              *repo_manager.DEPSRepoManagerConfig              `json:"depsRepoManager,omitempty"`
-	FreeTypeRepoManager          *repo_manager.FreeTypeRepoManagerConfig          `json:"freeTypeRepoManager"`
+	FreeTypeRepoManager          *repo_manager.FreeTypeRepoManagerConfig          `json:"freeTypeRepoManager,omitempty"`
 	FuchsiaSDKAndroidRepoManager *repo_manager.FuchsiaSDKAndroidRepoManagerConfig `json:"fuchsiaSDKAndroidRepoManager,omitempty"`
 	FuchsiaSDKRepoManager        *repo_manager.FuchsiaSDKRepoManagerConfig        `json:"fuchsiaSDKRepoManager,omitempty"`
 	GithubRepoManager            *repo_manager.GithubRepoManagerConfig            `json:"githubRepoManager,omitempty"`
@@ -221,7 +235,7 @@ type AutoRollerConfig struct {
 	// TransitiveDeps is an optional mapping of dependency ID (eg. repo URL)
 	// to the paths within the parent and child repo, respectively, where
 	// those dependencies are versioned, eg. "DEPS".
-	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps"`
+	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps,omitempty"`
 }
 
 // Validate the config.

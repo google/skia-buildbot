@@ -25,8 +25,8 @@ const (
 // RepoManager.
 type FuchsiaSDKRepoManagerConfig struct {
 	NoCheckoutRepoManagerConfig
-	Gerrit        *codereview.GerritConfig `json:"gerrit"`
-	IncludeMacSDK bool                     `json:"includeMacSDK"`
+	Gerrit        *codereview.GerritConfig `json:"gerrit,omitempty"`
+	IncludeMacSDK bool                     `json:"includeMacSDK,omitempty"`
 }
 
 // See documentation for RepoManagerConfig interface.
