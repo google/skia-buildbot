@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a58352e6_f8c41e58",
+        "filename": "autoroll/go/repo_manager/common/git_common/git_common.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-21T13:32:24Z",
+      "side": 1,
+      "message": "Looks a little strange to have gerrit and github specific things in git_common, it did make more sense to have to git_checkout_gerrit / git_checkout_github. But not sure how to better organize since you need to use it in the new repo manager.",
+      "range": {
+        "startLine": 219,
+        "startChar": 19,
+        "endLine": 219,
+        "endChar": 30
+      },
+      "revId": "4a4e86d7b2854995a3323e2cb11f8fb03b337c9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
