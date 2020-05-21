@@ -40,7 +40,7 @@ type SRDigest struct {
 	Status        string                              `json:"status"`
 	TriageHistory []TriageHistory                     `json:"triage_history"`
 	ParamSet      paramtools.ParamSet                 `json:"paramset"`
-	Traces        *TraceGroup                         `json:"traces"`
+	Traces        TraceGroup                          `json:"traces"`
 	ClosestRef    common.RefClosest                   `json:"closestRef"` // "pos" or "neg"
 	RefDiffs      map[common.RefClosest]*SRDiffDigest `json:"refDiffs"`
 }
@@ -58,19 +58,25 @@ type SRDiffDigest struct {
 
 // DigestDetails contains details about a digest.
 type DigestDetails struct {
-	Digest        *SRDigest         `json:"digest"`
+	Digest        SRDigest          `json:"digest"`
 	Commits       []frontend.Commit `json:"commits"`
 	TraceComments []TraceComment    `json:"trace_comments"`
 }
 
 // Trace describes a single trace, used in TraceGroup.
 type Trace struct {
+	// The id of the trace. Keep the json as label to be compatible with dots-sk.
+	ID tiling.TraceID `json:"label"`
+	// RawTrace is meant to be used to hold the raw trace (that is, the tiling.Trace which has not yet
+	// been converted for frontend display) until all the raw traces for a given
+	// TraceGroup can be converted to the frontend representation. The conversion process needs to be
+	// done once all the RawTraces are available so the digest indices can be in agreement for a given
+	// TraceGroup. It is not meant to be exposed to the frontend in its raw form.
+	RawTrace *tiling.Trace `json:"-"`
 	// Data represents the index of the digest that was part of the trace. -1 means we did not get
 	// a digest at this commit. There is one entry per commit. Index 0 is the oldest commit in the
 	// trace, index N-1 is the most recent.
-	Data []int `json:"data"`
-	// The id of the trace. Keep the json as label to be compatible with dots-sk.
-	ID     tiling.TraceID    `json:"label"`
+	Data   []int             `json:"data"`
 	Params map[string]string `json:"params"`
 	// CommentIndices are indices into the TraceComments slice on the final result. For example,
 	// a 1 means the second TraceComment in the top level TraceComments applies to this trace.

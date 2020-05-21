@@ -98,7 +98,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					types.PrimaryKeyField: {string(data.AlphaTest)},
 					types.CorpusField:     {"gm"},
 				},
-				Traces: &frontend.TraceGroup{
+				Traces: frontend.TraceGroup{
 					TileSize:     3, // 3 commits in tile
 					TotalDigests: 2,
 					Traces: []frontend.Trace{
@@ -158,7 +158,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					types.PrimaryKeyField: {string(data.BetaTest)},
 					types.CorpusField:     {"gm"},
 				},
-				Traces: &frontend.TraceGroup{
+				Traces: frontend.TraceGroup{
 					TileSize:     3,
 					TotalDigests: 1,
 					Traces: []frontend.Trace{
@@ -800,9 +800,8 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 					types.CorpusField:     {"gm"},
 					"ext":                 {"png"},
 				},
-				Traces: &frontend.TraceGroup{
+				Traces: frontend.TraceGroup{
 					TileSize: 3,
-					Traces:   []frontend.Trace{},
 					Digests: []frontend.DigestStatus{
 						{
 							Digest: BetaBrandNewDigest,
@@ -947,7 +946,7 @@ func TestDigestDetails_MasterBranch_Success(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, &frontend.DigestDetails{
 		Commits: web_frontend.FromTilingCommits(data.MakeTestCommits()),
-		Digest: &frontend.SRDigest{
+		Digest: frontend.SRDigest{
 			Test:   testWeWantDetailsAbout,
 			Digest: digestWeWantDetailsAbout,
 			Status: "positive",
@@ -962,7 +961,7 @@ func TestDigestDetails_MasterBranch_Success(t *testing.T) {
 				types.PrimaryKeyField: {string(data.AlphaTest)},
 				types.CorpusField:     {"gm"},
 			},
-			Traces: &frontend.TraceGroup{
+			Traces: frontend.TraceGroup{
 				TileSize:     3, // 3 commits in tile
 				TotalDigests: 2,
 				Traces: []frontend.Trace{ // the digest we care about appears in two traces
@@ -1209,7 +1208,7 @@ func TestDigestDetails_NewTestOnChangeList_Success(t *testing.T) {
 	require.NoError(t, err)
 	rv.Digest.ParamSet.Normalize() // sort keys for determinism
 	assert.Equal(t, &frontend.DigestDetails{
-		Digest: &frontend.SRDigest{
+		Digest: frontend.SRDigest{
 			Test:          testWeWantDetailsAbout,
 			Digest:        digestWeWantDetailsAbout,
 			Status:        "positive",
@@ -1286,7 +1285,7 @@ func TestDigestDetails_NewTestOnChangeList_WithPublicParams_Success(t *testing.T
 	require.NoError(t, err)
 	rv.Digest.ParamSet.Normalize() // sort keys for determinism
 	assert.Equal(t, &frontend.DigestDetails{
-		Digest: &frontend.SRDigest{
+		Digest: frontend.SRDigest{
 			Test:          testWeWantDetailsAbout,
 			Digest:        digestWeWantDetailsAbout,
 			Status:        "positive",
@@ -1643,12 +1642,17 @@ func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
 		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
 		t.Run(desc, func(t *testing.T) {
 			s := SearchImpl{}
-			traces := map[tiling.TraceID]*tiling.Trace{
-				"not-a-real-trace-id-and-that's-ok": {
-					Digests: inputDigests,
-					// Keys can be omitted because they are not read here,
+			traces := []frontend.Trace{
+				{
+					ID: "not-a-real-trace-id-and-that's-ok",
+					RawTrace: &tiling.Trace{
+						Digests: inputDigests,
+						// Keys can be omitted because they are not read here.
+					},
+					// Other fields don't matter for this test.
 				},
 			}
+
 			rv := s.getDrawableTraces("whatever", d0, len(inputDigests)-1, stubClassifier, traces, nil)
 			require.Len(t, rv.Traces, 1)
 			assert.Equal(t, expectedData, rv.Traces[0].Data)
@@ -1701,13 +1705,17 @@ func TestGetDrawableTraces_TotalDigestsCorrect(t *testing.T) {
 		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
 		t.Run(desc, func(t *testing.T) {
 			s := SearchImpl{}
-			traces := map[tiling.TraceID]*tiling.Trace{}
+			traces := make([]frontend.Trace, 0, len(inputTraceDigests))
 			for i, digests := range inputTraceDigests {
 				id := tiling.TraceID(fmt.Sprintf("trace-%d", i))
-				traces[id] = &tiling.Trace{
-					Digests: digests,
-					// Keys can be omitted because they are not read here,
-				}
+				traces = append(traces, frontend.Trace{
+					ID: id,
+					RawTrace: &tiling.Trace{
+						Digests: digests,
+						// Keys can be omitted because they are not read here.
+					},
+					// Other fields don't matter for this test.
+				})
 			}
 			rv := s.getDrawableTraces("whatever", d0, len(inputTraceDigests[0])-1, stubClassifier, traces, nil)
 			require.Len(t, rv.Traces, len(inputTraceDigests))
@@ -1733,31 +1741,28 @@ func TestGetDrawableTraces_TotalDigestsCorrect(t *testing.T) {
 		[]types.Digest{"dA", "d9", "d8", "d7", "d6", "d5", "d4", "d3", "d2", "d1", d0})
 }
 
-func TestGetDigestRecs_Success(t *testing.T) {
+func TestAddExpectations_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	sr := getDigestRecs(srInterMap{
-		data.AlphaTest: {
-			data.AlphaPositiveDigest: {
-				test:   data.AlphaTest,
-				digest: data.AlphaPositiveDigest,
-			},
-			data.AlphaNegativeDigest: {
-				test:   data.AlphaTest,
-				digest: data.AlphaNegativeDigest,
-			},
+	results := []*frontend.SRDigest{
+		{
+			Test:   data.AlphaTest,
+			Digest: data.AlphaPositiveDigest,
 		},
-		data.BetaTest: {
-			data.BetaPositiveDigest: {
-				test:   data.BetaTest,
-				digest: data.BetaPositiveDigest,
-			},
-			data.BetaUntriagedDigest: {
-				test:   data.BetaTest,
-				digest: data.BetaUntriagedDigest,
-			},
+		{
+			Test:   data.AlphaTest,
+			Digest: data.AlphaNegativeDigest,
 		},
-	}, data.MakeTestExpectations())
+		{
+			Test:   data.BetaTest,
+			Digest: data.BetaPositiveDigest,
+		},
+		{
+			Test:   data.BetaTest,
+			Digest: data.BetaUntriagedDigest,
+		},
+	}
+	addExpectations(results, data.MakeTestExpectations())
 
 	assert.ElementsMatch(t, []*frontend.SRDigest{
 		{
@@ -1780,7 +1785,7 @@ func TestGetDigestRecs_Success(t *testing.T) {
 			Digest: data.BetaUntriagedDigest,
 			Status: expectations.Untriaged.String(),
 		},
-	}, sr)
+	}, results)
 }
 
 func TestAddTriageHistory_HistoryExistsForAllEntries_Success(t *testing.T) {
