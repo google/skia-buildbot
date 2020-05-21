@@ -15,16 +15,16 @@ import { baseRepoURL } from '../settings';
 
 const maxCommitsToDisplay = 15;
 
-const template = (ele) => html`
+const template = (ele: BlamelistPanelSk) => html`
 <h2>Commits:</h2>
 <table>
-  ${ele._commits.slice(0, maxCommitsToDisplay).map(commitRow)}
+  ${ele.commits.slice(0, maxCommitsToDisplay).map(commitRow)}
 </table>
 <div>
-  ${ele._commits.length > maxCommitsToDisplay ? '...and other commits.' : ''}
+  ${ele.commits.length > maxCommitsToDisplay ? '...and other commits.' : ''}
 </div>`;
 
-const commitRow = (c) => html`
+const commitRow = (c: Commit) => html`
 <tr>
   <td title=${c.author}>${truncateWithEllipses(c.author, 20)}</td>
   <td title=${new Date(c.commit_time * 1000)}>
@@ -35,8 +35,8 @@ const commitRow = (c) => html`
 </tr>
 `;
 
-const commitHref = (commit) => {
-  // TODO(kjlubick) deduplicate with by-blame-sk
+const commitHref = (commit: Commit) => {
+  // TODO(kjlubick): Deduplicate with by-blame-sk.
   const repo = baseRepoURL();
   if (!repo) {
     throw new DOMException('repo not set in settings');
@@ -47,11 +47,23 @@ const commitHref = (commit) => {
   return `${repo}/+show/${commit.hash}`;
 };
 
-define('blamelist-panel-sk', class extends ElementSk {
+/**
+ * Represents a Git commit.
+ * 
+ * Client-side equivalent of frontend.Commit Go type.
+ */
+export interface Commit {
+  readonly hash: string;
+  readonly author: string;
+  readonly message: string;
+  readonly commit_time: number;
+};
+
+export class BlamelistPanelSk extends ElementSk {
+  private _commits: Commit[] = [];
+
   constructor() {
     super(template);
-
-    this._commits = [];
   }
 
   connectedCallback() {
@@ -59,15 +71,12 @@ define('blamelist-panel-sk', class extends ElementSk {
     this._render();
   }
 
-  /**
-   * @prop commits {Array<Object>} the commits to show. The objects should have string fields:
-   *   author, message, hash and a field commit_time that is the number of seconds since the epoch.
-   *   See frontend.Commit on the server side for more.
-   */
-  get commits() { return this._commits; }
+  get commits(): Commit[] { return this._commits; }
 
-  set commits(arr) {
-    this._commits = arr;
+  set commits(commits: Commit[]) {
+    this._commits = commits;
     this._render();
   }
-});
+};
+
+define('blamelist-panel-sk', BlamelistPanelSk);
