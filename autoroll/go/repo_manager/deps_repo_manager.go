@@ -27,9 +27,9 @@ type issueJson struct {
 // DEPSRepoManagerConfig provides configuration for the DEPS RepoManager.
 type DEPSRepoManagerConfig struct {
 	DepotToolsRepoManagerConfig
-	Gerrit     *codereview.GerritConfig `json:"gerrit"`
+	Gerrit     *codereview.GerritConfig `json:"gerrit,omitempty"`
 	ChildRepo  string                   `json:"childRepo"`
-	ParentPath string                   `json:"parentPath"`
+	ParentPath string                   `json:"parentPath,omitempty"`
 }
 
 // See documentation for util.Validator interface.

@@ -17,26 +17,26 @@ import (
 
 type SemVerGCSRepoManagerConfig struct {
 	NoCheckoutRepoManagerConfig
-	Gerrit *codereview.GerritConfig `json:"gerrit"`
+	Gerrit *codereview.GerritConfig `json:"gerrit,omitempty"`
 
 	// GCS bucket used for finding child revisions.
-	GCSBucket string
+	GCSBucket string `json:"gcsBucket"`
 
 	// Path within the GCS bucket which contains child revisions.
-	GCSPath string
+	GCSPath string `json:"gcsPath"`
 
 	// File to update in the parent repo.
-	VersionFile string
+	VersionFile string `json:"versionFile"`
 
 	// ShortRevRegex is a regular expression string which indicates
 	// what part of the revision ID string should be used as the shortened
 	// ID for display. If not specified, the full ID string is used.
-	ShortRevRegex *config_vars.Template
+	ShortRevRegex *config_vars.Template `json:"shortRevRegex,omitempty"`
 
 	// VersionRegex is a regular expression string containing one or more
 	// integer capture groups. The integers matched by the capture groups
 	// are compared, in order, when comparing two revisions.
-	VersionRegex *config_vars.Template
+	VersionRegex *config_vars.Template `json:"versionRegex"`
 }
 
 func (c *SemVerGCSRepoManagerConfig) Validate() error {

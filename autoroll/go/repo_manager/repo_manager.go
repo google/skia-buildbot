@@ -54,10 +54,6 @@ type CommonRepoManagerConfig struct {
 	ChildBranch *config_vars.Template `json:"childBranch"`
 	// Path of the child repo within the parent repo.
 	ChildPath string `json:"childPath"`
-	// If true, include the "git log" (or other revision details) in the
-	// commit message. This should be false for internal -> external rollers
-	// to avoid leaking internal commit messages.
-	IncludeLog bool `json:"includeLog"`
 	// Branch of the parent repo we want to roll into.
 	ParentBranch *config_vars.Template `json:"parentBranch"`
 	// URL of the parent repo.
@@ -67,7 +63,7 @@ type CommonRepoManagerConfig struct {
 
 	// ChildRevLinkTmpl is a template used to create links to revisions of
 	// the child repo. If not supplied, no links will be created.
-	ChildRevLinkTmpl string `json:"childRevLinkTmpl"`
+	ChildRevLinkTmpl string `json:"childRevLinkTmpl,omitempty"`
 	// ChildSubdir indicates the subdirectory of the workdir in which
 	// the childPath should be rooted. In most cases, this should be empty,
 	// but if ChildPath is relative to the parent repo dir (eg. when DEPS
@@ -235,7 +231,7 @@ type DepotToolsRepoManagerConfig struct {
 	GClientSpec string `json:"gclientSpec,omitempty"`
 
 	// Run "gclient runhooks" if true.
-	RunHooks bool `json:"runhooks,omitempty"`
+	RunHooks bool `json:"runHooks,omitempty"`
 }
 
 // depotToolsRepoManager is a struct used by AutoRoller implementations that use

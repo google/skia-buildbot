@@ -16,7 +16,7 @@ import (
 // git checkout and upload changes to Gerrit.
 type GitCheckoutGerritConfig struct {
 	GitCheckoutConfig
-	Gerrit *codereview.GerritConfig `json:"gerrit"`
+	Gerrit *codereview.GerritConfig `json:"gerrit,omitempty"`
 }
 
 // See documentation for util.Validator interface.

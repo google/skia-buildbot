@@ -14,8 +14,7 @@
     ],
     "includeLog": true,
     "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": false
+    "includeTbrLine": true
   },
   "contacts": [
     "bungeman@google.com",

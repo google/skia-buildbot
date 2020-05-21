@@ -26,7 +26,7 @@ type GitilesConfig struct {
 	version_file_common.DependencyConfig
 	// Gerrit provides configuration for the Gerrit instance used for
 	// uploading rolls.
-	Gerrit *codereview.GerritConfig `json:"gerrit"`
+	Gerrit *codereview.GerritConfig `json:"gerrit,omitempty"`
 }
 
 // See documentation for util.Validator interface.

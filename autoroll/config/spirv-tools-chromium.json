@@ -18,8 +18,7 @@
     ],
     "includeLog": true,
     "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": false
+    "includeTbrLine": true
   },
   "contacts": [
     "dsinclair@chromium.org",

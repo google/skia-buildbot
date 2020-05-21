@@ -3,7 +3,6 @@
 {
   "childDisplayName": "binaryen",
   "commitMsg": {
-    "bugProject": "",
     "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/WebAssembly/binaryen.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
     "includeLog": true,
     "includeRevisionCount": true,

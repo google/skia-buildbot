@@ -5,10 +5,8 @@
   "commitMsg": {
     "bugProject": "angleproject",
     "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
-    "includeLog": false,
     "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": false
+    "includeTbrLine": true
   },
   "contacts": [
     "geofflang@chromium.org",

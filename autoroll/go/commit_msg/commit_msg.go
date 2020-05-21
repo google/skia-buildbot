@@ -36,17 +36,17 @@ type transitiveDepUpdate struct {
 
 // CommitMsgConfig provides configuration for commit messages.
 type CommitMsgConfig struct {
-	BugProject           string   `json:"bugProject"`
-	ChildLogURLTmpl      string   `json:"childLogURLTmpl"`
-	CqExtraTrybots       []string `json:"cqExtraTrybots"`
-	IncludeLog           bool     `json:"includeLog"`
-	IncludeRevisionCount bool     `json:"includeRevisionCount"`
-	IncludeTbrLine       bool     `json:"includeTbrLine"`
-	IncludeTests         bool     `json:"includeTests"`
+	BugProject           string   `json:"bugProject,omitempty"`
+	ChildLogURLTmpl      string   `json:"childLogURLTmpl,omitempty"`
+	CqExtraTrybots       []string `json:"cqExtraTrybots,omitempty"`
+	IncludeLog           bool     `json:"includeLog,omitempty"`
+	IncludeRevisionCount bool     `json:"includeRevisionCount,omitempty"`
+	IncludeTbrLine       bool     `json:"includeTbrLine,omitempty"`
+	IncludeTests         bool     `json:"includeTests,omitempty"`
 	// Template is either a full commit message template string or the name of
 	// an entry in NamedCommitMsgTemplates. If not specified, the default
 	// template is used.
-	Template string `json:"template"`
+	Template string `json:"template,omitempty"`
 }
 
 // See documentation for util.Validator interface.

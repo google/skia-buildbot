@@ -6,8 +6,7 @@
     "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/WebAssembly/waterfall.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
     "includeLog": true,
     "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": false
+    "includeTbrLine": true
   },
   "contacts": [
     "dschuff@google.com"

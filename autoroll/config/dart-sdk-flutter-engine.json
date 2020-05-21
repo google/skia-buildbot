@@ -5,9 +5,7 @@
   "commitMsg": {
     "childLogURLTmpl": "https://dart.googlesource.com/sdk.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
     "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": false,
-    "includeTests": false
+    "includeRevisionCount": true
   },
   "contacts": ["rmistry@google.com", "aam@google.com"],
   "isInternal": false,
@@ -21,7 +19,6 @@
   "github": {
     "repoOwner": "flutter",
     "repoName": "engine",
-    "checksNum": 10,
     "checksWaitFor": ["luci-engine"]
   },
   "githubDEPSRepoManager": {

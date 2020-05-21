@@ -5,9 +5,7 @@
   "commitMsg": {
     "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
     "includeLog": true,
-    "includeRevisionCount": true,
-    "includeTbrLine": false,
-    "includeTests": false
+    "includeRevisionCount": true
   },
   "contacts": ["brianosman@google.com", "rmistry@google.com"],
   "isInternal": false,

@@ -7,8 +7,7 @@
     "childLogURLTmpl": "https://webrtc.googlesource.com/src.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
     "includeLog": true,
     "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": false
+    "includeTbrLine": true
   },
   "contacts": [
     "comms-engprod-sto@google.com"

@@ -94,7 +94,6 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 				CommonRepoManagerConfig: CommonRepoManagerConfig{
 					ChildBranch:  masterBranchTmpl(t),
 					ChildPath:    ftChildPath,
-					IncludeLog:   true,
 					ParentBranch: masterBranchTmpl(t),
 					ParentRepo:   parentRepo.RepoUrl(),
 				},

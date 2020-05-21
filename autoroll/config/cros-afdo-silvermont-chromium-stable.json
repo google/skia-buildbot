@@ -3,10 +3,7 @@
 {
   "childDisplayName": "ChromeOS Silvermont AFDO profile",
   "commitMsg": {
-    "includeLog": false,
-    "includeRevisionCount": false,
-    "includeTbrLine": true,
-    "includeTests": false
+    "includeTbrLine": true
   },
   "contacts": [
     "gbiv@google.com",

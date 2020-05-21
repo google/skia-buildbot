@@ -20,7 +20,7 @@ import (
 // RepoManager.
 type CopyRepoManagerConfig struct {
 	DepotToolsRepoManagerConfig
-	Gerrit *codereview.GerritConfig `json:"gerrit"`
+	Gerrit *codereview.GerritConfig `json:"gerrit,omitempty"`
 
 	// ChildRepo is the URL of the child repo.
 	ChildRepo string `json:"childRepo"`

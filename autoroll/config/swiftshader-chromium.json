@@ -16,8 +16,7 @@
     ],
     "includeLog": true,
     "includeRevisionCount": true,
-    "includeTbrLine": true,
-    "includeTests": false
+    "includeTbrLine": true
   },
   "contacts": [
     "capn@chromium.org"
