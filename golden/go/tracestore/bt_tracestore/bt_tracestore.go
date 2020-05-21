@@ -350,7 +350,7 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 			}
 
 			// Turn the params into the tiling.TraceID we expect elsewhere.
-			traceKey := tracestore.TraceIDFromParams(params)
+			traceKey := tiling.TraceIDFromParams(params)
 			if _, ok := tileTraces[traceKey]; !ok {
 				if opts, ok := options[idx][pair.ID]; ok {
 					params.Add(opts)

@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/tiling"
-	"go.skia.org/infra/golden/go/tracestore"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -86,7 +85,7 @@ func fromBytes(b []byte) types.Digest {
 // encodeParams encodes params to bytes. Specifically, it encodes them
 // like a traceID
 func encodeParams(p map[string]string) []byte {
-	id := tracestore.TraceIDFromParams(p)
+	id := tiling.TraceIDFromParams(p)
 	return []byte(id)
 }
 

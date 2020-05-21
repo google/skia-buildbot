@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/gold-client/go/imgmatching"
 	"go.skia.org/infra/golden/go/tiling"
-	"go.skia.org/infra/golden/go/tracestore"
 	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/fileutil"
@@ -627,7 +626,7 @@ func (c *CloudClient) makeResultKeyAndTraceId(name types.TestName, additionalKey
 	traceParams := paramtools.Params{}
 	traceParams.Add(sharedKeys, resultKey)
 
-	return resultKey, tracestore.TraceIDFromParams(traceParams)
+	return resultKey, tiling.TraceIDFromParams(traceParams)
 }
 
 // downloadHashesAndBaselineFromGold downloads the hashes and baselines
