@@ -45,7 +45,7 @@ const template = (ele) => html`
 
 const wasmPromise = PathKitInit({
   locateFile: (file) => `/res/${file}`,
-}).ready();
+});
 
 /**
  * @module jsfiddle/modules/pathkit-fiddle
