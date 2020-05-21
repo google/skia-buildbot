@@ -4,7 +4,7 @@ import { setUpPuppeteerAndDemoPageServer, takeScreenshot } from '../../../puppet
 
 describe('dots-legend-sk', () => {
   // Contains page and baseUrl.
-  const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.js'));
+  const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.ts'));
 
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/dist/dots-legend-sk.html`);

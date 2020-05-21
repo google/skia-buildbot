@@ -5,7 +5,7 @@ import { Page } from 'puppeteer';
 
 describe('ignores-page-sk', () => {
   // Contains page and baseUrl.
-  const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.js'));
+  const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.ts'));
 
   it('should render the demo page', async () => {
     await navigateTo(testBed.page, testBed.baseUrl, '');

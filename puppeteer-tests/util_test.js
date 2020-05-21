@@ -150,17 +150,17 @@ describe('utility functions for Puppeteer tests', async () => {
     let stopDemoPageServer;
 
     before(async () => {
-      // Start a demo page server using Gold's webpack.config.js file.
-      const pathToGoldWebpackConfigJs = path.join(__dirname, '..', 'golden', 'webpack.config.js');
-      ({ baseUrl, stopDemoPageServer } = await startDemoPageServer(pathToGoldWebpackConfigJs));
+      // Start a demo page server using Perfs's webpack.config.js file.
+      const pathToPerfWebpackConfigJs = path.join(__dirname, '..', 'perf', 'webpack.config.js');
+      ({ baseUrl, stopDemoPageServer } = await startDemoPageServer(pathToPerfWebpackConfigJs));
     });
 
     after(async () => { await stopDemoPageServer(); });
 
     it('should serve a demo page', async () => {
-      // Load changelists-page-sk-demo.html and perform a basic smoke test on a known page.
-      await page.goto(`${baseUrl}/dist/changelists-page-sk.html`);
-      expect(await page.$$('changelists-page-sk')).to.have.length(1);
+      // Load day-range-sk-demo.html and perform a basic smoke test on a known page.
+      await page.goto(`${baseUrl}/dist/day-range-sk.html`);
+      expect(await page.$$('day-range-sk')).to.have.length(1);
     });
   });
 });

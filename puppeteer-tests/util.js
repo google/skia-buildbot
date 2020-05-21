@@ -166,17 +166,26 @@ exports.setUpPuppeteerAndDemoPageServer = (pathToWebpackConfigJs) => {
 exports.startDemoPageServer = async (pathToWebpackConfigJs) => {
   // Load Webpack configuration.
   const webpackConfigJs = require(pathToWebpackConfigJs);
-  const configuration = webpackConfigJs(null, {});
+  const configuration = webpackConfigJs(null, { mode: 'development' });
 
   // See https://webpack.js.org/configuration/mode/.
+  // TODO(lovisolo): This isn't necessary with the TypeScript Webpack configuration in
+  //                 //golden/pulito, and is kept for compatibility with Pulito's
+  //                 webpack.common.js. Remove once all Skia Infra apps are migrated to a
+  //                 TypeScript-based Webpack configuration.
   configuration.mode = 'development';
 
   // Quiet down the CleanWebpackPlugin.
-  // TODO(lovisolo): Move this change to the Pulito repo.
+  // TODO(lovisolo): This is only necessary with Pulito's webpack.common.js. Remove once all
+  //                 Skia Infra apps are migrated to a TypeScript-based Webpack configuration.
   configuration
     .plugins
     .filter((p) => p.constructor.name === 'CleanWebpackPlugin')
-    .forEach((p) => p.options.verbose = false);
+    .forEach((p) => {
+      if (p.options) {
+        p.options.verbose = false;
+      }
+    });
 
   // This is equivalent to running "npx webpack-dev-server" on the terminal.
   const middleware = webpackDevMiddleware(webpack(configuration), {

@@ -68,7 +68,7 @@ cp -r /src/puppeteer-tests/*.js     /tests/puppeteer-tests
 
 mkdir /tests/golden
 cp -r /src/golden/package*          /tests/golden
-cp -r /src/golden/webpack.config.js /tests/golden
+cp -r /src/golden/webpack.config.ts /tests/golden
 cp -r /src/golden/tsconfig.json     /tests/golden
 cp -r /src/golden/pulito            /tests/golden
 cp -r /src/golden/modules           /tests/golden
@@ -117,6 +117,9 @@ npm ci
 ################################################################################
 # Run tests.                                                                   #
 ################################################################################
+
+# Increase Node's heap size to accommodate for ts-node's higher memory usage.
+export NODE_OPTIONS="--max-old-space-size=4096"
 
 cd /tests/puppeteer-tests
 npx mocha .
