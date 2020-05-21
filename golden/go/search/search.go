@@ -573,17 +573,17 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 // filterTile iterates over the tile and accumulates the traces
 // that match the given query creating the initial search result.
 func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp expectations.Classifier) ([]*frontend.SearchResult, error) {
-	var acceptFn acceptFn = nil
+	var acceptFn iterTileAcceptFn
 	if q.GroupTestFilter == GROUP_TEST_MAX_COUNT {
 		maxDigestsByTest := idx.MaxDigestsByTest(q.IgnoreState())
-		acceptFn = func(params paramtools.Params, digests types.DigestSlice) (bool, interface{}) {
+		acceptFn = func(params paramtools.Params, digests types.DigestSlice) bool {
 			testName := types.TestName(params[types.PrimaryKeyField])
 			for _, d := range digests {
 				if maxDigestsByTest[testName][d] {
-					return true, nil
+					return true
 				}
 			}
-			return false, nil
+			return false
 		}
 	}
 
@@ -592,7 +592,7 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, idx indexe
 	mutex := sync.Mutex{}
 	// For each trace that does, we'll add the params the trace has to the paramset of associated
 	// with the digest and include the trace in slice of traces.
-	addFn := func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *tiling.Trace, _ interface{}) {
+	addFn := func(test types.TestName, digest types.Digest, traceID tiling.TraceID, trace *tiling.Trace) {
 		mutex.Lock()
 		defer mutex.Unlock()
 		key := groupingAndDigest{grouping: test, digest: digest}
