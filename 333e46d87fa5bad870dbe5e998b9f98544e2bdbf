@@ -46,6 +46,30 @@
       "revId": "333e46d87fa5bad870dbe5e998b9f98544e2bdbf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5018806f_b412b8d8",
+        "filename": "autoroll/config/chromium-skia.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-21T17:45:21Z",
+      "side": 0,
+      "message": "Ok, for now I lean toward excluding things that are just going to use the default.  I may change my mind in the future.",
+      "parentUuid": "9f52b9d6_cb351670",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 24
+      },
+      "revId": "333e46d87fa5bad870dbe5e998b9f98544e2bdbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
