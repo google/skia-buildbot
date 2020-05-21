@@ -4,7 +4,7 @@ import { setUpPuppeteerAndDemoPageServer, addEventListenersToPuppeteerPage, take
 
 describe('changelists-page-sk', () => {
   // Contains page and baseUrl.
-  const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.js'));
+  const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.ts'));
 
   beforeEach(async () => {
     const eventPromise = await addEventListenersToPuppeteerPage(testBed.page, ['end-task']);
