@@ -43,10 +43,10 @@ type CommandConfig struct {
 
 	// Dir is the directory in which to run the command, relative to the
 	// checkout path. Optional.
-	Dir string `json:"dir"`
+	Dir string `json:"dir,omitempty"`
 
 	// Env are the environment variables to supply to the command. Optional.
-	Env map[string]string `json:"env"`
+	Env map[string]string `json:"env,omitempty"`
 }
 
 // See documentation for util.Validate interface.
