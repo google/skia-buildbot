@@ -16,6 +16,47 @@
       "revId": "0cf872f0969f07a786c6729085f5ee26be388a54",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a56ec7d_fe998d4b",
+        "filename": "autoroll/config/perfetto-trace-processor-linux-chromium.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-21T17:08:45Z",
+      "side": 1,
+      "message": "In addition to, or instead of you?",
+      "parentUuid": "276cadf4_14a18716",
+      "revId": "0cf872f0969f07a786c6729085f5ee26be388a54",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57837efe_27ed751f",
+        "filename": "autoroll/config/perfetto-trace-processor-linux-chromium.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-21T17:08:45Z",
+      "side": 1,
+      "message": "Is this the right list?  This is added as a reviewer on all roll CLs.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 38
+      },
+      "revId": "0cf872f0969f07a786c6729085f5ee26be388a54",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
