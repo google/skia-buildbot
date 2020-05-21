@@ -22,6 +22,30 @@
       "revId": "333e46d87fa5bad870dbe5e998b9f98544e2bdbf",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f52b9d6_cb351670",
+        "filename": "autoroll/config/chromium-skia.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-21T17:43:50Z",
+      "side": 0,
+      "message": "Might have to decide on a per config basis. i.e. for some configs it helps to be explicit, but for others ok to leave it missing. I don\u0027t really have a preference here.",
+      "parentUuid": "b326236f_bcb42406",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 24
+      },
+      "revId": "333e46d87fa5bad870dbe5e998b9f98544e2bdbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
