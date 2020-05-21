@@ -70,6 +70,30 @@
       "revId": "4a4e86d7b2854995a3323e2cb11f8fb03b337c9f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e61fe112_6bdc71a1",
+        "filename": "autoroll/go/repo_manager/common/git_common/git_common.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-21T14:08:50Z",
+      "side": 1,
+      "message": "Moved into common.  FTR things will probably shift a little more as I work on getting the configs into a saner state.",
+      "parentUuid": "69083d6b_7e435d52",
+      "range": {
+        "startLine": 219,
+        "startChar": 19,
+        "endLine": 219,
+        "endChar": 30
+      },
+      "revId": "4a4e86d7b2854995a3323e2cb11f8fb03b337c9f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
