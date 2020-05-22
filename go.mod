@@ -52,8 +52,10 @@ require (
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
+	github.com/OneOfOne/struct2ts v1.0.4 // indirect
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/a8m/envsubst v1.1.0
+	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.31.0 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible
@@ -134,7 +136,7 @@ require (
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
 	golang.org/x/sys v0.0.0-20200515095857-1151b9dac4a9 // indirect
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
-	golang.org/x/tools v0.0.0-20200519015757-0d0afa43d58a
+	golang.org/x/tools v0.0.0-20200521211927-2b542361a4fc
 	google.golang.org/api v0.24.0
 	google.golang.org/genproto v0.0.0-20200515170657-fc4c6c6a6587
 	google.golang.org/grpc v1.29.1
