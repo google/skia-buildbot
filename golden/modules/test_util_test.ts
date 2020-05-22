@@ -1,4 +1,6 @@
+import { expect } from 'chai';
 import { $, $$ } from 'common-sk/modules/dom';
+import sinon from 'sinon';
 import {
   setUpElementUnderTest,
   eventPromise,
@@ -10,16 +12,16 @@ describe('test utilities', () => {
   describe('setUpElementUnderTest', () => {
     // We'll save references to the instances of the element under test created
     // by setUpElementUnderTest, and make assertions against them later on.
-    let instance1; let
-      instance2;
+    let instance1: HTMLMarqueeElement;
+    let instance2: HTMLMarqueeElement;
 
     // We run setUpElementUnderTest inside its own nested describe block to
     // limit the scope of the afterEach hook it sets up.
     describe('test suite with setUpElementUnderTest', () => {
       // We'll use <marquee> as the element under test.
-      const newInstance = setUpElementUnderTest('marquee');
+      const newInstance = setUpElementUnderTest<HTMLMarqueeElement>('marquee');
 
-      let element; // Instance of the element under test.
+      let element: HTMLMarqueeElement; // Instance of the element under test.
       beforeEach(() => {
         expect(
           $('marquee'),
@@ -50,7 +52,7 @@ describe('test utilities', () => {
       it('should correctly instantiate the element', () => {
         instance1 = element; // Save a reference to the current instance.
         expect(element.tagName).to.equal('MARQUEE');
-        expect($$('p', element).innerText).to.equal('hello world');
+        expect($$<HTMLParagraphElement>('p', element)!.innerText).to.equal('hello world');
       });
 
       it('should attach instance of element under test to document.body',
@@ -90,8 +92,8 @@ describe('test utilities', () => {
   });
 
   describe('event promise functions', () => {
-    let el; // Element that we'll dispatch custom events from.
-    let clock;
+    let el: HTMLDivElement; // Element that we'll dispatch custom events from.
+    let clock: sinon.SinonFakeTimers;
 
     beforeEach(() => {
       el = document.createElement('div');
@@ -106,15 +108,15 @@ describe('test utilities', () => {
 
     describe('eventPromise', () => {
       it('resolves when event is caught', async () => {
-        const hello = eventPromise('hello');
+        const hello = eventPromise<CustomEvent<string>>('hello');
         el.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'hi' }));
         const ev = await hello;
         expect(ev.detail).to.equal('hi');
       });
 
       it('one single event resolves multiple promises', async () => {
-        const hello1 = eventPromise('hello');
-        const hello2 = eventPromise('hello');
+        const hello1 = eventPromise<CustomEvent<string>>('hello');
+        const hello2 = eventPromise<CustomEvent<string>>('hello');
 
         // We'll emit two different events of the same type (see event detail).
         el.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'hi' }));
@@ -129,7 +131,7 @@ describe('test utilities', () => {
       });
 
       it('times out if event is not caught', async () => {
-        const hello = eventPromise('hello', 5000);
+        const hello = eventPromise<CustomEvent<string>>('hello', 5000);
         el.dispatchEvent(new CustomEvent('bye', { bubbles: true }));
         clock.tick(10000);
         try {
@@ -143,7 +145,7 @@ describe('test utilities', () => {
       });
 
       it('never times out if timeoutMillis=0', async () => {
-        const hello = eventPromise('hello', 0);
+        const hello = eventPromise<CustomEvent<string>>('hello', 0);
         clock.tick(Number.MAX_SAFE_INTEGER);
         el.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'hi' }));
         const ev = await hello;
