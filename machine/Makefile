@@ -1,5 +1,11 @@
-default: build package-lock.json
+default: src/machine.ts build package-lock.json
 	npx webpack --mode=development
+
+src/machine.ts: $GOPATH/bin/struct2ts ./go/machine/machine.go
+	struct2ts --interface --no-helpers --out=src/machine.ts go.skia.org/infra/machine/go/machine.Description
+
+$GOPATH/bin/struct2ts:
+	go get -u -v github.com/OneOfOne/struct2ts/...
 
 build:
 	go install -v ./go/...
