@@ -7,6 +7,8 @@
  * </p>
  */
 
+import { expect } from 'chai';
+
 /**
  * Takes a DOM element name (e.g. 'my-component-sk') and returns a factory
  * function that can be used to obtain new instances of that element.
@@ -36,13 +38,12 @@
  *     });
  *   });
  *
- * @param elementName {string} Name of the element to test, e.g. 'foo-sk'.
- * @return {Function} A factory function that optionally takes a callback which
- *     is invoked with the newly instantiated element before it is attached to
- *     the DOM.
+ * @param elementName Name of the element to test, e.g. 'foo-sk'.
+ * @return A factory function that optionally takes a callback which is invoked
+ *     with the newly instantiated element before it is attached to the DOM.
  */
-export function setUpElementUnderTest(elementName) {
-  let element;
+export function setUpElementUnderTest<T extends HTMLElement>(elementName: string): (finishSetupCallback?: (instance: T) => void) => T {
+  let element: T | null;
 
   afterEach(() => {
     if (element) {
@@ -51,9 +52,9 @@ export function setUpElementUnderTest(elementName) {
     }
   });
 
-  return (finishSetupCallbackFn) => {
-    element = document.createElement(elementName);
-    if (finishSetupCallbackFn !== undefined) {
+  return (finishSetupCallbackFn?: (instance: T) => void) => {
+    element = document.createElement(elementName) as T;
+    if (finishSetupCallbackFn) {
       finishSetupCallbackFn(element);
     }
     document.body.appendChild(element);
@@ -87,18 +88,17 @@ export function setUpElementUnderTest(elementName) {
  * tests that simulate the passing of time with sinon.useFakeTimers(), which
  * could trigger the timeout before the promise has a chance to catch the event.
  *
- * @param event {string} Name of event to catch.
- * @param timeoutMillis {number} How long to wait for the event before rejecting
- *     the returned promise.
- * @return {Promise} A promise that will resolve to the caught event.
+ * @param event Name of event to catch.
+ * @param timeoutMillis How long to wait for the event before rejecting the
+ *     returned promise.
+ * @return A promise that will resolve to the caught event.
  */
-export function eventPromise(event, timeoutMillis = 5000) {
-  const eventCaughtCallback = (resolve, _, e) => resolve(e);
-  const timeoutCallback = (_, reject) => reject(new Error(`timed out after ${timeoutMillis} ms `
-                           + `while waiting to catch event "${event}"`));
-  return buildEventPromise(
-    event, timeoutMillis, eventCaughtCallback, timeoutCallback,
-  );
+export function eventPromise<T extends Event>(event: string, timeoutMillis = 5000) {
+  const eventCaughtCallback = (resolve: (event: T) => void, _: any, e: T) => resolve(e);
+  const timeoutCallback =
+      (_: any, reject: (reason: any) => void) => reject(new Error(
+          `timed out after ${timeoutMillis} ms while waiting to catch event "${event}"`));
+  return buildEventPromise<T>(event, timeoutMillis, eventCaughtCallback, timeoutCallback);
 }
 
 /**
@@ -131,51 +131,62 @@ export function eventPromise(event, timeoutMillis = 5000) {
  * tests that simulate the passing of time with sinon.useFakeTimers(), which
  * could trigger the timeout before the promise has a chance to catch the event.
  *
- * @param event {string} Name of event to catch.
- * @param timeoutMillis {number} How long to wait for the event before rejecting
- *     the returned promise.
- * @return {Promise} A promise that will resolve to the caught event.
+ * @param event Name of event to catch.
+ * @param timeoutMillis  How long to wait for the event before rejecting the
+ *     returned promise.
+ * @return A promise that will resolve to the caught event.
  */
-export function noEventPromise(event, timeoutMillis = 200) {
-  const eventCaughtCallback = (_, reject) => reject(new Error(`event "${event}" was caught when none was expected`));
-  const timeoutCallback = (resolve, _) => resolve();
-  return buildEventPromise(
-    event, timeoutMillis, eventCaughtCallback, timeoutCallback,
-  );
+export function noEventPromise(event: string, timeoutMillis = 200) {
+  const eventCaughtCallback =
+      (_: any, reject: (reason: any) => void) =>
+          reject(new Error(`event "${event}" was caught when none was expected`));
+  const timeoutCallback = (resolve: () => void) => resolve();
+  return buildEventPromise<void>(
+    event,
+    timeoutMillis,
+    eventCaughtCallback,
+    timeoutCallback);
 }
 
 /**
  * Helper function to construct promises based on DOM events.
  *
- * @param event {string} Name of event to add a listener for at document.body.
- * @param timeoutMillis {number} Milliseconds to wait before timing out.
- * @param eventCaughtCallback {Function} Called when the event is caught with
- *     parameters (resolve, reject, event), where resolve and reject are the
- *     functions passed to the promise's executor function, and event is the
- *     Event object that was caught.
- * @param timeoutCallback Called after timeoutMillis if no event is caught, with
- *     arguments (resolve, reject) as passed to eventCaughtCallback.
- * @return {Promise} A promise that will resolve or reject based exclusively on
- *     what the callback functions do with the resolve and reject parameters.
+ * @param event Name of event to add a listener for at document.body.
+ * @param timeoutMillis Milliseconds to wait before timing out.
+ * @param eventCaughtCallback Called when the event is caught with parameters
+ *     (resolve, reject, event), where resolve and reject are the functions
+ *     passed to the promise's executor function, and event is the Event object
+ *     that was caught.
+ * @param timeoutCallback Called after timeoutMillis if no event is caught,
+ *     with arguments (resolve, reject) as passed to eventCaughtCallback.
+ * @return A promise that will resolve or reject based exclusively on what the
+ *     callback functions do with the resolve and reject parameters.
  */
-function buildEventPromise(
-  event, timeoutMillis, eventCaughtCallback, timeoutCallback,
+function buildEventPromise<T extends Event | void>(
+  event: string,
+  timeoutMillis: number,
+  eventCaughtCallback: (resolve: (value?: T | PromiseLike<T> | undefined) => void,
+                        reject: (reason?: any) => void, event: T) => void,
+  timeoutCallback: (resolve: (value?: T | PromiseLike<T> | undefined) => void,
+                    reject: (reason?: any) => void) => void,
 ) {
   // The executor function passed as a constructor argument to the Promise
   // object is executed immediately. This guarantees that the event handler
   // is added to document.body before returning.
-  return new Promise((resolve, reject) => {
-    let timeout;
-    const handler = (e) => {
+  return new Promise<T>((resolve, reject) => {
+    let timeout: number;
+
+    const handler = (e: Event) => {
       document.body.removeEventListener(event, handler);
-      clearTimeout(timeout);
-      eventCaughtCallback(resolve, reject, e);
+      window.clearTimeout(timeout);
+      eventCaughtCallback(resolve, reject, e as T);
     };
+
     // Skip setTimeout() call with timeoutMillis = 0. Useful when faking time in
     // tests with sinon.useFakeTimers(). See
     // https://sinonjs.org/releases/v7.5.0/fake-timers/.
     if (timeoutMillis !== 0) {
-      timeout = setTimeout(() => {
+      timeout = window.setTimeout(() => {
         document.body.removeEventListener(event, handler);
         timeoutCallback(resolve, reject);
       }, timeoutMillis);
@@ -188,6 +199,6 @@ function buildEventPromise(
  * Asserts that there the given string exactly matches the current query string
  * of the url bar. For example, expectQueryStringToEqual('?foo=bar&foo=orange');
  */
-export function expectQueryStringToEqual(expected) {
+export function expectQueryStringToEqual(expected: string) {
   expect(window.location.search).to.equal(expected);
 }
