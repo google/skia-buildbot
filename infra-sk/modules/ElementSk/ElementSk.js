@@ -31,8 +31,7 @@ import { upgradeProperty } from 'elements-sk/upgradeProperty'
  */
 export class ElementSk extends HTMLElement {
   /**
-   * @param {function(*): TemplateResult} [template=null] A lit-html template to be used in
-   *   _render.
+   * @param template A lit-html template to be used in _render().
    */
   constructor(template = null) {
     super();
@@ -55,6 +54,9 @@ export class ElementSk extends HTMLElement {
    * See this [Google Developers article]{@link
    *    https://developers.google.com/web/fundamentals/web-components/best-practices#lazy-properties
    *    } for more details.
+   *
+   * @param name {string} Property name.
+   * @protected
    */
   _upgradeProperty(name) {
     upgradeProperty(this, name);
@@ -63,6 +65,8 @@ export class ElementSk extends HTMLElement {
   /**
    * Renders the lit-html template found at this._template if not-null, but
    * only if connectedCallback has been called.
+   *
+   * @protected
    */
   _render() {
     if (this._connected && !!this._template) {
