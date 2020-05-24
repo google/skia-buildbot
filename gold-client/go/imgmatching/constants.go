@@ -26,6 +26,10 @@ const (
 	// algorithms FuzzyMatching and SobelFuzzyMatching.
 	PixelDeltaThreshold = AlgorithmParamOptKey("fuzzy_pixel_delta_threshold")
 
+	// IgnoredBorderThickness is the optional key used to specify the IgnoredBorderThickness
+	// parameter of algorithms FuzzyMatching and SobelFuzzyMatching.
+	IgnoredBorderThickness = AlgorithmParamOptKey("fuzzy_ignored_border_thickness")
+
 	// EdgeThreshold is the optional key used to specify the EdgeThreshold parameter of the
 	// SobelFuzzyMatching algorithm.
 	EdgeThreshold = AlgorithmParamOptKey("sobel_edge_threshold")
