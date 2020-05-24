@@ -52,14 +52,14 @@ func MakeMatcher(optionalKeys map[string]string) (AlgorithmName, Matcher, error)
 // makeFuzzyMatcher returns a fuzzy.Matcher instance set up with the parameter values in the
 // given optional keys map.
 func makeFuzzyMatcher(optionalKeys map[string]string) (*fuzzy.Matcher, error) {
-	maxDifferentPixels, err := getAndValidateIntParameter(MaxDifferentPixels, 0, math.MaxInt32, optionalKeys)
+	maxDifferentPixels, err := getAndValidateIntParameter(MaxDifferentPixels, 0, math.MaxInt32, true /* =required */, optionalKeys)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	// The maximum value corresponds to the maximum possible per-channel delta sum. This assumes four
 	// channels (R, G, B, A), each represented with 8 bits; hence 1020 = 255*4.
-	pixelDeltaThreshold, err := getAndValidateIntParameter(PixelDeltaThreshold, 0, 1020, optionalKeys)
+	pixelDeltaThreshold, err := getAndValidateIntParameter(PixelDeltaThreshold, 0, 1020, true /* =required */, optionalKeys)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -81,7 +81,7 @@ func makeSobelFuzzyMatcher(optionalKeys map[string]string) (*sobel.Matcher, erro
 
 	// This assumes the Sobel operator returns an 8-bit per-pixel value indicating how likely a pixel
 	// is to be part of an edge.
-	edgeThreshold, err := getAndValidateIntParameter(EdgeThreshold, 0, 255, optionalKeys)
+	edgeThreshold, err := getAndValidateIntParameter(EdgeThreshold, 0, 255, true /* =required */, optionalKeys)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -97,7 +97,10 @@ func makeSobelFuzzyMatcher(optionalKeys map[string]string) (*sobel.Matcher, erro
 //
 // Minimum and maximum value validation can be disabled by setting parameters min and max to
 // math.MinInt32 and math.MaxInt32, respectively.
-func getAndValidateIntParameter(name AlgorithmParamOptKey, min, max int, optionalKeys map[string]string) (int, error) {
+//
+// If required is false and the parameter is not present in the map of optional keys, a value of 0
+// will be returned.
+func getAndValidateIntParameter(name AlgorithmParamOptKey, min, max int, required bool, optionalKeys map[string]string) (int, error) {
 	// Validate bounds.
 	if min >= max {
 		// This is almost surely a programming error.
@@ -107,7 +110,10 @@ func getAndValidateIntParameter(name AlgorithmParamOptKey, min, max int, optiona
 	// Validate presence.
 	stringVal, ok := optionalKeys[string(name)]
 	if !ok {
-		return 0, skerr.Fmt("required image matching parameter not found: %q", name)
+		if required {
+			return 0, skerr.Fmt("required image matching parameter not found: %q", name)
+		}
+		return 0, nil
 	}
 
 	// Value cannot be empty.
