@@ -9,24 +9,24 @@
 $ServiceURL https://chrome-infra-packages.appspot.com/
 
 # This is the cipd client itself
-infra/tools/cipd/${os}-${arch}  git_revision:0f9f9c2747f04f0cecefab160f7fa3f353603990
+infra/tools/cipd/${os}-${arch}  git_revision:ae0579c73e57a0e6730a28509eb1b5ea71b35df5
 
 @Subdir cipd_bin_packages
-infra/3pp/tools/git/linux-amd64                  version:2.27.0-rc0.chromium.6
-infra/3pp/tools/git/linux-arm64                  version:2.27.0-rc0.chromium.6
-infra/3pp/tools/git/mac-amd64                    version:2.27.0-rc0.chromium.6
+infra/3pp/tools/git/linux-amd64                  version:2.27.0-rc1.chromium.6
+infra/3pp/tools/git/linux-arm64                  version:2.27.0-rc1.chromium.6
+infra/3pp/tools/git/mac-amd64                    version:2.27.0-rc1.chromium.6
 infra/3pp/tools/git/windows-386                  version:2.26.2.chromium.6
 infra/3pp/tools/git/windows-amd64                version:2.26.2.chromium.6
 infra/gsutil                                     version:4.46
 infra/3pp/tools/cpython/${platform}              version:2.7.17.chromium.24
-infra/tools/git/${platform}                      git_revision:0f9f9c2747f04f0cecefab160f7fa3f353603990
-infra/tools/luci-auth/${platform}                git_revision:0f9f9c2747f04f0cecefab160f7fa3f353603990
-infra/tools/luci/git-credential-luci/${platform} git_revision:0f9f9c2747f04f0cecefab160f7fa3f353603990
-infra/tools/luci/isolate/${platform}             git_revision:0f9f9c2747f04f0cecefab160f7fa3f353603990
-infra/tools/luci/isolated/${platform}            git_revision:0f9f9c2747f04f0cecefab160f7fa3f353603990
-infra/tools/luci/swarming/${platform}            git_revision:0f9f9c2747f04f0cecefab160f7fa3f353603990
-infra/tools/luci/vpython/${platform}             git_revision:0f9f9c2747f04f0cecefab160f7fa3f353603990
-skia/tools/goldctl/${platform}                   git_revision:0f9f9c2747f04f0cecefab160f7fa3f353603990
+infra/tools/git/${platform}                      git_revision:ae0579c73e57a0e6730a28509eb1b5ea71b35df5
+infra/tools/luci-auth/${platform}                git_revision:ae0579c73e57a0e6730a28509eb1b5ea71b35df5
+infra/tools/luci/git-credential-luci/${platform} git_revision:ae0579c73e57a0e6730a28509eb1b5ea71b35df5
+infra/tools/luci/isolate/${platform}             git_revision:ae0579c73e57a0e6730a28509eb1b5ea71b35df5
+infra/tools/luci/isolated/${platform}            git_revision:ae0579c73e57a0e6730a28509eb1b5ea71b35df5
+infra/tools/luci/swarming/${platform}            git_revision:ae0579c73e57a0e6730a28509eb1b5ea71b35df5
+infra/tools/luci/vpython/${platform}             git_revision:ae0579c73e57a0e6730a28509eb1b5ea71b35df5
+skia/tools/goldctl/${platform}                   git_revision:ae0579c73e57a0e6730a28509eb1b5ea71b35df5
 
 @Subdir
-infra/tools/luci/kitchen/${platform}    git_revision:0f9f9c2747f04f0cecefab160f7fa3f353603990
+infra/tools/luci/kitchen/${platform}    git_revision:ae0579c73e57a0e6730a28509eb1b5ea71b35df5
