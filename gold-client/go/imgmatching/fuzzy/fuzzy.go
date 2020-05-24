@@ -12,14 +12,17 @@ import (
 //   - The total number of different pixels is below MaxDifferentPixels.
 //   - There are no pixels such that dR + dG + dB + dA > PixelDeltaThreshold, where d{R,G,B,A} are
 //     the per-channel deltas.
+//   - If IgnoredBorderThickness > 0, then the first/last IgnoredBorderThickness rows/columns will
+//     be ignored when performing the above pixel-wise comparisons.
 //
 // It assumes 8-bit channels.
 //
 // Valid PixelDeltaThreshold values are 0 to 1020 inclusive (0 <= d{R,G,B,A} <= 255, thus
 // 0 <= dR + dG + dB + dA <= 255*4 = 1020).
 type Matcher struct {
-	MaxDifferentPixels  int
-	PixelDeltaThreshold int
+	MaxDifferentPixels     int
+	PixelDeltaThreshold    int
+	IgnoredBorderThickness int
 
 	// Debug information about the last pair of matched images.
 	actualNumDifferentPixels int
@@ -44,9 +47,10 @@ func (m *Matcher) Match(expected, actual image.Image) bool {
 	m.actualNumDifferentPixels = 0
 	m.actualMaxPixelDelta = 0
 
-	// Iterate over all pixels.
-	for x := bounds.Min.X; x <= bounds.Max.X; x++ {
-		for y := bounds.Min.Y; y <= bounds.Max.Y; y++ {
+	// Iterate over all pixels, with the exception of the ignored border pixels.
+	b := m.IgnoredBorderThickness
+	for x := (bounds.Min.X + b); x < (bounds.Max.X - b); x++ {
+		for y := (bounds.Min.Y + b); y < (bounds.Max.Y - b); y++ {
 			p1 := expectedNRGBA.NRGBAAt(x, y)
 			p2 := actualNRGBA.NRGBAAt(x, y)
 
