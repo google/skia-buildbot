@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "2aa2e5db_16124b71",
+        "filename": "golden/go/search/frontend/types.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-26T17:56:56Z",
+      "side": 1,
+      "message": "Right, I forgot about expectations.Label.",
+      "parentUuid": "d71c0dc7_4f8f5b39",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 43,
+        "endChar": 46
+      },
+      "revId": "61fde606d027468e8d33e036191e22fb6fec231c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba4d12ca_323fdcb7",
         "filename": "golden/go/search/frontend/types.go",
         "patchSetId": 3
