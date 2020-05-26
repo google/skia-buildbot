@@ -11,4 +11,4 @@ release: build
 
 .PHONY: push
 push: release pushk
-	pushk --message="$(MESSAGE)" periodic-trigger
+	pushk --message="$(MESSAGE)" --use-temp-checkout periodic-trigger
