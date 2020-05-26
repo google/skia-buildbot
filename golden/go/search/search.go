@@ -341,14 +341,13 @@ func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx i
 	resultsByGroupingAndDigest := map[groupingAndDigest]*frontend.SearchResult{}
 	talliesByTest := idx.DigestCountsByTest(q.IgnoreState())
 
-	addByGroupAndDigest := func(test types.TestName, digest types.Digest, params paramtools.Params) {
+	addByGroupAndDigest := func(test types.TestName, digest types.Digest, params paramtools.Params, tp tiling.TracePair) {
 		if !q.IncludeDigestsProducedOnMaster {
 			if _, ok := talliesByTest[test][digest]; ok {
 				return // skip this entry because it was already seen on master branch.
 			}
 		}
-		// TODO(kjlubick) If we want to include trace data in the CLs, we'll have to find a way to
-		//   derive the trace id here. This is a bit tricky because params includes optional keys.
+
 		key := groupingAndDigest{grouping: test, digest: digest}
 		existing := resultsByGroupingAndDigest[key]
 		if existing == nil {
@@ -360,6 +359,14 @@ func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx i
 			resultsByGroupingAndDigest[key] = existing
 		}
 		existing.ParamSet.AddParams(params)
+		// The trace might not exist on the master branch, but if it does, we can show it.
+		if tp.Trace != nil {
+			existing.TraceGroup.Traces = append(existing.TraceGroup.Traces, frontend.Trace{
+				ID:       tp.ID,
+				RawTrace: tp.Trace,
+				Params:   tp.Trace.Params(),
+			})
+		}
 	}
 
 	err := s.extractChangeListDigests(ctx, q, idx, exp, addByGroupAndDigest)
@@ -376,7 +383,7 @@ func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx i
 
 // filterAddFn is a filter and add function that is passed to the getIssueDigest interface. It will
 // be called for each testName/digest combination and should accumulate the digests of interest.
-type filterAddFn func(test types.TestName, digest types.Digest, params paramtools.Params)
+type filterAddFn func(test types.TestName, digest types.Digest, params paramtools.Params, tp tiling.TracePair)
 
 // extractFilterShards dictates how to break up the filtering of extractChangeListDigests after
 // they have been fetched from the TryJobStore. It was determined experimentally on
@@ -452,6 +459,7 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 	}
 	queryParams := q.TraceValues
 	ignoreMatcher := idx.GetIgnoreMatcher()
+	tracesByID := idx.Tile().GetTile(q.IgnoreState()).Traces
 
 	return util.ChunkIterParallel(ctx, len(xtr), chunkSize, func(ctx context.Context, start, stop int) error {
 		sliced := xtr[start:stop]
@@ -467,8 +475,9 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 			}
 			p := make(paramtools.Params, len(tr.ResultParams)+len(tr.GroupParams)+len(tr.Options))
 			p.Add(tr.GroupParams)
-			p.Add(tr.Options)
 			p.Add(tr.ResultParams)
+			traceID := tiling.TraceIDFromParams(p)
+			p.Add(tr.Options)
 			// Filter the ignored results
 			if !q.IncludeIgnoredTraces {
 				// Because ignores can happen on a mix of params from Result, Group, and Options,
@@ -485,9 +494,13 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 			}
 			// Filter by query.
 			if queryParams.MatchesParams(p) {
+				tp := tiling.TracePair{
+					ID:    traceID,
+					Trace: tracesByID[traceID],
+				}
 				func() {
 					addMutex.Lock()
-					addFn(tn, tr.Digest, p)
+					addFn(tn, tr.Digest, p, tp)
 					addMutex.Unlock()
 				}()
 			}

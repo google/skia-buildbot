@@ -785,8 +785,15 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 	assert.Len(t, bullheadGroup, 1)
 	assert.Len(t, options, 1)
 
+	masterBranchCommits := web_frontend.FromTilingCommits(data.MakeTestCommits())
+	masterBranchCommitsWithCL := append(masterBranchCommits, web_frontend.Commit{
+		CommitTime: 0,
+		Hash:       "TODO",
+		Author:     "TODO",
+		Subject:    "TODO",
+	})
 	assert.Equal(t, &frontend.SearchResponse{
-		Commits: web_frontend.FromTilingCommits(data.MakeTestCommits()),
+		Commits: masterBranchCommitsWithCL,
 		Offset:  0,
 		Size:    1,
 		Results: []*frontend.SearchResult{
@@ -794,20 +801,39 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 				Test:   data.BetaTest,
 				Digest: BetaBrandNewDigest,
 				Status: "untriaged",
-				ParamSet: map[string][]string{
+				ParamSet: paramtools.ParamSet{
 					"device":              {data.BullheadDevice},
 					types.PrimaryKeyField: {string(data.BetaTest)},
 					types.CorpusField:     {"gm"},
 					"ext":                 {"png"},
 				},
 				TraceGroup: frontend.TraceGroup{
+					Traces: []frontend.Trace{
+						{
+							ID: data.BullheadBetaTraceID,
+							// The master branch has digest index 1 for the 3 previous commits on master branch.
+							// Then we see index 0 (this digest) be added to the end to preview what the trace
+							// would look like if this CL were to land.
+							DigestIndices: []int{1, 1, 1, 0},
+							Params: paramtools.Params{
+								"device":              data.BullheadDevice,
+								types.PrimaryKeyField: string(data.BetaTest),
+								types.CorpusField:     "gm",
+							},
+						},
+					},
 					TileSize: 3,
 					Digests: []frontend.DigestStatus{
 						{
 							Digest: BetaBrandNewDigest,
 							Status: "untriaged",
 						},
+						{
+							Digest: data.BetaPositiveDigest,
+							Status: "positive",
+						},
 					},
+					TotalDigests: 1,
 				},
 				ClosestRef: common.PositiveRef,
 				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
@@ -896,6 +922,13 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 
 	// No ignore rules
 	mis.On("GetIgnoreMatcher").Return(paramtools.ParamMatcher{})
+	// By setting a tile to be empty, we pretend that the new results do not match anything on the
+	// master branch.
+	emptyMasterTile := tiling.NewComplexTile(&tiling.Tile{
+		Traces:   map[tiling.TraceID]*tiling.Trace{},
+		ParamSet: paramtools.ParamSet{},
+	})
+	mis.On("Tile").Return(emptyMasterTile)
 
 	s := SearchImpl{
 		indexSource:     mi,
@@ -913,7 +946,7 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 
 	alphaSeenCount := int32(0)
 	betaSeenCount := int32(0)
-	testAddFn := func(test types.TestName, digest types.Digest, _ paramtools.Params) {
+	testAddFn := func(test types.TestName, digest types.Digest, _ paramtools.Params, _ tiling.TracePair) {
 		if test == data.AlphaTest && digest == data.AlphaUntriagedDigest {
 			atomic.AddInt32(&alphaSeenCount, 1)
 		} else if test == data.BetaTest && digest == data.BetaUntriagedDigest {
