@@ -22,6 +22,30 @@
       "revId": "07a48dd0d85999e2d8664f0c5dc99247fae3d0cd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1efe271_94a785aa",
+        "filename": "gold-client/go/imgmatching/factory.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-26T20:07:14Z",
+      "side": 1,
+      "message": "Sure, I\u0027ll address this in a followup CL.",
+      "parentUuid": "f728d0ef_938c5900",
+      "range": {
+        "startLine": 55,
+        "startChar": 55,
+        "endLine": 55,
+        "endChar": 127
+      },
+      "revId": "07a48dd0d85999e2d8664f0c5dc99247fae3d0cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
