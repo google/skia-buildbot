@@ -225,6 +225,8 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 			}
 		}
 	}
+	// Normalizing the ParamSet makes the return values deterministic.
+	result.ParamSet.Normalize()
 
 	// We wrap the result in a slice so we can re-use the search functions.
 	results := []*frontend.SearchResult{&result}
@@ -368,6 +370,7 @@ func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx i
 	}
 	ret := make([]*frontend.SearchResult, 0, len(resultsByGroupingAndDigest))
 	for _, srd := range resultsByGroupingAndDigest {
+		// Normalizing the ParamSet makes the return values deterministic.
 		srd.ParamSet.Normalize()
 		ret = append(ret, srd)
 	}
@@ -547,6 +550,7 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 	idx := s.indexSource.GetIndex()
 
 	psLeft := idx.GetParamsetSummary(test, left, types.IncludeIgnoredTraces)
+	// Normalizing the ParamSet makes the return values deterministic.
 	psLeft.Normalize()
 	psRight := idx.GetParamsetSummary(test, right, types.IncludeIgnoredTraces)
 	psRight.Normalize()
@@ -622,6 +626,7 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, idx indexe
 
 	results := make([]*frontend.SearchResult, 0, len(resultsByGroupingAndDigest))
 	for _, srd := range resultsByGroupingAndDigest {
+		// Normalizing the ParamSet makes the return values deterministic.
 		srd.ParamSet.Normalize()
 		results = append(results, srd)
 	}
