@@ -29,11 +29,11 @@
     "childPath": "chromeos/profiles/airmont.afdo.newest.txt",
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/vetted/release",
-    "parentBranch": "refs/branch-heads/4147", // m84
+    "parentBranch": "refs/branch-heads/4103", // m83
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
     "shortRevRegex": "\\d+-\\d+.\\d+-\\d+-benchmark-\\d+.\\d+.\\d+.\\d+-r\\d+",
     "versionFile": "chromeos/profiles/airmont.afdo.newest.txt",
-    "versionRegex": "^chromeos-chrome-amd64-airmont-84-\\d+.\\d+-(\\d+)-benchmark-84.(\\d+).4147.(\\d+)-r(\\d+)-redacted.afdo.xz$"
+    "versionRegex": "^chromeos-chrome-amd64-airmont-83-\\d+.\\d+-(\\d+)-benchmark-83.(\\d+).4103.(\\d+)-r(\\d+)-redacted.afdo.xz$"
   },
   "kubernetes": {
     "cpu": "1",
