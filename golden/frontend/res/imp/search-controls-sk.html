@@ -176,7 +176,15 @@
 
         _handleQueryEdit: function(ev) {
           ev.stopPropagation();
-          this.set('state.query', ev.detail);
+          // TODO(kjlubick) ev.detail does not include the source_type because there was some
+          //   special logic in gold.js to add it on when the state changed. This is very confusing
+          //   and no longer works (because the corpus selector was moved into the page). Thus,
+          //   we need to append the corpus ourselves. This will be not needed when we port this
+          //   page to lit-html.
+          const existingCorpus = sk.query.toParamSet(this.state.query).source_type;
+          const newQuery = `source_type=${encodeURIComponent(existingCorpus)}&${ev.detail}`;
+          console.debug('updating search to ', newQuery);
+          this.set('state.query', newQuery);
         },
 
         _handleFilterEdit: function(ev) {
