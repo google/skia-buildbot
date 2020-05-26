@@ -16,6 +16,24 @@
       "revId": "b66d53b4573133bbeb383b58b004f199b6a59ee4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e231011c_afceaa48",
+        "filename": "gold-client/go/imgmatching/fuzzy/fuzzy_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 628,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-26T20:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "39d1bc66_543ad3e5",
+      "revId": "b66d53b4573133bbeb383b58b004f199b6a59ee4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
