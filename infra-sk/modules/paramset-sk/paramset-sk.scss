@@ -18,7 +18,7 @@ paramset-sk {
   .clickable th,
   .clickable div {
     cursor: pointer;
-    color: var(--blue);
+    color: var(--primary, --blue);
   }
 
   .clickable th:hover,
@@ -28,12 +28,12 @@ paramset-sk {
 
   .clickable_values div {
     cursor: pointer;
-    color: var(--blue);
+    color: var(--primary, --blue);
   }
 
   .clickable div.highlight,
   .clickable_values div.highlight {
-    color: var(--orange);
+    color: var(--secondary, --orange);
     animation-duration: 100ms;
     animation-name: flash;
     animation-timing-function: linear;
@@ -45,14 +45,14 @@ paramset-sk {
 
   @keyframes flash {
     from {
-      background-color: var(--white);
+      background-color: var(--surface, --white);
     }
     to {
-      background-color: var(--orange);
+      background-color: var(--surface-2dp, --orange);
     }
   }
 
   tr:nth-child(even) {
-    background-color: var(--dark-white);
+    background-color: var(--surface-1dp, --dark-white);
   }
 }

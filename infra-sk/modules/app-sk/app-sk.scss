@@ -19,11 +19,11 @@ over-ride the defaults regardless of the processing order of the CSS files.
 :root {
   --sidebar-width: 200px;
   --sidebar-horiz-padding: 5px;
-  --sidebar-background-color: var(--white);
+  --sidebar-background-color: var(--on-primary, --white);
 
   --header-height: 50px;
-  --header-background-color: var(--blue);
-  --header-font-color: var(--white);
+  --header-background-color: var(--primary, --blue);
+  --header-font-color: var(--on-primary, --white);
 
   --content-horiz-padding: 5px;
 
@@ -37,8 +37,8 @@ body {
 }
 
 app-sk {
-  color: var(--black);
-  background: var(--white);
+  color: var(--background, --black);
+  background: var(--on-background, --white);
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr;
   grid-template-rows: var(--header-height) 1fr var(--footer-height);
@@ -47,7 +47,7 @@ app-sk {
 app-sk > {
   header {
     background: var(--header-background-color);
-    padding: 0 .5em;
+    padding: 0 0.5em;
     display: flex;
     flex-flow: row;
     justify-content: flex-start;
@@ -62,7 +62,7 @@ app-sk > {
   }
 
   aside {
-    border-right: 1px solid #ddd;
+    border-right: 1px solid var(--on-surface, #ddd);
     padding: 0 var(--sidebar-horiz-padding);
     z-index: 2;
     background-color: var(--sidebar-background-color);
@@ -87,7 +87,7 @@ app-sk > {
 
   @media screen and (min-width: 480px) {
     header > .toggle-button {
-      display: none
+      display: none;
     }
 
     main {
@@ -106,7 +106,7 @@ app-sk > {
        the transitions will make it slide between the two states. */
     aside {
       position: relative;
-      left: calc(-var(--sidebar-width) - 2*var(--sidebar-horiz-padding));
+      left: calc(-var(--sidebar-width) - 2 * var(--sidebar-horiz-padding));
       transition: 0.5s;
     }
 
@@ -119,7 +119,6 @@ app-sk > {
       grid-column: 1 / span 2;
     }
   }
-
 }
 
 app-sk {
