@@ -64,9 +64,15 @@ func makeFuzzyMatcher(optionalKeys map[string]string) (*fuzzy.Matcher, error) {
 		return nil, skerr.Wrap(err)
 	}
 
+	ignoredBorderThickness, err := getAndValidateIntParameter(IgnoredBorderThickness, 0, math.MaxInt32, false /* =required */, optionalKeys)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	return &fuzzy.Matcher{
-		MaxDifferentPixels:  maxDifferentPixels,
-		PixelDeltaThreshold: pixelDeltaThreshold,
+		MaxDifferentPixels:     maxDifferentPixels,
+		PixelDeltaThreshold:    pixelDeltaThreshold,
+		IgnoredBorderThickness: ignoredBorderThickness,
 	}, nil
 }
 
