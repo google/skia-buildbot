@@ -1211,32 +1211,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "named-fiddles",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "named-fiddles",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "named-fiddles",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "particles",
           "endpoints": [
             {
@@ -3243,23 +3217,6 @@
                           },
                           "route": {
                             "cluster": "machineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "named-fiddles.skia.org",
-                      "name": "named-fiddles.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "named-fiddles",
                             "timeout": {
                               "seconds": 600
                             }
