@@ -146,10 +146,8 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "dist/clusters2.html"),
 		filepath.Join(*resourcesDir, "dist/triage.html"),
 		filepath.Join(*resourcesDir, "dist/alerts.html"),
-		filepath.Join(*resourcesDir, "dist/offline.html"),
 		filepath.Join(*resourcesDir, "dist/help.html"),
 		filepath.Join(*resourcesDir, "dist/dryRunAlert.html"),
-		filepath.Join(*resourcesDir, "dist/service-worker-bundle.js"),
 	))
 }
 
@@ -353,20 +351,6 @@ func helpHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		ctx := calc.NewContext(nil, nil)
 		if err := templates.ExecuteTemplate(w, "help.html", ctx); err != nil {
-			sklog.Error("Failed to expand template:", err)
-		}
-	}
-}
-
-// offlineHandler handles the GET of the offline page.
-func offlineHandler(w http.ResponseWriter, r *http.Request) {
-	sklog.Infof("Help Handler: %q\n", r.URL.Path)
-	if *local {
-		loadTemplates()
-	}
-	if r.Method == "GET" {
-		w.Header().Set("Content-Type", "text/html")
-		if err := templates.ExecuteTemplate(w, "offline.html", nil); err != nil {
 			sklog.Error("Failed to expand template:", err)
 		}
 	}
@@ -1497,8 +1481,6 @@ func main() {
 	router.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	router.HandleFunc("/offline", offlineHandler)
-	router.HandleFunc("/service-worker.js", scriptHandler("service-worker-bundle.js"))
 
 	// JSON handlers.
 	router.HandleFunc("/_/initpage/", initpageHandler)
