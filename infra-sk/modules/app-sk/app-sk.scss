@@ -37,8 +37,8 @@ body {
 }
 
 app-sk {
-  color: var(--background, --black);
-  background: var(--on-background, --white);
+  color: var(--on-background, --black);
+  background: var(--background, --white);
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr;
   grid-template-rows: var(--header-height) 1fr var(--footer-height);
