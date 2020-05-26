@@ -395,19 +395,9 @@ var gold = gold || {};
     // Calculates a new path given the state update and an optional new target
     // path.
     _getRedirectPath: function(updates, newTargetPath) {
-      var newState = this._addCorpus(sk.object.applyDelta(updates, this._state));
+      var newState = sk.object.applyDelta(updates, this._state);
       var targetPath = newTargetPath ||  window.location.pathname;
 
-      // TODO(stephana): Remove below if we can ever assign blame across corpora.
-      // Account for the special case when the corpus changes and there is a
-      // blame field. Then we want to go back to the by-blame-page.
-      if ((this._statusElement) && !!newState.blame) {
-        var newParams = sk.query.toParamSet(newState.query);
-        var oldParams = sk.query.toParamSet(this._state.query);
-        if (newParams.source_type[0] !== oldParams.source_type[0]) {
-          this._redirectHome();
-        }
-      }
       return targetPath + gold.queryFromState(newState);
     },
 
@@ -437,16 +427,6 @@ var gold = gold || {};
     _setUrlFromState: function() {
       history.replaceState(this._ctx.state, this._ctx.title, window.location.pathname + gold.queryFromState(this._state));
     },
-
-    // _addCorpus injects the corpus into the query string of a query object.
-    _addCorpus: function(state) {
-      var params = sk.query.toParamSet(state.query);
-      if ((!params['source_type]']) && this._statusElement) {
-        params['source_type'] = [this._statusElement.corpus];
-        state.query = sk.query.fromParamSet(params);
-      }
-      return state;
-    }
   };
 
 })();
