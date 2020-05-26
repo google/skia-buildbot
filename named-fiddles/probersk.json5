@@ -1,9 +1,0 @@
-{
-   "named-fiddles": {
-     "urls": ["https://named-fiddles.skia.org/healthz"],
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
-}

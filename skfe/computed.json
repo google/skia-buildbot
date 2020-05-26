@@ -951,6 +951,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "demosfe",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "demosfe",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "demosfe",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "docserver",
           "endpoints": [
             {
@@ -1204,32 +1230,6 @@
           ]
         },
         "name": "machineserver",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
-          "cluster_name": "named-fiddles",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "named-fiddles",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "named-fiddles",
         "type": "STRICT_DNS"
       },
       {
@@ -3081,6 +3081,23 @@
                       ]
                     },
                     {
+                      "domains": "demos.skia.org",
+                      "name": "demos.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "demosfe",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
                       "domains": "skia.org",
                       "name": "skia.org",
                       "routes": [
@@ -3243,23 +3260,6 @@
                           },
                           "route": {
                             "cluster": "machineserver",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "named-fiddles.skia.org",
-                      "name": "named-fiddles.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "named-fiddles",
                             "timeout": {
                               "seconds": 600
                             }
