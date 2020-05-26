@@ -30,6 +30,7 @@ const (
 	INSTANCE_TYPE_LINUX_MEDIUM  = "linux-medium"
 	INSTANCE_TYPE_LINUX_LARGE   = "linux-large"
 	INSTANCE_TYPE_LINUX_GPU     = "linux-gpu"
+	INSTANCE_TYPE_LINUX_AMD     = "linux-amd"
 	INSTANCE_TYPE_LINUX_SKYLAKE = "linux-skylake"
 	INSTANCE_TYPE_WIN_MEDIUM    = "win-medium"
 	INSTANCE_TYPE_WIN_LARGE     = "win-large"
@@ -111,6 +112,13 @@ func LinuxGpu(num int, setupScriptPath string) *gce.Instance {
 	vm := linuxSwarmingBot(num, gce.MACHINE_TYPE_STANDARD_8, setupScriptPath)
 	vm.Gpu = true
 	vm.MaintenancePolicy = gce.MAINTENANCE_POLICY_TERMINATE // Required for GPUs.
+	return vm
+}
+
+// Linux GCE instances with AMD CPUs (skbug.com/10269).
+func LinuxAmd(num int, setupScriptPath string) *gce.Instance {
+	vm := linuxSwarmingBot(num, gce.MACHINE_TYPE_N2D_STANDARD_16, setupScriptPath)
+	vm.MinCpuPlatform = gce.CPU_PLATFORM_AMD
 	return vm
 }
 

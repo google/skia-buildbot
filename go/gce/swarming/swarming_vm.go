@@ -41,6 +41,7 @@ var (
 		instance_types.INSTANCE_TYPE_LINUX_MEDIUM,
 		instance_types.INSTANCE_TYPE_LINUX_LARGE,
 		instance_types.INSTANCE_TYPE_LINUX_GPU,
+		instance_types.INSTANCE_TYPE_LINUX_AMD,
 		instance_types.INSTANCE_TYPE_LINUX_SKYLAKE,
 		instance_types.INSTANCE_TYPE_WIN_MEDIUM,
 		instance_types.INSTANCE_TYPE_WIN_LARGE,
@@ -118,6 +119,9 @@ func main() {
 	case instance_types.INSTANCE_TYPE_LINUX_GPU:
 		zone = gce.ZONE_GPU
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxGpu(num, setupScript) }
+	case instance_types.INSTANCE_TYPE_LINUX_AMD:
+		zone = gce.ZONE_AMD
+		getInstance = func(num int) *gce.Instance { return instance_types.LinuxAmd(num, setupScript) }
 	case instance_types.INSTANCE_TYPE_LINUX_SKYLAKE:
 		zone = gce.ZONE_SKYLAKE
 		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSkylake(num, setupScript) }
