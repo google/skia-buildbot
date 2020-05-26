@@ -27,6 +27,7 @@ import (
 const (
 	ACCELERATOR_TYPE_NVIDIA_TESLA_K80 = "projects/google.com:skia-buildbots/zones/us-east1-d/acceleratorTypes/nvidia-tesla-k80"
 
+	CPU_PLATFORM_AMD     = "AMD Rome"
 	CPU_PLATFORM_SKYLAKE = "Intel Skylake"
 
 	// Labels can only contain lowercase letters, numbers, underscores, and dashes.
@@ -56,6 +57,8 @@ const (
 	MACHINE_TYPE_STANDARD_32 = "n1-standard-32"
 	MACHINE_TYPE_STANDARD_4  = "n1-standard-4"
 	MACHINE_TYPE_STANDARD_8  = "n1-standard-8"
+	// https://cloud.google.com/compute/docs/machine-types#n2d_machine_types
+	MACHINE_TYPE_N2D_STANDARD_16 = "n2d-standard-16"
 
 	MAINTENANCE_POLICY_MIGRATE   = "MIGRATE"
 	MAINTENANCE_POLICY_TERMINATE = "TERMINATE"
@@ -85,6 +88,7 @@ const (
 	USER_CHROME_BOT = "chrome-bot"
 	USER_DEFAULT    = "default"
 
+	ZONE_CENTRAL1_A = "us-central1-a"
 	ZONE_CENTRAL1_B = "us-central1-b"
 	ZONE_CENTRAL1_C = "us-central1-c"
 	ZONE_EAST1_D    = "us-east1-d"
@@ -93,6 +97,8 @@ const (
 	ZONE_DEFAULT = ZONE_CENTRAL1_C
 	ZONE_GPU     = ZONE_EAST1_D
 	ZONE_SKYLAKE = ZONE_CENTRAL1_B
+	// On 5/20/20 "AMD Rome" was only available on us-central1-a and us-central1-f in us-central (https://cloud.google.com/compute/docs/regions-zones#available)
+	ZONE_AMD = ZONE_CENTRAL1_A
 
 	diskStatusError = "ERROR"
 	diskStatusReady = "READY"
