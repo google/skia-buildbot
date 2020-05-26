@@ -1,5 +1,12 @@
-default: build package-lock.json
+default: ./modules/json/machine.ts build package-lock.json
 	npx webpack --mode=development
+
+./modules/json/machine.ts: $GOPATH/bin/struct2ts ./go/machine/machine.go
+	-mkdir -p modules/json/
+	struct2ts --interface --no-helpers --out=./modules/json/machine.ts machine.Description
+
+$GOPATH/bin/struct2ts:
+	go get -u -v github.com/OneOfOne/struct2ts/...
 
 build:
 	go install -v ./go/...
