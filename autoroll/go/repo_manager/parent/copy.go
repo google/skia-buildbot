@@ -9,7 +9,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -37,7 +36,7 @@ func (e CopyEntry) Validate() error {
 // CopyConfig provides configuration for a Parent which copies the Child
 // into itself. It uses a local git checkout and uploads changes to Gerrit.
 type CopyConfig struct {
-	GitCheckoutGerritConfig
+	GitCheckoutConfig
 
 	// Copies indicates which files and directories to copy from the
 	// Child into the Parent.
@@ -46,7 +45,7 @@ type CopyConfig struct {
 
 // See documentation for util.Validator interface.
 func (c CopyConfig) Validate() error {
-	if err := c.GitCheckoutGerritConfig.Validate(); err != nil {
+	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}
 	if len(c.Copies) == 0 {
@@ -61,8 +60,8 @@ func (c CopyConfig) Validate() error {
 }
 
 // NewCopy returns a Parent implementation which copies the Child into itself.
-// It uses a local git checkout and uploads changes to Gerrit.
-func NewCopy(ctx context.Context, c CopyConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, userName, userEmail string, dep child.Child, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
+// It uses a local git checkout.
+func NewCopy(ctx context.Context, c CopyConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, userName, userEmail string, dep child.Child) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -104,5 +103,5 @@ func NewCopy(ctx context.Context, c CopyConfig, reg *config_vars.Registry, clien
 		return createRollHelper(ctx, co, from, to, rolling, commitMsg)
 	}
 
-	return NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, nil, createRoll, uploadRoll)
+	return NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, nil, createRoll)
 }
