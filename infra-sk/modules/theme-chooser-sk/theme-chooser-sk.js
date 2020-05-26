@@ -11,20 +11,31 @@
  * additional classes are provided for convenience (primary-container-theme-sk,
  * secondary-container-theme-sk, surface, etc)
  * </p>
+ *
  * <p>
  * To change the color themes override the css variables in a ':root' selector.
  * </p>
+ *
+ * @evt theme-chooser-toggle Sent when the theme has changed. The detail contains
+ *   the darkmode value:
+ *
+ *   <pre>
+ *     detail {
+ *       darkmode: true,
+ *     }
+ *   </pre>
+ *
  */
-import { define } from 'elements-sk/define'
-import { ElementSk } from '../ElementSk'
-import { html } from 'lit-html'
-import 'elements-sk/icon/invert-colors-icon-sk'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { ElementSk } from '../ElementSk';
+import 'elements-sk/icon/invert-colors-icon-sk';
 
 // Class applied to <body> to enable darkmode, and the key in localstorage to
 // persist it.
 const kDarkmodeClass = 'darkmode';
 
-const template = (ele) => html`<invert-colors-icon-sk></invert-colors-icon-sk>`;
+const template = () => html`<invert-colors-icon-sk></invert-colors-icon-sk>`;
 // TODO(weston): Add logic to optionally automatically compute the --on-*
 // colors to white or black based on color brightness for accessibility.
 define('theme-chooser-sk', class extends ElementSk {
@@ -36,12 +47,25 @@ define('theme-chooser-sk', class extends ElementSk {
     super.connectedCallback();
     this._render();
     this.addEventListener('click', this._toggleTheme);
-    document.body.classList.toggle(kDarkmodeClass, window.localStorage.getItem(kDarkmodeClass) === 'true');
+
+    // Set the class correctly based on window.localStorage.
+    this.darkmode = this.darkmode; // eslint-disable-line no-self-assign
   }
 
   _toggleTheme() {
-    const classlist = document.body.classList;
-    classlist.toggle(kDarkmodeClass);
-    window.localStorage.setItem(kDarkmodeClass, classlist.contains(kDarkmodeClass).toString())
+    this.darkmode = !this.darkmode;
+  }
+
+  /** @prop darkmode {bool} True if we are in darkmode. */
+  get darkmode() {
+    return window.localStorage.getItem(kDarkmodeClass) === 'true';
+  }
+
+  set darkmode(val) {
+    // Force to be a bool.
+    val = !!val;
+    window.localStorage.setItem(kDarkmodeClass, val);
+    document.body.classList.toggle(kDarkmodeClass, this.darkmode);
+    this.dispatchEvent(new CustomEvent('theme-chooser-toggle', { detail: { darkmode: val }, bubbles: true }));
   }
 });
