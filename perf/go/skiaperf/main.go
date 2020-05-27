@@ -682,6 +682,7 @@ func clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	auditlog.Log(r, "cluster", req)
 	id, err := clusterRequests.Add(context.Background(), req)
+	sklog.Infof("Added to clusterRequests")
 	if err != nil {
 		httputils.ReportError(w, err, "Cluster request was invalid", http.StatusInternalServerError)
 		return
