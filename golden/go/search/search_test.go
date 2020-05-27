@@ -185,7 +185,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 						DiffMetrics: makeBigDiffMetric(),
 						Digest:      data.BetaPositiveDigest,
 						Status:      "positive",
-						ParamSet: map[string][]string{
+						ParamSet: paramtools.ParamSet{
 							"device":              {data.AnglerDevice, data.BullheadDevice},
 							types.PrimaryKeyField: {string(data.BetaTest)},
 							types.CorpusField:     {"gm"},
@@ -195,6 +195,10 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					common.NegativeRef: nil,
 				},
 			},
+		},
+		BulkTriageData: map[types.Digest]types.Digest{
+			data.AlphaUntriagedDigest: data.AlphaPositiveDigest,
+			data.BetaUntriagedDigest:  data.BetaPositiveDigest,
 		},
 	}, resp)
 }
@@ -235,6 +239,11 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	assert.Equal(t, resp.Size, 2)
 	// This checks that the returned result is the first one of the results we expect.
 	assert.Equal(t, data.AlphaUntriagedDigest, resp.Results[0].Digest)
+	// BulkTriageData should still be fully filled out for all digests in the full results.
+	assert.Equal(t, map[types.Digest]types.Digest{
+		data.AlphaUntriagedDigest: data.AlphaPositiveDigest,
+		data.BetaUntriagedDigest:  data.BetaPositiveDigest,
+	}, resp.BulkTriageData)
 
 	q.Offset = 1
 	q.Limit = 100 // There's only 2 results in the total search, i.e. one remaining, so set this
@@ -247,6 +256,11 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	assert.Equal(t, resp.Size, 2)
 	// This checks that the returned result is the second one of the results we expect.
 	assert.Equal(t, data.BetaUntriagedDigest, resp.Results[0].Digest)
+	// BulkTriageData should still be fully filled out for all digests in the full results.
+	assert.Equal(t, map[types.Digest]types.Digest{
+		data.AlphaUntriagedDigest: data.AlphaPositiveDigest,
+		data.BetaUntriagedDigest:  data.BetaPositiveDigest,
+	}, resp.BulkTriageData)
 }
 
 // TestSearchThreeDevicesQueries searches over the three_devices test data using a variety
@@ -827,6 +841,9 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 					common.NegativeRef: nil,
 				},
 			},
+		},
+		BulkTriageData: map[types.Digest]types.Digest{
+			BetaBrandNewDigest: data.BetaPositiveDigest,
 		},
 	}, resp)
 
