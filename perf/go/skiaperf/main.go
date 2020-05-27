@@ -1420,8 +1420,8 @@ func alertNotifyTryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
-	fileServer := http.FileServer(http.Dir(*resourcesDir))
+func makeDistHandler() func(http.ResponseWriter, *http.Request) {
+	fileServer := http.StripPrefix("/dist", http.FileServer(distFileSystem))
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "max-age=300")
 		fileServer.ServeHTTP(w, r)
@@ -1500,8 +1500,7 @@ func main() {
 	// Resources are served directly.
 	router := mux.NewRouter()
 
-	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
-	router.PathPrefix("/dist/").HandlerFunc(makeResourceHandler())
+	router.PathPrefix("/dist/").HandlerFunc(makeDistHandler())
 
 	// Redirects for the old Perf URLs.
 	router.HandleFunc("/", oldMainHandler)
