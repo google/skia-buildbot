@@ -365,6 +365,10 @@ define('cluster-page-sk', class extends ElementSk {
       },
     };
     this._summaries = [];
+    // Set a value for _requestId so the spinner starts, and we don't start
+    // another request too soon.
+    this._requestId = 'pending';
+    this._render();
     fetch('/_/cluster/start', {
       method: 'POST',
       body: JSON.stringify(body),
