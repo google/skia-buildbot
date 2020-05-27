@@ -70,6 +70,30 @@
       "revId": "b14369033ffeebbce88e12943b80983e47887046",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d8b763df_d0d0c8ea",
+        "filename": "go/gce/swarming/instance_types/instance_types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-27T14:04:10Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "adc187f6_fdc6274e",
+      "range": {
+        "startLine": 33,
+        "startChar": 38,
+        "endLine": 33,
+        "endChar": 41
+      },
+      "revId": "b14369033ffeebbce88e12943b80983e47887046",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
