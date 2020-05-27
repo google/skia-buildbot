@@ -46,6 +46,30 @@
       "revId": "b14369033ffeebbce88e12943b80983e47887046",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "adc187f6_fdc6274e",
+        "filename": "go/gce/swarming/instance_types/instance_types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-27T13:27:03Z",
+      "side": 1,
+      "message": "Ok, I think I\u0027d prefer to have a standard format for these, but as long as they\u0027re all presented as options in the CLI, it\u0027s not a big deal.",
+      "parentUuid": "3cbd1827_ffdb44e9",
+      "range": {
+        "startLine": 33,
+        "startChar": 38,
+        "endLine": 33,
+        "endChar": 41
+      },
+      "revId": "b14369033ffeebbce88e12943b80983e47887046",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
