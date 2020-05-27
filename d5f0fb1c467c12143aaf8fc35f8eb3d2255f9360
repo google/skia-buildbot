@@ -2,6 +2,46 @@
   "comments": [
     {
       "key": {
+        "uuid": "61e16eb4_25f139eb",
+        "filename": "autoroll/bin/create-autoroll-be-pdfium-sa.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 6605
+      },
+      "writtenOn": "2020-05-27T17:03:56Z",
+      "side": 1,
+      "message": "I\u0027m guessing $PROJECT_SUBDOMAIN and $PROJECT_ID are set externally?",
+      "range": {
+        "startLine": 12,
+        "startChar": 23,
+        "endLine": 12,
+        "endChar": 40
+      },
+      "revId": "d5f0fb1c467c12143aaf8fc35f8eb3d2255f9360",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a5d74700_5f9ac017",
+        "filename": "autoroll/bin/create-autoroll-be-pdfium-sa.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 6605
+      },
+      "writtenOn": "2020-05-27T17:03:56Z",
+      "side": 1,
+      "message": "nit: https://google.github.io/styleguide/shellguide.html#line-length-and-long-strings says wrap at 80 columns.",
+      "revId": "d5f0fb1c467c12143aaf8fc35f8eb3d2255f9360",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8277dded_7bc7c38b",
         "filename": "autoroll/config/catapult-pdfium.json",
         "patchSetId": 2
@@ -49,6 +89,41 @@
       "side": 1,
       "message": "I defer to Lei.\n\nI\u0027m not sure which internal list would be appropriate.\nAs for an external list, maybe pdfium+autoroller@googlegroups.com?",
       "parentUuid": "c02d6443_07240848",
+      "revId": "d5f0fb1c467c12143aaf8fc35f8eb3d2255f9360",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4fb8fb0b_138c08a4",
+        "filename": "autoroll/config/catapult-pdfium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 6605
+      },
+      "writtenOn": "2020-05-27T17:03:56Z",
+      "side": 1,
+      "message": "Feel free to add me.",
+      "parentUuid": "c86ad93c_758e6378",
+      "revId": "d5f0fb1c467c12143aaf8fc35f8eb3d2255f9360",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f31abdd2_ea061d4c",
+        "filename": "autoroll/config/catapult-pdfium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 6605
+      },
+      "writtenOn": "2020-05-27T17:03:56Z",
+      "side": 1,
+      "message": "BTW, what time zone is this?",
       "revId": "d5f0fb1c467c12143aaf8fc35f8eb3d2255f9360",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
