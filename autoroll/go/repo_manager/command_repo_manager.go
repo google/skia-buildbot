@@ -43,10 +43,10 @@ type CommandConfig struct {
 
 	// Dir is the directory in which to run the command, relative to the
 	// checkout path. Optional.
-	Dir string `json:"dir"`
+	Dir string `json:"dir,omitempty"`
 
 	// Env are the environment variables to supply to the command. Optional.
-	Env map[string]string `json:"env"`
+	Env map[string]string `json:"env,omitempty"`
 }
 
 // See documentation for util.Validate interface.
@@ -137,6 +137,11 @@ func NewCommandRepoManager(ctx context.Context, c CommandRepoManagerConfig, reg 
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	if c.ShortRevRegex != nil {
+		if err := reg.Register(c.ShortRevRegex); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
 	var rm *CommandRepoManager
 	createRoll := func(ctx context.Context, co *git.Checkout, from, to *revision.Revision, _ []*revision.Revision, commitMsg string) (string, error) {
 		vars := &CommandTmplVars{
@@ -209,7 +214,7 @@ func (rm *CommandRepoManager) run(ctx context.Context, cmd *CommandConfig, vars 
 	if err != nil {
 		return "", skerr.Wrap(err)
 	}
-	sklog.Errorf("Running: %s %s", c.Name, strings.Join(c.Args, " "))
+	sklog.Infof("Running: %s %s", c.Name, strings.Join(c.Args, " "))
 	out, err := exec.RunCommand(ctx, c)
 	if err != nil {
 		return out, err
@@ -226,12 +231,18 @@ func (rm *CommandRepoManager) Update(ctx context.Context) (*revision.Revision, *
 	if err != nil {
 		return nil, nil, nil, skerr.Wrap(err)
 	}
-	tipRev := &revision.Revision{Id: tipRevStr}
+	tipRev, err := rm.GetRevision(ctx, tipRevStr)
+	if err != nil {
+		return nil, nil, nil, skerr.Wrap(err)
+	}
 	lastRollRevStr, err := rm.run(ctx, rm.getPinnedRev, nil)
 	if err != nil {
 		return nil, nil, nil, skerr.Wrap(err)
 	}
-	lastRollRev := &revision.Revision{Id: lastRollRevStr}
+	lastRollRev, err := rm.GetRevision(ctx, lastRollRevStr)
+	if err != nil {
+		return nil, nil, nil, skerr.Wrap(err)
+	}
 	var notRolledRevs []*revision.Revision
 	if lastRollRevStr != tipRevStr {
 		notRolledRevs = append(notRolledRevs, tipRev)
