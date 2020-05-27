@@ -1,18 +1,33 @@
 {
-  "URL": "http://localhost:8001",
+  "URL": "https://perf.skia.org",
   "data_store_config": {
+    "datastore_type": "gcp",
+    "connection_string": "/tmp/nano",
     "tile_size": 256,
-    "datastore_type": "sqlite3",
-    "connection_string": "/tmp/perf-demo.db"
+    "project": "skia-public",
+    "instance": "production",
+    "table": "perf-skia",
+    "shards": 8,
+    "namespace": "perf"
   },
   "ingestion_config": {
     "source_config": {
-      "source_type": "dir",
-      "sources": ["./integration/data"]
-    }
+      "source_type": "gcs",
+      "project": "skia-public",
+      "topic": "perf-ingestion-skia-production",
+      "sources": [
+        "gs://skia-perf/nano-json-v1",
+        "gs://skia-perf/task-duration",
+        "gs://skia-perf/buildstats-json-v1"
+      ]
+    },
+    "branches": [],
+    "file_ingestion_pubsub_topic_name": ""
   },
   "git_repo_config": {
-    "url": "https://github.com/skia-dev/perf-demo-repo.git",
-    "dir": "/tmp/demo-repo"
+    "url": "https://skia.googlesource.com/skia",
+    "dir": "/tmp/repo",
+    "debounce_commit_url": false,
+    "file_change_marker": "infra/bots/assets/skp/VERSION"
   }
 }
