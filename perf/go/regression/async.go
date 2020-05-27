@@ -186,8 +186,13 @@ func (fr *RunningRegressionDetectionRequests) background() {
 // the ID of the process to be used in calls to Status() and
 // Response().
 func (fr *RunningRegressionDetectionRequests) Add(ctx context.Context, req *RegressionDetectionRequest) (string, error) {
+	sklog.Info("RunningRegressionDetectionRequests.Add")
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
+
+	// We don't support GroupBy so just copy the Query over.
+	req.Query = req.Alert.Query
+	req.TotalQueries = 1
 	if req.Alert.Interesting == 0 {
 		req.Alert.Interesting = fr.defaultInteresting
 	}
