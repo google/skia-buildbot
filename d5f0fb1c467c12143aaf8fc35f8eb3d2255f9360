@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8277dded_7bc7c38b",
+        "filename": "autoroll/config/catapult-pdfium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 9801
+      },
+      "writtenOn": "2020-05-27T16:22:56Z",
+      "side": 1,
+      "message": "Would you be able to add thestig@ as another contact for all four configs?",
+      "revId": "d5f0fb1c467c12143aaf8fc35f8eb3d2255f9360",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
