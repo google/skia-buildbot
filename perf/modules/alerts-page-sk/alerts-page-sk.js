@@ -31,12 +31,12 @@ function _ifNotActive(s) {
 
 const _rows = (ele) => ele._alerts.map((item) => html`
     <tr>
-      <td><create-icon-sk title='Edit' @click=${ele._edit} .__config=${item}></create-icon-sk></td>
+      <td><create-icon-sk title='Edit' @click=${ele._edit} .__config=${item} ?disabled=${!ele._email}></create-icon-sk></td>
       <td>${item.display_name}</td>
       <td><query-summary-sk selection=${item.query}></query-summary-sk></td>
       <td>${item.alert}</td>
       <td>${item.owner}</td>
-      <td><delete-icon-sk title='Delete' @click=${ele._delete} .__config=${item}></delete-icon-sk></td>
+      <td><delete-icon-sk title='Delete' @click=${ele._delete} .__config=${item} ?disabled=${!ele._email}></delete-icon-sk></td>
       <td><a href=${_dryrunUrl(item)}><build-icon-sk title='Dry Run'></build-icon-sk></td>
       <td>${_ifNotActive(item.state)}</td>
     </tr>
@@ -66,9 +66,16 @@ const template = (ele) => html`
   <div class=warning ?hidden=${!!ele._alerts.length} >
     No alerts have been configured.
   </div>
-  <button class=fab @click=${ele._add}>+</button>
+  <button class=fab @click=${ele._add} ?disabled=${!ele._email}>+</button>
   <checkbox-sk ?checked=${ele._showDeleted} @change=${ele._showChanged} label='Show deleted configs.'></checkbox-sk>
 `;
+
+const okOrThrow = async (resp) => {
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(text);
+  }
+};
 
 define('alerts-page-sk', class extends ElementSk {
   constructor() {
@@ -146,6 +153,10 @@ define('alerts-page-sk', class extends ElementSk {
   }
 
   _edit(e) {
+    if (!this._email) {
+      errorMessage('You must be logged in to edit alerts.');
+      return;
+    }
     this._startEditing(e.target.__config);
   }
 
@@ -172,7 +183,7 @@ define('alerts-page-sk', class extends ElementSk {
       headers: {
         'Content-Type': 'application/json',
       },
-    }).then(() => {
+    }).then(okOrThrow).then(() => {
       this._list();
     }).catch(errorMessage);
   }
@@ -180,7 +191,9 @@ define('alerts-page-sk', class extends ElementSk {
   _delete(e) {
     fetch(`/_/alert/delete/${e.target.__config.id}`, {
       method: 'POST',
-    }).then(() => this._list()).catch(errorMessage);
+    }).then(okOrThrow).then(() => {
+      this._list();
+    }).catch(errorMessage);
   }
 
   /** @prop cfg {string} The alert config being edited. */

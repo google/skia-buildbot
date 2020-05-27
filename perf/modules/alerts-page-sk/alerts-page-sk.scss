@@ -18,6 +18,12 @@ alerts-page-sk {
   td > delete-icon-sk:hover {
     background: var(--dark-white);
   }
+
+  create-icon-sk[disabled],
+  delete-icon-sk[disabled],
+  button.fab[disabled] {
+    opacity: 0.2;
+  }
 }
 
 alerts-page-sk > {
