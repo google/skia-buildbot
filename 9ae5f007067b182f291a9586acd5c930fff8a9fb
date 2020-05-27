@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "509f06ca_ba32ca50",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 801,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-27T17:31:50Z",
+      "side": 1,
+      "message": "Out-of-scope suggestion (can be addressed in a follow CL, if accepted):\n\n- It\u0027s not clear what the inputs and outputs are at first glance. Maybe renaming the function as \"addFrontEndTraceDataToTraceGroup\" and reordering traceGroup to be the first parameter in the list would be clearer.",
+      "range": {
+        "startLine": 801,
+        "startChar": 5,
+        "endLine": 801,
+        "endChar": 28
+      },
+      "revId": "9ae5f007067b182f291a9586acd5c930fff8a9fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cdffa620_1973f01f",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1767,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-27T17:31:50Z",
+      "side": 1,
+      "message": "Nit: Can you add /* \u003dparamName */ comments for \"whatever\", nil and true?",
+      "range": {
+        "startLine": 1767,
+        "startChar": 27,
+        "endLine": 1767,
+        "endChar": 73
+      },
+      "revId": "9ae5f007067b182f291a9586acd5c930fff8a9fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
