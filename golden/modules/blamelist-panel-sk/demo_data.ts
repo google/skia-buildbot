@@ -118,3 +118,13 @@ export const blamelist19: Commit[] = [
     message: 'Roll third_party/externals/dawn 00b90ea83262..88f2ec853f80 (',
   },
 ];
+
+export const clBlamelist: Commit[] = [
+  {
+    commit_time: 1584600001,
+    hash: '12345',
+    author: 'skia-autoroll (skia-autoroll@example.com)',
+    message: 'Roll third_party/externals/dawn 00b90ea83262..88f2ec853f80 (',
+    is_cl: true,
+  },
+];
