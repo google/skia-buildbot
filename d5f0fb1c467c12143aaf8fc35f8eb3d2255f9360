@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5255fb77_113585fe",
+        "filename": "autoroll/bin/create-autoroll-be-pdfium-sa.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-27T18:24:02Z",
+      "side": 1,
+      "message": "Yes, they\u0027re set in kube/config.sh",
+      "parentUuid": "61e16eb4_25f139eb",
+      "range": {
+        "startLine": 12,
+        "startChar": 23,
+        "endLine": 12,
+        "endChar": 40
+      },
+      "revId": "d5f0fb1c467c12143aaf8fc35f8eb3d2255f9360",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a5d74700_5f9ac017",
         "filename": "autoroll/bin/create-autoroll-be-pdfium-sa.sh",
         "patchSetId": 2
@@ -39,6 +63,24 @@
       "revId": "d5f0fb1c467c12143aaf8fc35f8eb3d2255f9360",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9539d5f7_b0893d52",
+        "filename": "autoroll/bin/create-autoroll-be-pdfium-sa.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-27T18:24:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a5d74700_5f9ac017",
+      "revId": "d5f0fb1c467c12143aaf8fc35f8eb3d2255f9360",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -113,6 +155,24 @@
     },
     {
       "key": {
+        "uuid": "a2033818_2937f191",
+        "filename": "autoroll/config/catapult-pdfium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-27T18:24:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4fb8fb0b_138c08a4",
+      "revId": "d5f0fb1c467c12143aaf8fc35f8eb3d2255f9360",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f31abdd2_ea061d4c",
         "filename": "autoroll/config/catapult-pdfium.json",
         "patchSetId": 2
@@ -124,6 +184,24 @@
       "writtenOn": "2020-05-27T17:03:56Z",
       "side": 1,
       "message": "BTW, what time zone is this?",
+      "revId": "d5f0fb1c467c12143aaf8fc35f8eb3d2255f9360",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "703a91f7_92b9f24f",
+        "filename": "autoroll/config/catapult-pdfium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-27T18:24:02Z",
+      "side": 1,
+      "message": "GMT.  We can adjust this if you\u0027d like.",
+      "parentUuid": "f31abdd2_ea061d4c",
       "revId": "d5f0fb1c467c12143aaf8fc35f8eb3d2255f9360",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
