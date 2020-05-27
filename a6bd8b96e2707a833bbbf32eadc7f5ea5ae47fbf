@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ce43a80_b1251ee6",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-27T18:02:06Z",
+      "side": 1,
+      "message": "It would be nice to include the \"why\", that is, the rationale for this change here in the commit message.",
+      "revId": "a6bd8b96e2707a833bbbf32eadc7f5ea5ae47fbf",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
