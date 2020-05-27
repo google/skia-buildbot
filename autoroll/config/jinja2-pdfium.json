@@ -1,0 +1,47 @@
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childDisplayName": "Jinja2",
+  "commitMsg": {
+    "bugProject": "pdfium",
+    "childLogURLTmpl": "https://chromium.googlesource.com/chromium/src/third_party/jinja2.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeRevisionCount": true,
+    "includeTbrLine": true
+  },
+  "contacts": [
+    "dhoss@chromium.org",
+    "thestig@chromium.org"
+  ],
+  "gerrit": {
+    "url": "https://pdfium-review.googlesource.com",
+    "project": "pdfium",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentDisplayName": "PDFium",
+  "parentWaterfall": "https://ci.chromium.org/p/pdfium/g/main/console",
+  "rollerName": "jinja2-pdfium",
+  "serviceAccount": "pdfium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "pdfium-reviews+autoroller@googlegroups.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "third_party/jinja2",
+    "childRepo": "https://chromium.googlesource.com/chromium/src/third_party/jinja2.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/chromium/src/third_party/jinja2.git/+show/%s",
+    "parentBranch": "master",
+    "parentRepo": "https://pdfium.googlesource.com/pdfium.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "22d",
+  "timeWindow": "M 04:00-08:00"
+}
