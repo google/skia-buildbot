@@ -794,14 +794,13 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 				Test:   data.BetaTest,
 				Digest: BetaBrandNewDigest,
 				Status: "untriaged",
-				ParamSet: map[string][]string{
+				ParamSet: paramtools.ParamSet{
 					"device":              {data.BullheadDevice},
 					types.PrimaryKeyField: {string(data.BetaTest)},
 					types.CorpusField:     {"gm"},
 					"ext":                 {"png"},
 				},
 				TraceGroup: frontend.TraceGroup{
-					TileSize: 3,
 					Digests: []frontend.DigestStatus{
 						{
 							Digest: BetaBrandNewDigest,
@@ -1654,7 +1653,7 @@ func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
 			}
 			tg := frontend.TraceGroup{Traces: traces}
 
-			s.fillInFrontEndTraceData("whatever", d0, len(inputDigests)-1, stubClassifier, &tg, nil)
+			s.fillInFrontEndTraceData("whatever", d0, stubClassifier, &tg, nil)
 			require.Len(t, tg.Traces, 1)
 			assert.Equal(t, expectedData, tg.Traces[0].DigestIndices)
 		})
@@ -1719,7 +1718,7 @@ func TestGetDrawableTraces_TotalDigestsCorrect(t *testing.T) {
 				})
 			}
 			tg := frontend.TraceGroup{Traces: traces}
-			s.fillInFrontEndTraceData("whatever", d0, len(inputTraceDigests[0])-1, stubClassifier, &tg, nil)
+			s.fillInFrontEndTraceData("whatever", d0, stubClassifier, &tg, nil)
 			require.Len(t, tg.Traces, len(inputTraceDigests))
 			assert.Equal(t, totalUniqueDigests, tg.TotalDigests)
 		})
