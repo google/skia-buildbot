@@ -1,0 +1,52 @@
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childDisplayName": "Perfetto Trace Processor Win",
+  "commitMsg": {
+    "includeTbrLine": true
+  },
+  "contacts": [
+    "chrometto-team@google.com"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentDisplayName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "perfetto-trace-processor-win-chromium",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "perfetto-bugs@google.com"
+  ],
+  "commandRepoManager": {
+    "branch": "master",
+    "repoURL": "https://chromium.googlesource.com/chromium/src.git",
+    "shortRevRegex": ".*\\/([a-f0-9]{12})[a-f0-9]{28}\\/.*",
+    "getTipRev": {
+      "command": ["./roll_trace_processor", "--platform", "win", "--print-latest"],
+      "dir": "tools/perf/core/perfetto_binary_roller"
+    },
+    "getPinnedRev": {
+      "command": ["./roll_trace_processor", "--platform", "win", "--print-current"],
+      "dir": "tools/perf/core/perfetto_binary_roller"
+    },
+    "setPinnedRev": {
+      "command": ["./roll_trace_processor", "--platform", "win", "--path", "{{.RollingTo}}"],
+      "dir": "tools/perf/core/perfetto_binary_roller"
+    },
+  },
+  "kubernetes": {
+    "cpu": "8",
+    "disk": "50Gi",
+    "memory": "16Gi",
+    "readinessInitialDelaySeconds": "600",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
