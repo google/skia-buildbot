@@ -34,6 +34,24 @@
       "revId": "d5f0fb1c467c12143aaf8fc35f8eb3d2255f9360",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c86ad93c_758e6378",
+        "filename": "autoroll/config/catapult-pdfium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 9801
+      },
+      "writtenOn": "2020-05-27T16:34:16Z",
+      "side": 1,
+      "message": "I defer to Lei.\n\nI\u0027m not sure which internal list would be appropriate.\nAs for an external list, maybe pdfium+autoroller@googlegroups.com?",
+      "parentUuid": "c02d6443_07240848",
+      "revId": "d5f0fb1c467c12143aaf8fc35f8eb3d2255f9360",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
