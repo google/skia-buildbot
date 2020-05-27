@@ -1,5 +1,5 @@
 .PHONY: build
-build: web ingest_json_validator
+build: ./dist ingest_json_validator
 	go install -v ./go/...
 
 # The command line tool that embeds plain files into Go code.
@@ -9,14 +9,21 @@ ${GOPATH}/bin/rice:
 go/sql/migrations/cockroachdb/rice-box.go: $(wildcard ./migrations/cockroachdb/*) ${GOPATH}/bin/rice
 	cd go/sql/migrations/cockroachdb; rice embed-go
 
-go/sql/migrations/sqlite3/rice-box.go:  $(wildcard ./migrations/sqlite3/*) ${GOPATH}/bin/rice
+go/sql/migrations/sqlite3/rice-box.go: $(wildcard ./migrations/sqlite3/*) ${GOPATH}/bin/rice
 	cd go/sql/migrations/sqlite3; rice embed-go
+
+go/dist/rice-box.go: ./dist ${GOPATH}/bin/rice
+	cd go/dist; rice embed-go
+
+# The webpack output in ./dist is embedded via Go files and linked into the executable.
+.PHONY: dist_source
+dist_source: go/dist/rice-box.go
 
 # The SQL migration files are embedded via Go files and linked into the executable.
 .PHONY: migration_source
 migration_source: go/sql/migrations/sqlite3/rice-box.go go/sql/migrations/cockroachdb/rice-box.go
 
-buildk: web migration_source
+buildk: dist_source migration_source
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/skiaperf
 	./build_docker_release
 
@@ -37,8 +44,11 @@ package-lock.json: package.json
 	npm ci
 	touch package-lock.json
 
-.PHONY: web
-web: package-lock.json
+MODULES = $(shell find ./modules -type f)
+
+# We can depend on the timestamp of the dist directory since webpack will delete
+# the directory before repopulating it.
+./dist: package-lock.json $(MODULES)
 	npx webpack-cli --mode=production
 
 watch: package-lock.json

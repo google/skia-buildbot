@@ -9,8 +9,6 @@ copy_release_files()
 ${INSTALL} --mode=644 -T ${APPNAME}/Dockerfile    ${ROOT}/Dockerfile
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/skiaperf   ${ROOT}/usr/local/bin/skiaperf
 
-${INSTALL_DIR} --mode=755                         ${ROOT}/usr/local/share/skiaperf/dist
-${INSTALL} --mode=644 ./dist/*                    ${ROOT}/usr/local/share/skiaperf/dist
 ${INSTALL_DIR} --mode=755                         ${ROOT}/usr/local/share/skiaperf/configs
 ${INSTALL} --mode=644 ./configs/*                 ${ROOT}/usr/local/share/skiaperf/configs
 }

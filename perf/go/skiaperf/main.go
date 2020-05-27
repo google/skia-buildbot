@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/http/pprof"
@@ -40,6 +41,7 @@ import (
 	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/bug"
+	"go.skia.org/infra/perf/go/dist"
 	perfgit "go.skia.org/infra/perf/go/git"
 
 	"go.skia.org/infra/perf/go/builders"
@@ -138,17 +140,48 @@ var (
 	paramsetRefresher *psrefresh.ParamSetRefresher
 
 	dfBuilder dataframe.DataFrameBuilder
+
+	// distFileSystem is the ./dist directory of files produced by webpack.
+	distFileSystem http.FileSystem
 )
 
+func fileContentsFromFileSystem(fileSystem http.FileSystem, filename string) (string, error) {
+	f, err := fileSystem.Open(filename)
+	if err != nil {
+		return "", skerr.Wrapf(err, "Failed to open %q", filename)
+	}
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return "", skerr.Wrapf(err, "Failed to read %q", filename)
+	}
+	if err := f.Close(); err != nil {
+		return "", skerr.Wrapf(err, "Failed to close %q", filename)
+	}
+	return string(b), nil
+}
+
+var templateFilenames = []string{
+	"newindex.html",
+	"clusters2.html",
+	"triage.html",
+	"alerts.html",
+	"help.html",
+	"dryRunAlert.html",
+}
+
 func loadTemplates() {
-	templates = template.Must(template.New("").ParseFiles(
-		filepath.Join(*resourcesDir, "dist/newindex.html"),
-		filepath.Join(*resourcesDir, "dist/clusters2.html"),
-		filepath.Join(*resourcesDir, "dist/triage.html"),
-		filepath.Join(*resourcesDir, "dist/alerts.html"),
-		filepath.Join(*resourcesDir, "dist/help.html"),
-		filepath.Join(*resourcesDir, "dist/dryRunAlert.html"),
-	))
+	templates = template.New("")
+	for _, filename := range templateFilenames {
+		contents, err := fileContentsFromFileSystem(distFileSystem, filename)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		templates = templates.New(filename)
+		_, err = templates.Parse(contents)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+	}
 }
 
 // skPerfConfig is the configuration data that will appear
@@ -236,6 +269,11 @@ func initialize() {
 	defer span.End()
 
 	ctx := context.Background()
+	distFileSystem, err = dist.New()
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
 	if *resourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
