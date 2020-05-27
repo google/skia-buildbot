@@ -794,14 +794,13 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 				Test:   data.BetaTest,
 				Digest: BetaBrandNewDigest,
 				Status: "untriaged",
-				ParamSet: map[string][]string{
+				ParamSet: paramtools.ParamSet{
 					"device":              {data.BullheadDevice},
 					types.PrimaryKeyField: {string(data.BetaTest)},
 					types.CorpusField:     {"gm"},
 					"ext":                 {"png"},
 				},
 				TraceGroup: frontend.TraceGroup{
-					TileSize: 3,
 					Digests: []frontend.DigestStatus{
 						{
 							Digest: BetaBrandNewDigest,
@@ -1624,9 +1623,9 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_UsesIndex_Success(t *testing.T
 	}, dl)
 }
 
-// TestGetDrawableTraces_DigestIndicesAreCorrect tests that we generate the output required to draw
-// the trace graphs correctly, especially when dealing with many digests or missing digests.
-func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
+// TestFillInFrontEndTraceData_DigestIndicesAreCorrect tests that we generate the output required
+// to draw the trace graphs correctly, especially when dealing with many digests or missing digests.
+func TestFillInFrontEndTraceData_DigestIndicesAreCorrect(t *testing.T) {
 	unittest.SmallTest(t)
 	// Add some shorthand aliases for easier-to-read test inputs.
 	const mm = tiling.MissingDigest
@@ -1641,7 +1640,6 @@ func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
 		stubClassifier := &mock_expectations.Classifier{}
 		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
 		t.Run(desc, func(t *testing.T) {
-			s := SearchImpl{}
 			traces := []frontend.Trace{
 				{
 					ID: "not-a-real-trace-id-and-that's-ok",
@@ -1654,7 +1652,7 @@ func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
 			}
 			tg := frontend.TraceGroup{Traces: traces}
 
-			s.fillInFrontEndTraceData("whatever", d0, len(inputDigests)-1, stubClassifier, &tg, nil)
+			fillInFrontEndTraceData("whatever", d0, stubClassifier, &tg, nil)
 			require.Len(t, tg.Traces, 1)
 			assert.Equal(t, expectedData, tg.Traces[0].DigestIndices)
 		})
@@ -1688,10 +1686,10 @@ func TestGetDrawableTraces_DigestIndicesAreCorrect(t *testing.T) {
 		[]int{8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0})
 }
 
-// TestGetDrawableTraces_TotalDigestsCorrect tests that we count unique digests for a TraceGroup
-// correctly, even when there are multiple traces or the number of digests is bigger than
+// TestFillInFrontEndTraceData_TotalDigestsCorrect tests that we count unique digests for a
+// TraceGroup correctly, even when there are multiple traces or the number of digests is bigger than
 // maxDistinctDigestsToPresent.
-func TestGetDrawableTraces_TotalDigestsCorrect(t *testing.T) {
+func TestFillInFrontEndTraceData_TotalDigestsCorrect(t *testing.T) {
 	unittest.SmallTest(t)
 	// Add some shorthand aliases for easier-to-read test inputs.
 	const md = tiling.MissingDigest
@@ -1705,7 +1703,6 @@ func TestGetDrawableTraces_TotalDigestsCorrect(t *testing.T) {
 		stubClassifier := &mock_expectations.Classifier{}
 		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
 		t.Run(desc, func(t *testing.T) {
-			s := SearchImpl{}
 			traces := make([]frontend.Trace, 0, len(inputTraceDigests))
 			for i, digests := range inputTraceDigests {
 				id := tiling.TraceID(fmt.Sprintf("trace-%d", i))
@@ -1719,7 +1716,7 @@ func TestGetDrawableTraces_TotalDigestsCorrect(t *testing.T) {
 				})
 			}
 			tg := frontend.TraceGroup{Traces: traces}
-			s.fillInFrontEndTraceData("whatever", d0, len(inputTraceDigests[0])-1, stubClassifier, &tg, nil)
+			fillInFrontEndTraceData("whatever", d0, stubClassifier, &tg, nil)
 			require.Len(t, tg.Traces, len(inputTraceDigests))
 			assert.Equal(t, totalUniqueDigests, tg.TotalDigests)
 		})

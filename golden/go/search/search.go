@@ -161,7 +161,8 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	// additional data.
 	displayRet, offset := s.sortAndLimitDigests(ctx, q, results, int(q.Offset), int(q.Limit))
 	s.addTriageHistory(ctx, s.makeTriageHistoryGetter(crs, q.ChangeListID), displayRet)
-	traceComments := s.addTracesAndComments(ctx, displayRet, exp, idx)
+	traceComments := s.getTraceComments(ctx)
+	prepareTraceGroups(displayRet, exp, traceComments)
 
 	// Return all digests with the selected offset within the result set.
 	searchRet := &frontend.SearchResponse{
@@ -239,7 +240,8 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 	var traceComments []frontend.TraceComment
 	if len(result.TraceGroup.Traces) > 0 {
 		// Get the params and traces.
-		traceComments = s.addTracesAndComments(ctx, results, exp, idx)
+		traceComments = s.getTraceComments(ctx)
+		prepareTraceGroups(results, exp, traceComments)
 	}
 	s.addTriageHistory(ctx, s.makeTriageHistoryGetter(crs, clID), results)
 
@@ -733,13 +735,8 @@ func (s *SearchImpl) sortAndLimitDigests(ctx context.Context, q *query.Search, d
 	return digestInfo[offset:end], offset
 }
 
-// addTracesAndComments adds information to the given result that is necessary
-// to draw them, e.g. the information what digest/image appears at what commit.
-// This should be only done for digests that are intended to be displayed.
-// TODO(kjlubick) This function should be broken into two parts.
-func (s *SearchImpl) addTracesAndComments(ctx context.Context, searchResults []*frontend.SearchResult, exp expectations.Classifier, idx indexer.IndexSearcher) []frontend.TraceComment {
-	tile := idx.Tile().GetTile(types.ExcludeIgnoredTraces)
-	last := tile.LastCommitIndex()
+// getTraceComments returns the complete list of TraceComments, ready for display on the frontend.
+func (s *SearchImpl) getTraceComments(ctx context.Context) []frontend.TraceComment {
 	var traceComments []frontend.TraceComment
 	// TODO(kjlubick) remove this check once the commentStore is implemented and included from main.
 	if s.commentStore != nil {
@@ -756,20 +753,23 @@ func (s *SearchImpl) addTracesAndComments(ctx context.Context, searchResults []*
 			})
 		}
 	}
+	return traceComments
+}
 
+// prepareTraceGroups processes the TraceGroup for each SearchResult, preparing it to be displayed
+// on the frontend.
+func prepareTraceGroups(searchResults []*frontend.SearchResult, exp expectations.Classifier, comments []frontend.TraceComment) {
 	for _, di := range searchResults {
 		// Add the drawable traces to the result.
-		s.fillInFrontEndTraceData(di.Test, di.Digest, last, exp, &di.TraceGroup, traceComments)
-		di.TraceGroup.TileSize = len(tile.Commits)
+		fillInFrontEndTraceData(di.Test, di.Digest, exp, &di.TraceGroup, comments)
 	}
-	return traceComments
 }
 
 const missingDigestIndex = -1
 
 // fillInFrontEndTraceData fills in the data needed to draw the traces for the given test/digest
 // and to connect the traces to the appropriate comments.
-func (s *SearchImpl) fillInFrontEndTraceData(test types.TestName, digest types.Digest, last int, exp expectations.Classifier, traceGroup *frontend.TraceGroup, comments []frontend.TraceComment) {
+func fillInFrontEndTraceData(test types.TestName, digest types.Digest, exp expectations.Classifier, traceGroup *frontend.TraceGroup, comments []frontend.TraceComment) {
 	// Put the traces in a deterministic order
 	sort.Slice(traceGroup.Traces, func(i, j int) bool {
 		return traceGroup.Traces[i].ID < traceGroup.Traces[j].ID
@@ -785,13 +785,13 @@ func (s *SearchImpl) fillInFrontEndTraceData(test types.TestName, digest types.D
 
 	for idx, oneTrace := range traceGroup.Traces {
 		// Create a new trace entry.
-		oneTrace.DigestIndices = make([]int, last+1)
+		oneTrace.DigestIndices = make([]int, len(oneTrace.RawTrace.Digests))
 
 		// We start at HEAD and work our way backwards. The digest that is the focus of this
 		// search result is digestStatuses[0]. The most recently-seen digest that is not the
 		// digest of focus will be digestStatus[1] and so on, up until we hit
 		// maxDistinctDigestsToPresent.
-		for j := last; j >= 0; j-- {
+		for j := len(oneTrace.RawTrace.Digests) - 1; j >= 0; j-- {
 			d := oneTrace.RawTrace.Digests[j]
 			if d == tiling.MissingDigest {
 				oneTrace.DigestIndices[j] = missingDigestIndex
@@ -826,6 +826,7 @@ func (s *SearchImpl) fillInFrontEndTraceData(test types.TestName, digest types.D
 		// No longer need the RawTrace data, now that it has been turned into the frontend version.
 		oneTrace.RawTrace = nil
 		traceGroup.Traces[idx] = oneTrace
+		traceGroup.TileSize = len(oneTrace.DigestIndices) // TileSize will go away soon.
 	}
 	traceGroup.Digests = digestStatuses
 	traceGroup.TotalDigests = len(uniqueDigests)
