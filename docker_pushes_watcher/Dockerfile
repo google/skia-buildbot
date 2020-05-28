@@ -14,7 +14,10 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
     # update "buster" to be "$(lsb_release -cs)".
     && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian buster stable" \
     && apt-get update \
-    && apt-get install -y docker-ce docker-ce-cli \
+    # TODO(rmistry): Docker client version 19.03.09 has this bug: https://github.com/docker/cli/issues/2533
+    # The bug has been fixed in v19.03.10 but that version has not been released yet. Remove
+    # the specific versions below after the version is released.
+    && apt-get install -y docker-ce=5:19.03.8~3-0~debian-buster docker-ce-cli=5:19.03.8~3-0~debian-buster \
     && service docker start
 
 COPY . /
