@@ -1,7 +1,7 @@
 import { resolve } from 'path';
-import * as webpack from 'webpack';
+import webpack from 'webpack';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
-import commonBuilder from './pulito/webpack.common';
+import commonBuilder from '../infra-sk/pulito/webpack.common';
 
 const configFactory: webpack.ConfigurationFactory = (_, args) => {
   const config = commonBuilder(__dirname, args.mode);
@@ -21,6 +21,6 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
   }
 
   return config;
-}
+};
 
 export = configFactory;
