@@ -70,6 +70,30 @@
       "revId": "7a4cee9d45a0e4049b57cbe399cd086f5f58259d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3930136_8f534412",
+        "filename": "infra-sk/pulito/webpack.common.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-05-28T17:32:41Z",
+      "side": 1,
+      "message": ":)",
+      "parentUuid": "99e562dd_157b5561",
+      "range": {
+        "startLine": 236,
+        "startChar": 4,
+        "endLine": 236,
+        "endChar": 19
+      },
+      "revId": "7a4cee9d45a0e4049b57cbe399cd086f5f58259d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
