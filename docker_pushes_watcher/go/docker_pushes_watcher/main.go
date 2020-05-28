@@ -119,9 +119,9 @@ func addDockerProdTag(ctx context.Context, ts oauth2.TokenSource, buildInfo dock
 			err = nil
 		}
 
-		token, err := ts.Token()
-		if err != nil {
-			err = skerr.Wrap(err)
+		token, tokenErr := ts.Token()
+		if tokenErr != nil {
+			err = skerr.Wrap(tokenErr)
 			continue
 		}
 		loginCmd := fmt.Sprintf("%s login -u oauth2accesstoken -p %s %s", docker, token.AccessToken, "https://gcr.io")
