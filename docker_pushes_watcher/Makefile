@@ -1,3 +1,5 @@
+include ../kube/kube.mk
+
 .PHONY: build test pushk release push
 
 build:
@@ -10,5 +12,5 @@ release: build
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/docker_pushes_watcher ./../kube/go/pushk
 	./build_docker_release
 
-push: release
-	pushk docker_pushes_watcher
+push: pushk release
+	pushk --use-temp-checkout docker_pushes_watcher
