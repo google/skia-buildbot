@@ -22,13 +22,15 @@ describe('blamelist-panel-sk', () => {
     });
 
     it('should have a different URL for CL commits', async () => {
-      const masterBranchURL = await testBed.page.$eval('#single_commit a',
-          (e: HTMLAnchorElement) => e.href);
+      const masterBranchURL = await testBed.page.$eval(
+          '#single_commit a',
+          (e: Element) => (e as HTMLAnchorElement).href);
       expect(masterBranchURL).to.equal(
           'https://github.com/example/example/commit/dded3c7506efc5635e60ffb7a908cbe8f1f028f1');
 
-      const changeListURL = await testBed.page.$eval('#single_cl_commit a',
-          (e: HTMLAnchorElement) => e.href);
+      const changeListURL = await testBed.page.$eval(
+          '#single_cl_commit a',
+          (e: Element) => (e as HTMLAnchorElement).href);
       expect(changeListURL).to.equal('https://skia-review.googlesource.com/12345');
     });
 
