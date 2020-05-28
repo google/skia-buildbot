@@ -88,7 +88,8 @@ cp -r /src/am/modules               /tests/am
 
 mkdir /tests/ct
 cp -r /src/ct/package*              /tests/ct
-cp -r /src/ct/webpack.config.js     /tests/ct
+cp -r /src/ct/webpack.config.ts     /tests/ct
+cp -r /src/ct/tsconfig.json         /tests/ct
 cp -r /src/ct/modules               /tests/ct
 
 ################################################################################
@@ -136,4 +137,4 @@ cd /tests/am
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/ct
-npx mocha ./**/*_puppeteer_test.js
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
