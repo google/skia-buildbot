@@ -81,7 +81,7 @@ cp -r /src/perf/modules             /tests/perf
 
 mkdir /tests/am
 cp -r /src/am/package*              /tests/am
-cp -r /src/am/webpack.config.js     /tests/am
+cp -r /src/am/webpack.config.ts     /tests/am
 cp -r /src/am/modules               /tests/am
 
 mkdir /tests/ct
