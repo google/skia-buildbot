@@ -1,21 +1,15 @@
-import webpackConfigFactory from './webpack.config';
-import { Config, ConfigOptions } from 'karma';
-import * as webpack from 'webpack';
+import karma from 'karma';
+import webpack from 'webpack';
 
 // Adapted from https://github.com/google/common-sk/blob/master/karma.common.js.
-module.exports = function(config: Config): void {
-  // Webpack 3+ configs can be either objects or functions that produce the
-  // config object. Karma currently doesn't handle the latter, so do it
-  // ourselves here.
-  const webpackConfig = webpackConfigFactory('', { mode: 'development' }) as webpack.Configuration;
-
+export function setCommonConfigOptions(karmaConfig: karma.Config, webpackConfig: webpack.Configuration) {
   // Work-around for karma-webpack issues:
   // https://github.com/webpack-contrib/karma-webpack/issues/322#issuecomment-417862717
   webpackConfig.output = {
       filename: '[name]',
   };
 
-  config.set({
+  karmaConfig.set({
     // base path, that will be used to resolve files and exclude
     basePath: '',
 
@@ -67,9 +61,9 @@ module.exports = function(config: Config): void {
     colors: false,
 
     // level of logging
-    // possible values: config.LOG_DISABLE || config.LOG_ERROR ||
-    // config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_INFO,
+    // possible values: karmaConfig.LOG_DISABLE || karmaConfig.LOG_ERROR ||
+    // karmaConfig.LOG_WARN || karmaConfig.LOG_INFO || karmaConfig.LOG_DEBUG
+    logLevel: karmaConfig.LOG_INFO,
 
     // enable / disable watching file and executing tests whenever any file changes
     autoWatch: true,
@@ -99,5 +93,5 @@ module.exports = function(config: Config): void {
     webpack: webpackConfig,
 
     webpackMiddleware: {},
-  } as ConfigOptions);
+  } as karma.ConfigOptions);
 };
