@@ -671,10 +671,15 @@ func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
 func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
+	const clAuthor = "broom@example.com"
+	const clSubject = "big sweeping changes"
 	const clID = "1234"
 	const crs = "gerrit"
 	const AlphaNowGoodDigest = data.AlphaUntriagedDigest
 	const BetaBrandNewDigest = types.Digest("be7a03256511bec3a7453c3186bb2e07")
+
+	// arbitrary time that our pretend CL was created at
+	var clTime = time.Date(2020, time.May, 25, 10, 9, 8, 0, time.UTC)
 
 	mcls := &mock_clstore.Store{}
 	mtjs := &mock_tjstore.Store{}
@@ -688,6 +693,13 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 	// Hasn't been triaged yet
 	issueStore.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
 
+	mcls.On("GetChangeList", testutils.AnyContext, clID).Return(code_review.ChangeList{
+		SystemID: clID,
+		Owner:    clAuthor,
+		Status:   code_review.Open,
+		Subject:  clSubject,
+		Updated:  clTime,
+	}, nil)
 	mcls.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
 		{
 			SystemID:     "first_one",
@@ -785,8 +797,17 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 	assert.Len(t, bullheadGroup, 1)
 	assert.Len(t, options, 1)
 
+	// We expect to see the current CL appended to the list of master branch commits.
+	masterBranchCommits := web_frontend.FromTilingCommits(data.MakeTestCommits())
+	masterBranchCommitsWithCL := append(masterBranchCommits, web_frontend.Commit{
+		CommitTime:   clTime.Unix(),
+		Hash:         clID,
+		Author:       clAuthor,
+		Subject:      clSubject,
+		IsChangeList: true,
+	})
 	assert.Equal(t, &frontend.SearchResponse{
-		Commits: web_frontend.FromTilingCommits(data.MakeTestCommits()),
+		Commits: masterBranchCommitsWithCL,
 		Offset:  0,
 		Size:    1,
 		Results: []*frontend.SearchResult{
@@ -801,12 +822,32 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 					"ext":                 {"png"},
 				},
 				TraceGroup: frontend.TraceGroup{
+					Traces: []frontend.Trace{
+						{
+							ID: data.BullheadBetaTraceID,
+							// The master branch has digest index 1 for the 3 previous commits on master branch.
+							// Then we see index 0 (this digest) be added to the end to preview what the trace
+							// would look like if this CL were to land.
+							DigestIndices: []int{1, 1, 1, 0},
+							Params: paramtools.Params{
+								"device":              data.BullheadDevice,
+								types.PrimaryKeyField: string(data.BetaTest),
+								types.CorpusField:     "gm",
+							},
+						},
+					},
+					TileSize: 4,
 					Digests: []frontend.DigestStatus{
 						{
 							Digest: BetaBrandNewDigest,
 							Status: "untriaged",
 						},
+						{
+							Digest: data.BetaPositiveDigest,
+							Status: "positive",
+						},
 					},
+					TotalDigests: 1,
 				},
 				ClosestRef: common.PositiveRef,
 				RefDiffs: map[common.RefClosest]*frontend.SRDiffDigest{
@@ -895,6 +936,13 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 
 	// No ignore rules
 	mis.On("GetIgnoreMatcher").Return(paramtools.ParamMatcher{})
+	// By setting a tile to be empty, we pretend that the new results do not match anything on the
+	// master branch.
+	emptyMasterTile := tiling.NewComplexTile(&tiling.Tile{
+		Traces:   map[tiling.TraceID]*tiling.Trace{},
+		ParamSet: paramtools.ParamSet{},
+	})
+	mis.On("Tile").Return(emptyMasterTile)
 
 	s := SearchImpl{
 		indexSource:     mi,
@@ -912,7 +960,7 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 
 	alphaSeenCount := int32(0)
 	betaSeenCount := int32(0)
-	testAddFn := func(test types.TestName, digest types.Digest, _ paramtools.Params) {
+	testAddFn := func(test types.TestName, digest types.Digest, _ paramtools.Params, _ tiling.TracePair) {
 		if test == data.AlphaTest && digest == data.AlphaUntriagedDigest {
 			atomic.AddInt32(&alphaSeenCount, 1)
 		} else if test == data.BetaTest && digest == data.BetaUntriagedDigest {
@@ -1652,7 +1700,7 @@ func TestFillInFrontEndTraceData_DigestIndicesAreCorrect(t *testing.T) {
 			}
 			tg := frontend.TraceGroup{Traces: traces}
 
-			fillInFrontEndTraceData("whatever", d0, stubClassifier, &tg, nil)
+			fillInFrontEndTraceData(&tg, "whatever", d0, stubClassifier, nil, false /* = appendPrimaryDigest*/)
 			require.Len(t, tg.Traces, 1)
 			assert.Equal(t, expectedData, tg.Traces[0].DigestIndices)
 		})
@@ -1686,6 +1734,56 @@ func TestFillInFrontEndTraceData_DigestIndicesAreCorrect(t *testing.T) {
 		[]int{8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0})
 }
 
+// TestFillInFrontEndTraceData_AppendPrimaryDigest_DigestIndicesAreCorrect tests that we generate
+// the output required to draw the trace graphs correctly, specifically the case for ChangeList
+// results (that is, when appendPrimaryDigest is true).
+func TestFillInFrontEndTraceData_AppendPrimaryDigest_DigestIndicesAreCorrect(t *testing.T) {
+	unittest.SmallTest(t)
+	// Add some shorthand aliases for easier-to-read test inputs.
+	const mm = tiling.MissingDigest
+	const mdi = missingDigestIndex
+	// These constants are not actual md5 digests, but that's ok for the purposes of this test -
+	// any string constants will do.
+	const d0, d1, d2, d3, d4 = types.Digest("d0"), types.Digest("d1"), types.Digest("d2"), types.Digest("d3"), types.Digest("d4")
+
+	test := func(desc string, inputDigests []types.Digest, expectedData []int) {
+		// stubClassifier returns Positive for everything. For the purposes of drawing traces,
+		// don't actually care about the expectations.
+		stubClassifier := &mock_expectations.Classifier{}
+		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
+		t.Run(desc, func(t *testing.T) {
+			traces := []frontend.Trace{
+				{
+					ID: "not-a-real-trace-id-and-that's-ok",
+					RawTrace: &tiling.Trace{
+						Digests: inputDigests,
+						// Keys can be omitted because they are not read here.
+					},
+					// Other fields don't matter for this test.
+				},
+			}
+			tg := frontend.TraceGroup{Traces: traces}
+
+			fillInFrontEndTraceData(&tg, "whatever", d0, stubClassifier, nil, true /* = appendPrimaryDigest*/)
+			require.Len(t, tg.Traces, 1)
+			assert.Equal(t, expectedData, tg.Traces[0].DigestIndices)
+		})
+	}
+
+	test("several distinct digests",
+		[]types.Digest{d4, d3, d2, d1, d1},
+		[]int{4, 3, 2, 1, 1, 0})
+	// index 1 represents the first digest, starting at head, that doesn't match the "digest of
+	// focus", which for these tests is d0. For convenience, in all the other sub-tests, the index
+	// on the constants matches the expected index.
+	test("several distinct digests, ordered by proximity to head",
+		[]types.Digest{d1, d2, d3, d4, d4},
+		[]int{4, 3, 2, 1, 1, 0})
+	test("missing digests",
+		[]types.Digest{mm, d1, mm, d1, mm},
+		[]int{mdi, 1, mdi, 1, mdi, 0})
+}
+
 // TestFillInFrontEndTraceData_TotalDigestsCorrect tests that we count unique digests for a
 // TraceGroup correctly, even when there are multiple traces or the number of digests is bigger than
 // maxDistinctDigestsToPresent.
@@ -1716,7 +1814,7 @@ func TestFillInFrontEndTraceData_TotalDigestsCorrect(t *testing.T) {
 				})
 			}
 			tg := frontend.TraceGroup{Traces: traces}
-			fillInFrontEndTraceData("whatever", d0, stubClassifier, &tg, nil)
+			fillInFrontEndTraceData(&tg, "whatever", d0, stubClassifier, nil, false /* = appendPrimaryDigest*/)
 			require.Len(t, tg.Traces, len(inputTraceDigests))
 			assert.Equal(t, totalUniqueDigests, tg.TotalDigests)
 		})

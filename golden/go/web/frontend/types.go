@@ -211,10 +211,11 @@ type GetPerTraceDigestsByTestNameResponse map[tiling.TraceID][]types.Digest
 // Commit represents a git Commit for use on the frontend.
 type Commit struct {
 	// CommitTime is in seconds since the epoch
-	CommitTime int64  `json:"commit_time"`
-	Hash       string `json:"hash"`
-	Author     string `json:"author"`
-	Subject    string `json:"message"`
+	CommitTime   int64  `json:"commit_time"`
+	Hash         string `json:"hash"`
+	Author       string `json:"author"`
+	Subject      string `json:"message"`
+	IsChangeList bool   `json:"is_cl"`
 }
 
 // FromTilingCommit converts a tiling.Commit into a frontend.Commit.

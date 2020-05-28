@@ -124,12 +124,27 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	}
 	idx := s.indexSource.GetIndex()
 
+	commits := web_frontend.FromTilingCommits(idx.Tile().DataCommits())
 	var results []*frontend.SearchResult
 	// Find the digests (left hand side) we are interested in.
 	if isChangeListSearch {
+		cl, err := s.changeListStore.GetChangeList(ctx, q.ChangeListID)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		// Add this CL information as a faux Commit, so we can properly show the blamelists for
+		// the trace data, which will include this CL's output appended to the end (as if it was the
+		// most recent commit to land on master).
+		commits = append(commits, web_frontend.Commit{
+			CommitTime:   cl.Updated.Unix(),
+			Hash:         cl.SystemID,
+			Author:       cl.Owner,
+			Subject:      cl.Subject,
+			IsChangeList: true,
+		})
 		results, err = s.queryChangeList(ctx, q, idx, exp)
 		if err != nil {
-			return nil, skerr.Wrapf(err, "getting digests from new clstore/tjstore")
+			return nil, skerr.Wrapf(err, "getting digests from clstore/tjstore")
 		}
 	} else {
 		// Iterate through the tile and find the digests that match the queries.
@@ -162,14 +177,14 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	displayRet, offset := s.sortAndLimitDigests(ctx, q, results, int(q.Offset), int(q.Limit))
 	s.addTriageHistory(ctx, s.makeTriageHistoryGetter(crs, q.ChangeListID), displayRet)
 	traceComments := s.getTraceComments(ctx)
-	prepareTraceGroups(displayRet, exp, traceComments)
+	prepareTraceGroups(displayRet, exp, traceComments, isChangeListSearch)
 
 	// Return all digests with the selected offset within the result set.
 	searchRet := &frontend.SearchResponse{
 		Results:       displayRet,
 		Offset:        offset,
 		Size:          len(results),
-		Commits:       web_frontend.FromTilingCommits(idx.Tile().GetTile(types.ExcludeIgnoredTraces).Commits),
+		Commits:       commits,
 		TraceComments: traceComments,
 	}
 	return searchRet, nil
@@ -241,7 +256,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 	if len(result.TraceGroup.Traces) > 0 {
 		// Get the params and traces.
 		traceComments = s.getTraceComments(ctx)
-		prepareTraceGroups(results, exp, traceComments)
+		prepareTraceGroups(results, exp, traceComments, false)
 	}
 	s.addTriageHistory(ctx, s.makeTriageHistoryGetter(crs, clID), results)
 
@@ -345,14 +360,13 @@ func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx i
 	resultsByGroupingAndDigest := map[groupingAndDigest]*frontend.SearchResult{}
 	talliesByTest := idx.DigestCountsByTest(q.IgnoreState())
 
-	addByGroupAndDigest := func(test types.TestName, digest types.Digest, params paramtools.Params) {
+	addByGroupAndDigest := func(test types.TestName, digest types.Digest, params paramtools.Params, tp tiling.TracePair) {
 		if !q.IncludeDigestsProducedOnMaster {
 			if _, ok := talliesByTest[test][digest]; ok {
 				return // skip this entry because it was already seen on master branch.
 			}
 		}
-		// TODO(kjlubick) If we want to include trace data in the CLs, we'll have to find a way to
-		//   derive the trace id here. This is a bit tricky because params includes optional keys.
+
 		key := groupingAndDigest{grouping: test, digest: digest}
 		existing := resultsByGroupingAndDigest[key]
 		if existing == nil {
@@ -364,6 +378,14 @@ func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx i
 			resultsByGroupingAndDigest[key] = existing
 		}
 		existing.ParamSet.AddParams(params)
+		// The trace might not exist on the master branch, but if it does, we can show it.
+		if tp.Trace != nil {
+			existing.TraceGroup.Traces = append(existing.TraceGroup.Traces, frontend.Trace{
+				ID:       tp.ID,
+				RawTrace: tp.Trace,
+				Params:   tp.Trace.Params(),
+			})
+		}
 	}
 
 	err := s.extractChangeListDigests(ctx, q, idx, exp, addByGroupAndDigest)
@@ -381,7 +403,7 @@ func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx i
 
 // filterAddFn is a filter and add function that is passed to the getIssueDigest interface. It will
 // be called for each testName/digest combination and should accumulate the digests of interest.
-type filterAddFn func(test types.TestName, digest types.Digest, params paramtools.Params)
+type filterAddFn func(test types.TestName, digest types.Digest, params paramtools.Params, tp tiling.TracePair)
 
 // extractFilterShards dictates how to break up the filtering of extractChangeListDigests after
 // they have been fetched from the TryJobStore. It was determined experimentally on
@@ -457,6 +479,7 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 	}
 	queryParams := q.TraceValues
 	ignoreMatcher := idx.GetIgnoreMatcher()
+	tracesByID := idx.Tile().GetTile(q.IgnoreState()).Traces
 
 	return util.ChunkIterParallel(ctx, len(xtr), chunkSize, func(ctx context.Context, start, stop int) error {
 		sliced := xtr[start:stop]
@@ -472,8 +495,9 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 			}
 			p := make(paramtools.Params, len(tr.ResultParams)+len(tr.GroupParams)+len(tr.Options))
 			p.Add(tr.GroupParams)
-			p.Add(tr.Options)
 			p.Add(tr.ResultParams)
+			traceID := tiling.TraceIDFromParams(p)
+			p.Add(tr.Options)
 			// Filter the ignored results
 			if !q.IncludeIgnoredTraces {
 				// Because ignores can happen on a mix of params from Result, Group, and Options,
@@ -490,9 +514,13 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 			}
 			// Filter by query.
 			if queryParams.MatchesParams(p) {
+				tp := tiling.TracePair{
+					ID:    traceID,
+					Trace: tracesByID[traceID],
+				}
 				func() {
 					addMutex.Lock()
-					addFn(tn, tr.Digest, p)
+					addFn(tn, tr.Digest, p, tp)
 					addMutex.Unlock()
 				}()
 			}
@@ -757,11 +785,12 @@ func (s *SearchImpl) getTraceComments(ctx context.Context) []frontend.TraceComme
 }
 
 // prepareTraceGroups processes the TraceGroup for each SearchResult, preparing it to be displayed
-// on the frontend.
-func prepareTraceGroups(searchResults []*frontend.SearchResult, exp expectations.Classifier, comments []frontend.TraceComment) {
+// on the frontend. If appendPrimaryDigest is true, the primary digest for each SearchResult will
+// be appended to the end of the trace data, useful for visualizing changelist results.
+func prepareTraceGroups(searchResults []*frontend.SearchResult, exp expectations.Classifier, comments []frontend.TraceComment, appendPrimaryDigest bool) {
 	for _, di := range searchResults {
 		// Add the drawable traces to the result.
-		fillInFrontEndTraceData(di.Test, di.Digest, exp, &di.TraceGroup, comments)
+		fillInFrontEndTraceData(&di.TraceGroup, di.Test, di.Digest, exp, comments, appendPrimaryDigest)
 	}
 }
 
@@ -769,23 +798,33 @@ const missingDigestIndex = -1
 
 // fillInFrontEndTraceData fills in the data needed to draw the traces for the given test/digest
 // and to connect the traces to the appropriate comments.
-func fillInFrontEndTraceData(test types.TestName, digest types.Digest, exp expectations.Classifier, traceGroup *frontend.TraceGroup, comments []frontend.TraceComment) {
+func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestName, digest types.Digest, exp expectations.Classifier, comments []frontend.TraceComment, appendPrimaryDigest bool) {
 	// Put the traces in a deterministic order
 	sort.Slice(traceGroup.Traces, func(i, j int) bool {
 		return traceGroup.Traces[i].ID < traceGroup.Traces[j].ID
 	})
 
 	// Get the status for all digests in the traces.
-	digestStatuses := make([]frontend.DigestStatus, 0, maxDistinctDigestsToPresent)
-	digestStatuses = append(digestStatuses, frontend.DigestStatus{
+	digestStatuses := make([]frontend.DigestStatus, 1, maxDistinctDigestsToPresent)
+	const primaryDigestIndex = 0
+	digestStatuses[primaryDigestIndex] = frontend.DigestStatus{
 		Digest: digest,
 		Status: exp.Classification(test, digest).String(),
-	})
+	}
 	uniqueDigests := map[types.Digest]bool{}
 
 	for idx, oneTrace := range traceGroup.Traces {
+		traceLen := len(oneTrace.RawTrace.Digests)
+		if appendPrimaryDigest {
+			traceLen++
+		}
 		// Create a new trace entry.
-		oneTrace.DigestIndices = make([]int, len(oneTrace.RawTrace.Digests))
+		oneTrace.DigestIndices = make([]int, traceLen)
+
+		if appendPrimaryDigest {
+			// As requested, append the primaryDigest to the end
+			oneTrace.DigestIndices[traceLen-1] = primaryDigestIndex
+		}
 
 		// We start at HEAD and work our way backwards. The digest that is the focus of this
 		// search result is digestStatuses[0]. The most recently-seen digest that is not the
@@ -826,7 +865,7 @@ func fillInFrontEndTraceData(test types.TestName, digest types.Digest, exp expec
 		// No longer need the RawTrace data, now that it has been turned into the frontend version.
 		oneTrace.RawTrace = nil
 		traceGroup.Traces[idx] = oneTrace
-		traceGroup.TileSize = len(oneTrace.DigestIndices) // TileSize will go away soon.
+		traceGroup.TileSize = traceLen // TileSize will go away soon.
 	}
 	traceGroup.Digests = digestStatuses
 	traceGroup.TotalDigests = len(uniqueDigests)
