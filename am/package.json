@@ -9,6 +9,8 @@
   "author": "",
   "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
+    "@types/chai": "^4.2.11",
+    "@types/mocha": "^7.0.2",
     "@webcomponents/custom-elements": "~1.4.1",
     "common-sk": "~3.4.0",
     "dialog-polyfill": "^0.5.1",
