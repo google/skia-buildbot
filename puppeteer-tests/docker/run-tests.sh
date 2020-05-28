@@ -61,6 +61,7 @@ mkdir /tests/infra-sk
 cp -r /src/infra-sk/package*        /tests/infra-sk
 cp -r /src/infra-sk/*.js            /tests/infra-sk
 cp -r /src/infra-sk/modules         /tests/infra-sk
+cp -r /src/infra-sk/pulito          /tests/infra-sk
 
 mkdir /tests/puppeteer-tests
 cp -r /src/puppeteer-tests/package* /tests/puppeteer-tests
@@ -70,7 +71,6 @@ mkdir /tests/golden
 cp -r /src/golden/package*          /tests/golden
 cp -r /src/golden/webpack.config.ts /tests/golden
 cp -r /src/golden/tsconfig.json     /tests/golden
-cp -r /src/golden/pulito            /tests/golden
 cp -r /src/golden/modules           /tests/golden
 cp -r /src/golden/demo-page-assets  /tests/golden
 
