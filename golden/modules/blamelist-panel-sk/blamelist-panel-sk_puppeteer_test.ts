@@ -11,7 +11,7 @@ describe('blamelist-panel-sk', () => {
   });
 
   it('should render the demo page', async () => {
-    expect(await testBed.page.$$('blamelist-panel-sk')).to.have.length(3); // Smoke test.
+    expect(await testBed.page.$$('blamelist-panel-sk')).to.have.length(4); // Smoke test.
   });
 
   describe('screenshots', async () => {
@@ -19,6 +19,17 @@ describe('blamelist-panel-sk', () => {
       const blamelistPanelSk = await testBed.page.$('#single_commit');
       await takeScreenshot(blamelistPanelSk!, 'gold', 'blamelist-panel-sk');
       expect(await testBed.page.$$('#single_commit tr')).to.have.length(1);
+    });
+
+    it('should have a different URL for CL commits', async () => {
+      const masterBranchURL = await testBed.page.$eval('#single_commit a',
+          (e: HTMLAnchorElement) => e.href);
+      expect(masterBranchURL).to.equal(
+          'https://github.com/example/example/commit/dded3c7506efc5635e60ffb7a908cbe8f1f028f1');
+
+      const changeListURL = await testBed.page.$eval('#single_cl_commit a',
+          (e: HTMLAnchorElement) => e.href);
+      expect(changeListURL).to.equal('https://skia-review.googlesource.com/12345');
     });
 
     it('should show some commits commit', async () => {

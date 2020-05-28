@@ -540,15 +540,17 @@ func main() {
 
 	// appConfig is injected into the header of the index file.
 	appConfig := &struct {
-		BaseRepoURL   string `json:"baseRepoURL"`
-		DefaultCorpus string `json:"defaultCorpus"`
-		Title         string `json:"title"`
-		IsPublic      bool   `json:"isPublic"` // If true this is not open but restrictions apply.
+		BaseRepoURL        string `json:"baseRepoURL"`
+		CodeReviewTemplate string `json:"crsTemplate"`
+		DefaultCorpus      string `json:"defaultCorpus"`
+		Title              string `json:"title"`
+		IsPublic           bool   `json:"isPublic"` // If true this is not open but restrictions apply.
 	}{
-		BaseRepoURL:   *gitRepoURL,
-		DefaultCorpus: *defaultCorpus,
-		Title:         *appTitle,
-		IsPublic:      !openSite,
+		BaseRepoURL:        *gitRepoURL,
+		CodeReviewTemplate: *crsURLTemplate,
+		DefaultCorpus:      *defaultCorpus,
+		Title:              *appTitle,
+		IsPublic:           !openSite,
 	}
 
 	templateHandler := func(name string) http.HandlerFunc {

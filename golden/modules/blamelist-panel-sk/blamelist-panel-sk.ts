@@ -11,7 +11,7 @@ import { html } from 'lit-html';
 import { diffDate } from 'common-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { truncateWithEllipses } from '../common';
-import { baseRepoURL } from '../settings';
+import { baseRepoURL, codeReviewURLTemplate } from '../settings';
 
 const maxCommitsToDisplay = 15;
 
@@ -30,12 +30,20 @@ const commitRow = (c: Commit) => html`
   <td title=${new Date(c.commit_time * 1000)}>
    ${diffDate(c.commit_time * 1000)}
   </td>
-  <td><a href=${commitHref(c)}>${c.hash && c.hash.substring(0, 8)}</a></td>
+  <td>
+    <a href=${commitHref(c)} target=_blank rel=noopener>
+      ${c.hash?.substring(0, 8)}
+    </a>
+  </td>
   <td title=${c.message}>${truncateWithEllipses(c.message || '', 80)}</td>
 </tr>
 `;
 
 const commitHref = (commit: Commit) => {
+  if (commit.is_cl) {
+    const crsTemplate = codeReviewURLTemplate();
+    return crsTemplate.replace('%s', commit.hash);
+  }
   // TODO(kjlubick): Deduplicate with by-blame-sk.
   const repo = baseRepoURL();
   if (!repo) {
@@ -49,15 +57,16 @@ const commitHref = (commit: Commit) => {
 
 /**
  * Represents a Git commit.
- * 
+ *
  * Client-side equivalent of frontend.Commit Go type.
  */
 export interface Commit {
-  readonly hash: string;
+  readonly hash: string; // For CLs, this is the CL ID.
   readonly author: string;
   readonly message: string;
   readonly commit_time: number;
-};
+  readonly is_cl: boolean;
+}
 
 export class BlamelistPanelSk extends ElementSk {
   private _commits: Commit[] = [];
@@ -77,6 +86,6 @@ export class BlamelistPanelSk extends ElementSk {
     this._commits = commits;
     this._render();
   }
-};
+}
 
 define('blamelist-panel-sk', BlamelistPanelSk);
