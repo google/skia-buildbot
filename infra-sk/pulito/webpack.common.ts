@@ -227,10 +227,13 @@ function addDemoPages(modulesRootDir: string, webpackConfig: webpack.Configurati
  *
  * @param dirname Application's root directory containing the "modules" and "pages" subdirectories.
  * @param mode Mode string as in the CliConfigOptions interface's "mode" field.
+ * @param neverMinifyHtml If true, HTML minification is disabled, even in production mode. Use this
+ *     e.g. when the HTML files contain Go template tags.
  */
 function buildCommonWebpackConfig(
     dirname: string,
-    mode?: 'development' | 'production' | 'none'): webpack.Configuration {
+    mode?: 'development' | 'production' | 'none',
+    neverMinifyHtml = false): webpack.Configuration {
 
   // Convenience constants. Defaults to production if e.g. "npx webpack" is invoked without
   // specifying a mode via the --mode fag.
@@ -329,7 +332,10 @@ function buildCommonWebpackConfig(
   };
 
   // Add application pages.
-  addApplicationPages(path.resolve(dirname, 'pages'), configuration, prodMode);
+  addApplicationPages(
+    path.resolve(dirname, 'pages'),
+    configuration,
+    neverMinifyHtml ? false : prodMode);
 
   // Add demo pages.
   if (devMode) {
