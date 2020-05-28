@@ -212,7 +212,7 @@ type GetPerTraceDigestsByTestNameResponse map[tiling.TraceID][]types.Digest
 type Commit struct {
 	// CommitTime is in seconds since the epoch
 	CommitTime   int64  `json:"commit_time"`
-	Hash         string `json:"hash"`
+	Hash         string `json:"hash"` // For CLs, this is the CL ID.
 	Author       string `json:"author"`
 	Subject      string `json:"message"`
 	IsChangeList bool   `json:"is_cl"`
