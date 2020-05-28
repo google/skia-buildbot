@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/golden/go/tiling"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
@@ -69,7 +70,7 @@ func BenchmarkExtractChangeListDigests(b *testing.B) {
 		tryJobStore:     mtjs,
 	}
 
-	fn := func(_ types.TestName, _ types.Digest, _ paramtools.Params) {}
+	fn := func(_ types.TestName, _ types.Digest, _ paramtools.Params, _ tiling.TracePair) {}
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
