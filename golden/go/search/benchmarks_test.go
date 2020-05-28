@@ -69,7 +69,7 @@ func BenchmarkExtractChangeListDigests(b *testing.B) {
 		tryJobStore:     mtjs,
 	}
 
-	fn := func(test types.TestName, digest types.Digest, params paramtools.Params) {}
+	fn := func(_ types.TestName, _ types.Digest, _ paramtools.Params) {}
 
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
