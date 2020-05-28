@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b4192d7a_f8f83827",
+        "filename": "infra-sk/pulito/webpack.common.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-05-28T17:21:45Z",
+      "side": 1,
+      "message": "This is never referenced, how does it work?",
+      "range": {
+        "startLine": 236,
+        "startChar": 4,
+        "endLine": 236,
+        "endChar": 19
+      },
+      "revId": "7a4cee9d45a0e4049b57cbe399cd086f5f58259d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
