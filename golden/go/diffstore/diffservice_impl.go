@@ -11,6 +11,7 @@ import (
 
 // Generate the go code from the protocol buffer definitions.
 //go:generate protoc --go_out=plugins=grpc:. diffservice.proto
+//go:generate goimports -w diffservice.pb.go
 
 const MAX_MESSAGE_SIZE = 100 * 1024 * 1024
 
