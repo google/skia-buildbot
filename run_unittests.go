@@ -88,10 +88,6 @@ var (
 
 	// Every call to cmdTest uses a different KARMA_PORT.
 	nextKarmaPort = 9876
-
-	// ignoreGoImportsFailures is a regular expression that determines which files should be ignored
-	// if their goimports output differs from what is checked in.
-	ignoreGoImportsFailures = regexp.MustCompile(`^.*.pb.go`)
 )
 
 // cmdTest returns a test which runs a command and fails if the command fails.
@@ -466,20 +462,14 @@ func main() {
 				}
 			}
 			diffFiles := strings.Split(outStr, "\n")
-			if len(diffFiles) > 0 && !(len(diffFiles) == 1 && diffFiles[0] == "") {
-				nonGeneratedFound := false
-				for _, file := range diffFiles {
-					if !ignoreGoImportsFailures.Match([]byte(file)) {
-						nonGeneratedFound = true
-						break
-					}
+			if len(diffFiles) > 0 {
+				if len(diffFiles) == 1 && diffFiles[0] == "" {
+					// The return string was empty. Nothing was different.
+					return "", nil
 				}
-				if nonGeneratedFound {
-					return outStr, fmt.Errorf("goimports found diffs in the following files:\n  - %s", strings.Join(diffFiles, ",\n  - "))
-				}
+				return outStr, fmt.Errorf("goimports found diffs in the following files:\n  - %s", strings.Join(diffFiles, ",\n  - "))
 			}
 			return "", nil
-
 		},
 		Type: unittest.MEDIUM_TEST,
 	})
