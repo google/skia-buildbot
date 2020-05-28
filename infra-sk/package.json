@@ -12,6 +12,8 @@
     "lit-html": "~1.1.2"
   },
   "devDependencies": {
+    "@types/karma": "^5.0.0",
+    "@types/webpack": "^4.41.13",
     "@webcomponents/custom-elements": "^1.2.4",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
