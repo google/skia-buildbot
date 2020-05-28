@@ -1,19 +1,17 @@
-default: android_compile_fe package-lock.json
+default: android_compile_fe
 	npx webpack --mode=development
 
-serve: package-lock.json
+serve:
 	npx webpack-dev-server --mode=development --watch-poll
 
-watch: package-lock.json
+watch:
 	npx webpack --mode=development --watch
-
-package-lock.json: package.json
-	npm install
 
 android_compile_fe:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/android_compile_fe
 
-release_fe: android_compile_fe package-lock.json
+release_fe: android_compile_fe
+	npm ci
 	npx webpack --mode=production
 	./build_fe_release
 
