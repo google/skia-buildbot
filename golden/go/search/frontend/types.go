@@ -24,6 +24,10 @@ type SearchResponse struct {
 	Size          int               `json:"size"`
 	Commits       []frontend.Commit `json:"commits"`
 	TraceComments []TraceComment    `json:"trace_comments"`
+	// BulkTriageData contains *all* digests that match the query as keys. The value for each key is
+	// either the digest that is the closest to the key or empty string (if there is no "closest
+	// digest" to this one).
+	BulkTriageData map[types.Digest]types.Digest `json:"bulk_triage_data"`
 }
 
 // TriageHistory represents who last triaged a certain digest for a certain test.

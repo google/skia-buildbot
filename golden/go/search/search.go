@@ -9,6 +9,7 @@ import (
 	"time"
 
 	ttlcache "github.com/patrickmn/go-cache"
+	"go.skia.org/infra/golden/go/search/common"
 	"golang.org/x/sync/errgroup"
 
 	"go.skia.org/infra/go/metrics2"
@@ -157,6 +158,8 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 		results = s.afterDiffResultFilter(ctx, results, q)
 	}
 
+	bulkTriageData := collectDigestsForBulkTriage(results)
+
 	// Sort the digests and fill the ones that are going to be displayed with
 	// additional data.
 	displayRet, offset := s.sortAndLimitDigests(ctx, q, results, int(q.Offset), int(q.Limit))
@@ -165,13 +168,29 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 
 	// Return all digests with the selected offset within the result set.
 	searchRet := &frontend.SearchResponse{
-		Results:       displayRet,
-		Offset:        offset,
-		Size:          len(results),
-		Commits:       web_frontend.FromTilingCommits(idx.Tile().GetTile(types.ExcludeIgnoredTraces).Commits),
-		TraceComments: traceComments,
+		Results:        displayRet,
+		Offset:         offset,
+		Size:           len(results),
+		Commits:        web_frontend.FromTilingCommits(idx.Tile().GetTile(types.ExcludeIgnoredTraces).Commits),
+		BulkTriageData: bulkTriageData,
+		TraceComments:  traceComments,
 	}
 	return searchRet, nil
+}
+
+func collectDigestsForBulkTriage(results []*frontend.SearchResult) map[types.Digest]types.Digest {
+	primaryDigestToClosestDigest := make(map[types.Digest]types.Digest, len(results))
+	for _, r := range results {
+		primary := r.Digest
+		if r.ClosestRef == common.NoRef {
+			// Empty String is a sentinel value for "no closest reference digest".
+			primaryDigestToClosestDigest[primary] = ""
+		} else {
+			closestRef := r.RefDiffs[r.ClosestRef]
+			primaryDigestToClosestDigest[primary] = closestRef.Digest
+		}
+	}
+	return primaryDigestToClosestDigest
 }
 
 // GetDigestDetails implements the SearchAPI interface.
