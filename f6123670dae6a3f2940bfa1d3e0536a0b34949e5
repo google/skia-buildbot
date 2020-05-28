@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aeea123a_090ccd3c",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-28T17:13:11Z",
+      "side": 1,
+      "message": "nit: Array\u003cString\u003e",
+      "range": {
+        "startLine": 75,
+        "startChar": 12,
+        "endLine": 75,
+        "endChar": 17
+      },
+      "revId": "f6123670dae6a3f2940bfa1d3e0536a0b34949e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83c95dad_dbe1ba10",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk_puppeteer_test.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-28T17:13:11Z",
+      "side": 1,
+      "message": "That\u0027s pretty wide, it can probably be narrower, right?",
+      "range": {
+        "startLine": 11,
+        "startChar": 44,
+        "endLine": 11,
+        "endChar": 48
+      },
+      "revId": "f6123670dae6a3f2940bfa1d3e0536a0b34949e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2fa222a9_cf4e5651",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk_test.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-05-28T17:13:11Z",
+      "side": 1,
+      "message": "This is so much nicer to read, thanks!",
+      "range": {
+        "startLine": 75,
+        "startChar": 4,
+        "endLine": 75,
+        "endChar": 25
+      },
+      "revId": "f6123670dae6a3f2940bfa1d3e0536a0b34949e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
