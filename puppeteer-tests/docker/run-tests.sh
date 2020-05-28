@@ -60,6 +60,7 @@ cp -r /src/common-sk/plugins        /tests/common-sk
 mkdir /tests/infra-sk
 cp -r /src/infra-sk/package*        /tests/infra-sk
 cp -r /src/infra-sk/*.js            /tests/infra-sk
+cp -r /src/infra-sk/*.ts            /tests/infra-sk
 cp -r /src/infra-sk/modules         /tests/infra-sk
 cp -r /src/infra-sk/pulito          /tests/infra-sk
 
@@ -82,6 +83,7 @@ cp -r /src/perf/modules             /tests/perf
 mkdir /tests/am
 cp -r /src/am/package*              /tests/am
 cp -r /src/am/webpack.config.ts     /tests/am
+cp -r /src/am/tsconfig.json         /tests/am
 cp -r /src/am/modules               /tests/am
 
 mkdir /tests/ct
@@ -131,7 +133,7 @@ cd /tests/perf
 npx mocha ./**/*_puppeteer_test.js
 
 cd /tests/am
-npx mocha ./**/*_puppeteer_test.js
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/ct
 npx mocha ./**/*_puppeteer_test.js
