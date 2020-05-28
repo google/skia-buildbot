@@ -131,7 +131,7 @@ cd /tests/perf
 npx mocha ./**/*_puppeteer_test.js
 
 cd /tests/am
-npx mocha ./**/*_puppeteer_test.js
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/ct
 npx mocha ./**/*_puppeteer_test.js
