@@ -1,0 +1,51 @@
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childDisplayName": "VK-GL-CTS",
+  "commitMsg": {
+    "bugProject": "angleproject",
+    "childLogURLTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/VK-GL-CTS.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeLog": true,
+    "includeRevisionCount": true,
+    "includeTbrLine": true
+  },
+  "contacts": [
+    "angle-team@google.com"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "angle/angle",
+    "config": "angle"
+  },
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentDisplayName": "ANGLE",
+  "parentWaterfall": "https://ci.chromium.org/p/angle/g/ci/console",
+  "rollerName": "vk-gl-cts-angle-autoroll",
+  "serviceAccount": "angle-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "https://rota-ng.appspot.com/legacy/sheriff_angle.json",
+    "angle-bots+autoroll-info@google.com"
+  ],
+  "sheriffBackup": [
+    "ynovikov@chromium.org"
+  ],
+  "supportsManualRolls": true,
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "master",
+    "childPath": "third_party/VK-GL-CTS/src",
+    "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/VK-GL-CTS.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/VK-GL-CTS.git/+show/%s",
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
