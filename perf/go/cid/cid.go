@@ -90,10 +90,14 @@ func New(ctx context.Context, git *perfgit.Git, instanceConfig *config.InstanceC
 //
 // debouce - See config.PerfBigTableConfig.DebouceCommitURL.
 func urlFromParts(repoURL, hash, subject string, debounce bool) string {
+	format := config.Config.GitRepoConfig.CommitURL
+	if format == "" {
+		format = gitiles.CommitURL
+	}
 	if debounce {
 		return subject
 	} else {
-		return fmt.Sprintf(gitiles.CommitURL, repoURL, hash)
+		return fmt.Sprintf(format, repoURL, hash)
 	}
 }
 
