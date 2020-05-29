@@ -43,7 +43,7 @@ type DEPSLocalConfig struct {
 	PreUploadSteps []string `json:"preUploadSteps,omitempty"`
 
 	// Run "gclient runhooks" if true.
-	RunHooks bool `json:"runhooks,omitempty"`
+	RunHooks bool `json:"runHooks,omitempty"`
 }
 
 // See documentation for util.Validator interface.
@@ -81,11 +81,13 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 	depotToolsEnv := append(depot_tools.Env(depotTools), "SKIP_GCE_AUTH_FOR_GIT=1")
 	gclientCmd := []string{filepath.Join(depotTools, GClient)}
 	gclient := func(ctx context.Context, cmd ...string) error {
+		args := append(gclientCmd, cmd...)
+		sklog.Infof("Running: %s %s", "python", strings.Join(args, " "))
 		_, err := exec.RunCommand(ctx, &exec.Command{
 			Dir:  workdir,
 			Env:  depotToolsEnv,
 			Name: "python",
-			Args: append(gclientCmd, cmd...),
+			Args: args,
 		})
 		return skerr.Wrap(err)
 	}
