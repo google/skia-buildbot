@@ -32,20 +32,37 @@
     "ynovikov@chromium.org"
   ],
   "supportsManualRolls": true,
-  "noCheckoutDEPSRepoManager": {
+  "depsRepoManager": {
     "childBranch": "master",
     "childPath": "third_party/VK-GL-CTS/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/KhronosGroup/VK-GL-CTS.git",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/KhronosGroup/VK-GL-CTS.git/+show/%s",
+    "childSubdir": "angle",
     "parentBranch": "master",
-    "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
+    "parentRepo": "https://chromium.googlesource.com/angle/angle.git",
+    "preUploadSteps": [
+      "ANGLECodeGeneration"
+    ],
+    "runHooks": true
   },
   "kubernetes": {
-    "cpu": "1",
-    "memory": "2Gi",
+    "cpu": "2",
+    "memory": "4Gi",
+    "disk": "50Gi",
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"
   },
-  "maxRollFrequency": "0m"
+  "maxRollFrequency": "0m",
+  "notifiers": [
+    {
+      "filter": "error",
+      "email": {
+        "emails": [
+          "$SHERIFF",
+          "angle-bots+autoroll-info@google.com"
+        ]
+      }
+    }
+  ]
 }
