@@ -92,6 +92,12 @@ cp -r /src/ct/webpack.config.ts     /tests/ct
 cp -r /src/ct/tsconfig.json         /tests/ct
 cp -r /src/ct/modules               /tests/ct
 
+mkdir /tests/demos
+cp -r /src/demos/package*              /tests/demos
+cp -r /src/demos/webpack.config.ts     /tests/demos
+cp -r /src/demos/tsconfig.json         /tests/demos
+cp -r /src/demos/modules               /tests/demos
+
 ################################################################################
 # Install node modules.                                                        #
 ################################################################################
@@ -117,6 +123,9 @@ npm ci
 cd /tests/ct
 npm ci
 
+cd /tests/demos
+npm ci
+
 ################################################################################
 # Run tests.                                                                   #
 ################################################################################
@@ -137,4 +146,7 @@ cd /tests/am
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/ct
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+
+cd /tests/demos
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
