@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/perf/go/config"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
 	perfsql "go.skia.org/infra/perf/go/sql"
@@ -69,47 +70,45 @@ func TestFromID(t *testing.T) {
 
 }
 
-func Test_urlFromParts(t *testing.T) {
+func TestURLFromParts_NoBounceSupplied(t *testing.T) {
 	unittest.SmallTest(t)
-	type args struct {
-		repoURL  string
-		hash     string
-		subject  string
-		debounce bool
+
+	config.Config = &config.InstanceConfig{
+		GitRepoConfig: config.GitRepoConfig{},
 	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		{
-			name: "no bounce",
-			args: args{
-				repoURL:  "https://skia.googlesource.com/perf-buildid/android-master",
-				hash:     "db4eaa1d0783df0fd4b630ac897c5cbc3c387d10",
-				subject:  "https://android-master-ingest.skia.org/r/6146906?branch=aosp-androidx-master-dev",
-				debounce: false,
-			},
-			want: "https://skia.googlesource.com/perf-buildid/android-master/+show/db4eaa1d0783df0fd4b630ac897c5cbc3c387d10",
-		},
-		{
-			name: "bounce",
-			args: args{
-				repoURL:  "https://skia.googlesource.com/perf-buildid/android-master",
-				hash:     "db4eaa1d0783df0fd4b630ac897c5cbc3c387d10",
-				subject:  "https://android-master-ingest.skia.org/r/6146906?branch=aosp-androidx-master-dev",
-				debounce: true,
-			},
-			want: "https://android-master-ingest.skia.org/r/6146906?branch=aosp-androidx-master-dev",
+
+	want := "https://some-repo.example.org/+show/db4eaa1d0783df0fd4b630ac897c5cbc3c387d10"
+	got := urlFromParts("https://some-repo.example.org", "db4eaa1d0783df0fd4b630ac897c5cbc3c387d10",
+		"https://some-bounce-url.example.org", false)
+	assert.Equal(t, want, got)
+}
+
+func TestURLFromParts_NoBounceSuppliedUsingConfigCommitURL(t *testing.T) {
+	unittest.SmallTest(t)
+
+	config.Config = &config.InstanceConfig{
+		GitRepoConfig: config.GitRepoConfig{
+			CommitURL: "%s/commit/%s",
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := urlFromParts(tt.args.repoURL, tt.args.hash, tt.args.subject, tt.args.debounce); got != tt.want {
-				t.Errorf("urlFromParts() = %v, want %v", got, tt.want)
-			}
-		})
+
+	want := "https://some-repo.example.org/commit/db4eaa1d0783df0fd4b630ac897c5cbc3c387d10"
+	got := urlFromParts("https://some-repo.example.org", "db4eaa1d0783df0fd4b630ac897c5cbc3c387d10",
+		"https://some-bounce-url.example.org", false)
+	assert.Equal(t, want, got)
+}
+
+func TestURLFromParts_BounceSupplied(t *testing.T) {
+	unittest.SmallTest(t)
+
+	config.Config = &config.InstanceConfig{
+		GitRepoConfig: config.GitRepoConfig{},
 	}
+
+	want := "https://some-bounce-url.example.org"
+	got := urlFromParts("https://skia.googlesource.com/perf-buildid/android-master", "db4eaa1d0783df0fd4b630ac897c5cbc3c387d10",
+		"https://some-bounce-url.example.org", true)
+	assert.Equal(t, want, got)
 }
 
 func TestCommitIDLookup_Success(t *testing.T) {
@@ -118,6 +117,7 @@ func TestCommitIDLookup_Success(t *testing.T) {
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)
+	config.Config = instanceConfig
 	commitIdLookup := New(ctx, g, instanceConfig)
 
 	details, err := commitIdLookup.Lookup(ctx, []*CommitID{

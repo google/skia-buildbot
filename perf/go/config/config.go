@@ -189,6 +189,13 @@ type GitRepoConfig struct {
 	// true source of information. If this value is true then links to commits
 	// need to be debounced and use the commit message instead.
 	DebouceCommitURL bool `json:"debounce_commit_url"`
+
+	// CommitURL is a Go format string that joins the GitRepoConfig URL with a
+	// commit hash to produce the URL of a web page that shows that exact
+	// commit. For example "%s/commit/%s" would be a good value for GitHub
+	// repos, while "%s/+show/%s" is a good value for Gerrit repos. Defaults
+	// to "%s/+show/%s" if no value is supplied.
+	CommitURL string `json:"commit_url"`
 }
 
 // InstanceConfig contains all the info needed by btts.BigTableTraceStore.
