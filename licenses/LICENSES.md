@@ -45,7 +45,6 @@ The following licenses are used in dependent packages.
 | github.com/google/go-querystring/query                            | BSD-3-Clause  |
 | github.com/google/uuid                                            | BSD-3-Clause  |
 | github.com/go-python/gpython                                      | BSD-3-Clause  |
-| github.com/gorilla/csrf                                           | BSD-3-Clause  |
 | github.com/gorilla/mux                                            | BSD-3-Clause  |
 | github.com/gorilla/securecookie                                   | BSD-3-Clause  |
 | github.com/hashicorp/errwrap                                      | MPL-2.0       |
@@ -80,7 +79,6 @@ The following licenses are used in dependent packages.
 | github.com/nfnt/resize                                            | ISC           |
 | github.com/patrickmn/go-cache                                     | MIT           |
 | github.com/pelletier/go-toml                                      | MIT           |
-| github.com/pkg/errors                                             | BSD-2-Clause  |
 | github.com/pmezard/go-difflib/difflib                             | BSD-3-Clause  |
 | github.com/prometheus/client_golang/prometheus                    | Apache-2.0    |
 | github.com/prometheus/client_model/go                             | Apache-2.0    |
