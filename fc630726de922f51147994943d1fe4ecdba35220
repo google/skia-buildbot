@@ -22,6 +22,30 @@
       "revId": "fc630726de922f51147994943d1fe4ecdba35220",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1bcdf74_ba0c02be",
+        "filename": "autoroll/config/vulkan-headers-angle.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-05-29T19:09:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "92da5a0f_281ce47c",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 0
+      },
+      "revId": "fc630726de922f51147994943d1fe4ecdba35220",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
