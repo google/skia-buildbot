@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/perf/go/config"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
 	perfsql "go.skia.org/infra/perf/go/sql"
@@ -110,6 +111,47 @@ func Test_urlFromParts(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestURLFromParts_NoBounceSupplied(t *testing.T) {
+	unittest.SmallTest(t)
+
+	config.Config = &config.InstanceConfig{
+		GitRepoConfig: config.GitRepoConfig{},
+	}
+
+	want := "https://some-repo.example.org/+show/db4eaa1d0783df0fd4b630ac897c5cbc3c387d10"
+	got := urlFromParts("https://some-repo.example.org", "db4eaa1d0783df0fd4b630ac897c5cbc3c387d10",
+		"https://some-bounce-url.example.org", false)
+	assert.Equal(t, want, got)
+}
+
+func TestURLFromParts_NoBounceSuppliedUsingConfigCommitURL(t *testing.T) {
+	unittest.SmallTest(t)
+
+	config.Config = &config.InstanceConfig{
+		GitRepoConfig: config.GitRepoConfig{
+			CommitURL: "%s/commit/%s",
+		},
+	}
+
+	want := "https://some-repo.example.org/commit/db4eaa1d0783df0fd4b630ac897c5cbc3c387d10"
+	got := urlFromParts("https://some-repo.example.org", "db4eaa1d0783df0fd4b630ac897c5cbc3c387d10",
+		"https://some-bounce-url.example.org", false)
+	assert.Equal(t, want, got)
+}
+
+func TestURLFromParts_BounceSupplied(t *testing.T) {
+	unittest.SmallTest(t)
+
+	config.Config = &config.InstanceConfig{
+		GitRepoConfig: config.GitRepoConfig{},
+	}
+
+	want := "https://some-bounce-url.example.org"
+	got := urlFromParts("https://skia.googlesource.com/perf-buildid/android-master", "db4eaa1d0783df0fd4b630ac897c5cbc3c387d10",
+		"https://some-bounce-url.example.org", true)
+	assert.Equal(t, want, got)
 }
 
 func TestCommitIDLookup_Success(t *testing.T) {
