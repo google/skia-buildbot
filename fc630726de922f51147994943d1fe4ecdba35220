@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "92da5a0f_281ce47c",
+        "filename": "autoroll/config/vulkan-headers-angle.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5695
+      },
+      "writtenOn": "2020-05-29T19:00:11Z",
+      "side": 1,
+      "message": "Thanks!\nCould you add this to the other 6 *-angle.json bots as well?",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 0
+      },
+      "revId": "fc630726de922f51147994943d1fe4ecdba35220",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
