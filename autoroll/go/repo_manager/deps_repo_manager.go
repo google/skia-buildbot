@@ -64,6 +64,7 @@ func (c DEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig, child
 		CheckoutPath:   c.ParentPath,
 		GClientSpec:    c.GClientSpec,
 		PreUploadSteps: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.PreUploadSteps,
+		RunHooks:       c.RunHooks,
 	}
 	if err := parentCfg.Validate(); err != nil {
 		return parent.DEPSLocalConfig{}, child.GitCheckoutConfig{}, skerr.Wrapf(err, "generated parent config is invalid")

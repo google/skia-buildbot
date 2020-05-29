@@ -827,6 +827,9 @@ func (r *AutoRoller) rollFinished(ctx context.Context, justFinished codereview.R
 
 // Handle manual roll requests.
 func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
+	r.runningMtx.Lock()
+	defer r.runningMtx.Unlock()
+
 	sklog.Infof("Searching manual roll requests for %s", r.cfg.RollerName)
 	reqs, err := r.manualRollDB.GetIncomplete(r.cfg.RollerName)
 	if err != nil {
@@ -847,13 +850,25 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 			continue
 		}
 		if req.Status == manual.STATUS_PENDING {
+			// Avoid creating rolls to the current revision.
+			from := r.GetCurrentRev()
+			if to.Id == from.Id {
+				req.Status = manual.STATUS_COMPLETE
+				req.Result = manual.RESULT_FAILURE
+				req.ResultDetails = fmt.Sprintf("Already at revision %s", from.Id)
+				sklog.Errorf("Failed to create manual roll: %s", req.ResultDetails)
+				if err := r.manualRollDB.Put(req); err != nil {
+					return skerr.Wrapf(err, "Failed to update manual roll request")
+				}
+				continue
+			}
 			emails := r.GetEmails()
 			if !util.In(req.Requester, emails) {
 				emails = append(emails, req.Requester)
 			}
 			var err error
 			sklog.Infof("Creating manual roll to %s as requested by %s...", req.Revision, req.Requester)
-			from := r.GetCurrentRev()
+
 			issue, err = r.createNewRoll(ctx, from, to, emails, false)
 			if err != nil {
 				return skerr.Wrapf(err, "Failed to create manual roll for %s: %s", req.Id, err)
