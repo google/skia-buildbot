@@ -14,3 +14,7 @@ btgit:
 .PHONY: build_release
 release: gitsync build_base_cipd_release
 	./build_release
+
+.PHONY: push
+push: release pushk
+	pushk --message="$(MESSAGE)" --use-temp-checkout gitsync
