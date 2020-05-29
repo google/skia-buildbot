@@ -49,6 +49,17 @@
     "readinessFailureThreshold": "10"
   },
   "maxRollFrequency": "6h",
+  "notifiers": [
+    {
+      "filter": "error",
+      "email": {
+        "emails": [
+          "$SHERIFF",
+          "angle-bots+autoroll-info@google.com"
+        ]
+      }
+    }
+  ],
   "timeWindow": "M-F 07:00-10:00",
   "transitiveDeps": [
     {
