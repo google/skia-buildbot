@@ -827,6 +827,9 @@ func (r *AutoRoller) rollFinished(ctx context.Context, justFinished codereview.R
 
 // Handle manual roll requests.
 func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
+	r.runningMtx.Lock()
+	defer r.runningMtx.Unlock()
+
 	sklog.Infof("Searching manual roll requests for %s", r.cfg.RollerName)
 	reqs, err := r.manualRollDB.GetIncomplete(r.cfg.RollerName)
 	if err != nil {
