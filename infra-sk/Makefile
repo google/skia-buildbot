@@ -1,3 +1,7 @@
+all:
+	npm ci
+	npx webpack --mode=production
+
 default: package-lock.json
 	npx webpack --mode=development
 
