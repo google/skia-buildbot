@@ -55,39 +55,41 @@ const (
 // AutoRoller is a struct which automates the merging new revisions of one
 // project into another.
 type AutoRoller struct {
-	cfg              AutoRollerConfig
-	codereview       codereview.CodeReview
-	commitMsgBuilder *commit_msg.Builder
-	currentRoll      codereview.RollImpl
-	emails           []string
-	emailsMtx        sync.RWMutex
-	failureThrottle  *state_machine.Throttler
-	lastRollRev      *revision.Revision
-	liveness         metrics2.Liveness
-	manualRollDB     manual.DB
-	modeHistory      *modes.ModeHistory
-	nextRollRev      *revision.Revision
-	notifier         *arb_notifier.AutoRollNotifier
-	notifierConfigs  []*notifier.Config
-	notRolledRevs    []*revision.Revision
-	recent           *recent_rolls.RecentRolls
-	reg              *config_vars.Registry
-	rm               repo_manager.RepoManager
-	roller           string
-	runningMtx       sync.Mutex
-	safetyThrottle   *state_machine.Throttler
-	serverURL        string
-	sheriff          []string
-	sheriffBackup    []string
-	sm               *state_machine.AutoRollStateMachine
-	status           *status.AutoRollStatusCache
-	statusMtx        sync.RWMutex
-	strategy         strategy.NextRollStrategy
-	strategyHistory  *strategy.StrategyHistory
-	strategyMtx      sync.RWMutex // Protects strategy
-	successThrottle  *state_machine.Throttler
-	timeWindow       *time_window.TimeWindow
-	tipRev           *revision.Revision
+	cfg                AutoRollerConfig
+	codereview         codereview.CodeReview
+	commitMsgBuilder   *commit_msg.Builder
+	currentRoll        codereview.RollImpl
+	emails             []string
+	emailsMtx          sync.RWMutex
+	failureThrottle    *state_machine.Throttler
+	lastRollRev        *revision.Revision
+	liveness           metrics2.Liveness
+	manualRollDB       manual.DB
+	modeHistory        *modes.ModeHistory
+	nextRollRev        *revision.Revision
+	notifier           *arb_notifier.AutoRollNotifier
+	notifierConfigs    []*notifier.Config
+	notRolledRevs      []*revision.Revision
+	recent             *recent_rolls.RecentRolls
+	reg                *config_vars.Registry
+	rm                 repo_manager.RepoManager
+	roller             string
+	rollUploadAttempts metrics2.Counter
+	rollUploadFailures metrics2.Counter
+	runningMtx         sync.Mutex
+	safetyThrottle     *state_machine.Throttler
+	serverURL          string
+	sheriff            []string
+	sheriffBackup      []string
+	sm                 *state_machine.AutoRollStateMachine
+	status             *status.AutoRollStatusCache
+	statusMtx          sync.RWMutex
+	strategy           strategy.NextRollStrategy
+	strategyHistory    *strategy.StrategyHistory
+	strategyMtx        sync.RWMutex // Protects strategy
+	successThrottle    *state_machine.Throttler
+	timeWindow         *time_window.TimeWindow
+	tipRev             *revision.Revision
 }
 
 // NewAutoRoller returns an AutoRoller instance.
@@ -213,33 +215,35 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, skerr.Wrap(err)
 	}
 	arb := &AutoRoller{
-		cfg:              c,
-		codereview:       cr,
-		commitMsgBuilder: commitMsgBuilder,
-		emails:           emails,
-		failureThrottle:  failureThrottle,
-		lastRollRev:      lastRollRev,
-		liveness:         metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
-		manualRollDB:     manualRollDB,
-		modeHistory:      mh,
-		nextRollRev:      nextRollRev,
-		notifier:         n,
-		notifierConfigs:  c.Notifiers,
-		notRolledRevs:    notRolledRevs,
-		recent:           recent,
-		reg:              reg,
-		rm:               rm,
-		roller:           rollerName,
-		safetyThrottle:   safetyThrottle,
-		serverURL:        serverURL,
-		sheriff:          c.Sheriff,
-		sheriffBackup:    c.SheriffBackup,
-		status:           statusCache,
-		strategy:         strat,
-		strategyHistory:  sh,
-		successThrottle:  successThrottle,
-		timeWindow:       tw,
-		tipRev:           tipRev,
+		cfg:                c,
+		codereview:         cr,
+		commitMsgBuilder:   commitMsgBuilder,
+		emails:             emails,
+		failureThrottle:    failureThrottle,
+		lastRollRev:        lastRollRev,
+		liveness:           metrics2.NewLiveness("last_autoroll_landed", map[string]string{"roller": c.RollerName}),
+		manualRollDB:       manualRollDB,
+		modeHistory:        mh,
+		nextRollRev:        nextRollRev,
+		notifier:           n,
+		notifierConfigs:    c.Notifiers,
+		notRolledRevs:      notRolledRevs,
+		recent:             recent,
+		reg:                reg,
+		rm:                 rm,
+		roller:             rollerName,
+		rollUploadAttempts: metrics2.GetCounter("autoroll_cl_upload_attempts", map[string]string{"roller": c.RollerName}),
+		rollUploadFailures: metrics2.GetCounter("autoroll_cl_upload_failures", map[string]string{"roller": c.RollerName}),
+		safetyThrottle:     safetyThrottle,
+		serverURL:          serverURL,
+		sheriff:            c.Sheriff,
+		sheriffBackup:      c.SheriffBackup,
+		status:             statusCache,
+		strategy:           strat,
+		strategyHistory:    sh,
+		successThrottle:    successThrottle,
+		timeWindow:         tw,
+		tipRev:             tipRev,
 	}
 	sklog.Info("Creating state machine")
 	sm, err := state_machine.New(ctx, arb, n, gcsClient, rollerName)
@@ -435,7 +439,16 @@ func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to *revision.Revis
 }
 
 // createNewRoll is a helper function which uploads a new roll.
-func (r *AutoRoller) createNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, dryRun bool) (*autoroll.AutoRollIssue, error) {
+func (r *AutoRoller) createNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, dryRun bool) (rv *autoroll.AutoRollIssue, rvErr error) {
+	// Track roll CL upload attempts vs failures.
+	defer func() {
+		r.rollUploadAttempts.Inc(1)
+		if rvErr == nil {
+			r.rollUploadFailures.Reset()
+		} else {
+			r.rollUploadFailures.Inc(1)
+		}
+	}()
 	r.statusMtx.RLock()
 	var revs []*revision.Revision
 	found := false
