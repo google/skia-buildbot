@@ -145,7 +145,10 @@ describe('utility functions for Puppeteer tests', async () => {
       });
   });
 
-  describe('startDemoPageServer', () => {
+  // TODO(lovisolo): Reenable once util.js and util_test.js have been ported to TypeScript and
+  //                 we're thus able to require() a webpack.config.ts file from
+  //                 startDemoPageServer().
+  describe.skip('startDemoPageServer', () => {
     let baseUrl;
     let stopDemoPageServer;
 
