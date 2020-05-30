@@ -1,0 +1,5 @@
+{
+  "image_matching_algorithm": "fuzzy",
+  "fuzzy_max_different_pixels": "999999",
+  "fuzzy_pixel_delta_threshold": "1020"
+}
