@@ -24,7 +24,6 @@ run: build_resources core
 	--port=:8000 \
 	--resources_dir="dist"
 
-
 release: build_resources
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/demoserver
 	./build_release
@@ -33,8 +32,11 @@ local_image: build_resources
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/demoserver
 	SKIP_UPLOAD=1 ./build_release
 
+# Increase Node's heap size to accommodate for ts-node's higher memory usage.
+NODE_MEMORY_LIMIT=4096
+
 test_puppeteer:
-	npx mocha ./**/*_puppeteer_test.js
+	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 test_js:
 	npx webpack --mode=development
