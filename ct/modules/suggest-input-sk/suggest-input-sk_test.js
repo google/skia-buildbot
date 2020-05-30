@@ -59,7 +59,7 @@ describe('suggest-input-sk', () => {
     expect($('li', suggestInput).length).to.equal(languageList.length);
     // Expect doesn't handle real JS arrays well in all cases, we need the
     // original NodeList.
-    expect(suggestInput.querySelectorAll('li')).to.contain.text([
+    expect($('li', suggestInput).map(e => e.textContent)).to.deep.equal([
       'golang',
       'c++',
       'JavaScript',
@@ -83,10 +83,8 @@ describe('suggest-input-sk', () => {
     expect($('li', suggestInput).length).to.equal(2);
     // Expect doesn't handle real JS arrays well in all cases, we need the
     // original NodeList.
-    expect(suggestInput.querySelectorAll('li'))
-      .to.contain.text(['JavaScript', 'TypeScript']);
-    expect(suggestInput.querySelectorAll('li'))
-      .to.not.contain.text(['Python', 'golang', 'c++']);
+    expect($('li', suggestInput).map(e => e.textContent))
+      .to.deep.equal(['JavaScript', 'TypeScript']);
 
     simulateUserTyping('scriptz');
     expect($('li', suggestInput).length).to.equal(0);
@@ -101,8 +99,8 @@ describe('suggest-input-sk', () => {
     expect($('li', suggestInput).length).to.equal(2);
     // Expect doesn't handle real JS arrays well in all cases, we need the
     // original NodeList.
-    expect(suggestInput.querySelectorAll('li'))
-      .to.contain.text(['Python2.7', 'Python3']);
+    expect($('li', suggestInput).map(e => e.textContent))
+      .to.deep.equal(['Python2.7', 'Python3']);
   });
 
   it('selects suggestion by click', () => {
@@ -110,8 +108,8 @@ describe('suggest-input-sk', () => {
     expect($('li', suggestInput).length).to.equal(4);
     // Expect doesn't handle real JS arrays well in all cases, we need the
     // original NodeList.
-    expect(suggestInput.querySelectorAll('li'))
-      .to.contain.text(['Python', 'Python2.7', 'Python3', 'IronPython']);
+    expect($('li', suggestInput).map(e => e.textContent))
+      .to.deep.equal(['Python', 'Python2.7', 'Python3', 'IronPython']);
     // Click 'Python2.7'.
     $('li', suggestInput)[1].dispatchEvent(
       new MouseEvent('click', { bubbles: true, cancelable: true }),
@@ -124,12 +122,13 @@ describe('suggest-input-sk', () => {
     expect($('li', suggestInput).length).to.equal(2);
     // Expect doesn't handle real JS arrays well in all cases, we need the
     // original NodeList.
-    expect(suggestInput.querySelectorAll('li'))
-      .to.contain.text(['Python2.7', 'Python3']);
+    expect($('li', suggestInput).map(e => e.textContent))
+      .to.deep.equal(['Python2.7', 'Python3']);
     // Helper to check that only the expected list item is selected.
     const checkSelected = (expected) => {
-      const selected = suggestInput.querySelectorAll('li.selected');
-      expect(selected).to.have.lengthOf(1).and.have.text([expected]);
+      const selected = $('li.selected', suggestInput);
+      expect(selected).to.have.lengthOf(1);
+      expect(selected[0].textContent).to.equal(expected);
     };
     // Navigate down the list.
     simulateKeyboardNavigation(DOWN_ARROW);
