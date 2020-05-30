@@ -127,6 +127,7 @@ The following licenses are used in dependent packages.
 | gopkg.in/ini.v1                                                   | Apache-2.0    |
 | gopkg.in/olivere/elastic.v5/uritemplates                          | MIT           |
 | gopkg.in/yaml.v2                                                  | Apache-2.0    |
+| gopkg.in/yaml.v3                                                  | MIT           |
 | go.skia.org/infra                                                 | BSD-3-Clause  |
 | k8s.io/api                                                        | Apache-2.0    |
 | k8s.io/apimachinery                                               | Apache-2.0    |
