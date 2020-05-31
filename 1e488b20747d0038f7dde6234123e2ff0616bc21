@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3d4e28dc_2a0526e3",
+        "filename": "jsfiddle/Makefile",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-31T23:27:21Z",
+      "side": 1,
+      "message": "One day soon might be a good idea to have a build target in infra-sk/ that these targets can depend on",
+      "revId": "1e488b20747d0038f7dde6234123e2ff0616bc21",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
