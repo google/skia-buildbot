@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fadb5ddf_f919f1f8",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-05-31T18:15:24Z",
+      "side": 1,
+      "message": "nit: also adds notifiers for other ANGLE rollers",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 0
+      },
+      "revId": "b6ece17792792cf1e73461d1c56cc43d802f8ce4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
