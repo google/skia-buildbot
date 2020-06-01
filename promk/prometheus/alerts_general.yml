@@ -140,6 +140,18 @@ groups:
       description: 'Autoroll on {{ $labels.app }} has failed to transition for more than 20 minutes.
       https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
+  - alert: AutoRollCLUploadFailure
+    expr: autoroll_cl_upload_failures{} > 2
+    labels:
+      category: infra
+      severity: critical
+      owner: borenet@google.com
+    annotations:
+      abbr: '{{ $labels.roller }}'
+      description: '{{ $labels.app }} is failing to upload CLs.
+      https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
+
+
   - alert: HighOutgoingQPS
     expr: sum(rate(http_request_metrics{host!="www.googleapis.com",app!="gold-skia-diffserver"}[30m])) by (host) > 25
     labels:
