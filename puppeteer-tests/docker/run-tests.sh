@@ -59,7 +59,6 @@ cp -r /src/common-sk/plugins        /tests/common-sk
 
 mkdir /tests/infra-sk
 cp -r /src/infra-sk/package*        /tests/infra-sk
-cp -r /src/infra-sk/*.js            /tests/infra-sk
 cp -r /src/infra-sk/*.ts            /tests/infra-sk
 cp -r /src/infra-sk/modules         /tests/infra-sk
 cp -r /src/infra-sk/pulito          /tests/infra-sk
