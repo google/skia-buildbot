@@ -8,14 +8,20 @@ describe('triage-history-sk', () => {
   const newInstance = setUpElementUnderTest('triage-history-sk');
 
   const originalNow = Date.now;
+  const originalDateToString = Date.prototype.toString;
+
   let triageHistorySk;
+
   beforeEach(() => {
     Date.now = () => new Date('2020-03-05T05:06:07-04:00');
+    // This makes the test deterministic w.r.t. the computer's timezone.
+    Date.prototype.toString = Date.prototype.toUTCString;
     triageHistorySk = newInstance();
   });
 
   afterEach(() => {
     Date.now = originalNow;
+    Date.prototype.toString = originalDateToString;
   });
 
   it('renders nothing on an empty history', () => {
@@ -34,7 +40,7 @@ describe('triage-history-sk', () => {
     expect(triageHistorySk.innerText).to.equal('1d ago by helpfuluser@');
     const msg = $$('.message', triageHistorySk);
     expect(msg.getAttribute('title')).to.equal(
-      'Last triaged on Wed Mar 04 2020 04:06:07 GMT-0500 (Eastern Standard Time) by helpfuluser@example.com',
+      'Last triaged on Wed, 04 Mar 2020 09:06:07 GMT by helpfuluser@example.com',
     );
   });
 
