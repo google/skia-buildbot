@@ -10,8 +10,13 @@ core: package-lock.json
 	go install -v ./go/build_skiapush_json5
 	build_skiapush_json5
 
+testci: npmdeps test
+
+npmdeps:
+	npm ci
+	cd ../infra-sk && npm ci
+
 test: core
-	npm install
 	# Run the generated tests just once under Xvfb.
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run --no-colors
 
