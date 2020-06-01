@@ -349,6 +349,7 @@ func WriteIsolatedFile(filepath string, i *isolated.Isolated) error {
 	})
 }
 
+// rmistry: This is what swarming library uses
 // BatchArchiveTasks runs `isolate batcharchive` for the tasks.
 func (c *Client) BatchArchiveTasks(ctx context.Context, genJsonFiles []string, jsonOutput string) error {
 	cmd := []string{
@@ -369,6 +370,7 @@ func (c *Client) BatchArchiveTasks(ctx context.Context, genJsonFiles []string, j
 	return nil
 }
 
+// rmistry: This is what we want to use instead.
 // IsolateTasks uploads the necessary inputs for the task to the isolate server
 // and returns the isolated hashes.
 func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, []*isolated.Isolated, error) {
