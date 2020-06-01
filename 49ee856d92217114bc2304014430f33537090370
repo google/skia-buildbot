@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dd9b718c_814a37bc",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-01T13:35:12Z",
+      "side": 0,
+      "message": "You can revert this file change, the chai-dom TS issue is fixed in https://skia-review.googlesource.com/c/buildbot/+/293236.",
+      "range": {
+        "startLine": 62,
+        "startChar": 59,
+        "endLine": 62,
+        "endChar": 63
+      },
+      "revId": "49ee856d92217114bc2304014430f33537090370",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
