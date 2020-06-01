@@ -62,7 +62,7 @@ task_scheduler:
 	cd task_scheduler && $(MAKE) all
 
 .PHONY: all
-all: autoroll datahopper perf sharedgo infra-sk ct ctfe cq_watcher status task_scheduler
+all: infra-sk autoroll datahopper perf sharedgo ct ctfe cq_watcher status task_scheduler
 
 .PHONY: tags
 tags:
