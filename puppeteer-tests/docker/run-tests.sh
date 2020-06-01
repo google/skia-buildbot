@@ -76,7 +76,8 @@ cp -r /src/golden/demo-page-assets  /tests/golden
 
 mkdir /tests/perf
 cp -r /src/perf/package*            /tests/perf
-cp -r /src/perf/webpack.config.js   /tests/perf
+cp -r /src/perf/webpack.config.ts   /tests/perf
+cp -r /src/perf/tsconfig.json       /tests/perf
 cp -r /src/perf/modules             /tests/perf
 
 mkdir /tests/am
@@ -130,7 +131,7 @@ cd /tests/golden
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/perf
-npx mocha ./**/*_puppeteer_test.js
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/am
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
