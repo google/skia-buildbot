@@ -13,8 +13,8 @@ export function setCommonConfigOptions(karmaConfig: karma.Config, webpackConfig:
     // base path, that will be used to resolve files and exclude
     basePath: '',
 
-    // frameworks to use
-    frameworks: ['mocha', 'chai', 'sinon'],
+    // frameworks to use (loaded in reverse order, so chai-dom loads after chai)
+    frameworks: ['mocha', 'chai-dom', 'chai', 'sinon'],
 
     plugins: [
       'karma-chrome-launcher',
@@ -23,6 +23,7 @@ export function setCommonConfigOptions(karmaConfig: karma.Config, webpackConfig:
       'karma-sinon',
       'karma-mocha',
       'karma-chai',
+      'karma-chai-dom',
     ],
 
     // list of files / patterns to load in the browser
