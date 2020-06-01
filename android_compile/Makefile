@@ -26,3 +26,8 @@ push_fe: release_fe
 
 push_be: release_be
 	pushk android_compile_be
+
+.PHONY: build-frontend-ci
+build-frontend-ci:
+	npm ci
+	npx webpack --mode=production
