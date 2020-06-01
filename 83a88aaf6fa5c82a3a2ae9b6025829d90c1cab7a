@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "088b49f3_bcc19708",
+        "filename": "push/Makefile",
+        "patchSetId": 8
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-06-01T16:55:24Z",
+      "side": 1,
+      "message": "General note: lots of other targets run \"npm ci\", including \"npmdeps\"; does it make more sense to follow the model from the perf makefile which has a target for package-lock.json which does \"npm ci\" and \"touch package-lock.json\"?  Then the others just depend on package-lock.json?",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 44,
+        "endChar": 7
+      },
+      "revId": "83a88aaf6fa5c82a3a2ae9b6025829d90c1cab7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "93700926_a2d4899b",
+        "filename": "run_unittests.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-06-01T16:55:24Z",
+      "side": 1,
+      "message": "How long do these take to run?  Just wondering if it makes sense to add these on to the existing task vs adding another which is specifically dedicated to frontend tests.",
+      "range": {
+        "startLine": 434,
+        "startChar": 0,
+        "endLine": 434,
+        "endChar": 116
+      },
+      "revId": "83a88aaf6fa5c82a3a2ae9b6025829d90c1cab7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
