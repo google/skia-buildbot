@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "def57ae2_bcac566e",
+        "filename": "push/Makefile",
+        "patchSetId": 8
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-01T17:35:01Z",
+      "side": 1,
+      "message": "Regarding the use of a target for package-lock.json that does \"npm ci\" and \"touch package-lock.json\": I\u0027m not sure I understand the semantics of it. Presumably we just want to install the npm dependencies while leaving package-lock.json intact. Do you know the rationale behind changing package-lock.json\u0027s timestamp with \"touch\"?\n\nRegarding the \"npmdeps\" make target: this is only used by the \"testci\" target, which in turn is  only used by run_unittests.go. This CL makes the \"testci\" target redundant, so we can probably remove both targets \"testci\" and \"npmdeps\".",
+      "parentUuid": "088b49f3_bcc19708",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 44,
+        "endChar": 7
+      },
+      "revId": "83a88aaf6fa5c82a3a2ae9b6025829d90c1cab7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "93700926_a2d4899b",
         "filename": "run_unittests.go",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2020-06-01T16:55:24Z",
       "side": 1,
       "message": "How long do these take to run?  Just wondering if it makes sense to add these on to the existing task vs adding another which is specifically dedicated to frontend tests.",
+      "range": {
+        "startLine": 434,
+        "startChar": 0,
+        "endLine": 434,
+        "endChar": 116
+      },
+      "revId": "83a88aaf6fa5c82a3a2ae9b6025829d90c1cab7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25c21bc0_1eddfe5b",
+        "filename": "run_unittests.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-01T17:35:01Z",
+      "side": 1,
+      "message": "I ran Infra-PerCommit-Medium twice with these changes and it seems to take 5-6 minutes:\n\n- https://screenshot.googleplex.com/EHcNOPpuNW5\n- https://chromium-swarm.appspot.com/task?id\u003d4c8692a513282d10\n- https://chromium-swarm.appspot.com/task?id\u003d4c89ba98429ad510\n\nThis tryjob normally takes 2-3 minutes, judging by the screenshot above.",
+      "parentUuid": "93700926_a2d4899b",
       "range": {
         "startLine": 434,
         "startChar": 0,
