@@ -169,7 +169,6 @@ func main() {
 		}
 		isolateTask := &isolate.Task{
 			BaseDir:     isolateDir,
-			Blacklist:   isolate.DEFAULT_BLACKLIST,
 			IsolateFile: isolateFile,
 		}
 		hashes, _, err = isolateClient.IsolateTasks(ctx, []*isolate.Task{isolateTask})

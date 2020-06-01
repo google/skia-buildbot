@@ -95,7 +95,6 @@ func buildRepo() error {
 	// Isolate telemetry artifacts.
 	isolateTask := &isolate.Task{
 		BaseDir:     buildOutDir,
-		Blacklist:   []string{},
 		IsolateFile: isolateFile,
 	}
 	isolateTasks := []*isolate.Task{isolateTask}

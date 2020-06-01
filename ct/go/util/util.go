@@ -435,7 +435,6 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 
 		isolateTask := &isolate.Task{
 			BaseDir:     pathToIsolates,
-			Blacklist:   []string{},
 			IsolateFile: path.Join(pathToIsolates, isolateName),
 			Deps:        isolateDeps,
 			ExtraVars:   isolateArgs,
@@ -1007,7 +1006,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
 	}
 
-	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, ISOLATE_TELEMETRY_ISOLATE), s.WorkDir, osType, taskName, isolateArgs, []string{})
+	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, ISOLATE_TELEMETRY_ISOLATE), s.WorkDir, osType, taskName, isolateArgs)
 	if err != nil {
 		return "", fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
 	}
@@ -1071,7 +1070,7 @@ func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isola
 	if err != nil {
 		return "", fmt.Errorf("Could not get path to isolates: %s", err)
 	}
-	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, isolateFileName), s.WorkDir, osType, taskName, isolateArgs, []string{})
+	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, isolateFileName), s.WorkDir, osType, taskName, isolateArgs)
 	if err != nil {
 		return "", fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
 	}
@@ -1137,7 +1136,7 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformLinuxAmd64])...)
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
 	}
-	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, BUILD_REPO_ISOLATE), s.WorkDir, osType, taskName, isolateArgs, []string{})
+	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, BUILD_REPO_ISOLATE), s.WorkDir, osType, taskName, isolateArgs)
 	if err != nil {
 		return nil, fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
 	}
