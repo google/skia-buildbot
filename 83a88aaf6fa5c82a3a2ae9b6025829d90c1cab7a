@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "cd2b211e_de62bb03",
+        "filename": "push/Makefile",
+        "patchSetId": 8
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-06-01T17:45:45Z",
+      "side": 1,
+      "message": "IIUC, \"npm ci\" reads package-lock.json and syncs dependencies to the revisions contained within it.  Using package-lock.json as the target prevents needing to run \"npm ci\" unless the requested versions have changed.",
+      "parentUuid": "def57ae2_bcac566e",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 44,
+        "endChar": 7
+      },
+      "revId": "83a88aaf6fa5c82a3a2ae9b6025829d90c1cab7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "93700926_a2d4899b",
         "filename": "run_unittests.go",
         "patchSetId": 8
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "I ran Infra-PerCommit-Medium twice with these changes and it seems to take 5-6 minutes:\n\n- https://screenshot.googleplex.com/EHcNOPpuNW5\n- https://chromium-swarm.appspot.com/task?id\u003d4c8692a513282d10\n- https://chromium-swarm.appspot.com/task?id\u003d4c89ba98429ad510\n\nThis tryjob normally takes 2-3 minutes, judging by the screenshot above.",
       "parentUuid": "93700926_a2d4899b",
+      "range": {
+        "startLine": 434,
+        "startChar": 0,
+        "endLine": 434,
+        "endChar": 116
+      },
+      "revId": "83a88aaf6fa5c82a3a2ae9b6025829d90c1cab7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bd7e55c_621d9898",
+        "filename": "run_unittests.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-06-01T17:45:45Z",
+      "side": 1,
+      "message": "Ok, we might consider breaking this out into its own task.  An extra couple of minutes isn\u0027t too bad considering the amount of overhead we currently have, but it will still probably be noticeable.",
+      "parentUuid": "25c21bc0_1eddfe5b",
       "range": {
         "startLine": 434,
         "startChar": 0,
