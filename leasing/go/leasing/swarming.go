@@ -228,7 +228,6 @@ func GetIsolateHash(ctx context.Context, pool, isolateDep string) (string, error
 	isolateClient := *GetIsolateClient(pool)
 	isolateTask := &isolate.Task{
 		BaseDir:     path.Join(*isolatesDir),
-		Blacklist:   []string{},
 		IsolateFile: path.Join(*isolatesDir, "leasing.isolate"),
 	}
 	if isolateDep != "" {

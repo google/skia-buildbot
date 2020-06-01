@@ -44,8 +44,6 @@ const (
 )
 
 var (
-	DEFAULT_BLACKLIST = []string{"*.pyc", ".git", "out", ".recipe_deps"}
-
 	isolatedHashRegexpPattern = fmt.Sprintf("([a-f0-9]{40})\\s+.*(%s)\\.isolated$", fmt.Sprintf(TASK_ID_TMPL, "\\d+"))
 	isolatedHashRegexp        = regexp.MustCompile(isolatedHashRegexpPattern)
 )
@@ -164,9 +162,6 @@ type Task struct {
 	// BaseDir is the directory in which the files to be isolated reside.
 	BaseDir string
 
-	// Blacklist is a list of patterns of files not to upload.
-	Blacklist []string
-
 	// Deps is a list of isolated hashes upon which this task depends.
 	Deps []string
 
@@ -206,9 +201,6 @@ func WriteIsolatedGenJson(t *Task, genJsonFile, isolatedFile string) error {
 	}
 	if t.OsType != "" {
 		args = append(args, "--config-variable", "OS", t.OsType)
-	}
-	for _, b := range t.Blacklist {
-		args = append(args, "--blacklist", b)
 	}
 	for k, v := range t.ExtraVars {
 		args = append(args, "--extra-variable", k, v)

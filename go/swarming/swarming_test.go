@@ -36,10 +36,9 @@ func TestCreateIsolatedGenJSON(t *testing.T) {
 		"ARG_1": "arg_1",
 		"ARG_2": "arg_2",
 	}
-	blackList := []string{"blacklist1", "blacklist2"}
 
 	// Pass in a relative path to isolate file. It should return an err.
-	genJSON, err := s.CreateIsolatedGenJSON(path.Join(TESTDATA_DIR, TEST_ISOLATE), TESTDATA_DIR, "linux", "testTask1", extraArgs, blackList)
+	genJSON, err := s.CreateIsolatedGenJSON(path.Join(TESTDATA_DIR, TEST_ISOLATE), TESTDATA_DIR, "linux", "testTask1", extraArgs)
 	require.Equal(t, "", genJSON)
 	require.NotNil(t, err)
 	require.Equal(t, "isolate path testdata/test.isolate must be an absolute path", err.Error())
@@ -47,7 +46,7 @@ func TestCreateIsolatedGenJSON(t *testing.T) {
 	// Now pass in an absolute path to isolate file. This should succeed.
 	absTestDataDir, err := filepath.Abs(TESTDATA_DIR)
 	require.NoError(t, err)
-	genJSON, err = s.CreateIsolatedGenJSON(path.Join(absTestDataDir, TEST_ISOLATE), TESTDATA_DIR, "linux", "testTask1", extraArgs, blackList)
+	genJSON, err = s.CreateIsolatedGenJSON(path.Join(absTestDataDir, TEST_ISOLATE), TESTDATA_DIR, "linux", "testTask1", extraArgs)
 	require.NoError(t, err)
 	contents, err := ioutil.ReadFile(genJSON)
 	require.NoError(t, err)
@@ -67,8 +66,7 @@ func TestCreateIsolatedGenJSON(t *testing.T) {
 	expectedOutputBeforeExtraVars := []string{
 		"--isolate", path.Join(absTestDataDir, TEST_ISOLATE),
 		"--isolated", fmt.Sprintf("%s/testTask1.isolated", s.WorkDir),
-		"--config-variable", "OS", "linux",
-		"--blacklist", "blacklist1", "--blacklist", "blacklist2"}
+		"--config-variable", "OS", "linux"}
 	extraVarsPos := len(output.Args) - 6
 	require.Equal(t, output.Args[:extraVarsPos], expectedOutputBeforeExtraVars)
 	require.Equal(t, 17, len(output.Args))
@@ -87,7 +85,6 @@ func E2E_Success(t *testing.T) {
 	ctx := context.Background()
 
 	// Create isolated.gen.json files to pass to batcharchive.
-	blackList := []string{"blacklist1", "blacklist2"}
 	absTestDataDir, err := filepath.Abs(TESTDATA_DIR)
 	require.NoError(t, err)
 	taskNames := []string{"testTask1", "testTask2"}
@@ -97,7 +94,7 @@ func E2E_Success(t *testing.T) {
 			"ARG_1": fmt.Sprintf("arg_1_%s", taskName),
 			"ARG_2": fmt.Sprintf("arg_2_%s", taskName),
 		}
-		genJSON, err := s.CreateIsolatedGenJSON(path.Join(absTestDataDir, TEST_ISOLATE), s.WorkDir, "linux", taskName, extraArgs, blackList)
+		genJSON, err := s.CreateIsolatedGenJSON(path.Join(absTestDataDir, TEST_ISOLATE), s.WorkDir, "linux", taskName, extraArgs)
 		require.NoError(t, err)
 		genJSONs = append(genJSONs, genJSON)
 	}
@@ -147,7 +144,6 @@ func E2E_OneFailure(t *testing.T) {
 	defer s.Cleanup()
 
 	// Create isolated.gen.json files to pass to batcharchive.
-	blackList := []string{"blacklist1", "blacklist2"}
 	absTestDataDir, err := filepath.Abs(TESTDATA_DIR)
 	require.NoError(t, err)
 	taskNames := []string{"testTask1", "testTask2"}
@@ -161,7 +157,7 @@ func E2E_OneFailure(t *testing.T) {
 		if taskName == "testTask1" {
 			extraArgs["ARG_2"] = ""
 		}
-		genJSON, err := s.CreateIsolatedGenJSON(path.Join(absTestDataDir, TEST_ISOLATE), s.WorkDir, "linux", taskName, extraArgs, blackList)
+		genJSON, err := s.CreateIsolatedGenJSON(path.Join(absTestDataDir, TEST_ISOLATE), s.WorkDir, "linux", taskName, extraArgs)
 		require.NoError(t, err)
 		genJSONs = append(genJSONs, genJSON)
 	}

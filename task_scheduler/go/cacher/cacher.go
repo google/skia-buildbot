@@ -95,7 +95,6 @@ func (c *Cacher) GetOrCacheRepoState(ctx context.Context, rs types.RepoState) (*
 				}
 				t := &isolate.Task{
 					BaseDir:     co.Dir(),
-					Blacklist:   isolate.DEFAULT_BLACKLIST,
 					IsolateFile: path.Join(co.Dir(), "infra", "bots", taskSpec.Isolate),
 					OsType:      "linux", // Unused by our isolates.
 				}
