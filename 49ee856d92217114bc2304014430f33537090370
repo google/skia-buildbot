@@ -22,6 +22,30 @@
       "revId": "49ee856d92217114bc2304014430f33537090370",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16de3990_9352bd88",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk_test.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-02T16:54:10Z",
+      "side": 0,
+      "message": "Thanks for the fix! Abandoning this CL.",
+      "parentUuid": "dd9b718c_814a37bc",
+      "range": {
+        "startLine": 62,
+        "startChar": 59,
+        "endLine": 62,
+        "endChar": 63
+      },
+      "revId": "49ee856d92217114bc2304014430f33537090370",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
