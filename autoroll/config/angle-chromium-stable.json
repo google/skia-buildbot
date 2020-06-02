@@ -1,0 +1,47 @@
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childDisplayName": "ANGLE",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childLogURLTmpl": "https://chromium.googlesource.com/angle/angle.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeRevisionCount": true,
+    "includeTbrLine": true
+  },
+  "contacts": [
+    "ynovikov@google.com"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentDisplayName": "Chromium Stable Branch",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "angle-chromium-stable-autoroll",
+  "serviceAccount": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "https://rota-ng.appspot.com/legacy/sheriff_angle.json"
+  ],
+  "sheriffBackup": [
+    "ynovikov@chromium.org"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "refs/heads/chromium/{{.Branches.Chromium.Stable.Number}}",
+    "childPath": "src/third_party/angle",
+    "childRepo": "https://chromium.googlesource.com/angle/angle.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/angle/angle.git/+show/%s",
+    "parentBranch": "refs/branch-heads/{{.Branches.Chromium.Stable.Number}}",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  }
+}

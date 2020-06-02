@@ -1,0 +1,46 @@
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childDisplayName": "V8",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "childLogURLTmpl": "https://chromium.googlesource.com/v8/v8.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeRevisionCount": true,
+    "includeTbrLine": true
+  },
+  "contacts": [
+    "hablich@google.com",
+    "vahl@google.com"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentDisplayName": "Chromium Beta Branch",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "v8-chromium-beta-autoroll",
+  "serviceAccount": "chromium-release-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "hablich@google.com",
+    "vahl@google.com"
+  ],
+  "noCheckoutDEPSRepoManager": {
+    "childBranch": "refs/heads/chromium/{{.Branches.Chromium.Beta.Number}}",
+    "childPath": "src/v8",
+    "childRepo": "https://chromium.googlesource.com/v8/v8.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/v8/v8.git/+show/%s",
+    "parentBranch": "refs/branch-heads/{{.Branches.Chromium.Beta.Number}}",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  }
+}
