@@ -1,0 +1,15 @@
+@import '../colors.css';
+
+chromium-perf-sk {
+  td:not(:first-child) {
+    padding-top: 1em;
+  }
+  select-sk {
+    * {
+    padding: 0;
+    }
+    [selected] {
+      background-color: var(--primary-variant);
+    }
+  }
+}
