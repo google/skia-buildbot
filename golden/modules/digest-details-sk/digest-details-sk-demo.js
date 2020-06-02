@@ -46,6 +46,13 @@ ele.details = noTraces;
 ele.commits = twoHundredCommits;
 $$('#no_traces').appendChild(ele);
 
+ele = document.createElement('digest-details-sk');
+const noParams = JSON.parse(JSON.stringify(noTraces));
+noParams.paramset = {};
+ele.details = noParams;
+ele.commits = twoHundredCommits;
+$$('#no_params').appendChild(ele);
+
 document.addEventListener('triage', (e) => {
   $$('#event').textContent = `triage: ${JSON.stringify(e.detail)}`;
 });
