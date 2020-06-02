@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "561d5ae4_29743621",
+        "filename": "push/Makefile",
+        "patchSetId": 8
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-02T18:43:42Z",
+      "side": 1,
+      "message": "Thank you for the explanation. I think the package-lock.json make targets made sense before we checked the package-lock.json files into the repository. I suspect we might want to clean up those make targets at some point and rely on \"npm ci\" instead where needed.",
+      "parentUuid": "cd2b211e_de62bb03",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 44,
+        "endChar": 7
+      },
+      "revId": "83a88aaf6fa5c82a3a2ae9b6025829d90c1cab7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "93700926_a2d4899b",
         "filename": "run_unittests.go",
         "patchSetId": 8
@@ -141,6 +165,30 @@
       "revId": "83a88aaf6fa5c82a3a2ae9b6025829d90c1cab7a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b62e5e9_f81ec2e1",
+        "filename": "run_unittests.go",
+        "patchSetId": 8
+      },
+      "lineNbr": 434,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-02T18:43:42Z",
+      "side": 1,
+      "message": "Sounds good, thank you. I updated the CL description to mention this.",
+      "parentUuid": "8bd7e55c_621d9898",
+      "range": {
+        "startLine": 434,
+        "startChar": 0,
+        "endLine": 434,
+        "endChar": 116
+      },
+      "revId": "83a88aaf6fa5c82a3a2ae9b6025829d90c1cab7a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
