@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
 	mock_expectations "go.skia.org/infra/golden/go/expectations/mocks"
+	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/indexer"
 	mock_index "go.skia.org/infra/golden/go/indexer/mocks"
 	"go.skia.org/infra/golden/go/paramsets"
@@ -43,7 +44,6 @@ import (
 // TODO(kjlubick) Add tests for:
 //   - When a CL doesn't exist or the CL has not patchsets, patchset doesn't exist,
 //     or otherwise no results.
-//   - Use ignore matcher
 //   - When a CL specifies a PS
 //   - IncludeDigestsProducedOnMaster=true
 //   - UnavailableDigests is not empty
@@ -1359,6 +1359,43 @@ func TestDigestDetails_BadTestAndDigest_ReturnsError(t *testing.T) {
 	assert.Contains(t, err.Error(), "unknown")
 }
 
+func TestDigestDetails_TestIgnored_DetailsContainResults_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const digestWeWantDetailsAbout = data.AlphaPositiveDigest
+	const testWeWantDetailsAbout = data.AlphaTest
+
+	mi := makeIndexWithIgnoreRules(t, "name=test_alpha")
+
+	mds := makeDiffStoreWithNoFailures()
+	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaPositiveDigest, nil)
+	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaNegativeDigest, makeBigDiffMetric())
+
+	s := New(mds, makeThreeDevicesExpectationStore(), nil, mi, nil, nil, nil, everythingPublic)
+
+	result, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
+	require.NoError(t, err)
+	assert.Equal(t, paramtools.ParamSet{
+		"device":              []string{data.AnglerDevice, data.CrosshatchDevice},
+		types.PrimaryKeyField: []string{string(data.AlphaTest)},
+		types.CorpusField:     []string{"gm"},
+	}, result.Result.ParamSet)
+	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
+		common.NegativeRef: {
+			DiffMetrics: makeBigDiffMetric(),
+			Digest:      data.AlphaNegativeDigest,
+			Status:      expectations.Negative.String(),
+			ParamSet: paramtools.ParamSet{
+				"device":              []string{data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
+				types.PrimaryKeyField: []string{string(data.AlphaTest)},
+				types.CorpusField:     []string{"gm"},
+			},
+			OccurrencesInTile: 6,
+		},
+		common.PositiveRef: nil,
+	}, result.Result.RefDiffs)
+}
+
 func TestDiffDigestsSunnyDay(t *testing.T) {
 	unittest.SmallTest(t)
 
@@ -2190,4 +2227,28 @@ func makeStubDiffStore() *mock_diffstore.DiffStore {
 		return rv
 	}, nil)
 	return mds
+}
+
+func makeIndexWithIgnoreRules(t *testing.T, ignoreQueries ...string) *mock_index.IndexSource {
+	fullTile := data.MakeTestTile()
+	cpxTile := tiling.NewComplexTile(fullTile)
+	var ignoreRules []ignore.Rule
+	for _, q := range ignoreQueries {
+		ignoreRules = append(ignoreRules, ignore.Rule{
+			Query: q,
+		})
+	}
+	filteredTile, pm, err := ignore.FilterIgnored(fullTile, ignoreRules)
+	require.NoError(t, err)
+	cpxTile.SetIgnoreRules(filteredTile, pm)
+	fullTileCount := digest_counter.New(fullTile)
+	fullTileSummary := paramsets.NewParamSummary(fullTile, fullTileCount)
+	filteredTileCount := digest_counter.New(filteredTile)
+	filteredTileSummary := paramsets.NewParamSummary(filteredTile, filteredTileCount)
+	si, err := indexer.SearchIndexForTesting(cpxTile,
+		[2]digest_counter.DigestCounter{filteredTileCount, fullTileCount},
+		[2]paramsets.ParamSummary{filteredTileSummary, fullTileSummary}, nil, nil)
+	mi := &mock_index.IndexSource{}
+	mi.On("GetIndex").Return(si)
+	return mi
 }

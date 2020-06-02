@@ -12,7 +12,7 @@ describe('digest-details-sk', () => {
 
   it('should render the demo page', async () => {
     // Smoke test.
-    expect(await testBed.page.$$('digest-details-sk')).to.have.length(6);
+    expect(await testBed.page.$$('digest-details-sk')).to.have.length(7);
   });
 
   describe('screenshots', () => {
@@ -44,6 +44,11 @@ describe('digest-details-sk', () => {
     it('had no trace data sent by the backend', async () => {
       const digestDetailsSk = await testBed.page.$('#no_traces');
       await takeScreenshot(digestDetailsSk!, 'gold', 'digest-details-sk_no-traces');
+    });
+
+    it('had no params sent by the backend', async () => {
+      const digestDetailsSk = await testBed.page.$('#no_params');
+      await takeScreenshot(digestDetailsSk!, 'gold', 'digest-details-sk_no-params');
     });
   });
 });

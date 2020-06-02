@@ -278,7 +278,7 @@ define('digest-details-sk', class extends ElementSk {
   }
 
   _clusterHref() {
-    if (!this._grouping || !this._params) {
+    if (!this._grouping || !this._params || !this._params.source_type) {
       return '';
     }
 

@@ -197,7 +197,6 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 
 	// Make sure we have valid data, i.e. we know about that test/digest
 	dct := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
-
 	digests, ok := dct[test]
 	if !ok {
 		if clID != "" {
@@ -247,7 +246,7 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 	// We wrap the result in a slice so we can re-use the search functions.
 	results := []*frontend.SearchResult{&result}
 	addExpectations(results, exp)
-	err = s.getReferenceDiffs(ctx, results, diff.CombinedMetric, []string{types.PrimaryKeyField}, nil, types.ExcludeIgnoredTraces, exp, idx)
+	err = s.getReferenceDiffs(ctx, results, diff.CombinedMetric, []string{types.PrimaryKeyField}, nil, types.IncludeIgnoredTraces, exp, idx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Fetching reference diffs for test %s, digest %s", test, digest)
 	}

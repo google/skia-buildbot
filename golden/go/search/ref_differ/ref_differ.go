@@ -48,7 +48,7 @@ func New(exp expectations.Classifier, diffStore diff.DiffStore, idx indexer.Inde
 }
 
 // FillRefDiffs implements the RefDiffer interface.
-func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SearchResult, metric string, match []string, rhsQuery paramtools.ParamSet, is types.IgnoreState) error {
+func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SearchResult, metric string, match []string, rhsQuery paramtools.ParamSet, iState types.IgnoreState) error {
 	unavailableDigests, err := r.diffStore.UnavailableDigests(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "fetching unavailable digests")
@@ -57,7 +57,7 @@ func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SearchResult, m
 		return nil
 	}
 
-	paramsByDigest := r.idx.GetParamsetSummaryByTest(types.ExcludeIgnoredTraces)[d.Test]
+	paramsByDigest := r.idx.GetParamsetSummaryByTest(iState)[d.Test]
 
 	// TODO(kjlubick) maybe make this use an errgroup
 	posDigests := r.getDigestsWithLabel(d, match, paramsByDigest, unavailableDigests, rhsQuery, expectations.Positive)
@@ -76,7 +76,7 @@ func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SearchResult, m
 	// Find the minimum according to the diff metric.
 	closest := common.NoRef
 	minDiff := float32(math.Inf(1))
-	dCount := r.idx.DigestCountsByTest(is)[d.Test]
+	dCount := r.idx.DigestCountsByTest(iState)[d.Test]
 	for ref, srdd := range ret {
 		if srdd != nil {
 			// Fill in the missing fields.
