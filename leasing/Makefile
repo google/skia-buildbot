@@ -5,6 +5,7 @@ build:
 	go install ./go/leasing
 
 release: build package-lock.json
+	cd ../infra-sk && npm ci
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/leasing
 	./build_docker_release
