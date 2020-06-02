@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "507ccdd3_76d004dc",
+        "filename": "golden/modules/digest-details-sk/digest-details-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-02T20:21:12Z",
+      "side": 1,
+      "message": "Can this be tested?",
+      "range": {
+        "startLine": 281,
+        "startChar": 0,
+        "endLine": 281,
+        "endChar": 72
+      },
+      "revId": "acbf10d17634f272f39e2ca411cfcbed3ca5b088",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
