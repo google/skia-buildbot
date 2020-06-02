@@ -21,6 +21,7 @@ release_ci_tot: app
 	cp -r /OUT/* build
 	echo "export const SKIA_VERSION = '`cat /OUT/VERSION`';" > ./build/version.js
 	# Now that we have the canvaskit.wasm etc, we can bundle it in with webpack.
+	cd ../infra-sk && npm ci
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/skottie
 	./build_release
