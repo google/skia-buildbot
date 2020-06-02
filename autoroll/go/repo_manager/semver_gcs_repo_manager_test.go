@@ -7,15 +7,16 @@ import (
 	"io/ioutil"
 	"net/url"
 	"path"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common/gerrit_common_testutils"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/gerrit"
+	gerrit_testutils "go.skia.org/infra/go/gerrit/testutils"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
@@ -62,7 +63,7 @@ func afdoCfg(t *testing.T) *SemVerGCSRepoManagerConfig {
 			},
 		},
 		Gerrit: &codereview.GerritConfig{
-			URL:     "https://fake-skia-review.googlesource.com",
+			URL:     gerrit_testutils.FakeGerritURL,
 			Project: "fake-gerrit-project",
 			Config:  codereview.GERRIT_CONFIG_CHROMIUM,
 		},
@@ -76,7 +77,7 @@ func afdoCfg(t *testing.T) *SemVerGCSRepoManagerConfig {
 
 func gerritCR(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview {
 	rv, err := (&codereview.GerritConfig{
-		URL:     "https://skia-review.googlesource.com",
+		URL:     gerrit_testutils.FakeGerritURL,
 		Project: "skia",
 		Config:  codereview.GERRIT_CONFIG_CHROMIUM,
 	}).Init(g, nil)
@@ -84,7 +85,7 @@ func gerritCR(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview {
 	return rv
 }
 
-func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
+func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, *gerrit_testutils.MockGerrit, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -98,18 +99,8 @@ func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhtt
 	urlmock := mockhttpclient.NewURLMock()
 	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
 
-	gUrl := "https://fake-skia-review.googlesource.com"
-	serialized, err := json.Marshal(&gerrit.AccountDetails{
-		AccountId: 101,
-		Name:      mockUser,
-		Email:     mockUser,
-		UserName:  mockUser,
-	})
-	require.NoError(t, err)
-	serialized = append([]byte("abcd\n"), serialized...)
-	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerrit(gUrl, urlmock.Client())
-	require.NoError(t, err)
+	mockGerrit := gerrit_common_testutils.SetupMockGerrit(t, urlmock)
+	g := mockGerrit.Gerrit
 
 	cfg := afdoCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
@@ -136,7 +127,7 @@ func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhtt
 		parent.Cleanup()
 	}
 
-	return ctx, rm, urlmock, mockParent, parent, cleanup
+	return ctx, rm, urlmock, mockParent, parent, mockGerrit, cleanup
 }
 
 type gsObject struct {
@@ -225,7 +216,7 @@ func mockGSObject(t *testing.T, urlmock *mockhttpclient.URLMock, bucket, gsPath,
 func TestAFDORepoManager(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, rm, urlmock, mockParent, parent, cleanup := setupAfdo(t)
+	ctx, rm, urlmock, mockParent, parent, mockGerrit, cleanup := setupAfdo(t)
 	defer cleanup()
 
 	// Mock requests for Update.
@@ -277,46 +268,14 @@ func TestAFDORepoManager(t *testing.T) {
 	// Mock the request to get the current version.
 	mockParent.MockReadFile(ctx, AFDO_VERSION_FILE_PATH, parentMaster)
 
-	// Mock the initial change creation.
-	subject := strings.Split(fakeCommitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, "master", parentMaster))
-	ci := gerrit.ChangeInfo{
-		ChangeId: "123",
-		Id:       "123",
-		Issue:    123,
-		Revisions: map[string]*gerrit.Revision{
-			"ps1": {
-				ID:     "ps1",
-				Number: 1,
-			},
-		},
-	}
-	respBody, err := json.Marshal(ci)
-	require.NoError(t, err)
-	respBody = append([]byte(")]}'\n"), respBody...)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/", mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, 201))
-
-	// Mock the edit of the change to update the commit message.
-	reqBody = []byte(fmt.Sprintf(`{"message":"%s"}`, strings.Replace(fakeCommitMsg, "\n", "\\n", -1)))
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:message", mockhttpclient.MockPutDialogue("application/json", reqBody, []byte("")))
-
-	// Mock the request to modify the version file.
-	reqBody = []byte(tipRev.Id + "\n")
-	url := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(AFDO_VERSION_FILE_PATH))
-	urlmock.MockOnce(url, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
-
-	// Mock the request to publish the change edit.
-	reqBody = []byte(`{"notify":"ALL"}`)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:publish", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
-
-	// Mock the request to load the updated change.
-	respBody, err = json.Marshal(ci)
-	require.NoError(t, err)
-	respBody = append([]byte(")]}'\n"), respBody...)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
+	// Mock the CL upload.
+	ci := mockGerrit.MockCreateChange(fakeCommitMsg, "master", parentMaster, map[string]string{
+		AFDO_VERSION_FILE_PATH: tipRev.Id + "\n",
+	})
 
 	// Mock the request to set the CQ.
-	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
+	// TODO(borenet): We should respect the config for these labels.
+	reqBody := []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"reviewer@chromium.org"}]}`)
 	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
@@ -347,7 +306,7 @@ func TestChromiumAFDOConfigValidation(t *testing.T) {
 func TestAFDORepoManagerCurrentRevNotFound(t *testing.T) {
 	unittest.LargeTest(t)
 
-	ctx, rm, urlmock, mockParent, parent, cleanup := setupAfdo(t)
+	ctx, rm, urlmock, mockParent, parent, _, cleanup := setupAfdo(t)
 	defer cleanup()
 
 	// Sanity check.

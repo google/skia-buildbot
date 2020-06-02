@@ -38,6 +38,10 @@ func (mr *MockRepo) Empty() bool {
 	return mr.URLMock.Empty()
 }
 
+func (mr *MockRepo) AssertEmpty() {
+	require.True(mr.t, mr.Empty())
+}
+
 func (mr *MockRepo) MockReadFile(ctx context.Context, srcPath, ref string) {
 	contents, err := mr.repo.GetFile(ctx, srcPath, ref)
 	assert.NoError(mr.t, err)
