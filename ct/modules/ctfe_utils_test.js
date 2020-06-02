@@ -1,7 +1,12 @@
 import { getTimestamp, getFormattedTimestamp, getCtDbTimestamp } from './ctfe_utils';
 
 describe('ctfe_utils', () => {
-    // All dates are arbitrary.
+  // This makes the tests deterministic w.r.t. the computer's timezone.
+  const originalDateToLocaleString = Date.prototype.toLocaleString;
+  before(() => { Date.prototype.toLocaleString = Date.prototype.toUTCString; });
+  after(() => { Date.prototype.toLocaleString = originalDateToLocaleString; });
+
+  // All dates are arbitrary.
   it('converts CT DB int date to JS Date', async () => {
     const date = getTimestamp(20200513095930);
     expect(date.getUTCFullYear()).to.equal(2020);
@@ -15,7 +20,7 @@ describe('ctfe_utils', () => {
 
   it('converts CT DB int date to human readable string', async () => {
     const date_string = getFormattedTimestamp(20200513095930);
-    expect(date_string).to.equal('5/13/2020, 5:59:30 AM');
+    expect(date_string).to.equal('Wed, 13 May 2020 09:59:30 GMT');
   });
 
   it('converts a JS Date to a CT DB int date', async () => {
