@@ -52,18 +52,14 @@ require (
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/OneOfOne/struct2ts v1.0.4 // indirect
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/a8m/envsubst v1.1.0
-	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/aws/aws-sdk-go v1.31.8 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/codegangsta/negroni v1.0.0 // indirect
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/danjacques/gofslock v0.0.0-20191023191349-0a45f885bc37 // indirect
 	github.com/davecgh/go-spew v1.1.1
-	github.com/docker/distribution v2.7.1+incompatible
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fiorix/go-web v1.0.1-0.20150221144011-5b593f1e8966
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
@@ -81,7 +77,6 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.4.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20190915194858-d3ddacdb130f // indirect
-	github.com/gorilla/csrf v1.7.0
 	github.com/gorilla/mux v1.7.4
 	github.com/gorilla/securecookie v1.1.1
 	github.com/hashicorp/go-multierror v1.1.0
@@ -96,7 +91,6 @@ require (
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/maruel/subcommands v0.0.0-20200206125935-de1d40e70d4b // indirect
 	github.com/maruel/ut v1.0.1 // indirect
-	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.3.1 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
@@ -106,7 +100,6 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.8.0 // indirect
-	github.com/peterh/liner v1.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.6.0
 	github.com/robertkrimen/otto v0.0.0-20191219234010-c382bd3c16ff // indirect
@@ -149,7 +142,6 @@ require (
 	k8s.io/api v0.18.3
 	k8s.io/apimachinery v0.18.3
 	k8s.io/client-go v0.18.3
-	rsc.io/sampler v1.99.99 // indirect
 )
 
 go 1.13
