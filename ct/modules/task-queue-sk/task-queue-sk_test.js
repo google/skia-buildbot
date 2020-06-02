@@ -75,9 +75,9 @@ describe('task-queue-sk', () => {
   it('task details works', async () => {
     const table = await loadTableWithReplies([resultSetOneItem]);
 
-    expect($$('.dialog-background', table).className).to.contain('hidden');
+    expect($$('.dialog-background', table)).to.have.class('hidden');
     $$('.details', table).click();
 
-    expect($$('.dialog-background', table).className).to.not.contain('hidden');
+    expect($$('.dialog-background', table)).to.not.have.class('hidden');
   });
 });
