@@ -96,3 +96,8 @@ start_datastore_emulator:
 
 start_cockroachdb_emulator:
 	cockroach start-single-node --insecure  --listen-addr=127.0.0.1
+
+.PHONY: test-frontend-ci
+test-frontend-ci:
+	npm ci
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run

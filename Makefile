@@ -80,3 +80,24 @@ puppeteer-tests:
 		--mount type=bind,source=`pwd`/puppeteer-tests/output,target=/out \
 		gcr.io/skia-public/puppeteer-tests:latest \
 		/src/puppeteer-tests/docker/run-tests.sh
+
+# Front-end tests will be included in the Infra-PerCommit-Medium tryjob.
+.PHONY: test-frontend-ci
+test-frontend-ci:
+	# infra-sk needs to be tested first because this pulls its npm dependencies
+	# with "npm ci", which are needed by other apps.
+	cd infra-sk && $(MAKE) test-frontend-ci
+
+	# Gold needs to be built second because other apps depend on
+	# //golden/modules/test_util.ts.
+	# TODO(lovisolo): Clean this up once test_util.ts is extracted out of Gold.
+	cd golden && $(MAKE) test-frontend-ci
+
+	# Other apps can be tested in alphabetical order.
+	cd am && $(MAKE) test-frontend-ci
+	cd ct && $(MAKE) test-frontend-ci
+	cd demos && $(MAKE) test-frontend-ci
+	cd golden && $(MAKE) test-frontend-ci
+	cd machine && $(MAKE) test-frontend-ci
+	cd perf && $(MAKE) test-frontend-ci
+	cd push && $(MAKE) test-frontend-ci

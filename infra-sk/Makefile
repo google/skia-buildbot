@@ -24,3 +24,8 @@ docs: package-lock.json
 
 package-lock.json: package.json
 	npm install
+
+.PHONY: test-frontend-ci
+test-frontend-ci:
+	npm ci
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run

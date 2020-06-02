@@ -43,3 +43,8 @@ test_js:
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
 test: test_js test_puppeteer
+
+.PHONY: test-frontend-ci
+test-frontend-ci:
+	npm ci
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
