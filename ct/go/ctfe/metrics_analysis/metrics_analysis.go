@@ -20,6 +20,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	skutil "go.skia.org/infra/go/util"
@@ -138,7 +139,7 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
-func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error {
+func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
 	isolateArgs := map[string]string{
@@ -153,7 +154,7 @@ func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error 
 		"CUSTOM_TRACES_CSV_GS_PATH": task.CustomTracesGSPath,
 	}
 
-	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "metrics_analysis_on_workers", ctutil.METRICS_ANALYSIS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs)
+	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "metrics_analysis_on_workers", ctutil.METRICS_ANALYSIS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs, []string{}, swarmingClient)
 	if err != nil {
 		return fmt.Errorf("Could not trigger master script for metrics_analysis_on_workers with isolate args %v: %s", isolateArgs, err)
 	}

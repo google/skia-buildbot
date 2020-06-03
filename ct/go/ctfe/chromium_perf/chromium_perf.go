@@ -21,6 +21,7 @@ import (
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
@@ -179,7 +180,7 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
-func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error {
+func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
 	isolateArgs := map[string]string{
@@ -206,7 +207,36 @@ func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error 
 		"CHROMIUM_BASE_BUILD_PATCH_GS_PATH": task.ChromiumPatchBaseBuildGSPath,
 		"CUSTOM_WEBPAGES_CSV_GS_PATH":       task.CustomWebpagesGSPath,
 	}
-	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_chromium_perf_on_workers", ctutil.CHROMIUM_PERF_MASTER_ISOLATE, task_common.ServiceAccountFile, task.Platform, false, isolateArgs)
+	cmd := []string{
+		"cipd_bin_packages/luci-auth",
+		"context",
+		"--",
+		"bin/run_chromium_perf_on_workers",
+		"--logtostderr",
+		"--run_requester=" + task.Username,
+		"--description=" + task.Description,
+		"--pageset_type=" + task.PageSets,
+		"--benchmark_name=" + task.Benchmark,
+		"--benchmark_extra_args=" + task.BenchmarkArgs,
+		"--browser_extra_args_nopatch=" + task.BrowserArgsNoPatch,
+		"--browser_extra_args_withpatch=" + task.BrowserArgsWithPatch,
+		"--repeat_benchmark=" + strconv.FormatInt(task.RepeatRuns, 10),
+		"--run_in_parallel=" + strconv.FormatBool(task.RunInParallel),
+		"--target_platform=" + task.Platform,
+		"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
+		"--chromium_hash=" + task.ChromiumHash,
+		"--run_id=" + runID,
+		"--task_priority=" + strconv.Itoa(task.TaskPriority),
+		"--group_name=" + task.GroupName,
+		"--value_column_name=" + task.ValueColumnName,
+		"--chromium_patch_gs_path=" + task.ChromiumPatchGSPath,
+		"--skia_patch_gs_path=" + task.SkiaPatchGSPath,
+		"--v8_patch_gs_path=" + task.V8PatchGSPath,
+		"--catapult_patch_gs_path=" + task.CatapultPatchGSPath,
+		"--chromium_base_build_patch_gs_path=" + task.ChromiumPatchBaseBuildGSPath,
+		"--custom_webpages_csv_gs_path=" + task.CustomWebpagesGSPath,
+	}
+	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_chromium_perf_on_workers", ctutil.CHROMIUM_PERF_MASTER_ISOLATE, task_common.ServiceAccountFile, task.Platform, false, isolateArgs, cmd, swarmingClient)
 	if err != nil {
 		return fmt.Errorf("Could not trigger master script for run_chromium_perf_on_workers with isolate args %v: %s", isolateArgs, err)
 	}

@@ -127,9 +127,9 @@ func runServer(serverURL string) {
 	externalRouter.HandleFunc("/loginstatus/", login.StatusHandler)
 
 	h := httputils.LoggingGzipRequestResponse(externalRouter)
-	h = login.RestrictViewer(h)
+	// h = login.RestrictViewer(h)
 	if !*local {
-		h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
+		// h = login.ForceAuth(h, login.DEFAULT_REDIRECT_URL)
 	}
 	h = httputils.HealthzAndHTTPS(h)
 	http.Handle("/", h)

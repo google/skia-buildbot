@@ -12,6 +12,8 @@ VULCANIZE1=true
 
 include ../go/skiaversion/skiaversion.mk
 
+include ../kube/kube.mk
+
 # Require clean_webtools to ensure changes to res/common/imp/*.html are reflected.
 .PHONY: ctfe
 ctfe: res/css/ctfe.css clean_webtools core_js elements_html skiaversion
@@ -52,12 +54,12 @@ release: all
 	./build_ctfe_release
 
 .PHONY: push
-push: release
-	pushk ctfe
+push: pushk release
+	pushk --use-temp-checkout ctfe
 
 .PHONY: push_staging
-push_staging: release
-	pushk ctfe-staging
+push_staging: pushk release
+	pushk --use-temp-checkout ctfe-staging
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
