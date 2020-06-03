@@ -47,6 +47,7 @@ local_image: all
 .PHONY: release
 release: all
 	cd ../infra-sk && npm ci
+	npm ci
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/ctfe
 	./build_ctfe_release
 
