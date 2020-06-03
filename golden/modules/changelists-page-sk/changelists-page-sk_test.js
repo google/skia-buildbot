@@ -12,7 +12,7 @@ import {
   eventPromise,
   expectQueryStringToEqual,
   setUpElementUnderTest,
-} from '../test_util';
+} from '../../../infra-sk/modules/test_util';
 
 describe('changelists-page-sk', () => {
   const newInstance = setUpElementUnderTest('changelists-page-sk');

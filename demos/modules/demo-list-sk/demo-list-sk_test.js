@@ -7,7 +7,7 @@ import { singleDemoEntry, twoDemoEntries } from './test_data';
 import {
   eventPromise,
   setUpElementUnderTest,
-} from '../../../golden/modules/test_util';
+} from '../../../infra-sk/modules/test_util';
 
 describe('demo-list-sk', () => {
   const newInstance = setUpElementUnderTest('demo-list-sk');

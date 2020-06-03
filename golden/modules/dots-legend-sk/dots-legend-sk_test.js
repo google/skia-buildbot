@@ -5,7 +5,7 @@ import {
   DOT_FILL_COLORS,
   MAX_UNIQUE_DIGESTS,
 } from '../dots-sk/constants';
-import { setUpElementUnderTest } from '../test_util';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('dots-legend-sk', () => {
   const newInstance = setUpElementUnderTest('dots-legend-sk');

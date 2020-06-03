@@ -1,7 +1,7 @@
 import './index';
 
 import { $, $$ } from 'common-sk/modules/dom';
-import { eventPromise, setUpElementUnderTest } from '../test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { sendBeginTask, sendEndTask } from '../common';
 
 describe('gold-scaffold-sk', () => {

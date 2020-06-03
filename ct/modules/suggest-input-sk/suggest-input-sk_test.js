@@ -3,7 +3,7 @@ import './index';
 import { $, $$ } from 'common-sk/modules/dom';
 
 import { languageList } from './test_data';
-import { setUpElementUnderTest } from '../../../golden/modules/test_util';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 const DOWN_ARROW = 40;
 const UP_ARROW = 38;

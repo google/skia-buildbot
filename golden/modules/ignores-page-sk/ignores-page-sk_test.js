@@ -6,7 +6,7 @@ import {
   eventPromise,
   expectQueryStringToEqual,
   setUpElementUnderTest,
-} from '../test_util';
+} from '../../../infra-sk/modules/test_util';
 import { fakeNow, ignoreRules_10 } from './test_data';
 
 describe('ignores-page-sk', () => {

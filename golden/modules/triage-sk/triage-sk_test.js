@@ -4,7 +4,7 @@ import {
   eventPromise,
   noEventPromise,
   setUpElementUnderTest,
-} from '../test_util';
+} from '../../../infra-sk/modules/test_util';
 
 describe('triage-sk', () => {
   const newInstance = setUpElementUnderTest('triage-sk');
