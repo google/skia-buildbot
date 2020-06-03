@@ -1,4 +1,4 @@
-import './index.js'
+import './index.ts'
 
 let container = document.createElement('div');
 document.body.appendChild(container);
