@@ -2,7 +2,7 @@ import './index';
 
 import { expect } from 'chai';
 import { $, $$ } from 'common-sk/modules/dom';
-import { setUpElementUnderTest } from '../test_util';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { PaginationSk, PaginationSkPageChangedEventDetail } from './pagination-sk';
 
 describe('pagination-sk', () => {
