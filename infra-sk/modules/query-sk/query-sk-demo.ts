@@ -1,9 +1,12 @@
 import './index';
 
-const q = document.querySelector('query-sk');
-const events = document.querySelector('#events');
+import { QuerySk, QuerySkQueryChangeEventDetail } from './query-sk';
+
+const q = document.querySelector<QuerySk>('query-sk')!;
+const events = document.querySelector<HTMLPreElement>('#events')!;
 q.addEventListener('query-change', (e) => {
-  events.textContent = JSON.stringify(e.detail, null, '  ');
+  const detail = (e as CustomEvent<QuerySkQueryChangeEventDetail>).detail;
+  events.textContent = JSON.stringify(detail, null, '  ');
 });
 
 let n = 0;
@@ -40,7 +43,7 @@ const paramset2 = {
 q.paramset = paramset;
 q.key_order = ['test', 'units'];
 
-document.querySelector('#swap').addEventListener('click', () => {
+document.querySelector<HTMLButtonElement>('#swap')!.addEventListener('click', () => {
   n = (n + 1) % 2;
   q.paramset = [paramset, paramset2][n];
 });
