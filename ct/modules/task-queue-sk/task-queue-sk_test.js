@@ -9,7 +9,7 @@ import {
 import {
   eventPromise,
   setUpElementUnderTest,
-} from '../../../golden/modules/test_util';
+} from '../../../infra-sk/modules/test_util';
 
 describe('task-queue-sk', () => {
   const newInstance = setUpElementUnderTest('task-queue-sk');

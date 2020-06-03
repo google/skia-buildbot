@@ -2,7 +2,7 @@ import './index';
 
 import { $, $$ } from 'common-sk/modules/dom';
 import { twoPatchSets } from './test_data';
-import { setUpElementUnderTest } from '../test_util';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('changelist-controls-sk', () => {
   const newInstance = setUpElementUnderTest('changelist-controls-sk');

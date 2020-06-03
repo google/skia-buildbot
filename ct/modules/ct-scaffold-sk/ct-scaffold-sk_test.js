@@ -5,7 +5,7 @@ import { $, $$ } from 'common-sk/modules/dom';
 // TODO(lovisolo,kjlubick): Add the below to infra-sk.
 import {
   eventPromise, setUpElementUnderTest,
-} from '../../../golden/modules/test_util';
+} from '../../../infra-sk/modules/test_util';
 
 describe('ct-scaffold-sk', () => {
   const newInstance = setUpElementUnderTest('ct-scaffold-sk');
