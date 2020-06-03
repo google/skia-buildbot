@@ -5,6 +5,9 @@
   "commitMsg": {
     "bugProject": "skia",
     "childLogURLTmpl": "https://dawn.googlesource.com/dawn.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "cqExtraTrybots": [
+      "skia/skia.primary:Build-Debian10-Clang-x86_64-Debug-Dawn"
+    ],
     "includeLog": true,
     "includeRevisionCount": true,
     "includeTbrLine": true,
