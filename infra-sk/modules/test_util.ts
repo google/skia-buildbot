@@ -1,4 +1,4 @@
-/** @module golden/test_util
+/** @module infra-sk/test_util
  * @description
  *
  * <p>
