@@ -15,6 +15,8 @@ include ../go/skiaversion/skiaversion.mk
 # Require clean_webtools to ensure changes to res/common/imp/*.html are reflected.
 .PHONY: ctfe
 ctfe: res/css/ctfe.css clean_webtools core_js elements_html skiaversion
+	cd ../infra-sk && npm ci
+	npm ci
 	npx webpack --mode=production
 	go install -v ./go/ctfe
 
@@ -46,8 +48,6 @@ local_image: all
 
 .PHONY: release
 release: all
-	cd ../infra-sk && npm ci
-	npm ci
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/ctfe
 	./build_ctfe_release
 
