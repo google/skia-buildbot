@@ -48,7 +48,7 @@
     "puppeteer": "2.0.0",
     "sass-loader": "^7.3.1",
     "sinon": "^7.4.2",
-    "ts-loader": "^7.0.4",
+    "ts-loader": "^7.0.5",
     "ts-node": "^8.10.1",
     "typescript": "^3.9.2",
     "uglify-js": "~3.6.0",
