@@ -22,6 +22,30 @@
       "revId": "fb428338c99eb6e0dc4114dda4977244fe8067a8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba482d15_2c47fa14",
+        "filename": "ct/modules/suggest-input-sk/suggest-input-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-03T18:12:16Z",
+      "side": 1,
+      "message": "Yep, removed the duplication, was vestigial from development. Opted for making both background-color and color inherit that way it fits better with any container. Same appearance in the demo and in CT, but I think it\u0027s more correct that way.",
+      "parentUuid": "078b506c_e75f58d1",
+      "range": {
+        "startLine": 12,
+        "startChar": 4,
+        "endLine": 12,
+        "endChar": 28
+      },
+      "revId": "fb428338c99eb6e0dc4114dda4977244fe8067a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
