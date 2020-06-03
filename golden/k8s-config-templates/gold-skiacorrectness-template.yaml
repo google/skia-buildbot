@@ -64,6 +64,7 @@ spec:
             - "--github_cred_path=/var/secrets/github/github_token"
             - "--github_repo={{.GITHUB_REPO}}"
             {{end}}
+            - "--idx_interval={{.TILE_FRESHNESS}}"
             - "--known_hashes_gcs_path={{.BUCKET}}/hash_files/{{.HASHES_FILE}}"
             - "--lit_html_dir=/usr/local/share/skiacorrectness"
             - "--logtostderr=true"
