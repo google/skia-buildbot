@@ -12,7 +12,7 @@ import {
   MAX_UNIQUE_DIGESTS,
   TRACE_LINE_COLOR,
 } from './constants';
-import { setUpElementUnderTest } from '../test_util';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('dots-sk constants', () => {
   it('DOT_FILL_COLORS has the expected number of entries', () => {

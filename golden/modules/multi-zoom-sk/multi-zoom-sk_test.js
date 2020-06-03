@@ -1,6 +1,6 @@
 import './index';
 import { $$ } from 'common-sk/modules/dom';
-import { eventPromise, setUpElementUnderTest } from '../test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { diff16x16, left16x16, right16x16 } from './test_data';
 
 describe('multi-zoom-sk', () => {

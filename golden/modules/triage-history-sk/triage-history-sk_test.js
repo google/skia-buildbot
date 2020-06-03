@@ -1,8 +1,6 @@
 import './index';
 import { $$ } from 'common-sk/modules/dom';
-import {
-  setUpElementUnderTest,
-} from '../test_util';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('triage-history-sk', () => {
   const newInstance = setUpElementUnderTest('triage-history-sk');

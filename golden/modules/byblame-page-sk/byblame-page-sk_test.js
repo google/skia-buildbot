@@ -9,7 +9,7 @@ import {
   setUpElementUnderTest,
   eventPromise,
   expectQueryStringToEqual,
-} from '../test_util';
+} from '../../../infra-sk/modules/test_util';
 import { testOnlySetSettings } from '../settings';
 
 describe('byblame-page-sk', () => {

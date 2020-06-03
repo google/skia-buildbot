@@ -1,6 +1,6 @@
 import './index';
 import { $$ } from 'common-sk/modules/dom';
-import { setUpElementUnderTest } from '../test_util';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 describe('edit-ignore-rule-sk', () => {
   const newInstance = setUpElementUnderTest('edit-ignore-rule-sk');
