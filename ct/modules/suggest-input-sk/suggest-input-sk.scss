@@ -1,17 +1,91 @@
 @import '../colors.css';
 
 suggest-input-sk {
-    input {
-      background-color: var(--surface);
-      color: var(--on-surface);
-    }
-    div {
-      border: 1px solid;
-      position: absolute;
-      z-index: 1;
-      background-color: var(--surface);
-      color: var(--on-surface);
-    }
+  .suggest-input-container {
+    position: relative;
+    margin-top: 9px; /* For shrinking label to have space. */
+  }
+
+  .suggest-input {
+    background-color: inherit;
+    color: inherit;
+    position: relative;
+    outline: none;
+    box-shadow: none;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    border: none;
+    text-align: inherit;
+    vertical-align: bottom;
+    font-family: 'Roboto', 'Noto', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+  }
+
+
+  /* Label appears as placeholder, shrinks to upper left on focus
+  or when input is nonempty. */
+  .suggest-label {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0.7;
+    left: 2px;
+    transition: 0.2s ease all;
+  }
+
+  input:focus~.suggest-label,
+  input:not(:focus):valid~.suggest-label {
+    transform: translate(-10%, -75%) scale(0.75);
+    left: 0px;
+    opacity: 1;
+  }
+
+  input:focus~.suggest-label {
+    color: var(--primary);
+  }
+
+  /* Underline denoting input grows color on focus. */
+  .suggest-underline-container {
+    height: 2px;
+    position: relative;
+  }
+
+  .suggest-underline-background {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-bottom: 1px solid var(--on-background);
+  }
+
+  .suggest-underline {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    border-bottom: 2px solid var(--primary);
+    transform-origin: center center;
+    transform: scale3d(0, 4, 1);
+  }
+
+  // When input is clicked we 'undo' the center based horizontal collapse.
+  .suggest-input:focus~.suggest-underline-container>.suggest-underline {
+    transform: none;
+    transition: transform 0.4s;
+  }
+
+  /* List of suggestions, toggled hidden in JS. */
+  .suggest-list {
+    border: 1px solid;
+    position: absolute;
+    z-index: 1;
+    background-color: var(--surface);
+    color: var(--on-surface);
 
     li.selected {
       background-color: var(--secondary);
@@ -19,17 +93,22 @@ suggest-input-sk {
       padding-left: .5em;
       padding-right: 1em;
     }
+
     li:hover {
       padding-left: .5em;
       padding-right: 1em;
       background-color: var(--primary-variant);
     }
+
     ul {
-      list-style-type:none;
+      list-style-type: none;
       padding: 0;
     }
+
     li {
       padding-left: 1em;
       padding-right: .5em;
     }
+  }
+
 }
