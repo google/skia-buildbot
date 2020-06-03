@@ -13,7 +13,7 @@ import {
   eventPromise,
   expectQueryStringToEqual,
   setUpElementUnderTest,
-} from '../test_util';
+} from '../../../infra-sk/modules/test_util';
 
 describe('triagelog-page-sk', () => {
   const newInstance = setUpElementUnderTest('triagelog-page-sk');

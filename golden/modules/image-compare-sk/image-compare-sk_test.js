@@ -1,6 +1,6 @@
 import './index';
 import { $, $$ } from 'common-sk/modules/dom';
-import { eventPromise, setUpElementUnderTest } from '../test_util';
+import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 const aDigest = '6246b773851984c726cb2e1cb13510c2';
 const bDigest = '99c58c7002073346ff55f446d47d6311';
