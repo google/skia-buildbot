@@ -57,7 +57,7 @@ require (
 	github.com/a8m/envsubst v1.1.0
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/andybalholm/cascadia v1.2.0 // indirect
-	github.com/aws/aws-sdk-go v1.31.8 // indirect
+	github.com/aws/aws-sdk-go v1.31.9 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/codegangsta/negroni v1.0.0 // indirect
 	github.com/daaku/go.zipexe v1.0.1 // indirect
@@ -76,7 +76,7 @@ require (
 	github.com/golang/mock v1.4.3
 	github.com/golang/protobuf v1.4.2
 	github.com/google/go-github/v29 v29.0.3
-	github.com/google/go-licenses v0.0.0-20200511085313-e4cf7a36ee79
+	github.com/google/go-licenses v0.0.0-20200602185517-f29a4c695c3d
 	github.com/google/licenseclassifier v0.0.0-20200402202327-879cb1424de0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.4.0 // indirect
@@ -127,16 +127,17 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20200602010101-22381a3ca5d8
+	go.chromium.org/luci v0.0.0-20200603035826-6f83db364f7f
 	go.opencensus.io v0.22.3
-	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37 // indirect
-	golang.org/x/net v0.0.0-20200528225125-3c3fba18258b // indirect
+	golang.org/x/crypto v0.0.0-20200602180216-279210d13fed // indirect
+	golang.org/x/net v0.0.0-20200602114024-627f9648deb9 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
+	golang.org/x/sys v0.0.0-20200602225109-6fdc65e7d980 // indirect
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
 	golang.org/x/tools v0.0.0-20200601175630-2caf76543d99
 	google.golang.org/api v0.26.0
-	google.golang.org/genproto v0.0.0-20200601130524-0f60399e6634
+	google.golang.org/genproto v0.0.0-20200602104108-2bb8d6132df6
 	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.24.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
@@ -145,7 +146,7 @@ require (
 	gopkg.in/olivere/elastic.v5 v5.0.85
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.3.0
-	gopkg.in/yaml.v3 v3.0.0-20200601152816-913338de1bd2 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200602174320-3e3e88ca92fa // indirect
 	k8s.io/api v0.18.3
 	k8s.io/apimachinery v0.18.3
 	k8s.io/client-go v0.18.3
