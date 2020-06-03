@@ -10,7 +10,7 @@ import {
   sendEndTask,
   sendFetchError,
 } from './common';
-import { eventPromise } from './test_util';
+import { eventPromise } from '../../infra-sk/modules/test_util';
 
 describe('humanReadableQuery', () => {
   it('turns url encoded queries into human readable version', () => {
