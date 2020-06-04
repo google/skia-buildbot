@@ -107,24 +107,19 @@ func (g *gcloudTokenSource) Token() (*oauth2.Token, error) {
 	if err := exec.Run(context.Background(), gcloudCmd); err != nil {
 		return nil, fmt.Errorf("Failed fetching access token: %s - %s", err, errBuf.String())
 	}
-	type TokenResponse struct {
-		AccessToken  string `json:"access_token"`
-		ExpiresInSec int    `json:"expires_in"`
-		TokenType    string `json:"token_type"`
-	}
 	var res struct {
-		TokenResponse TokenResponse `json:"token_response"`
+		Token string `json:"token"`
 	}
 	if err := json.NewDecoder(&buf).Decode(&res); err != nil {
-		return nil, fmt.Errorf("Invalid token JSON from metadata: %v", err)
+		return nil, fmt.Errorf("Invalid token JSON from gcloud: %v", err)
 	}
-	if res.TokenResponse.ExpiresInSec == 0 || res.TokenResponse.AccessToken == "" {
-		return nil, fmt.Errorf("Incomplete token received from metadata")
+	if res.Token == "" {
+		return nil, fmt.Errorf("Incomplete token received from gclloud")
 	}
 	return &oauth2.Token{
-		AccessToken: res.TokenResponse.AccessToken,
-		TokenType:   res.TokenResponse.TokenType,
-		Expiry:      time.Now().Add(time.Duration(res.TokenResponse.ExpiresInSec) * time.Second),
+		AccessToken: res.Token,
+		TokenType:   "Bearer",
+		Expiry:      time.Now().Add(5 * time.Minute),
 	}, nil
 }
 
