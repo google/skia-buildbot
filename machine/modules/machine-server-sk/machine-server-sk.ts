@@ -9,6 +9,7 @@
  * @attr waiting - If present then display the waiting cursor.
  */
 import { html } from 'lit-html';
+import { Description } from '../json';
 
 import { errorMessage } from 'elements-sk/errorMessage';
 import { diffDate } from 'common-sk/modules/human';
@@ -24,7 +25,7 @@ import 'elements-sk/styles/buttons';
 
 const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
 
-const temps = (temperatures) => {
+const temps = (temperatures: { [key: string]: number }) => {
   if (!temperatures) {
     return '';
   }
@@ -33,53 +34,71 @@ const temps = (temperatures) => {
     return '';
   }
   let total = 0;
-  values.forEach((x) => { total += x; });
+  values.forEach((x) => {
+    total += x;
+  });
   const ave = total / values.length;
   return html`
-  <details>
-    <summary>Avg: ${ave.toFixed(1)}</summary>
-    <table>
-    ${Object.entries(temperatures).map((pair) => html`<tr><td>${pair[0]}</td><td>${pair[1]}</td></tr>`)}
-    </table>
-  </details>
+    <details>
+      <summary>Avg: ${ave.toFixed(1)}</summary>
+      <table>
+        ${Object.entries(temperatures).map(
+          (pair) =>
+            html`<tr>
+              <td>${pair[0]}</td>
+              <td>${pair[1]}</td>
+            </tr>`
+        )}
+      </table>
+    </details>
   `;
 };
 
-const isRunning = (machine) => (machine.RunningSwarmingTask ? html`<cached-icon-sk title="Running"></cached-icon-sk>` : '');
+const isRunning = (machine: Description) =>
+  machine.RunningSwarmingTask
+    ? html`<cached-icon-sk title="Running"></cached-icon-sk>`
+    : '';
 
-const asList = (arr) => arr.join(' | ');
+const asList = (arr: string[]) => arr.join(' | ');
 
-const dimensions = (machine) => {
+const dimensions = (machine: Description) => {
   if (!machine.Dimensions) {
     return '';
   }
   return html`
-<details>
-  <summary>Dimensions</summary>
-  <table>
-  ${Object.entries(machine.Dimensions).map((pair) => html`<tr><td>${pair[0]}</td><td>${asList(pair[1])}</td></tr>`)}
-  </table>
-</details>
-`;
+    <details>
+      <summary>Dimensions</summary>
+      <table>
+        ${Object.entries(machine.Dimensions).map(
+          (pair) =>
+            html`<tr>
+              <td>${pair[0]}</td>
+              <td>${asList(pair[1])}</td>
+            </tr>`
+        )}
+      </table>
+    </details>
+  `;
 };
 
-const annotation = (machine) => {
+const annotation = (machine: Description) => {
   if (!machine.Annotation.Message) {
     return '';
   }
   return html`
-${machine.Annotation.User} (${diffDate(machine.Annotation.Timestamp)}) - ${machine.Annotation.Message}
-`;
+    ${machine.Annotation.User} (${diffDate(machine.Annotation.Timestamp)}) -
+    ${machine.Annotation.Message}
+  `;
 };
 
-const update = (machine) => {
+const update = (machine: Description) => {
   if (machine.ScheduledForDeletion) {
     return 'Waiting for update.';
   }
   return 'Update';
 };
 
-const imageName = (machine) => {
+const imageName = (machine: Description) => {
   // KubernetesImage looks like:
   // "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean".
   // We just need to display everything after the ":".
@@ -93,77 +112,107 @@ const imageName = (machine) => {
   return parts[1];
 };
 
-const powerCycle = (machine) => {
+const powerCycle = (machine: Description) => {
   if (machine.PowerCycle) {
     return 'Waiting for Power Cycle';
   }
   return html`<power-settings-new-icon-sk></power-settings-new-icon-sk>`;
 };
 
-const rows = (ele) => ele._machines.map((machine) => html`
-<tr id=${machine.Dimensions.id}>
-  <td><a href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions.id}">${machine.Dimensions.id}</a></td>
-  <td>${machine.PodName}</td>
-  <td>${machine.Dimensions.device_type}</td>
-  <td><button class=mode @click=${() => ele._toggleMode(machine.Dimensions.id)}>${machine.Mode}</button></td>
-  <td><button class=update @click=${() => ele._toggleUpdate(machine.Dimensions.id)}>${update(machine)}</button></td>
-  <td class=powercycle @click=${() => ele._togglePowerCycle(machine.Dimensions.id)}>${powerCycle(machine)}</td>
-  <td>${machine.Dimensions.quarantined}</td>
-  <td>${isRunning(machine)}</td>
-  <td>${machine.Battery}</td>
-  <td>
-    ${temps(machine.Temperature)}
-  </td>
-  <td>${diffDate(machine.LastUpdated)}</td>
-  <td>${dimensions(machine)}</td>
-  <td>${annotation(machine)}</td>
-  <td>${imageName(machine)}</td>
-</tr>
-`);
+const rows = (ele: MachineServerSk) =>
+  ele._machines.map(
+    (machine) => html`
+      <tr id=${machine.Dimensions.id}>
+        <td>
+          <a
+            href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions
+              .id}"
+            >${machine.Dimensions.id}</a
+          >
+        </td>
+        <td>${machine.PodName}</td>
+        <td>${machine.Dimensions.device_type}</td>
+        <td>
+          <button
+            class="mode"
+            @click=${() => ele._toggleMode(machine.Dimensions.id)}
+            >${machine.Mode}</button
+          >
+        </td>
+        <td>
+          <button
+            class="update"
+            @click=${() => ele._toggleUpdate(machine.Dimensions.id)}
+            >${update(machine)}</button
+          >
+        </td>
+        <td
+          class="powercycle"
+          @click=${() => ele._togglePowerCycle(machine.Dimensions.id)}
+          >${powerCycle(machine)}</td
+        >
+        <td>${machine.Dimensions.quarantined}</td>
+        <td>${isRunning(machine)}</td>
+        <td>${machine.Battery}</td>
+        <td>
+          ${temps(machine.Temperature)}
+        </td>
+        <td>${diffDate(machine.LastUpdated)}</td>
+        <td>${dimensions(machine)}</td>
+        <td>${annotation(machine)}</td>
+        <td>${imageName(machine)}</td>
+      </tr>
+    `
+  );
 
-const refreshButtonDisplayValue = (ele) => {
+const refreshButtonDisplayValue = (ele: MachineServerSk) => {
   if (ele.refreshing) {
     return html`<pause-icon-sk></pause-icon-sk>`;
   }
   return html`<play-arrow-icon-sk></play-arrow-icon-sk>`;
 };
 
-const template = (ele) => html`
-<header>
-  <span
-    id=refresh
-    @click=${() => ele._toggleRefresh()}
-    title="Start/Stop the automatic refreshing of data on the page."
-    >${refreshButtonDisplayValue(ele)}</span>
-  <theme-chooser-sk
-    title="Toggle between light and dark mode."
-  ></theme-chooser-sk>
-</header>
-<main>
-  <table>
-  <tr>
-    <th>Machine</th>
-    <th>Pod</th>
-    <th>Device</th>
-    <th>Mode</th>
-    <th>Update</th>
-    <th>Host</th>
-    <th>Quarantined</th>
-    <th>Task</th>
-    <th>Battery</th>
-    <th>Temperature</th>
-    <th>Last Seen</th>
-    <th>Dimensions</th>
-    <th>Annotation</th>
-    <th>Image</th>
-  </tr>
-  ${rows(ele)}
-  </table>
-</main>
-<error-toast-sk></error-toast-sk>
+const template = (ele: MachineServerSk) => html`
+  <header>
+    <span
+      id="refresh"
+      @click=${() => ele._toggleRefresh()}
+      title="Start/Stop the automatic refreshing of data on the page."
+      >${refreshButtonDisplayValue(ele)}</span
+    >
+    <theme-chooser-sk
+      title="Toggle between light and dark mode."
+    ></theme-chooser-sk>
+  </header>
+  <main>
+    <table>
+      <tr>
+        <th>Machine</th>
+        <th>Pod</th>
+        <th>Device</th>
+        <th>Mode</th>
+        <th>Update</th>
+        <th>Host</th>
+        <th>Quarantined</th>
+        <th>Task</th>
+        <th>Battery</th>
+        <th>Temperature</th>
+        <th>Last Seen</th>
+        <th>Dimensions</th>
+        <th>Annotation</th>
+        <th>Image</th>
+      </tr>
+      ${rows(ele)}
+    </table>
+  </main>
+  <error-toast-sk></error-toast-sk>
 `;
 
-window.customElements.define('machine-server-sk', class extends ElementSk {
+export class MachineServerSk extends ElementSk {
+  _machines: Description[];
+
+  _timeout: number;
+
   constructor() {
     super(template);
     this._machines = [];
@@ -179,11 +228,15 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
   }
 
   /** @prop refreshing {bool} True if the data on the page is periodically refreshed. */
-  get refreshing() { return window.localStorage.getItem(REFRESH_LOCALSTORAGE_KEY) === 'true'; }
+  get refreshing() {
+    return window.localStorage.getItem(REFRESH_LOCALSTORAGE_KEY) === 'true';
+  }
 
-  set refreshing(val) { window.localStorage.setItem(REFRESH_LOCALSTORAGE_KEY, !!val); }
+  set refreshing(val) {
+    window.localStorage.setItem(REFRESH_LOCALSTORAGE_KEY, '' + !!val);
+  }
 
-  _onError(msg) {
+  _onError(msg: object) {
     this.removeAttribute('waiting');
     errorMessage(msg);
   }
@@ -206,7 +259,7 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
     }
   }
 
-  async _toggleMode(id) {
+  async _toggleMode(id: string[]) {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_mode/${id}`);
@@ -217,7 +270,7 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
     }
   }
 
-  async _toggleUpdate(id) {
+  async _toggleUpdate(id: string[]) {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_update/${id}`);
@@ -228,7 +281,7 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
     }
   }
 
-  async _togglePowerCycle(id) {
+  async _togglePowerCycle(id: string[]) {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_powercycle/${id}`);
@@ -259,6 +312,7 @@ window.customElements.define('machine-server-sk', class extends ElementSk {
     this._refreshStep();
   }
 
-  disconnectedCallback() {
-  }
-});
+  disconnectedCallback() {}
+}
+
+window.customElements.define('machine-server-sk', MachineServerSk);
