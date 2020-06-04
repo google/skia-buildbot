@@ -66,6 +66,7 @@ var (
 		"Infra-PerCommit-PushAppsFromInfraDockerImage",
 		"Infra-PerCommit-ValidateAutorollConfigs",
 		"Infra-Experimental-Small-Linux",
+		"Infra-Experimental-Small-Mac",
 		"Infra-Experimental-Small-Win",
 	}
 
