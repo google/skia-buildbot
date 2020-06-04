@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a3b2aee6_b5be2620",
+        "filename": "infra-sk/modules/query-sk/query-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-04T14:21:41Z",
+      "side": 1,
+      "message": "Is there a TypeScript specific reason for moving the templates to be static things in the element?",
+      "range": {
+        "startLine": 40,
+        "startChar": 10,
+        "endLine": 40,
+        "endChar": 16
+      },
+      "revId": "f46d1c6df972357f8e308dc8334a857ade6f5ef7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
