@@ -22,6 +22,30 @@
       "revId": "f46d1c6df972357f8e308dc8334a857ade6f5ef7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "66a4aab1_0b9a9790",
+        "filename": "infra-sk/modules/query-sk/query-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-04T19:11:55Z",
+      "side": 1,
+      "message": "This allows access to private members.",
+      "parentUuid": "a3b2aee6_b5be2620",
+      "range": {
+        "startLine": 40,
+        "startChar": 10,
+        "endLine": 40,
+        "endChar": 16
+      },
+      "revId": "f46d1c6df972357f8e308dc8334a857ade6f5ef7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
