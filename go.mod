@@ -45,7 +45,7 @@ require (
 	cloud.google.com/go/firestore v1.2.0
 	cloud.google.com/go/logging v1.0.0
 	cloud.google.com/go/pubsub v1.4.0
-	cloud.google.com/go/storage v1.8.0
+	cloud.google.com/go/storage v1.9.0
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.1
 	github.com/GeertJohan/go.rice v1.0.0
 	github.com/Jeffail/gabs/v2 v2.5.1
@@ -57,7 +57,7 @@ require (
 	github.com/a8m/envsubst v1.1.0
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/andybalholm/cascadia v1.2.0 // indirect
-	github.com/aws/aws-sdk-go v1.31.7 // indirect
+	github.com/aws/aws-sdk-go v1.31.10 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/codegangsta/negroni v1.0.0 // indirect
 	github.com/daaku/go.zipexe v1.0.1 // indirect
@@ -76,7 +76,7 @@ require (
 	github.com/golang/mock v1.4.3
 	github.com/golang/protobuf v1.4.2
 	github.com/google/go-github/v29 v29.0.3
-	github.com/google/go-licenses v0.0.0-20200511085313-e4cf7a36ee79
+	github.com/google/go-licenses v0.0.0-20200602185517-f29a4c695c3d
 	github.com/google/licenseclassifier v0.0.0-20200402202327-879cb1424de0 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.4.0 // indirect
@@ -113,6 +113,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/skia-dev/go-systemd v0.0.0-20181025131956-1cc903e82ae4
+	github.com/skia-dev/go2ts v1.1.0
 	github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v1.0.0
@@ -127,16 +128,17 @@ require (
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
-	go.chromium.org/luci v0.0.0-20200531062644-3e6d1e814914
+	go.chromium.org/luci v0.0.0-20200604042319-a5a7ce1799fa
 	go.opencensus.io v0.22.3
-	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37 // indirect
-	golang.org/x/net v0.0.0-20200528225125-3c3fba18258b // indirect
+	golang.org/x/crypto v0.0.0-20200602180216-279210d13fed // indirect
+	golang.org/x/net v0.0.0-20200602114024-627f9648deb9 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
+	golang.org/x/sys v0.0.0-20200602225109-6fdc65e7d980 // indirect
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
-	golang.org/x/tools v0.0.0-20200530233709-52effbd89c51
-	google.golang.org/api v0.25.0
-	google.golang.org/genproto v0.0.0-20200528191852-705c0b31589b
+	golang.org/x/tools v0.0.0-20200604042327-9b20fe4cabe8
+	google.golang.org/api v0.26.0
+	google.golang.org/genproto v0.0.0-20200603110839-e855014d5736
 	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.24.0
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
@@ -145,7 +147,7 @@ require (
 	gopkg.in/olivere/elastic.v5 v5.0.85
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.3.0
-	gopkg.in/yaml.v3 v3.0.0-20200506231410-2ff61e1afc86 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200603094226-e3079894b1e8 // indirect
 	k8s.io/api v0.18.3
 	k8s.io/apimachinery v0.18.3
 	k8s.io/client-go v0.18.3
