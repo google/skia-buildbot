@@ -1,0 +1,21 @@
+ARG base
+FROM $base
+
+# Download the module dependencies.
+ENV GOFLAGS -mod=readonly
+WORKDIR /repo
+COPY go.mod .
+COPY go.mod ./go.mod.old
+COPY go.sum .
+# go_deps is created with:
+# go list -f '{{if .Module}}{{if not .Module.Main}}{{.ImportPath}}@{{.Module.Version}}{{end}}{{end}}' all
+COPY go_deps .
+RUN go mod download
+
+ARG goos
+ARG goarch
+ENV GOOS $goos
+ENV GOARCH $goarch
+RUN cat go_deps | tr '\n' ' ' | xargs go get -v
+#WORKDIR /
+#RUN rm -rf /repo
