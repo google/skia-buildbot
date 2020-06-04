@@ -2,28 +2,25 @@
 // classes
 // struct2ts:go.skia.org/infra/machine/go/machine.DescriptionAnnotation
 interface DescriptionAnnotation {
-	Message: string;
-	User: string;
-	Timestamp: Date;
+  Message: string;
+  User: string;
+  Timestamp: string;
 }
 
 // struct2ts:go.skia.org/infra/machine/go/machine.Description
 interface Description {
-	Mode: string;
-	Annotation: DescriptionAnnotation;
-	Dimensions: { [key: string]: []string };
-	PodName: string;
-	KubernetesImage: string;
-	ScheduledForDeletion: string;
-	PowerCycle: boolean;
-	LastUpdated: Date;
-	Battery: number;
-	Temperature: { [key: string]: number };
-	RunningSwarmingTask: boolean;
+  Mode: string;
+  Annotation: DescriptionAnnotation;
+  Dimensions: { [key: string]: string[] };
+  PodName: string;
+  KubernetesImage: string;
+  ScheduledForDeletion: string;
+  PowerCycle: boolean;
+  LastUpdated: string;
+  Battery: number;
+  Temperature: { [key: string]: number };
+  RunningSwarmingTask: boolean;
 }
 
 // exports
-export {
-	DescriptionAnnotation,
-	Description,
-};
+export { DescriptionAnnotation, Description };
