@@ -155,7 +155,7 @@ func (m *MemDiffStore) PurgeDigests(ctx context.Context, digests types.DigestSli
 	// not loose the vital information of what digests failed in the first place.
 
 	// Remove the images from, the image cache, disk and GCS if necessary.
-	if err := m.imgLoader.PurgeImages(digests, purgeGCS); err != nil {
+	if err := m.imgLoader.purgeImages(ctx, digests, purgeGCS); err != nil {
 		return skerr.Wrapf(err, "purging %v (fromGCS: %t)", digests, purgeGCS)
 	}
 

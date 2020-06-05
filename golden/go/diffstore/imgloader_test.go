@@ -190,7 +190,7 @@ func TestImageLoaderPurgeImages(t *testing.T) {
 	mockClient.On("DeleteFile", testutils.AnyContext, image1GCSPath).Return(nil)
 
 	// Purge image.
-	err = imageLoader.PurgeImages(types.DigestSlice{digest1}, true)
+	err = imageLoader.purgeImages(context.Background(), types.DigestSlice{digest1}, true)
 	require.NoError(t, err)
 
 	// Assert that the image was removed from the cache.
