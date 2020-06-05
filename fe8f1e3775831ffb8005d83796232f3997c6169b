@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "f55666d0_bedd1aeb",
+        "filename": "machine/go/machine/ts/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-06-05T16:26:43Z",
+      "side": 1,
+      "message": "Sent https://github.com/skia-dev/go2ts/pull/1",
+      "parentUuid": "09914217_754bdc7c",
+      "range": {
+        "startLine": 22,
+        "startChar": 12,
+        "endLine": 22,
+        "endChar": 18
+      },
+      "revId": "fe8f1e3775831ffb8005d83796232f3997c6169b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "5beb2743_d4603905",
         "filename": "machine/modules/json/index.ts",
         "patchSetId": 9
