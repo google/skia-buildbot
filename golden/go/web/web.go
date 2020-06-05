@@ -917,6 +917,12 @@ func (wh *Handlers) triage(ctx context.Context, user string, req frontend.Triage
 	tc := make([]expectations.Delta, 0, len(req.TestDigestStatus))
 	for test, digests := range req.TestDigestStatus {
 		for d, label := range digests {
+			if label == "" {
+				// Empty string means the frontend didn't have a closest digest to use when making a
+				// "bulk triage to the closest digest" request. It's easier to catch this on the server
+				// side than make the JS check for empty string and mutate the POST body.
+				continue
+			}
 			if !expectations.ValidLabel(label) {
 				return skerr.Fmt("invalid label %q in triage request", label)
 			}

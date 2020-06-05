@@ -4,6 +4,7 @@
 import '../../infra-sk/modules/login-sk';
 import '../../infra-sk/modules/paramset-sk';
 import '../node_modules/@webcomponents/custom-elements/custom-elements.min';
+import '../modules/bulk-triage-sk';
 import '../modules/changelist-controls-sk';
 import '../modules/corpus-selector-sk';
 import '../modules/digest-details-sk';
