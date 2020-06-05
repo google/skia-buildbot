@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "88898a42_a6f78f0b",
+        "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk-demo.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-05T19:11:39Z",
+      "side": 1,
+      "message": "nit: move to \u003cstyle\u003e tag above",
+      "range": {
+        "startLine": 11,
+        "startChar": 22,
+        "endLine": 11,
+        "endChar": 41
+      },
+      "revId": "e9c24c0a1cc8243234508f1745f1edb7c736c1cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6508ac2_f6c63504",
+        "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk-demo.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-05T19:11:39Z",
+      "side": 1,
+      "message": "I don\u0027t think this is a TaskQueue. maybe inline it?",
+      "range": {
+        "startLine": 5,
+        "startChar": 9,
+        "endLine": 5,
+        "endChar": 21
+      },
+      "revId": "e9c24c0a1cc8243234508f1745f1edb7c736c1cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "119ef1b2_6bcc9a8f",
+        "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-05T19:11:39Z",
+      "side": 1,
+      "message": "uberubernit: a k prefix is a c++ idiom. Just defaultRows is fine. (I will begrudgingly accept DEFAULT_ROWS also)",
+      "range": {
+        "startLine": 21,
+        "startChar": 6,
+        "endLine": 21,
+        "endChar": 18
+      },
+      "revId": "e9c24c0a1cc8243234508f1745f1edb7c736c1cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa01563d_1798b5f8",
+        "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-05T19:11:39Z",
+      "side": 1,
+      "message": "I might override _render and set text area after super._render. That way if you call render from another place, the _textarea will be properly updated.",
+      "range": {
+        "startLine": 36,
+        "startChar": 4,
+        "endLine": 37,
+        "endChar": 42
+      },
+      "revId": "e9c24c0a1cc8243234508f1745f1edb7c736c1cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5504342d_5ab4f9fb",
+        "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-05T19:11:39Z",
+      "side": 1,
+      "message": "You have a || \u0027\u0027 here, but not on value. Is there a reason? If so, perhaps document it?",
+      "range": {
+        "startLine": 60,
+        "startChar": 44,
+        "endLine": 60,
+        "endChar": 49
+      },
+      "revId": "e9c24c0a1cc8243234508f1745f1edb7c736c1cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f027b39_c53e9037",
+        "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-05T19:11:39Z",
+      "side": 1,
+      "message": "In gold\u0027s tests, we usually give this a more explicit name, like autogrowTextAreaSk. agTextAreaSk or a shorter variant would be fine as well.",
+      "range": {
+        "startLine": 11,
+        "startChar": 6,
+        "endLine": 11,
+        "endChar": 8
+      },
+      "revId": "e9c24c0a1cc8243234508f1745f1edb7c736c1cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
