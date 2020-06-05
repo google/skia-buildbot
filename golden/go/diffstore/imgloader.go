@@ -115,12 +115,12 @@ func (il *ImageLoader) Contains(image types.Digest) bool {
 }
 
 // PurgeImages removes the images that correspond to the given digests.
-func (il *ImageLoader) PurgeImages(images types.DigestSlice, purgeGCS bool) error {
+func (il *ImageLoader) purgeImages(ctx context.Context, images types.DigestSlice, purgeGCS bool) error {
 	for _, id := range images {
 		il.imageCache.Remove([]string{string(id)})
 		if purgeGCS {
 			gsRelPath := getGCSRelPath(id)
-			il.removeImg(gsRelPath)
+			il.removeImg(ctx, gsRelPath)
 		}
 	}
 	return nil
@@ -200,11 +200,9 @@ func (il *ImageLoader) downloadImg(ctx context.Context, gsPath string) ([]byte, 
 }
 
 // removeImg removes the image that corresponds to the given relative path from GCS.
-func (il *ImageLoader) removeImg(gsRelPath string) {
+func (il *ImageLoader) removeImg(ctx context.Context, gsRelPath string) {
 	// If the bucket is not empty then look there otherwise use the default buckets.
 	objLocation := path.Join(il.gcsImageBaseDir, gsRelPath)
-
-	ctx := context.TODO()
 	// Retrieve the attributes to test if the file exists.
 	_, err := il.gsBucketClient.GetFileObjectAttrs(ctx, objLocation)
 	if err != nil {
