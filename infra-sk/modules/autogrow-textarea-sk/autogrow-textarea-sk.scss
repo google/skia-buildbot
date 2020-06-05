@@ -1,0 +1,16 @@
+@import '../themes-sk/themes.css';
+
+autogrow-textarea-sk {
+  textarea {
+    resize: none;
+    background-color: var(--surface);
+    color: var(--on-surface);
+    width: 100%;
+  }
+  textarea:focus {
+    outline-color: var(--primary);
+  }
+  textarea::placeholder {
+    color: var(--transparent-overlay);
+  }
+}
