@@ -14,35 +14,36 @@ import (
 // aggregated results.
 func TestSetContains(t *testing.T) {
 	unittest.LargeTest(t)
-	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
+	ctx := context.Background()
+	c, cleanup := firestore.NewClientForTesting(ctx, t)
 	defer cleanup()
 
 	f := New(c)
 
-	b, err := f.ContainsResultFileHash("nope", "not here")
+	b, err := f.ContainsResultFileHash(ctx, "nope", "not here")
 	require.NoError(t, err)
 	require.False(t, b)
 
-	err = f.SetResultFileHash("skia-gold-flutter/dm-json-v1/2019/foo.json", "version1")
+	err = f.SetResultFileHash(ctx, "skia-gold-flutter/dm-json-v1/2019/foo.json", "version1")
 	require.NoError(t, err)
-	err = f.SetResultFileHash("skia-gold-flutter/dm-json-v1/2019/foo.json", "version2")
+	err = f.SetResultFileHash(ctx, "skia-gold-flutter/dm-json-v1/2019/foo.json", "version2")
 	require.NoError(t, err)
-	err = f.SetResultFileHash("skia-gold-flutter/dm-json-v1/2020/bar.json", "versionA")
+	err = f.SetResultFileHash(ctx, "skia-gold-flutter/dm-json-v1/2020/bar.json", "versionA")
 	require.NoError(t, err)
 
-	b, err = f.ContainsResultFileHash("skia-gold-flutter/dm-json-v1/2019/foo.json", "version2")
+	b, err = f.ContainsResultFileHash(ctx, "skia-gold-flutter/dm-json-v1/2019/foo.json", "version2")
 	require.NoError(t, err)
 	require.True(t, b)
 
-	b, err = f.ContainsResultFileHash("skia-gold-flutter/dm-json-v1/2019/foo.json", "version1")
+	b, err = f.ContainsResultFileHash(ctx, "skia-gold-flutter/dm-json-v1/2019/foo.json", "version1")
 	require.NoError(t, err)
 	require.True(t, b)
 
-	b, err = f.ContainsResultFileHash("nope", "version1")
+	b, err = f.ContainsResultFileHash(ctx, "nope", "version1")
 	require.NoError(t, err)
 	require.False(t, b)
 
-	b, err = f.ContainsResultFileHash("skia-gold-flutter/dm-json-v1/2019/foo.json", "versionA")
+	b, err = f.ContainsResultFileHash(ctx, "skia-gold-flutter/dm-json-v1/2019/foo.json", "versionA")
 	require.NoError(t, err)
 	require.False(t, b)
 }

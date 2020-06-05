@@ -63,9 +63,9 @@ type IngestionStore interface {
 	// SetResultFileHash indicates that we have ingested the given filename
 	// with the given md5hash.
 	// TODO(kjlubick) add context.Context to this interface
-	SetResultFileHash(fileName, md5 string) error
+	SetResultFileHash(ctx context.Context, fileName, md5 string) error
 
 	// ContainsResultFileHash returns true if the provided file and md5 hash
 	// were previously set with SetResultFileHash.
-	ContainsResultFileHash(fileName, md5 string) (bool, error)
+	ContainsResultFileHash(ctx context.Context, fileName, md5 string) (bool, error)
 }

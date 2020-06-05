@@ -168,7 +168,7 @@ func (i *Ingester) watchSource(ctx context.Context, source Source) {
 		for rf := range rfCh {
 			// It is a rare case that the pubsub event got lost, so we check to see
 			// if we already processed the file before re-queuing it.
-			if i.inProcessedFiles(rf.Name(), rf.MD5()) {
+			if i.inProcessedFiles(ctx, rf.Name(), rf.MD5()) {
 				ignored++
 				continue
 			}
@@ -186,8 +186,8 @@ func (i *Ingester) watchSource(ctx context.Context, source Source) {
 
 // inProcessedFiles returns true if the given md5 hash is in the list of
 // already processed files.
-func (i *Ingester) inProcessedFiles(name, md5 string) bool {
-	ret, err := i.ingestionStore.ContainsResultFileHash(name, md5)
+func (i *Ingester) inProcessedFiles(ctx context.Context, name, md5 string) bool {
+	ret, err := i.ingestionStore.ContainsResultFileHash(ctx, name, md5)
 	if err != nil {
 		sklog.Errorf("Error checking ingestionstore for %s %s: %s", name, md5, err)
 		return false
@@ -197,8 +197,8 @@ func (i *Ingester) inProcessedFiles(name, md5 string) bool {
 
 // addToProcessedFiles adds the given list of md5 hashes to the list of
 // file that have been already processed.
-func (i *Ingester) addToProcessedFiles(name, md5 string) {
-	if err := i.ingestionStore.SetResultFileHash(name, md5); err != nil {
+func (i *Ingester) addToProcessedFiles(ctx context.Context, name, md5 string) {
+	if err := i.ingestionStore.SetResultFileHash(ctx, name, md5); err != nil {
 		sklog.Errorf("Error setting %s %s in ingestionstore: %s", name, md5, err)
 	}
 }
@@ -215,7 +215,7 @@ func (i *Ingester) processResult(ctx context.Context, rfl ResultFileLocation) {
 		}
 		return
 	}
-	i.addToProcessedFiles(name, md5)
+	i.addToProcessedFiles(ctx, name, md5)
 	i.eventProcessMetrics.processLiveness.Reset()
 }
 
