@@ -2123,39 +2123,6 @@ func TestGetTriageHistory_CacheClearedWhenNotified(t *testing.T) {
 	assert.Equal(t, trAlpha, tr)
 }
 
-func TestCollectDigestsForBulkTriage_Success(t *testing.T) {
-	unittest.SmallTest(t)
-
-	results := []*frontend.SearchResult{
-		{
-			Test:       "apple",
-			Digest:     "grannysmith",
-			ClosestRef: common.PositiveRef,
-		},
-		{
-			Test:       "apple",
-			Digest:     "honeycrisp",
-			ClosestRef: common.NoRef, // Nothing compares to a Honeycrisp Apple. They are the best kind.
-		},
-		{
-			Test:       "grapefruit",
-			Digest:     "oro_blanco",
-			ClosestRef: common.NegativeRef, // Who likes grapefruit???
-		},
-	}
-
-	bulkTriageData := collectDigestsForBulkTriage(results)
-	assert.Equal(t, map[types.TestName]map[types.Digest]string{
-		"apple": {
-			"grannysmith": "positive",
-			"honeycrisp":  "",
-		},
-		"grapefruit": {
-			"oro_blanco": "negative",
-		},
-	}, bulkTriageData)
-}
-
 var everythingPublic = paramtools.ParamSet{}
 
 // makeThreeDevicesIndexer returns an IndexSource that returns the result of makeThreeDevicesIndex.
