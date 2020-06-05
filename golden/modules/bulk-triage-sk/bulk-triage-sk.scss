@@ -1,0 +1,30 @@
+@import '~elements-sk/colors';
+
+bulk-triage-sk {
+
+  button {
+    &.positive {
+      &.selected check-circle-icon-sk {
+        fill: #1B9E77;
+      }
+    }
+
+    &.negative {
+      &.selected cancel-icon-sk {
+        fill: #E7298A;
+      }
+    }
+
+    &.untriaged {
+      &.selected help-icon-sk {
+        fill: #A6761D;
+      }
+    }
+
+    &.closest {
+      &.selected view-agenda-icon-sk {
+        fill: #1F78B4;
+      }
+    }
+  }
+}
