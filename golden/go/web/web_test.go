@@ -774,6 +774,7 @@ func TestTriage_BulkTriageOnMaster_SunnyDay_Success(t *testing.T) {
 			bug_revert.TestTwo: {
 				bug_revert.CharliePositiveDigest: expectations.Positive.String(),
 				bug_revert.DeltaUntriagedDigest:  expectations.Negative.String(),
+				"digestWithNoClosestPositive":    "",
 			},
 		},
 	}
