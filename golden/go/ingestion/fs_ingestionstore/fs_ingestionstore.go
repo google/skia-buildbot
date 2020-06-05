@@ -53,13 +53,13 @@ func New(client *ifirestore.Client) *Store {
 }
 
 // SetResultFileHash fulfills the IngestionStore interface
-func (s *Store) SetResultFileHash(fileName, md5 string) error {
+func (s *Store) SetResultFileHash(ctx context.Context, fileName, md5 string) error {
 	defer metrics2.FuncTimer().Stop()
 	ir := s.client.Collection(ingestionCollection).NewDoc()
 	record := ingestedEntry{
 		FileHash: combine(fileName, md5),
 	}
-	_, err := s.client.Set(context.TODO(), ir, record, maxAttempts, maxDuration)
+	_, err := s.client.Set(ctx, ir, record, maxAttempts, maxDuration)
 	if err != nil {
 		return skerr.Wrapf(err, "writing %s:%s to ingestionstore", fileName, md5)
 	}
@@ -67,12 +67,12 @@ func (s *Store) SetResultFileHash(fileName, md5 string) error {
 }
 
 // ContainsResultFileHash fulfills the IngestionStore interface
-func (s *Store) ContainsResultFileHash(fileName, md5 string) (bool, error) {
+func (s *Store) ContainsResultFileHash(ctx context.Context, fileName, md5 string) (bool, error) {
 	defer metrics2.FuncTimer().Stop()
 	c := combine(fileName, md5)
 	q := s.client.Collection(ingestionCollection).Where(fileHashField, "==", c).Limit(1)
 	found := false
-	err := s.client.IterDocs(context.TODO(), "contains", c, q, maxAttempts, maxDuration, func(doc *firestore.DocumentSnapshot) error {
+	err := s.client.IterDocs(ctx, "contains", c, q, maxAttempts, maxDuration, func(doc *firestore.DocumentSnapshot) error {
 		if doc != nil {
 			found = true
 		}

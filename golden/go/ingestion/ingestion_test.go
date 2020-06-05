@@ -41,7 +41,7 @@ func TestStart_ProcessesDataFromSources_Success(t *testing.T) {
 	// rf from the channel.
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	mis.On("SetResultFileHash", fakeResultFileName, fakeResultFileHash).Run(func(_ mock.Arguments) {
+	mis.On("SetResultFileHash", testutils.AnyContext, fakeResultFileName, fakeResultFileHash).Run(func(_ mock.Arguments) {
 		wg.Done()
 	}).Return(nil)
 
@@ -87,7 +87,7 @@ func TestStart_PollsDataFromSources_ResultsAlreadyProcessed_Success(t *testing.T
 	// rf from the channel.
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	mis.On("ContainsResultFileHash", fakeResultFileName, fakeResultFileHash).Run(func(_ mock.Arguments) {
+	mis.On("ContainsResultFileHash", testutils.AnyContext, fakeResultFileName, fakeResultFileHash).Run(func(_ mock.Arguments) {
 		wg.Done()
 	}).Return(true, nil)
 
@@ -124,7 +124,7 @@ func TestStart_PollsDataFromSources_EventPublished_Success(t *testing.T) {
 	mp := &mockProcessor{}
 
 	// Pretend the ingestionstore is empty.
-	mis.On("ContainsResultFileHash", mock.Anything, mock.Anything).Return(false, nil)
+	mis.On("ContainsResultFileHash", testutils.AnyContext, mock.Anything, mock.Anything).Return(false, nil)
 
 	// Using a wait group is the easiest way to safely wait for the ingestion goroutine to pick up
 	// rf from the channel.
