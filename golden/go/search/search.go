@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/search/ref_differ"
@@ -172,6 +173,8 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 		results = s.afterDiffResultFilter(ctx, results, q)
 	}
 
+	bulkTriageData := collectDigestsForBulkTriage(results)
+
 	// Sort the digests and fill the ones that are going to be displayed with
 	// additional data.
 	displayRet, offset := s.sortAndLimitDigests(ctx, q, results, int(q.Offset), int(q.Limit))
@@ -181,13 +184,36 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 
 	// Return all digests with the selected offset within the result set.
 	searchRet := &frontend.SearchResponse{
-		Results:       displayRet,
-		Offset:        offset,
-		Size:          len(results),
-		Commits:       commits,
-		TraceComments: traceComments,
+		Results:        displayRet,
+		Offset:         offset,
+		Size:           len(results),
+		Commits:        commits,
+		BulkTriageData: bulkTriageData,
+		TraceComments:  traceComments,
 	}
 	return searchRet, nil
+}
+
+func collectDigestsForBulkTriage(results []*frontend.SearchResult) map[types.TestName]map[types.Digest]string {
+	testNameToPrimaryDigest := map[types.TestName]map[types.Digest]string{}
+	for _, r := range results {
+		test := r.Test
+		digestToLabel, ok := testNameToPrimaryDigest[test]
+		if !ok {
+			digestToLabel = map[types.Digest]string{}
+			testNameToPrimaryDigest[test] = digestToLabel
+		}
+		primary := r.Digest
+		switch r.ClosestRef {
+		case common.PositiveRef:
+			digestToLabel[primary] = expectations.Positive.String()
+		case common.NegativeRef:
+			digestToLabel[primary] = expectations.Negative.String()
+		case common.NoRef:
+			digestToLabel[primary] = ""
+		}
+	}
+	return testNameToPrimaryDigest
 }
 
 // GetDigestDetails implements the SearchAPI interface.

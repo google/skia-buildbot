@@ -185,7 +185,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 						DiffMetrics: makeBigDiffMetric(),
 						Digest:      data.BetaPositiveDigest,
 						Status:      "positive",
-						ParamSet: map[string][]string{
+						ParamSet: paramtools.ParamSet{
 							"device":              {data.AnglerDevice, data.BullheadDevice},
 							types.PrimaryKeyField: {string(data.BetaTest)},
 							types.CorpusField:     {"gm"},
@@ -194,6 +194,14 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					},
 					common.NegativeRef: nil,
 				},
+			},
+		},
+		BulkTriageData: map[types.TestName]map[types.Digest]string{
+			data.AlphaTest: {
+				data.AlphaUntriagedDigest: expectations.Positive.String(),
+			},
+			data.BetaTest: {
+				data.BetaUntriagedDigest: expectations.Positive.String(),
 			},
 		},
 	}, resp)
@@ -235,6 +243,15 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	assert.Equal(t, resp.Size, 2)
 	// This checks that the returned result is the first one of the results we expect.
 	assert.Equal(t, data.AlphaUntriagedDigest, resp.Results[0].Digest)
+	// BulkTriageData should still be fully filled out for all digests in the full results.
+	assert.Equal(t, map[types.TestName]map[types.Digest]string{
+		data.AlphaTest: {
+			data.AlphaUntriagedDigest: expectations.Positive.String(),
+		},
+		data.BetaTest: {
+			data.BetaUntriagedDigest: expectations.Positive.String(),
+		},
+	}, resp.BulkTriageData)
 
 	q.Offset = 1
 	q.Limit = 100 // There's only 2 results in the total search, i.e. one remaining, so set this
@@ -247,6 +264,15 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	assert.Equal(t, resp.Size, 2)
 	// This checks that the returned result is the second one of the results we expect.
 	assert.Equal(t, data.BetaUntriagedDigest, resp.Results[0].Digest)
+	// BulkTriageData should still be fully filled out for all digests in the full results.
+	assert.Equal(t, map[types.TestName]map[types.Digest]string{
+		data.AlphaTest: {
+			data.AlphaUntriagedDigest: expectations.Positive.String(),
+		},
+		data.BetaTest: {
+			data.BetaUntriagedDigest: expectations.Positive.String(),
+		},
+	}, resp.BulkTriageData)
 }
 
 // TestSearchThreeDevicesQueries searches over the three_devices test data using a variety
@@ -866,6 +892,11 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 					},
 					common.NegativeRef: nil,
 				},
+			},
+		},
+		BulkTriageData: map[types.TestName]map[types.Digest]string{
+			data.BetaTest: {
+				BetaBrandNewDigest: expectations.Positive.String(),
 			},
 		},
 	}, resp)
@@ -2090,6 +2121,39 @@ func TestGetTriageHistory_CacheClearedWhenNotified(t *testing.T) {
 	// This should now be from the cache.
 	tr = s.getTriageHistory(context.Background(), mes, data.AlphaTest, data.AlphaPositiveDigest)
 	assert.Equal(t, trAlpha, tr)
+}
+
+func TestCollectDigestsForBulkTriage_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	results := []*frontend.SearchResult{
+		{
+			Test:       "apple",
+			Digest:     "grannysmith",
+			ClosestRef: common.PositiveRef,
+		},
+		{
+			Test:       "apple",
+			Digest:     "honeycrisp",
+			ClosestRef: common.NoRef, // Nothing compares to a Honeycrisp Apple. They are the best kind.
+		},
+		{
+			Test:       "grapefruit",
+			Digest:     "oro_blanco",
+			ClosestRef: common.NegativeRef, // Who likes grapefruit???
+		},
+	}
+
+	bulkTriageData := collectDigestsForBulkTriage(results)
+	assert.Equal(t, map[types.TestName]map[types.Digest]string{
+		"apple": {
+			"grannysmith": "positive",
+			"honeycrisp":  "",
+		},
+		"grapefruit": {
+			"oro_blanco": "negative",
+		},
+	}, bulkTriageData)
 }
 
 var everythingPublic = paramtools.ParamSet{}
