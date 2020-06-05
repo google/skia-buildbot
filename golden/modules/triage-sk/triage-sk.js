@@ -30,18 +30,18 @@ const NEGATIVE = 'negative';
 const UNTRIAGED = 'untriaged';
 
 const template = (el) => html`
-  <button class="positive ${el.value === POSITIVE ? 'selected' : ''}"
-          @click=${() => el._buttonClicked(POSITIVE)}>
-    <check-circle-icon-sk></check-circle-icon-sk>
-  </button>
-  <button class="negative ${el.value === NEGATIVE ? 'selected' : ''}"
-          @click=${() => el._buttonClicked(NEGATIVE)}>
-    <cancel-icon-sk></cancel-icon-sk>
-  </button>
-  <button class="untriaged ${el.value === UNTRIAGED ? 'selected' : ''}"
-          @click=${() => el._buttonClicked(UNTRIAGED)}>
-    <help-icon-sk></help-icon-sk>
-  </button>
+<button class="positive ${el.value === POSITIVE ? 'selected' : ''}"
+        @click=${() => el._buttonClicked(POSITIVE)}>
+  <check-circle-icon-sk></check-circle-icon-sk>
+</button>
+<button class="negative ${el.value === NEGATIVE ? 'selected' : ''}"
+        @click=${() => el._buttonClicked(NEGATIVE)}>
+  <cancel-icon-sk></cancel-icon-sk>
+</button>
+<button class="untriaged ${el.value === UNTRIAGED ? 'selected' : ''}"
+        @click=${() => el._buttonClicked(UNTRIAGED)}>
+  <help-icon-sk></help-icon-sk>
+</button>
 `;
 
 define('triage-sk', class extends ElementSk {
