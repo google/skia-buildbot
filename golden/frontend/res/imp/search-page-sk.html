@@ -75,19 +75,6 @@
         color: green;
       }
 
-      #closestButton[raised] > iron-icon {
-        color: #bbb;
-      }
-
-      #closestButton[raised] {
-        background: #fff;
-      }
-
-      #closestButton:hover,
-      #closestButton[raised]:hover {
-        background: #ddd;
-      }
-
       .searchResponse {
         padding: 1em 1em  0 1em;
         margin: 1em 1em 1em 0;
@@ -149,23 +136,9 @@
         </div>
       </div>
     </div>
-    <paper-dialog id="bulkDialog" with-backdrop>
-      <h2>Bulk Triage</h2>
-      <p>Assign the status to all images on this page at once.</p>
-      <div class="layout horizontal">
-        <triage-sk id="triageControls"></triage-sk>
-        <paper-button id="closestButton" on-tap="_handleClosestButton" title="Assign status of closest image">
-          <iron-icon icon="icons:view-agenda"></iron-icon>
-        </paper-button>
-      </div>
-      <div hidden$="[[_noMore(_allData)]]">
-        <paper-toggle-button checked="{{_triageAll}}">Triage all [[_getBulkTriageCount(_allData.digests, _bulkStatus)]].</paper-toggle-button>
-      </div>
-      <div class="buttons">
-        <paper-button raise dialog-dismiss>Cancel</paper-button>
-        <paper-button raise dialog-dismiss on-tap="_doBulkTriage" disabled="[[!_bulkStatus]]">Triage</paper-button>
-      </div>
-    </paper-dialog>
+    <dialog id="bulkDialog">
+      <bulk-triage-sk id="bulkTriage"></bulk-triage-sk>
+    </dialog>
 
   </template>
   <script>
@@ -179,19 +152,10 @@
           type: Object,
           value: function() { return {}; }
         },
-        _bulkStatus: {
-          type: String,
-          value: "",
-          observer: "_handleBulkStatusChanged"
-        },
         _changeListID: {
           type: String,
           value: "",
         },
-        _triageAll: {
-          type: Boolean,
-          value: false
-        }
       },
 
       ready: function() {
@@ -205,10 +169,10 @@
           this._redirectToState(this._state);
         });
         this.listen(this.$.actionTestView, 'tap', '_handleSwitchToByTest');
-        this.listen(this.$.actionBulkTriage, 'tap', '_handleBulkButton');
-        this.$.triageControls.addEventListener('change', (e) => {
-          this.set('_bulkStatus', e.detail);
-        });
+        this.listen(this.$.actionBulkTriage, 'tap', '_showBulkTriageDialog');
+        this.listen(this.$.bulkTriage, 'bulk_triage_cancelled', '_hideBulkTriageDialog');
+        this.listen(this.$.bulkTriage, 'bulk_triage_invoked', '_startBulkTriage');
+        this.listen(this.$.bulkTriage, 'bulk_triage_finished', '_endBulkTriage');
         this.listen(this.$.actionExport, 'tap', '_handleExport');
         this.listen(this.$.actionLegacySearch, 'tap', '_handleLegacySearchButton');
         this.listen(this.$.actionHelpDialog, 'tap', '_openHelpDialog');
@@ -264,13 +228,6 @@
         this.$.detailList.openHelpDialog();
       },
 
-      _handleBulkButton: function(ev) {
-        this.set("_bulkStatus", "");
-        this.$.triageControls.value = '';
-        this.set("_triageAll", false);
-        this.$.bulkDialog.open();
-      },
-
       _handleExport: function(ev) {
         var url = this._getRedirectURL({}, "/json/export");
         window.open(url, "_blank");
@@ -278,20 +235,6 @@
 
       _handleLegacySearchButton: function(ev) {
         this._redirectToState({}, "/legacysearch");
-      },
-
-      _handleClosestButton: function(ev) {
-        this.set("_bulkStatus", '=');
-        this.$.triageControls.value = '';
-      },
-
-      _handleBulkStatusChanged: function(newVal) {
-        if (newVal === '=') {
-          Polymer.dom(this.$.closestButton).removeAttribute('raised');
-          this.$.triageControls.value = '';
-        } else {
-          Polymer.dom(this.$.closestButton).setAttribute('raised', '');
-        }
       },
 
       // _statusClosest returns label based on whether the digest is closest to
@@ -321,31 +264,21 @@
         return count;
       },
 
-      _doBulkTriage: function(ev) {
-        var targetStatus = this.get('_bulkStatus');
-        var digests = (this._triageAll) ? this._allData.digests : this.data.digests;
-        var triageList = [];
-        if (targetStatus === '=') {
-          for(var i=0; i < digests.length; i++) {
-            if (digests[i].closestRef !== '') {
-              var status = this._statusClosest(digests[i]);
-              triageList.push([digests[i].test, digests[i].digest, status]);
-            }
-          }
-        } else {
-          for(var i=0; i < digests.length; i++) {
-            triageList.push([digests[i].test, digests[i].digest, targetStatus]);
-          }
-        }
-        var query = new gold.TriageQuery(triageList);
-        query.setIssue(this._changeListID);
+      _showBulkTriageDialog: function() {
+        this.$.bulkDialog.showModal();
+      },
+
+      _hideBulkTriageDialog: function() {
+        this.$.bulkDialog.close();
+      },
+
+      _startBulkTriage: function() {
         this.$.activityBar.startSpinner("Triaging ...");
-        sk.post('/json/triage', JSON.stringify(query)).then(function() {
-          this.$.activityBar.stopSpinner();
-        }.bind(this)).catch(function(e) {
-          this.$.activityBar.stopSpinner();
-          sk.errorMessage(e);
-        }.bind(this));
+      },
+
+      _endBulkTriage: function() {
+        this.$.bulkDialog.close();
+        this._load();
       },
 
       _load: function() {
@@ -357,13 +290,18 @@
         sk.get("/json/search" + q).then(JSON.parse).then(function (json) {
           // Split out the digests that are being displayed and keep a copy
           // of all digests that matched the query.
-          var displayData = sk.object.shallowCopy(json);
+          const displayData = sk.object.shallowCopy(json);
           this.set('_allData', json);
 
           this.set('_uniqueTestsAll', this._getUniqueTests(json.digests));
           this.set('_uniqueTests', this._getUniqueTests(displayData.digests));
 
           this.set('data', displayData);
+
+          const allBulkTriageData = displayData.bulk_triage_data;
+          const pageBulkTriageData = getPageBulkTriageData(displayData.digests);
+          this.$.bulkTriage.setDigests(pageBulkTriageData, allBulkTriageData);
+
           this.$.activityBar.stopSpinner();
         }.bind(this)).catch(function(e) {
           this.$.activityBar.stopSpinner();
@@ -375,6 +313,7 @@
             this.$.changeListControls.setSummary(json);
             this.set('_changeListID', json.cl.id);
           });
+          this.$.bulkTriage.changeListID = this._state.issue;
         }
       },
 
@@ -427,5 +366,27 @@
         return (allData.digests && allData.digests.length <= allData.size);
       }
     });
+
+    // The return value here is a map of test name to digest to the label string of
+    // the closest reference image. If there is no closest reference image, the label string
+    // will be empty string (it still needs to be included for a bulk triage positive/negative).
+    function getPageBulkTriageData(searchResults) {
+      const testDigestClosest = {};
+      for (const result of searchResults) {
+        let byTest = testDigestClosest[result.test];
+        if (!byTest) {
+          byTest = {};
+          testDigestClosest[result.test] = byTest;
+        }
+        let valueToSet = '';
+        if (result.closestRef === 'pos') {
+          valueToSet = 'positive';
+        } else if (result.closestRef === 'neg') {
+          valueToSet = 'negative';
+        }
+        byTest[result.digest] = valueToSet;
+      }
+      return testDigestClosest;
+    }
   </script>
 </dom-module>
