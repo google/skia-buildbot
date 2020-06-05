@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40e18eb5_fd358f4e",
+        "filename": "perf/modules/word-cloud-sk/word-cloud-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-05T20:01:04Z",
+      "side": 1,
+      "message": "Please mark this as private. Then either use the public \"items\" property from the template, or move the template as a class-level private static (e.g. as in query-sk[1]) to gain access to private fields.\n\n[1] https://cs.corp.google.com/skia/buildbot/infra-sk/modules/query-sk/query-sk.ts?l\u003d40",
+      "range": {
+        "startLine": 33,
+        "startChar": 2,
+        "endLine": 33,
+        "endChar": 8
+      },
+      "revId": "3ee6471bbb73d6f438ec1b8dbe60f6015e7b9a16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ae73a99_60b41da4",
+        "filename": "perf/modules/word-cloud-sk/word-cloud-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-05T20:01:04Z",
+      "side": 1,
+      "message": "No need for \"@prop items\", the compiler knows this and both VS code\u0027s intellisense and IntelliJ\u0027s autocompletion correctly report properties.",
+      "range": {
+        "startLine": 46,
+        "startChar": 5,
+        "endLine": 46,
+        "endChar": 17
+      },
+      "revId": "3ee6471bbb73d6f438ec1b8dbe60f6015e7b9a16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c092c5f_82a2da86",
+        "filename": "perf/tsconfig.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-05T20:01:04Z",
+      "side": 1,
+      "message": "It doesn\u0027t seem like chai is being used in this CL. I\u0027d recommend undoing these changes until you need them.\n\nFYI, in Gold and infra-sk we currently don\u0027t include the chai types like this. Instead we do:\n\n  import { expect } from \u0027chai\u0027;\n\nor\n\n  import { assert } from \u0027chai\u0027;\n\nThe choice of including chai here or explicitly importing it from tests is up to you but it\u0027s arguably best for all apps to use the same exact tsconfig.json.",
+      "range": {
+        "startLine": 10,
+        "startChar": 24,
+        "endLine": 10,
+        "endChar": 29
+      },
+      "revId": "3ee6471bbb73d6f438ec1b8dbe60f6015e7b9a16",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
