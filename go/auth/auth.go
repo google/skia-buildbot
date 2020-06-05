@@ -112,20 +112,39 @@ func (g *gcloudTokenSource) Token() (*oauth2.Token, error) {
 		ExpiresInSec int    `json:"expires_in"`
 		TokenType    string `json:"token_type"`
 	}
+
+	// In June of 2020  "gcloud auth print-access-token --format=json" changed
+	// its output from a TokenResponse to just emitting {"token": "...."}. We
+	// need to support both formats during the transition. Once everyone is on a
+	// new version of gcloud then the res struct can be simplified to struct {
+	// Token string `json:"token"`}.
 	var res struct {
 		TokenResponse TokenResponse `json:"token_response"`
+		Token         string        `json:"token"`
 	}
 	if err := json.NewDecoder(&buf).Decode(&res); err != nil {
-		return nil, fmt.Errorf("Invalid token JSON from metadata: %v", err)
+		return nil, fmt.Errorf("Invalid token JSON from gcloud: %v", err)
 	}
-	if res.TokenResponse.ExpiresInSec == 0 || res.TokenResponse.AccessToken == "" {
-		return nil, fmt.Errorf("Incomplete token received from metadata")
+
+	if res.TokenResponse.ExpiresInSec == 0 && res.TokenResponse.AccessToken == "" && res.Token == "" {
+		return nil, fmt.Errorf("Incomplete token received from gcloud")
 	}
-	return &oauth2.Token{
-		AccessToken: res.TokenResponse.AccessToken,
-		TokenType:   res.TokenResponse.TokenType,
-		Expiry:      time.Now().Add(time.Duration(res.TokenResponse.ExpiresInSec) * time.Second),
-	}, nil
+	if res.TokenResponse.AccessToken != "" {
+		return &oauth2.Token{
+			AccessToken: res.TokenResponse.AccessToken,
+			TokenType:   res.TokenResponse.TokenType,
+			Expiry:      time.Now().Add(time.Duration(res.TokenResponse.ExpiresInSec) * time.Second),
+		}, nil
+	} else {
+		return &oauth2.Token{
+			AccessToken: res.Token,
+			TokenType:   "Bearer",
+			// The value for Expiry is just a guess, but it doesn't really
+			// matter since AFAICT ReuseTokenSource just keeps using a token
+			// until it fails and never checks the Expiry.
+			Expiry: time.Now().Add(time.Hour),
+		}, nil
+	}
 }
 
 // NewTokenSourceFromIdAndSecret creates a new OAuth 2.0 token source with all the defaults for the
