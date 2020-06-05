@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "bef736c5_56399786",
+        "filename": "machine/go/machine/ts/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-05T16:27:58Z",
+      "side": 1,
+      "message": "I like the error, mainly to catch \"you don\u0027t have permissions to write here\" or \"folder doesn\u0027t exist\", etc.",
+      "parentUuid": "f55666d0_bedd1aeb",
+      "range": {
+        "startLine": 22,
+        "startChar": 12,
+        "endLine": 22,
+        "endChar": 18
+      },
+      "revId": "fe8f1e3775831ffb8005d83796232f3997c6169b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5beb2743_d4603905",
         "filename": "machine/modules/json/index.ts",
         "patchSetId": 9
@@ -105,6 +129,24 @@
       "revId": "fe8f1e3775831ffb8005d83796232f3997c6169b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0fef3c90_99dd293e",
+        "filename": "machine/modules/json/index.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-05T16:27:58Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "455eca36_54d9249c",
+      "revId": "fe8f1e3775831ffb8005d83796232f3997c6169b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
