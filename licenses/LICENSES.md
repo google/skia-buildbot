@@ -88,6 +88,7 @@ The following licenses are used in dependent packages.
 | github.com/PuerkitoBio/goquery                                    | BSD-3-Clause  |
 | github.com/russross/blackfriday/v2                                | BSD-2-Clause  |
 | github.com/shurcooL/sanitized_anchor_name                         | MIT           |
+| github.com/skia-dev/go2ts                                         | BSD-3-Clause  |
 | github.com/skia-dev/google-api-go-client/gensupport               | BSD-3-Clause  |
 | github.com/skia-dev/go-systemd/dbus                               | Apache-2.0    |
 | github.com/spf13/afero                                            | Apache-2.0    |
