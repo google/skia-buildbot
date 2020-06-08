@@ -60,8 +60,8 @@ type ClientImpl struct {
 
 // NewGCSClient creates a new instance of ClientImpl. The various
 // output paths are set in GCSClientOptions.
-func NewGCSClient(client *http.Client, options GCSClientOptions) (*ClientImpl, error) {
-	storageClient, err := gstorage.NewClient(context.TODO(), option.WithHTTPClient(client))
+func NewGCSClient(ctx context.Context, client *http.Client, options GCSClientOptions) (*ClientImpl, error) {
+	storageClient, err := gstorage.NewClient(ctx, option.WithHTTPClient(client))
 	if err != nil {
 		return nil, err
 	}

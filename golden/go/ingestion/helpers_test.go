@@ -1,6 +1,7 @@
 package ingestion
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 	"sort"
@@ -29,7 +30,7 @@ var (
 func TestGoogleStorageSource(t *testing.T) {
 	unittest.LargeTest(t)
 
-	src, err := NewGoogleStorageSource("gs-test-src", gcs_testutils.TEST_DATA_BUCKET, gcsTestDir, http.DefaultClient, nil)
+	src, err := newGoogleStorageSource(context.Background(), "gs-test-src", gcs_testutils.TEST_DATA_BUCKET, gcsTestDir, http.DefaultClient, nil)
 	require.NoError(t, err)
 	testSource(t, src)
 }

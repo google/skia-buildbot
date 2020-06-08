@@ -285,7 +285,7 @@ func main() {
 		Dryrun:             !*authoritative,
 	}
 
-	gsClient, err := storage.NewGCSClient(client, gsClientOpt)
+	gsClient, err := storage.NewGCSClient(ctx, client, gsClientOpt)
 	if err != nil {
 		sklog.Fatalf("Unable to create GCSClient: %s", err)
 	}
