@@ -39,7 +39,7 @@ func main() {
 		sklog.Fatalf("Unable to connect to grpc service: %s", err)
 	}
 
-	diffStore, err := diffstore.NewNetDiffStore(conn, "")
+	diffStore, err := diffstore.NewNetDiffStore(context.Background(), conn, "")
 	if err != nil {
 		sklog.Fatalf("Unable to initialize NetDiffStore: %s", err)
 	}
