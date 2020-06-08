@@ -1,0 +1,6 @@
+github.com/golang/protobuf/protoc-gen-go
+github.com/google/go-licenses
+github.com/kisielk/errcheck
+github.com/vektra/mockery/cmd/mockery
+go.chromium.org/luci/client/cmd/isolate
+golang.org/x/tools/cmd/goimports
