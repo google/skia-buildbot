@@ -11,6 +11,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -177,6 +178,37 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 		Isolate:    "recipes.isolate",
 	})
 	return BUNDLE_RECIPES_NAME
+}
+
+func goBuild(b *specs.TasksCfgBuilder) string {
+	// Read the Docker image ID.
+	path := filepath.Join(relpath("."), "..", "..", "go_deps", "image.sha256")
+	imgContents, err := ioutil.ReadFile(path)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	imageSha256 := strings.TrimSpace(string(imgContents))
+
+	const name = "Housekeeper-PerCommmit-GoBuild"
+	b.MustAddTask(name, &specs.TaskSpec{
+		Command: []string{
+			"/bin/bash", "buildbot/infra/bots/go_build.sh",
+			imageSha256, specs.PLACEHOLDER_ISOLATED_OUTDIR,
+			// TODO(borenet): Deduplicate this list with the one in //go_deps.
+			"darwin-amd64",
+			"linux-amd64",
+			"linux-arm",
+			"windows-amd64",
+		},
+		Dimensions: linuxGceDimensions(MACHINE_TYPE_SMALL),
+		EnvPrefixes: map[string][]string{
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin"},
+		},
+		Idempotent: true,
+		// TODO(borenet): Figure out how to isolate only Go files.
+		Isolate: "whole_repo.isolate",
+	})
+	return name
 }
 
 // buildTaskDrivers generates the task to compile the task driver code to run on
