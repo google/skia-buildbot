@@ -30,9 +30,9 @@ type NetDiffStore struct {
 }
 
 // NewNetDiffStore implements the diff.DiffStore interface via the gRPC-based DiffService.
-func NewNetDiffStore(conn *grpc.ClientConn, diffServerImageAddress string) (diff.DiffStore, error) {
+func NewNetDiffStore(ctx context.Context, conn *grpc.ClientConn, diffServerImageAddress string) (diff.DiffStore, error) {
 	serviceClient := NewDiffServiceClient(conn)
-	if _, err := serviceClient.Ping(context.TODO(), &Empty{}); err != nil {
+	if _, err := serviceClient.Ping(ctx, &Empty{}); err != nil {
 		return nil, skerr.Wrapf(err, "pinging connection to %s", diffServerImageAddress)
 	}
 

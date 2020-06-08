@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	context "context"
+
 	io "io"
 
 	mock "github.com/stretchr/testify/mock"
@@ -57,13 +59,13 @@ func (_m *ResultFileLocation) Name() string {
 	return r0
 }
 
-// Open provides a mock function with given fields:
-func (_m *ResultFileLocation) Open() (io.ReadCloser, error) {
-	ret := _m.Called()
+// Open provides a mock function with given fields: ctx
+func (_m *ResultFileLocation) Open(ctx context.Context) (io.ReadCloser, error) {
+	ret := _m.Called(ctx)
 
 	var r0 io.ReadCloser
-	if rf, ok := ret.Get(0).(func() io.ReadCloser); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) io.ReadCloser); ok {
+		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(io.ReadCloser)
@@ -71,8 +73,8 @@ func (_m *ResultFileLocation) Open() (io.ReadCloser, error) {
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}

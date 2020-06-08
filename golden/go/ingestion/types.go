@@ -32,7 +32,7 @@ type Source interface {
 // contains results that need to be ingested.
 type ResultFileLocation interface {
 	// Open returns a reader that allows to read the content of the file.
-	Open() (io.ReadCloser, error)
+	Open(ctx context.Context) (io.ReadCloser, error)
 
 	// Name returns the full path of the file. The last segment is usually the
 	// the file name.

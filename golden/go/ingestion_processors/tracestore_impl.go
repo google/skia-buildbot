@@ -64,7 +64,7 @@ type btProcessor struct {
 // Process implements the ingestion.Processor interface.
 func (b *btProcessor) Process(ctx context.Context, resultsFile ingestion.ResultFileLocation) error {
 	defer metrics2.FuncTimer().Stop()
-	gr, err := processGoldResults(resultsFile)
+	gr, err := processGoldResults(ctx, resultsFile)
 	if err != nil {
 		return skerr.Wrapf(err, "could not process results file")
 	}
