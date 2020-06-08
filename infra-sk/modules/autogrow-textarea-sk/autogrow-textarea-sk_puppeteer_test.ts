@@ -1,19 +1,20 @@
-const expect = require('chai').expect;
-const path = require('path');
-const setUpPuppeteerAndDemoPageServer = require('../../../puppeteer-tests/util').setUpPuppeteerAndDemoPageServer;
-const takeScreenshot = require('../../../puppeteer-tests/util').takeScreenshot;
+import * as path from 'path';
+import { expect } from 'chai';
+import { setUpPuppeteerAndDemoPageServer, takeScreenshot } from '../../../puppeteer-tests/util';
 
 describe('autogrow-textarea-sk', () => {
   const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.ts'));
 
-  let textarea;
+  // TODO: Replace "any" with AutogrowTextareaSk if/when ported to TypeScript.
+  let textarea: any;
+
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/autogrow-textarea-sk.html`);
     await testBed.page.setViewport({ width: 400, height: 700 });
     textarea = await testBed.page.$$('textarea');
   });
 
-  const inputText = (text) => {
+  const inputText = (text: string) => {
     textarea.value = text;
     textarea.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
   };
