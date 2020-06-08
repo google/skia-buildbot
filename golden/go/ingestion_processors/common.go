@@ -27,9 +27,9 @@ func parseGoldResultsFromReader(r io.ReadCloser) (*jsonio.GoldResults, error) {
 
 // processGoldResults opens the given JSON input file and processes it, converting
 // it into a jsonio.GoldResults object and returning it.
-func processGoldResults(rf ingestion.ResultFileLocation) (*jsonio.GoldResults, error) {
+func processGoldResults(ctx context.Context, rf ingestion.ResultFileLocation) (*jsonio.GoldResults, error) {
 	defer shared.NewMetricsTimer("read_dm_results").Stop()
-	r, err := rf.Open()
+	r, err := rf.Open(ctx)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "opening ResultFileLocation %s", rf.Name())
 	}
