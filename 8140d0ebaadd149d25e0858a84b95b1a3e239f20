@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "57ced7e6_d8ede77f",
+        "filename": "golden/modules/bulk-triage-sk/bulk-triage-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-08T12:22:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "78c94766_7e21d19c",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 78
+      },
+      "revId": "8140d0ebaadd149d25e0858a84b95b1a3e239f20",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "842b5f0b_1ffec01b",
         "filename": "golden/modules/bulk-triage-sk/bulk-triage-sk.js",
         "patchSetId": 8
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "e92e7293_9d7e6c31",
+        "filename": "golden/modules/bulk-triage-sk/bulk-triage-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-08T12:22:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "842b5f0b_1ffec01b",
+      "range": {
+        "startLine": 60,
+        "startChar": 46,
+        "endLine": 60,
+        "endChar": 55
+      },
+      "revId": "8140d0ebaadd149d25e0858a84b95b1a3e239f20",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cbbaae25_a85cd04b",
         "filename": "golden/modules/bulk-triage-sk/bulk-triage-sk.js",
         "patchSetId": 8
@@ -62,6 +110,24 @@
       "revId": "8140d0ebaadd149d25e0858a84b95b1a3e239f20",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a86eb88_28065b13",
+        "filename": "golden/modules/bulk-triage-sk/bulk-triage-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-08T12:22:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cbbaae25_a85cd04b",
+      "revId": "8140d0ebaadd149d25e0858a84b95b1a3e239f20",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "ca130e5b_0e7fe3f5",
+        "filename": "golden/modules/bulk-triage-sk/bulk-triage-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-08T12:22:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "abb252a0_1af1978d",
+      "range": {
+        "startLine": 119,
+        "startChar": 0,
+        "endLine": 119,
+        "endChar": 0
+      },
+      "revId": "8140d0ebaadd149d25e0858a84b95b1a3e239f20",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d79203fc_71caf529",
         "filename": "golden/modules/bulk-triage-sk/bulk-triage-sk.js",
         "patchSetId": 8
@@ -102,6 +192,24 @@
       "revId": "8140d0ebaadd149d25e0858a84b95b1a3e239f20",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "119da86f_d49abf50",
+        "filename": "golden/modules/bulk-triage-sk/bulk-triage-sk.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-08T12:22:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d79203fc_71caf529",
+      "revId": "8140d0ebaadd149d25e0858a84b95b1a3e239f20",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -128,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "a8dc51aa_971f9e99",
+        "filename": "golden/modules/bulk-triage-sk/bulk-triage-sk.scss",
+        "patchSetId": 8
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-08T12:22:55Z",
+      "side": 1,
+      "message": "Done. Copied the rest of the styles. I don\u0027t think importing triage-sk would work w/o some refactoring.",
+      "parentUuid": "91dcff96_d86ac40a",
+      "range": {
+        "startLine": 5,
+        "startChar": 2,
+        "endLine": 5,
+        "endChar": 8
+      },
+      "revId": "8140d0ebaadd149d25e0858a84b95b1a3e239f20",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0127402e_4f71dcd2",
         "filename": "golden/modules/bulk-triage-sk/bulk-triage-sk_test.js",
         "patchSetId": 8
@@ -148,6 +280,30 @@
       "revId": "8140d0ebaadd149d25e0858a84b95b1a3e239f20",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7ae770c_1597df59",
+        "filename": "golden/modules/bulk-triage-sk/bulk-triage-sk_test.js",
+        "patchSetId": 8
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-08T12:22:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0127402e_4f71dcd2",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 223
+      },
+      "revId": "8140d0ebaadd149d25e0858a84b95b1a3e239f20",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
