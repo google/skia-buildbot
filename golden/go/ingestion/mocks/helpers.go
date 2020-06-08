@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
 
@@ -37,7 +38,7 @@ func MockResultFileLocationFromFile(f string) (*ResultFileLocation, error) {
 
 	mrf.On("Name").Return(f)
 	mrf.On("MD5").Return(hash)
-	mrf.On("Open").Return(ioutil.NopCloser(&buf), nil)
+	mrf.On("Open", testutils.AnyContext).Return(ioutil.NopCloser(&buf), nil)
 	mrf.On("Content").Return(buf.Bytes())
 	mrf.On("TimeStamp").Return(fileInfo.ModTime().Unix())
 	return mrf, nil
@@ -51,7 +52,7 @@ func MockResultFileLocationWithContent(name string, content []byte, ts time.Time
 	mrf := &ResultFileLocation{}
 	mrf.On("Name").Return(name)
 	mrf.On("MD5").Return(hex.EncodeToString(hash))
-	mrf.On("Open").Return(ioutil.NopCloser(bytes.NewReader(content)), nil)
+	mrf.On("Open", testutils.AnyContext).Return(ioutil.NopCloser(bytes.NewReader(content)), nil)
 	mrf.On("Content").Return(content)
 	mrf.On("TimeStamp").Return(ts)
 	return mrf

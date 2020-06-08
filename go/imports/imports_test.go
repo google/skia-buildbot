@@ -20,6 +20,7 @@ var testPackages = []string{
 	"go.skia.org/infra/go/git/testutils/mem_git",
 	"go.skia.org/infra/go/mockhttpclient",
 	"go.skia.org/infra/golden/go/mocks",
+	"go.skia.org/infra/golden/go/ingestion/mocks",
 	"go.skia.org/infra/task_scheduler/go/scheduling/perftest",
 	"testing",
 	"go.skia.org/infra/perf/go/shortcut/shortcuttest",
