@@ -15,7 +15,7 @@ release: package-lock.json
 serve: package-lock.json
 	npx webpack-dev-server --mode=development --content-base ./dist --watch-poll
 
-test:
+test-js:
 	# Run the generated tests just once under Xvfb.
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
@@ -29,3 +29,9 @@ package-lock.json: package.json
 test-frontend-ci:
 	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+.PHONY: puppeteer_tests
+puppeteer_tests:
+	npx mocha ./**/*_puppeteer_test.js
+
+test: test-js puppeteer_tests
