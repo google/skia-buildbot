@@ -44,11 +44,14 @@ package-lock.json: package.json
 	npm ci
 	touch package-lock.json
 
+./modules/json/index.ts: ./go/ts/main.go ./go/clustering2/valuepercent.go
+	go run ./go/ts
+
 MODULES = $(shell find ./modules -type f)
 
 # We can depend on the timestamp of the dist directory since webpack will delete
 # the directory before repopulating it.
-./dist: package-lock.json $(MODULES)
+./dist: package-lock.json $(MODULES) ./modules/json/index.ts
 	npx webpack-cli --mode=production
 
 watch: package-lock.json

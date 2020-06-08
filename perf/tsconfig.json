@@ -7,10 +7,7 @@
     "sourceMap": true,
     "strict": true,
     "target": "es2017",
-    "types": ["mocha", "node"],
+    "types": ["mocha", "node"]
   },
-  "include": [
-    "./modules/**/*.ts",
-    "./pages/**/*.ts",
-  ],
+  "include": ["./modules/**/*.ts", "./pages/**/*.ts"]
 }
