@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f00122c4_45303a78",
+        "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk-demo.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-08T15:07:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "88898a42_a6f78f0b",
+      "range": {
+        "startLine": 11,
+        "startChar": 22,
+        "endLine": 11,
+        "endChar": 41
+      },
+      "revId": "e9c24c0a1cc8243234508f1745f1edb7c736c1cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a6508ac2_f6c63504",
         "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk-demo.js",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "e9c24c0a1cc8243234508f1745f1edb7c736c1cc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3ec61ac9_daabe0b2",
+        "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk-demo.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-08T15:07:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a6508ac2_f6c63504",
+      "range": {
+        "startLine": 5,
+        "startChar": 9,
+        "endLine": 5,
+        "endChar": 21
+      },
+      "revId": "e9c24c0a1cc8243234508f1745f1edb7c736c1cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "785ff398_c156163a",
+        "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-08T15:07:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "119ef1b2_6bcc9a8f",
+      "range": {
+        "startLine": 21,
+        "startChar": 6,
+        "endLine": 21,
+        "endChar": 18
+      },
+      "revId": "e9c24c0a1cc8243234508f1745f1edb7c736c1cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aa01563d_1798b5f8",
         "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk.js",
         "patchSetId": 2
@@ -91,6 +163,30 @@
       "revId": "e9c24c0a1cc8243234508f1745f1edb7c736c1cc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f9a3948_73e6e635",
+        "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-08T15:07:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aa01563d_1798b5f8",
+      "range": {
+        "startLine": 36,
+        "startChar": 4,
+        "endLine": 37,
+        "endChar": 42
+      },
+      "revId": "e9c24c0a1cc8243234508f1745f1edb7c736c1cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "15494e42_377c4de9",
+        "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-08T15:07:20Z",
+      "side": 1,
+      "message": "Documented with comment. To simplify setting the placeholder attribute in the template (so I can just do ${ele.placeholder}).",
+      "parentUuid": "5504342d_5ab4f9fb",
+      "range": {
+        "startLine": 60,
+        "startChar": 44,
+        "endLine": 60,
+        "endChar": 49
+      },
+      "revId": "e9c24c0a1cc8243234508f1745f1edb7c736c1cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4f027b39_c53e9037",
         "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk_test.js",
         "patchSetId": 2
@@ -137,6 +257,30 @@
       "revId": "e9c24c0a1cc8243234508f1745f1edb7c736c1cc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "73997f52_a2aa808b",
+        "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk_test.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-08T15:07:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4f027b39_c53e9037",
+      "range": {
+        "startLine": 11,
+        "startChar": 6,
+        "endLine": 11,
+        "endChar": 8
+      },
+      "revId": "e9c24c0a1cc8243234508f1745f1edb7c736c1cc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
