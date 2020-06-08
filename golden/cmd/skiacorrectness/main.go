@@ -512,6 +512,7 @@ func main() {
 	jsonRouter.HandleFunc(trim("/json/whoami"), handlers.Whoami).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/latestpositivedigest/{traceId}"), handlers.LatestPositiveDigestHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/debug/digestsbytestname/{corpus}/{testName}"), handlers.GetPerTraceDigestsByTestName).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/debug/flakytraces/{minUniqueDigests}"), handlers.GetFlakyTracesData).Methods("GET")
 
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
 	// These routes can be served with baseline_server for higher availability.
