@@ -93,7 +93,7 @@ func TestNetDiffStoreIntegration(t *testing.T) {
 		assert.NoError(t, conn.Close())
 	}()
 
-	netDiffStore, err := NewNetDiffStore(conn, httpServer.Listener.Addr().String())
+	netDiffStore, err := NewNetDiffStore(context.Background(), conn, httpServer.Listener.Addr().String())
 	require.NoError(t, err)
 
 	diffDigests := []types.Digest{cross}

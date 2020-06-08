@@ -279,8 +279,8 @@ func newGCSResultFileLocation(bucketID, objectID string, lastUpdated int64, md5 
 	}
 }
 
-// See ResultFileLocation interface.
-func (g *gsResultFileLocation) Open() (io.ReadCloser, error) {
+// Open implements the ingestion.ResultFileLocation interface.
+func (g *gsResultFileLocation) Open(ctx context.Context) (io.ReadCloser, error) {
 	// If we have read this before, then just return a reader.
 	if g.content != nil {
 		return ioutil.NopCloser(bytes.NewBuffer(g.content)), nil
@@ -297,7 +297,7 @@ func (g *gsResultFileLocation) Open() (io.ReadCloser, error) {
 
 	o := func() error {
 		obj := g.storageClient.Bucket(g.bucket).Object(g.name)
-		reader, err := obj.NewReader(context.TODO())
+		reader, err := obj.NewReader(ctx)
 		if err != nil {
 			return skerr.Fmt("accessing %s/%s failed: %s", g.bucket, g.name, err)
 		}
@@ -309,7 +309,7 @@ func (g *gsResultFileLocation) Open() (io.ReadCloser, error) {
 			return skerr.Fmt("error reading content of %s/%s: %s", g.bucket, g.name, err)
 		}
 
-		if oa, err := obj.Attrs(context.TODO()); err != nil {
+		if oa, err := obj.Attrs(ctx); err != nil {
 			g.content = nil
 			return skerr.Fmt("error reading attributes of %s/%s: %s", g.bucket, g.name, err)
 		} else {
