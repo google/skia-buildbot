@@ -59,7 +59,10 @@ var (
 )
 
 func runChromiumPerfOnWorkers() error {
-	master_common.Init("run_chromium_perf")
+	swarmingClient, err := master_common.Init("run_chromium_perf")
+	if err != nil {
+		return fmt.Errorf("Could not masteR_common.Init: %s", err)
+	}
 
 	ctx := context.Background()
 
@@ -167,12 +170,14 @@ func runChromiumPerfOnWorkers() error {
 	// Trigger both the build repo and isolate telemetry tasks in parallel.
 	group := skutil.NewNamedErrGroup()
 	var chromiumBuildNoPatch, chromiumBuildWithPatch string
+	fmt.Println(localPatches)
+	fmt.Println(remotePatches)
 	group.Go("build chromium", func() error {
 		if util.PatchesAreEmpty(localPatches) {
 			// Create only one chromium build.
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
 				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, remotePatches, []string{},
-				true, *master_common.Local, 3*time.Hour, 1*time.Hour)
+				true, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient)
 			if err != nil {
 				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
 			}
@@ -186,7 +191,7 @@ func runChromiumPerfOnWorkers() error {
 			// Create the two required chromium builds (with patch and without the patch).
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
 				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, remotePatches, []string{},
-				false, *master_common.Local, 3*time.Hour, 1*time.Hour)
+				false, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient)
 			if err != nil {
 				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
 			}
@@ -198,26 +203,38 @@ func runChromiumPerfOnWorkers() error {
 		}
 		return nil
 	})
+	fmt.Println("THESE ARE THE CHOMRIUM BUILD VALUES!!!--------")
+	fmt.Println(chromiumBuildNoPatch)
+	fmt.Println(chromiumBuildWithPatch)
+	fmt.Println("--------")
 
 	// Isolate telemetry.
 	isolateDeps := []string{}
-	group.Go("isolate telemetry", func() error {
-		telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
-		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
-		if err != nil {
-			return fmt.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
-		}
-		if telemetryHash == "" {
-			return fmt.Errorf("Found empty telemetry hash!")
-		}
-		isolateDeps = append(isolateDeps, telemetryHash)
-		return nil
-	})
+	// group.Go("isolate telemetry", func() error {
+	// 	telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
+	// 	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local, swarmingClient)
+	// 	if err != nil {
+	// 		return fmt.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
+	// 	}
+	// 	if telemetryHash == "" {
+	// 		return fmt.Errorf("Found empty telemetry hash!")
+	// 	}
+	// 	isolateDeps = append(isolateDeps, telemetryHash)
+	// 	fmt.Println("THIS IS TELEMETRY HASH:")
+	// 	fmt.Println(telemetryHash)
+	// 	return nil
+	// })
+	// HACK HACK HACK
+	isolateDeps = append(isolateDeps, "6170d645da928f2964fc9452f4536e9d7def31a8")
+	// HACK HACK HACK
 
 	// Wait for chromium build task and isolate telemetry task to complete.
 	if err := group.Wait(); err != nil {
 		return err
 	}
+
+	fmt.Println("HACK TO RETURN EARLY")
+	return nil
 
 	// Clean up the chromium builds from Google storage after the run completes.
 	defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuildNoPatch))

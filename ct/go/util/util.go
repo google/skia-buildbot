@@ -22,6 +22,8 @@ import (
 	"sync"
 	"time"
 
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
@@ -31,6 +33,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/specs"
 )
 
 const (
@@ -392,22 +395,34 @@ func GetNumPagesPerBot(repeatValue, maxPagesPerBot int) int {
 	return int(math.Ceil(float64(maxPagesPerBot) / float64(repeatValue)))
 }
 
-// TriggerSwarmingTask returns the number of triggered tasks and an error (if any).
-func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID, serviceAccountJSON, targetPlatform string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE, local bool, repeatValue int, isolateDeps []string) (int, error) {
-	// Instantiate the swarming client.
+func GetSwarmingIsolateClients(ctx context.Context, serviceAccountJSON string) (*swarming.SwarmingClient, *isolate.Client, error) {
 	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
 	if err != nil {
-		return 0, fmt.Errorf("Could not get temp dir: %s", err)
+		return nil, nil, fmt.Errorf("Could not get temp dir: %s", err)
 	}
-	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountJSON)
+	swarmingClient, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountJSON)
 	if err != nil {
 		// Cleanup workdir.
 		if err := os.RemoveAll(workDir); err != nil {
 			sklog.Errorf("Could not cleanup swarming work dir: %s", err)
 		}
-		return 0, fmt.Errorf("Could not instantiate swarming client: %s", err)
+		return nil, nil, fmt.Errorf("Could not instantiate swarming client: %s", err)
 	}
-	defer s.Cleanup()
+	isolateClient, err := isolate.NewClientWithServiceAccount(workDir, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountJSON)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Could not instantiate isolate client: %s", err)
+	}
+	return swarmingClient, isolateClient, nil
+}
+
+// TriggerSwarmingTask returns the number of triggered tasks and an error (if any).
+func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateName, runID, serviceAccountJSON, targetPlatform string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot, numPages int, isolateExtraArgs map[string]string, runOnGCE, local bool, repeatValue int, isolateDeps []string) (int, error) {
+	// Instantiate swarming and isolate clients.
+	swarmingClient, isolateClient, err := GetSwarmingIsolateClients(ctx, serviceAccountJSON)
+	if err != nil {
+		return 0, fmt.Errorf("Could not instantiate swarming and isolate clients: %s", err)
+	}
+	defer swarmingClient.Cleanup()
 	isolateTasks := []*isolate.Task{}
 	// Get path to isolate files.
 	pathToIsolates, err := GetPathToIsolates(local, false)
@@ -449,13 +464,13 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 	for i := 0; i < len(isolateTasks); i += 1000 {
 		startRange := i
 		endRange := util.MinInt(len(isolateTasks), i+1000)
-		hashes, _, err := s.GetIsolateClient().IsolateTasks(ctx, isolateTasks[startRange:endRange])
+		isolateHashes, _, err := isolateClient.IsolateTasks(ctx, isolateTasks[startRange:endRange])
 		if err != nil {
 			return numTasks, fmt.Errorf("Could not isolate targets: %s", err)
 		}
 
 		// Add the above hashes to tasksToHashes.
-		for _, h := range hashes {
+		for _, h := range isolateHashes {
 			countOfTasks++
 			taskName := fmt.Sprintf("%s_%d", taskPrefix, countOfTasks)
 			tasksToHashes[taskName] = h
@@ -514,10 +529,12 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 		cipdPkgs = append(cipdPkgs, ADB_CIPD_PACKAGE)
 	}
 
+	// swarming.apiClient has a RetryTask.
+
 	// Trigger and collect swarming tasks.
 	for taskMap := range chTasks {
 		// Trigger swarming using the isolate hashes.
-		tasks, err := s.TriggerSwarmingTasks(ctx, taskMap, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPkgs, priority, expirationTime, hardTimeout, ioTimeout, false, true, CT_SERVICE_ACCOUNT)
+		tasks, err := swarmingClient.TriggerSwarmingTasks(ctx, taskMap, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPkgs, priority, expirationTime, hardTimeout, ioTimeout, false, true, CT_SERVICE_ACCOUNT)
 		if err != nil {
 			return numTasks, fmt.Errorf("Could not trigger swarming tasks: %s", err)
 		}
@@ -530,20 +547,20 @@ func TriggerSwarmingTask(ctx context.Context, pagesetType, taskPrefix, isolateNa
 			task := task // https://golang.org/doc/faq#closures_and_goroutines
 			go func() {
 				defer wg.Done()
-				if _, _, state, err := task.Collect(ctx, s, false, false); err != nil {
+				if _, _, state, err := task.Collect(ctx, swarmingClient, false, false); err != nil {
 					sklog.Errorf("task %s failed: %s", task.Title, err)
 					if state == swarming.TASK_STATE_KILLED {
 						sklog.Infof("task %s was killed (either manually or via CT's delete button). Not going to retry it.", task.Title)
 						return
 					}
 					sklog.Infof("Retrying task %s with high priority %d", task.Title, TASKS_PRIORITY_HIGH)
-					retryTask, err := s.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPkgs, TASKS_PRIORITY_HIGH, expirationTime, hardTimeout, ioTimeout, false, true, CT_SERVICE_ACCOUNT)
+					retryTask, err := swarmingClient.TriggerSwarmingTasks(ctx, map[string]string{task.Title: tasksToHashes[task.Title]}, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPkgs, TASKS_PRIORITY_HIGH, expirationTime, hardTimeout, ioTimeout, false, true, CT_SERVICE_ACCOUNT)
 					if err != nil {
 						sklog.Errorf("Could not trigger retry of task %s: %s", task.Title, err)
 						return
 					}
 					// Collect the retried task.
-					if _, _, _, err := retryTask[0].Collect(ctx, s, false, false); err != nil {
+					if _, _, _, err := retryTask[0].Collect(ctx, swarmingClient, false, false); err != nil {
 						sklog.Errorf("task %s failed inspite of a retry: %s", retryTask[0].Title, err)
 						return
 					}
@@ -964,35 +981,69 @@ func writeRowsToCSV(csvPath string, headers []string, values [][]string) error {
 	return nil
 }
 
+// TODO(rmistry): Use pubsub instead.
+// FIGURE OUT HOW TO GET ISOlATED OUTPUT.
+// HERE HERE HERE
+// Return isolated output here if it exists, let isoaltetelemetry do the outputDir stuff! (assumign that it works)
+func pollSwarmingTaskToCompletion(ctx context.Context, taskId string, swarmingClient swarming.ApiClient, isolateClient *isolate.Client) (string, error) {
+	for range time.Tick(2 * time.Minute) {
+		swarmingTask, err := swarmingClient.GetTask(taskId, false)
+		if err != nil {
+			return "", fmt.Errorf("Could not get task %s: %s", taskId, err)
+		}
+		switch swarmingTask.State {
+		case swarming.TASK_STATE_BOT_DIED, swarming.TASK_STATE_CANCELED, swarming.TASK_STATE_EXPIRED, swarming.TASK_STATE_NO_RESOURCE, swarming.TASK_STATE_TIMED_OUT, swarming.TASK_STATE_KILLED:
+			return "", fmt.Errorf("The task %s exited early with state %v", taskId, swarmingTask.State)
+		case swarming.TASK_STATE_PENDING:
+			// The task is in pending state.
+			// sklog.Infof("The task %s is in pending state", taskId)
+		case swarming.TASK_STATE_RUNNING:
+			// The task is in runnig state.
+			// sklog.Infof("The task %s is in running state", taskId)
+		case swarming.TASK_STATE_COMPLETED:
+			if swarmingTask.Failure {
+				return "", fmt.Errorf("The task %s failed", taskId)
+			} else {
+				sklog.Infof("The task %s successfully completed", taskId)
+				if swarmingTask.OutputsRef == nil {
+					return "", nil
+				} else {
+					return swarmingTask.OutputsRef.Isolated, nil
+				}
+			}
+		default:
+			sklog.Errorf("Unknown Swarming State %v in %v", swarmingTask.State, swarmingTask)
+		}
+	}
+	return "", nil
+}
+
 // TriggerIsolateTelemetrySwarmingTask creates a isolated.gen.json file using ISOLATE_TELEMETRY_ISOLATE,
 // archives it, and triggers its swarming task. The swarming task will run the isolate_telemetry
 // worker script which will return the isolate hash.
-func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, chromiumHash, serviceAccountJSON, targetPlatform string, patches []string, hardTimeout, ioTimeout time.Duration, local bool) (string, error) {
-	// Instantiate the swarming client.
-	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
+func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, chromiumHash, serviceAccountJSON, targetPlatform string, patches []string, hardTimeout, ioTimeout time.Duration, local bool, swarmingClient swarming.ApiClient) (string, error) {
+	// Instantiate swarming and isolate clients.
+	_, isolateClient, err := GetSwarmingIsolateClients(ctx, serviceAccountJSON)
 	if err != nil {
-		return "", fmt.Errorf("Could not get temp dir: %s", err)
+		return "", fmt.Errorf("Could not instantiate swarming and isolate clients: %s", err)
 	}
-	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountJSON)
-	if err != nil {
-		// Cleanup workdir.
-		if err := os.RemoveAll(workDir); err != nil {
-			sklog.Errorf("Could not cleanup swarming work dir: %s", err)
-		}
-		return "", fmt.Errorf("Could not instantiate swarming client: %s", err)
-	}
-	defer s.Cleanup()
-	// Create isolated.gen.json.
+	// defer swarmingClient.Cleanup()
+
+	// newSwarmingClient, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
+	// if err != nil {
+	// 	return "", fmt.Errorf("Could not instantiate NEW swarming client: %s", err)
+	// }
+
 	// Get path to isolate files.
 	pathToIsolates, err := GetPathToIsolates(local, false)
 	if err != nil {
 		return "", fmt.Errorf("Could not get path to isolates: %s", err)
 	}
-	isolateArgs := map[string]string{
-		"RUN_ID":        runID,
-		"CHROMIUM_HASH": chromiumHash,
-		"PATCHES":       strings.Join(patches, ","),
-	}
+	// isolateArgs := map[string]string{
+	// 	"RUN_ID":        runID,
+	// 	"CHROMIUM_HASH": chromiumHash,
+	// 	"PATCHES":       strings.Join(patches, ","),
+	// }
 	dimensions := GCE_LINUX_BUILDER_DIMENSIONS
 	osType := "linux"
 	cipdPkgs := []string{}
@@ -1006,127 +1057,240 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
 	}
 
-	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, ISOLATE_TELEMETRY_ISOLATE), s.WorkDir, osType, taskName, isolateArgs)
-	if err != nil {
-		return "", fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
+	// Isolate the task.
+	isolateTask := &isolate.Task{
+		BaseDir:     pathToIsolates,
+		IsolateFile: path.Join(pathToIsolates, ISOLATE_TELEMETRY_ISOLATE),
+		Deps:        []string{},
+		// ExtraVars:   isolateArgs,
+		OsType: osType,
 	}
+	isolateHashes, _, err := isolateClient.IsolateTasks(ctx, []*isolate.Task{isolateTask})
+	if err != nil {
+		return "", fmt.Errorf("Could not isolate the telemetry isolate task: %s", err)
+	}
+	if len(isolateHashes) != 1 {
+		return "", fmt.Errorf("Expected one hash when isolating telemetry isolate task. Not: %+v", isolateHashes)
+	}
+	// tasksToHashes := map[string]string{taskName: isolateHashes[0]}
+
 	// CT runs use task authentication in swarming (see https://chrome-internal-review.googlesource.com/c/infradata/config/+/2878799/2#message-e3328dd455c1110cd2286a0c343b932594296ea3).
 	// This does not allow more than 48hours validity duration (expiration time + hard timeout).
-	expirationTime := 2*24*time.Hour - hardTimeout - time.Hour // Remove one hour to be safe.
-	// Batcharchive the task.
-	tasksToHashes, err := s.BatchArchiveTargets(ctx, []string{genJSON}, BATCHARCHIVE_TIMEOUT)
-	if err != nil {
-		return "", fmt.Errorf("Could not batch archive target: %s", err)
-	}
+	// expirationTime := 2*24*time.Hour - hardTimeout - time.Hour // Remove one hour to be safe.
 	// Trigger swarming using the isolate hash. Specify CIPD git packages to use for isolate telemetry's git operations.
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPkgs, swarming.RECOMMENDED_PRIORITY, expirationTime, hardTimeout, ioTimeout, false, true, CT_SERVICE_ACCOUNT)
+
+	cmd := []string{
+		"luci-auth",
+		"context",
+		"--",
+		"bin/isolate_telemetry",
+		"-logtostderr",
+		"--run_id=" + runID,
+		"--chromium_hash=" + chromiumHash,
+		"--patches=" + strings.Join(patches, ","),
+		"--out=${ISOLATED_OUTDIR}",
+	}
+	fmt.Println("HERE HERE HERE HERE HERE HEREE")
+	req := MakeSwarmingTaskRequest(ctx, taskName, isolateHashes[0], cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string]string{"PATH": "cipd_bin_packages"}, swarming.RECOMMENDED_PRIORITY, ioTimeout)
+	resp, err := swarmingClient.TriggerTask(req)
 	if err != nil {
-		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
+		return "", fmt.Errorf("Could not trigger swarming task %s: %s", taskName, err)
 	}
-	if len(tasks) != 1 {
-		return "", fmt.Errorf("Expected a single task instead got: %v", tasks)
-	}
-	// Collect all tasks and log the ones that fail.
-	task := tasks[0]
-	_, outputDir, _, err := task.Collect(ctx, s, false, false)
+	fmt.Println(resp.TaskId)
+
+	isolateHash, err := pollSwarmingTaskToCompletion(ctx, resp.TaskId, swarmingClient, isolateClient)
 	if err != nil {
-		return "", fmt.Errorf("task %s failed: %s", task.Title, err)
+		return "", fmt.Errorf("Could not collect task ID %s: %s", resp.TaskId, err)
 	}
-	outputFile := filepath.Join(outputDir, ISOLATE_TELEMETRY_FILENAME)
-	contents, err := ioutil.ReadFile(outputFile)
-	if err != nil {
-		return "", fmt.Errorf("Could not read outputfile %s: %s", outputFile, err)
-	}
-	return strings.Trim(string(contents), "\n"), nil
+
+	// // Download isolate output of the task.
+	// outputDir, err := ioutil.TempDir("", fmt.Sprintf("download_%s", resp.TaskId))
+	// if err != nil {
+	// 	return "", fmt.Errorf("Failed to create temporary dir: %s", err)
+	// }
+	// defer util.RemoveAll(outputDir)
+	// if err := isolateClient.DownloadIsolate(ctx, isolateOutputsRef, outputDir); err != nil {
+	// 	return "", fmt.Errorf("Could not download %s: %s", isolateOutputsRef, err)
+	// }
+	// outputFile := filepath.Join(outputDir, ISOLATE_TELEMETRY_FILENAME)
+	// contents, err := ioutil.ReadFile(outputFile)
+	// if err != nil {
+	// 	return "", fmt.Errorf("Could not read outputfile %s: %s", outputFile, err)
+	// }
+	// fmt.Println("GOT THESE CONTENTS")
+	// fmt.Println(contents)
+	// return strings.Trim(string(contents), "\n"), nil
+
+	// Is this it????
+	return isolateHash, nil
 }
 
-func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isolateFileName, serviceAccountJSON, targetPlatform string, local bool, isolateArgs map[string]string) (string, error) {
-	// Instantiate the swarming client.
-	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
-	if err != nil {
-		return "", fmt.Errorf("Could not get temp dir: %s", err)
-	}
-	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountJSON)
-	if err != nil {
-		// Cleanup workdir.
-		if err := os.RemoveAll(workDir); err != nil {
-			sklog.Errorf("Could not cleanup swarming work dir: %s", err)
+func MakeSwarmingTaskRequest(ctx context.Context, taskName, isolatedHash string, cipdPkgs, cmd, tags []string, dims, envPrefixes map[string]string, priority int64, ioTimeoutSecs time.Duration) *swarming_api.SwarmingRpcsNewTaskRequest {
+	var cipdInput *swarming_api.SwarmingRpcsCipdInput
+	if len(cipdPkgs) > 0 {
+		cipdInput = &swarming_api.SwarmingRpcsCipdInput{
+			Packages: make([]*swarming_api.SwarmingRpcsCipdPackage, 0, len(cipdPkgs)),
 		}
-		return "", fmt.Errorf("Could not instantiate swarming client: %s", err)
+		for _, p := range cipdPkgs {
+			tokens := strings.SplitN(p, ":", 3)
+			cipdInput.Packages = append(cipdInput.Packages, &swarming_api.SwarmingRpcsCipdPackage{
+				Path:        tokens[0],
+				PackageName: tokens[1],
+				Version:     tokens[2],
+			})
+		}
 	}
-	defer s.Cleanup()
+
+	swarmingDims := make([]*swarming_api.SwarmingRpcsStringPair, 0, len(dims))
+	for k, v := range dims {
+		swarmingDims = append(swarmingDims, &swarming_api.SwarmingRpcsStringPair{
+			Key:   k,
+			Value: v,
+		})
+	}
+
+	// var swarmingEnv []*swarming_api.SwarmingRpcsStringPair
+	// if len(env) > 0 {
+	// 	swarmingEnv = make([]*swarming_api.SwarmingRpcsStringPair, 0, len(env))
+	// 	for k, v := range env {
+	// 		swarmingEnv = append(swarmingEnv, &swarming_api.SwarmingRpcsStringPair{
+	// 			Key:   k,
+	// 			Value: v,
+	// 		})
+	// 	}
+	// }
+
+	var swarmingEnvPrefixes []*swarming_api.SwarmingRpcsStringListPair
+	if len(envPrefixes) > 0 {
+		swarmingEnvPrefixes = make([]*swarming_api.SwarmingRpcsStringListPair, 0, len(envPrefixes))
+		for k, v := range envPrefixes {
+			swarmingEnvPrefixes = append(swarmingEnvPrefixes, &swarming_api.SwarmingRpcsStringListPair{
+				Key:   k,
+				Value: []string{v},
+			})
+		}
+	}
+
+	// CT runs use task authentication in swarming (see https://chrome-internal-review.googlesource.com/c/infradata/config/+/2878799/2#message-e3328dd455c1110cd2286a0c343b932594296ea3).
+	// This does not allow more than 48hours validity duration (expiration time + hard timeout).
+	executionTimeoutSecs := 36 * time.Hour
+	expirationTimeoutSecs := 2*24*time.Hour - executionTimeoutSecs - time.Hour // Remove one hour to be safe.
+
+	return &swarming_api.SwarmingRpcsNewTaskRequest{
+		Name:     taskName,
+		Priority: priority,
+		// PubsubTopic:    fmt.Sprintf(swarming.PUBSUB_FULLY_QUALIFIED_TOPIC_TMPL, common.PROJECT_ID, pubSubTopic),
+		// PubsubUserdata: id,
+		ServiceAccount: CT_SERVICE_ACCOUNT,
+		Tags:           tags,
+		// Tags:           types.TagsForTask(c.Name, id, c.Attempt, c.RepoState, c.RetryOf, dimsMap, c.ForcedJobId, c.ParentTaskIds, extraTags),
+		TaskSlices: []*swarming_api.SwarmingRpcsTaskSlice{
+			{
+				ExpirationSecs: int64(expirationTimeoutSecs.Seconds()),
+				Properties: &swarming_api.SwarmingRpcsTaskProperties{
+					// Caches:               caches,
+					CipdInput:  cipdInput,
+					Command:    cmd,
+					Dimensions: swarmingDims,
+					// Env:        swarmingEnv,
+					EnvPrefixes:          swarmingEnvPrefixes,
+					ExecutionTimeoutSecs: int64(executionTimeoutSecs.Seconds()),
+					// ExtraArgs:            extraArgs,
+					// Idempotent:           idempotent,
+					InputsRef: &swarming_api.SwarmingRpcsFilesRef{
+						Isolated:       isolatedHash,
+						Isolatedserver: isolate.ISOLATE_SERVER_URL_PRIVATE,
+						Namespace:      isolate.DEFAULT_NAMESPACE,
+					},
+					IoTimeoutSecs: int64(ioTimeoutSecs.Seconds()),
+					// Outputs:       outputs,
+				},
+				WaitForCapacity: false,
+			},
+		},
+		User: CT_SERVICE_ACCOUNT,
+	}
+}
+
+func TriggerMasterScriptSwarmingTask(ctx context.Context, runID, taskName, isolateFileName, serviceAccountJSON, targetPlatform string, local bool, isolateArgs map[string]string, cmd []string, swarmingClient swarming.ApiClient) (string, error) {
+	// Instantiate swarming and isolate clients.
+	_, isolateClient, err := GetSwarmingIsolateClients(ctx, serviceAccountJSON)
+	if err != nil {
+		return "", fmt.Errorf("Could not instantiate swarming and isolate clients: %s", err)
+	}
+	// defer swarmingClient.Cleanup()
+
+	// newSwarmingClient, err := swarming.NewApiClient(httpClient, swarming.SWARMING_SERVER_PRIVATE)
+	// if err != nil {
+	// 	return "", fmt.Errorf("Could not instantiate NEW swarming client: %s", err)
+	// }
+
 	// Master scripts only need linux versions of their cipd packages. But still need to specify
 	// osType correctly so that exe binaries can be packaged.
 	osType := "linux"
 	cipdPkgs := []string{}
 	cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformLinuxAmd64])...)
 	cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
+	cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(specs.CIPD_PKGS_ISOLATE)...)
 	if targetPlatform == PLATFORM_WINDOWS {
 		osType = "win"
 	}
-	// Create isolated.gen.json.
+
 	// Get path to isolate files.
 	pathToIsolates, err := GetPathToIsolates(local, true)
 	if err != nil {
 		return "", fmt.Errorf("Could not get path to isolates: %s", err)
 	}
-	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, isolateFileName), s.WorkDir, osType, taskName, isolateArgs)
+
+	// Isolate the task.
+	isolateTask := &isolate.Task{
+		BaseDir:     pathToIsolates,
+		IsolateFile: path.Join(pathToIsolates, isolateFileName),
+		Deps:        []string{},
+		// ExtraVars:   isolateArgs, // NO THIS
+		OsType: osType, // NO THIS
+	}
+	fmt.Println("XXXXXXX RUNNING ISOLATE TASKS!!!!!!")
+	isolateHashes, _, err := isolateClient.IsolateTasks(ctx, []*isolate.Task{isolateTask})
 	if err != nil {
-		return "", fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
+		return "", fmt.Errorf("Could not isolate the master script task: %s", err)
 	}
-	// Batcharchive the task.
-	tasksToHashes, err := s.BatchArchiveTargets(ctx, []string{genJSON}, BATCHARCHIVE_TIMEOUT)
+	if len(isolateHashes) != 1 {
+		return "", fmt.Errorf("Expected one hash when isolating the master script task. Not: %+v", isolateHashes)
+	}
+
+	req := MakeSwarmingTaskRequest(ctx, taskName, isolateHashes[0], cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, GCE_LINUX_MASTER_DIMENSIONS, map[string]string{"PATH": "cipd_bin_packages"}, swarming.RECOMMENDED_PRIORITY, 3*24*time.Hour)
+	resp, err := swarmingClient.TriggerTask(req)
 	if err != nil {
-		return "", fmt.Errorf("Could not batch archive target: %s", err)
+		return "", fmt.Errorf("Could not trigger swarming task %s: %s", taskName, err)
 	}
-	// CT runs use task authentication in swarming (see https://chrome-internal-review.googlesource.com/c/infradata/config/+/2878799/2#message-e3328dd455c1110cd2286a0c343b932594296ea3).
-	// This does not allow more than 48hours validity duration (expiration time + hard timeout).
-	hardTimeout := 36 * time.Hour
-	expirationTime := 2*24*time.Hour - hardTimeout - time.Hour // Remove one hour to be safe.
-	// Trigger swarming using the isolate hash. Specify CIPD git packages to use for the master script's git operations.
-	dimensions := GCE_LINUX_MASTER_DIMENSIONS
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPkgs, swarming.RECOMMENDED_PRIORITY, expirationTime, hardTimeout, 3*24*time.Hour, false, true, CT_SERVICE_ACCOUNT)
-	if err != nil {
-		return "", fmt.Errorf("Could not trigger swarming task: %s", err)
-	}
-	if len(tasks) != 1 {
-		return "", fmt.Errorf("Expected a single task instead got: %v", tasks)
-	}
-	return tasks[0].TaskID, nil
+	return resp.TaskId, nil
 }
 
 // TriggerBuildRepoSwarmingTask creates a isolated.gen.json file using BUILD_REPO_ISOLATE,
 // archives it, and triggers it's swarming task. The swarming task will run the build_repo
 // worker script which will return a list of remote build directories.
-func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform, serviceAccountJSON string, hashes, patches, cipdPkgs []string, singleBuild, local bool, hardTimeout, ioTimeout time.Duration) ([]string, error) {
-	// Instantiate the swarming client.
-	workDir, err := ioutil.TempDir(StorageDir, "swarming_work_")
+func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndTarget, targetPlatform, serviceAccountJSON string, hashes, patches, cipdPkgs []string, singleBuild, local bool, hardTimeout, ioTimeout time.Duration, swarmingClient swarming.ApiClient) ([]string, error) {
+	// Instantiate swarming and isolate clients.
+	_, isolateClient, err := GetSwarmingIsolateClients(ctx, serviceAccountJSON)
 	if err != nil {
-		return nil, fmt.Errorf("Could not get temp dir: %s", err)
+		return nil, fmt.Errorf("Could not instantiate swarming and isolate clients: %s", err)
 	}
-	s, err := swarming.NewSwarmingClient(ctx, workDir, swarming.SWARMING_SERVER_PRIVATE, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountJSON)
-	if err != nil {
-		// Cleanup workdir.
-		if err := os.RemoveAll(workDir); err != nil {
-			sklog.Errorf("Could not cleanup swarming work dir: %s", err)
-		}
-		return nil, fmt.Errorf("Could not instantiate swarming client: %s", err)
-	}
-	defer s.Cleanup()
-	// Create isolated.gen.json.
+	// defer swarmingClient.Cleanup()
+
 	// Get path to isolate files.
 	pathToIsolates, err := GetPathToIsolates(local, false)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get path to isolates: %s", err)
 	}
-	isolateArgs := map[string]string{
-		"RUN_ID":          runID,
-		"REPO_AND_TARGET": repoAndTarget,
-		"HASHES":          strings.Join(hashes, ","),
-		"PATCHES":         strings.Join(patches, ","),
-		"SINGLE_BUILD":    strconv.FormatBool(singleBuild),
-		"TARGET_PLATFORM": targetPlatform,
-	}
+	// isolateArgs := map[string]string{
+	// 	"RUN_ID":          runID,
+	// 	"REPO_AND_TARGET": repoAndTarget,
+	// 	"HASHES":          strings.Join(hashes, ","),
+	// 	"PATCHES":         strings.Join(patches, ","),
+	// 	"SINGLE_BUILD":    strconv.FormatBool(singleBuild),
+	// 	"TARGET_PLATFORM": targetPlatform,
+	// }
 	osType := "linux"
 	if targetPlatform == PLATFORM_WINDOWS {
 		osType = "win"
@@ -1136,19 +1300,38 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 		cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(cipd.PkgsGit[cipd.PlatformLinuxAmd64])...)
 		cipdPkgs = append(cipdPkgs, LUCI_AUTH_CIPD_PACKAGE_LINUX)
 	}
-	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, BUILD_REPO_ISOLATE), s.WorkDir, osType, taskName, isolateArgs)
-	if err != nil {
-		return nil, fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
+
+	// Isolate the task.
+	isolateTask := &isolate.Task{
+		BaseDir:     pathToIsolates,
+		IsolateFile: path.Join(pathToIsolates, BUILD_REPO_ISOLATE),
+		Deps:        []string{},
+		// ExtraVars:   isolateArgs,
+		OsType: osType,
 	}
-	// Batcharchive the task.
-	tasksToHashes, err := s.BatchArchiveTargets(ctx, []string{genJSON}, BATCHARCHIVE_TIMEOUT)
+	isolateHashes, _, err := isolateClient.IsolateTasks(ctx, []*isolate.Task{isolateTask})
 	if err != nil {
-		return nil, fmt.Errorf("Could not batch archive target: %s", err)
+		return nil, fmt.Errorf("Could not isolate the telemetry isolate task: %s", err)
 	}
-	// CT runs use task authentication in swarming (see https://chrome-internal-review.googlesource.com/c/infradata/config/+/2878799/2#message-e3328dd455c1110cd2286a0c343b932594296ea3).
-	// This does not allow more than 48hours validity duration (expiration time + hard timeout).
-	expirationTime := 2*24*time.Hour - hardTimeout - time.Hour // Remove one hour to be safe.
+	if len(isolateHashes) != 1 {
+		return nil, fmt.Errorf("Expected one hash when isolating telemetry isolate task. Not: %+v", isolateHashes)
+	}
+
 	// Trigger swarming using the isolate hash.
+	cmd := []string{
+		"luci-auth",
+		"context",
+		"--",
+		"bin/build_repo",
+		"-logtostderr",
+		"--run_id=" + runID,
+		"--repo_and_target=" + repoAndTarget,
+		"--hashes=" + strings.Join(hashes, ","),
+		"--patches=" + strings.Join(patches, ","),
+		"--single_build=" + strconv.FormatBool(singleBuild),
+		"--target_platform=" + targetPlatform,
+		"--out=${ISOLATED_OUTDIR}",
+	}
 	var dimensions map[string]string
 	if targetPlatform == PLATFORM_WINDOWS {
 		dimensions = GCE_WINDOWS_BUILDER_DIMENSIONS
@@ -1157,18 +1340,44 @@ func TriggerBuildRepoSwarmingTask(ctx context.Context, taskName, runID, repoAndT
 	} else {
 		dimensions = GCE_LINUX_BUILDER_DIMENSIONS
 	}
-	tasks, err := s.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPkgs, swarming.RECOMMENDED_PRIORITY, expirationTime, hardTimeout, ioTimeout, false, true, CT_SERVICE_ACCOUNT)
+	req := MakeSwarmingTaskRequest(ctx, taskName, isolateHashes[0], cipdPkgs, cmd, []string{"name:" + taskName, "runid:" + runID}, dimensions, map[string]string{"PATH": "cipd_bin_packages"}, swarming.RECOMMENDED_PRIORITY, ioTimeout)
+	resp, err := swarmingClient.TriggerTask(req)
 	if err != nil {
-		return nil, fmt.Errorf("Could not trigger swarming task: %s", err)
+		return nil, fmt.Errorf("Could not trigger swarming task %s: %s", taskName, err)
 	}
-	if len(tasks) != 1 {
-		return nil, fmt.Errorf("Expected a single task instead got: %v", tasks)
-	}
+
+	// tasks, err := swarmingClient.TriggerSwarmingTasks(ctx, tasksToHashes, dimensions, map[string]string{"runid": runID}, map[string]string{"PATH": "cipd_bin_packages"}, cipdPkgs, swarming.RECOMMENDED_PRIORITY, expirationTime, hardTimeout, ioTimeout, false, true, CT_SERVICE_ACCOUNT)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("Could not trigger swarming task: %s", err)
+	// }
+	// if len(tasks) != 1 {
+	// 	return nil, fmt.Errorf("Expected a single task instead got: %v", tasks)
+	// }
 	// Collect all tasks and log the ones that fail.
-	task := tasks[0]
-	_, outputDir, _, err := task.Collect(ctx, s, false, false)
+	// task := tasks[0]
+	// _, outputDir, _, err := task.Collect(ctx, swarmingClient, false, false)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("task %s failed: %s", task.Title, err)
+	// }
+	// outputFile := filepath.Join(outputDir, BUILD_OUTPUT_FILENAME)
+	// contents, err := ioutil.ReadFile(outputFile)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("Could not read outputfile %s: %s", outputFile, err)
+	// }
+	// return strings.Split(string(contents), ","), nil
+
+	isolateHash, err := pollSwarmingTaskToCompletion(ctx, resp.TaskId, swarmingClient, isolateClient)
 	if err != nil {
-		return nil, fmt.Errorf("task %s failed: %s", task.Title, err)
+		return nil, fmt.Errorf("Could not collect task ID %s: %s", resp.TaskId, err)
+	}
+	// Download isolate output of the task.
+	outputDir, err := ioutil.TempDir("", fmt.Sprintf("download_%s", resp.TaskId))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create temporary dir: %s", err)
+	}
+	defer util.RemoveAll(outputDir)
+	if err := isolateClient.DownloadIsolate(ctx, isolateHash, outputDir); err != nil {
+		return nil, fmt.Errorf("Could not download %s: %s", isolateHash, err)
 	}
 	outputFile := filepath.Join(outputDir, BUILD_OUTPUT_FILENAME)
 	contents, err := ioutil.ReadFile(outputFile)
