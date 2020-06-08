@@ -138,10 +138,10 @@ const (
 	MAKE_ALL_TIMEOUT = 15 * time.Minute
 
 	// Swarming constants.
-	SWARMING_DIR_NAME               = "swarming"
-	SWARMING_POOL                   = "CT"
-	BUILD_OUTPUT_FILENAME           = "build_remote_dirs.txt"
-	ISOLATE_TELEMETRY_FILENAME      = "isolate_telemetry_hash.txt"
+	SWARMING_DIR_NAME     = "swarming"
+	SWARMING_POOL         = "CT"
+	BUILD_OUTPUT_FILENAME = "build_remote_dirs.txt"
+	// ISOLATE_TELEMETRY_FILENAME      = "isolate_telemetry_hash.txt"
 	MAX_SWARMING_HARD_TIMEOUT_HOURS = 24
 	// Timeouts.
 	BATCHARCHIVE_TIMEOUT = 10 * time.Minute
@@ -211,7 +211,8 @@ var (
 
 	// Email address of cluster telemetry admins. They will be notified every time
 	// a task has started and completed.
-	CtAdmins = []string{"rmistry@google.com", "westont@google.com"}
+	CtAdmins = []string{"rmistry@google.com"}
+	// CtAdmins = []string{"rmistry@google.com", "westont@google.com"}
 
 	// Names of local directories and files.
 	StorageDir             = filepath.Join("/", "b", STORAGE_DIR_NAME)

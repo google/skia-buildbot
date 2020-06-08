@@ -21,21 +21,5 @@
         ],
       },
     }],
-  ],
-  'variables': {
-    'command': [
-      'luci-auth',
-      'context',
-      '--',
-      '../../../bin/build_repo',
-      '-logtostderr',
-      '--run_id=<(RUN_ID)',
-      '--repo_and_target=<(REPO_AND_TARGET)',
-      '--hashes=<(HASHES)',
-      '--patches=<(PATCHES)',
-      '--single_build=<(SINGLE_BUILD)',
-      '--target_platform=<(TARGET_PLATFORM)',
-      '--out=${ISOLATED_OUTDIR}',
-    ]
-  }
+  ]
 }

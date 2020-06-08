@@ -106,12 +106,6 @@ func buildRepo() error {
 		return fmt.Errorf("IsolateTasks returned incorrect number of hashes %d (expected 1)", len(hashes))
 	}
 
-	// Record the isolate hash in the output file.
-	hashOutputFile := filepath.Join(*outDir, util.ISOLATE_TELEMETRY_FILENAME)
-	if err := ioutil.WriteFile(hashOutputFile, []byte(hashes[0]), os.ModePerm); err != nil {
-		return fmt.Errorf("Could not write to %s: %s", hashOutputFile, err)
-	}
-
 	return nil
 }
 

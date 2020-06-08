@@ -76,7 +76,7 @@ type CommonCols struct {
 type Task interface {
 	GetCommonCols() *CommonCols
 	RunsOnGCEWorkers() bool
-	TriggerSwarmingTaskAndMail(ctx context.Context) error
+	TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error
 	SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error
 	GetTaskName() string
 	SetCompleted(success bool)
@@ -164,14 +164,14 @@ func (vars *AddTaskCommonVars) IsAdminTask() bool {
 }
 
 func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
-	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, nil, "Please login with google account to add tasks", http.StatusInternalServerError)
-		return
-	}
-	if task.IsAdminTask() && !ctfeutil.UserHasAdminRights(r) {
-		httputils.ReportError(w, nil, "Must be admin to add admin tasks; contact rmistry@", http.StatusInternalServerError)
-		return
-	}
+	// if !ctfeutil.UserHasEditRights(r) {
+	// 	httputils.ReportError(w, nil, "Please login with google account to add tasks", http.StatusInternalServerError)
+	// 	return
+	// }
+	// if task.IsAdminTask() && !ctfeutil.UserHasAdminRights(r) {
+	// 	httputils.ReportError(w, nil, "Must be admin to add admin tasks; contact rmistry@", http.StatusInternalServerError)
+	// 	return
+	// }
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to add %T task", task), http.StatusInternalServerError)
@@ -257,7 +257,7 @@ func TriggerTaskOnSwarming(ctx context.Context, task AddTaskVars, datastoreTask 
 		taskId := fmt.Sprintf("%s.%d", datastoreTask.GetTaskName(), datastoreTask.GetCommonCols().DatastoreKey.ID)
 		autoscaler.RegisterGCETask(taskId)
 	}
-	return datastoreTask.TriggerSwarmingTaskAndMail(ctx)
+	return datastoreTask.TriggerSwarmingTaskAndMail(ctx, swarm)
 }
 
 type QueryParams struct {
@@ -536,10 +536,10 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 }
 
 func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
-	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, nil, "Please login with google account to redo tasks", http.StatusInternalServerError)
-		return
-	}
+	// if !ctfeutil.UserHasEditRights(r) {
+	// 	httputils.ReportError(w, nil, "Please login with google account to redo tasks", http.StatusInternalServerError)
+	// 	return
+	// }
 	w.Header().Set("Content-Type", "application/json")
 	vars := struct{ Id int64 }{}
 	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
