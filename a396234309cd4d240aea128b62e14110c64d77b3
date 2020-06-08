@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "11bd73c2_0ac3a3a5",
+        "filename": "infra-sk/modules/expandable-textarea-sk/expandable-textarea-sk-demo.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-08T16:32:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f3cbecd4_8db8866a",
+      "range": {
+        "startLine": 11,
+        "startChar": 23,
+        "endLine": 11,
+        "endChar": 40
+      },
+      "revId": "a396234309cd4d240aea128b62e14110c64d77b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b5707c79_0169d56d",
         "filename": "infra-sk/modules/expandable-textarea-sk/expandable-textarea-sk-demo.js",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "a396234309cd4d240aea128b62e14110c64d77b3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69ea5712_17cdd224",
+        "filename": "infra-sk/modules/expandable-textarea-sk/expandable-textarea-sk-demo.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-08T16:32:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b5707c79_0169d56d",
+      "range": {
+        "startLine": 5,
+        "startChar": 9,
+        "endLine": 5,
+        "endChar": 21
+      },
+      "revId": "a396234309cd4d240aea128b62e14110c64d77b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7faba4fc_3fd46bb5",
+        "filename": "infra-sk/modules/expandable-textarea-sk/expandable-textarea-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-08T16:32:05Z",
+      "side": 1,
+      "message": "Done. Went with a button. A different look than the link-style CT currently has, but it seems more correct.",
+      "parentUuid": "f75bcd38_db996f3d",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 27
+      },
+      "revId": "a396234309cd4d240aea128b62e14110c64d77b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "feac4ff7_2c7e154b",
         "filename": "infra-sk/modules/expandable-textarea-sk/expandable-textarea-sk_test.js",
         "patchSetId": 7
@@ -91,6 +163,30 @@
       "revId": "a396234309cd4d240aea128b62e14110c64d77b3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b3a828a_0af03bc4",
+        "filename": "infra-sk/modules/expandable-textarea-sk/expandable-textarea-sk_test.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-08T16:32:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "feac4ff7_2c7e154b",
+      "range": {
+        "startLine": 11,
+        "startChar": 6,
+        "endLine": 11,
+        "endChar": 8
+      },
+      "revId": "a396234309cd4d240aea128b62e14110c64d77b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
