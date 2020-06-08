@@ -77,7 +77,7 @@ func initGSClient(t *testing.T) (*ClientImpl, GCSClientOptions) {
 	opt := GCSClientOptions{
 		KnownHashesGCSPath: hashesGCSPath + "-" + timeStamp,
 	}
-	gsClient, err := NewGCSClient(nil, opt)
+	gsClient, err := NewGCSClient(context.Background(), nil, opt)
 	require.NoError(t, err)
 	return gsClient, opt
 }

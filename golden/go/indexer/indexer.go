@@ -105,6 +105,8 @@ func SearchIndexForTesting(cpxTile tiling.ComplexTile, dc [2]digest_counter.Dige
 		blamer:            b,
 		cpxTile:           cpxTile,
 	}
+	// Providing the context.Background here is ok because this function is only going to be
+	// called from tests.
 	return s, preSliceData(context.Background(), s)
 }
 

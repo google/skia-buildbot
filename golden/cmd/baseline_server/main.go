@@ -54,6 +54,7 @@ func main() {
 	logOpts := []common.Opt{
 		common.PrometheusOpt(promPort),
 	}
+	ctx := context.Background()
 
 	_, appName := filepath.Split(os.Args[0])
 	common.InitWithMust(appName, logOpts...)
@@ -61,13 +62,13 @@ func main() {
 	// Auth note: the underlying firestore.NewClient looks at the
 	// GOOGLE_APPLICATION_CREDENTIALS env variable, so we don't need to supply
 	// a token source.
-	fsClient, err := firestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, nil)
+	fsClient, err := firestore.NewClient(ctx, *fsProjectID, "gold", *fsNamespace, nil)
 	if err != nil {
 		sklog.Fatalf("Unable to configure Firestore: %s", err)
 	}
 
 	expStore := fs_expectationstore.New(fsClient, nil, fs_expectationstore.ReadOnly)
-	if err := expStore.Initialize(context.Background()); err != nil {
+	if err := expStore.Initialize(ctx); err != nil {
 		sklog.Fatalf("Unable to initialize fs_expstore: %s", err)
 	}
 
@@ -85,7 +86,7 @@ func main() {
 
 	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
 
-	gsClient, err := storage.NewGCSClient(client, gsClientOpt)
+	gsClient, err := storage.NewGCSClient(ctx, client, gsClientOpt)
 	if err != nil {
 		sklog.Fatalf("Unable to create GCSClient: %s", err)
 	}
