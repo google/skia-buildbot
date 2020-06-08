@@ -33,6 +33,10 @@ const (
 	ModeMaintenance Mode = "maintenance"
 )
 
+// AllModes is a slice of all Mode* consts. Used when generating TypeScript
+// definitions.
+var AllModes = []Mode{ModeAvailable, ModeMaintenance}
+
 // Annotation is used to record the most recent user change to Description. This
 // will be in addition to the normal auditlog of user actions:
 // https://pkg.go.dev/go.skia.org/infra/go/auditlog?tab=doc
