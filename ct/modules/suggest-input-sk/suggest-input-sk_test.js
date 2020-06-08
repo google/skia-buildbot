@@ -49,13 +49,13 @@ describe('suggest-input-sk', () => {
   };
 
   it('hides suggestions initially', () => {
-    expect($$('div', suggestInput)).to.have.property('hidden', true);
+    expect($$('.suggest-list', suggestInput)).to.have.property('hidden', true);
   });
 
   it('shows suggestions when in focus', () => {
     simulateUserClick();
     expect($$('input', suggestInput)).to.equal(document.activeElement);
-    expect($$('div', suggestInput)).to.have.property('hidden', false);
+    expect($$('.suggest-list', suggestInput)).to.have.property('hidden', false);
     expect($('li', suggestInput).length).to.equal(languageList.length);
     // Expect doesn't handle real JS arrays well in all cases, we need the
     // original NodeList.
@@ -73,13 +73,13 @@ describe('suggest-input-sk', () => {
   it('hides suggestions when loses focus', () => {
     simulateUserClick();
     simulateUserClickAway();
-    expect($$('div', suggestInput)).to.have.property('hidden', true);
+    expect($$('.suggest-list', suggestInput)).to.have.property('hidden', true);
   });
 
   it('shows only suggestions that substring match', () => {
     simulateUserTyping('script');
 
-    expect($$('div', suggestInput)).to.have.property('hidden', false);
+    expect($$('.suggest-list', suggestInput)).to.have.property('hidden', false);
     expect($('li', suggestInput).length).to.equal(2);
     // Expect doesn't handle real JS arrays well in all cases, we need the
     // original NodeList.

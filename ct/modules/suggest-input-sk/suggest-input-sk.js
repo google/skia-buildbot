@@ -14,17 +14,26 @@ import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
 const template = (ele) => html`
-<input autocomplete=off
+<div class=suggest-input-container>
+<input class=suggest-input autocomplete=off required
   @focus=${ele._refresh}
   @input=${ele._refresh}
   @keyup=${ele._keyup}
   @blur=${ele._blur}>
 </input>
-<div ?hidden=${!(ele._suggestions && ele._suggestions.length > 0)} @click=${ele._suggestionClick}>
+<label class="suggest-label">${ele.label}</label>
+<div class=suggest-underline-container>
+  <div class=suggest-underline></div>
+  <div class=suggest-underline-background ></div>
+</div>
+<div class=suggest-list
+  ?hidden=${!(ele._suggestions && ele._suggestions.length > 0)}
+  @click=${ele._suggestionClick}>
   <ul>
   ${ele._suggestions.map((s, i) => (ele._suggestionSelected === i
     ? selectedOptionTemplate(s) : optionTemplate(s)))}
   </ul>
+</div>
 </div>
 `;
 
@@ -49,6 +58,7 @@ define('suggest-input-sk', class extends ElementSk {
 
     this._upgradeProperty('options');
     this._upgradeProperty('acceptCustomValue');
+    this._upgradeProperty('label');
   }
 
   connectedCallback() {
@@ -97,6 +107,18 @@ define('suggest-input-sk', class extends ElementSk {
       this.removeAttribute('accept-custom-value');
     }
   }
+
+  /**
+   * @prop {Array<string>} label - Label to display to guide user input.
+   */
+  get label() {
+    return this._label;
+  }
+
+  set label(o) {
+    this._label = o;
+  }
+
 
   _blur(e) {
     // Ignore if this blur is preceding _suggestionClick.
