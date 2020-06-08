@@ -10,23 +10,30 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { ValuePercent } from '../json';
 
-const rows = (ele) => ele._items.map((item) => html`
-<tr>
-  <td class=value>${item.value}</td>
-  <td class=textpercent>${item.percent}%</td>
-  <td class=percent title="${item.percent}%"><div style="width: ${item.percent}px"></div></td>
-</tr>`);
+export class WordCloudSk extends ElementSk {
+  private static rows = (ele: WordCloudSk) =>
+    ele._items.map(
+      (item) => html` <tr>
+        <td class="value">${item.value}</td>
+        <td class="textpercent">${item.percent}%</td>
+        <td class="percent" title="${item.percent}%"
+          ><div style="width: ${item.percent}px"></div
+        ></td>
+      </tr>`
+    );
 
-const template = (ele) => html`
-  <table>
-    ${rows(ele)}
-  </table>
+  private static template = (ele: WordCloudSk) => html`
+    <table>
+      ${WordCloudSk.rows(ele)}
+    </table>
   `;
 
-define('word-cloud-sk', class extends ElementSk {
+  private _items: ValuePercent[];
+
   constructor() {
-    super(template);
+    super(WordCloudSk.template);
     this._items = [];
   }
 
@@ -36,9 +43,7 @@ define('word-cloud-sk', class extends ElementSk {
     this._render();
   }
 
-  /** @prop items {Array}  A serialized slice of objects representing the
-      percents of all the key=value pairs. Presumes the values are provided in
-      descending order of percent.
+  /** A serialized slice of ValuePercent.
 
       For example:
 
@@ -49,7 +54,9 @@ define('word-cloud-sk', class extends ElementSk {
         {value:"cpu_or_gpu=gpu", percent: 10},
       ]
   */
-  get items() { return this._items; }
+  get items() {
+    return this._items;
+  }
 
   set items(val) {
     if (!val) {
@@ -58,4 +65,6 @@ define('word-cloud-sk', class extends ElementSk {
     this._items = val;
     this._render();
   }
-});
+}
+
+define('word-cloud-sk', WordCloudSk);
