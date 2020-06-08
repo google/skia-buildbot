@@ -1,0 +1,11 @@
+@import '../themes-sk/themes.css';
+
+expandable-textarea-sk {
+  button.expander {
+    min-width: 0;
+    text-transform: none;
+    padding: 0 0.5em 0 0;
+    margin: 0;
+    height: auto;
+  }
+}
