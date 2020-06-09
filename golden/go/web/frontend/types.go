@@ -261,3 +261,23 @@ type TestRollup struct {
 	Num          int            `json:"num"`
 	SampleDigest types.Digest   `json:"sample_digest"`
 }
+
+type FlakyTrace struct {
+	ID            tiling.TraceID `json:"trace_id"`
+	UniqueDigests int            `json:"unique_digests_count"`
+}
+
+// FlakyTracesDataResponse represents the data needed to identify flaky traces. This data is
+// based on the current sliding window of commits.
+type FlakyTracesDataResponse struct {
+	// Traces represents all traces that are flaky given the input parameters. This slice will be
+	// limited to the first 10k results and sorted high to low by UniqueDigests.
+	Traces []FlakyTrace `json:"traces"`
+	// TileSize is the number of commits in the sliding window.
+	TileSize int `json:"tile_size"`
+	// TotalFlakyTraces is the number of traces that are flaky given the input parameters. This
+	// number may be greater than the length of Traces, if the total was greater than 10k.
+	TotalFlakyTraces int `json:"num_flaky"`
+	// TotalTraces is the total number of traces in the current sliding window.
+	TotalTraces int `json:"num_traces"`
+}

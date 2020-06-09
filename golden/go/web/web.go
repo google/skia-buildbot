@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -1565,6 +1566,63 @@ func (wh *Handlers) GetPerTraceDigestsByTestName(w http.ResponseWriter, r *http.
 	}
 
 	sendJSONResponse(w, digestsByTraceId)
+}
+
+const maxFlakyTraces = 10000 // We don't want to return a slice longer than this because it could
+// end up with a result that is too big. 10k * ~200 bytes per trace means this return size will be
+// <= 2MB.
+
+// GetFlakyTracesData returns all traces with a number of unique digests (in the current sliding
+// window of commits) greater than or equal to a certain threshold.
+func (wh *Handlers) GetFlakyTracesData(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	if err := wh.cheapLimitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+	}
+
+	minUniqueDigests := 10
+	minUniqueDigestsStr, ok := mux.Vars(r)["minUniqueDigests"]
+	if ok {
+		var err error
+		minUniqueDigests, err = strconv.Atoi(minUniqueDigestsStr)
+		if err != nil {
+			httputils.ReportError(w, err, "invalid value for minUniqueDigests", http.StatusBadRequest)
+			return
+		}
+	}
+
+	idx := wh.Indexer.GetIndex()
+	counts := idx.DigestCountsByTrace(types.IncludeIgnoredTraces)
+
+	flakyData := frontend.FlakyTracesDataResponse{
+		TileSize:    len(idx.Tile().DataCommits()),
+		TotalTraces: len(counts),
+	}
+
+	for traceID, dc := range counts {
+		if len(dc) >= minUniqueDigests {
+			flakyData.Traces = append(flakyData.Traces, frontend.FlakyTrace{
+				ID:            traceID,
+				UniqueDigests: len(dc),
+			})
+		}
+	}
+	flakyData.TotalFlakyTraces = len(flakyData.Traces)
+
+	// Sort the flakiest traces first.
+	sort.Slice(flakyData.Traces, func(i, j int) bool {
+		if flakyData.Traces[i].UniqueDigests == flakyData.Traces[j].UniqueDigests {
+			return flakyData.Traces[i].ID < flakyData.Traces[j].ID
+		}
+		return flakyData.Traces[i].UniqueDigests > flakyData.Traces[j].UniqueDigests
+	})
+
+	// Limit the number of traces to maxFlakyTraces, if needed.
+	if len(flakyData.Traces) > maxFlakyTraces {
+		flakyData.Traces = flakyData.Traces[:maxFlakyTraces]
+	}
+
+	sendJSONResponse(w, flakyData)
 }
 
 // ChangeListSearchRedirect redirects the user to a search page showing the search results

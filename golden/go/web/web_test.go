@@ -2101,6 +2101,90 @@ func TestChangeListSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
+func TestGetFlakyTracesData_ThresholdZero_ReturnAllTraces(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mi := &mock_indexer.IndexSource{}
+	defer mi.AssertExpectations(t)
+
+	commits := bug_revert.MakeTestCommits()
+	fis := makeBugRevertIndex(len(commits))
+	mi.On("GetIndex").Return(fis)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer: mi,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	r = mux.SetURLVars(r, map[string]string{
+		"minUniqueDigests": "0",
+	})
+	wh.GetFlakyTracesData(w, r)
+	const expectedRV = `{"traces":[` +
+		`{"trace_id":",device=gamma,name=test_two,source_type=gm,","unique_digests_count":4},` +
+		`{"trace_id":",device=alpha,name=test_one,source_type=gm,","unique_digests_count":2},` +
+		`{"trace_id":",device=alpha,name=test_two,source_type=gm,","unique_digests_count":2},` +
+		`{"trace_id":",device=beta,name=test_one,source_type=gm,","unique_digests_count":2},` +
+		`{"trace_id":",device=delta,name=test_one,source_type=gm,","unique_digests_count":2},` +
+		`{"trace_id":",device=delta,name=test_two,source_type=gm,","unique_digests_count":2},` +
+		`{"trace_id":",device=gamma,name=test_one,source_type=gm,","unique_digests_count":2},` +
+		`{"trace_id":",device=beta,name=test_two,source_type=gm,","unique_digests_count":1}],` +
+		`"tile_size":5,"num_flaky":8,"num_traces":8}`
+	assertJSONResponseWas(t, 200, expectedRV, w)
+}
+
+func TestGetFlakyTracesData_NonZeroThreshold_ReturnsFlakyTracesAboveThreshold(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mi := &mock_indexer.IndexSource{}
+	defer mi.AssertExpectations(t)
+
+	commits := bug_revert.MakeTestCommits()
+	fis := makeBugRevertIndex(len(commits))
+	mi.On("GetIndex").Return(fis)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer: mi,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	r = mux.SetURLVars(r, map[string]string{
+		"minUniqueDigests": "4",
+	})
+	wh.GetFlakyTracesData(w, r)
+	const expectedRV = `{"traces":[{"trace_id":",device=gamma,name=test_two,source_type=gm,","unique_digests_count":4}],"tile_size":5,"num_flaky":1,"num_traces":8}`
+	assertJSONResponseWas(t, 200, expectedRV, w)
+}
+
+func TestGetFlakyTracesData_NoTracesAboveThreshold_ReturnsZeroTraces(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mi := &mock_indexer.IndexSource{}
+	defer mi.AssertExpectations(t)
+
+	commits := bug_revert.MakeTestCommits()
+	fis := makeBugRevertIndex(len(commits))
+	mi.On("GetIndex").Return(fis)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer: mi,
+		},
+		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	wh.GetFlakyTracesData(w, r)
+	const expectedRV = `{"traces":null,"tile_size":5,"num_flaky":0,"num_traces":8}`
+	assertJSONResponseWas(t, 200, expectedRV, w)
+}
+
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
 // would only matter if we were calling into the router, so it knew which handler to call.
 const requestURL = "/does/not/matter"
