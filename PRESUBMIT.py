@@ -150,7 +150,7 @@ def _CheckJSDebugging(input_api, output_api):
     input_api.re.compile('describe\\.only\\('),
   ]
   errors = []
-  file_filter = _MakeFileFilter(input_api, ['js'])
+  file_filter = _MakeFileFilter(input_api, ['js', 'ts'])
   for affected_file in input_api.AffectedSourceFiles(file_filter):
       affected_filepath = affected_file.LocalPath()
       for (line_num, line) in affected_file.ChangedContents():

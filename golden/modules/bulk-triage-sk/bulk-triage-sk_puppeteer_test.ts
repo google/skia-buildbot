@@ -2,7 +2,7 @@ import * as path from 'path';
 import { expect } from 'chai';
 import { setUpPuppeteerAndDemoPageServer, takeScreenshot } from '../../../puppeteer-tests/util';
 
-describe.only('bulk-triage-sk', () => {
+describe('bulk-triage-sk', () => {
   // Contains page and baseUrl.
   const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.ts'));
 
