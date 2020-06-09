@@ -267,17 +267,10 @@ type FlakyTrace struct {
 	UniqueDigests int            `json:"unique_digests_count"`
 }
 
-// FlakyTracesDataResponse represents the data needed to identify flaky traces. This data is
-// based on the current sliding window of commits.
+// FlakyTracesDataResponse represents the data needed to identify flaky traces.
 type FlakyTracesDataResponse struct {
-	// Traces represents all traces that are flaky given the input parameters. This slice will be
-	// limited to the first 10k results and sorted high to low by UniqueDigests.
-	Traces []FlakyTrace `json:"traces"`
-	// TileSize is the number of commits in the sliding window.
-	TileSize int `json:"tile_size"`
-	// TotalFlakyTraces is the number of traces that are flaky given the input parameters. This
-	// number may be greater than the length of Traces, if the total was greater than 10k.
-	TotalFlakyTraces int `json:"num_flaky"`
-	// TotalTraces is the total number of traces in the current sliding window.
-	TotalTraces int `json:"num_traces"`
+	Traces           []FlakyTrace `json:"traces"` // this will be limited to the first 10k results.
+	TileSize         int          `json:"tile_size"`
+	TotalFlakyTraces int          `json:"num_flaky"`
+	TotalTraces      int          `json:"num_traces"`
 }

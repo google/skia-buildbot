@@ -1616,8 +1616,6 @@ func (wh *Handlers) GetFlakyTracesData(w http.ResponseWriter, r *http.Request) {
 		}
 		return flakyData.Traces[i].UniqueDigests > flakyData.Traces[j].UniqueDigests
 	})
-
-	// Limit the number of traces to maxFlakyTraces, if needed.
 	if len(flakyData.Traces) > maxFlakyTraces {
 		flakyData.Traces = flakyData.Traces[:maxFlakyTraces]
 	}

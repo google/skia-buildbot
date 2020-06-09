@@ -2101,7 +2101,7 @@ func TestChangeListSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
-func TestGetFlakyTracesData_ThresholdZero_ReturnAllTraces(t *testing.T) {
+func TestGetFlakyTracesData_ThresholdZero_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mi := &mock_indexer.IndexSource{}
@@ -2123,20 +2123,11 @@ func TestGetFlakyTracesData_ThresholdZero_ReturnAllTraces(t *testing.T) {
 		"minUniqueDigests": "0",
 	})
 	wh.GetFlakyTracesData(w, r)
-	const expectedRV = `{"traces":[` +
-		`{"trace_id":",device=gamma,name=test_two,source_type=gm,","unique_digests_count":4},` +
-		`{"trace_id":",device=alpha,name=test_one,source_type=gm,","unique_digests_count":2},` +
-		`{"trace_id":",device=alpha,name=test_two,source_type=gm,","unique_digests_count":2},` +
-		`{"trace_id":",device=beta,name=test_one,source_type=gm,","unique_digests_count":2},` +
-		`{"trace_id":",device=delta,name=test_one,source_type=gm,","unique_digests_count":2},` +
-		`{"trace_id":",device=delta,name=test_two,source_type=gm,","unique_digests_count":2},` +
-		`{"trace_id":",device=gamma,name=test_one,source_type=gm,","unique_digests_count":2},` +
-		`{"trace_id":",device=beta,name=test_two,source_type=gm,","unique_digests_count":1}],` +
-		`"tile_size":5,"num_flaky":8,"num_traces":8}`
+	const expectedRV = `{"traces":[{"trace_id":",device=gamma,name=test_two,source_type=gm,","unique_digests_count":4},{"trace_id":",device=alpha,name=test_one,source_type=gm,","unique_digests_count":2},{"trace_id":",device=alpha,name=test_two,source_type=gm,","unique_digests_count":2},{"trace_id":",device=beta,name=test_one,source_type=gm,","unique_digests_count":2},{"trace_id":",device=delta,name=test_one,source_type=gm,","unique_digests_count":2},{"trace_id":",device=delta,name=test_two,source_type=gm,","unique_digests_count":2},{"trace_id":",device=gamma,name=test_one,source_type=gm,","unique_digests_count":2},{"trace_id":",device=beta,name=test_two,source_type=gm,","unique_digests_count":1}],"tile_size":5,"num_flaky":8,"num_traces":8}`
 	assertJSONResponseWas(t, 200, expectedRV, w)
 }
 
-func TestGetFlakyTracesData_NonZeroThreshold_ReturnsFlakyTracesAboveThreshold(t *testing.T) {
+func TestGetFlakyTracesData_ThresholdFour_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mi := &mock_indexer.IndexSource{}
@@ -2162,7 +2153,7 @@ func TestGetFlakyTracesData_NonZeroThreshold_ReturnsFlakyTracesAboveThreshold(t 
 	assertJSONResponseWas(t, 200, expectedRV, w)
 }
 
-func TestGetFlakyTracesData_NoTracesAboveThreshold_ReturnsZeroTraces(t *testing.T) {
+func TestGetFlakyTracesData_DefaultThreshold_NoTracesMatch_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mi := &mock_indexer.IndexSource{}
