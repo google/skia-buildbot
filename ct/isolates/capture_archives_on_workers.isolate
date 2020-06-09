@@ -15,16 +15,6 @@
           'py.isolate',
           'isolate_telemetry.isolate',
           'capture_archives.isolate',
-        ],
-      'command': [
-        'luci-auth',
-        'context',
-        '--',
-        '../../../bin/capture_archives_on_workers',
-        '-logtostderr',
-        '--run_on_gce=<(RUN_ON_GCE)',
-        '--run_id=<(RUN_ID)',
-        '--pageset_type=<(PAGESET_TYPE)',
       ]},
     }],
   ]
