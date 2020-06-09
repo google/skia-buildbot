@@ -17,18 +17,6 @@
           'build_repo.isolate',
           'isolate_telemetry.isolate',
           'capture_skps.isolate',
-        ],
-      'command': [
-        'luci-auth',
-        'context',
-        '--',
-        '../../../bin/capture_skps_on_workers',
-        '-logtostderr',
-        '--pageset_type=<(PAGESET_TYPE)',
-        '--chromium_build=<(CHROMIUM_BUILD)',
-        '--target_platform=<(TARGET_PLATFORM)',
-        '--run_on_gce=<(RUN_ON_GCE)',
-        '--run_id=<(RUN_ID)',
       ]},
     }],
   ]
