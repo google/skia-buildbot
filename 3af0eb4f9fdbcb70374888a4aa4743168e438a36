@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e5d2cdb7_173e6f87",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-09T11:09:46Z",
+      "side": 1,
+      "message": "nit",
+      "range": {
+        "startLine": 7,
+        "startChar": 11,
+        "endLine": 7,
+        "endChar": 19
+      },
+      "revId": "3af0eb4f9fdbcb70374888a4aa4743168e438a36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
