@@ -56,7 +56,10 @@ var (
 )
 
 func runChromiumAnalysisOnWorkers() error {
-	master_common.Init("run_chromium_analysis")
+	swarmingClient, err := master_common.Init("run_chromium_analysis")
+	if err != nil {
+		return fmt.Errorf("Could not init: %s", err)
+	}
 
 	ctx := context.Background()
 
@@ -153,7 +156,7 @@ func runChromiumAnalysisOnWorkers() error {
 				return nil
 			}
 
-			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour)
+			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName), filepath.Join(remoteOutputDir, v8PatchName)}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient)
 			if err != nil {
 				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
 			}
@@ -172,7 +175,7 @@ func runChromiumAnalysisOnWorkers() error {
 	} else {
 		group.Go("isolate telemetry", func() error {
 			telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
-			telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
+			telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local, swarmingClient)
 			if err != nil {
 				return skerr.Fmt("Error encountered when swarming isolate telemetry task: %s", err)
 			}
@@ -195,17 +198,22 @@ func runChromiumAnalysisOnWorkers() error {
 	}
 
 	// Archive, trigger and collect swarming tasks.
-	isolateExtraArgs := map[string]string{
-		"CHROMIUM_BUILD":     chromiumBuild,
-		"RUN_ID":             *runID,
-		"BENCHMARK":          *benchmarkName,
-		"BENCHMARK_ARGS":     *benchmarkExtraArgs,
-		"BROWSER_EXTRA_ARGS": *browserExtraArgs,
-		"RUN_IN_PARALLEL":    strconv.FormatBool(*runInParallel),
-		"TARGET_PLATFORM":    *targetPlatform,
-		"MATCH_STDOUT_TXT":   *matchStdoutText,
-		"VALUE_COLUMN_NAME":  *valueColumnName,
-		"APK_GS_PATH":        *apkGsPath,
+	baseCmd := []string{
+		"luci-auth",
+		"context",
+		"--",
+		"bin/run_chromium_analysis",
+		"-logtostderr",
+		"--chromium_build=" + chromiumBuild,
+		"--run_id=" + *runID,
+		"--apk_gs_path=" + *apkGsPath,
+		"--benchmark_name=" + *benchmarkName,
+		"--benchmark_extra_args=" + *benchmarkExtraArgs,
+		"--browser_extra_args=" + *browserExtraArgs,
+		"--run_in_parallel=" + strconv.FormatBool(*runInParallel),
+		"--target_platform=" + *targetPlatform,
+		"--match_stdout_txt=" + *matchStdoutText,
+		"--value_column_name=" + *valueColumnName,
 	}
 
 	customWebPagesFilePath := filepath.Join(os.TempDir(), customWebpagesName)
@@ -219,7 +227,7 @@ func runChromiumAnalysisOnWorkers() error {
 		defaultMaxPagesPerSwarmingBot = MAX_PAGES_PER_ANDROID_SWARMING_BOT
 	}
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, defaultMaxPagesPerSwarmingBot)
-	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, "", *targetPlatform, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, "", *targetPlatform, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, numPages, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), baseCmd, isolateDeps, swarmingClient)
 	if err != nil {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}

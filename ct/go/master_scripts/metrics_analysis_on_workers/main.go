@@ -47,7 +47,10 @@ var (
 )
 
 func metricsAnalysisOnWorkers() error {
-	master_common.Init("run_metrics_analysis")
+	swarmingClient, err := master_common.Init("run_metrics_analysis")
+	if err != nil {
+		return fmt.Errorf("Could not init: %s", err)
+	}
 
 	ctx := context.Background()
 
@@ -129,7 +132,7 @@ func metricsAnalysisOnWorkers() error {
 
 	// Trigger task to return hash of telemetry isolates.
 	telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName)}
-	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, "", util.PLATFORM_LINUX, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
+	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, "", util.PLATFORM_LINUX, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local, swarmingClient)
 	if err != nil {
 		return fmt.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
 	}
@@ -141,13 +144,18 @@ func metricsAnalysisOnWorkers() error {
 	// Calculate the max pages to run per bot.
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, MAX_PAGES_PER_SWARMING_BOT)
 	// Archive, trigger and collect swarming tasks.
-	isolateExtraArgs := map[string]string{
-		"RUN_ID":            *runID,
-		"BENCHMARK_ARGS":    *benchmarkExtraArgs,
-		"METRIC_NAME":       *metricName,
-		"VALUE_COLUMN_NAME": *valueColumnName,
+	baseCmd := []string{
+		"luci-auth",
+		"context",
+		"--",
+		"bin/metrics_analysis",
+		"-logtostderr",
+		"--run_id=" + *runID,
+		"--benchmark_extra_args=" + *benchmarkExtraArgs,
+		"--metric_name=" + *metricName,
+		"--value_column_name=" + *valueColumnName,
 	}
-	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, "", util.PLATFORM_LINUX, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, len(traces), isolateExtraArgs, true /* runOnGCE */, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), isolateDeps)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, "", util.PLATFORM_LINUX, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, len(traces), true /* runOnGCE */, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), baseCmd, isolateDeps, swarmingClient)
 	if err != nil {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
