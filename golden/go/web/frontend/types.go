@@ -261,3 +261,16 @@ type TestRollup struct {
 	Num          int            `json:"num"`
 	SampleDigest types.Digest   `json:"sample_digest"`
 }
+
+type FlakyTrace struct {
+	ID            tiling.TraceID `json:"trace_id"`
+	UniqueDigests int            `json:"unique_digests_count"`
+}
+
+// FlakyTracesDataResponse represents the data needed to identify flaky traces.
+type FlakyTracesDataResponse struct {
+	Traces           []FlakyTrace `json:"traces"` // this will be limited to the first 10k results.
+	TileSize         int          `json:"tile_size"`
+	TotalFlakyTraces int          `json:"num_flaky"`
+	TotalTraces      int          `json:"num_traces"`
+}
