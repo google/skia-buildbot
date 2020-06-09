@@ -13,16 +13,6 @@
           '../../../bin/create_pagesets_on_workers',
           'py.isolate',
           'create_pagesets.isolate',
-        ],
-      'command': [
-        'luci-auth',
-        'context',
-        '--',
-        '../../../bin/create_pagesets_on_workers',
-        '-logtostderr',
-        '--run_on_gce=<(RUN_ON_GCE)',
-        '--run_id=<(RUN_ID)',
-        '--pageset_type=<(PAGESET_TYPE)',
       ]},
     }],
   ]

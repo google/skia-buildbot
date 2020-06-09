@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
@@ -171,7 +172,7 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
-func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error {
+func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
 	isolateArgs := map[string]string{
@@ -197,7 +198,7 @@ func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error 
 		"CUSTOM_WEBPAGES_CSV_GS_PATH": task.CustomWebpagesGSPath,
 	}
 
-	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_chromium_analysis_on_workers", ctutil.CHROMIUM_ANALYSIS_MASTER_ISOLATE, task_common.ServiceAccountFile, task.Platform, false, isolateArgs)
+	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_chromium_analysis_on_workers", ctutil.CHROMIUM_ANALYSIS_MASTER_ISOLATE, task_common.ServiceAccountFile, task.Platform, false, isolateArgs, []string{}, swarmingClient)
 	if err != nil {
 		return fmt.Errorf("Could not trigger master script for run_chromium_analysis_on_workers with isolate args %v: %s", isolateArgs, err)
 	}
