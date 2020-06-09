@@ -27,7 +27,7 @@ type SearchAPI interface {
 	// instead of those at master.
 	DiffDigests(ctx context.Context, t types.TestName, left, right types.Digest, clID string, crs string) (*frontend.DigestComparison, error)
 
-	// UntriagedUnignoredTryJobExclusiveDigests returns a list of untriaged, non-ignored,
+	// UntriagedUnignoredTryJobExclusiveDigests returns a list of untriaged, non-ignored, non-flaky,
 	// digests that are exclusive to a given CL (i.e. they don't also show up on the master branch
 	// in the last N commits).
 	UntriagedUnignoredTryJobExclusiveDigests(context.Context, tjstore.CombinedPSID) (*frontend.UntriagedDigestList, error)
