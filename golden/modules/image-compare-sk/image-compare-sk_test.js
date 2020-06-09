@@ -47,12 +47,9 @@ describe('image-compare-sk', () => {
 
     it('fires events when the zoom dialog is opened and closed', async () => {
       expect($$('multi-zoom-sk', imageCompareSk)).to.be.null; // not rendered at first
-      let openEvents = 0;
-      imageCompareSk.addEventListener('zoom-dialog-opened', () => {
-        openEvents++;
-      });
+      const openPromise = eventPromise('zoom-dialog-opened');
       $$('button.zoom_btn', imageCompareSk).click();
-      expect(openEvents).to.equal(1);
+      await openPromise;
       expect($$('multi-zoom-sk', imageCompareSk)).to.not.be.null; // element should be there now.
 
       const closePromise = eventPromise('zoom-dialog-closed');
