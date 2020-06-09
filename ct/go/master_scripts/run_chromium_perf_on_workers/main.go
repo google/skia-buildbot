@@ -59,7 +59,10 @@ var (
 )
 
 func runChromiumPerfOnWorkers() error {
-	master_common.Init("run_chromium_perf")
+	swarmingClient, err := master_common.Init("run_chromium_perf")
+	if err != nil {
+		return fmt.Errorf("Could not masteR_common.Init: %s", err)
+	}
 
 	ctx := context.Background()
 
@@ -167,12 +170,14 @@ func runChromiumPerfOnWorkers() error {
 	// Trigger both the build repo and isolate telemetry tasks in parallel.
 	group := skutil.NewNamedErrGroup()
 	var chromiumBuildNoPatch, chromiumBuildWithPatch string
+	fmt.Println(localPatches)
+	fmt.Println(remotePatches)
 	group.Go("build chromium", func() error {
 		if util.PatchesAreEmpty(localPatches) {
 			// Create only one chromium build.
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
 				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, remotePatches, []string{},
-				true, *master_common.Local, 3*time.Hour, 1*time.Hour)
+				true, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient)
 			if err != nil {
 				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
 			}
@@ -186,7 +191,7 @@ func runChromiumPerfOnWorkers() error {
 			// Create the two required chromium builds (with patch and without the patch).
 			chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
 				ctx, "build_chromium", *runID, "chromium", *targetPlatform, "", []string{*chromiumHash}, remotePatches, []string{},
-				false, *master_common.Local, 3*time.Hour, 1*time.Hour)
+				false, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient)
 			if err != nil {
 				return skerr.Fmt("Error encountered when swarming build repo task: %s", err)
 			}
@@ -203,7 +208,7 @@ func runChromiumPerfOnWorkers() error {
 	isolateDeps := []string{}
 	group.Go("isolate telemetry", func() error {
 		telemetryIsolatePatches := []string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, catapultPatchName), filepath.Join(remoteOutputDir, v8PatchName)}
-		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local)
+		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, *chromiumHash, "", *targetPlatform, telemetryIsolatePatches, 1*time.Hour, 1*time.Hour, *master_common.Local, swarmingClient)
 		if err != nil {
 			return fmt.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
 		}
@@ -211,6 +216,8 @@ func runChromiumPerfOnWorkers() error {
 			return fmt.Errorf("Found empty telemetry hash!")
 		}
 		isolateDeps = append(isolateDeps, telemetryHash)
+		fmt.Println("THIS IS TELEMETRY HASH:")
+		fmt.Println(telemetryHash)
 		return nil
 	})
 
@@ -219,23 +226,51 @@ func runChromiumPerfOnWorkers() error {
 		return err
 	}
 
+	// HACK HACK HACK
+	// Linux HACKS
+	// isolateDeps = append(isolateDeps, "86a5a8795461ca36a4653a5b22064534b8964348")
+	// chromiumBuildNoPatch = "try-ce14e58bbf6dcf---ChromiumPerf-78-withpatch"
+	// chromiumBuildWithPatch = "try-ce14e58bbf6dcf---ChromiumPerf-78-withpatch"
+	*runRequester = "rmistry@google.com"
+	// HACK HACK HACK
+
+	// fmt.Println("HACK TO RETURN EARLY")
+	// return nil
+
 	// Clean up the chromium builds from Google storage after the run completes.
-	defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuildNoPatch))
-	defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuildWithPatch))
+	// defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuildNoPatch))
+	// defer gs.DeleteRemoteDirLogErr(filepath.Join(util.CHROMIUM_BUILDS_DIR_NAME, chromiumBuildWithPatch))
 
 	// Archive, trigger and collect swarming tasks.
-	isolateExtraArgs := map[string]string{
-		"CHROMIUM_BUILD_NOPATCH":       chromiumBuildNoPatch,
-		"CHROMIUM_BUILD_WITHPATCH":     chromiumBuildWithPatch,
-		"RUN_ID":                       *runID,
-		"BENCHMARK":                    *benchmarkName,
-		"BENCHMARK_ARGS":               *benchmarkExtraArgs,
-		"BROWSER_EXTRA_ARGS_NOPATCH":   *browserExtraArgsNoPatch,
-		"BROWSER_EXTRA_ARGS_WITHPATCH": *browserExtraArgsWithPatch,
-		"REPEAT_BENCHMARK":             strconv.Itoa(*repeatBenchmark),
-		"RUN_IN_PARALLEL":              strconv.FormatBool(*runInParallel),
-		"TARGET_PLATFORM":              *targetPlatform,
-		"VALUE_COLUMN_NAME":            *valueColumnName,
+	// isolateExtraArgs := map[string]string{
+	// 	"CHROMIUM_BUILD_NOPATCH":       chromiumBuildNoPatch,
+	// 	"CHROMIUM_BUILD_WITHPATCH":     chromiumBuildWithPatch,
+	// 	"RUN_ID":                       *runID,
+	// 	"BENCHMARK":                    *benchmarkName,
+	// 	"BENCHMARK_ARGS":               *benchmarkExtraArgs,
+	// 	"BROWSER_EXTRA_ARGS_NOPATCH":   *browserExtraArgsNoPatch,
+	// 	"BROWSER_EXTRA_ARGS_WITHPATCH": *browserExtraArgsWithPatch,
+	// 	"REPEAT_BENCHMARK":             strconv.Itoa(*repeatBenchmark),
+	// 	"RUN_IN_PARALLEL":              strconv.FormatBool(*runInParallel),
+	// 	"TARGET_PLATFORM":              *targetPlatform,
+	// 	"VALUE_COLUMN_NAME":            *valueColumnName,
+	// }
+	baseCmd := []string{
+		"luci-auth",
+		"context",
+		"--",
+		"bin/run_chromium_perf",
+		"--chromium_build_nopatch=" + chromiumBuildNoPatch,
+		"--chromium_build_withpatch=" + chromiumBuildWithPatch,
+		"--run_id=" + *runID,
+		"--benchmark_name=" + *benchmarkName,
+		"--benchmark_extra_args=" + *benchmarkExtraArgs,
+		"--browser_extra_args_nopatch=" + *browserExtraArgsNoPatch,
+		"--browser_extra_args_withpatch=" + *browserExtraArgsWithPatch,
+		"--repeat_benchmark=" + strconv.Itoa(*repeatBenchmark),
+		"--run_in_parallel=" + strconv.FormatBool(*runInParallel),
+		"--target_platform=" + *targetPlatform,
+		"--value_column_name=" + *valueColumnName,
 	}
 	customWebPagesFilePath := filepath.Join(os.TempDir(), customWebpagesName)
 	numPages, err := util.GetNumPages(*pagesetType, customWebPagesFilePath)
@@ -251,7 +286,7 @@ func runChromiumPerfOnWorkers() error {
 		defaultMaxPagesPerSwarmingBot = MAX_PAGES_PER_ANDROID_SWARMING_BOT
 	}
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, defaultMaxPagesPerSwarmingBot)
-	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, "", *targetPlatform, hardTimeout, 1*time.Hour, *taskPriority, maxPagesPerBot, numPages, isolateExtraArgs, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), isolateDeps)
+	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, "", *targetPlatform, hardTimeout, 1*time.Hour, *taskPriority, maxPagesPerBot, numPages, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), baseCmd, isolateDeps, swarmingClient)
 	if err != nil {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
@@ -273,6 +308,9 @@ func runChromiumPerfOnWorkers() error {
 	// Cleanup created dir after the run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch))
 	// If the number of noOutputSlaves is the same as the total number of triggered slaves then consider the run failed.
+	fmt.Println("THIS SHOULD HAVE FAILED!!!!!!!!!")
+	fmt.Println(noOutputSlaves)
+	fmt.Println(numSlaves)
 	if len(noOutputSlaves) == numSlaves {
 		return fmt.Errorf("All %d slaves produced no output for nopatch run", numSlaves)
 	}
@@ -296,6 +334,9 @@ func runChromiumPerfOnWorkers() error {
 
 	// Compare the resultant CSV files using csv_comparer.py
 	_, skiaHash := util.GetHashesFromBuild(chromiumBuildNoPatch)
+	// HACK HACK HACK
+	skiaHash = "cc23d95f5f8553aa0bf6905210bd652d0f0582bb"
+	// HACK HACK HACK
 	htmlOutputDir := filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir, *runID, "html")
 	util.MkdirAll(htmlOutputDir, 0700)
 	htmlRemoteDir := util.GetPerfRemoteHTMLDir(*runID)
