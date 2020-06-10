@@ -20,6 +20,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
@@ -110,18 +111,23 @@ func (task RecreatePageSetsDatastoreTask) Get(c context.Context, key *datastore.
 	return t, nil
 }
 
-func (task RecreatePageSetsDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error {
+func (task RecreatePageSetsDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, nil)
-	isolateArgs := map[string]string{
-		"RUN_ON_GCE":   strconv.FormatBool(task.RunsOnGCEWorkers()),
-		"RUN_ID":       runID,
-		"PAGESET_TYPE": task.PageSets,
+	cmd := []string{
+		"cipd_bin_packages/luci-auth",
+		"context",
+		"--",
+		"bin/create_pagesets_on_workers",
+		"-logtostderr",
+		"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
+		"--run_id=" + runID,
+		"--pageset_type=" + task.PageSets,
 	}
 
-	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "create_pagesets_on_workers", ctutil.CREATE_PAGESETS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs)
+	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "create_pagesets_on_workers", ctutil.CREATE_PAGESETS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, cmd, swarmingClient)
 	if err != nil {
-		return fmt.Errorf("Could not trigger master script for create_pagesets_on_workers with isolate args %v: %s", isolateArgs, err)
+		return fmt.Errorf("Could not trigger master script for create_pagesets_on_workers with cmd %v: %s", cmd, err)
 	}
 	// Mark task as started in datastore.
 	if err := task_common.UpdateTaskSetStarted(ctx, runID, sTaskID, &task); err != nil {
@@ -230,18 +236,23 @@ func (task RecreateWebpageArchivesDatastoreTask) Get(c context.Context, key *dat
 	return t, nil
 }
 
-func (task RecreateWebpageArchivesDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error {
+func (task RecreateWebpageArchivesDatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, nil)
-	isolateArgs := map[string]string{
-		"RUN_ON_GCE":   strconv.FormatBool(task.RunsOnGCEWorkers()),
-		"RUN_ID":       runID,
-		"PAGESET_TYPE": task.PageSets,
+	cmd := []string{
+		"cipd_bin_packages/luci-auth",
+		"context",
+		"--",
+		"bin/capture_archives_on_workers",
+		"-logtostderr",
+		"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
+		"--run_id=" + runID,
+		"--pageset_type=" + task.PageSets,
 	}
 
-	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_archives_on_workers", ctutil.CAPTURE_ARCHIVES_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs)
+	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "capture_archives_on_workers", ctutil.CAPTURE_ARCHIVES_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, cmd, swarmingClient)
 	if err != nil {
-		return fmt.Errorf("Could not trigger master script for capture_archives_on_workers with isolate args %v: %s", isolateArgs, err)
+		return fmt.Errorf("Could not trigger master script for capture_archives_on_workers with cmd %v: %s", cmd, err)
 	}
 	// Mark task as started in datastore.
 	if err := task_common.UpdateTaskSetStarted(ctx, runID, sTaskID, &task); err != nil {
