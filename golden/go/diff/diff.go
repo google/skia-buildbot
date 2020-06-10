@@ -116,11 +116,6 @@ type DiffStore interface {
 	//        <urlPrefix>/diffs/<digest1>-<digests2>.png
 	ImageHandler(urlPrefix string) (http.Handler, error)
 
-	// UnavailableDigests returns map[digest]*DigestFailure which can be used
-	// to check whether a digest could not be processed and to provide details
-	// about failures.
-	UnavailableDigests(ctx context.Context) (map[types.Digest]*DigestFailure, error)
-
 	// PurgeDigests removes all information related to the indicated digests
 	// (image, diffmetric) from local caches. If purgeGCS is true it will also
 	// purge the digests image from Google storage, forcing that the digest
