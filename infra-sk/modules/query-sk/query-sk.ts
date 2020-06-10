@@ -141,15 +141,7 @@ export class QuerySk extends ElementSk {
 
   private _queryChanged() {
     const prev_query = this.current_query;
-    // Rationalize the _query, i.e. remove keys that don't exist in the
-    // paramset.
-    const originalKeys = Object.keys(this._originalParamset);
-    Object.keys(this._query).forEach((key) => {
-      if (originalKeys.indexOf(key) === -1) {
-        delete this._query[key];
-      }
-    });
-    this.current_query = fromParamSet(this._query);
+    this._rationalizeQuery();
     if (prev_query !== this.current_query) {
       this.dispatchEvent(new CustomEvent<QuerySkQueryChangeEventDetail>('query-change', {
         detail: { q: this.current_query },
@@ -162,6 +154,30 @@ export class QuerySk extends ElementSk {
           bubbles: true,
         }));
       }, DELAY_MS);
+    }
+  }
+
+  // Rationalize the _query, i.e. remove keys and values that don't exist in the ParamSet.
+  private _rationalizeQuery() {
+    // We will use this to determine whether we've made any changes to the original query.
+    const originalCurrentQuery = this.current_query;
+
+    const originalKeys = Object.keys(this._originalParamset);
+    Object.keys(this._query).forEach((key) => {
+      if (originalKeys.indexOf(key) === -1) {
+        // Filter out invalid keys.
+        delete this._query[key];
+      } else {
+        // Filter out invalid values.
+        this._query[key] =
+          this._query[key].filter(val => this._originalParamset[key].includes(val));
+      }
+    });
+
+    // _rationalizeQuery is called when current_query is set. This avoids an infinite recursion.
+    const newCurrentQuery = fromParamSet(this._query);
+    if (newCurrentQuery !== originalCurrentQuery) {
+      this.current_query = fromParamSet(this._query);
     }
   }
 
@@ -288,6 +304,9 @@ export class QuerySk extends ElementSk {
     if (name === 'current_query') {
       // Convert the current_query string into an object.
       this._query = toParamSet(newValue);
+
+      // Remove invalid key/value pairs from the new query.
+      this._rationalizeQuery();
 
       // This updates query-value-sk with the new selection and renders the template.
       if (this._connected) {
