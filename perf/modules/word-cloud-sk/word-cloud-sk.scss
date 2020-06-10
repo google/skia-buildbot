@@ -1,5 +1,7 @@
 @import '~elements-sk/colors';
 
+@import '~elements-sk/themes/themes.css';
+
 word-cloud-sk {
   font-size: 12px;
 
@@ -28,5 +30,16 @@ word-cloud-sk {
 
   .textpercent {
     text-align: right;
+  }
+}
+
+.body-sk word-cloud-sk {
+  td {
+    border: solid 1px var(--on-surface);
+  }
+
+  .percent div {
+    background: var(--primary);
+    height: 12px;
   }
 }
