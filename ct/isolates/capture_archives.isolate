@@ -11,16 +11,6 @@
         'files': [
           '../../../bin/capture_archives',
         ],
-        'command': [
-          'luci-auth',
-          'context',
-          '--',
-          '../../../bin/capture_archives',
-          '-logtostderr',
-          '--start_range=<(START_RANGE)',
-          '--num=<(NUM)',
-          '--pageset_type=<(PAGESET_TYPE)',
-        ],
       },
     }],
   ]

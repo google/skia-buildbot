@@ -31,7 +31,10 @@ const (
 )
 
 func captureArchivesOnWorkers() error {
-	master_common.Init("capture_archives")
+	swarmingClient, err := master_common.Init("capture_archives")
+	if err != nil {
+		return fmt.Errorf("Could not init: %s", err)
+	}
 
 	ctx := context.Background()
 
@@ -62,7 +65,7 @@ func captureArchivesOnWorkers() error {
 	}
 
 	// Trigger task to return hash of telemetry isolates.
-	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, "", util.PLATFORM_LINUX, []string{}, 1*time.Hour, 1*time.Hour, *master_common.Local)
+	telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, "", util.PLATFORM_LINUX, []string{}, 1*time.Hour, 1*time.Hour, *master_common.Local, swarmingClient)
 	if err != nil {
 		return fmt.Errorf("Error encountered when swarming isolate telemetry task: %s", err)
 	}
@@ -72,7 +75,14 @@ func captureArchivesOnWorkers() error {
 	isolateDeps := []string{telemetryHash}
 
 	// Archive, trigger and collect swarming tasks.
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_archives", util.CAPTURE_ARCHIVES_ISOLATE, *runID, "", util.PLATFORM_LINUX, 4*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, map[string]string{}, *runOnGCE, *master_common.Local, 1, isolateDeps); err != nil {
+	baseCmd := []string{
+		"luci-auth",
+		"context",
+		"--",
+		"bin/capture_archives",
+		"-logtostderr",
+	}
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_archives", util.CAPTURE_ARCHIVES_ISOLATE, *runID, "", util.PLATFORM_LINUX, 4*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, *runOnGCE, *master_common.Local, 1, baseCmd, isolateDeps, swarmingClient); err != nil {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
 
