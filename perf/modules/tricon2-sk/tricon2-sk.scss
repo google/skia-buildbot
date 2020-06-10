@@ -1,3 +1,7 @@
+@import url(~elements-sk/colors.css);
+
+@import '~elements-sk/themes/themes.css';
+
 tricon2-sk {
   check-circle-icon-sk {
     fill: var(--green);
@@ -9,5 +13,33 @@ tricon2-sk {
 
   help-icon-sk {
     fill: var(--brown);
+  }
+}
+
+.body-sk tricon2-sk {
+  check-circle-icon-sk {
+    fill: var(--green-700);
+  }
+
+  cancel-icon-sk {
+    fill: var(--red-700);
+  }
+
+  help-icon-sk {
+    fill: var(--brown-400);
+  }
+}
+
+.body-sk.darkmode tricon2-sk {
+  check-circle-icon-sk {
+    fill: var(--green-500);
+  }
+
+  cancel-icon-sk {
+    fill: var(--red-500);
+  }
+
+  help-icon-sk {
+    fill: var(--brown-300);
   }
 }
