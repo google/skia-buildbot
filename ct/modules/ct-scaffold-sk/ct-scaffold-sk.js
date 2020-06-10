@@ -27,6 +27,7 @@ import '../../../infra-sk/modules/login-sk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 
 import 'elements-sk/error-toast-sk';
+import 'elements-sk/icon/assessment-icon-sk';
 import 'elements-sk/icon/find-in-page-icon-sk';
 import 'elements-sk/icon/folder-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
@@ -67,8 +68,11 @@ const template = (ele) => html`
       <a href="/chromium_analysis/" tab-index=0>
         <trending-up-icon-sk></trending-up-icon-sk><span>Performance</span>
       </a>
-      <a href="/metrics_analysis/" tab-index=0>
+      <a href="/chromium_analysis/" tab-index=0>
         <search-icon-sk></search-icon-sk><span>Analysis<span>
+      </a>
+      <a href="/metrics_analysis/" tab-index=0>
+        <assessment-icon-sk></assessment-icon-sk><span>Metrics Analysis<span>
       </a>
       <a href="/capture_skps/" tab-index=0>
         <photo-camera-icon-sk></photo-camera-icon-sk><span>SKPictures</span>
