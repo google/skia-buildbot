@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b6d53843_6b9e8ee7",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 961,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-10T11:43:58Z",
+      "side": 1,
+      "message": "No it cannot. We don\u0027t want the traceID to include the optional keys. I\u0027ll add a comment to make that explicit.",
+      "parentUuid": "2a7fcea2_e8b0f45d",
+      "range": {
+        "startLine": 961,
+        "startChar": 0,
+        "endLine": 961,
+        "endChar": 40
+      },
+      "revId": "a3abf615e3ba299839bd25f371c9aab70f1d9b7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5515a961_e28272a1",
         "filename": "golden/go/search/search.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "a3abf615e3ba299839bd25f371c9aab70f1d9b7e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5395a6ad_828617ec",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 970,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-10T11:43:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5515a961_e28272a1",
+      "range": {
+        "startLine": 970,
+        "startChar": 37,
+        "endLine": 970,
+        "endChar": 43
+      },
+      "revId": "a3abf615e3ba299839bd25f371c9aab70f1d9b7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "26674292_42d738c9",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1624,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-10T11:43:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f56f2ef5_f8a1eaf4",
+      "range": {
+        "startLine": 1624,
+        "startChar": 5,
+        "endLine": 1624,
+        "endChar": 75
+      },
+      "revId": "a3abf615e3ba299839bd25f371c9aab70f1d9b7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ba8e3b85_c3a4516a",
         "filename": "golden/go/web/frontend/types.go",
         "patchSetId": 4
@@ -91,6 +163,30 @@
       "revId": "a3abf615e3ba299839bd25f371c9aab70f1d9b7e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6a224bf_ae04c02f",
+        "filename": "golden/go/web/frontend/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-10T11:43:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ba8e3b85_c3a4516a",
+      "range": {
+        "startLine": 272,
+        "startChar": 0,
+        "endLine": 272,
+        "endChar": 96
+      },
+      "revId": "a3abf615e3ba299839bd25f371c9aab70f1d9b7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "51e6f54a_6efab4c5",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2127,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-10T11:43:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4e117f32_ee3e8b8c",
+      "range": {
+        "startLine": 2125,
+        "startChar": 28,
+        "endLine": 2127,
+        "endChar": 0
+      },
+      "revId": "a3abf615e3ba299839bd25f371c9aab70f1d9b7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "69b535b3_475dbd9b",
         "filename": "golden/k8s-instances/skia-infra-instance.json5",
         "patchSetId": 4
@@ -137,6 +257,30 @@
       "revId": "a3abf615e3ba299839bd25f371c9aab70f1d9b7e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74bfccca_63cfab8e",
+        "filename": "golden/k8s-instances/skia-infra-instance.json5",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-10T11:43:58Z",
+      "side": 1,
+      "message": "I wanted to have it enabled for Skia-infra to make sure it didn\u0027t completely kill comments, for example. We\u0027ll still notice these flaky traces because only commenting makes use of this threshold. I envision a page to inspect flaky traces explicitly in the future.",
+      "parentUuid": "69b535b3_475dbd9b",
+      "range": {
+        "startLine": 30,
+        "startChar": 29,
+        "endLine": 30,
+        "endChar": 31
+      },
+      "revId": "a3abf615e3ba299839bd25f371c9aab70f1d9b7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

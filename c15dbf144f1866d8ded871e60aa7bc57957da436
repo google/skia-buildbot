@@ -22,6 +22,30 @@
       "revId": "c15dbf144f1866d8ded871e60aa7bc57957da436",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7c215bc_6d682a7b",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1620,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-10T11:43:58Z",
+      "side": 0,
+      "message": "It was just a bad rebase.",
+      "parentUuid": "4ef3485b_736fe7ef",
+      "range": {
+        "startLine": 1620,
+        "startChar": 0,
+        "endLine": 1620,
+        "endChar": 60
+      },
+      "revId": "c15dbf144f1866d8ded871e60aa7bc57957da436",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
