@@ -1164,58 +1164,6 @@ func (p SummarySlice) Len() int           { return len(p) }
 func (p SummarySlice) Less(i, j int) bool { return p[i].Untriaged > p[j].Untriaged }
 func (p SummarySlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-// FailureList contains the list of the digests that could not be processed
-// the count value is for convenience to make it easier to inspect the JSON
-// output and might be removed in the future.
-type FailureList struct {
-	Count          int                   `json:"count"`
-	DigestFailures []*diff.DigestFailure `json:"failures"`
-}
-
-// ListFailureHandler returns the digests that have failed to load.
-func (wh *Handlers) ListFailureHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
-		return
-	}
-
-	unavailable, err := wh.DiffStore.UnavailableDigests(r.Context())
-	if err != nil {
-		httputils.ReportError(w, err, "Could not fetch failures", http.StatusInternalServerError)
-		return
-	}
-	ret := FailureList{
-		DigestFailures: make([]*diff.DigestFailure, 0, len(unavailable)),
-		Count:          len(unavailable),
-	}
-
-	for _, failure := range unavailable {
-		ret.DigestFailures = append(ret.DigestFailures, failure)
-	}
-
-	// Sort failures newest to oldest
-	sort.Slice(ret.DigestFailures, func(i, j int) bool {
-		return ret.DigestFailures[i].TS > ret.DigestFailures[j].TS
-	})
-
-	// Limit the errors to the last 50 errors.
-	if ret.Count > 50 {
-		ret.DigestFailures = ret.DigestFailures[:50]
-	}
-	sendJSONResponse(w, &ret)
-}
-
-// ClearFailureHandler removes failing digests from the local cache and
-// returns the current failures.
-func (wh *Handlers) ClearFailureHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	if !wh.purgeDigests(w, r) {
-		return
-	}
-	wh.ListFailureHandler(w, r)
-}
-
 // ClearDigests clears digests from the local cache and GS.
 func (wh *Handlers) ClearDigests(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
