@@ -139,11 +139,6 @@ func (m *MemDiffStore) Get(ctx context.Context, mainDigest types.Digest, rightDi
 	return diffMap, nil
 }
 
-// UnavailableDigests implements the DiffStore interface.
-func (m *MemDiffStore) UnavailableDigests(ctx context.Context) (map[types.Digest]*diff.DigestFailure, error) {
-	return nil, nil
-}
-
 // PurgeDigests implements the DiffStore interface.
 func (m *MemDiffStore) PurgeDigests(ctx context.Context, digests types.DigestSlice, purgeGCS bool) error {
 	// We remove the given digests from the various places where they might
