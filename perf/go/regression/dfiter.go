@@ -84,6 +84,9 @@ func NewDataFrameIterator(ctx context.Context, progress types.Progress, req *Reg
 			return nil, skerr.Wrapf(err, "Failed to build dataframe iterator source dataframe.")
 		}
 	}
+	if len(df.Header) < 2*req.Alert.Radius+1 {
+		return nil, skerr.Fmt("Failed to retrieve enough data: Got: %d  Want at least: %d", len(df.Header), 2*req.Alert.Radius+1)
+	}
 	return &dataframeSlicer{
 		df:     df,
 		size:   2*req.Alert.Radius + 1,
