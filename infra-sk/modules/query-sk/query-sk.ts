@@ -275,7 +275,6 @@ export class QuerySk extends ElementSk {
     this._render();
   }
 
-
   /** Mirrors the current_query attribute.  */
   get current_query() { return this.getAttribute('current_query') || ''; }
 
@@ -289,9 +288,14 @@ export class QuerySk extends ElementSk {
     if (name === 'current_query') {
       // Convert the current_query string into an object.
       this._query = toParamSet(newValue);
-    }
 
-    this._render();
+      // This updates query-value-sk with the new selection and renders the template.
+      if (this._connected) {
+        this._keyChange();
+      }
+    } else {
+      this._render();
+    }
   }
 }
 
