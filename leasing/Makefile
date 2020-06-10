@@ -1,12 +1,12 @@
-default: build package-lock.json
-	npx webpack --mode=development
+default: build
 
 build:
+	cd ../infra-sk && npm ci
+	npm ci
+	npx webpack --mode=production
 	go install ./go/leasing
 
-release: build package-lock.json
-	cd ../infra-sk && npm ci
-	npx webpack --mode=production
+release: build
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/leasing
 	./build_docker_release
 
@@ -16,14 +16,11 @@ debug:
 push: release
 	pushk leasing
 
-serve: package-lock.json
+serve:
 	npx webpack-dev-server --mode=development --watch-poll
 
 testgo:
 	go test ./go/...
 
-watch: package-lock.json
+watch:
 	npx webpack --mode=development --watch
-
-package-lock.json: package.json
-	npm install
