@@ -54,6 +54,7 @@ spec:
             - "--default_corpus={{.SKCORR_DEFAULT_CORPUS}}"
             - "--diff_server_grpc={{.SKCORR_DIFF_SERVER}}:8000"
             - "--diff_server_http={{.SKCORR_DIFF_SERVER}}:8001"
+            - "--flaky_trace_threshold={{.FLAKY_TRACE_THRESHOLD}}"
             - "--force_login={{.FORCE_LOGIN}}"
             - "--fs_namespace={{.FIRESTORE_NAMESPACE}}"
             - "--fs_project_id={{.FIRESTORE_PROJECT}}"
