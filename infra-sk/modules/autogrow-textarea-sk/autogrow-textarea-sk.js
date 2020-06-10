@@ -54,6 +54,7 @@ define('autogrow-textarea-sk', class extends ElementSk {
 
   set value(v) {
     this._textarea.value = v;
+    this._computeResize();
   }
 
   /**

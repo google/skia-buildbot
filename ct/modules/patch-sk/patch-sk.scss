@@ -1,0 +1,40 @@
+@import '../colors.css';
+
+patch-sk {
+  .cl-detail-container {
+    width:200px;
+    position: relative;
+  }
+
+  .cl-detail {
+    position: absolute;
+    bottom: -40px;
+    left: 0px;
+  }
+
+  table {
+    border: none;
+    width: 100%;
+  }
+
+  td {
+    vertical-align: middle;
+  }
+
+  .patch-manual {
+    padding-left: 50px;
+  }
+
+  input-sk {
+    width:20em;
+  }
+
+  .cl-error {
+    color: var(--error);
+  }
+}
+
+/* Outside patch-sk because darkmode exists outside it. */
+.darkmode a {
+  color: var(--secondary);
+}
