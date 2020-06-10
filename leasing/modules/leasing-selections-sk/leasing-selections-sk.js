@@ -202,7 +202,7 @@ define('leasing-selections-sk', class extends ElementSk {
     }
 
     // Confirm.
-    const confirmed = window.confirm('Proceed with extending leasing task?');
+    const confirmed = window.confirm('Proceed with adding leasing task?');
     if (!confirmed) {
       return;
     }
