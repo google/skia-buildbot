@@ -11,19 +11,6 @@
         'files': [
           '../../../bin/metrics_analysis',
         ],
-        'command': [
-          'luci-auth',
-          'context',
-          '--',
-          '../../../bin/metrics_analysis',
-          '-logtostderr',
-          '--start_range=<(START_RANGE)',
-          '--num=<(NUM)',
-          '--run_id=<(RUN_ID)',
-          '--benchmark_extra_args=<(BENCHMARK_ARGS)',
-          '--metric_name=<(METRIC_NAME)',
-          '--value_column_name=<(VALUE_COLUMN_NAME)',
-        ],
       },
     }],
   ]

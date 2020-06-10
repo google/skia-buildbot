@@ -12,19 +12,6 @@
         'files': [
           '../../../bin/capture_skps',
         ],
-        'command': [
-          'luci-auth',
-          'context',
-          '--',
-          '../../../bin/capture_skps',
-          '-logtostderr',
-          '--start_range=<(START_RANGE)',
-          '--num=<(NUM)',
-          '--pageset_type=<(PAGESET_TYPE)',
-          '--chromium_build=<(CHROMIUM_BUILD)',
-          '--skpinfo_remote_path=<(SKPINFO_REMOTE_PATH)',
-          '--run_id=<(RUN_ID)'
-        ],
       },
     }],
   ]

@@ -34,7 +34,10 @@ var (
 )
 
 func captureSKPsOnWorkers() error {
-	master_common.Init("capture_skps")
+	swarmingClient, err := master_common.Init("capture_skps")
+	if err != nil {
+		return fmt.Errorf("Could not init: %s", err)
+	}
 
 	ctx := context.Background()
 
@@ -69,7 +72,7 @@ func captureSKPsOnWorkers() error {
 			return fmt.Errorf("Could not get cipd package for clang_linux: %s", err)
 		}
 		remoteDirNames, err := util.TriggerBuildRepoSwarmingTask(
-			ctx, "build_skpinfo", *runID, "skiaSKPInfo", util.PLATFORM_LINUX, "", []string{}, []string{}, []string{cipdPackage}, true, *master_common.Local, 3*time.Hour, 1*time.Hour)
+			ctx, "build_skpinfo", *runID, "skiaSKPInfo", util.PLATFORM_LINUX, "", []string{}, []string{}, []string{cipdPackage}, true, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient)
 		if err != nil {
 			return fmt.Errorf("Error encountered when swarming build skpinfo task: %s", err)
 		}
@@ -83,7 +86,7 @@ func captureSKPsOnWorkers() error {
 	group.Go("isolate telemetry", func() error {
 		tokens := strings.Split(*chromiumBuild, "-")
 		chromiumHash := tokens[0]
-		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, "", *targetPlatform, []string{}, 1*time.Hour, 1*time.Hour, *master_common.Local)
+		telemetryHash, err := util.TriggerIsolateTelemetrySwarmingTask(ctx, "isolate_telemetry", *runID, chromiumHash, "", *targetPlatform, []string{}, 1*time.Hour, 1*time.Hour, *master_common.Local, swarmingClient)
 		if err != nil {
 			return skerr.Fmt("Error encountered when swarming isolate telemetry task: %s", err)
 		}
@@ -100,12 +103,17 @@ func captureSKPsOnWorkers() error {
 	}
 
 	// Archive, trigger and collect swarming tasks.
-	isolateExtraArgs := map[string]string{
-		"CHROMIUM_BUILD":      *chromiumBuild,
-		"RUN_ID":              *runID,
-		"SKPINFO_REMOTE_PATH": skpinfoRemotePath,
+	baseCmd := []string{
+		"luci-auth",
+		"context",
+		"--",
+		"bin/capture_skps",
+		"-logtostderr",
+		"--chromium_build=" + *chromiumBuild,
+		"--skpinfo_remote_path=" + skpinfoRemotePath,
+		"--run_id=" + *runID,
 	}
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_skps", util.CAPTURE_SKPS_ISOLATE, *runID, "", *targetPlatform, 3*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS, util.PagesetTypeToInfo[*pagesetType].NumPages, isolateExtraArgs, *runOnGCE, *master_common.Local, 1, isolateDeps); err != nil {
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "capture_skps", util.CAPTURE_SKPS_ISOLATE, *runID, "", *targetPlatform, 3*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS, util.PagesetTypeToInfo[*pagesetType].NumPages, *runOnGCE, *master_common.Local, 1, baseCmd, isolateDeps, swarmingClient); err != nil {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
 
