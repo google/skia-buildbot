@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4ef3485b_736fe7ef",
+        "filename": "golden/go/web/web.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1620,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-10T08:25:29Z",
+      "side": 0,
+      "message": "Nit: I personally find comments like these useful.",
+      "range": {
+        "startLine": 1620,
+        "startChar": 0,
+        "endLine": 1620,
+        "endChar": 60
+      },
+      "revId": "c15dbf144f1866d8ded871e60aa7bc57957da436",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2a7fcea2_e8b0f45d",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 961,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-10T08:25:29Z",
+      "side": 1,
+      "message": "Nit: This can be moved closer to where it\u0027s used.",
+      "range": {
+        "startLine": 961,
+        "startChar": 0,
+        "endLine": 961,
+        "endChar": 40
+      },
+      "revId": "a3abf615e3ba299839bd25f371c9aab70f1d9b7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5515a961_e28272a1",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 970,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-10T08:25:29Z",
+      "side": 1,
+      "message": "Nit: Period.",
+      "range": {
+        "startLine": 970,
+        "startChar": 37,
+        "endLine": 970,
+        "endChar": 43
+      },
+      "revId": "a3abf615e3ba299839bd25f371c9aab70f1d9b7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f56f2ef5_f8a1eaf4",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1624,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-10T08:25:29Z",
+      "side": 1,
+      "message": "Consider: Test\u003cMethodName\u003e_LowFlakyTraceThreshold_FlakyTracesFilteredOut.",
+      "range": {
+        "startLine": 1624,
+        "startChar": 5,
+        "endLine": 1624,
+        "endChar": 75
+      },
+      "revId": "a3abf615e3ba299839bd25f371c9aab70f1d9b7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba8e3b85_c3a4516a",
+        "filename": "golden/go/web/frontend/types.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-10T08:25:29Z",
+      "side": 1,
+      "message": "Seems like the field comments were accidentally deleted. Bad rebase?",
+      "range": {
+        "startLine": 272,
+        "startChar": 0,
+        "endLine": 272,
+        "endChar": 96
+      },
+      "revId": "a3abf615e3ba299839bd25f371c9aab70f1d9b7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e117f32_ee3e8b8c",
+        "filename": "golden/go/web/web_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 2127,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-10T08:25:29Z",
+      "side": 1,
+      "message": "Rebase gone awry? Seems like some changes from the previous CL were lost.",
+      "range": {
+        "startLine": 2125,
+        "startChar": 28,
+        "endLine": 2127,
+        "endChar": 0
+      },
+      "revId": "a3abf615e3ba299839bd25f371c9aab70f1d9b7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69b535b3_475dbd9b",
+        "filename": "golden/k8s-instances/skia-infra-instance.json5",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-10T08:25:29Z",
+      "side": 1,
+      "message": "We might want to disable flaky traces for Skia Infra for now.\n\n(I worry that this will mask certain types of flakes that we tend to introduce every once in a while, e.g. a demo page that doesn\u0027t mock Date.now() and goes unnoticed for \u003e10 days.)",
+      "range": {
+        "startLine": 30,
+        "startChar": 29,
+        "endLine": 30,
+        "endChar": 31
+      },
+      "revId": "a3abf615e3ba299839bd25f371c9aab70f1d9b7e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
