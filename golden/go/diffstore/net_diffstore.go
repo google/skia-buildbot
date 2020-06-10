@@ -86,24 +86,6 @@ func (n *NetDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 	return httputil.NewSingleHostReverseProxy(targetURL), nil
 }
 
-// UnavailableDigests implements the diff.DiffStore interface.
-func (n *NetDiffStore) UnavailableDigests(ctx context.Context) (map[types.Digest]*diff.DigestFailure, error) {
-	resp, err := n.serviceClient.UnavailableDigests(ctx, &Empty{})
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	ret := make(map[types.Digest]*diff.DigestFailure, len(resp.DigestFailures))
-	for k, failure := range resp.DigestFailures {
-		ret[types.Digest(k)] = &diff.DigestFailure{
-			Digest: types.Digest(failure.Digest),
-			Reason: diff.DiffErr(failure.Reason),
-			TS:     failure.TS,
-		}
-	}
-	return ret, nil
-}
-
 // PurgeDigests implements the the diff.DiffStore interface.
 func (n *NetDiffStore) PurgeDigests(ctx context.Context, digests types.DigestSlice, purgeGCS bool) error {
 	req := &PurgeDigestsRequest{Digests: common.AsStrings(digests), PurgeGCS: purgeGCS}

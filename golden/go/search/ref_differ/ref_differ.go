@@ -49,20 +49,13 @@ func New(exp expectations.Classifier, diffStore diff.DiffStore, idx indexer.Inde
 
 // FillRefDiffs implements the RefDiffer interface.
 func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SearchResult, metric string, match []string, rhsQuery paramtools.ParamSet, iState types.IgnoreState) error {
-	unavailableDigests, err := r.diffStore.UnavailableDigests(ctx)
-	if err != nil {
-		return skerr.Wrapf(err, "fetching unavailable digests")
-	}
-	if _, ok := unavailableDigests[d.Digest]; ok {
-		return nil
-	}
-
 	paramsByDigest := r.idx.GetParamsetSummaryByTest(iState)[d.Test]
 
 	// TODO(kjlubick) maybe make this use an errgroup
-	posDigests := r.getDigestsWithLabel(d, match, paramsByDigest, unavailableDigests, rhsQuery, expectations.Positive)
-	negDigests := r.getDigestsWithLabel(d, match, paramsByDigest, unavailableDigests, rhsQuery, expectations.Negative)
+	posDigests := r.getDigestsWithLabel(d, match, paramsByDigest, rhsQuery, expectations.Positive)
+	negDigests := r.getDigestsWithLabel(d, match, paramsByDigest, rhsQuery, expectations.Negative)
 
+	var err error
 	ret := make(map[common.RefClosest]*frontend.SRDiffDigest, 2)
 	ret[common.PositiveRef], err = r.getClosestDiff(ctx, metric, d.Digest, posDigests)
 	if err != nil {
@@ -99,15 +92,13 @@ func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SearchResult, m
 // getDigestsWithLabel return all digests within the given test that
 // have the given label assigned to them and where the parameters
 // listed in 'match' match.
-func (r *DiffImpl) getDigestsWithLabel(s *frontend.SearchResult, match []string, paramsByDigest map[types.Digest]paramtools.ParamSet, unavailable map[types.Digest]*diff.DigestFailure, rhsQuery paramtools.ParamSet, targetLabel expectations.Label) types.DigestSlice {
+func (r *DiffImpl) getDigestsWithLabel(s *frontend.SearchResult, match []string, paramsByDigest map[types.Digest]paramtools.ParamSet, rhsQuery paramtools.ParamSet, targetLabel expectations.Label) types.DigestSlice {
 	ret := types.DigestSlice{}
 	for d, digestParams := range paramsByDigest {
-		// Accept all digests that are: available, in the set of allowed digests
+		// Accept all digests that are:  in the set of allowed digests
 		//                              match the target label and where the required
 		//                              parameter fields match.
-		_, ok := unavailable[d]
-		if !ok &&
-			(len(rhsQuery) == 0 || rhsQuery.Matches(digestParams)) &&
+		if (len(rhsQuery) == 0 || rhsQuery.Matches(digestParams)) &&
 			(r.exp.Classification(s.Test, d) == targetLabel) &&
 			paramSetsMatch(match, s.ParamSet, digestParams) {
 			ret = append(ret, d)

@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/golden/go/clstore"
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
-	"go.skia.org/infra/golden/go/diff"
 	mock_diffstore "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
@@ -66,17 +65,6 @@ func TestIndexer_ExecutePipeline_Success(t *testing.T) {
 	sort.Sort(allTestDigests)
 
 	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil)
-
-	// Return a non-empty map just to make sure things don't crash - this doesn't actually
-	// affect any of the assertions.
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{
-		unavailableDigest: {
-			Digest: unavailableDigest,
-			Reason: "on vacation",
-			// Arbitrary date
-			TS: time.Date(2017, time.October, 5, 4, 3, 2, 0, time.UTC).UnixNano() / int64(time.Millisecond),
-		},
-	}, nil)
 
 	dMatcher := mock.MatchedBy(func(digests types.DigestSlice) bool {
 		sort.Sort(digests)
@@ -789,9 +777,6 @@ func TestSearchIndex_MostRecentPositiveDigest_ExpectationsStoreFailure_ReturnsEr
 }
 
 const (
-	// Valid, but arbitrary MD5 hash.
-	unavailableDigest = types.Digest("fed541470e246b63b313930523220de8")
-
 	// Digests to be used in conjunction with makeSearchIndexWithSingleTrace().
 	goodDigest1      = types.Digest("11111111111111111111111111111111")
 	goodDigest2      = types.Digest("22222222222222222222222222222222")

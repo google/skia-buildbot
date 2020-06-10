@@ -46,7 +46,6 @@ import (
 //     or otherwise no results.
 //   - When a CL specifies a PS
 //   - IncludeDigestsProducedOnMaster=true
-//   - UnavailableDigests is not empty
 //   - DiffSever/RefDiffer error
 
 // TestSearch_UntriagedDigestsAtHead_Success searches over the three_devices
@@ -56,7 +55,7 @@ import (
 func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mds := makeDiffStoreWithNoFailures()
+	mds := &mock_diffstore.DiffStore{}
 	addDiffData(mds, data.AlphaUntriagedDigest, data.AlphaPositiveDigest, makeSmallDiffMetric())
 	addDiffData(mds, data.AlphaUntriagedDigest, data.AlphaNegativeDigest, makeBigDiffMetric())
 	addDiffData(mds, data.BetaUntriagedDigest, data.BetaPositiveDigest, makeBigDiffMetric())
@@ -213,7 +212,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mds := makeDiffStoreWithNoFailures()
+	mds := &mock_diffstore.DiffStore{}
 	addDiffData(mds, data.AlphaUntriagedDigest, data.AlphaPositiveDigest, makeSmallDiffMetric())
 	addDiffData(mds, data.AlphaUntriagedDigest, data.AlphaNegativeDigest, makeBigDiffMetric())
 	addDiffData(mds, data.BetaUntriagedDigest, data.BetaPositiveDigest, makeBigDiffMetric())
@@ -281,7 +280,7 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 func TestSearchThreeDevicesQueries(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mds := makeDiffStoreWithNoFailures()
+	mds := &mock_diffstore.DiffStore{}
 	addDiffData(mds, data.AlphaUntriagedDigest, data.AlphaPositiveDigest, makeSmallDiffMetric())
 	addDiffData(mds, data.AlphaUntriagedDigest, data.AlphaNegativeDigest, makeBigDiffMetric())
 	addDiffData(mds, data.BetaUntriagedDigest, data.BetaPositiveDigest, makeBigDiffMetric())
@@ -796,7 +795,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 		},
 	}, nil).Once() // this should be cached after fetch, as it could be expensive to retrieve.
 
-	mds := makeDiffStoreWithNoFailures()
+	mds := &mock_diffstore.DiffStore{}
 	addDiffData(mds, BetaBrandNewDigest, data.BetaPositiveDigest, makeSmallDiffMetric())
 
 	s := New(mds, mes, nil, makeThreeDevicesIndexer(), mcls, mtjs, nil, everythingPublic, nothingFlaky)
@@ -1013,7 +1012,7 @@ func TestDigestDetails_MasterBranch_Success(t *testing.T) {
 	const digestWeWantDetailsAbout = data.AlphaPositiveDigest
 	const testWeWantDetailsAbout = data.AlphaTest
 
-	mds := makeDiffStoreWithNoFailures()
+	mds := &mock_diffstore.DiffStore{}
 	// Note: If a digest is compared to itself, it is removed from the return value, so we use nil.
 	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaPositiveDigest, nil)
 	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaNegativeDigest, makeBigDiffMetric())
@@ -1116,7 +1115,7 @@ func TestDigestDetails_ChangeListAltersExpectations_Success(t *testing.T) {
 		},
 	}, nil)
 
-	mds := makeDiffStoreWithNoFailures()
+	mds := &mock_diffstore.DiffStore{}
 	// There are no positive digests with which to compare
 	// Negative match. Note If a digest is compared to itself, it is removed from the return value.
 	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{digestWeWantDetailsAbout, data.AlphaNegativeDigest}).
@@ -1150,7 +1149,7 @@ func TestDigestDetails_DigestTooOld_ReturnsComparisonToRecentDigest(t *testing.T
 	const digestWeWantDetailsAbout = types.Digest("digest-too-old")
 	const testWeWantDetailsAbout = data.BetaTest
 
-	mds := makeDiffStoreWithNoFailures()
+	mds := &mock_diffstore.DiffStore{}
 	addDiffData(mds, digestWeWantDetailsAbout, data.BetaPositiveDigest, makeSmallDiffMetric())
 
 	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic, nothingFlaky)
@@ -1188,7 +1187,7 @@ func TestDigestDetails_BadDigest_NoError(t *testing.T) {
 	const digestWeWantDetailsAbout = types.Digest("unknown-digest")
 	const testWeWantDetailsAbout = data.BetaTest
 
-	mds := makeDiffStoreWithNoFailures()
+	mds := &mock_diffstore.DiffStore{}
 	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{data.BetaPositiveDigest}).Return(nil, errors.New("invalid digest"))
 
 	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic, nothingFlaky)
@@ -1398,7 +1397,7 @@ func TestDigestDetails_TestIgnored_DetailsContainResults_Success(t *testing.T) {
 
 	mi := makeIndexWithIgnoreRules(t, "name=test_alpha")
 
-	mds := makeDiffStoreWithNoFailures()
+	mds := &mock_diffstore.DiffStore{}
 	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaPositiveDigest, nil)
 	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaNegativeDigest, makeBigDiffMetric())
 
@@ -1434,7 +1433,7 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 	const leftDigest = data.AlphaUntriagedDigest
 	const rightDigest = data.AlphaPositiveDigest
 
-	mds := makeDiffStoreWithNoFailures()
+	mds := &mock_diffstore.DiffStore{}
 	addDiffData(mds, leftDigest, rightDigest, makeSmallDiffMetric())
 
 	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic, nothingFlaky)
@@ -1480,7 +1479,7 @@ func TestDiffDigestsChangeList(t *testing.T) {
 	issueStore := addChangeListExpectations(mes, crs, clID, &ie)
 	issueStore.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
 
-	mds := makeDiffStoreWithNoFailures()
+	mds := &mock_diffstore.DiffStore{}
 	addDiffData(mds, leftDigest, rightDigest, makeSmallDiffMetric())
 
 	s := New(mds, mes, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic, nothingFlaky)
@@ -2297,12 +2296,6 @@ func addChangeListExpectations(mes *mock_expectations.Store, crs string, clID st
 	return issueStore
 }
 
-func makeDiffStoreWithNoFailures() *mock_diffstore.DiffStore {
-	mds := &mock_diffstore.DiffStore{}
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
-	return mds
-}
-
 func addDiffData(mds *mock_diffstore.DiffStore, left types.Digest, right types.Digest, metric *diff.DiffMetrics) {
 	if metric == nil {
 		// empty map is expected instead of a nil entry
@@ -2354,7 +2347,6 @@ func emptyCommentStore() comment.Store {
 // makeStubDiffStore returns a diffstore that returns the small diff metric for every call to Get.
 func makeStubDiffStore() *mock_diffstore.DiffStore {
 	mds := &mock_diffstore.DiffStore{}
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 	mds.On("Get", testutils.AnyContext, mock.Anything, mock.Anything).Return(func(_ context.Context, _ types.Digest, rights types.DigestSlice) map[types.Digest]*diff.DiffMetrics {
 		rv := make(map[types.Digest]*diff.DiffMetrics, len(rights))
 		for _, right := range rights {

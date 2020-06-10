@@ -50,48 +50,6 @@ func TestNetDiffStoreGetSunnyDay(t *testing.T) {
 	assert.Equal(t, dm, metrics)
 }
 
-// TestNetDiffStoreUnavailableSunnyDay tests that we properly convert between the protobuf
-// version of the failures map and the diff structs.
-func TestNetDiffStoreUnavailableSunnyDay(t *testing.T) {
-	unittest.SmallTest(t)
-
-	msc := &mocks.DiffServiceClient{}
-	defer msc.AssertExpectations(t)
-
-	msc.On("UnavailableDigests", testutils.AnyContext, &diffstore.Empty{}).Return(&diffstore.UnavailableDigestsResponse{
-		DigestFailures: map[string]*diffstore.DigestFailureResponse{
-			string(digest1): {
-				Digest: string(digest1),
-				Reason: string(diff.HTTP),
-				TS:     1234,
-			},
-			string(digest2): {
-				Digest: string(digest2),
-				Reason: string(diff.HTTP),
-				TS:     5678,
-			},
-		},
-	}, nil)
-
-	nds := diffstore.NewForTesting(msc, mockAddress)
-
-	failures, err := nds.UnavailableDigests(context.Background())
-	require.NoError(t, err)
-	assert.Len(t, failures, 2)
-	assert.Equal(t, map[types.Digest]*diff.DigestFailure{
-		digest1: {
-			Digest: digest1,
-			Reason: diff.HTTP,
-			TS:     1234,
-		},
-		digest2: {
-			Digest: digest2,
-			Reason: diff.HTTP,
-			TS:     5678,
-		},
-	}, failures)
-}
-
 const (
 	mockAddress = "http://not_real:8765"
 
