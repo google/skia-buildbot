@@ -69,9 +69,6 @@ const template = (ele) => html`
       <a href="/triagelog" tab-index=0>
         <find-in-page-icon-sk></find-in-page-icon-sk><span>Triage Log</span>
       </a>
-      <a href="/failures" tab-index=0>
-        <sync-problem-icon-sk></sync-problem-icon-sk><span>Failures</span>
-      </a>
       <a href="/help" tab-index=0>
         <help-icon-sk></help-icon-sk><span>Help</span>
       </a>
