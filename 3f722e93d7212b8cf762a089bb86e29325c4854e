@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4fbb55e9_ff713988",
+        "filename": "ct/modules/patch-sk/patch-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-10T20:53:07Z",
+      "side": 1,
+      "message": "nit: documentation",
+      "revId": "3f722e93d7212b8cf762a089bb86e29325c4854e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a22455bc_06407629",
+        "filename": "ct/modules/patch-sk/patch-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-10T20:53:07Z",
+      "side": 1,
+      "message": "nit",
+      "range": {
+        "startLine": 12,
+        "startChar": 38,
+        "endLine": 12,
+        "endChar": 41
+      },
+      "revId": "3f722e93d7212b8cf762a089bb86e29325c4854e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
