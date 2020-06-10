@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0a3840c9_6883bd90",
+        "filename": "autoroll/config/depot-tools-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 7787
+      },
+      "writtenOn": "2020-06-10T16:41:43Z",
+      "side": 1,
+      "message": "chops-source-team@google.com",
+      "range": {
+        "startLine": 13,
+        "startChar": 3,
+        "endLine": 13,
+        "endChar": 11
+      },
+      "revId": "76d7fec77dfe1a8ecf8589d3b3892c64df985d31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "816f6d4e_04c7c7d1",
+        "filename": "autoroll/config/depot-tools-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 7787
+      },
+      "writtenOn": "2020-06-10T16:41:43Z",
+      "side": 1,
+      "message": "https://oncall.corp.google.com/chrome-ops-source-mtv",
+      "range": {
+        "startLine": 29,
+        "startChar": 3,
+        "endLine": 29,
+        "endChar": 10
+      },
+      "revId": "76d7fec77dfe1a8ecf8589d3b3892c64df985d31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
