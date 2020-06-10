@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d7d1df69_ba676f42",
+        "filename": "golden/go/digesttools/digesttools.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-10T18:08:08Z",
+      "side": 1,
+      "message": "Seems like this can be deleted as well? (Probably in a separate CL.)",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 1
+      },
+      "revId": "fea5b05b9b82522d88b6e8afff5815809eb69ba0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
