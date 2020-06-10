@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5d43b07d_308e9116",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1033,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-10T18:19:28Z",
+      "side": 1,
+      "message": "The command from isolate_telemetry.isolate has been moved here",
+      "revId": "674ec162b79601a47db98eece033693e1ef522a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "609ed6a0_483e02ed",
+        "filename": "ct/go/util/util.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1226,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-10T18:19:28Z",
+      "side": 1,
+      "message": "The command from build_repo.isolate has been moved here",
+      "revId": "674ec162b79601a47db98eece033693e1ef522a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
