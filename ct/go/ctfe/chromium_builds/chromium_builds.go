@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
@@ -134,18 +135,23 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
-func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error {
+func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, nil)
-	isolateArgs := map[string]string{
-		"TARGET_PLATFORM": ctutil.PLATFORM_LINUX,
-		"CHROMIUM_HASH":   task.ChromiumRev,
-		"SKIA_HASH":       task.SkiaRev,
+	cmd := []string{
+		"cipd_bin_packages/luci-auth",
+		"context",
+		"--",
+		"bin/build_chromium",
+		"-logtostderr",
+		"--target_platform=" + ctutil.PLATFORM_LINUX,
+		"--chromium_hash=" + task.ChromiumRev,
+		"--skia_hash=" + task.SkiaRev,
 	}
 
-	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "build_chromium", ctutil.BUILD_CHROMIUM_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs)
+	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "build_chromium", ctutil.BUILD_CHROMIUM_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, cmd, swarmingClient)
 	if err != nil {
-		return fmt.Errorf("Could not trigger master script for build_chromium with isolate args %v: %s", isolateArgs, err)
+		return fmt.Errorf("Could not trigger master script for build_chromium with cmd %v: %s", cmd, err)
 	}
 	// Mark task as started in datastore.
 	if err := task_common.UpdateTaskSetStarted(ctx, runID, sTaskID, &task); err != nil {
