@@ -16,20 +16,22 @@ import 'elements-sk/icon/cancel-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
 import 'elements-sk/styles/buttons';
 
-const template = (ele) => {
-  switch (ele.value) {
-    case 'positive':
-      return html`<check-circle-icon-sk title='Positive'></check-circle-icon-sk>`;
-    case 'negative':
-      return html`<cancel-icon-sk title='Negative'></cancel-icon-sk>`;
-    default:
-      return html`<help-icon-sk title='Untriaged'></help-icon-sk>`;
-  }
-};
+export class TriconSk extends ElementSk {
+  private static template = (ele: TriconSk) => {
+    switch (ele.value) {
+      case 'positive':
+        return html`<check-circle-icon-sk
+          title="Positive"
+        ></check-circle-icon-sk>`;
+      case 'negative':
+        return html`<cancel-icon-sk title="Negative"></cancel-icon-sk>`;
+      default:
+        return html`<help-icon-sk title="Untriaged"></help-icon-sk>`;
+    }
+  };
 
-define('tricon2-sk', class extends ElementSk {
   constructor() {
-    super(template);
+    super(TriconSk.template);
   }
 
   connectedCallback() {
@@ -43,11 +45,17 @@ define('tricon2-sk', class extends ElementSk {
   }
 
   /** @prop value {string} Mirrors the 'value' attribute. */
-  get value() { return this.getAttribute('value'); }
+  get value() {
+    return this.getAttribute('value') || '';
+  }
 
-  set value(val) { this.setAttribute('value', val); }
+  set value(val: string) {
+    this.setAttribute('value', val);
+  }
 
   attributeChangedCallback() {
     this._render();
   }
-});
+}
+
+define('tricon2-sk', TriconSk);
