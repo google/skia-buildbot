@@ -12,6 +12,5 @@ import (
 	_ "github.com/google/go-licenses"
 	_ "github.com/kisielk/errcheck"
 	_ "github.com/vektra/mockery/cmd/mockery"
-	_ "go.chromium.org/luci/client/cmd/isolate"
 	_ "golang.org/x/tools/cmd/goimports"
 )
