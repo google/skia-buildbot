@@ -17,7 +17,6 @@
 <link rel="import" href="../common/imp/app-sk.html" />
 
 <link rel="import" href="cluster-page-sk.html" />
-<link rel="import" href="failures-page-sk.html" />
 <link rel="import" href="gold-menu-sk.html" />
 <link rel="import" href="gold-status-sk.html" />
 <link rel="import" href="help-page-sk.html" />
@@ -57,9 +56,6 @@
           <section data-route="list">
             <list-page-sk></list-page-sk>
           </section>
-          <section data-route="failures">
-            <failures-page-sk></failures-page-sk>
-          </section>
           <section data-route="search">
             <search-page-sk></search-page-sk>
           </section>
@@ -96,7 +92,6 @@
       ready: function() {
         // Set up in-app routing using the history api.
         this._setRoute('/cluster', 'cluster');
-        this._setRoute('/failures', 'failures');
         this._setRoute('/help', 'help');
         this._setRoute('/list', 'list');
         this._setRoute('/search', 'search');
