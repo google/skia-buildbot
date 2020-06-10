@@ -30,7 +30,10 @@ var (
 )
 
 func createPagesetsOnWorkers() error {
-	master_common.Init("create_pagesets")
+	swarmingClient, err := master_common.Init("create_pagesets")
+	if err != nil {
+		return fmt.Errorf("Could not init: %s", err)
+	}
 
 	ctx := context.Background()
 
@@ -51,7 +54,14 @@ func createPagesetsOnWorkers() error {
 	skutil.LogErr(gs.DeleteRemoteDir(gsBaseDir))
 
 	// Archive, trigger and collect swarming tasks.
-	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "create_pagesets", util.CREATE_PAGESETS_ISOLATE, *runID, "", util.PLATFORM_LINUX, 5*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, map[string]string{}, *runOnGCE, *master_common.Local, 1, []string{} /* isolateDeps */); err != nil {
+	baseCmd := []string{
+		"luci-auth",
+		"context",
+		"--",
+		"bin/create_pagesets",
+		"-logtostderr",
+	}
+	if _, err := util.TriggerSwarmingTask(ctx, *pagesetType, "create_pagesets", util.CREATE_PAGESETS_ISOLATE, *runID, "", util.PLATFORM_LINUX, 5*time.Hour, 1*time.Hour, util.TASKS_PRIORITY_LOW, MAX_PAGES_PER_SWARMING_BOT, util.PagesetTypeToInfo[*pagesetType].NumPages, *runOnGCE, *master_common.Local, 1, baseCmd, []string{} /* isolateDeps */, swarmingClient); err != nil {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
 
