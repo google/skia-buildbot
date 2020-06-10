@@ -1,14 +1,36 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>tricon2-sk</title>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-  <tricon2-sk value=positive></tricon2-sk>
-  <tricon2-sk value=negative></tricon2-sk>
-  <tricon2-sk value=untriaged></tricon2-sk>
-</body>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      section {
+        padding: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <section>
+      <h2>colors.css</h2>
+      <tricon2-sk value="positive"></tricon2-sk>
+      <tricon2-sk value="negative"></tricon2-sk>
+      <tricon2-sk value="untriaged"></tricon2-sk>
+    </section>
+
+    <section class="body-sk">
+      <h2>themes.css</h2>
+      <tricon2-sk value="positive"></tricon2-sk>
+      <tricon2-sk value="negative"></tricon2-sk>
+      <tricon2-sk value="untriaged"></tricon2-sk>
+    </section>
+
+    <section class="body-sk darkmode">
+      <h2>themes.css - darkmode</h2>
+      <tricon2-sk value="positive"></tricon2-sk>
+      <tricon2-sk value="negative"></tricon2-sk>
+      <tricon2-sk value="untriaged"></tricon2-sk>
+    </section>
+  </body>
 </html>
