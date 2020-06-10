@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba76704a_935b6f21",
+        "filename": "perf/modules/word-cloud-sk/word-cloud-sk.scss",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-10T17:53:40Z",
+      "side": 1,
+      "message": "I\u0027d recommend replacing \".body-sk {\" with \".body-sk word-cloud-sk {\" to guarantee that these styles will only apply to this particular component.\n\nOtherwise e.g. all \u003ctd\u003e under a component with class \"body-sk\" will get the solid 1px border.",
+      "range": {
+        "startLine": 36,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 1
+      },
+      "revId": "13ec005bb54f7cdda3e30567b15d28bfd6fea43b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
