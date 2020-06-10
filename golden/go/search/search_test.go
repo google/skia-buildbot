@@ -62,7 +62,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 	addDiffData(mds, data.BetaUntriagedDigest, data.BetaPositiveDigest, makeBigDiffMetric())
 	// BetaUntriagedDigest has no negative images to compare against.
 
-	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic, nothingFlaky)
 
 	q := &query.Search{
 		ChangeListID:                     "",
@@ -219,7 +219,7 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	addDiffData(mds, data.BetaUntriagedDigest, data.BetaPositiveDigest, makeBigDiffMetric())
 	// BetaUntriagedDigest has no negative images to compare against.
 
-	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic, nothingFlaky)
 
 	q := &query.Search{
 		ChangeListID:            "",
@@ -287,7 +287,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	addDiffData(mds, data.BetaUntriagedDigest, data.BetaPositiveDigest, makeBigDiffMetric())
 	// BetaUntriagedDigest has no negative images to compare against.
 
-	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic, nothingFlaky)
 
 	// spotCheck is the subset of data we assert against.
 	type spotCheck struct {
@@ -628,7 +628,7 @@ func TestSearch_ThreeDevicesCorpusWithComments_CommentsInResults(t *testing.T) {
 	// Return these in an arbitrary, unsorted order
 	mcs.On("ListComments", testutils.AnyContext).Return([]trace.Comment{commentAppliesToNothing, alphaTestComment, betaTestBullheadComment, bullheadComment}, nil)
 
-	s := New(makeStubDiffStore(), makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, mcs, everythingPublic)
+	s := New(makeStubDiffStore(), makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, mcs, everythingPublic, nothingFlaky)
 
 	q := &query.Search{
 		// Set all to true so all 6 traces show up in the final results.
@@ -799,7 +799,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, BetaBrandNewDigest, data.BetaPositiveDigest, makeSmallDiffMetric())
 
-	s := New(mds, mes, nil, makeThreeDevicesIndexer(), mcls, mtjs, nil, everythingPublic)
+	s := New(mds, mes, nil, makeThreeDevicesIndexer(), mcls, mtjs, nil, everythingPublic, nothingFlaky)
 
 	q := &query.Search{
 		ChangeListID:                   clID,
@@ -1018,7 +1018,7 @@ func TestDigestDetails_MasterBranch_Success(t *testing.T) {
 	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaPositiveDigest, nil)
 	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaNegativeDigest, makeBigDiffMetric())
 
-	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic, nothingFlaky)
 
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -1124,7 +1124,7 @@ func TestDigestDetails_ChangeListAltersExpectations_Success(t *testing.T) {
 			data.AlphaNegativeDigest: makeBigDiffMetric(),
 		}, nil)
 
-	s := New(mds, mes, nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic)
+	s := New(mds, mes, nil, makeThreeDevicesIndexer(), nil, nil, emptyCommentStore(), everythingPublic, nothingFlaky)
 
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)
@@ -1153,7 +1153,7 @@ func TestDigestDetails_DigestTooOld_ReturnsComparisonToRecentDigest(t *testing.T
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, digestWeWantDetailsAbout, data.BetaPositiveDigest, makeSmallDiffMetric())
 
-	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic, nothingFlaky)
 
 	d, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -1191,7 +1191,7 @@ func TestDigestDetails_BadDigest_NoError(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	mds.On("Get", testutils.AnyContext, digestWeWantDetailsAbout, types.DigestSlice{data.BetaPositiveDigest}).Return(nil, errors.New("invalid digest"))
 
-	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic, nothingFlaky)
 
 	r, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -1206,7 +1206,7 @@ func TestDigestDetails_BadTest_ReturnsError(t *testing.T) {
 	const digestWeWantDetailsAbout = data.AlphaPositiveDigest
 	const testWeWantDetailsAbout = types.TestName("invalid test")
 
-	s := New(nil, nil, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
+	s := New(nil, nil, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic, nothingFlaky)
 
 	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.Error(t, err)
@@ -1280,7 +1280,7 @@ func TestDigestDetails_NewTestOnChangeList_Success(t *testing.T) {
 		},
 	}, nil)
 
-	s := New(nil, mes, nil, mis, mcs, mts, nil, everythingPublic)
+	s := New(nil, mes, nil, mis, mcs, mts, nil, everythingPublic, nothingFlaky)
 
 	rv, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)
@@ -1357,7 +1357,7 @@ func TestDigestDetails_NewTestOnChangeList_WithPublicParams_Success(t *testing.T
 
 	s := New(nil, mes, nil, mis, mcs, mts, nil, paramtools.ParamSet{
 		"os": []string{"Android"},
-	})
+	}, nothingFlaky)
 
 	rv, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)
@@ -1383,7 +1383,7 @@ func TestDigestDetails_BadTestAndDigest_ReturnsError(t *testing.T) {
 	const digestWeWantDetailsAbout = types.Digest("invalid digest")
 	const testWeWantDetailsAbout = types.TestName("invalid test")
 
-	s := New(nil, nil, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
+	s := New(nil, nil, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic, nothingFlaky)
 
 	_, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.Error(t, err)
@@ -1402,7 +1402,7 @@ func TestDigestDetails_TestIgnored_DetailsContainResults_Success(t *testing.T) {
 	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaPositiveDigest, nil)
 	addDiffData(mds, digestWeWantDetailsAbout, data.AlphaNegativeDigest, makeBigDiffMetric())
 
-	s := New(mds, makeThreeDevicesExpectationStore(), nil, mi, nil, nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), nil, mi, nil, nil, nil, everythingPublic, nothingFlaky)
 
 	result, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
@@ -1437,7 +1437,7 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, leftDigest, rightDigest, makeSmallDiffMetric())
 
-	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
+	s := New(mds, makeThreeDevicesExpectationStore(), nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic, nothingFlaky)
 
 	cd, err := s.DiffDigests(context.Background(), testWeWantDetailsAbout, leftDigest, rightDigest, "", "")
 	require.NoError(t, err)
@@ -1483,7 +1483,7 @@ func TestDiffDigestsChangeList(t *testing.T) {
 	mds := makeDiffStoreWithNoFailures()
 	addDiffData(mds, leftDigest, rightDigest, makeSmallDiffMetric())
 
-	s := New(mds, mes, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic)
+	s := New(mds, mes, nil, makeThreeDevicesIndexer(), nil, nil, nil, everythingPublic, nothingFlaky)
 
 	cd, err := s.DiffDigests(context.Background(), testWeWantDetailsAbout, leftDigest, rightDigest, clID, crs)
 	require.NoError(t, err)
@@ -1609,12 +1609,80 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_NoIndexBuilt_Success(t *testin
 		},
 	}, nil).Once()
 
-	s := New(nil, mes, nil, mi, nil, mtjs, nil, everythingPublic)
+	s := New(nil, mes, nil, mi, nil, mtjs, nil, everythingPublic, nothingFlaky)
 
 	dl, err := s.UntriagedUnignoredTryJobExclusiveDigests(context.Background(), expectedID)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"gm"}, dl.Corpora)
 	assert.Equal(t, []types.Digest{alphaUntriagedTryJobDigest, betaUntriagedTryJobDigest}, dl.Digests)
+	// TS should be very recent, since the results were freshly computed.
+	assert.True(t, dl.TS.After(time.Now().Add(-time.Minute)))
+}
+
+// This test shows the case where a "flaky" trace is ignored because it (and only it) has a number
+// of unique digests above the provided threshold.
+func TestUntriagedUnignoredTryJobExclusiveDigests_LowFlakyTraceThreshold_FlakyTracesFilteredOut(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const clID = "44474"
+	const crs = "github"
+	expectedID := tjstore.CombinedPSID{
+		CL:  clID,
+		CRS: crs,
+		PS:  "abcdef",
+	}
+
+	const alphaUntriagedTryJobDigest = types.Digest("aaaa65e567de97c8a62918401731c7ec")
+	const betaUntriagedTryJobDigest = types.Digest("bbbb34f7c915a1ac3a5ba524c741946c")
+
+	mi := &mock_index.IndexSource{}
+	mtjs := &mock_tjstore.Store{}
+
+	mes := makeThreeDevicesExpectationStore()
+	var ie expectations.Expectations
+	addChangeListExpectations(mes, crs, clID, &ie)
+
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
+	mi.On("GetIndexForCL", crs, clID).Return(nil)
+
+	anglerGroup := map[string]string{
+		"device": data.AnglerDevice,
+	}
+	options := map[string]string{
+		"ext": "png",
+	}
+	mtjs.On("GetResults", testutils.AnyContext, expectedID).Return([]tjstore.TryJobResult{
+		{
+			// This trace is "flaky", so should not be reported. Specifically, AnglerAlphaTraceID
+			// has 2 digests in it on master, AlphaNegativeDigest and AlphaPositiveDigest.
+			GroupParams: anglerGroup,
+			Options:     options,
+			Digest:      alphaUntriagedTryJobDigest,
+			ResultParams: map[string]string{
+				types.PrimaryKeyField: string(data.AlphaTest),
+				types.CorpusField:     "gm",
+			},
+		},
+		{
+			// This trace is not flaky and should be reported because there is only one digest seen
+			// on the master branch BetaPositiveDigest.
+			GroupParams: anglerGroup,
+			Options:     options,
+			Digest:      betaUntriagedTryJobDigest,
+			ResultParams: map[string]string{
+				types.PrimaryKeyField: string(data.BetaTest),
+				types.CorpusField:     "gm",
+			},
+		},
+	}, nil).Once()
+
+	s := New(nil, mes, nil, mi, nil, mtjs, nil, everythingPublic, 1)
+
+	dl, err := s.UntriagedUnignoredTryJobExclusiveDigests(context.Background(), expectedID)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"gm"}, dl.Corpora)
+	assert.Equal(t, []types.Digest{betaUntriagedTryJobDigest}, dl.Digests)
 	// TS should be very recent, since the results were freshly computed.
 	assert.True(t, dl.TS.After(time.Now().Add(-time.Minute)))
 }
@@ -1728,7 +1796,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_UsesIndex_Success(t *testing.T
 		},
 	})
 
-	s := New(nil, mes, nil, mi, nil, nil, nil, everythingPublic)
+	s := New(nil, mes, nil, mi, nil, nil, nil, everythingPublic, nothingFlaky)
 
 	dl, err := s.UntriagedUnignoredTryJobExclusiveDigests(context.Background(), expectedID)
 	require.NoError(t, err)
@@ -1956,7 +2024,7 @@ func TestAddExpectations_Success(t *testing.T) {
 func TestAddTriageHistory_HistoryExistsForAllEntries_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	mes := makeThreeDevicesExpectationStore()
-	s := New(nil, nil, nil, nil, nil, nil, nil, nil)
+	s := New(nil, nil, nil, nil, nil, nil, nil, nil, nothingFlaky)
 
 	input := []*frontend.SearchResult{
 		{
@@ -1998,7 +2066,7 @@ func TestAddTriageHistory_EmptyTriageHistory_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	mes := &mock_expectations.Store{}
 	mes.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
-	s := New(nil, nil, nil, nil, nil, nil, nil, nil)
+	s := New(nil, nil, nil, nil, nil, nil, nil, nil, nothingFlaky)
 
 	input := []*frontend.SearchResult{
 		{
@@ -2025,7 +2093,7 @@ func TestAddTriageHistory_ExpectationStoreError_ReturnedTriageHistoryIsEmpty(t *
 	unittest.SmallTest(t)
 	mes := &mock_expectations.Store{}
 	mes.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("kaboom"))
-	s := New(nil, nil, nil, nil, nil, nil, nil, nil)
+	s := New(nil, nil, nil, nil, nil, nil, nil, nil, nothingFlaky)
 
 	input := []*frontend.SearchResult{
 		{
@@ -2054,7 +2122,7 @@ func TestGetTriageHistory_CachesResults_CallsGetTriageHistoryOncePerEntry(t *tes
 		},
 	}, nil).Once()
 
-	s := New(nil, nil, nil, nil, nil, nil, nil, nil)
+	s := New(nil, nil, nil, nil, nil, nil, nil, nil, nothingFlaky)
 	trBeta := s.getTriageHistory(context.Background(), mes, data.BetaTest, data.BetaPositiveDigest)
 	assert.Equal(t, []frontend.TriageHistory{
 		{
@@ -2083,7 +2151,7 @@ func TestGetTriageHistory_CacheClearedWhenNotified(t *testing.T) {
 	mes := &mock_expectations.Store{}
 	mes.On("GetTriageHistory", testutils.AnyContext, data.AlphaTest, data.AlphaPositiveDigest).Return(nil, nil).Once()
 
-	s := New(nil, nil, notifier, nil, nil, nil, nil, nil)
+	s := New(nil, nil, notifier, nil, nil, nil, nil, nil, nothingFlaky)
 
 	// The first call to history is empty.
 	tr := s.getTriageHistory(context.Background(), mes, data.AlphaTest, data.AlphaPositiveDigest)
@@ -2157,6 +2225,10 @@ func TestCollectDigestsForBulkTriage_Success(t *testing.T) {
 }
 
 var everythingPublic = paramtools.ParamSet{}
+
+// By setting nothingFlaky to a high number, we make sure no trace is considered flaky because
+// this threshold will always be higher than the number of unique digests for a trace.
+const nothingFlaky = 10000
 
 // makeThreeDevicesIndexer returns an IndexSource that returns the result of makeThreeDevicesIndex.
 func makeThreeDevicesIndexer() indexer.IndexSource {

@@ -27,6 +27,7 @@
   "CL_COMMENT_TEMPLATE":     0,
   "CRS_URL_TEMPLATE":        "https://skia-review.googlesource.com/%s",
   "HASHES_FILE":             "gold-skia-infra-hashes.txt",
+  "FLAKY_TRACE_THRESHOLD":   10,
   "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
   "MAIN_CPU":                "4",
   "MAIN_MEMORY":             "4Gi",

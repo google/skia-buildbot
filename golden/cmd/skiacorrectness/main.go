@@ -96,6 +96,7 @@ func main() {
 		defaultCorpus          = flag.String("default_corpus", "gm", "The corpus identifier shown by default on the frontend.")
 		diffServerGRPCAddr     = flag.String("diff_server_grpc", "", "The grpc port of the diff server. 'diff_server_http also needs to be set.")
 		diffServerImageAddr    = flag.String("diff_server_http", "", "The images serving address of the diff server. 'diff_server_grpc has to be set as well.")
+		flakyTraceThreshold    = flag.Int("flaky_trace_threshold", 10000, "If a trace has more unique digests than this, it will be considered flaky. The default value is high enough such that no trace will be considered flaky.")
 		forceLogin             = flag.Bool("force_login", true, "Force the user to be authenticated for all requests.")
 		fsNamespace            = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
 		fsProjectID            = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
@@ -402,7 +403,7 @@ func main() {
 	sklog.Infof("Indexer created.")
 
 	// TODO(kjlubick) include non-nil comment.Store when it is implemented.
-	searchAPI := search.New(diffStore, expStore, expChangeHandler, ixr, cls, tjs, nil, publiclyViewableParams)
+	searchAPI := search.New(diffStore, expStore, expChangeHandler, ixr, cls, tjs, nil, publiclyViewableParams, *flakyTraceThreshold)
 
 	sklog.Infof("Search API created")
 

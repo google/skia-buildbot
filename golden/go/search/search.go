@@ -70,13 +70,17 @@ type SearchImpl struct {
 	// we see an event indicating expectations for that ID changed.
 	triageHistoryCache *sync.Map
 
+	// If a given trace has more unique digests than this threshold, it can be considered "flaky".
+	// Flaky traces can sometimes be ignored, e.g. in UntriagedUnignoredTryJobExclusiveDigests.
+	flakyTraceThreshold int
+
 	// optional. If specified, will only show the params that match this query. This is
 	// opt-in, to avoid leaking.
 	publiclyViewableParams paramtools.ParamSet
 }
 
 // New returns a new SearchImpl instance.
-func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventRegisterer, is indexer.IndexSource, cls clstore.Store, tjs tjstore.Store, cs comment.Store, publiclyViewableParams paramtools.ParamSet) *SearchImpl {
+func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventRegisterer, is indexer.IndexSource, cls clstore.Store, tjs tjstore.Store, cs comment.Store, publiclyViewableParams paramtools.ParamSet, flakyThreshold int) *SearchImpl {
 	var triageHistoryCache sync.Map
 	if cer != nil {
 		// If the expectations change for a given ID, we should purge it from our cache so as not
@@ -94,6 +98,7 @@ func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventR
 		tryJobStore:            tjs,
 		commentStore:           cs,
 		publiclyViewableParams: publiclyViewableParams,
+		flakyTraceThreshold:    flakyThreshold,
 
 		storeCache:         ttlcache.New(searchCacheFreshness, searchCacheCleanup),
 		triageHistoryCache: &triageHistoryCache,
@@ -521,6 +526,7 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 			p := make(paramtools.Params, len(tr.ResultParams)+len(tr.GroupParams)+len(tr.Options))
 			p.Add(tr.GroupParams)
 			p.Add(tr.ResultParams)
+			// Compute the traceID here because by definition, the traceID does not include optional keys.
 			traceID := tiling.TraceIDFromParams(p)
 			p.Add(tr.Options)
 			// Filter the ignored results
@@ -932,6 +938,7 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 	idx := s.indexSource.GetIndex()
 	ignoreMatcher := idx.GetIgnoreMatcher()
 	knownDigestsForTest := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
+	digestsByTrace := idx.DigestCountsByTrace(types.IncludeIgnoredTraces)
 
 	var returnDigests []types.Digest
 	var returnCorpora []string
@@ -951,12 +958,21 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 		}
 		p := make(paramtools.Params, len(tr.ResultParams)+len(tr.GroupParams)+len(tr.Options))
 		p.Add(tr.GroupParams)
-		p.Add(tr.Options)
 		p.Add(tr.ResultParams)
+		// Compute the traceID here because by definition, the traceID does not include optional keys.
+		traceID := tiling.TraceIDFromParams(p)
+		p.Add(tr.Options)
 		if ignoreMatcher.MatchAnyParams(p) {
 			// This trace matches an ignore
 			continue
 		}
+
+		uniqueDigestsForThisTrace := len(digestsByTrace[traceID])
+		if uniqueDigestsForThisTrace > s.flakyTraceThreshold {
+			// We don't want to include flaky traces.
+			continue
+		}
+
 		if corpus := p[types.CorpusField]; !util.In(corpus, returnCorpora) {
 			returnCorpora = append(returnCorpora, corpus)
 		}

@@ -28,6 +28,7 @@
     "CL_COMMENT_TEMPLATE":     1,
     "CRS_URL_TEMPLATE":        "https://chromium-review.googlesource.com/%s",
     "HASHES_FILE":             "gold-chrome-gpu-hashes.txt",
+    "FLAKY_TRACE_THRESHOLD":   10000, // 10,000 effectively makes no trace flaky.
     "LOGIN_SECRETS":           "skia-org-legacy-login-secrets",
     "MAIN_CPU":                "4",
     "MAIN_MEMORY":             "4Gi",
