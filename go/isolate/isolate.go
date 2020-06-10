@@ -429,6 +429,27 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, []*
 	return hashes, isolatedFiles, err
 }
 
+// DownloadIsolateHash downloads the specified isolate hash into the specified output dir.
+// downloadedFileList is the name of a file in the output dir into which the full list of
+// downloaded files will be written to.
+func (c *Client) DownloadIsolateHash(ctx context.Context, isolateHash, outputDir, downloadedFileList string) error {
+	cmd := []string{
+		c.isolateserver, "download", "--verbose",
+		"--isolate-server", c.serverUrl,
+		"--isolated", isolateHash,
+		"--output-dir", outputDir,
+		"--output-files", filepath.Join(outputDir, downloadedFileList),
+	}
+	if c.serviceAccountJSON != "" {
+		cmd = append(cmd, "--service-account-json", c.serviceAccountJSON)
+	}
+	output, err := exec.RunCwd(ctx, c.workdir, cmd...)
+	if err != nil {
+		return fmt.Errorf("Failed to download isolate hash %s: %s\nOutput:\n%s", isolateHash, err, output)
+	}
+	return nil
+}
+
 // ReUploadIsolatedFiles re-uploads the given existing isolated files, eg. to add dependencies.
 func (c *Client) ReUploadIsolatedFiles(ctx context.Context, isolatedFiles []*isolated.Isolated) ([]string, error) {
 	// Setup.
