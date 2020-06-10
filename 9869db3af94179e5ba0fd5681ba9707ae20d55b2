@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "03341c9f_018f0444",
+        "filename": "perf/modules/tricon2-sk/tricon2-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-10T18:00:23Z",
+      "side": 1,
+      "message": "In Gold we tend not to use attributes unless absolutely necessary[1]. We\u0027ve found this leads to simpler code / less bugs.\n\nSince this component is internal to Perf and we have complete control over its uses, you might want to consider dropping the attributes as you rewrite these to TypeScript.\n\n[1] An example would be setting an attribute from a Go template.",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 0
+      },
+      "revId": "9869db3af94179e5ba0fd5681ba9707ae20d55b2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
