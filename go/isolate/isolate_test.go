@@ -6,11 +6,14 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/common/isolated"
+
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -161,6 +164,35 @@ func TestIsolateTasks(t *testing.T) {
 	}
 	gotHashes := do(tasks, "")
 	assertdeep.Equal(t, expectHashes, gotHashes)
+}
+
+func TestDownloadIsolateHash(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Setup.
+	workdir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer testutils.RemoveAll(t, workdir)
+	ctx := context.Background()
+	testHash := "dummy-hash"
+
+	// Mock isolated download.
+	mockRun := &exec.CommandCollector{}
+	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
+		require.Equal(t, "isolated", cmd.Name)
+		require.Equal(t, "download", cmd.Args[0])
+		downloadArgs := strings.Join(cmd.Args[1:], " ")
+		require.Equal(t, true, strings.Contains(downloadArgs, fmt.Sprintf("--isolated %s", testHash)))
+		require.Equal(t, true, strings.Contains(downloadArgs, fmt.Sprintf("--output-dir %s", workdir)))
+		return nil
+	})
+	ctx = exec.NewContext(ctx, mockRun.Run)
+
+	c, err := NewClient(workdir, ISOLATE_SERVER_URL_FAKE)
+	require.NoError(t, err)
+
+	err = c.DownloadIsolateHash(ctx, testHash, workdir)
+	require.NoError(t, err)
 }
 
 func TestReUploadIsolatedFiles(t *testing.T) {
