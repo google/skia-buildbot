@@ -522,9 +522,7 @@ define('explore-sk', class extends ElementSk {
     }).then(jsonOrThrow).then((json) => {
       this._commits.details = json;
       this._commitsTab.disabled = false;
-      this._simple_paramset.paramsets = {
-        paramsets: [paramset],
-      };
+      this._simple_paramset.paramsets = [paramset];
       this._detailTab.selected = COMMIT_TAB_INDEX;
       this._jsonsource.cid = commits[0];
       this._jsonsource.traceid = e.detail.name;
@@ -754,9 +752,7 @@ define('explore-sk', class extends ElementSk {
     }
 
     // Populate the paramset element.
-    this._paramset.paramsets = {
-      paramsets: [dataframe.paramset],
-    };
+    this._paramset.paramsets = [dataframe.paramset];
     if (tab) {
       this._detailTab.selected = PARAMS_TAB_INDEX;
     }
