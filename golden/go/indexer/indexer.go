@@ -760,6 +760,10 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 		OpenCLsOnly: true,
 		After:       recent,
 	})
+	if err != nil {
+		sklog.Errorf("Could not get recent changelists: %s", err)
+		return
+	}
 
 	sklog.Infof("Indexing %d CLs", len(xcl))
 
