@@ -11,7 +11,8 @@
     "includeTests": true
   },
   "contacts": [
-    "agable@google.com"
+    "ehmaldonado@google.com",
+    "ajp@google.com"
   ],
   "gerrit": {
     "url": "https://chromium-review.googlesource.com",
@@ -26,7 +27,8 @@
   "rollerName": "depot-tools-chromium-autoroll",
   "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": [
-    "agable@chromium.org"
+    "ehmaldonado@google.com",
+    "ajp@google.com"
   ],
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
