@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -15,7 +16,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	docker_pubsub "go.skia.org/infra/go/docker/build/pubsub"
-	sk_exec "go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/task_driver/go/lib/log_parser"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
@@ -24,7 +25,7 @@ import (
 var (
 	AUTH_SCOPES = []string{auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_FULL_CONTROL}
 
-	REPOSITORY_HOST = "gcr.io"
+	REPOSITORY_HOST = "gcr.io/skia-public/"
 
 	// dockerStepRegex is a regex that matches Step lines in Docker output.
 	dockerStepRegex = regexp.MustCompile(`^Step \d+\/\d+ : .*`)
@@ -38,11 +39,13 @@ var (
 	imageSha256Regex = regexp.MustCompile(`sha256:[a-f0-9]{64}`)
 )
 
+// Docker is a helper struct for interacting with Docker.
 type Docker struct {
 	configDir string
 	stop      chan struct{}
 }
 
+// New returns an authenticated Docker instance.
 func New(ctx context.Context, ts oauth2.TokenSource) (*Docker, error) {
 	configDir, err := os_steps.TempDir(ctx, "", "")
 	if err != nil {
@@ -85,6 +88,7 @@ func New(ctx context.Context, ts oauth2.TokenSource) (*Docker, error) {
 	return rv, nil
 }
 
+// Cleanup removes resources associated with this Docker instance.
 func (d *Docker) Cleanup(ctx context.Context) error {
 	return td.Do(ctx, td.Props("Docker Cleanup").Infra(), func(ctx context.Context) error {
 		d.stop <- struct{}{}
@@ -127,34 +131,40 @@ func (d *Docker) Extract(ctx context.Context, image, src, dest string) error {
 		// Create a container from the image with a dummy command.
 		containerName := fmt.Sprintf("tmp-%s", uuid.New().String())
 		cmd := []string{dockerCmd, "--config", d.configDir, "create", "--name", containerName, image, "dummy-cmd"}
-		if _, err := sk_exec.RunCwd(ctx, ".", cmd...); err != nil {
+		if _, err := exec.RunCwd(ctx, ".", cmd...); err != nil {
 			return err
 		}
 
 		// Make sure we remove the container once we're done with it.
 		defer func() {
-			_, err := sk_exec.RunCwd(ctx, ".", dockerCmd, "rm", "-v", containerName)
+			_, err := exec.RunCwd(ctx, ".", dockerCmd, "rm", "-v", containerName)
 			if err != nil {
 				rv = err
 			}
 		}()
 
 		// Perform the copy.
-		_, err := sk_exec.RunCwd(ctx, ".", dockerCmd, "cp", "-L", fmt.Sprintf("%s:%s", containerName, src), dest)
+		_, err := exec.RunCwd(ctx, ".", dockerCmd, "cp", "-L", fmt.Sprintf("%s:%s", containerName, src), dest)
 		return err
 	})
 }
 
+// RunInContainer starts a container running an interactive shell and runs the
+// given function, which may execute commands inside the container.
+func (d *Docker) RunInContainer(ctx context.Context, props *ContainerProps, fn func(context.Context, *Container) error) error {
+	return RunInContainer(ctx, d.configDir, props, fn)
+}
+
 // Login to docker to be able to run authenticated commands (Eg: docker.Push).
 func Login(ctx context.Context, accessToken, hostname, configDir string) error {
-	loginCmd := &sk_exec.Command{
+	loginCmd := &exec.Command{
 		Name:      dockerCmd,
 		Args:      []string{"--config", configDir, "login", "-u", "oauth2accesstoken", "--password-stdin", hostname},
 		Stdin:     strings.NewReader(accessToken),
 		LogStdout: true,
 		LogStderr: true,
 	}
-	_, err := sk_exec.RunCommand(ctx, loginCmd)
+	_, err := exec.RunCommand(ctx, loginCmd)
 	if err != nil {
 		return err
 	}
@@ -164,7 +174,7 @@ func Login(ctx context.Context, accessToken, hostname, configDir string) error {
 // Pull a Docker image.
 func Pull(ctx context.Context, imageWithTag, configDir string) error {
 	pullCmd := fmt.Sprintf("%s --config %s pull %s", dockerCmd, configDir, imageWithTag)
-	_, err := sk_exec.RunSimple(ctx, pullCmd)
+	_, err := exec.RunSimple(ctx, pullCmd)
 	if err != nil {
 		return err
 	}
@@ -173,7 +183,7 @@ func Pull(ctx context.Context, imageWithTag, configDir string) error {
 
 // Push a Docker image.
 func Push(ctx context.Context, tag, configDir string) (string, error) {
-	out, err := sk_exec.RunCwd(ctx, ".", dockerCmd, "--config", configDir, "push", tag)
+	out, err := exec.RunCwd(ctx, ".", dockerCmd, "--config", configDir, "push", tag)
 	if err != nil {
 		return "", err
 	}
@@ -186,7 +196,7 @@ func Push(ctx context.Context, tag, configDir string) (string, error) {
 
 // Tag the given Docker image.
 func Tag(ctx context.Context, imageID, tag, configDir string) error {
-	_, err := sk_exec.RunCwd(ctx, ".", "docker", "--config", configDir, "tag", imageID, tag)
+	_, err := exec.RunCwd(ctx, ".", "docker", "--config", configDir, "tag", imageID, tag)
 	return err
 }
 
@@ -204,13 +214,13 @@ func Run(ctx context.Context, image, configDir string, cmd, volumes, env []strin
 	}
 	runArgs = append(runArgs, image)
 	runArgs = append(runArgs, cmd...)
-	runCmd := &sk_exec.Command{
+	runCmd := &exec.Command{
 		Name:      dockerCmd,
 		Args:      runArgs,
 		LogStdout: true,
 		LogStderr: true,
 	}
-	_, err := sk_exec.RunCommand(ctx, runCmd)
+	_, err := exec.RunCommand(ctx, runCmd)
 	if err != nil {
 		return err
 	}
@@ -302,5 +312,96 @@ func publishToTopic(ctx context.Context, image, tag, repo string, topic *pubsub.
 			return err
 		}
 		return nil
+	})
+}
+
+// Env represents environment variables in a Docker container.
+type Env map[string]string
+
+// Args returns the argument list (eg. for "docker run") which represents the
+// Env.
+func (e Env) Args() []string {
+	vars := make([]string, 0, len(e))
+	for k, v := range e {
+		vars = append(vars, fmt.Sprintf("%s=%s", k, v))
+	}
+	sort.Strings(vars) // Keep tests consistent.
+	args := make([]string, 0, 2*len(vars))
+	for _, v := range vars {
+		args = append(args, "--env", v)
+	}
+	return args
+}
+
+// Container represents a running Docker container.
+type Container struct {
+	configDir string
+	id        string
+	rootCtx   context.Context
+}
+
+// Run the given command in the container and return its output. Thread-safe.
+// Only a single command is supported; multiple commands can be run by launching
+// a shell as the "base" command and passing multiple commands as the arguments
+// to the shell.
+func (c *Container) Run(workdir string, env Env, cmd ...string) (string, error) {
+	args := []string{dockerCmd, "--config", c.configDir, "exec"}
+	args = append(args, "--workdir", workdir)
+	args = append(args, env.Args()...)
+	args = append(args, c.id)
+	args = append(args, cmd...)
+	return exec.RunCwd(c.rootCtx, ".", args...)
+}
+
+// ContainerProps represents the properties of a Docker container.
+type ContainerProps struct {
+	Image           string
+	Mounts          []*Mount
+	Env             Env
+	Command         []string
+	DisallowNetwork bool
+}
+
+// Args returns the argument list (eg. for "docker run") which represents the
+// Container.
+func (p *ContainerProps) Args() []string {
+	args := []string{}
+	for _, mount := range p.Mounts {
+		args = append(args, mount.Args()...)
+	}
+	args = append(args, p.Env.Args()...)
+	args = append(args, p.Image)
+	args = append(args, p.Command...)
+	if p.DisallowNetwork {
+		args = append(args, "--network", "none")
+	}
+	return args
+}
+
+// RunInContainer starts a container running interactively and runs the given
+// function, which may execute commands inside the container.
+func RunInContainer(ctx context.Context, configDir string, props *ContainerProps, fn func(context.Context, *Container) error) error {
+	return td.Do(ctx, td.Props(fmt.Sprintf("Run in %s", props.Image)), func(ctx context.Context) error {
+		// Create the container.
+		runCmd := append([]string{dockerCmd, "--config", configDir, "run", "-it", "-d"}, props.Args()...)
+		out, err := exec.RunCwd(ctx, ".", runCmd...)
+		if err != nil {
+			return err
+		}
+		containerID := strings.TrimSpace(out)
+
+		// Run the given function.
+		c := &Container{
+			configDir: configDir,
+			id:        containerID,
+			rootCtx:   ctx,
+		}
+		fnErr := fn(ctx, c)
+
+		// Cleanup.
+		if _, err := exec.RunCwd(ctx, ".", dockerCmd, "--config", configDir, "rm", "--force", "--volumes", containerID); err != nil {
+			return err
+		}
+		return fnErr
 	})
 }
