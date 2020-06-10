@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
-	diffstore_mocks "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/image/text"
 	one_by_five "go.skia.org/infra/golden/go/testutils/data_one_by_five"
 	"go.skia.org/infra/golden/go/types"
@@ -61,32 +60,26 @@ func TestImageLoaderExpectedMd5HashesAreCorrect(t *testing.T) {
 }
 
 // Sets up the mock GCSClient and temp folder for images, and returns the test ImageLoader instance.
-func setUp(t *testing.T) (*ImageLoader, *test_gcsclient.GCSClient, *diffstore_mocks.FailureStore) {
+func setUp(t *testing.T) (*ImageLoader, *test_gcsclient.GCSClient) {
 	// Build mock GCSClient.
 	mockBucketClient := test_gcsclient.NewMockClient()
 
 	// Only used for logging errors, which only some tests produce.
 	mockBucketClient.On("Bucket").Return("test-bucket").Maybe()
 
-	// Build mock FailureStore.
-	mockFailureStore := &diffstore_mocks.FailureStore{}
-
 	// Compute an arbitrary cache size.
 	imgCacheCount, _ := getCacheCounts(10)
 
 	// Create the ImageLoader instance.
-	imageLoader, err := NewImgLoader(mockBucketClient, mockFailureStore, gcsImageBaseDir, imgCacheCount)
+	imageLoader, err := NewImgLoader(mockBucketClient, gcsImageBaseDir, imgCacheCount)
 	require.NoError(t, err)
 
-	return imageLoader, mockBucketClient, mockFailureStore
+	return imageLoader, mockBucketClient
 }
 
 func TestImageLoaderGetSingleDigestFoundInBucket(t *testing.T) {
 	unittest.SmallTest(t)
-	imageLoader, mockClient, mockFailureStore := setUp(t)
-
-	defer mockClient.AssertExpectations(t)
-	defer mockFailureStore.AssertExpectations(t)
+	imageLoader, mockClient := setUp(t)
 
 	// digest1 is present in the GCS bucket.
 	expectImageWillBeRead(mockClient, image1GCSPath, image1MD5Hash, image1)
@@ -102,17 +95,11 @@ func TestImageLoaderGetSingleDigestFoundInBucket(t *testing.T) {
 
 func TestImageLoaderGetSingleDigestNotFound(t *testing.T) {
 	unittest.SmallTest(t)
-	imageLoader, mockClient, mockFailureStore := setUp(t)
-
-	defer mockClient.AssertExpectations(t)
-	defer mockFailureStore.AssertExpectations(t)
+	imageLoader, mockClient := setUp(t)
 
 	// digest1 is NOT present in the GCS bucket.
 	var oa *storage.ObjectAttrs
 	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image1GCSPath).Return(oa, errors.New("not found"))
-
-	// Failure is stored.
-	mockFailureStore.On("AddDigestFailure", testutils.AnyContext, diffFailureMatcher(digest1, "http_error")).Return(nil)
 
 	// Get images.
 	_, err := imageLoader.Get(context.Background(), types.DigestSlice{digest1})
@@ -124,10 +111,7 @@ func TestImageLoaderGetSingleDigestNotFound(t *testing.T) {
 
 func TestImageLoaderGetMultipleDigestsAllFoundInBucket(t *testing.T) {
 	unittest.SmallTest(t)
-	imageLoader, mockClient, mockFailureStore := setUp(t)
-
-	defer mockClient.AssertExpectations(t)
-	defer mockFailureStore.AssertExpectations(t)
+	imageLoader, mockClient := setUp(t)
 
 	// digest1 and digest2 are present in the GCS bucket.
 	expectImageWillBeRead(mockClient, image1GCSPath, image1MD5Hash, image1)
@@ -145,10 +129,7 @@ func TestImageLoaderGetMultipleDigestsAllFoundInBucket(t *testing.T) {
 
 func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *testing.T) {
 	unittest.SmallTest(t)
-	imageLoader, mockClient, mockFailureStore := setUp(t)
-
-	defer mockClient.AssertExpectations(t)
-	defer mockFailureStore.AssertExpectations(t)
+	imageLoader, mockClient := setUp(t)
 
 	// digest1 is present in the GCS bucket.
 	expectImageWillBeRead(mockClient, image1GCSPath, image1MD5Hash, image1)
@@ -156,9 +137,6 @@ func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *tes
 	// digest2 is NOT present in the GCS bucket.
 	var oa2 *storage.ObjectAttrs = nil
 	mockClient.On("GetFileObjectAttrs", testutils.AnyContext, image2GCSPath).Return(oa2, errors.New("not found"))
-
-	// Failure is stored.
-	mockFailureStore.On("AddDigestFailure", testutils.AnyContext, diffFailureMatcher(digest2, "http_error")).Return(nil)
 
 	// Get images.
 	_, err := imageLoader.Get(context.Background(), types.DigestSlice{digest1, digest2})
@@ -171,10 +149,9 @@ func TestImageLoaderGetMultipleDigestsDigest1FoundInBucketDigest2NotFound(t *tes
 // TODO(lovisolo): Add test cases for multiple digests, and decide what to do about purgeGCS=false.
 func TestImageLoaderPurgeImages(t *testing.T) {
 	unittest.SmallTest(t)
-	imageLoader, mockClient, mockFailureStore := setUp(t)
+	imageLoader, mockClient := setUp(t)
 
 	defer mockClient.AssertExpectations(t)
-	defer mockFailureStore.AssertExpectations(t)
 
 	// digest1 is present in the GCS bucket.
 	expectImageWillBeRead(mockClient, image1GCSPath, image1MD5Hash, image1)

@@ -16,9 +16,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
-	"go.skia.org/infra/golden/go/diffstore/failurestore"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/sync/errgroup"
@@ -44,9 +42,6 @@ type ImageLoader struct {
 
 	// imageCache caches and calculates images.
 	imageCache rtcache.ReadThroughCache
-
-	// failureStore persists failures in retrieving images.
-	failureStore failurestore.FailureStore
 }
 
 // getGCSRelPath returns the GCS path for a given image ID (excluding the bucket).
@@ -55,11 +50,10 @@ func getGCSRelPath(imageID types.Digest) string {
 }
 
 // NewImgLoader creates a new instance of ImageLoader.
-func NewImgLoader(client gcs.GCSClient, fStore failurestore.FailureStore, gcsImageBaseDir string, maxCacheSize int) (*ImageLoader, error) {
+func NewImgLoader(client gcs.GCSClient, gcsImageBaseDir string, maxCacheSize int) (*ImageLoader, error) {
 	ret := &ImageLoader{
 		gsBucketClient:  client,
 		gcsImageBaseDir: gcsImageBaseDir,
-		failureStore:    fStore,
 	}
 
 	// Set up the work queues that balance the load.
@@ -135,8 +129,7 @@ func (il *ImageLoader) imageLoadWorker(ctx context.Context, imageID types.Digest
 	gsRelPath := getGCSRelPath(imageID)
 	imgBytes, err := il.downloadImg(ctx, gsRelPath)
 	if err != nil {
-		util.LogErr(il.failureStore.AddDigestFailure(ctx, diff.NewDigestFailure(imageID, diff.HTTP)))
-		return nil, skerr.Wrap(err)
+		return nil, skerr.Wrapf(err, "loading image %s", imageID)
 	}
 	return imgBytes, nil
 }

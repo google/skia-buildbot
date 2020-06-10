@@ -65,10 +65,8 @@ func TestMemDiffStoreGetSunnyDay(t *testing.T) {
 
 	mms := &diffstore_mocks.MetricsStore{}
 	mgc := test_gcsclient.NewMockClient()
-	mfs := &diffstore_mocks.FailureStore{}
 	defer mms.AssertExpectations(t)
 	defer mgc.AssertExpectations(t)
-	defer mfs.AssertExpectations(t)
 
 	// These diffs are the actual diffs between the respective 2 images.
 	// These values were computed by using the default algorithm and manual inspection.
@@ -104,7 +102,7 @@ func TestMemDiffStoreGetSunnyDay(t *testing.T) {
 	mms.On("SaveDiffMetrics", testutils.AnyContext, common.DiffID(digest1, digest2), dm1_2).Return(nil)
 	mms.On("SaveDiffMetrics", testutils.AnyContext, common.DiffID(digest1, digest3), dm1_3).Return(nil)
 
-	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms, mfs)
+	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms)
 	require.NoError(t, err)
 
 	diffDigests := []types.Digest{digest2, digest3}
@@ -133,11 +131,6 @@ func TestMemDiffStoreGetIntegration(t *testing.T) {
 	defer cleanup()
 	fsMetrics := fs_metricsstore.New(c)
 
-	// We shouldn't see errors (there's some retry logic for reading from GCS), but if we do
-	// we want the failurestore to be non-nil, because it's easier to debug the assertion we get
-	// from a bad failurestore call than a nil dereference.
-	mfs := &diffstore_mocks.FailureStore{}
-
 	// These are two nearly identical images in the skia-infra-testdata bucket.
 	// The names are arbitrary (they don't actually correspond with the hash of the pixels).
 	original := types.Digest("000da2ce46164b5027ee964b8c040335")
@@ -156,7 +149,7 @@ func TestMemDiffStoreGetIntegration(t *testing.T) {
 		},
 	}
 
-	diffStore, err := NewMemDiffStore(gcsClient, gcsImageBaseDir, 1, fsMetrics, mfs)
+	diffStore, err := NewMemDiffStore(gcsClient, gcsImageBaseDir, 1, fsMetrics)
 	require.NoError(t, err)
 
 	diffDigests := []types.Digest{cross}
@@ -180,10 +173,8 @@ func TestMemDiffStoreGetPartialCacheMatch(t *testing.T) {
 
 	mms := &diffstore_mocks.MetricsStore{}
 	mgc := test_gcsclient.NewMockClient()
-	mfs := &diffstore_mocks.FailureStore{}
 	defer mms.AssertExpectations(t)
 	defer mgc.AssertExpectations(t)
-	defer mfs.AssertExpectations(t)
 
 	// These diffs are the actual diffs between the respective 2 images.
 	// These values were computed by using the default algorithm and manual inspection.
@@ -217,7 +208,7 @@ func TestMemDiffStoreGetPartialCacheMatch(t *testing.T) {
 
 	mms.On("SaveDiffMetrics", testutils.AnyContext, common.DiffID(digest1, digest3), dm1_3).Return(nil)
 
-	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms, mfs)
+	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms)
 	require.NoError(t, err)
 
 	diffDigests := []types.Digest{digest2, digest3}
@@ -236,10 +227,8 @@ func TestMemDiffStoreGetIdentity(t *testing.T) {
 
 	mms := &diffstore_mocks.MetricsStore{}
 	mgc := test_gcsclient.NewMockClient()
-	mfs := &diffstore_mocks.FailureStore{}
 	defer mms.AssertExpectations(t)
 	defer mgc.AssertExpectations(t)
-	defer mfs.AssertExpectations(t)
 
 	// These diffs are the actual diffs between the respective 2 images.
 	// These values were computed by using the default algorithm and manual inspection.
@@ -268,7 +257,7 @@ func TestMemDiffStoreGetIdentity(t *testing.T) {
 	expectedDiffIDs := []string{common.DiffID(digest1, digest2), common.DiffID(digest1, digest3)}
 	mms.On("LoadDiffMetrics", testutils.AnyContext, expectedDiffIDs).Return([]*diff.DiffMetrics{dm1_2, dm1_3}, nil)
 
-	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms, mfs)
+	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms)
 	require.NoError(t, err)
 
 	diffDigests := []types.Digest{digest2, digest1, digest3}
@@ -286,10 +275,8 @@ func TestFailureHandlingGet(t *testing.T) {
 
 	mms := &diffstore_mocks.MetricsStore{}
 	mgc := test_gcsclient.NewMockClient()
-	mfs := &diffstore_mocks.FailureStore{}
 	defer mms.AssertExpectations(t)
 	defer mgc.AssertExpectations(t)
-	defer mfs.AssertExpectations(t)
 
 	dm := &diff.DiffMetrics{
 		// This data is arbitrary - just to make sure we get the right object
@@ -308,10 +295,7 @@ func TestFailureHandlingGet(t *testing.T) {
 	mgc.On("GetFileObjectAttrs", testutils.AnyContext, img).Return(nil, errors.New("not found"))
 	mgc.On("Bucket").Return("whatever")
 
-	// FailureStore calls for the invalidDigest
-	mfs.On("AddDigestFailure", testutils.AnyContext, diffFailureMatcher(invalidDigest1, "http_error")).Return(nil)
-
-	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms, mfs)
+	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms)
 	require.NoError(t, err)
 
 	diffDigests := []types.Digest{digest2, invalidDigest1, invalidDigest2}
@@ -326,10 +310,8 @@ func TestMetricsStoreFlakiness(t *testing.T) {
 
 	mms := &diffstore_mocks.MetricsStore{}
 	mgc := test_gcsclient.NewMockClient()
-	mfs := &diffstore_mocks.FailureStore{}
 	defer mms.AssertExpectations(t)
 	defer mgc.AssertExpectations(t)
-	defer mfs.AssertExpectations(t)
 
 	// These diffs are the actual diffs between the respective 2 images.
 	// These values were computed by using the default algorithm and manual inspection.
@@ -351,7 +333,7 @@ func TestMetricsStoreFlakiness(t *testing.T) {
 	expectImageWillBeRead(mgc, image1GCSPath, image1MD5Hash, image1)
 	expectImageWillBeRead(mgc, image2GCSPath, image2MD5Hash, image2)
 
-	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms, mfs)
+	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms)
 	require.NoError(t, err)
 
 	diffDigests := []types.Digest{digest2}
@@ -362,40 +344,14 @@ func TestMetricsStoreFlakiness(t *testing.T) {
 	assert.Equal(t, dm1_2, diffs[digest2])
 }
 
-// TestGetUnavailable makes sure that memdiffstore shells out to the underlying failurestore
-// for its Unavailable() call.
-func TestGetUnavailable(t *testing.T) {
-	unittest.SmallTest(t)
-
-	mfs := &diffstore_mocks.FailureStore{}
-	defer mfs.AssertExpectations(t)
-
-	df := map[types.Digest]*diff.DigestFailure{
-		invalidDigest1: {Digest: invalidDigest1, Reason: "http_error"},
-		invalidDigest2: {Digest: invalidDigest2, Reason: "http_error"},
-	}
-	mfs.On("UnavailableDigests", testutils.AnyContext).Return(df, nil).Once()
-
-	// Everything but mfs is ignored for this test
-	diffStore, err := NewMemDiffStore(nil, gcsImageBaseDir, 1, nil, mfs)
-	require.NoError(t, err)
-
-	unavailableDigests, err := diffStore.UnavailableDigests(context.Background())
-	require.NoError(t, err)
-	assert.Len(t, unavailableDigests, 2)
-	assert.Equal(t, df, unavailableDigests)
-}
-
 // TestPurgeDigests makes we correctly purge digests from both metrics and GCS
 func TestPurgeDigests(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mms := &diffstore_mocks.MetricsStore{}
 	mgc := test_gcsclient.NewMockClient()
-	mfs := &diffstore_mocks.FailureStore{}
 	defer mms.AssertExpectations(t)
 	defer mgc.AssertExpectations(t)
-	defer mfs.AssertExpectations(t)
 
 	oa := &storage.ObjectAttrs{}
 	img := fmt.Sprintf("%s/%s.png", gcsImageBaseDir, invalidDigest2)
@@ -405,10 +361,7 @@ func TestPurgeDigests(t *testing.T) {
 	mms.On("PurgeDiffMetrics", testutils.AnyContext, types.DigestSlice{invalidDigest1}).Return(nil)
 	mms.On("PurgeDiffMetrics", testutils.AnyContext, types.DigestSlice{invalidDigest2}).Return(nil)
 
-	mfs.On("PurgeDigestFailures", testutils.AnyContext, types.DigestSlice{invalidDigest1}).Return(nil)
-	mfs.On("PurgeDigestFailures", testutils.AnyContext, types.DigestSlice{invalidDigest2}).Return(nil)
-
-	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms, mfs)
+	diffStore, err := NewMemDiffStore(mgc, gcsImageBaseDir, 1, mms)
 	require.NoError(t, err)
 
 	require.NoError(t, diffStore.PurgeDigests(context.Background(), types.DigestSlice{invalidDigest1}, false))
@@ -418,15 +371,8 @@ func TestPurgeDigests(t *testing.T) {
 func TestMemDiffStoreImageHandler(t *testing.T) {
 	unittest.SmallTest(t)
 
-	// This is a white-box test. The mock failure store and GCS client below return only what is
+	// This is a white-box test. The mock GCS client below return only what is
 	// needed for this test to pass, and nothing more (e.g. field "MD5" in *storage.ObjectAttrs).
-
-	// Build mock FailureStore.
-	mockFailureStore := &diffstore_mocks.FailureStore{}
-	defer mockFailureStore.AssertExpectations(t)
-
-	// Failure is stored.
-	mockFailureStore.On("AddDigestFailure", testutils.AnyContext, diffFailureMatcher(missingDigest, "http_error")).Return(nil)
 
 	// Build mock GCSClient.
 	mockBucketClient := test_gcsclient.NewMockClient()
@@ -470,7 +416,7 @@ func TestMemDiffStoreImageHandler(t *testing.T) {
 	mStore := &diffstore_mocks.MetricsStore{}
 
 	// Build MemDiffStore instance under test.
-	diffStore, err := NewMemDiffStore(mockBucketClient, gcsImageBaseDir, 10, mStore, mockFailureStore)
+	diffStore, err := NewMemDiffStore(mockBucketClient, gcsImageBaseDir, 10, mStore)
 	require.NoError(t, err)
 
 	// Get the HTTP handler function under test.

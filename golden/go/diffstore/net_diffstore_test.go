@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/diffstore/metricsstore/fs_metricsstore"
-	diffstore_mocks "go.skia.org/infra/golden/go/diffstore/mocks"
 	"go.skia.org/infra/golden/go/types"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
@@ -39,12 +38,7 @@ func TestNetDiffStoreIntegration(t *testing.T) {
 	defer cleanup()
 	fsMetrics := fs_metricsstore.New(c)
 
-	// We shouldn't see errors (there's some retry logic for reading from GCS), but if we do
-	// we want the failurestore to be non-nil, because it's easier to debug the assertion we get
-	// from a bad failurestore call than a nil dereference.
-	mfs := &diffstore_mocks.FailureStore{}
-
-	memDiffStore, err := NewMemDiffStore(gcsClient, gcsImageBaseDir, 1, fsMetrics, mfs)
+	memDiffStore, err := NewMemDiffStore(gcsClient, gcsImageBaseDir, 1, fsMetrics)
 	require.NoError(t, err)
 
 	// These are two nearly identical images in the skia-infra-testdata bucket.
