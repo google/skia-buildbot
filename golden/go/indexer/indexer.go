@@ -656,24 +656,15 @@ func writeKnownHashesList(ctx context.Context, state interface{}) error {
 		defer cancel()
 
 		byTest := idx.DigestCountsByTest(types.IncludeIgnoredTraces)
-		unavailableDigests, err := idx.diffStore.UnavailableDigests(ctx)
-		if err != nil {
-			sklog.Warningf("could not fetch unavailable digests, going to assume all are valid: %s", err)
-			unavailableDigests = nil
-		}
-		// Collect all hashes in the tile that haven't been marked as unavailable yet.
+		// Collect all hashes in the tile.
+		// TODO(kjlubick) Do we need to check that these images have actually been properly uploaded?
+		//   For clients using goldctl, it doesn't matter since goldctl will re-upload images that
+		//   aren't already in GCS. For clients that use known hashes to avoid writing more to disk
+		//   than they need to (e.g. Skia), this may be important.
 		hashes := types.DigestSet{}
 		for _, test := range byTest {
 			for k := range test {
-				if _, ok := unavailableDigests[k]; !ok {
-					hashes[k] = true
-				}
-			}
-		}
-
-		for h := range hashes {
-			if _, ok := unavailableDigests[h]; ok {
-				delete(hashes, h)
+				hashes[k] = true
 			}
 		}
 

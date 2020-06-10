@@ -32,8 +32,6 @@ func TestGetRefDiffsSunnyDay(t *testing.T) {
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
-
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]map[types.Digest]paramtools.ParamSet{
 			testName: {
@@ -110,8 +108,6 @@ func TestGetRefDiffsTryJobSunnyDay(t *testing.T) {
 	mds := &mock_diffstore.DiffStore{}
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
-
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]map[types.Digest]paramtools.ParamSet{
@@ -190,8 +186,6 @@ func TestGetRefDiffsAllUntriaged(t *testing.T) {
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
-
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]map[types.Digest]paramtools.ParamSet{
 			testName: {
@@ -245,8 +239,6 @@ func TestGetRefDiffsNoPrevious(t *testing.T) {
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
 
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
-
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(map[types.TestName]map[types.Digest]paramtools.ParamSet{})
 
 	mis.On("DigestCountsByTest", types.ExcludeIgnoredTraces).Return(map[types.TestName]digest_counter.DigestCount{})
@@ -281,8 +273,6 @@ func TestGetRefDiffsMatches(t *testing.T) {
 	mds := &mock_diffstore.DiffStore{}
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
-
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]map[types.Digest]paramtools.ParamSet{
@@ -344,8 +334,6 @@ func TestGetRefDiffsMatchRHS(t *testing.T) {
 	mds := &mock_diffstore.DiffStore{}
 	defer mis.AssertExpectations(t)
 	defer mds.AssertExpectations(t)
-
-	mds.On("UnavailableDigests", testutils.AnyContext).Return(map[types.Digest]*diff.DigestFailure{}, nil)
 
 	mis.On("GetParamsetSummaryByTest", types.ExcludeIgnoredTraces).Return(
 		map[types.TestName]map[types.Digest]paramtools.ParamSet{

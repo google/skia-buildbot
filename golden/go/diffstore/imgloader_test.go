@@ -13,13 +13,11 @@ import (
 	"testing"
 
 	"cloud.google.com/go/storage"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/gcs/test_gcsclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
 	"go.skia.org/infra/golden/go/image/text"
 	one_by_five "go.skia.org/infra/golden/go/testutils/data_one_by_five"
@@ -202,13 +200,6 @@ func md5HashToBytes(md5Hash string) []byte {
 		panic(fmt.Sprintf("Failed to encode digest as MD5 bytes: %s", err))
 	}
 	return b
-}
-
-// diffFailureMatcher is necessary due to the timestamp stored in field DigestFailure.TS.
-func diffFailureMatcher(digest types.Digest, reason diff.DiffErr) interface{} {
-	return mock.MatchedBy(func(failure *diff.DigestFailure) bool {
-		return failure.Digest == digest && failure.Reason == reason
-	})
 }
 
 func TestGetGSRelPath(t *testing.T) {

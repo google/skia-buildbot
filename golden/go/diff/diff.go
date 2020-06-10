@@ -76,32 +76,6 @@ type DiffMetrics struct {
 	Diffs map[string]float32 `json:"diffs"`
 }
 
-// DiffErr indicates different error conditions during diffing.
-type DiffErr string
-
-const (
-	// HTTP related error occurred.
-	HTTP DiffErr = "http_error"
-)
-
-// DigestFailure captures the details of a digest error that occurred.
-type DigestFailure struct {
-	Digest types.Digest `json:"digest"`
-	Reason DiffErr      `json:"reason"`
-	TS     int64        `json:"ts"` // in milliseconds since the epoch
-}
-
-// NewDigestFailure is a convenience function to create an instance of DigestFailure.
-// It sets the provided arguments in the correct fields and adds a timestamp with
-// the current time in milliseconds.
-func NewDigestFailure(digest types.Digest, reason DiffErr) *DigestFailure {
-	return &DigestFailure{
-		Digest: digest,
-		Reason: reason,
-		TS:     util.TimeStampMs(),
-	}
-}
-
 // DiffStore defines an interface for a type that retrieves, stores and
 // diffs images. How it retrieves the images is up to the implementation.
 type DiffStore interface {
@@ -115,11 +89,6 @@ type DiffStore interface {
 	//        <urlPrefix>/images/<digests>.png
 	//        <urlPrefix>/diffs/<digest1>-<digests2>.png
 	ImageHandler(urlPrefix string) (http.Handler, error)
-
-	// UnavailableDigests returns map[digest]*DigestFailure which can be used
-	// to check whether a digest could not be processed and to provide details
-	// about failures.
-	UnavailableDigests(ctx context.Context) (map[types.Digest]*DigestFailure, error)
 
 	// PurgeDigests removes all information related to the indicated digests
 	// (image, diffmetric) from local caches. If purgeGCS is true it will also

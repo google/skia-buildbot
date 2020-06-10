@@ -58,19 +58,7 @@ func (d *DiffServiceImpl) GetDiffs(ctx context.Context, req *GetDiffsRequest) (*
 
 // UnavailableDigests wraps around the UnavailableDigests method of the underlying DiffStore.
 func (d *DiffServiceImpl) UnavailableDigests(ctx context.Context, req *Empty) (*UnavailableDigestsResponse, error) {
-	unavailable, err := d.diffStore.UnavailableDigests(ctx)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	ret := make(map[string]*DigestFailureResponse, len(unavailable))
-	for k, failure := range unavailable {
-		ret[string(k)] = &DigestFailureResponse{
-			Digest: string(failure.Digest),
-			Reason: string(failure.Reason),
-			TS:     failure.TS,
-		}
-	}
-	return &UnavailableDigestsResponse{DigestFailures: ret}, nil
+	return &UnavailableDigestsResponse{DigestFailures: map[string]*DigestFailureResponse{}}, nil
 }
 
 // PurgeDigests wraps around the PurgeDigests method of the underlying DiffStore.

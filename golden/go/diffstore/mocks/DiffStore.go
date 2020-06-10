@@ -77,26 +77,3 @@ func (_m *DiffStore) PurgeDigests(ctx context.Context, digests types.DigestSlice
 
 	return r0
 }
-
-// UnavailableDigests provides a mock function with given fields: ctx
-func (_m *DiffStore) UnavailableDigests(ctx context.Context) (map[types.Digest]*diff.DigestFailure, error) {
-	ret := _m.Called(ctx)
-
-	var r0 map[types.Digest]*diff.DigestFailure
-	if rf, ok := ret.Get(0).(func(context.Context) map[types.Digest]*diff.DigestFailure); ok {
-		r0 = rf(ctx)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[types.Digest]*diff.DigestFailure)
-		}
-	}
-
-	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}

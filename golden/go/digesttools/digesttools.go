@@ -55,8 +55,6 @@ type Impl struct {
 	expectations expectations.ReadOnly
 	dCounter     digest_counter.DigestCounter
 	diffStore    diff.DiffStore
-
-	cachedUnavailableDigests map[types.Digest]*diff.DigestFailure
 }
 
 // NewClosestDiffFinder returns a *Impl loaded with the given data sources.
@@ -70,24 +68,18 @@ func NewClosestDiffFinder(exp expectations.ReadOnly, dCounter digest_counter.Dig
 
 // Precompute implements the ClosestDiffFinder interface.
 func (i *Impl) Precompute(ctx context.Context) error {
-	var err error
-	i.cachedUnavailableDigests, err = i.diffStore.UnavailableDigests(ctx)
-	return skerr.Wrap(err)
+	return nil
 }
 
 // ClosestDigest implements the ClosestDiffFinder interface.
 func (i *Impl) ClosestDigest(ctx context.Context, test types.TestName, digest types.Digest, label expectations.Label) (*Closest, error) {
 	ret := newClosest()
 
-	if _, ok := i.cachedUnavailableDigests[digest]; ok {
-		return ret, nil
-	}
-
 	// Locate all digests that this test produces and match the given label.
 	selected := types.DigestSlice{}
 	testDigests := i.dCounter.ByTest()[test]
 	for d := range testDigests {
-		if _, ok := i.cachedUnavailableDigests[d]; !ok && (i.expectations.Classification(test, d) == label) {
+		if i.expectations.Classification(test, d) == label {
 			selected = append(selected, d)
 		}
 	}
