@@ -21,18 +21,5 @@
         ],
       },
     }],
-  ],
-  'variables': {
-    'command': [
-      'luci-auth',
-      'context',
-      '--',
-      '../../../bin/isolate_telemetry',
-      '-logtostderr',
-      '--run_id=<(RUN_ID)',
-      '--chromium_hash=<(CHROMIUM_HASH)',
-      '--patches=<(PATCHES)',
-      '--out=${ISOLATED_OUTDIR}',
-    ]
-  }
+  ]
 }
