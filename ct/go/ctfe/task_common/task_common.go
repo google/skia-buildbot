@@ -76,7 +76,7 @@ type CommonCols struct {
 type Task interface {
 	GetCommonCols() *CommonCols
 	RunsOnGCEWorkers() bool
-	TriggerSwarmingTaskAndMail(ctx context.Context) error
+	TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error
 	SendCompletionEmail(ctx context.Context, completedSuccessfully bool) error
 	GetTaskName() string
 	SetCompleted(success bool)
@@ -257,7 +257,7 @@ func TriggerTaskOnSwarming(ctx context.Context, task AddTaskVars, datastoreTask 
 		taskId := fmt.Sprintf("%s.%d", datastoreTask.GetTaskName(), datastoreTask.GetCommonCols().DatastoreKey.ID)
 		autoscaler.RegisterGCETask(taskId)
 	}
-	return datastoreTask.TriggerSwarmingTaskAndMail(ctx)
+	return datastoreTask.TriggerSwarmingTaskAndMail(ctx, swarm)
 }
 
 type QueryParams struct {

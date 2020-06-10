@@ -13,16 +13,6 @@
           '../../../bin/build_chromium',
           'py.isolate',
           'build_repo.isolate',
-        ],
-      'command': [
-        'luci-auth',
-        'context',
-        '--',
-        '../../../bin/build_chromium',
-        '-logtostderr',
-        '--target_platform=<(TARGET_PLATFORM)',
-        '--chromium_hash=<(CHROMIUM_HASH)',
-        '--skia_hash=<(SKIA_HASH)',
       ]},
     }],
   ]

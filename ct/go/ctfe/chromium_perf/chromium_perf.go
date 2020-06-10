@@ -21,6 +21,7 @@ import (
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
@@ -179,36 +180,41 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
-func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error {
+func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
-	isolateArgs := map[string]string{
-		"RUN_REQUESTER":                     task.Username,
-		"DESCRIPTION":                       task.Description,
-		"PAGESET_TYPE":                      task.PageSets,
-		"BENCHMARK":                         task.Benchmark,
-		"BENCHMARK_ARGS":                    task.BenchmarkArgs,
-		"BROWSER_EXTRA_ARGS_NOPATCH":        task.BrowserArgsNoPatch,
-		"BROWSER_EXTRA_ARGS_WITHPATCH":      task.BrowserArgsWithPatch,
-		"REPEAT_BENCHMARK":                  strconv.FormatInt(task.RepeatRuns, 10),
-		"RUN_IN_PARALLEL":                   strconv.FormatBool(task.RunInParallel),
-		"TARGET_PLATFORM":                   task.Platform,
-		"RUN_ON_GCE":                        strconv.FormatBool(task.RunsOnGCEWorkers()),
-		"CHROMIUM_HASH":                     task.ChromiumHash,
-		"RUN_ID":                            runID,
-		"TASK_PRIORITY":                     strconv.Itoa(task.TaskPriority),
-		"GROUP_NAME":                        task.GroupName,
-		"VALUE_COLUMN_NAME":                 task.ValueColumnName,
-		"CHROMIUM_PATCH_GS_PATH":            task.ChromiumPatchGSPath,
-		"SKIA_PATCH_GS_PATH":                task.SkiaPatchGSPath,
-		"V8_PATCH_GS_PATH":                  task.V8PatchGSPath,
-		"CATAPULT_PATCH_GS_PATH":            task.CatapultPatchGSPath,
-		"CHROMIUM_BASE_BUILD_PATCH_GS_PATH": task.ChromiumPatchBaseBuildGSPath,
-		"CUSTOM_WEBPAGES_CSV_GS_PATH":       task.CustomWebpagesGSPath,
+	cmd := []string{
+		"cipd_bin_packages/luci-auth",
+		"context",
+		"--",
+		"bin/run_chromium_perf_on_workers",
+		"-logtostderr",
+		"--run_requester=" + task.Username,
+		"--description=" + task.Description,
+		"--pageset_type=" + task.PageSets,
+		"--benchmark_name=" + task.Benchmark,
+		"--benchmark_extra_args=" + task.BenchmarkArgs,
+		"--browser_extra_args_nopatch=" + task.BrowserArgsNoPatch,
+		"--browser_extra_args_withpatch=" + task.BrowserArgsWithPatch,
+		"--repeat_benchmark=" + strconv.FormatInt(task.RepeatRuns, 10),
+		"--run_in_parallel=" + strconv.FormatBool(task.RunInParallel),
+		"--target_platform=" + task.Platform,
+		"--run_on_gce=" + strconv.FormatBool(task.RunsOnGCEWorkers()),
+		"--chromium_hash=" + task.ChromiumHash,
+		"--run_id=" + runID,
+		"--task_priority=" + strconv.Itoa(task.TaskPriority),
+		"--group_name=" + task.GroupName,
+		"--value_column_name=" + task.ValueColumnName,
+		"--chromium_patch_gs_path=" + task.ChromiumPatchGSPath,
+		"--skia_patch_gs_path=" + task.SkiaPatchGSPath,
+		"--v8_patch_gs_path=" + task.V8PatchGSPath,
+		"--catapult_patch_gs_path=" + task.CatapultPatchGSPath,
+		"--chromium_base_build_patch_gs_path=" + task.ChromiumPatchBaseBuildGSPath,
+		"--custom_webpages_csv_gs_path=" + task.CustomWebpagesGSPath,
 	}
-	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_chromium_perf_on_workers", ctutil.CHROMIUM_PERF_MASTER_ISOLATE, task_common.ServiceAccountFile, task.Platform, false, isolateArgs)
+	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "run_chromium_perf_on_workers", ctutil.CHROMIUM_PERF_MASTER_ISOLATE, task_common.ServiceAccountFile, task.Platform, false, cmd, swarmingClient)
 	if err != nil {
-		return fmt.Errorf("Could not trigger master script for run_chromium_perf_on_workers with isolate args %v: %s", isolateArgs, err)
+		return fmt.Errorf("Could not trigger master script for run_chromium_perf_on_workers with cmd %v: %s", cmd, err)
 	}
 	// Mark task as started in datastore.
 	if err := task_common.UpdateTaskSetStarted(ctx, runID, sTaskID, &task); err != nil {

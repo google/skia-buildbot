@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
 	"google.golang.org/api/iterator"
 )
@@ -138,24 +139,29 @@ func (task DatastoreTask) Get(c context.Context, key *datastore.Key) (task_commo
 	return t, nil
 }
 
-func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context) error {
+func (task DatastoreTask) TriggerSwarmingTaskAndMail(ctx context.Context, swarmingClient swarming.ApiClient) error {
 	runID := task_common.GetRunID(&task)
 	emails := task_common.GetEmailRecipients(task.Username, task.CCList)
-	isolateArgs := map[string]string{
-		"METRIC_NAME":               task.MetricName,
-		"ANALYSIS_OUTPUT_LINK":      task.AnalysisOutputLink,
-		"BENCHMARK_ARGS":            task.BenchmarkArgs,
-		"VALUE_COLUMN_NAME":         task.ValueColumnName,
-		"RUN_ID":                    runID,
-		"TASK_PRIORITY":             strconv.Itoa(task.TaskPriority),
-		"CHROMIUM_PATCH_GS_PATH":    task.ChromiumPatchGSPath,
-		"CATAPULT_PATCH_GS_PATH":    task.CatapultPatchGSPath,
-		"CUSTOM_TRACES_CSV_GS_PATH": task.CustomTracesGSPath,
+	cmd := []string{
+		"cipd_bin_packages/luci-auth",
+		"context",
+		"--",
+		"bin/metrics_analysis_on_workers",
+		"-logtostderr",
+		"--metric_name=" + task.MetricName,
+		"--analysis_output_link=" + task.AnalysisOutputLink,
+		"--benchmark_extra_args=" + task.BenchmarkArgs,
+		"--value_column_name=" + task.ValueColumnName,
+		"--run_id=" + runID,
+		"--task_priority=" + strconv.Itoa(task.TaskPriority),
+		"--chromium_patch_gs_path=" + task.ChromiumPatchGSPath,
+		"--catapult_patch_gs_path=" + task.CatapultPatchGSPath,
+		"--custom_traces_csv_gs_path=" + task.CustomTracesGSPath,
 	}
 
-	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "metrics_analysis_on_workers", ctutil.METRICS_ANALYSIS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, isolateArgs)
+	sTaskID, err := ctutil.TriggerMasterScriptSwarmingTask(ctx, runID, "metrics_analysis_on_workers", ctutil.METRICS_ANALYSIS_MASTER_ISOLATE, task_common.ServiceAccountFile, ctutil.PLATFORM_LINUX, false, cmd, swarmingClient)
 	if err != nil {
-		return fmt.Errorf("Could not trigger master script for metrics_analysis_on_workers with isolate args %v: %s", isolateArgs, err)
+		return fmt.Errorf("Could not trigger master script for metrics_analysis_on_workers with cmd %v: %s", cmd, err)
 	}
 	// Mark task as started in datastore.
 	if err := task_common.UpdateTaskSetStarted(ctx, runID, sTaskID, &task); err != nil {
