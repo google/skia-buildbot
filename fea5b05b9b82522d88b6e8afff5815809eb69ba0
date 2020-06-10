@@ -22,6 +22,30 @@
       "revId": "fea5b05b9b82522d88b6e8afff5815809eb69ba0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a4a03e6_94106ccf",
+        "filename": "golden/go/digesttools/digesttools.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-10T18:23:30Z",
+      "side": 1,
+      "message": "I expect this to go away with the new diffserver.",
+      "parentUuid": "d7d1df69_ba676f42",
+      "range": {
+        "startLine": 68,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 1
+      },
+      "revId": "fea5b05b9b82522d88b6e8afff5815809eb69ba0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
