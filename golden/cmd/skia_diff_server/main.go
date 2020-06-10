@@ -19,7 +19,6 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/diffstore"
-	"go.skia.org/infra/golden/go/diffstore/failurestore/fs_failurestore"
 	"go.skia.org/infra/golden/go/diffstore/metricsstore/fs_metricsstore"
 	"google.golang.org/api/option"
 	gstorage "google.golang.org/api/storage/v1"
@@ -113,10 +112,7 @@ func main() {
 	// Build metrics store.
 	mStore := fs_metricsstore.New(fsClient)
 
-	// Set up ImageLoader failure store.
-	fStore := fs_failurestore.New(fsClient)
-
-	memDiffStore, err := diffstore.NewMemDiffStore(gcsClient, *gsBaseDir, *cacheSize, mStore, fStore)
+	memDiffStore, err := diffstore.NewMemDiffStore(gcsClient, *gsBaseDir, *cacheSize, mStore)
 	if err != nil {
 		sklog.Fatalf("Allocating DiffStore failed: %s", err)
 	}
