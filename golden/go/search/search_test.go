@@ -2384,6 +2384,7 @@ func makeIndexWithIgnoreRules(t *testing.T, ignoreQueries ...string) *mock_index
 	si, err := indexer.SearchIndexForTesting(cpxTile,
 		[2]digest_counter.DigestCounter{filteredTileCount, fullTileCount},
 		[2]paramsets.ParamSummary{filteredTileSummary, fullTileSummary}, nil, nil)
+	require.NoError(t, err)
 	mi := &mock_index.IndexSource{}
 	mi.On("GetIndex").Return(si)
 	return mi
