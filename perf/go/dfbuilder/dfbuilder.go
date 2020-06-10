@@ -29,7 +29,7 @@ const (
 
 	// NEW_N_MAX_SEARCH is the minimum number of queries to perform that returned
 	// no data before giving up.
-	NEW_N_MAX_SEARCH = 10
+	NEW_N_MAX_SEARCH = 30
 )
 
 // builder implements DataFrameBuilder using btts.
