@@ -22,6 +22,30 @@
       "revId": "9869db3af94179e5ba0fd5681ba9707ae20d55b2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3c33f812_ba78a279",
+        "filename": "perf/modules/tricon2-sk/tricon2-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-06-10T18:11:18Z",
+      "side": 1,
+      "message": "Agree in general, but I\u0027m not going to start removing existing attributes now.",
+      "parentUuid": "03341c9f_018f0444",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 0
+      },
+      "revId": "9869db3af94179e5ba0fd5681ba9707ae20d55b2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
