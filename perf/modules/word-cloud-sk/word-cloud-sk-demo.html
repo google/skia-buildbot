@@ -1,24 +1,30 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>word-cloud-sk</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      section {
+        padding: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <section>
+      <h2>colors.css</h2>
+      <word-cloud-sk></word-cloud-sk>
+    </section>
 
-<head>
-  <title>word-cloud-sk</title>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
+    <section class="body-sk">
+      <h2>themes.css</h2>
+      <word-cloud-sk></word-cloud-sk>
+    </section>
 
-<body>
-  <word-cloud-sk></word-cloud-sk>
-  <script type="text/javascript" charset="utf-8">
-    let items = [
-      { value: "arch=x86", percent: 100 },
-      { value: "config=565", percent: 60 },
-      { value: "config=8888", percent: 50 },
-      { value: "arch=arm", percent: 20 },
-    ];
-    document.querySelector('word-cloud-sk').items = items;
-  </script>
-</body>
-
+    <section class="body-sk darkmode">
+      <h2>themes.css - darkmode</h2>
+      <word-cloud-sk></word-cloud-sk>
+    </section>
+  </body>
 </html>
