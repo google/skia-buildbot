@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "293dcdd2_2917bcd1",
+        "filename": "go/isolate/isolate.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 440,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-06-10T16:45:18Z",
+      "side": 1,
+      "message": "I think I\u0027d prefer that this be passed in as a parameter rather than hard-coding destination.",
+      "range": {
+        "startLine": 440,
+        "startChar": 20,
+        "endLine": 440,
+        "endChar": 65
+      },
+      "revId": "34c5535073f6218844318612844c06335f57777a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
