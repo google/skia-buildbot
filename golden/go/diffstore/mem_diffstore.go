@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/diffstore/common"
-	"go.skia.org/infra/golden/go/diffstore/failurestore"
 	"go.skia.org/infra/golden/go/diffstore/metricsstore"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/validation"
@@ -72,12 +71,12 @@ type MemDiffStore struct {
 // 'gigs' is the approximate number of gigs to use for caching. This is not the
 // exact amount memory that will be used, but a tuning parameter to increase
 // or decrease memory used. If 'gigs' is 0 nothing will be cached in memory.
-func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, mStore metricsstore.MetricsStore, fStore failurestore.FailureStore) (*MemDiffStore, error) {
+func NewMemDiffStore(client gcs.GCSClient, gsImageBaseDir string, gigs int, mStore metricsstore.MetricsStore) (*MemDiffStore, error) {
 	imageCacheCount, diffCacheCount := getCacheCounts(gigs)
 
 	// Set up image retrieval, caching and serving.
 	sklog.Debugf("Creating img loader with cache of size %d", imageCacheCount)
-	imgLoader, err := NewImgLoader(client, fStore, gsImageBaseDir, imageCacheCount)
+	imgLoader, err := NewImgLoader(client, gsImageBaseDir, imageCacheCount)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "creating img loader with dir %s", gsImageBaseDir)
 	}
@@ -142,7 +141,7 @@ func (m *MemDiffStore) Get(ctx context.Context, mainDigest types.Digest, rightDi
 
 // UnavailableDigests implements the DiffStore interface.
 func (m *MemDiffStore) UnavailableDigests(ctx context.Context) (map[types.Digest]*diff.DigestFailure, error) {
-	return m.imgLoader.failureStore.UnavailableDigests(ctx)
+	return nil, nil
 }
 
 // PurgeDigests implements the DiffStore interface.
@@ -177,7 +176,7 @@ func (m *MemDiffStore) PurgeDigests(ctx context.Context, digests types.DigestSli
 		return skerr.Wrapf(err, "purging diff metrics for %v", digests)
 	}
 
-	return m.imgLoader.failureStore.PurgeDigestFailures(ctx, digests)
+	return nil
 }
 
 // ImageHandler implements the DiffStore interface.
