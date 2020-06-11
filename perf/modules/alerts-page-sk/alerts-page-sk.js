@@ -12,14 +12,15 @@ import 'elements-sk/styles/buttons';
 import dialogPolyfill from 'dialog-polyfill';
 import { define } from 'elements-sk/define';
 import { errorMessage } from 'elements-sk/errorMessage';
-import { fromObject } from 'common-sk/modules/query';
+import { fromObject, toParamSet } from 'common-sk/modules/query';
 import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { Login } from '../../../infra-sk/modules/login';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
+import '../../../infra-sk/modules/paramset-sk';
+
 import '../alert-config-sk';
-import '../query-summary-sk';
 
 function _dryrunUrl(config) {
   return `/d/?${fromObject(config)}`;
@@ -33,7 +34,7 @@ const _rows = (ele) => ele._alerts.map((item) => html`
     <tr>
       <td><create-icon-sk title='Edit' @click=${ele._edit} .__config=${item} ?disabled=${!ele._email}></create-icon-sk></td>
       <td>${item.display_name}</td>
-      <td><query-summary-sk selection=${item.query}></query-summary-sk></td>
+      <td><paramset-sk .paramsets=${[toParamSet(item.query)]}></paramset-sk></td>
       <td>${item.alert}</td>
       <td>${item.owner}</td>
       <td><delete-icon-sk title='Delete' @click=${ele._delete} .__config=${item} ?disabled=${!ele._email}></delete-icon-sk></td>
