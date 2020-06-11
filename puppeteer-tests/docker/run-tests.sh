@@ -51,12 +51,6 @@ trap cleanup EXIT
 
 cp -r /src/.mocharc.json                 /tests
 
-mkdir /tests/common-sk
-cp -r /src/common-sk/package*            /tests/common-sk
-cp -r /src/common-sk/*.js                /tests/common-sk
-cp -r /src/common-sk/modules             /tests/common-sk
-cp -r /src/common-sk/plugins             /tests/common-sk
-
 mkdir /tests/infra-sk
 cp -r /src/infra-sk/package*             /tests/infra-sk
 cp -r /src/infra-sk/*.ts                 /tests/infra-sk
@@ -96,9 +90,6 @@ cp -r /src/ct/modules                    /tests/ct
 ################################################################################
 # Install node modules.                                                        #
 ################################################################################
-
-cd /tests/common-sk
-npm ci
 
 cd /tests/infra-sk
 npm ci
