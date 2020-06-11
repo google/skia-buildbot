@@ -29,7 +29,7 @@ const (
 
 	// NEW_N_MAX_SEARCH is the minimum number of queries to perform that returned
 	// no data before giving up.
-	NEW_N_MAX_SEARCH = 10
+	NEW_N_MAX_SEARCH = 50
 )
 
 // builder implements DataFrameBuilder using btts.
@@ -321,9 +321,11 @@ func (b *builder) NewNFromQuery(ctx context.Context, end time.Time, q *query.Que
 		// If there are no matches then we might be done.
 		if nonMissing == 0 {
 			numStepsNoData += 1
+		} else {
+			numStepsNoData = 0
 		}
 		if numStepsNoData > NEW_N_MAX_SEARCH {
-			sklog.Infof("Failed querying: %s", q)
+			sklog.Warningf("Did not complete querying: %q Total: %d Steps: %d NumStepsNoData: %d", q, total, steps, numStepsNoData)
 			break
 		}
 
@@ -452,6 +454,8 @@ func (b *builder) NewNFromKeys(ctx context.Context, end time.Time, keys []string
 		// If there are no matches then we might be done.
 		if nonMissing == 0 {
 			numStepsNoData += 1
+		} else {
+			numStepsNoData = 0
 		}
 		if numStepsNoData > NEW_N_MAX_SEARCH {
 			break

@@ -183,7 +183,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 			defer running.mutex.Unlock()
 			running.Finished = true
 			running.whenFinished = time.Now()
-			running.Message = "Dry run complete."
+			running.Message = "Dry run complete.\n" + running.Message
 		}()
 	}
 	resp := StartResponse{

@@ -17,7 +17,18 @@ import (
 // RegressionsForAlert looks for regressions to the given alert over the last
 // 'numContinuous' commits with data and periodically calls
 // clusterResponseProcessor with the results of checking each commit.
-func RegressionsForAlert(ctx context.Context, alert *alerts.Alert, domain types.Domain, ps paramtools.ParamSet, shortcutStore shortcut.Store, clusterResponseProcessor RegressionDetectionResponseProcessor, perfGit *perfgit.Git, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, stepProvider StepProvider) {
+func RegressionsForAlert(
+	ctx context.Context,
+	alert *alerts.Alert,
+	domain types.Domain,
+	ps paramtools.ParamSet,
+	shortcutStore shortcut.Store,
+	clusterResponseProcessor RegressionDetectionResponseProcessor,
+	perfGit *perfgit.Git,
+	cidl *cid.CommitIDLookup,
+	dfBuilder dataframe.DataFrameBuilder,
+	stepProvider StepProvider,
+) {
 	queriesCounter := metrics2.GetCounter("perf_clustering_queries", nil)
 	sklog.Infof("About to cluster for: %#v", *alert)
 

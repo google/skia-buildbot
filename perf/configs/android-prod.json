@@ -2,7 +2,7 @@
   "URL": "https://android-master-perf.skia.org",
   "data_store_config": {
     "datastore_type": "gcp",
-    "connection_string": "postgresql://root@perf-android-cockroachdb-public:26257/android?sslmode=disable",
+    "connection_string": "postgresql://root@localhost:26257/android?sslmode=disable",
     "tile_size": 8192,
     "project": "skia-public",
     "instance": "production",
@@ -24,7 +24,7 @@
   "git_repo_config": {
     "git_auth_type": "gerrit",
     "url": "https://skia.googlesource.com/perf-buildid/android-master",
-    "dir": "/tmp/repo",
+    "dir": "/tmp/android-perf",
     "debounce_commit_url": true
   }
 }
