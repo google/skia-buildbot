@@ -49,48 +49,49 @@ trap cleanup EXIT
 # The buildbot repository should be mounted at /src.                           #
 ################################################################################
 
-cp -r /src/.mocharc.json            /tests
+cp -r /src/.mocharc.json                 /tests
 
 mkdir /tests/common-sk
-cp -r /src/common-sk/package*       /tests/common-sk
-cp -r /src/common-sk/*.js           /tests/common-sk
-cp -r /src/common-sk/modules        /tests/common-sk
-cp -r /src/common-sk/plugins        /tests/common-sk
+cp -r /src/common-sk/package*            /tests/common-sk
+cp -r /src/common-sk/*.js                /tests/common-sk
+cp -r /src/common-sk/modules             /tests/common-sk
+cp -r /src/common-sk/plugins             /tests/common-sk
 
 mkdir /tests/infra-sk
-cp -r /src/infra-sk/package*        /tests/infra-sk
-cp -r /src/infra-sk/*.ts            /tests/infra-sk
-cp -r /src/infra-sk/modules         /tests/infra-sk
-cp -r /src/infra-sk/pulito          /tests/infra-sk
+cp -r /src/infra-sk/package*             /tests/infra-sk
+cp -r /src/infra-sk/*.ts                 /tests/infra-sk
+cp -r /src/infra-sk/modules              /tests/infra-sk
+cp -r /src/infra-sk/pulito               /tests/infra-sk
 
 mkdir /tests/puppeteer-tests
-cp -r /src/puppeteer-tests/package* /tests/puppeteer-tests
-cp -r /src/puppeteer-tests/*.js     /tests/puppeteer-tests
+cp -r /src/puppeteer-tests/package*      /tests/puppeteer-tests
+cp -r /src/puppeteer-tests/*.ts          /tests/puppeteer-tests
+cp -r /src/puppeteer-tests/tsconfig.json /tests/puppeteer-tests
 
 mkdir /tests/golden
-cp -r /src/golden/package*          /tests/golden
-cp -r /src/golden/webpack.config.ts /tests/golden
-cp -r /src/golden/tsconfig.json     /tests/golden
-cp -r /src/golden/modules           /tests/golden
-cp -r /src/golden/demo-page-assets  /tests/golden
+cp -r /src/golden/package*               /tests/golden
+cp -r /src/golden/webpack.config.ts      /tests/golden
+cp -r /src/golden/tsconfig.json          /tests/golden
+cp -r /src/golden/modules                /tests/golden
+cp -r /src/golden/demo-page-assets       /tests/golden
 
 mkdir /tests/perf
-cp -r /src/perf/package*            /tests/perf
-cp -r /src/perf/webpack.config.ts   /tests/perf
-cp -r /src/perf/tsconfig.json       /tests/perf
-cp -r /src/perf/modules             /tests/perf
+cp -r /src/perf/package*                 /tests/perf
+cp -r /src/perf/webpack.config.ts        /tests/perf
+cp -r /src/perf/tsconfig.json            /tests/perf
+cp -r /src/perf/modules                  /tests/perf
 
 mkdir /tests/am
-cp -r /src/am/package*              /tests/am
-cp -r /src/am/webpack.config.ts     /tests/am
-cp -r /src/am/tsconfig.json         /tests/am
-cp -r /src/am/modules               /tests/am
+cp -r /src/am/package*                   /tests/am
+cp -r /src/am/webpack.config.ts          /tests/am
+cp -r /src/am/tsconfig.json              /tests/am
+cp -r /src/am/modules                    /tests/am
 
 mkdir /tests/ct
-cp -r /src/ct/package*              /tests/ct
-cp -r /src/ct/webpack.config.ts     /tests/ct
-cp -r /src/ct/tsconfig.json         /tests/ct
-cp -r /src/ct/modules               /tests/ct
+cp -r /src/ct/package*                   /tests/ct
+cp -r /src/ct/webpack.config.ts          /tests/ct
+cp -r /src/ct/tsconfig.json              /tests/ct
+cp -r /src/ct/modules                    /tests/ct
 
 ################################################################################
 # Install node modules.                                                        #
@@ -125,7 +126,9 @@ npm ci
 export NODE_OPTIONS="--max-old-space-size=4096"
 
 cd /tests/puppeteer-tests
-npx mocha .
+npx mocha -r ts-node/register ./**/*_test.ts
+
+# The ./**/*_puppeteer_test.ts glob patterns below exclude the Karma tests.
 
 cd /tests/golden
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts

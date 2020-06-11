@@ -1,17 +1,26 @@
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const puppeteer = require('puppeteer');
-const webpack = require('webpack');
-const webpackDevMiddleware = require('webpack-dev-middleware');
+import express from 'express';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as http from 'http';
+import * as net from 'net';
+import puppeteer from 'puppeteer';
+import webpack from 'webpack';
+import webpackDevMiddleware from 'webpack-dev-middleware';
+
+/** A DOM event name. */
+export type EventName = string;
 
 /**
- * https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html#import-types
+ * Type of the function returned by addEventListenersToPuppeteerPage.
  *
- * @typedef { import("puppeteer").Browser } Browser
- * @typedef { import("puppeteer").Page } Page
- * @typedef { import("puppeteer").ElementHandle } ElementHandle
+ * It returns a promise that resolves when an event e of the given name is
+ * caught, and returns e.detail (assumed to be of type T).
+ *
+ * The generic type variable T is analogous to T in e.g. CustomEvent<T>.
+ *
+ * Note: this works for standard DOM events as well, not just custom events.
  */
+export type EventPromiseFactory = <T>(eventName: EventName) => Promise<T>;
 
 /**
  * This function allows tests to catch document-level events in a Puppeteer
@@ -26,58 +35,58 @@ const webpackDevMiddleware = require('webpack-dev-middleware');
  * event is caught. Multiple promises for the same event will be resolved in the
  * order that they were created, i.e. one caught event resolves the oldest
  * pending promise.
- *
- * @param {Page} page A Puppeteer page.
- * @param {Array<string>} eventNames Event names to listen to.
- * @return {Promise<Function>} Event promise builder function.
  */
-exports.addEventListenersToPuppeteerPage = async (page, eventNames) => {
+export const addEventListenersToPuppeteerPage = async (page: puppeteer.Page, eventNames: EventName[]) => {
   // Maps event names to FIFO queues of promise resolver functions.
-  const resolverFnQueues = {};
-  eventNames.forEach((eventName) => resolverFnQueues[eventName] = []);
+  const resolverFnQueues = new Map<EventName, Function[]>();
+  eventNames.forEach((eventName) => resolverFnQueues.set(eventName, []));
 
   // Use an unlikely prefix to reduce chances of name collision.
-  await page.exposeFunction('__pptr_onEvent', (eventName, eventDetail) => {
-    const resolverFn = resolverFnQueues[eventName].shift(); // Dequeue.
+  await page.exposeFunction('__pptr_onEvent', (eventName: EventName, eventDetail: any) => {
+    const resolverFn = resolverFnQueues.get(eventName)!.shift(); // Dequeue.
     if (resolverFn) { // Undefined if queue length was 0.
       resolverFn(eventDetail);
     }
   });
 
+  // This function will be executed inside the Puppeteer page for each of the
+  // events we want to listen for. It adds an event listener that will call the
+  // function we've exposed in the previous step.
+  const addEventListener = (name: EventName) => {
+    document.addEventListener(name, (event: Event) => {
+      (window as any).__pptr_onEvent(name, (event as any).detail);
+    });
+  };
+
   // Add an event listener for each one of the given events.
-  await eventNames.forEach(async (name) => {
-    await page.evaluateOnNewDocument((name) => {
-      document.addEventListener(name, (event) => {
-        window.__pptr_onEvent(name, event.detail);
-      });
-    }, name);
-  });
+  const promises = eventNames.map((name) => page.evaluateOnNewDocument(addEventListener, name));
+  await Promise.all(promises);
 
   // The returned function takes an event name and returns a promise that will
   // resolve to the event details when the event is caught.
-  return (eventName) => {
-    if (resolverFnQueues[eventName] === undefined) {
+  const eventPromiseFactory: EventPromiseFactory = (eventName: EventName) => {
+    if (!resolverFnQueues.has(eventName)) {
       // Fail if the event wasn't included in eventNames.
       throw new Error(`no event listener for "${eventName}"`);
     }
     return new Promise(
       // Enqueue resolver function at the end of the queue.
-      (resolve) => resolverFnQueues[eventName].push(resolve),
+      (resolve) => resolverFnQueues.get(eventName)!.push(resolve),
     );
   };
+
+  return eventPromiseFactory;
 };
 
 /**
  * Returns true if running from within a Docker container, or false otherwise.
- * @return {boolean}
  */
-exports.inDocker = () => fs.existsSync('/.dockerenv');
+export const inDocker = () => fs.existsSync('/.dockerenv');
 
 /**
  * Launches a Puppeteer browser with the right platform-specific arguments.
- * @return {Promise<Browser>}
  */
-exports.launchBrowser = () => puppeteer.launch(
+export const launchBrowser = () => puppeteer.launch(
   // See
   // https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker.
   exports.inDocker()
@@ -88,11 +97,22 @@ exports.launchBrowser = () => puppeteer.launch(
 /**
  * Returns the output directory where tests should e.g. save screenshots.
  * Screenshots saved in this directory will be uploaded to Gold.
- * @return {string}
  */
-exports.outputDir = () => (exports.inDocker()
+export const outputDir = () => (exports.inDocker()
   ? '/out'
   : path.join(__dirname, 'output')); // Resolves to //puppeteer-tests/output for local development.
+
+/**
+ * Type of the object returned by setUpPuppeteerAndDemoPageServer.
+ *
+ * A test suite should reuse this object in all its test cases. This object's
+ * fields will be automatically updated with a fresh page and base URL before
+ * each test case is executed.
+ */
+export interface TestBed {
+  page: puppeteer.Page;
+  baseUrl: string;
+};
 
 /**
  * This function sets up the before(Each) and after(Each) hooks required for
@@ -107,21 +127,18 @@ exports.outputDir = () => (exports.inDocker()
  * means to detect whether they are running within Puppeteer or not.
  *
  * Call this function at the beginning of a Mocha describe() block.
- *
- * @param {string} pathToWebpackConfigJs Path to the webpack.config.js file.
- * @return {{page: Page, baseUrl: string}} Test bed object.
  */
-exports.setUpPuppeteerAndDemoPageServer = (pathToWebpackConfigJs) => {
-  let browser;
-  let stopDemoPageServer;
-  const testBed = {
-    page: null,
-    baseUrl: null,
-  };
+export const setUpPuppeteerAndDemoPageServer = (pathToWebpackConfigTs: string): TestBed => {
+  let browser: puppeteer.Browser;
+  let stopDemoPageServer: () => Promise<void>;
+
+  // The test bed is initially empty and will be populated before each test
+  // case is executed.
+  const testBed: Partial<TestBed> = {};
 
   before(async () => {
     let baseUrl;
-    ({ baseUrl, stopDemoPageServer } = await exports.startDemoPageServer(pathToWebpackConfigJs));
+    ({ baseUrl, stopDemoPageServer } = await startDemoPageServer(pathToWebpackConfigTs));
     testBed.baseUrl = baseUrl; // Make baseUrl available to tests.
     browser = await exports.launchBrowser();
   });
@@ -133,20 +150,23 @@ exports.setUpPuppeteerAndDemoPageServer = (pathToWebpackConfigJs) => {
 
   beforeEach(async () => {
     testBed.page = await browser.newPage(); // Make page available to tests.
+
     // Tell demo pages this is a Puppeteer test. Demo pages should not fake RPC
     // latency, render animations or exhibit any other non-deterministic
     // behavior that could result in differences in the screenshots uploaded to
     // Gold.
-    await testBed.page.setCookie(
-      { url: testBed.baseUrl, name: 'puppeteer', value: 'true' },
-    );
+    await testBed.page.setCookie({
+      url: testBed.baseUrl,
+      name: 'puppeteer',
+      value: 'true'
+    });
   });
 
   afterEach(async () => {
-    await testBed.page.close();
+    await testBed.page!.close();
   });
 
-  return testBed;
+  return testBed as TestBed;
 };
 
 /**
@@ -159,49 +179,27 @@ exports.setUpPuppeteerAndDemoPageServer = (pathToWebpackConfigJs) => {
  * This function should be called once at the beginning of any test suite that
  * requires custom element demo pages. The returned function stopDemoPageServer
  * should be called at the end of the test suite.
- *
- * @param {string} pathToWebpackConfigJs Path to the webpack.config.js file.
- * @return {Promise<{baseUrl: string, stopDemoPageServer: function}>}
  */
-exports.startDemoPageServer = async (pathToWebpackConfigJs) => {
+export const startDemoPageServer = async (pathToWebpackConfigTs: string) => {
   // Load Webpack configuration.
-  const webpackConfigJs = require(pathToWebpackConfigJs);
-  const configuration = webpackConfigJs(null, { mode: 'development' });
-
-  // See https://webpack.js.org/configuration/mode/.
-  // TODO(lovisolo): This isn't necessary with the TypeScript Webpack configuration in
-  //                 //golden/pulito, and is kept for compatibility with Pulito's
-  //                 webpack.common.js. Remove once all Skia Infra apps are migrated to a
-  //                 TypeScript-based Webpack configuration.
-  configuration.mode = 'development';
-
-  // Quiet down the CleanWebpackPlugin.
-  // TODO(lovisolo): This is only necessary with Pulito's webpack.common.js. Remove once all
-  //                 Skia Infra apps are migrated to a TypeScript-based Webpack configuration.
-  configuration
-    .plugins
-    .filter((p) => p.constructor.name === 'CleanWebpackPlugin')
-    .forEach((p) => {
-      if (p.options) {
-        p.options.verbose = false;
-      }
-    });
+  const webpackConfigFactory = require(pathToWebpackConfigTs) as webpack.ConfigurationFactory;
+  const configuration = webpackConfigFactory('', { mode: 'development' }) as webpack.Configuration;
 
   // This is equivalent to running "npx webpack-dev-server" on the terminal.
   const middleware = webpackDevMiddleware(webpack(configuration), {
     logLevel: 'warn', // Do not print summary on startup.
-  });
+  } as any);
   await new Promise((resolve) => middleware.waitUntilValid(resolve));
 
   // Start an HTTP server on a random, unused port. Serve the above middleware.
   const app = express();
-  app.use(configuration.output.publicPath, middleware); // Serve on /dist.
-  let server;
+  app.use(configuration.output!.publicPath!, middleware); // Serve on e.g. /dist.
+  let server: http.Server;
   await new Promise((resolve) => { server = app.listen(0, resolve); });
 
   return {
     // Base URL for the demo page server.
-    baseUrl: `http://localhost:${server.address().port}`,
+    baseUrl: `http://localhost:${(server!.address() as net.AddressInfo).port}`,
 
     // Call this function to shut down the HTTP server after tests are finished.
     stopDemoPageServer: async () => {
@@ -220,12 +218,8 @@ exports.startDemoPageServer = async (pathToWebpackConfigJs) => {
  * The screenshot will be saved as <appName>_<testName>.png. Using the
  * application name as a prefix prevents name collisions between different apps
  * and increases consistency among test names.
- *
- * @param {Page | ElementHandle} handle Puppeteer Page or ElementHandle instance.
- * @param {string} appName Application name, e.g. 'gold'.
- * @param {string} testName Test name, e.g. 'my-component-sk_mouse-over'.
- * @return {Promise<Buffer>}
  */
-exports.takeScreenshot = (handle, appName, testName) => handle.screenshot({
-  path: path.join(exports.outputDir(), `${appName}_${testName}.png`),
+export const takeScreenshot =
+  (handle: puppeteer.Page | puppeteer.ElementHandle, appName: string, testName: string) =>
+    handle.screenshot({path: path.join(exports.outputDir(), `${appName}_${testName}.png`),
 });
