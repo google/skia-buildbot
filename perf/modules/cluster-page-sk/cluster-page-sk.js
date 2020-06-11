@@ -7,16 +7,18 @@
  */
 import { define } from 'elements-sk/define';
 import { errorMessage } from 'elements-sk/errorMessage';
-import { fromObject } from 'common-sk/modules/query';
+import { fromObject, toParamSet } from 'common-sk/modules/query';
 import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
+
 import 'elements-sk/spinner-sk';
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/styles/buttons';
 
+import '../../../infra-sk/modules/paramset-sk';
 import '../../../infra-sk/modules/sort-sk';
 import '../../../infra-sk/modules/query-sk';
 
@@ -25,7 +27,6 @@ import '../cluster-summary2-sk';
 import '../commit-detail-picker-sk';
 import '../day-range-sk';
 import '../query-count-sk';
-import '../query-summary-sk';
 
 const _summaryRows = (ele) => {
   const ret = ele._summaries.map((summary) => html`<cluster-summary2-sk .full_summary=${summary} notriage></cluster-summary2-sk>`);
@@ -77,7 +78,7 @@ const template = (ele) => html`
       ></query-sk>
     <div id=selections>
       <h3>Selections</h3>
-      <query-summary-sk id=summary selection=${ele._state.query}></query-summary-sk>
+      <paramset-sk id=summary .paramsets=${[toParamSet(ele._state.query)]}></paramset-sk>
       <div>
         Matches:
           <query-count-sk

@@ -9,6 +9,7 @@ import { errorMessage } from 'elements-sk/errorMessage';
 import { html } from 'lit-html';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
+import { toParamSet } from 'common-sk/modules/query';
 import dialogPolyfill from 'dialog-polyfill';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
@@ -27,7 +28,6 @@ import '../domain-picker-sk';
 import '../json-source-sk';
 import '../plot-simple-sk';
 import '../query-count-sk';
-import '../query-summary-sk';
 
 // MISSING_DATA_SENTINEL signifies a missing sample value.
 //
@@ -142,7 +142,7 @@ const template = (ele) => html`
         ></query-sk>
         <div id=selections>
           <h3>Selections</h3>
-          <query-summary-sk id=summary></query-summary-sk>
+          <paramset-sk id=summary></paramset-sk>
           <div class=query-counts>
             Matches: <query-count-sk url='/_/count/' @paramset-changed=${ele._paramsetChanged}>
             </query-count-sk>
@@ -455,7 +455,7 @@ define('explore-sk', class extends ElementSk {
   // Reflect the current query to the query summary.
   _queryChangeHandler(e) {
     const query = e.detail.q;
-    this._summary.selection = query;
+    this._summary.paramsets = [toParamSet(query)];
     const formula = this._formula.value;
     if (formula === '') {
       this._formula.value = `filter("${query}")`;
@@ -540,7 +540,7 @@ define('explore-sk', class extends ElementSk {
       const numQueries = this.state.queries.length;
       if (numQueries >= 1) {
         this._query.current_query = this.state.queries[numQueries - 1];
-        this._summary.selection = this.state.queries[numQueries - 1];
+        this._summary.paramsets = [toParamSet(this.state.queries[numQueries - 1])];
       }
       this._zeroChanged();
       this._autoRefreshChanged();
@@ -798,7 +798,7 @@ define('explore-sk', class extends ElementSk {
     this.state.keys = '';
     this._plot.removeAll();
     this._dataframe.traceset = {};
-    this._paramset.paramsets = {};
+    this._paramset.paramsets = [];
     this._trace_id.textContent = '';
     this._zoomRange = null;
     this._detailTab.selected = PARAMS_TAB_INDEX;
