@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3bbbcf4e_a337ef70",
+        "filename": "leasing/modules/leasing.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-06-11T19:33:12Z",
+      "side": 1,
+      "message": "Since you are here you could add \u0027coral\u0027 as \u0027Pixel 4XL\u0027.",
+      "revId": "e543f2b99914733e024a17240ca480b6b687d9e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
