@@ -38,42 +38,59 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../ElementSk';
+import { ParamSet } from 'common-sk/modules/query';
 
-const _paramsetValue = (ele, key, params) => params.map((value) => html`<div class=${ele._highlighted(key, value)} data-key=${key} data-value=${value}>${value}</div>`);
+export interface ParamSetSkClickEventDetail {
+  readonly key: string;
+  readonly value?: string;
+  readonly ctrl: boolean;
+};
 
-const _paramsetValues = (ele, key) => ele._paramsets.map((p) => html`<td>
-  ${_paramsetValue(ele, key, p[key] || [])}
-</td>`);
+export class ParamSetSk extends ElementSk {
 
-const _row = (ele, key) => html`
-  <tr>
-    <th data-key=${key}>${key}</th>
-    ${_paramsetValues(ele, key)}
-  </tr>`;
-
-const _rows = (ele) => ele._sortedKeys.map((key) => _row(ele, key));
-
-const _titles = (ele) => ele._normalizedTitles().map((t) => html`<th>${t}</th>`);
-
-const template = (ele) => html`
+  private static template = (ele: ParamSetSk) => html`
   <table @click=${ele._click} class=${ele._computeClass()}>
     <tbody>
       <tr>
         <th></th>
-        ${_titles(ele)}
+        ${ParamSetSk.titlesTemplate(ele)}
       </tr>
-      ${_rows(ele)}
+      ${ParamSetSk.rowsTemplate(ele)}
     </tbody>
   </table>
 `;
 
-define('paramset-sk', class extends ElementSk {
+  private static titlesTemplate =
+    (ele: ParamSetSk) => ele._normalizedTitles().map((t) => html`<th>${t}</th>`);
+
+  private static rowsTemplate =
+    (ele: ParamSetSk) => ele._sortedKeys.map((key) => ParamSetSk.rowTemplate(ele, key));
+
+  private static rowTemplate = (ele: ParamSetSk, key: string) =>
+    html`
+    <tr>
+      <th data-key=${key}>${key}</th>
+      ${ParamSetSk.paramsetValuesTemplate(ele, key)}
+    </tr>`;
+
+  private static paramsetValuesTemplate =
+    (ele: ParamSetSk, key: string) =>
+      ele._paramsets.map(
+        (p) => html`<td>${ParamSetSk.paramsetValueTemplate(ele, key, p[key] || [])}</td>`);
+
+  private static paramsetValueTemplate =
+    (ele: ParamSetSk, key: string, params: string[]) =>
+      params.map((value) => html`<div class=${ele._highlighted(key, value)}
+                                      data-key=${key}
+                                      data-value=${value}>${value}</div>`);
+
+  private _titles: string[] = [];
+  private _paramsets: ParamSet[] = [];
+  private _sortedKeys: string[] = [];
+  private _highlight: { [key: string]: string } = {};
+
   constructor() {
-    super(template);
-    this._titles = [];
-    this._paramsets = [];
-    this._sortedKeys = [];
-    this._highlight = {};
+    super(ParamSetSk.template);
   }
 
   connectedCallback() {
@@ -85,7 +102,7 @@ define('paramset-sk', class extends ElementSk {
     this._render();
   }
 
-  _computeClass() {
+  private _computeClass() {
     if (this.clickable_values) {
       return 'clickable_values';
     } if (this.clickable) {
@@ -94,15 +111,15 @@ define('paramset-sk', class extends ElementSk {
     return '';
   }
 
-  _highlighted(key, value) {
+  private _highlighted(key: string, value: string) {
     return this._highlight[key] === value ? 'highlight' : '';
   }
 
-  _click(e) {
+  private _click(e: MouseEvent) {
     if (!this.clickable && !this.clickable_values) {
       return;
     }
-    const t = e.target;
+    const t = e.target as HTMLElement;
     if (!t.dataset.key) {
       return;
     }
@@ -110,21 +127,21 @@ define('paramset-sk', class extends ElementSk {
       if (!this.clickable) {
         return;
       }
-      const detail = {
+      const detail: ParamSetSkClickEventDetail = {
         key: t.dataset.key,
         ctrl: e.ctrlKey,
       };
-      this.dispatchEvent(new CustomEvent('paramset-key-click', {
+      this.dispatchEvent(new CustomEvent<ParamSetSkClickEventDetail>('paramset-key-click', {
         detail,
         bubbles: true,
       }));
     } else if (t.nodeName === 'DIV') {
-      const detail = {
+      const detail: ParamSetSkClickEventDetail = {
         key: t.dataset.key,
         value: t.dataset.value,
         ctrl: e.ctrlKey,
       };
-      this.dispatchEvent(new CustomEvent('paramset-key-value-click', {
+      this.dispatchEvent(new CustomEvent<ParamSetSkClickEventDetail>('paramset-key-value-click', {
         detail,
         bubbles: true,
       }));
@@ -135,7 +152,7 @@ define('paramset-sk', class extends ElementSk {
     return ['clickable', 'clickable_values'];
   }
 
-  /** @prop clickable {string} Mirrors the clickable attribute.  */
+  /** Mirrors the clickable attribute.  */
   get clickable() { return this.hasAttribute('clickable'); }
 
   set clickable(val) {
@@ -146,7 +163,7 @@ define('paramset-sk', class extends ElementSk {
     }
   }
 
-  /** @prop clickable_values {string} Mirrors the clickable_values attribute.  */
+  /** Mirrors the clickable_values attribute.  */
   get clickable_values() { return this.hasAttribute('clickable_values'); }
 
   set clickable_values(val) {
@@ -161,7 +178,10 @@ define('paramset-sk', class extends ElementSk {
     this._render();
   }
 
-  /** @prop titles {Array<String>} Array that represents the title of the columns. */
+  /**
+   * Titles for the ParamSets to display. The number of titles must match the
+   * number of ParamSets, otherwise no titles will be shown.
+   */
   get titles() { return this._titles; }
 
   set titles(val) {
@@ -171,36 +191,37 @@ define('paramset-sk', class extends ElementSk {
 
   // Returns the titles specified by the user, or an empty title for each paramset
   // if the number of specified titles and the number of paramsets don't match.
-  _normalizedTitles() {
+  private _normalizedTitles() {
     if (this._titles.length === this._paramsets.length) {
       return this._titles;
     }
-    return new Array(this._paramsets.length).fill('');
+    return new Array<string>(this._paramsets.length).fill('');
   }
 
-  /** @prop paramsets {Object} An array of serialized paramtools.ParamSets. */
+  /** ParamSets to display. */
   get paramsets() { return this._paramsets; }
 
   set paramsets(val) {
     this._paramsets = val;
 
     // Compute a rolled up set of all parameter keys across all paramsets.
-    const allKeys = {};
+    const allKeys = new Set<string>();
     this._paramsets.forEach((p) => {
       Object.keys(p).forEach((key) => {
-        allKeys[key] = true;
+        allKeys.add(key);
       });
     });
-    this._sortedKeys = Object.keys(allKeys);
-    this._sortedKeys.sort();
+    this._sortedKeys = Array.from(allKeys).sort();
     this._render();
   }
 
-  /** @prop highlight {Object} A serialized paramtools.Params.  */
+  /** A serialized paramtools.Params indicating the entries to highlight. */
   get highlight() { return this._highlight; }
 
   set highlight(val) {
     this._highlight = val;
     this._render();
   }
-});
+};
+
+define('paramset-sk', ParamSetSk);
