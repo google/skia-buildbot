@@ -10,7 +10,8 @@ import subprocess
 
 
 def _MakeFileFilter(input_api, include_extensions=None,
-                    exclude_extensions=None):
+                    exclude_extensions=None,
+                    exclude_filenames=None):
   """Return a filter to pass to AffectedSourceFiles.
 
   The filter will include all files with a file extension in include_extensions,
@@ -23,12 +24,18 @@ def _MakeFileFilter(input_api, include_extensions=None,
   if include_extensions:
     white_list = [input_api.re.compile(r'.+\.%s$' % ext)
                   for ext in include_extensions]
-  # If black_list is empty, the InputApi default is used, so always include at
-  # least one regexp.
-  black_list = [input_api.re.compile(r'^$')]
+  black_list = []
   if exclude_extensions:
     black_list = [input_api.re.compile(r'.+\.%s$' % ext)
                   for ext in exclude_extensions]
+  if exclude_filenames:
+    black_list += [input_api.re.compile(r'.*%s$' % filename.replace('.', '\.'))
+                   for filename in exclude_filenames]
+  if len(black_list) == 0:
+    # If black_list is empty, the InputApi default is used, so always include at
+    # least one regexp.
+    black_list = [input_api.re.compile(r'^$')]
+
   return lambda x: input_api.FilterSourceFile(x, white_list=white_list,
                                               black_list=black_list)
 
@@ -207,9 +214,11 @@ def CheckChange(input_api, output_api):
 
   # Use 100 for max length for files other than python. Python length is
   # already checked during the Pylint above. No max length for Go files.
-  IGNORE_LINE_LENGTH = ['go', 'html', 'py']
+  IGNORE_LINE_LENGTH_EXTS = ['go', 'html', 'py']
+  IGNORE_LINE_LENGTH_FILENAMES = ['package-lock.json']
   file_filter = _MakeFileFilter(input_api,
-                                exclude_extensions=IGNORE_LINE_LENGTH)
+                                exclude_extensions=IGNORE_LINE_LENGTH_EXTS,
+                                exclude_filenames=IGNORE_LINE_LENGTH_FILENAMES)
   results += input_api.canned_checks.CheckLongLines(input_api, output_api, 100,
       source_file_filter=file_filter)
 
