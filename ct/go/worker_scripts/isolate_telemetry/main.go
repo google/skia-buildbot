@@ -88,7 +88,7 @@ func buildRepo() error {
 	}
 	defer skutil.RemoveAll(workDir)
 	// Create isolate client.
-	i, err := isolate.NewLegacyClient(workDir, isolate.ISOLATE_SERVER_URL_PRIVATE)
+	i, err := isolate.NewClient(workDir, isolate.ISOLATE_SERVER_URL_PRIVATE)
 	if err != nil {
 		return fmt.Errorf("Failed to create isolate client: %s", err)
 	}
