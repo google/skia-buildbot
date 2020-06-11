@@ -1,0 +1,343 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f2eb918a_3a084a6b",
+        "filename": "golden/go/publicparams/publicparams.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-11T20:34:27Z",
+      "side": 1,
+      "message": "Nit: Reusing the previous \"ok\" is probably fine.",
+      "range": {
+        "startLine": 36,
+        "startChar": 15,
+        "endLine": 36,
+        "endChar": 23
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32f04026_104853f0",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-11T20:34:27Z",
+      "side": 1,
+      "message": "Let\u0027s limit greek letters to one thing only (the corpus), otherwise things become a bit confusing to read.\n\nModels, SDKs and tests can be defined as:\n\n  model1 \u003d \"model1\"\n  model2 \u003d \"model2\"\n  sdk1 \u003d \"sdk1\"\n  ...\n  test1 \u003d \"test1\"\n  ...\n\nAny other naming scheme is fine as long as things of different kinds are completely distinct.\n\nOn second thought, I don\u0027t think defining these constants is necessary. Using raw strings in the test cases is probably fine, especially considering they\u0027re defined all in one single place, and the constants aren\u0027t used for anything else. But the naming suggestion still holds.",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 20
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "429a4ca4_c70dce3d",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-11T20:34:27Z",
+      "side": 1,
+      "message": "Since these are effectively test cases, I would recommend sticking to the same naming rules we use for any other test cases. In particular:\n\n- Name these after the behavior/rule under test, rather than the names of the keys/values.\n- Include the expected outcome in the test name. Currently the reader needs to scroll down to the test function to get this information.\n- Use a consistent naming pattern, e.g. \u003ccorpus\u003e_\u003cother key/values\u003e_\u003cexpected outcome\u003e.\n\nSuggested name for the highlighted test case:\n  knownCorpus_unknownKey_valid",
+      "range": {
+        "startLine": 48,
+        "startChar": 1,
+        "endLine": 48,
+        "endChar": 12
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5205598e_c1298430",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-11T20:34:27Z",
+      "side": 1,
+      "message": "knownCorpus_knownKeyValue_unknownKey_valid",
+      "range": {
+        "startLine": 49,
+        "startChar": 1,
+        "endLine": 49,
+        "endChar": 20
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc84b2c9_0f17fcf5",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-11T20:34:27Z",
+      "side": 1,
+      "message": "knownCorpus_knownKeyValue2_unknownKey_valid",
+      "range": {
+        "startLine": 50,
+        "startChar": 1,
+        "endLine": 50,
+        "endChar": 21
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ac10852_0aaba372",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-11T20:34:27Z",
+      "side": 1,
+      "message": "knownCorpus_keyValuePairKnownToAnotherCorpus_valid",
+      "range": {
+        "startLine": 52,
+        "startChar": 1,
+        "endLine": 52,
+        "endChar": 26
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "33e6c411_7a4edeb3",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-11T20:34:27Z",
+      "side": 1,
+      "message": "knownCorpus_knownKeyUnknownValue_invalid",
+      "range": {
+        "startLine": 54,
+        "startChar": 1,
+        "endLine": 54,
+        "endChar": 28
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13a153fd_e7092833",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-11T20:34:27Z",
+      "side": 1,
+      "message": "knownCorpus_knownKeyUnknownValue2_invalid",
+      "range": {
+        "startLine": 55,
+        "startChar": 1,
+        "endLine": 55,
+        "endChar": 28
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bbfc4b49_79feeea6",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-11T20:34:27Z",
+      "side": 1,
+      "message": "knownCorpus_multipleKnownKeysWithUnknownValues_invalid",
+      "range": {
+        "startLine": 56,
+        "startChar": 1,
+        "endLine": 56,
+        "endChar": 28
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85fb7a22_25fc3841",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-11T20:34:27Z",
+      "side": 1,
+      "message": "unknownCorpus_keyValuePairsKnownToAnotherCorpus_invalid",
+      "range": {
+        "startLine": 57,
+        "startChar": 1,
+        "endLine": 57,
+        "endChar": 28
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "234ec901_494355a4",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-11T20:34:27Z",
+      "side": 1,
+      "message": "knownCorpus_missingKnownKey_invalid",
+      "range": {
+        "startLine": 59,
+        "startChar": 1,
+        "endLine": 59,
+        "endChar": 28
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d49df68_470cb837",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-11T20:34:27Z",
+      "side": 1,
+      "message": "knownCorpus_missingMultipleKnownKeys_invalid",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 60,
+        "endChar": 28
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79adc1cd_80176e10",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-11T20:34:27Z",
+      "side": 1,
+      "message": "noCorpus_keyValuePairKnownToAnotherCorpus_invalid",
+      "range": {
+        "startLine": 61,
+        "startChar": 1,
+        "endLine": 61,
+        "endChar": 28
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f96247cf_92a8fc06",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-11T20:34:27Z",
+      "side": 1,
+      "message": "knownCorpus_knownKeyEmptyValue_invalid",
+      "range": {
+        "startLine": 63,
+        "startChar": 1,
+        "endLine": 63,
+        "endChar": 26
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8fb4ed5_c19208db",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-11T20:34:27Z",
+      "side": 1,
+      "message": "Nit: Please add an empty line before the assert.True block.",
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
