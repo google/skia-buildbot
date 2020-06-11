@@ -2,6 +2,7 @@ package regression
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"time"
 
@@ -54,7 +55,14 @@ func (d *dataframeSlicer) Value(ctx context.Context) (*dataframe.DataFrame, erro
 // dataframe of req.Alert.Radius around the specified commit. Otherwise it
 // returns a series of dataframes of size 2*req.Alert.Radius+1 sliced from a
 // single dataframe of size req.Domain.N.
-func NewDataFrameIterator(ctx context.Context, progress types.Progress, req *RegressionDetectionRequest, dfBuilder dataframe.DataFrameBuilder, perfGit *perfgit.Git) (DataFrameIterator, error) {
+func NewDataFrameIterator(
+	ctx context.Context,
+	progress types.Progress,
+	req *RegressionDetectionRequest,
+	dfBuilder dataframe.DataFrameBuilder,
+	perfGit *perfgit.Git,
+	regressionStateCallback ProgressCallback,
+) (DataFrameIterator, error) {
 	u, err := url.ParseQuery(req.Query)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -67,6 +75,9 @@ func NewDataFrameIterator(ctx context.Context, progress types.Progress, req *Reg
 	if req.Domain.Offset == 0 {
 		df, err = dfBuilder.NewNFromQuery(ctx, req.Domain.End, q, req.Domain.N, progress)
 		if err != nil {
+			if regressionStateCallback != nil {
+				regressionStateCallback("Failed querying the data due to an internal error.")
+			}
 			return nil, skerr.Wrapf(err, "Failed to build dataframe iterator source dataframe")
 		}
 	} else {
@@ -77,12 +88,25 @@ func NewDataFrameIterator(ctx context.Context, progress types.Progress, req *Reg
 		// Need to find an End time, which is the commit time of the commit at Offset+Radius.
 		commit, err := perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(int(req.Domain.Offset)+req.Alert.Radius-1))
 		if err != nil {
+			if regressionStateCallback != nil {
+				regressionStateCallback(fmt.Sprintf("Not a valid commit number %d. Make sure you choose a commit old enough to have Radius results before and after it.", int(req.Domain.Offset)+req.Alert.Radius-1))
+			}
+
 			return nil, skerr.Wrapf(err, "Failed to look up CommitNumber of a single cluster request")
 		}
 		df, err = dfBuilder.NewNFromQuery(ctx, time.Unix(commit.Timestamp, 0), q, n, progress)
 		if err != nil {
+			if regressionStateCallback != nil {
+				regressionStateCallback("Failed querying the data due to an internal error.")
+			}
 			return nil, skerr.Wrapf(err, "Failed to build dataframe iterator source dataframe.")
 		}
+	}
+	if len(df.Header) < int(2*req.Alert.Radius+1) {
+		if regressionStateCallback != nil {
+			regressionStateCallback(fmt.Sprintf("Query didn't return enough data points: Got %d. Want %d.", len(df.Header), 2*req.Alert.Radius+1))
+		}
+		return nil, skerr.Fmt("Query didn't return enough data points: Got %d. Want %d.", len(df.Header), 2*req.Alert.Radius+1)
 	}
 	return &dataframeSlicer{
 		df:     df,

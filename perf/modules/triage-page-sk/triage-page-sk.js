@@ -46,7 +46,7 @@ const _statusItems = (ele) => ele._currentClusteringStatus.map((item) => html`
     </tr>
     <tr>
       <th>Step</th>
-      <td>${item.step}/${item.total}</td>
+      <td>${item.message}</td>
     </tr>
   </table>
 `);

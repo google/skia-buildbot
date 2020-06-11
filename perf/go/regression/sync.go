@@ -14,8 +14,17 @@ import (
 type RegressionDetectionResponseProcessor func(*RegressionDetectionRequest, []*RegressionDetectionResponse, string)
 
 // Run takes a RegressionDetectionRequest and runs it to completion before returning the results.
-func Run(ctx context.Context, req *RegressionDetectionRequest, perfGit *perfgit.Git, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) ([]*RegressionDetectionResponse, error) {
-	proc, err := newProcess(ctx, req, perfGit, cidl, dfBuilder, shortcutStore, responseProcessor)
+func Run(
+	ctx context.Context,
+	req *RegressionDetectionRequest,
+	perfGit *perfgit.Git,
+	cidl *cid.CommitIDLookup,
+	dfBuilder dataframe.DataFrameBuilder,
+	shortcutStore shortcut.Store,
+	responseProcessor RegressionDetectionResponseProcessor,
+	progressCallback ProgressCallback,
+) ([]*RegressionDetectionResponse, error) {
+	proc, err := newProcess(ctx, req, perfGit, cidl, dfBuilder, shortcutStore, responseProcessor, progressCallback)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to start new regression detection process: %s", err)
 	}

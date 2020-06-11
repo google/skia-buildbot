@@ -44,17 +44,15 @@ type ConfigProvider func() ([]*alerts.Alert, error)
 // It is passed to NewContinuous.
 type ParamsetProvider func() paramtools.ParamSet
 
-// StepProvider if a func that's called to return the current step within a
-// config we're clustering and the query being executed.
-type StepProvider func(step, total int, query string)
+// ProgressCallback if a func that's called to return information on a currently running process.
+type ProgressCallback func(message string)
 
 // Current state of looking for regressions, i.e. the current commit and alert
 // being worked on.
 type Current struct {
-	Commit *cid.CommitDetail `json:"commit"`
-	Alert  *alerts.Alert     `json:"alert"`
-	Step   int               `json:"step"`
-	Total  int               `json:"total"`
+	Commit  *cid.CommitDetail `json:"commit"`
+	Alert   *alerts.Alert     `json:"alert"`
+	Message string            `json:"message"`
 }
 
 // Continuous is used to run clustering on the last numCommits commits and
@@ -186,11 +184,10 @@ func (c *Continuous) setCurrentConfig(cfg *alerts.Alert) {
 	c.current.Alert = cfg
 }
 
-func (c *Continuous) setCurrentStep(step, total int, query string) {
+func (c *Continuous) progressCallback(message string) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	c.current.Step = step
-	c.current.Total = total
+	c.current.Message = message
 }
 
 // configsAndParamset is the type of channel that feeds Continuous.Run().
@@ -432,7 +429,7 @@ func (c *Continuous) Run(ctx context.Context) {
 				N:   int32(c.numCommits),
 				End: time.Time{},
 			}
-			RegressionsForAlert(ctx, cfg, domain, cnp.paramset, c.shortcutStore, clusterResponseProcessor, c.perfGit, c.cidl, c.dfBuilder, c.setCurrentStep)
+			RegressionsForAlert(ctx, cfg, domain, cnp.paramset, c.shortcutStore, clusterResponseProcessor, c.perfGit, c.cidl, c.dfBuilder, c.progressCallback)
 			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()

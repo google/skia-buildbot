@@ -2,6 +2,7 @@ package regression
 
 import (
 	"context"
+	"fmt"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
@@ -15,9 +16,20 @@ import (
 )
 
 // RegressionsForAlert looks for regressions to the given alert over the last
-// 'numContinuous' commits with data and periodically calls
-// clusterResponseProcessor with the results of checking each commit.
-func RegressionsForAlert(ctx context.Context, alert *alerts.Alert, domain types.Domain, ps paramtools.ParamSet, shortcutStore shortcut.Store, clusterResponseProcessor RegressionDetectionResponseProcessor, perfGit *perfgit.Git, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, stepProvider StepProvider) {
+// domain.N commits with data and periodically calls clusterResponseProcessor
+// with the results of checking each commit.
+func RegressionsForAlert(
+	ctx context.Context,
+	alert *alerts.Alert,
+	domain types.Domain,
+	ps paramtools.ParamSet,
+	shortcutStore shortcut.Store,
+	clusterResponseProcessor RegressionDetectionResponseProcessor,
+	perfGit *perfgit.Git,
+	cidl *cid.CommitIDLookup,
+	dfBuilder dataframe.DataFrameBuilder,
+	progressCallback ProgressCallback,
+) {
 	queriesCounter := metrics2.GetCounter("perf_clustering_queries", nil)
 	sklog.Infof("About to cluster for: %#v", *alert)
 
@@ -31,8 +43,8 @@ func RegressionsForAlert(ctx context.Context, alert *alerts.Alert, domain types.
 	}
 	sklog.Infof("Config expanded into %d queries.", len(queries))
 	for step, q := range queries {
-		if stepProvider != nil {
-			stepProvider(step, len(queries), q)
+		if progressCallback != nil {
+			progressCallback(fmt.Sprintf("Step %d/%d\nQuery: %q", step+1, len(queries), q))
 		}
 		sklog.Infof("Clustering for query: %q", q)
 
@@ -44,7 +56,7 @@ func RegressionsForAlert(ctx context.Context, alert *alerts.Alert, domain types.
 			Step:         step,
 			TotalQueries: len(queries),
 		}
-		_, err := Run(ctx, req, perfGit, cidl, dfBuilder, shortcutStore, clusterResponseProcessor)
+		_, err := Run(ctx, req, perfGit, cidl, dfBuilder, shortcutStore, clusterResponseProcessor, progressCallback)
 		if err != nil {
 			sklog.Warningf("Failed while clustering %v %s", *req, err)
 			continue
