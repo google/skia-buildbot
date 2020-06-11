@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "74f13e91_21000cbd",
+        "filename": "infra-sk/modules/paramset-sk/paramset-sk.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-11T12:49:50Z",
+      "side": 1,
+      "message": "Array\u003cString\u003e ?",
+      "range": {
+        "startLine": 166,
+        "startChar": 20,
+        "endLine": 166,
+        "endChar": 26
+      },
+      "revId": "3631d7971a9cd2b00080a075ff0117cd0ab3ecc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
