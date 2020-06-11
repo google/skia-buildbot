@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
 	"golang.org/x/oauth2"
 	gstorage "google.golang.org/api/storage/v1"
@@ -30,7 +29,6 @@ import (
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
@@ -53,6 +51,7 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/ignore/fs_ignorestore"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/publicparams"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/status"
@@ -312,7 +311,7 @@ func main() {
 
 	baseliner := simple_baseliner.New(expStore)
 
-	publiclyViewableParams := paramtools.ParamSet{}
+	var publiclyViewableParams publicparams.Matcher
 	// Load the publiclyViewable params if configured and disable querying for issues.
 	if *pubWhiteList != "" && *pubWhiteList != everythingPublic {
 		if publiclyViewableParams, err = loadParamFile(*pubWhiteList); err != nil {
@@ -627,32 +626,15 @@ func startCommenter(ctx context.Context, cmntr code_review.ChangeListCommenter) 
 // loadParamFile loads the given JSON5 file that defines the query to
 // make traces publicly viewable. If the given file is empty or otherwise
 // cannot be parsed an error will be returned.
-func loadParamFile(fName string) (paramtools.ParamSet, error) {
-	params := paramtools.ParamSet{}
-
-	f, err := os.Open(fName)
+func loadParamFile(fName string) (publicparams.Matcher, error) {
+	b, err := ioutil.ReadFile(fName)
 	if err != nil {
-		return params, skerr.Wrapf(err, "unable open file %s", fName)
-	}
-	defer util.Close(f)
-
-	if err := json5.NewDecoder(f).Decode(&params); err != nil {
-		return params, skerr.Wrapf(err, "invalid JSON5 in %s", fName)
-	}
-
-	// Make sure the param file is not empty.
-	empty := true
-	for _, values := range params {
-		if empty = len(values) == 0; !empty {
-			break
-		}
-	}
-	if empty {
-		return params, skerr.Fmt("publicly viewable params in %s cannot be empty.", fName)
+		return nil, skerr.Wrapf(err, "reading file %s", fName)
 	}
 	sklog.Infof("publicly viewable params loaded from %s", fName)
-	sklog.Debugf("%#v", params)
-	return params, nil
+	sklog.Debugf("%s", string(b))
+
+	return publicparams.MatcherFromJSON(b)
 }
 
 const basicCLTemplate = `Gold has detected about %d untriaged digest(s) on patchset %d.
