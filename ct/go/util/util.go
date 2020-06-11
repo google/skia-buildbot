@@ -1001,6 +1001,7 @@ func TriggerIsolateTelemetrySwarmingTask(ctx context.Context, taskName, runID, c
 	dimensions := GCE_LINUX_BUILDER_DIMENSIONS
 	osType := "linux"
 	cipdPkgs := []string{}
+	cipdPkgs = append(cipdPkgs, cipd.GetStrCIPDPkgs(specs.CIPD_PKGS_ISOLATE)...)
 	if targetPlatform == PLATFORM_WINDOWS {
 		dimensions = GCE_WINDOWS_BUILDER_DIMENSIONS
 		osType = "win"
