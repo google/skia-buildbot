@@ -48,7 +48,6 @@
 
 <link rel=import href="../common/imp/commit-picker.html">
 
-<link rel="import" href="query-dialog-sk.html">
 <link rel="import" href="select-popup-sk.html">
 <link rel="import" href="shared-styles.html">
 
@@ -201,7 +200,7 @@
         <paper-button id="editButton" raised dialog-dismiss>Filter</paper-button>
       </div>
     </paper-dialog>
-    <query-dialog-sk id="rightQueryDialog" submit-label="Select"></query-dialog-sk>
+    <query-dialog-sk id="rightQueryDialog"></query-dialog-sk>
   </template>
   <script>
     (function() {
@@ -238,6 +237,7 @@
           //this.listen(this.$.paramsSelect, 'changed-selection', '_handleMatchChanged');
           this.listen(this.$.rightQueryButton, 'tap', '_handleRightQueryButton');
           this.listen(this.$.rightQueryDialog, 'edit', '_handleRightQueryEdit');
+          this.$.rightQueryDialog.submitButtonLabel = 'Select';
           this.set('_metrics', gold.allMetrics.slice());
           this.set('_groupTests', gold.groupTestOps.slice());
           this.set('_sortOptions', gold.sortOptions.slice());
@@ -268,7 +268,12 @@
         },
 
         setParamSet: function(params) {
-          this.$.rightQueryDialog.queryEle.setParamSet(params);
+          // The Polymer version of query-dialog-sk used to blacklist source_type, so we filter it
+          // out here before it's passed to the lit-html version of query-dialog-sk on method
+          // _handleSearchButton below.
+          this._paramSetForQueryDialogSk = JSON.parse(JSON.stringify(params));
+          delete this._paramSetForQueryDialogSk['source_type'];
+
           //this.$.paramsSelect.setParamSet(params);
         },
 
@@ -312,7 +317,14 @@
 
         _handleRightQueryButton: function(ev) {
           ev.stopPropagation();
-          this.$.rightQueryDialog.open(this._curr.rquery);
+
+          // The Polymer version of query-dialog-sk used to blacklist source_type, so we delete it
+          // here before it's passed to the lit-html version of query-dialog-sk.
+          const queryParamSet = sk.query.toParamSet(this._curr.rquery);
+          delete queryParamSet["source_type"];
+          const query = sk.query.fromParamSet(queryParamSet);
+
+          this.$.rightQueryDialog.open(this._paramSetForQueryDialogSk, query);
         },
 
         _handleRightQueryEdit: function(ev) {
