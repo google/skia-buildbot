@@ -39,6 +39,11 @@
         "Infra-PerCommit-CreateDockerImage"
       ]
     },
+    "Infra-PerCommit-GoBuild": {
+      "tasks": [
+        "Infra-PerCommit-GoBuild"
+      ]
+    },
     "Infra-PerCommit-Large": {
       "tasks": [
         "Infra-PerCommit-Large"
@@ -869,6 +874,40 @@
         ]
       },
       "isolate": "empty.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-GoBuild": {
+      "command": [
+        "./go_build",
+        "--project_id",
+        "skia-swarming-bots",
+        "--task_id",
+        "<(TASK_ID)",
+        "--task_name",
+        "Infra-PerCommit-GoBuild",
+        "--workdir",
+        "./buildbot",
+        "--alsologtostderr",
+        "--image",
+        "gcr.io/skia-public/go_deps@sha256:4bdc5698715f5bd0bcee894ddbfc9c7240bd228a802346fdbaa1dd9cca4a245c",
+        "--output-path",
+        "${ISOLATED_OUTDIR}",
+        "--platform",
+        "linux-arm64"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BuildTaskDrivers-Linux-x86_64"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highcpu-64",
+        "docker_installed:true"
+      ],
+      "idempotent": true,
+      "isolate": "whole_repo.isolate",
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-Large": {
