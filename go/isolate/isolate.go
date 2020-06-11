@@ -14,33 +14,19 @@ import (
 	"strconv"
 	"strings"
 
-	"cloud.google.com/go/storage"
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gcs"
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
-	"google.golang.org/api/option"
 )
 
 const (
-	DEFAULT_NAMESPACE      = "default-gzip"
-	ISOLATE_EXE_SHA1       = "9734e966a14f9e26f86e38a020fcd7584248d285"
-	ISOLATESERVER_EXE_SHA1 = "f4715e284c74ead3a0a6d4928b557f3029b38774"
-
-	ISOLATE_WIN_EXE_SHA1       = "af227603890ea1d8c082b5caf15e46a6bf060a2e"
-	ISOLATESERVER_WIN_EXE_SHA1 = "36faf9ac5a05538b5bb3efc5b0e69916f4e61a53"
-	GCS_WIN_BUCKET             = "skia-public-binaries"
-	GCS_WIN_SUBDIR             = "chromium-luci-win"
-
+	DEFAULT_NAMESPACE          = "default-gzip"
 	ISOLATE_SERVER_URL         = "https://isolateserver.appspot.com"
 	ISOLATE_SERVER_URL_FAKE    = "fake"
 	ISOLATE_SERVER_URL_PRIVATE = "https://chrome-isolated.appspot.com"
 	ISOLATE_SERVER_URL_DEV     = "https://isolateserver-dev.appspot.com/"
 	ISOLATE_VERSION            = 1
-	GCS_BUCKET                 = "chromium-luci"
-	GCS_SUBDIR                 = ""
 	TASK_ID_TMPL               = "task_%s"
 )
 
@@ -89,68 +75,6 @@ func NewClientWithServiceAccount(workdir, server, serviceAccountJSON string) (*C
 	}
 	c.serviceAccountJSON = serviceAccountJSON
 	return c, nil
-}
-
-// NewLegacyClientWithServiceAccount returns a Client instance that uses
-// "--service-account-json" for its isolate binary calls. This is required for
-// servers that are not ip whitelisted in chrome-infra-auth/ip_whitelist.cfg. It
-// uses NewLegacyClient, which downloads the isolate binaries from GCS. This is
-// deprecated in favor of CIPD.
-func NewLegacyClientWithServiceAccount(workdir, server, serviceAccountJSON string) (*Client, error) {
-	c, err := NewLegacyClient(workdir, server)
-	if err != nil {
-		return nil, err
-	}
-	c.serviceAccountJSON = serviceAccountJSON
-	return c, nil
-}
-
-// NewLegacyClient returns a Client instance which first downloads the isolate
-// binaries from GCS. This is deprecated in favor of CIPD.
-func NewLegacyClient(workdir, server string) (*Client, error) {
-	client := httputils.DefaultClientConfig().Client()
-	// By default, the storage client tries really hard to be authenticated
-	// with the scopes ReadWrite. Since the isolate executables are public
-	// links, this is unnecessay and, in fact, causes errors if the user
-	// doesn't have access to the bucket.
-	s, err := storage.NewClient(context.Background(), option.WithScopes(storage.ScopeReadOnly), option.WithHTTPClient(client))
-	if err != nil {
-		return nil, err
-	}
-	absPath, err := filepath.Abs(workdir)
-	if err != nil {
-		return nil, err
-	}
-	bucket := GCS_BUCKET
-	bucketSubDir := GCS_SUBDIR
-	isolateSHA1 := ISOLATE_EXE_SHA1
-	isolateBinaryName := "isolate"
-	isolateServerSHA1 := ISOLATESERVER_EXE_SHA1
-	isolateServerBinaryName := "isolateserver"
-	if runtime.GOOS == "windows" {
-		isolateSHA1 = ISOLATE_WIN_EXE_SHA1
-		isolateBinaryName = "isolate.exe"
-		bucket = GCS_WIN_BUCKET
-		bucketSubDir = GCS_WIN_SUBDIR
-		isolateServerSHA1 = ISOLATESERVER_WIN_EXE_SHA1
-		isolateServerBinaryName = "isolateserver.exe"
-	}
-	dh := gcs.NewDownloadHelper(s, bucket, bucketSubDir, absPath)
-	if err := dh.MaybeDownload(isolateBinaryName, isolateSHA1); err != nil {
-		return nil, fmt.Errorf("Unable to create isolate client; failed to download isolate binary: %s", err)
-	}
-	if err := dh.MaybeDownload(isolateServerBinaryName, isolateServerSHA1); err != nil {
-		return nil, fmt.Errorf("Unable to create isolate client; failed to download isolateserver binary: %s", err)
-	}
-	if err := dh.Close(); err != nil {
-		return nil, skerr.Wrapf(err, "Failed to close download helper")
-	}
-	return &Client{
-		isolate:       filepath.Join(absPath, isolateBinaryName),
-		isolateserver: filepath.Join(absPath, isolateServerBinaryName),
-		serverUrl:     server,
-		workdir:       absPath,
-	}, nil
 }
 
 // ServerURL return the Isolate server URL.
