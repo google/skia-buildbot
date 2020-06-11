@@ -7,9 +7,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/golden/go/publicparams"
 
 	metrics_utils "go.skia.org/infra/go/metrics2/testutils"
-	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
@@ -294,19 +294,25 @@ func TestUpdateTileWithPublicParams(t *testing.T) {
 
 	mct.On("AllCommits").Return(makeSparseTilingCommits())
 
+	publicMatcher, err := publicparams.MatcherFromJSON([]byte(`
+{
+  "gm": {
+    "device": ["angler", "bullhead"],
+  }
+}`))
+	require.NoError(t, err)
+
 	ts := New(CachedTileSourceConfig{
-		NCommits:    nCommits,
-		IgnoreStore: mis,
-		TraceStore:  mts,
-		VCS:         mvcs,
-		PubliclyViewableParams: paramtools.ParamSet{
-			"device": []string{data.AnglerDevice, data.BullheadDevice},
-		},
+		NCommits:               nCommits,
+		IgnoreStore:            mis,
+		TraceStore:             mts,
+		VCS:                    mvcs,
+		PubliclyViewableParams: publicMatcher,
 	})
 	// Pretend there was a tile previously.
 	ts.lastCpxTile = mct
 
-	err := ts.updateTile(context.Background())
+	err = ts.updateTile(context.Background())
 	require.NoError(t, err)
 
 	cpxTile := ts.GetTile()

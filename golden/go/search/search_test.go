@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/golden/go/publicparams"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
@@ -1343,20 +1344,26 @@ func TestDigestDetails_NewTestOnChangeList_WithPublicParams_Success(t *testing.T
 		{
 			Digest:       digestWeWantDetailsAbout,
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(testWeWantDetailsAbout)},
-			GroupParams:  paramtools.Params{"os": "Android"},
+			GroupParams:  paramtools.Params{"os": "Android", types.CorpusField: "porpoise"},
 			Options:      paramtools.Params{"ext": "png"},
 		},
 		{
 			Digest:       digestWeWantDetailsAbout,
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(testWeWantDetailsAbout)},
-			GroupParams:  paramtools.Params{"os": "super_secret_device_do_not_leak"},
+			GroupParams:  paramtools.Params{"os": "super_secret_device_do_not_leak", types.CorpusField: "porpoise"},
 			Options:      paramtools.Params{"ext": "png"},
 		},
 	}, nil)
 
-	s := New(nil, mes, nil, mis, mcs, mts, nil, paramtools.ParamSet{
-		"os": []string{"Android"},
-	}, nothingFlaky)
+	publicMatcher, err := publicparams.MatcherFromJSON([]byte(`
+{
+  "porpoise": {
+    "os": ["Android"],
+  }
+}`))
+	require.NoError(t, err)
+
+	s := New(nil, mes, nil, mis, mcs, mts, nil, publicMatcher, nothingFlaky)
 
 	rv, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)
@@ -1369,6 +1376,7 @@ func TestDigestDetails_NewTestOnChangeList_WithPublicParams_Success(t *testing.T
 			TriageHistory: nil, // TODO(skbug.com/10097)
 			ParamSet: paramtools.ParamSet{
 				types.PrimaryKeyField: []string{string(testWeWantDetailsAbout)},
+				types.CorpusField:     []string{"porpoise"},
 				"os":                  []string{"Android"},
 				"ext":                 []string{"png"},
 			},
@@ -2223,7 +2231,7 @@ func TestCollectDigestsForBulkTriage_Success(t *testing.T) {
 	}, bulkTriageData)
 }
 
-var everythingPublic = paramtools.ParamSet{}
+var everythingPublic publicparams.Matcher = nil
 
 // By setting nothingFlaky to a high number, we make sure no trace is considered flaky because
 // this threshold will always be higher than the number of unique digests for a trace.
