@@ -638,9 +638,11 @@ func loadParamFile(fName string) (publicparams.Matcher, error) {
 }
 
 const basicCLTemplate = `Gold has detected about %d untriaged digest(s) on patchset %d.
-Please triage them at %s/cl/%s/%s`
+View them at %s/cl/%s/%s`
 
-const chromeCLTemplate = basicCLTemplate + `
+const chromeCLTemplate = `Gold has detected about %d untriaged digest(s) on patchset %d.
+
+Please triage them at %s/cl/%s/%s before submitting.
 
 If this is due to a failure in a gtest-based test, this functionality is currently experimental and won't block your CL.
 If all the trybots passed and you don't expect your CL to have any effect on browser UI, you can likely ignore this message.
