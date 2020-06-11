@@ -15,6 +15,7 @@ const DEVICE_ALIASES = {
   crosshatch: 'Pixel 3 XL',
   darcy: 'NVIDIA Shield [2017]',
   dragon: 'Pixel C',
+  exynos990: 'Galaxy S20',
   flame: 'Pixel 4',
   flo: 'Nexus 7 [2013]',
   flounder: 'Nexus 9',
