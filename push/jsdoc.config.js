@@ -1,1 +1,1 @@
-module.exports = require('../common-sk/jsdoc.common.js');
+module.exports = require('common-sk/jsdoc.common.js');
