@@ -298,16 +298,15 @@ define('cluster-lastn-page-sk', class extends ElementSk {
 
   _checkDryRunStatus(cb) {
     fetch(`/_/dryrun/status/${this._requestId}`).then(jsonOrThrow).then((json) => {
+      this._runningStatus = json.message;
       if (!json.finished) {
-        this._runningStatus = json.message;
-        // json.regressions will get filled in incrementally, so display them
-        // as they appear.
-        cb(json.regressions);
         window.setTimeout(() => this._checkDryRunStatus(cb), 300);
       } else {
-        cb(json.regressions);
-        this._catch();
+        this._requestId = null;
       }
+      // json.regressions will get filled in incrementally, so display them
+      // as they arrive.
+      cb(json.regressions);
     }).catch((msg) => this._catch(msg));
   }
 });

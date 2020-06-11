@@ -174,16 +174,18 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
-			stepCallback := func(step, total int, query string) {
-				running.Message = fmt.Sprintf("Step %d/%d\nQuery: %q", step+1, total, query)
+			progressCallback := func(message string) {
+				running.mutex.Lock()
+				defer running.mutex.Unlock()
+				running.Message = message
 			}
 			domain := domainFromUIDomain(req.Domain)
-			regression.RegressionsForAlert(ctx, &req.Config, domain, d.paramsProvider(), d.shortcutStore, cb, d.perfGit, d.cidl, d.dfBuilder, stepCallback)
+			regression.RegressionsForAlert(ctx, &req.Config, domain, d.paramsProvider(), d.shortcutStore, cb, d.perfGit, d.cidl, d.dfBuilder, progressCallback)
 			running.mutex.Lock()
 			defer running.mutex.Unlock()
 			running.Finished = true
 			running.whenFinished = time.Now()
-			running.Message = "Dry run complete."
+			running.Message = running.Message + "\nDry run complete."
 		}()
 	}
 	resp := StartResponse{

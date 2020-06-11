@@ -99,7 +99,16 @@ type RegressionDetectionProcess struct {
 	message    string                         // Describes the current state of the process.
 }
 
-func newProcess(ctx context.Context, req *RegressionDetectionRequest, perfGit *perfgit.Git, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) (*RegressionDetectionProcess, error) {
+func newProcess(
+	ctx context.Context,
+	req *RegressionDetectionRequest,
+	perfGit *perfgit.Git,
+	cidl *cid.CommitIDLookup,
+	dfBuilder dataframe.DataFrameBuilder,
+	shortcutStore shortcut.Store,
+	responseProcessor RegressionDetectionResponseProcessor,
+	progressCallback ProgressCallback,
+) (*RegressionDetectionProcess, error) {
 	ret := &RegressionDetectionProcess{
 		request:           req,
 		perfGit:           perfGit,
@@ -112,7 +121,7 @@ func newProcess(ctx context.Context, req *RegressionDetectionRequest, perfGit *p
 		ctx:               ctx,
 	}
 	// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
-	iter, err := NewDataFrameIterator(ctx, ret.progress, req, dfBuilder, perfGit)
+	iter, err := NewDataFrameIterator(ctx, ret.progress, req, dfBuilder, perfGit, progressCallback)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create iterator: %s", err)
 	}
@@ -121,7 +130,7 @@ func newProcess(ctx context.Context, req *RegressionDetectionRequest, perfGit *p
 }
 
 func newRunningProcess(ctx context.Context, req *RegressionDetectionRequest, perfGit *perfgit.Git, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) (*RegressionDetectionProcess, error) {
-	ret, err := newProcess(ctx, req, perfGit, cidl, dfBuilder, shortcutStore, responseProcessor)
+	ret, err := newProcess(ctx, req, perfGit, cidl, dfBuilder, shortcutStore, responseProcessor, nil)
 	if err != nil {
 		return nil, err
 	}
