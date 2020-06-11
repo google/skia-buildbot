@@ -10,6 +10,11 @@ query-chooser-sk {
     display: inline-block;
   }
 
+  .row {
+    display: flex;
+    align-items: center;
+  }
+
   .matches {
     margin: 0.6em;
     font-weight: bold;
@@ -19,7 +24,7 @@ query-chooser-sk {
     display: none;
     padding: 1em;
     margin: 1em;
-    border: solid lightgray 1px;
+    border: solid var(--light-gray) 1px;
   }
 
   #dialog.display {
