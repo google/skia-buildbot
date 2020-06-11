@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6eda14d6_97ad720d",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 547,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-06-11T17:26:21Z",
+      "side": 1,
+      "message": "Not sure if this is a concern here, but InputsRef is only populated when specifically requested (which I believe GetTaskRequestProperties does).  Might be worth a nil check, just in case.",
+      "range": {
+        "startLine": 547,
+        "startChar": 83,
+        "endLine": 547,
+        "endChar": 101
+      },
+      "revId": "c0b07770628663c49d2cac003c80284578c26f71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
