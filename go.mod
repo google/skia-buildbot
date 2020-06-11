@@ -98,7 +98,6 @@ require (
 	github.com/maruel/subcommands v0.0.0-20200206125935-de1d40e70d4b // indirect
 	github.com/maruel/ut v1.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
-	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.3.2 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
@@ -125,6 +124,7 @@ require (
 	github.com/texttheater/golang-levenshtein v0.0.0-20191208221605-eb6844b05fc6
 	github.com/unrolled/secure v1.0.8
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
+	github.com/wedow/docker-go-build v0.0.0-20190216061142-71f497c76259
 	github.com/willf/bitset v1.1.10
 	github.com/yosuke-furukawa/json5 v0.1.1 // indirect
 	github.com/zeebo/bencode v1.0.0
