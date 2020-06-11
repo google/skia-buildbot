@@ -59,7 +59,8 @@ type StartResponse struct {
 type Running struct {
 	mutex        sync.Mutex
 	whenFinished time.Time
-	Finished     bool                              `json:"finished"`    // True if the dry run is complete.
+	Finished     bool                              `json:"finished"` // True if the dry run is complete.
+	HasError     bool                              `json:"has_error"`
 	Message      string                            `json:"message"`     // Human readable string describing the dry run state.
 	Regressions  map[string]*regression.Regression `json:"regressions"` // All the regressions found so far.
 }
@@ -143,6 +144,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 	if _, ok := d.inFlight[id]; !ok {
 		running := &Running{
 			Finished:    false,
+			HasError:    false,
 			Message:     "Starting dry run.",
 			Regressions: map[string]*regression.Regression{},
 		}
@@ -174,8 +176,10 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
-			stepCallback := func(step, total int, query string) {
-				running.Message = fmt.Sprintf("Step %d/%d\nQuery: %q", step+1, total, query)
+			stepCallback := func(message string) {
+				running.mutex.Lock()
+				defer running.mutex.Unlock()
+				running.Message = message
 			}
 			domain := domainFromUIDomain(req.Domain)
 			regression.RegressionsForAlert(ctx, &req.Config, domain, d.paramsProvider(), d.shortcutStore, cb, d.perfGit, d.cidl, d.dfBuilder, stepCallback)
@@ -183,7 +187,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 			defer running.mutex.Unlock()
 			running.Finished = true
 			running.whenFinished = time.Now()
-			running.Message = "Dry run complete."
+			running.Message = running.Message + "\nDry run complete."
 		}()
 	}
 	resp := StartResponse{

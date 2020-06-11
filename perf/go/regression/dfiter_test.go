@@ -102,7 +102,7 @@ func TestNewDataFrameIterator_MultipleDataframes_SingleFrameOfLengthThree(t *tes
 		},
 		Query: "arch=x86",
 	}
-	iter, err := NewDataFrameIterator(ctx, nil, request, dfb, g)
+	iter, err := NewDataFrameIterator(ctx, nil, request, dfb, g, nil)
 	require.NoError(t, err)
 	require.True(t, iter.Next())
 	df, err := iter.Value(ctx)
@@ -136,7 +136,7 @@ func TestNewDataFrameIterator_MultipleDataframes_TwoFramesOfLengthTwo(t *testing
 		},
 		Query: "arch=x86",
 	}
-	iter, err := NewDataFrameIterator(ctx, nil, request, dfb, g)
+	iter, err := NewDataFrameIterator(ctx, nil, request, dfb, g, nil)
 	require.NoError(t, err)
 
 	require.True(t, iter.Next())
@@ -176,7 +176,7 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchAfterLastCommit
 		},
 		Query: "arch=x86",
 	}
-	_, err := NewDataFrameIterator(ctx, nil, request, dfb, g)
+	_, err := NewDataFrameIterator(ctx, nil, request, dfb, g, nil)
 	require.Contains(t, err.Error(), "Failed to look up CommitNumber")
 }
 
@@ -199,7 +199,7 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchBeforeFirstComm
 		},
 		Query: "arch=x86",
 	}
-	_, err := NewDataFrameIterator(ctx, nil, request, dfb, g)
+	_, err := NewDataFrameIterator(ctx, nil, request, dfb, g, nil)
 	require.Contains(t, err.Error(), "Failed to look up CommitNumber")
 }
 
@@ -223,6 +223,6 @@ func TestNewDataFrameIterator_MultipleDataframes_ErrIfWeSearchBeforeFirstCommit(
 		},
 		Query: "arch=x86",
 	}
-	_, err := NewDataFrameIterator(ctx, nil, request, dfb, g)
+	_, err := NewDataFrameIterator(ctx, nil, request, dfb, g, nil)
 	require.Contains(t, err.Error(), "Failed to build dataframe iterator")
 }
