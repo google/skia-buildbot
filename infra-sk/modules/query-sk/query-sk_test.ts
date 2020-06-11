@@ -1,6 +1,6 @@
 import './index';
 import { $, $$ } from 'common-sk/modules/dom';
-import { ParamSet, toParamSet } from 'common-sk/modules/query';
+import { ParamSet, toParamSet, fromParamSet } from 'common-sk/modules/query';
 import { QuerySk } from './query-sk';
 import { setUpElementUnderTest } from '../test_util';
 import { assert } from 'chai';
@@ -124,6 +124,23 @@ describe('query-sk', () => {
       ['x86', 'x86_64'],
       $<HTMLDivElement>('multi-select-sk div[selected]').map(div => div.getAttribute('value')));
   });
+
+  it('rationalizes current_query when set programmatically', () => {
+    const validQuery = fromParamSet({'arch': ['arm', 'x86'], 'config': ['8888']});
+    const invalidQuery = fromParamSet({
+      'arch': ['arm', 'invalid_architecture'],
+      'invalid_key': ['foo']
+    });
+    const invalidQueryRationalized = fromParamSet({'arch': ['arm']});
+
+    // Valid queries should remain unaltered.
+    querySk.current_query = validQuery;
+    assert.deepEqual(validQuery, querySk.current_query);
+
+    // Invalid queries should be rationalized.
+    querySk.current_query = invalidQuery;
+    assert.deepEqual(invalidQueryRationalized, querySk.current_query);
+  })
 });
 
 const keys = (q: QuerySk) => $('select-sk div', q).map(e => e.textContent);
