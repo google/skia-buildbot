@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "18d0ab69_6c4c8039",
+        "filename": "PRESUBMIT.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-06-11T19:14:13Z",
+      "side": 1,
+      "message": "Doesn\u0027t have to be in this CL, but we should avoid black/white list terminology.",
+      "range": {
+        "startLine": 27,
+        "startChar": 2,
+        "endLine": 27,
+        "endChar": 12
+      },
+      "revId": "092fda4322abcde3ac711d44254de836e9610fd1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2f77cfda_71a2b131",
         "filename": "PRESUBMIT.py",
         "patchSetId": 1
