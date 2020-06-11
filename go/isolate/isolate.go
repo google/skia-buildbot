@@ -432,7 +432,9 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, []*
 // DownloadIsolateHash downloads the specified isolate hash into the specified output dir.
 // downloadedFileList is the name of a file in the output dir into which the full list of
 // downloaded files will be written to.
-func (c *Client) DownloadIsolateHash(ctx context.Context, isolateHash, outputDir, downloadedFileList string) error {
+// Namespace is the namespace to use on the isolate server. Will not be specified if it is
+// an empty string.
+func (c *Client) DownloadIsolateHash(ctx context.Context, isolateHash, outputDir, downloadedFileList, namespace string) error {
 	cmd := []string{
 		c.isolateserver, "download", "--verbose",
 		"--isolate-server", c.serverUrl,
@@ -442,6 +444,9 @@ func (c *Client) DownloadIsolateHash(ctx context.Context, isolateHash, outputDir
 	}
 	if c.serviceAccountJSON != "" {
 		cmd = append(cmd, "--service-account-json", c.serviceAccountJSON)
+	}
+	if namespace != "" {
+		cmd = append(cmd, "--namespace", namespace)
 	}
 	output, err := exec.RunCwd(ctx, c.workdir, cmd...)
 	if err != nil {
