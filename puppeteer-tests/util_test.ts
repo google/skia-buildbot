@@ -1,28 +1,34 @@
-const expect = require('chai').expect;
-const express = require('express');
-const path = require('path');
-const addEventListenersToPuppeteerPage = require('./util').addEventListenersToPuppeteerPage;
-const launchBrowser = require('./util').launchBrowser;
-const startDemoPageServer = require('./util').startDemoPageServer;
+import * as path from 'path';
+import * as http from 'http';
+import * as net from 'net';
+import express from 'express';
+import puppeteer from 'puppeteer';
+import { expect } from 'chai';
+import { EventName, addEventListenersToPuppeteerPage, launchBrowser, startDemoPageServer } from './util';
 
 describe('utility functions for Puppeteer tests', async () => {
-  let browser;
+  let browser: puppeteer.Browser;
   before(async () => { browser = await launchBrowser(); });
   after(async () => { await browser.close(); });
 
-  let page;
+  let page: puppeteer.Page;
   beforeEach(async () => { page = await browser.newPage(); });
   afterEach(async () => { await page.close(); });
 
   describe('addEventListenersToPuppeteerPage', () => {
-    let server;
-    let testPageUrl;
+    let server: http.Server;
+    let testPageUrl: string;
+
+    // Type for the custom event details used in this test.
+    interface TestEventDetail {
+      msg: string;
+    };
 
     beforeEach(async () => {
       // Start an HTTP server on a random, unused port.
       const app = express();
       await new Promise((resolve) => { server = app.listen(0, resolve); });
-      testPageUrl = `http://localhost:${server.address().port}/`;
+      testPageUrl = `http://localhost:${(server!.address() as net.AddressInfo).port}/`;
 
       // Serve a test page that triggers various custom events.
       app.get('/', (req, res) => res.send(`
@@ -74,15 +80,15 @@ describe('utility functions for Puppeteer tests', async () => {
 
     it('renders test page correctly', async () => {
       await page.goto(testPageUrl);
-      expect(await page.$eval('h1', (el) => el.innerText))
+      expect(await page.$eval('h1', (el) => (el as HTMLElement).innerText))
         .to.equal('Hello, world!');
-      expect(await page.$eval('p', (el) => el.innerText))
+      expect(await page.$eval('p', (el) => (el as HTMLElement).innerText))
         .to.equal('I am just a test page.');
     });
 
     it('catches events in the right order', async () => {
       // Add event listeners.
-      const eventNames = [
+      const eventNames: EventName[] = [
         'alpha-event',
         'beta-event',
         'gamma-event',
@@ -94,47 +100,47 @@ describe('utility functions for Puppeteer tests', async () => {
       const eventPromise = await addEventListenersToPuppeteerPage(page, eventNames);
 
       // We will collect the Event object details in the order they are caught.
-      const eventsInOrder = [];
-      const trackCaughtOrder = async (anEventPromise) => {
+      const eventDetailsInOrder: TestEventDetail[] = [];
+      const trackCaughtOrder = async (anEventPromise: Promise<TestEventDetail>) => {
         const detail = await anEventPromise;
-        eventsInOrder.push(detail);
+        eventDetailsInOrder.push(detail);
         return detail;
       };
 
       // We create event promises in an arbitrary order to test that this has no
       // effect in the order that events are caught.
-      const allEventsPromise = Promise.all([
-        trackCaughtOrder(eventPromise('gamma-event')),
-        trackCaughtOrder(eventPromise('alpha-event')),
-        trackCaughtOrder(eventPromise('gamma-event')),
-        trackCaughtOrder(eventPromise('beta-event')),
-        trackCaughtOrder(eventPromise('gamma-event')),
-        trackCaughtOrder(eventPromise('beta-event')),
-        trackCaughtOrder(eventPromise('beta-event')),
+      const allEventDetailsPromise = Promise.all([
+        trackCaughtOrder(eventPromise<TestEventDetail>('gamma-event')),
+        trackCaughtOrder(eventPromise<TestEventDetail>('alpha-event')),
+        trackCaughtOrder(eventPromise<TestEventDetail>('gamma-event')),
+        trackCaughtOrder(eventPromise<TestEventDetail>('beta-event')),
+        trackCaughtOrder(eventPromise<TestEventDetail>('gamma-event')),
+        trackCaughtOrder(eventPromise<TestEventDetail>('beta-event')),
+        trackCaughtOrder(eventPromise<TestEventDetail>('beta-event')),
       ]);
 
       await page.goto(testPageUrl);
 
       // Assert that each promise returned the expected event detail.
-      const allEvents = await allEventsPromise;
-      expect(allEvents).to.have.length(7);
-      expect(allEvents[0].msg).to.equal('1st occurrence of gamma-event');
-      expect(allEvents[1].msg).to.equal('Only occurrence of alpha-event');
-      expect(allEvents[2].msg).to.equal('2nd occurrence of gamma-event');
-      expect(allEvents[3].msg).to.equal('1st occurrence of beta-event');
-      expect(allEvents[4].msg).to.equal('3rd occurrence of gamma-event');
-      expect(allEvents[5].msg).to.equal('2nd occurrence of beta-event');
-      expect(allEvents[6].msg).to.equal('3rd occurrence of beta-event');
+      const allEventDetails = await allEventDetailsPromise;
+      expect(allEventDetails).to.have.length(7);
+      expect(allEventDetails[0].msg).to.equal('1st occurrence of gamma-event');
+      expect(allEventDetails[1].msg).to.equal('Only occurrence of alpha-event');
+      expect(allEventDetails[2].msg).to.equal('2nd occurrence of gamma-event');
+      expect(allEventDetails[3].msg).to.equal('1st occurrence of beta-event');
+      expect(allEventDetails[4].msg).to.equal('3rd occurrence of gamma-event');
+      expect(allEventDetails[5].msg).to.equal('2nd occurrence of beta-event');
+      expect(allEventDetails[6].msg).to.equal('3rd occurrence of beta-event');
 
       // Assert that promises were resolved in the expected order.
-      expect(eventsInOrder).to.have.length(7);
-      expect(eventsInOrder[0].msg).to.equal('Only occurrence of alpha-event');
-      expect(eventsInOrder[1].msg).to.equal('1st occurrence of beta-event');
-      expect(eventsInOrder[2].msg).to.equal('2nd occurrence of beta-event');
-      expect(eventsInOrder[3].msg).to.equal('3rd occurrence of beta-event');
-      expect(eventsInOrder[4].msg).to.equal('1st occurrence of gamma-event');
-      expect(eventsInOrder[5].msg).to.equal('2nd occurrence of gamma-event');
-      expect(eventsInOrder[6].msg).to.equal('3rd occurrence of gamma-event');
+      expect(eventDetailsInOrder).to.have.length(7);
+      expect(eventDetailsInOrder[0].msg).to.equal('Only occurrence of alpha-event');
+      expect(eventDetailsInOrder[1].msg).to.equal('1st occurrence of beta-event');
+      expect(eventDetailsInOrder[2].msg).to.equal('2nd occurrence of beta-event');
+      expect(eventDetailsInOrder[3].msg).to.equal('3rd occurrence of beta-event');
+      expect(eventDetailsInOrder[4].msg).to.equal('1st occurrence of gamma-event');
+      expect(eventDetailsInOrder[5].msg).to.equal('2nd occurrence of gamma-event');
+      expect(eventDetailsInOrder[6].msg).to.equal('3rd occurrence of gamma-event');
     });
 
     it('fails if event promise function is called with unknown event',
@@ -145,17 +151,14 @@ describe('utility functions for Puppeteer tests', async () => {
       });
   });
 
-  // TODO(lovisolo): Reenable once util.js and util_test.js have been ported to TypeScript and
-  //                 we're thus able to require() a webpack.config.ts file from
-  //                 startDemoPageServer().
-  describe.skip('startDemoPageServer', () => {
-    let baseUrl;
-    let stopDemoPageServer;
+  describe('startDemoPageServer', () => {
+    let baseUrl: string;
+    let stopDemoPageServer: () => Promise<void>;
 
     before(async () => {
-      // Start a demo page server using Perfs's webpack.config.js file.
-      const pathToPerfWebpackConfigJs = path.join(__dirname, '..', 'perf', 'webpack.config.js');
-      ({ baseUrl, stopDemoPageServer } = await startDemoPageServer(pathToPerfWebpackConfigJs));
+      // Start a demo page server using Perfs's webpack.config.ts file.
+      const pathToPerfWebpackConfigTs = path.join(__dirname, '..', 'perf', 'webpack.config.ts');
+      ({ baseUrl, stopDemoPageServer } = await startDemoPageServer(pathToPerfWebpackConfigTs));
     });
 
     after(async () => { await stopDemoPageServer(); });
