@@ -24,13 +24,23 @@ alert-config-sk > input {
   display: block;
 }
 
+alert-config-sk > div,
 alert-config-sk > input,
 alert-config-sk > button,
 alert-config-sk > checkbox-sk,
 alert-config-sk > select-sk,
 alert-config-sk > multi-select-sk,
+alert-config-sk > query-chooser-sk,
 alert-config-sk > algo-select-sk {
   margin-left: 3em;
+}
+
+alert-config-sk > query-chooser-sk button {
+  margin: 0;
+}
+
+alert-config-sk a {
+  color: var(--blue);
 }
 
 alert-config-sk > label {
