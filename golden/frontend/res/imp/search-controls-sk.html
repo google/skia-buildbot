@@ -46,7 +46,6 @@
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="bower_components/iron-icons/image-icons.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
-<link rel="import" href="query-dialog-sk.html">
 <link rel="import" href="filter-dialog-sk.html">
 <link rel="import" href="shared-styles.html">
 
@@ -158,7 +157,12 @@
         },
 
         setParamSet: function(params) {
-          this.$.queryDialog.queryEle.setParamSet(params);
+          // The Polymer version of query-dialog-sk used to blacklist source_type, so we filter it
+          // out here before it's passed to the lit-html version of query-dialog-sk on method
+          // _handleSearchButton below.
+          this._paramSetForQueryDialogSk = JSON.parse(JSON.stringify(params));
+          delete this._paramSetForQueryDialogSk['source_type'];
+
           this.$.filterDialog.setParamSet(params);
           // TODO(kjlubick) in the lit-html version, this should reflect of digests as matched by
           //   the positive/negative/diff selector (i.e. the things above it).
@@ -184,7 +188,7 @@
           const existingCorpus = sk.query.toParamSet(this.state.query).source_type;
           const newQuery = `source_type=${encodeURIComponent(existingCorpus)}&${ev.detail}`;
           console.debug('updating search to ', newQuery);
-          this.set('state.query', newQuery);
+          this.set('state.query', ev.detail);
         },
 
         _handleFilterEdit: function(ev) {
@@ -196,7 +200,14 @@
 
         _handleSearchButton: function(ev) {
           ev.stopPropagation();
-          this.$.queryDialog.open(this.state.query);
+
+          // The Polymer version of query-dialog-sk used to blacklist source_type, so we delete it
+          // here before it's passed to the lit-html version of query-dialog-sk.
+          const queryParamSet = sk.query.toParamSet(this.state.query);
+          delete queryParamSet["source_type"];
+          const query = sk.query.fromParamSet(queryParamSet);
+
+          this.$.queryDialog.open(this._paramSetForQueryDialogSk, query);
         },
 
         _handleFilterButton: function(ev) {
