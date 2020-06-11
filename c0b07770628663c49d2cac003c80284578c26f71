@@ -22,6 +22,30 @@
       "revId": "c0b07770628663c49d2cac003c80284578c26f71",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aa37a4da_3d0412b9",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 547,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-11T17:30:23Z",
+      "side": 1,
+      "message": "Thats a good catch. Because I had a patch I forgot to upload that does exactly that.",
+      "parentUuid": "6eda14d6_97ad720d",
+      "range": {
+        "startLine": 547,
+        "startChar": 83,
+        "endLine": 547,
+        "endChar": 101
+      },
+      "revId": "c0b07770628663c49d2cac003c80284578c26f71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
