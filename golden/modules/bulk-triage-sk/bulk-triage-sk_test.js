@@ -36,12 +36,6 @@ describe('bulk-triage-sk', () => {
     await cancelEvent;
   });
 
-  it('emits a bulk_triage_cancelled event when the cancel button is clicked', async () => {
-    const cancelEvent = eventPromise('bulk_triage_cancelled', 100);
-    $$('button.cancel', bulkTriageSk).click();
-    await cancelEvent;
-  });
-
   describe('RPC requests', () => {
     afterEach(() => {
       expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
