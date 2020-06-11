@@ -16,6 +16,24 @@
       "revId": "e543f2b99914733e024a17240ca480b6b687d9e3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2b390dd4_82e792ab",
+        "filename": "leasing/modules/leasing.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-11T19:55:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3bbbcf4e_a337ef70",
+      "revId": "e543f2b99914733e024a17240ca480b6b687d9e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
