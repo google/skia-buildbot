@@ -151,16 +151,20 @@ const paramset = (ele) => {
   if (!ele._digest || !ele._params) {
     return ''; // details might not be loaded yet.
   }
-  const input = {
-    titles: [truncateWithEllipses(ele._digest)],
-    paramsets: [ele._params],
-  };
+
+  const titles = [truncateWithEllipses(ele._digest)];
+  const paramsets = [ele._params];
 
   if (ele.right && ele.right.paramset) {
-    input.titles.push(truncateWithEllipses(ele.right.digest));
-    input.paramsets.push(ele.right.paramset);
+    titles.push(truncateWithEllipses(ele.right.digest));
+    paramsets.push(ele.right.paramset);
   }
-  return html`<paramset-sk .paramsets=${input} .highlight=${ele._highlightedParams}></paramset-sk>`;
+
+  return html`
+  <paramset-sk .titles=${titles}
+               .paramsets=${paramsets}
+               .highlight=${ele._highlightedParams}>
+  </paramset-sk>`;
 };
 
 function toggleButtonMouseover(canToggle) {

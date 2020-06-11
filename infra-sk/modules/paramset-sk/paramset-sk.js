@@ -53,7 +53,7 @@ const _row = (ele, key) => html`
 
 const _rows = (ele) => ele._sortedKeys.map((key) => _row(ele, key));
 
-const _titles = (ele) => ele._titles.map((t) => html`<th>${t}</th>`);
+const _titles = (ele) => ele._normalizedTitles().map((t) => html`<th>${t}</th>`);
 
 const template = (ele) => html`
   <table @click=${ele._click} class=${ele._computeClass()}>
@@ -161,32 +161,29 @@ define('paramset-sk', class extends ElementSk {
     this._render();
   }
 
-  /** @prop paramsets {Object} An object of the form:
-   *
-   *  {
-   *    paramsets: [p1, p2, ...],
-   *    titles: [title1, title2, ...]
-   *  }
-   *
-   * Where p1, p2, etc. are serialized paramtools.ParamSets.
-   * The title1, title2, etc. are strings to use as the title of the columns.
-   *
-   * Titles are optional.
-   *
-   */
+  /** @prop titles {Array<String>} Array that represents the title of the columns. */
+  get titles() { return this._titles; }
+
+  set titles(val) {
+    this._titles = val;
+    this._render();
+  }
+
+  // Returns the titles specified by the user, or an empty title for each paramset
+  // if the number of specified titles and the number of paramsets don't match.
+  _normalizedTitles() {
+    if (this._titles.length === this._paramsets.length) {
+      return this._titles;
+    }
+    return new Array(this._paramsets.length).fill('');
+  }
+
+  /** @prop paramsets {Object} An array of serialized paramtools.ParamSets. */
   get paramsets() { return this._paramsets; }
 
   set paramsets(val) {
-    this._titles = val.titles || [];
-    this._paramsets = val.paramsets || [];
+    this._paramsets = val;
 
-    // Fix up titles if missing.
-    if (this._titles.length !== this._paramsets.length) {
-      this._titles = [];
-      for (let i = this._paramsets.length - 1; i >= 0; i--) {
-        this._titles.push('');
-      }
-    }
     // Compute a rolled up set of all parameter keys across all paramsets.
     const allKeys = {};
     this._paramsets.forEach((p) => {

@@ -22,9 +22,13 @@ const set3 = document.querySelector('#set3');
 const key = document.querySelector('#key');
 const value = document.querySelector('#value');
 
-set1.paramsets = { paramsets: [paramset] };
-set2.paramsets = { paramsets: [paramset, paramset2], titles: ['Set 1', 'Set 2'] };
-set3.paramsets = { paramsets: [paramset], titles: ['Clickable Values Only'] };
+set1.paramsets = [paramset];
+
+set2.paramsets = [paramset, paramset2];
+set2.titles = ['Set 1', 'Set 2'];
+
+set3.paramsets = [paramset];
+set3.titles = ['Clickable Values Only'];
 
 set2.addEventListener('paramset-key-click', (e) => {
   key.textContent = JSON.stringify(e.detail, null, '  ');
