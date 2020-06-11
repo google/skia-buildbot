@@ -12,6 +12,7 @@
   "devDependencies": {
     "@types/chai": "^4.2.11",
     "@types/copy-webpack-plugin": "^5.0.1",
+    "@types/dialog-polyfill": "^0.5.0",
     "@types/karma": "^5.0.0",
     "@types/karma-webpack": "^2.0.7",
     "@types/mocha": "^7.0.2",
@@ -60,7 +61,7 @@
   "dependencies": {
     "@types/sinon": "^9.0.1",
     "@webcomponents/custom-elements": "^1.2.4",
-    "common-sk": "^3.4.0",
+    "common-sk": "^3.4.1",
     "dialog-polyfill": "^0.5.0",
     "elements-sk": "^3.3.3",
     "lit-html": "^1.1.2"
