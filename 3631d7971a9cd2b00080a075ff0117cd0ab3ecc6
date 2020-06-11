@@ -22,6 +22,52 @@
       "revId": "3631d7971a9cd2b00080a075ff0117cd0ab3ecc6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0ec1aaef_46b579c7",
+        "filename": "infra-sk/modules/paramset-sk/paramset-sk.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-06-11T13:34:07Z",
+      "side": 1,
+      "message": "Isn\u0027t this usually above the get()?",
+      "range": {
+        "startLine": 166,
+        "startChar": 6,
+        "endLine": 166,
+        "endChar": 11
+      },
+      "revId": "3631d7971a9cd2b00080a075ff0117cd0ab3ecc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84cf6927_a3e35741",
+        "filename": "infra-sk/modules/paramset-sk/paramset-sk.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-06-11T13:34:07Z",
+      "side": 1,
+      "message": "I can pull together a CL that adds a TypeScript definition from paramtools.ParamSet via go2ts.",
+      "range": {
+        "startLine": 181,
+        "startChar": 54,
+        "endLine": 181,
+        "endChar": 75
+      },
+      "revId": "3631d7971a9cd2b00080a075ff0117cd0ab3ecc6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
