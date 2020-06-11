@@ -13,6 +13,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -22,6 +23,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/unrolled/secure"
+	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"google.golang.org/api/iterator"
 
 	"go.skia.org/infra/go/allowed"
@@ -85,6 +87,11 @@ type ClientSecretJSON struct {
 
 // See baseapp.Constructor.
 func New() (baseapp.App, error) {
+	// Create workdir if it does not exist.
+	if err := os.MkdirAll(*workdir, 0755); err != nil {
+		sklog.Fatalf("Could not create %s: %s", *workdir, err)
+	}
+
 	// Initialize mailing library.
 	var cfg ClientSecretJSON
 	err := util.WithReadFile(*emailClientSecretFile, func(f io.Reader) error {
@@ -520,20 +527,16 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task.SwarmingTaskState = swarming.TASK_STATE_PENDING
 
 	// Isolate artifacts.
-	var isolateDetails *IsolateDetails
+	var swarmingProps *swarming_api.SwarmingRpcsTaskProperties
 	if task.TaskIdForIsolates != "" {
 		t, err := GetSwarmingTaskMetadata(task.SwarmingPool, task.TaskIdForIsolates)
 		if err != nil {
 			httputils.ReportError(w, err, fmt.Sprintf("Could not find taskId %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool), http.StatusInternalServerError)
 			return
 		}
-		isolateDetails, err = GetIsolateDetails(ctx, *serviceAccountFile, swarming.GetTaskRequestProperties(t))
-		if err != nil {
-			httputils.ReportError(w, err, fmt.Sprintf("Could not get isolate details of task %s in pool %s", task.TaskIdForIsolates, task.SwarmingPool), http.StatusInternalServerError)
-			return
-		}
+		swarmingProps = swarming.GetTaskRequestProperties(t)
 	} else {
-		isolateDetails = &IsolateDetails{}
+		swarmingProps = &swarming_api.SwarmingRpcsTaskProperties{}
 	}
 
 	datastoreKey, err := PutDSTask(key, task)
@@ -541,13 +544,13 @@ func (srv *Server) addTaskHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, fmt.Sprintf("Error putting task in datastore: %v", err), http.StatusInternalServerError)
 		return
 	}
-	isolateHash, err := GetIsolateHash(ctx, task.SwarmingPool, isolateDetails.IsolateDep)
+	isolateHash, err := IsolateLeasingArtifacts(ctx, task.SwarmingPool, swarmingProps.InputsRef)
 	if err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Error when getting isolate hash: %v", err), http.StatusInternalServerError)
 		return
 	}
 	// Trigger the swarming task.
-	swarmingTaskId, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, *host, isolateHash, isolateDetails)
+	swarmingTaskId, err := TriggerSwarmingTask(task.SwarmingPool, task.Requester, strconv.Itoa(int(datastoreKey.ID)), task.OsType, task.DeviceType, task.SwarmingBotId, *host, isolateHash, swarmingProps.RelativeCwd, swarmingProps.CipdInput, swarmingProps.Command)
 	if err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Error when triggering swarming task: %v", err), http.StatusInternalServerError)
 		return

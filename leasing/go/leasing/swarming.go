@@ -5,9 +5,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"path"
 	"strings"
 
@@ -15,11 +13,9 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/util"
 )
 
 type SwarmingInstanceClients struct {
@@ -60,8 +56,6 @@ var (
 		"CTLinuxBuilder":   InternalSwarming,
 	}
 
-	isolateServerPath string
-
 	cpythonPackage = &swarming_api.SwarmingRpcsCipdPackage{
 		PackageName: "infra/python/cpython/${platform}",
 		Path:        "python",
@@ -72,12 +66,12 @@ var (
 func SwarmingInit(serviceAccountFile string) error {
 	// Public Isolate client.
 	var err error
-	isolateClientPublic, err = isolate.NewLegacyClientWithServiceAccount(*workdir, isolate.ISOLATE_SERVER_URL, serviceAccountFile)
+	isolateClientPublic, err = isolate.NewClientWithServiceAccount(*workdir, isolate.ISOLATE_SERVER_URL, serviceAccountFile)
 	if err != nil {
 		return fmt.Errorf("Failed to create public isolate client: %s", err)
 	}
 	// Private Isolate client.
-	isolateClientPrivate, err = isolate.NewLegacyClientWithServiceAccount(*workdir, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountFile)
+	isolateClientPrivate, err = isolate.NewClientWithServiceAccount(*workdir, isolate.ISOLATE_SERVER_URL_PRIVATE, serviceAccountFile)
 	if err != nil {
 		return fmt.Errorf("Failed to create private isolate client: %s", err)
 	}
@@ -99,9 +93,6 @@ func SwarmingInit(serviceAccountFile string) error {
 	if err != nil {
 		return fmt.Errorf("Failed to create private swarming client: %s", err)
 	}
-
-	// Set path to the isolateserver.py script.
-	isolateServerPath = path.Join(*workdir, "client-py", "isolateserver.py")
 
 	return nil
 }
@@ -181,57 +172,14 @@ func GetDetailsOfAllPools() (map[string]*PoolDetails, error) {
 	return poolToDetails, nil
 }
 
-type IsolateDetails struct {
-	Command     []string `json:"command"`
-	RelativeCwd string   `json:"relative_cwd"`
-	IsolateDep  string
-	CipdInput   *swarming_api.SwarmingRpcsCipdInput
-}
-
-func GetIsolateDetails(ctx context.Context, serviceAccountFile string, properties *swarming_api.SwarmingRpcsTaskProperties) (*IsolateDetails, error) {
-	details := &IsolateDetails{}
-	inputsRef := properties.InputsRef
-
-	f, err := ioutil.TempFile(*workdir, inputsRef.Isolated+"_")
-	if err != nil {
-		return details, fmt.Errorf("Could not create tmp file in %s: %s", *workdir, err)
-	}
-	defer util.Remove(f.Name())
-	cmd := []string{
-		isolateServerPath, "download",
-		"--auth-service-account-json", serviceAccountFile,
-		"-I", inputsRef.Isolatedserver,
-		"--namespace", inputsRef.Namespace,
-		"-f", inputsRef.Isolated, path.Base(f.Name()),
-		"-t", *workdir,
-	}
-	output, err := exec.RunCwd(ctx, *workdir, cmd...)
-	if err != nil {
-		return details, fmt.Errorf("Failed to run cmd %s: %s", cmd, err)
-	}
-
-	if err := json.NewDecoder(f).Decode(&details); err != nil {
-		return details, fmt.Errorf("Could not decode %s: %s", output, err)
-	}
-	details.IsolateDep = inputsRef.Isolated
-	details.CipdInput = properties.CipdInput
-	if len(details.Command) == 0 {
-		details.Command = append(details.Command, properties.Command...)
-	}
-	// Append extra arguments to the command.
-	details.Command = append(details.Command, properties.ExtraArgs...)
-
-	return details, nil
-}
-
-func GetIsolateHash(ctx context.Context, pool, isolateDep string) (string, error) {
+func IsolateLeasingArtifacts(ctx context.Context, pool string, inputsRef *swarming_api.SwarmingRpcsFilesRef) (string, error) {
 	isolateClient := *GetIsolateClient(pool)
 	isolateTask := &isolate.Task{
 		BaseDir:     path.Join(*isolatesDir),
 		IsolateFile: path.Join(*isolatesDir, "leasing.isolate"),
 	}
-	if isolateDep != "" {
-		isolateTask.Deps = []string{isolateDep}
+	if inputsRef != nil && inputsRef.Isolated != "" {
+		isolateTask.Deps = []string{inputsRef.Isolated}
 	}
 	isolateTasks := []*isolate.Task{isolateTask}
 	hashes, _, err := isolateClient.IsolateTasks(ctx, isolateTasks)
@@ -278,7 +226,7 @@ func IsBotIdValid(pool, botId string) (bool, error) {
 	}
 }
 
-func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId, serverURL, isolateHash string, isolateDetails *IsolateDetails) (string, error) {
+func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId, serverURL, isolateHash, relativeCwd string, cipdInput *swarming_api.SwarmingRpcsCipdInput, cmd []string) (string, error) {
 	dimsMap := map[string]string{
 		"pool": pool,
 	}
@@ -303,13 +251,13 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId
 	// why we do not isolate it for all architectures.
 	pythonBinary := "python"
 	if strings.HasPrefix(osType, "Windows") {
-		if isolateDetails.CipdInput == nil {
-			isolateDetails.CipdInput = &swarming_api.SwarmingRpcsCipdInput{}
+		if cipdInput == nil {
+			cipdInput = &swarming_api.SwarmingRpcsCipdInput{}
 		}
-		if isolateDetails.CipdInput.Packages == nil {
-			isolateDetails.CipdInput.Packages = []*swarming_api.SwarmingRpcsCipdPackage{cpythonPackage}
+		if cipdInput.Packages == nil {
+			cipdInput.Packages = []*swarming_api.SwarmingRpcsCipdPackage{cpythonPackage}
 		} else {
-			isolateDetails.CipdInput.Packages = append(isolateDetails.CipdInput.Packages, cpythonPackage)
+			cipdInput.Packages = append(cipdInput.Packages, cpythonPackage)
 		}
 		pythonBinary = "python/bin/python"
 	}
@@ -319,8 +267,8 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId
 		"--task-id", datastoreId,
 		"--os-type", osType,
 		"--leasing-server", serverURL,
-		"--debug-command", strings.Join(isolateDetails.Command, " "),
-		"--command-relative-dir", isolateDetails.RelativeCwd,
+		"--debug-command", strings.Join(cmd, " "),
+		"--command-relative-dir", relativeCwd,
 	}
 
 	// Construct the command.
@@ -339,7 +287,7 @@ func TriggerSwarmingTask(pool, requester, datastoreId, osType, deviceType, botId
 			{
 				ExpirationSecs: expirationSecs,
 				Properties: &swarming_api.SwarmingRpcsTaskProperties{
-					CipdInput:            isolateDetails.CipdInput,
+					CipdInput:            cipdInput,
 					Dimensions:           dims,
 					ExecutionTimeoutSecs: executionTimeoutSecs,
 					Command:              command,

@@ -1,3 +1,5 @@
+include ../kube/kube.mk
+
 default: build
 
 build:
@@ -12,8 +14,8 @@ release: build
 debug:
 	npx webpack --mode=development
 
-push: release
-	pushk leasing
+push: pushk release
+	pushk --use-temp-checkout leasing
 
 serve:
 	npx webpack-dev-server --mode=development --watch-poll
