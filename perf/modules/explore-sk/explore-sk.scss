@@ -186,4 +186,13 @@ explore-sk {
   summary h2 {
     display: inline-block;
   }
+
+  #query-dialog {
+    overflow: auto;
+  }
+
+  #query-dialog paramset-sk {
+    max-width: 400px;
+    display: inline-block;
+  }
 }

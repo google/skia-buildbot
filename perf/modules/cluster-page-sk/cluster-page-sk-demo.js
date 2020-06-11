@@ -2,86 +2,91 @@ import './index';
 import 'elements-sk/error-toast-sk';
 import { fetchMock } from '@bundled-es-modules/fetch-mock';
 
+const paramSet = {
+  arch: [
+    'WASM',
+    'arm',
+    'arm64',
+    'asmjs',
+    'wasm',
+    'x86',
+    'x86_64',
+  ],
+  bench_type: [
+    'BRD',
+    'deserial',
+    'micro',
+    'playback',
+    'recording',
+    'skandroidcodec',
+    'skcodec',
+    'tracing',
+  ],
+  browser: [
+    'Chrome',
+  ],
+  clip: [
+    '0_0_1000_1000',
+  ],
+  compiled_language: [
+    'asmjs',
+    'wasm',
+  ],
+  compiler: [
+    'Clang',
+    'EMCC',
+    'GCC',
+    'MSVC',
+    'emsdk',
+    'none',
+  ],
+  config: [
+    '8888',
+    'angle_d3d11_es2',
+    'angle_d3d11_es2_msaa8',
+    'angle_gl_es2',
+    'angle_gl_es2_msaa8',
+    'commandbuffer',
+    'default',
+    'enarrow',
+    'esrgb',
+    'f16',
+    'gl',
+    'gles',
+    'glesmsaa4',
+    'glessrgb',
+    'glmsaa4',
+    'glmsaa8',
+    'glsrgb',
+    'meta',
+    'mtl',
+  ],
+  configuration: [
+    'Debug',
+    'Presubmit',
+    'Release',
+    'devrel',
+    'eng',
+    'sdk',
+  ],
+  cpu_or_gpu: [
+    'CPU',
+    'GPU',
+  ],
+};
+
 fetchMock.post('/_/count/',
   // Wait 1s before returning the content so we can see the spinner in action.
-  async () => new Promise((res) => setTimeout(() => res({ count: Math.floor(Math.random() * 2000) }), 1000)));
+  async () => new Promise((res) => setTimeout(() => res({
+    count: Math.floor(Math.random() * 2000),
+    paramset: paramSet,
+  }), 1000)));
 
 fetchMock.get('/_/initpage/?tz=America/New_York', () => ({
   dataframe: {
     traceset: null,
     header: null,
-    paramset: {
-      arch: [
-        'WASM',
-        'arm',
-        'arm64',
-        'asmjs',
-        'wasm',
-        'x86',
-        'x86_64',
-      ],
-      bench_type: [
-        'BRD',
-        'deserial',
-        'micro',
-        'playback',
-        'recording',
-        'skandroidcodec',
-        'skcodec',
-        'tracing',
-      ],
-      browser: [
-        'Chrome',
-      ],
-      clip: [
-        '0_0_1000_1000',
-      ],
-      compiled_language: [
-        'asmjs',
-        'wasm',
-      ],
-      compiler: [
-        'Clang',
-        'EMCC',
-        'GCC',
-        'MSVC',
-        'emsdk',
-        'none',
-      ],
-      config: [
-        '8888',
-        'angle_d3d11_es2',
-        'angle_d3d11_es2_msaa8',
-        'angle_gl_es2',
-        'angle_gl_es2_msaa8',
-        'commandbuffer',
-        'default',
-        'enarrow',
-        'esrgb',
-        'f16',
-        'gl',
-        'gles',
-        'glesmsaa4',
-        'glessrgb',
-        'glmsaa4',
-        'glmsaa8',
-        'glsrgb',
-        'meta',
-        'mtl',
-      ],
-      configuration: [
-        'Debug',
-        'Presubmit',
-        'Release',
-        'devrel',
-        'eng',
-        'sdk',
-      ],
-      cpu_or_gpu: [
-        'CPU',
-        'GPU',
-      ],
-    },
+    paramset: paramSet,
     skip: 0,
   },
   ticks: [],

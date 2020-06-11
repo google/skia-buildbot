@@ -1,13 +1,17 @@
 @import '~elements-sk/colors';
 
 query-chooser-sk {
-  query-summary-sk {
-    display: inline-block;
-    margin-left: 1em;
-  }
-
   query-count-sk {
     display: inline-block;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+  }
+
+  .row paramset-sk {
+    margin-left: 8px;
   }
 
   .matches {
@@ -19,7 +23,7 @@ query-chooser-sk {
     display: none;
     padding: 1em;
     margin: 1em;
-    border: solid lightgray 1px;
+    border: solid var(--light-gray) 1px;
   }
 
   #dialog.display {

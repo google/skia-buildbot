@@ -14,18 +14,21 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
+import { toParamSet } from 'common-sk/modules/query';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
+import '../../../infra-sk/modules/paramset-sk';
 import '../../../infra-sk/modules/query-sk';
 
 import '../query-count-sk';
-import '../query-summary-sk';
 
 import 'elements-sk/styles/buttons';
 
 const template = (ele) => html`
-  <button @click=${ele._editClick}>Edit</button>
-  <query-summary-sk id=summary selection=${ele.current_query}></query-summary-sk>
+  <div class=row>
+    <button @click=${ele._editClick}>Edit</button>
+    <paramset-sk id=summary .paramsets=${[toParamSet(ele.current_query)]}></paramset-sk>
+  </div>
   <div id="dialog">
     <query-sk current_query=${ele.current_query} .paramset=${ele.paramset} .key_order=${ele.key_order} @query-change=${ele._queryChange}></query-sk>
     <div class=matches>Matches: <query-count-sk url=${ele.count_url} current_query=${ele.current_query}></query-count-sk></div>

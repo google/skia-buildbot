@@ -24,6 +24,10 @@ alerts-page-sk {
   button.fab[disabled] {
     opacity: 0.2;
   }
+
+  td > paramset-sk {
+    max-width: 400px;
+  }
 }
 
 alerts-page-sk > {
@@ -40,5 +44,9 @@ alerts-page-sk > {
     position: fixed;
     right: 2em;
     bottom: 2em;
+  }
+
+  table > tbody > tr > td {
+    border-bottom: solid var(--dark-white) 1px;
   }
 }
