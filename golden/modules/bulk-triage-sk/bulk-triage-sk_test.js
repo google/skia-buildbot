@@ -4,7 +4,7 @@ import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/t
 import {
   examplePageData, exampleAllData, expectedPageData, expectedAllData,
 } from './test_data';
-import { $$ } from '../../../common-sk/modules/dom';
+import { $$ } from 'common-sk/modules/dom';
 
 describe('bulk-triage-sk', () => {
   const newInstance = setUpElementUnderTest('bulk-triage-sk');
