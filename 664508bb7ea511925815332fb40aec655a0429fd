@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "3126f78a_eb61b04c",
+        "filename": "golden/modules/query-dialog-sk/query-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-06-11T13:49:39Z",
+      "side": 1,
+      "message": "Oh, you are using a paramset-sk to display the current query, in Perf I use a query-summary-sk.\nI like paramset-sk better, I\u0027ll be switching Perf to do that same.",
+      "range": {
+        "startLine": 41,
+        "startChar": 20,
+        "endLine": 41,
+        "endChar": 31
+      },
+      "revId": "664508bb7ea511925815332fb40aec655a0429fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4ca31152_6eeced6f",
         "filename": "golden/modules/query-dialog-sk/query-dialog-sk.ts",
         "patchSetId": 1
