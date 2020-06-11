@@ -37,6 +37,10 @@ const template = (ele) => html`
   <h3>Which traces should be monitored</h3>
   <query-chooser-sk id=querychooser .paramset=${ele.paramset} .key_order=${ele.key_order} current_query=${ele._config.query} count_url='/_/count/' @query-change=${(e) => ele._config.query = e.detail.q}></query-chooser-sk>
 
+  <div>
+    <a href="/e/?queries=${encodeURIComponent(ele._config.query)}" target=_blank>Preview traces that match the query</a>
+  </div>
+
   <h3>What triggers an alert</h3>
   <h4>Grouping</h4>
   <label for=grouping>Are the traces k-means clustered and Step Detection  done on
