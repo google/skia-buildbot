@@ -19,16 +19,20 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/spinner-sk';
 
-const template = (ele) => html`
-  <div>
-    <span>${ele._count}</span>
-    <spinner-sk ?active=${ele._requestInProgress}></spinner-sk>
-  </div>
+export class QueryCountSk extends ElementSk {
+  private _last_query = '';
+  private _count = '';
+  private _requestInProgress = false;
+
+  private static template = (ele: QueryCountSk) => html`
+    <div>
+      <span>${ele._count}</span>
+      <spinner-sk ?active=${ele._requestInProgress}></spinner-sk>
+    </div>
   `;
 
-define('query-count-sk', class extends ElementSk {
   constructor() {
-    super(template);
+    super(QueryCountSk.template);
     this._last_query = '';
     this._count = '';
     this._requestInProgress = false;
@@ -36,6 +40,8 @@ define('query-count-sk', class extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
+    this._upgradeProperty('url');
+    this._upgradeProperty('current_query');
     this._render();
     this._fetch();
   }
@@ -69,32 +75,50 @@ define('query-count-sk', class extends ElementSk {
       headers: {
         'Content-Type': 'application/json',
       },
-    }).then(jsonOrThrow).then((json) => {
-      this._count = `${json.count}`;
-      this._requestInProgress = false;
-      this._render();
-      if (this._last_query !== this.current_query) {
-        this._fetch();
-      }
-      this.dispatchEvent(new CustomEvent('paramset-changed', { detail: json.paramset, bubbles: true }));
-    }).catch((msg) => {
-      this._requestInProgress = false;
-      this._render();
-      errorMessage(msg);
-    });
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        this._count = `${json.count}`;
+        this._requestInProgress = false;
+        this._render();
+        if (this._last_query !== this.current_query) {
+          this._fetch();
+        }
+        this.dispatchEvent(
+          new CustomEvent('paramset-changed', {
+            detail: json.paramset,
+            bubbles: true,
+          })
+        );
+      })
+      .catch((msg) => {
+        this._requestInProgress = false;
+        this._render();
+        errorMessage(msg);
+      });
   }
 
   attributeChangedCallback() {
     this._fetch();
   }
 
-  /** @prop url {string}  */
-  get url() { return this.getAttribute('url'); }
+  /** @prop url - The URL to make POST requests to.  */
+  get url() {
+    return this.getAttribute('url') || '';
+  }
 
-  set url(val) { this.setAttribute('url', val); }
+  set url(val) {
+    this.setAttribute('url', val);
+  }
 
-  /** @prop current_query {string}  */
-  get current_query() { return this.getAttribute('current_query'); }
+  /** @prop current_query - The current trace query. */
+  get current_query() {
+    return this.getAttribute('current_query') || '';
+  }
 
-  set current_query(val) { this.setAttribute('current_query', val); }
-});
+  set current_query(val) {
+    this.setAttribute('current_query', val);
+  }
+}
+
+define('query-count-sk', QueryCountSk);
