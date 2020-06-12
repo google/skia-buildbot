@@ -101,10 +101,10 @@ func newPkgDataWriter(cb func(*Package)) io.Writer {
 	}
 }
 
-// getPackageData is a helper function which returns data for the given
+// GetPackageData is a helper function which returns data for the given
 // package(s). Returns a map to facilitate searching for multiple packages in
 // the same call to "go list", eg. "go.skia.org/...", which is much faster.
-func getPackageData(ctx context.Context, name string) (map[string]*Package, error) {
+func GetPackageData(ctx context.Context, name string) (map[string]*Package, error) {
 	// Return the cached data, if it exists.
 	if pkg, ok := cachedPkgData[name]; ok {
 		return map[string]*Package{
@@ -131,9 +131,9 @@ func getPackageData(ctx context.Context, name string) (map[string]*Package, erro
 	return pkgs, nil
 }
 
-// GetPackageData returns information about the given package.
-func GetPackageData(ctx context.Context, name string) (*Package, error) {
-	pkgs, err := getPackageData(ctx, name)
+// GetSinglePackageData returns information about the given package.
+func GetSinglePackageData(ctx context.Context, name string) (*Package, error) {
+	pkgs, err := GetPackageData(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func LoadAllPackageData(ctx context.Context) (map[string]*Package, error) {
 	if allPkgData != nil {
 		return allPkgData, nil
 	}
-	allPkgs, err := getPackageData(ctx, "go.skia.org/infra/...")
+	allPkgs, err := GetPackageData(ctx, "go.skia.org/infra/...")
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +187,7 @@ func FindImportPaths(ctx context.Context, startPkg, findPkg string) ([][]string,
 		}
 
 		// Find the imports for startPkg.
-		data, err := GetPackageData(ctx, currentPkg)
+		data, err := GetSinglePackageData(ctx, currentPkg)
 		if err != nil {
 			return nil, err
 		}
