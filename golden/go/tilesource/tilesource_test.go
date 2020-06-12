@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	metrics_utils "go.skia.org/infra/go/metrics2/testutils"
-	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
@@ -18,6 +17,7 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 	mock_ignorestore "go.skia.org/infra/golden/go/ignore/mocks"
 	"go.skia.org/infra/golden/go/mocks"
+	"go.skia.org/infra/golden/go/publicparams"
 	data "go.skia.org/infra/golden/go/testutils/data_three_devices"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
@@ -294,19 +294,25 @@ func TestUpdateTileWithPublicParams(t *testing.T) {
 
 	mct.On("AllCommits").Return(makeSparseTilingCommits())
 
+	publicMatcher, err := publicparams.MatcherFromJSON([]byte(`
+{
+  "gm": {
+    "device": ["angler", "bullhead"],
+  }
+}`))
+	require.NoError(t, err)
+
 	ts := New(CachedTileSourceConfig{
-		NCommits:    nCommits,
-		IgnoreStore: mis,
-		TraceStore:  mts,
-		VCS:         mvcs,
-		PubliclyViewableParams: paramtools.ParamSet{
-			"device": []string{data.AnglerDevice, data.BullheadDevice},
-		},
+		NCommits:               nCommits,
+		IgnoreStore:            mis,
+		TraceStore:             mts,
+		VCS:                    mvcs,
+		PubliclyViewableParams: publicMatcher,
 	})
 	// Pretend there was a tile previously.
 	ts.lastCpxTile = mct
 
-	err := ts.updateTile(context.Background())
+	err = ts.updateTile(context.Background())
 	require.NoError(t, err)
 
 	cpxTile := ts.GetTile()

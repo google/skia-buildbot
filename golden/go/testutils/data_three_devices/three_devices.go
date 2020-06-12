@@ -58,6 +58,8 @@ const (
 	AnglerDevice     = "angler"
 	BullheadDevice   = "bullhead"
 	CrosshatchDevice = "crosshatch"
+
+	GMCorpus = "gm"
 )
 
 func MakeTestBaseline() *baseline.Baseline {
@@ -108,7 +110,7 @@ func MakeTestTile() *tiling.Tile {
 				map[string]string{
 					"device":              AnglerDevice,
 					types.PrimaryKeyField: string(AlphaTest),
-					types.CorpusField:     "gm",
+					types.CorpusField:     GMCorpus,
 				},
 			),
 			AnglerBetaTraceID: tiling.NewTrace(
@@ -116,7 +118,7 @@ func MakeTestTile() *tiling.Tile {
 				map[string]string{
 					"device":              AnglerDevice,
 					types.PrimaryKeyField: string(BetaTest),
-					types.CorpusField:     "gm",
+					types.CorpusField:     GMCorpus,
 				},
 			),
 
@@ -125,7 +127,7 @@ func MakeTestTile() *tiling.Tile {
 				map[string]string{
 					"device":              BullheadDevice,
 					types.PrimaryKeyField: string(AlphaTest),
-					types.CorpusField:     "gm",
+					types.CorpusField:     GMCorpus,
 				},
 			),
 			BullheadBetaTraceID: tiling.NewTrace(
@@ -133,7 +135,7 @@ func MakeTestTile() *tiling.Tile {
 				map[string]string{
 					"device":              BullheadDevice,
 					types.PrimaryKeyField: string(BetaTest),
-					types.CorpusField:     "gm",
+					types.CorpusField:     GMCorpus,
 				},
 			),
 
@@ -142,7 +144,7 @@ func MakeTestTile() *tiling.Tile {
 				map[string]string{
 					"device":              CrosshatchDevice,
 					types.PrimaryKeyField: string(AlphaTest),
-					types.CorpusField:     "gm",
+					types.CorpusField:     GMCorpus,
 				},
 			),
 			CrosshatchBetaTraceID: tiling.NewTrace(
@@ -150,7 +152,7 @@ func MakeTestTile() *tiling.Tile {
 				map[string]string{
 					"device":              CrosshatchDevice,
 					types.PrimaryKeyField: string(BetaTest),
-					types.CorpusField:     "gm",
+					types.CorpusField:     GMCorpus,
 				},
 			),
 		},
@@ -160,7 +162,7 @@ func MakeTestTile() *tiling.Tile {
 		ParamSet: map[string][]string{
 			"device":              {AnglerDevice, BullheadDevice, CrosshatchDevice},
 			types.PrimaryKeyField: {string(AlphaTest), string(BetaTest)},
-			types.CorpusField:     {"gm"},
+			types.CorpusField:     {GMCorpus},
 		},
 	}
 }
