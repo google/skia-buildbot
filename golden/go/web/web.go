@@ -1164,39 +1164,6 @@ func (p SummarySlice) Len() int           { return len(p) }
 func (p SummarySlice) Less(i, j int) bool { return p[i].Untriaged > p[j].Untriaged }
 func (p SummarySlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-// ClearDigests clears digests from the local cache and GS.
-func (wh *Handlers) ClearDigests(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	if !wh.purgeDigests(w, r) {
-		return
-	}
-	sendJSONResponse(w, &struct{}{})
-}
-
-// purgeDigests removes digests from the local cache and from GS if a query argument is set.
-// Returns true if there was no error sent to the response writer.
-func (wh *Handlers) purgeDigests(w http.ResponseWriter, r *http.Request) bool {
-	user := login.LoggedInAs(r)
-	if user == "" {
-		http.Error(w, "You must be logged in to purge digests", http.StatusUnauthorized)
-		return false
-	}
-
-	digests := types.DigestSlice{}
-	dec := json.NewDecoder(r.Body)
-	if err := dec.Decode(&digests); err != nil {
-		httputils.ReportError(w, err, "Unable to decode digest list.", http.StatusInternalServerError)
-		return false
-	}
-	purgeGCS := r.URL.Query().Get("purge") == "true"
-
-	if err := wh.DiffStore.PurgeDigests(r.Context(), digests, purgeGCS); err != nil {
-		httputils.ReportError(w, err, "Unable to clear digests.", http.StatusInternalServerError)
-		return false
-	}
-	return true
-}
-
 // TriageLogHandler returns the entries in the triagelog paginated
 // in reverse chronological order.
 func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
