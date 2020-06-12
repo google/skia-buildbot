@@ -23,15 +23,15 @@ describe('byblame-page-sk', () => {
     await takeScreenshot(testBed.page, 'gold', 'byblame-page-sk');
   });
 
-  it('responds to forward and back browser buttons', async () => {
-    const expectSelectedCorpusToBe = async (corpus: string) => {
-      const selectedTitle =
-        await testBed.page.$eval(
-          'corpus-selector-sk li.selected',
-          (e: Element) => (e as HTMLLIElement).innerText);
-      expect(selectedTitle).to.contain(corpus);
-    };
+  it('limits the number of commits on the blamelist', async () => {
+    await testBed.page.setViewport({ width: 1200, height: 2300 });
+    // click on "svg"
+    await testBed.page.click('corpus-selector-sk > ul > li:nth-child(3)');
+    await expectSelectedCorpusToBe('svg');
+    await takeScreenshot(testBed.page, 'gold', 'byblame-page-sk_limits-blamelist-commits');
+  });
 
+  it('responds to forward and back browser buttons', async () => {
     await expectSelectedCorpusToBe('gm');
 
     // click on canvaskit
@@ -39,7 +39,7 @@ describe('byblame-page-sk', () => {
     await expectSelectedCorpusToBe('canvaskit');
     expect(testBed.page.url()).to.contain('?corpus=canvaskit');
 
-    // click on svg
+    // click on "svg"
     await testBed.page.click('corpus-selector-sk > ul > li:nth-child(3)');
     await expectSelectedCorpusToBe('svg');
     expect(testBed.page.url()).to.contain('?corpus=svg');
@@ -52,4 +52,12 @@ describe('byblame-page-sk', () => {
     await expectSelectedCorpusToBe('svg');
     expect(testBed.page.url()).to.contain('?corpus=svg');
   });
+
+  const expectSelectedCorpusToBe = async (corpus: string) => {
+    const selectedTitle =
+        await testBed.page.$eval(
+            'corpus-selector-sk li.selected',
+            (e: Element) => (e as HTMLLIElement).innerText);
+    expect(selectedTitle).to.contain(corpus);
+  };
 });
