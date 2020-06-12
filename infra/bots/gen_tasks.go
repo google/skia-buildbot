@@ -11,6 +11,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -57,6 +58,7 @@ var (
 		"Housekeeper-Weekly-UpdateCIPDPackages",
 		"Housekeeper-OnDemand-Presubmit",
 		"Infra-PerCommit-Build",
+		"Infra-PerCommit-GoBuild",
 		"Infra-PerCommit-Small",
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
@@ -177,6 +179,41 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 		Isolate:    "recipes.isolate",
 	})
 	return BUNDLE_RECIPES_NAME
+}
+
+func goBuild(b *specs.TasksCfgBuilder, name string) string {
+	// Read the Docker image ID.
+	path := filepath.Join(relpath("."), "..", "..", "go_deps", "image.sha256")
+	imgContents, err := ioutil.ReadFile(path)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	imageSha256 := strings.TrimSpace(string(imgContents))
+
+	b.MustAddTask(name, &specs.TaskSpec{
+		Command: []string{
+			"./go_build",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--workdir", "./buildbot",
+			"--alsologtostderr",
+			"--image", imageSha256,
+			"--output-path", specs.PLACEHOLDER_ISOLATED_OUTDIR,
+			// TODO(borenet): Deduplicate this list with the one in //go_deps.
+			"--platform", "darwin-amd64",
+			"--platform", "linux-amd64",
+			"--platform", "linux-arm64",
+			"--platform", "windows-amd64",
+		},
+		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
+		Dimensions:   dockerGceDimensions(MACHINE_TYPE_LARGE),
+		Idempotent:   true,
+		// TODO(borenet): Figure out how to isolate only Go files.
+		Isolate:        "whole_repo.isolate",
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	})
+	return name
 }
 
 // buildTaskDrivers generates the task to compile the task driver code to run on
@@ -579,6 +616,8 @@ func process(b *specs.TasksCfgBuilder, name string) {
 		deps = append(deps, updateCIPDPackages(b, name))
 	} else if strings.Contains(name, "ValidateAutorollConfigs") {
 		deps = append(deps, validateAutorollConfigs(b, name))
+	} else if strings.Contains(name, "GoBuild") {
+		deps = append(deps, goBuild(b, name))
 	} else {
 		// Infra tests.
 		if strings.Contains(name, "Infra-PerCommit") {
