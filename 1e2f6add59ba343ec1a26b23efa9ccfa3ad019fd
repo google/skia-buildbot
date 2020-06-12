@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "e2863d84_ad380bc4",
+        "filename": "golden/go/publicparams/publicparams.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-12T12:26:11Z",
+      "side": 1,
+      "message": "\"ok\" was not clear to me here what was \"ok\"",
+      "parentUuid": "f2eb918a_3a084a6b",
+      "range": {
+        "startLine": 36,
+        "startChar": 15,
+        "endLine": 36,
+        "endChar": 23
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "32f04026_104853f0",
         "filename": "golden/go/publicparams/publicparams_test.go",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0a69818_17cd8abb",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-12T12:26:11Z",
+      "side": 1,
+      "message": "I prefer the constants as it makes it harder to mistype something. I went with your suggestion about greek letters.",
+      "parentUuid": "32f04026_104853f0",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 20
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3368f958_16bf25be",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-12T12:26:11Z",
+      "side": 1,
+      "message": "I can rename them as testcases. Originally, I had two Matchers, so it didn\u0027t make sense to specify how they should be Matched, but ended up removing one. I\u0027ll go with a slightly different naming convention to what you proposed.",
+      "parentUuid": "429a4ca4_c70dce3d",
+      "range": {
+        "startLine": 48,
+        "startChar": 1,
+        "endLine": 48,
+        "endChar": 12
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5205598e_c1298430",
         "filename": "golden/go/publicparams/publicparams_test.go",
         "patchSetId": 5
@@ -91,6 +163,30 @@
       "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "386ef721_0f454b57",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-12T12:26:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "5205598e_c1298430",
+      "range": {
+        "startLine": 49,
+        "startChar": 1,
+        "endLine": 49,
+        "endChar": 20
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "e99b8846_7d19fff6",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-12T12:26:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "dc84b2c9_0f17fcf5",
+      "range": {
+        "startLine": 50,
+        "startChar": 1,
+        "endLine": 50,
+        "endChar": 21
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0ac10852_0aaba372",
         "filename": "golden/go/publicparams/publicparams_test.go",
         "patchSetId": 5
@@ -137,6 +257,30 @@
       "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9bd8407_1b4e88e4",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-12T12:26:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "0ac10852_0aaba372",
+      "range": {
+        "startLine": 52,
+        "startChar": 1,
+        "endLine": 52,
+        "endChar": 26
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "158c1de1_03d45899",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-12T12:26:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "33e6c411_7a4edeb3",
+      "range": {
+        "startLine": 54,
+        "startChar": 1,
+        "endLine": 54,
+        "endChar": 28
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "13a153fd_e7092833",
         "filename": "golden/go/publicparams/publicparams_test.go",
         "patchSetId": 5
@@ -183,6 +351,30 @@
       "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "78562968_a09a9390",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-12T12:26:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "13a153fd_e7092833",
+      "range": {
+        "startLine": 55,
+        "startChar": 1,
+        "endLine": 55,
+        "endChar": 28
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "136088fd_bdefac04",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-12T12:26:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "bbfc4b49_79feeea6",
+      "range": {
+        "startLine": 56,
+        "startChar": 1,
+        "endLine": 56,
+        "endChar": 28
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "85fb7a22_25fc3841",
         "filename": "golden/go/publicparams/publicparams_test.go",
         "patchSetId": 5
@@ -229,6 +445,30 @@
       "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4dc78b8c_40c003bd",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-12T12:26:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "85fb7a22_25fc3841",
+      "range": {
+        "startLine": 57,
+        "startChar": 1,
+        "endLine": 57,
+        "endChar": 28
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "ef9b1632_99a5b9df",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-12T12:26:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "234ec901_494355a4",
+      "range": {
+        "startLine": 59,
+        "startChar": 1,
+        "endLine": 59,
+        "endChar": 28
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6d49df68_470cb837",
         "filename": "golden/go/publicparams/publicparams_test.go",
         "patchSetId": 5
@@ -275,6 +539,30 @@
       "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5df63fd_512638b7",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-12T12:26:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "6d49df68_470cb837",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 60,
+        "endChar": 28
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "4554b7de_0c4cbfd2",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-12T12:26:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "79adc1cd_80176e10",
+      "range": {
+        "startLine": 61,
+        "startChar": 1,
+        "endLine": 61,
+        "endChar": 28
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f96247cf_92a8fc06",
         "filename": "golden/go/publicparams/publicparams_test.go",
         "patchSetId": 5
@@ -324,6 +636,30 @@
     },
     {
       "key": {
+        "uuid": "a681d739_7339dc36",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-12T12:26:11Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "f96247cf_92a8fc06",
+      "range": {
+        "startLine": 63,
+        "startChar": 1,
+        "endLine": 63,
+        "endChar": 26
+      },
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c8fb4ed5_c19208db",
         "filename": "golden/go/publicparams/publicparams_test.go",
         "patchSetId": 5
@@ -338,6 +674,24 @@
       "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8af2d5f_70431933",
+        "filename": "golden/go/publicparams/publicparams_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-12T12:26:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c8fb4ed5_c19208db",
+      "revId": "1e2f6add59ba343ec1a26b23efa9ccfa3ad019fd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
