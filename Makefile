@@ -37,6 +37,9 @@ ct:
 ctfe:
 	cd ct && $(MAKE) ctfe
 
+.PHONY: puppeteer-tests-npm-deps
+	cd puppeteer-tests && $(MAKE) all
+
 .PHONY: infra-sk
 infra-sk:
 	cd infra-sk && $(MAKE) all
@@ -62,7 +65,7 @@ task_scheduler:
 	cd task_scheduler && $(MAKE) all
 
 .PHONY: all
-all: infra-sk autoroll datahopper perf sharedgo ct ctfe cq_watcher status task_scheduler
+all: puppeteer-tests-npm-deps infra-sk autoroll datahopper perf sharedgo ct ctfe cq_watcher status task_scheduler
 
 .PHONY: tags
 tags:
