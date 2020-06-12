@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/golden/go/code_review"
+	"go.skia.org/infra/golden/go/publicparams"
 
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
@@ -36,7 +37,7 @@ type CachedTileSourceConfig struct {
 
 	// optional. If specified, will only show the params that match this query. This is
 	// opt-in, to avoid leaking.
-	PubliclyViewableParams paramtools.ParamSet
+	PubliclyViewableParams publicparams.Matcher
 
 	// NCommits is the number of commits we should consider. If NCommits is
 	// 0 or smaller all commits in the last tile will be considered.
@@ -138,7 +139,7 @@ func (s *CachedTileSourceImpl) updateTile(ctx context.Context) error {
 // filterTile creates a new tile from the given tile that contains
 // only traces that match the publicly viewable params.
 func (s *CachedTileSourceImpl) filterTile(tile *tiling.Tile) *tiling.Tile {
-	if len(s.PubliclyViewableParams) == 0 {
+	if s.PubliclyViewableParams == nil {
 		return tile
 	}
 
@@ -152,7 +153,7 @@ func (s *CachedTileSourceImpl) filterTile(tile *tiling.Tile) *tiling.Tile {
 	// Build the paramset in the process.
 	paramSet := paramtools.ParamSet{}
 	for traceID, trace := range tile.Traces {
-		if trace.Matches(s.PubliclyViewableParams) {
+		if s.PubliclyViewableParams.Matches(trace.Params()) {
 			ret.Traces[traceID] = trace
 			paramSet.AddParams(trace.Params())
 		}

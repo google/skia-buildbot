@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/indexer"
+	"go.skia.org/infra/golden/go/publicparams"
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/search/query"
@@ -74,13 +75,13 @@ type SearchImpl struct {
 	// Flaky traces can sometimes be ignored, e.g. in UntriagedUnignoredTryJobExclusiveDigests.
 	flakyTraceThreshold int
 
-	// optional. If specified, will only show the params that match this query. This is
-	// opt-in, to avoid leaking.
-	publiclyViewableParams paramtools.ParamSet
+	// optional. If specified, will only show the traces that match this Matcher. Specifically, this
+	// limits the Tryjob Results
+	publiclyViewableParams publicparams.Matcher
 }
 
 // New returns a new SearchImpl instance.
-func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventRegisterer, is indexer.IndexSource, cls clstore.Store, tjs tjstore.Store, cs comment.Store, publiclyViewableParams paramtools.ParamSet, flakyThreshold int) *SearchImpl {
+func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventRegisterer, is indexer.IndexSource, cls clstore.Store, tjs tjstore.Store, cs comment.Store, publiclyViewableParams publicparams.Matcher, flakyThreshold int) *SearchImpl {
 	var triageHistoryCache sync.Map
 	if cer != nil {
 		// If the expectations change for a given ID, we should purge it from our cache so as not
@@ -360,8 +361,8 @@ func (s *SearchImpl) getCLOnlyDigestDetails(ctx context.Context, test types.Test
 		p := paramtools.Params{}
 		p.Add(tr.GroupParams, tr.Options, tr.ResultParams)
 		// If we've been given a set of PubliclyViewableParams, only show those.
-		if len(s.publiclyViewableParams) > 0 {
-			if !s.publiclyViewableParams.MatchesParams(p) {
+		if s.publiclyViewableParams != nil {
+			if !s.publiclyViewableParams.Matches(p) {
 				continue
 			}
 		}
@@ -538,8 +539,8 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 				}
 			}
 			// If we've been given a set of PubliclyViewableParams, only show those.
-			if len(s.publiclyViewableParams) > 0 {
-				if !s.publiclyViewableParams.MatchesParams(p) {
+			if s.publiclyViewableParams != nil {
+				if !s.publiclyViewableParams.Matches(p) {
 					continue
 				}
 			}
