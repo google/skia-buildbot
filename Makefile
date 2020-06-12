@@ -37,6 +37,9 @@ ct:
 ctfe:
 	cd ct && $(MAKE) ctfe
 
+.PHONY: puppeteer-tests-npm-deps
+	cd puppeteer-tests && $(MAKE) all
+
 .PHONY: infra-sk
 infra-sk:
 	cd infra-sk && $(MAKE) all
