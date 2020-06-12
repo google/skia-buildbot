@@ -23,9 +23,7 @@ const template = (el) => html`
     </a>
   </p>
 
-  ${!el.byBlameEntry.commits || el.byBlameEntry.commits.length === 0
-    ? html`<p class=no-blamelist>No blamelist.</p>`
-    : blameListTemplate(el)}
+  ${blameListTemplate(el.byBlameEntry.commits)}
 
   <h3>Tests affected</h3>
   <p class=num-tests-affected>
@@ -38,31 +36,39 @@ const template = (el) => html`
 </div>
 `;
 
-const blameListTemplate = (el) => html`
+const maxCommits = 10;
+
+const blameListTemplate = (commits) => {
+  if (!commits || commits.length === 0) {
+    return html`<p class=no-blamelist>No blamelist.</p>`;
+  }
+  const andNMore = commits.length - maxCommits;
+
+  commits = commits.slice(0, maxCommits);
+
+  return html`
 <h3>Blame</h3>
 
 <ul class=blames>
-  ${el.byBlameEntry.commits.map(
-    (commit) => html`
-          <li>
-            <a href=${el._commitHref(commit.hash)}
-               target=_blank
-               rel=noopener>
-              ${commit.hash.slice(0, 7)}
-            </a>
-            <span class=commit-message>
-              ${commit.message}
-            </span>
-            <br/>
-            <small>
-              <span class=author>${commit.author}</span>,
-              <span class=age>
-                ${diffDate(commit.commit_time * 1000)}
-              </span> ago.
-            </small>
-          </li>`,
-  )}
+  ${commits.map((commit) => html`
+    <li>
+      <a href=${commitHref(commit.hash)} target=_blank rel=noopener>
+        ${commit.hash.slice(0, 7)}
+      </a>
+      <span class=commit-message>
+        ${commit.message}
+      </span>
+      <br/>
+      <small>
+        <span class=author>${commit.author}</span>,
+        <span class=age>
+          ${diffDate(commit.commit_time * 1000)}
+        </span> ago.
+      </small>
+    </li>`)}
+   ${andNMore > 0 ? html`<li>And ${andNMore} other commit(s)</li>` : ''}
 </ul>`;
+};
 
 const affectedTestsTemplate = (affectedTests) => (!affectedTests || affectedTests.length === 0
   ? ''
@@ -93,6 +99,16 @@ const affectedTestsTemplate = (affectedTests) => (!affectedTests || affectedTest
   )}
   </tbody>
 </table>`);
+
+
+const commitHref = (hash) => {
+  const repo = baseRepoURL();
+  if (!hash || !repo) {
+    return '';
+  }
+  const path = repo.indexOf('github.com') !== -1 ? 'commit' : '+show';
+  return `${repo}/${path}/${hash}`;
+};
 
 const detailHref = (test) => `/detail?test=${test.test}&digest=${test.sample_digest}`;
 
@@ -129,14 +145,5 @@ define('byblameentry-sk', class extends ElementSk {
     const query = encodeURIComponent(`source_type=${this.corpus}`);
     const groupID = this.byBlameEntry.groupID;
     return `/search?blame=${groupID}&unt=true&head=true&query=${query}`;
-  }
-
-  _commitHref(hash) {
-    const repo = baseRepoURL();
-    if (!hash || !repo) {
-      return '';
-    }
-    const path = repo.indexOf('github.com') !== -1 ? 'commit' : '+show';
-    return `${repo}/${path}/${hash}`;
   }
 });
