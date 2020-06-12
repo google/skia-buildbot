@@ -14,11 +14,14 @@ INSTALL="install -D --verbose --backup=none"
 # Add the dockerfile and binary.
 ${INSTALL} --mode=644 -T ${IMAGE}/Dockerfile                         ${ROOT}/Dockerfile
 ${INSTALL} --mode=644 -T ${IMAGE}/oauth2_access_token_config.json    ${ROOT}/etc/swarming_config/oauth2_access_token_config.json
+
 ${INSTALL} --mode=755 -T ./out/bot_config                            ${ROOT}/usr/bin/bot_config
 ${INSTALL} --mode=755 -T ${IMAGE}/sudo                               ${ROOT}/usr/bin/sudo
 ${INSTALL} --mode=755 -T /usr/bin/qemu-arm-static                    ${ROOT}/usr/bin/qemu-arm-static
 ${INSTALL_DIR} --mode=755                                            ${ROOT}/usr/local/share/${APPNAME}/
 ${INSTALL} --mode=644 ../machine/configs/*                           ${ROOT}/usr/local/share/${APPNAME}/
+${INSTALL} --mode=755 -T ${IMAGE}/libimobiledevice-build.sh          ${ROOT}/libimobiledevice-build.sh
+${INSTALL} --mode=755 -T ${IMAGE}/libimobiledevice-postinst.sh       ${ROOT}/libimobiledevice-postinst.sh
 }
 
 source ../bash/docker_build.sh
