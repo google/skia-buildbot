@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c0decfcb_b91948f3",
+        "filename": "golden/modules/byblame-page-sk/byblame-page-sk_puppeteer_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-12T17:32:31Z",
+      "side": 1,
+      "message": "Nit: limits.",
+      "range": {
+        "startLine": 26,
+        "startChar": 6,
+        "endLine": 26,
+        "endChar": 11
+      },
+      "revId": "4c0f7b47fbe88d2f942f3aee68706768c3b6928c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb5ce1ce_e93eddb3",
+        "filename": "golden/modules/byblame-page-sk/byblame-page-sk_puppeteer_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-12T17:32:31Z",
+      "side": 1,
+      "message": "Ubernit: // Click on \"svg\".",
+      "range": {
+        "startLine": 28,
+        "startChar": 7,
+        "endLine": 28,
+        "endChar": 19
+      },
+      "revId": "4c0f7b47fbe88d2f942f3aee68706768c3b6928c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4af1e16d_9d36ae6a",
+        "filename": "golden/modules/byblame-page-sk/byblame-page-sk_puppeteer_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-12T17:32:31Z",
+      "side": 1,
+      "message": "Please name the screenshot after the test case, e.g. \"byblame-page-sk_limits-blamelist-commits\".",
+      "range": {
+        "startLine": 31,
+        "startChar": 48,
+        "endLine": 31,
+        "endChar": 74
+      },
+      "revId": "4c0f7b47fbe88d2f942f3aee68706768c3b6928c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8bf9ad3d_064ea161",
+        "filename": "golden/modules/byblame-page-sk/demo_data.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-12T17:32:31Z",
+      "side": 1,
+      "message": "Any chance we can use different names and messages for different commits? e.g. Alice, Bob, ..., \"Commit #1\", \"Commit #2\", ...\n\nThe screenshot shows 10 commits with the same author/message, which at first I thought might be a bug.",
+      "range": {
+        "startLine": 176,
+        "startChar": 0,
+        "endLine": 178,
+        "endChar": 0
+      },
+      "revId": "4c0f7b47fbe88d2f942f3aee68706768c3b6928c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c81ad3ed_d69edcec",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-12T17:32:31Z",
+      "side": 1,
+      "message": "Nit: Please move this atop and use CONSTANT_CASE.",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 22
+      },
+      "revId": "4c0f7b47fbe88d2f942f3aee68706768c3b6928c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3ce9c43_889b5df9",
+        "filename": "golden/modules/byblameentry-sk/byblameentry-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-12T17:32:31Z",
+      "side": 1,
+      "message": "Nit: Indentation should be 2 spaces.",
+      "range": {
+        "startLine": 69,
+        "startChar": 2,
+        "endLine": 69,
+        "endChar": 3
+      },
+      "revId": "4c0f7b47fbe88d2f942f3aee68706768c3b6928c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
