@@ -1,34 +1,39 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>triage2-sk</title>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style type="text/css" media="screen">
-triage2-sk {
-  display: block;
-}
+      triage2-sk {
+        display: block;
+      }
     </style>
-</head>
-<body>
-  <triage2-sk></triage2-sk>
-  <triage2-sk value=positive></triage2-sk>
-  <triage2-sk value=negative></triage2-sk>
-  <triage2-sk value=untriaged></triage2-sk>
-  <div class=darkmode>
+  </head>
+  <body>
     <triage2-sk></triage2-sk>
-    <triage2-sk value=positive></triage2-sk>
-    <triage2-sk value=negative></triage2-sk>
-    <triage2-sk value=untriaged></triage2-sk>
-  </div>
-  <p>
-    Event: <code id=evt></code>
-  </p>
-  <script type="text/javascript" charset="utf-8">
-    document.body.addEventListener('change', (e) => {
-      document.getElementById('evt').innerText = e.detail;
-    });
-  </script>
-</body>
+    <triage2-sk value="positive"></triage2-sk>
+    <triage2-sk value="negative"></triage2-sk>
+    <triage2-sk value="untriaged"></triage2-sk>
+    <div class="body-sk">
+      <triage2-sk></triage2-sk>
+      <triage2-sk value="positive"></triage2-sk>
+      <triage2-sk value="negative"></triage2-sk>
+      <triage2-sk value="untriaged"></triage2-sk>
+    </div>
+
+    <div class="body-sk darkmode">
+      <triage2-sk></triage2-sk>
+      <triage2-sk value="positive"></triage2-sk>
+      <triage2-sk value="negative"></triage2-sk>
+      <triage2-sk value="untriaged"></triage2-sk>
+    </div>
+    <p> Event: <code id="evt"></code> </p>
+    <script type="text/javascript" charset="utf-8">
+      document.body.addEventListener('change', (e) => {
+        document.getElementById('evt').innerText = e.detail;
+      });
+    </script>
+  </body>
 </html>
