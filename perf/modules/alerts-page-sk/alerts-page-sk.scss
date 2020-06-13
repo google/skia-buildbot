@@ -25,8 +25,8 @@ alerts-page-sk {
     opacity: 0.2;
   }
 
-  td > paramset-sk {
-    max-width: 400px;
+  td > paramset-sk div {
+    display: block;
   }
 }
 
