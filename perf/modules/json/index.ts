@@ -4,3 +4,16 @@ export interface ValuePercent {
 	value: string;
 	percent: number;
 }
+
+export interface CountHandlerRequest {
+	q: string;
+	begin: number;
+	end: number;
+}
+
+export interface CountHandlerResponse {
+	count: number;
+	paramset: ParamSet;
+}
+
+export type ParamSet = { [key: string]: string[] };
