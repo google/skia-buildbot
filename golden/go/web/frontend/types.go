@@ -4,6 +4,7 @@
 package frontend
 
 import (
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -280,4 +281,19 @@ type FlakyTracesDataResponse struct {
 	TotalFlakyTraces int `json:"num_flaky"`
 	// TotalTraces is the total number of traces in the current sliding window.
 	TotalTraces int `json:"num_traces"`
+}
+
+type ListTestsQuery struct {
+}
+
+func ParseListTestsQuery(r *http.Request) (ListTestsQuery, error) {
+
+}
+
+// TestSummary summarizes the digest count for a given test (and a series of search params).
+type TestSummary struct {
+	Name             string `json:"name"`
+	PositiveDigests  int    `json:"positive_digests"`
+	NegativeDigests  int    `json:"negative_digests"`
+	UntriagedDigests int    `json:"untriaged_digests"`
 }

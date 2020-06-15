@@ -2166,7 +2166,6 @@ func TestGetFlakyTracesData_NoTracesAboveThreshold_ReturnsZeroTraces(t *testing.
 	unittest.SmallTest(t)
 
 	mi := &mock_indexer.IndexSource{}
-	defer mi.AssertExpectations(t)
 
 	commits := bug_revert.MakeTestCommits()
 	fis := makeBugRevertIndex(len(commits))
@@ -2181,6 +2180,28 @@ func TestGetFlakyTracesData_NoTracesAboveThreshold_ReturnsZeroTraces(t *testing.
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
 	wh.GetFlakyTracesData(w, r)
+	const expectedRV = `{"traces":null,"tile_size":5,"num_flaky":0,"num_traces":8}`
+	assertJSONResponseWas(t, 200, expectedRV, w)
+}
+
+func TestListTestsHandler2_AllGMTests_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mi := &mock_indexer.IndexSource{}
+
+	commits := bug_revert.MakeTestCommits()
+	fis := makeBugRevertIndex(len(commits))
+	mi.On("GetIndex").Return(fis)
+
+	wh := Handlers{
+		HandlersConfig: HandlersConfig{
+			Indexer: mi,
+		},
+		anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
+	}
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
+	wh.ListTestsHandler2(w, r)
 	const expectedRV = `{"traces":null,"tile_size":5,"num_flaky":0,"num_traces":8}`
 	assertJSONResponseWas(t, 200, expectedRV, w)
 }
