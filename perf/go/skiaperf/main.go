@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"net/url"
+	"os"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -21,22 +22,24 @@ import (
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
 	storage "cloud.google.com/go/storage"
-	"contrib.go.opencensus.io/exporter/stackdriver"
 	"github.com/gorilla/mux"
+	"github.com/jcgregorio/logger"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/calc"
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/sklog/glog_and_cloud"
+	"go.skia.org/infra/go/sklog/sklog_impl"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alertfilter"
 	"go.skia.org/infra/perf/go/alerts"
@@ -77,33 +80,6 @@ const (
 	// defaultBugURLTemplate is the URL template to use if the user
 	// doesn't supply one.
 	defaultBugURLTemplate = "https://bugs.chromium.org/p/skia/issues/entry?comment=This+bug+was+found+via+SkiaPerf.%0A%0AVisit+this+URL+to+see+the+details+of+the+suspicious+cluster%3A%0A%0A++{cluster_url}%0A%0AThe+suspect+commit+is%3A%0A%0A++{commit_url}%0A%0A++{message}&labels=FromSkiaPerf%2CType-Defect%2CPriority-Medium"
-)
-
-// flags
-var (
-	authBypassList                 = flag.String("auth_bypass_list", "", "Space separated list of email addresses allowed access. Usually just service account emails. Bypasses the domain checks.")
-	configFilename                 = flag.String("config_filename", "./configs/nano.json", "The name of the config file to use.")
-	commitRangeURL                 = flag.String("commit_range_url", "", "A URI Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.")
-	defaultSparse                  = flag.Bool("default_sparse", false, "The default value for 'Sparse' in Alerts.")
-	doClustering                   = flag.Bool("do_clustering", true, "If true then run continuous clustering over all the alerts.")
-	noemail                        = flag.Bool("noemail", false, "Do not send emails.")
-	emailClientSecretFile          = flag.String("email_client_secret_file", "client_secret.json", "OAuth client secret JSON file for sending email.")
-	emailTokenCacheFile            = flag.String("email_token_cache_file", "client_token.json", "OAuth token cache file for sending email.")
-	eventDrivenRegressionDetection = flag.Bool("event_driven_regression_detection", false, "If true then regression detection is done based on PubSub events.")
-	interesting                    = flag.Float64("interesting", 50.0, "The threshold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements.")
-	internalOnly                   = flag.Bool("internal_only", false, "Require the user to be logged in to see any page.")
-	keyOrder                       = flag.String("key_order", "build_flavor,name,sub_result,source_type", "The order that keys should be presented in for searching. All keys that don't appear here will appear after, in alphabetical order.")
-	local                          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	numContinuous                  = flag.Int("num_continuous", 50, "The number of commits to do continuous clustering over looking for regressions.")
-	numContinuousParallel          = flag.Int("num_continuous_parallel", 3, "The number of parallel copies of continuous clustering to run.")
-	numShift                       = flag.Int("num_shift", 10, "The number of commits the shift navigation buttons should jump.")
-	port                           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	promPort                       = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-	internalPort                   = flag.String("internal_port", ":9000", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
-	radius                         = flag.Int("radius", 7, "The number of commits to include on either side of a commit when clustering.")
-	resourcesDir                   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	stepUpOnly                     = flag.Bool("step_up_only", false, "Only regressions that look like a step up will be reported.")
-	tracing                        = flag.Bool("tracing", false, "If true then send traces to stackdriver.")
 )
 
 var (
@@ -198,16 +174,17 @@ type skPerfConfig struct {
 func templateHandler(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		if *local {
+		flags := config.Config.Flags
+		if flags.Local {
 			loadTemplates()
 		}
 		context := skPerfConfig{
-			Radius:         *radius,
-			KeyOrder:       strings.Split(*keyOrder, ","),
-			NumShift:       *numShift,
-			Interesting:    float32(*interesting),
-			StepUpOnly:     *stepUpOnly,
-			CommitRangeURL: *commitRangeURL,
+			Radius:         flags.Radius,
+			KeyOrder:       strings.Split(flags.KeyOrder, ","),
+			NumShift:       flags.NumShift,
+			Interesting:    float32(flags.Interesting),
+			StepUpOnly:     flags.StepUpOnly,
+			CommitRangeURL: flags.CommitRangeURL,
 		}
 		b, err := json.MarshalIndent(context, "", "  ")
 		if err != nil {
@@ -223,7 +200,7 @@ func templateHandler(name string) http.HandlerFunc {
 func scriptHandler(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/javascript")
-		if *local {
+		if config.Config.Flags.Local {
 			loadTemplates()
 		}
 		if err := templates.ExecuteTemplate(w, name, nil); err != nil {
@@ -253,49 +230,92 @@ func newAlertsConfigProvider() regression.ConfigProvider {
 func initialize() {
 	rand.Seed(time.Now().UnixNano())
 
-	sampler := trace.NeverSample()
-	if *tracing {
-		sampler = trace.AlwaysSample()
-	}
-	exporter, err := stackdriver.NewExporter(stackdriver.Options{
-		BundleDelayThreshold: time.Second / 10,
-		BundleCountThreshold: 10})
-	if err != nil {
+	// Log to stdout.
+	glog_and_cloud.SetLogger(
+		glog_and_cloud.NewSLogCloudLogger(logger.NewFromOptions(&logger.Options{
+			SyncWriter: os.Stdout,
+		})),
+	)
+
+	// Note that we don't use common.* here, instead doing the setup manually
+	// because we are using a flag.FlagSet instead of the global
+	// flag.CommandLine.
+	//
+	// If this works out then maybe we can fold flag.FlagSet support into
+	// common.
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+	flags := config.Flags{}
+	flags.Register(fs)
+	if err := fs.Parse(os.Args[1:]); err != nil {
 		sklog.Fatal(err)
 	}
-	trace.RegisterExporter(exporter)
-	trace.ApplyConfig(trace.Config{DefaultSampler: sampler})
-	_, span := trace.StartSpan(context.Background(), "main")
-	defer span.End()
+	fs.VisitAll(func(f *flag.Flag) {
+		sklog.Infof("Flags: --%s=%v", f.Name, f.Value)
+	})
 
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	// Record UID and GID.
+	sklog.Infof("Running as %d:%d", os.Getuid(), os.Getgid())
+
+	// Init metrics.
+	metrics2.InitPrometheus(flags.PromPort)
+	_ = metrics2.NewLiveness("uptime", nil)
+
+	// Init auth.
+	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", flags.Port)
+	if !flags.Local {
+		redirectURL = login.DEFAULT_REDIRECT_URL
+	}
+	if flags.AuthBypassList == "" {
+		flags.AuthBypassList = login.DEFAULT_DOMAIN_WHITELIST
+	}
+	if err := login.Init(redirectURL, flags.AuthBypassList, ""); err != nil {
+		sklog.Fatalf("Failed to initialize the login system: %s", err)
+	}
+
+	// Keep HTTP request metrics.
+	severities := sklog_impl.AllSeverities()
+	metricLookup := make([]metrics2.Counter, len(severities))
+	for _, sev := range severities {
+		metricLookup[sev] = metrics2.GetCounter("num_log_lines", map[string]string{"level": sev.String()})
+	}
+	metricsCallback := func(severity sklog_impl.Severity) {
+		metricLookup[severity].Inc(1)
+	}
+	sklog_impl.SetMetricsCallback(metricsCallback)
+
+	// Load the config file.
+	if err := config.Init(flags.ConfigFilename, flags); err != nil {
+		sklog.Fatal(err)
+	}
+	cfg := config.Config
+
+	var err error
 	ctx := context.Background()
 	distFileSystem, err = dist.New()
 	if err != nil {
 		sklog.Fatal(err)
 	}
 
-	if *resourcesDir == "" {
+	if cfg.Flags.ResourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
-		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
+		cfg.Flags.ResourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
 
-	if err := config.Init(*configFilename); err != nil {
-		sklog.Fatal(err)
-	}
-
-	if !*local && config.Config.DataStoreConfig.Namespace != "" && !util.In(config.Config.DataStoreConfig.Namespace, []string{ds.PERF_NS, ds.PERF_ANDROID_NS, ds.PERF_ANDROID_X_NS, ds.PERF_ANDROID_MASTER_NS, ds.PERF_CT_NS, ds.PERF_FLUTTER_NS}) {
+	if !cfg.Flags.Local && cfg.DataStoreConfig.Namespace != "" && !util.In(cfg.DataStoreConfig.Namespace, []string{ds.PERF_NS, ds.PERF_ANDROID_NS, ds.PERF_ANDROID_X_NS, ds.PERF_ANDROID_MASTER_NS, ds.PERF_CT_NS, ds.PERF_FLUTTER_NS}) {
 		sklog.Fatal("When running in prod the datastore namespace must be a known value.")
 	}
 
 	scopes := []string{storage.ScopeReadOnly, datastore.ScopeDatastore, bigtable.Scope, auth.SCOPE_GERRIT}
 
 	sklog.Info("About to create token source.")
-	ts, err := auth.NewDefaultTokenSource(*local, scopes...)
+	ts, err := auth.NewDefaultTokenSource(cfg.Flags.Local, scopes...)
 	if err != nil {
 		sklog.Fatalf("Failed to get TokenSource: %s", err)
 	}
 
-	if !*local {
+	if !cfg.Flags.Local {
 		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
 			sklog.Fatal(err)
 		}
@@ -312,7 +332,7 @@ func initialize() {
 
 	sklog.Info("About to build dataframebuilder.")
 
-	traceStore, err = builders.NewTraceStoreFromConfig(ctx, *local, config.Config)
+	traceStore, err = builders.NewTraceStoreFromConfig(ctx, cfg.Flags.Local, config.Config)
 	if err != nil {
 		sklog.Fatalf("Failed to build TraceStore: %s", err)
 	}
@@ -322,7 +342,7 @@ func initialize() {
 		sklog.Fatalf("Failed to build paramsetRefresher: %s", err)
 	}
 
-	perfGit, err = builders.NewPerfGitFromConfig(ctx, *local, config.Config)
+	perfGit, err = builders.NewPerfGitFromConfig(ctx, cfg.Flags.Local, config.Config)
 	if err != nil {
 		sklog.Fatalf("Failed to build perfgit.Git: %s", err)
 	}
@@ -332,10 +352,10 @@ func initialize() {
 	sklog.Info("About to build cidl.")
 	cidl = cid.New(ctx, perfGit, config.Config)
 
-	alerts.DefaultSparse = *defaultSparse
+	alerts.DefaultSparse = cfg.Flags.DefaultSparse
 
 	sklog.Info("About to build alertStore.")
-	alertStore, err = builders.NewAlertStoreFromConfig(ctx, *local, config.Config)
+	alertStore, err = builders.NewAlertStoreFromConfig(ctx, cfg.Flags.Local, config.Config)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -344,8 +364,8 @@ func initialize() {
 		sklog.Fatal(err)
 	}
 
-	if !*noemail {
-		emailAuth, err = email.NewFromFiles(*emailTokenCacheFile, *emailClientSecretFile)
+	if !cfg.Flags.NoEmail {
+		emailAuth, err = email.NewFromFiles(cfg.Flags.EmailTokenCacheFile, cfg.Flags.EmailClientSecretFile)
 		if err != nil {
 			sklog.Fatalf("Failed to create email auth: %v", err)
 		}
@@ -355,8 +375,8 @@ func initialize() {
 	}
 
 	frameRequests = dataframe.NewRunningFrameRequests(perfGit, dfBuilder, shortcutStore)
-	clusterRequests = regression.NewRunningRegressionDetectionRequests(perfGit, cidl, float32(*interesting), dfBuilder, shortcutStore)
-	regStore, err = builders.NewRegressionStoreFromConfig(*local, cidl, config.Config)
+	clusterRequests = regression.NewRunningRegressionDetectionRequests(perfGit, cidl, float32(cfg.Flags.Interesting), dfBuilder, shortcutStore)
+	regStore, err = builders.NewRegressionStoreFromConfig(cfg.Flags.Local, cidl, cfg)
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
 	}
@@ -365,13 +385,13 @@ func initialize() {
 
 	dryrunRequests = dryrun.New(cidl, dfBuilder, shortcutStore, paramsProvider, perfGit)
 
-	if *doClustering {
+	if cfg.Flags.DoClustering {
 		go func() {
-			for i := 0; i < *numContinuousParallel; i++ {
+			for i := 0; i < cfg.Flags.NumContinuousParallel; i++ {
 				// Start running continuous clustering looking for regressions.
 				time.Sleep(startClusterDelay)
-				c := regression.NewContinuous(perfGit, cidl, configProvider, regStore, shortcutStore, *numContinuous, *radius, notifier, paramsProvider, dfBuilder,
-					*local, config.Config.DataStoreConfig.Project, config.Config.IngestionConfig.FileIngestionTopicName, *eventDrivenRegressionDetection)
+				c := regression.NewContinuous(perfGit, cidl, configProvider, regStore, shortcutStore, cfg.Flags.NumContinuous, cfg.Flags.Radius, notifier, paramsProvider, dfBuilder,
+					cfg.Flags.Local, config.Config.DataStoreConfig.Project, config.Config.IngestionConfig.FileIngestionTopicName, cfg.Flags.EventDrivenRegressionDetection)
 				continuous = append(continuous, c)
 				go c.Run(context.Background())
 			}
@@ -382,7 +402,7 @@ func initialize() {
 // helpHandler handles the GET of the main page.
 func helpHandler(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("Help Handler: %q\n", r.URL.Path)
-	if *local {
+	if config.Config.Flags.Local {
 		loadTemplates()
 	}
 	if r.Method == "GET" {
@@ -1459,28 +1479,12 @@ func internalOnlyHandler(h http.Handler) http.Handler {
 }
 
 func main() {
-
-	common.InitWithMust(
-		"skiaperf",
-		common.PrometheusOpt(promPort),
-		common.MetricsLoggingOpt(),
-	)
-
 	initialize()
 
-	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-	if !*local {
-		redirectURL = login.DEFAULT_REDIRECT_URL
-	}
-	if *authBypassList == "" {
-		*authBypassList = login.DEFAULT_DOMAIN_WHITELIST
-	}
-	if err := login.Init(redirectURL, *authBypassList, ""); err != nil {
-		sklog.Fatalf("Failed to initialize the login system: %s", err)
-	}
+	flags := config.Config.Flags
 
 	// Start the internal server on the internal port if requested.
-	if *internalPort != "" {
+	if flags.InternalPort != "" {
 		// Add the profiling endpoints to the internal router.
 		internalRouter := mux.NewRouter()
 
@@ -1493,8 +1497,8 @@ func main() {
 		internalRouter.HandleFunc("/debug/pprof/{profile}", pprof.Index)
 
 		go func() {
-			sklog.Infof("Internal server on %q", *internalPort)
-			sklog.Info(http.ListenAndServe(*internalPort, internalRouter))
+			sklog.Infof("Internal server on %q", flags.InternalPort)
+			sklog.Info(http.ListenAndServe(flags.InternalPort, internalRouter))
 		}()
 	}
 
@@ -1550,15 +1554,15 @@ func main() {
 	router.HandleFunc("/_/alert/notify/try", alertNotifyTryHandler).Methods("POST")
 
 	var h http.Handler = router
-	if *internalOnly {
+	if flags.InternalOnly {
 		h = internalOnlyHandler(h)
 	}
 	h = httputils.LoggingGzipRequestResponse(h)
-	if !*local {
+	if !flags.Local {
 		h = httputils.HealthzAndHTTPS(h)
 	}
 	http.Handle("/", h)
 
 	sklog.Info("Ready to serve.")
-	sklog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Fatal(http.ListenAndServe(flags.Port, nil))
 }
