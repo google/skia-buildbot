@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"flag"
 	"io"
 
 	"go.skia.org/infra/go/skerr"
@@ -198,6 +199,61 @@ type GitRepoConfig struct {
 	CommitURL string `json:"commit_url"`
 }
 
+// Flags are the command-line flags. Most of the flags should eventually be
+// folded into other parts of InstanceConfig.
+type Flags struct {
+	AuthBypassList                 string
+	ConfigFilename                 string
+	CommitRangeURL                 string
+	DefaultSparse                  bool
+	DoClustering                   bool
+	NoEmail                        bool
+	EmailClientSecretFile          string
+	EmailTokenCacheFile            string
+	EventDrivenRegressionDetection bool
+	Interesting                    float64
+	InternalOnly                   bool
+	KeyOrder                       string
+	Local                          bool
+	NumContinuous                  int
+	NumContinuousParallel          int
+	NumShift                       int
+	Port                           string
+	PromPort                       string
+	InternalPort                   string
+	Radius                         int
+	ResourcesDir                   string
+	StepUpOnly                     bool
+	Tracing                        bool
+}
+
+// Register the flags in the given FlagSet.
+func (flags *Flags) Register(fs *flag.FlagSet) {
+	fs.StringVar(&flags.AuthBypassList, "auth_bypass_list", "", "Space separated list of email addresses allowed access. Usually just service account emails. Bypasses the domain checks.")
+	fs.StringVar(&flags.ConfigFilename, "config_filename", "./configs/nano.json", "The name of the config file to use.")
+	fs.StringVar(&flags.CommitRangeURL, "commit_range_url", "", "A URI Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.")
+	fs.BoolVar(&flags.DefaultSparse, "default_sparse", false, "The default value for 'Sparse' in Alerts.")
+	fs.BoolVar(&flags.DoClustering, "do_clustering", true, "If true then run continuous clustering over all the alerts.")
+	fs.BoolVar(&flags.NoEmail, "noemail", false, "Do not send emails.")
+	fs.StringVar(&flags.EmailClientSecretFile, "email_client_secret_file", "client_secret.json", "OAuth client secret JSON file for sending email.")
+	fs.StringVar(&flags.EmailTokenCacheFile, "email_token_cache_file", "client_token.json", "OAuth token cache file for sending email.")
+	fs.BoolVar(&flags.EventDrivenRegressionDetection, "event_driven_regression_detection", false, "If true then regression detection is done based on PubSub events.")
+	fs.Float64Var(&flags.Interesting, "interesting", 50.0, "The threshold value beyond which StepFit.Regression values become interesting, i.e. they may indicate real regressions or improvements.")
+	fs.BoolVar(&flags.InternalOnly, "internal_only", false, "Require the user to be logged in to see any page.")
+	fs.StringVar(&flags.KeyOrder, "key_order", "build_flavor,name,sub_result,source_type", "The order that keys should be presented in for searching. All keys that don't appear here will appear after.")
+	fs.BoolVar(&flags.Local, "local", false, "Running locally if true. As opposed to in production.")
+	fs.IntVar(&flags.NumContinuous, "num_continuous", 50, "The number of commits to do continuous clustering over looking for regressions.")
+	fs.IntVar(&flags.NumContinuousParallel, "num_continuous_parallel", 3, "The number of parallel copies of continuous clustering to run.")
+	fs.IntVar(&flags.NumShift, "num_shift", 10, "The number of commits the shift navigation buttons should jump.")
+	fs.StringVar(&flags.Port, "port", ":8000", "HTTP service address (e.g., ':8000')")
+	fs.StringVar(&flags.PromPort, "prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+	fs.StringVar(&flags.InternalPort, "internal_port", ":9000", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
+	fs.IntVar(&flags.Radius, "radius", 7, "The number of commits to include on either side of a commit when clustering.")
+	fs.StringVar(&flags.ResourcesDir, "resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	fs.BoolVar(&flags.StepUpOnly, "step_up_only", false, "Only regressions that look like a step up will be reported.")
+	fs.BoolVar(&flags.Tracing, "tracing", false, "If true then send traces to stackdriver.")
+}
+
 // InstanceConfig contains all the info needed by btts.BigTableTraceStore.
 //
 // May eventually move to a separate config file.
@@ -208,6 +264,7 @@ type InstanceConfig struct {
 	DataStoreConfig DataStoreConfig `json:"data_store_config"`
 	IngestionConfig IngestionConfig `json:"ingestion_config"`
 	GitRepoConfig   GitRepoConfig   `json:"git_repo_config"`
+	Flags           Flags           `json:"-"` // Flags aren't part of the config file format, don't serialize as JSON.
 }
 
 // InstanceConfigFromFile returns the deserialized JSON of an InstanceConfig found in filename.
@@ -226,9 +283,11 @@ func InstanceConfigFromFile(filename string) (*InstanceConfig, error) {
 // Config is the currently running config.
 var Config *InstanceConfig
 
-// Init loads the selected config by name.
-func Init(filename string) error {
+// Init loads the selected config by name and then populated the Flags from the
+// given flags.
+func Init(filename string, flags Flags) error {
 	cfg, err := InstanceConfigFromFile(filename)
+	cfg.Flags = flags
 	if err != nil {
 		return skerr.Wrap(err)
 	}
