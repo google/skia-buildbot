@@ -438,6 +438,7 @@ func (r *AutoRoller) UploadNewRoll(ctx context.Context, from, to *revision.Revis
 	return roll, nil
 }
 
+// rmistry: createNewRoll calls CreateNewRoll.
 // createNewRoll is a helper function which uploads a new roll.
 func (r *AutoRoller) createNewRoll(ctx context.Context, from, to *revision.Revision, emails []string, dryRun bool) (rv *autoroll.AutoRollIssue, rvErr error) {
 	// Track roll CL upload attempts vs failures.
@@ -838,6 +839,7 @@ func (r *AutoRoller) rollFinished(ctx context.Context, justFinished codereview.R
 	return nil
 }
 
+// rmistry: handleManualRolls
 // Handle manual roll requests.
 func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 	r.runningMtx.Lock()
