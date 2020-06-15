@@ -51,6 +51,7 @@ type GitCheckoutParent struct {
 
 // NewGitCheckout returns a base for implementations of Parent which use
 // a local checkout to create changes.
+// rmistry: uploadRollFunc is here.
 func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, serverURL, workdir, userName, userEmail string, co *git.Checkout, createRoll git_common.CreateRollFunc, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)

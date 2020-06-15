@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
+
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/github_common"
@@ -15,10 +17,19 @@ import (
 
 // GitCheckoutGithubConfig provides configuration for Parents which use a local
 // git checkout and upload changes to GitHub.
+// HERE HERE HERE
 type GitCheckoutGithubConfig struct {
 	GitCheckoutConfig
-	ForkBranchName string `json:"forkBranchName"`
-	ForkRepoURL    string `json:"forkRepoURL"`
+	// rmistry forkBranchName.
+	// this needs to go and be created on the fly. REMOVE THIS
+	// ForkBranchName string `json:"forkBranchName"`
+
+	RollerName string `json:"rollerName"`
+
+	// rmistry: forkRepoURL
+	// Actually this is ok. This is just the user+repo name. Not the branch name. Above ForkBranchName is what should be
+	// uniquely generated.
+	ForkRepoURL string `json:"forkRepoURL"`
 }
 
 // See documentation for util.Validator interface.
@@ -32,9 +43,21 @@ func (c GitCheckoutGithubConfig) Validate() error {
 	return nil
 }
 
+// rmistry: Can create own CreateNewRoll vs git_checkout that calls git_common if you want.
+// Here you could create your own fork I think and then do what with that?
+// create own fork and then call the other function to reuse things?
+
 // GitCheckoutUploadGithubRollFunc returns
-func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, forkBranchName string) git_common.UploadRollFunc {
+func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, rollerName string) git_common.UploadRollFunc {
 	return func(ctx context.Context, co *git.Checkout, upstreamBranch, hash string, emails []string, dryRun bool, commitMsg string) (int64, error) {
+
+		// Generate a fork branch name.
+		forkBranchName := fmt.Sprintf("%s-%s", rollerName, uuid.New().String())
+		// Create the fork branch.
+		fmt.Println(forkBranchName)
+
+		// DEFER THE DELETION OF IT!!!! cannot do that. must do that after it lands..
+
 		// Make sure the forked repo is at the same hash as the target repo
 		// before creating the pull request.
 		if _, err := co.Git(ctx, "push", "-f", github_common.GithubForkRemoteName, fmt.Sprintf("origin/%s", upstreamBranch)); err != nil {
@@ -86,7 +109,7 @@ func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *c
 	}
 
 	// See documentation for GitCheckoutUploadRollFunc.
-	uploadRoll := GitCheckoutUploadGithubRollFunc(githubClient, userName, c.ForkBranchName)
+	uploadRoll := GitCheckoutUploadGithubRollFunc(githubClient, userName, c.RollerName)
 
 	// Create the GitCheckout Parent.
 	p, err := NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, co, createRoll, uploadRoll)

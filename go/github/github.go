@@ -142,6 +142,37 @@ func (g *GitHub) GetPullRequest(pullRequestNum int) (*github.PullRequest, error)
 	return pullRequest, nil
 }
 
+// See https://developer.github.com/v3/git/refs/#create-a-reference
+// for the API documentation.
+// ref must be refs/heads/branchName
+func (g *GitHub) CreateReference(ref, sha string) error {
+	githubRef := &github.Reference{}
+	githubRef.Ref = &ref
+	githubRef.Object.SHA = &sha
+	_, resp, err := g.client.Git.CreateRef(g.ctx, g.RepoOwner, g.RepoName, githubRef)
+	if err != nil {
+		return fmt.Errorf("Failed creating reference: %s", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Unexpected status code %d from creating reference.", resp.StatusCode)
+	}
+	return nil
+}
+
+// // See https://developer.github.com/v3/repos/forks/#create-a-fork
+// // for the API documentation.
+// func (g *GitHub) CreateFork() error {
+// 	// Do we need to specify Organization in RepositoriesService ?
+// 	_, resp, err := g.client.Repositories.CreateFork(g.ctx, g.RepoOwner, g.RepoName, nil)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("Failed doing pullrequests.get: %s", err)
+// 	}
+// 	if resp.StatusCode != http.StatusOK {
+// 		return nil, fmt.Errorf("Unexpected status code %d from pullrequests.get.", resp.StatusCode)
+// 	}
+// 	return nil
+// }
+
 // See https://developer.github.com/v3/pulls/#create-a-pull-request
 // for the API documentation.
 func (g *GitHub) CreatePullRequest(title, baseBranch, headBranch, body string) (*github.PullRequest, error) {
