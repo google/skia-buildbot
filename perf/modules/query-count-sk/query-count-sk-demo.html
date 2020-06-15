@@ -1,27 +1,35 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>query-count-sk</title>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style type="text/css" media="screen">
-query-count-sk {
-  display: inline-block;
-  border: solid gray 1px;
-  padding: 0.2em;
-}
-    </style>
+  <title>query-count-sk</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style type="text/css" media="screen">
+    query-count-sk {
+      display: inline-block;
+      border: solid gray 1px;
+      padding: 0.2em;
+    }
+  </style>
 </head>
+
 <body>
   <h1>query-count-sk</h2>
-  <query-count-sk url=/ ></query-count-sk>
-  <h2>Query</h2>
-  <button id=make_query>Query</button>
-  <script type="text/javascript" charset="utf-8">
-    document.querySelector('#make_query').addEventListener('click', (e) => {
-      document.querySelector('query-count-sk').current_query = 'config=565';
-    });
-  </script>
+    <query-count-sk></query-count-sk>
+
+    <div class="body-sk">
+      <query-count-sk></query-count-sk>
+    </div>
+
+    <div class="body-sk darkmode">
+      <query-count-sk></query-count-sk>
+    </div>
+
+    <h2>Query</h2>
+    <button id=make_query>Query</button>
+    <error-toast-sk></error-toast-sk>
 </body>
+
 </html>

@@ -619,13 +619,15 @@ func (f *Frontend) frameResultsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type countRequest struct {
+// CountHandlerRequest is the JSON format for the countHandler request.
+type CountHandlerRequest struct {
 	Q     string `json:"q"`
 	Begin int    `json:"begin"`
 	End   int    `json:"end"`
 }
 
-type countHandlerResponse struct {
+// CountHandlerResponse is the JSON format if the countHandler response.
+type CountHandlerResponse struct {
 	Count    int                 `json:"count"`
 	Paramset paramtools.ParamSet `json:"paramset"`
 }
@@ -635,7 +637,7 @@ type countHandlerResponse struct {
 func (f *Frontend) countHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var cr countRequest
+	var cr CountHandlerRequest
 	if err := json.NewDecoder(r.Body).Decode(&cr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
@@ -651,7 +653,7 @@ func (f *Frontend) countHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Invalid query.", http.StatusInternalServerError)
 		return
 	}
-	resp := countHandlerResponse{}
+	resp := CountHandlerResponse{}
 	if cr.Q == "" {
 		ps := f.paramsetRefresher.Get()
 		resp.Count = 0
