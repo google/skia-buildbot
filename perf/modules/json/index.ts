@@ -4,3 +4,5 @@ export interface ValuePercent {
 	value: string;
 	percent: number;
 }
+
+export type Status = "" | "positive" | "negative" | "untriaged";
