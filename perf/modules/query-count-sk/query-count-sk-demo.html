@@ -15,13 +15,9 @@ query-count-sk {
 </head>
 <body>
   <h1>query-count-sk</h2>
-  <query-count-sk url=/ ></query-count-sk>
+  <query-count-sk></query-count-sk>
   <h2>Query</h2>
   <button id=make_query>Query</button>
-  <script type="text/javascript" charset="utf-8">
-    document.querySelector('#make_query').addEventListener('click', (e) => {
-      document.querySelector('query-count-sk').current_query = 'config=565';
-    });
-  </script>
+  <error-toast-sk></error-toast-sk>
 </body>
 </html>
