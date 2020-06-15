@@ -93,7 +93,6 @@
         // Set up in-app routing using the history api.
         this._setRoute('/cluster', 'cluster');
         this._setRoute('/help', 'help');
-        this._setRoute('/list', 'list');
         this._setRoute('/search', 'search');
 
         // Force hitting the server if logout was selected.
@@ -114,6 +113,7 @@
           '/ignores',
           '/detail',
           '/details',
+          '/list',
           '/diff'
         ];
         // lit-html pages should not be handled by iron-pages.
