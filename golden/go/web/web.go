@@ -1164,6 +1164,48 @@ func (p SummarySlice) Len() int           { return len(p) }
 func (p SummarySlice) Less(i, j int) bool { return p[i].Untriaged > p[j].Untriaged }
 func (p SummarySlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
+// ListTestsHandler2 returns a summary of the digests seen for a given test.
+func (wh *Handlers) ListTestsHandler2(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	if err := wh.limitForAnonUsers(r); err != nil {
+		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
+		return
+	}
+	// Inputs: (head, ignored, corpus, keys)
+	q, err := frontend.ParseListTestsQuery(r)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to parse form data.", http.StatusBadRequest)
+		return
+	}
+
+	idx := wh.Indexer.GetIndex()
+	summaries, err := idx.SummarizeByGrouping(r.Context(), q.Corpus, q.TraceValues, q.IgnoreState, q.OnlyIncludeDigestsProducedAtHead)
+	if err != nil {
+		httputils.ReportError(w, err, "Could not compute query.", http.StatusInternalServerError)
+		return
+	}
+	// We explicitly want a zero-length slice instead of a nil slice because the latter serializes
+	// to JSON as null instead of []
+	tests := make([]frontend.TestSummary, 0, len(summaries))
+	for _, s := range summaries {
+		if s != nil {
+			tests = append(tests, frontend.TestSummary{
+				Name:             s.Name,
+				PositiveDigests:  s.Pos,
+				NegativeDigests:  s.Neg,
+				UntriagedDigests: s.Untriaged,
+			})
+		}
+	}
+	// For determinism, sort by test name
+	sort.Slice(tests, func(i, j int) bool {
+		return tests[i].Name < tests[j].Name
+	})
+	// Outputs: []frontend.TestSummary
+	//   Frontend will have option to hide tests with no digests.
+	sendJSONResponse(w, tests)
+}
+
 // ClearDigests clears digests from the local cache and GS.
 func (wh *Handlers) ClearDigests(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()

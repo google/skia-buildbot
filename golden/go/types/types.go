@@ -20,7 +20,7 @@ type TestName string
 
 // The IgnoreState enum gives a human-readable way to determine if the
 // tile or whatever is dealing with the full amount of information
-// (IncludeIgnoredTraces) or the information with the ignore rules applied
+// (IgnoreState) or the information with the ignore rules applied
 // (ExcludeIgnoredTraces).
 type IgnoreState int
 
