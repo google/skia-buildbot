@@ -9,11 +9,16 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/regression"
 )
 
 func main() {
 	generator := go2ts.New()
 	err := generator.Add(clustering2.ValuePercent{})
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	err = generator.AddUnionWithName(regression.AllStatus, "Status")
 	if err != nil {
 		sklog.Fatal(err)
 	}
