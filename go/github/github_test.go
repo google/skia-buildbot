@@ -2,13 +2,20 @@ package github
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os/user"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/go-github/v29/github"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/oauth2"
+
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -57,6 +64,39 @@ func TestGetPullRequest(t *testing.T) {
 	require.NoError(t, getPullErr)
 	require.Equal(t, CLOSED_STATE, *pr.State)
 }
+
+func TestGetReference(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Authenticated HTTP client.
+	user, err := user.Current()
+	require.NoError(t, err)
+	pathToGithubToken := filepath.Join(user.HomeDir, GITHUB_TOKEN_FILENAME)
+	gBody, err := ioutil.ReadFile(pathToGithubToken)
+	require.NoError(t, err)
+	gToken := strings.TrimSpace(string(gBody))
+	githubHttpClient := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken}))
+	githubClient, err := NewGitHub(context.Background(), "rmistry", "engine", githubHttpClient)
+	require.NoError(t, err)
+
+	r, err := githubClient.GetReference("rmistry", "engine", "refs/heads/master")
+	fmt.Println(r)
+	require.NoError(t, err)
+	err = githubClient.CreateReference("rmistry", "engine", "refs/heads/just-testing2", r.Object.SHA)
+	require.NoError(t, err)
+}
+
+// func TestGetReference(t *testing.T) {
+// 	unittest.SmallTest(t)
+
+// 	httpClient := httputils.NewTimeoutClient()
+// 	githubClient, err := NewGitHub(context.Background(), "rmistry", "engine", httpClient)
+// 	require.NoError(t, err)
+
+// 	r, err := githubClient.GetReference("rmistry", "engine", "refs/heads/master")
+// 	fmt.Println(r)
+// 	require.NoError(t, err)
+// }
 
 func TestCreatePullRequest(t *testing.T) {
 	unittest.SmallTest(t)
