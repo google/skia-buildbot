@@ -46,6 +46,19 @@ describe('pageset-selector-sk', () => {
     selector = await newInstance();
     expect($('select-sk div')).to.have.length(8);
     expect($$('.pageset-list', selector)).to.have.property('hidden', false);
+    expect(selector).to.have.property('selected', '100k');
+  });
+
+  it('reflects changes to selected', async () => {
+    selector = await newInstance();
+    expect(selector).to.have.property('selected', '100k');
+    $$('select-sk', selector).selection = 3;
+    expect(selector).to.have.property('selected', 'Mobile10k');
+    selector.selected = 'Dummy1k';
+    expect(selector).to.have.property('selected', 'Dummy1k');
+    // Invalid keys aren't honored.
+    selector.selected = 'bogus key';
+    expect(selector).to.have.property('selected', '');
   });
 
   it('filters out hideIfKeyContains options', async () => {
