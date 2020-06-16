@@ -196,7 +196,7 @@ define('ignores-page-sk', class extends ElementSk {
         this._render();
         sendEndTask(this);
       })
-      .catch((e) => sendFetchError(this, e, 'ignores'));
+      .catch((e) => sendFetchError(this, e, 'paramset'));
   }
 
   _newIgnoreRule() {
