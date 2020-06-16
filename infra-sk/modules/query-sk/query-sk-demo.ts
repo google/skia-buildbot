@@ -2,11 +2,13 @@ import './index';
 
 import { QuerySk, QuerySkQueryChangeEventDetail } from './query-sk';
 
-const q = document.querySelector<QuerySk>('query-sk')!;
+const q = document.querySelectorAll<QuerySk>('query-sk')!;
 const events = document.querySelector<HTMLPreElement>('#events')!;
-q.addEventListener('query-change', (e) => {
-  const detail = (e as CustomEvent<QuerySkQueryChangeEventDetail>).detail;
-  events.textContent = JSON.stringify(detail, null, '  ');
+q.forEach((ele) => {
+  ele.addEventListener('query-change', (e) => {
+    const detail = (e as CustomEvent<QuerySkQueryChangeEventDetail>).detail;
+    events.textContent = JSON.stringify(detail, null, '  ');
+  });
 });
 
 let n = 0;
@@ -40,10 +42,16 @@ const paramset2 = {
     'DeferredSurfaceCopy_nonDiscardable',
   ],
 };
-q.paramset = paramset;
-q.key_order = ['test', 'units'];
-
-document.querySelector<HTMLButtonElement>('#swap')!.addEventListener('click', () => {
-  n = (n + 1) % 2;
-  q.paramset = [paramset, paramset2][n];
+q.forEach((ele) => {
+  ele.paramset = paramset;
+  ele.key_order = ['test', 'units'];
 });
+
+document
+  .querySelector<HTMLButtonElement>('#swap')!
+  .addEventListener('click', () => {
+    n = (n + 1) % 2;
+    q.forEach((ele) => {
+      ele.paramset = [paramset, paramset2][n];
+    });
+  });
