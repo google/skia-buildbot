@@ -1210,9 +1210,9 @@ func (f *Frontend) regressionCurrentHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-// detailsRequest is for deserializing incoming POST requests
+// CommitDetailsRequest is for deserializing incoming POST requests
 // in detailsHandler.
-type detailsRequest struct {
+type CommitDetailsRequest struct {
 	CID     cid.CommitID `json:"cid"`
 	TraceID string       `json:"traceid"`
 }
@@ -1220,7 +1220,7 @@ type detailsRequest struct {
 func (f *Frontend) detailsHandler(w http.ResponseWriter, r *http.Request) {
 	includeResults := r.FormValue("results") != "false"
 	w.Header().Set("Content-Type", "application/json")
-	dr := &detailsRequest{}
+	dr := &CommitDetailsRequest{}
 	if err := json.NewDecoder(r.Body).Decode(dr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
