@@ -141,6 +141,7 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 			return "", skerr.Wrap(err)
 		}
 
+		// rmistry: running pre-upload step here.
 		// Run the pre-upload steps.
 		sklog.Infof("Running %d pre-upload steps.", len(preUploadSteps))
 		for _, s := range preUploadSteps {

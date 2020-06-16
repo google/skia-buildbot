@@ -67,6 +67,7 @@ func NewGitCheckoutGithubFile(ctx context.Context, c GitCheckoutGithubFileConfig
 			}
 		}
 
+		// rmistry: running pre-upload step for NewGitCheckoutGithubFile here.
 		// Run the pre-upload steps.
 		sklog.Infof("Running %d pre-upload steps.", len(preUploadSteps))
 		for _, s := range preUploadSteps {
