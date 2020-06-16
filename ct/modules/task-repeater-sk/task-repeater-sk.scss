@@ -1,0 +1,20 @@
+@import '../colors.css';
+
+task-repeater-sk {
+  select-sk {
+    * {
+      padding: 0;
+    }
+    [selected] {
+      background-color: var(--primary-variant);
+    }
+  }
+
+  .tr-container, span {
+    display:inline-block;
+  }
+
+  span.num {
+    width: 3.5em;
+  }
+}
