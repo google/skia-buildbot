@@ -38,6 +38,9 @@ define('input-sk', class extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
+    if (this.hasAttribute('value')) {
+      this.value = this.getAttribute('value');
+    }
   }
 
   /**
