@@ -4,16 +4,19 @@
 package frontend
 
 import (
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/code_review"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -280,4 +283,49 @@ type FlakyTracesDataResponse struct {
 	TotalFlakyTraces int `json:"num_flaky"`
 	// TotalTraces is the total number of traces in the current sliding window.
 	TotalTraces int `json:"num_traces"`
+}
+
+// ListTestsQuery encapsulates the inputs to ListTestsHandler2.
+type ListTestsQuery struct {
+	Corpus                           string
+	TraceValues                      paramtools.ParamSet
+	OnlyIncludeDigestsProducedAtHead bool
+	IgnoreState                      types.IgnoreState
+}
+
+// ParseListTestsQuery returns a ListTestsQuery by parsing the given request or error if the
+// inputs are invalid.
+func ParseListTestsQuery(r *http.Request) (ListTestsQuery, error) {
+	if err := r.ParseForm(); err != nil {
+		return ListTestsQuery{}, skerr.Wrapf(err, "parsing form")
+	}
+
+	ltq := ListTestsQuery{}
+	ltq.Corpus = r.FormValue("corpus")
+	if ltq.Corpus == "" {
+		return ListTestsQuery{}, skerr.Fmt("must include corpus")
+	}
+	ltq.OnlyIncludeDigestsProducedAtHead = r.FormValue("at_head_only") == "true"
+
+	if r.FormValue("include_ignored_traces") == "true" {
+		ltq.IgnoreState = types.IncludeIgnoredTraces
+	} else {
+		ltq.IgnoreState = types.ExcludeIgnoredTraces
+	}
+
+	validate := shared.Validation{}
+	ltq.TraceValues = validate.QueryFormValue(r, "trace_values")
+
+	if err := validate.Errors(); err != nil {
+		return ListTestsQuery{}, skerr.Wrapf(err, "validating params")
+	}
+	return ltq, nil
+}
+
+// TestSummary summarizes the digest count for a given test (and a series of search params).
+type TestSummary struct {
+	Name             types.TestName `json:"name"`
+	PositiveDigests  int            `json:"positive_digests"`
+	NegativeDigests  int            `json:"negative_digests"`
+	UntriagedDigests int            `json:"untriaged_digests"`
 }
