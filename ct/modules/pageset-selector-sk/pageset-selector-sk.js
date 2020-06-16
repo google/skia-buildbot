@@ -20,7 +20,7 @@ import '../../../infra-sk/modules/expandable-textarea-sk';
 const template = (ele) => html`
 <div class=pageset-list>
 <select-sk>
-  ${ele._pageSets.map((p, i) => (html`<div ?selected=${i === 0}>${p.description}</div>`))}
+  ${ele._pageSets.map((p) => (html`<div>${p.description}</div>`))}
 </select-sk>
 </div>
 ${ele.hasAttribute('disable-custom-webpages')
@@ -59,9 +59,11 @@ define('pageset-selector-sk', class extends ElementSk {
         this._pageSets = json;
         this._filterPageSets();
         this._render();
+        this._selector.selection = 0;
       })
       .catch(errorMessage);
     this._render();
+    this._selector = $$('select-sk', this);
   }
 
   /**
@@ -76,11 +78,12 @@ define('pageset-selector-sk', class extends ElementSk {
    * @prop {string} selected - Key of selected pageset.
    */
   get selected() {
-    return this._selected;
+    const index = this._selector.selection;
+    return index >= 0 ? this._pageSets[index].key : '';
   }
 
   set selected(val) {
-    this._selected = val;
+    this._selector.selection = this._pageSets.findIndex((p) => p.key === val);
   }
 
   /**
