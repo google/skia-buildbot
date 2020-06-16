@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/frontend"
+	"go.skia.org/infra/perf/go/regression"
 )
 
 func addMultiple(generator *go2ts.Go2TS, instances []interface{}) error {
@@ -29,6 +30,10 @@ func main() {
 		frontend.CountHandlerRequest{},
 		frontend.CountHandlerResponse{},
 	})
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	err = generator.AddUnionWithName(regression.AllStatus, "Status")
 	if err != nil {
 		sklog.Fatal(err)
 	}

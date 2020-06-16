@@ -30,12 +30,16 @@ const (
 	Untriaged Status = "untriaged"
 )
 
+// AllStatus is a slice of all values of type Status.
+var AllStatus = []Status{None, Positive, Negative, Untriaged}
+
 // AllRegressionsForCommit is a map[alertid]Regression.
 type AllRegressionsForCommit struct {
 	ByAlertID map[string]*Regression `json:"by_query"`
 	mutex     sync.Mutex
 }
 
+// TriageStatus is the status of a found regression.
 type TriageStatus struct {
 	Status  Status `json:"status"`
 	Message string `json:"message"`

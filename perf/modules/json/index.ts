@@ -17,3 +17,5 @@ export interface CountHandlerResponse {
 }
 
 export type ParamSet = { [key: string]: string[] };
+
+export type Status = "" | "positive" | "negative" | "untriaged";
