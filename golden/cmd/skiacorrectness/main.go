@@ -497,6 +497,7 @@ func main() {
 	jsonRouter.HandleFunc(trim("/json/diff"), handlers.DiffHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/export"), handlers.ExportHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/list"), handlers.ListTestsHandler).Methods("GET")
+	jsonRouter.HandleFunc(trim("/json/list2"), handlers.ListTestsHandler2).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/paramset"), handlers.ParamsHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/search"), handlers.SearchHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/triage"), handlers.TriageHandler).Methods("POST")
