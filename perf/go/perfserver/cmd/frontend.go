@@ -16,10 +16,21 @@ limitations under the License.
 package cmd
 
 import (
+	"flag"
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/frontend"
 )
+
+type FrontendFlags struct {
+	flags config.Flags
+	fs    flag.FlagSet
+}
+
+var frontendFlags FrontendFlags
 
 // frontendCmd represents the frontend command
 var frontendCmd = &cobra.Command{
@@ -28,9 +39,17 @@ var frontendCmd = &cobra.Command{
 	Long:  `Runs the process that serves the web UI for Perf.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("frontend called")
+		f, err := frontend.New(&frontendFlags.flags, &frontendFlags.fs)
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		f.Serve()
 	},
 }
 
 func frontendInit() {
+	frontendFlags.fs.Init("frontend", flag.ContinueOnError)
+	frontendFlags.flags.Register(&frontendFlags.fs)
+	frontendCmd.LocalFlags().AddGoFlagSet(&frontendFlags.fs)
 	rootCmd.AddCommand(frontendCmd)
 }

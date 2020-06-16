@@ -123,9 +123,12 @@ type Frontend struct {
 }
 
 // New returns a new Frontend instance.
-func New() (*Frontend, error) {
+func New(
+	flags *config.Flags,
+	fs *flag.FlagSet,
+) (*Frontend, error) {
 	f := &Frontend{}
-	f.initialize()
+	f.initialize(flags, fs)
 
 	return f, nil
 }
@@ -236,7 +239,10 @@ func (f *Frontend) newAlertsConfigProvider() regression.ConfigProvider {
 }
 
 // initialize the application.
-func (f *Frontend) initialize() {
+func (f *Frontend) initialize(
+	flags *config.Flags,
+	fs *flag.FlagSet,
+) {
 	rand.Seed(time.Now().UnixNano())
 
 	// Log to stdout.
@@ -252,9 +258,6 @@ func (f *Frontend) initialize() {
 	//
 	// If this works out then maybe we can fold flag.FlagSet support into
 	// common.
-	fs := flag.NewFlagSet("", flag.ContinueOnError)
-	flags := config.Flags{}
-	flags.Register(fs)
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		sklog.Fatal(err)
 	}
@@ -295,7 +298,7 @@ func (f *Frontend) initialize() {
 	sklog_impl.SetMetricsCallback(metricsCallback)
 
 	// Load the config file.
-	if err := config.Init(flags.ConfigFilename, flags); err != nil {
+	if err := config.Init(flags.ConfigFilename, *flags); err != nil {
 		sklog.Fatal(err)
 	}
 	cfg := config.Config
