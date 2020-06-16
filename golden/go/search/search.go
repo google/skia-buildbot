@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	ttlcache "github.com/patrickmn/go-cache"
 	"golang.org/x/sync/errgroup"
 
@@ -830,21 +831,32 @@ const missingDigestIndex = -1
 
 // fillInFrontEndTraceData fills in the data needed to draw the traces for the given test/digest
 // and to connect the traces to the appropriate comments.
-func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestName, digest types.Digest, exp expectations.Classifier, comments []frontend.TraceComment, appendPrimaryDigest bool) {
+func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestName, primary types.Digest, exp expectations.Classifier, comments []frontend.TraceComment, appendPrimaryDigest bool) {
+	if len(traceGroup.Traces) == 0 {
+		return
+	}
+
 	// Put the traces in a deterministic order
 	sort.Slice(traceGroup.Traces, func(i, j int) bool {
 		return traceGroup.Traces[i].ID < traceGroup.Traces[j].ID
 	})
 
-	// Get the status for all digests in the traces.
-	digestStatuses := make([]frontend.DigestStatus, 1, maxDistinctDigestsToPresent)
+	// Compute the digestIndices for the traceGroup.
 	const primaryDigestIndex = 0
-	digestStatuses[primaryDigestIndex] = frontend.DigestStatus{
-		Digest: digest,
-		Status: exp.Classification(test, digest).String(),
-	}
-	uniqueDigests := map[types.Digest]bool{}
+	digestIndices, totalDigests := computeDigestIndices(traceGroup)
+	digestIndices[primary] = primaryDigestIndex
 
+	// Fill out the statuses, now that we know the order our labeled digests will be in.
+	traceGroup.Digests = make([]frontend.DigestStatus, len(digestIndices))
+	for digest, idx := range digestIndices {
+		traceGroup.Digests[idx] = frontend.DigestStatus{
+			Digest: digest,
+			Status: exp.Classification(test, digest).String(),
+		}
+	}
+
+	// For each trace, fill out DigestIndices based on digestIndices. Then we fill out other
+	// information specific to this trace.
 	for idx, oneTrace := range traceGroup.Traces {
 		traceLen := len(oneTrace.RawTrace.Digests)
 		if appendPrimaryDigest {
@@ -858,35 +870,19 @@ func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestNam
 			oneTrace.DigestIndices[traceLen-1] = primaryDigestIndex
 		}
 
-		// We start at HEAD and work our way backwards. The digest that is the focus of this
-		// search result is digestStatuses[0]. The most recently-seen digest that is not the
-		// digest of focus will be digestStatus[1] and so on, up until we hit
-		// maxDistinctDigestsToPresent.
-		for j := len(oneTrace.RawTrace.Digests) - 1; j >= 0; j-- {
-			d := oneTrace.RawTrace.Digests[j]
-			if d == tiling.MissingDigest {
-				oneTrace.DigestIndices[j] = missingDigestIndex
+		for i, digest := range oneTrace.RawTrace.Digests {
+			if digest == tiling.MissingDigest {
+				oneTrace.DigestIndices[i] = missingDigestIndex
 				continue
 			}
-			uniqueDigests[d] = true
-			digestIndex := 0
-			if d != digest {
-				if index := findDigestIndex(d, digestStatuses); index != -1 {
-					digestIndex = index
-				} else {
-					if len(digestStatuses) < maxDistinctDigestsToPresent {
-						digestStatuses = append(digestStatuses, frontend.DigestStatus{
-							Digest: d,
-							Status: exp.Classification(test, d).String(),
-						})
-						digestIndex = len(digestStatuses) - 1
-					} else {
-						// Fold this into the last digest.
-						digestIndex = maxDistinctDigestsToPresent - 1
-					}
-				}
+			// See if we have a digest index assigned for this digest.
+			digestIndex, ok := digestIndices[digest]
+			if ok {
+				oneTrace.DigestIndices[i] = digestIndex
+			} else {
+				// fold everything else into the last digest index
+				oneTrace.DigestIndices[i] = maxDistinctDigestsToPresent - 1
 			}
-			oneTrace.DigestIndices[j] = digestIndex
 		}
 
 		for i, c := range comments {
@@ -899,18 +895,43 @@ func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestNam
 		traceGroup.Traces[idx] = oneTrace
 		traceGroup.TileSize = traceLen // TileSize will go away soon.
 	}
-	traceGroup.Digests = digestStatuses
-	traceGroup.TotalDigests = len(uniqueDigests)
+	traceGroup.TotalDigests = totalDigests
 }
 
-// findDigestIndex returns the index of the digest d in digestInfo, or -1 if not found.
-func findDigestIndex(d types.Digest, digestInfo []frontend.DigestStatus) int {
-	for i, di := range digestInfo {
-		if di.Digest == d {
-			return i
+type digestCountAndLastSeen struct {
+	digest        types.Digest
+	count         int
+	lastSeenIndex int
+}
+
+func computeDigestIndices(traceGroup *frontend.TraceGroup) (map[types.Digest]int, int) {
+	digestStats := make([]digestCountAndLastSeen, 0, 5)
+loop:
+	for idx := 0; true; idx++ {
+		for _, trace := range traceGroup.Traces {
+			if idx >= len(trace.RawTrace.Digests) {
+				break loop
+			}
+			digest := trace.RawTrace.Digests[idx]
+			dsIdxToUpdate := -1
+			for i, ds := range digestStats {
+				if ds.digest == digest {
+					dsIdxToUpdate = i
+					break
+				}
+			}
+			if dsIdxToUpdate == -1 {
+				dsIdxToUpdate = len(digestStats)
+				digestStats = append(digestStats, digestCountAndLastSeen{
+					digest: digest,
+				})
+			}
+			digestStats[dsIdxToUpdate].count++
+			digestStats[dsIdxToUpdate].lastSeenIndex = idx
 		}
 	}
-	return -1
+	spew.Dump(digestStats)
+	panic("lbkads")
 }
 
 // UntriagedUnignoredTryJobExclusiveDigests implements the SearchAPI interface. It uses the cached
