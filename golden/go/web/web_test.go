@@ -2166,7 +2166,6 @@ func TestGetFlakyTracesData_NoTracesAboveThreshold_ReturnsZeroTraces(t *testing.
 	unittest.SmallTest(t)
 
 	mi := &mock_indexer.IndexSource{}
-	defer mi.AssertExpectations(t)
 
 	commits := bug_revert.MakeTestCommits()
 	fis := makeBugRevertIndex(len(commits))
@@ -2183,6 +2182,91 @@ func TestGetFlakyTracesData_NoTracesAboveThreshold_ReturnsZeroTraces(t *testing.
 	wh.GetFlakyTracesData(w, r)
 	const expectedRV = `{"traces":null,"tile_size":5,"num_flaky":0,"num_traces":8}`
 	assertJSONResponseWas(t, 200, expectedRV, w)
+}
+
+func TestListTestsHandler2_ValidQueries_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	test := func(name, targetURL, expectedJSON string) {
+		t.Run(name, func(t *testing.T) {
+			mi := &mock_indexer.IndexSource{}
+
+			fis := makeBugRevertIndexWithIgnores(makeIgnoreRules(), 1)
+			mi.On("GetIndex").Return(fis)
+
+			wh := Handlers{
+				HandlersConfig: HandlersConfig{
+					Indexer: mi,
+				},
+				anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
+			}
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, targetURL, nil)
+			wh.ListTestsHandler2(w, r)
+			assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
+		})
+	}
+
+	test("all GM tests from all traces", "/json/list2?corpus=gm&include_ignored_traces=true",
+		`[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":1},`+
+			`{"name":"test_two","positive_digests":2,"negative_digests":0,"untriaged_digests":2}]`)
+
+	test("all GM tests at head from all traces", "/json/list2?corpus=gm&at_head_only=true&include_ignored_traces=true",
+		`[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":0},`+
+			`{"name":"test_two","positive_digests":2,"negative_digests":0,"untriaged_digests":1}]`)
+
+	test("all GM tests for device beta from all traces", "/json/list2?corpus=gm&trace_values=device%3Dbeta&include_ignored_traces=true",
+		`[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":1},`+
+			`{"name":"test_two","positive_digests":1,"negative_digests":0,"untriaged_digests":0}]`)
+
+	test("all GM tests for device delta at head from all traces", "/json/list2?corpus=gm&trace_values=device%3Ddelta&at_head_only=true&include_ignored_traces=true",
+		`[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":0},`+
+			`{"name":"test_two","positive_digests":0,"negative_digests":0,"untriaged_digests":1}]`)
+
+	// Reminder that device delta and test_two match ignore rules
+	test("all GM tests", "/json/list2?corpus=gm",
+		`[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":1}]`)
+
+	test("all GM tests at head", "/json/list2?corpus=gm&at_head_only=true",
+		`[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":0}]`)
+
+	test("all GM tests for device beta", "/json/list2?corpus=gm&trace_values=device%3Dbeta",
+		`[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":1}]`)
+
+	test("all GM tests for device delta at head", "/json/list2?corpus=gm&trace_values=device%3Ddelta&at_head_only=true",
+		"[]")
+
+	test("non existent corpus", "/json/list2?corpus=notthere", "[]")
+}
+
+func TestListTestsHandler2_InvalidQueries_BadRequestError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	test := func(name, targetURL string) {
+		t.Run(name, func(t *testing.T) {
+			mi := &mock_indexer.IndexSource{}
+
+			fis := makeBugRevertIndexWithIgnores(makeIgnoreRules(), 1)
+			mi.On("GetIndex").Return(fis)
+
+			wh := Handlers{
+				HandlersConfig: HandlersConfig{
+					Indexer: mi,
+				},
+				anonymousExpensiveQuota: rate.NewLimiter(rate.Inf, 1),
+			}
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, targetURL, nil)
+			wh.ListTestsHandler2(w, r)
+			assert.Equal(t, http.StatusBadRequest, w.Code)
+		})
+	}
+
+	test("missing corpus", "/json/list2")
+
+	test("empty corpus", "/json/list2?corpus=")
+
+	test("invalid trace values", "/json/list2?corpus=gm&trace_values=%zz")
 }
 
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL
