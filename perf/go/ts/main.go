@@ -29,6 +29,7 @@ func main() {
 		clustering2.ValuePercent{},
 		frontend.CountHandlerRequest{},
 		frontend.CountHandlerResponse{},
+		frontend.CommitDetailsRequest{},
 	})
 	if err != nil {
 		sklog.Fatal(err)

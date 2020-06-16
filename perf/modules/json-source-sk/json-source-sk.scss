@@ -11,8 +11,12 @@ json-source-sk {
   }
 
   pre {
-    box-shadow: 2px 2px 5px gray;
-    margin: 0.6em;
-    padding: 1em;
+    margin: 8px;
+    padding: 8px;
+  }
+
+  button {
+    text-transform: none;
+    padding: 8px;
   }
 }
