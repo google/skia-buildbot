@@ -86,6 +86,13 @@ func ReadDir(ctx context.Context, path string) ([]os.FileInfo, error) {
 	return rv, err
 }
 
+// Rename is a wrapper for os.Rename.
+func Rename(ctx context.Context, oldpath, newpath string) error {
+	return td.Do(ctx, td.Props(fmt.Sprintf("Rename %s %s", oldpath, newpath)), func(context.Context) error {
+		return os.Rename(oldpath, newpath)
+	})
+}
+
 // WriteFile is a wrapper for ioutil.WriteFile.
 func WriteFile(ctx context.Context, path string, data []byte, perm os.FileMode) error {
 	return td.Do(ctx, td.Props(fmt.Sprintf("Write %s", path)).Infra(), func(context.Context) error {
@@ -102,4 +109,11 @@ func Which(ctx context.Context, exe string) (string, error) {
 		return err
 	})
 	return rv, err
+}
+
+// Chmod is a wrapper for os.Chmod.
+func Chmod(ctx context.Context, name string, mode os.FileMode) error {
+	return td.Do(ctx, td.Props(fmt.Sprintf("Chmod %#o %s", mode, name)), func(context.Context) error {
+		return os.Chmod(name, mode)
+	})
 }
