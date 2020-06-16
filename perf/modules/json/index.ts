@@ -16,6 +16,15 @@ export interface CountHandlerResponse {
 	paramset: ParamSet;
 }
 
+export interface CommitID {
+	offset: number;
+}
+
+export interface CommitDetailsRequest {
+	cid: CommitID;
+	traceid: string;
+}
+
 export type ParamSet = { [key: string]: string[] };
 
 export type Status = "" | "positive" | "negative" | "untriaged";
