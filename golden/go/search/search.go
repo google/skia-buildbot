@@ -35,11 +35,6 @@ import (
 )
 
 const (
-	// maxDistinctDigestsToPresent is the maximum number of digests we want to show
-	// in a dotted line of traces. We assume that showing more digests yields
-	// no additional information, because the trace is likely to be flaky.
-	maxDistinctDigestsToPresent = 9
-
 	// TODO(kjlubick): no tests for this option yet.
 	GROUP_TEST_MAX_COUNT = "count"
 
@@ -826,25 +821,46 @@ func prepareTraceGroups(searchResults []*frontend.SearchResult, exp expectations
 	}
 }
 
-const missingDigestIndex = -1
+const (
+	// maxDistinctDigestsToPresent is the maximum number of digests we want to show
+	// in a dotted line of traces. We assume that showing more digests yields
+	// no additional information, because the trace is likely to be flaky.
+	maxDistinctDigestsToPresent = 9
+
+	// 0 is always the primary digest, no matter where (or if) it appears in the trace.
+	primaryDigestIndex = 0
+
+	// The frontend knows to handle -1 specially and show no dot.
+	missingDigestIndex = -1
+)
 
 // fillInFrontEndTraceData fills in the data needed to draw the traces for the given test/digest
 // and to connect the traces to the appropriate comments.
-func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestName, digest types.Digest, exp expectations.Classifier, comments []frontend.TraceComment, appendPrimaryDigest bool) {
+func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestName, primary types.Digest, exp expectations.Classifier, comments []frontend.TraceComment, appendPrimaryDigest bool) {
+	if len(traceGroup.Traces) == 0 {
+		return
+	}
+
 	// Put the traces in a deterministic order
 	sort.Slice(traceGroup.Traces, func(i, j int) bool {
 		return traceGroup.Traces[i].ID < traceGroup.Traces[j].ID
 	})
 
-	// Get the status for all digests in the traces.
-	digestStatuses := make([]frontend.DigestStatus, 1, maxDistinctDigestsToPresent)
-	const primaryDigestIndex = 0
-	digestStatuses[primaryDigestIndex] = frontend.DigestStatus{
-		Digest: digest,
-		Status: exp.Classification(test, digest).String(),
-	}
-	uniqueDigests := map[types.Digest]bool{}
+	// Compute the digestIndices for the traceGroup. These indices map to an assigned color on the
+	// frontend.
+	digestIndices, totalDigests := computeDigestIndices(traceGroup, primary)
 
+	// Fill out the statuses, now that we know the order our labeled digests will be in.
+	traceGroup.Digests = make([]frontend.DigestStatus, len(digestIndices))
+	for digest, idx := range digestIndices {
+		traceGroup.Digests[idx] = frontend.DigestStatus{
+			Digest: digest,
+			Status: exp.Classification(test, digest).String(),
+		}
+	}
+
+	// For each trace, fill out DigestIndices based on digestIndices. Then we fill out other
+	// information specific to this trace.
 	for idx, oneTrace := range traceGroup.Traces {
 		traceLen := len(oneTrace.RawTrace.Digests)
 		if appendPrimaryDigest {
@@ -858,35 +874,19 @@ func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestNam
 			oneTrace.DigestIndices[traceLen-1] = primaryDigestIndex
 		}
 
-		// We start at HEAD and work our way backwards. The digest that is the focus of this
-		// search result is digestStatuses[0]. The most recently-seen digest that is not the
-		// digest of focus will be digestStatus[1] and so on, up until we hit
-		// maxDistinctDigestsToPresent.
-		for j := len(oneTrace.RawTrace.Digests) - 1; j >= 0; j-- {
-			d := oneTrace.RawTrace.Digests[j]
-			if d == tiling.MissingDigest {
-				oneTrace.DigestIndices[j] = missingDigestIndex
+		for i, digest := range oneTrace.RawTrace.Digests {
+			if digest == tiling.MissingDigest {
+				oneTrace.DigestIndices[i] = missingDigestIndex
 				continue
 			}
-			uniqueDigests[d] = true
-			digestIndex := 0
-			if d != digest {
-				if index := findDigestIndex(d, digestStatuses); index != -1 {
-					digestIndex = index
-				} else {
-					if len(digestStatuses) < maxDistinctDigestsToPresent {
-						digestStatuses = append(digestStatuses, frontend.DigestStatus{
-							Digest: d,
-							Status: exp.Classification(test, d).String(),
-						})
-						digestIndex = len(digestStatuses) - 1
-					} else {
-						// Fold this into the last digest.
-						digestIndex = maxDistinctDigestsToPresent - 1
-					}
-				}
+			// See if we have a digest index assigned for this digest.
+			digestIndex, ok := digestIndices[digest]
+			if ok {
+				oneTrace.DigestIndices[i] = digestIndex
+			} else {
+				// Fold everything else into the last digest index (grey on the frontend).
+				oneTrace.DigestIndices[i] = maxDistinctDigestsToPresent - 1
 			}
-			oneTrace.DigestIndices[j] = digestIndex
 		}
 
 		for i, c := range comments {
@@ -899,18 +899,120 @@ func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestNam
 		traceGroup.Traces[idx] = oneTrace
 		traceGroup.TileSize = traceLen // TileSize will go away soon.
 	}
-	traceGroup.Digests = digestStatuses
-	traceGroup.TotalDigests = len(uniqueDigests)
+	traceGroup.TotalDigests = totalDigests
 }
 
-// findDigestIndex returns the index of the digest d in digestInfo, or -1 if not found.
-func findDigestIndex(d types.Digest, digestInfo []frontend.DigestStatus) int {
-	for i, di := range digestInfo {
-		if di.Digest == d {
-			return i
+type digestCountAndLastSeen struct {
+	digest types.Digest
+	// count is how many times a digest has been seen in a TraceGroup.
+	count int
+	// lastSeenIndex refers to the commit index that this digest was most recently seen. That is,
+	// a higher number means it was seen more recently. This digest might have seen much much earlier
+	// than this index, but only the latest occurrence affects this value.
+	lastSeenIndex int
+}
+
+const mostRecentNDigests = 3
+
+// computeDigestIndices assigns distinct digests an index ( up to maxDistinctDigestsToPresent).
+// This index
+// maps to a color of dot on the frontend when representing traces. The indices are assigned to
+// some of the most recent digests and some of the most common digests. All digests not in this
+// map will be grouped under the highest index (represented by a grey color on the frontend).
+// This hybrid approach was adapted in an effort to minimize the "interesting" digests that are
+// globbed together under the grey color, which is harder to inspect from the frontend.
+// See skbug.com/10387 for more context.
+func computeDigestIndices(traceGroup *frontend.TraceGroup, primary types.Digest) (map[types.Digest]int, int) {
+	// digestStats is a slice that has one entry per unique digest. This could be a map, but
+	// we are going to sort it later, so it's cleaner to just use a slice initially especially
+	// when the vast vast majority (99.9% of Skia's data) of our traces have fewer than 30 unique
+	// digests. The worst case would be a few hundred unique digests, for which Ω(n) lookup isn't
+	// terrible.
+	digestStats := make([]digestCountAndLastSeen, 0, 5)
+	// Populate digestStats, iterating over the digests from all traces from oldest to newest.
+	// By construction, all traces in the TraceGroup will have the same length.
+	traceLength := len(traceGroup.Traces[0].RawTrace.Digests)
+	for idx := 0; idx < traceLength; idx++ {
+		for _, trace := range traceGroup.Traces {
+			digest := trace.RawTrace.Digests[idx]
+			// Don't bother counting up data for missing digests.
+			if digest == tiling.MissingDigest {
+				continue
+			}
+			// Go look up the entry for this digest. The sentinel value -1 will tell us if we haven't
+			// seen one and need to add one.
+			dsIdxToUpdate := -1
+			for i, ds := range digestStats {
+				if ds.digest == digest {
+					dsIdxToUpdate = i
+					break
+				}
+			}
+			if dsIdxToUpdate == -1 {
+				dsIdxToUpdate = len(digestStats)
+				digestStats = append(digestStats, digestCountAndLastSeen{
+					digest: digest,
+				})
+			}
+			digestStats[dsIdxToUpdate].count++
+			digestStats[dsIdxToUpdate].lastSeenIndex = idx
 		}
 	}
-	return -1
+
+	// Sort in order of highest last seen index, with tiebreaks being higher count and then
+	// lexicographically by digest.
+	sort.Slice(digestStats, func(i, j int) bool {
+		statsA, statsB := digestStats[i], digestStats[j]
+		if statsA.lastSeenIndex != statsB.lastSeenIndex {
+			return statsA.lastSeenIndex > statsB.lastSeenIndex
+		}
+		if statsA.count != statsB.count {
+			return statsA.count > statsB.count
+		}
+		return statsA.digest < statsB.digest
+	})
+
+	// Assign the primary digest the primaryDigestIndex.
+	digestIndices := make(map[types.Digest]int, maxDistinctDigestsToPresent)
+	digestIndices[primary] = primaryDigestIndex
+	// Go through the slice until we have either added the n most recent digests or have run out
+	// of unique digests. We are careful not to add a digest we've already added (e.g. the primary
+	// digest). We start with the most recent digests to preserve a little bit of backwards
+	// compatibility with the assigned colors (e.g. developers are used to green and orange being the
+	// more recent digests).
+	digestIndex := 1
+	for i := 0; i < len(digestStats) && len(digestIndices) < 1+mostRecentNDigests; i++ {
+		ds := digestStats[i]
+		if _, ok := digestIndices[ds.digest]; ok {
+			continue
+		}
+		digestIndices[ds.digest] = digestIndex
+		digestIndex++
+	}
+
+	// Re-sort the slice in order of highest count, with tiebreaks being a higher last seen index
+	// and then lexicographically by digest.
+	sort.Slice(digestStats, func(i, j int) bool {
+		statsA, statsB := digestStats[i], digestStats[j]
+		if statsA.count != statsB.count {
+			return statsA.count > statsB.count
+		}
+		if statsA.lastSeenIndex != statsB.lastSeenIndex {
+			return statsA.lastSeenIndex > statsB.lastSeenIndex
+		}
+		return statsA.digest < statsB.digest
+	})
+
+	// Assign the rest of the indices in order of most common digests.
+	for i := 0; i < len(digestStats) && len(digestIndices) < maxDistinctDigestsToPresent; i++ {
+		ds := digestStats[i]
+		if _, ok := digestIndices[ds.digest]; ok {
+			continue
+		}
+		digestIndices[ds.digest] = digestIndex
+		digestIndex++
+	}
+	return digestIndices, len(digestStats)
 }
 
 // UntriagedUnignoredTryJobExclusiveDigests implements the SearchAPI interface. It uses the cached
