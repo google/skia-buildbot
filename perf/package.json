@@ -15,7 +15,7 @@
     "d3-scale": "^3.2.1",
     "dialog-polyfill": "^0.5.1",
     "elements-sk": "3.3.3",
-    "elix": "^9.0.3",
+    "elix": "^14.0.0",
     "lit-html": "^1.2.1",
     "resize-observer-polyfill": "^1.5.1"
   },
