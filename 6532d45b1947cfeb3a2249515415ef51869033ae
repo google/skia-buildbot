@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f4210414_3f4f8b69",
+        "filename": "golden/modules/list-page-sk/list-page-sk-demo.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-17T19:16:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c3820e12_e4f3526d",
+      "range": {
+        "startLine": 11,
+        "startChar": 34,
+        "endLine": 11,
+        "endChar": 36
+      },
+      "revId": "6532d45b1947cfeb3a2249515415ef51869033ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c223e498_3d300941",
         "filename": "golden/modules/list-page-sk/list-page-sk.js",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "6532d45b1947cfeb3a2249515415ef51869033ae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e82774f1_9757457e",
+        "filename": "golden/modules/list-page-sk/list-page-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-17T19:16:47Z",
+      "side": 1,
+      "message": "That could lead to incorrect behavior with fetchmock - fetchmock defaults to synchronously executing fetch calls (I believe) which would result in\nsendBeginTask\nsendEndTask\nsendBeginTask\nsendEndTask\n\nwhich would have the scaffold send two busy-end signals.\n\nThis pattern is also used in golang when using WaitGroups.",
+      "parentUuid": "c223e498_3d300941",
+      "range": {
+        "startLine": 169,
+        "startChar": 0,
+        "endLine": 169,
+        "endChar": 24
+      },
+      "revId": "6532d45b1947cfeb3a2249515415ef51869033ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "02027a0d_ddb63e08",
+        "filename": "golden/modules/list-page-sk/list-page-sk_puppeteer_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-17T19:16:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "05f9f405_d5796eb6",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 0
+      },
+      "revId": "6532d45b1947cfeb3a2249515415ef51869033ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "094d556a_30cdfef8",
         "filename": "golden/modules/list-page-sk/list-page-sk_test.js",
         "patchSetId": 7
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "45b66211_bf6cc6b8",
+        "filename": "golden/modules/list-page-sk/list-page-sk_test.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-17T19:16:47Z",
+      "side": 1,
+      "message": "IMO that\u0027s what we have Gold tests for. I would prefer not to have tests of the html structure in this element as I fear those being brittle when the child components change.",
+      "parentUuid": "094d556a_30cdfef8",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 0
+      },
+      "revId": "6532d45b1947cfeb3a2249515415ef51869033ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a79a1d4_48dc8eef",
         "filename": "golden/modules/list-page-sk/list-page-sk_test.js",
         "patchSetId": 7
@@ -114,6 +210,30 @@
       "revId": "6532d45b1947cfeb3a2249515415ef51869033ae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "377ac813_422e3c81",
+        "filename": "golden/modules/list-page-sk/list-page-sk_test.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-17T19:16:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a79a1d4_48dc8eef",
+      "range": {
+        "startLine": 72,
+        "startChar": 10,
+        "endLine": 76,
+        "endChar": 117
+      },
+      "revId": "6532d45b1947cfeb3a2249515415ef51869033ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
