@@ -325,22 +325,26 @@ define('dots-sk', class extends ElementSk {
     }
     // Look backwards in the trace for the previous commit with data. If none,
     // 0 is a fine index to compute the blamelist from.
-    let endOfMissingStreakBeforeThisDot = 0;
+    let lastNonMissingIndex = 0;
     for (let i = x - 1; i >= 0; i--) {
       if (trace.data[i] !== MISSING_DOT) {
-        // We found some non-missing data, so the previous digest we looked at
-        // (that is, at this index + 1), was the end of any missing digests.
-        // If there was no preceding missing digests, this will equal x.
-        endOfMissingStreakBeforeThisDot = i + 1;
+        // We include the last non-missing data in our slice because the slice of commits that
+        // Gold returns is not the complete history - Gold elides commits that have no data.
+        // This is potentially a problem in the following scenario:
+        //   - commit 1 has correct data
+        //   - commit 2 has correct data
+        //   - commit 3 has no data, but introduced a bug (and would have produced incorrect data)
+        //   - commit 4 has incorrect data
+        // In this case, we need to make sure we can create a blamelist that starts on the first
+        // real commit after commit 2. Therefore, we include commit 2 in the list, which GitHub
+        // and googlesource will automatically elide when we ask for a range of history (in
+        // blamelist-panel-sk). If there were no preceding missing digests, this will equal x-1.
+        lastNonMissingIndex = i;
         break;
       }
     }
-    const blamelist = this._commits.slice(endOfMissingStreakBeforeThisDot, x + 1);
+    const blamelist = this._commits.slice(lastNonMissingIndex, x + 1);
     blamelist.reverse();
-    // TODO(kjlubick) if endOfMissingStreakBeforeThisDot is 0, that could mean this trace just
-    //   started, and we should probably limit the blamelist to the previous 10ish commits
-    //   so as not to overwhelm the blamelist UI widget. Maybe that's better done on the
-    //   blamelist widget though...
     return blamelist;
   }
 });
