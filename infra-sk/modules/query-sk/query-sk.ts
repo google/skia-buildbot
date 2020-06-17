@@ -40,14 +40,14 @@ export class QuerySk extends ElementSk {
   private static template = (ele: QuerySk) => html`
     <div>
       <label>Filter <input id=fast @input=${ele._fastFilter}></label>
-      <button @click=${ele._clearFilter}>Clear Filter</button>
+      <button @click=${ele._clearFilter} class=clear_filters>Clear Filter</button>
     </div>
     <div class=bottom>
       <div class=selection>
         <select-sk @selection-changed=${ele._keyChange}>
           ${QuerySk.keysTemplate(ele)}
         </select-sk>
-        <button @click=${ele._clear}>Clear Selections</button>
+        <button @click=${ele._clear} class=clear_selections>Clear Selections</button>
       </div>
       <query-values-sk id=values @query-values-changed=${ele._valuesChanged}
         ?hide_invert=${ele.hide_invert} ?hide_regex=${ele.hide_regex}></query-values-sk>
@@ -66,7 +66,7 @@ export class QuerySk extends ElementSk {
 
    // The full set of keys in the desired order.
   private _keys: string[] = [];
-  
+
   // The id of a pending timeout func that will send a delayed query-change event.
   private _delayedTimeout: number | null = null;
 
