@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "194924b1_ebc329aa",
+        "filename": "perf/modules/json-source-sk/json-source-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T20:31:50Z",
+      "side": 1,
+      "message": "Nit: Redundant?",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 35
+      },
+      "revId": "46b68d189d299ba74e9aa690e75485a70fbfad0f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f735cd9e_7743c41a",
+        "filename": "perf/modules/json-source-sk/json-source-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T20:31:50Z",
+      "side": 1,
+      "message": "Nit: I recommend naming this commitID.",
+      "range": {
+        "startLine": 52,
+        "startChar": 6,
+        "endLine": 52,
+        "endChar": 9
+      },
+      "revId": "46b68d189d299ba74e9aa690e75485a70fbfad0f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c45117e_55749649",
+        "filename": "perf/modules/json-source-sk/json-source-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T20:31:50Z",
+      "side": 1,
+      "message": "Nit: Redundant?",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 45
+      },
+      "revId": "46b68d189d299ba74e9aa690e75485a70fbfad0f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
