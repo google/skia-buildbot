@@ -15,14 +15,21 @@ import { baseRepoURL, codeReviewURLTemplate } from '../settings';
 
 const maxCommitsToDisplay = 15;
 
-const template = (ele: BlamelistPanelSk) => html`
-<h2>Commits:</h2>
+const template = (ele: BlamelistPanelSk) => {
+  const commitRangeHref = commitRange(ele.commits);
+  return html`
+<h2 ?hidden=${!commitRangeHref} class=full_range>
+    <a href=${commitRangeHref} target=_blank rel=noopener>View Full Range</a>
+</h2>
+
+<h2>Commits for which Gold saw data:</h2>
 <table>
   ${ele.commits.slice(0, maxCommitsToDisplay).map(commitRow)}
 </table>
 <div>
   ${ele.commits.length > maxCommitsToDisplay ? '...and other commits.' : ''}
 </div>`;
+}
 
 const commitRow = (c: Commit) => html`
 <tr>
@@ -38,6 +45,31 @@ const commitRow = (c: Commit) => html`
   <td title=${c.message}>${truncateWithEllipses(c.message || '', 80)}</td>
 </tr>
 `;
+
+const commitRange = (commits: Commit[]) => {
+  if (commits.length <= 1) {
+    return '';
+  }
+  const oldestCommit = commits[commits.length-1];
+  let newestCommit = commits[0];
+  if (newestCommit.is_cl) {
+    newestCommit = commits[1];
+  }
+  // Check that we don't have one real commit and 1 cl commit as our blame.
+  if (oldestCommit.hash === newestCommit.hash) {
+    return '';
+  }
+
+  const repo = baseRepoURL();
+  if (!repo) {
+    throw new DOMException('repo not set in settings');
+  }
+  // The ~1 says to include the oldest commit in the blamelist.
+  if (repo.indexOf('github.com') !== -1) {
+    return `${repo}/compare/${oldestCommit.hash}~1...${newestCommit.hash}`;
+  }
+  return `${repo}/+log/${oldestCommit.hash}~1..${newestCommit.hash}`;
+};
 
 const commitHref = (commit: Commit) => {
   if (commit.is_cl) {
