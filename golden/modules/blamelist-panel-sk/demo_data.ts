@@ -146,4 +146,11 @@ export const clBlamelist: Commit[] = [
     message: 'Roll third_party/externals/dawn 00b90ea83262..88f2ec853f80 (',
     is_cl: true,
   },
+  {
+    commit_time: 1584835000,
+    hash: 'dded3c7506efc5635e60ffb7a908cbe8f1f028f1',
+    author: 'Alfa (alfa@example.com)',
+    message: 'Update provisioning_profile to unbreak iOS since cert refresh',
+    is_cl: false,
+  },
 ];
