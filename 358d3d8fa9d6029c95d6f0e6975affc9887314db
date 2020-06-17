@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fe1fedf2_da4ecabd",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T18:26:35Z",
+      "side": 1,
+      "message": "Please add /* changelistId\u003d */ before this value.",
+      "range": {
+        "startLine": 94,
+        "startChar": 46,
+        "endLine": 94,
+        "endChar": 53
+      },
+      "revId": "358d3d8fa9d6029c95d6f0e6975affc9887314db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32e2a4f4_cf44d7b2",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T18:26:35Z",
+      "side": 1,
+      "message": "Could you please unroll nthEntry() the same way you did with nthDetailsRow()?",
+      "range": {
+        "startLine": 218,
+        "startChar": 0,
+        "endLine": 220,
+        "endChar": 0
+      },
+      "revId": "358d3d8fa9d6029c95d6f0e6975affc9887314db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92228576_45177e94",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T18:26:35Z",
+      "side": 1,
+      "message": "Thank you for these changes. The test reads more like prose now and it\u0027s more immediately obvious to the reader what this test does.",
+      "range": {
+        "startLine": 221,
+        "startChar": 0,
+        "endLine": 224,
+        "endChar": 0
+      },
+      "revId": "358d3d8fa9d6029c95d6f0e6975affc9887314db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "62989a98_26d10803",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T18:26:35Z",
+      "side": 1,
+      "message": "I think the above changes are great. Let\u0027s please also rewrite the expect* functions below in a similar way for consistency and increased readability.",
+      "range": {
+        "startLine": 280,
+        "startChar": 0,
+        "endLine": 280,
+        "endChar": 68
+      },
+      "revId": "358d3d8fa9d6029c95d6f0e6975affc9887314db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f89e0e6e_f575b287",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T18:26:35Z",
+      "side": 1,
+      "message": "This can be deleted once the suggested changes above are apply.",
+      "range": {
+        "startLine": 396,
+        "startChar": 0,
+        "endLine": 401,
+        "endChar": 0
+      },
+      "revId": "358d3d8fa9d6029c95d6f0e6975affc9887314db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb9eb1f5_7ebd0d77",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 412,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T18:26:35Z",
+      "side": 1,
+      "message": "This can also be deleted once the expect* functions are rewritten as suggested.",
+      "range": {
+        "startLine": 406,
+        "startChar": 0,
+        "endLine": 412,
+        "endChar": 0
+      },
+      "revId": "358d3d8fa9d6029c95d6f0e6975affc9887314db",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
