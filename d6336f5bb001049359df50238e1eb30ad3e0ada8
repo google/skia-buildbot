@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d7849626_688ddcac",
+        "filename": "golden/modules/blamelist-panel-sk/blamelist-panel-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T20:12:39Z",
+      "side": 1,
+      "message": "I\u0027m not sure that the meaning of \"data\" is clear to the user. We should probably be more specific. How about \"Commits that produced digests\"?",
+      "range": {
+        "startLine": 27,
+        "startChar": 31,
+        "endLine": 27,
+        "endChar": 35
+      },
+      "revId": "d6336f5bb001049359df50238e1eb30ad3e0ada8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a176d03_ab638860",
+        "filename": "golden/modules/blamelist-panel-sk/blamelist-panel-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T20:12:39Z",
+      "side": 1,
+      "message": "Sorry to insist, but I keep tripping over the word \"data\". I think \"digests\" is probably clearer.",
+      "range": {
+        "startLine": 51,
+        "startChar": 51,
+        "endLine": 51,
+        "endChar": 55
+      },
+      "revId": "d6336f5bb001049359df50238e1eb30ad3e0ada8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f0ae2d5f_5da609d2",
+        "filename": "golden/modules/blamelist-panel-sk/blamelist-panel-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T20:12:39Z",
+      "side": 1,
+      "message": "the oldest commit",
+      "range": {
+        "startLine": 52,
+        "startChar": 60,
+        "endLine": 52,
+        "endChar": 72
+      },
+      "revId": "d6336f5bb001049359df50238e1eb30ad3e0ada8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "583ee833_c87aa465",
+        "filename": "golden/modules/blamelist-panel-sk/blamelist-panel-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T20:12:39Z",
+      "side": 1,
+      "message": "Please add a comment explaining what this means, e.g. why does it matter that a commit is a CL, and why do we skip one?",
+      "range": {
+        "startLine": 60,
+        "startChar": 2,
+        "endLine": 62,
+        "endChar": 3
+      },
+      "revId": "d6336f5bb001049359df50238e1eb30ad3e0ada8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d57ab3dc_918e105c",
+        "filename": "golden/modules/blamelist-panel-sk/blamelist-panel-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T20:12:39Z",
+      "side": 1,
+      "message": "I\u0027m not sure I understand the \"CL commit\" bit. Please rephrase?",
+      "range": {
+        "startLine": 64,
+        "startChar": 35,
+        "endLine": 64,
+        "endChar": 66
+      },
+      "revId": "d6336f5bb001049359df50238e1eb30ad3e0ada8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a643353c_05a459ed",
+        "filename": "golden/modules/blamelist-panel-sk/blamelist-panel-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T20:12:39Z",
+      "side": 1,
+      "message": "Nits:\n- Please mark this as private.\n- Indentation.\n- Please add a space before the values (e.g. author:\u0027\u0027 -\u003e author: \u0027\u0027).\n- No need for trailing comma.",
+      "range": {
+        "startLine": 111,
+        "startChar": 7,
+        "endLine": 112,
+        "endChar": 2
+      },
+      "revId": "d6336f5bb001049359df50238e1eb30ad3e0ada8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80da4230_87c8d431",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T20:12:39Z",
+      "side": 1,
+      "message": "Consider replacing \"data\" with \"digests\".",
+      "range": {
+        "startLine": 332,
+        "startChar": 87,
+        "endLine": 332,
+        "endChar": 91
+      },
+      "revId": "d6336f5bb001049359df50238e1eb30ad3e0ada8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d235e41_4c808763",
+        "filename": "golden/modules/dots-sk/dots-sk.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 341,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T20:12:39Z",
+      "side": 1,
+      "message": "were",
+      "range": {
+        "startLine": 341,
+        "startChar": 41,
+        "endLine": 341,
+        "endChar": 44
+      },
+      "revId": "d6336f5bb001049359df50238e1eb30ad3e0ada8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
