@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b87cc370_e0654db7",
+        "filename": "golden/modules/dots-sk/constants.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T18:35:36Z",
+      "side": 1,
+      "message": "Nit: line length.",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 1
+      },
+      "revId": "e3ce7731637b979f190fad767ffc69cc17f6e8c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81b0c509_40ecd1a8",
+        "filename": "golden/modules/dots-sk/constants.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T18:35:36Z",
+      "side": 1,
+      "message": "Could you please add a comment to each color with one of their names as per http://mkweb.bcgsc.ca/colorblind/palettes/12.color.blindness.palette.txt?\n\nE.g. pine green, pale magenta, turquoise, etc.",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 12
+      },
+      "revId": "e3ce7731637b979f190fad767ffc69cc17f6e8c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
