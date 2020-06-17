@@ -4,7 +4,6 @@ package frontend
 import (
 	"context"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -25,6 +24,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
 	"github.com/jcgregorio/logger"
+	"github.com/spf13/pflag"
 	"go.opencensus.io/trace"
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/auth"
@@ -120,12 +120,18 @@ type Frontend struct {
 
 	// distFileSystem is the ./dist directory of files produced by webpack.
 	distFileSystem http.FileSystem
+
+	flags *config.FrontendFlags
 }
 
 // New returns a new Frontend instance.
-func New() (*Frontend, error) {
-	f := &Frontend{}
-	f.initialize()
+//
+// We pass in the FlagSet so that we can emit the flag values into the logs.
+func New(flags *config.FrontendFlags, fs *pflag.FlagSet) (*Frontend, error) {
+	f := &Frontend{
+		flags: flags,
+	}
+	f.initialize(fs)
 
 	return f, nil
 }
@@ -183,17 +189,16 @@ type skPerfConfig struct {
 func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		flags := config.Config.Flags
-		if flags.Local {
+		if f.flags.Local {
 			f.loadTemplates()
 		}
 		context := skPerfConfig{
-			Radius:         flags.Radius,
-			KeyOrder:       strings.Split(flags.KeyOrder, ","),
-			NumShift:       flags.NumShift,
-			Interesting:    float32(flags.Interesting),
-			StepUpOnly:     flags.StepUpOnly,
-			CommitRangeURL: flags.CommitRangeURL,
+			Radius:         f.flags.Radius,
+			KeyOrder:       strings.Split(f.flags.KeyOrder, ","),
+			NumShift:       f.flags.NumShift,
+			Interesting:    float32(f.flags.Interesting),
+			StepUpOnly:     f.flags.StepUpOnly,
+			CommitRangeURL: f.flags.CommitRangeURL,
 		}
 		b, err := json.MarshalIndent(context, "", "  ")
 		if err != nil {
@@ -209,7 +214,7 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 func (f *Frontend) scriptHandler(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/javascript")
-		if config.Config.Flags.Local {
+		if f.flags.Local {
 			f.loadTemplates()
 		}
 		if err := f.templates.ExecuteTemplate(w, name, nil); err != nil {
@@ -236,7 +241,7 @@ func (f *Frontend) newAlertsConfigProvider() regression.ConfigProvider {
 }
 
 // initialize the application.
-func (f *Frontend) initialize() {
+func (f *Frontend) initialize(fs *pflag.FlagSet) {
 	rand.Seed(time.Now().UnixNano())
 
 	// Log to stdout.
@@ -247,18 +252,18 @@ func (f *Frontend) initialize() {
 	)
 
 	// Note that we don't use common.* here, instead doing the setup manually
-	// because we are using a flag.FlagSet instead of the global
+	// because we are using a pflag.FlagSet instead of the global
 	// flag.CommandLine.
 	//
 	// If this works out then maybe we can fold flag.FlagSet support into
 	// common.
-	fs := flag.NewFlagSet("", flag.ContinueOnError)
-	flags := config.Flags{}
-	flags.Register(fs)
+	//
+	// TODO(jcgregorio) Remove the call to fs.Parse once skiaperf/main.go is
+	// removed and everything is run via perfserver.
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		sklog.Fatal(err)
 	}
-	fs.VisitAll(func(f *flag.Flag) {
+	fs.VisitAll(func(f *pflag.Flag) {
 		sklog.Infof("Flags: --%s=%v", f.Name, f.Value)
 	})
 
@@ -268,18 +273,18 @@ func (f *Frontend) initialize() {
 	sklog.Infof("Running as %d:%d", os.Getuid(), os.Getgid())
 
 	// Init metrics.
-	metrics2.InitPrometheus(flags.PromPort)
+	metrics2.InitPrometheus(f.flags.PromPort)
 	_ = metrics2.NewLiveness("uptime", nil)
 
 	// Init auth.
-	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", flags.Port)
-	if !flags.Local {
+	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", f.flags.Port)
+	if !f.flags.Local {
 		redirectURL = login.DEFAULT_REDIRECT_URL
 	}
-	if flags.AuthBypassList == "" {
-		flags.AuthBypassList = login.DEFAULT_DOMAIN_WHITELIST
+	if f.flags.AuthBypassList == "" {
+		f.flags.AuthBypassList = login.DEFAULT_DOMAIN_WHITELIST
 	}
-	if err := login.Init(redirectURL, flags.AuthBypassList, ""); err != nil {
+	if err := login.Init(redirectURL, f.flags.AuthBypassList, ""); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 
@@ -295,7 +300,7 @@ func (f *Frontend) initialize() {
 	sklog_impl.SetMetricsCallback(metricsCallback)
 
 	// Load the config file.
-	if err := config.Init(flags.ConfigFilename, flags); err != nil {
+	if err := config.Init(f.flags.ConfigFilename); err != nil {
 		sklog.Fatal(err)
 	}
 	cfg := config.Config
@@ -307,24 +312,24 @@ func (f *Frontend) initialize() {
 		sklog.Fatal(err)
 	}
 
-	if cfg.Flags.ResourcesDir == "" {
+	if f.flags.ResourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
-		cfg.Flags.ResourcesDir = filepath.Join(filepath.Dir(filename), "../..")
+		f.flags.ResourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
 
-	if !cfg.Flags.Local && cfg.DataStoreConfig.Namespace != "" && !util.In(cfg.DataStoreConfig.Namespace, []string{ds.PERF_NS, ds.PERF_ANDROID_NS, ds.PERF_ANDROID_X_NS, ds.PERF_ANDROID_MASTER_NS, ds.PERF_CT_NS, ds.PERF_FLUTTER_NS}) {
+	if !f.flags.Local && cfg.DataStoreConfig.Namespace != "" && !util.In(cfg.DataStoreConfig.Namespace, []string{ds.PERF_NS, ds.PERF_ANDROID_NS, ds.PERF_ANDROID_X_NS, ds.PERF_ANDROID_MASTER_NS, ds.PERF_CT_NS, ds.PERF_FLUTTER_NS}) {
 		sklog.Fatal("When running in prod the datastore namespace must be a known value.")
 	}
 
 	scopes := []string{storage.ScopeReadOnly, datastore.ScopeDatastore, bigtable.Scope, auth.SCOPE_GERRIT}
 
 	sklog.Info("About to create token source.")
-	ts, err := auth.NewDefaultTokenSource(cfg.Flags.Local, scopes...)
+	ts, err := auth.NewDefaultTokenSource(f.flags.Local, scopes...)
 	if err != nil {
 		sklog.Fatalf("Failed to get TokenSource: %s", err)
 	}
 
-	if !cfg.Flags.Local {
+	if !f.flags.Local {
 		if _, err := gitauth.New(ts, "/tmp/git-cookie", true, ""); err != nil {
 			sklog.Fatal(err)
 		}
@@ -341,7 +346,7 @@ func (f *Frontend) initialize() {
 
 	sklog.Info("About to build dataframebuilder.")
 
-	f.traceStore, err = builders.NewTraceStoreFromConfig(ctx, cfg.Flags.Local, config.Config)
+	f.traceStore, err = builders.NewTraceStoreFromConfig(ctx, f.flags.Local, config.Config)
 	if err != nil {
 		sklog.Fatalf("Failed to build TraceStore: %s", err)
 	}
@@ -351,7 +356,7 @@ func (f *Frontend) initialize() {
 		sklog.Fatalf("Failed to build paramsetRefresher: %s", err)
 	}
 
-	f.perfGit, err = builders.NewPerfGitFromConfig(ctx, cfg.Flags.Local, config.Config)
+	f.perfGit, err = builders.NewPerfGitFromConfig(ctx, f.flags.Local, config.Config)
 	if err != nil {
 		sklog.Fatalf("Failed to build perfgit.Git: %s", err)
 	}
@@ -361,10 +366,10 @@ func (f *Frontend) initialize() {
 	sklog.Info("About to build cidl.")
 	f.cidl = cid.New(ctx, f.perfGit, config.Config)
 
-	alerts.DefaultSparse = cfg.Flags.DefaultSparse
+	alerts.DefaultSparse = f.flags.DefaultSparse
 
 	sklog.Info("About to build alertStore.")
-	f.alertStore, err = builders.NewAlertStoreFromConfig(ctx, cfg.Flags.Local, config.Config)
+	f.alertStore, err = builders.NewAlertStoreFromConfig(ctx, f.flags.Local, config.Config)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -373,8 +378,8 @@ func (f *Frontend) initialize() {
 		sklog.Fatal(err)
 	}
 
-	if !cfg.Flags.NoEmail {
-		f.emailAuth, err = email.NewFromFiles(cfg.Flags.EmailTokenCacheFile, cfg.Flags.EmailClientSecretFile)
+	if !f.flags.NoEmail {
+		f.emailAuth, err = email.NewFromFiles(f.flags.EmailTokenCacheFile, f.flags.EmailClientSecretFile)
 		if err != nil {
 			sklog.Fatalf("Failed to create email auth: %v", err)
 		}
@@ -384,8 +389,8 @@ func (f *Frontend) initialize() {
 	}
 
 	f.frameRequests = dataframe.NewRunningFrameRequests(f.perfGit, f.dfBuilder, f.shortcutStore)
-	f.clusterRequests = regression.NewRunningRegressionDetectionRequests(f.perfGit, f.cidl, float32(cfg.Flags.Interesting), f.dfBuilder, f.shortcutStore)
-	f.regStore, err = builders.NewRegressionStoreFromConfig(cfg.Flags.Local, f.cidl, cfg)
+	f.clusterRequests = regression.NewRunningRegressionDetectionRequests(f.perfGit, f.cidl, float32(f.flags.Interesting), f.dfBuilder, f.shortcutStore)
+	f.regStore, err = builders.NewRegressionStoreFromConfig(f.flags.Local, f.cidl, cfg)
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
 	}
@@ -394,13 +399,13 @@ func (f *Frontend) initialize() {
 
 	f.dryrunRequests = dryrun.New(f.cidl, f.dfBuilder, f.shortcutStore, paramsProvider, f.perfGit)
 
-	if cfg.Flags.DoClustering {
+	if f.flags.DoClustering {
 		go func() {
-			for i := 0; i < cfg.Flags.NumContinuousParallel; i++ {
+			for i := 0; i < f.flags.NumContinuousParallel; i++ {
 				// Start running continuous clustering looking for regressions.
 				time.Sleep(startClusterDelay)
-				c := regression.NewContinuous(f.perfGit, f.cidl, f.configProvider, f.regStore, f.shortcutStore, cfg.Flags.NumContinuous, cfg.Flags.Radius, f.notifier, paramsProvider, f.dfBuilder,
-					cfg.Flags.Local, config.Config.DataStoreConfig.Project, config.Config.IngestionConfig.FileIngestionTopicName, cfg.Flags.EventDrivenRegressionDetection)
+				c := regression.NewContinuous(f.perfGit, f.cidl, f.configProvider, f.regStore, f.shortcutStore, f.flags.NumContinuous, f.flags.Radius, f.notifier, paramsProvider, f.dfBuilder,
+					f.flags.Local, config.Config.DataStoreConfig.Project, config.Config.IngestionConfig.FileIngestionTopicName, f.flags.EventDrivenRegressionDetection)
 				f.continuous = append(f.continuous, c)
 				go c.Run(context.Background())
 			}
@@ -411,7 +416,7 @@ func (f *Frontend) initialize() {
 // helpHandler handles the GET of the main page.
 func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("Help Handler: %q\n", r.URL.Path)
-	if config.Config.Flags.Local {
+	if f.flags.Local {
 		f.loadTemplates()
 	}
 	if r.Method == "GET" {
@@ -1493,11 +1498,8 @@ func internalOnlyHandler(h http.Handler) http.Handler {
 //
 // This method does not return.
 func (f *Frontend) Serve() {
-
-	flags := config.Config.Flags
-
 	// Start the internal server on the internal port if requested.
-	if flags.InternalPort != "" {
+	if f.flags.InternalPort != "" {
 		// Add the profiling endpoints to the internal router.
 		internalRouter := mux.NewRouter()
 
@@ -1510,8 +1512,8 @@ func (f *Frontend) Serve() {
 		internalRouter.HandleFunc("/debug/pprof/{profile}", pprof.Index)
 
 		go func() {
-			sklog.Infof("Internal server on %q", flags.InternalPort)
-			sklog.Info(http.ListenAndServe(flags.InternalPort, internalRouter))
+			sklog.Infof("Internal server on %q", f.flags.InternalPort)
+			sklog.Info(http.ListenAndServe(f.flags.InternalPort, internalRouter))
 		}()
 	}
 
@@ -1567,15 +1569,15 @@ func (f *Frontend) Serve() {
 	router.HandleFunc("/_/alert/notify/try", f.alertNotifyTryHandler).Methods("POST")
 
 	var h http.Handler = router
-	if flags.InternalOnly {
+	if f.flags.InternalOnly {
 		h = internalOnlyHandler(h)
 	}
 	h = httputils.LoggingGzipRequestResponse(h)
-	if !flags.Local {
+	if !f.flags.Local {
 		h = httputils.HealthzAndHTTPS(h)
 	}
 	http.Handle("/", h)
 
 	sklog.Info("Ready to serve.")
-	sklog.Fatal(http.ListenAndServe(flags.Port, nil))
+	sklog.Fatal(http.ListenAndServe(f.flags.Port, nil))
 }

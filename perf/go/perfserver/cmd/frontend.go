@@ -16,21 +16,29 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/frontend"
 )
+
+var frontendFlags config.FrontendFlags
 
 // frontendCmd represents the frontend command
 var frontendCmd = &cobra.Command{
 	Use:   "frontend",
 	Short: "The main web UI.",
 	Long:  `Runs the process that serves the web UI for Perf.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("frontend called")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		f, err := frontend.New(&frontendFlags, cmd.LocalFlags())
+		if err != nil {
+			return err
+		}
+		f.Serve()
+		return nil
 	},
 }
 
 func frontendInit() {
 	rootCmd.AddCommand(frontendCmd)
+	frontendFlags.Register(frontendCmd.Flags())
 }
