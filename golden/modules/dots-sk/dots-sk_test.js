@@ -95,11 +95,11 @@ describe('dots-sk', () => {
   it('emits "showblamelist" event when a dot is clicked', async () => {
     // First trace, most recent commit.
     let event = await clickDotAndCatchShowCommitsEvent(dotsSk, 19, 0);
-    expect(event.detail).to.deep.equal([commits[19]]);
+    expect(event.detail).to.deep.equal([commits[19], commits[18]]);
 
     // First trace, middle-of-the-tile commit.
     event = await clickDotAndCatchShowCommitsEvent(dotsSk, 10, 0);
-    expect(event.detail).to.deep.equal([commits[10]]);
+    expect(event.detail).to.deep.equal([commits[10], commits[9]]);
 
     // First trace, oldest commit.
     event = await clickDotAndCatchShowCommitsEvent(dotsSk, 0, 0);
@@ -107,11 +107,11 @@ describe('dots-sk', () => {
 
     // Second trace, most recent commit with data
     event = await clickDotAndCatchShowCommitsEvent(dotsSk, 17, 1);
-    expect(event.detail).to.deep.equal([commits[17]]);
+    expect(event.detail).to.deep.equal([commits[17], commits[16]]);
 
     // Second trace, middle-of-the-tile dot preceded by two missing dots.
     event = await clickDotAndCatchShowCommitsEvent(dotsSk, 14, 1);
-    expect(event.detail).to.deep.equal([commits[14], commits[13], commits[12]]);
+    expect(event.detail).to.deep.equal([commits[14], commits[13], commits[12], commits[11]]);
 
     // Second trace, oldest commit with data preceded by three missing dots.
     event = await clickDotAndCatchShowCommitsEvent(dotsSk, 3, 1);
@@ -121,11 +121,11 @@ describe('dots-sk', () => {
 
     // Third trace, most recent commit.
     event = await clickDotAndCatchShowCommitsEvent(dotsSk, 19, 2);
-    expect(event.detail).to.deep.equal([commits[19]]);
+    expect(event.detail).to.deep.equal([commits[19], commits[18]]);
 
     // Third trace, middle-of-the-tile commit.
     event = await clickDotAndCatchShowCommitsEvent(dotsSk, 10, 2);
-    expect(event.detail).to.deep.equal([commits[10]]);
+    expect(event.detail).to.deep.equal([commits[10], commits[9]]);
 
     // Third trace, oldest commit.
     event = await clickDotAndCatchShowCommitsEvent(dotsSk, 6, 2);
