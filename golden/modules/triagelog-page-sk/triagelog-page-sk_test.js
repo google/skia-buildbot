@@ -91,7 +91,7 @@ describe('triagelog-page-sk', () => {
     setQueryString('?issue=123456');
     const triagelogPageSk = await loadTriagelogPageSk(); // Load first page.
     expectQueryStringToEqual('?issue=123456'); // No changes to the URL.
-    expectFirstPageOfResults(triagelogPageSk);
+    expectFirstPageOfResults(triagelogPageSk, '123456' /*= changelistID */);
   });
 
   describe('URL parameters', () => {
@@ -214,50 +214,73 @@ function expectEmptyPage(triagelogPageSk) {
   expect($$('tbody', triagelogPageSk).children).to.be.empty;
 }
 
-function expectFirstPageOfResults(triagelogPageSk) {
-  expect(nthEntry(triagelogPageSk, 0)).to.deep.equal(
-    [toLocalDateStr(1572000000000), 'alpha@google.com', 2],
+function expectFirstPageOfResults(triagelogPageSk, changelistID = '') {
+  expect(nthEntryTimestamp(triagelogPageSk, 0)).to.equal(toLocalDateStr(1572000000000));
+  expect(nthEntryAuthor(triagelogPageSk, 0)).to.equal('alpha@google.com');
+  expect(nthEntryNumChanges(triagelogPageSk, 0)).to.equal(2);
+
+  expect(nthDetailsRowTestName(triagelogPageSk, 0)).to.equal('async_rescale_and_read_dog_up');
+  expect(nthDetailsRowDigest(triagelogPageSk, 0)).to.equal('f16298eb14e19f9230fe81615200561f');
+  expect(nthDetailsRowLabel(triagelogPageSk, 0)).to.equal('positive');
+  let digestHref = nthDetailsRowDigestHref(triagelogPageSk, 0);
+  expect(digestHref).to.contain(
+    '/detail?test=async_rescale_and_read_dog_up&digest=f16298eb14e19f9230fe81615200561f',
   );
-  expect(nthDetailsRow(triagelogPageSk, 0)).to.deep.equal([
-    'async_rescale_and_read_dog_up',
-    'f16298eb14e19f9230fe81615200561f',
-    digestDetailsHref(
-      'async_rescale_and_read_dog_up',
-      'f16298eb14e19f9230fe81615200561f',
-    ),
-    'positive']);
-  expect(nthDetailsRow(triagelogPageSk, 1)).to.deep.equal([
-    'async_rescale_and_read_rose',
-    '35c77280a7d5378033f9bf8f3c755e78',
-    digestDetailsHref(
-      'async_rescale_and_read_rose',
-      '35c77280a7d5378033f9bf8f3c755e78',
-    ),
-    'positive']);
-  expect(nthEntry(triagelogPageSk, 1)).to.deep.equal(
-    [toLocalDateStr(1571900000000), 'beta@google.com', 1],
+  if (changelistID) {
+    expect(digestHref).to.contain(`&issue=${changelistID}`);
+  } else {
+    expect(digestHref).not.to.contain('&issue');
+  }
+
+  expect(nthEntryTimestamp(triagelogPageSk, 1)).to.equal(toLocalDateStr(1571900000000));
+  expect(nthEntryAuthor(triagelogPageSk, 1)).to.equal('beta@google.com');
+  expect(nthEntryNumChanges(triagelogPageSk, 1)).to.equal(1);
+
+  expect(nthDetailsRowTestName(triagelogPageSk, 1)).to.equal('async_rescale_and_read_rose');
+  expect(nthDetailsRowDigest(triagelogPageSk, 1)).to.equal('35c77280a7d5378033f9bf8f3c755e78');
+  expect(nthDetailsRowLabel(triagelogPageSk, 1)).to.equal('positive');
+  digestHref = nthDetailsRowDigestHref(triagelogPageSk, 1);
+  expect(digestHref).to.contain(
+    '/detail?test=async_rescale_and_read_rose&digest=35c77280a7d5378033f9bf8f3c755e78',
   );
-  expect(nthDetailsRow(triagelogPageSk, 2)).to.deep.equal([
-    'draw_image_set',
-    'b788aadee662c2b0390d698cbe68b808',
-    digestDetailsHref(
-      'draw_image_set',
-      'b788aadee662c2b0390d698cbe68b808',
-    ),
-    'positive']);
-  expect(nthEntry(triagelogPageSk, 2)).to.deep.equal(
-    [toLocalDateStr(1571800000000), 'gamma@google.com', 1],
+  if (changelistID) {
+    expect(digestHref).to.contain(`&issue=${changelistID}`);
+  } else {
+    expect(digestHref).not.to.contain('&issue');
+  }
+
+  expect(nthEntryTimestamp(triagelogPageSk, 2)).to.equal(toLocalDateStr(1571800000000));
+  expect(nthEntryAuthor(triagelogPageSk, 2)).to.equal('gamma@google.com');
+  expect(nthEntryNumChanges(triagelogPageSk, 2)).to.equal(1);
+
+  expect(nthDetailsRowTestName(triagelogPageSk, 2)).to.equal('draw_image_set');
+  expect(nthDetailsRowDigest(triagelogPageSk, 2)).to.equal('b788aadee662c2b0390d698cbe68b808');
+  expect(nthDetailsRowLabel(triagelogPageSk, 2)).to.equal('positive');
+  digestHref = nthDetailsRowDigestHref(triagelogPageSk, 2);
+  expect(digestHref).to.contain(
+    '/detail?test=draw_image_set&digest=b788aadee662c2b0390d698cbe68b808',
   );
-  expect(nthDetailsRow(triagelogPageSk, 3)).to.deep.equal([
-    'filterbitmap_text_7.00pt',
-    '454b4b547bc6ceb4cdeb3305553be98a',
-    digestDetailsHref(
-      'filterbitmap_text_7.00pt',
-      '454b4b547bc6ceb4cdeb3305553be98a',
-    ),
-    'positive']);
+  if (changelistID) {
+    expect(digestHref).to.contain(`&issue=${changelistID}`);
+  } else {
+    expect(digestHref).not.to.contain('&issue');
+  }
+
+  expect(nthDetailsRowTestName(triagelogPageSk, 3)).to.equal('filterbitmap_text_7.00pt');
+  expect(nthDetailsRowDigest(triagelogPageSk, 3)).to.equal('454b4b547bc6ceb4cdeb3305553be98a');
+  expect(nthDetailsRowLabel(triagelogPageSk, 3)).to.equal('positive');
+  digestHref = nthDetailsRowDigestHref(triagelogPageSk, 3);
+  expect(digestHref).to.contain(
+    '/detail?test=filterbitmap_text_7.00pt&digest=454b4b547bc6ceb4cdeb3305553be98a',
+  );
+  if (changelistID) {
+    expect(digestHref).to.contain(`&issue=${changelistID}`);
+  } else {
+    expect(digestHref).not.to.contain('&issue');
+  }
 }
 
+// TODO(kjlubick, lovisolo): rewrite these expects* to be more like above.
 function expectFirstPageOfResultsFirstEntryUndone(triagelogPageSk) {
   expect(nthEntry(triagelogPageSk, 0)).to.deep.equal(
     [toLocalDateStr(1571900000000), 'beta@google.com', 1],
