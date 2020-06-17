@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f337d3ca_5e3ef9fd",
+        "filename": "go.mod",
+        "patchSetId": 7
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-17T18:15:51Z",
+      "side": 0,
+      "message": "Was this change expected? (just wondering if Housekeeper-Nightly-UpdateGoDeps will get confused). Or since it\u0027s already failing maybe it doesn\u0027t matter.",
+      "revId": "ddce364dd0e8afcb4d834c154a718a4b600e3497",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
