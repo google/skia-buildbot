@@ -1814,9 +1814,10 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_UsesIndex_Success(t *testing.T
 	}, dl)
 }
 
-// TestFillInFrontEndTraceData_DigestIndicesAreCorrect tests that we generate the output required
-// to draw the trace graphs correctly, especially when dealing with many digests or missing digests.
-func TestFillInFrontEndTraceData_DigestIndicesAreCorrect(t *testing.T) {
+// TestFillInFrontEndTraceData_SingleTrace_DigestIndicesAreCorrect tests that we generate the output
+// required to draw the trace graphs correctly, especially when dealing with many digests or
+// missing digests.
+func TestFillInFrontEndTraceData_SingleTrace_DigestIndicesAreCorrect(t *testing.T) {
 	unittest.SmallTest(t)
 	// Add some shorthand aliases for easier-to-read test inputs.
 	const mm = tiling.MissingDigest
@@ -1826,6 +1827,7 @@ func TestFillInFrontEndTraceData_DigestIndicesAreCorrect(t *testing.T) {
 	const d0, d1, d2, d3, d4 = types.Digest("d0"), types.Digest("d1"), types.Digest("d2"), types.Digest("d3"), types.Digest("d4")
 
 	test := func(desc string, inputDigests []types.Digest, expectedData []int) {
+		require.Equal(t, len(inputDigests), len(expectedData))
 		// stubClassifier returns Positive for everything. For the purposes of drawing traces,
 		// don't actually care about the expectations.
 		stubClassifier := &mock_expectations.Classifier{}
@@ -1870,11 +1872,87 @@ func TestFillInFrontEndTraceData_DigestIndicesAreCorrect(t *testing.T) {
 	test("d0 not at head",
 		[]types.Digest{d0, d0, d0, d1, d2, d1},
 		[]int{0, 0, 0, 1, 2, 1})
-	// At a certain point, we lump distinct digests together. Currently this is after we have seen
-	// 8 distinct digests (starting at head).
+	// At a certain point, we lump distinct digests together. Currently the 10th distinct digests
+	// and beyond are lumped in with the 9th (starting at head).
 	test("too many distinct digests",
 		[]types.Digest{"dA", "d9", "d8", "d7", "d6", "d5", d4, d3, d2, d1, d0},
 		[]int{8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0})
+	test("Exactly maxDistinctDigestsToPresent digests",
+		[]types.Digest{"d8", "d7", "d6", "d5", d4, d3, d2, d1, d0},
+		[]int{8, 7, 6, 5, 4, 3, 2, 1, 0})
+
+	// index 0 is always the primary digest. Indices [1, 3] are for the digests seen closest to head.
+	// Indices [4, 7] are the 4 most common digests (ties are broken by closest to head).
+	// Index 8 is everything else.
+	test("prioritizes most used digests",
+		[]types.Digest{"dC", "dC", "dC", "dB", "dB", "dA", "d9", "d8", "d7", "d6", "d6", "d5", d4, d3, d2, d1, d0},
+		[]int{4, 4, 4, 6, 6, 8, 8, 8, 8, 5, 5, 8, 7, 3, 2, 1, 0})
+}
+
+func TestFillInFrontEndTraceData_MultipleTraces_DigestIndicesAreCorrect(t *testing.T) {
+	unittest.SmallTest(t)
+	// Add some shorthand aliases for easier-to-read test inputs.
+	const mm = tiling.MissingDigest
+	const mdi = missingDigestIndex
+
+	test := func(desc string, traceOneDigests, traceTwoDigests []types.Digest, traceOneIndices, traceTwoIndices []int) {
+		require.Equal(t, len(traceTwoDigests), len(traceOneDigests))
+		require.Equal(t, len(traceOneIndices), len(traceTwoIndices))
+		require.Equal(t, len(traceOneDigests), len(traceOneIndices))
+		// stubClassifier returns Positive for everything. For the purposes of drawing traces,
+		// don't actually care about the expectations.
+		stubClassifier := &mock_expectations.Classifier{}
+		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
+		t.Run(desc, func(t *testing.T) {
+			traces := []frontend.Trace{
+				{
+					ID: "not-a-real-trace-id-and-that's-ok",
+					RawTrace: &tiling.Trace{
+						Digests: traceOneDigests,
+						// Keys can be omitted because they are not read here.
+					},
+					// Other fields don't matter for this test.
+				},
+				{
+					ID: "still-not-a-real-trace-id-and-that's-ok",
+					RawTrace: &tiling.Trace{
+						Digests: traceTwoDigests,
+						// Keys can be omitted because they are not read here.
+					},
+					// Other fields don't matter for this test.
+				},
+			}
+			tg := frontend.TraceGroup{Traces: traces}
+
+			fillInFrontEndTraceData(&tg, "whatever", "d0", stubClassifier, nil, false /* = appendPrimaryDigest*/)
+			require.Len(t, tg.Traces, 2)
+			assert.Equal(t, traceOneIndices, tg.Traces[0].DigestIndices, "traceOne")
+			assert.Equal(t, traceTwoIndices, tg.Traces[1].DigestIndices, "traceTwo")
+		})
+	}
+
+	// Of note, "d0" is the primary digest for all of these tests.
+
+	test("several distinct digests",
+		[]types.Digest{mm, "d3", "d1", "d1", "d0"},
+		[]types.Digest{"d4", mm, "d2", "d2", "d0"},
+		[]int{mdi, 3, 1, 1, 0},
+		[]int{4, mdi, 2, 2, 0},
+	)
+
+	test("was stable, but bug made tests go flaky",
+		[]types.Digest{"dS", "dS", mm, "dA", "d8", "d6", "d3", "d2", "d1", "d0"},
+		[]types.Digest{"dS", "dS", "dB", mm, "d7", "d5", "d4", "d1", "d2", "d0"},
+		[]int{4, 4, -1, 8, 8, 7, 3, 2, 1, 0},
+		[]int{4, 4, 8, -1, 8, 6, 5, 1, 2, 0},
+	)
+
+	test("primary digest is stable, but gets flaky",
+		[]types.Digest{"d0", "d0", mm, "dA", "d8", "d6", "d5", "d2", "d1", "dF"},
+		[]types.Digest{"d0", "d0", "dB", mm, "d7", "d5", "d4", "d1", "d0", "dE"},
+		[]int{0, 0, -1, 8, 8, 7, 4, 5, 3, 2},
+		[]int{0, 0, 8, -1, 8, 4, 6, 3, 0, 1},
+	)
 }
 
 // TestFillInFrontEndTraceData_AppendPrimaryDigest_DigestIndicesAreCorrect tests that we generate
