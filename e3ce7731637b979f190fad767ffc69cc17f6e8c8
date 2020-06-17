@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8e7388cf_85829a16",
+        "filename": "golden/modules/dots-sk/constants.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-17T19:48:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b87cc370_e0654db7",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 1
+      },
+      "revId": "e3ce7731637b979f190fad767ffc69cc17f6e8c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "81b0c509_40ecd1a8",
         "filename": "golden/modules/dots-sk/constants.js",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "e3ce7731637b979f190fad767ffc69cc17f6e8c8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c55c256c_147328fe",
+        "filename": "golden/modules/dots-sk/constants.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-17T19:48:03Z",
+      "side": 1,
+      "message": "Sure. FWIW, IntelliJ includes a little preview of colors next to the hex that I really like.",
+      "parentUuid": "81b0c509_40ecd1a8",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 12
+      },
+      "revId": "e3ce7731637b979f190fad767ffc69cc17f6e8c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
