@@ -50,10 +50,10 @@ const logEntryTemplate = (el, entry) => html`
   </td>
 </tr>
 
-${entry.details ? detailsTemplate(entry) : html``}
+${entry.details ? detailsTemplate(el, entry) : html``}
 `;
 
-const detailsTemplate = (entry) => html`
+const detailsTemplate = (el, entry) => html`
 <tr class=details>
   <td></td>
   <td><strong>Test name</strong></td>
@@ -61,25 +61,29 @@ const detailsTemplate = (entry) => html`
   <td><strong>Label</strong></td>
 </tr>
 
-${entry.details.map(detailsEntryTemplate)}
+${entry.details.map((e) => detailsEntryTemplate(el, e))}
 
 <tr class="details details-separator"><td colspan="4"></td></tr>
 `;
 
-const detailsEntryTemplate = (detailsEntry) => html`
+const detailsEntryTemplate = (el, detailsEntry) => {
+  let detailHref = `/detail?test=${detailsEntry.test_name}&digest=${detailsEntry.digest}`;
+  if (el._issue) {
+    detailHref += `&issue=${el._issue}`;
+  }
+  return html`
 <tr class=details>
   <td></td>
   <td class=test-name>${detailsEntry.test_name}</td>
   <td class=digest>
-    <a href="/detail?test=${detailsEntry.test_name}&digest=${detailsEntry.digest}"
-       target="_blank"
-       rel="noopener">
+    <a href=${detailHref} target=_blank rel=noopener>
       ${detailsEntry.digest}
     </a>
   </td>
   <td class=label>${detailsEntry.label}</td>
 </tr>
 `;
+};
 
 define('triagelog-page-sk', class extends ElementSk {
   constructor() {
