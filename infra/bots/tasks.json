@@ -39,6 +39,26 @@
         "Infra-PerCommit-CreateDockerImage"
       ]
     },
+    "Infra-PerCommit-GoBuild-darwin-amd64": {
+      "tasks": [
+        "Infra-PerCommit-GoBuild-darwin-amd64"
+      ]
+    },
+    "Infra-PerCommit-GoBuild-linux-amd64": {
+      "tasks": [
+        "Infra-PerCommit-GoBuild-linux-amd64"
+      ]
+    },
+    "Infra-PerCommit-GoBuild-linux-arm64": {
+      "tasks": [
+        "Infra-PerCommit-GoBuild-linux-arm64"
+      ]
+    },
+    "Infra-PerCommit-GoBuild-windows-amd64": {
+      "tasks": [
+        "Infra-PerCommit-GoBuild-windows-amd64"
+      ]
+    },
     "Infra-PerCommit-Large": {
       "tasks": [
         "Infra-PerCommit-Large"
@@ -869,6 +889,78 @@
         ]
       },
       "isolate": "empty.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-GoBuild-darwin-amd64": {
+      "command": [
+        "/bin/sh",
+        "-c",
+        "'docker run --env GOOS=darwin --env GOARCH=amd64 --workdir /repo --mount type=bind,destination=/repo,source=$(pwd),readonly --mount type=bind,destination=/out,source=${ISOLATED_OUTDIR} gcr.io/skia-public/go_deps@sha256:ef6a56191b473fb007f59d10abf90c86bd01a6c4fad13b2724b786832da6924b go_build --project_id skia-swarming-bots --task_id <(TASK_ID) --task_name Infra-PerCommit-GoBuild-darwin-amd64 --alsologtostderr --output-path /out --output-whitelist autoroll-be --output-whitelist autoroll-fe'"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highcpu-64",
+        "docker_installed:true"
+      ],
+      "idempotent": true,
+      "isolate": "whole_repo.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-GoBuild-linux-amd64": {
+      "command": [
+        "/bin/sh",
+        "-c",
+        "'docker run --env GOOS=linux --env GOARCH=amd64 --workdir /repo --mount type=bind,destination=/repo,source=$(pwd),readonly --mount type=bind,destination=/out,source=${ISOLATED_OUTDIR} gcr.io/skia-public/go_deps@sha256:ef6a56191b473fb007f59d10abf90c86bd01a6c4fad13b2724b786832da6924b go_build --project_id skia-swarming-bots --task_id <(TASK_ID) --task_name Infra-PerCommit-GoBuild-linux-amd64 --alsologtostderr --output-path /out --output-whitelist autoroll-be --output-whitelist autoroll-fe'"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highcpu-64",
+        "docker_installed:true"
+      ],
+      "idempotent": true,
+      "isolate": "whole_repo.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-GoBuild-linux-arm64": {
+      "command": [
+        "/bin/sh",
+        "-c",
+        "'docker run --env GOOS=linux --env GOARCH=arm64 --workdir /repo --mount type=bind,destination=/repo,source=$(pwd),readonly --mount type=bind,destination=/out,source=${ISOLATED_OUTDIR} gcr.io/skia-public/go_deps@sha256:ef6a56191b473fb007f59d10abf90c86bd01a6c4fad13b2724b786832da6924b go_build --project_id skia-swarming-bots --task_id <(TASK_ID) --task_name Infra-PerCommit-GoBuild-linux-arm64 --alsologtostderr --output-path /out --output-whitelist autoroll-be --output-whitelist autoroll-fe'"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highcpu-64",
+        "docker_installed:true"
+      ],
+      "idempotent": true,
+      "isolate": "whole_repo.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-GoBuild-windows-amd64": {
+      "command": [
+        "/bin/sh",
+        "-c",
+        "'docker run --env GOOS=windows --env GOARCH=amd64 --workdir /repo --mount type=bind,destination=/repo,source=$(pwd),readonly --mount type=bind,destination=/out,source=${ISOLATED_OUTDIR} gcr.io/skia-public/go_deps@sha256:ef6a56191b473fb007f59d10abf90c86bd01a6c4fad13b2724b786832da6924b go_build --project_id skia-swarming-bots --task_id <(TASK_ID) --task_name Infra-PerCommit-GoBuild-windows-amd64 --alsologtostderr --output-path /out --output-whitelist autoroll-be --output-whitelist autoroll-fe'"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highcpu-64",
+        "docker_installed:true"
+      ],
+      "idempotent": true,
+      "isolate": "whole_repo.isolate",
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-Large": {
