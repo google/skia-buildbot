@@ -35,7 +35,6 @@ import (
 	"go.skia.org/infra/golden/go/search/query"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
-	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tilesource"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/tjstore"
@@ -1070,102 +1069,8 @@ type ClusterDiffResult struct {
 	ParamsetsUnion   paramtools.ParamSet                  `json:"paramsetsUnion"`
 }
 
-// ListTestsHandler returns a JSON list with high level information about
-// each test.
-//
-// It takes these parameters:
-//  include - If true ignored digests should be included. (true, false)
-//  query   - A query to restrict the responses to, encoded as a URL encoded paramset.
-//  head    - if only digest that appear at head should be included.
-//  unt     - If true include tests that have untriaged digests. (true, false)
-//  pos     - If true include tests that have positive digests. (true, false)
-//  neg     - If true include tests that have negative digests. (true, false)
-//
-// The return format looks like:
-//
-//  [
-//    {
-//      "name": "01-original",
-//      "diameter": 123242,
-//      "untriaged": 2,
-//      "num": 2
-//    },
-//    ...
-//  ]
-//
+// ListTestsHandler returns a summary of the digests seen for a given test.
 func (wh *Handlers) ListTestsHandler(w http.ResponseWriter, r *http.Request) {
-	defer metrics2.FuncTimer().Stop()
-	if err := wh.limitForAnonUsers(r); err != nil {
-		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)
-		return
-	}
-
-	// Parse the query object like with the other searches.
-	q := query.Search{}
-	if err := query.ParseSearch(r, &q); err != nil {
-		httputils.ReportError(w, err, "Failed to parse form data.", http.StatusBadRequest)
-		return
-	}
-
-	// If the query only includes source_type parameters, and include==false, then we can just
-	// filter the response from summaries.Get(). If the query is broader than that, or
-	// include==true, then we need to call summaries.SummarizeByGrouping().
-	if err := r.ParseForm(); err != nil {
-		httputils.ReportError(w, err, "Invalid request.", http.StatusBadRequest)
-		return
-	}
-
-	idx := wh.Indexer.GetIndex()
-	corpora, hasSourceType := q.TraceValues[types.CorpusField]
-	sumSlice := []*summary.TriageStatus{}
-	if !q.IncludeIgnoredTraces && q.OnlyIncludeDigestsProducedAtHead && len(q.TraceValues) == 1 && hasSourceType {
-		sumMap := idx.GetSummaries(types.ExcludeIgnoredTraces)
-		for _, sum := range sumMap {
-			if util.In(sum.Corpus, corpora) && includeSummary(sum, &q) {
-				sumSlice = append(sumSlice, sum)
-			}
-		}
-	} else {
-		if hasSourceType && len(corpora) != 1 {
-			http.Error(w, "please supply only one corpus when filtering", http.StatusBadRequest)
-			return
-		}
-		sklog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
-		statuses, err := idx.SummarizeByGrouping(r.Context(), corpora[0], q.TraceValues, q.IgnoreState(), q.OnlyIncludeDigestsProducedAtHead)
-		if err != nil {
-			httputils.ReportError(w, err, "Failed to calculate summaries.", http.StatusInternalServerError)
-			return
-		}
-		for _, sum := range statuses {
-			if includeSummary(sum, &q) {
-				sumSlice = append(sumSlice, sum)
-			}
-		}
-	}
-
-	sort.Sort(SummarySlice(sumSlice))
-	w.Header().Set("Content-Type", "application/json")
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(sumSlice); err != nil {
-		sklog.Errorf("Failed to write or encode result: %s", err)
-	}
-}
-
-// includeSummary returns true if the given summary matches the query flags.
-func includeSummary(s *summary.TriageStatus, q *query.Search) bool {
-	return s != nil && ((s.Pos > 0 && q.IncludePositiveDigests) ||
-		(s.Neg > 0 && q.IncludeNegativeDigests) ||
-		(s.Untriaged > 0 && q.IncludeUntriagedDigests))
-}
-
-type SummarySlice []*summary.TriageStatus
-
-func (p SummarySlice) Len() int           { return len(p) }
-func (p SummarySlice) Less(i, j int) bool { return p[i].Untriaged > p[j].Untriaged }
-func (p SummarySlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
-// ListTestsHandler2 returns a summary of the digests seen for a given test.
-func (wh *Handlers) ListTestsHandler2(w http.ResponseWriter, r *http.Request) {
 	defer metrics2.FuncTimer().Stop()
 	if err := wh.limitForAnonUsers(r); err != nil {
 		httputils.ReportError(w, err, "Try again later", http.StatusInternalServerError)

@@ -285,7 +285,7 @@ type FlakyTracesDataResponse struct {
 	TotalTraces int `json:"num_traces"`
 }
 
-// ListTestsQuery encapsulates the inputs to ListTestsHandler2.
+// ListTestsQuery encapsulates the inputs to ListTestsHandler.
 type ListTestsQuery struct {
 	Corpus                           string
 	TraceValues                      paramtools.ParamSet

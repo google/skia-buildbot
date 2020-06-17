@@ -2184,7 +2184,7 @@ func TestGetFlakyTracesData_NoTracesAboveThreshold_ReturnsZeroTraces(t *testing.
 	assertJSONResponseWas(t, 200, expectedRV, w)
 }
 
-func TestListTestsHandler2_ValidQueries_Success(t *testing.T) {
+func TestListTestsHandler_ValidQueries_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	test := func(name, targetURL, expectedJSON string) {
@@ -2202,44 +2202,44 @@ func TestListTestsHandler2_ValidQueries_Success(t *testing.T) {
 			}
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, targetURL, nil)
-			wh.ListTestsHandler2(w, r)
+			wh.ListTestsHandler(w, r)
 			assertJSONResponseWas(t, http.StatusOK, expectedJSON, w)
 		})
 	}
 
-	test("all GM tests from all traces", "/json/list2?corpus=gm&include_ignored_traces=true",
+	test("all GM tests from all traces", "/json/list?corpus=gm&include_ignored_traces=true",
 		`[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":1},`+
 			`{"name":"test_two","positive_digests":2,"negative_digests":0,"untriaged_digests":2}]`)
 
-	test("all GM tests at head from all traces", "/json/list2?corpus=gm&at_head_only=true&include_ignored_traces=true",
+	test("all GM tests at head from all traces", "/json/list?corpus=gm&at_head_only=true&include_ignored_traces=true",
 		`[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":0},`+
 			`{"name":"test_two","positive_digests":2,"negative_digests":0,"untriaged_digests":1}]`)
 
-	test("all GM tests for device beta from all traces", "/json/list2?corpus=gm&trace_values=device%3Dbeta&include_ignored_traces=true",
+	test("all GM tests for device beta from all traces", "/json/list?corpus=gm&trace_values=device%3Dbeta&include_ignored_traces=true",
 		`[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":1},`+
 			`{"name":"test_two","positive_digests":1,"negative_digests":0,"untriaged_digests":0}]`)
 
-	test("all GM tests for device delta at head from all traces", "/json/list2?corpus=gm&trace_values=device%3Ddelta&at_head_only=true&include_ignored_traces=true",
+	test("all GM tests for device delta at head from all traces", "/json/list?corpus=gm&trace_values=device%3Ddelta&at_head_only=true&include_ignored_traces=true",
 		`[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":0},`+
 			`{"name":"test_two","positive_digests":0,"negative_digests":0,"untriaged_digests":1}]`)
 
 	// Reminder that device delta and test_two match ignore rules
-	test("all GM tests", "/json/list2?corpus=gm",
+	test("all GM tests", "/json/list?corpus=gm",
 		`[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":1}]`)
 
-	test("all GM tests at head", "/json/list2?corpus=gm&at_head_only=true",
+	test("all GM tests at head", "/json/list?corpus=gm&at_head_only=true",
 		`[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":0}]`)
 
-	test("all GM tests for device beta", "/json/list2?corpus=gm&trace_values=device%3Dbeta",
+	test("all GM tests for device beta", "/json/list?corpus=gm&trace_values=device%3Dbeta",
 		`[{"name":"test_one","positive_digests":1,"negative_digests":0,"untriaged_digests":1}]`)
 
-	test("all GM tests for device delta at head", "/json/list2?corpus=gm&trace_values=device%3Ddelta&at_head_only=true",
+	test("all GM tests for device delta at head", "/json/list?corpus=gm&trace_values=device%3Ddelta&at_head_only=true",
 		"[]")
 
-	test("non existent corpus", "/json/list2?corpus=notthere", "[]")
+	test("non existent corpus", "/json/list?corpus=notthere", "[]")
 }
 
-func TestListTestsHandler2_InvalidQueries_BadRequestError(t *testing.T) {
+func TestListTestsHandler_InvalidQueries_BadRequestError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	test := func(name, targetURL string) {
@@ -2257,16 +2257,16 @@ func TestListTestsHandler2_InvalidQueries_BadRequestError(t *testing.T) {
 			}
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, targetURL, nil)
-			wh.ListTestsHandler2(w, r)
+			wh.ListTestsHandler(w, r)
 			assert.Equal(t, http.StatusBadRequest, w.Code)
 		})
 	}
 
-	test("missing corpus", "/json/list2")
+	test("missing corpus", "/json/list")
 
-	test("empty corpus", "/json/list2?corpus=")
+	test("empty corpus", "/json/list?corpus=")
 
-	test("invalid trace values", "/json/list2?corpus=gm&trace_values=%zz")
+	test("invalid trace values", "/json/list?corpus=gm&trace_values=%zz")
 }
 
 // Because we are calling our handlers directly, the target URL doesn't matter. The target URL

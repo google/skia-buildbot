@@ -169,7 +169,7 @@ define('list-page-sk', class extends ElementSk {
     sendBeginTask(this);
     sendBeginTask(this);
 
-    let url = `/json/list2?corpus=${encodeURIComponent(this._currentCorpus)}`;
+    let url = `/json/list?corpus=${encodeURIComponent(this._currentCorpus)}`;
     if (!this._showAllDigests) {
       url += '&at_head_only=true';
     }

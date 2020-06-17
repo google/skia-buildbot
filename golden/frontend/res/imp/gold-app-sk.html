@@ -20,7 +20,6 @@
 <link rel="import" href="gold-menu-sk.html" />
 <link rel="import" href="gold-status-sk.html" />
 <link rel="import" href="help-page-sk.html" />
-<link rel="import" href="list-page-sk.html" />
 <link rel="import" href="search-page-sk.html" />
 
 <style>
@@ -53,9 +52,6 @@
       <gold-menu-sk navigation></gold-menu-sk>
       <div id="mainContentWrapper">
          <iron-pages id="pagesContainer" attr-for-selected="data-route" selected="{{route}}" selected-attribute="activepage">
-          <section data-route="list">
-            <list-page-sk></list-page-sk>
-          </section>
           <section data-route="search">
             <search-page-sk></search-page-sk>
           </section>
