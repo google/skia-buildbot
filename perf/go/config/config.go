@@ -2,9 +2,9 @@ package config
 
 import (
 	"encoding/json"
-	"flag"
 	"io"
 
+	"github.com/spf13/pflag"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
@@ -199,9 +199,9 @@ type GitRepoConfig struct {
 	CommitURL string `json:"commit_url"`
 }
 
-// Flags are the command-line flags. Most of the flags should eventually be
+// FrontendFlags are the command-line flags. Most of the flags should eventually be
 // folded into other parts of InstanceConfig.
-type Flags struct {
+type FrontendFlags struct {
 	AuthBypassList                 string
 	ConfigFilename                 string
 	CommitRangeURL                 string
@@ -228,7 +228,7 @@ type Flags struct {
 }
 
 // Register the flags in the given FlagSet.
-func (flags *Flags) Register(fs *flag.FlagSet) {
+func (flags *FrontendFlags) Register(fs *pflag.FlagSet) {
 	fs.StringVar(&flags.AuthBypassList, "auth_bypass_list", "", "Space separated list of email addresses allowed access. Usually just service account emails. Bypasses the domain checks.")
 	fs.StringVar(&flags.ConfigFilename, "config_filename", "./configs/nano.json", "The name of the config file to use.")
 	fs.StringVar(&flags.CommitRangeURL, "commit_range_url", "", "A URI Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.")
@@ -254,6 +254,18 @@ func (flags *Flags) Register(fs *flag.FlagSet) {
 	fs.BoolVar(&flags.Tracing, "tracing", false, "If true then send traces to stackdriver.")
 }
 
+type IngestFlags struct {
+	InstanceConfigFile string
+	PromPort           string
+	Local              bool
+}
+
+func (flags *IngestFlags) Register(fs *pflag.FlagSet) {
+	fs.StringVar(&flags.InstanceConfigFile, "config", "", "Instance config file. Must be supplied.")
+	fs.StringVar(&flags.PromPort, "prom_port", ":20000", "Metrics service address (e.g., ':20000')")
+	fs.BoolVar(&flags.Local, "local", false, "True if running locally and not in production.")
+}
+
 // InstanceConfig contains all the info needed by btts.BigTableTraceStore.
 //
 // May eventually move to a separate config file.
@@ -264,7 +276,6 @@ type InstanceConfig struct {
 	DataStoreConfig DataStoreConfig `json:"data_store_config"`
 	IngestionConfig IngestionConfig `json:"ingestion_config"`
 	GitRepoConfig   GitRepoConfig   `json:"git_repo_config"`
-	Flags           Flags           `json:"-"` // Flags aren't part of the config file format, don't serialize as JSON.
 }
 
 // InstanceConfigFromFile returns the deserialized JSON of an InstanceConfig found in filename.
@@ -285,9 +296,8 @@ var Config *InstanceConfig
 
 // Init loads the selected config by name and then populated the Flags from the
 // given flags.
-func Init(filename string, flags Flags) error {
+func Init(filename string) error {
 	cfg, err := InstanceConfigFromFile(filename)
-	cfg.Flags = flags
 	if err != nil {
 		return skerr.Wrap(err)
 	}
