@@ -1,11 +1,11 @@
 import './index';
 import '../gold-scaffold-sk';
 
+import { $$ } from 'common-sk/modules/dom';
 import { delay } from '../demo_util';
 import { ignoreRules_10, fakeNow } from './test_data';
-import { manyParams } from '../edit-ignore-rule-sk/demo_data';
+import { manyParams } from '../shared_demo_data';
 import { testOnlySetSettings } from '../settings';
-import { $$ } from 'common-sk/modules/dom';
 
 const fetchMock = require('fetch-mock');
 

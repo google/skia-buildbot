@@ -1,6 +1,6 @@
 import './index';
 import { $$ } from 'common-sk/modules/dom';
-import { manyParams } from './demo_data';
+import { manyParams } from '../shared_demo_data';
 
 Date.now = () => Date.parse('2020-02-01T00:00:00Z');
 
