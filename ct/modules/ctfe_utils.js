@@ -13,8 +13,6 @@ export function getFormattedTimestamp(timestamp) {
   return getTimestamp(timestamp).toLocaleString();
 }
 
-const two_digits = 10**2;
-const four_digits = 10**4;
 /**
  * Converts the timestamp used in CTFE DB into a Javascript timestamp.
  */
@@ -47,6 +45,29 @@ export function getCtDbTimestamp(d) {
                   + pad(d.getUTCDate(), 2) + pad(d.getUTCHours(), 2)
                   + pad(d.getUTCMinutes(), 2) + pad(d.getUTCSeconds(), 2);
   return timestamp;
+}
+
+/**
+ *
+ * @param {Array<string>} descriptions - Array of CL descriptions, combined
+ * into a description string if at least one is noneempty.
+ *
+ * @returns string - Combined description.
+ */
+export function combineClDescriptions(descriptions) {
+  const combinedDesc = descriptions.filter(Boolean).reduce(
+    (str, desc) => str += (str === '' ? desc : ` and ${desc}`), ''
+  );
+  return combinedDesc ? `Testing ${combinedDesc}` : '';
+}
+
+export function missingLiveSitesWithCustomWebpages(customWebpages, benchmarkArgs) {
+  if (customWebpages && !benchmarkArgs.includes('--use-live-sites')) {
+    errorMessage('Please specify --use-live-sites in benchmark arguments ' +
+                    'when using custom web pages.');
+    return true;
+  }
+  return false;
 }
 
 /**
