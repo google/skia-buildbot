@@ -12,7 +12,7 @@ testOnlySetSettings({
 });
 
 let ele = new BlamelistPanelSk();
-ele.commits = blamelist19.slice(0, 1);
+ele.commits = blamelist19.slice(0, 2);
 $$('#single_commit')!.appendChild(ele);
 
 ele = new BlamelistPanelSk();
@@ -20,7 +20,7 @@ ele.commits = clBlamelist;
 $$('#single_cl_commit')!.appendChild(ele);
 
 ele = new BlamelistPanelSk();
-ele.commits = blamelist19.slice(0, 3);
+ele.commits = blamelist19.slice(0, 4);
 $$('#some_commits')!.appendChild(ele);
 
 ele = new BlamelistPanelSk();
