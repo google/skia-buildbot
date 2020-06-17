@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f2f6f705_d44527ad",
+        "filename": "golden/pages/byTestList.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T18:07:49Z",
+      "side": 1,
+      "message": "Nit: Page filenames are currently all lowercase.\n\nI\u0027m happy to discuss alternatives and mass-rename all pages in a later CL if we decide to change the naming pattern, but it\u0027s probably best for all pages to be consistently named at any given time.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 15
+      },
+      "revId": "4cf1d702295ab7b05b4ec29ca40768e0ee65482f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
