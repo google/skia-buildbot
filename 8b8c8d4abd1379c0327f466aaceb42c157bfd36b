@@ -1,0 +1,303 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b79b8d94_975f2c0a",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T19:46:22Z",
+      "side": 1,
+      "message": "It\u0027ll probably be easier for the reader if we move this closer to fillInFrontEndTraceData().",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 0
+      },
+      "revId": "8b8c8d4abd1379c0327f466aaceb42c157bfd36b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06c86734_e9db8b77",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 831,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T19:46:22Z",
+      "side": 1,
+      "message": "Please move this closer to computeDigestIndices() (it\u0027s the only place where this is used).",
+      "range": {
+        "startLine": 831,
+        "startChar": 0,
+        "endLine": 831,
+        "endChar": 28
+      },
+      "revId": "8b8c8d4abd1379c0327f466aaceb42c157bfd36b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "067bf873_885a0b09",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 883,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T19:46:22Z",
+      "side": 1,
+      "message": "Nit: F",
+      "range": {
+        "startLine": 883,
+        "startChar": 7,
+        "endLine": 883,
+        "endChar": 8
+      },
+      "revId": "8b8c8d4abd1379c0327f466aaceb42c157bfd36b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d57a2594_f225ff00",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 904,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T19:46:22Z",
+      "side": 1,
+      "message": "Please add a comment on how to interpret this, e.g. \"higher values correspond to digests more recently seen than those with lower values\".",
+      "range": {
+        "startLine": 904,
+        "startChar": 0,
+        "endLine": 904,
+        "endChar": 18
+      },
+      "revId": "8b8c8d4abd1379c0327f466aaceb42c157bfd36b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8a0973b0_0837a6eb",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 907,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T19:46:22Z",
+      "side": 1,
+      "message": "Nit: \"distinct digests an index (i.e. an integer from 0 to 9).\"\n\n(Or whatever the range is.)",
+      "range": {
+        "startLine": 907,
+        "startChar": 66,
+        "endLine": 907,
+        "endChar": 82
+      },
+      "revId": "8b8c8d4abd1379c0327f466aaceb42c157bfd36b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e399a937_45156fab",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 909,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T19:46:22Z",
+      "side": 1,
+      "message": "This could probably use some unpacking, e.g.:\n\n- How many of each?\n- In which order are the indexes assigned?\n\nE.g. first N indexes go to most recent digests, remaining indexes go to most common digests.",
+      "range": {
+        "startLine": 908,
+        "startChar": 68,
+        "endLine": 909,
+        "endChar": 71
+      },
+      "revId": "8b8c8d4abd1379c0327f466aaceb42c157bfd36b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "52416352_b1d75d80",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 910,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T19:46:22Z",
+      "side": 1,
+      "message": "Nit: Instead of mentioning a color (which might change in the future) let\u0027s mention the exact index number used for these digests.",
+      "range": {
+        "startLine": 910,
+        "startChar": 48,
+        "endLine": 910,
+        "endChar": 91
+      },
+      "revId": "8b8c8d4abd1379c0327f466aaceb42c157bfd36b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "703eae8b_d7bf5652",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 923,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T19:46:22Z",
+      "side": 1,
+      "message": "Please add a comment at the beginning of the outer loop summarizing what this does, e.g.\n\n  // Populate digestStats, iterating over the digests from all traces from oldest to newest.",
+      "range": {
+        "startLine": 923,
+        "startChar": 0,
+        "endLine": 923,
+        "endChar": 28
+      },
+      "revId": "8b8c8d4abd1379c0327f466aaceb42c157bfd36b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6198be8_a97da7a6",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 927,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T19:46:22Z",
+      "side": 1,
+      "message": "How about:\n\n  const traceLength \u003d traceGroups.Traces[0].RawTrace.Digests\n  for idx :\u003d 0; idx \u003c traceLength; idx++ {\n    for _, trace :\u003d range traceGroup.Traces {\n      digest :\u003d trace.RawTrace.Digests[idx]\n      ...\n    }\n  }\n\nRationale: I find having the stopping criteria inside the for(...) easier to follow.",
+      "range": {
+        "startLine": 925,
+        "startChar": 0,
+        "endLine": 927,
+        "endChar": 4
+      },
+      "revId": "8b8c8d4abd1379c0327f466aaceb42c157bfd36b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2173ac4e_6767f48f",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 954,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T19:46:22Z",
+      "side": 1,
+      "message": "Please move this right before the loop in which it\u0027s populated.",
+      "range": {
+        "startLine": 953,
+        "startChar": 0,
+        "endLine": 954,
+        "endChar": 44
+      },
+      "revId": "8b8c8d4abd1379c0327f466aaceb42c157bfd36b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5887fb3b_e4b266ee",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 965,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T19:46:22Z",
+      "side": 1,
+      "message": "Might be more straightforward as follows:\n\n  if statsA.lastSeenIndex !\u003d statsB.lastSeenIndex {\n    return statsA.lastSeenIndex \u003e statsB.lastSeenIndex;\n  }\n  if statsA.count !\u003d statsB.count {\n    return statsA.count \u003e statsB.count;\n  }\n  return statsA.digest \u003c statsB.digest;\n\nThis presents the reader with the most important sort criterium first, followed by the subsequent tie breaking criteria.",
+      "range": {
+        "startLine": 959,
+        "startChar": 0,
+        "endLine": 965,
+        "endChar": 52
+      },
+      "revId": "8b8c8d4abd1379c0327f466aaceb42c157bfd36b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5da55a2_6fbeac9f",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 994,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T19:46:22Z",
+      "side": 1,
+      "message": "Same suggestion as above.",
+      "range": {
+        "startLine": 986,
+        "startChar": 0,
+        "endLine": 994,
+        "endChar": 0
+      },
+      "revId": "8b8c8d4abd1379c0327f466aaceb42c157bfd36b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c15597b7_11c7f94c",
+        "filename": "golden/go/search/search_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 1884,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T19:46:22Z",
+      "side": 1,
+      "message": "It\u0027s not clear what \"this\" means. Maybe replace with \"digest at head\"?",
+      "range": {
+        "startLine": 1884,
+        "startChar": 23,
+        "endLine": 1884,
+        "endChar": 27
+      },
+      "revId": "8b8c8d4abd1379c0327f466aaceb42c157bfd36b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
