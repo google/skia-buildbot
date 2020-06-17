@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c3820e12_e4f3526d",
+        "filename": "golden/modules/list-page-sk/list-page-sk-demo.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T18:00:50Z",
+      "side": 1,
+      "message": "Nit: Extra spaces.",
+      "range": {
+        "startLine": 11,
+        "startChar": 34,
+        "endLine": 11,
+        "endChar": 36
+      },
+      "revId": "6532d45b1947cfeb3a2249515415ef51869033ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c223e498_3d300941",
+        "filename": "golden/modules/list-page-sk/list-page-sk.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T18:00:50Z",
+      "side": 1,
+      "message": "Nit: Please move these right before each fetch() call.",
+      "range": {
+        "startLine": 169,
+        "startChar": 0,
+        "endLine": 169,
+        "endChar": 24
+      },
+      "revId": "6532d45b1947cfeb3a2249515415ef51869033ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05f9f405_d5796eb6",
+        "filename": "golden/modules/list-page-sk/list-page-sk_puppeteer_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T18:00:50Z",
+      "side": 1,
+      "message": "Please add browser back/forward button tests that assert that parameters all_digests, disregard_ignores, corpus and query are correctly handled.",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 0
+      },
+      "revId": "6532d45b1947cfeb3a2249515415ef51869033ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "094d556a_30cdfef8",
+        "filename": "golden/modules/list-page-sk/list-page-sk_test.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T18:00:50Z",
+      "side": 1,
+      "message": "Can we make these assertions against the HTML presented to the user (as opposed to the component\u0027s API)?\n\nFor example, assert that $$(\u0027corpus-selector-sk .selected\u0027, listPageSk).innerText equals \u0027gm\u0027 instead of the current assertion against corpusSelector.selectedCorpus.\n\nSame for the other tests below.\n\nRationale: HTML layout tests should probably make assertions against what\u0027s actually visible to the user. This will catch bugs such as when a component has the right internal state but fails to correctly render the template in a way that reflects its state.",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 0
+      },
+      "revId": "6532d45b1947cfeb3a2249515415ef51869033ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a79a1d4_48dc8eef",
+        "filename": "golden/modules/list-page-sk/list-page-sk_test.js",
+        "patchSetId": 7
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-17T18:00:50Z",
+      "side": 1,
+      "message": "Nit: Please extract the query string into a constant and build the urls as \u0027/search\u0027 + queryString.\n\nThis will make it easier for the reader to see that the only difference between these URLs is \"/search\" vs. \"/cluster\".",
+      "range": {
+        "startLine": 72,
+        "startChar": 10,
+        "endLine": 76,
+        "endChar": 117
+      },
+      "revId": "6532d45b1947cfeb3a2249515415ef51869033ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
