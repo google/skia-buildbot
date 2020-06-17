@@ -24,7 +24,7 @@ describe('list-page-sk', () => {
     });
 
     // These will get called on page load.
-    fetchMock.get('/json/list2?corpus=gm&at_head_only=true', sampleByTestList);
+    fetchMock.get('/json/list?corpus=gm&at_head_only=true', sampleByTestList);
     // We only need a few params to make sure the edit-ignore-rule-dialog works properly and it
     // does not matter really what they are, so we use a small subset of actual params.
     const someParams = {
@@ -91,7 +91,7 @@ describe('list-page-sk', () => {
 
   describe('RPC calls', () => {
     it('has a checkbox to toggle use of ignore rules', async () => {
-      fetchMock.get('/json/list2?corpus=gm&at_head_only=true&include_ignored_traces=true', sampleByTestList);
+      fetchMock.get('/json/list?corpus=gm&at_head_only=true&include_ignored_traces=true', sampleByTestList);
 
       const checkbox = $$('checkbox-sk.ignore_rules input', listPageSk);
       const event = eventPromise('end-task');
@@ -101,7 +101,7 @@ describe('list-page-sk', () => {
     });
 
     it('has a checkbox to toggle measuring at head', async () => {
-      fetchMock.get('/json/list2?corpus=gm', sampleByTestList);
+      fetchMock.get('/json/list?corpus=gm', sampleByTestList);
 
       const checkbox = $$('checkbox-sk.head_only input', listPageSk);
       const event = eventPromise('end-task');
@@ -111,7 +111,7 @@ describe('list-page-sk', () => {
     });
 
     it('changes the corpus based on an event from corpus-selector-sk', async () => {
-      fetchMock.get('/json/list2?corpus=corpus%20with%20spaces&at_head_only=true', sampleByTestList);
+      fetchMock.get('/json/list?corpus=corpus%20with%20spaces&at_head_only=true', sampleByTestList);
 
       const corpusSelector = $$('corpus-selector-sk', listPageSk);
       const event = eventPromise('end-task');
@@ -129,7 +129,7 @@ describe('list-page-sk', () => {
 
     it('changes the search params based on an event from query-dialog-sk', async () => {
       fetchMock.get(
-        '/json/list2?corpus=gm&at_head_only=true&trace_values=alpha_type%3DOpaque%26arch%3Darm64',
+        '/json/list?corpus=gm&at_head_only=true&trace_values=alpha_type%3DOpaque%26arch%3Darm64',
         sampleByTestList,
       );
 
