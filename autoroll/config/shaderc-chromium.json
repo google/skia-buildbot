@@ -30,7 +30,7 @@
     "radial-bots+chrome-roll@google.com"
   ],
   "noCheckoutDEPSRepoManager": {
-    "childBranch": "master",
+    "childBranch": "main",
     "childPath": "src/third_party/shaderc/src",
     "childRepo": "https://chromium.googlesource.com/external/github.com/google/shaderc",
     "childRevLinkTmpl": "https://chromium.googlesource.com/external/github.com/google/shaderc/+show/%s",
