@@ -16,6 +16,24 @@
       "revId": "ddce364dd0e8afcb4d834c154a718a4b600e3497",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3670e649_32e73b5d",
+        "filename": "go.mod",
+        "patchSetId": 7
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-06-17T18:33:44Z",
+      "side": 0,
+      "message": "I thought that was weird. Then again since cobra depends on pflag I was surprised there were any changes in this file.",
+      "parentUuid": "f337d3ca_5e3ef9fd",
+      "revId": "ddce364dd0e8afcb4d834c154a718a4b600e3497",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
