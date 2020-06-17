@@ -29,7 +29,7 @@ On https://thanos-query.skia.org try doing the search:
 
     rate(timer_func_timer_ns_count{appgroup=~"gold.+"}[1m])
 
-You can even search by package, e.g. all Firestore related functions:
+You can even search by package, e.g. finding QPS of all Firestore related functions:
 
     rate(timer_func_timer_ns_count{package=~".+fs_.+"}[1m])
 
@@ -182,3 +182,20 @@ This might mean we are doing too much and running out of quota to talk to the CR
 out of quota messages will be in the error messages or the bodies of the failing requests.
 
 Key metrics: liveness_gold_comment_monitoring_s, gold_num_recent_open_cls
+
+rate(firestore_ops_count{app=~"gold.+"}[10m]) > 100
+
+HighFirestoreUsageBurst or HighFirestoreUsageSustainedGold
+----------------------------------------------------------
+This type of alert means that Gold is probably using more Firestore quota than expected. In an
+extreme case, this can exhaust our project's entire Firestore quota (it's shared, unfortunately)
+causing wider outages.
+
+In addition to the advice of identifying QPS above, it can be helpful to identify which collections
+are receiving a lot of reads/writes. For this, a query like:
+
+```
+    rate(firestore_ops_count{app=~"gold.+"}[10m]) > 100
+```
+
+can help identify those and possibly narrow in on the cause.
