@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8e1d28ca_10fdb8f7",
+        "filename": "autoroll/go/repo_manager/parent/git_checkout_github.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-06-18T11:24:22Z",
+      "side": 1,
+      "message": "Nit: let\u0027s show the expected format here, so someone who runs into this error doesn\u0027t have to go find the code.",
+      "range": {
+        "startLine": 41,
+        "startChar": 55,
+        "endLine": 41,
+        "endChar": 61
+      },
+      "revId": "79b023d028dda8fc61b54a56201664e2d699a94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f92050a_38dc65a9",
+        "filename": "autoroll/go/repo_manager/parent/git_checkout_github.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-06-18T11:24:22Z",
+      "side": 1,
+      "message": "To be clear, it doesn\u0027t matter because we\u0027re doing \"git push -f\" below, which will override this hash anyway?  On a  related note, no-checkout rollers which use Gerrit also need a base commit.  Maybe in the future we could pass that around and not need an extra request here.",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 80
+      },
+      "revId": "79b023d028dda8fc61b54a56201664e2d699a94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "375711a7_2d072165",
+        "filename": "autoroll/go/repo_manager/parent/git_checkout_github.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-06-18T11:24:22Z",
+      "side": 1,
+      "message": "This should be upstreamBranch",
+      "range": {
+        "startLine": 58,
+        "startChar": 80,
+        "endLine": 58,
+        "endChar": 97
+      },
+      "revId": "79b023d028dda8fc61b54a56201664e2d699a94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
