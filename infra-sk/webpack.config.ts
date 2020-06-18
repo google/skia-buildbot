@@ -4,7 +4,12 @@ import commonBuilder from '../infra-sk/pulito/webpack.common';
 
 const configFactory: webpack.ConfigurationFactory = (_, args) => {
   const config = commonBuilder(__dirname, args.mode);
-  (config.entry as webpack.Entry)['tests'] = glob.sync('./modules/**/*_test.js');
+
+  config.output!.publicPath = '/dist/';
+
+  (config.entry as webpack.Entry)['tests'] = glob.sync(
+    './modules/**/*_test.js'
+  );
   return config;
 };
 
