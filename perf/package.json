@@ -10,12 +10,14 @@
   "author": "",
   "license": "BSD",
   "dependencies": {
+    "@types/fetch-mock": "^7.3.2",
     "common-sk": "^3.4.0",
     "d3-array": "^2.4.0",
     "d3-scale": "^3.2.1",
     "dialog-polyfill": "^0.5.1",
     "elements-sk": "3.3.3",
     "elix": "^9.0.3",
+    "fetch-mock": "^9.10.1",
     "lit-html": "^1.2.1",
     "resize-observer-polyfill": "^1.5.1"
   },
