@@ -22,6 +22,30 @@
       "revId": "e69528a85d39e33a73b01db0129c4900256b3101",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14fa03a5_f918e209",
+        "filename": "go/github/github.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-18T13:06:02Z",
+      "side": 1,
+      "message": "It was a pointer because then I could just put the sha directly from GetReference to CreateReference. But probably better not to have a pointer. Done.",
+      "parentUuid": "4ec77335_87b6543b",
+      "range": {
+        "startLine": 160,
+        "startChar": 66,
+        "endLine": 160,
+        "endChar": 77
+      },
+      "revId": "e69528a85d39e33a73b01db0129c4900256b3101",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
