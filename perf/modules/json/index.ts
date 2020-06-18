@@ -25,6 +25,15 @@ export interface CommitDetailsRequest {
 	traceid: string;
 }
 
+export interface CommitDetail {
+	CommitID: CommitID;
+	author: string;
+	message: string;
+	url: string;
+	hash: string;
+	ts: number;
+}
+
 export type ParamSet = { [key: string]: string[] };
 
 export type Status = "" | "positive" | "negative" | "untriaged";
