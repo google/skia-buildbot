@@ -2,13 +2,16 @@ package github
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 
 	"github.com/google/go-github/v29/github"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
+
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -56,6 +59,44 @@ func TestGetPullRequest(t *testing.T) {
 	pr, getPullErr := githubClient.GetPullRequest(1234)
 	require.NoError(t, getPullErr)
 	require.Equal(t, CLOSED_STATE, *pr.State)
+}
+
+func TestGetReference(t *testing.T) {
+	unittest.SmallTest(t)
+	testSHA := "xyz"
+	testRef := "test-branch"
+	testRepoOwner := "batman"
+	testRepoName := "gotham"
+	respBody := []byte(testutils.MarshalJSON(t, &github.Reference{Object: &github.GitObject{SHA: &testSHA}}))
+	r := mux.NewRouter()
+	md := mockhttpclient.MockGetDialogue(respBody)
+	r.Schemes("https").Host("api.github.com").Methods("GET").Path(fmt.Sprintf("/repos/%s/%s/git/refs/%s", testRepoOwner, testRepoName, url.QueryEscape(testRef))).Handler(md)
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), testRepoOwner, testRepoName, httpClient)
+	require.NoError(t, err)
+	ref, err := githubClient.GetReference(testRepoOwner, testRepoName, testRef)
+	require.NoError(t, err)
+	require.Equal(t, testSHA, *ref.Object.SHA)
+}
+
+func TestCreateReference(t *testing.T) {
+	unittest.SmallTest(t)
+	testSHA := "xyz"
+	testRef := "test-branch"
+	testRepoOwner := "batman"
+	testRepoName := "gotham"
+	reqBody := []byte(fmt.Sprintf(`{"ref":"refs/%s","sha":"%s"}
+`, testRef, testSHA))
+	r := mux.NewRouter()
+	md := mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, nil, http.StatusCreated)
+	r.Schemes("https").Host("api.github.com").Methods("POST").Path(fmt.Sprintf("/repos/%s/%s/git/refs", testRepoOwner, testRepoName)).Handler(md)
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), testRepoOwner, testRepoName, httpClient)
+	require.NoError(t, err)
+	err = githubClient.CreateReference(testRepoOwner, testRepoName, testRef, testSHA)
+	require.NoError(t, err)
 }
 
 func TestCreatePullRequest(t *testing.T) {
