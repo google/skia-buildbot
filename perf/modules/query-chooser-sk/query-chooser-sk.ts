@@ -14,8 +14,9 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { toParamSet } from 'common-sk/modules/query';
+import { ParamSet, toParamSet } from 'common-sk/modules/query';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { QuerySkQueryChangeEventDetail } from '../../../infra-sk/modules/query-sk/query-sk';
 
 import '../../../infra-sk/modules/paramset-sk';
 import '../../../infra-sk/modules/query-sk';
@@ -24,22 +25,43 @@ import '../query-count-sk';
 
 import 'elements-sk/styles/buttons';
 
-const template = (ele) => html`
-  <div class=row>
-    <button @click=${ele._editClick}>Edit</button>
-    <paramset-sk id=summary .paramsets=${[toParamSet(ele.current_query)]}></paramset-sk>
-  </div>
-  <div id="dialog">
-    <query-sk current_query=${ele.current_query} .paramset=${ele.paramset} .key_order=${ele.key_order} @query-change=${ele._queryChange}></query-sk>
-    <div class=matches>Matches: <query-count-sk url=${ele.count_url} current_query=${ele.current_query}></query-count-sk></div>
-    <button @click=${ele._closeClick}>Close</button>
-  </div>
+export class QueryChooserSk extends ElementSk {
+  private static template = (ele: QueryChooserSk) => html`
+    <div class="row">
+      <button @click=${ele._editClick}>Edit</button>
+      <paramset-sk
+        id="summary"
+        .paramsets=${[toParamSet(ele.current_query)]}
+      ></paramset-sk>
+    </div>
+    <div id="dialog">
+      <query-sk
+        current_query=${ele.current_query}
+        .paramset=${ele.paramset}
+        .key_order=${ele.key_order}
+        @query-change=${ele._queryChange}
+      ></query-sk>
+      <div class="matches"
+        >Matches:
+        <query-count-sk
+          url=${ele.count_url}
+          current_query=${ele.current_query}
+        ></query-count-sk
+      ></div>
+      <button @click=${ele._closeClick}>Close</button>
+    </div>
   `;
 
-define('query-chooser-sk', class extends ElementSk {
+  private _dialog: HTMLDivElement | null;
+  private _paramset: ParamSet;
+  private _key_order: string[];
+
   constructor() {
-    super(template);
+    super(QueryChooserSk.template);
     this.current_query = '';
+    this._dialog = null;
+    this._paramset = {};
+    this._key_order = [];
   }
 
   connectedCallback() {
@@ -53,20 +75,22 @@ define('query-chooser-sk', class extends ElementSk {
   }
 
   _editClick() {
-    this._dialog.classList.add('display');
+    this._dialog!.classList.add('display');
   }
 
   _closeClick() {
-    this._dialog.classList.remove('display');
+    this._dialog!.classList.remove('display');
   }
 
-  _queryChange(e) {
+  _queryChange(e: CustomEvent<QuerySkQueryChangeEventDetail>) {
     this.current_query = e.detail.q;
     this._render();
   }
 
   /** @prop paramset {string} The paramset to make selections from. */
-  get paramset() { return this._paramset; }
+  get paramset() {
+    return this._paramset;
+  }
 
   set paramset(val) {
     this._paramset = val;
@@ -76,7 +100,9 @@ define('query-chooser-sk', class extends ElementSk {
   /** @prop key_order {string} An array of strings, passed down to
    * query-sk.key_order.
    */
-  get key_order() { return this._key_order; }
+  get key_order() {
+    return this._key_order;
+  }
 
   set key_order(val) {
     this._key_order = val;
@@ -88,16 +114,26 @@ define('query-chooser-sk', class extends ElementSk {
   }
 
   /** @prop current_query {string} Mirrors the current_query attribute.  */
-  get current_query() { return this.getAttribute('current_query'); }
+  get current_query() {
+    return this.getAttribute('current_query') || '';
+  }
 
-  set current_query(val) { this.setAttribute('current_query', val); }
+  set current_query(val: string) {
+    this.setAttribute('current_query', val);
+  }
 
   /** @prop count_url {string} Mirrors the count_url attribute. */
-  get count_url() { return this.getAttribute('count_url'); }
+  get count_url() {
+    return this.getAttribute('count_url') || '';
+  }
 
-  set count_url(val) { this.setAttribute('count_url', val); }
+  set count_url(val: string) {
+    this.setAttribute('count_url', val);
+  }
 
   attributeChangedCallback() {
     this._render();
   }
-});
+}
+
+define('query-chooser-sk', QueryChooserSk);

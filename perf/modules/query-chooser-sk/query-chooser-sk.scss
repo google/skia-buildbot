@@ -37,4 +37,19 @@ query-chooser-sk {
   #edit {
     display: inline-block;
   }
+
+  button {
+    text-transform: none;
+    padding: 4px 8px;
+    min-width: auto;
+    height: auto;
+  }
+}
+
+@import '~elements-sk/themes/themes.css';
+
+.body-sk query-chooser-sk {
+  #dialog {
+    border: solid var(--on-surface) 1px;
+  }
 }
