@@ -1,0 +1,62 @@
+@import '../colors.css';
+
+chromium-perf-sk {
+  select-sk {
+    * {
+    padding: 0;
+    }
+    [selected] {
+      background-color: var(--primary-variant);
+    }
+  }
+
+  paper-input {
+    width: 20em;
+  }
+
+  .triggering-spinner {
+    margin: auto;
+    vertical-align: middle;
+  }
+
+  .iron-selected {
+    background-color: #D6ECF2;
+  }
+
+  .long-field {
+    width: 40em;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .short-field {
+    width: 5em;
+  }
+
+  .smaller-font {
+    font-size: 80%;
+  }
+
+  iron-selector.long-field > div {
+    width: 40em;
+  }
+
+  iron-selector.medium-field > div {
+    width: 20em;
+  }
+
+  iron-selector.short-field > div {
+    width: 5em;
+  }
+
+  table.options>tr>td {
+    padding: 1em 2em;
+  }
+
+  td.center {
+    text-align:center;
+    padding-top:2em;
+  }
+}
