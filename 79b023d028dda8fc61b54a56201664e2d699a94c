@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "418ff826_efe9154b",
+        "filename": "autoroll/go/repo_manager/parent/git_checkout_github.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-06-18T13:26:55Z",
+      "side": 1,
+      "message": "Sorry, my mistake, I thought we were presenting the c.ForkRepoURL here, not the regex.",
+      "parentUuid": "1a5400e8_8985c054",
+      "range": {
+        "startLine": 41,
+        "startChar": 55,
+        "endLine": 41,
+        "endChar": 61
+      },
+      "revId": "79b023d028dda8fc61b54a56201664e2d699a94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8f92050a_38dc65a9",
         "filename": "autoroll/go/repo_manager/parent/git_checkout_github.go",
         "patchSetId": 5
@@ -131,6 +155,30 @@
       "side": 1,
       "message": "So upstreamBranch is the branch on the parent (flutter/engine.git). This is trying to get reference of the fork. Always getting it from master seems safest because master should always exist. Also as mentioned above, the SHA is not really important, it just needs to exist.",
       "parentUuid": "375711a7_2d072165",
+      "range": {
+        "startLine": 58,
+        "startChar": 80,
+        "endLine": 58,
+        "endChar": 97
+      },
+      "revId": "79b023d028dda8fc61b54a56201664e2d699a94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d56bf8c3_27d5c248",
+        "filename": "autoroll/go/repo_manager/parent/git_checkout_github.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-06-18T13:26:55Z",
+      "side": 1,
+      "message": "Maybe add a comment to that effect?  Without that context, this looks like we\u0027ve accidentally hard-coded master rather than respecting the configured branch.",
+      "parentUuid": "68a668de_d08fcca3",
       "range": {
         "startLine": 58,
         "startChar": 80,
