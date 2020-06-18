@@ -1,6 +1,5 @@
 import './index';
-import '../@bundled-es-modules/fetch-mock'; // @bundled-es-modules/fetch-mock doesn't have typings.
-import { fetchMock } from '@bundled-es-modules/fetch-mock';
+import fetchMock from 'fetch-mock';
 import { JSONSourceSk } from './json-source-sk';
 import 'elements-sk/error-toast-sk';
 
