@@ -83,9 +83,6 @@ var (
 	// MAX_ITER_TIME and IterDocs to prevent running into server timeouts
 	// when iterating a large number of entries.
 	errIterTooLong = errors.New("iterated too long")
-
-	opTypes  = []string{opTypeRead, opTypeWrite}
-	opCounts = []string{opCountRows, opCountQueries}
 )
 
 // FixTimestamp adjusts the given timestamp for storage in Firestore. Firestore
@@ -135,10 +132,16 @@ type Client struct {
 	// Counters is a nested map of opType (ie. "read" or "write"), opCount
 	// ("rows" or "queries") and document/collection path to a counter which
 	// records the number of operations.
-	counters     map[string]map[string]map[string]metrics2.Counter
+	counters     map[counterKey]metrics2.Counter
 	countersMtx  sync.Mutex
 	errorMetrics map[string]metrics2.Counter
 	metricTags   map[string]string
+}
+
+type counterKey struct {
+	Operation string
+	Count     string
+	Path      string
 }
 
 // NewClient returns a Cloud Firestore client which enforces separation of app/
@@ -170,20 +173,13 @@ func NewClient(ctx context.Context, project, app, instance string, ts oauth2.Tok
 			"error": code.String(),
 		})
 	}
-	counters := map[string]map[string]map[string]metrics2.Counter{}
-	for _, opType := range opTypes {
-		subMap := map[string]map[string]metrics2.Counter{}
-		for _, opCount := range opCounts {
-			subMap[opCount] = map[string]metrics2.Counter{}
-		}
-		counters[opType] = subMap
-	}
+
 	c := &Client{
 		Client:         client,
 		ParentDoc:      client.Collection(app).Doc(instance),
 		activeOps:      map[int64]string{},
 		activeOpsCount: metrics2.GetInt64Metric("firestore_ops_active", metricTags),
-		counters:       counters,
+		counters:       map[counterKey]metrics2.Counter{},
 		errorMetrics:   errorMetrics,
 		metricTags:     metricTags,
 	}
@@ -275,14 +271,19 @@ func (c *Client) recordOp(opName, detail string) func() {
 // getCounterHelper returns a read/write row or query metric for the given path.
 // The caller should hold c.countersMtx.
 func (c *Client) getCounterHelper(op, count, path string) metrics2.Counter {
-	counter, ok := c.counters[op][count][path]
+	key := counterKey{
+		Operation: op,
+		Count:     count,
+		Path:      path,
+	}
+	counter, ok := c.counters[key]
 	if !ok {
 		counter = metrics2.GetCounter("firestore_ops_count", c.metricTags, map[string]string{
 			"op":    op,
 			"count": count,
 			"path":  path,
 		})
-		c.counters[op][count][path] = counter
+		c.counters[key] = counter
 	}
 	return counter
 }
