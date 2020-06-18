@@ -1,0 +1,327 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a70005f_2ddea109",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-18T21:06:54Z",
+      "side": 1,
+      "message": "Nit: Only one h1 per page.\n\nI recommend using \u003ch2\u003e for sections (e.g. \"Pages on Gold\") and \u003ch3\u003e for subsections (e.g. \"Search\").\n\nOptionally add a single \u003ch1\u003e at the very top, e.g. \u003ch1\u003eHelp\u003c/h1\u003e, or \u003ch1\u003eUser Manual\u003c/h1\u003e, etc.",
+      "range": {
+        "startLine": 15,
+        "startChar": 3,
+        "endLine": 15,
+        "endChar": 5
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "edd84b58_4985baff",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-18T21:06:54Z",
+      "side": 1,
+      "message": "It seems like \u003cdfn\u003e would be the perfect tag for this: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dfn.\n\nIf you don\u0027t like \u003cdfn\u003e, then I\u0027d recommend using \u003cstrong\u003e instead of \u003cb\u003e as it\u0027s probably more semantically appropriate: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/strong#Usage_notes.",
+      "range": {
+        "startLine": 18,
+        "startChar": 7,
+        "endLine": 18,
+        "endChar": 8
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6602098d_0222a536",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-18T21:06:54Z",
+      "side": 1,
+      "message": "\"hash digest\"?\n\n(This makes it clear where the term \"digest\" comes from.)",
+      "range": {
+        "startLine": 19,
+        "startChar": 73,
+        "endLine": 19,
+        "endChar": 77
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97cca904_5748242e",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-18T21:06:54Z",
+      "side": 1,
+      "message": "I find \"strings as\" a bit confusing. Maybe just \"key/value pairs\" will suffice here?",
+      "range": {
+        "startLine": 28,
+        "startChar": 69,
+        "endLine": 28,
+        "endChar": 95
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e4fe5e4_492bc10e",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-18T21:06:54Z",
+      "side": 1,
+      "message": "(sometimes referred to as \u003cb\u003eparams\u003c/b\u003e)",
+      "range": {
+        "startLine": 29,
+        "startChar": 15,
+        "endLine": 29,
+        "endChar": 31
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e03311e_45390c33",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-18T21:06:54Z",
+      "side": 1,
+      "message": "any new params produced by a test",
+      "range": {
+        "startLine": 31,
+        "startChar": 16,
+        "endLine": 31,
+        "endChar": 26
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e7e42f5_2be3cee3",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-18T21:06:54Z",
+      "side": 1,
+      "message": "This probably warrants its own \u003ch3\u003eCorpus\u003c/h3\u003e subsection. I would probably start with a conceptual overview (e.g. explain how corpora can be thought of as separate, lightweight Gold instances) followed by the technical specifics (\"source_type\", etc.)",
+      "range": {
+        "startLine": 31,
+        "startChar": 76,
+        "endLine": 33,
+        "endChar": 58
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ffb010a6_9b1ba6cd",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-18T21:06:54Z",
+      "side": 1,
+      "message": "Nit: Gold",
+      "range": {
+        "startLine": 38,
+        "startChar": 30,
+        "endLine": 38,
+        "endChar": 34
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "612c624e_af7dc67f",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-18T21:06:54Z",
+      "side": 1,
+      "message": "I recommend putting this under a \u003ch3\u003eTraces\u003ch3\u003e subsection.\n\nI\u0027d also recommend starting from the fact that a test can produce multiple output values with the same \"name\" but with different values for the other keys, e.g.\n\n  {name: \"DrawTriangle\", os: \"Linux\"}, {name: \"DrawTriangle, os: \"Windows\"}, ...\n\nAnd that we refer to each combination of key/value pairs as a trace.",
+      "range": {
+        "startLine": 39,
+        "startChar": 12,
+        "endLine": 39,
+        "endChar": 71
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4ca1deb9_61c3f4de",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-18T21:06:54Z",
+      "side": 1,
+      "message": "the settings for a particular Gold instance.\n\n(It\u0027s not clear what \"individual\" means.)",
+      "range": {
+        "startLine": 46,
+        "startChar": 58,
+        "endLine": 46,
+        "endChar": 77
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71972dfd_487a4e65",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-18T21:06:54Z",
+      "side": 1,
+      "message": "Consider linking to its respective subsection.",
+      "range": {
+        "startLine": 56,
+        "startChar": 8,
+        "endLine": 56,
+        "endChar": 19
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2be63a7e_02fe662c",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-18T21:06:54Z",
+      "side": 1,
+      "message": "that is to say, traces such that the most recent output image is untriaged. For example, when a test is changed to produce a previously unseen image, it will show up on this page.",
+      "range": {
+        "startLine": 65,
+        "startChar": 14,
+        "endLine": 65,
+        "endChar": 88
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d16cdc77_3fe375d9",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-18T21:06:54Z",
+      "side": 1,
+      "message": "While correct, this is probably a bit too abstract for a new user. I would probably accompany this with screenshots, but that can be done in a separate CL.",
+      "range": {
+        "startLine": 66,
+        "startChar": 15,
+        "endLine": 66,
+        "endChar": 41
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd4f7c29_1e7dc22a",
+        "filename": "golden/pages/help.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-18T21:06:54Z",
+      "side": 1,
+      "message": "\u003e Found empty line(s) at the end of the file\n\nPlease fix.",
+      "parentUuid": "e8f98a4e_8aaf1cc2",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 0
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
