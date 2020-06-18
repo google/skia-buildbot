@@ -121,6 +121,9 @@ npx mocha -r ts-node/register ./**/*_test.ts
 
 # The ./**/*_puppeteer_test.ts glob patterns below exclude the Karma tests.
 
+cd /tests/infra-sk
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+
 cd /tests/golden
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
