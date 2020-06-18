@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7095370a_51eab409",
+        "filename": "go/benchmarks/runtime_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-18T15:06:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e3e26256_76108358",
+      "range": {
+        "startLine": 19,
+        "startChar": 2,
+        "endLine": 21,
+        "endChar": 3
+      },
+      "revId": "299b3d56a65a5c7e935fbb8e71c3408c501fe28e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bc7aa504_ea973d4e",
         "filename": "go/metrics2/metrics.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "299b3d56a65a5c7e935fbb8e71c3408c501fe28e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c3b19fd_60eea3f8",
+        "filename": "go/metrics2/metrics.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-18T15:06:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bc7aa504_ea973d4e",
+      "range": {
+        "startLine": 101,
+        "startChar": 4,
+        "endLine": 101,
+        "endChar": 44
+      },
+      "revId": "299b3d56a65a5c7e935fbb8e71c3408c501fe28e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
