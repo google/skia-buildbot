@@ -58,9 +58,9 @@ func TestGithubRepoManagerConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
 	cfg := githubRmCfg(t)
-	cfg.ChildRepoURL = "https://github.com/fake/child"
-	cfg.ForkRepoURL = "https://github.com/fake/fork"
-	cfg.ParentRepo = "https://github.com/fake/parent"
+	cfg.ChildRepoURL = "git@github.com:fake/child"
+	cfg.ForkRepoURL = "git@github.com:fake/fork"
+	cfg.ParentRepo = "git@github.com:fake/parent"
 	require.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and
