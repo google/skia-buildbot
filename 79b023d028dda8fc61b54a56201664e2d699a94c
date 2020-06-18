@@ -188,6 +188,30 @@
       "revId": "79b023d028dda8fc61b54a56201664e2d699a94c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "799a56f4_cce0b611",
+        "filename": "autoroll/go/repo_manager/parent/git_checkout_github.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-18T14:28:21Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "d56bf8c3_27d5c248",
+      "range": {
+        "startLine": 58,
+        "startChar": 80,
+        "endLine": 58,
+        "endChar": 97
+      },
+      "revId": "79b023d028dda8fc61b54a56201664e2d699a94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
