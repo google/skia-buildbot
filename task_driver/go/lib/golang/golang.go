@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.skia.org/infra/go/exec"
 	skexec "go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/test2json"
 	"go.skia.org/infra/task_driver/go/lib/dirs"
@@ -104,56 +105,90 @@ func InstallCommonDeps(ctx context.Context, workdir string) error {
 	return nil
 }
 
+// GetEnv returns the formatted output of "go env".
+func GetEnv(ctx context.Context) (map[string]string, error) {
+	output, err := exec.RunCwd(ctx, ".", "go", "env")
+	if err != nil {
+		return nil, err
+	}
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	env := make(map[string]string, len(lines))
+	for _, line := range lines {
+		split := strings.SplitN(line, "=", 2)
+		if len(split) != 2 {
+			continue
+		}
+		key := split[0]
+		// "go env" output quotes the values.
+		value := strings.TrimSuffix(strings.TrimPrefix(split[1], "\""), "\"")
+		env[key] = value
+	}
+	return env, nil
+}
+
 // Test runs "go test", parses the output, and creates sub-steps for individual
 // tests.
 func Test(ctx context.Context, cwd string, args ...string) error {
-	return log_parser.Run(ctx, cwd, append([]string{"go", "test", "--json"}, args...), bufio.ScanLines, func(sm *log_parser.StepManager, line string) error {
-		// Decode an event.
-		event, err := test2json.ParseEvent(line)
-		if err != nil {
-			return err
-		}
+	cmd := append([]string{"go", "test", "--json"}, args...)
+	return log_parser.Run(ctx, cwd, cmd, bufio.ScanLines, parseTestSteps)
+}
 
-		// Find or create the step associated with this event.
-		step := sm.FindStep(event.Package)
-		if step == nil {
-			step = sm.StartStep(td.Props(event.Package))
-		}
-		if event.Test != "" {
-			// Slash-separated test names indicate nested tests;
-			// create a step hierarchy to match. The current step
-			// is the last in the chain.
-			for _, stepName := range strings.Split(event.Test, "/") {
-				test := step.FindChild(stepName)
-				if test == nil {
-					// This is the first time we've seen
-					// this test; create a sub-step for it.
-					test = step.StartChild(td.Props(stepName))
-				}
-				step = test
+// TestExecutable runs the given test executable, parses the output using
+// test2json, and creates sub-steps for individual tests. Requires test2json to
+// be in PATH.
+func TestExecutable(ctx context.Context, testExec, packageName string, args ...string) error {
+	cmd := append([]string{"test2json", "-p", packageName, testExec, "--test.v"}, args...)
+	return log_parser.Run(ctx, ".", cmd, bufio.ScanLines, parseTestSteps)
+}
+
+// parseTestSteps is a log_parser.TokenHandler which parses steps from the JSON
+// output emitted by test2json or "go test -json".
+func parseTestSteps(sm *log_parser.StepManager, line string) error {
+	// Decode an event.
+	event, err := test2json.ParseEvent(line)
+	if err != nil {
+		return err
+	}
+
+	// Find or create the step associated with this event.
+	step := sm.FindStep(event.Package)
+	if step == nil {
+		step = sm.StartStep(td.Props(event.Package))
+	}
+	if event.Test != "" {
+		// Slash-separated test names indicate nested tests;
+		// create a step hierarchy to match. The current step
+		// is the last in the chain.
+		for _, stepName := range strings.Split(event.Test, "/") {
+			test := step.FindChild(stepName)
+			if test == nil {
+				// This is the first time we've seen
+				// this test; create a sub-step for it.
+				test = step.StartChild(td.Props(stepName))
 			}
+			step = test
 		}
+	}
 
-		// Record any output.
-		if event.Output != "" {
-			step.Stdout(event.Output)
-		}
+	// Record any output.
+	if event.Output != "" {
+		step.Stdout(event.Output)
+	}
 
-		// Handle the event action.
-		switch event.Action {
-		// The below actions mark the end of the step.
-		case test2json.ActionFail:
-			step.Fail()
-			fallthrough
-		case test2json.ActionSkip:
-			fallthrough
-		case test2json.ActionPass:
-			step.End()
+	// Handle the event action.
+	switch event.Action {
+	// The below actions mark the end of the step.
+	case test2json.ActionFail:
+		step.Fail()
+		fallthrough
+	case test2json.ActionSkip:
+		fallthrough
+	case test2json.ActionPass:
+		step.End()
 
-		// Catch-all for un-handled actions.
-		default:
-		}
+	// Catch-all for un-handled actions.
+	default:
+	}
 
-		return nil
-	})
+	return nil
 }
