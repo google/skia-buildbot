@@ -322,6 +322,7 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 	}
 	ixr, err := New(ctx, ic, 0)
 	require.NoError(t, err)
+	ixr.changeListsReindexed.Reset()
 
 	ixr.calcChangeListIndices(ctx)
 
@@ -356,6 +357,8 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 		"name":        []string{"test_alpha"},
 		"os":          []string{"Android", "iOS"},
 	}, clIdx.ParamSet)
+
+	assert.Equal(t, int64(2), ixr.changeListsReindexed.Get())
 }
 
 func TestIndexer_CalcChangeListIndices_HasPreviousIndex_Success(t *testing.T) {
@@ -430,6 +433,7 @@ func TestIndexer_CalcChangeListIndices_HasPreviousIndex_Success(t *testing.T) {
 	}
 	ixr, err := New(ctx, ic, 0)
 	require.NoError(t, err)
+	ixr.changeListsReindexed.Reset()
 
 	// The scenario here is that the first PatchSet generated three untriaged digests.After that
 	// index was computed, the user triaged AlphaPositiveDigest and AlphaNegativeDigest, and the
@@ -478,6 +482,7 @@ func TestIndexer_CalcChangeListIndices_HasPreviousIndex_Success(t *testing.T) {
 		"name":  []string{"test_alpha", "this_test_was_here_before"},
 		"os":    []string{"Android", "iOS"},
 	}, clIdx.ParamSet)
+	assert.Equal(t, int64(1), ixr.changeListsReindexed.Get())
 }
 
 func TestIndexer_CalcChangeListIndices_PreviousIndexDoesNotNeedUpdating_Success(t *testing.T) {
@@ -526,6 +531,7 @@ func TestIndexer_CalcChangeListIndices_PreviousIndexDoesNotNeedUpdating_Success(
 	}
 	ixr, err := New(ctx, ic, 0)
 	require.NoError(t, err)
+	ixr.changeListsReindexed.Reset()
 
 	// The scenario here is that the CL has not been updated since the index was made, so the index
 	// should not be updated.
@@ -556,6 +562,7 @@ func TestIndexer_CalcChangeListIndices_PreviousIndexDoesNotNeedUpdating_Success(
 	assert.Equal(t, thePatchSetCombinedID, clIdx.LatestPatchSet)
 	assert.Equal(t, clIdx.ComputedTS, fiveMinAgo) // should not be updated
 	assert.Len(t, clIdx.UntriagedResults, 1)
+	assert.Equal(t, int64(0), ixr.changeListsReindexed.Get())
 }
 
 // TestPreSlicedTracesCreatedCorrectly makes sure that we pre-slice the data based on IgnoreState,

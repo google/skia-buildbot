@@ -38,6 +38,8 @@ const (
 	knownHashesMetric = "known_digests"
 	// Metric to track the number of changelists we currently have indexed.
 	indexedCLsMetric = "gold_indexed_changelists"
+
+	reindexedCLsMetric = "gold_indexer_changelists_reindexed"
 )
 
 // SearchIndex contains everything that is necessary to search
@@ -294,6 +296,8 @@ type Indexer struct {
 	masterIndexMutex sync.RWMutex
 
 	changeListIndices *ttlcache.Cache
+
+	changeListsReindexed metrics2.Counter
 }
 
 // New returns a new IndexSource instance. It synchronously indexes the initially
@@ -301,8 +305,9 @@ type Indexer struct {
 // The provided interval defines how often the index should be refreshed.
 func New(ctx context.Context, ic IndexerConfig, interval time.Duration) (*Indexer, error) {
 	ret := &Indexer{
-		IndexerConfig:     ic,
-		changeListIndices: ttlcache.New(changelistCacheExpirationDuration, changelistCacheExpirationDuration),
+		IndexerConfig:        ic,
+		changeListIndices:    ttlcache.New(changelistCacheExpirationDuration, changelistCacheExpirationDuration),
+		changeListsReindexed: metrics2.GetCounter(reindexedCLsMetric),
 	}
 
 	// Set up the processing pipeline.
@@ -783,6 +788,7 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 			// uploaded at the exact same time we create an index (skbug.com/10265).
 			updatedWithGracePeriod := cl.Updated.Add(30 * time.Second)
 			if !ok || clIdx.ComputedTS.Before(updatedWithGracePeriod) {
+				ix.changeListsReindexed.Inc(1)
 				// Compute it from scratch and store it to the index.
 				xps, err := ix.CLStore.GetPatchSets(ctx, cl.SystemID)
 				if err != nil {
