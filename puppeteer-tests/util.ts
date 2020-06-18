@@ -193,7 +193,7 @@ export const startDemoPageServer = async (pathToWebpackConfigTs: string) => {
 
   // Start an HTTP server on a random, unused port. Serve the above middleware.
   const app = express();
-  app.use(configuration.output!.publicPath!, middleware); // Serve on e.g. /dist.
+  app.use(configuration.output!.publicPath! || '', middleware); // Serve on e.g. /dist.
   let server: http.Server;
   await new Promise((resolve) => { server = app.listen(0, resolve); });
 
