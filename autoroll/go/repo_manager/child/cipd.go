@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	cipd_api "go.chromium.org/luci/cipd/client/cipd"
@@ -13,10 +17,17 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/cipd"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 )
 
 const (
-	cipdPackageUrlTmpl = "%s/p/%s/+/%s"
+	cipdPackageUrlTmpl  = "%s/p/%s/+/%s"
+	cipdBuganizerPrefix = "b/"
+)
+
+var (
+	cipdDetailsRegex = regexp.MustCompile(`details(\d+)`)
 )
 
 // CIPDConfig provides configuration for CIPDChild.
@@ -69,7 +80,7 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 	if err != nil {
 		return nil, err
 	}
-	return CIPDInstanceToRevision(c.name, &instance.InstanceInfo), nil
+	return CIPDInstanceToRevision(c.name, instance), nil
 }
 
 // See documentation for Child interface.
@@ -112,7 +123,17 @@ func (c *CIPDChild) Update(ctx context.Context, lastRollRev *revision.Revision) 
 				return tipRev, notRolledRevs, nil
 			}
 			if foundHead {
-				notRolledRevs = append(notRolledRevs, CIPDInstanceToRevision(c.name, &instance))
+				var rev *revision.Revision
+				// Avoid sending another request for tipRev.
+				if instance.Pin.InstanceID == head.InstanceID {
+					rev = tipRev
+				} else {
+					rev, err = c.GetRevision(ctx, instance.Pin.InstanceID)
+					if err != nil {
+						return nil, nil, skerr.Wrap(err)
+					}
+				}
+				notRolledRevs = append(notRolledRevs, rev)
 			}
 		}
 	}
@@ -140,16 +161,76 @@ func (c *CIPDChild) SetClientForTesting(client cipd.CIPDClient) {
 	c.client = client
 }
 
+type cipdDetailsLine struct {
+	index int
+	line  string
+}
+
 // CIPDInstanceToRevision creates a revision.Revision based on the given
 // InstanceInfo.
-func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceInfo) *revision.Revision {
-	return &revision.Revision{
+func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription) *revision.Revision {
+	rev := &revision.Revision{
 		Id:          instance.Pin.InstanceID,
+		Author:      instance.RegisteredBy,
 		Display:     instance.Pin.InstanceID[:5] + "...",
 		Description: instance.Pin.String(),
 		Timestamp:   time.Time(instance.RegisteredTs),
 		URL:         fmt.Sprintf(cipdPackageUrlTmpl, cipd.ServiceUrl, name, instance.Pin.InstanceID),
 	}
+	detailsLines := []*cipdDetailsLine{}
+	for _, tag := range instance.Tags {
+		split := strings.SplitN(tag.Tag, ":", 2)
+		if len(split) != 2 {
+			sklog.Errorf("Invalid CIPD tag %q; expected <key>:<value>", tag.Tag)
+			continue
+		}
+		key := split[0]
+		val := split[1]
+		if key == "bug" {
+			// For bugs, we expect either eg. "chromium:1234" or "b/1234".
+			split := strings.SplitN(val, ":", 2)
+			if rev.Bugs == nil {
+				rev.Bugs = map[string][]string{}
+			}
+			if len(split) == 2 {
+				rev.Bugs[split[0]] = append(rev.Bugs[split[0]], split[1])
+			} else if strings.HasPrefix(val, cipdBuganizerPrefix) {
+				rev.Bugs[util.BUG_PROJECT_BUGANIZER] = append(rev.Bugs[util.BUG_PROJECT_BUGANIZER], val[len(cipdBuganizerPrefix):])
+			} else {
+				sklog.Errorf("Invalid format for \"bug\" tag: %s", tag.Tag)
+			}
+		} else if m := cipdDetailsRegex.FindStringSubmatch(key); len(m) == 2 {
+			// For details, the tag value becomes one line. The tag key includes
+			// an int which is used to determine the ordering of the lines.
+			index, err := strconv.Atoi(m[1])
+			if err != nil {
+				// This shouldn't happen thanks to the regex.
+				sklog.Errorf("Failed to parse int from details tag %q: %s", tag.Tag, err)
+				continue
+			}
+			detailsLines = append(detailsLines, &cipdDetailsLine{
+				index: index,
+				line:  val,
+			})
+		}
+	}
+	// Concatenate the details lines.
+	if len(detailsLines) > 0 {
+		sort.Slice(detailsLines, func(i, j int) bool {
+			if detailsLines[i].index == detailsLines[j].index {
+				return detailsLines[i].line < detailsLines[j].line
+			}
+			return detailsLines[i].index < detailsLines[j].index
+		})
+		for idx, line := range detailsLines {
+			rev.Details += line.line
+			if idx < len(detailsLines)-1 {
+				rev.Details += "\n"
+			}
+		}
+
+	}
+	return rev
 }
 
 var _ Child = &CIPDChild{}
