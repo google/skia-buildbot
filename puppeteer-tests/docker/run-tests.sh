@@ -54,6 +54,7 @@ cp -r /src/.mocharc.json                 /tests
 mkdir /tests/infra-sk
 cp -r /src/infra-sk/package*             /tests/infra-sk
 cp -r /src/infra-sk/*.ts                 /tests/infra-sk
+cp -r /src/infra-sk/tsconfig.json        /tests/infra-sk
 cp -r /src/infra-sk/modules              /tests/infra-sk
 cp -r /src/infra-sk/pulito               /tests/infra-sk
 
@@ -120,6 +121,9 @@ cd /tests/puppeteer-tests
 npx mocha -r ts-node/register ./**/*_test.ts
 
 # The ./**/*_puppeteer_test.ts glob patterns below exclude the Karma tests.
+
+cd /tests/infra-sk
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/golden
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
