@@ -73,6 +73,9 @@ type SearchImpl struct {
 	// optional. If specified, will only show the traces that match this Matcher. Specifically, this
 	// limits the Tryjob Results
 	publiclyViewableParams publicparams.Matcher
+
+	clIndexCacheHitCounter  metrics2.Counter
+	clIndexCacheMissCounter metrics2.Counter
 }
 
 // New returns a new SearchImpl instance.
@@ -98,6 +101,9 @@ func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventR
 
 		storeCache:         ttlcache.New(searchCacheFreshness, searchCacheCleanup),
 		triageHistoryCache: &triageHistoryCache,
+
+		clIndexCacheHitCounter:  metrics2.GetCounter("gold_search_cl_index_cache_hit"),
+		clIndexCacheMissCounter: metrics2.GetCounter("gold_search_cl_index_cache_miss"),
 	}
 }
 
@@ -382,6 +388,8 @@ func (s *SearchImpl) getCLOnlyDigestDetails(ctx context.Context, test types.Test
 // in intermediate representation. It returns the filtered digests as specified by q. The param
 // exp should contain the expectations for the given ChangeList.
 func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp expectations.Classifier) ([]*frontend.SearchResult, error) {
+	defer metrics2.FuncTimer().Stop()
+
 	// Build the intermediate map to group results belonging to the same test and digest.
 	resultsByGroupingAndDigest := map[groupingAndDigest]*frontend.SearchResult{}
 	talliesByTest := idx.DigestCountsByTest(q.IgnoreState())
@@ -442,6 +450,8 @@ const extractFilterShards = 16
 // testName/digest pair that matches the query, it calls addFn (which the supplier will likely use
 // to build up a list of those results.
 func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Search, idx indexer.IndexSearcher, exp expectations.Classifier, addFn filterAddFn) error {
+	defer metrics2.FuncTimer().Stop()
+
 	clID := q.ChangeListID
 	// We know xps is sorted by order, if it is non-nil.
 	xps, err := s.getPatchSets(ctx, clID)
@@ -484,11 +494,13 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 		// If the search is just for untriaged digests, we can use the CL index for this.
 		clIdx := s.indexSource.GetIndexForCL(id.CRS, id.CL)
 		if clIdx != nil && clIdx.LatestPatchSet.Equal(id) {
+			s.clIndexCacheHitCounter.Inc(1)
 			xtr = clIdx.UntriagedResults
 			wasCached = true
 		}
 	}
 	if !wasCached {
+		s.clIndexCacheMissCounter.Inc(1)
 		xtr, err = s.getTryJobResults(ctx, id)
 		if err != nil {
 			return skerr.Wrapf(err, "getting tryjob results for %v", id)
@@ -1018,13 +1030,19 @@ func computeDigestIndices(traceGroup *frontend.TraceGroup, primary types.Digest)
 // UntriagedUnignoredTryJobExclusiveDigests implements the SearchAPI interface. It uses the cached
 // TryJobResults, so as to improve performance.
 func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Context, psID tjstore.CombinedPSID) (*frontend.UntriagedDigestList, error) {
+	defer metrics2.FuncTimer().Stop()
+
 	var resultsForThisPS []tjstore.TryJobResult
 	listTS := time.Now()
 	clIdx := s.indexSource.GetIndexForCL(psID.CRS, psID.CL)
 	if clIdx != nil && clIdx.LatestPatchSet.Equal(psID) {
+		s.clIndexCacheHitCounter.Inc(1)
+
 		resultsForThisPS = clIdx.UntriagedResults
 		listTS = clIdx.ComputedTS
 	} else {
+		s.clIndexCacheMissCounter.Inc(1)
+
 		// Index either has not yet been created for this CL or was too old to have been indexed.
 		var err error
 		resultsForThisPS, err = s.getTryJobResults(ctx, psID)
