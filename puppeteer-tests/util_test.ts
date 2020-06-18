@@ -4,16 +4,29 @@ import * as net from 'net';
 import express from 'express';
 import puppeteer from 'puppeteer';
 import { expect } from 'chai';
-import { EventName, addEventListenersToPuppeteerPage, launchBrowser, startDemoPageServer } from './util';
+import {
+  EventName,
+  addEventListenersToPuppeteerPage,
+  launchBrowser,
+  startDemoPageServer,
+} from './util';
 
 describe('utility functions for Puppeteer tests', async () => {
   let browser: puppeteer.Browser;
-  before(async () => { browser = await launchBrowser(); });
-  after(async () => { await browser.close(); });
+  before(async () => {
+    browser = await launchBrowser();
+  });
+  after(async () => {
+    await browser.close();
+  });
 
   let page: puppeteer.Page;
-  beforeEach(async () => { page = await browser.newPage(); });
-  afterEach(async () => { await page.close(); });
+  beforeEach(async () => {
+    page = await browser.newPage();
+  });
+  afterEach(async () => {
+    await page.close();
+  });
 
   describe('addEventListenersToPuppeteerPage', () => {
     let server: http.Server;
@@ -22,16 +35,21 @@ describe('utility functions for Puppeteer tests', async () => {
     // Type for the custom event details used in this test.
     interface TestEventDetail {
       msg: string;
-    };
+    }
 
     beforeEach(async () => {
       // Start an HTTP server on a random, unused port.
       const app = express();
-      await new Promise((resolve) => { server = app.listen(0, resolve); });
-      testPageUrl = `http://localhost:${(server!.address() as net.AddressInfo).port}/`;
+      await new Promise((resolve) => {
+        server = app.listen(0, resolve);
+      });
+      testPageUrl = `http://localhost:${
+        (server!.address() as net.AddressInfo).port
+      }/`;
 
       // Serve a test page that triggers various custom events.
-      app.get('/', (req, res) => res.send(`
+      app.get('/', (req, res) =>
+        res.send(`
         <html>
           <head>
             <script>
@@ -73,17 +91,20 @@ describe('utility functions for Puppeteer tests', async () => {
             <p>I am just a test page.</p>
           </body>
         </html>
-      `));
+      `)
+      );
     });
 
     afterEach((done) => server.close(done));
 
     it('renders test page correctly', async () => {
       await page.goto(testPageUrl);
-      expect(await page.$eval('h1', (el) => (el as HTMLElement).innerText))
-        .to.equal('Hello, world!');
-      expect(await page.$eval('p', (el) => (el as HTMLElement).innerText))
-        .to.equal('I am just a test page.');
+      expect(
+        await page.$eval('h1', (el) => (el as HTMLElement).innerText)
+      ).to.equal('Hello, world!');
+      expect(
+        await page.$eval('p', (el) => (el as HTMLElement).innerText)
+      ).to.equal('I am just a test page.');
     });
 
     it('catches events in the right order', async () => {
@@ -97,11 +118,16 @@ describe('utility functions for Puppeteer tests', async () => {
         // not interfere with the events we're trying to catch.
         'ignored-event',
       ];
-      const eventPromise = await addEventListenersToPuppeteerPage(page, eventNames);
+      const eventPromise = await addEventListenersToPuppeteerPage(
+        page,
+        eventNames
+      );
 
       // We will collect the Event object details in the order they are caught.
       const eventDetailsInOrder: TestEventDetail[] = [];
-      const trackCaughtOrder = async (anEventPromise: Promise<TestEventDetail>) => {
+      const trackCaughtOrder = async (
+        anEventPromise: Promise<TestEventDetail>
+      ) => {
         const detail = await anEventPromise;
         eventDetailsInOrder.push(detail);
         return detail;
@@ -134,21 +160,37 @@ describe('utility functions for Puppeteer tests', async () => {
 
       // Assert that promises were resolved in the expected order.
       expect(eventDetailsInOrder).to.have.length(7);
-      expect(eventDetailsInOrder[0].msg).to.equal('Only occurrence of alpha-event');
-      expect(eventDetailsInOrder[1].msg).to.equal('1st occurrence of beta-event');
-      expect(eventDetailsInOrder[2].msg).to.equal('2nd occurrence of beta-event');
-      expect(eventDetailsInOrder[3].msg).to.equal('3rd occurrence of beta-event');
-      expect(eventDetailsInOrder[4].msg).to.equal('1st occurrence of gamma-event');
-      expect(eventDetailsInOrder[5].msg).to.equal('2nd occurrence of gamma-event');
-      expect(eventDetailsInOrder[6].msg).to.equal('3rd occurrence of gamma-event');
+      expect(eventDetailsInOrder[0].msg).to.equal(
+        'Only occurrence of alpha-event'
+      );
+      expect(eventDetailsInOrder[1].msg).to.equal(
+        '1st occurrence of beta-event'
+      );
+      expect(eventDetailsInOrder[2].msg).to.equal(
+        '2nd occurrence of beta-event'
+      );
+      expect(eventDetailsInOrder[3].msg).to.equal(
+        '3rd occurrence of beta-event'
+      );
+      expect(eventDetailsInOrder[4].msg).to.equal(
+        '1st occurrence of gamma-event'
+      );
+      expect(eventDetailsInOrder[5].msg).to.equal(
+        '2nd occurrence of gamma-event'
+      );
+      expect(eventDetailsInOrder[6].msg).to.equal(
+        '3rd occurrence of gamma-event'
+      );
     });
 
-    it('fails if event promise function is called with unknown event',
-      async () => {
-        const eventPromise = await addEventListenersToPuppeteerPage(page, ['foo-event']);
-        expect(() => eventPromise('invalid-event'))
-          .to.throw('no event listener for "invalid-event"');
-      });
+    it('fails if event promise function is called with unknown event', async () => {
+      const eventPromise = await addEventListenersToPuppeteerPage(page, [
+        'foo-event',
+      ]);
+      expect(() => eventPromise('invalid-event')).to.throw(
+        'no event listener for "invalid-event"'
+      );
+    });
   });
 
   describe('startDemoPageServer', () => {
@@ -157,16 +199,25 @@ describe('utility functions for Puppeteer tests', async () => {
 
     before(async () => {
       // Start a demo page server using Perfs's webpack.config.ts file.
-      const pathToPerfWebpackConfigTs = path.join(__dirname, '..', 'perf', 'webpack.config.ts');
-      ({ baseUrl, stopDemoPageServer } = await startDemoPageServer(pathToPerfWebpackConfigTs));
+      const pathToPerfWebpackConfigTs = path.join(
+        __dirname,
+        '..',
+        'perf',
+        'webpack.config.ts'
+      );
+      ({ baseUrl, stopDemoPageServer } = await startDemoPageServer(
+        pathToPerfWebpackConfigTs
+      ));
     });
 
-    after(async () => { await stopDemoPageServer(); });
+    after(async () => {
+      await stopDemoPageServer();
+    });
 
     it('should serve a demo page', async () => {
       // Load day-range-sk-demo.html and perform a basic smoke test on a known page.
       await page.goto(`${baseUrl}/dist/day-range-sk.html`);
-      expect(await page.$$('day-range-sk')).to.have.length(1);
+      expect(await page.$$('day-range-sk')).to.have.length(3);
     });
   });
 });

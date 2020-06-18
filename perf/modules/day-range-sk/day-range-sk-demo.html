@@ -1,19 +1,34 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>day-range-sk</title>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>day-range-sk</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    section {
+      padding: 8px 0;
+    }
+  </style>
 </head>
+
 <body>
   <day-range-sk id=range begin=1470084997 end=1474184677></day-range-sk>
+
+  <section class="body-sk">
+    <h2>themes.css</h2>
+    <day-range-sk begin=1470084997 end=1474184677></day-range-sk>
+  </section>
+
+  <section class="body-sk darkmode">
+    <h2>themes.css - darkmode</h2>
+    <day-range-sk begin=1470084997 end=1474184677></day-range-sk>
+  </section>
+
+
   <h2>Events</h2>
   <pre id=event></pre>
-  <script type="text/javascript" charset="utf-8">
-    document.getElementById('range').addEventListener('day-range-change', (e) => {
-      document.getElementById('event').textContent = JSON.stringify(e.detail, null, ' ');
-    });
-  </script>
 </body>
+
 </html>
