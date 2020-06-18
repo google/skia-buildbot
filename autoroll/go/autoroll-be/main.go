@@ -309,6 +309,21 @@ func main() {
 				}
 			}
 		}()
+	} else if githubClient != nil {
+		// Periodically delete old fork branches for this roller.
+		// Github rollers create new fork branches for each roll (skbug.com/10328). Branches from
+		// merged PRs should be cleaned up via
+		// https://help.github.com/en/github/administering-a-repository/managing-the-automatic-deletion-of-branches
+		// But that does not address failed PRs.
+		go func() {
+			for range time.Tick(60 * time.Minute) {
+				// Search for references matching rollername-*
+				// Look at timestamp in them (last modified?)
+				// Delete if older than some timestamp.
+				// I don't think this works.
+			}
+		}()
+
 	}
 	httputils.RunHealthCheckServer(*port)
 }
