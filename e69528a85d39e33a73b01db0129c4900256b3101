@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4ec77335_87b6543b",
+        "filename": "go/github/github.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-06-18T11:28:50Z",
+      "side": 1,
+      "message": "Why is this a pointer?  Does CreateRef modify the sha?",
+      "range": {
+        "startLine": 160,
+        "startChar": 66,
+        "endLine": 160,
+        "endChar": 77
+      },
+      "revId": "e69528a85d39e33a73b01db0129c4900256b3101",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
