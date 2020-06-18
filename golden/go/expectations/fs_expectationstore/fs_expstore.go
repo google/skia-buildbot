@@ -357,6 +357,8 @@ func (s *Store) AddChange(ctx context.Context, delta []expectations.Delta, userI
 		Committed: false,
 	}
 	b.Set(tr, record)
+	s.client.CountWriteQueryAndRows(s.expectationsCollection().Path, len(entries))
+	s.client.CountWriteQueryAndRows(s.changesCollection().Path, len(entries))
 	err = s.client.BatchWrite(ctx, len(entries), batchSize, maxOperationTime, b, func(b *firestore.WriteBatch, i int) error {
 		entry := entries[i]
 		e := s.expectationsCollection().Doc(entry.ID())
@@ -727,6 +729,8 @@ func (s *Store) GetTriageHistory(ctx context.Context, grouping types.TestName, d
 	if len(recordsToFetch) == 0 {
 		return nil, nil
 	}
+
+	s.client.CountReadQueryAndRows(s.recordsCollection().Path, len(recordsToFetch))
 	records, err := s.client.GetAll(ctx, recordsToFetch)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "fetching %d records belonging to %s", len(recordsToFetch), entryID)
@@ -760,6 +764,8 @@ func (s *Store) UpdateLastUsed(ctx context.Context, ids []expectations.ID, now t
 	if len(ids) == 0 {
 		return nil
 	}
+
+	s.client.CountWriteQueryAndRows(s.expectationsCollection().Path, len(ids))
 	const batchSize = ifirestore.MAX_TRANSACTION_DOCS
 	err := s.client.BatchWrite(ctx, len(ids), batchSize, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
 		id := ids[i]
@@ -846,6 +852,7 @@ func (s *Store) GarbageCollect(ctx context.Context) (int, error) {
 		return 0, skerr.Wrapf(err, "fetching expectations to gc")
 	}
 
+	s.client.CountWriteQueryAndRows(s.expectationsCollection().Path, len(toDelete))
 	const batchSize = ifirestore.MAX_TRANSACTION_DOCS
 	err = s.client.BatchWrite(ctx, len(toDelete), batchSize, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
 		doc := toDelete[i]
