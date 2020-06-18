@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/metrics2"
 
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
@@ -980,6 +981,9 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 		changeListStore: mcs,
 		tryJobStore:     nil, // we should not actually hit the TryJobStore, because the cache was used.
 		storeCache:      ttlcache.New(0, 0),
+
+		clIndexCacheHitCounter:  metrics2.GetCounter("hit"),
+		clIndexCacheMissCounter: metrics2.GetCounter("miss"),
 	}
 
 	q := &query.Search{
@@ -1005,6 +1009,9 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, int32(1), alphaSeenCount)
 	assert.Equal(t, int32(1), betaSeenCount)
+	assert.Equal(t, int64(0), s.clIndexCacheMissCounter.Get())
+	assert.Equal(t, int64(1), s.clIndexCacheHitCounter.Get())
+
 }
 
 func TestDigestDetails_MasterBranch_Success(t *testing.T) {
