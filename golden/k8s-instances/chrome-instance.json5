@@ -24,7 +24,7 @@
   "AUTHORITATIVE":           true,
   "AUTHORIZED_PARAMS":       "", // defaults to "all"
   "CHANGELIST_TRACKING":     true,
-  "CL_COMMENT_DRYRUN":       true,
+  "CL_COMMENT_DRYRUN":       false,
   "CL_COMMENT_TEMPLATE":     1,
   "CRS_URL_TEMPLATE":        "https://chromium-review.googlesource.com/%s",
   "HASHES_FILE":             "gold-chrome-hashes.txt",
