@@ -224,6 +224,7 @@ func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID) (
 		}
 	}
 
+	s.client.CountReadQueryAndRows(s.client.Collection(paramsCollection).Path, len(xdr))
 	paramDocs, err := s.client.GetAll(ctx, xdr)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "fetching %d params", len(xdr))
@@ -352,6 +353,7 @@ func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, t
 		})
 	}
 
+	s.client.CountWriteQueryAndRows(s.client.Collection(paramsCollection).Path, len(paramsToWrite))
 	err := s.client.BatchWrite(ctx, len(paramsToWrite), ifirestore.MAX_TRANSACTION_DOCS, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {
 		p := paramsToWrite[i]
 		pr := s.client.Collection(paramsCollection).Doc(p.key)
@@ -364,6 +366,7 @@ func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, t
 		return skerr.Wrapf(err, "writing batch paramEntry objects")
 	}
 
+	s.client.CountWriteQueryAndRows(s.client.Collection(tjResultCollection).Path, len(xtr))
 	// batch add the results - we really hope this doesn't fail to avoid partial data. We won't
 	// be able to easily roll back if there is more than one batch, and batch 2+ fails.
 	err = s.client.BatchWrite(ctx, len(xtr), ifirestore.MAX_TRANSACTION_DOCS, maxOperationTime, nil, func(b *firestore.WriteBatch, i int) error {

@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -83,9 +84,6 @@ var (
 	// MAX_ITER_TIME and IterDocs to prevent running into server timeouts
 	// when iterating a large number of entries.
 	errIterTooLong = errors.New("iterated too long")
-
-	opTypes  = []string{opTypeRead, opTypeWrite}
-	opCounts = []string{opCountRows, opCountQueries}
 )
 
 // FixTimestamp adjusts the given timestamp for storage in Firestore. Firestore
@@ -132,13 +130,22 @@ type Client struct {
 	activeOpsId    int64 // Incremented every time we run a transaction.
 	activeOpsMtx   sync.RWMutex
 
-	// Counters is a nested map of opType (ie. "read" or "write"), opCount
-	// ("rows" or "queries") and document/collection path to a counter which
-	// records the number of operations.
-	counters     map[string]map[string]map[string]metrics2.Counter
+	// counters is a cache of Metrics2.Counters to the number of operations and queries for reads
+	// and writes. We need to cache it here because multiple calls to the same GetCounter() would
+	// give different pointers to the same underlying int, which is undesirable.
+	counters     map[counterKey]metrics2.Counter
 	countersMtx  sync.Mutex
 	errorMetrics map[string]metrics2.Counter
 	metricTags   map[string]string
+}
+
+// counterKey is the key to the cache map of metrics counters.
+type counterKey struct {
+	Operation string
+	Count     string
+	Path      string
+	FileName  string
+	FuncName  string
 }
 
 // NewClient returns a Cloud Firestore client which enforces separation of app/
@@ -170,20 +177,13 @@ func NewClient(ctx context.Context, project, app, instance string, ts oauth2.Tok
 			"error": code.String(),
 		})
 	}
-	counters := map[string]map[string]map[string]metrics2.Counter{}
-	for _, opType := range opTypes {
-		subMap := map[string]map[string]metrics2.Counter{}
-		for _, opCount := range opCounts {
-			subMap[opCount] = map[string]metrics2.Counter{}
-		}
-		counters[opType] = subMap
-	}
+
 	c := &Client{
 		Client:         client,
 		ParentDoc:      client.Collection(app).Doc(instance),
 		activeOps:      map[int64]string{},
 		activeOpsCount: metrics2.GetInt64Metric("firestore_ops_active", metricTags),
-		counters:       counters,
+		counters:       map[counterKey]metrics2.Counter{},
 		errorMetrics:   errorMetrics,
 		metricTags:     metricTags,
 	}
@@ -274,63 +274,79 @@ func (c *Client) recordOp(opName, detail string) func() {
 
 // getCounterHelper returns a read/write row or query metric for the given path.
 // The caller should hold c.countersMtx.
-func (c *Client) getCounterHelper(op, count, path string) metrics2.Counter {
-	counter, ok := c.counters[op][count][path]
+func (c *Client) getCounterHelper(op, count, path, file, fnName string) metrics2.Counter {
+	key := counterKey{
+		Operation: op,
+		Count:     count,
+		Path:      path,
+		FileName:  file,
+		FuncName:  fnName,
+	}
+	counter, ok := c.counters[key]
 	if !ok {
 		counter = metrics2.GetCounter("firestore_ops_count", c.metricTags, map[string]string{
 			"op":    op,
 			"count": count,
 			"path":  path,
+			"file":  file,
+			"func":  fnName,
 		})
-		c.counters[op][count][path] = counter
+		c.counters[key] = counter
 	}
 	return counter
 }
 
 // getCounters returns a read/write row and query metric for the given path.
-func (c *Client) getCounters(op, path string) (metrics2.Counter, metrics2.Counter) {
+func (c *Client) getCounters(op, path, file, fnName string) (metrics2.Counter, metrics2.Counter) {
 	path = strings.TrimPrefix(path, c.ParentDoc.Path)
 	path = strings.TrimPrefix(path, "/")
 	path = strings.Split(path, "/")[0]
 	c.countersMtx.Lock()
 	defer c.countersMtx.Unlock()
-	return c.getCounterHelper(op, opCountQueries, path), c.getCounterHelper(op, opCountRows, path)
+	return c.getCounterHelper(op, opCountQueries, path, file, fnName), c.getCounterHelper(op, opCountRows, path, file, fnName)
 }
 
-// CountReadRows increments the metric counter for the given path.
-func (c *Client) CountReadRows(path string, count int) {
-	_, rows := c.getCounters(opTypeRead, path)
+// countReadRows increments the "rows read" metric counter for a path by the given amount.
+func (c *Client) countReadRows(path, file, fnName string, count int) {
+	_, rows := c.getCounters(opTypeRead, path, file, fnName)
 	rows.Inc(int64(count))
 }
 
-// CountReadQuery increments the metric counter for the given path.
-func (c *Client) CountReadQuery(path string) {
-	queries, _ := c.getCounters(opTypeRead, path)
+// countReadQuery increments the "read queries" metric counter for a path by one.
+func (c *Client) countReadQuery(path, file, fnName string) {
+	queries, _ := c.getCounters(opTypeRead, path, file, fnName)
 	queries.Inc(1)
 }
 
-// CountReadQueryAndRows increments the metric counters for the given path.
+// CountReadQueryAndRows increments the metric counters for a path. The "read queries" metric will
+// be incremented by one and the "rows read" by the amount given. This should be done when a client
+// does some amount of reading from firestore w/o using the helpers in this package (e.g. GetAll).
 func (c *Client) CountReadQueryAndRows(path string, rowCount int) {
-	queries, rows := c.getCounters(opTypeRead, path)
+	file, fnName := callerHelper()
+	c.countReadQueryAndRows(path, file, fnName, rowCount)
+}
+
+// countReadQueryAndRows is the private version of CountReadQueryAndRows; it takes a file, fnName
+// that is passed down from the entry-level API call.
+func (c *Client) countReadQueryAndRows(path, file, fnName string, rowCount int) {
+	queries, rows := c.getCounters(opTypeRead, path, file, fnName)
 	queries.Inc(1)
 	rows.Inc(int64(rowCount))
 }
 
-// CountWriteRows increments the metric counter for the given path.
-func (c *Client) CountWriteRows(path string, count int) {
-	_, rows := c.getCounters(opTypeWrite, path)
-	rows.Inc(int64(count))
-}
-
-// CountWriteQuery increments the metric counter for the given path.
-func (c *Client) CountWriteQuery(path string) {
-	queries, _ := c.getCounters(opTypeWrite, path)
-	queries.Inc(1)
-}
-
-// CountWriteQueryAndRows increments the metric counters for the given path.
+// CountWriteQueryAndRows increments the metric counters for a path. The "write queries" metric will
+// be incremented by one and the "rows written" by the amount given. This should be done when a
+// client does some amount of writing to firestore w/o using the helpers in this package (or uses
+// BatchWrite).
 func (c *Client) CountWriteQueryAndRows(path string, rowCount int) {
-	queries, rows := c.getCounters(opTypeWrite, path)
+	file, fnName := callerHelper()
+	c.countWriteQueryAndRows(path, file, fnName, rowCount)
+}
+
+// countWriteQueryAndRows is the private version of CountWriteQueryAndRows; it takes a file, fnName
+// that is passed down from the entry-level API call.
+func (c *Client) countWriteQueryAndRows(path, file, fnName string, rowCount int) {
+	queries, rows := c.getCounters(opTypeWrite, path, file, fnName)
 	queries.Inc(1)
 	rows.Inc(int64(rowCount))
 }
@@ -415,10 +431,11 @@ func (c *Client) withTimeoutAndRetries(ctx context.Context, attempts int, timeou
 // of attempts. Returns (nil, nil) if the document does not exist. Uses the
 // given maximum number of attempts and the given per-attempt timeout.
 func (c *Client) Get(ctx context.Context, ref *firestore.DocumentRef, attempts int, timeout time.Duration) (*firestore.DocumentSnapshot, error) {
+	file, fnName := callerHelper()
 	defer c.recordOp("Get", ref.Path)()
 	var doc *firestore.DocumentSnapshot
 	err := c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
-		c.CountReadQueryAndRows(ref.Path, 1)
+		c.countReadQueryAndRows(ref.Path, file, fnName, 1)
 		got, err := ref.Get(ctx)
 		if err == nil {
 			doc = got
@@ -429,7 +446,7 @@ func (c *Client) Get(ctx context.Context, ref *firestore.DocumentRef, attempts i
 }
 
 // iterDocsInner is a helper function used by IterDocs which facilitates testing.
-func (c *Client) iterDocsInner(ctx context.Context, query firestore.Query, attempts int, timeout time.Duration, callback func(*firestore.DocumentSnapshot) error, ranTooLong func(time.Time) bool) (int, error) {
+func (c *Client) iterDocsInner(ctx context.Context, query firestore.Query, attempts int, timeout time.Duration, file, fnName string, callback func(*firestore.DocumentSnapshot) error, ranTooLong func(time.Time) bool) (int, error) {
 	numRestarts := 0
 	var lastSeen *firestore.DocumentSnapshot
 	for {
@@ -452,10 +469,10 @@ func (c *Client) iterDocsInner(ctx context.Context, query firestore.Query, attem
 				// Query doesn't have a path associated with it, but we'd like to
 				// record metrics. Use the path of the parent of the first found doc.
 				if first {
-					c.CountReadQueryAndRows(doc.Ref.Parent.Path, 1)
+					c.countReadQueryAndRows(doc.Ref.Parent.Path, file, fnName, 1)
 					first = false
 				} else {
-					c.CountReadRows(doc.Ref.Parent.Path, 1)
+					c.countReadRows(doc.Ref.Parent.Path, file, fnName, 1)
 				}
 				if err := callback(doc); err != nil {
 					return err
@@ -486,8 +503,15 @@ func (c *Client) iterDocsInner(ctx context.Context, query firestore.Query, attem
 // iterating a large number of results. Note that this behavior may result in
 // individual results coming from inconsistent snapshots.
 func (c *Client) IterDocs(ctx context.Context, name, detail string, query firestore.Query, attempts int, timeout time.Duration, callback func(*firestore.DocumentSnapshot) error) error {
+	file, fnName := callerHelper()
+	return c.iterDocs(ctx, name, detail, file, fnName, query, attempts, timeout, callback)
+}
+
+// iterDocs is the private version of IterDocs; it takes a file, fnName that is passed down from
+// the entry-level API call.
+func (c *Client) iterDocs(ctx context.Context, name, detail, file, fnName string, query firestore.Query, attempts int, timeout time.Duration, callback func(*firestore.DocumentSnapshot) error) error {
 	defer c.recordOp(name, detail)()
-	_, err := c.iterDocsInner(ctx, query, attempts, timeout, callback, func(started time.Time) bool {
+	_, err := c.iterDocsInner(ctx, query, attempts, timeout, file, fnName, callback, func(started time.Time) bool {
 		return time.Now().Sub(started) > MAX_ITER_TIME
 	})
 	return err
@@ -503,13 +527,14 @@ func (c *Client) IterDocs(ctx context.Context, name, detail string, query firest
 // that this behavior may result in individual results coming from inconsistent
 // snapshots.
 func (c *Client) IterDocsInParallel(ctx context.Context, name, detail string, queries []firestore.Query, attempts int, timeout time.Duration, callback func(int, *firestore.DocumentSnapshot) error) error {
+	file, fnName := callerHelper()
 	var wg sync.WaitGroup
 	errs := make([]error, len(queries))
 	for idx, query := range queries {
 		wg.Add(1)
 		go func(idx int, query firestore.Query) {
 			defer wg.Done()
-			errs[idx] = c.IterDocs(ctx, name, fmt.Sprintf("%s (shard %d)", detail, idx), query, attempts, timeout, func(doc *firestore.DocumentSnapshot) error {
+			errs[idx] = c.iterDocs(ctx, name, fmt.Sprintf("%s (shard %d)", detail, idx), file, fnName, query, attempts, timeout, func(doc *firestore.DocumentSnapshot) error {
 				return callback(idx, doc)
 			})
 		}(idx, query)
@@ -535,10 +560,11 @@ func (c *Client) RunTransaction(ctx context.Context, name, detail string, attemp
 // See documentation for firestore.DocumentRef.Create(). Uses the given maximum
 // number of attempts and the given per-attempt timeout.
 func (c *Client) Create(ctx context.Context, ref *firestore.DocumentRef, data interface{}, attempts int, timeout time.Duration) (*firestore.WriteResult, error) {
+	file, fnName := callerHelper()
 	defer c.recordOp("Create", ref.Path)()
 	var wr *firestore.WriteResult
 	err := c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
-		c.CountWriteQueryAndRows(ref.Path, 1)
+		c.countWriteQueryAndRows(ref.Path, file, fnName, 1)
 		var err error
 		wr, err = ref.Create(ctx, data)
 		return err
@@ -549,10 +575,11 @@ func (c *Client) Create(ctx context.Context, ref *firestore.DocumentRef, data in
 // See documentation for firestore.DocumentRef.Set(). Uses the given maximum
 // number of attempts and the given per-attempt timeout.
 func (c *Client) Set(ctx context.Context, ref *firestore.DocumentRef, data interface{}, attempts int, timeout time.Duration, opts ...firestore.SetOption) (*firestore.WriteResult, error) {
+	file, fnName := callerHelper()
 	defer c.recordOp("Set", ref.Path)()
 	var wr *firestore.WriteResult
 	err := c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
-		c.CountWriteQueryAndRows(ref.Path, 1)
+		c.countWriteQueryAndRows(ref.Path, file, fnName, 1)
 		var err error
 		wr, err = ref.Set(ctx, data, opts...)
 		return err
@@ -563,10 +590,11 @@ func (c *Client) Set(ctx context.Context, ref *firestore.DocumentRef, data inter
 // See documentation for firestore.DocumentRef.Update(). Uses the given maximum
 // number of attempts and the given per-attempt timeout.
 func (c *Client) Update(ctx context.Context, ref *firestore.DocumentRef, attempts int, timeout time.Duration, updates []firestore.Update, preconds ...firestore.Precondition) (*firestore.WriteResult, error) {
+	file, fnName := callerHelper()
 	defer c.recordOp("Update", ref.Path)()
 	var wr *firestore.WriteResult
 	err := c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
-		c.CountWriteQueryAndRows(ref.Path, 1)
+		c.countWriteQueryAndRows(ref.Path, file, fnName, 1)
 		var err error
 		wr, err = ref.Update(ctx, updates, preconds...)
 		return err
@@ -577,10 +605,17 @@ func (c *Client) Update(ctx context.Context, ref *firestore.DocumentRef, attempt
 // See documentation for firestore.DocumentRef.Delete(). Uses the given maximum
 // number of attempts and the given per-attempt timeout.
 func (c *Client) Delete(ctx context.Context, ref *firestore.DocumentRef, attempts int, timeout time.Duration, preconds ...firestore.Precondition) (*firestore.WriteResult, error) {
+	file, fnName := callerHelper()
+	return c.delete(ctx, ref, attempts, timeout, file, fnName, preconds...)
+}
+
+// delete is the private version of Delete; it takes a file, fnName that is passed down from
+// the entry-level API call.
+func (c *Client) delete(ctx context.Context, ref *firestore.DocumentRef, attempts int, timeout time.Duration, file, fnName string, preconds ...firestore.Precondition) (*firestore.WriteResult, error) {
 	defer c.recordOp("Delete", ref.Path)()
 	var wr *firestore.WriteResult
 	err := c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
-		c.CountWriteQueryAndRows(ref.Path, 1)
+		c.countWriteQueryAndRows(ref.Path, file, fnName, 1)
 		var err error
 		wr, err = ref.Delete(ctx, preconds...)
 		return err
@@ -594,18 +629,19 @@ func (c *Client) Delete(ctx context.Context, ref *firestore.DocumentRef, attempt
 // function does nothing to account for documents which may be added or modified
 // while it is running.
 func (c *Client) RecurseDocs(ctx context.Context, name string, ref *firestore.DocumentRef, attempts int, timeout time.Duration, fn func(*firestore.DocumentRef) error) error {
+	file, fnName := callerHelper()
 	defer c.recordOp(name, ref.Path)()
-	return c.recurseDocs(ctx, ref, attempts, timeout, fn)
+	return c.recurseDocs(ctx, ref, attempts, timeout, file, fnName, fn)
 }
 
 // recurseDocs is a recursive helper function used by RecurseDocs.
-func (c *Client) recurseDocs(ctx context.Context, ref *firestore.DocumentRef, attempts int, timeout time.Duration, fn func(*firestore.DocumentRef) error) error {
+func (c *Client) recurseDocs(ctx context.Context, ref *firestore.DocumentRef, attempts int, timeout time.Duration, file, fnName string, fn func(*firestore.DocumentRef) error) error {
 	// The Firestore emulator does not correctly handle subcollection queries.
 	EnsureNotEmulator()
 	// TODO(borenet): Should we pause and resume like we do in IterDocs?
 	colls := map[string]*firestore.CollectionRef{}
 	if err := c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
-		c.CountReadQuery(ref.Path)
+		c.countReadQuery(ref.Path, file, fnName)
 		it := ref.Collections(ctx)
 		for {
 			coll, err := it.Next()
@@ -614,7 +650,7 @@ func (c *Client) recurseDocs(ctx context.Context, ref *firestore.DocumentRef, at
 			} else if err != nil {
 				return err
 			}
-			c.CountReadRows(ref.Path, 1)
+			c.countReadRows(ref.Path, file, fnName, 1)
 			colls[coll.Path] = coll
 		}
 		return nil
@@ -623,7 +659,7 @@ func (c *Client) recurseDocs(ctx context.Context, ref *firestore.DocumentRef, at
 	}
 	for _, coll := range colls {
 		if err := c.withTimeoutAndRetries(ctx, attempts, timeout, func(ctx context.Context) error {
-			c.CountReadQuery(ref.Path)
+			c.countReadQuery(ref.Path, file, fnName)
 			it := coll.DocumentRefs(ctx)
 			for {
 				doc, err := it.Next()
@@ -632,8 +668,8 @@ func (c *Client) recurseDocs(ctx context.Context, ref *firestore.DocumentRef, at
 				} else if err != nil {
 					return err
 				}
-				c.CountReadRows(ref.Path, 1)
-				if err := c.recurseDocs(ctx, doc, attempts, timeout, fn); err != nil {
+				c.countReadRows(ref.Path, file, fnName, 1)
+				if err := c.recurseDocs(ctx, doc, attempts, timeout, file, fnName, fn); err != nil {
 					return err
 				}
 			}
@@ -650,8 +686,10 @@ func (c *Client) recurseDocs(ctx context.Context, ref *firestore.DocumentRef, at
 // which do not exist but have sub-documents. This function does nothing to
 // account for documents which may be added or modified while it is running.
 func (c *Client) GetAllDescendantDocuments(ctx context.Context, ref *firestore.DocumentRef, attempts int, timeout time.Duration) ([]*firestore.DocumentRef, error) {
+	file, fnName := callerHelper()
+	defer c.recordOp("GetAllDescendantDocuments", ref.Path)()
 	rv := []*firestore.DocumentRef{}
-	if err := c.RecurseDocs(ctx, "GetAllDescendantDocuments", ref, attempts, timeout, func(doc *firestore.DocumentRef) error {
+	if err := c.recurseDocs(ctx, ref, attempts, timeout, file, fnName, func(doc *firestore.DocumentRef) error {
 		// Don't include the passed-in doc.
 		if doc.Path != ref.Path {
 			rv = append(rv, doc)
@@ -670,9 +708,10 @@ func (c *Client) GetAllDescendantDocuments(ctx context.Context, ref *firestore.D
 // series of operations. This function does nothing to account for documents
 // which may be added or modified while it is running.
 func (c *Client) RecursiveDelete(ctx context.Context, ref *firestore.DocumentRef, attempts int, timeout time.Duration) error {
-	return c.RecurseDocs(ctx, "RecursiveDelete", ref, attempts, timeout, func(ref *firestore.DocumentRef) error {
-		c.CountWriteQueryAndRows(ref.Path, 1)
-		_, err := c.Delete(ctx, ref, attempts, timeout)
+	file, fnName := callerHelper()
+	defer c.recordOp("RecursiveDelete", ref.Path)()
+	return c.recurseDocs(ctx, ref, attempts, timeout, file, fnName, func(ref *firestore.DocumentRef) error {
+		_, err := c.delete(ctx, ref, attempts, timeout, file, fnName)
 		return err
 	})
 }
@@ -737,7 +776,8 @@ func QuerySnapshotChannel(ctx context.Context, q firestore.Query) <-chan *firest
 // them, using retries that backoff exponentially up to the maxWriteTime. If a single batch fails,
 // even with backoff, an error is returned, without attempting any further batches and without
 // rolling back the previous successful batches (at present, rollback of previous batches is
-// impossible to do correctly in the general case).
+// impossible to do correctly in the general case). Callers should also call CountWriteQueryAndRows
+// to update counts of the affected collection(s).
 func (c *Client) BatchWrite(ctx context.Context, total, batchSize int, maxWriteTime time.Duration, startBatch *firestore.WriteBatch, fn func(b *firestore.WriteBatch, i int) error) error {
 	if batchSize > MAX_TRANSACTION_DOCS {
 		return skerr.Fmt("Batch size %d exceeds the Firestore maximum of %d", batchSize, MAX_TRANSACTION_DOCS)
@@ -792,4 +832,19 @@ func (c *Client) BatchWrite(ctx context.Context, total, batchSize int, maxWriteT
 		}
 		return nil
 	})
+}
+
+// callerHelper returns the file and function name of the caller's caller. This should only be used
+// in functions that are in the public API (so that the returned function/file are outside of this
+// package).
+func callerHelper() (string, string) {
+	file, fnName := "", ""
+	if pc, f, _, ok := runtime.Caller(2); ok {
+		file = f
+		fn := runtime.FuncForPC(pc)
+		if fn != nil {
+			fnName = fn.Name()
+		}
+	}
+	return file, fnName
 }

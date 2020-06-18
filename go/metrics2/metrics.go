@@ -97,6 +97,10 @@ type Client interface {
 	Flush() error
 
 	// GetCounter creates or retrieves a Counter with the given name and tag set and returns it.
+	// Clients should cache this counter, as making multiple calls with the same keys will return
+	// a fresh counter (initialized to 0), which is undesirable. These counters would all compete
+	// with each other; the underlying metric would reflect the result of the most-recently
+	// updated instance.
 	GetCounter(name string, tagsList ...map[string]string) Counter
 
 	// GetFloat64Metric returns a Float64Metric instance.

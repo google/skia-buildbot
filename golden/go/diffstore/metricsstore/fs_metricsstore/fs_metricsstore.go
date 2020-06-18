@@ -158,6 +158,7 @@ func (s *StoreImpl) LoadDiffMetrics(ctx context.Context, ids []string) ([]*diff.
 		xDoc = append(xDoc, s.client.Collection(metricsStoreCollection).Doc(id))
 	}
 
+	s.client.CountReadQueryAndRows(s.client.Collection(metricsStoreCollection).Path, len(xDoc))
 	xds, err := s.client.GetAll(ctx, xDoc)
 	if err != nil {
 		return nil, skerr.Wrap(err)
