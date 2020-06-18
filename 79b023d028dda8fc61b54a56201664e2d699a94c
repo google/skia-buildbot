@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a5400e8_8985c054",
+        "filename": "autoroll/go/repo_manager/parent/git_checkout_github.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-18T12:58:57Z",
+      "side": 1,
+      "message": "This should already be showing the expected format (in the form of the expected regex). Regexp has a String() method.",
+      "parentUuid": "8e1d28ca_10fdb8f7",
+      "range": {
+        "startLine": 41,
+        "startChar": 55,
+        "endLine": 41,
+        "endChar": 61
+      },
+      "revId": "79b023d028dda8fc61b54a56201664e2d699a94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8f92050a_38dc65a9",
         "filename": "autoroll/go/repo_manager/parent/git_checkout_github.go",
         "patchSetId": 5
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "72bd3dd5_e89e4fad",
+        "filename": "autoroll/go/repo_manager/parent/git_checkout_github.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-18T12:58:57Z",
+      "side": 1,
+      "message": "Yes that\u0027s right, It doesn\u0027t matter because we override it anyway.",
+      "parentUuid": "8f92050a_38dc65a9",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 80
+      },
+      "revId": "79b023d028dda8fc61b54a56201664e2d699a94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "375711a7_2d072165",
         "filename": "autoroll/go/repo_manager/parent/git_checkout_github.go",
         "patchSetId": 5
@@ -68,6 +116,30 @@
       "revId": "79b023d028dda8fc61b54a56201664e2d699a94c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68a668de_d08fcca3",
+        "filename": "autoroll/go/repo_manager/parent/git_checkout_github.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-18T12:58:57Z",
+      "side": 1,
+      "message": "So upstreamBranch is the branch on the parent (flutter/engine.git). This is trying to get reference of the fork. Always getting it from master seems safest because master should always exist. Also as mentioned above, the SHA is not really important, it just needs to exist.",
+      "parentUuid": "375711a7_2d072165",
+      "range": {
+        "startLine": 58,
+        "startChar": 80,
+        "endLine": 58,
+        "endChar": 97
+      },
+      "revId": "79b023d028dda8fc61b54a56201664e2d699a94c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
