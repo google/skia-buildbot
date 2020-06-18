@@ -219,7 +219,7 @@ func TestGithubCipdDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a roll.
-	mockGithubRequests(t, urlMock)
+	mockGithubRequests(t, urlMock, cfg.ForkRepoURL)
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
@@ -245,7 +245,7 @@ func TestGithubCipdDEPSRepoManagerPreUploadSteps(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock)
+	mockGithubRequests(t, urlMock, cfg.ForkRepoURL)
 	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, createErr)
 	require.True(t, ran)
@@ -271,7 +271,7 @@ func TestGithubCipdDEPSRepoManagerPreUploadStepsError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock)
+	mockGithubRequests(t, urlMock, cfg.ForkRepoURL)
 	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.Error(t, expectedErr, createErr)
 	require.True(t, ran)

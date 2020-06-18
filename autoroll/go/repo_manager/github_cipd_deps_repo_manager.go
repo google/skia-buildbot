@@ -83,7 +83,7 @@ func NewGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoMana
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	uploadRoll := parent.GitCheckoutUploadGithubRollFunc(githubClient, cr.UserName(), rollerName)
+	uploadRoll := parent.GitCheckoutUploadGithubRollFunc(githubClient, cr.UserName(), rollerName, c.ForkRepoURL)
 	parentRM, err := parent.NewDEPSLocal(ctx, parentCfg, reg, httpClient, serverURL, workdir, cr.UserName(), cr.UserEmail(), recipeCfgFile, uploadRoll)
 	if err != nil {
 		return nil, skerr.Wrap(err)

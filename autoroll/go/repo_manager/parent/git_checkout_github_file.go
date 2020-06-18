@@ -44,7 +44,7 @@ func (c GitCheckoutGithubFileConfig) Validate() error {
 
 // NewGitCheckoutGithubFile returns a Parent which uses a local checkout and a
 // version file (eg. DEPS) to manage dependencies.
-func NewGitCheckoutGithubFile(ctx context.Context, c GitCheckoutGithubFileConfig, reg *config_vars.Registry, client *http.Client, githubClient *github.GitHub, serverURL, workdir, userName, userEmail string, co *git.Checkout) (*GitCheckoutParent, error) {
+func NewGitCheckoutGithubFile(ctx context.Context, c GitCheckoutGithubFileConfig, reg *config_vars.Registry, client *http.Client, githubClient *github.GitHub, serverURL, workdir, userName, userEmail, rollerName string, co *git.Checkout) (*GitCheckoutParent, error) {
 	// Pre-upload steps are run after setting the new dependency version and
 	// syncing, but before committing and uploading.
 	preUploadSteps, err := GetPreUploadSteps(c.PreUploadSteps)
@@ -85,5 +85,5 @@ func NewGitCheckoutGithubFile(ctx context.Context, c GitCheckoutGithubFileConfig
 		}
 		return strings.TrimSpace(out), nil
 	}
-	return NewGitCheckoutGithub(ctx, c.GitCheckoutGithubConfig, reg, githubClient, serverURL, workdir, userName, userEmail, co, createRoll)
+	return NewGitCheckoutGithub(ctx, c.GitCheckoutGithubConfig, reg, githubClient, serverURL, workdir, userName, userEmail, rollerName, co, createRoll)
 }
