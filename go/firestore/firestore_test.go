@@ -180,7 +180,7 @@ func TestIterDocs(t *testing.T) {
 
 	// Verify that stop and resume works when we hit the timeout.
 	found = make([]*testEntry, 0, total)
-	numRestarts, err := c.iterDocsInner(context.TODO(), q, attempts, timeout, appendEntry, func(time.Time) bool {
+	numRestarts, err := c.iterDocsInner(context.Background(), q, attempts, timeout, "", "", appendEntry, func(time.Time) bool {
 		return len(found) == 50
 	})
 	require.NoError(t, err)
