@@ -3,7 +3,10 @@ package parent
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
+
+	"github.com/google/uuid"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
@@ -11,14 +14,18 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
+)
+
+var (
+	REForkRepoURL = regexp.MustCompile(`^(git@github.com:|file:///)(.*)/(.*?)(\.git)?$`)
 )
 
 // GitCheckoutGithubConfig provides configuration for Parents which use a local
 // git checkout and upload changes to GitHub.
 type GitCheckoutGithubConfig struct {
 	GitCheckoutConfig
-	ForkBranchName string `json:"forkBranchName"`
-	ForkRepoURL    string `json:"forkRepoURL"`
+	ForkRepoURL string `json:"forkRepoURL"`
 }
 
 // See documentation for util.Validator interface.
@@ -29,12 +36,36 @@ func (c GitCheckoutGithubConfig) Validate() error {
 	if c.ForkRepoURL == "" {
 		return skerr.Fmt("ForkRepoURL is required")
 	}
+	matches := REForkRepoURL.FindStringSubmatch(c.ForkRepoURL)
+	if len(matches) != 5 {
+		return skerr.Fmt("ForkRepoURL is not in the expected format: %s", REForkRepoURL)
+	}
 	return nil
 }
 
 // GitCheckoutUploadGithubRollFunc returns
-func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, forkBranchName string) git_common.UploadRollFunc {
+func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, rollerName, forkRepoURL string) git_common.UploadRollFunc {
 	return func(ctx context.Context, co *git.Checkout, upstreamBranch, hash string, emails []string, dryRun bool, commitMsg string) (int64, error) {
+
+		// Generate a fork branch name.
+		forkBranchName := fmt.Sprintf("%s-%s", rollerName, uuid.New().String())
+		// Find forkRepo owner and name.
+		forkRepoMatches := REForkRepoURL.FindStringSubmatch(forkRepoURL)
+		forkRepoOwner := forkRepoMatches[2]
+		forkRepoName := forkRepoMatches[3]
+		// Find SHA of master branch to use when creating the fork branch. It does not really
+		// matter which SHA we use, we just have to use one that exists on the server. Always
+		// get the SHA from master because master should always exist.
+		forkMasterRef, err := githubClient.GetReference(forkRepoOwner, forkRepoName, "refs/heads/master")
+		if err != nil {
+			return 0, skerr.Wrap(err)
+		}
+		// Create the fork branch.
+		if err := githubClient.CreateReference(forkRepoOwner, forkRepoName, fmt.Sprintf("refs/heads/%s", forkBranchName), *forkMasterRef.Object.SHA); err != nil {
+			return 0, skerr.Wrap(err)
+		}
+		sklog.Infof("Created branch %s in %s with SHA %s", forkBranchName, forkRepoURL, *forkMasterRef.Object.SHA)
+
 		// Make sure the forked repo is at the same hash as the target repo
 		// before creating the pull request.
 		if _, err := co.Git(ctx, "push", "-f", github_common.GithubForkRemoteName, fmt.Sprintf("origin/%s", upstreamBranch)); err != nil {
@@ -80,13 +111,13 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, fork
 
 // NewGitCheckoutGithub returns an implementation of Parent which uses a local
 // git checkout and uploads pull requests to Github.
-func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *config_vars.Registry, githubClient *github.GitHub, serverURL, workdir, userName, userEmail string, co *git.Checkout, createRoll git_common.CreateRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *config_vars.Registry, githubClient *github.GitHub, serverURL, workdir, userName, userEmail, rollerName string, co *git.Checkout, createRoll git_common.CreateRollFunc) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	// See documentation for GitCheckoutUploadRollFunc.
-	uploadRoll := GitCheckoutUploadGithubRollFunc(githubClient, userName, c.ForkBranchName)
+	uploadRoll := GitCheckoutUploadGithubRollFunc(githubClient, userName, rollerName, c.ForkRepoURL)
 
 	// Create the GitCheckout Parent.
 	p, err := NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, co, createRoll, uploadRoll)

@@ -58,9 +58,9 @@ func TestGithubRepoManagerConfigValidation(t *testing.T) {
 	unittest.SmallTest(t)
 
 	cfg := githubRmCfg(t)
-	cfg.ChildRepoURL = "https://github.com/fake/child"
-	cfg.ForkRepoURL = "https://github.com/fake/fork"
-	cfg.ParentRepo = "https://github.com/fake/parent"
+	cfg.ChildRepoURL = "git@github.com:fake/child"
+	cfg.ForkRepoURL = "git@github.com:fake/fork"
+	cfg.ParentRepo = "git@github.com:fake/parent"
 	require.NoError(t, cfg.Validate())
 
 	// The only fields come from the nested Configs, so exclude them and
@@ -164,7 +164,7 @@ func setupFakeGithub(t *testing.T, ctx context.Context, childCommits []string) (
 	return g, urlMock
 }
 
-func mockGithubRequests(t *testing.T, urlMock *mockhttpclient.URLMock) {
+func mockGithubRequests(t *testing.T, urlMock *mockhttpclient.URLMock, forkRepoURL string) {
 	// Mock /pulls endpoint.
 	serializedPull, err := json.Marshal(&github_api.PullRequest{
 		Number: &testPullNumber,
@@ -180,6 +180,22 @@ func mockGithubRequests(t *testing.T, urlMock *mockhttpclient.URLMock) {
 `)
 	md = mockhttpclient.MockPostDialogueWithResponseCode(reqType, reqBody, nil, http.StatusCreated)
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345/comments", md)
+
+	// Mock /refs endpoints.
+	forkRepoMatches := parent.REForkRepoURL.FindStringSubmatch(forkRepoURL)
+	forkRepoOwner := forkRepoMatches[2]
+	forkRepoName := forkRepoMatches[3]
+	testSHA := "xyz"
+	serializedRef, err := json.Marshal(&github_api.Reference{
+		Object: &github_api.GitObject{
+			SHA: &testSHA,
+		},
+	})
+	require.NoError(t, err)
+	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs/%s", githubApiUrl, forkRepoOwner, forkRepoName, "heads%2Fmaster"), mockhttpclient.MockGetDialogue(serializedRef))
+	md = mockhttpclient.MockPostDialogueWithResponseCode(reqType, mockhttpclient.DONT_CARE_REQUEST, nil, http.StatusCreated)
+	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs", githubApiUrl, forkRepoOwner, forkRepoName), md)
+	require.NoError(t, err)
 }
 
 // TestGithubRepoManager tests all aspects of the Github RepoManager except for CreateNewRoll.
@@ -208,7 +224,7 @@ func TestGithubRepoManagerCreateNewRoll(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a roll.
-	mockGithubRequests(t, urlMock)
+	mockGithubRequests(t, urlMock, cfg.ForkRepoURL)
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
@@ -233,7 +249,7 @@ func TestGithubRepoManagerPreUploadSteps(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock)
+	mockGithubRequests(t, urlMock, cfg.ForkRepoURL)
 	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, createErr)
 	require.True(t, ran)
@@ -260,7 +276,7 @@ func TestGithubRepoManagerPreUploadStepsError(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a roll, assert that we ran the PreUploadSteps.
-	mockGithubRequests(t, urlMock)
+	mockGithubRequests(t, urlMock, cfg.ForkRepoURL)
 	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.Error(t, expectedErr, createErr)
 	require.True(t, ran)
