@@ -23,3 +23,17 @@ commit-detail-sk {
     display: none;
   }
 }
+
+@import '~elements-sk/themes/themes.css';
+
+.body-sk commit-detail-sk {
+  a,
+  .linkish {
+    text-decoration: underline;
+    color: var(--primary);
+  }
+
+  .tip {
+    border: solid var(--on-surface) 1px;
+  }
+}

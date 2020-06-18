@@ -8,6 +8,7 @@ import (
 	"github.com/skia-dev/go2ts"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/frontend"
 	"go.skia.org/infra/perf/go/regression"
@@ -30,6 +31,7 @@ func main() {
 		frontend.CountHandlerRequest{},
 		frontend.CountHandlerResponse{},
 		frontend.CommitDetailsRequest{},
+		cid.CommitDetail{},
 	})
 	if err != nil {
 		sklog.Fatal(err)
