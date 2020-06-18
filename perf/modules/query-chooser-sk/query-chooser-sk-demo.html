@@ -1,47 +1,29 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>query-chooser-sk</title>
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
+
 <body>
   <h1>query-chooser-sk</h1>
-  <query-chooser-sk count_url=/></query-chooser-sk>
+  <query-chooser-sk count_url= />
+  </query-chooser-sk>
+
+  <div class="body-sk">
+    <query-chooser-sk></query-chooser-sk>
+  </div>
+
+  <div class="body-sk darkmode">
+    <query-chooser-sk></query-chooser-sk>
+  </div>
+
 
   <h2>Events</h2>
   <pre id=events></pre>
-  <script type="text/javascript" charset="utf-8">
-    const q = document.querySelector('query-chooser-sk');
-    q.addEventListener('query-change', (e) => {
-      document.querySelector('#events').textContent = JSON.stringify(e.detail, null, '  ');
-    });
-
-    const paramset = {
-        "config": ["565", "8888"],
-        "type": ["CPU", "GPU"],
-        "units": ["ms", "bytes"],
-        "test": [
-          "DeferredSurfaceCopy_discardable",
-          "DeferredSurfaceCopy_nonDiscardable",
-          "GLInstancedArraysBench_instance",
-          "GLInstancedArraysBench_one_0",
-          "GLInstancedArraysBench_one_1",
-          "GLInstancedArraysBench_one_2",
-          "GLInstancedArraysBench_one_4",
-          "GLInstancedArraysBench_one_8",
-          "GLInstancedArraysBench_two_0",
-          "GLInstancedArraysBench_two_1",
-          "GLInstancedArraysBench_two_2",
-          "GLInstancedArraysBench_two_4",
-          "GLInstancedArraysBench_two_8",
-          "GLVec4ScalarBench_scalar_1_stage",
-          "GLVec4ScalarBench_scalar_2_stage",
-        ],
-      };
-    q.paramset = paramset;
-    q.key_order = ['test', 'units'];
-  </script>
 </body>
+
 </html>
