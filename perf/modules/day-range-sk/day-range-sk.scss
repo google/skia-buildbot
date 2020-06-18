@@ -1,6 +1,13 @@
+@import '~elements-sk/themes/themes.css';
+
 day-range-sk {
   label {
     display: block;
     margin: 0.4em;
   }
+}
+.body-sk day-range-sk input {
+  color: var(--on-surface);
+  border: solid 1px var(--on-surface);
+  background: var(--surface);
 }
