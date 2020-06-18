@@ -1,0 +1,25 @@
+{
+  'variables': {
+    'files': [
+      '../../../.gclient',
+      '../../ct/go/util/testdata/',
+      '../../docserverk/go/docset/testdata/',
+      '../../go/config/testdata/',
+      '../../go/fileutil/testdata/',
+      '../../go/swarming/testdata/',
+      '../../go/vcsinfo/testutils/testdata/',
+      '../../golden/go/diff/testdata/',
+      '../../golden/go/diffstore/testdata/',
+      '../../golden/go/ingestion/testdata/',
+      '../../golden/go/ingestion_processors/testdata/',
+      '../../golden/go/search/query/testdata/',
+      '../../kube/go/pushk/testdata/',
+      '../../perf/go/cid/testdata/',
+      '../../perf/go/config/testdata/',
+      '../../perf/go/file/dirsource/testdata/',
+      '../../perf/go/ingest/parser/testdata/',
+      '../../power/go/testdata/',
+      '../../sk8s/go/bot_config/machine/testdata/',
+    ],
+  },
+}

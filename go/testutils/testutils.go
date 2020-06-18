@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -21,6 +22,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/repo_root"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 )
 
@@ -36,13 +38,28 @@ func TestDataDir() (string, error) {
 	if !ok {
 		return "", fmt.Errorf("Could not find test data dir: runtime.Caller() failed.")
 	}
+	root, err := repo_root.Get()
+	if err != nil {
+		return "", err
+	}
+	sklog.Errorf("repo root: %s", root)
 	for skip := 0; ; skip++ {
 		_, file, _, ok := runtime.Caller(skip)
 		if !ok {
 			return "", fmt.Errorf("Could not find test data dir: runtime.Caller() failed.")
 		}
 		if file != thisFile {
-			return path.Join(path.Dir(file), "testdata"), nil
+			sklog.Errorf("file: %s", file)
+			fileRoot, err := repo_root.GetFromString(file)
+			if err != nil {
+				return "", err
+			}
+			sklog.Errorf("file root: %s", fileRoot)
+			virtualPath := strings.Replace(file, fileRoot, root, 1)
+			sklog.Errorf("virtual path: %s", virtualPath)
+			testDataDir := filepath.Join(filepath.Dir(virtualPath), "testdata")
+			sklog.Errorf("test data dir: %s", testDataDir)
+			return testDataDir, nil
 		}
 	}
 }
