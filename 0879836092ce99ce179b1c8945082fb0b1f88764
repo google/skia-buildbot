@@ -1,0 +1,303 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "63b5bc8b_87937fe8",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:08:59Z",
+      "side": 1,
+      "message": "Note to self: these events could be a bit more descriptive (same for query-dialog-sk), but not super urgent until after migration.",
+      "range": {
+        "startLine": 8,
+        "startChar": 5,
+        "endLine": 8,
+        "endChar": 9
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "a8b39489_968fa8d8",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:08:59Z",
+      "side": 1,
+      "message": "Add notes to the two RGBA deltas that valid range should be 0-255 (I don\u0027t think Typescript does that, unlike some Formal Methods tech one of my friends has been talking about).",
+      "range": {
+        "startLine": 29,
+        "startChar": 16,
+        "endLine": 29,
+        "endChar": 22
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f0329c5_be60b9fb",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:08:59Z",
+      "side": 1,
+      "message": "Would it be simpler to search for both inputs and just set the value on both (instead of needing to do the type\u003d selector)? IIRC, setting the value would not trigger an input event, so it shouldn\u0027t trigger an infinite cycle.",
+      "range": {
+        "startLine": 54,
+        "startChar": 10,
+        "endLine": 54,
+        "endChar": 23
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f37d68f3_5f2b7a45",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:08:59Z",
+      "side": 1,
+      "message": "I\u0027m a little confused by live here. \n1) I\u0027ve never seen this directive before, so I\u0027m reading the docs right now. \n2) From my understanding of the docs, I don\u0027t think live() will have any impact here. \n\"live() performs a strict equality check agains the live DOM value, and if\nthe new value is equal to the live value, does nothing. This means that\nlive() should not be used when the binding will cause a type conversion. If\nyou use live() with an attribute binding, make sure that only strings are\npassed in, or the binding will update every render.\"\n\nvalue is a number (thanks TypeScript), so I\u0027m wary of live here.\n\nCould you explain what the purpose of live is (or remove it)? An explanatory comment would be nice.",
+      "range": {
+        "startLine": 64,
+        "startChar": 22,
+        "endLine": 64,
+        "endChar": 26
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0bcdbcc7_ef8a9862",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:08:59Z",
+      "side": 1,
+      "message": "Maybe add a comment here that, for styling reasons, it\u0027s important that query-dialog-sk be a sibling to the other dialog.",
+      "range": {
+        "startLine": 81,
+        "startChar": 5,
+        "endLine": 81,
+        "endChar": 10
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3948629c_fbe02e31",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:08:59Z",
+      "side": 1,
+      "message": "This seems a little strange to me - I take it .submitButtonLabel\u003d\"Select\" doesn\u0027t work for various reasons?",
+      "range": {
+        "startLine": 81,
+        "startChar": 40,
+        "endLine": 81,
+        "endChar": 51
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f091b781_de049e4c",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:08:59Z",
+      "side": 1,
+      "message": "This is not correct. This metric can be any float value \u003e -1. If set to a non-zero value, it will be compared[1] against one of these [2] value, which can be above 1. Diff metric probably won\u0027t be above 20, but diff percent and pixels very well could be. I would recommend removing the slider for this one.\n\n[1] https://github.com/google/skia-buildbot/blob/fcf6dfc729de968ce35f051a764f7763c8ee3b24/golden/go/search/search.go#L767\n[2] https://screenshot.googleplex.com/1AJGjyo7mLG",
+      "range": {
+        "startLine": 121,
+        "startChar": 20,
+        "endLine": 121,
+        "endChar": 23
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "eccd33eb_3345e4df",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:08:59Z",
+      "side": 1,
+      "message": "Looking at this on Gold, I think it might be more understandable that Max diff and Metric went together if we had them on the same line. Maybe metric on the left, max diff on the right?",
+      "range": {
+        "startLine": 124,
+        "startChar": 19,
+        "endLine": 124,
+        "endChar": 25
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "58ab643b_92139447",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:08:59Z",
+      "side": 1,
+      "message": "From reading the docs, live only is intended for use with \u003cinput\u003e, right?",
+      "range": {
+        "startLine": 143,
+        "startChar": 32,
+        "endLine": 143,
+        "endChar": 36
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "113bee27_d2802f42",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:08:59Z",
+      "side": 1,
+      "message": "nit: Apply Filters",
+      "range": {
+        "startLine": 149,
+        "startChar": 69,
+        "endLine": 149,
+        "endChar": 75
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06274c84_951fc96b",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:08:59Z",
+      "side": 1,
+      "message": "Let\u0027s call this _filterSettings, which I find more clear than \"value\". (Especially with all the inputs and their \"value\" properties floating around).",
+      "range": {
+        "startLine": 158,
+        "startChar": 10,
+        "endLine": 158,
+        "endChar": 16
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67e96589_f6fe0e12",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:08:59Z",
+      "side": 1,
+      "message": "To go with an earlier comment, can we call these \"settings\"?",
+      "range": {
+        "startLine": 26,
+        "startChar": 8,
+        "endLine": 26,
+        "endChar": 13
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80c9b747_1fc0c6fc",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:08:59Z",
+      "side": 1,
+      "message": "Maybe call this simulateUserInteractions?",
+      "range": {
+        "startLine": 143,
+        "startChar": 8,
+        "endLine": 143,
+        "endChar": 25
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
