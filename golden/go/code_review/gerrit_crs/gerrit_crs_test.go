@@ -281,6 +281,40 @@ func TestCommentOnChangeListGerritError(t *testing.T) {
 	assert.Contains(t, err.Error(), "internet broke")
 }
 
+func TestCommentOnChangeList_CLNotFound_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mgi := &mocks.GerritInterface{}
+
+	const id = "235460"
+	// This error is based on a real error, which might not be gerrit.ErrNotFound for reasons
+	// that are unclear.
+	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(nil, errors.New("Got status 404 Not Found (404);"))
+
+	c := New(mgi)
+
+	err := c.CommentOn(context.Background(), id, "blurb")
+	require.Error(t, err)
+	assert.Equal(t, code_review.ErrNotFound, err)
+}
+
+func TestCommentOnChangeList_CLNotFound2_ReturnsError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	mgi := &mocks.GerritInterface{}
+
+	const id = "235460"
+	gci := getOpenChangeInfo()
+	mgi.On("GetIssueProperties", testutils.AnyContext, int64(235460)).Return(&gci, nil)
+	mgi.On("AddComment", testutils.AnyContext, &gci, "blurb").Return(errors.New("Got status 404 Not Found (404);"))
+
+	c := New(mgi)
+
+	err := c.CommentOn(context.Background(), id, "blurb")
+	require.Error(t, err)
+	assert.Equal(t, code_review.ErrNotFound, err)
+}
+
 // Based on a real-world query for a CL that is open and out for review
 // with 4 PatchSets
 func getOpenChangeInfo() gerrit.ChangeInfo {
