@@ -1,10 +1,11 @@
 @import '~elements-sk/colors';
 
+@import '~elements-sk/themes/themes.css';
+
 sort-sk {
   display: flex;
 
-
-  [data-sort-sk="up"] {
+  [data-sort-sk='up'] {
     arrow-drop-up-icon-sk {
       visibility: visible;
       display: inline-block;
@@ -14,7 +15,7 @@ sort-sk {
     }
   }
 
-  [data-sort-sk="down"] {
+  [data-sort-sk='down'] {
     arrow-drop-up-icon-sk {
       visibility: hidden;
       display: none;
