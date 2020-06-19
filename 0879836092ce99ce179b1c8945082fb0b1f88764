@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "767f635d_2ac29b6f",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T21:01:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a8b39489_968fa8d8",
+      "range": {
+        "startLine": 29,
+        "startChar": 16,
+        "endLine": 29,
+        "endChar": 22
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1f0329c5_be60b9fb",
         "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
         "patchSetId": 1
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "98550c7d_493298ad",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T21:01:57Z",
+      "side": 1,
+      "message": "I think only updating what needs updating is probably easier for the reader to understand.\n\nUpdating both might lead the reader to think there\u0027s an underlying reason for that, other than the programmer\u0027s convenience at the time of writing this code.",
+      "parentUuid": "1f0329c5_be60b9fb",
+      "range": {
+        "startLine": 54,
+        "startChar": 10,
+        "endLine": 54,
+        "endChar": 23
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f37d68f3_5f2b7a45",
         "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
         "patchSetId": 1
@@ -91,6 +139,30 @@
       "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "297b9785_2ad6b5c9",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T21:01:57Z",
+      "side": 1,
+      "message": "Left some comments.",
+      "parentUuid": "f37d68f3_5f2b7a45",
+      "range": {
+        "startLine": 64,
+        "startChar": 22,
+        "endLine": 64,
+        "endChar": 26
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -140,6 +212,54 @@
     },
     {
       "key": {
+        "uuid": "a2a5d1af_bb1523d7",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T21:01:57Z",
+      "side": 1,
+      "message": "Done.\n\nFYI: It\u0027s not for styling reasons alone, it\u0027s also for the selectors used by tests to target the right elements.",
+      "parentUuid": "0bcdbcc7_ef8a9862",
+      "range": {
+        "startLine": 81,
+        "startChar": 5,
+        "endLine": 81,
+        "endChar": 10
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5926907d_2fd8362a",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T21:01:57Z",
+      "side": 1,
+      "message": "That\u0027s right, lit-html property setters require a JS value. Failing to do this will literally produce .submitButonLabel\u003d\"Select\" in the generated HTML.",
+      "parentUuid": "3948629c_fbe02e31",
+      "range": {
+        "startLine": 81,
+        "startChar": 40,
+        "endLine": 81,
+        "endChar": 51
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f091b781_de049e4c",
         "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
         "patchSetId": 1
@@ -160,6 +280,30 @@
       "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d15718cc_d3d36178",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T21:01:57Z",
+      "side": 1,
+      "message": "Summary of our chat: This replicates what the current (Polymer-based) filter-dialog-sk does. As pointed out, this is incorrect (and therefore broken), and has been for a long time. We\u0027ve decided to remove this and the \"metric\" selector for now. We can always reintroduce it in the future if requested.",
+      "parentUuid": "f091b781_de049e4c",
+      "range": {
+        "startLine": 121,
+        "startChar": 20,
+        "endLine": 121,
+        "endChar": 23
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -186,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "b61f3085_12410cd9",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T21:01:57Z",
+      "side": 1,
+      "message": "We\u0027ll delete this field as per our conversation.",
+      "parentUuid": "eccd33eb_3345e4df",
+      "range": {
+        "startLine": 124,
+        "startChar": 19,
+        "endLine": 124,
+        "endChar": 25
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "58ab643b_92139447",
         "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
         "patchSetId": 1
@@ -206,6 +374,30 @@
       "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d2073e0_7e637d68",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T21:01:57Z",
+      "side": 1,
+      "message": "Inputs are probably the most common use case, but it works with any attribute or property that can change outside lit-html.",
+      "parentUuid": "58ab643b_92139447",
+      "range": {
+        "startLine": 143,
+        "startChar": 32,
+        "endLine": 143,
+        "endChar": 36
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -232,6 +424,30 @@
     },
     {
       "key": {
+        "uuid": "97c82488_904a33f6",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T21:01:57Z",
+      "side": 1,
+      "message": "Changed to Apply.",
+      "parentUuid": "113bee27_d2802f42",
+      "range": {
+        "startLine": 149,
+        "startChar": 69,
+        "endLine": 149,
+        "endChar": 75
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "06274c84_951fc96b",
         "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
         "patchSetId": 1
@@ -252,6 +468,30 @@
       "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f5eef5fc_bbf3998e",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T21:01:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "06274c84_951fc96b",
+      "range": {
+        "startLine": 158,
+        "startChar": 10,
+        "endLine": 158,
+        "endChar": 16
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -278,6 +518,30 @@
     },
     {
       "key": {
+        "uuid": "f3f89252_35ce4c1f",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T21:01:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "67e96589_f6fe0e12",
+      "range": {
+        "startLine": 26,
+        "startChar": 8,
+        "endLine": 26,
+        "endChar": 13
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "80c9b747_1fc0c6fc",
         "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk_test.ts",
         "patchSetId": 1
@@ -298,6 +562,30 @@
       "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4610e61d_d42b5194",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T21:01:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "80c9b747_1fc0c6fc",
+      "range": {
+        "startLine": 143,
+        "startChar": 8,
+        "endLine": 143,
+        "endChar": 25
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
