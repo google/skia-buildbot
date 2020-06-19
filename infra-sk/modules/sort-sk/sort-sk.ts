@@ -35,38 +35,42 @@
  * @attr target - The id of the container element whose children are to be sorted.
  *
  */
-import { define } from 'elements-sk/define'
-import { html } from 'lit-html'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
-import { $, $$ } from 'common-sk/modules/dom'
-import 'elements-sk/icon/arrow-drop-down-icon-sk'
-import 'elements-sk/icon/arrow-drop-up-icon-sk'
+import { define } from 'elements-sk/define';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { $, $$ } from 'common-sk/modules/dom';
+import 'elements-sk/icon/arrow-drop-down-icon-sk';
+import 'elements-sk/icon/arrow-drop-up-icon-sk';
+
+type SortDirection = 'down' | 'up';
 
 // The states to move each button through on a click.
-const toggle = {
-  '': 'down',
-  'down': 'up',
-  'up': 'down',
+const toggle = (value: string): SortDirection => {
+  return value === 'down' ? 'up' : 'down';
 };
 
+interface SortableEntry {
+  value: string | number;
+  node: HTMLElement;
+}
+
 // Functions to pass to sort().
-const f_alpha_up = (x, y) => {
+const f_alpha_up = (x: SortableEntry, y: SortableEntry) => {
   if (x.value === y.value) {
     return 0;
   }
-  return  x.value > y.value ? 1 : -1;
+  return x.value > y.value ? 1 : -1;
 };
-const f_alpha_down = (x, y) => f_alpha_up(y, x);
-const f_num_up = (x, y) => (x.value - y.value);
-const f_num_down = (x, y) => f_num_up(y, x);
+const f_alpha_down = (x: SortableEntry, y: SortableEntry) => f_alpha_up(y, x);
+const f_num_up = (x: SortableEntry, y: SortableEntry) => x.value - y.value;
+const f_num_down = (x: SortableEntry, y: SortableEntry) => f_num_up(y, x);
 
-define('sort-sk', class extends ElementSk {
+export class SortSk extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     $('[data-key]', this).forEach((ele) => {
       // Only attach the icons once.
       if (ele.querySelector('arrow-drop-down-icon-sk')) {
-        return
+        return;
       }
       ele.appendChild(document.createElement('arrow-drop-down-icon-sk'));
       ele.appendChild(document.createElement('arrow-drop-up-icon-sk'));
@@ -74,7 +78,7 @@ define('sort-sk', class extends ElementSk {
     });
 
     // Handle a default value if one has been set.
-    const def = $$('[data-default]', this);
+    const def = $$<HTMLElement>('[data-default]', this)!;
     if (def) {
       this._setSortClass(def, def.dataset.default);
     }
@@ -92,13 +96,16 @@ define('sort-sk', class extends ElementSk {
     return ele.getAttribute('data-sort-sk') || '';
   }
 
-  _clickHandler(e) {
-    let ele = e.target;
-    while (ele.parentNode !== this) {
-      ele = ele.parentNode;
+  _clickHandler(e: Event) {
+    let ele = e.target! as HTMLElement;
+    while (ele.parentElement !== this) {
+      if (ele.parentElement === null) {
+        break;
+      }
+      ele = ele.parentElement;
     }
 
-    const dir = toggle[this._getSortClass(ele)];
+    const dir = toggle(this._getSortClass(ele));
 
     $('[data-key]', this).forEach((e) => {
       this._clearSortClass(e);
@@ -112,17 +119,23 @@ define('sort-sk', class extends ElementSk {
     let alpha = ele.dataset.sortType === 'alpha';
 
     // Sort the children of the element at #target.
-    let sortBy = ele.dataset.key;
-    let container = this.parentElement.querySelector(`#${this.getAttribute('target')}`);
-    let arr = [];
+    let sortBy = ele.dataset.key || '(key not found)';
+    let container = this.parentElement!.querySelector(
+      `#${this.getAttribute('target')}`
+    );
+    if (container === null) {
+      throw "Failed to find 'target' attribute.";
+    }
+    let arr: SortableEntry[] = [];
     for (const ele of container.children) {
-      let value = ele.dataset[sortBy];
+      const htmlEle = ele as HTMLElement;
+      let value: string | number = htmlEle.dataset[sortBy] || '';
       if (!alpha) {
         value = +value;
       }
       arr.push({
         value: value,
-        node: ele
+        node: htmlEle,
       });
     }
 
@@ -140,5 +153,6 @@ define('sort-sk', class extends ElementSk {
       container.appendChild(e.node);
     });
   }
-});
+}
 
+define('sort-sk', SortSk);
