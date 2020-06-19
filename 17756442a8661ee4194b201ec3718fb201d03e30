@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "db623148_4ac00e47",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T17:55:39Z",
+      "side": 1,
+      "message": "Nit: Blank line before the table.",
+      "revId": "17756442a8661ee4194b201ec3718fb201d03e30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36dfab43_71ff7bda",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T17:55:39Z",
+      "side": 1,
+      "message": "Nit: Please either separate these two paragraphs with a blank line, or eliminate the early line break if this is intended to be one single paragraph.",
+      "revId": "17756442a8661ee4194b201ec3718fb201d03e30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1223d1d_13fa6b74",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T17:55:39Z",
+      "side": 1,
+      "message": "Can you elaborate on why it\u0027s OK not to shard in this case, from a performance perspective?",
+      "range": {
+        "startLine": 186,
+        "startChar": 33,
+        "endLine": 186,
+        "endChar": 47
+      },
+      "revId": "17756442a8661ee4194b201ec3718fb201d03e30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
