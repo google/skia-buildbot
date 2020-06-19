@@ -22,6 +22,30 @@
       "revId": "4ffd6578fa0a829f68c16a600ce056df4cd2fcfa",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04fd4227_c7cd0230",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 806,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T18:05:03Z",
+      "side": 1,
+      "message": "When I say FIXME, it\u0027s meant to not be uploaded or submitted. I missed it and reverted in PS3",
+      "parentUuid": "f51b0b09_c90d5540",
+      "range": {
+        "startLine": 806,
+        "startChar": 0,
+        "endLine": 806,
+        "endChar": 12
+      },
+      "revId": "4ffd6578fa0a829f68c16a600ce056df4cd2fcfa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
