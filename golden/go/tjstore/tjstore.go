@@ -28,7 +28,9 @@ type Store interface {
 	GetTryJobs(ctx context.Context, psID CombinedPSID) ([]ci.TryJob, error)
 
 	// GetResults returns any TryJobResults for a given ChangeList and PatchSet.
-	// The returned slice could be empty and is not sorted.
+	// The returned slice could be empty and is not sorted. If updatedAfter is not
+	// a zero time, it will be used to return the subset of results created on or after
+	// the given time.
 	GetResults(ctx context.Context, psID CombinedPSID, updatedAfter time.Time) ([]TryJobResult, error)
 
 	// PutTryJob stores the given TryJob, overwriting any values for
@@ -38,10 +40,11 @@ type Store interface {
 
 	// PutResults stores the given TryJobResult. The TryJobResults will "belong"
 	// to the associated ChangeList and PatchSet. tjID is the SystemID of the TryJob which
-	// produced the TryJobResults.
+	// produced the TryJobResults. ts is the timestamp that will be used to mark the creating
+	// time of these results (see GetResults).
 	// Of note, a typical Skia TryJob might have 5-10k TryJobResult objects.
 	// An error may mean partial success.
-	PutResults(ctx context.Context, psID CombinedPSID, tjID, cisName string, r []TryJobResult) error
+	PutResults(ctx context.Context, psID CombinedPSID, tjID, cisName string, r []TryJobResult, ts time.Time) error
 }
 
 var ErrNotFound = errors.New("not found")
