@@ -46,7 +46,6 @@
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="bower_components/iron-icons/image-icons.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
-<link rel="import" href="filter-dialog-sk.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="search-controls-sk">
@@ -146,7 +145,6 @@
         setState: function(state, fireEvent) {
           this._noFire = !fireEvent;
           this.set('state', sk.object.shallowCopy(state));
-          this.$.filterDialog.setValue(this.state);
           const query = sk.query.toParamSet(state.query);
           const corporaSelected = query['source_type'];
           if (corporaSelected && corporaSelected.length) {
@@ -158,12 +156,12 @@
 
         setParamSet: function(params) {
           // The Polymer version of query-dialog-sk used to blacklist source_type, so we filter it
-          // out here before it's passed to the lit-html version of query-dialog-sk on method
-          // _handleSearchButton below.
-          this._paramSetForQueryDialogSk = JSON.parse(JSON.stringify(params));
-          delete this._paramSetForQueryDialogSk['source_type'];
+          // out here before it's passed to the lit-html version of query-dialog-sk and
+          // filter-dialog-sk on methods _handleSearchButton and _handleFilterButton below,
+          // respectively.
+          this._paramSet = JSON.parse(JSON.stringify(params));
+          delete this._paramSet['source_type'];
 
-          this.$.filterDialog.setParamSet(params);
           // TODO(kjlubick) in the lit-html version, this should reflect of digests as matched by
           //   the positive/negative/diff selector (i.e. the things above it).
           const corpora = params['source_type'].map((name) => {
@@ -174,8 +172,8 @@
           this.$.corpusSelector.corpora = corpora;
         },
 
+        // TODO(lovisolo): Remove when migrating to lit-html.
         setCommitInfo: function(commits) {
-          this.$.filterDialog.setCommitInfo(commits);
         },
 
         _handleQueryEdit: function(ev) {
@@ -193,8 +191,15 @@
 
         _handleFilterEdit: function(ev) {
           ev.stopPropagation();
+
           // merge filter into state
-          var newState = sk.object.applyDelta(ev.detail, this.state);
+          const newState = JSON.parse(JSON.stringify(this.state));
+          newState.rquery = sk.query.fromParamSet(ev.detail.diffConfig);
+          newState.frgbamin = ev.detail.minRGBADelta;
+          newState.frgbamax = ev.detail.maxRGBADelta;
+          newState.sort = ev.detail.sortOrder === 'ascending' ? 'asc' : 'desc';
+          newState.fref = ev.detail.mustHaveReferenceImage;
+
           this.set('state', newState);
         },
 
@@ -207,12 +212,19 @@
           delete queryParamSet["source_type"];
           const query = sk.query.fromParamSet(queryParamSet);
 
-          this.$.queryDialog.open(this._paramSetForQueryDialogSk, query);
+          this.$.queryDialog.open(this._paramSet, query);
         },
 
         _handleFilterButton: function(ev) {
           ev.stopPropagation();
-          this.$.filterDialog.open(this.state.filter);
+          const value = {
+            diffConfig: sk.query.toParamSet(this.state.rquery),
+            minRGBADelta: this.state.frgbamin,
+            maxRGBADelta: this.state.frgbamax,
+            sortOrder: this.state.sort === 'asc' ? 'ascending' : 'descending',
+            mustHaveReferenceImage: this.state.fref
+          };
+          this.$.filterDialog.open(this._paramSet, value);
         },
 
         _handleCorpusChange: function(ev) {

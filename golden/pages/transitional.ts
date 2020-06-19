@@ -10,6 +10,7 @@ import '../modules/corpus-selector-sk';
 import '../modules/digest-details-sk';
 import '../modules/dots-legend-sk';
 import '../modules/dots-sk';
+import '../modules/filter-dialog-sk';
 import '../modules/multi-zoom-sk';
 import '../modules/query-dialog-sk';
 import '../modules/triage-history-sk';
