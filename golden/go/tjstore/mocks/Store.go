@@ -8,6 +8,8 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	continuous_integration "go.skia.org/infra/golden/go/continuous_integration"
 
+	time "time"
+
 	tjstore "go.skia.org/infra/golden/go/tjstore"
 )
 
@@ -16,13 +18,13 @@ type Store struct {
 	mock.Mock
 }
 
-// GetResults provides a mock function with given fields: ctx, psID
-func (_m *Store) GetResults(ctx context.Context, psID tjstore.CombinedPSID) ([]tjstore.TryJobResult, error) {
-	ret := _m.Called(ctx, psID)
+// GetResults provides a mock function with given fields: ctx, psID, updatedAfter
+func (_m *Store) GetResults(ctx context.Context, psID tjstore.CombinedPSID, updatedAfter time.Time) ([]tjstore.TryJobResult, error) {
+	ret := _m.Called(ctx, psID, updatedAfter)
 
 	var r0 []tjstore.TryJobResult
-	if rf, ok := ret.Get(0).(func(context.Context, tjstore.CombinedPSID) []tjstore.TryJobResult); ok {
-		r0 = rf(ctx, psID)
+	if rf, ok := ret.Get(0).(func(context.Context, tjstore.CombinedPSID, time.Time) []tjstore.TryJobResult); ok {
+		r0 = rf(ctx, psID, updatedAfter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]tjstore.TryJobResult)
@@ -30,8 +32,8 @@ func (_m *Store) GetResults(ctx context.Context, psID tjstore.CombinedPSID) ([]t
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, tjstore.CombinedPSID) error); ok {
-		r1 = rf(ctx, psID)
+	if rf, ok := ret.Get(1).(func(context.Context, tjstore.CombinedPSID, time.Time) error); ok {
+		r1 = rf(ctx, psID, updatedAfter)
 	} else {
 		r1 = ret.Error(1)
 	}

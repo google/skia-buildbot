@@ -171,8 +171,9 @@ func (s *StoreImpl) GetTryJobs(ctx context.Context, psID tjstore.CombinedPSID) (
 	return xtj, nil
 }
 
-// GetResults implements the tjstore.Store interface.
-func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID) ([]tjstore.TryJobResult, error) {
+// GetResults implements the tjstore.Store interface. TODO(kjlubick) add support for updatedAfter
+// after the updated ingestion logic has baked in, filling the results with timestamps.
+func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID, updatedAfter time.Time) ([]tjstore.TryJobResult, error) {
 	defer metrics2.FuncTimer().Stop()
 	q := s.client.Collection(tjResultCollection).Where(crsField, "==", psID.CRS).
 		Where(changeListIDField, "==", psID.CL).Where(patchSetIDField, "==", psID.PS)

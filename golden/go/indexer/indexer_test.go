@@ -272,7 +272,7 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 		"day_of_week": "wednesday",
 	}
 
-	mts.On("GetResults", testutils.AnyContext, firstCombinedID).Return([]tjstore.TryJobResult{
+	mts.On("GetResults", testutils.AnyContext, firstCombinedID, time.Time{}).Return([]tjstore.TryJobResult{
 		{
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
 			GroupParams:  androidGroup,
@@ -293,7 +293,7 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 			Digest:       data.AlphaUntriagedDigest,
 		},
 	}, nil)
-	mts.On("GetResults", testutils.AnyContext, secondCombinedID).Return([]tjstore.TryJobResult{
+	mts.On("GetResults", testutils.AnyContext, secondCombinedID, time.Time{}).Return([]tjstore.TryJobResult{
 		{
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
 			GroupParams:  androidGroup,
@@ -361,7 +361,7 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 	assert.Equal(t, int64(2), ixr.changeListsReindexed.Get())
 }
 
-func TestIndexer_CalcChangeListIndices_HasPreviousIndex_Success(t *testing.T) {
+func TestIndexer_CalcChangeListIndices_HasIndexForPreviousPS_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const crs = "gerrit"
@@ -406,7 +406,7 @@ func TestIndexer_CalcChangeListIndices_HasPreviousIndex_Success(t *testing.T) {
 		"model": "crosshatch",
 	}
 
-	mts.On("GetResults", testutils.AnyContext, secondPatchSetCombinedID).Return([]tjstore.TryJobResult{
+	mts.On("GetResults", testutils.AnyContext, secondPatchSetCombinedID, time.Time{}).Return([]tjstore.TryJobResult{
 		{
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
 			GroupParams:  androidGroup,
@@ -475,6 +475,121 @@ func TestIndexer_CalcChangeListIndices_HasPreviousIndex_Success(t *testing.T) {
 	assert.True(t, clIdx.ComputedTS.After(longAgo)) // should be updated
 	assert.Len(t, clIdx.UntriagedResults, 1)
 	assert.Equal(t, data.AlphaUntriagedDigest, clIdx.UntriagedResults[0].Digest)
+	require.NotNil(t, clIdx.ParamSet)
+	clIdx.ParamSet.Normalize()
+	assert.Equal(t, paramtools.ParamSet{
+		"model": []string{"bluefish", "crosshatch", "redfish"},
+		"name":  []string{"test_alpha", "this_test_was_here_before"},
+		"os":    []string{"Android", "iOS"},
+	}, clIdx.ParamSet)
+	assert.Equal(t, int64(1), ixr.changeListsReindexed.Get())
+}
+
+func TestIndexer_CalcChangeListIndices_HasIndexForCurrentPS_IncrementalUpdateSuccess(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const crs = "gerrit"
+	const clID = "111111"
+	const firstPatchSet = "firstPS"
+	const firstUntriagedDigest = types.Digest("11111111111111111111")
+	const secondUntriagedDigest = types.Digest("22222222222222222222")
+	const thirdUntriagedDigest = types.Digest("33333333333333333333")
+
+	firstPatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: crs, PS: firstPatchSet}
+
+	longAgo := time.Date(2020, time.April, 15, 15, 15, 0, 0, time.UTC)
+	recently := time.Date(2020, time.May, 5, 12, 12, 0, 0, time.UTC)
+
+	mcs := &mock_clstore.Store{}
+	mes := &mock_expectations.Store{}
+	mts := &mock_tjstore.Store{}
+
+	// All digests are untriaged
+	masterExp := expectations.Expectations{}
+
+	// The CL has no additional expectations.
+	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
+	loadChangeListExpectations(mes, crs, map[string]*expectations.Expectations{
+		clID: {},
+	})
+
+	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return([]code_review.ChangeList{
+		{
+			SystemID: clID,
+			Updated:  recently,
+		},
+	}, 0, nil)
+
+	mcs.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
+		{SystemID: firstPatchSet}, // all other fields ignored from patch set.
+	}, nil)
+	mcs.On("System").Return(crs)
+
+	androidGroup := paramtools.Params{
+		"os":    "Android",
+		"model": "crosshatch",
+	}
+
+	// Note that this time is based on the previous indexed time.
+	mts.On("GetResults", testutils.AnyContext, firstPatchSetCombinedID, longAgo).Return([]tjstore.TryJobResult{
+		{
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			GroupParams:  androidGroup,
+			Digest:       secondUntriagedDigest,
+		},
+		{
+			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+			GroupParams:  androidGroup,
+			Digest:       thirdUntriagedDigest,
+		},
+	}, nil)
+
+	ctx := context.Background()
+	ic := IndexerConfig{
+		CLStore:           mcs,
+		ExpectationsStore: mes,
+		TryJobStore:       mts,
+	}
+	ixr, err := New(ctx, ic, 0)
+	require.NoError(t, err)
+	ixr.changeListsReindexed.Reset()
+
+	// The scenario here is that the first index for this patchset identified two untriaged digests.
+	// Later, .
+	previousIdx := ChangeListIndex{
+		LatestPatchSet: firstPatchSetCombinedID,
+		UntriagedResults: []tjstore.TryJobResult{
+			{
+				ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+				Digest:       firstUntriagedDigest,
+				// Other fields ignored
+			},
+			{
+				ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
+				Digest:       secondUntriagedDigest,
+			},
+		},
+		ParamSet: paramtools.ParamSet{
+			// This ParamSet is purposely incomplete (i.e. no data.AlphaTest) to make sure new data is
+			// merged in correctly.
+			types.PrimaryKeyField: []string{"this_test_was_here_before"},
+			"os":                  []string{"Android", "iOS"},
+			"model":               []string{"bluefish", "redfish"},
+		},
+		ComputedTS: longAgo,
+	}
+	ixr.changeListIndices.Set("gerrit_111111", &previousIdx, 0)
+
+	ixr.calcChangeListIndices(ctx)
+
+	clIdx := ixr.GetIndexForCL(crs, clID)
+	assert.NotNil(t, clIdx)
+	assert.Equal(t, firstPatchSetCombinedID, clIdx.LatestPatchSet)
+	assert.True(t, clIdx.ComputedTS.After(longAgo)) // should be updated
+	assert.Len(t, clIdx.UntriagedResults, 3)
+	assert.Equal(t, firstUntriagedDigest, clIdx.UntriagedResults[0].Digest)
+	assert.Equal(t, secondUntriagedDigest, clIdx.UntriagedResults[1].Digest)
+	assert.Equal(t, thirdUntriagedDigest, clIdx.UntriagedResults[2].Digest)
 	require.NotNil(t, clIdx.ParamSet)
 	clIdx.ParamSet.Normalize()
 	assert.Equal(t, paramtools.ParamSet{
