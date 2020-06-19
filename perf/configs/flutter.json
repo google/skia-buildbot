@@ -15,7 +15,10 @@
       "source_type": "gcs",
       "project": "skia-public",
       "topic": "perf-ingestion-flutter",
-      "sources": ["gs://flutter-skia-perf/flutter-engine"]
+      "sources": [
+        "gs://flutter-skia-perf/flutter-engine",
+        "gs://flutter-skia-perf/flutter-flutter"
+      ]
     },
     "branches": [],
     "file_ingestion_pubsub_topic_name": ""
