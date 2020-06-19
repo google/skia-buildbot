@@ -749,7 +749,7 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 	}
 
 	// An arbitrary cut off to the amount of recent, open CLs we try to index.
-	recent := time.Now().Add(-maxAgeOfOpenCLsToIndex)
+	recent := now.Add(-maxAgeOfOpenCLsToIndex)
 	xcl, _, err := ix.CLStore.GetChangeLists(ctx, clstore.SearchOptions{
 		StartIdx:    0,
 		Limit:       maxCLsToIndex,
@@ -803,11 +803,19 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 					CRS: crs,
 					PS:  latestPS.SystemID,
 				}
-				xtjr, err := ix.TryJobStore.GetResults(ctx, psID)
+				afterTime := time.Time{}
+				var existingUntriagedResults []tjstore.TryJobResult
+				// Test to see if we can do an incremental index (just for results that were uploaded
+				// for this patchset since the last time we indexed).
+				if ok && clIdx.LatestPatchSet.PS == latestPS.SystemID {
+					afterTime = clIdx.ComputedTS
+					existingUntriagedResults = clIdx.UntriagedResults
+				}
+				xtjr, err := ix.TryJobStore.GetResults(ctx, psID, afterTime)
 				if err != nil {
 					return skerr.Wrap(err)
 				}
-				untriagedResults, params := indexTryJobResults(xtjr, exps)
+				untriagedResults, params := indexTryJobResults(existingUntriagedResults, xtjr, exps)
 				// Copy the existing ParamSet into the newly created one. It is important to copy it from
 				// old into new (and not new into old), so we don't cause a race condition on the cached
 				// ParamSet by writing to it while GetIndexForCL is reading from it.
@@ -829,19 +837,40 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 // indexTryJobResults goes through all the TryJobResults and returns results useful for indexing.
 // Concretely, these results are a slice with just the untriaged results and a ParamSet with the
 // observed params.
-func indexTryJobResults(xtjr []tjstore.TryJobResult, exps expectations.Classifier) ([]tjstore.TryJobResult, paramtools.ParamSet) {
-	var untriagedResults []tjstore.TryJobResult
+func indexTryJobResults(existing, newResults []tjstore.TryJobResult, exps expectations.Classifier) ([]tjstore.TryJobResult, paramtools.ParamSet) {
 	params := paramtools.ParamSet{}
-	for _, tjr := range xtjr {
+	var newlyUntriagedResults []tjstore.TryJobResult
+	for _, tjr := range newResults {
 		params.AddParams(tjr.GroupParams)
 		params.AddParams(tjr.ResultParams)
 		params.AddParams(tjr.Options)
 		tn := types.TestName(tjr.ResultParams[types.PrimaryKeyField])
 		if exps.Classification(tn, tjr.Digest) == expectations.Untriaged {
-			untriagedResults = append(untriagedResults, tjr)
+			// If the same digest somehow shows up twice (maybe because of how we
+			alreadyInList := false
+			for _, existingResult := range existing {
+				if existingResult.Digest == tjr.Digest && existingResult.ResultParams[types.PrimaryKeyField] == tjr.ResultParams[types.PrimaryKeyField] {
+					alreadyInList = true
+					break
+				}
+			}
+			if !alreadyInList {
+				newlyUntriagedResults = append(newlyUntriagedResults, tjr)
+			}
 		}
 	}
-	return untriagedResults, params
+	if len(newlyUntriagedResults) == 0 {
+		return existing, params
+	}
+
+	if len(existing) == 0 {
+		return newlyUntriagedResults, params
+	}
+	// make a copy of the slice, so as not to confuse the existing index.
+	combined := make([]tjstore.TryJobResult, 0, len(existing)+len(newlyUntriagedResults))
+	combined = append(combined, existing...)
+	combined = append(combined, newlyUntriagedResults...)
+	return combined, params
 }
 
 // getCLIndex is a helper that returns the appropriately typed element from changeListIndices.

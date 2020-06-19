@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"go.skia.org/infra/go/paramtools"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
@@ -28,7 +29,7 @@ type Store interface {
 
 	// GetResults returns any TryJobResults for a given ChangeList and PatchSet.
 	// The returned slice could be empty and is not sorted.
-	GetResults(ctx context.Context, psID CombinedPSID) ([]TryJobResult, error)
+	GetResults(ctx context.Context, psID CombinedPSID, updatedAfter time.Time) ([]TryJobResult, error)
 
 	// PutTryJob stores the given TryJob, overwriting any values for
 	// that TryJob if they already existed. The TryJob will "belong" to the
