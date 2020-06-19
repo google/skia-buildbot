@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1e0d0990_671fab1a",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:32:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a70005f_2ddea109",
+      "range": {
+        "startLine": 15,
+        "startChar": 3,
+        "endLine": 15,
+        "endChar": 5
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "edd84b58_4985baff",
         "filename": "golden/pages/help.html",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bd140f06_8b095c74",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:32:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "edd84b58_4985baff",
+      "range": {
+        "startLine": 18,
+        "startChar": 7,
+        "endLine": 18,
+        "endChar": 8
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "f25fa0ce_499bb779",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:32:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6602098d_0222a536",
+      "range": {
+        "startLine": 19,
+        "startChar": 73,
+        "endLine": 19,
+        "endChar": 77
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "97cca904_5748242e",
         "filename": "golden/pages/help.html",
         "patchSetId": 1
@@ -91,6 +163,30 @@
       "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aec1a423_db8b8152",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:32:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "97cca904_5748242e",
+      "range": {
+        "startLine": 28,
+        "startChar": 69,
+        "endLine": 28,
+        "endChar": 95
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "0902909e_c00c5be7",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:32:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1e4fe5e4_492bc10e",
+      "range": {
+        "startLine": 29,
+        "startChar": 15,
+        "endLine": 29,
+        "endChar": 31
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0e03311e_45390c33",
         "filename": "golden/pages/help.html",
         "patchSetId": 1
@@ -137,6 +257,30 @@
       "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e920e6c2_b58c3b32",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:32:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0e03311e_45390c33",
+      "range": {
+        "startLine": 31,
+        "startChar": 16,
+        "endLine": 31,
+        "endChar": 26
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "f7f6cf6c_8e216eb8",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:32:48Z",
+      "side": 1,
+      "message": "Probably, but I\u0027m going to leave it as is for now.",
+      "parentUuid": "6e7e42f5_2be3cee3",
+      "range": {
+        "startLine": 31,
+        "startChar": 76,
+        "endLine": 33,
+        "endChar": 58
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ffb010a6_9b1ba6cd",
         "filename": "golden/pages/help.html",
         "patchSetId": 1
@@ -183,6 +351,30 @@
       "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa05dc4f_9b92470a",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:32:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "ffb010a6_9b1ba6cd",
+      "range": {
+        "startLine": 38,
+        "startChar": 30,
+        "endLine": 38,
+        "endChar": 34
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "91f482ed_fa620d09",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:32:48Z",
+      "side": 1,
+      "message": "Going to leave as is for now. Wordsmithing can happen as we go.",
+      "parentUuid": "612c624e_af7dc67f",
+      "range": {
+        "startLine": 39,
+        "startChar": 12,
+        "endLine": 39,
+        "endChar": 71
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4ca1deb9_61c3f4de",
         "filename": "golden/pages/help.html",
         "patchSetId": 1
@@ -229,6 +445,30 @@
       "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7965acca_24be041c",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:32:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4ca1deb9_61c3f4de",
+      "range": {
+        "startLine": 46,
+        "startChar": 58,
+        "endLine": 46,
+        "endChar": 77
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "0e391da0_4be14e1d",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:32:48Z",
+      "side": 1,
+      "message": "This CL is meant to be a first draft, something more useful than what was. I eventually want this page to have links and diagrams etc, but that\u0027s not the goal right now.",
+      "parentUuid": "71972dfd_487a4e65",
+      "range": {
+        "startLine": 56,
+        "startChar": 8,
+        "endLine": 56,
+        "endChar": 19
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2be63a7e_02fe662c",
         "filename": "golden/pages/help.html",
         "patchSetId": 1
@@ -275,6 +539,30 @@
       "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d168b2a4_5573c836",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:32:48Z",
+      "side": 1,
+      "message": "That additional sentence feels a bit wordy (we have just explained the same thing three times).",
+      "parentUuid": "2be63a7e_02fe662c",
+      "range": {
+        "startLine": 65,
+        "startChar": 14,
+        "endLine": 65,
+        "endChar": 88
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "84543334_46fa0dd1",
+        "filename": "golden/pages/help.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:32:48Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d16cdc77_3fe375d9",
+      "range": {
+        "startLine": 66,
+        "startChar": 15,
+        "endLine": 66,
+        "endChar": 41
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fd4f7c29_1e7dc22a",
         "filename": "golden/pages/help.ts",
         "patchSetId": 1
@@ -322,6 +634,30 @@
       "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13939ded_1588504d",
+        "filename": "golden/pages/help.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T12:32:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fd4f7c29_1e7dc22a",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 0
+      },
+      "revId": "0a6b024f03bb22ed49db7d1bd5b70e9ac14bf135",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
