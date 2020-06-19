@@ -102,7 +102,7 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet()).Return(nil).Once()
 
 	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil).Once()
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults()).Return(nil).Once()
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults(), anyTime).Return(nil).Once()
 
 	gtp := goldTryjobProcessor{
 		changeListStore: mcls,
@@ -143,7 +143,7 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 
 	combinedID := tjstore.CombinedPSID{CL: githubCLID, PS: githubPSID, CRS: "github"}
 	mtjs.On("PutTryJob", testutils.AnyContext, combinedID, makeGitHubCirrusTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, combinedID, githubTJID, cirrusCIS, makeGitHubTryJobResults()).Return(nil)
+	mtjs.On("PutResults", testutils.AnyContext, combinedID, githubTJID, cirrusCIS, makeGitHubTryJobResults(), anyTime).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		changeListStore: mcls,
@@ -253,7 +253,7 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
 
 	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults()).Return(nil)
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults(), anyTime).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		changeListStore: mcls,
@@ -290,7 +290,7 @@ func TestTryJobProcessCLExistsPreviouslyAbandoned(t *testing.T) {
 	mcls.On("PutChangeList", testutils.AnyContext, clWithUpdatedTime(t, gerritCLID, gerritCLDate)).Return(nil)
 
 	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults()).Return(nil)
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults(), anyTime).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		changeListStore: mcls,
@@ -324,7 +324,7 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 	mcls.On("PutPatchSet", testutils.AnyContext, makeGerritPatchSet()).Return(nil)
 
 	mtjs.On("PutTryJob", testutils.AnyContext, gerritCombinedID, makeGerritBuildbucketTryJob()).Return(nil)
-	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults()).Return(nil)
+	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults(), anyTime).Return(nil)
 
 	gtp := goldTryjobProcessor{
 		changeListStore: mcls,
@@ -368,6 +368,8 @@ var (
 	gerritCombinedID = tjstore.CombinedPSID{CL: gerritCLID, PS: gerritPSID, CRS: gerritCRS}
 
 	gerritCLDate = time.Date(2019, time.August, 19, 18, 17, 16, 0, time.UTC)
+
+	anyTime = mock.MatchedBy(func(time.Time) bool { return true })
 )
 
 // These are functions to avoid mutations causing issues for future tests/checks

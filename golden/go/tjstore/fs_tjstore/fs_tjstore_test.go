@@ -244,7 +244,7 @@ func TestPutGetResults(t *testing.T) {
 		})
 	}
 
-	err := f.PutResults(ctx, psID, firstTJID, cis, xtr)
+	err := f.PutResults(ctx, psID, firstTJID, cis, xtr, time.Now())
 	assert.NoError(t, err)
 
 	gp = paramtools.Params{
@@ -273,7 +273,7 @@ func TestPutGetResults(t *testing.T) {
 		Digest: fakeDigest("crust", 4),
 	})
 
-	err = f.PutResults(ctx, psID, secondTJID, cis, xtr)
+	err = f.PutResults(ctx, psID, secondTJID, cis, xtr, time.Now())
 	assert.NoError(t, err)
 
 	otherPSID := tjstore.CombinedPSID{
@@ -291,7 +291,7 @@ func TestPutGetResults(t *testing.T) {
 			types.PrimaryKeyField: "test-4",
 		},
 		Digest: "abcdef",
-	}})
+	}}, time.Now())
 	assert.NoError(t, err)
 
 	xtr, err = f.GetResults(ctx, psID, time.Time{})
@@ -313,6 +313,98 @@ func TestPutGetResults(t *testing.T) {
 	}
 	assert.Equal(t, 5, whaleCounts)
 	assert.Equal(t, 5, crustCounts)
+}
+
+func TestPutResultsGetResults_Timestamps(t *testing.T) {
+	unittest.LargeTest(t)
+	c, cleanup := ifirestore.NewClientForTesting(context.Background(), t)
+	defer cleanup()
+
+	f := New(c)
+	ctx := context.Background()
+	const cis = "cirrus"
+	const firstDigest = types.Digest("1111111111111111")
+	const secondDigest = types.Digest("2222222222222222")
+	const tryjobID = "987654"
+
+	beforeTime := time.Date(2020, time.June, 1, 0, 0, 0, 0, time.UTC)
+	firstTime := time.Date(2020, time.June, 1, 1, 1, 1, 0, time.UTC)
+	inbetweenTime := time.Date(2020, time.June, 2, 2, 2, 2, 0, time.UTC)
+	secondTime := time.Date(2020, time.June, 3, 3, 3, 3, 0, time.UTC)
+	afterTime := time.Date(2020, time.June, 4, 4, 4, 4, 0, time.UTC)
+
+	psID := tjstore.CombinedPSID{
+		CL:  "1234",
+		CRS: "github",
+		PS:  "abcd",
+	}
+
+	gp := paramtools.Params{
+		"os":    "Android",
+		"model": "crustacean",
+	}
+	op := paramtools.Params{
+		"ext": "png",
+	}
+
+	firstBatch := []tjstore.TryJobResult{
+		{
+			GroupParams: gp,
+			Options:     op,
+			ResultParams: paramtools.Params{
+				types.PrimaryKeyField: "test-1",
+			},
+			Digest: firstDigest,
+		},
+	}
+
+	err := f.PutResults(ctx, psID, tryjobID, cis, firstBatch, firstTime)
+	assert.NoError(t, err)
+
+	secondBatch := []tjstore.TryJobResult{
+		{
+			GroupParams: gp,
+			Options:     op,
+			ResultParams: paramtools.Params{
+				types.PrimaryKeyField: "test-2",
+			},
+			Digest: secondDigest,
+		},
+	}
+
+	err = f.PutResults(ctx, psID, tryjobID, cis, secondBatch, secondTime)
+	assert.NoError(t, err)
+
+	// Empty time is all results
+	results, err := f.GetResults(ctx, psID, time.Time{})
+	require.NoError(t, err)
+	assert.Len(t, results, 2)
+
+	// This time should still cover both results.
+	results, err = f.GetResults(ctx, psID, beforeTime)
+	require.NoError(t, err)
+	assert.Len(t, results, 2)
+
+	// range is greater than or equal to the given time.
+	results, err = f.GetResults(ctx, psID, firstTime)
+	require.NoError(t, err)
+	assert.Len(t, results, 2)
+
+	// We should only see the second one
+	results, err = f.GetResults(ctx, psID, inbetweenTime)
+	require.NoError(t, err)
+	require.Len(t, results, 1)
+	assert.Equal(t, secondDigest, results[0].Digest)
+
+	// range is greater than or equal to the given time.
+	results, err = f.GetResults(ctx, psID, secondTime)
+	require.NoError(t, err)
+	require.Len(t, results, 1)
+	assert.Equal(t, secondDigest, results[0].Digest)
+
+	results, err = f.GetResults(ctx, psID, afterTime)
+	require.NoError(t, err)
+	assert.Empty(t, results)
 }
 
 // TestPutGetResultsNoOptions makes sure that options (which are optional) can be omitted
@@ -349,7 +441,7 @@ func TestPutGetResultsNoOptions(t *testing.T) {
 		},
 	}
 
-	err := f.PutResults(ctx, psID, tryJobID, cis, xtr)
+	err := f.PutResults(ctx, psID, tryJobID, cis, xtr, time.Now())
 	assert.NoError(t, err)
 
 	xtr, err = f.GetResults(ctx, psID, time.Time{})
@@ -407,7 +499,7 @@ func TestPutGetResultsBig(t *testing.T) {
 		})
 	}
 
-	err := f.PutResults(ctx, psID, tryJobID, cis, xtr)
+	err := f.PutResults(ctx, psID, tryJobID, cis, xtr, time.Now())
 	assert.NoError(t, err)
 
 	xtr, err = f.GetResults(ctx, psID, time.Time{})

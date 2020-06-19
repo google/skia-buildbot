@@ -34,6 +34,7 @@ const (
 	crsField          = "crs"
 	patchSetIDField   = "psid"
 	digestField       = "digest"
+	timestampField    = "ts"
 
 	maxReadAttempts  = 5
 	maxWriteAttempts = 5
@@ -92,6 +93,8 @@ type resultEntry struct {
 	ResultParams    map[string]string `firestore:"result_params"`
 	GroupParamsHash string            `firestore:"group_hash"`
 	OptionsHash     string            `firestore:"options_hash"`
+
+	CreatedTS time.Time `firestore:"ts"`
 }
 
 // paramEntry represents a paramTools.Params stored in FireStore
@@ -171,19 +174,31 @@ func (s *StoreImpl) GetTryJobs(ctx context.Context, psID tjstore.CombinedPSID) (
 	return xtj, nil
 }
 
-// GetResults implements the tjstore.Store interface. TODO(kjlubick) add support for updatedAfter
-// after the updated ingestion logic has baked in, filling the results with timestamps.
+// GetResults implements the tjstore.Store interface.
 func (s *StoreImpl) GetResults(ctx context.Context, psID tjstore.CombinedPSID, updatedAfter time.Time) ([]tjstore.TryJobResult, error) {
 	defer metrics2.FuncTimer().Stop()
 	q := s.client.Collection(tjResultCollection).Where(crsField, "==", psID.CRS).
 		Where(changeListIDField, "==", psID.CL).Where(patchSetIDField, "==", psID.PS)
 
-	shardResults := make([][]resultEntry, resultShards)
-	queries := fs_utils.ShardOnDigest(q, digestField, resultShards)
+	shards := resultShards
+	var queries []firestore.Query
+	if !updatedAfter.IsZero() {
+		// If we are including a time, we can't shard, since sharding uses inequalities and firestore
+		// won't let you do two inequalities on different fields. This may result in reduced
+		// performance, but in practice this shouldn't matter too much because we:
+		//   1) Only provide a time when doing a partial load of results while indexing changelists.
+		//   2) Index changelists in the background (and in parallel), not in a user-visible way.
+		shards = 1
+		queries = []firestore.Query{q.Where(timestampField, ">=", updatedAfter)}
+	} else {
+		queries = fs_utils.ShardOnDigest(q, digestField, shards)
+	}
+
+	shardResults := make([][]resultEntry, shards)
 
 	// maps hash -> params we need to fetch
 	// We will first add keys to this map, then go fetch the actual params
-	shardParams := make([]util.StringSet, resultShards)
+	shardParams := make([]util.StringSet, shards)
 
 	err := s.client.IterDocsInParallel(ctx, "GetResults", psID.Key(), queries, maxReadAttempts, maxOperationTime, func(i int, doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
@@ -299,7 +314,7 @@ func (s *StoreImpl) PutTryJob(ctx context.Context, psID tjstore.CombinedPSID, tj
 // This would make a rollback difficult, so we opt to retry any failures multiple times.
 // We store maps first, so if we do fail, we can bail out w/o having written the
 // (incomplete) TryJobResults.  We take a similar approach in fs_expstore, which has been fine.
-func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, tjID, cisName string, r []tjstore.TryJobResult) error {
+func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, tjID, cisName string, r []tjstore.TryJobResult, ts time.Time) error {
 	if len(r) == 0 {
 		return nil
 	}
@@ -318,6 +333,8 @@ func (s *StoreImpl) PutResults(ctx context.Context, psID tjstore.CombinedPSID, t
 
 			Digest:       tr.Digest,
 			ResultParams: tr.ResultParams,
+
+			CreatedTS: ts,
 		}
 		gh, err := hashParams(tr.GroupParams)
 		if err != nil {

@@ -47,9 +47,15 @@ We should mark the following fields as no-index, to save some index space.
   - TryJobResult.OptionsHash
   - Params.Map
 
-Currently, all queries can be handled via Firestore's index merging
-<https://firebase.google.com/docs/firestore/query-data/index-overview#taking_advantage_of_index_merging>
-because we chain "==" filters together.
+We need the following complex indices:
+
+Collection ID              | Fields
+------------------------------------------------------------------
+tjstore_result             | clid: ASC crs: ASC psid: ASC digest: ASC
+tjstore_result             | clid: ASC crs: ASC psid: ASC ts: ASC
+
+The first is for fetching results in a sharded fashion. The second is for fetching results
+after a certain time.
 
 Usage
 -----
