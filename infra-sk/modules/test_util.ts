@@ -63,8 +63,8 @@ export function setUpElementUnderTest<T extends HTMLElement>(elementName: string
 }
 
 /**
- * Returns a promise that will resolve when the given DOM event is caught at the
- * document's body element, or reject if the event isn't caught within the given
+ * Returns a promise that will resolve when the given DOM event is caught at
+ * document, or reject if the event isn't caught within the given
  * amount of time.
  *
  * Sample usage:
@@ -103,7 +103,7 @@ export function eventPromise<T extends Event>(event: string, timeoutMillis = 500
 
 /**
  * Returns a promise that will resolve if the given DOM event is *not* caught at
- * the document's body element after the given amount of time, or reject if the
+ * document after the given amount of time, or reject if the
  * event is caught.
  *
  * Useful for testing code that emits an event based on some condition.
@@ -151,7 +151,7 @@ export function noEventPromise(event: string, timeoutMillis = 200) {
 /**
  * Helper function to construct promises based on DOM events.
  *
- * @param event Name of event to add a listener for at document.body.
+ * @param event Name of event to add a listener for at document.
  * @param timeoutMillis Milliseconds to wait before timing out.
  * @param eventCaughtCallback Called when the event is caught with parameters
  *     (resolve, reject, event), where resolve and reject are the functions
@@ -172,12 +172,12 @@ function buildEventPromise<T extends Event | void>(
 ) {
   // The executor function passed as a constructor argument to the Promise
   // object is executed immediately. This guarantees that the event handler
-  // is added to document.body before returning.
+  // is added to document before returning.
   return new Promise<T>((resolve, reject) => {
     let timeout: number;
 
     const handler = (e: Event) => {
-      document.body.removeEventListener(event, handler);
+      document.removeEventListener(event, handler);
       window.clearTimeout(timeout);
       eventCaughtCallback(resolve, reject, e as T);
     };
@@ -187,11 +187,11 @@ function buildEventPromise<T extends Event | void>(
     // https://sinonjs.org/releases/v7.5.0/fake-timers/.
     if (timeoutMillis !== 0) {
       timeout = window.setTimeout(() => {
-        document.body.removeEventListener(event, handler);
+        document.removeEventListener(event, handler);
         timeoutCallback(resolve, reject);
       }, timeoutMillis);
     }
-    document.body.addEventListener(event, handler);
+    document.addEventListener(event, handler);
   });
 }
 

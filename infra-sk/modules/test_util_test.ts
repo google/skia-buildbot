@@ -114,6 +114,13 @@ describe('test utilities', () => {
         expect(ev.detail).to.equal('hi');
       });
 
+      it('catches document-level events', async () => {
+        const hello = eventPromise<CustomEvent<string>>('hello');
+        document.dispatchEvent(new CustomEvent('hello', { bubbles: true, detail: 'hi' }));
+        const ev = await hello;
+        expect(ev.detail).to.equal('hi');
+      });
+
       it('one single event resolves multiple promises', async () => {
         const hello1 = eventPromise<CustomEvent<string>>('hello');
         const hello2 = eventPromise<CustomEvent<string>>('hello');
