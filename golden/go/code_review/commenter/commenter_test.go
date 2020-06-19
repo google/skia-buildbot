@@ -467,6 +467,48 @@ func TestCommentOnCLsCommentError(t *testing.T) {
 	assertErrorWasCanceledOrContains(t, err, "internet down")
 }
 
+// TestCommentOnCLs_CLNotFound_NoError does not return an error when a CL is not found, as this
+// can happen if a CL is made private and we don't want to erroring continuously.
+func TestCommentOnCLs_CLNotFound_NoError(t *testing.T) {
+	unittest.SmallTest(t)
+
+	msa := &mock_search.SearchAPI{}
+	mcr := &mock_codereview.Client{}
+	mcs := &mock_clstore.Store{}
+	defer mcr.AssertExpectations(t)
+	defer mcs.AssertExpectations(t)
+
+	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(10), 10, nil).Once()
+	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(nil, 10, nil).Once()
+	mcs.On("GetPatchSets", testutils.AnyContext, mock.Anything).Return(makePatchSets(1, true), nil)
+
+	xcl := makeChangeLists(10)
+	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(func(ctx context.Context, id string) code_review.ChangeList {
+		i, err := strconv.Atoi(id)
+		assert.NoError(t, err)
+		return xcl[i]
+	}, nil)
+	mcr.On("CommentOn", testutils.AnyContext, mock.Anything, mock.Anything).Return(code_review.ErrNotFound)
+	mcr.On("System").Return("gerritHub")
+
+	// We should see two PatchSets with their CommentedOnCL bit set written back to Firestore.
+	// Even though we are logging the comments, we want to update Firestore that we "commented".
+	patchSetsWereMarkedCommentedOn := mock.MatchedBy(func(ps code_review.PatchSet) bool {
+		assert.True(t, ps.CommentedOnCL)
+		return true
+	})
+	mcs.On("PutPatchSet", testutils.AnyContext, patchSetsWereMarkedCommentedOn).Return(nil)
+
+	// Pretend all CLs queried have 2 untriaged digests.
+	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(&frontend.UntriagedDigestList{
+		Digests: []types.Digest{"doesn't", "matter"},
+	}, nil)
+
+	c := newTestCommenter(mcr, mcs, msa)
+	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
+	require.NoError(t, err)
+}
+
 func makeChangeLists(n int) []code_review.ChangeList {
 	var xcl []code_review.ChangeList
 	for i := 0; i < n; i++ {

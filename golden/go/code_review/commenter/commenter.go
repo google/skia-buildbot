@@ -168,6 +168,10 @@ func (i *Impl) maybeCommentOn(ctx context.Context, cl code_review.ChangeList, ps
 		return nil
 	}
 	if err := i.crs.CommentOn(ctx, cl.SystemID, i.untriagedMessage(crs, cl, ps, untriagedDigests)); err != nil {
+		if err == code_review.ErrNotFound {
+			sklog.Warningf("Cannot comment on %s CL %s because it does not exist", i.crs.System(), cl.SystemID)
+			return nil
+		}
 		return skerr.Wrapf(err, "commenting on %s CL %s", i.crs.System(), cl.SystemID)
 	}
 	return nil
