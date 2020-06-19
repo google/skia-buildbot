@@ -294,7 +294,7 @@ func TestPutGetResults(t *testing.T) {
 	}})
 	assert.NoError(t, err)
 
-	xtr, err = f.GetResults(ctx, psID)
+	xtr, err = f.GetResults(ctx, psID, time.Time{})
 	assert.NoError(t, err)
 	assert.Len(t, xtr, 10)
 
@@ -352,7 +352,7 @@ func TestPutGetResultsNoOptions(t *testing.T) {
 	err := f.PutResults(ctx, psID, tryJobID, cis, xtr)
 	assert.NoError(t, err)
 
-	xtr, err = f.GetResults(ctx, psID)
+	xtr, err = f.GetResults(ctx, psID, time.Time{})
 	assert.NoError(t, err)
 	assert.Len(t, xtr, 1)
 	assert.Equal(t, tjstore.TryJobResult{
@@ -410,7 +410,7 @@ func TestPutGetResultsBig(t *testing.T) {
 	err := f.PutResults(ctx, psID, tryJobID, cis, xtr)
 	assert.NoError(t, err)
 
-	xtr, err = f.GetResults(ctx, psID)
+	xtr, err = f.GetResults(ctx, psID, time.Time{})
 	assert.NoError(t, err)
 	assert.Len(t, xtr, N)
 

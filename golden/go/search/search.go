@@ -589,7 +589,7 @@ func (s *SearchImpl) getTryJobResults(ctx context.Context, id tjstore.CombinedPS
 	if xtr, ok := s.storeCache.Get(key); ok {
 		return xtr.([]tjstore.TryJobResult), nil
 	}
-	xtr, err := s.tryJobStore.GetResults(ctx, id)
+	xtr, err := s.tryJobStore.GetResults(ctx, id, time.Time{})
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

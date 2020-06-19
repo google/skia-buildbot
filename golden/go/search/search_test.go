@@ -758,7 +758,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 		"ext": "png",
 	}
 
-	mtjs.On("GetResults", testutils.AnyContext, expectedID).Return([]tjstore.TryJobResult{
+	mtjs.On("GetResults", testutils.AnyContext, expectedID, anyTime).Return([]tjstore.TryJobResult{
 		{
 			GroupParams: anglerGroup,
 			Options:     options,
@@ -1260,7 +1260,7 @@ func TestDigestDetails_NewTestOnChangeList_Success(t *testing.T) {
 
 	// Return 4 results, 2 that match on digest and test, 1 that matches only on digest and 1 that
 	// matches only on test.
-	mts.On("GetResults", testutils.AnyContext, tjstore.CombinedPSID{CRS: testCRS, CL: testCLID, PS: latestPSID}).Return([]tjstore.TryJobResult{
+	mts.On("GetResults", testutils.AnyContext, tjstore.CombinedPSID{CRS: testCRS, CL: testCLID, PS: latestPSID}, anyTime).Return([]tjstore.TryJobResult{
 		{
 			Digest:       digestWeWantDetailsAbout,
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(testWeWantDetailsAbout)},
@@ -1347,7 +1347,7 @@ func TestDigestDetails_NewTestOnChangeList_WithPublicParams_Success(t *testing.T
 
 	// Return 2 results that match on digest and test, 1 of which has an OS that is not on the
 	// publicly viewable list and should be filtered.
-	mts.On("GetResults", testutils.AnyContext, tjstore.CombinedPSID{CRS: testCRS, CL: testCLID, PS: latestPSID}).Return([]tjstore.TryJobResult{
+	mts.On("GetResults", testutils.AnyContext, tjstore.CombinedPSID{CRS: testCRS, CL: testCLID, PS: latestPSID}, anyTime).Return([]tjstore.TryJobResult{
 		{
 			Digest:       digestWeWantDetailsAbout,
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(testWeWantDetailsAbout)},
@@ -1566,7 +1566,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_NoIndexBuilt_Success(t *testin
 	options := map[string]string{
 		"ext": "png",
 	}
-	mtjs.On("GetResults", testutils.AnyContext, expectedID).Return([]tjstore.TryJobResult{
+	mtjs.On("GetResults", testutils.AnyContext, expectedID, anyTime).Return([]tjstore.TryJobResult{
 		{
 			GroupParams: anglerGroup,
 			Options:     options,
@@ -1666,7 +1666,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_LowFlakyTraceThreshold_FlakyTr
 	options := map[string]string{
 		"ext": "png",
 	}
-	mtjs.On("GetResults", testutils.AnyContext, expectedID).Return([]tjstore.TryJobResult{
+	mtjs.On("GetResults", testutils.AnyContext, expectedID, anyTime).Return([]tjstore.TryJobResult{
 		{
 			// This trace is "flaky", so should not be reported. Specifically, AnglerAlphaTraceID
 			// has 2 digests in it on master, AlphaNegativeDigest and AlphaPositiveDigest.
@@ -2352,6 +2352,8 @@ var (
 	alphaPositiveTriageTS = time.Date(2020, time.March, 1, 2, 3, 4, 0, time.UTC)
 	alphaNegativeTriageTS = time.Date(2020, time.March, 4, 2, 3, 4, 0, time.UTC)
 	betaPositiveTriageTS  = time.Date(2020, time.March, 7, 2, 3, 4, 0, time.UTC)
+
+	anyTime = mock.MatchedBy(func(time.Time) bool { return true })
 )
 
 func makeThreeDevicesExpectationStore() *mock_expectations.Store {
