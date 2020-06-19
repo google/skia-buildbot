@@ -22,6 +22,30 @@
       "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "274aa2f4_a6139a3c",
+        "filename": "golden/frontend/res/imp/filter-dialog-sk.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T21:13:22Z",
+      "side": 0,
+      "message": "I think so. I suspect fdiffmax and metric could be deleted as well.",
+      "parentUuid": "31289fdd_3a0efe2b",
+      "range": {
+        "startLine": 130,
+        "startChar": 89,
+        "endLine": 130,
+        "endChar": 99
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
