@@ -803,8 +803,7 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 					CRS: crs,
 					PS:  latestPS.SystemID,
 				}
-				// FIXME
-				afterTime := time.Date(2020, time.June, 1, 1, 1, 1, 0, time.UTC)
+				afterTime := time.Time{}
 				var existingUntriagedResults []tjstore.TryJobResult
 				// Test to see if we can do an incremental index (just for results that were uploaded
 				// for this patchset since the last time we indexed).
