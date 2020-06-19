@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>sort-sk</title>
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style type="text/css" media="screen">
-button {
-  margin: 0 1em;
-}
+    button {
+      margin: 0 1em;
+    }
   </style>
 </head>
+
 <body>
   <h1>sort-sk</h1>
   <h2>Numeric</h2>
@@ -20,21 +22,39 @@ button {
   </sort-sk>
 
   <div id=stuffToBeSorted>
-    <pre data-clustersize=10  data-stepsize=1.2>Size=10   Step=1.2</pre>
-    <pre data-clustersize=50  data-stepsize=0.5>Size=50   Step=0.5</pre>
+    <pre data-clustersize=10 data-stepsize=1.2>Size=10   Step=1.2</pre>
+    <pre data-clustersize=50 data-stepsize=0.5>Size=50   Step=0.5</pre>
     <pre data-clustersize=100 data-stepsize=0.6>Size=100  Step=0.6</pre>
   </div>
 
   <h2>Alpha</h2>
   <sort-sk target=stuffToBeSorted2>
     <button data-key=name data-default=down data-sort-type=alpha>Name</button>
-    <button data-key=level                  data-sort-type=alpha>Level</button>
+    <button data-key=level data-sort-type=alpha>Level</button>
   </sort-sk>
 
   <div id=stuffToBeSorted2>
-    <pre data-name=foo data-level=beta >foo beta</pre>
+    <pre data-name=foo data-level=beta>foo beta</pre>
     <pre data-name=baz data-level=alpha>baz alpha</pre>
     <pre data-name=bar data-level=gamma>bar gamma</pre>
   </div>
+
+  <section class="body-sk">
+    <h2>themes.css</h2>
+    <sort-sk target=placeholder>
+      <button data-key=clustersize data-default=up>Cluster Size</button>
+      <button data-key=stepsize>Step Size</button>
+    </sort-sk>
+  </section>
+
+  <section class="body-sk darkmode">
+    <h2>themes.css - darkmode</h2>
+    <sort-sk target=placeholder>
+      <button data-key=clustersize data-default=up>Cluster Size</button>
+      <button data-key=stepsize>Step Size</button>
+    </sort-sk>
+  </section>
+
 </body>
+
 </html>
