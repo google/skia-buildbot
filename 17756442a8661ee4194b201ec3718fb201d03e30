@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "76fb1875_66cf4342",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T18:15:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "db623148_4ac00e47",
+      "revId": "17756442a8661ee4194b201ec3718fb201d03e30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "36dfab43_71ff7bda",
         "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
         "patchSetId": 4
@@ -33,6 +51,24 @@
       "revId": "17756442a8661ee4194b201ec3718fb201d03e30",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "add81af0_dfad5342",
+        "filename": "golden/go/tjstore/fs_tjstore/FIRESTORE.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T18:15:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "36dfab43_71ff7bda",
+      "revId": "17756442a8661ee4194b201ec3718fb201d03e30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -56,6 +92,30 @@
       "revId": "17756442a8661ee4194b201ec3718fb201d03e30",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97a08a74_aef5d8a3",
+        "filename": "golden/go/tjstore/fs_tjstore/fs_tjstore.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-19T18:15:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a1223d1d_13fa6b74",
+      "range": {
+        "startLine": 186,
+        "startChar": 33,
+        "endLine": 186,
+        "endChar": 47
+      },
+      "revId": "17756442a8661ee4194b201ec3718fb201d03e30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
