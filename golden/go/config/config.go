@@ -48,6 +48,8 @@ func LoadFromJSON5(dst interface{}, commonConfigPath, specificConfigPath *string
 	return checkRequired(rValue)
 }
 
+// checkRequired returns an error if any fields have a non-zero value and aren't marked with
+// a struct tag "optional" set to the value "true".
 func checkRequired(rValue reflect.Value) error {
 	rType := rValue.Type()
 	for i := 0; i < rValue.NumField(); i++ {
