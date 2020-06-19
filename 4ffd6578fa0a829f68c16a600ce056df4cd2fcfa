@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f51b0b09_c90d5540",
+        "filename": "golden/go/indexer/indexer.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 806,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-19T17:58:24Z",
+      "side": 1,
+      "message": "Please turn into a TODO and explain why this specific hardcoded value was chosen.",
+      "range": {
+        "startLine": 806,
+        "startChar": 0,
+        "endLine": 806,
+        "endChar": 12
+      },
+      "revId": "4ffd6578fa0a829f68c16a600ce056df4cd2fcfa",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
