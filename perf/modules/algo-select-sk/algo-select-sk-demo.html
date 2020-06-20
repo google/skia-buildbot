@@ -1,19 +1,27 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>algo-select-sk</title>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>algo-select-sk</title>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
+
 <body>
   <algo-select-sk algo=stepfit></algo-select-sk>
+
+  <div class="body-sk">
+    <algo-select-sk></algo-select-sk>
+  </div>
+
+  <div class="body-sk darkmode">
+    <algo-select-sk></algo-select-sk>
+  </div>
+
+
   <h2>Events</h2>
   <pre></pre>
-  <script type="text/javascript" charset="utf-8">
-    document.querySelector('algo-select-sk').addEventListener('algo-change', (e) => {
-      document.querySelector('pre').textContent = JSON.stringify(e.detail, null, '');
-    });
-  </script>
 </body>
+
 </html>
