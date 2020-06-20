@@ -25,7 +25,7 @@ import { Status } from '../json';
 // TODO(jcgregorio) Maybe go2ts could emit isFoo guard functions?
 function isStatus(value: string): value is Status {
   const allowed = ['positive', 'negative', 'untriaged', ''];
-  return allowed.indexOf(value) != -1;
+  return allowed.indexOf(value) !== -1;
 }
 
 export class TriageSk extends ElementSk {
