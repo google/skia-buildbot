@@ -22,7 +22,7 @@ describe('sort-sk', () => {
 
   describe('screenshots', () => {
     it('shows the default view', async () => {
-      await takeScreenshot(testBed.page, 'perf', 'sort-sk');
+      await takeScreenshot(testBed.page, 'infra-sk', 'sort-sk');
     });
   });
 });

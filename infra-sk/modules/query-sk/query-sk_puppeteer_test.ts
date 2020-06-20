@@ -22,7 +22,7 @@ describe('query-sk', () => {
 
   describe('screenshots', () => {
     it('shows the default view', async () => {
-      await takeScreenshot(testBed.page, 'perf', 'query-sk');
+      await takeScreenshot(testBed.page, 'infra-sk', 'query-sk');
     });
   });
 });
