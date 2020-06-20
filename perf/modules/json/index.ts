@@ -37,3 +37,5 @@ export interface CommitDetail {
 export type ParamSet = { [key: string]: string[] };
 
 export type Status = "" | "positive" | "negative" | "untriaged";
+
+export type ClusterAlgo = "kmeans" | "stepfit";
