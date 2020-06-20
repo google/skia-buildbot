@@ -13,7 +13,6 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { stateReflector } from 'common-sk/modules/stateReflector';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-
 import 'elements-sk/spinner-sk';
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/styles/buttons';
@@ -29,10 +28,16 @@ import '../day-range-sk';
 import '../query-count-sk';
 
 const _summaryRows = (ele) => {
-  const ret = ele._summaries.map((summary) => html`<cluster-summary2-sk .full_summary=${summary} notriage></cluster-summary2-sk>`);
+  const ret = ele._summaries.map(
+    (summary) =>
+      html`<cluster-summary2-sk
+        .full_summary=${summary}
+        notriage
+      ></cluster-summary2-sk>`
+  );
   if (!ret.length) {
     ret.push(html`
-      <p class=info>
+      <p class="info">
         No clusters found.
       </p>
     `);
@@ -43,13 +48,13 @@ const _summaryRows = (ele) => {
 const template = (ele) => html`
   <h2>Commit</h2>
   <h3>Appears in Date Range</h3>
-  <div class=day-range-with-spinner>
+  <div class="day-range-with-spinner">
     <day-range-sk
-      id=range
+      id="range"
       @day-range-change=${ele._rangeChange}
       begin=${ele._state.begin}
       end=${ele._state.end}
-      ></day-range-sk>
+    ></day-range-sk>
     <spinner-sk ?active=${ele._updating_commits}></spinner-sk>
   </div>
   <h3>Commit</h3>
@@ -58,36 +63,44 @@ const template = (ele) => html`
       @commit-selected=${ele._commitSelected}
       .selected=${ele._selected_commit_index}
       .details=${ele._cids}
-      id=commit
-      ></commit-detail-picker-sk>
+      id="commit"
+    ></commit-detail-picker-sk>
   </div>
 
   <h2>Algorithm</h2>
   <algo-select-sk
     algo=${ele._state.algo}
     @algo-change=${ele._algoChange}
-    ></algo-select-sk>
+  ></algo-select-sk>
 
   <h2>Query</h2>
-  <div class=query-action>
+  <div class="query-action">
     <query-sk
       @query-change=${ele._queryChanged}
       .key_order=${window.sk.perf.key_order}
       .paramset=${ele._paramset}
       current_query=${ele._state.query}
-      ></query-sk>
-    <div id=selections>
+    ></query-sk>
+    <div id="selections">
       <h3>Selections</h3>
-      <paramset-sk id=summary .paramsets=${[toParamSet(ele._state.query)]}></paramset-sk>
+      <paramset-sk
+        id="summary"
+        .paramsets=${[toParamSet(ele._state.query)]}
+      ></paramset-sk>
       <div>
         Matches:
-          <query-count-sk
-            url='/_/count/'
-            current_query=${ele._state.query}
-            @paramset-changed=${ele._paramsetChanged}
-            ></query-count-sk>
+        <query-count-sk
+          url="/_/count/"
+          current_query=${ele._state.query}
+          @paramset-changed=${ele._paramsetChanged}
+        ></query-count-sk>
       </div>
-      <button @click=${ele._start} class=action id=start ?disabled=${!!ele._requestId} >
+      <button
+        @click=${ele._start}
+        class="action"
+        id="start"
+        ?disabled=${!!ele._requestId}
+      >
         Run
       </button>
       <div>
@@ -98,57 +111,60 @@ const template = (ele) => html`
   </div>
 
   <details>
-    <summary id=advanced>
+    <summary id="advanced">
       <h2>Advanced</h2>
     </summary>
-    <div id=inputs>
+    <div id="inputs">
       <label>
         K (A value of 0 means the server chooses).
         <input
-          type=number
-          min=0
-          max=100
+          type="number"
+          min="0"
+          max="100"
           .value=${ele._state.k}
-          @input=${ele._kChange}>
+          @input=${ele._kChange}
+        />
       </label>
       <label>
         Number of commits to include on either side.
         <input
-          type=number
-          min=1
-          max=25
+          type="number"
+          min="1"
+          max="25"
           .value=${ele._state.radius}
-          @input=${ele._radiusChange}>
+          @input=${ele._radiusChange}
+        />
       </label>
       <label>
         Clusters are interesting if regression score &gt;= this.
         <input
-          type=number
-          min=0
-          max=500
+          type="number"
+          min="0"
+          max="500"
           .value=${ele._state.interesting}
-          @input=${ele._interestingChange}>
+          @input=${ele._interestingChange}
+        />
       </label>
       <checkbox-sk
         ?checked=${ele._state.sparse}
-        label='Data is sparse, so only include commits that have data.'
+        label="Data is sparse, so only include commits that have data."
         @input=${ele._sparseChange}
-        >
+      >
       </checkbox-sk>
     </div>
   </details>
 
   <h2>Results</h2>
-  <sort-sk target=clusters>
-    <button data-key=clustersize>Cluster Size </button>
-    <button data-key=stepregression data-default=up>Regression </button>
-    <button data-key=stepsize>Step Size </button>
-    <button data-key=steplse>Least Squares</button>
+  <sort-sk target="clusters">
+    <button data-key="clustersize">Cluster Size </button>
+    <button data-key="stepregression" data-default="up">Regression </button>
+    <button data-key="stepsize">Step Size </button>
+    <button data-key="steplse">Least Squares</button>
   </sort-sk>
-  <div id=clusters @open-keys=${ele._openKeys}>
+  <div id="clusters" @open-keys=${ele._openKeys}>
     ${_summaryRows(ele)}
   </div>
-  `;
+`;
 
 define('cluster-page-sk', class extends ElementSk {
   constructor() {
@@ -202,16 +218,22 @@ define('cluster-page-sk', class extends ElementSk {
     this._clusters = this.querySelector('#clusters');
 
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    fetch(`/_/initpage/?tz=${tz}`).then(jsonOrThrow).then((json) => {
-      this._paramset = json.dataframe.paramset;
-      this._render();
-    }).catch(errorMessage);
+    fetch(`/_/initpage/?tz=${tz}`)
+      .then(jsonOrThrow)
+      .then((json) => {
+        this._paramset = json.dataframe.paramset;
+        this._render();
+      })
+      .catch(errorMessage);
 
-    this._stateHasChanged = stateReflector(() => this._state, (state) => {
-      this._state = state;
-      this._render();
-      this._updateCommitSelections();
-    });
+    this._stateHasChanged = stateReflector(
+      () => this._state,
+      (state) => {
+        this._state = state;
+        this._render();
+        this._updateCommitSelections();
+      }
+    );
   }
 
   _algoChange(e) {
@@ -275,7 +297,10 @@ define('cluster-page-sk', class extends ElementSk {
   }
 
   _updateCommitSelections() {
-    if (this._lastRange.begin === this._state.begin && this._lastRange.end === this._state.end) {
+    if (
+      this._lastRange.begin === this._state.begin &&
+      this._lastRange.end === this._state.end
+    ) {
       return;
     }
     this._lastRange = {
@@ -294,32 +319,35 @@ define('cluster-page-sk', class extends ElementSk {
       headers: {
         'Content-Type': 'application/json',
       },
-    }).then(jsonOrThrow).then((cids) => {
-      this._updating_commits = false;
-      cids.reverse();
-      this._cids = cids;
+    })
+      .then(jsonOrThrow)
+      .then((cids) => {
+        this._updating_commits = false;
+        cids.reverse();
+        this._cids = cids;
 
-      this._selected_commit_index = -1;
-      // Look for commit id in this._cids.
-      for (let i = 0; i < cids.length; i++) {
-        if (cids[i].offset === this._state.offset) {
-          this._selected_commit_index = i;
-          break;
+        this._selected_commit_index = -1;
+        // Look for commit id in this._cids.
+        for (let i = 0; i < cids.length; i++) {
+          if (cids[i].offset === this._state.offset) {
+            this._selected_commit_index = i;
+            break;
+          }
         }
-      }
 
-      if (!this._state.begin) {
-        this._state.begin = cids[cids.length - 1].ts;
-        this._state.end = cids[0].ts;
-      }
-      this._render();
-    }).catch((msg) => {
-      if (msg) {
-        errorMessage(msg, 10000);
-      }
-      this._updating_commits = false;
-      this._render();
-    });
+        if (!this._state.begin) {
+          this._state.begin = cids[cids.length - 1].ts;
+          this._state.end = cids[0].ts;
+        }
+        this._render();
+      })
+      .catch((msg) => {
+        if (msg) {
+          errorMessage(msg, 10000);
+        }
+        this._updating_commits = false;
+        this._render();
+      });
   }
 
   _catch(msg) {
@@ -332,18 +360,21 @@ define('cluster-page-sk', class extends ElementSk {
   }
 
   _checkClusterRequestStatus(cb) {
-    fetch(`/_/cluster/status/${this._requestId}`).then(jsonOrThrow).then((json) => {
-      if (json.state === 'Running') {
-        this._status = json.message;
-        this._render();
-        window.setTimeout(() => this._checkClusterRequestStatus(cb), 300);
-      } else {
-        if (json.value) {
-          cb(json.value);
+    fetch(`/_/cluster/status/${this._requestId}`)
+      .then(jsonOrThrow)
+      .then((json) => {
+        if (json.state === 'Running') {
+          this._status = json.message;
+          this._render();
+          window.setTimeout(() => this._checkClusterRequestStatus(cb), 300);
+        } else {
+          if (json.value) {
+            cb(json.value);
+          }
+          this._catch(json.message);
         }
-        this._catch(json.message);
-      }
-    }).catch((msg) => this._catch(msg));
+      })
+      .catch((msg) => this._catch(msg));
   }
 
   _start() {
@@ -376,19 +407,22 @@ define('cluster-page-sk', class extends ElementSk {
       headers: {
         'Content-Type': 'application/json',
       },
-    }).then(jsonOrThrow).then((json) => {
-      this._requestId = json.id;
-      this._checkClusterRequestStatus((summaries) => {
-        this._summaries = [];
-        summaries.summary.Clusters.forEach((cl) => {
-          cl.ID = -1;
-          this._summaries.push({
-            summary: cl,
-            frame: summaries.frame,
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        this._requestId = json.id;
+        this._checkClusterRequestStatus((summaries) => {
+          this._summaries = [];
+          summaries.summary.Clusters.forEach((cl) => {
+            cl.ID = -1;
+            this._summaries.push({
+              summary: cl,
+              frame: summaries.frame,
+            });
           });
+          this._render();
         });
-        this._render();
-      });
-    }).catch((msg) => this._catch(msg));
+      })
+      .catch((msg) => this._catch(msg));
   }
 });

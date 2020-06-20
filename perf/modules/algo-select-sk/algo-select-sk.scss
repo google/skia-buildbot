@@ -1,11 +1,8 @@
 @import '~elements-sk/colors';
+@import '~elements-sk/themes/themes.css';
 
 algo-select-sk {
   * {
     cursor: pointer;
-  }
-
-  div[selected] {
-    color: var(--white);
   }
 }
