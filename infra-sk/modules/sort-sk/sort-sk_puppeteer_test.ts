@@ -22,7 +22,11 @@ describe('sort-sk', () => {
 
   describe('screenshots', () => {
     it('shows the default view', async () => {
+<<<<<<< HEAD
       await takeScreenshot(testBed.page, 'perf', 'sort-sk');
+=======
+      await takeScreenshot(testBed.page, 'infra-sk', 'sort-sk');
+>>>>>>> git squash commit for fixinfra-loc.
     });
   });
 });
