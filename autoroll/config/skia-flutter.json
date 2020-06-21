@@ -16,6 +16,7 @@
   "rollerName": "skia-flutter-autoroll",
   "serviceAccount": "flutter-engine-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": ["https://tree-status.skia.org/current-sheriff"],
+  "supportsManualRolls": true,
   "github": {
     "repoOwner": "flutter",
     "repoName": "engine",
