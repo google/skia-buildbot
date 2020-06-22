@@ -1,4 +1,4 @@
-import { getTimestamp, getFormattedTimestamp, getCtDbTimestamp } from './ctfe_utils';
+import { getTimestamp, getFormattedTimestamp, getCtDbTimestamp, combineClDescriptions } from './ctfe_utils';
 
 describe('ctfe_utils', () => {
   // This makes the tests deterministic w.r.t. the computer's timezone.
@@ -27,5 +27,10 @@ describe('ctfe_utils', () => {
     const date = new Date('December 31, 1975, 23:15:30 GMT+11:00');
     const db_date = getCtDbTimestamp(date);
     expect(db_date).to.equal('19751231121530');
+  });
+
+  it('combines CL descriptions', async () => {
+    const result = combineClDescriptions(['foo', 'bar', '', null, 'baz']);
+    expect(result).to.equal('Testing foo and bar and baz');
   });
 });
