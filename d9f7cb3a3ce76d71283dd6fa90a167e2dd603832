@@ -1,0 +1,533 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "044eb312_a2b2eb2a",
+        "filename": "golden/cmd/baseline_server/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Can we call this \"gold_instance_config\" or \"gold_instance_common_config\"?\n\nThe name \"common_config\" is a bit ambiguous: it can be interpreted as common to all baseline servers, or even as common to all gold instances and instance-specific services.",
+      "range": {
+        "startLine": 45,
+        "startChar": 32,
+        "endLine": 45,
+        "endChar": 45
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7f69aaab_401c32f7",
+        "filename": "golden/cmd/baseline_server/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "With the above suggestion, this can be named just \"config\", which by default will probably be interpreted by most engineers as a configuration that applies to this binary only.",
+      "range": {
+        "startLine": 46,
+        "startChar": 32,
+        "endLine": 46,
+        "endChar": 47
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05133546_573808b6",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Please document with something like:\n\n  // We keep track of which instance-specific configuration files have been copied in case\n  // they are required by two or more DeployableUnits; it suffices to copy said files once.",
+      "range": {
+        "startLine": 223,
+        "startChar": 0,
+        "endLine": 223,
+        "endChar": 45
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2410fd6d_8c0817f3",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Nit: Please insert a blank like before this.",
+      "range": {
+        "startLine": 224,
+        "startChar": 0,
+        "endLine": 224,
+        "endChar": 58
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "677ac474_b6a44bcb",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "What do you think about removing this check and letting the instance-specific config files be idempotently copied multiple times if required by more than one DeployableUnit? Maybe add a comment making this explicit.\n\nThe benefits would be less code, and less cognitive load for the reader.",
+      "range": {
+        "startLine": 256,
+        "startChar": 36,
+        "endLine": 256,
+        "endChar": 74
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4b8a8db_79e27e8e",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Please extract out into a getInstanceSpecificConfigDir helper function, and use it here and below.\n\nPlease use the k8sInstanceDir constant defined at the top of this file.",
+      "range": {
+        "startLine": 260,
+        "startChar": 18,
+        "endLine": 260,
+        "endChar": 93
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a89380d2_c9e664a0",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Nit: instanceSpecificConfigDir",
+      "range": {
+        "startLine": 260,
+        "startChar": 3,
+        "endLine": 260,
+        "endChar": 14
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60b93ce2_dc12a1f3",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Can you add a comment saying this assumes all .json5 files across all instance-specific config directories will have different names?\n\nActually, maybe we should fail loudly if we\u0027ve accidentally created two .json5 files with the same name on different instance-specific directories, otherwise we\u0027ll only find out after we\u0027ve deployed things to prod. WDYT?",
+      "range": {
+        "startLine": 269,
+        "startChar": 59,
+        "endLine": 269,
+        "endChar": 77
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67123daa_06317545",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "I believe this should be 0640? All files in the k8s-config repo are (0640/-rw-r-----).",
+      "range": {
+        "startLine": 275,
+        "startChar": 43,
+        "endLine": 275,
+        "endChar": 47
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1818aac1_4b0ba9de",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 476,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Nit: instanceSpecificConfigMapsPushed",
+      "range": {
+        "startLine": 476,
+        "startChar": 1,
+        "endLine": 476,
+        "endChar": 25
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ac6e585_9be3daf5",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Nit: instanceSpecificConfigMapsPushed",
+      "range": {
+        "startLine": 487,
+        "startChar": 87,
+        "endLine": 487,
+        "endChar": 102
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d2344732_b17be3cc",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Please move this check inside pushConfigurationJSON, and rename said method to maybePushInstanceSpecificConfigMap:\n\n  // Push instance-specific ConfigMap if the DeployableUnit requires one.\n  if err :\u003d g.maybePushInstanceSpecificConfigMap(ctx, unit, instanceSpecificConfigMapsPushed); err !\u003d nil {\n    return skerr.Wrap(err)\n  }",
+      "range": {
+        "startLine": 499,
+        "startChar": 0,
+        "endLine": 505,
+        "endChar": 0
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e14c2007_8be04f38",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 506,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "// Push unit-specific ConfigMap if the DeployableUnit requires one.",
+      "range": {
+        "startLine": 506,
+        "startChar": 0,
+        "endLine": 506,
+        "endChar": 54
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2718929d_0ff06cfe",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 529,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Please rename to maybePushUnitSpecificConfigMap.",
+      "range": {
+        "startLine": 529,
+        "startChar": 20,
+        "endLine": 529,
+        "endChar": 38
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f8aad09_c53c10de",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 545,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Please rename to maybePushInstanceSpecificConfigMap as per the suggestion above.",
+      "range": {
+        "startLine": 545,
+        "startChar": 20,
+        "endLine": 545,
+        "endChar": 41
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5d2b1294_067c04d4",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 547,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Please use k8sInstancesDir.",
+      "range": {
+        "startLine": 547,
+        "startChar": 41,
+        "endLine": 547,
+        "endChar": 67
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5f187b79_d207388a",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 547,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Nit: instanceSpecificConfigDir for consistency with the above suggestions, or maybe just configDir to make it a bit more precise.",
+      "range": {
+        "startLine": 547,
+        "startChar": 1,
+        "endLine": 547,
+        "endChar": 12
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e254880_42d2e226",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 556,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Nit: rename to pathToFileOrDirectory.",
+      "range": {
+        "startLine": 556,
+        "startChar": 55,
+        "endLine": 556,
+        "endChar": 59
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3a6a14a3_d3476195",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Maybe add a comment saying --from-file can take a directory as well as a file? (I thought this was incorrect until I looked at the kubectl docs.)",
+      "range": {
+        "startLine": 577,
+        "startChar": 63,
+        "endLine": 577,
+        "endChar": 74
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc38d128_89167fc5",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 496,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "I suspect we want to use require.* everywhere (and remove the github.com/stretchr/testify/assert import).",
+      "range": {
+        "startLine": 496,
+        "startChar": 1,
+        "endLine": 496,
+        "endChar": 7
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "04a4d987_10b4ee64",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Nit: This can be removed.",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 97,
+        "endChar": 33
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b6dd7d4_f2014bc1",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Please rename to requiresInstanceSpecificConfigMap.",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 28
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd96c04c_e9b6b305",
+        "filename": "golden/k8s-config-templates/gold-common.json5",
+        "patchSetId": 6
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T22:51:48Z",
+      "side": 1,
+      "message": "Can this land in a separate CL?",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 115
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
