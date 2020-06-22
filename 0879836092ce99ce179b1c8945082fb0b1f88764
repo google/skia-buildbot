@@ -425,6 +425,30 @@
     },
     {
       "key": {
+        "uuid": "95c16e8e_1915149d",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-22T17:44:29Z",
+      "side": 1,
+      "message": "In this case the \"checked\" attribute is a bool, please see https://github.com/google/elements-sk/blob/master/src/checkbox-sk/checkbox-sk.ts#L100.",
+      "parentUuid": "5fe151e1_1365f511",
+      "range": {
+        "startLine": 143,
+        "startChar": 32,
+        "endLine": 143,
+        "endChar": 36
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "113bee27_d2802f42",
         "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
         "patchSetId": 1
