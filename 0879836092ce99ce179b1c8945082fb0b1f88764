@@ -401,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "5fe151e1_1365f511",
+        "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-22T14:05:03Z",
+      "side": 1,
+      "message": "mustHaveReferenceImage is a bool, not a string, so I don\u0027t think this will work as intended.",
+      "parentUuid": "9d2073e0_7e637d68",
+      "range": {
+        "startLine": 143,
+        "startChar": 32,
+        "endLine": 143,
+        "endChar": 36
+      },
+      "revId": "0879836092ce99ce179b1c8945082fb0b1f88764",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "113bee27_d2802f42",
         "filename": "golden/modules/filter-dialog-sk/filter-dialog-sk.ts",
         "patchSetId": 1
