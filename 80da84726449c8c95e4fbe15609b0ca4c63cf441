@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c9aa2caa_1c946bbf",
+        "filename": "golden/go/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-22T19:10:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aec4f393_22e5da0c",
+      "range": {
+        "startLine": 15,
+        "startChar": 25,
+        "endLine": 15,
+        "endChar": 34
+      },
+      "revId": "80da84726449c8c95e4fbe15609b0ca4c63cf441",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "51c6d7de_6479c8f8",
         "filename": "golden/go/config/config.go",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "a2197b11_42bd3502",
+        "filename": "golden/go/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-22T19:10:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "51c6d7de_6479c8f8",
+      "range": {
+        "startLine": 18,
+        "startChar": 59,
+        "endLine": 18,
+        "endChar": 60
+      },
+      "revId": "80da84726449c8c95e4fbe15609b0ca4c63cf441",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "73d67daf_56595491",
         "filename": "golden/go/config/config.go",
         "patchSetId": 2
@@ -68,6 +116,30 @@
       "revId": "80da84726449c8c95e4fbe15609b0ca4c63cf441",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2017de03_cec90f50",
+        "filename": "golden/go/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-22T19:10:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "73d67daf_56595491",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 0
+      },
+      "revId": "80da84726449c8c95e4fbe15609b0ca4c63cf441",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +189,54 @@
     },
     {
       "key": {
+        "uuid": "5fb61530_b3bb02e1",
+        "filename": "golden/go/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-22T19:10:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "37b8ebee_9f3182b4",
+      "range": {
+        "startLine": 25,
+        "startChar": 3,
+        "endLine": 25,
+        "endChar": 16
+      },
+      "revId": "80da84726449c8c95e4fbe15609b0ca4c63cf441",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "65c5f220_d5cf3448",
+        "filename": "golden/go/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-22T19:10:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aa01a260_3edc6635",
+      "range": {
+        "startLine": 25,
+        "startChar": 68,
+        "endLine": 25,
+        "endChar": 72
+      },
+      "revId": "80da84726449c8c95e4fbe15609b0ca4c63cf441",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0481543f_47be408c",
         "filename": "golden/go/config/config.go",
         "patchSetId": 2
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "04aa9fd9_ccc7cd94",
+        "filename": "golden/go/config/config.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-22T19:10:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0481543f_47be408c",
+      "range": {
+        "startLine": 27,
+        "startChar": 42,
+        "endLine": 27,
+        "endChar": 53
+      },
+      "revId": "80da84726449c8c95e4fbe15609b0ca4c63cf441",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7c6f2059_9095f3f5",
         "filename": "golden/go/config/config_test.go",
         "patchSetId": 2
@@ -160,6 +304,30 @@
       "revId": "80da84726449c8c95e4fbe15609b0ca4c63cf441",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e08f3abb_5cb8ae16",
+        "filename": "golden/go/config/config_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-22T19:10:49Z",
+      "side": 1,
+      "message": "I added an unknown field to common.json5; As per typical json/json5 unmarshalling, values that don\u0027t belong to an exported field will be ignored.",
+      "parentUuid": "7c6f2059_9095f3f5",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 0
+      },
+      "revId": "80da84726449c8c95e4fbe15609b0ca4c63cf441",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
