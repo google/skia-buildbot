@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "183b1eb6_8b2071c7",
+        "filename": "infra-sk/modules/autogrow-textarea-sk/autogrow-textarea-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-22T16:46:11Z",
+      "side": 1,
+      "message": "nit",
+      "range": {
+        "startLine": 91,
+        "startChar": 17,
+        "endLine": 91,
+        "endChar": 27
+      },
+      "revId": "5d762dca391475136ebf92f53fd558588113b88f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
