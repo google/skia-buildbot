@@ -3,7 +3,10 @@ import './index';
 import { $, $$ } from 'common-sk/modules/dom';
 
 import { languageList } from './test_data';
-import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
+import {
+  eventPromise,
+  setUpElementUnderTest
+} from '../../../infra-sk/modules/test_util';
 
 const DOWN_ARROW = 40;
 const UP_ARROW = 38;
@@ -105,17 +108,20 @@ describe('suggest-input-sk', () => {
       .to.contain.text(['Python2.7', 'Python3']);
   });
 
-  it('selects suggestion by click', () => {
+  it('selects suggestion by click', async () => {
     simulateUserTyping('Python');
     expect($('li', suggestInput).length).to.equal(4);
     // Expect doesn't handle real JS arrays well in all cases, we need the
     // original NodeList.
     expect(suggestInput.querySelectorAll('li'))
       .to.contain.text(['Python', 'Python2.7', 'Python3', 'IronPython']);
+    const valueChangedEvent = eventPromise('value-changed');
     // Click 'Python2.7'.
     $('li', suggestInput)[1].dispatchEvent(
       new MouseEvent('click', { bubbles: true, cancelable: true }),
     );
+    const selectionMade = await valueChangedEvent;
+    expect(selectionMade.detail.value).to.equal('Python2.7');
     expect($$('input', suggestInput).value).to.equal('Python2.7');
   });
 
