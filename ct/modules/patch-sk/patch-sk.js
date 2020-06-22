@@ -150,8 +150,8 @@ define('patch-sk', class extends ElementSk {
   }
 
   /**
-   * @prop {string} clDescription - Humnan readable description of CL.  Fires
-   * 'cl-desc-changed' with detail { clDescription: <new desc> } event on
+   * @prop {string} clDescription - Human readable description of CL.  Fires
+   * 'cl-description-changed' with detail { clDescription: <new desc> } event on
    * change.
    */
   get clDescription() {
