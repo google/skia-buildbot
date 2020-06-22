@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/flynn/json5"
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/autoroll/go/manual"
+	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/roller"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chatbot"
@@ -309,6 +311,58 @@ func main() {
 				}
 			}
 		}()
+	} else if githubClient != nil {
+		var forkRepoURL string
+		if cfg.GithubDEPSRepoManager != nil {
+			forkRepoURL = cfg.GithubDEPSRepoManager.ForkRepoURL
+		} else if cfg.GithubRepoManager != nil {
+			forkRepoURL = cfg.GithubRepoManager.ForkRepoURL
+		}
+		if forkRepoURL != "" {
+			// Periodically delete old fork branches for this roller.
+			// Github rollers create new fork branches for each roll (skbug.com/10328). Branches from
+			// merged PRs should be cleaned up via
+			// https://help.github.com/en/github/administering-a-repository/managing-the-automatic-deletion-of-branches
+			// But that does not address failed and abandoned PRs.
+			go func() {
+				for range time.Tick(60 * time.Minute) {
+					forkRepoMatches := parent.REForkRepoURL.FindStringSubmatch(forkRepoURL)
+					forkRepoOwner := forkRepoMatches[2]
+					forkRepoName := forkRepoMatches[3]
+					// func (g *GitHub) ListMatchingReferences(repoOwner, repoName, ref string) ([]*github.Reference, error) {
+					refs, err := githubClient.ListMatchingReferences(forkRepoOwner, forkRepoName, rollerName)
+					if err != nil {
+						sklog.Errorf("Failed to retrieve matching references for %s: %s", rollerName, err)
+						continue
+					}
+					sklog.Infof("YYY - Found matching references: %s", refs)
+					for _, r := range refs {
+						forkBranchNameMatches := parent.REForkBranch.FindStringSubmatch(*r.Ref)
+						if len(forkBranchNameMatches) != 2 {
+							sklog.Infof("%s is not in expected format %s to cleanup. Skipping it.", *r.Ref, parent.REForkBranch)
+							continue
+						}
+						ts, err := strconv.ParseInt(forkBranchNameMatches[1], 10, 64)
+						if err != nil {
+							sklog.Errorf("Could not read timestamp from %s: %s", *r.Ref, err)
+							continue
+						}
+						creationTime := time.Unix(ts, 0)
+						elapsedDuration := time.Now().Sub(creationTime)
+						elapsedDays := elapsedDuration.Hours() / 24
+						sklog.Infof("%s fork branch was created %d days ago", *r.Ref, elapsedDays)
+						if elapsedDays > 7 {
+							// Cleanup the branch!
+							if err := githubClient.DeleteReference(forkRepoOwner, forkRepoName, *r.Ref); err != nil {
+								sklog.Errorf("Could not delete fork branch %s: %s", *r.Ref, err)
+								continue
+							}
+							sklog.Infof("Deleted fork branch %s", *r.Ref)
+						}
+					}
+				}
+			}()
+		}
 	}
 	httputils.RunHealthCheckServer(*port)
 }
