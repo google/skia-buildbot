@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/frontend"
 	"go.skia.org/infra/perf/go/regression"
-	"go.skia.org/infra/perf/go/types"
 )
 
 func addMultiple(generator *go2ts.Go2TS, instances []interface{}) error {
@@ -38,10 +37,6 @@ func main() {
 		sklog.Fatal(err)
 	}
 	err = generator.AddUnionWithName(regression.AllStatus, "Status")
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	err = generator.AddUnionWithName(types.AllClusterAlgos, "ClusterAlgo")
 	if err != nil {
 		sklog.Fatal(err)
 	}

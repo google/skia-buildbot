@@ -176,24 +176,6 @@ func mockGithubDEPSRequests(t *testing.T, urlMock *mockhttpclient.URLMock) {
 	urlMock.MockOnce(githubApiUrl+"/repos/superman/krypton/issues/12345/comments", md)
 }
 
-func mockGithubRefRequests(t *testing.T, urlMock *mockhttpclient.URLMock, forkRepoURL string) {
-	// Mock /refs endpoints.
-	forkRepoMatches := parent.REForkRepoURL.FindStringSubmatch(forkRepoURL)
-	forkRepoOwner := forkRepoMatches[2]
-	forkRepoName := forkRepoMatches[3]
-	testSHA := "xyz"
-	serializedRef, err := json.Marshal(&github_api.Reference{
-		Object: &github_api.GitObject{
-			SHA: &testSHA,
-		},
-	})
-	require.NoError(t, err)
-	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs/%s", githubApiUrl, forkRepoOwner, forkRepoName, "heads%2Fmaster"), mockhttpclient.MockGetDialogue(serializedRef))
-	md := mockhttpclient.MockPostDialogueWithResponseCode("application/json", mockhttpclient.DONT_CARE_REQUEST, nil, http.StatusCreated)
-	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs", githubApiUrl, forkRepoOwner, forkRepoName), md)
-	require.NoError(t, err)
-}
-
 // TestGithubDEPSRepoManager tests all aspects of the GithubDEPSRepoManager except for CreateNewRoll.
 func TestGithubDEPSRepoManager(t *testing.T) {
 	unittest.LargeTest(t)
@@ -227,7 +209,6 @@ func TestGithubDEPSRepoManagerCreateNewRoll(t *testing.T) {
 
 	// Create a roll, assert that it's at tip of tree.
 	mockGithubDEPSRequests(t, urlMock)
-	mockGithubRefRequests(t, urlMock, cfg.ForkRepoURL)
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
@@ -257,7 +238,6 @@ func TestGithubDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 
 	// Create a roll, assert that it's at tip of tree.
 	mockGithubDEPSRequests(t, urlMock)
-	mockGithubRefRequests(t, urlMock, cfg.ForkRepoURL)
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
 	require.Equal(t, issueNum, issue)
@@ -282,7 +262,6 @@ func TestGithubDEPSRepoManagerPreUploadSteps(t *testing.T) {
 
 	// Create a roll, assert that we ran the PreUploadSteps.
 	mockGithubDEPSRequests(t, urlMock)
-	mockGithubRefRequests(t, urlMock, cfg.ForkRepoURL)
 	_, createErr := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, createErr)
 	require.True(t, ran)

@@ -7,7 +7,6 @@ import (
 	"errors"
 	"sort"
 	"strconv"
-	"strings"
 
 	"golang.org/x/time/rate"
 
@@ -107,19 +106,9 @@ func (c *CRSImpl) CommentOn(ctx context.Context, clID, message string) error {
 	sklog.Infof("Commenting on Gerrit CL %s with message %q", clID, message)
 	cl, err := c.getGerritCL(ctx, clID)
 	if err != nil {
-		if err == gerrit.ErrNotFound || strings.Contains(err.Error(), "404 Not Found") {
-			return code_review.ErrNotFound
-		}
-		return skerr.Wrap(err)
+		return err
 	}
-	err = c.gClient.AddComment(ctx, cl, message)
-	if err != nil {
-		if err == gerrit.ErrNotFound || strings.Contains(err.Error(), "404 Not Found") {
-			return code_review.ErrNotFound
-		}
-		return skerr.Wrap(err)
-	}
-	return nil
+	return skerr.Wrapf(c.gClient.AddComment(ctx, cl, message), "commenting on gerrit CL %s", clID)
 }
 
 // System implements the code_review.Client interface.

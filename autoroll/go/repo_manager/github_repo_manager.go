@@ -113,7 +113,8 @@ func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	parentRM, err := parent.NewGitCheckoutGithubFile(ctx, parentCfg, reg, client, githubClient, serverURL, wd, cr.UserName(), cr.UserEmail(), rollerName, nil)
+	parentCfg.ForkBranchName = rollerName
+	parentRM, err := parent.NewGitCheckoutGithubFile(ctx, parentCfg, reg, client, githubClient, serverURL, wd, cr.UserName(), cr.UserEmail(), nil)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
