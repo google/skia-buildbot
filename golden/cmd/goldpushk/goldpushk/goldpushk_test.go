@@ -270,8 +270,8 @@ func TestCommitConfigFiles(t *testing.T) {
 	}
 
 	// Hide goldpushk output to stdout.
-	_, restoreStdout := hideStdout(t)
-	defer restoreStdout()
+	//_, restoreStdout := hideStdout(t)
+	//defer restoreStdout()
 
 	// Check out the fake k8s-config repository created earlier by running "git clone file://...".
 	err := g.checkOutK8sConfigRepo(ctx)
@@ -975,6 +975,9 @@ func makeID(instance Instance, service Service) DeployableUnitID {
 func createFakeK8sConfigRepo(t *testing.T, ctx context.Context) *testutils.GitBuilder {
 	// "git init" a temporary directory.
 	fakeK8sConfig := testutils.GitInit(t, ctx)
+
+	fakeK8sConfig.Git(ctx, "config", "--local", "user.name", "test")
+	fakeK8sConfig.Git(ctx, "config", "--local", "user.email", "test@test.com")
 
 	// Populate fake repository with a file that will make it easier to identify it later on.
 	fakeK8sConfig.Add(ctx, "README.md", "This is repo k8s-config!")
