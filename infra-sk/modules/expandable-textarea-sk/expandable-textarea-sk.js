@@ -124,6 +124,7 @@ define('expandable-textarea-sk', class extends ElementSk {
     this._collapser.closed = !this._collapser.closed;
     this.open = !this._collapser.closed;
     if (this.open) {
+      $$('autogrow-textarea-sk', this).computeResize();
       $$('textarea', this._textarea).focus();
     }
     this._render();
