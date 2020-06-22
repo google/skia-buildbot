@@ -11,6 +11,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -57,6 +58,14 @@ var (
 		"Housekeeper-Weekly-UpdateCIPDPackages",
 		"Housekeeper-OnDemand-Presubmit",
 		"Infra-PerCommit-Build",
+		"Infra-PerCommit-GoBuild-darwin-amd64",
+		"Infra-PerCommit-GoBuild-linux-amd64",
+		"Infra-PerCommit-GoBuild-linux-arm64",
+		"Infra-PerCommit-GoBuild-windows-amd64",
+		"Infra-PerCommit-GoTests-darwin-amd64",
+		"Infra-PerCommit-GoTests-linux-amd64",
+		"Infra-PerCommit-GoTests-linux-arm64",
+		"Infra-PerCommit-GoTests-windows-amd64",
 		"Infra-PerCommit-Small",
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
@@ -179,10 +188,102 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 	return BUNDLE_RECIPES_NAME
 }
 
+func goBuild(b *specs.TasksCfgBuilder, name string) string {
+	// Get the target platform from the task name.
+	split := strings.Split(name, "-")
+	if len(split) != 5 {
+		sklog.Fatalf("Invalid format for goBuild: %q", name)
+	}
+	goos := split[len(split)-2]
+	goarch := split[len(split)-1]
+
+	// Read the Docker image ID.
+	path := filepath.Join(relpath("."), "..", "..", "go_deps", "image.sha256")
+	imgContents, err := ioutil.ReadFile(path)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	imageSha256 := strings.TrimSpace(string(imgContents))
+
+	cmd := []string{
+		"/usr/bin/docker", "run",
+		// These are required for LUCI auth, which uses an environment variable
+		// which points to a file which points to a token server on the host.
+		"--env", "LUCI_CONTEXT=/auth/ctx.json",
+		"--mount", "type=bind,destination=/auth/ctx.json,source=${LUCI_CONTEXT},readonly",
+		"--net", "host",
+		// These are required for all non-local task drivers.
+		"--env", "SWARMING_BOT_ID=${SWARMING_BOT_ID}",
+		"--env", "SWARMING_SERVER=${SWARMING_SERVER}",
+		"--env", "SWARMING_TASK_ID=${SWARMING_TASK_ID}",
+		// These dictate the target OS and architecture of the build.
+		"--env", fmt.Sprintf("GOOS=%s", goos),
+		"--env", fmt.Sprintf("GOARCH=%s", goarch),
+		// Mount the input and output directories into the container. Set the
+		// input directory (the repo root) as the working directory.
+		"--mount", "type=bind,destination=/repo,source=$(pwd)/buildbot,readonly",
+		"--mount", fmt.Sprintf("type=bind,destination=/out,source=%s", specs.PLACEHOLDER_ISOLATED_OUTDIR),
+		"--workdir", "/repo",
+		imageSha256,
+		// Flags to the task driver itself.
+		"go_build",
+		"--project_id", "skia-swarming-bots",
+		"--task_id", specs.PLACEHOLDER_TASK_ID,
+		"--task_name", name,
+		"--alsologtostderr",
+		"--output-path", "/out",
+		"--output-whitelist", "go_tests",
+	}
+
+	b.MustAddTask(name, &specs.TaskSpec{
+		// Run inside a shell so that we can use environment variables and
+		// sub-shells.
+		Command:    []string{"/bin/sh", "-c", fmt.Sprintf("%s", strings.Join(cmd, " "))},
+		Dimensions: dockerGceDimensions(MACHINE_TYPE_LARGE),
+		Idempotent: true,
+		// TODO(borenet): Figure out how to isolate only Go files.
+		Isolate:        "whole_repo.isolate",
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	})
+	return name
+}
+
+func goTests(b *specs.TasksCfgBuilder, name string) string {
+	// Get the target platform from the task name.
+	split := strings.Split(name, "-")
+	if len(split) != 5 {
+		sklog.Fatalf("Invalid format for goBuild: %q", name)
+	}
+	goos := split[len(split)-2]
+	goarch := split[len(split)-1]
+	b.MustAddTask(name, &specs.TaskSpec{
+		Command: []string{
+			"./bin/go_tests",
+			"--project_id", "skia-swarming-bots",
+			"--task_id", specs.PLACEHOLDER_TASK_ID,
+			"--task_name", name,
+			"--alsologtostderr",
+			"--test-dir", "./test",
+			"--test-data-dir", "./buildbot",
+		},
+		Dependencies: []string{fmt.Sprintf("Infra-PerCommit-GoBuild-%s-%s", goos, goarch)},
+		// TODO(borenet): Dimensions depend on target os/arch.
+		Dimensions: linuxGceDimensions(MACHINE_TYPE_LARGE),
+		EnvPrefixes: map[string][]string{
+			// The go_tests task driver needs test2json to be in PATH. It is
+			// built by the go_build task and delivered via isolate.
+			"PATH": {"bin"},
+		},
+		Idempotent:     true,
+		Isolate:        "go_testdata.isolate",
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	})
+	return name
+}
+
 // buildTaskDrivers generates the task to compile the task driver code to run on
 // a given platform.
 func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
-	// TODO(borenet): Add support for RPI.
 	goos := map[string]string{
 		"Linux": "linux",
 		"Mac":   "darwin",
@@ -579,6 +680,10 @@ func process(b *specs.TasksCfgBuilder, name string) {
 		deps = append(deps, updateCIPDPackages(b, name))
 	} else if strings.Contains(name, "ValidateAutorollConfigs") {
 		deps = append(deps, validateAutorollConfigs(b, name))
+	} else if strings.Contains(name, "GoBuild") {
+		deps = append(deps, goBuild(b, name))
+	} else if strings.Contains(name, "GoTests") {
+		deps = append(deps, goTests(b, name))
 	} else {
 		// Infra tests.
 		if strings.Contains(name, "Infra-PerCommit") {

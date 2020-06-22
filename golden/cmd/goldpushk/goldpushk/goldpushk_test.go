@@ -270,8 +270,8 @@ func TestCommitConfigFiles(t *testing.T) {
 	}
 
 	// Hide goldpushk output to stdout.
-	_, restoreStdout := hideStdout(t)
-	defer restoreStdout()
+	//_, restoreStdout := hideStdout(t)
+	//defer restoreStdout()
 
 	// Check out the fake k8s-config repository created earlier by running "git clone file://...".
 	err := g.checkOutK8sConfigRepo(ctx)
