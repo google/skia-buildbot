@@ -5,6 +5,9 @@
  *
  * @attr {Boolean} accept-custom-value - Whether users can enter values not listed
  * in this.options.
+ *
+ * @event value-changed - Any time the user selected or inputted value is
+ * committed. Event is of the form { value: <newValue> }
  */
 
 import { $$ } from 'common-sk/modules/dom';
@@ -138,6 +141,8 @@ define('suggest-input-sk', class extends ElementSk {
     this._suggestions = [];
     this._suggestionSelected = -1;
     this._render();
+    this.dispatchEvent(new CustomEvent('value-changed',
+      { bubbles: true, detail: { value: this.value } }));
   }
 
   _keyup(e) {
