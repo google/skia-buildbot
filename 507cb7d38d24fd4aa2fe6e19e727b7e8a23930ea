@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "09c794c0_a01fe524",
+        "filename": "ct/modules/chromium-perf-sk/chromium-perf-sk.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-22T16:50:00Z",
+      "side": 1,
+      "message": "nit",
+      "range": {
+        "startLine": 32,
+        "startChar": 33,
+        "endLine": 32,
+        "endChar": 35
+      },
+      "revId": "507cb7d38d24fd4aa2fe6e19e727b7e8a23930ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fdb5b90a_53544825",
+        "filename": "ct/modules/chromium-perf-sk/chromium-perf-sk.js",
+        "patchSetId": 12
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-22T16:50:00Z",
+      "side": 1,
+      "message": "nit: Is unsupportedPageSetStrings a better name?",
+      "range": {
+        "startLine": 33,
+        "startChar": 6,
+        "endLine": 33,
+        "endChar": 27
+      },
+      "revId": "507cb7d38d24fd4aa2fe6e19e727b7e8a23930ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
