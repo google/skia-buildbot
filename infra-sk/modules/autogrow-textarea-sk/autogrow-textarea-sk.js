@@ -88,7 +88,7 @@ define('autogrow-textarea-sk', class extends ElementSk {
 
   /**
    * Adjusts the textarea to vertically fit it's contents.
-   * May need to be manually called if this.value is set before
+   * May need to bemanually called if this.value is set before
    * this object is visible (e.g if it's collapsed).
    */
   computeResize() {

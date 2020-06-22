@@ -8,3 +8,16 @@ export const chromiumPatchResult = {
   url: 'https://chromium-review.googlesource.com/c/2222715/3',
   v8_patch: '',
 };
+
+// A bloated result used to mock any of the valid patch types.
+export const anyPatchResult = {
+  catapult_patch: 'imagine a git diff for a catapult patch',
+  chromium_patch: 'imagine a git diff for a chromium patch',
+  chromium_patch_base_build: 'imagine a git diff for a chromium_base_build patch',
+  cl: '123',
+  modified: '20200529230004',
+  skia_patch: 'imagine a git diff for a skia patch',
+  subject: 'Roll Skia from cc7ec24ca824 to \n\n\n1dbc3b533962 (3 revisions)',
+  url: 'https://chromium-review.googlesource.com/c/2222715/3',
+  v8_patch: 'imagine a git diff for a V8 patch',
+};

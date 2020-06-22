@@ -2,6 +2,9 @@
  * Utility javascript functions used across the different CT FE pages.
  */
 import { pad } from 'common-sk/modules/human';
+import { fromObject } from 'common-sk/modules/query';
+import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
+import { errorMessage } from 'elements-sk/errorMessage';
 
 /**
  * Converts the timestamp used in CTFE DB into a user friendly string.
@@ -13,8 +16,6 @@ export function getFormattedTimestamp(timestamp) {
   return getTimestamp(timestamp).toLocaleString();
 }
 
-const two_digits = 10**2;
-const four_digits = 10**4;
 /**
  * Converts the timestamp used in CTFE DB into a Javascript timestamp.
  */
@@ -26,8 +27,8 @@ export function getTimestamp(timestamp) {
   // Timestamp is of the form YYYYMMDDhhmmss.
   // Consume the pieces off the right to build the date.
   const consumeDigits = (n) => {
-    const first_n_digits = timestamp % (10**n);
-    timestamp = (timestamp - first_n_digits) / (10**n)
+    const first_n_digits = timestamp % (10 ** n);
+    timestamp = (timestamp - first_n_digits) / (10 ** n);
     return first_n_digits;
   };
   date.setUTCSeconds(consumeDigits(2));
@@ -47,6 +48,83 @@ export function getCtDbTimestamp(d) {
                   + pad(d.getUTCDate(), 2) + pad(d.getUTCHours(), 2)
                   + pad(d.getUTCMinutes(), 2) + pad(d.getUTCSeconds(), 2);
   return timestamp;
+}
+
+/**
+ * Fetches benchmarks with doc links, and platforms with descriptions.
+ *
+ * @param {func<Object>} func - Function called with fetched benchmarks and
+ * platforms object.
+ */
+export function fetchBenchmarksAndPlatforms(func) {
+  fetch('/_/benchmarks_platforms/', {
+    method: 'POST',
+  })
+    .then(jsonOrThrow)
+    .then(func)
+    .catch(errorMessage);
+}
+
+/**
+ *
+ * @param {Array<string>} descriptions - Array of CL descriptions, combined
+ * into a description string if at least one is noneempty.
+ *
+ * @returns string - Combined description.
+ */
+export function combineClDescriptions(descriptions) {
+  const combinedDesc = descriptions.filter(Boolean).reduce(
+    (str, desc) => str += (str === '' ? desc : ` and ${desc}`), '',
+  );
+  return combinedDesc ? `Testing ${combinedDesc}` : '';
+}
+
+export function missingLiveSitesWithCustomWebpages(customWebpages, benchmarkArgs) {
+  if (customWebpages && !benchmarkArgs.includes('--use-live-sites')) {
+    errorMessage('Please specify --use-live-sites in benchmark arguments '
+                    + 'when using custom web pages.');
+    return true;
+  }
+  return false;
+}
+
+let activeTasks = 0;
+/**
+ * Asynchronously queries the logged in user's active task count.
+ * This is best effort, so doesn't bother with returning a promise.
+ *
+ * @returns function() boolean : Whether or not the task count
+ * previously fetched is more than 3.
+ */
+export function moreThanThreeActiveTasksChecker() {
+  const queryParams = {
+    size: 1,
+    not_completed: true,
+    filter_by_logged_in_user: true,
+  };
+
+  taskDescriptors.forEach((obj) => {
+    fetch(obj.get_url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(queryParams),
+    })
+      .then(jsonOrThrow)
+      .then((json) => {
+        activeTasks += json.pagination.total;
+      })
+      .catch(errorMessage);
+  });
+  return () => {
+    if (activeTasks > 3) {
+      errorMessage(`You have ${activeTasks} currently running tasks. Please wait`
+        + ' for them to complete before scheduling more CT tasks.');
+      return true;
+    }
+    return false;
+  };
 }
 
 /**
