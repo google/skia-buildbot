@@ -20,7 +20,7 @@ import 'elements-sk/icon/expand-less-icon-sk';
 
 const defaultRows = 5;
 const template = (ele) => html`
-<textarea placeholder=${ele.placeholder} @input=${ele._computeResize}></textarea>
+<textarea placeholder=${ele.placeholder} @input=${ele.computeResize}></textarea>
 `;
 
 define('autogrow-textarea-sk', class extends ElementSk {
@@ -34,7 +34,7 @@ define('autogrow-textarea-sk', class extends ElementSk {
   connectedCallback() {
     super.connectedCallback();
     this._render();
-    this._computeResize();
+    this.computeResize();
   }
 
   _render() {
@@ -54,7 +54,7 @@ define('autogrow-textarea-sk', class extends ElementSk {
 
   set value(v) {
     this._textarea.value = v;
-    this._computeResize();
+    this.computeResize();
   }
 
   /**
@@ -86,7 +86,12 @@ define('autogrow-textarea-sk', class extends ElementSk {
     }
   }
 
-  _computeResize() {
+  /**
+   * Adjusts the textarea to vertically fit it's contents.
+   * May need to be manually called if this.value is set before
+   * this object is visible (e.g if it's collapsed).
+   */
+  computeResize() {
     // Rather than increment/decrement, we just set rows each time
     // to handle copy and paste of multiple lines cleanly.
     this._textarea.rows = this.minRows;
