@@ -80,10 +80,12 @@ func TaskDriverForDisplay(t *db.TaskDriverRun) (*TaskDriverRunDisplay, error) {
 			// error but keep going.
 			errs = multierror.Append(errs, fmt.Errorf("Unknown step %s", id))
 		}
-		data := []*db.StepData{}
-		for _, d := range orig.Data {
-			// TODO(borenet): We should try to deep-copy the data.
-			data = append(data, d)
+		var data []*db.StepData
+		if len(orig.Data) > 0 {
+			for _, d := range orig.Data {
+				// TODO(borenet): We should try to deep-copy the data.
+				data = append(data, d)
+			}
 		}
 		var errorMsgs []string
 		for _, errMsg := range orig.Errors {
