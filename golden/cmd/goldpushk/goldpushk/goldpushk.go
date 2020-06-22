@@ -15,6 +15,7 @@ package goldpushk
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -237,17 +238,40 @@ func (g *Goldpushk) regenerateConfigFiles(ctx context.Context) error {
 		// expanded and saved to the k8s-config Git repository.
 		if unit.configMapTemplate != "" {
 			// Path to the template file inside $SKIA_INFRA_ROOT.
-			tPath = unit.getConfigMapFileTemplatePath(g.rootPath)
+			configMapFileTemplate := unit.getConfigMapFileTemplatePath(g.rootPath)
 
 			// Path to the ConfigMap file (.json5) to be regenerated inside the k8s-config Git repository.
 			oPath, ok := g.getConfigMapFilePath(unit)
 			if !ok {
-				return fmt.Errorf("goldpushk.getConfigMapFilePath() failed for %s; this is probably a bug", unit.CanonicalName())
+				return skerr.Fmt("goldpushk.getConfigMapFilePath() failed for %s; this is probably a bug", unit.CanonicalName())
 			}
 
 			// Regenerate .json5 file.
-			if err := g.expandTemplate(ctx, unit.Instance, tPath, oPath); err != nil {
+			if err := g.expandTemplate(ctx, unit.Instance, configMapFileTemplate, oPath); err != nil {
 				return skerr.Wrapf(err, "error while regenerating %s", oPath)
+			}
+		}
+
+		if unit.useJSON5InsteadOfFlags {
+			configsPath := filepath.Join(g.rootPath, "golden", "k8s-instances", string(unit.Instance))
+			jsonFiles, err := ioutil.ReadDir(configsPath)
+			if err != nil {
+				return skerr.Wrap(err)
+			}
+			for _, jf := range jsonFiles {
+				if !strings.HasSuffix(jf.Name(), ".json5") {
+					continue
+				}
+				dstFile := filepath.Join(g.getGitRepoSubdirPath(unit), "gold-"+jf.Name())
+				fmt.Printf("Should copy %s to %s\n", jf.Name(), dstFile)
+				srcFile := filepath.Join(configsPath, jf.Name())
+				b, err := ioutil.ReadFile(srcFile)
+				if err != nil {
+					return skerr.Wrapf(err, "reading %s", srcFile)
+				}
+				if err := ioutil.WriteFile(dstFile, b, 0666); err != nil {
+					return skerr.Wrapf(err, "writing %s", dstFile)
+				}
 			}
 		}
 
@@ -445,8 +469,10 @@ func (g *Goldpushk) pushDeployableUnits(ctx context.Context, units []DeployableU
 		return nil
 	}
 
+	// We want to make sure we push configs for an instance only once on a given deploy command.
+	configsPushedForInstance := map[Instance]bool{}
 	for _, unit := range units {
-		if err := g.pushSingleDeployableUnit(ctx, unit); err != nil {
+		if err := g.pushSingleDeployableUnit(ctx, unit, configsPushedForInstance); err != nil {
 			return skerr.Wrap(err)
 		}
 	}
@@ -455,7 +481,7 @@ func (g *Goldpushk) pushDeployableUnits(ctx context.Context, units []DeployableU
 
 // pushSingleDeployableUnit pushes the given DeployableUnit to the corresponding cluster by running
 // "kubectl apply -f path/to/config.yaml".
-func (g *Goldpushk) pushSingleDeployableUnit(ctx context.Context, unit DeployableUnit) error {
+func (g *Goldpushk) pushSingleDeployableUnit(ctx context.Context, unit DeployableUnit, instancesPushed map[Instance]bool) error {
 	// Get the cluster corresponding to the given DeployableUnit.
 	cluster := clusterSkiaPublic
 	if unit.internal {
@@ -465,6 +491,13 @@ func (g *Goldpushk) pushSingleDeployableUnit(ctx context.Context, unit Deployabl
 	// Switch clusters.
 	if err := g.switchClusters(ctx, cluster); err != nil {
 		return skerr.Wrap(err)
+	}
+
+	if !instancesPushed[unit.Instance] {
+		instancesPushed[unit.Instance] = true
+		if err := g.pushConfigurationJSON(ctx, unit.Instance); err != nil {
+			return skerr.Wrap(err)
+		}
 	}
 
 	// Push ConfigMap if the DeployableUnit requires one.
@@ -495,34 +528,56 @@ func (g *Goldpushk) maybePushConfigMap(ctx context.Context, unit DeployableUnit)
 	if path, ok := g.getConfigMapFilePath(unit); ok {
 		fmt.Printf("%s: creating ConfigMap named \"%s\" from file %s.\n", unit.CanonicalName(), unit.configMapName, path)
 
-		// Delete existing ConfigMap.
-		cmd := &exec.Command{
-			Name:        "kubectl",
-			Args:        []string{"delete", "configmap", unit.configMapName},
-			InheritPath: true,
-			LogStderr:   true,
-			LogStdout:   true,
+		err := g.pushConfigMap(ctx, path, unit.configMapName)
+		if err != nil {
+			return skerr.Wrap(err)
 		}
-		if err := exec.Run(ctx, cmd); err != nil {
-			// TODO(lovisolo): Figure out a less brittle way to detect exit status 1.
-			if strings.HasPrefix(err.Error(), "Command exited with exit status 1") {
-				sklog.Infof("Did not delete ConfigMap %s as it does not exist on the cluster.", unit.configMapName)
-			} else {
-				return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
-			}
-		}
+	}
+	return nil
+}
 
-		// Create new ConfigMap.
-		cmd = &exec.Command{
-			Name:        "kubectl",
-			Args:        []string{"create", "configmap", unit.configMapName, "--from-file", path},
-			InheritPath: true,
-			LogStderr:   true,
-			LogStdout:   true,
-		}
-		if err := exec.Run(ctx, cmd); err != nil {
+// pushConfigurationJSON pushes all the configuration files for a given instance. This includes
+// all JSON5 files for all services. This is done because all services overlap with some common
+// configuration.
+func (g *Goldpushk) pushConfigurationJSON(ctx context.Context, instance Instance) error {
+	configMapName := fmt.Sprintf("gold-%s-config", instance)
+	configsPath := filepath.Join(g.rootPath, "golden", "k8s-instances", string(instance))
+	if err := g.pushConfigMap(ctx, configsPath, configMapName); err != nil {
+		return skerr.Wrapf(err, "pushing the configuration files at %s", configsPath)
+	}
+	return nil
+}
+
+// pushConfigMap pushes the file(s) at a given path as a config map with the given name. It deletes
+// any pre-existing map before, so as to overwrite it.
+func (g *Goldpushk) pushConfigMap(ctx context.Context, path, configMapName string) error {
+	// Delete existing ConfigMap.
+	cmd := &exec.Command{
+		Name:        "kubectl",
+		Args:        []string{"delete", "configmap", configMapName},
+		InheritPath: true,
+		LogStderr:   true,
+		LogStdout:   true,
+	}
+	if err := exec.Run(ctx, cmd); err != nil {
+		// TODO(lovisolo): Figure out a less brittle way to detect exit status 1.
+		if strings.HasPrefix(err.Error(), "Command exited with exit status 1") {
+			sklog.Infof("Did not delete ConfigMap %s as it does not exist on the cluster.", configMapName)
+		} else {
 			return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
 		}
+	}
+
+	// Create new ConfigMap.
+	cmd = &exec.Command{
+		Name:        "kubectl",
+		Args:        []string{"create", "configmap", configMapName, "--from-file", path},
+		InheritPath: true,
+		LogStderr:   true,
+		LogStdout:   true,
+	}
+	if err := exec.Run(ctx, cmd); err != nil {
+		return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
 	}
 	return nil
 }

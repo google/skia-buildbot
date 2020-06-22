@@ -1,0 +1,7 @@
+{
+  bucket: "skia-gold-skia-infra",
+  fs_namespace: "skia-infra",
+  fs_project_id: "skia-firestore",
+  known_hashes_gcs_path: "skia-gold-skia-infra/hash_files/gold-skia-infra-hashes.txt",
+  primary_crs: "gerrit",
+}
