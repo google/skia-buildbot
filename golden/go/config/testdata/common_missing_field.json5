@@ -1,0 +1,7 @@
+{
+  common_str: "somestring",
+  //common_int: 1234,
+  common_bool: true,
+
+  will_be_overridden: "56"
+}
