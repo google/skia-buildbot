@@ -155,6 +155,32 @@ func (g *GitHub) GetReference(repoOwner, repoName, ref string) (*github.Referenc
 	return r, nil
 }
 
+// See https://developer.github.com/v3/git/refs/#list-matching-references
+// for the API documentation.
+func (g *GitHub) ListMatchingReferences(repoOwner, repoName, ref string) ([]*github.Reference, error) {
+	references, resp, err := g.client.Git.GetRefs(g.ctx, repoOwner, repoName, ref)
+	if err != nil {
+		return nil, fmt.Errorf("Failed listing references for %s : %s", ref, err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Unexpected status code %d from listing references.", resp.StatusCode)
+	}
+	return references, nil
+}
+
+// See https://developer.github.com/v3/git/refs/#delete-a-reference
+// for the API documentation.
+func (g *GitHub) DeleteReference(repoOwner, repoName, ref string) error {
+	resp, err := g.client.Git.DeleteRef(g.ctx, repoOwner, repoName, ref)
+	if err != nil {
+		return fmt.Errorf("Failed deleting reference %s : %s", ref, err)
+	}
+	if resp.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("Unexpected status code %d from deleting reference.", resp.StatusCode)
+	}
+	return nil
+}
+
 // See https://developer.github.com/v3/git/refs/#create-a-reference
 // for the API documentation.
 func (g *GitHub) CreateReference(repoOwner, repoName, ref, sha string) error {
