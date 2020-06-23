@@ -26,6 +26,9 @@ type Common struct {
 
 	// Primary CodeReviewSystem (e.g. 'gerrit', 'github
 	PrimaryCRS string `json:"primary_crs"`
+
+	// If running locally (not in production).
+	Local bool `json:"local" optional:"true"`
 }
 
 // LoadFromJSON5 reads the contents of path and tries to decode the JSON5 there into the provided

@@ -42,24 +42,22 @@ spec:
         - name: gold-{{.INSTANCE_ID}}-baselineserver
           image: {{.BASELINE_SERVER_IMAGE}}
           args:
-            - "--fs_namespace={{.INSTANCE_ID}}"
-            - "--fs_project_id={{.FIRESTORE_PROJECT}}"
-            - "--known_hashes_gcs_path={{.BUCKET}}/hash_files/{{.HASHES_FILE}}"
+            - "--common_instance_config=/etc/gold-config/{{.INSTANCE_ID}}.json5"
+            - "--config=/etc/gold-config/{{.INSTANCE_ID}}-baselineserver.json5"
             - "--logtostderr"
-            - "--primary_crs={{.CODE_REVIEW_SYSTEM}}"
-            - "--port=:8000"
-            - "--prom_port=:20000"
           ports:
             - containerPort: 8000
               name: http
             - containerPort: 20000
               name: prom
           volumeMounts:
-            - name: gold-service-account-secrets
+            - name: gold-{{.INSTANCE_ID}}-config-volume
               mountPath: /etc/gold-config/
+            - name: gold-service-account-secrets
+              mountPath: /etc/gold-secrets/
           env:
             - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /etc/gold-config/service-account.json
+              value: /etc/gold-secrets/service-account.json
           resources:
             requests:
               memory: "500Mi"
@@ -71,6 +69,10 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 3
       volumes:
+        - name: gold-{{.INSTANCE_ID}}-config-volume
+          configMap:
+            defaultMode: 400
+            name: gold-{{.INSTANCE_ID}}-config
         - name: gold-service-account-secrets
           secret:
             secretName: gold-service-account-secrets

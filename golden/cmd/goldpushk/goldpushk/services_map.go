@@ -50,8 +50,6 @@ var (
 // ProductionDeployableUnits returns the DeployableUnitSet that will be used as the source of truth
 // across all of goldpushk.
 func ProductionDeployableUnits() DeployableUnitSet {
-	// TODO(lovisolo): Add any missing information.
-
 	s := DeployableUnitSet{
 		knownInstances: []Instance{
 			Chrome,
@@ -91,13 +89,19 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	}
 
 	// Add BaselineServer to the instances that require it.
-	s.add(Chrome, BaselineServer)
-	s.add(ChromeGPU, BaselineServer)
-	s.add(Flutter, BaselineServer)
-	s.add(FlutterEngine, BaselineServer)
-	s.add(FuchsiaPublic, BaselineServer)
-	s.add(SkiaInfra, BaselineServer)
-	s.addWithOptions(Fuchsia, BaselineServer, DeploymentOptions{internal: true})
+	publicInstancesNeedingBaselineServer := []Instance{
+		Chrome, ChromeGPU, Flutter, FlutterEngine, FuchsiaPublic, SkiaInfra,
+	}
+	for _, instance := range publicInstancesNeedingBaselineServer {
+		s.addWithOptions(instance, BaselineServer, DeploymentOptions{
+			useJSON5InsteadOfFlags: true,
+		})
+	}
+	// Internal baseline options.
+	s.addWithOptions(Fuchsia, BaselineServer, DeploymentOptions{
+		internal:               true,
+		useJSON5InsteadOfFlags: true,
+	})
 
 	// Overwrite common services for "fuchsia" instance, which need to run on skia-corp.
 	s.addWithOptions(Fuchsia, DiffServer, DeploymentOptions{internal: true})

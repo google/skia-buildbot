@@ -1,0 +1,7 @@
+{
+  bucket: "skia-gold-flutter",
+  fs_namespace: "flutter",
+  fs_project_id: "skia-firestore",
+  known_hashes_gcs_path: "skia-gold-flutter/hash_files/gold-flutter-hashes.txt",
+  primary_crs: "github",
+}

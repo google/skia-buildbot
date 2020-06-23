@@ -29,7 +29,6 @@ func (d DeployableUnitID) CanonicalName() string {
 // DeploymentOptions contains any additional information required to deploy a
 // DeployableUnit to Kubernetes.
 type DeploymentOptions struct {
-	// TODO(lovisolo): Add any missing fields.
 	internal      bool   // If true, deploy to the "skia-corp" cluster, otherwise deploy to "skia-public".
 	configMapName string // If set, a ConfigMap will be created using the contents of field as its name.
 
@@ -38,6 +37,8 @@ type DeploymentOptions struct {
 	// relative to $SKIA_INFRA_ROOT.
 	configMapFile     string // Create a ConfigMap from this file.
 	configMapTemplate string // Create a ConfigMap from this template. The resulting .json5 file will be checked into the corresponding config Git repo.
+
+	useJSON5InsteadOfFlags bool
 }
 
 // DeployableUnit represents a Gold instance/service pair that can be deployed
