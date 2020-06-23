@@ -951,6 +951,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "demoserver",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "demoserver",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "demoserver",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "docserver",
           "endpoints": [
             {
@@ -3047,6 +3073,23 @@
                           },
                           "route": {
                             "cluster": "debugger-assets",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "demos.skia.org",
+                      "name": "demos.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "demoserver",
                             "timeout": {
                               "seconds": 600
                             }
