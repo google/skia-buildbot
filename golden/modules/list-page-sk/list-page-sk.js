@@ -25,7 +25,7 @@ import '../query-dialog-sk';
 const template = (ele) => html`
 <div>
   <corpus-selector-sk .corpora=${ele._corpora}
-      .selectedCorpus=${ele._currentCorpus} @corpus_selected=${ele._currentCorpusChanged}>
+      .selectedCorpus=${ele._currentCorpus} @corpus-selected=${ele._currentCorpusChanged}>
   </corpus-selector-sk>
 
   <div class=query_params>
@@ -139,7 +139,7 @@ define('list-page-sk', class extends ElementSk {
 
   _currentCorpusChanged(e) {
     e.stopPropagation();
-    this._currentCorpus = e.detail.corpus;
+    this._currentCorpus = e.detail;
     this._stateChanged();
     this._render();
     this._fetch();
@@ -195,9 +195,7 @@ define('list-page-sk', class extends ElementSk {
       .then(jsonOrThrow)
       .then((paramset) => {
         // We split the paramset into a list of corpora...
-        this._corpora = (paramset.source_type || []).map((c) => ({
-          name: c,
-        }));
+        this._corpora = paramset.source_type || [];
         // ...and the rest of the keys. This is to make it so the layout is
         // consistent with other pages (e.g. the search page, the by blame page, etc).
         delete paramset.source_type;
