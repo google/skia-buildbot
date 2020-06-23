@@ -93,6 +93,30 @@
       "revId": "722843d2bd8dd78cd60ee0a4374f3e7429d92710",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5143392_a0d7cdb8",
+        "filename": "autoroll/go/autoroll-be/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 342,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-23T14:28:38Z",
+      "side": 1,
+      "message": "I guess it could get a reference with https://developer.github.com/v3/git/refs/#get-a-reference and then use that sha to get a commit https://developer.github.com/v3/git/commits/#get-a-commit\nand then parse the committer.date.\nSeems like a lot of extra steps, I kind of like using our own creation timestamp with the fork branch name instead. If the only issue is importing internal repo manager package then we can just move the RE here (it is unused in go/repo_manager/parent).",
+      "parentUuid": "12a53462_87b656fb",
+      "range": {
+        "startLine": 340,
+        "startChar": 5,
+        "endLine": 342,
+        "endChar": 55
+      },
+      "revId": "722843d2bd8dd78cd60ee0a4374f3e7429d92710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
