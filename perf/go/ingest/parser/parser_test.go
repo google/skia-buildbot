@@ -36,7 +36,7 @@ func TestGetParamsAndValuesFromLegacyFormat_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	// Load the sample data file as BenchData.
 
-	r := testutils.MustGetReader(filepath.Join("legacy", "success.json"))
+	r := testutils.MustGetReader(t, filepath.Join("legacy", "success.json"))
 
 	benchData, err := format.ParseLegacyFormat(r)
 	require.NoError(t, err)
@@ -51,7 +51,7 @@ func TestGetParamsAndValuesFromLegacyFormat_Success(t *testing.T) {
 func TestGetParamsAndValuesFromFormat_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	// Load the sample data file as BenchData.
-	r := testutils.MustGetReader(filepath.Join("version_1", "success.json"))
+	r := testutils.MustGetReader(t, filepath.Join("version_1", "success.json"))
 
 	f, err := format.Parse(r)
 	require.NoError(t, err)
@@ -91,7 +91,7 @@ func parserForTest(t *testing.T, subdir, filename string) (*Parser, file.File) {
 
 	// Load the sample data file as BenchData.
 
-	r := testutils.MustGetReader(filepath.Join(subdir, filename))
+	r := testutils.MustGetReader(t, filepath.Join(subdir, filename))
 
 	return ret, file.File{
 		Name:     filename,

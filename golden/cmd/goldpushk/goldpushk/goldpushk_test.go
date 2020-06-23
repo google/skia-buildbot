@@ -270,8 +270,8 @@ func TestCommitConfigFiles(t *testing.T) {
 	}
 
 	// Hide goldpushk output to stdout.
-	_, restoreStdout := hideStdout(t)
-	defer restoreStdout()
+	//_, restoreStdout := hideStdout(t)
+	//defer restoreStdout()
 
 	// Check out the fake k8s-config repository created earlier by running "git clone file://...".
 	err := g.checkOutK8sConfigRepo(ctx)
@@ -286,6 +286,10 @@ func TestCommitConfigFiles(t *testing.T) {
 	defer cleanup()
 
 	// Call the function under test, which will try to commit and push the changes.
+	_, err = g.k8sConfigCheckout.Git(ctx, "config", "--local", "user.name", "fake")
+	require.NoError(t, err)
+	_, err = g.k8sConfigCheckout.Git(ctx, "config", "--local", "user.email", "fake@fake.com")
+	require.NoError(t, err)
 	ok, err := g.commitConfigFiles(ctx)
 	require.NoError(t, err)
 
