@@ -36,7 +36,7 @@ func Execute() {
 
 func initSubCommands() error {
 
-	alertInit()
+	clusterInit()
 	if err := ingestInit(); err != nil {
 		return err
 	}
