@@ -22,6 +22,30 @@
       "revId": "722843d2bd8dd78cd60ee0a4374f3e7429d92710",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6c28b01d_2f833ceb",
+        "filename": "autoroll/go/autoroll-be/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-23T14:06:05Z",
+      "side": 1,
+      "message": "That was what I had initially looked at, but the periodic looping seemed the most comprehensive  way to find and address all branches created by the roller incase some are left behind.\nThe other main benefit for leaving branches around for longer, is that it would make it possible for people to reopen failed PRs if they wanted to, which cannot be done if the fork branch no longer exists. This is especially useful when dealing with a flaky CQ (like flutter).",
+      "parentUuid": "a686a00b_2e540b85",
+      "range": {
+        "startLine": 326,
+        "startChar": 32,
+        "endLine": 326,
+        "endChar": 52
+      },
+      "revId": "722843d2bd8dd78cd60ee0a4374f3e7429d92710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
