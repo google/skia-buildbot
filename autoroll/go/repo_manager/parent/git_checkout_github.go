@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -47,8 +48,8 @@ func (c GitCheckoutGithubConfig) Validate() error {
 func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, rollerName, forkRepoURL string) git_common.UploadRollFunc {
 	return func(ctx context.Context, co *git.Checkout, upstreamBranch, hash string, emails []string, dryRun bool, commitMsg string) (int64, error) {
 
-		// Generate a fork branch name.
-		forkBranchName := fmt.Sprintf("%s-%s", rollerName, uuid.New().String())
+		// Generate a fork branch name with unique id and creation timestamp.
+		forkBranchName := fmt.Sprintf("%s-%s-%d", rollerName, uuid.New().String(), time.Now().Unix())
 		// Find forkRepo owner and name.
 		forkRepoMatches := REForkRepoURL.FindStringSubmatch(forkRepoURL)
 		forkRepoOwner := forkRepoMatches[2]
