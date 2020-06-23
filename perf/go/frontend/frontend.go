@@ -12,7 +12,6 @@ import (
 	"net/http/pprof"
 	"net/url"
 	"os"
-	"path/filepath"
 	"runtime"
 	"sort"
 	"strconv"
@@ -310,11 +309,6 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 	f.distFileSystem, err = dist.New()
 	if err != nil {
 		sklog.Fatal(err)
-	}
-
-	if f.flags.ResourcesDir == "" {
-		_, filename, _, _ := runtime.Caller(0)
-		f.flags.ResourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
 
 	if !f.flags.Local && cfg.DataStoreConfig.Namespace != "" && !util.In(cfg.DataStoreConfig.Namespace, []string{ds.PERF_NS, ds.PERF_ANDROID_NS, ds.PERF_ANDROID_X_NS, ds.PERF_ANDROID_MASTER_NS, ds.PERF_CT_NS, ds.PERF_FLUTTER_NS}) {
