@@ -221,7 +221,6 @@ type FrontendFlags struct {
 	PromPort                       string
 	InternalPort                   string
 	Radius                         int
-	ResourcesDir                   string
 	StepUpOnly                     bool
 }
 
@@ -247,7 +246,6 @@ func (flags *FrontendFlags) Register(fs *pflag.FlagSet) {
 	fs.StringVar(&flags.PromPort, "prom_port", ":20000", "Metrics service address (e.g., ':10110')")
 	fs.StringVar(&flags.InternalPort, "internal_port", ":9000", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
 	fs.IntVar(&flags.Radius, "radius", 7, "The number of commits to include on either side of a commit when clustering.")
-	fs.StringVar(&flags.ResourcesDir, "resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	fs.BoolVar(&flags.StepUpOnly, "step_up_only", false, "Only regressions that look like a step up will be reported.")
 }
 
