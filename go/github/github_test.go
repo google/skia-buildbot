@@ -80,6 +80,46 @@ func TestGetReference(t *testing.T) {
 	require.Equal(t, testSHA, *ref.Object.SHA)
 }
 
+func TestListMatchingReferences(t *testing.T) {
+	unittest.SmallTest(t)
+	testSHA1 := "abc"
+	testSHA2 := "xyz"
+	testRef := "test-branch"
+	testRepoOwner := "batman"
+	testRepoName := "gotham"
+	retRef1 := github.Reference{Object: &github.GitObject{SHA: &testSHA1}}
+	retRef2 := github.Reference{Object: &github.GitObject{SHA: &testSHA2}}
+	respBody := []byte(testutils.MarshalJSON(t, []github.Reference{retRef1, retRef2}))
+	r := mux.NewRouter()
+	md := mockhttpclient.MockGetDialogue(respBody)
+	r.Schemes("https").Host("api.github.com").Methods("GET").Path(fmt.Sprintf("/repos/%s/%s/git/refs/%s", testRepoOwner, testRepoName, url.QueryEscape(testRef))).Handler(md)
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), testRepoOwner, testRepoName, httpClient)
+	require.NoError(t, err)
+	retRefs, err := githubClient.ListMatchingReferences(testRepoOwner, testRepoName, testRef)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(retRefs))
+	require.Equal(t, testSHA1, *retRefs[0].Object.SHA)
+	require.Equal(t, testSHA2, *retRefs[1].Object.SHA)
+}
+
+func TestDeleteReference(t *testing.T) {
+	unittest.SmallTest(t)
+	testRef := "test-branch"
+	testRepoOwner := "batman"
+	testRepoName := "gotham"
+	r := mux.NewRouter()
+	md := mockhttpclient.MockDeleteDialogueWithResponseCode("", nil, nil, http.StatusNoContent)
+	r.Schemes("https").Host("api.github.com").Methods("DELETE").Path(fmt.Sprintf("/repos/%s/%s/git/refs/%s", testRepoOwner, testRepoName, testRef)).Handler(md)
+	httpClient := mockhttpclient.NewMuxClient(r)
+
+	githubClient, err := NewGitHub(context.Background(), testRepoOwner, testRepoName, httpClient)
+	require.NoError(t, err)
+	err = githubClient.DeleteReference(testRepoOwner, testRepoName, testRef)
+	require.NoError(t, err)
+}
+
 func TestCreateReference(t *testing.T) {
 	unittest.SmallTest(t)
 	testSHA := "xyz"
