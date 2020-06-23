@@ -11,8 +11,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"go.skia.org/infra/golden/go/clstore/fs_clstore"
-
 	"github.com/gorilla/mux"
 	gstorage "google.golang.org/api/storage/v1"
 
@@ -23,36 +21,51 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
+	"go.skia.org/infra/golden/go/clstore/fs_clstore"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/shared"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/web"
 )
 
+type baselineServerConfig struct {
+	config.Common
+
+	//HTTP service address (e.g., ':9000')
+	Port string `json:"port"`
+
+	// Metrics service address (e.g., ':10110')
+	PromPort string `json:"prom_port"`
+}
+
 func main() {
 	// Command line flags.
 	var (
-		fsNamespace        = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
-		fsProjectID        = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
-		knownHashesGCSPath = flag.String("known_hashes_gcs_path", "", "GCS path, where the known hashes file should be stored. This should match the same flag in skiacorrectness which writes the hashes. Format: <bucket>/<path>.")
-		local              = flag.Bool("local", false, "if running local (not in production)")
-		primaryCRS         = flag.String("primary_crs", "gerrit", "Primary CodeReviewSystem (e.g. 'gerrit', 'github'")
-		port               = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-		promPort           = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
+		commonInstanceConfig = flag.String("common_instance_config", "", "Path to the json5 file containing the configuration that needs to be the same across all services for a given instance.")
+		thisConfig           = flag.String("config", "", "Path to the json5 file containing the configuration specific to baseline server.")
+		hang                 = flag.Bool("hang", false, "Stop and do nothing after reading the flags. Good for debugging containers.")
 	)
 
 	// Parse the options. So we can configure logging.
 	flag.Parse()
 
-	if *fsNamespace == "" {
-		sklog.Fatalf("--fs_namespace must be set")
+	if *hang {
+		sklog.Info("Hanging")
+		select {}
 	}
+
+	var bsc baselineServerConfig
+	if err := config.LoadFromJSON5(&bsc, commonInstanceConfig, thisConfig); err != nil {
+		sklog.Fatalf("Reading config: %s", err)
+	}
+	sklog.Infof("Loaded config %#v", bsc)
 
 	firestore.EnsureNotEmulator()
 
 	// Set up the logging options.
 	logOpts := []common.Opt{
-		common.PrometheusOpt(promPort),
+		common.PrometheusOpt(&bsc.PromPort),
 	}
 	ctx := context.Background()
 
@@ -62,7 +75,7 @@ func main() {
 	// Auth note: the underlying firestore.NewClient looks at the
 	// GOOGLE_APPLICATION_CREDENTIALS env variable, so we don't need to supply
 	// a token source.
-	fsClient, err := firestore.NewClient(ctx, *fsProjectID, "gold", *fsNamespace, nil)
+	fsClient, err := firestore.NewClient(ctx, bsc.FirestoreProjectID, "gold", bsc.FirestoreNamespace, nil)
 	if err != nil {
 		sklog.Fatalf("Unable to configure Firestore: %s", err)
 	}
@@ -76,10 +89,10 @@ func main() {
 	baseliner := simple_baseliner.New(expStore)
 
 	gsClientOpt := storage.GCSClientOptions{
-		KnownHashesGCSPath: *knownHashesGCSPath,
+		KnownHashesGCSPath: bsc.KnownHashesGCSPath,
 	}
 
-	tokenSource, err := auth.NewDefaultTokenSource(*local, gstorage.CloudPlatformScope)
+	tokenSource, err := auth.NewDefaultTokenSource(bsc.Local, gstorage.CloudPlatformScope)
 	if err != nil {
 		sklog.Fatalf("Could not create token source: %s", err)
 	}
@@ -92,7 +105,7 @@ func main() {
 	}
 
 	// Baseline doesn't need to access this, just needs a way to indicate which CRS we are on.
-	emptyCLStore := fs_clstore.New(nil, *primaryCRS)
+	emptyCLStore := fs_clstore.New(nil, bsc.PrimaryCRS)
 
 	// We only need to fill in the HandlersConfig struct with the following subset, since the baseline
 	// server only supplies a subset of the functionality.
@@ -122,6 +135,6 @@ func main() {
 	router.PathPrefix("/").Handler(httputils.LoggingGzipRequestResponse(appRouter))
 
 	// Start the server
-	sklog.Infof("Serving on http://127.0.0.1" + *port)
-	sklog.Fatal(http.ListenAndServe(*port, router))
+	sklog.Infof("Serving on http://127.0.0.1" + bsc.Port)
+	sklog.Fatal(http.ListenAndServe(bsc.Port, router))
 }

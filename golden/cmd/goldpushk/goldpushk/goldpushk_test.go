@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
@@ -481,7 +482,8 @@ func TestPushSingleDeployableUnitDeleteNonexistentConfigMap(t *testing.T) {
 	commandCollectorCtx := exec.NewContext(context.Background(), commandCollector.Run)
 
 	// Call code under test.
-	err := g.pushSingleDeployableUnit(commandCollectorCtx, unit)
+	configAlreadyPushed := map[Instance]bool{Skia: true}
+	err := g.pushSingleDeployableUnit(commandCollectorCtx, unit, configAlreadyPushed)
 	require.NoError(t, err)
 
 	// Assert that the correct kubectl and gcloud commands were executed.
@@ -491,9 +493,9 @@ func TestPushSingleDeployableUnitDeleteNonexistentConfigMap(t *testing.T) {
 		"kubectl create configmap gold-skia-ingestion-config-bt --from-file /path/to/k8s-config/skia-public/gold-skia-ingestion-config-bt.json5",
 		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-ingestion-bt.yaml",
 	}
-	require.Len(t, commandCollector.Commands(), len(expectedCommands))
+	assert.Len(t, commandCollector.Commands(), len(expectedCommands))
 	for i, command := range expectedCommands {
-		require.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
+		assert.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
 	}
 }
 
@@ -530,19 +532,23 @@ func TestPushCanaries(t *testing.T) {
 	// Assert that the correct kubectl and gcloud commands were executed.
 	expectedCommands := []string{
 		"gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public",
+		"kubectl delete configmap gold-skia-config",
+		"kubectl create configmap gold-skia-config --from-file golden/k8s-instances/skia",
 		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-diffserver.yaml",
 		"kubectl delete configmap gold-skia-ingestion-config-bt",
 		"kubectl create configmap gold-skia-ingestion-config-bt --from-file /path/to/k8s-config/skia-public/gold-skia-ingestion-config-bt.json5",
 		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-ingestion-bt.yaml",
 		"gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp",
+		"kubectl delete configmap gold-fuchsia-config",
+		"kubectl create configmap gold-fuchsia-config --from-file golden/k8s-instances/fuchsia",
 		"kubectl apply -f /path/to/k8s-config/skia-corp/gold-fuchsia-diffserver.yaml",
 		"kubectl delete configmap gold-fuchsia-ingestion-config-bt",
 		"kubectl create configmap gold-fuchsia-ingestion-config-bt --from-file /path/to/k8s-config/skia-corp/gold-fuchsia-ingestion-config-bt.json5",
 		"kubectl apply -f /path/to/k8s-config/skia-corp/gold-fuchsia-ingestion-bt.yaml",
 	}
-	require.Len(t, commandCollector.Commands(), len(expectedCommands))
+	assert.Len(t, commandCollector.Commands(), len(expectedCommands))
 	for i, command := range expectedCommands {
-		require.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
+		assert.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
 	}
 }
 
@@ -621,19 +627,23 @@ func TestPushServices(t *testing.T) {
 	// Assert that the correct kubectl and gcloud commands were executed.
 	expectedCommands := []string{
 		"gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public",
+		"kubectl delete configmap gold-skia-config",
+		"kubectl create configmap gold-skia-config --from-file golden/k8s-instances/skia",
 		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-diffserver.yaml",
 		"kubectl delete configmap gold-skia-ingestion-config-bt",
 		"kubectl create configmap gold-skia-ingestion-config-bt --from-file /path/to/k8s-config/skia-public/gold-skia-ingestion-config-bt.json5",
 		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-ingestion-bt.yaml",
 		"gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp",
+		"kubectl delete configmap gold-fuchsia-config",
+		"kubectl create configmap gold-fuchsia-config --from-file golden/k8s-instances/fuchsia",
 		"kubectl apply -f /path/to/k8s-config/skia-corp/gold-fuchsia-diffserver.yaml",
 		"kubectl delete configmap gold-fuchsia-ingestion-config-bt",
 		"kubectl create configmap gold-fuchsia-ingestion-config-bt --from-file /path/to/k8s-config/skia-corp/gold-fuchsia-ingestion-config-bt.json5",
 		"kubectl apply -f /path/to/k8s-config/skia-corp/gold-fuchsia-ingestion-bt.yaml",
 	}
-	require.Len(t, commandCollector.Commands(), len(expectedCommands))
+	assert.Len(t, commandCollector.Commands(), len(expectedCommands))
 	for i, command := range expectedCommands {
-		require.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
+		assert.Equal(t, command, exec.DebugString(commandCollector.Commands()[i]))
 	}
 }
 
