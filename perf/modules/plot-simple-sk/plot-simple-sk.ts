@@ -93,8 +93,10 @@ import { html } from 'lit-html';
 import * as d3Scale from 'd3-scale';
 import * as d3Array from 'd3-array';
 import * as ResizeObserverPolyfill from 'resize-observer-polyfill';
+// This import is needed because https://github.com/Microsoft/TypeScript/issues/28502
+import ResizeObserver from 'resize-observer-polyfill';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { KDTree } from './kd';
+import { KDTree, KDPoint } from './kd';
 import { ticks } from './ticks';
 
 //  Prefix for trace ids that are not real traces, such as special_zero. Special
@@ -131,10 +133,12 @@ const MISSING_DATA_SENTINEL = 1e32;
 
 const NUM_Y_TICKS = 4;
 
+document.querySelector;
+
 // As backup use a Polyfill for ResizeObserver if it isn't supported. This can
 // go away when Safari supports ResizeObserver:
 // https://caniuse.com/#feat=resizeobserver
-const LocalResizeObserver = window.ResizeObserver || ResizeObserverPolyfill;
+const LocalResizeObserver = ResizeObserver || ResizeObserverPolyfill;
 
 /**
  * @constant {Array} - Colors used for traces.
@@ -151,11 +155,26 @@ const COLORS = [
   '#666666',
 ];
 
+interface Range {
+  x: d3Scale.ScaleLinear<number, number>;
+  y: d3Scale.ScaleLinear<number, number>;
+}
+
 /** @class Builds the Path2D objects that describe the trace and the dots for a given
-*   set of scales.
-*/
+ *   set of scales.
+ */
 class PathBuilder {
-  constructor(xRange, yRange, radius) {
+  private linePath: Path2D;
+  private dotsPath: Path2D;
+  private xRange: d3Scale.ScaleLinear<number, number>;
+  private yRange: d3Scale.ScaleLinear<number, number>;
+  private radius: number;
+
+  constructor(
+    xRange: d3Scale.ScaleLinear<number, number>,
+    yRange: d3Scale.ScaleLinear<number, number>,
+    radius: number
+  ) {
     this.xRange = xRange;
     this.yRange = yRange;
     this.radius = radius;
@@ -169,7 +188,7 @@ class PathBuilder {
    * @param {Number} x - X coordinate in source coordinates.
    * @param {Number} y - Y coordinate in source coordinates.
    */
-  add(x, y) {
+  add(x: number, y: number) {
     // Convert source coord into canvas coords.
     const cx = this.xRange(x);
     const cy = this.yRange(y);
@@ -196,12 +215,29 @@ class PathBuilder {
   }
 }
 
+interface SearchPoint {
+  // Canvas coordinates.
+  x: number;
+  y: number;
+
+  // Source coordinates.
+  sx: number;
+  sy: number;
+  name: string;
+}
 
 /**
  * @class Builds a kdTree for searcing for nearest points to the mouse.
  */
 class SearchBuilder {
-  constructor(xRange, yRange) {
+  private xRange: d3Scale.ScaleLinear<number, number>;
+  private yRange: d3Scale.ScaleLinear<number, number>;
+  private points: SearchPoint[];
+
+  constructor(
+    xRange: d3Scale.ScaleLinear<number, number>,
+    yRange: d3Scale.ScaleLinear<number, number>
+  ) {
     this.xRange = xRange;
     this.yRange = yRange;
     this.points = [];
@@ -218,7 +254,7 @@ class SearchBuilder {
    * @param {Number} y - Y coordinate in source coordinates.
    * @param {String} name - The trace name.
    */
-  add(x, y, name) {
+  add(x: number, y: number, name: string) {
     if (name.startsWith(SPECIAL)) {
       return;
     }
@@ -242,9 +278,9 @@ class SearchBuilder {
    * @returns {KDTree}
    */
   kdTree() {
-    const distance = (a, b) => {
-      const dx = (a.x - b.x);
-      const dy = (a.y - b.y);
+    const distance = (a: KDPoint, b: KDPoint) => {
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
       return dx * dx + dy * dy;
     };
 
@@ -254,10 +290,12 @@ class SearchBuilder {
 
 // Returns true if pt is in rect.
 function inRect(pt, rect) {
-  return pt.x >= rect.x
-    && pt.x < rect.x + rect.width
-    && pt.y >= rect.y
-    && pt.y < rect.y + rect.height;
+  return (
+    pt.x >= rect.x &&
+    pt.x < rect.x + rect.width &&
+    pt.y >= rect.y &&
+    pt.y < rect.y + rect.height
+  );
 }
 
 // Restricts pt to rect.
@@ -286,12 +324,19 @@ function clipToRect(ctx, rect) {
 // scale that matches the displays native resolution and then scaling that back
 // to fit on the page. Also see _updateScaledMeasurements for how the device
 // pixel ratio affects all of our pixel calculations.
-const template = (ele) => html`
-  <canvas class=traces width=${ele.width * window.devicePixelRatio} height=${ele.height * window.devicePixelRatio}
-    style='transform-origin: 0 0; transform: scale(${1 / window.devicePixelRatio});'
+const template = (ele) => html` <canvas
+    class="traces"
+    width=${ele.width * window.devicePixelRatio}
+    height=${ele.height * window.devicePixelRatio}
+    style="transform-origin: 0 0; transform: scale(${1 /
+    window.devicePixelRatio});"
   ></canvas>
-  <canvas class=overlay width=${ele.width * window.devicePixelRatio} height=${ele.height * window.devicePixelRatio}
-    style='transform-origin: 0 0; transform: scale(${1 / window.devicePixelRatio});'
+  <canvas
+    class="overlay"
+    width=${ele.width * window.devicePixelRatio}
+    height=${ele.height * window.devicePixelRatio}
+    style="transform-origin: 0 0; transform: scale(${1 /
+    window.devicePixelRatio});"
   ></canvas>`;
 
 define('plot-simple-sk', class extends ElementSk {
@@ -478,7 +523,6 @@ define('plot-simple-sk', class extends ElementSk {
     this.HOVER_LINE_WIDTH = 1 * this._scale; // px
   }
 
-
   connectedCallback() {
     super.connectedCallback();
 
@@ -539,7 +583,9 @@ define('plot-simple-sk', class extends ElementSk {
         y: closest.sy,
         name: closest.name,
       };
-      this.dispatchEvent(new CustomEvent('trace_selected', { detail: detail, bubbles: true }));
+      this.dispatchEvent(
+        new CustomEvent('trace_selected', { detail: detail, bubbles: true })
+      );
     });
 
     window.requestAnimationFrame(this._raf.bind(this));
@@ -558,7 +604,9 @@ define('plot-simple-sk', class extends ElementSk {
       xBegin: this._labels[beginIndex],
       xEnd: this._labels[endIndex],
     };
-    this.dispatchEvent(new CustomEvent('zoom', { detail: detail, bubbles: true }));
+    this.dispatchEvent(
+      new CustomEvent('zoom', { detail: detail, bubbles: true })
+    );
   }
 
   /**
@@ -566,7 +614,7 @@ define('plot-simple-sk', class extends ElementSk {
    *
    * @param {Object} e - A mouse event or an object that has the coords stored
    * in clientX and clientY.
-  */
+   */
   _eventToCanvasPt(e) {
     const clientRect = this._ctx.canvas.getBoundingClientRect();
     return {
@@ -597,7 +645,9 @@ define('plot-simple-sk', class extends ElementSk {
         };
         if (detail.x !== this._hoverPt.x || detail.y !== this._hoverPt.y) {
           this._hoverPt = detail;
-          this.dispatchEvent(new CustomEvent('trace_focused', { detail: detail, bubbles: true }));
+          this.dispatchEvent(
+            new CustomEvent('trace_focused', { detail: detail, bubbles: true })
+          );
         }
       }
 
@@ -618,7 +668,8 @@ define('plot-simple-sk', class extends ElementSk {
       }
       this._drawOverlayCanvas();
       this._mouseMoveRaw = null;
-    } else { // We are zooming.
+    } else {
+      // We are zooming.
       const pt = this._eventToCanvasPt(this._mouseMoveRaw);
       clampToRect(pt, this._summary.rect);
 
@@ -645,7 +696,7 @@ define('plot-simple-sk', class extends ElementSk {
   _hashString(s) {
     let hash = 0;
     for (let i = s.length - 1; i >= 0; i--) {
-      hash = ((hash << 5) - hash) + s.charCodeAt(i);
+      hash = (hash << 5) - hash + s.charCodeAt(i);
       hash |= 0;
     }
     return Math.abs(hash);
@@ -668,7 +719,7 @@ define('plot-simple-sk', class extends ElementSk {
     if (keys.length === 0) {
       return;
     }
-    const startedEmpty = (this._zoom === null && this._lineData.length === 0);
+    const startedEmpty = this._zoom === null && this._lineData.length === 0;
     if (labels) {
       this._labels = labels;
     }
@@ -719,7 +770,11 @@ define('plot-simple-sk', class extends ElementSk {
         line._color = COLORS[(this._hashString(line.name) % 8) + 1];
       }
 
-      const summaryBuilder = new PathBuilder(this._summary.range.x, this._summary.range.y, this.SUMMARY_RADIUS);
+      const summaryBuilder = new PathBuilder(
+        this._summary.range.x,
+        this._summary.range.y,
+        this.SUMMARY_RADIUS
+      );
 
       line.values.forEach((y, x) => {
         if (Number.isNaN(y)) {
@@ -747,7 +802,11 @@ define('plot-simple-sk', class extends ElementSk {
         line._color = COLORS[(this._hashString(line.name) % 8) + 1];
       }
 
-      const detailBuilder = new PathBuilder(this._detail.range.x, this._detail.range.y, this.DETAIL_RADIUS);
+      const detailBuilder = new PathBuilder(
+        this._detail.range.x,
+        this._detail.range.y,
+        this.DETAIL_RADIUS
+      );
 
       line.values.forEach((y, x) => {
         if (Number.isNaN(y)) {
@@ -764,7 +823,10 @@ define('plot-simple-sk', class extends ElementSk {
     // Build detail x-axis.
     const detailDomain = this._detail.range.x.domain();
     const labelOffset = Math.ceil(detailDomain[0]);
-    const detailLabels = this._labels.slice(Math.ceil(detailDomain[0]), Math.floor(detailDomain[1] + 1));
+    const detailLabels = this._labels.slice(
+      Math.ceil(detailDomain[0]),
+      Math.floor(detailDomain[1] + 1)
+    );
     this._recalcXAxis(this._detail, detailLabels, labelOffset);
 
     // Build detail y-axis.
@@ -824,13 +886,18 @@ define('plot-simple-sk', class extends ElementSk {
     if (this._zoomTask) {
       // If there is a pending zoom task then let that complete first since zooming
       // invalidates the search tree and it needs to be built again.
-      this._recalcSearchTask = window.setTimeout(() => this._recalcSearchImpl());
+      this._recalcSearchTask = window.setTimeout(() =>
+        this._recalcSearchImpl()
+      );
       return;
     }
     const domain = this._detail.range.x.domain();
     domain[0] = Math.floor(domain[0] - 0.1);
     domain[1] = Math.ceil(domain[1] + 0.1);
-    const searchBuilder = new SearchBuilder(this._detail.range.x, this._detail.range.y);
+    const searchBuilder = new SearchBuilder(
+      this._detail.range.x,
+      this._detail.range.y
+    );
     this._lineData.forEach((line) => {
       line.values.forEach((y, x) => {
         if (Number.isNaN(y)) {
@@ -853,27 +920,21 @@ define('plot-simple-sk', class extends ElementSk {
       domainEnd = this._lineData[0].values.length - 1;
     }
     if (this._zoom) {
-      this._detail.range.x = this._detail.range.x
-        .domain(this._zoom);
+      this._detail.range.x = this._detail.range.x.domain(this._zoom);
     } else {
-      this._detail.range.x = this._detail.range.x
-        .domain([0, domainEnd]);
+      this._detail.range.x = this._detail.range.x.domain([0, domainEnd]);
     }
 
-    this._summary.range.x = this._summary.range.x
-      .domain([0, domainEnd]);
+    this._summary.range.x = this._summary.range.x.domain([0, domainEnd]);
 
     const domain = [
       d3Array.min(this._lineData, (line) => d3Array.min(line.values)),
       d3Array.max(this._lineData, (line) => d3Array.max(line.values)),
     ];
 
-    this._detail.range.y = this._detail.range.y
-      .domain(domain)
-      .nice();
+    this._detail.range.y = this._detail.range.y.domain(domain).nice();
 
-    this._summary.range.y = this._summary.range.y
-      .domain(domain);
+    this._summary.range.y = this._summary.range.y.domain(domain);
   }
 
   // Updates all of our d3Scale ranges. Also updates detail and summary rects.
@@ -881,29 +942,25 @@ define('plot-simple-sk', class extends ElementSk {
     const width = this._ctx.canvas.width;
     const height = this._ctx.canvas.height;
 
-    this._summary.range.x = this._summary.range.x
-      .range([
-        this.LEFT_MARGIN,
-        width - this.MARGIN,
-      ]);
+    this._summary.range.x = this._summary.range.x.range([
+      this.LEFT_MARGIN,
+      width - this.MARGIN,
+    ]);
 
-    this._summary.range.y = this._summary.range.y
-      .range([
-        this.SUMMARY_HEIGHT + this.MARGIN,
-        this.MARGIN,
-      ]);
+    this._summary.range.y = this._summary.range.y.range([
+      this.SUMMARY_HEIGHT + this.MARGIN,
+      this.MARGIN,
+    ]);
 
-    this._detail.range.x = this._detail.range.x
-      .range([
-        this.LEFT_MARGIN,
-        width - this.MARGIN,
-      ]);
+    this._detail.range.x = this._detail.range.x.range([
+      this.LEFT_MARGIN,
+      width - this.MARGIN,
+    ]);
 
-    this._detail.range.y = this._detail.range.y
-      .range([
-        height - this.MARGIN,
-        this.SUMMARY_HEIGHT + 2 * this.MARGIN,
-      ]);
+    this._detail.range.y = this._detail.range.y.range([
+      height - this.MARGIN,
+      this.SUMMARY_HEIGHT + 2 * this.MARGIN,
+    ]);
 
     this._summary.rect = {
       x: this.LEFT_MARGIN,
@@ -932,7 +989,8 @@ define('plot-simple-sk', class extends ElementSk {
     if (this.summary) {
       // First clip to the summary region.
       ctx.save();
-      { // Block to scope save/restore.
+      {
+        // Block to scope save/restore.
         clipToRect(ctx, this._summary.rect);
 
         // Draw the xbar.
@@ -960,8 +1018,18 @@ define('plot-simple-sk', class extends ElementSk {
 
           // Draw gray boxes.
           ctx.fillStyle = ZOOM_RECT_COLOR;
-          ctx.rect(this._summary.rect.x, this._summary.rect.y, leftx - this._summary.rect.x, this._summary.rect.height);
-          ctx.rect(rightx, this._summary.rect.y, this._summary.rect.x + this._summary.rect.width - rightx, this._summary.rect.height);
+          ctx.rect(
+            this._summary.rect.x,
+            this._summary.rect.y,
+            leftx - this._summary.rect.x,
+            this._summary.rect.height
+          );
+          ctx.rect(
+            rightx,
+            this._summary.rect.y,
+            this._summary.rect.x + this._summary.rect.width - rightx,
+            this._summary.rect.height
+          );
 
           ctx.fill();
         }
@@ -971,7 +1039,8 @@ define('plot-simple-sk', class extends ElementSk {
 
     // Now clip to the detail region.
     ctx.save();
-    { // Block to scope save/restore.
+    {
+      // Block to scope save/restore.
       clipToRect(ctx, this._detail.rect);
 
       // Draw the xbar.
@@ -1038,7 +1107,7 @@ define('plot-simple-sk', class extends ElementSk {
           // First draw a white backdrop.
           ctx.fillStyle = LABEL_BACKGROUND;
           const meas = ctx.measureText(label);
-          const labelHeight = (this.LABEL_FONT_SIZE + 2 * this.LABEL_MARGIN);
+          const labelHeight = this.LABEL_FONT_SIZE + 2 * this.LABEL_MARGIN;
           const labelWidth = meas.width + this.LABEL_MARGIN * 2;
 
           // Bump the text to different quadrants so it is always visible.
@@ -1050,11 +1119,21 @@ define('plot-simple-sk', class extends ElementSk {
           }
 
           ctx.beginPath();
-          ctx.rect(x - this.LABEL_MARGIN, y + this.LABEL_MARGIN, labelWidth, -labelHeight);
+          ctx.rect(
+            x - this.LABEL_MARGIN,
+            y + this.LABEL_MARGIN,
+            labelWidth,
+            -labelHeight
+          );
           ctx.fill();
           ctx.strokeStyle = LABEL_COLOR;
           ctx.beginPath();
-          ctx.rect(x - this.LABEL_MARGIN, y + this.LABEL_MARGIN, labelWidth, -labelHeight);
+          ctx.rect(
+            x - this.LABEL_MARGIN,
+            y + this.LABEL_MARGIN,
+            labelWidth,
+            -labelHeight
+          );
           ctx.stroke();
 
           // Now draw text on top.
@@ -1105,7 +1184,12 @@ define('plot-simple-sk', class extends ElementSk {
     const ctx = this._ctx;
 
     if (this._inZoomDrag) {
-      ctx.clearRect(this._detail.rect.x - this.MARGIN, this._detail.rect.y - this.MARGIN, this._detail.rect.width + 2 * this.MARGIN, this._detail.rect.height + 2 * this.MARGIN);
+      ctx.clearRect(
+        this._detail.rect.x - this.MARGIN,
+        this._detail.rect.y - this.MARGIN,
+        this._detail.rect.width + 2 * this.MARGIN,
+        this._detail.rect.height + 2 * this.MARGIN
+      );
     } else {
       ctx.clearRect(0, 0, width, height);
     }
@@ -1113,7 +1197,8 @@ define('plot-simple-sk', class extends ElementSk {
 
     // Draw the detail.
     ctx.save();
-    { // Block to scope save/restore.
+    {
+      // Block to scope save/restore.
       clipToRect(ctx, this._detail.rect);
       this._drawXAxis(ctx, this._detail);
       ctx.fillStyle = DOT_FILL_COLOR;
@@ -1132,7 +1217,8 @@ define('plot-simple-sk', class extends ElementSk {
     if (!this._inZoomDrag && this.summary) {
       // Draw the summary.
       ctx.save();
-      { // Block to scope save/restore.
+      {
+        // Block to scope save/restore.
         clipToRect(ctx, this._summary.rect);
         this._lineData.forEach((line) => {
           ctx.fillStyle = DOT_FILL_COLOR;
@@ -1186,9 +1272,13 @@ define('plot-simple-sk', class extends ElementSk {
    * @param {Array<string>} ids - The trace ids to remove.
    */
   deleteLines(ids) {
-    this._lineData = this._lineData.filter((line) => ids.indexOf(line.name) === -1);
+    this._lineData = this._lineData.filter(
+      (line) => ids.indexOf(line.name) === -1
+    );
 
-    const onlySpecialLinesRemaining = this._lineData.every((line) => line.name.startsWith(SPECIAL));
+    const onlySpecialLinesRemaining = this._lineData.every((line) =>
+      line.name.startsWith(SPECIAL)
+    );
     if (onlySpecialLinesRemaining) {
       this.removeAll();
     } else {
@@ -1222,7 +1312,9 @@ define('plot-simple-sk', class extends ElementSk {
    * @prop {Array} ids - An array of trace ids to highlight. Set to [] to remove
    * all highlighting.
    */
-  get highlight() { return Object.keys(this._highlighted); }
+  get highlight() {
+    return Object.keys(this._highlighted);
+  }
 
   set highlight(ids) {
     this._highlighted = {};
@@ -1241,13 +1333,17 @@ define('plot-simple-sk', class extends ElementSk {
     this._drawOverlayCanvas();
   }
 
-  get xbar() { return this._xbar; }
+  get xbar() {
+    return this._xbar;
+  }
 
   /**
    * @prop {Array} bands - A list of x source offsets to place vertical markers.
    *   into labels. Can be set to [] to remove all bands.
    */
-  get bands() { return this._bands; }
+  get bands() {
+    return this._bands;
+  }
 
   set bands(bands) {
     if (!bands) {
@@ -1261,7 +1357,9 @@ define('plot-simple-sk', class extends ElementSk {
   /** @prop zoom {Array} The zoom range, an array of two values in source x
    * units. Can be set to null to have no zoom.
    */
-  get zoom() { return this._zoom; }
+  get zoom() {
+    return this._zoom;
+  }
 
   set zoom(range) {
     this._zoom = range;
@@ -1283,17 +1381,27 @@ define('plot-simple-sk', class extends ElementSk {
   }
 
   /** @prop width {string} Mirrors the width attribute. */
-  get width() { return this.getAttribute('width'); }
+  get width() {
+    return this.getAttribute('width');
+  }
 
-  set width(val) { this.setAttribute('width', val); }
+  set width(val) {
+    this.setAttribute('width', val);
+  }
 
   /** @prop height {string} Mirrors the height attribute. */
-  get height() { return this.getAttribute('height'); }
+  get height() {
+    return this.getAttribute('height');
+  }
 
-  set height(val) { this.setAttribute('height', val); }
+  set height(val) {
+    this.setAttribute('height', val);
+  }
 
   /** @prop summary {string} Mirrors the summary attribute. */
-  get summary() { return this.hasAttribute('summary'); }
+  get summary() {
+    return this.hasAttribute('summary');
+  }
 
   set summary(val) {
     if (val) {
