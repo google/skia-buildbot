@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
-	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -16,9 +15,8 @@ import (
 // InitTempRepo creates a temporary git repository from ./testdata/testrepo.zip.
 // It returns the path to the repo directory and a cleanup function that should
 // be called in a deferred.
-func InitTempRepo() (string, func()) {
-	tr := newTempRepo()
-	sklog.Infof("YYY: %s", tr.Dir)
+func InitTempRepo(t sktest.TestingT) (string, func()) {
+	tr := newTempRepo(t)
 	return tr.Dir, tr.Cleanup
 }
 
