@@ -11,9 +11,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"path"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"time"
 
@@ -57,6 +59,15 @@ var (
 		"Housekeeper-Weekly-UpdateCIPDPackages",
 		"Housekeeper-OnDemand-Presubmit",
 		"Infra-PerCommit-Build",
+		"Infra-PerCommit-GoBuild-darwin-amd64",
+		"Infra-PerCommit-GoBuild-linux-amd64",
+		"Infra-PerCommit-GoBuild-linux-arm64",
+		"Infra-PerCommit-GoBuild-windows-amd64",
+		//"Infra-PerCommit-GoTests-darwin-amd64",
+		"Infra-PerCommit-GoTests-linux-amd64",
+		"Infra-PerCommit-GoTestsRace-linux-amd64",
+		//"Infra-PerCommit-GoTests-linux-arm64",
+		//"Infra-PerCommit-GoTests-windows-amd64",
 		"Infra-PerCommit-Small",
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
@@ -179,10 +190,118 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 	return BUNDLE_RECIPES_NAME
 }
 
+func dockerTask(b *specs.TasksCfgBuilder, name string, env map[string]string, srcRelPath, image string, cmd []string) *specs.TaskSpec {
+	// Read the Docker image ID.
+	path := filepath.Join(relpath("."), "..", "..", image)
+	imgContents, err := ioutil.ReadFile(path)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	imageSha256 := strings.TrimSpace(string(imgContents))
+
+	dockerCmd := []string{
+		"/usr/bin/docker", "run",
+		// These are required for LUCI auth, which uses an environment variable
+		// which points to a file which points to a token server on the host.
+		"--env", "LUCI_CONTEXT=/auth/ctx.json",
+		"--mount", "type=bind,destination=/auth/ctx.json,source=${LUCI_CONTEXT},readonly",
+		"--net", "host",
+		// These are required for all non-local task drivers.
+		"--env", "SWARMING_BOT_ID=${SWARMING_BOT_ID}",
+		"--env", "SWARMING_SERVER=${SWARMING_SERVER}",
+		"--env", "SWARMING_TASK_ID=${SWARMING_TASK_ID}",
+	}
+	envList := make([]string, 0, len(env))
+	for k, v := range env {
+		envList = append(envList, fmt.Sprintf("%s=%s", k, v))
+	}
+	sort.Strings(envList)
+	for _, envVar := range envList {
+		dockerCmd = append(dockerCmd, "--env", envVar)
+	}
+	dockerCmd = append(dockerCmd,
+		"--mount", fmt.Sprintf("type=bind,destination=/src,source=$(pwd)/%s,readonly", srcRelPath),
+		"--mount", fmt.Sprintf("type=bind,destination=/out,source=%s", specs.PLACEHOLDER_ISOLATED_OUTDIR),
+		"--workdir", "/src",
+		imageSha256,
+	)
+	dockerCmd = append(dockerCmd, cmd...)
+	return &specs.TaskSpec{
+		// Run inside a shell so that we can use environment variables and
+		// sub-shells.
+		Command:    []string{"/bin/sh", "-c", fmt.Sprintf("%s", strings.Join(dockerCmd, " "))},
+		Dimensions: dockerGceDimensions(MACHINE_TYPE_LARGE),
+		Idempotent: true,
+		// TODO(borenet): Figure out how to isolate only Go files.
+		Isolate:        "whole_repo.isolate",
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+}
+
+func goBuild(b *specs.TasksCfgBuilder, name string) string {
+	// Get the target platform from the task name.
+	split := strings.Split(name, "-")
+	if len(split) != 5 {
+		sklog.Fatalf("Invalid format for goBuild: %q", name)
+	}
+	goos := split[len(split)-2]
+	goarch := split[len(split)-1]
+
+	env := map[string]string{
+		"GOOS":   goos,
+		"GOARCH": goarch,
+	}
+	cmd := []string{
+		"go_build",
+		"--project-id", "skia-swarming-bots",
+		"--task-id", specs.PLACEHOLDER_TASK_ID,
+		"--task-name", name,
+		"--alsologtostderr",
+		"--output-path", "/out",
+		"--output-whitelist", "go_tests",
+		"--output-whitelist", "run_emulators",
+	}
+	if strings.Contains(name, "Race") {
+		cmd = append(cmd, "--build-flags", "\"--race\"")
+		env["CGO_ENABLED"] = "1"
+	}
+
+	b.MustAddTask(name, dockerTask(b, name, env, "buildbot", filepath.Join("go_deps", "image.sha256"), cmd))
+	return name
+}
+
+func goTests(b *specs.TasksCfgBuilder, name string) string {
+	cmd := []string{
+		"./bin/go_tests",
+		"--project-id", "skia-swarming-bots",
+		"--task-id", specs.PLACEHOLDER_TASK_ID,
+		"--task-name", name,
+		"--alsologtostderr",
+		"--test-dir", "./test",
+		"--test-data-dir", "./buildbot",
+	}
+	env := map[string]string{
+		// This is copy/pasted from the image, with "/src/bin" prepended.
+		// Unfortunately, there's no placeholder we can use for PATH which would
+		// allow us to add to it without replacing it altogether. The
+		// alternative would be to write a wrapper script.
+		"PATH": "/src/bin:/google-cloud-sdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+	}
+	task := dockerTask(b, name, env, ".", filepath.Join("go_deps", "image.sha256"), cmd)
+
+	// TODO(borenet): Change the tests not to use Go, or provide it via
+	// Docker.
+	task.Dependencies = append(task.Dependencies, goBuild(b, strings.Replace(name, "GoTests", "GoBuild", 1)))
+	// TODO(borenet): Dimensions depend on target os/arch.
+	task.Dimensions = linuxGceDimensions(MACHINE_TYPE_LARGE)
+	task.Isolate = "go_testdata.isolate"
+	b.MustAddTask(name, task)
+	return name
+}
+
 // buildTaskDrivers generates the task to compile the task driver code to run on
 // a given platform.
 func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
-	// TODO(borenet): Add support for RPI.
 	goos := map[string]string{
 		"Linux": "linux",
 		"Mac":   "darwin",
@@ -579,6 +698,10 @@ func process(b *specs.TasksCfgBuilder, name string) {
 		deps = append(deps, updateCIPDPackages(b, name))
 	} else if strings.Contains(name, "ValidateAutorollConfigs") {
 		deps = append(deps, validateAutorollConfigs(b, name))
+	} else if strings.Contains(name, "GoBuild") {
+		deps = append(deps, goBuild(b, name))
+	} else if strings.Contains(name, "GoTests") {
+		deps = append(deps, goTests(b, name))
 	} else {
 		// Infra tests.
 		if strings.Contains(name, "Infra-PerCommit") {
