@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f8bd3de0_5db451ec",
+        "filename": "perf/go/perfserver/cmd/cluster.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-23T19:04:18Z",
+      "side": 1,
+      "message": "nit: cluster",
+      "range": {
+        "startLine": 11,
+        "startChar": 29,
+        "endLine": 11,
+        "endChar": 34
+      },
+      "revId": "c0e15c79b90e2a9f2766dde078db3c4576eaf25a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
