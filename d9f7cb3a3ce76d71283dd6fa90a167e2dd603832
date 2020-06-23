@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "5420307b_17770bcf",
+        "filename": "golden/cmd/baseline_server/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "044eb312_a2b2eb2a",
+      "range": {
+        "startLine": 45,
+        "startChar": 32,
+        "endLine": 45,
+        "endChar": 45
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7f69aaab_401c32f7",
         "filename": "golden/cmd/baseline_server/main.go",
         "patchSetId": 6
@@ -45,6 +69,30 @@
       "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "82a83e0f_93ac2f4f",
+        "filename": "golden/cmd/baseline_server/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "renamed, although \"config\" isn\u0027t available since it\u0027s the name of the package.",
+      "parentUuid": "7f69aaab_401c32f7",
+      "range": {
+        "startLine": 46,
+        "startChar": 32,
+        "endLine": 46,
+        "endChar": 47
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "607e57aa_be4e9581",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "05133546_573808b6",
+      "range": {
+        "startLine": 223,
+        "startChar": 0,
+        "endLine": 223,
+        "endChar": 45
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2410fd6d_8c0817f3",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 6
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "cc0015bb_f8be53e8",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 224,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2410fd6d_8c0817f3",
+      "range": {
+        "startLine": 224,
+        "startChar": 0,
+        "endLine": 224,
+        "endChar": 58
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "677ac474_b6a44bcb",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 6
@@ -114,6 +210,30 @@
       "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7756c890_fabe3c11",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "I had it this way initially, but I changed my mind to only do it once because I think it has a lower \"surprise\" factor.",
+      "parentUuid": "677ac474_b6a44bcb",
+      "range": {
+        "startLine": 256,
+        "startChar": 36,
+        "endLine": 256,
+        "endChar": 74
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +283,54 @@
     },
     {
       "key": {
+        "uuid": "5f842065_a7df9aa5",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "Extracted - yes. I plan to remove that constant and others like it as it\u0027s not portable and only used in a small amount of places.\n\nYou\u0027ll see that in a followup CL.",
+      "parentUuid": "d4b8a8db_79e27e8e",
+      "range": {
+        "startLine": 260,
+        "startChar": 18,
+        "endLine": 260,
+        "endChar": 93
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cea02be2_e6b015bf",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a89380d2_c9e664a0",
+      "range": {
+        "startLine": 260,
+        "startChar": 3,
+        "endLine": 260,
+        "endChar": 14
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "60b93ce2_dc12a1f3",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 6
@@ -183,6 +351,30 @@
       "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71f6c781_97739c5a",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "I\u0027m not going to worry about this for now as it seems unlikely.",
+      "parentUuid": "60b93ce2_dc12a1f3",
+      "range": {
+        "startLine": 269,
+        "startChar": 59,
+        "endLine": 269,
+        "endChar": 77
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "c011b2c5_fa8a7531",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "Changed to 644 (which is what I see on my checkout). I don\u0027t think it matters too much (unless the executable bit is set)",
+      "parentUuid": "67123daa_06317545",
+      "range": {
+        "startLine": 275,
+        "startChar": 43,
+        "endLine": 275,
+        "endChar": 47
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1818aac1_4b0ba9de",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 6
@@ -229,6 +445,30 @@
       "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9bc1fe12_03c7e754",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 476,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1818aac1_4b0ba9de",
+      "range": {
+        "startLine": 476,
+        "startChar": 1,
+        "endLine": 476,
+        "endChar": 25
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -255,6 +495,30 @@
     },
     {
       "key": {
+        "uuid": "5407e330_223d1f04",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 487,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ac6e585_9be3daf5",
+      "range": {
+        "startLine": 487,
+        "startChar": 87,
+        "endLine": 487,
+        "endChar": 102
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d2344732_b17be3cc",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 6
@@ -275,6 +539,30 @@
       "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9806ca7d_8fb0fdfd",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 505,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "I don\u0027t think that buys us much clarity and requires an extra parameter to be passed in.",
+      "parentUuid": "d2344732_b17be3cc",
+      "range": {
+        "startLine": 499,
+        "startChar": 0,
+        "endLine": 505,
+        "endChar": 0
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -301,6 +589,30 @@
     },
     {
       "key": {
+        "uuid": "38ae0557_c06c54d9",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 506,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e14c2007_8be04f38",
+      "range": {
+        "startLine": 506,
+        "startChar": 0,
+        "endLine": 506,
+        "endChar": 54
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2718929d_0ff06cfe",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 6
@@ -324,6 +636,30 @@
     },
     {
       "key": {
+        "uuid": "45126561_968fe235",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 529,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2718929d_0ff06cfe",
+      "range": {
+        "startLine": 529,
+        "startChar": 20,
+        "endLine": 529,
+        "endChar": 38
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3f8aad09_c53c10de",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 6
@@ -344,6 +680,30 @@
       "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5dc4e66_e80796f6",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 545,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "Politely declined.",
+      "parentUuid": "3f8aad09_c53c10de",
+      "range": {
+        "startLine": 545,
+        "startChar": 20,
+        "endLine": 545,
+        "endChar": 41
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -393,6 +753,54 @@
     },
     {
       "key": {
+        "uuid": "a1d87fcf_977c13cf",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 547,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5f187b79_d207388a",
+      "range": {
+        "startLine": 547,
+        "startChar": 1,
+        "endLine": 547,
+        "endChar": 12
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "751ff548_a3becc45",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 547,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "No, as per above comment.",
+      "parentUuid": "5d2b1294_067c04d4",
+      "range": {
+        "startLine": 547,
+        "startChar": 41,
+        "endLine": 547,
+        "endChar": 67
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2e254880_42d2e226",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 6
@@ -413,6 +821,30 @@
       "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3bfbf0b7_d7a71b33",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 556,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2e254880_42d2e226",
+      "range": {
+        "startLine": 556,
+        "startChar": 55,
+        "endLine": 556,
+        "endChar": 59
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -439,6 +871,30 @@
     },
     {
       "key": {
+        "uuid": "bcf39314_f31ff4dc",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3a6a14a3_d3476195",
+      "range": {
+        "startLine": 577,
+        "startChar": 63,
+        "endLine": 577,
+        "endChar": 74
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dc38d128_89167fc5",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
         "patchSetId": 6
@@ -459,6 +915,30 @@
       "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8a71157_b1bed527",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 496,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "It is easier to debug asserts in this case because here, if they don\u0027t match, all one will see is \"7 doesn\u0027t equal 8\". By changing these to asserts, you can see all the outputs and decide if the test is what needs changing or the code under test. You get more information with asserts than requires, which is why I have made this change.",
+      "parentUuid": "dc38d128_89167fc5",
+      "range": {
+        "startLine": 496,
+        "startChar": 1,
+        "endLine": 496,
+        "endChar": 7
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -485,6 +965,30 @@
     },
     {
       "key": {
+        "uuid": "4a3fa9bf_eac384f0",
+        "filename": "golden/cmd/goldpushk/goldpushk/services_map.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "04a4d987_10b4ee64",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 97,
+        "endChar": 33
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1b6dd7d4_f2014bc1",
         "filename": "golden/cmd/goldpushk/goldpushk/types.go",
         "patchSetId": 6
@@ -508,6 +1012,30 @@
     },
     {
       "key": {
+        "uuid": "806d564c_a59fc1ec",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "I feel the name useJSON5InsteadOfFlags is more clear about the intent and implications.",
+      "parentUuid": "1b6dd7d4_f2014bc1",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 28
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fd96c04c_e9b6b305",
         "filename": "golden/k8s-config-templates/gold-common.json5",
         "patchSetId": 6
@@ -528,6 +1056,30 @@
       "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "05739e65_81fc372d",
+        "filename": "golden/k8s-config-templates/gold-common.json5",
+        "patchSetId": 6
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-23T20:23:05Z",
+      "side": 1,
+      "message": "If I don\u0027t change this, then deployment *will be broken* at this CL, because the code in the last clean image won\u0027t deploy with the given settings. I\u0027ll push a clean build shortly after it lands.",
+      "parentUuid": "fd96c04c_e9b6b305",
+      "range": {
+        "startLine": 2,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 115
+      },
+      "revId": "d9f7cb3a3ce76d71283dd6fa90a167e2dd603832",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
