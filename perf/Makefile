@@ -1,5 +1,5 @@
-.PHONY: build
-build: ./dist ingest_json_validator
+.PHONY: default
+default: ./dist
 	go install -v ./go/...
 
 # The command line tool that embeds plain files into Go code.
@@ -23,22 +23,12 @@ dist_source: go/dist/rice-box.go
 .PHONY: migration_source
 migration_source: go/sql/migrations/sqlite3/rice-box.go go/sql/migrations/cockroachdb/rice-box.go
 
-buildk: dist_source migration_source
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/skiaperf
-	./build_docker_release
-
-build-perf-ingest: migration_source
+build: migration_source dist_source
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/perfserver
 	./images/perfserver/release
 
-push-perf-ingest: build-perf-ingest
+push: build
 	pushk perfserver
-
-pushk: buildk
-	pushk skiaperf
-
-ingest_json_validator:
-	go install -v ./go/ingest_json_validator
 
 package-lock.json: package.json
 	npm ci
