@@ -46,6 +46,53 @@
       "revId": "722843d2bd8dd78cd60ee0a4374f3e7429d92710",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c1c3df01_2f11364f",
+        "filename": "autoroll/go/autoroll-be/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-06-23T14:12:03Z",
+      "side": 1,
+      "message": "Fair enough, I hadn\u0027t thought of that use case.",
+      "parentUuid": "6c28b01d_2f833ceb",
+      "range": {
+        "startLine": 326,
+        "startChar": 32,
+        "endLine": 326,
+        "endChar": 52
+      },
+      "revId": "722843d2bd8dd78cd60ee0a4374f3e7429d92710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "12a53462_87b656fb",
+        "filename": "autoroll/go/autoroll-be/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 342,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-06-23T14:12:03Z",
+      "side": 1,
+      "message": "We should be able to read the most recent commit timestamp for a given ref, right?  It\u0027s an extra request, but it would shield us against unexpected ref name formats.  I\u0027m also not super thrilled with needing to import an internal repo manager package here.",
+      "range": {
+        "startLine": 340,
+        "startChar": 5,
+        "endLine": 342,
+        "endChar": 55
+      },
+      "revId": "722843d2bd8dd78cd60ee0a4374f3e7429d92710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
