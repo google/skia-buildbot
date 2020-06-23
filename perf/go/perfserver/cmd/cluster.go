@@ -8,7 +8,7 @@ import (
 
 var clusterFlags config.FrontendFlags
 
-// clusterCmd represents the alert command
+// clusterCmd represents the cluster command.
 var clusterCmd = &cobra.Command{
 	Use:   "cluster",
 	Short: "Run the regression detection process.",
@@ -29,5 +29,5 @@ and looks for regressions as new data arrives.
 
 func clusterInit() {
 	rootCmd.AddCommand(clusterCmd)
-	frontendFlags.Register(clusterCmd.Flags())
+	clusterFlags.Register(clusterCmd.Flags())
 }
