@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a686a00b_2e540b85",
+        "filename": "autoroll/go/autoroll-be/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-06-23T13:57:34Z",
+      "side": 1,
+      "message": "Could these two cases be handled in https://skia.googlesource.com/buildbot/+/master/autoroll/go/codereview/roll.go#387 ?",
+      "range": {
+        "startLine": 326,
+        "startChar": 32,
+        "endLine": 326,
+        "endChar": 52
+      },
+      "revId": "722843d2bd8dd78cd60ee0a4374f3e7429d92710",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
