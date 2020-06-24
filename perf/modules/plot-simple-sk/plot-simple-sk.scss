@@ -15,3 +15,10 @@ plot-simple-sk {
     border: 0;
   }
 }
+
+@import '~elements-sk/themes/themes.css';
+
+plot-simple-sk {
+  color: var(--on-surface);
+  background: var(--surface-2dp);
+}

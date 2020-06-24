@@ -5,7 +5,7 @@
  *
  * Forked from https://github.com/Pandinosaurus/kd-tree-javascript and
  * then massively trimmed down to just find the single closest point, and also
- * ported to ES6 syntax.
+ * ported to ES6 syntax, then ported to TypeScript.
  *
  * https://github.com/Pandinosaurus/kd-tree-javascript is a fork of
  * https://github.com/ubilabs/kd-tree-javascript
@@ -16,9 +16,20 @@
  * @license MIT License <http://www.opensource.org/licenses/mit-license.php>
  */
 
+export interface KDPoint {
+  x: number;
+  y: number;
+}
+
 /** @class A single node in the k-d Tree. */
-class Node {
-  constructor(obj, dimension, parent) {
+class Node<Point extends KDPoint> {
+  obj: Point;
+  left: Node<Point> | null;
+  right: Node<Point> | null;
+  parent: Node<Point> | null;
+  dimension: number;
+
+  constructor(obj: Point, dimension: number, parent: Node<Point> | null) {
     this.obj = obj;
     this.left = null;
     this.right = null;
@@ -27,34 +38,48 @@ class Node {
   }
 }
 
+type Keys = keyof KDPoint;
+
 /**
  * @class The k-d tree.
  */
-export class KDTree {
+export class KDTree<Point extends KDPoint> {
+  private dimensions: Keys[];
+  private root: Node<Point> | null;
+  private metric: (a: KDPoint, b: KDPoint) => number;
   /**
-     * The constructor.
-     *
-     * @param {Array} points - An array of points, something with the shape
-     *     {x:x, y:y}.
-     * @param {function} metric - A function that calculates the distance
-     *     between two points.
-     * @param {Array} dimensions - The dimensions to use in our points, for
-     *     example ['x', 'y'].
-     */
-  constructor(points, metric, dimensions) {
+   * The constructor.
+   *
+   * @param {Array} points - An array of points, something with the shape
+   *     {x:x, y:y}.
+   * @param {function} metric - A function that calculates the distance
+   *     between two points.
+   * @param {Array} dimensions - The dimensions to use in our points, for
+   *     example ['x', 'y'].
+   */
+  constructor(
+    points: Point[],
+    metric: (a: KDPoint, b: KDPoint) => number,
+    dimensions: Keys[]
+  ) {
     this.dimensions = dimensions;
     this.metric = metric;
     this.root = this._buildTree(points, 0, null);
   }
 
   /**
-     * Builds the from parent Node on down.
-     *
-     * @param {Array} points - An array of {x:x, y:y}.
-     * @param {Number} depth - The current depth from the root node.
-     * @param {Node} parent - The parent Node.
-     */
-  _buildTree(points, depth, parent) {
+   * Builds the from parent Node on down.
+   *
+   * @param {Array} points - An array of {x:x, y:y}.
+   * @param {Number} depth - The current depth from the root node.
+   * @param {Node} parent - The parent Node.
+   */
+  _buildTree(
+    points: Point[],
+    depth: number,
+    parent: Node<Point> | null
+  ): Node<Point> | null {
+    // Every step deeper into the tree we switch to using another axis.
     const dim = depth % this.dimensions.length;
 
     if (points.length === 0) {
@@ -75,27 +100,27 @@ export class KDTree {
   }
 
   /**
-     * Find the nearest Node to the given point.
-     *
-     * @param {Object} point - {x:x, y:y}
-     * @returns {Object} The closest point object passed into the constructor.
-     *     We pass back the original object since it might have extra info
-     *     beyond just the coordinates, such as trace id.
-     */
-  nearest(point) {
+   * Find the nearest Node to the given point.
+   *
+   * @param {Object} point - {x:x, y:y}
+   * @returns {Object} The closest point object passed into the constructor.
+   *     We pass back the original object since it might have extra info
+   *     beyond just the coordinates, such as trace id.
+   */
+  nearest(point: KDPoint): Point {
     let bestNode = {
       node: this.root,
       distance: Number.MAX_VALUE,
     };
 
-    const saveNode = (node, distance) => {
+    const saveNode = (node: Node<Point>, distance: number) => {
       bestNode = {
         node: node,
         distance: distance,
       };
     };
 
-    const nearestSearch = (node) => {
+    const nearestSearch = (node: Node<Point>) => {
       const dimension = this.dimensions[node.dimension];
       const ownDistance = this.metric(point, node.obj);
 
@@ -108,6 +133,8 @@ export class KDTree {
 
       let bestChild = null;
       let otherChild = null;
+      // If we get here we know that at least one of .left and .right is
+      // non-null, so bestChild is guaranteed to be non-null.
       if (node.right === null) {
         bestChild = node.left;
       } else if (node.left === null) {
@@ -120,14 +147,17 @@ export class KDTree {
         otherChild = node.left;
       }
 
-      nearestSearch(bestChild);
+      nearestSearch(bestChild!);
 
       if (ownDistance < bestNode.distance) {
         saveNode(node, ownDistance);
       }
 
       // Find distance to hyperplane.
-      const pointOnHyperplane = {};
+      const pointOnHyperplane = {
+        x: 0,
+        y: 0,
+      };
       for (let i = 0; i < this.dimensions.length; i++) {
         if (i === node.dimension) {
           pointOnHyperplane[this.dimensions[i]] = point[this.dimensions[i]];
@@ -138,7 +168,10 @@ export class KDTree {
 
       // If the hyperplane is closer than the current best point then we
       // need to search down the other side of the tree.
-      if (otherChild !== null && this.metric(pointOnHyperplane, node.obj) < bestNode.distance) {
+      if (
+        otherChild !== null &&
+        this.metric(pointOnHyperplane, node.obj) < bestNode.distance
+      ) {
         nearestSearch(otherChild);
       }
     };
@@ -147,6 +180,6 @@ export class KDTree {
       nearestSearch(this.root);
     }
 
-    return bestNode.node.obj;
+    return bestNode.node!.obj;
   }
 }
