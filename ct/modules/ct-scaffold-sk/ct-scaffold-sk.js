@@ -65,7 +65,7 @@ const template = (ele) => html`
 
   <aside>
     <nav class=surface-themes-sk>
-      <a href="/chromium_analysis/" tab-index=0>
+      <a href="/chromium_perf/" tab-index=0>
         <trending-up-icon-sk></trending-up-icon-sk><span>Performance</span>
       </a>
       <a href="/chromium_analysis/" tab-index=0>
