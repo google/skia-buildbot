@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/diffstore"
 	"go.skia.org/infra/golden/go/diffstore/metricsstore/fs_metricsstore"
 	"google.golang.org/api/option"
@@ -25,56 +26,67 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Command line flags.
-var (
-	cacheSize    = flag.Int("cache_size", 1, "Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to limit caching. 0 means no caching at all. Use default for testing.")
-	fsNamespace  = flag.String("fs_namespace", "", "Typically the instance id. e.g. 'flutter', 'skia', etc")
-	fsProjectID  = flag.String("fs_project_id", "skia-firestore", "The project with the firestore instance. Datastore and Firestore can't be in the same project.")
-	grpcPort     = flag.String("grpc_port", ":9000", "gRPC service address (e.g., ':9000')")
-	gsBaseDir    = flag.String("gs_basedir", diffstore.DefaultGCSImgDir, "String that represents the google storage directory/directories following the GS bucket")
-	gsBucketName = flag.String("gs_bucket", "", "[required] Name of the Google Storage bucket that holds the uploaded images.")
-	imagePort    = flag.String("image_port", ":9001", "Address that serves image files via HTTP.")
-	internalPort = flag.String("internal_port", "", "HTTP service address for internal clients, e.g. probers. No authentication on this port.")
-	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	noCloudLog   = flag.Bool("no_cloud_log", false, "Disables cloud logging. Primarily for running locally.")
-	promPort     = flag.String("prom_port", ":20000", "Metrics service address (e.g., ':10110')")
-)
+type diffServerConfig struct {
+	config.Common
+	// Approximate cachesize used to cache images and diff metrics in GiB. This is just a way to
+	// limit caching.
+	CacheSizeGB int `json:"cache_size_gb"`
+
+	// The GCS prefix (directory) that holds the images that have been uploaded to Gold.
+	GCSImageDir string `json:"gcs_image_dir"`
+
+	// The port on which to run the GRPC service. The skiacorrectness binary will connect to this
+	// server over this port, for example.
+	GRPCPort string `json:"grpc_port"`
+
+	// Address that serves image files via HTTP.
+	ImagePort string `json:"image_port"`
+
+	// Metrics service address (e.g., ':10110')
+	PromPort string `json:"prom_port"`
+}
 
 const (
-	IMAGE_URL_PREFIX = "/img/"
+	imgURLPrefix = "/img/"
 )
 
 func main() {
+	// Command line flags.
+	var (
+		commonInstanceConfig = flag.String("common_instance_config", "", "Path to the json5 file containing the configuration that needs to be the same across all services for a given instance.")
+		thisConfig           = flag.String("config", "", "Path to the json5 file containing the configuration specific to diff server.")
+		hang                 = flag.Bool("hang", false, "Stop and do nothing after reading the flags. Good for debugging containers.")
+	)
 
-	// Parse the options, so we can configure logging.
+	// Parse the flags, so we can load the configuration files.
 	flag.Parse()
+
+	if *hang {
+		sklog.Info("Hanging")
+		select {}
+	}
+
+	var dsc diffServerConfig
+	if err := config.LoadFromJSON5(&dsc, commonInstanceConfig, thisConfig); err != nil {
+		sklog.Fatalf("Reading config: %s", err)
+	}
+	sklog.Infof("Loaded config %#v", dsc)
 
 	// Set up the options.
 	opts := []common.Opt{
-		common.PrometheusOpt(promPort), // Enable Prometheus logging.
+		common.PrometheusOpt(&dsc.PromPort), // Enable Prometheus logging.
 	}
 
-	// Should we disable cloud logging.
-	if !*noCloudLog {
-		opts = append(opts, common.CloudLoggingOpt())
-	}
 	_, appName := filepath.Split(os.Args[0])
 	common.InitWithMust(appName, opts...)
 
 	// Get the version of the repo.
 	skiaversion.MustLogVersion()
 
-	if *gsBucketName == "" {
-		sklog.Fatalf("Must specify --gs_bucket")
-	}
-
 	// Start the internal server on the internal port if requested.
-	if *internalPort != "" {
+	if dsc.DebugPort != "" {
 		// Add the profiling endpoints to the internal router.
 		internalRouter := mux.NewRouter()
-
-		// Set up the health check endpoint.
-		internalRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 
 		// Register pprof handlers
 		internalRouter.HandleFunc("/debug/pprof/", netpprof.Index)
@@ -83,13 +95,13 @@ func main() {
 		internalRouter.HandleFunc("/debug/pprof/{profile}", netpprof.Index)
 
 		go func() {
-			sklog.Infof("Internal server on http://127.0.0.1" + *internalPort)
-			sklog.Fatal(http.ListenAndServe(*internalPort, internalRouter))
+			sklog.Infof("Internal server on http://127.0.0.1" + dsc.DebugPort)
+			sklog.Fatal(http.ListenAndServe(dsc.DebugPort, internalRouter))
 		}()
 	}
 
 	// Get the client to be used to access GCS.
-	ts, err := auth.NewDefaultTokenSource(*local, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	ts, err := auth.NewDefaultTokenSource(dsc.Local, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		sklog.Fatalf("Failed to authenticate service account: %s", err)
 	}
@@ -100,11 +112,11 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Could not create storage client: %s.", err)
 	}
-	gcsClient := gcsclient.New(storageClient, *gsBucketName)
+	gcsClient := gcsclient.New(storageClient, dsc.GCSBucket)
 
 	// Auth note: the underlying firestore.NewClient looks at the GOOGLE_APPLICATION_CREDENTIALS env
 	// variable, so we don't need to supply a token source.
-	fsClient, err := firestore.NewClient(context.Background(), *fsProjectID, "gold", *fsNamespace, nil)
+	fsClient, err := firestore.NewClient(context.Background(), dsc.FirestoreProjectID, "gold", dsc.FirestoreNamespace, nil)
 	if err != nil {
 		sklog.Fatalf("Unable to configure Firestore: %s", err)
 	}
@@ -112,7 +124,7 @@ func main() {
 	// Build metrics store.
 	mStore := fs_metricsstore.New(fsClient)
 
-	memDiffStore, err := diffstore.NewMemDiffStore(gcsClient, *gsBaseDir, *cacheSize, mStore)
+	memDiffStore, err := diffstore.NewMemDiffStore(gcsClient, dsc.GCSImageDir, dsc.CacheSizeGB, mStore)
 	if err != nil {
 		sklog.Fatalf("Allocating DiffStore failed: %s", err)
 	}
@@ -125,24 +137,24 @@ func main() {
 	diffstore.RegisterDiffServiceServer(grpcServer, serverImpl)
 
 	// Set up the resource to serve the image files.
-	imgHandler, err := memDiffStore.ImageHandler(IMAGE_URL_PREFIX)
+	imgHandler, err := memDiffStore.ImageHandler(imgURLPrefix)
 	if err != nil {
 		sklog.Fatalf("Unable to get image handler: %s", err)
 	}
-	http.Handle(IMAGE_URL_PREFIX, imgHandler)
+	http.Handle(imgURLPrefix, imgHandler)
 	http.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 
 	// Start the HTTP server.
 	go func() {
-		sklog.Info("Serving on http://127.0.0.1" + *imagePort)
-		sklog.Fatal(http.ListenAndServe(*imagePort, nil))
+		sklog.Info("Serving on http://127.0.0.1" + dsc.ImagePort)
+		sklog.Fatal(http.ListenAndServe(dsc.ImagePort, nil))
 	}()
 
 	// Start the rRPC server.
-	lis, err := net.Listen("tcp", *grpcPort)
+	lis, err := net.Listen("tcp", dsc.GRPCPort)
 	if err != nil {
 		sklog.Fatalf("Error creating gRPC listener: %s", err)
 	}
-	sklog.Infof("Serving gRPC service on port %s", *grpcPort)
+	sklog.Infof("Serving gRPC service on port %s", dsc.GRPCPort)
 	sklog.Fatalf("Failure while serving gRPC service: %s", grpcServer.Serve(lis))
 }

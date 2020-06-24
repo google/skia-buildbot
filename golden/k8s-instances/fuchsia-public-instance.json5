@@ -40,11 +40,6 @@
   "POSITIVE_EXPECTATIONS_MAX_AGE": 0,
   "NEGATIVE_EXPECTATIONS_MAX_AGE": 0,
 
-  // Settings for diffserver instance.
-  "DIFFSERVER_MEMORY":       "32Gi",
-  "DIFFSERVER_CPU":          4,
-  "DIFFSERVER_CACHE_SIZE":   10,
-
   // Settings for the main ingester.
   "ING_RUN_EVERY":           "1h",
   "ING_N_COMMITS":           5,
