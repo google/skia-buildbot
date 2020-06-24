@@ -44,6 +44,8 @@ func TestNew(t *testing.T) {
 		uptimePollFrequencySeconds: 3,
 		k8sConfigRepoUrl:           "http://k8s-config.com",
 	}
+	assert.NotNil(t, g.copyConfigsToCheckout)
+	g.copyConfigsToCheckout = nil
 	require.Equal(t, expected, g)
 }
 
@@ -164,6 +166,11 @@ func TestRegenerateConfigFiles(t *testing.T) {
 		deployableUnits:         deployableUnits,
 		canariedDeployableUnits: canariedDeployableUnits,
 		goldSrcDir:              "/path/to/buildbot/golden",
+
+		// Fake out the copy
+		copyConfigsToCheckout: func(_, _ string) error {
+			return nil
+		},
 	}
 	addFakeK8sConfigRepoCheckout(&g)
 
@@ -180,7 +187,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 		// Skia DiffServer
 		"kube-conf-gen " +
 			"-c /path/to/buildbot/golden/k8s-config-templates/gold-common.json5 " +
-			"-c /path/to/buildbot/golden/k8s-instances/skia-instance.json5 " +
+			"-c /path/to/buildbot/golden/k8s-instances/skia/skia-diffserver.json5 " +
 			"-extra INSTANCE_ID:skia " +
 			"-t /path/to/buildbot/golden/k8s-config-templates/gold-diffserver-template.yaml " +
 			"-parse_conf=false " +
@@ -220,7 +227,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 		// Fuchsia DiffServer
 		"kube-conf-gen " +
 			"-c /path/to/buildbot/golden/k8s-config-templates/gold-common.json5 " +
-			"-c /path/to/buildbot/golden/k8s-instances/fuchsia-instance.json5 " +
+			"-c /path/to/buildbot/golden/k8s-instances/fuchsia/fuchsia-diffserver.json5 " +
 			"-extra INSTANCE_ID:fuchsia " +
 			"-t /path/to/buildbot/golden/k8s-config-templates/gold-diffserver-template.yaml " +
 			"-parse_conf=false " +
@@ -249,7 +256,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 	}
 
 	for i, e := range expected {
-		require.Equal(t, e, exec.DebugString(commandCollector.Commands()[i]))
+		assert.Equal(t, e, exec.DebugString(commandCollector.Commands()[i]))
 	}
 }
 

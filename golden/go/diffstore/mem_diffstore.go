@@ -21,9 +21,6 @@ import (
 )
 
 const (
-	// DefaultGCSImgDir is the default image directory in GCS.
-	DefaultGCSImgDir = "dm-images-v1"
-
 	// imgWebPath is the directory where the images are stored.
 	imgWebPath = "images"
 
