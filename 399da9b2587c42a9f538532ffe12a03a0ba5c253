@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "199383d5_be921028",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-24T17:27:18Z",
+      "side": 1,
+      "message": "We should probably rename this to goldSrcRootDir.\n\nRationale/notes:\n- \"rootDir\" is no longer accurate; the suggested name is self documenting.\n- I prefer \"gold\" over \"golden\" as the former is the actual name use use to refer to this application every day, while the latter seems to be a historical artifact at this point.\n- The suggested suffix is \"Dir\" instead of \"Path\" to be inline with the k8s*Dir constants defined above.",
+      "range": {
+        "startLine": 66,
+        "startChar": 1,
+        "endLine": 66,
+        "endChar": 9
+      },
+      "revId": "399da9b2587c42a9f538532ffe12a03a0ba5c253",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a569e306_43a31d46",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-24T17:27:18Z",
+      "side": 1,
+      "message": "goldSrcRootDir",
+      "range": {
+        "startLine": 115,
+        "startChar": 7,
+        "endLine": 115,
+        "endChar": 17
+      },
+      "revId": "399da9b2587c42a9f538532ffe12a03a0ba5c253",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22285fb1_64a715d3",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 517,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-24T17:27:18Z",
+      "side": 1,
+      "message": "/path/to/buildbot/golden\n\nFor consistency with the other test cases.\n\nSame below.",
+      "range": {
+        "startLine": 517,
+        "startChar": 28,
+        "endLine": 517,
+        "endChar": 41
+      },
+      "revId": "399da9b2587c42a9f538532ffe12a03a0ba5c253",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03707d40_7232a4eb",
+        "filename": "golden/cmd/goldpushk/goldpushk/types.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-24T17:27:18Z",
+      "side": 1,
+      "message": "goldSrcRootDir\n\nSame below.",
+      "range": {
+        "startLine": 53,
+        "startChar": 55,
+        "endLine": 53,
+        "endChar": 69
+      },
+      "revId": "399da9b2587c42a9f538532ffe12a03a0ba5c253",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
