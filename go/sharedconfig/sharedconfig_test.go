@@ -1,16 +1,19 @@
 package sharedconfig
 
 import (
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestIngesterJson5Config(t *testing.T) {
 	unittest.SmallTest(t)
-	conf, err := ConfigFromJson5File("./test-file.json5")
+	f := filepath.Join(testutils.TestDataDir(t), "test-file.json5")
+	conf, err := ConfigFromJson5File(f)
 	require.NoError(t, err)
 	checkTestConfig(t, conf)
 }
