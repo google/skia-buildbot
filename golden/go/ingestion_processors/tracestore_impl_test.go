@@ -2,6 +2,7 @@ package ingestion_processors
 
 import (
 	"context"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -83,7 +84,8 @@ func TestTraceStoreProcessorSunnyDay(t *testing.T) {
 
 	mts.On("Put", testutils.AnyContext, testCommitHash, expectedEntries, mock.AnythingOfType("time.Time")).Return(nil)
 
-	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(dmJSONFile)
+	f := filepath.Join(testutils.TestDataDir(t), dmJSONFile)
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(f)
 	assert.NoError(t, err)
 
 	p := &btProcessor{

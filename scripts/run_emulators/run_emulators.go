@@ -1,17 +1,18 @@
 package main
 
 import (
-	"context"
 	"fmt"
+	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"syscall"
 	"time"
 
+	"go.skia.org/infra/go/cleanup"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/sklog"
 )
 
 var (
@@ -47,11 +48,11 @@ var (
 			env:  "FIRESTORE_EMULATOR_HOST",
 			port: "8894",
 		},
-		{
-			cmd:  fmt.Sprintf("cockroach start-single-node --insecure --listen-addr=localhost:%%s --store=%s", os.Getenv("TMPDIR")),
+		/*{
+			cmd:  fmt.Sprintf("cockroach start-single-node --insecure --listen-addr=localhost:%%s --store=%s", os.TempDir()),
 			env:  "COCKROACHDB_EMULATOR_HOST",
 			port: "8895",
-		},
+		},*/
 	}
 )
 
@@ -61,12 +62,20 @@ type emulator struct {
 	port string
 }
 
-func killEmulators() error {
-	out, err := exec.RunCwd(context.Background(), ".", "ps", "aux")
+func killEmulators(cmds []*exec.Cmd) error {
+	// Start by directly killing any passed-in processes.
+	for _, cmd := range cmds {
+		if err := cmd.Process.Kill(); err != nil {
+			return err
+		}
+	}
+	// Now, find any processes not started by this process (eg. by a previous
+	// invocation) and kill them.
+	out, err := exec.Command("ps", "aux").CombinedOutput()
 	if err != nil {
 		return err
 	}
-	lines := strings.Split(out, "\n")
+	lines := strings.Split(string(out), "\n")
 	procs := make(map[string]string, len(lines))
 	for _, line := range lines {
 		fields := strings.Fields(line)
@@ -78,23 +87,33 @@ func killEmulators() error {
 	for _, re := range procsToKill {
 		for desc, id := range procs {
 			if re.MatchString(desc) {
-				if _, err := exec.RunCwd(context.Background(), ".", "kill", id); err != nil {
+				if err := exec.Command("kill", id).Run(); err != nil {
 					return err
 				}
 				delete(procs, desc)
 			}
 		}
 	}
+	fmt.Println("Emulators stopped. Unset environment variables as follows:")
+	for _, e := range emulators {
+		fmt.Println(fmt.Sprintf("export %s=", e.env))
+	}
 	return nil
 }
 
-func runEmulator(e emulator) {
-	cmd := exec.ParseCommand(fmt.Sprintf(e.cmd, e.port))
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := exec.Run(context.Background(), &cmd); err != nil {
-		sklog.Fatal(err)
+func startEmulator(e emulator) (*exec.Cmd, error) {
+	split := strings.Split(fmt.Sprintf(e.cmd, e.port), " ")
+	cmd := exec.Command(split[0], split[1:]...)
+	//cmd.Stdout = os.Stdout
+	//cmd.Stderr = os.Stderr
+	// Allow the subprocess to live longer than this process.
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setpgid: true,
 	}
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+	return cmd, nil
 }
 
 func usage() {
@@ -105,32 +124,46 @@ func usage() {
 func main() {
 	common.Init()
 
-	if len(os.Args) != 2 {
-		usage()
-	}
 	start := false
-	if os.Args[1] == "start" {
+	wait := false
+	if len(os.Args) == 1 {
 		start = true
-	} else if os.Args[1] != "stop" {
+		wait = true
+	} else if len(os.Args) == 2 {
+		if os.Args[1] == "start" {
+			start = true
+		} else if os.Args[1] != "stop" {
+			usage()
+		}
+	} else {
 		usage()
 	}
-	if err := killEmulators(); err != nil {
-		sklog.Fatal(err)
+	if err := killEmulators(nil); err != nil {
+		log.Fatal(err)
 	}
 	if start {
+		cmds := make([]*exec.Cmd, 0, len(emulators))
 		for _, e := range emulators {
-			go runEmulator(e)
+			cmd, err := startEmulator(e)
+			if err != nil {
+				// TODO(borenet): Should we kill any emulators we started?
+				log.Fatal(err)
+			}
+			cmds = append(cmds, cmd)
 		}
 		time.Sleep(5 * time.Second)
 		fmt.Println("Emulators started. Set environment variables as follows:")
 		for _, e := range emulators {
 			fmt.Println(fmt.Sprintf("export %s=localhost:%s", e.env, e.port))
 		}
-		select {}
-	} else {
-		fmt.Println("Emulators stopped. Unset environment variables as follows:")
-		for _, e := range emulators {
-			fmt.Println(fmt.Sprintf("export %s=", e.env))
+		if wait {
+			cleanup.AtExit(func() {
+				if err := killEmulators(cmds); err != nil {
+					log.Fatal(err)
+				}
+			})
+			fmt.Println("Waiting for ")
+			select {}
 		}
 	}
 }
