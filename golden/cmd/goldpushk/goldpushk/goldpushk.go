@@ -30,9 +30,9 @@ import (
 )
 
 const (
-	// Paths below are relative to $SKIA_INFRA_ROOT.
-	k8sConfigTemplatesDir = "golden/k8s-config-templates"
-	k8sInstancesDir       = "golden/k8s-instances"
+	// Paths below are relative to $SKIA_INFRA_ROOT/golden.
+	k8sConfigTemplatesDir = "k8s-config-templates"
+	k8sInstancesDir       = "k8s-instances"
 
 	// kubectl timestamp format as of September 30, 2019.
 	//
@@ -63,7 +63,7 @@ type Goldpushk struct {
 	// Input parameters (provided via flags or environment variables).
 	deployableUnits            []DeployableUnit
 	canariedDeployableUnits    []DeployableUnit
-	rootPath                   string // Path to the buildbot checkout.
+	rootPath                   string // Path to the golden directory in the skia-infra checkout.
 	dryRun                     bool
 	noCommit                   bool
 	minUptimeSeconds           int
@@ -87,7 +87,7 @@ func New(deployableUnits []DeployableUnit, canariedDeployableUnits []DeployableU
 	return &Goldpushk{
 		deployableUnits:            deployableUnits,
 		canariedDeployableUnits:    canariedDeployableUnits,
-		rootPath:                   skiaInfraRootPath,
+		rootPath:                   filepath.Join(skiaInfraRootPath, "golden"),
 		dryRun:                     dryRun,
 		noCommit:                   noCommit,
 		minUptimeSeconds:           minUptimeSeconds,
@@ -226,7 +226,7 @@ func (g *Goldpushk) regenerateConfigFiles(ctx context.Context) error {
 
 	// Iterate over all units to deploy (including canaries).
 	return g.forAllDeployableUnits(func(unit DeployableUnit) error {
-		// Path to the template file inside $SKIA_INFRA_ROOT.
+		// Path to the template file inside $SKIA_INFRA_ROOT/golden.
 		tPath := unit.getDeploymentFileTemplatePath(g.rootPath)
 
 		// Path to the deployment file (.yaml) we will regenerate inside the k8s-config Git repository.
@@ -241,7 +241,7 @@ func (g *Goldpushk) regenerateConfigFiles(ctx context.Context) error {
 		// file that already exists in $SKIA_INFRA_ROOT)), the template must be
 		// expanded and saved to the k8s-config Git repository.
 		if unit.configMapTemplate != "" {
-			// Path to the template file inside $SKIA_INFRA_ROOT.
+			// Path to the template file inside $SKIA_INFRA_ROOT/golden.
 			configMapFileTemplate := unit.getConfigMapFileTemplatePath(g.rootPath)
 
 			// Path to the ConfigMap file (.json5) to be regenerated inside the k8s-config Git repository.
@@ -291,7 +291,7 @@ func (g *Goldpushk) regenerateConfigFiles(ctx context.Context) error {
 // getInstanceSpecificConfigDir returns the path to the JSON5 configuration files for a given
 // instance. These are checked in to the infra repo.
 func (g *Goldpushk) getInstanceSpecificConfigDir(inst Instance) string {
-	return filepath.Join(g.rootPath, "golden", "k8s-instances", string(inst))
+	return filepath.Join(g.rootPath, k8sInstancesDir, string(inst))
 }
 
 // getDeploymentFilePath returns the path to the deployment file (.yaml) for the
