@@ -1,4 +1,4 @@
-@import '../../../infra-sk/modules/themes-sk/color-palette.css';
+@import '~elements-sk/themes/color-palette.css';
 
 list-page-sk {
   table {
@@ -6,7 +6,7 @@ list-page-sk {
     border-collapse: collapse;
 
     td {
-      border: 1px solid var(--grey-400)
+      border: 1px solid var(--grey-400);
     }
 
     td.center {

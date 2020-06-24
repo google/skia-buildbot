@@ -1,2 +1,1 @@
-import '../themes-sk/themes.css'
-import './theme-chooser-sk.js'
+import './theme-chooser-sk';
