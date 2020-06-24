@@ -11,17 +11,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/image/text"
 	one_by_five "go.skia.org/infra/golden/go/testutils/data_one_by_five"
-)
-
-const (
-	TESTDATA_DIR = "testdata"
 )
 
 func TestDiffMetrics(t *testing.T) {
@@ -163,11 +160,12 @@ func TestDiffImages(t *testing.T) {
 // assertDiffs asserts that the DiffMetrics reported by Diffing the two images
 // matches the expected DiffMetrics.
 func assertDiffs(t *testing.T, d1, d2 string, expectedDiffMetrics *DiffMetrics) {
-	img1, err := openNRGBAFromFile(filepath.Join(TESTDATA_DIR, d1+".png"))
+	dir := testutils.TestDataDir(t)
+	img1, err := openNRGBAFromFile(filepath.Join(dir, d1+".png"))
 	if err != nil {
 		t.Fatal("Failed to open test file: ", err)
 	}
-	img2, err := openNRGBAFromFile(filepath.Join(TESTDATA_DIR, d2+".png"))
+	img2, err := openNRGBAFromFile(filepath.Join(dir, d2+".png"))
 	if err != nil {
 		t.Fatal("Failed to open test file: ", err)
 	}
@@ -230,11 +228,10 @@ func TestCombinedDiffMetric(t *testing.T) {
 	assert.InDelta(t, math.Sqrt(0.5), CombinedDiffMetric(dm, nil, nil), 0.000001)
 }
 
-func loadBenchmarkImage(fileName string) image.Image {
-	img, err := openNRGBAFromFile(filepath.Join(TESTDATA_DIR, fileName))
-	if err != nil {
-		sklog.Fatal("Failed to open test file: ", err)
-	}
+func loadBenchmarkImage(b *testing.B, fileName string) image.Image {
+	dir := testutils.TestDataDir(b)
+	img, err := openNRGBAFromFile(filepath.Join(dir, fileName))
+	require.NoError(b, err)
 	return img
 }
 
@@ -252,15 +249,15 @@ const (
 )
 
 func BenchmarkDiffIdentical(b *testing.B) {
-	benchmarkDiff(b, loadBenchmarkImage(img1), loadBenchmarkImage(img1))
+	benchmarkDiff(b, loadBenchmarkImage(b, img1), loadBenchmarkImage(b, img1))
 }
 
 func BenchmarkDiffSameSize(b *testing.B) {
-	benchmarkDiff(b, loadBenchmarkImage(img1), loadBenchmarkImage(img2))
+	benchmarkDiff(b, loadBenchmarkImage(b, img1), loadBenchmarkImage(b, img2))
 }
 
 func BenchmarkDiffDifferentSize(b *testing.B) {
-	benchmarkDiff(b, loadBenchmarkImage(img1), loadBenchmarkImage(img3))
+	benchmarkDiff(b, loadBenchmarkImage(b, img1), loadBenchmarkImage(b, img3))
 }
 
 // openNRGBAFromFile opens the given file path to a PNG file and returns the image as image.NRGBA.
