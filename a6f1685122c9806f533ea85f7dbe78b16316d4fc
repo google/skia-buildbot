@@ -22,6 +22,30 @@
       "revId": "a6f1685122c9806f533ea85f7dbe78b16316d4fc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f6d4f5c5_0963a4fa",
+        "filename": "ct/pages/chromium_perf.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-24T19:03:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8c6dd79e_355ad6ba",
+      "range": {
+        "startLine": 9,
+        "startChar": 8,
+        "endLine": 9,
+        "endChar": 75
+      },
+      "revId": "a6f1685122c9806f533ea85f7dbe78b16316d4fc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
