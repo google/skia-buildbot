@@ -30,7 +30,7 @@ func TestDeployableUnitGetDeploymentFileTemplatePath(t *testing.T) {
 		},
 	}
 
-	require.Equal(t, p("/foo/bar/golden/k8s-config-templates/gold-diffserver-template.yaml"), unit.getDeploymentFileTemplatePath(p("/foo/bar")))
+	require.Equal(t, p("/foo/bar/golden/k8s-config-templates/gold-diffserver-template.yaml"), unit.getDeploymentFileTemplatePath(p("/foo/bar/golden")))
 }
 
 func TestDeployableUnitGetConfigMapFileTemplatePath(t *testing.T) {
