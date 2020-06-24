@@ -35,6 +35,6 @@ patch-sk {
 }
 
 /* Outside patch-sk because darkmode exists outside it. */
-.darkmode a {
+.darkmode patch-sk a {
   color: var(--secondary);
 }
