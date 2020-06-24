@@ -12,28 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { KDTree } from './kd';
+import { KDTree, KDPoint } from './kd';
+import { assert } from 'chai';
 
 describe('KDTree search', () => {
-  const points = [
+  const points: KDPoint[] = [
     { x: 5, y: 5 },
     { x: 2, y: 2 },
     { x: 6, y: 6 },
   ];
 
-  const distance = (a, b) => (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+  const distance = (a: KDPoint, b: KDPoint) =>
+    (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
 
   const tree = new KDTree(points, distance, ['x', 'y']);
 
   it('finds the closest point', () => {
     // Nearby
-    const nearest = tree.nearest({ x: 2.1, y: 2.1 }, 1);
+    const nearest = tree.nearest({ x: 2.1, y: 2.1 });
     assert.deepEqual(nearest, { x: 2, y: 2 });
   });
 
   it('finds the closest point even if the distance is zero', () => {
     // Exact match.
-    const nearest = tree.nearest({ x: 5, y: 5 }, 1);
+    const nearest = tree.nearest({ x: 5, y: 5 });
     assert.deepEqual(nearest, { x: 5, y: 5 });
   });
 
@@ -44,7 +46,7 @@ describe('KDTree search', () => {
     // that the hyperplane through 5,5 will be closer than 2,2 so we need to
     // look for a closer match in the 6,6 area, which will actually be our
     // closest point.
-    const nearest = tree.nearest({ x: 4.5, y: 7 }, 1);
+    const nearest = tree.nearest({ x: 4.5, y: 7 });
     assert.deepEqual(nearest, { x: 6, y: 6 });
   });
 });
