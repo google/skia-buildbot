@@ -1,6 +1,12 @@
 @import '../colors.css';
 
 chromium-perf-sk {
+  table.options {
+    padding-left: 2em;
+    margin: 1em;
+    border-style: solid;
+  }
+
   select-sk {
     * {
     padding: 0;
@@ -8,10 +14,6 @@ chromium-perf-sk {
     [selected] {
       background-color: var(--primary-variant);
     }
-  }
-
-  paper-input {
-    width: 20em;
   }
 
   .triggering-spinner {
@@ -36,4 +38,8 @@ chromium-perf-sk {
     text-align:center;
     padding-top:2em;
   }
+}
+
+.darkmode chromium-perf-sk table.options {
+  background-color: var(--surface-2dp);
 }

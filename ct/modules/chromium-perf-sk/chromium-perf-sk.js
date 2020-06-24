@@ -35,7 +35,7 @@ const unsupportedPageSetStrings = ['All', '100k'];
 const template = (el) => html`
 <confirm-dialog-sk id=confirm_dialog></confirm-dialog-sk>
 
-<table class="options panel">
+<table class=options>
   <tr>
     <td>Benchmark Name</td>
     <td>

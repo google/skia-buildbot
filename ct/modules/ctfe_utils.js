@@ -102,14 +102,11 @@ export function moreThanThreeActiveTasksChecker() {
     not_completed: true,
     filter_by_logged_in_user: true,
   };
+  const queryStr = `?${fromObject(queryParams)}`;
 
   taskDescriptors.forEach((obj) => {
-    fetch(obj.get_url, {
+    fetch(obj.get_url + queryStr, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(queryParams),
     })
       .then(jsonOrThrow)
       .then((json) => {
