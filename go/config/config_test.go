@@ -50,8 +50,7 @@ func TestDuration(t *testing.T) {
 
 func TestParseConfigFile(t *testing.T) {
 	unittest.MediumTest(t)
-	dir, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	dir := testutils.TestDataDir(t)
 	configFile := filepath.Join(dir, "TestParseConfigFile.json5")
 	parsed := TestConfig{}
 	require.NoError(t, ParseConfigFile(configFile, "", &parsed))
