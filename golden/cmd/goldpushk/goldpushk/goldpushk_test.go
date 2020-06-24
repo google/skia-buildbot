@@ -37,7 +37,7 @@ func TestNew(t *testing.T) {
 	expected := &Goldpushk{
 		deployableUnits:            deployableUnits,
 		canariedDeployableUnits:    canariedDeployableUnits,
-		rootPath:                   "path/to/buildbot",
+		goldSrcDir:                 "path/to/buildbot/golden",
 		dryRun:                     true,
 		noCommit:                   true,
 		minUptimeSeconds:           30,
@@ -112,9 +112,9 @@ func TestGoldpushkGetConfigMapFilePath(t *testing.T) {
 	unittest.LinuxOnlyTest(t)
 
 	// Create the goldpushk instance under test.
-	skiaInfraRoot := "/path/to/buildbot"
+	const goldSrcDir = "/path/to/buildbot/golden"
 	g := Goldpushk{
-		rootPath: skiaInfraRoot,
+		goldSrcDir: goldSrcDir,
 	}
 	addFakeK8sConfigRepoCheckout(&g)
 
@@ -140,7 +140,7 @@ func TestGoldpushkGetConfigMapFilePath(t *testing.T) {
 	// Assert that we get the correct ConfigMap file path for each DeployableUnit.
 	assertNoConfigMap(publicUnitWithoutConfigMap)
 	assertConfigMapFileEquals(publicUnitWithConfigMapTemplate, g.k8sConfigCheckout.Dir(), "skia-public", "gold-skia-ingestion-config-bt.json5")
-	assertConfigMapFileEquals(publicUnitWithConfigMapFile, skiaInfraRoot, "golden/k8s-instances/skia-public/authorized-params.json5")
+	assertConfigMapFileEquals(publicUnitWithConfigMapFile, goldSrcDir, "k8s-instances/skia-public/authorized-params.json5")
 	assertNoConfigMap(internalUnitWithoutConfigMap)
 	assertConfigMapFileEquals(internalUnitWithConfigMapTemplate, g.k8sConfigCheckout.Dir(), "skia-corp", "gold-fuchsia-ingestion-config-bt.json5")
 }
@@ -163,7 +163,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 	g := Goldpushk{
 		deployableUnits:         deployableUnits,
 		canariedDeployableUnits: canariedDeployableUnits,
-		rootPath:                "/path/to/buildbot",
+		goldSrcDir:              "/path/to/buildbot/golden",
 	}
 	addFakeK8sConfigRepoCheckout(&g)
 
@@ -514,6 +514,7 @@ func TestPushCanaries(t *testing.T) {
 	// Create the goldpushk instance under test.
 	g := &Goldpushk{
 		canariedDeployableUnits: units,
+		goldSrcDir:              "/infra/golden",
 	}
 	addFakeK8sConfigRepoCheckout(g)
 
@@ -533,14 +534,14 @@ func TestPushCanaries(t *testing.T) {
 	expectedCommands := []string{
 		"gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public",
 		"kubectl delete configmap gold-skia-config",
-		"kubectl create configmap gold-skia-config --from-file golden/k8s-instances/skia",
+		"kubectl create configmap gold-skia-config --from-file /infra/golden/k8s-instances/skia",
 		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-diffserver.yaml",
 		"kubectl delete configmap gold-skia-ingestion-config-bt",
 		"kubectl create configmap gold-skia-ingestion-config-bt --from-file /path/to/k8s-config/skia-public/gold-skia-ingestion-config-bt.json5",
 		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-ingestion-bt.yaml",
 		"gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp",
 		"kubectl delete configmap gold-fuchsia-config",
-		"kubectl create configmap gold-fuchsia-config --from-file golden/k8s-instances/fuchsia",
+		"kubectl create configmap gold-fuchsia-config --from-file /infra/golden/k8s-instances/fuchsia",
 		"kubectl apply -f /path/to/k8s-config/skia-corp/gold-fuchsia-diffserver.yaml",
 		"kubectl delete configmap gold-fuchsia-ingestion-config-bt",
 		"kubectl create configmap gold-fuchsia-ingestion-config-bt --from-file /path/to/k8s-config/skia-corp/gold-fuchsia-ingestion-config-bt.json5",
@@ -609,6 +610,7 @@ func TestPushServices(t *testing.T) {
 	// Create the goldpushk instance under test.
 	g := &Goldpushk{
 		deployableUnits: units,
+		goldSrcDir:      "/infra/golden",
 	}
 	addFakeK8sConfigRepoCheckout(g)
 
@@ -628,14 +630,14 @@ func TestPushServices(t *testing.T) {
 	expectedCommands := []string{
 		"gcloud container clusters get-credentials skia-public --zone us-central1-a --project skia-public",
 		"kubectl delete configmap gold-skia-config",
-		"kubectl create configmap gold-skia-config --from-file golden/k8s-instances/skia",
+		"kubectl create configmap gold-skia-config --from-file /infra/golden/k8s-instances/skia",
 		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-diffserver.yaml",
 		"kubectl delete configmap gold-skia-ingestion-config-bt",
 		"kubectl create configmap gold-skia-ingestion-config-bt --from-file /path/to/k8s-config/skia-public/gold-skia-ingestion-config-bt.json5",
 		"kubectl apply -f /path/to/k8s-config/skia-public/gold-skia-ingestion-bt.yaml",
 		"gcloud container clusters get-credentials skia-corp --zone us-central1-a --project google.com:skia-corp",
 		"kubectl delete configmap gold-fuchsia-config",
-		"kubectl create configmap gold-fuchsia-config --from-file golden/k8s-instances/fuchsia",
+		"kubectl create configmap gold-fuchsia-config --from-file /infra/golden/k8s-instances/fuchsia",
 		"kubectl apply -f /path/to/k8s-config/skia-corp/gold-fuchsia-diffserver.yaml",
 		"kubectl delete configmap gold-fuchsia-ingestion-config-bt",
 		"kubectl create configmap gold-fuchsia-ingestion-config-bt --from-file /path/to/k8s-config/skia-corp/gold-fuchsia-ingestion-config-bt.json5",

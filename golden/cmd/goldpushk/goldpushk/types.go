@@ -50,14 +50,14 @@ type DeployableUnit struct {
 
 // getDeploymentFileTemplatePath returns the path to the .yaml template file
 // used to generate the deployment file for this DeployableUnit.
-func (u *DeployableUnit) getDeploymentFileTemplatePath(skiaInfraRootPath string) string {
-	return filepath.Join(skiaInfraRootPath, k8sConfigTemplatesDir, fmt.Sprintf("gold-%s-template.yaml", u.Service))
+func (u *DeployableUnit) getDeploymentFileTemplatePath(goldSrcDir string) string {
+	return filepath.Join(goldSrcDir, k8sConfigTemplatesDir, fmt.Sprintf("gold-%s-template.yaml", u.Service))
 }
 
 // getConfigMapFileTemplatePath returns the path to the .yaml template file used to
 // generate the ConfigMap file for this DeployableUnit.
-func (u *DeployableUnit) getConfigMapFileTemplatePath(skiaInfraRootPath string) string {
-	return filepath.Join(skiaInfraRootPath, u.configMapTemplate)
+func (u *DeployableUnit) getConfigMapFileTemplatePath(goldenRootPath string) string {
+	return filepath.Join(goldenRootPath, u.configMapTemplate)
 }
 
 // DeployableUnitSet implements a set data structure for DeployableUnits, and contains information
