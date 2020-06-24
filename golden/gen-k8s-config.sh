@@ -68,7 +68,7 @@ then
                 -o "${BASELINE_SERVER_CONF}"
 
   kube-conf-gen -c "${TMPL_DIR}/gold-common.json5" \
-                -c "${INSTANCE_DIR}/${INSTANCE_ID}-instance.json5" \
+                -c "${INSTANCE_DIR}/${INSTANCE_ID}/${INSTANCE_ID}-diffserver.json5" \
                 -extra "INSTANCE_ID:${INSTANCE_ID}" \
                 -t "${TMPL_DIR}/gold-diffserver-template.yaml" \
                 -parse_conf=false -quote -strict \

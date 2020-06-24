@@ -1,0 +1,7 @@
+{
+  gcs_bucket: "skia-gold-pdfium",
+  fs_namespace: "pdfium",
+  fs_project_id: "skia-firestore",
+  known_hashes_gcs_path: "skia-gold-pdfium/hash_files/gold-pdfium-hashes.txt",
+  primary_crs: "gerrit",
+}

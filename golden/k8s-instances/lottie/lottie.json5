@@ -1,0 +1,7 @@
+{
+  gcs_bucket: "skia-gold-lottie",
+  fs_namespace: "lottie",
+  fs_project_id: "skia-firestore",
+  known_hashes_gcs_path: "skia-gold-lottie/hash_files/gold-lottie-hashes.txt",
+  primary_crs: "gerrit",
+}
