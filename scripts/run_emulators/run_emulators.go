@@ -48,7 +48,7 @@ var (
 			port: "8894",
 		},
 		{
-			cmd:  fmt.Sprintf("cockroach start-single-node --insecure --listen-addr=localhost:%%s --store=%s", os.Getenv("TMPDIR")),
+			cmd:  fmt.Sprintf("cockroach start-single-node --insecure --listen-addr=localhost:%%s --store=%s", os.TempDir()),
 			env:  "COCKROACHDB_EMULATOR_HOST",
 			port: "8895",
 		},
