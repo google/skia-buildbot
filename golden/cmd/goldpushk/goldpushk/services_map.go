@@ -78,7 +78,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 			// Add common services for public instances.
 			s.addWithOptions(instance, SkiaCorrectness, DeploymentOptions{
 				configMapName: fmt.Sprintf("%s-authorized-params", instance),
-				configMapFile: "golden/k8s-instances/skia-public/authorized-params.json5",
+				configMapFile: "k8s-instances/skia-public/authorized-params.json5",
 			})
 		} else {
 			// Add common services for internal instances.
@@ -117,7 +117,7 @@ func makeDeploymentOptionsForIngestionBT(instance Instance, internal bool) Deplo
 	return DeploymentOptions{
 		internal:          internal,
 		configMapName:     fmt.Sprintf("gold-%s-ingestion-config-bt", instance),
-		configMapTemplate: "golden/k8s-config-templates/ingest-config-template.json5",
+		configMapTemplate: "k8s-config-templates/ingest-config-template.json5",
 	}
 }
 
@@ -150,7 +150,7 @@ func TestingDeployableUnits() DeployableUnitSet {
 	addHealthyServerInstance := func(instance Instance, service Service, internal bool) {
 		s.addWithOptions(instance, service, DeploymentOptions{
 			configMapName:     fmt.Sprintf("gold-%s-healthy-server-config", instance),
-			configMapTemplate: "golden/cmd/goldpushk/testing/healthy_server/config-template.json5",
+			configMapTemplate: "cmd/goldpushk/testing/healthy_server/config-template.json5",
 			internal:          internal,
 		})
 	}
