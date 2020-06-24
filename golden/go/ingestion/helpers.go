@@ -19,15 +19,10 @@ import (
 
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gcs"
-	"go.skia.org/infra/go/git/gitinfo"
-	"go.skia.org/infra/go/gitiles"
-	"go.skia.org/infra/go/gitstore/bt_gitstore"
-	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/eventbus"
 )
 
@@ -46,7 +41,7 @@ const (
 //   config is usually parsed from a JSON5 file.
 //   client can be assumed to be ready to serve the needs of the resulting Processor.
 //   eventBus is the eventbus to be used by the ingester (optional).
-type Constructor func(context.Context, vcsinfo.VCS, *sharedconfig.IngesterConfig, *http.Client) (Processor, error)
+type Constructor func(context.Context, vcsinfo.VCS, *IngesterConfig, *http.Client) (Processor, error)
 
 // stores the constructors that register for instantiation from a config struct.
 var constructors = map[string]Constructor{}
@@ -66,53 +61,22 @@ func Register(id string, constructor Constructor) {
 // client is assumed to be suitable for the given application. If e.g. the
 // processors of the current application require an authenticated http client,
 // then it is expected that client meets these requirements.
-func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore, btConf *bt_gitstore.BTConfig) ([]*Ingester, error) {
+func IngestersFromConfig(ctx context.Context, configs map[string]*IngesterConfig, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore, vcs vcsinfo.VCS) ([]*Ingester, error) {
 	if client == nil {
 		return nil, errors.New("httpClient cannot be nil")
 	}
 
 	registrationMutex.Lock()
 	defer registrationMutex.Unlock()
-	ret := []*Ingester{}
 
 	// Make sure we have an eventbus since that is shared by ingesters and sources.
 	if eventBus == nil {
 		eventBus = eventbus.New()
 	}
 
-	// Set up the gitinfo object.
-	var vcs vcsinfo.VCS
-	if btConf != nil {
-		gitStore, err := bt_gitstore.New(ctx, btConf, config.GitRepoURL)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "could not instantiate gitstore for %s", config.GitRepoURL)
-		}
-
-		// Set up VCS instance to track master.
-		gitilesRepo := gitiles.NewRepo(config.GitRepoURL, client)
-		if vcs, err = bt_vcs.New(ctx, gitStore, "master", gitilesRepo); err != nil {
-			return nil, skerr.Wrapf(err, "could not create new bt_vcs")
-		}
-
-		sklog.Infof("Created vcs client based on BigTable.")
-	} else {
-		var err error
-		if vcs, err = gitinfo.CloneOrUpdate(ctx, config.GitRepoURL, config.GitRepoDir, true); err != nil {
-			return nil, skerr.Wrapf(err, "could not clone %s locally to %s", config.GitRepoURL, config.GitRepoDir)
-		}
-		sklog.Infof("Created vcs client based on local checkout.")
-	}
-
-	// Instantiate the secondary repo if one was specified.
-	// TODO(kjlubick): make this support bigtable git also.
-	if config.SecondaryRepoURL != "" {
-		// TODO(kjlubick) Check up tracestore_impl's isOnMaster to make sure it
-		// works with what is put here.
-		return nil, skerr.Fmt("Not yet implemented to have a secondary repo url")
-	}
-
 	// for each defined Ingester create an instance.
-	for id, ingesterConf := range config.Ingesters {
+	var ret []*Ingester
+	for id, ingesterConf := range configs {
 		sklog.Infof("Starting to instantiate ingester: %s", id)
 		processorConstructor, ok := constructors[id]
 		if !ok {
@@ -151,7 +115,7 @@ func IngestersFromConfig(ctx context.Context, config *sharedconfig.Config, clien
 
 // getSource returns an instance of source that is either getting data from
 // Google storage or the local filesystem.
-func getSource(ctx context.Context, id string, dataSource *sharedconfig.DataSource, client *http.Client, eventBus eventbus.EventBus) (Source, error) {
+func getSource(ctx context.Context, id string, dataSource *DataSource, client *http.Client, eventBus eventbus.EventBus) (Source, error) {
 	if dataSource.Dir == "" {
 		return nil, fmt.Errorf("Datasource for %s is missing a directory.", id)
 	}

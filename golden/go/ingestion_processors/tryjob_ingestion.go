@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
@@ -71,7 +70,7 @@ type goldTryjobProcessor struct {
 // newModularTryjobProcessor returns an ingestion.Processor which is modular and can support
 // different CodeReviewSystems (e.g. "Gerrit", "GitHub") and different ContinuousIntegrationSystems
 // (e.g. "BuildBucket", "CirrusCI"). This particular implementation stores the data in Firestore.
-func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
+func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config *ingestion.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
 	crsName := config.ExtraParams[codeReviewSystemParam]
 	if strings.TrimSpace(crsName) == "" {
 		return nil, skerr.Fmt("missing code review system (e.g. 'gerrit')")
@@ -124,7 +123,7 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config *share
 	}, nil
 }
 
-func codeReviewSystemFactory(crsName string, config *sharedconfig.IngesterConfig, client *http.Client) (code_review.Client, error) {
+func codeReviewSystemFactory(crsName string, config *ingestion.IngesterConfig, client *http.Client) (code_review.Client, error) {
 	if crsName == gerritCRS {
 		gerritURL := config.ExtraParams[gerritURLParam]
 		if strings.TrimSpace(gerritURL) == "" {
@@ -157,7 +156,7 @@ func codeReviewSystemFactory(crsName string, config *sharedconfig.IngesterConfig
 	return nil, skerr.Fmt("CodeReviewSystem %q not recognized", crsName)
 }
 
-func continuousIntegrationSystemFactory(cisName string, _ *sharedconfig.IngesterConfig, client *http.Client) (continuous_integration.Client, error) {
+func continuousIntegrationSystemFactory(cisName string, _ *ingestion.IngesterConfig, client *http.Client) (continuous_integration.Client, error) {
 	if cisName == buildbucketCIS {
 		bbClient := buildbucket.NewClient(client)
 		return buildbucket_cis.New(bbClient), nil
