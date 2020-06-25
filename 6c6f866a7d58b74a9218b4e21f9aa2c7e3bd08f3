@@ -16,6 +16,24 @@
       "revId": "6c6f866a7d58b74a9218b4e21f9aa2c7e3bd08f3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8c083206_2c55491e",
+        "filename": "ct/modules/chromium-perf-sk/chromium-perf-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-25T14:16:33Z",
+      "side": 0,
+      "message": "This\u0027ll blow up the patch-sk layout.\n\nI should probably be favoring classes in components.  I plan to standardize the css once the pages are complete to prevent duplication, and cleanup stuff like this.",
+      "parentUuid": "74c7c437_ac648d08",
+      "revId": "6c6f866a7d58b74a9218b4e21f9aa2c7e3bd08f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
