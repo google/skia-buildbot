@@ -70,6 +70,24 @@
       "revId": "6c6f866a7d58b74a9218b4e21f9aa2c7e3bd08f3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c28bf7b_7ea92ee9",
+        "filename": "ct/modules/chromium-perf-sk/chromium-perf-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-25T14:37:13Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "5b47ea77_c12b4017",
+      "revId": "6c6f866a7d58b74a9218b4e21f9aa2c7e3bd08f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
