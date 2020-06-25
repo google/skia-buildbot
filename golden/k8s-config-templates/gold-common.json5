@@ -1,7 +1,7 @@
 {
     "BASELINE_SERVER_IMAGE": "gcr.io/skia-public/gold-baseline-server:2020-06-24T12_35_34Z-kjlubick-5535579-clean",
     "DIFF_SERVER_IMAGE":     "gcr.io/skia-public/gold-diff-server:2020-06-24T18_26_08Z-kjlubick-f02d305-dirty",
-    "INGESTION_BT_IMAGE":    "gcr.io/skia-public/gold-ingestion:2020-06-18T15_45_22Z-kjlubick-88ed2a7-clean",
+    "INGESTION_BT_IMAGE":    "gcr.io/skia-public/gold-ingestion:2020-06-25T17_31_25Z-kjlubick-c5d514e-dirty",
     "SKIACORRECTNESS_IMAGE": "gcr.io/skia-public/gold-skiacorrectness:2020-06-24T12_37_37Z-kjlubick-5535579-clean",
 
     // Services for testing goldpushk.
