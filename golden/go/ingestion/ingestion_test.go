@@ -225,7 +225,7 @@ func TestGetStartTimeOfInterestDays(t *testing.T) {
 		Timestamp: alphaTime,
 	}, nil)
 
-	conf := &IngesterConfig{
+	conf := &Config{
 		NCommits: 2,
 		MinDays:  3,
 	}
@@ -270,7 +270,7 @@ func TestGetStartTimeOfInterestCommits(t *testing.T) {
 		Timestamp: betaTime,
 	}, nil)
 
-	conf := &IngesterConfig{
+	conf := &Config{
 		NCommits: 4,
 		MinDays:  3,
 	}
@@ -299,7 +299,7 @@ func TestGetStartTimeOfInterestTryJobs(t *testing.T) {
 	now := time.Date(2019, 8, 5, 11, 20, 0, 0, time.UTC)
 	oneHourAgo := now.Add(-1 * time.Hour)
 
-	conf := &IngesterConfig{
+	conf := &Config{
 		MinHours: 1,
 	}
 
@@ -339,7 +339,7 @@ func TestGetStartTimeOfInterestNotEnough(t *testing.T) {
 		Timestamp: alphaTime,
 	}, nil)
 
-	conf := &IngesterConfig{
+	conf := &Config{
 		NCommits: 100,
 		MinDays:  3,
 	}
@@ -352,15 +352,15 @@ func TestGetStartTimeOfInterestNotEnough(t *testing.T) {
 	require.Equal(t, alphaTime, ts)
 }
 
-func noPollingConfig() *IngesterConfig {
-	return &IngesterConfig{
+func noPollingConfig() *Config {
+	return &Config{
 		MinDays:  0, // Setting min days and hours to 0 disables polling
 		MinHours: 0,
 	}
 }
 
-func lastHourPollingConfig() *IngesterConfig {
-	return &IngesterConfig{
+func lastHourPollingConfig() *Config {
+	return &Config{
 		MinDays:  0,
 		MinHours: 1,
 		RunEvery: config.Duration{Duration: time.Minute}, // this doesn't really matter

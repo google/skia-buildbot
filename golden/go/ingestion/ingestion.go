@@ -55,7 +55,7 @@ type Ingester struct {
 // (created via eventbus.New()). To drive ingestion from storage events use a PubSub-based
 // eventbus (created via the gevent.New(...) function).
 //
-func newIngester(ingesterID string, ingesterConf *IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor, ingestionStore IngestionStore, eventBus eventbus.EventBus) (*Ingester, error) {
+func newIngester(ingesterID string, ingesterConf *Config, vcs vcsinfo.VCS, sources []Source, processor Processor, ingestionStore IngestionStore, eventBus eventbus.EventBus) (*Ingester, error) {
 	if ingesterConf == nil {
 		return nil, skerr.Fmt("ingesterConf cannot be nil")
 	}
