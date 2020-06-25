@@ -34,6 +34,24 @@
       "revId": "6c6f866a7d58b74a9218b4e21f9aa2c7e3bd08f3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "395c25f4_2ba2b83d",
+        "filename": "ct/modules/chromium-perf-sk/chromium-perf-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-06-25T14:31:33Z",
+      "side": 0,
+      "message": "\u003e This\u0027ll blow up the patch-sk layout.\n\nI think this is the issue I mentioned in the description.\n\n\u003e \n\u003e I should probably be favoring classes in components.  I plan to standardize the css once the pages are complete to prevent duplication, and cleanup stuff like this.\n\nSGTM. I think \"table.options\u003etr\u003etd\" does nothing is because they are not direct children of the table. I think \"table.options\u003etbody\u003etr\u003etd\" will work.",
+      "parentUuid": "8c083206_2c55491e",
+      "revId": "6c6f866a7d58b74a9218b4e21f9aa2c7e3bd08f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
