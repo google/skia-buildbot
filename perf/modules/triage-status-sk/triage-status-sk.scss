@@ -1,5 +1,42 @@
+@import '~elements-sk/themes/themes.css';
+
 triage-status-sk {
   button {
     padding: 0;
+  }
+}
+
+.body-sk.darkmode triage-status-sk {
+  .positive {
+    background: var(--green-500);
+    fill: var(--on-surface);
+
+    .inside_status check-circle-icon-sk {
+      fill: var(--on-surface);
+    }
+  }
+
+  .negative {
+    background: var(--red-500);
+    fill: var(--on-surface);
+
+    .inside_status cancel-icon-sk {
+      fill: var(--on-surface);
+    }
+  }
+
+  .untriaged {
+    background: var(--brown-300);
+    fill: var(--on-surface);
+
+    .inside_status help-icon-sk {
+      fill: var(--on-surface);
+    }
+  }
+
+  .positive:hover,
+  .negative:hover,
+  .untriaged:hover {
+    opacity: 0.8;
   }
 }

@@ -8,10 +8,13 @@ import (
 	"github.com/skia-dev/go2ts"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
+	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/frontend"
 	"go.skia.org/infra/perf/go/regression"
+	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -33,6 +36,10 @@ func main() {
 		frontend.CountHandlerResponse{},
 		frontend.CommitDetailsRequest{},
 		cid.CommitDetail{},
+		clustering2.ClusterSummary{},
+		regression.TriageStatus{},
+		dataframe.FrameResponse{},
+		alerts.Alert{},
 	})
 	if err != nil {
 		sklog.Fatal(err)
@@ -42,6 +49,10 @@ func main() {
 		sklog.Fatal(err)
 	}
 	err = generator.AddUnionWithName(types.AllClusterAlgos, "ClusterAlgo")
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	err = generator.AddUnionWithName(stepfit.AllStepFitStatus, "StepFitStatus")
 	if err != nil {
 		sklog.Fatal(err)
 	}

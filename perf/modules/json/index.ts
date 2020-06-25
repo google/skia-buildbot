@@ -34,8 +34,83 @@ export interface CommitDetail {
 	ts: number;
 }
 
+export interface StepFit {
+	least_squares: number;
+	turning_point: number;
+	step_size: number;
+	regression: number;
+	status: StepFitStatus;
+}
+
+export interface ColumnHeader {
+	offset: number;
+	timestamp: number;
+}
+
+export interface ClusterSummary {
+	centroid: number[] | null;
+	shortcut: string;
+	param_summaries2: ValuePercent[] | null;
+	step_fit: StepFit | null;
+	step_point: ColumnHeader | null;
+	num: number;
+}
+
+export interface TriageStatus {
+	status: Status;
+	message: string;
+}
+
+export interface DataFrame {
+	traceset: TraceSet;
+	header: ColumnHeader[] | null;
+	paramset: ParamSet;
+	skip: number;
+}
+
+export interface FrameResponse {
+	dataframe: DataFrame | null;
+	skps: number[] | null;
+	msg: string;
+}
+
+export interface Alert {
+	id: number;
+	display_name: string;
+	query: string;
+	alert: string;
+	interesting: number;
+	bug_uri_template: string;
+	algo: RegressionDetectionGrouping;
+	step: StepDetection;
+	state: ConfigState;
+	owner: string;
+	step_up_only: boolean;
+	direction: Direction;
+	radius: number;
+	k: number;
+	group_by: string;
+	sparse: boolean;
+	minimum_num: number;
+	category: string;
+}
+
 export type ParamSet = { [key: string]: string[] };
 
+export type StepFitStatus = "Low" | "High" | "Uninteresting";
+
 export type Status = "" | "positive" | "negative" | "untriaged";
+
+export type Trace = number[];
+
+export type TraceSet = { [key: string]: Trace };
+
+export type RegressionDetectionGrouping = string;
+
+export type StepDetection = string;
+
+export type ConfigState = number;
+
+export type Direction = number;
 
 export type ClusterAlgo = "kmeans" | "stepfit";
