@@ -113,7 +113,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/skia-dev/go-systemd v0.0.0-20181025131956-1cc903e82ae4
-	github.com/skia-dev/go2ts v1.3.0
+	github.com/skia-dev/go2ts v1.3.1
 	github.com/skia-dev/google-api-go-client v0.10.1-0.20200109184256-16c3d6f408b2
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v1.0.0
