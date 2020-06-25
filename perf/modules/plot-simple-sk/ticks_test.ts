@@ -1,4 +1,5 @@
 import { ticks } from './ticks';
+import { assert } from 'chai';
 
 describe('ticks()', () => {
   it('handles months', () => {
@@ -12,7 +13,8 @@ describe('ticks()', () => {
     assert.deepEqual(ticks(ts), [
       { x: 0, text: 'Jul' },
       { x: 1, text: 'Aug' },
-      { x: 3, text: 'Oct' }]);
+      { x: 3, text: 'Oct' },
+    ]);
   });
 
   it('handles day of month', () => {
@@ -84,7 +86,6 @@ describe('ticks()', () => {
       new Date(2014, 6, 1, 1, 11, 0, 0),
       new Date(2014, 6, 1, 1, 12, 0, 0),
     ];
-
 
     // Also tests decimation.
     assert.deepEqual(ticks(ts), [

@@ -2,6 +2,8 @@ plot-simple-sk {
   position: relative;
   padding: 0;
   border: 0;
+  color: var(--black);
+  background: var(--white);
 
   canvas.overlay {
     position: absolute;
@@ -14,4 +16,11 @@ plot-simple-sk {
     padding: 0;
     border: 0;
   }
+}
+
+@import '~elements-sk/themes/themes.css';
+
+.body-sk plot-simple-sk {
+  color: var(--on-background);
+  background: var(--background);
 }

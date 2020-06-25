@@ -4,9 +4,9 @@
  */
 
 /**
-* @constant {Number} Minimum number of ticks to return. We don't guarantee we
-* will meet this.
-*/
+ * @constant {Number} Minimum number of ticks to return. We don't guarantee we
+ * will meet this.
+ */
 const MIN_TICKS = 2;
 
 /**
@@ -26,11 +26,17 @@ const choices = [
   },
   {
     duration: 3 * 24 * 60 * 60 * 1000,
-    formatter: new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short' }).format,
+    formatter: new Intl.DateTimeFormat('default', {
+      day: 'numeric',
+      month: 'short',
+    }).format,
   },
   {
     duration: 24 * 60 * 60 * 1000,
-    formatter: new Intl.DateTimeFormat('default', { weekday: 'short', hour: 'numeric' }).format,
+    formatter: new Intl.DateTimeFormat('default', {
+      weekday: 'short',
+      hour: 'numeric',
+    }).format,
   },
   {
     duration: 2 * 60 * 60 * 1000,
@@ -38,11 +44,18 @@ const choices = [
   },
   {
     duration: 2 * 60 * 1000,
-    formatter: new Intl.DateTimeFormat('default', { hour: 'numeric', minute: 'numeric' }).format,
+    formatter: new Intl.DateTimeFormat('default', {
+      hour: 'numeric',
+      minute: 'numeric',
+    }).format,
   },
   {
     duration: 2 * 1000,
-    formatter: new Intl.DateTimeFormat('default', { hour: 'numeric', minute: 'numeric', second: 'numeric' }).format,
+    formatter: new Intl.DateTimeFormat('default', {
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+    }).format,
   },
 ];
 
@@ -55,7 +68,7 @@ const choices = [
  *
  *  @param {Number} ms - A duration in milliseconds.
  */
-function formatterFromDuration(ms) {
+function formatterFromDuration(ms: number) {
   // Move down the list of choices from the largest granularity to the finest.
   // The first one that would generate more than MIN_TICKS for the given
   // number of hours is chosen and that TimeOp is returned.
@@ -69,26 +82,31 @@ function formatterFromDuration(ms) {
 }
 
 /**
-* ticks takes a set of times that represent x-axis locations in time
-* and returns an array of points to use to for tick marks along with their
-* associated text.
-*
-* @param {Date[]} dates - An array of Dates, one for each x location.
-* @returns {Array} An array of objects of the form:
-*
-*     {
-*       x: 2,
-*       text: 'Mon, 8 AM',
-*     }
-*/
-export function ticks(dates) {
-  const duration = dates[dates.length - 1] - dates[0];
+ * ticks takes a set of times that represent x-axis locations in time
+ * and returns an array of points to use to for tick marks along with their
+ * associated text.
+ *
+ * @param {Date[]} dates - An array of Dates, one for each x location.
+ * @returns {Array} An array of objects of the form:
+ *
+ *     {
+ *       x: 2,
+ *       text: 'Mon, 8 AM',
+ *     }
+ */
+export function ticks(dates: Date[]) {
+  if (dates.length === 0) {
+    return [];
+  }
+  const duration = dates[dates.length - 1].valueOf() - dates[0].valueOf();
   const formatter = formatterFromDuration(duration);
   let last = formatter(dates[0]);
-  let ret = [{
-    x: 0,
-    text: last,
-  }];
+  let ret = [
+    {
+      x: 0,
+      text: last,
+    },
+  ];
   for (let i = 0; i < dates.length; i++) {
     const tickValue = formatter(dates[i]);
     if (last !== tickValue) {
