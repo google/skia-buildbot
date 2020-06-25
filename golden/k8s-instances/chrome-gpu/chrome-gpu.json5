@@ -1,5 +1,9 @@
 {
+  bt_instance: "production",
+  bt_project_id: "skia-public",
   gcs_bucket: "skia-gold-chrome-gpu",
+  git_bt_table: "git-repos2",
+  git_repo_url: "https://chromium.googlesource.com/chromium/src",
   fs_namespace: "chrome-gpu",
   fs_project_id: "skia-firestore",
   known_hashes_gcs_path: "skia-gold-chrome-gpu/hash_files/gold-chrome-gpu-hashes.txt",

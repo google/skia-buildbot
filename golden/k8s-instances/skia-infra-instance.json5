@@ -4,6 +4,7 @@
   "BIGTABLE_PROJECT":        "skia-public",
   "BIGTABLE_TABLE":          "gold-skia-infra",
   "BUCKET":                  "skia-gold-skia-infra",
+  "CODE_REVIEW_SYSTEM":      "gerrit",
   "DATASTORE_NAMESPACE":     "gold-skia-infra",
   "DATASTORE_PROJECT":       "skia-public",
   "FIRESTORE_NAMESPACE":     "skia-infra",
@@ -12,7 +13,6 @@
   "GERRIT_URL":              "https://skia-review.googlesource.com",
   "GITREPO_URL":             "https://skia.googlesource.com/buildbot.git",
   "N_COMMITS":               200,
-  "PUBSUB_PROJECT":          "skia-public",
   "SITE_URL":                "https://skia-infra-gold.skia.org",
 
   // Git BigTable settings.
@@ -39,17 +39,4 @@
   // Expectations cleanup policy.
   "POSITIVE_EXPECTATIONS_MAX_AGE": "720h", // 30 days
   "NEGATIVE_EXPECTATIONS_MAX_AGE": "4320h", // 180 days
-
-  // Settings for the main ingester.
-  "ING_RUN_EVERY":           "1h",
-  "ING_N_COMMITS":           5,
-  "ING_MIN_HOURS":           2,
-
-  // Settings for the Tryjob ingester. If ING_TRY_ENABLED is false no ingester for
-  // tryjobs will be configured.
-  "ING_TRY_ENABLED":         true,
-  "ING_TRY_RUN_EVERY":       "1h",
-  "ING_TRY_MIN_HOURS":       2,
-  "CODE_REVIEW_SYSTEM":      "gerrit",
-  "CI_SYSTEM":               "buildbucket"
 }

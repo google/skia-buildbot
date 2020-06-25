@@ -1,5 +1,9 @@
 {
-  gcs_bucket: "skia-gold-pdfium",
+  bt_instance: "production",
+  bt_project_id: "skia-public",
+  gcs_bucket: "skia-pdfium-gm",  // Legacy bucket name
+  git_bt_table: "git-repos2",
+  git_repo_url: "https://pdfium.googlesource.com/pdfium",
   fs_namespace: "pdfium",
   fs_project_id: "skia-firestore",
   known_hashes_gcs_path: "skia-gold-pdfium/hash_files/gold-pdfium-hashes.txt",
