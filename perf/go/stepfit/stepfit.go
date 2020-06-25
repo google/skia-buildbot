@@ -7,16 +7,20 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
+type StepFitStatus string
+
 const (
 	// The possible values for StepFit.Status are:
 
-	LOW           = "Low"
-	HIGH          = "High"
-	UNINTERESTING = "Uninteresting"
+	LOW           StepFitStatus = "Low"
+	HIGH          StepFitStatus = "High"
+	UNINTERESTING StepFitStatus = "Uninteresting"
 
 	// minTraceSize is the smallest trace length we can analyze.
 	minTraceSize = 3
 )
+
+var AllStepFitStatus = []StepFitStatus{LOW, HIGH, UNINTERESTING}
 
 // StepFit stores information on the best Step Function fit on a trace.
 //
@@ -44,7 +48,7 @@ type StepFit struct {
 	// Status of the cluster.
 	//
 	// Values can be "High", "Low", and "Uninteresting"
-	Status string `json:"status"`
+	Status StepFitStatus `json:"status"`
 }
 
 // NewStepFit creates an properly initialized StepFit struct.

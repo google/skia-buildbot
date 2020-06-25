@@ -14,22 +14,45 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import '../tricon2-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { TriageStatus, ClusterSummary, FrameResponse, Alert, StepFitStatus } from '../json';
 
-const template = (ele) => html`
-  <button title=${ele.triage.message} @click=${ele._start_triage}>
-    <tricon2-sk value=${ele.triage.status}></tricon2-sk>
+
+export interface TriageStatusSkStartTriageEventDetails {
+  triage: TriageStatus;
+  full_summary: FullSummary | null;
+  alert: Alert | null;
+  cluster_type: ClusterType;
+  element: TriageStatusSk;
+}
+
+export interface FullSummary {
+  summary: ClusterSummary;
+  frame: FrameResponse;
+  triage: TriageStatus;
+}
+
+export type ClusterType = "high" | "low";
+
+export class TriageStatusSk extends ElementSk {
+  private static template = (ele: TriageStatusSk) => html`
+  <button title=${ele.triage.message} @click=${ele._start_triage} class=${ele.triage.status}>
+    <tricon2-sk class=inside_status value=${ele.triage.status}></tricon2-sk>
   </button>
 `;
 
-define('triage-status-sk', class extends ElementSk {
+  private _triage: TriageStatus;
+  private _full_summary: FullSummary | null;
+  private _alert: Alert | null;
+  private _cluster_type: ClusterType;
+
   constructor() {
-    super(template);
+    super(TriageStatusSk.template);
     this._triage = {
       status: 'untriaged',
       message: '(none)',
     };
-    this._full_summary = {};
-    this._alert = {};
+    this._full_summary = null;
+    this._alert = null;
     this._cluster_type = 'low';
   }
 
@@ -50,7 +73,7 @@ define('triage-status-sk', class extends ElementSk {
       cluster_type: this.cluster_type,
       element: this,
     };
-    this.dispatchEvent(new CustomEvent('start-triage', { detail: detail, bubbles: true }));
+    this.dispatchEvent(new CustomEvent<TriageStatusSkStartTriageEventDetails>('start-triage', { detail: detail, bubbles: true }));
   }
 
   /** @prop alert {alerts.Config} The config this cluster is associated with. */
@@ -89,4 +112,6 @@ define('triage-status-sk', class extends ElementSk {
     this._triage = val;
     this._render();
   }
-});
+}
+
+define('triage-status-sk', TriageStatusSk);
