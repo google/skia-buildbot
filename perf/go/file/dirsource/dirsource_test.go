@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/file"
 )
@@ -15,7 +16,7 @@ func TestStart_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := context.Background()
 
-	s, err := New("testdata")
+	s, err := New(testutils.TestDataDir(t))
 	require.NoError(t, err)
 	ch, err := s.Start(ctx)
 	require.NoError(t, err)
@@ -38,7 +39,7 @@ func TestStart_SecondStartFails(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := context.Background()
 
-	s, err := New("testdata")
+	s, err := New(testutils.TestDataDir(t))
 	require.NoError(t, err)
 	_, err = s.Start(ctx)
 	require.NoError(t, err)

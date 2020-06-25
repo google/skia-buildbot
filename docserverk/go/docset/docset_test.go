@@ -2,13 +2,16 @@
 package docset
 
 import (
+	"path/filepath"
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func Test_readTitle(t *testing.T) {
 	unittest.SmallTest(t)
+	tdd := testutils.TestDataDir(t)
 	tests := []struct {
 		name     string
 		filename string
@@ -17,13 +20,13 @@ func Test_readTitle(t *testing.T) {
 	}{
 		{
 			name:     "Actual file",
-			filename: "testdata/somefile.md",
+			filename: filepath.Join(tdd, "somefile.md"),
 			def:      "",
 			want:     "This is a title",
 		},
 		{
 			name:     "Missinge file",
-			filename: "testdata/not-an-actual-file.md",
+			filename: filepath.Join(tdd, "not-an-actual-file.md"),
 			def:      "The default title",
 			want:     "The default title",
 		},
