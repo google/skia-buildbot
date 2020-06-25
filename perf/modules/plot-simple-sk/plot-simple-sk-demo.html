@@ -7,12 +7,20 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style type="text/css" media="screen">
-    button {
+    button.action {
       display: inline-block;
+      min-width: none;
+      text-transform: none;
+      padding: 4px;
+      margin: 4px;
     }
 
     plot-simple-sk {
       display: block;
+    }
+
+    body {
+      width: 1000px;
     }
   </style>
 </head>
@@ -33,7 +41,7 @@
     <button class=action id=special>Add Special</button>
   </div>
 
-  <plot-simple-sk width=1600 height=400 id=plot></plot-simple-sk>
+  <plot-simple-sk summary width=600 height=300 id=plot></plot-simple-sk>
 
   <table>
     <tr>
@@ -50,98 +58,17 @@
     </tr>
   </table>
 
-  <script type="text/javascript" charset="utf-8">
-    window.customElements.whenDefined('plot-simple-sk').then(() => {
-      const $$ = (query, ele = document) => ele.querySelector(query);
-      var ele = $$('#plot');
-      var n = 0;
+  <section class="body-sk">
+    <h2>themes.css</h2>
+    <plot-simple-sk summary width=600 height=300></plot-simple-sk>
+  </section>
 
-      function add(num) {
-        let labels = [];
-        for (let i = 0; i < 50; i++) {
-          labels.push(new Date(1554143900000 + i * i * 5 * 1000 * 60));
-        }
+  <section class="body-sk darkmode">
+    <theme-chooser-sk></theme-chooser-sk>
+    <h2>themes.css - darkmode</h2>
+    <plot-simple-sk summary width=600 height=300></plot-simple-sk>
+  </section>
 
-        var traces = {};
-        for (var j = 0; j < num; j++) {
-          var trace = [];
-          for (var i = 0; i < 50; i++) {
-            if (Math.random() < 0.90) {
-              trace.push(1000000 * (8 + Math.sin(i / 10) + j + Math.random() * 1 + 10));
-            } else {
-              trace.push(1e32);
-            }
-          }
-          var id = "trace" + (j + n);
-          traces[id] = trace;
-        }
-        n += num;
-        ele.addLines(traces, labels);
-      }
-
-      add(10);
-
-      $$('#add').addEventListener('click', function () {
-        add(10);
-      });
-
-      $$('#addalot').addEventListener('click', function () {
-        add(100);
-      });
-
-      $$('#clear').addEventListener('click', function () {
-        ele.removeAll();
-      });
-
-      $$('#reset').addEventListener('click', function () {
-        ele.zoom = null;
-      });
-
-      $$('#high').addEventListener('click', function (e) {
-        ele.highlight = ["trace" + (n - 1), "trace" + (n - 2)];
-      });
-
-      $$('#clearhigh').addEventListener('click', function (e) {
-        ele.highlight = [];
-      });
-
-      $$('#xbar').addEventListener('click', function (e) {
-        ele.xbar = 3;
-      });
-
-      $$('#clearxbar').addEventListener('click', function (e) {
-        ele.xbar = -1;
-      });
-
-      $$('#zoomAction').addEventListener('click', function (e) {
-        ele.zoom = [20, 40];
-      });
-
-      $$('#plot').addEventListener('trace_selected', function (e) {
-        $$('#selected').textContent = JSON.stringify(e.detail);
-      });
-
-      $$('#plot').addEventListener('trace_focused', function (e) {
-        $$('#focused').textContent = JSON.stringify(e.detail);
-      });
-
-      $$('#plot').addEventListener('zoom', function (e) {
-        $$('#zoom').textContent = JSON.stringify(e.detail);
-      });
-
-      $$('#bands').addEventListener('click', function (e) {
-        ele.bands = [1, 4, 20, 30];
-      });
-
-      $$('#special').addEventListener('click', function (e) {
-        var trace = [];
-        for (var i = 0; i < 50; i++) {
-          trace.push(0);
-        }
-        ele.addLines({ "specialZero": trace });
-      });
-    })
-  </script>
 </body>
 
 </html>
