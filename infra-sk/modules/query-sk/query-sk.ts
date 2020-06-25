@@ -22,7 +22,10 @@ import { html } from 'lit-html';
 import { ParamSet, toParamSet, fromParamSet } from 'common-sk/modules/query';
 import { ElementSk } from '../ElementSk';
 import { SelectSk } from 'elements-sk/select-sk/select-sk';
-import { QueryValuesSk, QueryValuesSkQueryValuesChangedEventDetail } from '../query-values-sk/query-values-sk';
+import {
+  QueryValuesSk,
+  QueryValuesSkQueryValuesChangedEventDetail,
+} from '../query-values-sk/query-values-sk';
 
 import '../query-values-sk';
 import 'elements-sk/select-sk';
@@ -33,38 +36,46 @@ const DELAY_MS = 500;
 
 export interface QuerySkQueryChangeEventDetail {
   readonly q: string;
-};
+}
 
 export class QuerySk extends ElementSk {
-
   private static template = (ele: QuerySk) => html`
     <div>
-      <label>Filter <input id=fast @input=${ele._fastFilter}></label>
-      <button @click=${ele._clearFilter} class=clear_filters>Clear Filter</button>
+      <label>Filter <input id="fast" @input=${ele._fastFilter} /></label>
+      <button @click=${ele._clearFilter} class="clear_filters"
+        >Clear Filter</button
+      >
     </div>
-    <div class=bottom>
-      <div class=selection>
+    <div class="bottom">
+      <div class="selection">
         <select-sk @selection-changed=${ele._keyChange}>
           ${QuerySk.keysTemplate(ele)}
         </select-sk>
-        <button @click=${ele._clear} class=clear_selections>Clear Selections</button>
+        <button @click=${ele._clear} class="clear_selections"
+          >Clear Selections</button
+        >
       </div>
-      <query-values-sk id=values @query-values-changed=${ele._valuesChanged}
-        ?hide_invert=${ele.hide_invert} ?hide_regex=${ele.hide_regex}></query-values-sk>
+      <query-values-sk
+        id="values"
+        @query-values-changed=${ele._valuesChanged}
+        ?hide_invert=${ele.hide_invert}
+        ?hide_regex=${ele.hide_regex}
+      ></query-values-sk>
     </div>
   `;
 
-  private static keysTemplate = (ele: QuerySk) => ele._keys.map((k) => html`<div>${k}</div>`);
+  private static keysTemplate = (ele: QuerySk) =>
+    ele._keys.map((k) => html`<div>${k}</div>`);
 
   private _paramset: ParamSet = {};
   private _originalParamset: ParamSet = {};
 
-   // We keep the current_query as an object.
+  // We keep the current_query as an object.
   private _query: ParamSet = {};
 
   private _key_order: string[] = [];
 
-   // The full set of keys in the desired order.
+  // The full set of keys in the desired order.
   private _keys: string[] = [];
 
   // The id of a pending timeout func that will send a delayed query-change event.
@@ -91,7 +102,9 @@ export class QuerySk extends ElementSk {
     this._fast = this.querySelector('#fast');
   }
 
-  private _valuesChanged(e: CustomEvent<QueryValuesSkQueryValuesChangedEventDetail>) {
+  private _valuesChanged(
+    e: CustomEvent<QueryValuesSkQueryValuesChangedEventDetail>
+  ) {
     const key = this._keys[this._keySelect!.selection as number];
     if (this._fast!.value.trim() !== '') {
       // Things get complicated if the user has entered a filter. The user may
@@ -143,16 +156,23 @@ export class QuerySk extends ElementSk {
     const prev_query = this.current_query;
     this._rationalizeQuery();
     if (prev_query !== this.current_query) {
-      this.dispatchEvent(new CustomEvent<QuerySkQueryChangeEventDetail>('query-change', {
-        detail: { q: this.current_query },
-        bubbles: true,
-      }));
-      window.clearTimeout(this._delayedTimeout!);
-      this._delayedTimeout = window.setTimeout(() => {
-        this.dispatchEvent(new CustomEvent<QuerySkQueryChangeEventDetail>('query-change-delayed', {
+      this.dispatchEvent(
+        new CustomEvent<QuerySkQueryChangeEventDetail>('query-change', {
           detail: { q: this.current_query },
           bubbles: true,
-        }));
+        })
+      );
+      window.clearTimeout(this._delayedTimeout!);
+      this._delayedTimeout = window.setTimeout(() => {
+        this.dispatchEvent(
+          new CustomEvent<QuerySkQueryChangeEventDetail>(
+            'query-change-delayed',
+            {
+              detail: { q: this.current_query },
+              bubbles: true,
+            }
+          )
+        );
       }, DELAY_MS);
     }
   }
@@ -169,8 +189,12 @@ export class QuerySk extends ElementSk {
         delete this._query[key];
       } else {
         // Filter out invalid values.
-        this._query[key] =
-          this._query[key].filter(val => this._originalParamset[key].includes(val));
+        this._query[key] = this._query[key].filter(
+          (val) =>
+            this._originalParamset[key].includes(val) ||
+            val.startsWith('~') ||
+            val.startsWith('!')
+        );
       }
     });
 
@@ -231,7 +255,9 @@ export class QuerySk extends ElementSk {
   }
 
   /** @prop paramset {Object} A serialized paramtools.ParamSet. */
-  get paramset() { return this._paramset; }
+  get paramset() {
+    return this._paramset;
+  }
 
   set paramset(val) {
     // Record the current key so we can restore it later.
@@ -249,7 +275,11 @@ export class QuerySk extends ElementSk {
     this._render();
 
     // Now re-select the current key if it still exists post-filtering.
-    if (this._keySelect && prevSelectKey && this._keys.indexOf(prevSelectKey) !== -1) {
+    if (
+      this._keySelect &&
+      prevSelectKey &&
+      this._keys.indexOf(prevSelectKey) !== -1
+    ) {
       this._keySelect.selection = this._keys.indexOf(prevSelectKey);
       this._keyChange();
     }
@@ -259,7 +289,9 @@ export class QuerySk extends ElementSk {
    * The keys in the order they should appear. All keys not in the key order will be present after
    * and in alphabetical order.
    */
-  get key_order() { return this._key_order; }
+  get key_order() {
+    return this._key_order;
+  }
 
   set key_order(val) {
     this._key_order = val;
@@ -268,7 +300,9 @@ export class QuerySk extends ElementSk {
   }
 
   /** Mirrors the hide_invert attribute.  */
-  get hide_invert() { return this.hasAttribute('hide_invert'); }
+  get hide_invert() {
+    return this.hasAttribute('hide_invert');
+  }
 
   set hide_invert(val) {
     if (val) {
@@ -280,7 +314,9 @@ export class QuerySk extends ElementSk {
   }
 
   /**  Mirrors the hide_regex attribute.  */
-  get hide_regex() { return this.hasAttribute('hide_regex'); }
+  get hide_regex() {
+    return this.hasAttribute('hide_regex');
+  }
 
   set hide_regex(val) {
     if (val) {
@@ -292,9 +328,13 @@ export class QuerySk extends ElementSk {
   }
 
   /** Mirrors the current_query attribute.  */
-  get current_query() { return this.getAttribute('current_query') || ''; }
+  get current_query() {
+    return this.getAttribute('current_query') || '';
+  }
 
-  set current_query(val: string) { this.setAttribute('current_query', val); }
+  set current_query(val: string) {
+    this.setAttribute('current_query', val);
+  }
 
   static get observedAttributes() {
     return ['current_query', 'hide_invert', 'hide_regex'];
