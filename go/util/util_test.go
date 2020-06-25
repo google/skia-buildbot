@@ -635,7 +635,7 @@ func TestRoundUpToPowerOf2(t *testing.T) {
 	test(33, 64)
 	test(50, 64)
 	test(64, 64)
-	for i := 64; i < (1 << 31); i = i << 1 {
+	for i := 64; i < (1 << 30); i = i << 1 {
 		test(int32(i-1), int32(i))
 		test(int32(i), int32(i))
 	}
