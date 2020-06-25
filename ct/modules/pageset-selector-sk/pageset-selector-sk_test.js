@@ -65,7 +65,10 @@ describe('pageset-selector-sk', () => {
     selector = await newInstance((ele) => {
       ele.hideIfKeyContains = ['Mobile', '100'];
     });
-    expect($('select-sk div')).to.have.length(3);
+    expect($('select-sk div'), selector).to.have.length(3);
+    // Check that options can be recovered.
+    selector.hideIfKeyContains = [];
+    expect($('select-sk div'), selector).to.have.length(8);
   });
 
   it('hides selector when custom page form expanded', async () => {
