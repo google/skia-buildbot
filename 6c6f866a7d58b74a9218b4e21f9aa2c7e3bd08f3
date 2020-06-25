@@ -52,6 +52,24 @@
       "revId": "6c6f866a7d58b74a9218b4e21f9aa2c7e3bd08f3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b47ea77_c12b4017",
+        "filename": "ct/modules/chromium-perf-sk/chromium-perf-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-25T14:35:29Z",
+      "side": 0,
+      "message": "Good point! forgot that gets hacked in.  Feel free to do that now in the interim if you like!",
+      "parentUuid": "395c25f4_2ba2b83d",
+      "revId": "6c6f866a7d58b74a9218b4e21f9aa2c7e3bd08f3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
