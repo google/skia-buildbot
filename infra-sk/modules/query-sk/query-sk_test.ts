@@ -6,15 +6,7 @@ import { setUpElementUnderTest } from '../test_util';
 import { assert } from 'chai';
 
 const paramset: ParamSet = {
-  arch: [
-    'WASM',
-    'arm',
-    'arm64',
-    'asmjs',
-    'wasm',
-    'x86',
-    'x86_64',
-  ],
+  arch: ['WASM', 'arm', 'arm64', 'asmjs', 'wasm', 'x86', 'x86_64'],
   bench_type: [
     'deserial',
     'micro',
@@ -24,17 +16,8 @@ const paramset: ParamSet = {
     'skcodec',
     'tracing',
   ],
-  compiler: [
-    'Clang',
-    'EMCC',
-    'GCC',
-  ],
-  config: [
-    '8888',
-    'f16',
-    'gl',
-    'gles',
-  ],
+  compiler: ['Clang', 'EMCC', 'GCC'],
+  config: ['8888', 'f16', 'gl', 'gles'],
 };
 
 describe('query-sk', () => {
@@ -46,22 +29,34 @@ describe('query-sk', () => {
     querySk = newInstance();
     querySk.paramset = paramset;
     fast = $$<HTMLInputElement>('#fast', querySk)!;
-  })
+  });
 
   it('obeys key_order', () => {
-    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], keys(querySk));
+    assert.deepEqual(
+      ['arch', 'bench_type', 'compiler', 'config'],
+      keys(querySk)
+    );
 
     // Setting key_order will change the key order.
     querySk.key_order = ['config'];
-    assert.deepEqual(['config', 'arch', 'bench_type', 'compiler'], keys(querySk));
+    assert.deepEqual(
+      ['config', 'arch', 'bench_type', 'compiler'],
+      keys(querySk)
+    );
 
     // Setting key_order to empty will go back to alphabetical order.
     querySk.key_order = [];
-    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'],  keys(querySk));
+    assert.deepEqual(
+      ['arch', 'bench_type', 'compiler', 'config'],
+      keys(querySk)
+    );
   });
 
-  it('obeys filter', () =>  {
-    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'],  keys(querySk));
+  it('obeys filter', () => {
+    assert.deepEqual(
+      ['arch', 'bench_type', 'compiler', 'config'],
+      keys(querySk)
+    );
 
     // Setting the filter will change the keys displayed.
     fast.value = 'cro'; // Only 'micro' in 'bench_type' should match.
@@ -74,10 +69,13 @@ describe('query-sk', () => {
     fast.value = '';
     fast.dispatchEvent(new Event('input')); // Emulate user input.
 
-    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'],  keys(querySk));
+    assert.deepEqual(
+      ['arch', 'bench_type', 'compiler', 'config'],
+      keys(querySk)
+    );
   });
 
-  it('only edits displayed values when filter is used.', () =>  {
+  it('only edits displayed values when filter is used.', () => {
     // Make a selection.
     querySk.current_query = 'arch=x86';
 
@@ -86,7 +84,7 @@ describe('query-sk', () => {
     fast.dispatchEvent(new Event('input')); // Emulate user input.
 
     // Only key should be arch.
-    assert.deepEqual(['arch'],  keys(querySk));
+    assert.deepEqual(['arch'], keys(querySk));
 
     // Click on 'arch'.
     ($$('select-sk', querySk)!.firstElementChild! as HTMLElement).click();
@@ -95,7 +93,10 @@ describe('query-sk', () => {
     ($$('multi-select-sk', querySk)!.firstElementChild! as HTMLElement).click();
 
     // Confirm it gets added.
-    assert.deepEqual(toParamSet('arch=x86&arch=arm64'), toParamSet(querySk.current_query));
+    assert.deepEqual(
+      toParamSet('arch=x86&arch=arm64'),
+      toParamSet(querySk.current_query)
+    );
 
     // Click on the value 'arm64' a second time to remove it from the query.
     ($$('multi-select-sk', querySk)!.firstElementChild as HTMLElement).click();
@@ -114,7 +115,10 @@ describe('query-sk', () => {
     // Assert that only 'arm' is selected.
     assert.deepEqual(
       ['arm'],
-      $<HTMLDivElement>('multi-select-sk div[selected]').map(div => div.getAttribute('value')));
+      $<HTMLDivElement>('multi-select-sk div[selected]').map((div) =>
+        div.getAttribute('value')
+      )
+    );
 
     // Set selection via current_query.
     querySk.current_query = 'arch=x86&arch=x86_64&config=8888';
@@ -122,16 +126,23 @@ describe('query-sk', () => {
     // Assert that the previous selection is reflected in the UI.
     assert.deepEqual(
       ['x86', 'x86_64'],
-      $<HTMLDivElement>('multi-select-sk div[selected]').map(div => div.getAttribute('value')));
+      $<HTMLDivElement>('multi-select-sk div[selected]').map((div) =>
+        div.getAttribute('value')
+      )
+    );
   });
 
   it('rationalizes current_query when set programmatically', () => {
-    const validQuery = fromParamSet({'arch': ['arm', 'x86'], 'config': ['8888']});
-    const invalidQuery = fromParamSet({
-      'arch': ['arm', 'invalid_architecture'],
-      'invalid_key': ['foo']
+    const validQuery = fromParamSet({
+      arch: ['arm', 'x86'],
+      config: ['!8888'],
+      compiler: ['~CC'],
     });
-    const invalidQueryRationalized = fromParamSet({'arch': ['arm']});
+    const invalidQuery = fromParamSet({
+      arch: ['arm', 'invalid_architecture'],
+      invalid_key: ['foo'],
+    });
+    const invalidQueryRationalized = fromParamSet({ arch: ['arm'] });
 
     // Valid queries should remain unaltered.
     querySk.current_query = validQuery;
@@ -140,7 +151,7 @@ describe('query-sk', () => {
     // Invalid queries should be rationalized.
     querySk.current_query = invalidQuery;
     assert.deepEqual(invalidQueryRationalized, querySk.current_query);
-  })
+  });
 });
 
-const keys = (q: QuerySk) => $('select-sk div', q).map(e => e.textContent);
+const keys = (q: QuerySk) => $('select-sk div', q).map((e) => e.textContent);
