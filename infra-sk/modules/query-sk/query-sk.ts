@@ -59,12 +59,12 @@ export class QuerySk extends ElementSk {
   private _paramset: ParamSet = {};
   private _originalParamset: ParamSet = {};
 
-   // We keep the current_query as an object.
+  // We keep the current_query as an object.
   private _query: ParamSet = {};
 
   private _key_order: string[] = [];
 
-   // The full set of keys in the desired order.
+  // The full set of keys in the desired order.
   private _keys: string[] = [];
 
   // The id of a pending timeout func that will send a delayed query-change event.
@@ -170,7 +170,9 @@ export class QuerySk extends ElementSk {
       } else {
         // Filter out invalid values.
         this._query[key] =
-          this._query[key].filter(val => this._originalParamset[key].includes(val));
+          this._query[key].filter(val => this._originalParamset[key].includes(val) ||
+            val.startsWith('~') ||
+            val.startsWith('!'));
       }
     });
 
