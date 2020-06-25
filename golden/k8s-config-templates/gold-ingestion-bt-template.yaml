@@ -40,25 +40,18 @@ spec:
         - name: gold-{{.INSTANCE_ID}}-ingestion-bt
           image: {{.INGESTION_BT_IMAGE}}
           args:
-            - "--bt_instance={{.BIGTABLE_INSTANCE}}"
-            - "--bt_project_id={{.BIGTABLE_PROJECT}}"
-            - "--config_filename=/etc/gold-ingestion/gold-{{.INSTANCE_ID}}-ingestion-config-bt.json5"
-            - "--fs_namespace={{.INSTANCE_ID}}"
-            - "--fs_project_id={{.FIRESTORE_PROJECT}}"
-            - "--git_bt_table={{.GIT_BT_TABLE}}"
-            - "--http_port=:9091"
+            - "--common_instance_config=/etc/gold-config/{{.INSTANCE_ID}}.json5"
+            - "--config=/etc/gold-config/{{.INSTANCE_ID}}-ingestion-bt.json5"
             - "--logtostderr"
-            - "--prom_port=:20000"
-            - "--pubsub_project_id={{.PUBSUB_PROJECT}}"
           ports:
             - containerPort: 9091
               name: http-health
           volumeMounts:
-            - name: gold-{{.INSTANCE_ID}}-ingestion-config-volume
-              mountPath: /etc/gold-ingestion
+            - name: gold-{{.INSTANCE_ID}}-config-volume
+              mountPath: /etc/gold-config/
             - name: gold-service-account-secrets
               mountPath: /var/secrets/google
-            {{if eq .CODE_REVIEW_SYSTEM "github"}}
+            {{if eq .primary_crs "github"}}
             - name: gold-github-token
               mountPath: /var/secrets/github/
             {{end}}
@@ -67,8 +60,8 @@ spec:
               value: /var/secrets/google/service-account.json
           resources:
             requests:
-              memory: "12Gi"
-              cpu: 6
+              memory: "4Gi"
+              cpu: 2
           readinessProbe:
             httpGet:
               path: /healthz
@@ -76,14 +69,14 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
       volumes:
-        - name: gold-{{.INSTANCE_ID}}-ingestion-config-volume
+        - name: gold-{{.INSTANCE_ID}}-config-volume
           configMap:
-            defaultMode: 420
-            name: gold-{{.INSTANCE_ID}}-ingestion-config-bt
+            defaultMode: 400
+            name: gold-{{.INSTANCE_ID}}-config
         - name: gold-service-account-secrets
           secret:
             secretName: gold-service-account-secrets
-        {{if eq .CODE_REVIEW_SYSTEM "github"}}
+        {{if eq .primary_crs "github"}}
         - name: gold-github-token
           secret:
             secretName: gold-github-token

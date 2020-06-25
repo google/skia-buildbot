@@ -1,5 +1,9 @@
 {
+  bt_instance: "production",
+  bt_project_id: "skia-public",
   gcs_bucket: "skia-gold-lottie",
+  git_bt_table: "git-repos2",
+  git_repo_url: "https://skia.googlesource.com/lottie-ci",
   fs_namespace: "lottie",
   fs_project_id: "skia-firestore",
   known_hashes_gcs_path: "skia-gold-lottie/hash_files/gold-lottie-hashes.txt",
