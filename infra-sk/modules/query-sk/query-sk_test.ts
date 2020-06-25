@@ -57,11 +57,11 @@ describe('query-sk', () => {
 
     // Setting key_order to empty will go back to alphabetical order.
     querySk.key_order = [];
-    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'],  keys(querySk));
+    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], keys(querySk));
   });
 
-  it('obeys filter', () =>  {
-    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'],  keys(querySk));
+  it('obeys filter', () => {
+    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], keys(querySk));
 
     // Setting the filter will change the keys displayed.
     fast.value = 'cro'; // Only 'micro' in 'bench_type' should match.
@@ -74,10 +74,10 @@ describe('query-sk', () => {
     fast.value = '';
     fast.dispatchEvent(new Event('input')); // Emulate user input.
 
-    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'],  keys(querySk));
+    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], keys(querySk));
   });
 
-  it('only edits displayed values when filter is used.', () =>  {
+  it('only edits displayed values when filter is used.', () => {
     // Make a selection.
     querySk.current_query = 'arch=x86';
 
@@ -86,7 +86,7 @@ describe('query-sk', () => {
     fast.dispatchEvent(new Event('input')); // Emulate user input.
 
     // Only key should be arch.
-    assert.deepEqual(['arch'],  keys(querySk));
+    assert.deepEqual(['arch'], keys(querySk));
 
     // Click on 'arch'.
     ($$('select-sk', querySk)!.firstElementChild! as HTMLElement).click();
@@ -126,12 +126,16 @@ describe('query-sk', () => {
   });
 
   it('rationalizes current_query when set programmatically', () => {
-    const validQuery = fromParamSet({'arch': ['arm', 'x86'], 'config': ['8888']});
+    const validQuery = fromParamSet({
+      arch: ['arm', 'x86'],
+      config: ['!8888'],
+      compiler: ['~CC'],
+    });
     const invalidQuery = fromParamSet({
       'arch': ['arm', 'invalid_architecture'],
       'invalid_key': ['foo']
     });
-    const invalidQueryRationalized = fromParamSet({'arch': ['arm']});
+    const invalidQueryRationalized = fromParamSet({ 'arch': ['arm'] });
 
     // Valid queries should remain unaltered.
     querySk.current_query = validQuery;
