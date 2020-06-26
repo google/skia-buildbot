@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fe376c8a_7693ced1",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T18:32:14Z",
+      "side": 1,
+      "message": "Yes, good idea. The type \"keyof SearchCriteria\" can be used to pass field names in a typesafe manner.",
+      "parentUuid": "721f8bfe_b91a5fa1",
+      "range": {
+        "startLine": 62,
+        "startChar": 29,
+        "endLine": 62,
+        "endChar": 51
+      },
+      "revId": "9254b5004282afcf980e384bb2a2cce9602369e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b9f247b6_85c4bd31",
         "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "9254b5004282afcf980e384bb2a2cce9602369e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9eb311a8_6c473dc4",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T18:32:14Z",
+      "side": 1,
+      "message": "Hopefully this is better now that \"checked\" and \"setter\" have been replaced with a single \"fieldName\" param.\n\nI think it would be confusing to have both a static template (_template) and a non-static one (_checkBoxTemplate) on the same component. I tried turning them both into non-statics but that doesn\u0027t work since \"this\" isn\u0027t available on the constructor before calling super(), and we need to pass the template to super() in the constructor.",
+      "parentUuid": "b9f247b6_85c4bd31",
+      "range": {
+        "startLine": 107,
+        "startChar": 11,
+        "endLine": 107,
+        "endChar": 27
+      },
+      "revId": "9254b5004282afcf980e384bb2a2cce9602369e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "d9bf190e_6ff9a9d2",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T18:32:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1f4130ab_9c9b45ad",
+      "range": {
+        "startLine": 81,
+        "startChar": 50,
+        "endLine": 81,
+        "endChar": 51
+      },
+      "revId": "9254b5004282afcf980e384bb2a2cce9602369e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "86d60965_eda2e8b4",
         "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
         "patchSetId": 1
@@ -91,6 +163,30 @@
       "revId": "9254b5004282afcf980e384bb2a2cce9602369e5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7fb8173c_87acf41b",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T18:32:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "86d60965_eda2e8b4",
+      "range": {
+        "startLine": 190,
+        "startChar": 63,
+        "endLine": 190,
+        "endChar": 66
+      },
+      "revId": "9254b5004282afcf980e384bb2a2cce9602369e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
