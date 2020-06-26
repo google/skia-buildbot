@@ -1,5 +1,5 @@
 {
-  bucket: "skia-gold-fuchsia-public",
+  gcs_bucket: "skia-gold-fuchsia-public",
   fs_namespace: "fuchsia-public",
   fs_project_id: "skia-firestore",
   known_hashes_gcs_path: "skia-gold-fuchsia-public/hash_files/gold-fuchsia-public-hashes.txt",

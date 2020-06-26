@@ -75,14 +75,14 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	// Add common services to all known instances.
 	for _, instance := range s.knownInstances {
 		if isPublicInstance(instance) {
-			// Add common services for public instances.
+			// Add common services for public view instances.
 			s.addWithOptions(instance, SkiaCorrectness, DeploymentOptions{
 				configMapName: fmt.Sprintf("%s-authorized-params", instance),
 				configMapFile: "k8s-instances/skia-public/authorized-params.json5",
 			})
 		} else {
-			// Add common services for internal instances.
-			s.add(instance, DiffServer)
+			// Add common services for regular instances.
+			s.addWithOptions(instance, DiffServer, DeploymentOptions{useJSON5InsteadOfFlags: true})
 			s.addWithOptions(instance, IngestionBT, makeDeploymentOptionsForIngestionBT(instance, false))
 			s.add(instance, SkiaCorrectness)
 		}
@@ -104,7 +104,10 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	})
 
 	// Overwrite common services for "fuchsia" instance, which need to run on skia-corp.
-	s.addWithOptions(Fuchsia, DiffServer, DeploymentOptions{internal: true})
+	s.addWithOptions(Fuchsia, DiffServer, DeploymentOptions{
+		useJSON5InsteadOfFlags: true,
+		internal:               true,
+	})
 	s.addWithOptions(Fuchsia, IngestionBT, makeDeploymentOptionsForIngestionBT(Fuchsia, true))
 	s.addWithOptions(Fuchsia, SkiaCorrectness, DeploymentOptions{internal: true})
 

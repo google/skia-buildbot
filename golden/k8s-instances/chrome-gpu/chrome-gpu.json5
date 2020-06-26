@@ -1,5 +1,5 @@
 {
-  bucket: "skia-gold-chrome-gpu",
+  gcs_bucket: "skia-gold-chrome-gpu",
   fs_namespace: "chrome-gpu",
   fs_project_id: "skia-firestore",
   known_hashes_gcs_path: "skia-gold-chrome-gpu/hash_files/gold-chrome-gpu-hashes.txt",

@@ -14,6 +14,9 @@ import (
 // two instances (otherwise, it can be deferred to the config specific to its only user). Common
 // should be embedded in all configs specific to a given instance (aka. "Specific Configs").
 type Common struct {
+	// Google Cloud Storage bucket name.
+	GCSBucket string `json:"gcs_bucket"`
+
 	// Firestore Namespace; typically the instance id. e.g. 'flutter', 'skia', etc"
 	FirestoreNamespace string `json:"fs_namespace"`
 
@@ -26,6 +29,10 @@ type Common struct {
 
 	// Primary CodeReviewSystem (e.g. 'gerrit', 'github
 	PrimaryCRS string `json:"primary_crs"`
+
+	// If provided (e.g. ":9002"), a port serving performance-related and other debugging RPCS will
+	// be opened up. This RPC will not require authentication.
+	DebugPort string `json:"debug_port" optional:"true"`
 
 	// If running locally (not in production).
 	Local bool `json:"local" optional:"true"`

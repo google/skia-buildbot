@@ -1,0 +1,11 @@
+{
+  cache_size_gb: 30,
+  gcs_image_dir: "dm-images-v1",
+  grpc_port: ":8000",
+  image_port: ":8001",
+  prom_port: ":20000",
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  K8S_MEMORY: "36Gi",
+  K8S_CPU: 12
+}

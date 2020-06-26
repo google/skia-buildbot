@@ -32,7 +32,7 @@ import (
 type baselineServerConfig struct {
 	config.Common
 
-	//HTTP service address (e.g., ':9000')
+	// HTTP service address (e.g., ':9000')
 	Port string `json:"port"`
 
 	// Metrics service address (e.g., ':10110')
@@ -47,7 +47,7 @@ func main() {
 		hang                 = flag.Bool("hang", false, "Stop and do nothing after reading the flags. Good for debugging containers.")
 	)
 
-	// Parse the options. So we can configure logging.
+	// Parse the flags, so we can load the configuration files.
 	flag.Parse()
 
 	if *hang {

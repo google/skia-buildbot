@@ -80,6 +80,8 @@ type Goldpushk struct {
 
 	// Miscellaneous.
 	unitTest bool // Disables confirmation prompt from unit tests.
+
+	disableCopyingConfigsToCheckout bool
 }
 
 // New is the Goldpushk constructor.
@@ -233,7 +235,7 @@ func (g *Goldpushk) regenerateConfigFiles(ctx context.Context) error {
 		oPath := g.getDeploymentFilePath(unit)
 
 		// Regenerate .yaml file.
-		if err := g.expandTemplate(ctx, unit.Instance, tPath, oPath); err != nil {
+		if err := g.expandTemplate(ctx, unit, tPath, oPath); err != nil {
 			return skerr.Wrapf(err, "error while regenerating %s", oPath)
 		}
 
@@ -251,7 +253,7 @@ func (g *Goldpushk) regenerateConfigFiles(ctx context.Context) error {
 			}
 
 			// Regenerate .json5 file.
-			if err := g.expandTemplate(ctx, unit.Instance, configMapFileTemplate, oPath); err != nil {
+			if err := g.expandTemplate(ctx, unit, configMapFileTemplate, oPath); err != nil {
 				return skerr.Wrapf(err, "error while regenerating %s", oPath)
 			}
 		}
@@ -261,31 +263,44 @@ func (g *Goldpushk) regenerateConfigFiles(ctx context.Context) error {
 			// Copy all configuration files from the appropriate instance directory into the
 			// k8s-config repo so they can be checked in.
 			instanceConfigDirectory := g.getInstanceSpecificConfigDir(unit.Instance)
-			jsonFiles, err := ioutil.ReadDir(instanceConfigDirectory)
+			checkoutDirectory := g.getGitRepoSubdirPath(unit)
+			err := g.copyConfigsToCheckout(instanceConfigDirectory, checkoutDirectory)
 			if err != nil {
 				return skerr.Wrap(err)
 			}
-
-			for _, jf := range jsonFiles {
-				if !strings.HasSuffix(jf.Name(), ".json5") {
-					continue
-				}
-				// Bad things will happen if there are multiple configuration files with the same name,
-				// as one will overwrite the other. If it becomes a problem, we could try to detect it.
-				dstFile := filepath.Join(g.getGitRepoSubdirPath(unit), "gold-"+jf.Name())
-				srcFile := filepath.Join(instanceConfigDirectory, jf.Name())
-				b, err := ioutil.ReadFile(srcFile)
-				if err != nil {
-					return skerr.Wrapf(err, "reading %s", srcFile)
-				}
-				if err := ioutil.WriteFile(dstFile, b, 0644); err != nil {
-					return skerr.Wrapf(err, "writing %s", dstFile)
-				}
-			}
 		}
-
 		return nil
 	})
+}
+
+// copyConfigsToCheckout copies all JSON5 configurations from the provided directory
+// into the given checkout directory. Upon copying, the files will have the prefix "gold-".
+func (g *Goldpushk) copyConfigsToCheckout(configDir, checkoutDir string) error {
+	if g.disableCopyingConfigsToCheckout {
+		return nil
+	}
+	jsonFiles, err := ioutil.ReadDir(configDir)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	for _, jf := range jsonFiles {
+		if !strings.HasSuffix(jf.Name(), ".json5") {
+			continue
+		}
+		// Bad things will happen if there are multiple configuration files with the same name,
+		// as one will overwrite the other. If it becomes a problem, we could try to detect it.
+		dstFile := filepath.Join(checkoutDir, "gold-"+jf.Name())
+		srcFile := filepath.Join(configDir, jf.Name())
+		b, err := ioutil.ReadFile(srcFile)
+		if err != nil {
+			return skerr.Wrapf(err, "reading %s", srcFile)
+		}
+		if err := ioutil.WriteFile(dstFile, b, 0644); err != nil {
+			return skerr.Wrapf(err, "writing %s", dstFile)
+		}
+	}
+	return nil
 }
 
 // getInstanceSpecificConfigDir returns the path to the JSON5 configuration files for a given
@@ -334,10 +349,16 @@ func (g *Goldpushk) getGitRepoSubdirPath(unit DeployableUnit) string {
 
 // expandTemplate executes the kube-conf-gen command with the given arguments in
 // a fashion similar to gen-k8s-config.sh.
-func (g *Goldpushk) expandTemplate(ctx context.Context, instance Instance, templatePath, outputPath string) error {
-	goldCommonJson5 := filepath.Join(g.goldSrcDir, k8sConfigTemplatesDir, "gold-common.json5")
-	instanceStr := string(instance)
-	instanceJson5 := filepath.Join(g.goldSrcDir, k8sInstancesDir, instanceStr+"-instance.json5")
+func (g *Goldpushk) expandTemplate(ctx context.Context, unit DeployableUnit, templatePath, outputPath string) error {
+	goldCommonJSON5 := filepath.Join(g.goldSrcDir, k8sConfigTemplatesDir, "gold-common.json5")
+
+	instanceStr := string(unit.Instance)
+	// TODO(kjlubick): remove when all instances use JSON5 instead of flags
+	serviceJSON5 := filepath.Join(g.goldSrcDir, k8sInstancesDir, instanceStr+"-instance.json5")
+	if unit.useJSON5InsteadOfFlags {
+		serviceJSON5 = fmt.Sprintf("%s-%s.json5", unit.Instance, unit.Service)
+		serviceJSON5 = filepath.Join(g.getInstanceSpecificConfigDir(unit.Instance), serviceJSON5)
+	}
 
 	cmd := &exec.Command{
 		Name: "kube-conf-gen",
@@ -349,7 +370,13 @@ func (g *Goldpushk) expandTemplate(ctx context.Context, instance Instance, templ
 		//   - Flag "-parse_conf=false" prevents the values read from the JSON5
 		//     config files provided with -c <json5-file> from being converted to
 		//     strings.
-		Args:        []string{"-c", goldCommonJson5, "-c", instanceJson5, "-extra", "INSTANCE_ID:" + instanceStr, "-t", templatePath, "-parse_conf=false", "-strict", "-o", outputPath},
+		Args: []string{
+			"-c", goldCommonJSON5,
+			"-c", serviceJSON5,
+			"-extra", "INSTANCE_ID:" + instanceStr,
+			"-t", templatePath,
+			"-parse_conf=false", "-strict",
+			"-o", outputPath},
 		InheritPath: true,
 		LogStderr:   true,
 		LogStdout:   true,

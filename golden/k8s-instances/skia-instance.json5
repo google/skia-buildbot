@@ -40,11 +40,6 @@
     "POSITIVE_EXPECTATIONS_MAX_AGE": "720h", // 30 days
     "NEGATIVE_EXPECTATIONS_MAX_AGE": "4320h", // 180 days
 
-    // Settings for diffserver instance.
-    "DIFFSERVER_MEMORY":       "32Gi",
-    "DIFFSERVER_CPU":          16,
-    "DIFFSERVER_CACHE_SIZE":   20,
-
     // Settings for the main ingester.
     "ING_RUN_EVERY":           "1h",
     "ING_N_COMMITS":           5,
