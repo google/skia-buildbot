@@ -354,8 +354,12 @@ func (g *Goldpushk) expandTemplate(ctx context.Context, unit DeployableUnit, tem
 
 	instanceStr := string(unit.Instance)
 	// TODO(kjlubick): remove when all instances use JSON5 instead of flags
-	serviceJSON5 := filepath.Join(g.goldSrcDir, k8sInstancesDir, instanceStr+"-instance.json5")
+	instanceJSON5 := filepath.Join(g.goldSrcDir, k8sInstancesDir, instanceStr+"-instance.json5")
+	serviceJSON5 := instanceJSON5 // duplicate files have no impact.
 	if unit.useJSON5InsteadOfFlags {
+		instanceJSON5 = fmt.Sprintf("%s.json5", unit.Instance)
+		instanceJSON5 = filepath.Join(g.getInstanceSpecificConfigDir(unit.Instance), instanceJSON5)
+
 		serviceJSON5 = fmt.Sprintf("%s-%s.json5", unit.Instance, unit.Service)
 		serviceJSON5 = filepath.Join(g.getInstanceSpecificConfigDir(unit.Instance), serviceJSON5)
 	}
@@ -372,6 +376,7 @@ func (g *Goldpushk) expandTemplate(ctx context.Context, unit DeployableUnit, tem
 		//     strings.
 		Args: []string{
 			"-c", goldCommonJSON5,
+			"-c", instanceJSON5,
 			"-c", serviceJSON5,
 			"-extra", "INSTANCE_ID:" + instanceStr,
 			"-t", templatePath,

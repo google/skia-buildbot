@@ -66,16 +66,6 @@ func TestProductionDeployableUnitsAllExactlyFuchsiaServicesAreInternal(t *testin
 	}
 }
 
-func TestProductionDeployableUnitsAllIngestionServiceDeploymentsRequireAConfigMap(t *testing.T) {
-	unittest.SmallTest(t)
-	deployableUnitSet := ProductionDeployableUnits()
-	for _, unit := range deployableUnitSet.deployableUnits {
-		if unit.Service == IngestionBT {
-			require.NotEmpty(t, unit.configMapName, msg(unit.DeployableUnitID))
-		}
-	}
-}
-
 func TestProductionDeployableUnitsAllPublicSkiaCorrectnessDeploymentsRequireAConfigMap(t *testing.T) {
 	unittest.SmallTest(t)
 	deployableUnitSet := ProductionDeployableUnits()
@@ -94,11 +84,6 @@ func TestProductionDeployableUnitsConfigMapNamesAreCorrect(t *testing.T) {
 	skiaPublicSkiaCorrectness, ok := deployableUnitSet.Get(DeployableUnitID{Instance: SkiaPublic, Service: SkiaCorrectness})
 	require.True(t, ok)
 	require.Equal(t, skiaPublicSkiaCorrectness.configMapName, "skia-public-authorized-params")
-
-	// Internal instance.
-	skiaIngestionBT, ok := deployableUnitSet.Get(DeployableUnitID{Instance: Skia, Service: IngestionBT})
-	require.True(t, ok)
-	require.Equal(t, skiaIngestionBT.configMapName, "gold-skia-ingestion-config-bt")
 }
 
 func TestProductionDeployableUnitsConfigMapInvariantsHold(t *testing.T) {
@@ -119,11 +104,6 @@ func TestProductionDeployableUnitsConfigMapInvariantsHold(t *testing.T) {
 				numFieldsSet++
 			}
 			require.Equal(t, 1, numFieldsSet, unit.CanonicalName())
-		}
-
-		// All IngestionBT instances have templated ConfigMaps.
-		if unit.Service == IngestionBT {
-			require.NotEmpty(t, unit.configMapTemplate, unit.CanonicalName())
 		}
 	}
 }

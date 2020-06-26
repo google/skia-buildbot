@@ -41,7 +41,7 @@ const (
 //   config is usually parsed from a JSON5 file.
 //   client can be assumed to be ready to serve the needs of the resulting Processor.
 //   eventBus is the eventbus to be used by the ingester (optional).
-type Constructor func(context.Context, vcsinfo.VCS, *IngesterConfig, *http.Client) (Processor, error)
+type Constructor func(context.Context, vcsinfo.VCS, Config, *http.Client) (Processor, error)
 
 // stores the constructors that register for instantiation from a config struct.
 var constructors = map[string]Constructor{}
@@ -61,7 +61,7 @@ func Register(id string, constructor Constructor) {
 // client is assumed to be suitable for the given application. If e.g. the
 // processors of the current application require an authenticated http client,
 // then it is expected that client meets these requirements.
-func IngestersFromConfig(ctx context.Context, configs map[string]*IngesterConfig, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore, vcs vcsinfo.VCS) ([]*Ingester, error) {
+func IngestersFromConfig(ctx context.Context, configs map[string]Config, client *http.Client, eventBus eventbus.EventBus, ingestionStore IngestionStore, vcs vcsinfo.VCS) ([]*Ingester, error) {
 	if client == nil {
 		return nil, errors.New("httpClient cannot be nil")
 	}
@@ -85,8 +85,8 @@ func IngestersFromConfig(ctx context.Context, configs map[string]*IngesterConfig
 
 		// Instantiate the sources
 		sources := make([]Source, 0, len(ingesterConf.Sources))
-		for _, dataSource := range ingesterConf.Sources {
-			oneSource, err := getSource(ctx, id, dataSource, client, eventBus)
+		for _, src := range ingesterConf.Sources {
+			oneSource, err := newGoogleStorageSource(ctx, id, src.Bucket, src.Dir, client, eventBus)
 			if err != nil {
 				return nil, skerr.Wrapf(err, "Error instantiating sources for Ingester %q", id)
 			}
@@ -111,20 +111,6 @@ func IngestersFromConfig(ctx context.Context, configs map[string]*IngesterConfig
 	}
 
 	return ret, nil
-}
-
-// getSource returns an instance of source that is either getting data from
-// Google storage or the local filesystem.
-func getSource(ctx context.Context, id string, dataSource *DataSource, client *http.Client, eventBus eventbus.EventBus) (Source, error) {
-	if dataSource.Dir == "" {
-		return nil, fmt.Errorf("Datasource for %s is missing a directory.", id)
-	}
-
-	if dataSource.Bucket != "" {
-		return newGoogleStorageSource(ctx, id, dataSource.Bucket, dataSource.Dir, client, eventBus)
-	}
-
-	return nil, skerr.Fmt("Unable to create source. At least a bucket and directory must be supplied")
 }
 
 // validIngestionFile returns true if the given file name matches basic rules.
