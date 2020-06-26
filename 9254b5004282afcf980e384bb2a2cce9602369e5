@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "721f8bfe_b91a5fa1",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T14:53:07Z",
+      "side": 1,
+      "message": "I don\u0027t know if this is allowed in TS, but what about passing \"includePositiveDigests\" (the string) here instead of the 4th and 5th params. That is the key that is used to read and write the value in el._searchCriteria.",
+      "range": {
+        "startLine": 62,
+        "startChar": 29,
+        "endLine": 62,
+        "endChar": 51
+      },
+      "revId": "9254b5004282afcf980e384bb2a2cce9602369e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b9f247b6_85c4bd31",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T14:53:07Z",
+      "side": 1,
+      "message": "Can you make this template an instance field and not a static field? Then you wouldn\u0027t need to pass el as a param. I\u0027m suggesting that here because there\u0027s a lot of params already here.",
+      "range": {
+        "startLine": 107,
+        "startChar": 11,
+        "endLine": 107,
+        "endChar": 27
+      },
+      "revId": "9254b5004282afcf980e384bb2a2cce9602369e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1f4130ab_9c9b45ad",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T14:53:07Z",
+      "side": 1,
+      "message": "nit:",
+      "range": {
+        "startLine": 81,
+        "startChar": 50,
+        "endLine": 81,
+        "endChar": 51
+      },
+      "revId": "9254b5004282afcf980e384bb2a2cce9602369e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86d60965_eda2e8b4",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T14:53:07Z",
+      "side": 1,
+      "message": "maybe add a comment that this is an arbitrary number in the middle of the valid range?",
+      "range": {
+        "startLine": 190,
+        "startChar": 63,
+        "endLine": 190,
+        "endChar": 66
+      },
+      "revId": "9254b5004282afcf980e384bb2a2cce9602369e5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
