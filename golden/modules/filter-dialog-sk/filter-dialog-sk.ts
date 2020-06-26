@@ -86,7 +86,7 @@ export class FilterDialogSk extends ElementSk {
   private static _template = (el: FilterDialogSk) => html`
     <dialog class=filter-dialog>
       <div class=content>
-        <span class=label>Right hand traces:</span>
+        <span class=label>Right-hand traces:</span>
         <trace-filter-sk .paramSet=${el._paramSet!}
                          .selection=${live(el._filters?.diffConfig || {})}
                          @trace-filter-sk-change=${el._onTraceFilterSkChange}>
@@ -111,7 +111,7 @@ export class FilterDialogSk extends ElementSk {
           /* step= */ 1)}
 
         <label for=sort-order>Sort order:</label>
-        <select id=sort-by
+        <select id=sort-order
                 .value=${live(el._filters?.sortOrder)}
                 @change=${el._sortOrderChanged}>
           <option value=ascending>Ascending</option>
