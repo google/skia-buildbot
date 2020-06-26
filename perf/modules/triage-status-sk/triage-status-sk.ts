@@ -68,7 +68,7 @@ export class TriageStatusSk extends ElementSk {
     this._upgradeProperty('triage');
   }
 
-  _start_triage() {
+  private _start_triage() {
     const detail = {
       full_summary: this.full_summary,
       triage: this.triage,
@@ -84,7 +84,7 @@ export class TriageStatusSk extends ElementSk {
     );
   }
 
-  /** @prop alert {alerts.Config} The config this cluster is associated with. */
+  /** The config this cluster is associated with. */
   get alert() {
     return this._alert;
   }
@@ -93,7 +93,7 @@ export class TriageStatusSk extends ElementSk {
     this._alert = val;
   }
 
-  /** @prop cluster_type {string} The type of cluster, either "high" or "low". */
+  /** The type of cluster. */
   get cluster_type() {
     return this._cluster_type;
   }
@@ -102,13 +102,7 @@ export class TriageStatusSk extends ElementSk {
     this._cluster_type = val;
   }
 
-  /** @prop full_summary - A serialized ClusterSummary and FrameResponse.
-   *
-   *    {
-   *      summary: cluster2.ClusterSummary,
-   *      frame: dataframe.FrameResponse,
-   *    }
-   */
+  /** A serialized ClusterSummary and FrameResponse. */
   get full_summary() {
     return this._full_summary;
   }
@@ -117,7 +111,7 @@ export class TriageStatusSk extends ElementSk {
     this._full_summary = val;
   }
 
-  /** @prop triage - The triage status of the cluster. */
+  /** The triage status of the cluster. */
   get triage() {
     return this._triage;
   }
