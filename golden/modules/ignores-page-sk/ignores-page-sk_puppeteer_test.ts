@@ -1,11 +1,13 @@
-import * as path from 'path';
 import { expect } from 'chai';
-import { setUpPuppeteerAndDemoPageServer, addEventListenersToPuppeteerPage, takeScreenshot } from '../../../puppeteer-tests/util';
+import { addEventListenersToPuppeteerPage, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import { loadGoldWebpack } from '../common_puppeteer_test/common_puppeteer_test';
 import { Page } from 'puppeteer';
 
 describe('ignores-page-sk', () => {
-  // Contains page and baseUrl.
-  const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.ts'));
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadGoldWebpack();
+  });
 
   it('should render the demo page', async () => {
     await navigateTo(testBed.page, testBed.baseUrl, '');

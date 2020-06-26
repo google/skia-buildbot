@@ -1,11 +1,13 @@
-import * as path from 'path';
 import { expect } from 'chai';
-import { setUpPuppeteerAndDemoPageServer, addEventListenersToPuppeteerPage, takeScreenshot } from '../../../puppeteer-tests/util';
+import { addEventListenersToPuppeteerPage, takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import { loadGoldWebpack } from '../common_puppeteer_test/common_puppeteer_test';
 import { ElementHandle, Page } from 'puppeteer';
 
 describe('details-page-sk', () => {
-  // Contains page and baseUrl.
-  const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.ts'));
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadGoldWebpack();
+  });
 
   const baseParams = '?digest=6246b773851984c726cb2e1cb13510c2&test=My%20test%20has%20spaces';
 
@@ -20,7 +22,7 @@ describe('details-page-sk', () => {
       await navigateTo(testBed.page, testBed.baseUrl, baseParams);
       await testBed.page.setViewport({
         width: 1300,
-        height: 700, 
+        height: 700,
       });
       await takeScreenshot(testBed.page, 'gold', 'details-page-sk');
     });

@@ -1,10 +1,12 @@
-import * as path from 'path';
 import { expect } from 'chai';
-import { setUpPuppeteerAndDemoPageServer, takeScreenshot } from '../../../puppeteer-tests/util';
+import { takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
+import { loadGoldWebpack } from '../common_puppeteer_test/common_puppeteer_test';
 
 describe('digest-details-sk', () => {
-  // Contains page and baseUrl.
-  const testBed = setUpPuppeteerAndDemoPageServer(path.join(__dirname, '..', '..', 'webpack.config.ts'));
+  let testBed: TestBed;
+  before(async () => {
+    testBed = await loadGoldWebpack();
+  });
 
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/dist/digest-details-sk.html`, { waitUntil: 'networkidle0' });

@@ -115,7 +115,8 @@ npm ci
 ################################################################################
 
 # Increase Node's heap size to accommodate for ts-node's higher memory usage.
-export NODE_OPTIONS="--max-old-space-size=4096"
+# https://github.com/webpack/webpack-sources/issues/66
+export NODE_OPTIONS="--max-old-space-size=8192"
 
 cd /tests/puppeteer-tests
 npx mocha -r ts-node/register ./**/*_test.ts
