@@ -1,5 +1,5 @@
 /**
- * @fileoverview The bulk of the Performance page of CT.
+ * @fileoverview The bulk of the Analysis page of CT.
  */
 
 import 'elements-sk/icon/delete-icon-sk';
@@ -29,8 +29,9 @@ import {
   fetchBenchmarksAndPlatforms,
 } from '../ctfe_utils';
 
-// Chromium perf doesn't support 1M and 100K pagesets.
+// Chromium analysis doesn't support 1M pageset, and only Linux supports 100k.
 const unsupportedPageSetStrings = ['All', '100k'];
+const unsupportedPageSetStringsLinux = ['All'];
 
 const template = (el) => html`
 <confirm-dialog-sk id=confirm_dialog></confirm-dialog-sk>
@@ -63,11 +64,20 @@ const template = (el) => html`
     </td>
   </tr>
   <tr>
+    <td>
+      Run on GCE
+    </td>
+    <td>
+      <select-sk id=run_on_gce>
+        <div selected id=gce_true>True</div>
+        <div id=gce_false>False</div>
+      </select-sk>
+    </td>
+  </tr>
+  <tr>
     <td>PageSets Type</td>
     <td>
-      <pageset-selector-sk id=pageset_selector
-        .hideIfKeyContains=${unsupportedPageSetStrings}>
-      </pageset-selector-sk>
+      <pageset-selector-sk id=pageset_selector></pageset-selector-sk>
     </td>
   </tr>
   <tr>
@@ -76,38 +86,40 @@ const template = (el) => html`
       Read about the trade-offs <a href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit?pli=1#heading=h.xz46aihphb8z">here</a>
     </td>
     <td>
-      <select-sk id=run_in_parallel>
-        <div>True</div>
-        <div selected>False</div>
+      <select-sk id=run_in_parallel @selection-changed=${el._updatePageSets}>
+        <div selected>True</div>
+        <div>False</div>
       </select-sk>
+    </td>
+  </tr>
+  <tr>
+    <td>Look for text in stdout</td>
+    <td>
+      <input-sk value="" id=match_stdout_txt class=long-field></input-sk>
+      <span class=smaller-font><b>Note:</b> All lines that contain this field in stdout will show up under CT_stdout_lines in the output CSV.</span><br/>
+      <span class=smaller-font><b>Note:</b> The count of non-overlapping exact matches of this field in stdout will show up under CT_stdout_count in the output CSV.</span><br/>
     </td>
   </tr>
   <tr>
     <td>Benchmark Arguments</td>
     <td>
-      <input-sk value="--output-format=csv --pageset-repeat=1 --skip-typ-expectations-tags-validation --legacy-json-trace-format" id=benchmark_args class=long-field></input-sk>
-      <span class=smaller-font><b>Note:</b> Change the --pageset-repeat value if you would like lower/higher repeats of each web page. 1 is the default.</span><br/>
+      <input-sk value="--output-format=csv --skip-typ-expectations-tags-validation --legacy-json-trace-format" id=benchmark_args class=long-field></input-sk>
+      <span class=smaller-font><b>Note:</b> Use --num-analysis-retries=[num] to specify how many times run_benchmark should be retried. 2 is the default. 0 calls run_benchmark once.</span><br/>
       <span class=smaller-font><b>Note:</b> Use --run-benchmark-timeout=[secs] to specify the timeout of the run_benchmark script. 300 is the default.</span><br/>
       <span class=smaller-font><b>Note:</b> Use --max-pages-per-bot=[num] to specify the number of pages to run per bot. 100 is the default.</span>
     </td>
   </tr>
   <tr>
-    <td>Browser Arguments (nopatch run)</td>
+    <td>Browser Arguments</td>
     <td>
-      <input-sk value="" id=browser_args_nopatch class=long-field></input-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>Browser Arguments (withpatch run)</td>
-    <td>
-      <input-sk value="" id=browser_args_withpatch class=long-field></input-sk>
+      <input-sk value="" id=browser_args class=long-field></input-sk>
     </td>
   </tr>
   <tr>
     <td>Field Value Column Name</td>
     <td>
       <input-sk value="avg" id=value_column_name class="medium-field"></input-sk>
-      <span class="smaller-font">Which column's entries to use as field values.</span>
+      <span class=smaller-font>Which column's entries to use as field values.</span>
     </td>
   </tr>
   <tr>
@@ -121,6 +133,30 @@ const template = (el) => html`
                 patchType=chromium
                 @cl-description-changed=${el._patchChanged}>
       </patch-sk>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Custom APK location (optional)<br/> (See
+      <a href="https://bugs.chromium.org/p/skia/issues/detail?id=9805">skbug/9805</a>)
+    </td>
+    <td>
+      <input-sk value="" id=apk_gs_path label="Eg: gs://chrome-unsigned/android-B0urB0N/73.0.3655.0/arm_64/ChromeModern.apk" class=long-field></input-sk>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Telemetry Isolate Hash (optional))<br/> (See
+      <a href="https://bugs.chromium.org/p/skia/issues/detail?id=9853">skbug/9853</a>)
+    </td>
+    <td>
+      <input-sk value="" id=telemetry_isolate_hash class=long-field></input-sk>
+    </td>
+  </tr>
+  <tr>
+    <td>Chromium hash to sync to (optional)<br/></td>
+    <td>
+      <input-sk value="" id=chromium_hash class=long-field></input-sk>
     </td>
   </tr>
   <tr>
@@ -157,26 +193,6 @@ const template = (el) => html`
                 patchType=catapult
                 @cl-description-changed=${el._patchChanged}>
       </patch-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      Chromium Git metrics patch (optional)<br/>
-      Applied to Chromium ToT<br/>
-      or to the hash specified below.<br/>
-      Used to create the base build (See <a href="http://skbug.com/9029">skbug/9029</a>)
-    </td>
-    <td>
-      <patch-sk id=chromium_patch_base_build
-                patchType=chromium
-                @cl-description-changed=${el._patchChanged}>
-      </patch-sk>
-    </td>
-  </tr>
-  <tr>
-    <td>Chromium hash to sync to (optional)<br/></td>
-    <td>
-      <input-sk value="" id=chromium_hash class=long-field></input-sk>
     </td>
   </tr>
   <tr>
@@ -231,13 +247,14 @@ const template = (el) => html`
 </table>
 `;
 
-define('chromium-perf-sk', class extends ElementSk {
+define('chromium-analysis-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._benchmarksToDocs = {};
     this._benchmarks = [];
     this._platforms = [];
     this._triggeringTask = false;
+    this._unsupportedPageSets = unsupportedPageSetStringsLinux;
     this._moreThanThreeActiveTasks = moreThanThreeActiveTasksChecker();
   }
 
@@ -252,6 +269,12 @@ define('chromium-perf-sk', class extends ElementSk {
       // integer selection to platform name easily.
       this._platforms = Object.entries(json.platforms);
       this._render();
+      // Do this after the template is rendered, or else it fails, and don't
+      // inline a child 'selected' attribute since it won't rationalize in
+      // select-sk until later via the mutationObserver.
+      $$('#platform_selector', this).selection = 1;
+      // This gets the defaults in a valid state.
+      this._platformChanged();
     });
   }
 
@@ -267,13 +290,54 @@ define('chromium-perf-sk', class extends ElementSk {
     }
   }
 
-  _platformChanged(e) {
-    const pagesetSelector = $$('pageset-selector-sk', this);
-    if (e.detail.selection === 0) {
-      pagesetSelector.selected = 'Mobile10k';
-    } else {
-      pagesetSelector.selected = '10k';
+  _platformChanged() {
+    const trueIndex = 0;
+    const falseIndex = 1;
+    const platform = this._platform();
+    let offerGCETrue = true;
+    let offerGCEFalse = true;
+    let offerParallelTrue = true;
+    if (platform === 'Android') {
+      offerGCETrue = false;
+      offerParallelTrue = false;
+    } else if (platform === 'Windows') {
+      offerGCEFalse = false;
     }
+    // We default to use GCE for Linux, require if for Windows, and
+    // disallow it for Android.
+    const runOnGCE = $$('#run_on_gce', this);
+    runOnGCE.children[trueIndex].hidden = !offerGCETrue;
+    runOnGCE.children[falseIndex].hidden = !offerGCEFalse;
+    runOnGCE.selection = offerGCETrue ? trueIndex : falseIndex;
+
+    // We default to run in parallel, except for Android which disallows it.
+    const runInParallel = $$('#run_in_parallel', this);
+    runInParallel.children[trueIndex].hidden = !offerParallelTrue;
+    runInParallel.selection = offerParallelTrue ? trueIndex : falseIndex;
+
+    this._updatePageSets();
+  }
+
+  _updatePageSets() {
+    const platform = this._platform();
+    const runInParallel = this._runInParallel();
+    const unsupportedPageSets = (platform === 'Linux' && runInParallel)
+      ? unsupportedPageSetStringsLinux
+      : unsupportedPageSetStrings;
+    const pageSetDefault = (platform === 'Android')
+      ? 'Mobile10k'
+      : '10k';
+    const pagesetSelector = $$('pageset-selector-sk', this);
+    pagesetSelector.hideIfKeyContains = unsupportedPageSets;
+    pagesetSelector.selected = pageSetDefault;
+  }
+
+  _platform() {
+    return this._platforms[$$('#platform_selector', this).selection][0];
+  }
+
+  _runInParallel() {
+    return $$('#run_in_parallel', this).selection === 0;
   }
 
   _patchChanged() {
@@ -318,25 +382,23 @@ define('chromium-perf-sk', class extends ElementSk {
     params.benchmark = $$('#benchmark_name', this).value;
     params.platform = this._platforms[$$('#platform_selector', this).selection][0];
     params.page_sets = $$('#pageset_selector', this).selected;
+    params.run_on_gce = $$('#run_on_gce', this).selection === 0;
+    params.match_stdout_txt = $$('#match_stdout_txt', this).value;
+    params.apk_gs_path = $$('#apk_gs_path', this).value;
+    params.telemetry_isolate_hash = $$('#telemetry_isolate_hash', this).value;
     params.custom_webpages = $$('#pageset_selector', this).customPages;
-    params.repeat_runs = this._getRepeatValue();
-    params.run_in_parallel = ['True', 'False'][$$('#run_in_parallel', this).selection];
+    params.run_in_parallel = $$('#run_in_parallel', this).selection === 0;
     params.benchmark_args = $$('#benchmark_args', this).value;
-    params.browser_args_nopatch = $$('#browser_args_nopatch', this).value;
-    params.browser_args_withpatch = $$('#browser_args_withpatch', this).value;
+    params.browser_args = $$('#browser_args', this).value;
     params.value_column_name = $$('#value_column_name', this).value;
     params.desc = $$('#description', this).value;
     params.chromium_patch = $$('#chromium_patch', this).patch;
     params.skia_patch = $$('#skia_patch', this).patch;
     params.v8_patch = $$('#v8_patch', this).patch;
     params.catapult_patch = $$('#catapult_patch', this).patch;
-    params.chromium_patch_base_build = $$('#chromium_patch_base_build', this).patch;
     params.chromium_hash = $$('#chromium_hash', this).value;
     params.repeat_after_days = $$('#repeat_after_days', this).frequency;
     params.task_priority = $$('#task_priority', this).priority;
-    // Run on GCE if it is Windows. This will change in the future if we
-    // get bare-metal Win machines.
-    params.run_on_gce = ($$('#platform_selector', this).selection === 'Windows').toString();
     if ($$('#cc_list', this).value) {
       params.cc_list = $$('#cc_list', this).value.split(',');
     }
@@ -344,7 +406,7 @@ define('chromium-perf-sk', class extends ElementSk {
       params.group_name = $$('#group_name', this).value;
     }
 
-    fetch('/_/add_chromium_perf_task', {
+    fetch('/_/add_chromium_analysis_task', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -358,18 +420,7 @@ define('chromium-perf-sk', class extends ElementSk {
       });
   }
 
-  _getRepeatValue() {
-    // If "--pageset-repeat" is specified in benchmark args then use that
-    // value else use "1".
-    const rx = /--pageset-repeat[ =](\d+)/gm;
-    const m = rx.exec($$('#benchmark_args', this).value);
-    if (m) {
-      return m[1];
-    }
-    return '1';
-  }
-
   _gotoRunsHistory() {
-    window.location.href = '/chromium_perf_runs/';
+    window.location.href = '/chromium_analysis_runs/';
   }
 });
