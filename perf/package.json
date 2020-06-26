@@ -12,6 +12,7 @@
   "dependencies": {
     "@types/d3-array": "^2.0.0",
     "@types/d3-scale": "^2.2.0",
+    "@types/dialog-polyfill": "^0.5.0",
     "@types/fetch-mock": "^7.3.2",
     "common-sk": "^3.4.1",
     "d3-array": "^2.4.0",
