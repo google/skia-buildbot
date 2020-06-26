@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "51dafbab_8fdf0ce8",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 465,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T10:14:20Z",
+      "side": 0,
+      "message": "I think we still want to test this.\n\nYou can probably exercise the same behavior by replacing (Skia, IngestionBT) with (SkiaPublic, SkiaCorrectness).",
+      "range": {
+        "startLine": 465,
+        "startChar": 5,
+        "endLine": 465,
+        "endChar": 59
+      },
+      "revId": "8f12cb54036b4467ffd88e028d13ade693bbd9f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

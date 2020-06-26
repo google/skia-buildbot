@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "35214f8a_339670ba",
+        "filename": "golden/go/ingestion/types.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T10:14:20Z",
+      "side": 1,
+      "message": "Nit: Please insert a blank line above, and separate the below fields with a blank line in between.",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 84,
+        "endChar": 64
+      },
+      "revId": "c9722e5cc7d2a09adb7600a2dd539c3b51f2171b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
