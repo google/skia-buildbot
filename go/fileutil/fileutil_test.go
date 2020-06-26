@@ -8,11 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
-)
-
-const (
-	TEST_DATA_DIR = "./testdata"
 )
 
 func TestTwoLevelRadixPath(t *testing.T) {
@@ -27,19 +24,20 @@ func TestTwoLevelRadixPath(t *testing.T) {
 func TestCountLines(t *testing.T) {
 	unittest.MediumTest(t)
 
-	lines, err := CountLines(filepath.Join(TEST_DATA_DIR, "no_lines_file.txt"))
+	testDataDir := testutils.TestDataDir(t)
+	lines, err := CountLines(filepath.Join(testDataDir, "no_lines_file.txt"))
 	require.Nil(t, err)
 	require.Equal(t, 0, lines)
 
-	lines, err = CountLines(filepath.Join(TEST_DATA_DIR, "one_line_file.txt"))
+	lines, err = CountLines(filepath.Join(testDataDir, "one_line_file.txt"))
 	require.Nil(t, err)
 	require.Equal(t, 1, lines)
 
-	lines, err = CountLines(filepath.Join(TEST_DATA_DIR, "ten_lines_file.txt"))
+	lines, err = CountLines(filepath.Join(testDataDir, "ten_lines_file.txt"))
 	require.Nil(t, err)
 	require.Equal(t, 10, lines)
 
-	lines, err = CountLines(filepath.Join(TEST_DATA_DIR, "non_existant.txt"))
+	lines, err = CountLines(filepath.Join(testDataDir, "non_existant.txt"))
 	require.NotNil(t, err)
 	require.Equal(t, -1, lines)
 }

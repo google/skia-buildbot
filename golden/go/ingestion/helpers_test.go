@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"sort"
 	"strings"
 	"testing"
@@ -12,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/gcs/gcs_testutils"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -60,7 +62,7 @@ func testSource(t *testing.T, src Source) {
 
 func readTestFileNames(t *testing.T) []string {
 	// Read the expected list of files and compare them.
-	content, err := ioutil.ReadFile("./testdata/filelist_2015_10_01.txt")
+	content, err := ioutil.ReadFile(filepath.Join(testutils.TestDataDir(t), "filelist_2015_10_01.txt"))
 	require.NoError(t, err)
 	lines := strings.Split(strings.TrimSpace(string(content)), "\n")
 	sort.Strings(lines)
