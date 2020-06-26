@@ -225,7 +225,7 @@ const template = (el) => html`
   </tr>
   <tr>
     <td colspan=2 class=center>
-      <button id=view_history>View runs history</button>
+      <button id=view_history @click=${el._gotoRunsHistory}>View runs history</button>
     </td>
   </tr>
 </table>
