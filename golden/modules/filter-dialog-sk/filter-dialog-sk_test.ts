@@ -126,7 +126,7 @@ describe('filter-dialog-sk', () => {
     diffConfig: getRightHandQuery(),
     minRGBADelta: parseFloat($$<HTMLInputElement>('#min-rgba-delta', filterDialogSk)!.value),
     maxRGBADelta: parseFloat($$<HTMLInputElement>('#max-rgba-delta', filterDialogSk)!.value),
-    sortOrder: $$<HTMLSelectElement>('#sort-by', filterDialogSk)!.value as
+    sortOrder: $$<HTMLSelectElement>('#sort-order', filterDialogSk)!.value as
                'ascending' | 'descending',
     mustHaveReferenceImage: $$<CheckOrRadio>('#must-have-reference-image')!.checked
   });
@@ -161,7 +161,7 @@ describe('filter-dialog-sk', () => {
     // dispatch them explicitly.
     setValueAndDispatchEvent('#min-rgba-delta', '50', 'input');
     setValueAndDispatchEvent('#max-rgba-delta', '100', 'input');
-    setValueAndDispatchEvent('#sort-by', 'ascending', 'change');
+    setValueAndDispatchEvent('#sort-order', 'ascending', 'change');
 
     const mustHaveReferenceImageCheckBox =
       $$<CheckOrRadio>('#must-have-reference-image', filterDialogSk)!;
