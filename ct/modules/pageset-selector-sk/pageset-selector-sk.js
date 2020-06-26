@@ -47,6 +47,7 @@ define('pageset-selector-sk', class extends ElementSk {
     this._upgradeProperty('hideIfContains');
     this._upgradeProperty('selected');
     this._pageSets = this._pageSets || [];
+    this._unfilteredPageSets = this._unfilteredPageSets || [];
     this._selected = this._selected || '';
     this._hideIfKeyContains = this._hideIfKeyContains || [];
   }
@@ -56,7 +57,7 @@ define('pageset-selector-sk', class extends ElementSk {
     fetch('/_/page_sets/', { method: 'POST' })
       .then(jsonOrThrow)
       .then((json) => {
-        this._pageSets = json;
+        this._unfilteredPageSets = json;
         this._filterPageSets();
         this._render();
         this._selector.selection = 0;
@@ -103,7 +104,8 @@ define('pageset-selector-sk', class extends ElementSk {
   _filterPageSets() {
     const blacklist = this._hideIfKeyContains;
     const psHasSubstring = (ps) => blacklist.some((s) => ps.key.includes(s));
-    this._pageSets = this._pageSets.filter((ps) => !psHasSubstring(ps));
+    this._pageSets = this._unfilteredPageSets
+      .filter((ps) => !psHasSubstring(ps));
   }
 
   _updatePageSetHidden() {
