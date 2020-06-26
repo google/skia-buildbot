@@ -25,7 +25,18 @@ import '../../../infra-sk/modules/login-sk';
 // as the key for localStorage, which is used to remember the user's preference.
 const SIDEBAR_HIDDEN_CLASS = 'sidebar_hidden';
 
-const template = (ele) => html`
+/**
+ * Moves the elements from a list to be the children of the target element.
+ *
+ * @param from - The list of elements we are moving.
+ * @param to - The new parent.
+ */
+function move(from: HTMLCollection | NodeList, to: HTMLElement) {
+  Array.prototype.slice.call(from).forEach((ele) => to.appendChild(ele));
+}
+
+export class PerfScaffoldSk extends ElementSk {
+  private static template = (ele: PerfScaffoldSk) => html`
   <nav id=topbar>
     <button id=toggleSidebarButton @click=${() => ele._toggleSidebar()}>
       <menu-icon-sk></menu-icon-sk>
@@ -47,21 +58,10 @@ const template = (ele) => html`
   </main>
   <error-toast-sk></error-toast-sk>
 `;
+  private _main: HTMLElement | null = null;
 
-/**
- * Moves the elements from one NodeList to another NodeList.
- *
- * @param {NodeList} from - The list we are moving from.
- * @param {NodeList} to - The list we are moving to.
- */
-function move(from, to) {
-  Array.prototype.slice.call(from).forEach((ele) => to.appendChild(ele));
-}
-
-define('perf-scaffold-sk', class extends ElementSk {
   constructor() {
-    super(template);
-    this._main = null;
+    super(PerfScaffoldSk.template);
   }
 
   connectedCallback() {
@@ -83,25 +83,33 @@ define('perf-scaffold-sk', class extends ElementSk {
     this._render();
 
     // Move the old children back under main.
-    this._main = this.querySelector('main');
+    this._main = this.querySelector('main')!;
     move(div.children, this._main);
 
     // Move all future children under main also.
     const observer = new MutationObserver((mutList) => {
       mutList.forEach((mut) => {
-        move(mut.addedNodes, this._main);
+        move(mut.addedNodes, this._main!);
       });
     });
     observer.observe(this, { childList: true });
     // Force the sidebar status based on localStorage. If the user has never
     // toggled the sidebar then localStorage.getItem will return null, which
     // won't equal 'true', so we will show the sidebar by default.
-    this.classList.toggle(SIDEBAR_HIDDEN_CLASS, window.localStorage.getItem(SIDEBAR_HIDDEN_CLASS) === 'true');
+    this.classList.toggle(
+      SIDEBAR_HIDDEN_CLASS,
+      window.localStorage.getItem(SIDEBAR_HIDDEN_CLASS) === 'true'
+    );
   }
 
-  _toggleSidebar() {
+  private _toggleSidebar() {
     this.classList.toggle(SIDEBAR_HIDDEN_CLASS);
     // Remember the user's preference.
-    window.localStorage.setItem(SIDEBAR_HIDDEN_CLASS, this.classList.contains(SIDEBAR_HIDDEN_CLASS).toString());
+    window.localStorage.setItem(
+      SIDEBAR_HIDDEN_CLASS,
+      this.classList.contains(SIDEBAR_HIDDEN_CLASS).toString()
+    );
   }
-});
+}
+
+define('perf-scaffold-sk', PerfScaffoldSk);
