@@ -13,6 +13,7 @@ import '../modules/dots-sk';
 import '../modules/filter-dialog-sk';
 import '../modules/multi-zoom-sk';
 import '../modules/query-dialog-sk';
+import '../modules/search-controls-sk';
 import '../modules/triage-history-sk';
 import '../modules/triage-sk';
 import 'elements-sk/error-toast-sk';

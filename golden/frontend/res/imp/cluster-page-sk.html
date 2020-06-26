@@ -29,7 +29,6 @@
 <link rel="import" href="cluster-sk.html">
 <link rel="import" href="activity-sk.html">
 <link rel="import" href="shared-styles.html">
-<link rel="import" href="search-controls-sk.html">
 
 <dom-module id="cluster-page-sk">
   <template>
@@ -135,7 +134,7 @@
           this.listen(this.$.clusterContainer, 'paramset-key-value-click', '_handleParamsetValueClick');
           this.listen(this.$.clusterContainer, 'digest-select', '_handleDigestsSelected');
           this.listen(this.$.bulkTriage, 'change', '_handleBulkTriageChange');
-          this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
+          this.listen(this.$.searchControls, 'search-controls-sk-change', '_handleStateChange');
           this.listen(this, 'zoom-dialog-opened', '_handleZoomOpened');
           this.listen(this, 'zoom-dialog-closed', '_handleZoomClosed');
           this._setDefaultState(gold.defaultSearchState, true);
@@ -147,7 +146,28 @@
 
           // Initialize the state and set values of the controls.
           this._initState(ctx, this._getDefaultStateWithCorpus());
-          this.$.searchControls.setState(this._state);
+
+          // Extract corpus from query and remove from it.
+          const queryParamSet = sk.query.toParamSet(this._state.query);
+          const corpus = queryParamSet.source_type[0];
+          delete queryParamSet["source_type"];
+
+          // Set search-control-sk's search criteria.
+          const searchCriteria = {
+            corpus: corpus,
+            leftHandTraceFilter: queryParamSet,
+            rightHandTraceFilter: sk.query.toParamSet(this._state.rquery),
+            includePositiveDigests: this._state.pos,
+            includeNegativeDigests: this._state.neg,
+            includeUntriagedDigests: this._state.unt,
+            includeDigestsNotAtHead: !this._state.head,
+            includeIgnoredDigests: this._state.include,
+            minRGBADelta: this._state.frgbamin,
+            maxRGBADelta: this._state.frgbamax,
+            mustHaveReferenceImage: this._state.fref,
+            sortOrder: this._state.sort === 'asc' ? 'ascending' : 'descending'
+          };
+          this.$.searchControls.searchCriteria = searchCriteria;
 
           this._loadClusterDiff();
         },
@@ -158,7 +178,14 @@
 
         _loadParamset: function() {
           sk.get("/json/paramset").then(JSON.parse).then(function (json) {
-            this.$.searchControls.setParamSet(json);
+            // Extract corpora from response.
+            this.$.searchControls.corpora = json.source_type;
+
+            // Delete source_type and set the paramSet.
+            const paramSetCopy = JSON.parse(JSON.stringify(json));
+            const corpora = paramSetCopy.source_type;
+            delete paramSetCopy["source_type"];
+            this.$.searchControls.paramSet = paramSetCopy;
           }.bind(this)).catch(sk.errorMessage);
         },
 
@@ -166,15 +193,35 @@
           gold.loadWithActivity(this, "/json/clusterdiff" + window.location.search, this.$.activityMain, function(json) {
             this._data = json;
             this.$.clusterView.setData(json);
-            this.$.parameters.paramsets = {
-              paramsets: [json.paramsetsUnion],
-            };
+            this.$.parameters.paramsets = [json.paramsetsUnion];
           }.bind(this));
         },
 
         _handleStateChange: function(ev) {
+          const searchCriteria = ev.detail;
+
+          // Make a copy of the current state.
+          const newState = JSON.parse(JSON.stringify(this._state));
+
+          // Set query fields.
+          const queryParamSet = searchCriteria.leftHandTraceFilter;
+          queryParamSet.source_type = [searchCriteria.corpus];
+          newState.query = sk.query.fromParamSet(queryParamSet);
+          newState.rquery = sk.query.fromParamSet(searchCriteria.rightHandTraceFilter);
+
+          // Set remaining fields.
+          newState.pos = searchCriteria.includePositiveDigests;
+          newState.neg = searchCriteria.includeNegativeDigests;
+          newState.unt = searchCriteria.includeUntriagedDigests;
+          newState.head = !searchCriteria.includeDigestsNotAtHead;
+          newState.include = searchCriteria.includeIgnoredDigests;
+          newState.frgbamin = searchCriteria.minRGBADelta;
+          newState.frgbamax = searchCriteria.maxRGBADelta;
+          newState.fref = searchCriteria.mustHaveReferenceImage;
+          newState.sort = searchCriteria.sortOrder === 'ascending' ? 'asc' : 'desc';
+
           // Reload the page with the new  state in the query parameters.
-          this._redirectToState(ev.detail);
+          this._redirectToState(newState);
         },
 
         _handleParamsetKeyClick: function(ev) {
