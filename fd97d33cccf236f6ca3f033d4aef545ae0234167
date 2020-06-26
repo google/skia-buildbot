@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "4ea0147f_64b597fc",
+        "filename": "golden/frontend/res/imp/cluster-page-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T18:49:23Z",
+      "side": 1,
+      "message": "It does, I just copied this snippet from elsewhere.",
+      "parentUuid": "159a2f55_b10ba6d0",
+      "range": {
+        "startLine": 152,
+        "startChar": 38,
+        "endLine": 152,
+        "endChar": 53
+      },
+      "revId": "fd97d33cccf236f6ca3f033d4aef545ae0234167",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5fe9dfd6_0c5cad7d",
         "filename": "golden/frontend/res/imp/search-page-sk.html",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "c9458e2b_3a5eeb51",
+        "filename": "golden/frontend/res/imp/search-page-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T18:49:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5fe9dfd6_0c5cad7d",
+      "range": {
+        "startLine": 207,
+        "startChar": 38,
+        "endLine": 207,
+        "endChar": 40
+      },
+      "revId": "fd97d33cccf236f6ca3f033d4aef545ae0234167",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "46ddd458_28606238",
         "filename": "golden/frontend/res/imp/search-page-sk.html",
         "patchSetId": 1
@@ -68,6 +116,30 @@
       "revId": "fd97d33cccf236f6ca3f033d4aef545ae0234167",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d82b438_36204152",
+        "filename": "golden/frontend/res/imp/search-page-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T18:49:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "46ddd458_28606238",
+      "range": {
+        "startLine": 240,
+        "startChar": 22,
+        "endLine": 240,
+        "endChar": 36
+      },
+      "revId": "fd97d33cccf236f6ca3f033d4aef545ae0234167",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
