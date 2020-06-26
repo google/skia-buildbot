@@ -185,6 +185,10 @@ export const startDemoPageServer = async (pathToWebpackConfigTs: string) => {
   const webpackConfigFactory = require(pathToWebpackConfigTs) as webpack.ConfigurationFactory;
   const configuration = webpackConfigFactory('', { mode: 'development' }) as webpack.Configuration;
 
+  // Prevent the creation of source maps, which can consume lots of memory.
+  // https://github.com/webpack/webpack-sources/issues/66#issuecomment-537526984
+  delete configuration.devtool;
+
   // This is equivalent to running "npx webpack-dev-server" on the terminal.
   const middleware = webpackDevMiddleware(webpack(configuration), {
     logLevel: 'warn', // Do not print summary on startup.
