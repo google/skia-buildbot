@@ -8,6 +8,15 @@ import 'elements-sk/styles/buttons';
 import { $, $$ } from 'common-sk/modules/dom';
 import '../../../infra-sk/modules/theme-chooser-sk';
 
+// Create our own random number generator that's deterministic so that we get
+// consistent Gold images.
+let seed = 1;
+const MAX = 1e20;
+const random = (): number => {
+  seed = (seed * 999331) /* a prime number */ % MAX;
+  return seed / MAX;
+};
+
 window.customElements.whenDefined('plot-simple-sk').then(() => {
   var ele = $$<PlotSimpleSk>('#plot')!;
   var n = 0;
@@ -22,10 +31,8 @@ window.customElements.whenDefined('plot-simple-sk').then(() => {
     for (var j = 0; j < num; j++) {
       var trace = [];
       for (var i = 0; i < 50; i++) {
-        if (Math.random() < 0.9) {
-          trace.push(
-            1000000 * (8 + Math.sin(i / 10) + j + Math.random() * 1 + 10)
-          );
+        if (random() < 0.9) {
+          trace.push(1000000 * (8 + Math.sin(i / 10) + j + random() * 1 + 10));
         } else {
           trace.push(1e32);
         }
