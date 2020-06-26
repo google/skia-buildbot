@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a1e64941_7a5884c8",
+        "filename": "perf/modules/triage-status-sk/triage-status-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T09:33:59Z",
+      "side": 1,
+      "message": "Nit: private",
+      "range": {
+        "startLine": 71,
+        "startChar": 2,
+        "endLine": 71,
+        "endChar": 15
+      },
+      "revId": "5e7d8a778424602612db417978550b55adfe94b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28fc1e2b_ef8d26c7",
+        "filename": "perf/modules/triage-status-sk/triage-status-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T09:33:59Z",
+      "side": 1,
+      "message": "Nit: These can probably be removed. Same below.",
+      "range": {
+        "startLine": 87,
+        "startChar": 6,
+        "endLine": 87,
+        "endChar": 34
+      },
+      "revId": "5e7d8a778424602612db417978550b55adfe94b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
