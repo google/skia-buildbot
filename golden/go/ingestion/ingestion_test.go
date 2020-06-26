@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/config"
-	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vcsinfo"
@@ -226,7 +225,7 @@ func TestGetStartTimeOfInterestDays(t *testing.T) {
 		Timestamp: alphaTime,
 	}, nil)
 
-	conf := &sharedconfig.IngesterConfig{
+	conf := &IngesterConfig{
 		NCommits: 2,
 		MinDays:  3,
 	}
@@ -271,7 +270,7 @@ func TestGetStartTimeOfInterestCommits(t *testing.T) {
 		Timestamp: betaTime,
 	}, nil)
 
-	conf := &sharedconfig.IngesterConfig{
+	conf := &IngesterConfig{
 		NCommits: 4,
 		MinDays:  3,
 	}
@@ -300,7 +299,7 @@ func TestGetStartTimeOfInterestTryJobs(t *testing.T) {
 	now := time.Date(2019, 8, 5, 11, 20, 0, 0, time.UTC)
 	oneHourAgo := now.Add(-1 * time.Hour)
 
-	conf := &sharedconfig.IngesterConfig{
+	conf := &IngesterConfig{
 		MinHours: 1,
 	}
 
@@ -340,7 +339,7 @@ func TestGetStartTimeOfInterestNotEnough(t *testing.T) {
 		Timestamp: alphaTime,
 	}, nil)
 
-	conf := &sharedconfig.IngesterConfig{
+	conf := &IngesterConfig{
 		NCommits: 100,
 		MinDays:  3,
 	}
@@ -353,15 +352,15 @@ func TestGetStartTimeOfInterestNotEnough(t *testing.T) {
 	require.Equal(t, alphaTime, ts)
 }
 
-func noPollingConfig() *sharedconfig.IngesterConfig {
-	return &sharedconfig.IngesterConfig{
+func noPollingConfig() *IngesterConfig {
+	return &IngesterConfig{
 		MinDays:  0, // Setting min days and hours to 0 disables polling
 		MinHours: 0,
 	}
 }
 
-func lastHourPollingConfig() *sharedconfig.IngesterConfig {
-	return &sharedconfig.IngesterConfig{
+func lastHourPollingConfig() *IngesterConfig {
+	return &IngesterConfig{
 		MinDays:  0,
 		MinHours: 1,
 		RunEvery: config.Duration{Duration: time.Minute}, // this doesn't really matter

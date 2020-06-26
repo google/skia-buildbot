@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
@@ -36,7 +35,7 @@ func init() {
 
 // newTraceStoreProcessor implements the ingestion.Constructor signature and creates
 // a Processor that uses a BigTable-backed tracestore.
-func newBTTraceStoreProcessor(ctx context.Context, vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, _ *http.Client) (ingestion.Processor, error) {
+func newBTTraceStoreProcessor(ctx context.Context, vcs vcsinfo.VCS, config *ingestion.IngesterConfig, _ *http.Client) (ingestion.Processor, error) {
 	btc := bt_tracestore.BTConfig{
 		ProjectID:  config.ExtraParams[btProjectConfig],
 		InstanceID: config.ExtraParams[btInstanceConfig],

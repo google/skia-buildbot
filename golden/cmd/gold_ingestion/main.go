@@ -20,11 +20,12 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/eventbus"
 	"go.skia.org/infra/golden/go/gevent"
 	"go.skia.org/infra/golden/go/ingestion"
@@ -99,7 +100,7 @@ func main() {
 	ingestionStore := fs_ingestionstore.New(fsClient)
 
 	// Start the ingesters.
-	config, err := sharedconfig.ConfigFromJson5File(*configFilename)
+	config, err := ingestion.ConfigFromJson5File(*configFilename)
 	if err != nil {
 		sklog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
 	}
@@ -123,21 +124,44 @@ func main() {
 	}
 
 	// Set up the gitstore if we have the necessary bigtable configuration.
-	var btConf *bt_gitstore.BTConfig = nil
-	if *btInstanceID != "" && *gitBTTableID != "" {
-		btConf = &bt_gitstore.BTConfig{
-			ProjectID:  *btProjectID,
-			InstanceID: *btInstanceID,
-			TableID:    *gitBTTableID,
-			AppProfile: appName,
-		}
+	if *btInstanceID == "" || *gitBTTableID == "" {
+		sklog.Fatalf("Missing BigTable configuration")
+	}
+
+	btConf := &bt_gitstore.BTConfig{
+		ProjectID:  *btProjectID,
+		InstanceID: *btInstanceID,
+		TableID:    *gitBTTableID,
+		AppProfile: appName,
+	}
+
+	gitStore, err := bt_gitstore.New(ctx, btConf, config.GitRepoURL)
+	if err != nil {
+		sklog.Fatalf("could not instantiate gitstore for %s", config.GitRepoURL)
+	}
+
+	// Set up VCS instance to track master.
+	gitilesRepo := gitiles.NewRepo(config.GitRepoURL, client)
+	vcs, err := bt_vcs.New(ctx, gitStore, "master", gitilesRepo)
+	if err != nil {
+		sklog.Fatalf("could not instantiate BT VCS for %s", config.GitRepoURL)
+	}
+
+	sklog.Infof("Created vcs client based on BigTable.")
+
+	// Instantiate the secondary repo if one was specified.
+	// TODO(kjlubick): make this support bigtable git also.
+	if config.SecondaryRepoURL != "" {
+		// TODO(kjlubick) Check up tracestore_impl's isOnMaster to make sure it
+		// works with what is put here.
+		sklog.Fatalf("Not yet implemented to have a secondary repo url")
 	}
 
 	// Set up the ingesters in the background.
 	var ingesters []*ingestion.Ingester
 	go func() {
 		var err error
-		ingesters, err = ingestion.IngestersFromConfig(ctx, config, client, eventBus, ingestionStore, btConf)
+		ingesters, err = ingestion.IngestersFromConfig(ctx, config.Ingesters, client, eventBus, ingestionStore, vcs)
 		if err != nil {
 			sklog.Fatalf("Unable to instantiate ingesters: %s", err)
 		}

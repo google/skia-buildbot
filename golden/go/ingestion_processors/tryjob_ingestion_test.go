@@ -13,7 +13,6 @@ import (
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/paramtools"
-	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/clstore"
@@ -38,7 +37,7 @@ const (
 func TestGerritBuildbucketFactory(t *testing.T) {
 	unittest.LargeTest(t) // should use the emulator
 
-	config := &sharedconfig.IngesterConfig{
+	config := &ingestion.IngesterConfig{
 		ExtraParams: map[string]string{
 			firestoreProjectIDParam: "should-use-emulator",
 			firestoreNamespaceParam: "testing",
@@ -64,7 +63,7 @@ func TestGerritBuildbucketFactory(t *testing.T) {
 func TestGitHubCirrusBuildbucketFactory(t *testing.T) {
 	unittest.LargeTest(t) // should use the emulator
 
-	config := &sharedconfig.IngesterConfig{
+	config := &ingestion.IngesterConfig{
 		ExtraParams: map[string]string{
 			firestoreProjectIDParam: "should-use-emulator",
 			firestoreNamespaceParam: "testing",

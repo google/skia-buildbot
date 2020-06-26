@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -56,7 +55,7 @@ type Ingester struct {
 // (created via eventbus.New()). To drive ingestion from storage events use a PubSub-based
 // eventbus (created via the gevent.New(...) function).
 //
-func newIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor, ingestionStore IngestionStore, eventBus eventbus.EventBus) (*Ingester, error) {
+func newIngester(ingesterID string, ingesterConf *IngesterConfig, vcs vcsinfo.VCS, sources []Source, processor Processor, ingestionStore IngestionStore, eventBus eventbus.EventBus) (*Ingester, error) {
 	if ingesterConf == nil {
 		return nil, skerr.Fmt("ingesterConf cannot be nil")
 	}
