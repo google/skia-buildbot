@@ -4,7 +4,6 @@
  *
  * Displays the current untriaged digests, grouped by the commits that may have caused them
  * (i.e. the blamelist or blame, for short).
- *
  */
 
 import { define } from 'elements-sk/define';
@@ -21,9 +20,9 @@ const template = (ele) => html`
 <div class=top-container>
   <corpus-selector-sk
       .corpora=${ele._corpora}
-      .selectedCorpus=${ele._corpus}
+      .selectedCorpus=${ele._corpora.find(c => c.name === ele._corpus)}
       .corpusRendererFn=${corpusRendererFn}
-      @corpus_selected=${ele._handleCorpusChange}>
+      @corpus-selected=${ele._handleCorpusChange}>
   </corpus-selector-sk>
 </div>
 
@@ -93,7 +92,7 @@ define('byblame-page-sk', class extends ElementSk {
   }
 
   _handleCorpusChange(event) {
-    this._corpus = event.detail.corpus;
+    this._corpus = event.detail.name;
     this._stateChanged();
     this._fetch();
   }

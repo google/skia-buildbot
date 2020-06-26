@@ -1,5 +1,17 @@
-// This is taken from a production /json/trstatus request (specifically the corpStatus section).
-export const exampleCorpora = [{
+/** Simple test corpora composed of plain string objects. */
+export const stringCorpora = ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg'];
+
+/** A custom corpus object type with various fields. */
+export interface TestCorpus {
+  name: string,
+  ok: boolean,
+  minCommitHash: string,
+  untriagedCount: number,
+  negativeCount: number
+};
+
+/** These examples are based on a real request against https://gold.skia.org/json/trstatus. */
+export const customTypeCorpora: TestCorpus[] = [{
   name: 'canvaskit',
   ok: false,
   minCommitHash: '',

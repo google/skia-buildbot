@@ -131,7 +131,7 @@
           this.listen(this.$.filterButton, 'tap', '_handleFilterButton');
           this.listen(this.$.queryDialog, 'edit', '_handleQueryEdit');
           this.listen(this.$.filterDialog, 'edit', '_handleFilterEdit');
-          this.listen(this.$.corpusSelector, 'corpus_selected', '_handleCorpusChange');
+          this.listen(this.$.corpusSelector, 'corpus-selected', '_handleCorpusChange');
 
           // If the corpus changes make sure we do cleanup work.
           this.async(function() {
@@ -164,12 +164,7 @@
 
           // TODO(kjlubick) in the lit-html version, this should reflect of digests as matched by
           //   the positive/negative/diff selector (i.e. the things above it).
-          const corpora = params['source_type'].map((name) => {
-            return {
-              name: name,
-            };
-          });
-          this.$.corpusSelector.corpora = corpora;
+          this.$.corpusSelector.corpora = params['source_type'] || [];
         },
 
         // TODO(lovisolo): Remove when migrating to lit-html.
@@ -232,7 +227,7 @@
           //   page. However, the port to lit-html is coming soon, and I don't feel like making
           //   more changes to this Polymer code than is necessary.
           const params = sk.query.toParamSet(this.state.query);
-          params.source_type = [ev.detail.corpus];
+          params.source_type = [ev.detail];
           this.state.query = sk.query.fromParamSet(params);
           window.location = window.location.pathname + gold.queryFromState(this.state);
         },

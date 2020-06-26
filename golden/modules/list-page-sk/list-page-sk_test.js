@@ -116,10 +116,8 @@ describe('list-page-sk', () => {
       const corpusSelector = $$('corpus-selector-sk', listPageSk);
       const event = eventPromise('end-task');
       corpusSelector.dispatchEvent(
-        new CustomEvent('corpus_selected', {
-          detail: {
-            corpus: 'corpus with spaces',
-          },
+        new CustomEvent('corpus-selected', {
+          detail: 'corpus with spaces',
           bubbles: true,
         }),
       );
