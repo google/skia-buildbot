@@ -113,11 +113,11 @@ describe('filter-dialog-sk', () => {
 
   // Clicks the "Filter" button. This closes the dialog.
   const clickFilterBtn =
-    () => $$<HTMLButtonElement>('.filter-dialog button.filter', filterDialogSk)!.click();
+    () => $$<HTMLButtonElement>('.filter-dialog > .buttons .filter', filterDialogSk)!.click();
 
   // Clicks the "Cancel" button. This closes the dialog.
   const clickCancelBtn =
-    () => $$<HTMLButtonElement>('.filter-dialog button.cancel', filterDialogSk)!.click();
+    () => $$<HTMLButtonElement>('.filter-dialog > .buttons .cancel', filterDialogSk)!.click();
 
   const isDialogOpen = () => $$<HTMLDialogElement>('dialog.filter-dialog', filterDialogSk)!.open;
 
@@ -134,7 +134,7 @@ describe('filter-dialog-sk', () => {
   // Returns the ParamSet displayed by the paramset-sk component.
   const getRightHandQuery = (): ParamSet => {
     const paramSet: ParamSet = {};
-    $('.filter-dialog paramset-sk tr', filterDialogSk).forEach((tr, i) => {
+    $('trace-filter-sk .selection paramset-sk tr', filterDialogSk).forEach((tr, i) => {
       if (i === 0) return; // Skip the first row, which usually displays titles (empty in our case).
       const key = $$('th', tr)!.textContent!;
       const values = $('div', tr).map(div => div.textContent!);

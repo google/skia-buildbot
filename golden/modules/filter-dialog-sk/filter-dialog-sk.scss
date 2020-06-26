@@ -5,7 +5,7 @@
 // This works because the <div class=filter-dialog> and <query-dialog-sk/>
 // elements in this component are siblings, not ancestors.
 filter-dialog-sk .filter-dialog {
-  .content {
+  > .content {
     min-width: 500px;
     display: flex;
     flex-direction: column;
@@ -19,53 +19,6 @@ filter-dialog-sk .filter-dialog {
 
     &:first-child {
       margin-top: 0;
-    }
-  }
-
-  .right-hand-query {
-    display: flex;
-    flex-direction: row;
-
-    .query {
-      flex-grow: 1;
-      align-self: center;
-
-      .empty-placeholder {
-        text-align: center;
-      }
-
-      paramset-sk {
-        table {
-          width: 100%;
-          border-spacing: 0;
-
-          tr:first-child {
-            // Hide first row, which is empty (paramset-sk configured with no titles) but does take
-            // some pixels.
-            display: none;
-          }
-
-          th {
-            padding: 5px;
-            border-right: 2px solid white;
-            white-space: nowrap; // Prevent multiple-word keys from wrapping.
-          }
-
-          td {
-            // Make the values column stretch for the rest of the width.
-            width: 100%;
-
-            div {
-              display: block; // Make each value span one line.
-              padding: 5px;
-            }
-          }
-        }
-      }
-    }
-
-    button {
-      margin: 0 0 0 16px;
     }
   }
 

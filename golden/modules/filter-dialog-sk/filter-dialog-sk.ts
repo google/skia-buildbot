@@ -16,12 +16,11 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import dialogPolyfill from 'dialog-polyfill';
 import { $$ } from 'common-sk/modules/dom';
 import { deepCopy } from 'common-sk/modules/object';
-import { ParamSet, fromParamSet, toParamSet } from 'common-sk/modules/query';
-import { QueryDialogSk } from '../query-dialog-sk/query-dialog-sk';
+import { ParamSet } from 'common-sk/modules/query';
 
 import 'elements-sk/styles/buttons';
 import 'elements-sk/checkbox-sk';
-import '../query-dialog-sk';
+import '../trace-filter-sk';
 import '../../../infra-sk/modules/paramset-sk';
 
 export interface Filters {
@@ -85,22 +84,13 @@ export class FilterDialogSk extends ElementSk {
   // cancels and reopens the dialog, the user will see their previous input, when the expected
   // behavior is for their previous input to be discarded.
   private static _template = (el: FilterDialogSk) => html`
-    <!-- Making these dialogs siblings makes it eaiser to write selectors for CSS and tests. -->
-    <query-dialog-sk .submitButtonLabel=${'Select'}
-                     @edit=${el._queryDialogEdit}>
-    </query-dialog-sk>
-
     <dialog class=filter-dialog>
       <div class=content>
-        <span class=label>Right hand query:</span>
-        <div class=right-hand-query>
-          <div class=query>
-            ${!el._filters || Object.keys(el._filters!.diffConfig).length === 0
-              ? html`<div class=empty-placeholder>Empty.</div>`
-              : html`<paramset-sk .paramsets=${live([el._filters?.diffConfig])}></paramset-sk>`}
-          </div>
-          <button class=edit-query @click=${el._openQueryDialog}>Edit query</button>
-        </div>
+        <span class=label>Right hand traces:</span>
+        <trace-filter-sk .paramSet=${el._paramSet!}
+                         .selection=${live(el._filters?.diffConfig || {})}
+                         @trace-filter-sk-change=${el._onTraceFilterSkChange}>
+        </trace-filter-sk>
 
         ${numericParamTemplate(
           'min-rgba-delta',
@@ -142,7 +132,6 @@ export class FilterDialogSk extends ElementSk {
     </dialog>`;
 
   private _dialog: HTMLDialogElement | null = null;
-  private _queryDialogSk: QueryDialogSk | null = null;
 
   private _paramSet: ParamSet | null = null;
   private _filters: Filters | null = null;
@@ -155,7 +144,6 @@ export class FilterDialogSk extends ElementSk {
     super.connectedCallback();
     this._render();
     this._dialog = $$('dialog.filter-dialog', this);
-    this._queryDialogSk = $$('query-dialog-sk', this);
     dialogPolyfill.registerDialog(this._dialog!);
   }
 
@@ -171,13 +159,9 @@ export class FilterDialogSk extends ElementSk {
     this._dialog?.showModal();
   }
 
-  private _openQueryDialog() {
-    this._queryDialogSk!.open(this._paramSet!, fromParamSet(this._filters!.diffConfig));
-  }
-
-  private _queryDialogEdit(e: CustomEvent<string>) {
-    e.stopPropagation(); // Necessary because filter-dialog-sk also emits an "edit" event.
-    this._filters!.diffConfig = toParamSet(e.detail);
+  private _onTraceFilterSkChange(e: CustomEvent<ParamSet>) {
+    e.stopPropagation();
+    this._filters!.diffConfig = e.detail;
     this._render();
   }
 
