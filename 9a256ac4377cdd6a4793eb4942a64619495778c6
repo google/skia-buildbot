@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "eb99cc8f_5d6e8d71",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T15:12:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fb59d7ed_885ed58f",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 1
+      },
+      "revId": "9a256ac4377cdd6a4793eb4942a64619495778c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1e1d5b25_a5e3cef8",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "9a256ac4377cdd6a4793eb4942a64619495778c6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "71d19d39_da885a78",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T15:12:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1e1d5b25_a5e3cef8",
+      "range": {
+        "startLine": 277,
+        "startChar": 0,
+        "endLine": 277,
+        "endChar": 0
+      },
+      "revId": "9a256ac4377cdd6a4793eb4942a64619495778c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "352926fb_6fc30f96",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T15:12:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "16481094_2f3361b2",
+      "range": {
+        "startLine": 278,
+        "startChar": 43,
+        "endLine": 278,
+        "endChar": 48
+      },
+      "revId": "9a256ac4377cdd6a4793eb4942a64619495778c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d7da2832_2ea6297a",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
         "patchSetId": 4
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "a2ea3371_95fc74a1",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T15:12:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d7da2832_2ea6297a",
+      "range": {
+        "startLine": 355,
+        "startChar": 17,
+        "endLine": 355,
+        "endChar": 18
+      },
+      "revId": "9a256ac4377cdd6a4793eb4942a64619495778c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f7d21379_50f92026",
         "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
         "patchSetId": 4
@@ -114,6 +210,30 @@
       "revId": "9a256ac4377cdd6a4793eb4942a64619495778c6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0230882_47459a04",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T15:12:31Z",
+      "side": 1,
+      "message": "Good idea.",
+      "parentUuid": "f7d21379_50f92026",
+      "range": {
+        "startLine": 171,
+        "startChar": 0,
+        "endLine": 176,
+        "endChar": 2
+      },
+      "revId": "9a256ac4377cdd6a4793eb4942a64619495778c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
