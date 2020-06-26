@@ -64,9 +64,9 @@ describe('filter-dialog-sk', () => {
     await takeScreenshot(testBed.page, 'gold', 'filter-dialog-sk');
   });
 
-  it('should take a screenshot with the query editor dialog visible', async () => {
+  it('should take a screenshot with the query dialog visible', async () => {
     await testBed.page.click('#show-dialog');
     await testBed.page.click('.edit-query');
-    await takeScreenshot(testBed.page, 'gold', 'filter-dialog-sk_query-editor-open');
+    await takeScreenshot(testBed.page, 'gold', 'filter-dialog-sk_query-dialog-open');
   });
 });

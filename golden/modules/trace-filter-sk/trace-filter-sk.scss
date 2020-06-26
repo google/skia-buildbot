@@ -1,0 +1,42 @@
+trace-filter-sk {
+  display: flex;
+  flex-direction: row;
+
+  .selection {
+    flex-grow: 1;
+    align-self: center;
+
+    paramset-sk {
+      table {
+        width: 100%;
+        border-spacing: 0;
+
+        tr:first-child {
+          // Hide first row, which is empty (paramset-sk configured with no titles) but does take
+          // some pixels.
+          display: none;
+        }
+
+        th {
+          padding: 5px;
+          border-right: 2px solid white;
+          white-space: nowrap; // Prevent multiple-word keys from wrapping.
+        }
+
+        td {
+          // Make the values column stretch for the rest of the width.
+          width: 100%;
+
+          div {
+            display: block; // Make each value span one line.
+            padding: 5px;
+          }
+        }
+      }
+    }
+  }
+
+  button.edit-query {
+    margin: 0 0 0 16px;
+  }
+}
