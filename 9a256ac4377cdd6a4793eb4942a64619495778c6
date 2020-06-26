@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fb59d7ed_885ed58f",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T09:57:39Z",
+      "side": 1,
+      "message": "Nit: Please insert a blank line.",
+      "range": {
+        "startLine": 83,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 1
+      },
+      "revId": "9a256ac4377cdd6a4793eb4942a64619495778c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1e1d5b25_a5e3cef8",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T09:57:39Z",
+      "side": 1,
+      "message": "It would probably be clearer if copyConfigsToCheckout is defined as follows:\n\n  func (g *Goldpushk) copyConfigsToCheckout(...) error {\n    if g.copyConfigsToCheckoutImpl !\u003d nil {\n      return g.copyConfigsToCheckoutImpl\n    }\n\n    // Default impl below.\n    ...\n  }\n\nThis will save the reader from scrolling up to find the definition of copyConfigsToCheckout, noting that it\u0027s a pointer to defaultCopyConfigsToCheckout, and scrolling back down to where it\u0027s defined.",
+      "range": {
+        "startLine": 277,
+        "startChar": 0,
+        "endLine": 277,
+        "endChar": 0
+      },
+      "revId": "9a256ac4377cdd6a4793eb4942a64619495778c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "16481094_2f3361b2",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T09:57:39Z",
+      "side": 1,
+      "message": "Nit: JSON5",
+      "range": {
+        "startLine": 278,
+        "startChar": 43,
+        "endLine": 278,
+        "endChar": 48
+      },
+      "revId": "9a256ac4377cdd6a4793eb4942a64619495778c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d7da2832_2ea6297a",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T09:57:39Z",
+      "side": 1,
+      "message": "Ubernit: Please format these as follows for consistency within this file:\n\n   TODO(ldap): Message.",
+      "range": {
+        "startLine": 355,
+        "startChar": 17,
+        "endLine": 355,
+        "endChar": 18
+      },
+      "revId": "9a256ac4377cdd6a4793eb4942a64619495778c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f7d21379_50f92026",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T09:57:39Z",
+      "side": 1,
+      "message": "The function pointer technique seems a bit overkill if all we need is to do nothing and return nil.\n\nHow about adding a private boolean \"skipCopyingConfigsToCheckout\" field, which would only be set to true from tests?",
+      "range": {
+        "startLine": 171,
+        "startChar": 0,
+        "endLine": 176,
+        "endChar": 2
+      },
+      "revId": "9a256ac4377cdd6a4793eb4942a64619495778c6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
