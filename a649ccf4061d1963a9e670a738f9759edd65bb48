@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7ef91cf8_23e49002",
+        "filename": "perf/modules/plot-simple-sk/kd.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T09:29:49Z",
+      "side": 1,
+      "message": "I\u0027m not sure I understand how this type is being imported. There\u0027s an interface Point defined in plot-simple-sk.ts but it\u0027s not exported.",
+      "range": {
+        "startLine": 26,
+        "startChar": 7,
+        "endLine": 26,
+        "endChar": 12
+      },
+      "revId": "a649ccf4061d1963a9e670a738f9759edd65bb48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6a902e2_5b443342",
+        "filename": "perf/modules/plot-simple-sk/kd.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T09:29:49Z",
+      "side": 1,
+      "message": "Nit: might be more succinct to initialize these fields where they\u0027re declared, e.g.\n  left: Node\u003cPoint\u003e | null \u003d null;",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 22
+      },
+      "revId": "a649ccf4061d1963a9e670a738f9759edd65bb48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18c76490_194de57f",
+        "filename": "perf/modules/plot-simple-sk/kd.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T09:29:49Z",
+      "side": 1,
+      "message": "I suspect you\u0027d want to name this type \"Dimension\", judging by the usage below.",
+      "range": {
+        "startLine": 41,
+        "startChar": 5,
+        "endLine": 41,
+        "endChar": 9
+      },
+      "revId": "a649ccf4061d1963a9e670a738f9759edd65bb48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "271f20bb_51a4d5f4",
+        "filename": "perf/modules/plot-simple-sk/kd.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T09:29:49Z",
+      "side": 1,
+      "message": "Nit: private",
+      "range": {
+        "startLine": 77,
+        "startChar": 2,
+        "endLine": 77,
+        "endChar": 12
+      },
+      "revId": "a649ccf4061d1963a9e670a738f9759edd65bb48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21221f8b_a38393bd",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T09:29:49Z",
+      "side": 1,
+      "message": "Seems broken?",
+      "range": {
+        "startLine": 24,
+        "startChar": 1,
+        "endLine": 29,
+        "endChar": 0
+      },
+      "revId": "a649ccf4061d1963a9e670a738f9759edd65bb48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
