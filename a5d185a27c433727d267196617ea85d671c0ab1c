@@ -22,6 +22,30 @@
       "revId": "a5d185a27c433727d267196617ea85d671c0ab1c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a0309e2_5b4e883b",
+        "filename": "ct/modules/chromium-perf-sk/chromium-perf-sk.js",
+        "patchSetId": 15
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-06-26T17:51:24Z",
+      "side": 1,
+      "message": "fixed in https://skia-review.googlesource.com/c/buildbot/+/299380",
+      "parentUuid": "9268dd61_093c5350",
+      "range": {
+        "startLine": 228,
+        "startChar": 17,
+        "endLine": 228,
+        "endChar": 29
+      },
+      "revId": "a5d185a27c433727d267196617ea85d671c0ab1c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
