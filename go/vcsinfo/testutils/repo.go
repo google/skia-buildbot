@@ -2,11 +2,11 @@ package testutils
 
 import (
 	"io/ioutil"
-	"os"
 	"path/filepath"
-	"runtime"
 
-	"go.skia.org/infra/go/sklog"
+	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/sktest"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util/zip"
 )
 
@@ -14,6 +14,7 @@ import (
 type tempRepo struct {
 	// Root of unzipped Git repo.
 	Dir string
+	t   sktest.TestingT
 }
 
 // TODO(stephana): Use GitBuilder instead of checking in a Git repo.
@@ -23,30 +24,27 @@ type tempRepo struct {
 // newTempRepoFrom returns a tempRepo instance based on the contents of the
 // given zip file path. Unzips to a temporary directory which is stored in
 // tempRepo.Dir.
-func newTempRepoFrom(zipfile string) *tempRepo {
+func newTempRepoFrom(t sktest.TestingT, zipfile string) *tempRepo {
 	tmpdir, err := ioutil.TempDir("", "skiaperf")
-	if err != nil {
-		sklog.Fatal("Failed to create testing Git repo:", err)
+	require.NoError(t, err)
+	err = zip.UnZip(tmpdir, zipfile)
+	require.NoError(t, err)
+	return &tempRepo{
+		Dir: tmpdir,
+		t:   t,
 	}
-	if err := zip.UnZip(tmpdir, zipfile); err != nil {
-		sklog.Fatal("Failed to unzip testing Git repo:", err)
-	}
-	return &tempRepo{Dir: tmpdir}
 }
 
 // newTempRepo assumes the repo is called testrepo.zip, is in a directory
 // called testdata under the directory of the unit test that is calling it
 // and contains a single directory 'testrepo'.
-func newTempRepo() *tempRepo {
-	_, filename, _, _ := runtime.Caller(1)
-	ret := newTempRepoFrom(filepath.Join(filepath.Dir(filename), "testdata", "testrepo.zip"))
+func newTempRepo(t sktest.TestingT) *tempRepo {
+	ret := newTempRepoFrom(t, filepath.Join(testutils.TestDataDir(t), "testrepo.zip"))
 	ret.Dir = filepath.Join(ret.Dir, "testrepo")
 	return ret
 }
 
 // Cleanup cleans up the temporary repo.
 func (t *tempRepo) Cleanup() {
-	if err := os.RemoveAll(t.Dir); err != nil {
-		sklog.Fatal("Failed to clean up after test:", err)
-	}
+	testutils.RemoveAll(t.t, t.Dir)
 }

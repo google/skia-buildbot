@@ -2,17 +2,20 @@ package powercycle
 
 import (
 	"context"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
 func TestControllerFromJSON5_ConfigIsNonEmpty(t *testing.T) {
 	unittest.MediumTest(t)
 
-	agg, err := ControllerFromJSON5(context.Background(), "./example.json5", false)
+	f := filepath.Join(testutils.TestDataDir(t), "example.json5")
+	agg, err := ControllerFromJSON5(context.Background(), f, false)
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []DeviceID{
 		"skia-e-linux-001",
@@ -42,7 +45,7 @@ func TestControllerFromJSON5_ConfigIsNonEmpty(t *testing.T) {
 		"skia-rpi-TEST",
 	}, agg.DeviceIDs())
 
-	conf, err := readConfig("./example.json5")
+	conf, err := readConfig(f)
 	require.NoError(t, err)
 
 	for _, oneConf := range conf.EdgeSwitch {
