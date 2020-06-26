@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b23cf366_30d82a2b",
+        "filename": "perf/modules/plot-simple-sk/kd.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-26T19:24:48Z",
+      "side": 1,
+      "message": "Ubernit: Dimension.\n\nThis is basically (\u0027x\u0027 | \u0027y\u0027), i.e. a single dimension.",
+      "range": {
+        "startLine": 39,
+        "startChar": 5,
+        "endLine": 39,
+        "endChar": 15
+      },
+      "revId": "1e10fb40c0a587e02332cbf10c46380d93b9b39f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
