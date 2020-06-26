@@ -22,6 +22,30 @@
       "revId": "8f12cb54036b4467ffd88e028d13ade693bbd9f4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b428dfbe_6051580a",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 465,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T15:19:12Z",
+      "side": 0,
+      "message": "I think since it\u0027s going away in the next CL, I don\u0027t want to bother.",
+      "parentUuid": "51dafbab_8fdf0ce8",
+      "range": {
+        "startLine": 465,
+        "startChar": 5,
+        "endLine": 465,
+        "endChar": 59
+      },
+      "revId": "8f12cb54036b4467ffd88e028d13ade693bbd9f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
