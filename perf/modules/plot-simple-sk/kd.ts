@@ -24,27 +24,25 @@ export interface KDPoint {
 /** @class A single node in the k-d Tree. */
 class Node<Point extends KDPoint> {
   obj: Point;
-  left: Node<Point> | null;
-  right: Node<Point> | null;
+  left: Node<Point> | null = null;
+  right: Node<Point> | null = null;
   parent: Node<Point> | null;
   dimension: number;
 
   constructor(obj: Point, dimension: number, parent: Node<Point> | null) {
     this.obj = obj;
-    this.left = null;
-    this.right = null;
     this.parent = parent;
     this.dimension = dimension;
   }
 }
 
-type Keys = keyof KDPoint;
+type Dimensions = keyof KDPoint;
 
 /**
  * @class The k-d tree.
  */
 export class KDTree<Point extends KDPoint> {
-  private dimensions: Keys[];
+  private dimensions: Dimensions[];
   private root: Node<Point> | null;
   private metric: (a: KDPoint, b: KDPoint) => number;
   /**
@@ -60,7 +58,7 @@ export class KDTree<Point extends KDPoint> {
   constructor(
     points: Point[],
     metric: (a: KDPoint, b: KDPoint) => number,
-    dimensions: Keys[]
+    dimensions: Dimensions[]
   ) {
     this.dimensions = dimensions;
     this.metric = metric;
@@ -74,7 +72,7 @@ export class KDTree<Point extends KDPoint> {
    * @param {Number} depth - The current depth from the root node.
    * @param {Node} parent - The parent Node.
    */
-  _buildTree(
+  private _buildTree(
     points: Point[],
     depth: number,
     parent: Node<Point> | null
