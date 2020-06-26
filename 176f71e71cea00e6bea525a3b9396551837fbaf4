@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ffeb6679_37106d6d",
+        "filename": "golden/modules/trace-filter-sk/trace-filter-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T12:19:40Z",
+      "side": 1,
+      "message": "nit: extra s",
+      "range": {
+        "startLine": 5,
+        "startChar": 13,
+        "endLine": 5,
+        "endChar": 14
+      },
+      "revId": "176f71e71cea00e6bea525a3b9396551837fbaf4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca7d629d_07dc661b",
+        "filename": "golden/modules/trace-filter-sk/trace-filter-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T12:19:40Z",
+      "side": 1,
+      "message": "Maybe mention that it shows the current selection in a nice user-friendly way.",
+      "range": {
+        "startLine": 5,
+        "startChar": 39,
+        "endLine": 5,
+        "endChar": 45
+      },
+      "revId": "176f71e71cea00e6bea525a3b9396551837fbaf4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76de2583_bc93d798",
+        "filename": "golden/modules/trace-filter-sk/trace-filter-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T12:19:40Z",
+      "side": 1,
+      "message": "Probably useful to mention the detail.",
+      "range": {
+        "startLine": 9,
+        "startChar": 69,
+        "endLine": 9,
+        "endChar": 75
+      },
+      "revId": "176f71e71cea00e6bea525a3b9396551837fbaf4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "227542b7_26f4beff",
+        "filename": "golden/modules/trace-filter-sk/trace-filter-sk.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T12:19:40Z",
+      "side": 1,
+      "message": "Add docs for these properties",
+      "range": {
+        "startLine": 52,
+        "startChar": 2,
+        "endLine": 52,
+        "endChar": 5
+      },
+      "revId": "176f71e71cea00e6bea525a3b9396551837fbaf4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b231bd0a_33f9529c",
+        "filename": "golden/modules/trace-filter-sk/trace-filter-sk_puppeteer_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T12:19:40Z",
+      "side": 1,
+      "message": "By convention, the default view is typically named \"trace-filter-sk\", right?",
+      "range": {
+        "startLine": 40,
+        "startChar": 50,
+        "endLine": 40,
+        "endChar": 84
+      },
+      "revId": "176f71e71cea00e6bea525a3b9396551837fbaf4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e6774c34_1a2714f1",
+        "filename": "golden/modules/trace-filter-sk/trace-filter-sk_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T12:19:40Z",
+      "side": 1,
+      "message": "opens the dialog when the \"edit query\" button is clicked. Check wording of \"it\" tests below.",
+      "range": {
+        "startLine": 24,
+        "startChar": 6,
+        "endLine": 24,
+        "endChar": 14
+      },
+      "revId": "176f71e71cea00e6bea525a3b9396551837fbaf4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57df55d9_c8d61e07",
+        "filename": "golden/modules/trace-filter-sk/trace-filter-sk_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T12:19:40Z",
+      "side": 1,
+      "message": "I would like this to be named such that it implies the return value is based on the visible content. getVisibleSelection?",
+      "range": {
+        "startLine": 111,
+        "startChar": 8,
+        "endLine": 111,
+        "endChar": 20
+      },
+      "revId": "176f71e71cea00e6bea525a3b9396551837fbaf4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a1c616f_cf19c2f3",
+        "filename": "golden/modules/trace-filter-sk/trace-filter-sk_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-06-26T12:19:40Z",
+      "side": 1,
+      "message": "Name this to make it clear the changes are being done via faked user interaction. changeSelectionViaUserInteraction?",
+      "range": {
+        "startLine": 128,
+        "startChar": 8,
+        "endLine": 128,
+        "endChar": 34
+      },
+      "revId": "176f71e71cea00e6bea525a3b9396551837fbaf4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
