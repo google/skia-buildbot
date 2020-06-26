@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "61da7afd_107fa2dd",
+        "filename": "perf/modules/plot-simple-sk/kd.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-06-26T14:11:18Z",
+      "side": 1,
+      "message": "From the template \u003cPoint extends KDPoint\u003e.",
+      "parentUuid": "7ef91cf8_23e49002",
+      "range": {
+        "startLine": 26,
+        "startChar": 7,
+        "endLine": 26,
+        "endChar": 12
+      },
+      "revId": "a649ccf4061d1963a9e670a738f9759edd65bb48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a6a902e2_5b443342",
         "filename": "perf/modules/plot-simple-sk/kd.ts",
         "patchSetId": 22
@@ -45,6 +69,30 @@
       "revId": "a649ccf4061d1963a9e670a738f9759edd65bb48",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4cfa8aa_fa06352b",
+        "filename": "perf/modules/plot-simple-sk/kd.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-06-26T14:11:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a6a902e2_5b443342",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 22
+      },
+      "revId": "a649ccf4061d1963a9e670a738f9759edd65bb48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "5d641d81_896bcadb",
+        "filename": "perf/modules/plot-simple-sk/kd.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-06-26T14:11:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "18c76490_194de57f",
+      "range": {
+        "startLine": 41,
+        "startChar": 5,
+        "endLine": 41,
+        "endChar": 9
+      },
+      "revId": "a649ccf4061d1963a9e670a738f9759edd65bb48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "271f20bb_51a4d5f4",
         "filename": "perf/modules/plot-simple-sk/kd.ts",
         "patchSetId": 22
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "31021975_fafdfdc7",
+        "filename": "perf/modules/plot-simple-sk/kd.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-06-26T14:11:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "271f20bb_51a4d5f4",
+      "range": {
+        "startLine": 77,
+        "startChar": 2,
+        "endLine": 77,
+        "endChar": 12
+      },
+      "revId": "a649ccf4061d1963a9e670a738f9759edd65bb48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "21221f8b_a38393bd",
         "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
         "patchSetId": 22
@@ -114,6 +210,30 @@
       "revId": "a649ccf4061d1963a9e670a738f9759edd65bb48",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "266c317b_765d28b0",
+        "filename": "perf/modules/plot-simple-sk/plot-simple-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-06-26T14:11:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "21221f8b_a38393bd",
+      "range": {
+        "startLine": 24,
+        "startChar": 1,
+        "endLine": 29,
+        "endChar": 0
+      },
+      "revId": "a649ccf4061d1963a9e670a738f9759edd65bb48",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
