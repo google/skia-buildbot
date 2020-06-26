@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>commit-detail-picker-sk</title>
   <meta charset="utf-8" />
@@ -12,48 +13,25 @@
     }
   </style>
 </head>
+
 <body>
   <h1>Commits</h1>
 
-  <commit-detail-picker-sk></commit-detail-picker-sk>
+  <section class="body-sk">
+    <h2>themes.css</h2>
+    <commit-detail-picker-sk></commit-detail-picker-sk>
+  </section>
+
+  <section class="body-sk darkmode">
+    <h2>themes.css - darkmode</h2>
+    <commit-detail-picker-sk></commit-detail-picker-sk>
+  </section>
 
   <div>
-    Event: <pre id=evt></pre>
+    Event:
+    <pre id=evt></pre>
   </div>
 
-  <script type="text/javascript" charset="utf-8">
-    const commitinfo = [
-      {
-        ts: 1439649751,
-        author: "foo (foo@example.org)",
-        url: "skia.googlesource.com/bar",
-        message: "Commit from foo.",
-      },
-      {
-        ts: 1439648914,
-        author: "bar (bar@example.org)",
-        url: "skia.googlesource.com/foo",
-        message: "Commit from bar",
-      },
-      {
-        ts: 1439649951,
-        author: "foo (foo@example.org)",
-        url: "https://codereview.chromium.org/1490543002",
-        message: "Whitespace change",
-      },
-      {
-        ts: 1439699951,
-        author: "foo (foo@example.org)",
-        url: "https://codereview.chromium.org/1490543002",
-        message: "Another whitespace change",
-      },
-    ];
-    let picker = document.querySelector('commit-detail-picker-sk');
-    let evt = document.querySelector('#evt');
-    picker.details = commitinfo;
-    picker.addEventListener('commit-selected', function(e) {
-      evt.textContent = JSON.stringify(e.detail, null, '  ');
-    });
-  </script>
 </body>
+
 </html>
