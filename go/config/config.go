@@ -16,10 +16,12 @@ type Duration struct {
 	time.Duration
 }
 
+// MarshalText implements the encoding.TextMarshaler interface.
 func (d *Duration) MarshalText() (text []byte, err error) {
 	return []byte(d.String()), nil
 }
 
+// UnmarshalText implements the encoding.TextUnmarshaler interface.
 func (d *Duration) UnmarshalText(text []byte) error {
 	val, err := time.ParseDuration(string(text))
 	if err == nil {

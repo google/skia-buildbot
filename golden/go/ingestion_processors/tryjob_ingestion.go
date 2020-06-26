@@ -34,7 +34,7 @@ import (
 )
 
 const (
-	firestoreTryJobIngester = "gold-tryjob-fs"
+	firestoreTryJobIngester = "gold_tryjob_fs"
 	firestoreProjectIDParam = "FirestoreProjectID"
 	firestoreNamespaceParam = "FirestoreNamespace"
 
@@ -70,7 +70,7 @@ type goldTryjobProcessor struct {
 // newModularTryjobProcessor returns an ingestion.Processor which is modular and can support
 // different CodeReviewSystems (e.g. "Gerrit", "GitHub") and different ContinuousIntegrationSystems
 // (e.g. "BuildBucket", "CirrusCI"). This particular implementation stores the data in Firestore.
-func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config *ingestion.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
+func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingestion.Config, client *http.Client) (ingestion.Processor, error) {
 	crsName := config.ExtraParams[codeReviewSystemParam]
 	if strings.TrimSpace(crsName) == "" {
 		return nil, skerr.Fmt("missing code review system (e.g. 'gerrit')")
@@ -123,7 +123,7 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config *inges
 	}, nil
 }
 
-func codeReviewSystemFactory(crsName string, config *ingestion.IngesterConfig, client *http.Client) (code_review.Client, error) {
+func codeReviewSystemFactory(crsName string, config ingestion.Config, client *http.Client) (code_review.Client, error) {
 	if crsName == gerritCRS {
 		gerritURL := config.ExtraParams[gerritURLParam]
 		if strings.TrimSpace(gerritURL) == "" {
@@ -156,7 +156,7 @@ func codeReviewSystemFactory(crsName string, config *ingestion.IngesterConfig, c
 	return nil, skerr.Fmt("CodeReviewSystem %q not recognized", crsName)
 }
 
-func continuousIntegrationSystemFactory(cisName string, _ *ingestion.IngesterConfig, client *http.Client) (continuous_integration.Client, error) {
+func continuousIntegrationSystemFactory(cisName string, _ ingestion.Config, client *http.Client) (continuous_integration.Client, error) {
 	if cisName == buildbucketCIS {
 		bbClient := buildbucket.NewClient(client)
 		return buildbucket_cis.New(bbClient), nil

@@ -17,9 +17,7 @@ INSTANCE_DIR=./k8s-instances
 
 CONF_OUT_DIR="./build"
 ING_CONF_MAP="gold-${INSTANCE_ID}-ingestion-config-bt"
-# DEPLOY_CONF="${CONF_OUT_DIR}/gold-${INSTANCE_ID}.yaml"
 DEPLOY_CONF="${CONF_OUT_DIR}/gold-${INSTANCE_ID}"
-INGEST_CONF="${CONF_OUT_DIR}/${ING_CONF_MAP}.json5"
 
 INGESTION_SERVER_CONF="${DEPLOY_CONF}-ingestion-bt.yaml"
 CORRECTNESS_CONF="${DEPLOY_CONF}-skiacorrectness.yaml"
@@ -28,7 +26,6 @@ DIFF_SERVER_CONF="${DEPLOY_CONF}-diffserver.yaml"
 
 mkdir -p $CONF_OUT_DIR
 rm -f $CONF_OUT_DIR/*
-rm -f $INGEST_CONF
 
 # Make sure we have the latest and greatest kube-conf-gen
 go install ../kube/go/kube-conf-gen
@@ -43,17 +40,10 @@ kube-conf-gen -c "${TMPL_DIR}/gold-common.json5" \
 
 if [ $INSTANCE_ID != "skia-public" ]
 then
-  # generate the configuration file for ingestion.
-  kube-conf-gen -c "${TMPL_DIR}/gold-common.json5" \
-                -c "${INSTANCE_DIR}/${INSTANCE_ID}-instance.json5" \
-                -extra "INSTANCE_ID:${INSTANCE_ID}" \
-                -t "${TMPL_DIR}/ingest-config-template.json5" \
-                -parse_conf=false -strict \
-                -o "${INGEST_CONF}"
-
   # generate the deployment file for ingestion.
   kube-conf-gen -c "${TMPL_DIR}/gold-common.json5" \
-                -c "${INSTANCE_DIR}/${INSTANCE_ID}-instance.json5" \
+                -c "${INSTANCE_DIR}/${INSTANCE_ID}/${INSTANCE_ID}.json5" \
+                -c "${INSTANCE_DIR}/${INSTANCE_ID}/${INSTANCE_ID}-ingestion-bt.json5" \
                 -extra "INSTANCE_ID:${INSTANCE_ID}" \
                 -t "${TMPL_DIR}/gold-ingestion-bt-template.yaml" \
                 -parse_conf=false -quote -strict \
@@ -61,6 +51,7 @@ then
 
   # generate the deployment file for the baseline server
   kube-conf-gen -c "${TMPL_DIR}/gold-common.json5" \
+                -c "${INSTANCE_DIR}/${INSTANCE_ID}/${INSTANCE_ID}.json5" \
                 -c "${INSTANCE_DIR}/${INSTANCE_ID}/${INSTANCE_ID}-baselineserver.json5" \
                 -extra "INSTANCE_ID:${INSTANCE_ID}" \
                 -t "${TMPL_DIR}/gold-baselineserver-template.yaml" \
@@ -68,6 +59,7 @@ then
                 -o "${BASELINE_SERVER_CONF}"
 
   kube-conf-gen -c "${TMPL_DIR}/gold-common.json5" \
+                -c "${INSTANCE_DIR}/${INSTANCE_ID}/${INSTANCE_ID}.json5" \
                 -c "${INSTANCE_DIR}/${INSTANCE_ID}/${INSTANCE_ID}-diffserver.json5" \
                 -extra "INSTANCE_ID:${INSTANCE_ID}" \
                 -t "${TMPL_DIR}/gold-diffserver-template.yaml" \
@@ -75,16 +67,12 @@ then
                 -o "${DIFF_SERVER_CONF}"
 fi
 
-
-
 set +x
 
 if [ $INSTANCE_ID != "skia-public" ]
 then
   # Push the ingestion config map to kubernetes
   echo "# To push these run:\n"
-  echo "kubectl delete configmap $ING_CONF_MAP"
-  echo "kubectl create configmap $ING_CONF_MAP --from-file=$INGEST_CONF"
 
   # Push the ingestion and show pods so we can see if it landed correctly.
   echo "kubectl apply -f ${INGESTION_SERVER_CONF} && kubectl get pods -w -l app=gold-$INSTANCE_ID-ingestion-bt"

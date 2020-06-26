@@ -1,0 +1,46 @@
+{
+  port: ":9091",
+  prom_port: ":20000",
+  pubsub_event_topic: "gold-skia-infra-eventbus-bt",
+  pubsub_project_id: "skia-public",
+
+  ingestion_configs: {
+    // Primary Ingester
+    gold_bt: {
+      backup_poll_every: "1h",
+      backup_poll_last_n_commits: 5,
+      backup_poll_last_n_hours: 2,
+      gcs_sources: [
+        {
+          bucket: "skia-gold-skia-infra",
+          prefix: "dm-json-v1"
+        }
+      ],
+      extra_configuration: {
+        BTProjectID: "skia-public",
+        BTInstance: "production",
+        BTTable: "gold-skia-infra"
+      }
+    },
+    // Gold Tryjob Ingester
+    gold_tryjob_fs: {
+      backup_poll_every: "1h",
+      backup_poll_last_n_hours: 2,
+      gcs_sources: [
+        {
+          bucket: "skia-gold-skia-infra",
+          prefix: "trybot/dm-json-v1"
+        },
+      ],
+      extra_configuration: {
+        FirestoreProjectID: "skia-firestore",
+        FirestoreNamespace: "skia-infra",
+
+        CodeReviewSystem:  "gerrit",
+        GerritURL:         "https://skia-review.googlesource.com",
+
+        ContinuousIntegrationSystems: "buildbucket",
+      }
+    }
+  }
+}

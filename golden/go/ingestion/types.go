@@ -64,7 +64,6 @@ type Processor interface {
 type IngestionStore interface {
 	// SetResultFileHash indicates that we have ingested the given filename
 	// with the given md5hash.
-	// TODO(kjlubick) add context.Context to this interface
 	SetResultFileHash(ctx context.Context, fileName, md5 string) error
 
 	// ContainsResultFileHash returns true if the provided file and md5 hash
@@ -72,14 +71,8 @@ type IngestionStore interface {
 	ContainsResultFileHash(ctx context.Context, fileName, md5 string) (bool, error)
 }
 
-// DataSource is a single ingestion source. Currently we use the convention
-// that if 'bucket' is empty, we assume a source on the local file system.
-type DataSource struct {
-	Bucket string // Bucket in Google storage. If empty local storage is assumed.
-	Dir    string // Root directory of the data to ingest.
-}
-
-type IngesterConfig struct {
+// Config is the configuration for a single ingester.
+type Config struct {
 	// As of 2019, the primary way to ingest data is event-driven. That is, when
 	// new files are put into a GCS bucket, PubSub fires an event and that is the
 	// primary way for an ingester to be notified about a file.
@@ -88,32 +81,33 @@ type IngesterConfig struct {
 	// dropped (PubSub will try and re-try to send events for up to seven days by default).
 	// If MinDays and MinHours are both 0, polling will not happen.
 	// If MinDays and MinHours are both specified, the two will be added.
-	RunEvery config.Duration // How often the ingester should pull data from Google Storage.
-	NCommits int             // Minimum number of commits that should be ingested.
-	MinDays  int             // Minimum number of days the commits polled should span.
-	MinHours int             // Minimum number of hours the commits polled should span.
 
-	MetricName  string            // What to call this ingester's data when imported to Graphite
-	Sources     []*DataSource     // Input sources where the ingester reads from.
-	ExtraParams map[string]string // Any additional needed parameters (ingester specific)
+	// How often the ingester should pull data from Google Storage.
+	RunEvery config.Duration `json:"backup_poll_every"`
+
+	// Minimum number of commits that should be ingested.
+	NCommits int `json:"backup_poll_last_n_commits" optional:"true"`
+
+	// Minimum number of days the commits polled should span.
+	MinDays int `json:"backup_poll_last_n_days" optional:"true"`
+
+	// Minimum number of hours the commits polled should span.
+	MinHours int `json:"backup_poll_last_n_hours" optional:"true"`
+
+	// Input sources where the ingester reads from.
+	Sources []GCSSource `json:"gcs_sources"`
+
+	// Any additional needed parameters (ingester specific)
+	ExtraParams map[string]string `json:"extra_configuration"`
 }
 
-// Config is a struct to configure multiple ingesters.
-type Config struct {
-	GitRepoURL       string // Git URL of the repo.
-	SecondaryRepoURL string // URL of the secondary repo that has above as a dependency.
-	SecondaryRepoDir string // Directory location for the secondary repo.
-	SecondaryRegEx   string // Regular expression to extract the commit hash from the DEPS file.
-	EventTopic       string // PubSub topic on which global events are sent.
-	Ingesters        map[string]*IngesterConfig
-}
+// GCSSource is a single ingestion source of a given GCS bucket.
+type GCSSource struct {
+	// Bucket in Google storage. The reason this is specified here is that a single ingester could
+	// be configured to read in data from multiple buckets (e.g. a public bucket and a private
+	// bucket).
+	Bucket string `json:"bucket"`
 
-// ConfigFromJson5File parses a JSON5 file into a Config struct.
-// TODO(kjlubick) replace this with golden/go/config
-func ConfigFromJson5File(path string) (*Config, error) {
-	ret := &Config{}
-	if err := config.ParseConfigFile(path, "", ret); err != nil {
-		return nil, err
-	}
-	return ret, nil
+	// Root directory (aka prefix) of the data to ingest in the GCS bucket.
+	Dir string `json:"prefix"`
 }

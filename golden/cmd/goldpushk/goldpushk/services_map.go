@@ -83,7 +83,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 		} else {
 			// Add common services for regular instances.
 			s.addWithOptions(instance, DiffServer, DeploymentOptions{useJSON5InsteadOfFlags: true})
-			s.addWithOptions(instance, IngestionBT, makeDeploymentOptionsForIngestionBT(instance, false))
+			s.addWithOptions(instance, IngestionBT, DeploymentOptions{useJSON5InsteadOfFlags: true})
 			s.add(instance, SkiaCorrectness)
 		}
 	}
@@ -108,20 +108,10 @@ func ProductionDeployableUnits() DeployableUnitSet {
 		useJSON5InsteadOfFlags: true,
 		internal:               true,
 	})
-	s.addWithOptions(Fuchsia, IngestionBT, makeDeploymentOptionsForIngestionBT(Fuchsia, true))
+	s.addWithOptions(Fuchsia, IngestionBT, DeploymentOptions{useJSON5InsteadOfFlags: true, internal: true})
 	s.addWithOptions(Fuchsia, SkiaCorrectness, DeploymentOptions{internal: true})
 
 	return s
-}
-
-// makeDeploymentOptionsForIngestionBT builds and returns the deployment options necessary for the
-// IngestionBT service corresponding to the given instance.
-func makeDeploymentOptionsForIngestionBT(instance Instance, internal bool) DeploymentOptions {
-	return DeploymentOptions{
-		internal:          internal,
-		configMapName:     fmt.Sprintf("gold-%s-ingestion-config-bt", instance),
-		configMapTemplate: "k8s-config-templates/ingest-config-template.json5",
-	}
 }
 
 // isPublicInstance returns true if the given instance is in knownPublicInstances.
