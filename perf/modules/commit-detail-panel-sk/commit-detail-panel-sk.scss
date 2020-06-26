@@ -1,26 +1,32 @@
-@import '~elements-sk/colors';
+@import '~elements-sk/themes/themes.css';
 
 commit-detail-panel-sk {
-    pre,
-    span {
-      margin: 0;
-    }
+  pre,
+  span {
+    margin: 0;
+  }
 
-    a {
-      color: var(--blue);
-      font-weight: bold;
-    }
+  a {
+    color: var(--primary);
+    font-weight: bold;
+  }
 
-    td {
-      padding: 0.2em;
-      border: none;
-    }
+  td {
+    padding: 0.2em;
+    border: none;
+  }
 
-    tr[selected] {
-      background: var(--light-gray);
-    }
+  tr[selected] {
+    background: var(--surface-1dp);
+  }
+
+  opacity: 0.6;
 }
 
 commit-detail-panel-sk[selectable] td {
   cursor: pointer;
+}
+
+commit-detail-panel-sk[selectable] {
+  opacity: 1;
 }
