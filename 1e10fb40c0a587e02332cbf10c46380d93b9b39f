@@ -22,6 +22,30 @@
       "revId": "1e10fb40c0a587e02332cbf10c46380d93b9b39f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88f316d4_a2853d99",
+        "filename": "perf/modules/plot-simple-sk/kd.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-06-26T19:27:48Z",
+      "side": 1,
+      "message": "\u0027x\u0027 is one dimension. \u0027y\u0027 is the other dimension.",
+      "parentUuid": "b23cf366_30d82a2b",
+      "range": {
+        "startLine": 39,
+        "startChar": 5,
+        "endLine": 39,
+        "endChar": 15
+      },
+      "revId": "1e10fb40c0a587e02332cbf10c46380d93b9b39f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
