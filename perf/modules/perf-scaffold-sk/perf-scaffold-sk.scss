@@ -1,4 +1,4 @@
-@import '~elements-sk/colors';
+@import '~elements-sk/themes/themes.css';
 
 // If the sidebar is to be hidden then we remove it from the grid.
 perf-scaffold-sk.sidebar_hidden {
@@ -47,7 +47,7 @@ perf-scaffold-sk {
     display: flex;
     flex-direction: column;
 
-    background: var(--dark-white);
+    background: var(--surface-2dp);
 
     ul {
       padding-inline-start: 0;
@@ -63,12 +63,12 @@ perf-scaffold-sk {
     }
 
     li > * {
-      fill: var(--blue);
-      color: var(--blue);
+      fill: var(--primary);
+      color: var(--primary);
     }
 
     li:hover {
-      background: var(--light-blue);
+      opacity: 0.8;
     }
   }
 
@@ -77,20 +77,20 @@ perf-scaffold-sk {
     grid-area: topbar;
 
     align-items: center;
-    color: var(--white);
-    background: var(--blue);
+    color: var(--on-primary);
+    background: var(--primary);
 
     #toggleSidebarButton {
-      fill: var(--white);
-      color: var(--white);
-      background: var(--blue);
+      fill: var(--on-primary);
+      color: var(--on-primary);
+      background: var(--primary);
       border: none;
       box-shadow: none;
       border-radius: 0;
     }
 
     #toggleSidebarButton:hover {
-      background: var(--light-blue);
+      opacity: 0.8;
     }
 
     a[href]:hover {
@@ -101,7 +101,7 @@ perf-scaffold-sk {
       vertical-align: middle;
       padding: 0.2em;
       padding-left: 1em;
-      color: var(--blue);
+      color: var(--primary);
     }
 
     div {
@@ -113,8 +113,8 @@ perf-scaffold-sk {
     margin-left: auto;
     margin-right: 1em;
     display: block;
-    color: white;
-    --login-sk-color: var(--white);
+    color: var(--on-primary);
+    --login-sk-color: var(--on-primary);
   }
 
   h1 {
