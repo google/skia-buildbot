@@ -1,6 +1,14 @@
+@import '~elements-sk/themes/themes.css';
+
 commit-detail-picker-sk {
   dialog button {
     float: right;
     margin-top: 1em;
+  }
+
+  dialog {
+    color: var(--on-background);
+    background: var(--background);
+    border: solid 1px var(--on-background);
   }
 }
