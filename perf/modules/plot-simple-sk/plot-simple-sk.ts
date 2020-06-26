@@ -269,7 +269,7 @@ class SearchBuilder {
       y: cy,
       sx: x,
       sy: y,
-      name: name,
+      name,
     });
   }
 
@@ -363,7 +363,7 @@ interface Area {
   range: Range;
 }
 
-interface SummaryArea extends Area { }
+interface SummaryArea extends Area {}
 
 interface DetailArea extends Area {
   yaxis: {
@@ -400,14 +400,14 @@ export class PlotSimpleSk extends ElementSk {
       width=${ele.width * window.devicePixelRatio}
       height=${ele.height * window.devicePixelRatio}
       style="transform-origin: 0 0; transform: scale(${1 /
-    window.devicePixelRatio});"
+      window.devicePixelRatio});"
     ></canvas>
     <canvas
       class="overlay"
       width=${ele.width * window.devicePixelRatio}
       height=${ele.height * window.devicePixelRatio}
       style="transform-origin: 0 0; transform: scale(${1 /
-    window.devicePixelRatio});"
+      window.devicePixelRatio});"
     ></canvas>`;
 
   // The location of the XBar. See the xbar property..
@@ -853,7 +853,7 @@ export class PlotSimpleSk extends ElementSk {
       };
       this.dispatchEvent(
         new CustomEvent<PlotSimpleSkTraceEventDetails>('trace_selected', {
-          detail: detail,
+          detail,
           bubbles: true,
         })
       );
@@ -885,7 +885,7 @@ export class PlotSimpleSk extends ElementSk {
     };
     this.dispatchEvent(
       new CustomEvent<PlotSimpleSkZoomEventDetails>('zoom', {
-        detail: detail,
+        detail,
         bubbles: true,
       })
     );
@@ -929,7 +929,7 @@ export class PlotSimpleSk extends ElementSk {
           this._hoverPt = detail;
           this.dispatchEvent(
             new CustomEvent<PlotSimpleSkTraceEventDetails>('trace_focused', {
-              detail: detail,
+              detail,
               bubbles: true,
             })
           );
@@ -1021,7 +1021,7 @@ export class PlotSimpleSk extends ElementSk {
       const values = lines[key];
       this._lineData.push({
         name: key,
-        values: values,
+        values,
         color: 'black',
         detail: {
           linePath: null,
@@ -1130,9 +1130,9 @@ export class PlotSimpleSk extends ElementSk {
   // Recalculates the y-axis info.
   _recalcYAxis(area: DetailArea) {
     const yAxisPath = new Path2D();
-    const thin_x = Math.floor(this._detail.rect.x) + 0.5; // Make sure we get a thin line. https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Applying_styles_and_colors#A_lineWidth_example
-    yAxisPath.moveTo(thin_x, this._detail.rect.y);
-    yAxisPath.lineTo(thin_x, this._detail.rect.y + this._detail.rect.height);
+    const thinX = Math.floor(this._detail.rect.x) + 0.5; // Make sure we get a thin line. https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Applying_styles_and_colors#A_lineWidth_example
+    yAxisPath.moveTo(thinX, this._detail.rect.y);
+    yAxisPath.lineTo(thinX, this._detail.rect.y + this._detail.rect.height);
     area.yaxis.labels = [];
     area.range.y.ticks(NUM_Y_TICKS).forEach((t) => {
       const label = {
@@ -1141,8 +1141,8 @@ export class PlotSimpleSk extends ElementSk {
         text: `${this._numberFormatter.format(t)}`,
       };
       area.yaxis.labels.push(label);
-      yAxisPath.moveTo(thin_x, label.y);
-      yAxisPath.lineTo(thin_x - this.Y_AXIS_TICK_LENGTH, label.y);
+      yAxisPath.moveTo(thinX, label.y);
+      yAxisPath.lineTo(thinX - this.Y_AXIS_TICK_LENGTH, label.y);
     });
     area.yaxis.path = yAxisPath;
   }
@@ -1150,9 +1150,9 @@ export class PlotSimpleSk extends ElementSk {
   // Recalculates the x-axis info.
   _recalcXAxis(area: Area, labels: Date[], labelOffset: number) {
     const xAxisPath = new Path2D();
-    const thin_y = Math.floor(area.rect.y) + 0.5; // Make sure we get a thin line.
-    xAxisPath.moveTo(area.rect.x + 0.5, thin_y);
-    xAxisPath.lineTo(area.rect.x + 0.5 + area.rect.width, thin_y);
+    const thinY = Math.floor(area.rect.y) + 0.5; // Make sure we get a thin line.
+    xAxisPath.moveTo(area.rect.x + 0.5, thinY);
+    xAxisPath.lineTo(area.rect.x + 0.5 + area.rect.width, thinY);
     area.axis.labels = [];
     ticks(labels).forEach((tick) => {
       const label = {
@@ -1343,17 +1343,17 @@ export class PlotSimpleSk extends ElementSk {
       this._drawBands(ctx, this._detail, this.DETAIL_BAR_WIDTH);
 
       // Draw highlighted lines.
-      this._lineData.forEach((line) => {
-        if (!(line.name in this._highlighted)) {
+      this._lineData.forEach((highlightedLine) => {
+        if (!(highlightedLine.name in this._highlighted)) {
           return;
         }
-        ctx.strokeStyle = line.color;
+        ctx.strokeStyle = highlightedLine.color;
         ctx.fillStyle = this.LABEL_BACKGROUND;
         ctx.lineWidth = this.SUMMARY_HIGHLIGHT_LINE_WIDTH;
 
-        ctx.stroke(line.detail.linePath!);
-        ctx.fill(line.detail.dotsPath!);
-        ctx.stroke(line.detail.dotsPath!);
+        ctx.stroke(highlightedLine.detail.linePath!);
+        ctx.fill(highlightedLine.detail.dotsPath!);
+        ctx.stroke(highlightedLine.detail.dotsPath!);
       });
 
       // Find the line currently hovered over.
@@ -1380,12 +1380,12 @@ export class PlotSimpleSk extends ElementSk {
         ctx.strokeStyle = this.CROSSHAIR_COLOR;
         ctx.lineWidth = AXIS_LINE_WIDTH;
         ctx.beginPath();
-        const thin_x = Math.floor(this._crosshair.x) + 0.5; // Make sure we get a thin line.
-        const thin_y = Math.floor(this._crosshair.y) + 0.5; // Make sure we get a thin line.
-        ctx.moveTo(this._detail.rect.x, thin_y);
-        ctx.lineTo(this._detail.rect.x + this._detail.rect.width, thin_y);
-        ctx.moveTo(thin_x, this._detail.rect.y);
-        ctx.lineTo(thin_x, this._detail.rect.y + this._detail.rect.height);
+        const thinX = Math.floor(this._crosshair.x) + 0.5; // Make sure we get a thin line.
+        const thinY = Math.floor(this._crosshair.y) + 0.5; // Make sure we get a thin line.
+        ctx.moveTo(this._detail.rect.x, thinY);
+        ctx.lineTo(this._detail.rect.x + this._detail.rect.width, thinY);
+        ctx.moveTo(thinX, this._detail.rect.y);
+        ctx.lineTo(thinX, this._detail.rect.y + this._detail.rect.height);
         ctx.stroke();
 
         // Y label at crosshair if shift is pressed.
