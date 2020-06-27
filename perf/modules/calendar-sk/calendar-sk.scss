@@ -1,0 +1,21 @@
+@import '~elements-sk/themes/themes.css';
+
+calendar-sk {
+  font-size: 120%;
+
+  td {
+    text-align: center;
+  }
+
+  th.clickable {
+    cursor: pointer;
+  }
+
+  th.clickable:hover {
+    background: var(--surface-1dp);
+  }
+
+  tr.weekdayHeader {
+    opacity: 0.6;
+  }
+}
