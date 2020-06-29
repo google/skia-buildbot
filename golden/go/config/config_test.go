@@ -41,7 +41,7 @@ func TestLoadFromJSON5_Success(t *testing.T) {
 		testCommonConfig: testCommonConfig{
 			CommonString:     "somestring",
 			CommonInt:        1234,
-			CommonBool:       true,
+			CommonBool:       false,
 			WillBeOverridden: "7890",
 		},
 		Unique: "1234",

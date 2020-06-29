@@ -2,7 +2,7 @@
   // This is a comment to prove this is a JSON5 format.
   common_str: "somestring",
   common_int: 1234,
-  common_bool: true,
+  common_bool: false,
 
   will_be_overridden: "56",
 
