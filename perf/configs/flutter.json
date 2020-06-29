@@ -1,5 +1,5 @@
 {
-  "URL": "https://flutter-perf.skia.org/",
+  "URL": "https://flutter-engine-perf.skia.org/",
   "data_store_config": {
     "datastore_type": "gcp",
     "connection_string": "postgresql://root@perf-flutter-cockroachdb-public:26257/flutter?sslmode=disable",
@@ -15,10 +15,7 @@
       "source_type": "gcs",
       "project": "skia-public",
       "topic": "perf-ingestion-flutter",
-      "sources": [
-        "gs://flutter-skia-perf/flutter-engine",
-        "gs://flutter-skia-perf/flutter-flutter"
-      ]
+      "sources": ["gs://flutter-skia-perf/flutter-engine"]
     },
     "branches": [],
     "file_ingestion_pubsub_topic_name": ""
