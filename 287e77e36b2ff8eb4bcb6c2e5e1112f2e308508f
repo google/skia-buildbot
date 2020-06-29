@@ -1,0 +1,579 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0e81a04_4c873f05",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "I would recommend separating the reminder about the Date object\u0027s API quirks and the note about the -Index convention into different paragraphs. For example:\n\n  /*\n   * Most of the Date[1] object\u0027s methods return zero-indexed values, with exceptions such as\n   * Date.prototype.getDate() and Date.prototype.getYear().\n   *\n   * To make things easier to follow, we suffix zero-indexed values returned by a\n   * Date object with \"Index\", e.g.:\n   *\n   *   const dayIndex \u003d date.getDay();     // (0-6).\n   *   const monthIndex \u003d date.getMonth(); // (0-11).\n   *\n   * [1] https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date\n   */",
+      "range": {
+        "startLine": 31,
+        "startChar": 1,
+        "endLine": 34,
+        "endChar": 53
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "809f1a11_039c1325",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Would it be simpler to just dispatch a CustomEvent\u003cDate\u003e?",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 1
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83239c65_a495e4b1",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Nit: getNumberOfDaysInMonth, or getMonthLengthInDays, or getMonthLength.",
+      "range": {
+        "startLine": 41,
+        "startChar": 6,
+        "endLine": 41,
+        "endChar": 20
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c9a1e8ef_bf488290",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Looks like the comment on line 103 was accidentally copied here?",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 38
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f180ad39_62017112",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Consider:\n\n  // Utility array to iterate over all 7 days in a week from templates.\n  const sevenDaysInAWeek \u003d [0, 1, 2, 3, 4, 5, 6];\n\nThis will allow you to write your loops as follows:\n\n  sevenDaysInAWeek.map(i \u003d\u003e { ... do something with i ... });\n\nInstead of the current form:\n\n  sevenDaysInAWeek.map((_, i) \u003d\u003e { ... do something with i ... });",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 46
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4902fcff_5009285d",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Same suggestions as above. Please make sure to mention these are for use in templates only.",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 55
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "033bb9a9_965ae7ff",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Nit: This could be a class with a constructor that takes a Date, and an equals() method.",
+      "range": {
+        "startLine": 60,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 0
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b76f8f8_e997bfc8",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Nit: Please suffix these with \"Template\" or \"Tmpl\"",
+      "range": {
+        "startLine": 79,
+        "startChar": 17,
+        "endLine": 79,
+        "endChar": 30
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cad58c8d_30f7e2fa",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Nit: firstDayOfMonthIndex",
+      "range": {
+        "startLine": 106,
+        "startChar": 10,
+        "endLine": 106,
+        "endChar": 38
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f09874be_7bfe3da0",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Nit:\n  return html`\n    \u003ctr\u003e\n      ${...",
+      "range": {
+        "startLine": 114,
+        "startChar": 4,
+        "endLine": 115,
+        "endChar": 7
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff15cdd8_26c8aee1",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Nit:\n\n    })}\n  \u003c/tr\u003e`;",
+      "range": {
+        "startLine": 127,
+        "startChar": 0,
+        "endLine": 128,
+        "endChar": 7
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "27e2d113_36573793",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Nit: Consider reordering these with the top-level template on top, followed by the subtemplates in the order they are referenced.",
+      "range": {
+        "startLine": 131,
+        "startChar": 0,
+        "endLine": 131,
+        "endChar": 54
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6116dc14_3f77c837",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "You might want to use the \"title\" attribute instead of/in addition to aria-label, which will render as a tooltip when the user hovers over the button. Same for the other buttons.",
+      "range": {
+        "startLine": 137,
+        "startChar": 0,
+        "endLine": 137,
+        "endChar": 38
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a54024d7_212c3f63",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Nit: line break.",
+      "range": {
+        "startLine": 183,
+        "startChar": 27,
+        "endLine": 183,
+        "endChar": 28
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36fa981e_bd2a1edf",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "It would probably be clearer if we use the Intl.DateTimeFormat type directly here (and on the \"locale\" property as a consequence).\n\n  private _locale: Intl.DateTimeFormat \u003d new Intl.DateTimeFormat();",
+      "range": {
+        "startLine": 189,
+        "startChar": 19,
+        "endLine": 189,
+        "endChar": 60
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "168d83e1_5d60c3d0",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "What would be the drawback of having this component handle its own event listener? That is:\n\n- Add keyboardHandler as a \u0027keydown\u0027 event listener on connectedCallback() .\n- Remove it on disconnectedCallback().\n- Make the keyboardHandler method private (and rename to onKeyDown).\n\nIf the above approach doesn\u0027t work, please add a comment explaining why.",
+      "range": {
+        "startLine": 200,
+        "startChar": 0,
+        "endLine": 205,
+        "endChar": 37
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3312284d_7481555e",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Can this be turned into a static template like the others?\n\nIt would be clearer for the reader to see all templates grouped in one single place.",
+      "range": {
+        "startLine": 243,
+        "startChar": 3,
+        "endLine": 263,
+        "endChar": 3
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59682fff_0d72de43",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "I suspect we could simplify things by dispatching a new CustomEvent\u003cDate\u003e(\u0027change\u0027, {detail: d, bubbles: true}) here.",
+      "range": {
+        "startLine": 269,
+        "startChar": 0,
+        "endLine": 274,
+        "endChar": 8
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f27ae4af_fb966636",
+        "filename": "perf/modules/calendar-sk/calendar-sk.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Please add a JSDoc comment.",
+      "range": {
+        "startLine": 384,
+        "startChar": 0,
+        "endLine": 384,
+        "endChar": 21
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "30dbbeba_9d60c06d",
+        "filename": "perf/modules/calendar-sk/calendar-sk_test.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "import { setUpElementUnderTest, eventPromise } from \u0027../../../infra-sk/modules/test_util\u0027;",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 0
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c44c42f4_e2f71c8d",
+        "filename": "perf/modules/calendar-sk/calendar-sk_test.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Overall suggestions:\n\n- Use setUpElementUnderTest(), which cleans up the EUT for you and requires less code.\n- No need to wait until the custom element is defined; the import order guarantees this.\n- Use eventPromise() to catch events with less code, written in async/await style.\n- Extract out any code using query selectors into high-level helper functions at the end of the outermost describe block.\n\nThe last suggestion leads to shorter and more declarative tests, e.g.:\n\n  clickDateBtn(19);\n\nvs.\n\n  calendarSk.querySelector\u003cHTMLButtonElement\u003e(\u0027button[data-date\u003d\"19\"]\u0027)!.click();\n\nLumping all such helpers together at the end of the describe block means you\u0027ll only have to look in one place if you change the component\u0027s markup in the future and the selectors break.\n\nThis is what this file might look like after applying the above suggestions:\n\n  describe(\u0027calendar-sk\u0027, () \u003d\u003e {\n    const newInstance \u003d setUpElementUnderTest\u003cCalendarSk\u003e(\u0027calendar-sk\u0027);\n\n    let calendarSk: CalendarSk;\n\n    beforeEach(() \u003d\u003e {\n      calendarSk \u003d newInstance();\n      calendarSk.displayDate \u003d new Date(2020, 4, 21);\n    });\n\n    describe(\u0027event\u0027, () \u003d\u003e {\n      it(\u0027fires when button is clicked\u0027, async () \u003d\u003e {\n        const event \u003d eventPromise\u003cCustomEvent\u003cCalendarSkChangeEventDetails\u003e\u003e(\u0027change\u0027);\n        clickDateBtn(19);\n        const detail \u003d (await event).detail;\n\n        assert.equal(\n          new Date(2020, 4, 19).toDateString(),\n          detail.date.toDateString(),\n          \u0027Date has changed.\u0027);\n      });\n    });\n\n    // ...\n\n  });",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 5
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "92abdcbe_c29f59d8",
+        "filename": "perf/modules/calendar-sk/calendar-sk_test.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Here:\n  clickPreviousYearBtn();\n\nAnd at the end of the outermost describe block:\n  const clickPreviousYearBtn \u003d\n    () \u003d\u003e calendarSk.querySelector\u003cHTMLButtonElement\u003e(\u0027#previous-year\u0027)!.click();\n\nSame for the other buttons.",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 72
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32797e44_63fc30a3",
+        "filename": "perf/modules/calendar-sk/calendar-sk_test.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Here:\n\n  assert.equal(getYear(), \u00272019\u0027, Year has changed.\u0027);\n\nAt the end of the outermost describe block:\n\n  const getYear \u003d\n    () \u003d\u003e calendarSk.querySelector\u003cHTMLHeadingElement\u003e(\u0027#calendar-year\u0027)!.innerText;\n\nSame for any other text read from the UI.",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 56
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40f35ef2_6f739ac7",
+        "filename": "perf/modules/calendar-sk/calendar-sk_test.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "If you take my suggestion about always setting up an event listener for \u0027keydown\u0027 on connectedCallback() and removing it on disconnectedCallback(), this could be written as follows:\n\n  pressArrowRightKey();\n\nAnd then at the end of the outermost describe block:\n\n  const pressArrowRightKey \u003d\n    () \u003d\u003e calendarSk.dispatchEvent(new KeyboardEvent(\u0027keydown\u0027, {code: \u0027ArrowRight\u0027}));\n\nSame for the key presses.",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 10
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7f24afe_0747a2b9",
+        "filename": "perf/modules/calendar-sk/calendar-sk_test.ts",
+        "patchSetId": 22
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-29T21:57:06Z",
+      "side": 1,
+      "message": "Presumably we\u0027d also like to test that the selected day on the UI has been updated as well (i.e. the \u003cbutton\u003e for the 22nd day of the month).\n\nI\u0027d recommend adding a getSelectedDay() helper at the end of the outermost describe block, then here:\n\n  assert(getSelectedDay(), 22, \u0027Selected day has changed.\u0027);\n\nSame elsewhere.",
+      "range": {
+        "startLine": 95,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 10
+      },
+      "revId": "287e77e36b2ff8eb4bcb6c2e5e1112f2e308508f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
