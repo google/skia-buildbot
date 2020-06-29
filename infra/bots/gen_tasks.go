@@ -11,9 +11,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"path"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"time"
 
@@ -57,6 +59,15 @@ var (
 		"Housekeeper-Weekly-UpdateCIPDPackages",
 		"Housekeeper-OnDemand-Presubmit",
 		"Infra-PerCommit-Build",
+		"Infra-PerCommit-GoBuild-darwin-amd64",
+		"Infra-PerCommit-GoBuild-linux-amd64",
+		"Infra-PerCommit-GoBuild-linux-arm",
+		"Infra-PerCommit-GoBuild-windows-amd64",
+		//"Infra-PerCommit-GoTests-darwin-amd64",
+		"Infra-PerCommit-GoTests-linux-amd64",
+		//"Infra-PerCommit-GoTestsRace-linux-amd64",
+		//"Infra-PerCommit-GoTests-linux-arm,
+		//"Infra-PerCommit-GoTests-windows-amd64",
 		"Infra-PerCommit-Small",
 		"Infra-PerCommit-Medium",
 		"Infra-PerCommit-Large",
@@ -179,10 +190,138 @@ func bundleRecipes(b *specs.TasksCfgBuilder) string {
 	return BUNDLE_RECIPES_NAME
 }
 
+func dockerTask(b *specs.TasksCfgBuilder, name string, env map[string]string, srcRelPath, image string, cmd []string) *specs.TaskSpec {
+	// Read the Docker image ID.
+	path := filepath.Join(relpath("."), "..", "..", image)
+	imgContents, err := ioutil.ReadFile(path)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+	imageSha256 := strings.TrimSpace(string(imgContents))
+
+	dockerCmd := []string{
+		"/usr/bin/docker", "run",
+		// These are required for LUCI auth, which uses an environment variable
+		// which points to a file which points to a token server on the host.
+		"--env", "LUCI_CONTEXT=/auth/ctx.json",
+		"--mount", "type=bind,destination=/auth/ctx.json,source=${LUCI_CONTEXT},readonly",
+		"--net", "host",
+		// These are required for all non-local task drivers.
+		"--env", "SWARMING_BOT_ID=${SWARMING_BOT_ID}",
+		"--env", "SWARMING_SERVER=${SWARMING_SERVER}",
+		"--env", "SWARMING_TASK_ID=${SWARMING_TASK_ID}",
+	}
+	envList := make([]string, 0, len(env))
+	for k, v := range env {
+		envList = append(envList, fmt.Sprintf("%s=%s", k, v))
+	}
+	sort.Strings(envList)
+	for _, envVar := range envList {
+		dockerCmd = append(dockerCmd, "--env", envVar)
+	}
+	dockerCmd = append(dockerCmd,
+		// TODO(borenet): /src should be readonly, but we need write access due
+		// to the rice-box.go generation.
+		"--mount", fmt.Sprintf("type=bind,destination=/src,source=$(pwd)/%s", srcRelPath),
+		"--mount", fmt.Sprintf("type=bind,destination=/out,source=%s", specs.PLACEHOLDER_ISOLATED_OUTDIR),
+		"--workdir", "/src",
+		imageSha256,
+	)
+	dockerCmd = append(dockerCmd, cmd...)
+	return &specs.TaskSpec{
+		// Run inside a shell so that we can use environment variables and
+		// sub-shells.
+		Command:    []string{"/bin/sh", "-c", fmt.Sprintf("%s", strings.Join(dockerCmd, " "))},
+		Dimensions: dockerGceDimensions(MACHINE_TYPE_LARGE),
+		Idempotent: true,
+		// TODO(borenet): Figure out how to isolate only Go files.
+		Isolate:        "whole_repo.isolate",
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+}
+
+func goBuild(b *specs.TasksCfgBuilder, name string) string {
+	// Get the target platform from the task name.
+	split := strings.Split(name, "-")
+	if len(split) != 5 {
+		sklog.Fatalf("Invalid format for goBuild: %q", name)
+	}
+	goos := split[len(split)-2]
+	goarch := split[len(split)-1]
+
+	targetsByPlatform := map[string][]string{
+		"darwin-amd64":  {"./infra/bots/task_drivers/..."},
+		"linux-amd64":   {"./..."},
+		"linux-arm":     {"./infra/bots/task_drivers/..."},
+		"windows-amd64": {"./infra/bots/task_drivers/..."},
+	}
+	platform := fmt.Sprintf("%s-%s", goos, goarch)
+	targets, ok := targetsByPlatform[platform]
+	if !ok {
+		sklog.Fatalf("No goBuild targets found for %s", platform)
+	}
+
+	env := map[string]string{
+		"GOOS":   goos,
+		"GOARCH": goarch,
+	}
+	cmd := []string{
+		"go", "run", "./src/infra/bots/task_drivers/go_build/go_build.go",
+		"--project-id", "skia-swarming-bots",
+		"--task-id", specs.PLACEHOLDER_TASK_ID,
+		"--task-name", name,
+		"--alsologtostderr",
+		"--output-path", "/out",
+		"--output-whitelist", "go_tests",
+	}
+	for _, target := range targets {
+		cmd = append(cmd, "--target", target)
+	}
+	if strings.Contains(name, "Race") || platform == "linux-amd64" {
+		cmd = append(cmd, "--build-flags", "\"--race\"")
+		env["CGO_ENABLED"] = "1"
+	}
+
+	b.MustAddTask(name, dockerTask(b, name, env, "buildbot", filepath.Join("go_deps", "image.sha256"), cmd))
+	return name
+}
+
+func goTests(b *specs.TasksCfgBuilder, name string) string {
+	task := &specs.TaskSpec{
+		Command: []string{
+			"./bin/go_tests",
+			"--project-id", "skia-swarming-bots",
+			"--task-id", specs.PLACEHOLDER_TASK_ID,
+			"--task-name", name,
+			"--alsologtostderr",
+			"--test-dir", "./test",
+			"--test-data-dir", "./buildbot",
+		},
+		Dependencies: []string{goBuild(b, strings.Replace(name, "GoTests", "GoBuild", 1))},
+		Dimensions:   dockerGceDimensions(MACHINE_TYPE_LARGE), // TODO
+		EnvPrefixes: map[string][]string{
+			"PATH": {"bin", "cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+		},
+		Idempotent:     true,
+		Isolate:        "go_tests.isolate",
+		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
+	}
+	task.CipdPackages = append(task.CipdPackages, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
+	task.CipdPackages = append(task.CipdPackages, b.MustGetCipdPackageFromAsset("go"))
+
+	// Re-run failing bots but not when testing for race conditions.
+	task.MaxAttempts = 2
+	if strings.Contains(name, "Race") {
+		task.MaxAttempts = 1
+		task.IoTimeout = 1 * time.Hour
+	}
+	b.MustAddTask(name, task)
+	return name
+}
+
 // buildTaskDrivers generates the task to compile the task driver code to run on
 // a given platform.
 func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
-	// TODO(borenet): Add support for RPI.
 	goos := map[string]string{
 		"Linux": "linux",
 		"Mac":   "darwin",
@@ -579,6 +718,10 @@ func process(b *specs.TasksCfgBuilder, name string) {
 		deps = append(deps, updateCIPDPackages(b, name))
 	} else if strings.Contains(name, "ValidateAutorollConfigs") {
 		deps = append(deps, validateAutorollConfigs(b, name))
+	} else if strings.Contains(name, "GoBuild") {
+		deps = append(deps, goBuild(b, name))
+	} else if strings.Contains(name, "GoTests") {
+		deps = append(deps, goTests(b, name))
 	} else {
 		// Infra tests.
 		if strings.Contains(name, "Infra-PerCommit") {

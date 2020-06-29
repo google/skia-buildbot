@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,7 +22,7 @@ import (
 
 const (
 	// name of the input file containing test data.
-	dmJSONFile = "testdata/dm.json"
+	dmJSONFile = "dm.json"
 )
 
 // Tests parsing and processing of a single file.
@@ -29,7 +30,7 @@ const (
 // depend on jsonio.ParseGoldResults which has its own test suite.
 func TestDMResults(t *testing.T) {
 	unittest.SmallTest(t)
-	f, err := os.Open(dmJSONFile)
+	f, err := os.Open(filepath.Join(testutils.TestDataDir(t), dmJSONFile))
 	require.NoError(t, err)
 
 	gr, err := parseGoldResultsFromReader(f)
