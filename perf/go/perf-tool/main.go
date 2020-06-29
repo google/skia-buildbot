@@ -2,7 +2,9 @@
 package main
 
 import (
+	"archive/zip"
 	"context"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -20,6 +22,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/glog_and_cloud"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/tracestore"
@@ -43,6 +46,11 @@ var (
 	ingestStartFlag  string
 	ingestEndFlag    string
 	ingestDryrunFlag bool
+)
+
+const (
+	connectionStringFlag string = "connection_string"
+	outputFilenameFlag   string = "out"
 )
 
 func mustGetStore() tracestore.TraceStore {
@@ -87,6 +95,18 @@ func main() {
 		RunE:  configCreatePubSubTopicsAction,
 	}
 	configCmd.AddCommand(configPubSubCmd)
+
+	databaseCmd := &cobra.Command{
+		Use: "database [sub]",
+	}
+	databaseBackupSubCmd := &cobra.Command{
+		Use:   "backup",
+		Short: "Backs up the given ",
+		RunE:  databaseDatabaseBackupSubAction,
+	}
+	databaseBackupSubCmd.Flags().String(connectionStringFlag, "", "Override the connection_string in the config file.")
+	databaseBackupSubCmd.Flags().String(outputFilenameFlag, "", "The output filename")
+	databaseCmd.AddCommand(databaseBackupSubCmd)
 
 	indicesCmd := &cobra.Command{
 		Use: "indices [sub]",
@@ -165,6 +185,7 @@ func main() {
 
 	cmd.AddCommand(
 		configCmd,
+		databaseCmd,
 		indicesCmd,
 		tilesCmd,
 		tracesCmd,
@@ -176,6 +197,52 @@ func main() {
 		os.Exit(1)
 	}
 
+}
+
+func databaseDatabaseBackupSubAction(c *cobra.Command, args []string) error {
+	ctx := context.Background()
+	connectionStringOverride := c.Flag(connectionStringFlag).Value.String()
+	if connectionStringOverride != "" {
+		instanceConfig.DataStoreConfig.ConnectionString = connectionStringOverride
+	}
+
+	outputFilename := c.Flag(outputFilenameFlag).Value.String()
+	if outputFilename == "" {
+		return skerr.Fmt("The --%q flag is required.", outputFilename)
+	}
+	f, err := os.Create(outputFilename)
+	if err != nil {
+		return err
+	}
+	defer util.Close(f)
+	z := zip.NewWriter(f)
+
+	// Backup Alerts.
+	alertStore, err := builders.NewAlertStoreFromConfig(ctx, true, instanceConfig)
+	if err != nil {
+		return err
+	}
+	alerts, err := alertStore.List(ctx, true)
+	if err != nil {
+		return err
+	}
+	alertsZipWriter, err := z.Create("alerts")
+	if err != nil {
+		return err
+	}
+	encoder := gob.NewEncoder(alertsZipWriter)
+	for _, alert := range alerts {
+		fmt.Printf("Alert: %q\n", alert.DisplayName)
+		if err := encoder.Encode(alert); err != nil {
+			return err
+		}
+	}
+
+	if err := z.Close(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func tilesLastAction(c *cobra.Command, args []string) error {
