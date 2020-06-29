@@ -850,17 +850,30 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 	}
 	sklog.Infof("Found %d requests.", len(reqs))
 	for _, req := range reqs {
+		// HACK HACK HACK
+		if strings.HasPrefix(req.Revision, "refs/changes/") {
+			req.DryRun = true
+			req.Emails = []string{"rmistry@google.com"} // Maybe this should be req.Requester just for the UI tests
+			req.NoResolveRevision = true
+		}
+		// HACK HACK HACK
+
 		var issue *autoroll.AutoRollIssue
-		to, err := r.getRevision(ctx, req.Revision)
-		if err != nil {
-			req.Status = manual.STATUS_COMPLETE
-			req.Result = manual.RESULT_FAILURE
-			req.ResultDetails = fmt.Sprintf("Failed to obtain revision: %s", err)
-			sklog.Errorf("Failed to create manual roll: %s", req.ResultDetails)
-			if err := r.manualRollDB.Put(req); err != nil {
-				return skerr.Wrapf(err, "Failed to update manual roll request")
+		var to *revision.Revision
+		if req.NoResolveRevision {
+			to = &revision.Revision{Id: req.Revision}
+		} else {
+			to, err = r.getRevision(ctx, req.Revision)
+			if err != nil {
+				req.Status = manual.STATUS_COMPLETE
+				req.Result = manual.RESULT_FAILURE
+				req.ResultDetails = fmt.Sprintf("Failed to obtain revision: %s", err)
+				sklog.Errorf("Failed to create manual roll: %s", req.ResultDetails)
+				if err := r.manualRollDB.Put(req); err != nil {
+					return skerr.Wrapf(err, "Failed to update manual roll request")
+				}
+				continue
 			}
-			continue
 		}
 		if req.Status == manual.STATUS_PENDING {
 			// Avoid creating rolls to the current revision.
@@ -875,14 +888,17 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 				}
 				continue
 			}
-			emails := r.GetEmails()
-			if !util.In(req.Requester, emails) {
-				emails = append(emails, req.Requester)
+			emails := req.Emails
+			if emails == nil || len(emails) == 0 {
+				emails = r.GetEmails()
+				if !util.In(req.Requester, emails) {
+					emails = append(emails, req.Requester)
+				}
 			}
 			var err error
 			sklog.Infof("Creating manual roll to %s as requested by %s...", req.Revision, req.Requester)
 
-			issue, err = r.createNewRoll(ctx, from, to, emails, false)
+			issue, err = r.createNewRoll(ctx, from, to, emails, req.DryRun)
 			if err != nil {
 				return skerr.Wrapf(err, "Failed to create manual roll for %s: %s", req.Id, err)
 			}
