@@ -91,6 +91,7 @@ func (c *GitCheckoutGithubChild) fixPullRequestLinks(rev *revision.Revision) err
 }
 
 // See documentation for Child interface.
+// HERE HERE Github child get revision
 func (c *GitCheckoutGithubChild) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
 	rev, err := c.GitCheckoutChild.GetRevision(ctx, id)
 	if err != nil {

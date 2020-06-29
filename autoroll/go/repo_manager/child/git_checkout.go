@@ -24,6 +24,7 @@ type GitCheckoutChild struct {
 
 // NewGitCheckout returns an implementation of Child which uses a local Git
 // checkout.
+// HERE HERE HERE This is the NewGitCheckout for child where it eventually does the fetch.
 func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, workdir, userName, userEmail string, co *git.Checkout) (*GitCheckoutChild, error) {
 	checkout, err := git_common.NewCheckout(ctx, c.GitCheckoutConfig, reg, workdir, userName, userEmail, co)
 	if err != nil {
