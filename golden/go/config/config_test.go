@@ -22,7 +22,7 @@ type testSpecificConfig struct {
 	testCommonConfig
 	Unique string `json:"unique"`
 
-	OptionalDuration time.Duration `json:"optional_duration" optional:"true"`
+	OptionalDuration Duration `json:"optional_duration" optional:"true"`
 }
 
 func TestLoadFromJSON5_Success(t *testing.T) {
@@ -41,10 +41,34 @@ func TestLoadFromJSON5_Success(t *testing.T) {
 		testCommonConfig: testCommonConfig{
 			CommonString:     "somestring",
 			CommonInt:        1234,
-			CommonBool:       true,
+			CommonBool:       false,
 			WillBeOverridden: "7890",
 		},
 		Unique: "1234",
+	}, tsc)
+}
+
+func TestLoadFromJSON5_WithDuration_Success(t *testing.T) {
+	unittest.MediumTest(t)
+
+	td, err := testutils.TestDataDir()
+	require.NoError(t, err)
+	commonPath := filepath.Join(td, "common.json5")
+	specificPath := filepath.Join(td, "specific_duration.json5")
+
+	var tsc testSpecificConfig
+	err = LoadFromJSON5(&tsc, &commonPath, &specificPath)
+	require.NoError(t, err)
+
+	assert.Equal(t, testSpecificConfig{
+		testCommonConfig: testCommonConfig{
+			CommonString:     "somestring",
+			CommonInt:        1234,
+			CommonBool:       false,
+			WillBeOverridden: "7890",
+		},
+		Unique:           "1234",
+		OptionalDuration: Duration{Duration: 3 * time.Hour},
 	}, tsc)
 }
 
