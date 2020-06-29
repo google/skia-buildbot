@@ -102,6 +102,12 @@ type ManualRollRequest struct {
 	Status        ManualRollStatus `json:"status"`
 	Timestamp     time.Time        `json:"timestamp"`
 	Url           string           `json:"url,omitempty"`
+
+	DryRun bool `json:"dry_run"`
+	// If emails is empty then the sheriffs specified in the config file are used.
+	Emails []string `json:"emails"`
+	// Do not call rm.GetRevision(Revision) if this is true. Use Revision{Id: Revision} instead.
+	NoResolveRevision bool `json:"no_resolve_revision"`
 }
 
 // Return a copy of the ManualRollRequest.
