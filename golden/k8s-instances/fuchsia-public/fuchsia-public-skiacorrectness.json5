@@ -9,6 +9,7 @@ View them at %s/cl/%s/%s",
   diff_server_grpc: "gold-fuchsia-public-diffserver:8000",
   diff_server_http: "gold-fuchsia-public-diffserver:8001",
   flaky_trace_threshold: 10000, // no trace is flaky
+  force_login: true, // This instance requires authentication.
   frontend: {
     baseRepoURL: "<inherited from git_repo_url>",
     crsTemplate: "<inherited from crs_url_template>",
