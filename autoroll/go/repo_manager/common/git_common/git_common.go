@@ -94,10 +94,19 @@ func NewCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Regi
 }
 
 // See documentation for child.Child interface.
+// HERE HERE: Ends up here. When is Download called?
 func (c *Checkout) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
+	// Fails here...
 	details, err := c.Details(ctx, id)
 	if err != nil {
-		return nil, skerr.Wrap(err)
+		_, err2 := c.Git(ctx, "fetch", "origin", id)
+		if err2 != nil {
+			return nil, skerr.Wrapf(err, "and failed to fetch with: %s", err2)
+		}
+		details, err2 = c.Details(ctx, "FETCH_HEAD")
+		if err2 != nil {
+			return nil, skerr.Wrapf(err, "and failed to obtain details with: %s", err2)
+		}
 	}
 	rev := revision.FromLongCommit(c.RevLinkTmpl, details)
 	if len(c.Dependencies) > 0 {

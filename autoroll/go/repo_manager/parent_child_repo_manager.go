@@ -32,6 +32,7 @@ func (rm *parentChildRepoManager) Update(ctx context.Context) (*revision.Revisio
 	if err != nil {
 		return nil, nil, nil, skerr.Wrapf(err, "failed to update Parent")
 	}
+	// HERE HERE get revision from child.
 	lastRollRev, err := rm.Child.GetRevision(ctx, lastRollRevId)
 	if err != nil {
 		sklog.Errorf("Last roll rev %q not found. This is acceptable for some rollers which allow outside versions to be rolled manually (eg. AFDO roller). A human should verify that this is indeed caused by a manual roll. Attempting to continue with no last-rolled revision. The revisions listed in the commit message will be incorrect!", lastRollRevId)
