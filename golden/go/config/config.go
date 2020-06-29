@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/flynn/json5"
+	"go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
@@ -13,6 +14,8 @@ import (
 // Not all instances will use every field in Common, but every field in Common is used in at least
 // two instances (otherwise, it can be deferred to the config specific to its only user). Common
 // should be embedded in all configs specific to a given instance (aka. "Specific Configs").
+// If a field is defined in both Common and a given specific config, there will be problems, so
+// don't do that.
 type Common struct {
 	// The BigTable instance that should be targeted. E.g. "production", "internal".
 	BTInstance string `json:"bt_instance"`
@@ -48,13 +51,13 @@ type Common struct {
 	DebugPort string `json:"debug_port" optional:"true"`
 
 	// If running locally (not in production).
-	Local bool `json:"local" optional:"true"`
+	Local bool `json:"local"`
 }
 
 // LoadFromJSON5 reads the contents of path and tries to decode the JSON5 there into the provided
 // struct. The passed in struct pointer is expected to have "json" struct tags for all fields.
-// An error will be returned if any non-struct field is its zero value *unless* it is tagged
-// with `optional:"true"`.
+// An error will be returned if any non-struct, non-bool field is its zero value *unless* it is
+// tagged with `optional:"true"`.
 func LoadFromJSON5(dst interface{}, commonConfigPath, specificConfigPath *string) error {
 	// Elem() dereferences a pointer or panics.
 	rType := reflect.TypeOf(dst).Elem()
@@ -78,8 +81,8 @@ func LoadFromJSON5(dst interface{}, commonConfigPath, specificConfigPath *string
 	return checkRequired(rValue)
 }
 
-// checkRequired returns an error if any non-struct fields of the given value have a zero value
-// *unless* they have an optional tag with value true.
+// checkRequired returns an error if any non-struct, non-bool fields of the given value have a zero
+// value *unless* they have an optional tag with value true.
 func checkRequired(rValue reflect.Value) error {
 	rType := rValue.Type()
 	for i := 0; i < rValue.NumField(); i++ {
@@ -88,6 +91,16 @@ func checkRequired(rValue reflect.Value) error {
 			if err := checkRequired(rValue.Field(i)); err != nil {
 				return err
 			}
+			continue
+		}
+		if field.Type.Kind() == reflect.Bool {
+			// For ease of use, booleans aren't compared against their zero value, since that would
+			// effectively make them required to be true always.
+			continue
+		}
+		isJSON := field.Tag.Get("json")
+		if isJSON == "" {
+			// don't validate struct values w/o json tags (e.g. config.Duration.Duration).
 			continue
 		}
 		isOptional := field.Tag.Get("optional")
@@ -101,3 +114,6 @@ func checkRequired(rValue reflect.Value) error {
 	}
 	return nil
 }
+
+// Duration allows us to supply a duration as a human readable string.
+type Duration = config.Duration

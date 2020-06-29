@@ -1,0 +1,33 @@
+{
+  authorized_users: [
+    "google.com",
+  ],
+  cl_comment_template: "Gold has detected about %d untriaged digest(s) on patchset %d. \
+View them at %s/cl/%s/%s",
+  client_secret_file: "/etc/skia.org/login.json",
+  crs_url_template: "https://github.com/flutter/flutter/pull/%s",
+  diff_server_grpc: "gold-flutter-diffserver:8000",
+  diff_server_http: "gold-flutter-diffserver:8001",
+  flaky_trace_threshold: 10000, // no trace is flaky
+  frontend: {
+    baseRepoURL: "<inherited from git_repo_url>",
+    crsTemplate: "<inherited from crs_url_template>",
+    defaultCorpus: "flutter",
+    title: "Flutter Gold",
+  },
+  github_cred_path: "/var/secrets/github/github_token",
+  github_repo: "flutter/flutter",
+  lit_html_path: "/usr/local/share/skiacorrectness",
+  num_commits: 200,
+  port: ":8000",
+  prom_port: ":20000",
+  resources_path: "/usr/local/share/skiacorrectness/frontend",
+  site_url: "https://flutter-gold.skia.org",
+  tile_freshness: "1m",
+  trace_bt_table: "gold-flutter",
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  K8S_CPU: 4,
+  K8S_LOGIN_SECRETS: "skia-org-legacy-login-secrets",
+  K8S_MEMORY: "4Gi",
+}

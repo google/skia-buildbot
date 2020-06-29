@@ -22,25 +22,5 @@
         BTTable: "gold-lottie"
       }
     },
-    // Gold Tryjob Ingester
-    gold_tryjob_fs: {
-      backup_poll_every: "1h",
-      backup_poll_last_n_hours: 2,
-      gcs_sources: [
-        {
-          bucket: "skia-gold-lottie",
-          prefix: "trybot/dm-json-v1"
-        },
-      ],
-      extra_configuration: {
-        FirestoreProjectID: "skia-firestore",
-        FirestoreNamespace: "lottie",
-
-        CodeReviewSystem:  "gerrit",
-        GerritURL:         "https://skia-review.googlesource.com",
-
-        ContinuousIntegrationSystems: "buildbucket",
-      }
-    }
   }
 }

@@ -42,65 +42,22 @@ spec:
         - name: gold-{{.INSTANCE_ID}}-skiacorrectness
           image: {{.SKIACORRECTNESS_IMAGE}}
           args:
-            - "--app_title={{.SKCORR_TITLE}}"
-            - "--authoritative={{.AUTHORITATIVE}}"
-            - "--auth_users={{.AUTH_USERS}}"
-            - "--bt_instance={{.BIGTABLE_INSTANCE}}"
-            - "--bt_project_id={{.BIGTABLE_PROJECT}}"
-            - "--changelist_tracking={{.CHANGELIST_TRACKING}}"
-            - "--cl_comment_dryrun={{.CL_COMMENT_DRYRUN}}"
-            - "--cl_comment_template_idx={{.CL_COMMENT_TEMPLATE}}"
-            - "--crs_url_template={{.CRS_URL_TEMPLATE}}"
-            - "--default_corpus={{.SKCORR_DEFAULT_CORPUS}}"
-            - "--diff_server_grpc={{.SKCORR_DIFF_SERVER}}:8000"
-            - "--diff_server_http={{.SKCORR_DIFF_SERVER}}:8001"
-            - "--flaky_trace_threshold={{.FLAKY_TRACE_THRESHOLD}}"
-            - "--force_login={{.FORCE_LOGIN}}"
-            - "--fs_namespace={{.FIRESTORE_NAMESPACE}}"
-            - "--fs_project_id={{.FIRESTORE_PROJECT}}"
-            - "--gerrit_url={{.GERRIT_URL}}"
-            - "--git_bt_table={{.GIT_BT_TABLE}}"
-            - "--git_repo_url={{.GITREPO_URL}}"
-            {{if eq .CODE_REVIEW_SYSTEM "github"}}
-            - "--github_cred_path=/var/secrets/github/github_token"
-            - "--github_repo={{.GITHUB_REPO}}"
-            {{end}}
-            - "--idx_interval={{.TILE_FRESHNESS}}"
-            - "--known_hashes_gcs_path={{.BUCKET}}/hash_files/{{.HASHES_FILE}}"
-            - "--lit_html_dir=/usr/local/share/skiacorrectness"
-            - "--logtostderr=true"
-            - "--n_commits={{.N_COMMITS}}"
-            - "--negatives_max_age={{.NEGATIVE_EXPECTATIONS_MAX_AGE}}"
-            - "--no_cloud_log=true"
-            - "--primary_crs={{.CODE_REVIEW_SYSTEM}}"
-            - "--port=:8000"
-            - "--positives_max_age={{.POSITIVE_EXPECTATIONS_MAX_AGE}}"
-            - "--prom_port=:20000"
-            {{if .AUTHORIZED_PARAMS}}
-            - "--public_whitelist=/etc/gold/authorized-params.json5"
-            {{else}}
-            - "--public_whitelist=all"
-            {{end}}
-            - "--redirect_url={{.SITE_URL}}/oauth2callback/"
-            - "--resources_dir=/usr/local/share/skiacorrectness/frontend"
-            - "--site_url={{.SITE_URL}}"
-            - "--tile_freshness={{.TILE_FRESHNESS}}"
-            - "--trace_bt_table={{.BIGTABLE_TABLE}}"
+            - "--common_instance_config=/etc/gold-config/{{.INSTANCE_ID}}.json5"
+            - "--config=/etc/gold-config/{{.INSTANCE_ID}}-skiacorrectness.json5"
+            - "--logtostderr"
           ports:
             - containerPort: 8000
               name: http
             - containerPort: 20000
               name: prom
           volumeMounts:
+            - name: gold-{{.INSTANCE_ID}}-config-volume
+              mountPath: /etc/gold-config/
             - name: gold-service-account-secrets
               mountPath: /var/secrets/google/
-            - name: {{.LOGIN_SECRETS}}
+            - name: {{.K8S_LOGIN_SECRETS}}
               mountPath: /etc/skia.org/
-            {{if .AUTHORIZED_PARAMS}}
-            - name: gold-authorized-params-volume
-              mountPath: /etc/gold/
-            {{end}}
-            {{if eq .CODE_REVIEW_SYSTEM "github"}}
+            {{if eq .primary_crs "github"}}
             - name: gold-github-token
               mountPath: /var/secrets/github/
             {{end}}
@@ -109,8 +66,8 @@ spec:
               value: /var/secrets/google/service-account.json
           resources:
             requests:
-              memory: "{{.MAIN_MEMORY}}"
-              cpu: "{{.MAIN_CPU}}"
+              memory: "{{.K8S_MEMORY}}"
+              cpu: "{{.K8S_CPU}}"
           readinessProbe:
             httpGet:
               path: /healthz
@@ -119,19 +76,17 @@ spec:
             periodSeconds: 10
             failureThreshold: 6
       volumes:
+        - name: gold-{{.INSTANCE_ID}}-config-volume
+          configMap:
+            defaultMode: 400
+            name: gold-{{.INSTANCE_ID}}-config
         - name: gold-service-account-secrets
           secret:
             secretName: gold-service-account-secrets
-        - name: {{.LOGIN_SECRETS}}
+        - name: {{.K8S_LOGIN_SECRETS}}
           secret:
-            secretName: {{.LOGIN_SECRETS}}
-        {{if .AUTHORIZED_PARAMS}}
-        - name: gold-authorized-params-volume
-          configMap:
-            defaultMode: 420
-            name: {{.AUTHORIZED_PARAMS}}
-        {{end}}
-        {{if eq .CODE_REVIEW_SYSTEM "github"}}
+            secretName: {{.K8S_LOGIN_SECRETS}}
+        {{if eq .primary_crs "github"}}
         - name: gold-github-token
           secret:
             secretName: gold-github-token
