@@ -2,9 +2,12 @@
 package main
 
 import (
+	"archive/zip"
 	"context"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"time"
@@ -20,6 +23,8 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/glog_and_cloud"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/tracestore"
@@ -43,6 +48,12 @@ var (
 	ingestStartFlag  string
 	ingestEndFlag    string
 	ingestDryrunFlag bool
+)
+
+const (
+	connectionStringFlag string = "connection_string"
+	outputFilenameFlag   string = "out"
+	inputFilenameFlag    string = "in"
 )
 
 func mustGetStore() tracestore.TraceStore {
@@ -87,6 +98,26 @@ func main() {
 		RunE:  configCreatePubSubTopicsAction,
 	}
 	configCmd.AddCommand(configPubSubCmd)
+
+	databaseCmd := &cobra.Command{
+		Use: "database [sub]",
+	}
+	databaseCmd.PersistentFlags().String(connectionStringFlag, "", "Override the connection_string in the config file.")
+	databaseBackupSubCmd := &cobra.Command{
+		Use:   "backup",
+		Short: "Backs up the given ",
+		RunE:  databaseDatabaseBackupSubAction,
+	}
+	databaseBackupSubCmd.Flags().String(outputFilenameFlag, "", "The output filename")
+	databaseCmd.AddCommand(databaseBackupSubCmd)
+
+	databaseRestoreSubCmd := &cobra.Command{
+		Use:   "restore",
+		Short: "Restores from the given backup.",
+		RunE:  databaseDatabaseRestoreSubAction,
+	}
+	databaseRestoreSubCmd.Flags().String(inputFilenameFlag, "", "The filename of the backup.")
+	databaseCmd.AddCommand(databaseRestoreSubCmd)
 
 	indicesCmd := &cobra.Command{
 		Use: "indices [sub]",
@@ -165,6 +196,7 @@ func main() {
 
 	cmd.AddCommand(
 		configCmd,
+		databaseCmd,
 		indicesCmd,
 		tilesCmd,
 		tracesCmd,
@@ -176,6 +208,109 @@ func main() {
 		os.Exit(1)
 	}
 
+}
+
+func databaseDatabaseBackupSubAction(c *cobra.Command, args []string) error {
+	ctx := context.Background()
+	connectionStringOverride := c.Flag(connectionStringFlag).Value.String()
+	if connectionStringOverride != "" {
+		instanceConfig.DataStoreConfig.ConnectionString = connectionStringOverride
+	}
+
+	outputFilename := c.Flag(outputFilenameFlag).Value.String()
+	if outputFilename == "" {
+		return skerr.Fmt("The --%q flag is required.", outputFilename)
+	}
+	f, err := os.Create(outputFilename)
+	if err != nil {
+		return err
+	}
+	defer util.Close(f)
+	z := zip.NewWriter(f)
+
+	// Backup Alerts.
+	alertStore, err := builders.NewAlertStoreFromConfig(ctx, true, instanceConfig)
+	if err != nil {
+		return err
+	}
+	alerts, err := alertStore.List(ctx, true)
+	if err != nil {
+		return err
+	}
+	alertsZipWriter, err := z.Create("alerts")
+	if err != nil {
+		return err
+	}
+	encoder := gob.NewEncoder(alertsZipWriter)
+	for _, alert := range alerts {
+		fmt.Printf("Alert: %q\n", alert.DisplayName)
+		if err := encoder.Encode(alert); err != nil {
+			return err
+		}
+	}
+
+	if err := z.Close(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func databaseDatabaseRestoreSubAction(c *cobra.Command, args []string) error {
+	ctx := context.Background()
+	connectionStringOverride := c.Flag(connectionStringFlag).Value.String()
+	if connectionStringOverride != "" {
+		instanceConfig.DataStoreConfig.ConnectionString = connectionStringOverride
+	}
+
+	inputFilename := c.Flag(inputFilenameFlag).Value.String()
+	if inputFilename == "" {
+		return skerr.Fmt("The --%q flag is required.", inputFilename)
+	}
+
+	z, err := zip.OpenReader(inputFilename)
+	if err != nil {
+		return err
+	}
+	defer util.Close(z)
+
+	// Backup Alerts.
+	alertStore, err := builders.NewAlertStoreFromConfig(ctx, true, instanceConfig)
+	if err != nil {
+		return err
+	}
+	// Find "alerts"
+	var alertsZipFile *zip.File
+	for _, zipReader := range z.File {
+		if zipReader.Name == "alerts" {
+			alertsZipFile = zipReader
+		}
+	}
+	if alertsZipFile == nil {
+		return skerr.Fmt("Could not find an alerts file in the backup: %q", inputFilename)
+	}
+	alertsZipReader, err := alertsZipFile.Open()
+	if err != nil {
+		return err
+	}
+
+	decoder := gob.NewDecoder(alertsZipReader)
+	for {
+		var alert alerts.Alert
+		err := decoder.Decode(&alert)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		if err := alertStore.Save(ctx, &alert); err != nil {
+			fmt.Printf("Alerts: %q\n", alert.DisplayName)
+			return err
+		}
+	}
+
+	return nil
 }
 
 func tilesLastAction(c *cobra.Command, args []string) error {
