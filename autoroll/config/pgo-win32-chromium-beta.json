@@ -9,6 +9,7 @@
     "includeTbrLine": true
   },
   "contacts": [
+    "sebmarchand@google.com",
     "jeffyoon@google.com",
     "liaoyuke@google.com",
     "chrome-brapp-engprod@google.com"
@@ -34,10 +35,10 @@
     "childPath": "chrome/build/win32.pgo.txt",
     "gcsBucket": "chromium-optimization-profiles",
     "gcsPath": "pgo_profiles",
-    "parentBranch": "refs/branch-heads/4147", // m84
+    "parentBranch": "refs/branch-heads/4183", // m85
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
     "versionFile": "chrome/build/win32.pgo.txt",
-    "versionRegex": "^chrome-win32-4147-(\\d+)-.+\\.profdata$"
+    "versionRegex": "^chrome-win32-4183-(\\d+)-.+\\.profdata$"
   },
   "kubernetes": {
     "cpu": "1",
