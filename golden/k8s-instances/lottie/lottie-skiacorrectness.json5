@@ -1,0 +1,32 @@
+{
+  authorized_users: [
+    "google.com", "chromium.org", "skia.org",
+  ],
+  cl_comment_template: "Gold has detected about %d untriaged digest(s) on patchset %d. \
+View them at %s/cl/%s/%s",
+  client_secret_file: "/etc/skia.org/login.json",
+  crs_url_template: "https://skia-review.googlesource.com/%s",
+  diff_server_grpc: "gold-lottie-diffserver:8000",
+  diff_server_http: "gold-lottie-diffserver:8001",
+  flaky_trace_threshold: 10000, // no flaky traces
+  frontend: {
+    baseRepoURL: "<inherited from git_repo_url>",
+    crsTemplate: "<inherited from crs_url_template>",
+    defaultCorpus: "lottie",
+    title: "Lottie Gold",
+  },
+  gerrit_url: "https://skia-review.googlesource.com",
+  lit_html_path: "/usr/local/share/skiacorrectness",
+  num_commits: 500,
+  port: ":8000",
+  prom_port: ":20000",
+  resources_path: "/usr/local/share/skiacorrectness/frontend",
+  site_url: "https://lottie-gold.skia.org",
+  tile_freshness: "1m",
+  trace_bt_table: "gold-lottie",
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  K8S_CPU: 4,
+  K8S_LOGIN_SECRETS: "skia-org-legacy-login-secrets",
+  K8S_MEMORY: "4Gi",
+}

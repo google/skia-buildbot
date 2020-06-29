@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/flynn/json5"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -24,10 +25,11 @@ func (d *Duration) MarshalText() (text []byte, err error) {
 // UnmarshalText implements the encoding.TextUnmarshaler interface.
 func (d *Duration) UnmarshalText(text []byte) error {
 	val, err := time.ParseDuration(string(text))
-	if err == nil {
-		d.Duration = val
+	if err != nil {
+		return skerr.Wrapf(err, "invalid duration: %s", string(text))
 	}
-	return err
+	d.Duration = val
+	return nil
 }
 
 // Verify that Duration implements encoding.TextMarshaler and encoding.TextUnmarshaler.

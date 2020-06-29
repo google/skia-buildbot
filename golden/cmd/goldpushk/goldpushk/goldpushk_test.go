@@ -106,40 +106,6 @@ func TestGoldpushkGetDeploymentFilePath(t *testing.T) {
 	require.Equal(t, filepath.Join(g.k8sConfigCheckout.Dir(), "skia-corp", "gold-fuchsia-diffserver.yaml"), g.getDeploymentFilePath(internalUnit))
 }
 
-func TestGoldpushkGetConfigMapFilePath(t *testing.T) {
-	unittest.SmallTest(t)
-	unittest.LinuxOnlyTest(t)
-
-	// Create the goldpushk instance under test.
-	const goldSrcDir = "/path/to/buildbot/golden"
-	g := Goldpushk{
-		goldSrcDir: goldSrcDir,
-	}
-	addFakeK8sConfigRepoCheckout(&g)
-
-	// Gather the DeployableUnits we will call Goldpushk.getConfigMapFilePath() with.
-	s := ProductionDeployableUnits()
-	publicUnitWithoutConfigMap, _ := s.Get(makeID(Skia, DiffServer))
-	publicUnitWithConfigMapFile, _ := s.Get(makeID(SkiaPublic, SkiaCorrectness))
-	internalUnitWithoutConfigMap, _ := s.Get(makeID(Fuchsia, DiffServer))
-
-	// Helper functions to write more concise assertions.
-	assertNoConfigMap := func(unit DeployableUnit) {
-		_, ok := g.getConfigMapFilePath(unit)
-		require.False(t, ok, unit.CanonicalName())
-	}
-	assertConfigMapFileEquals := func(unit DeployableUnit, expectedPath ...string) {
-		path, ok := g.getConfigMapFilePath(unit)
-		require.True(t, ok, unit.CanonicalName())
-		require.Equal(t, filepath.Join(expectedPath...), path, unit.CanonicalName())
-	}
-
-	// Assert that we get the correct ConfigMap file path for each DeployableUnit.
-	assertNoConfigMap(publicUnitWithoutConfigMap)
-	assertConfigMapFileEquals(publicUnitWithConfigMapFile, goldSrcDir, "k8s-instances/skia-public/authorized-params.json5")
-	assertNoConfigMap(internalUnitWithoutConfigMap)
-}
-
 func TestRegenerateConfigFiles(t *testing.T) {
 	unittest.SmallTest(t)
 	unittest.LinuxOnlyTest(t)
@@ -189,8 +155,8 @@ func TestRegenerateConfigFiles(t *testing.T) {
 		// SkiaPublic SkiaCorrectness
 		"kube-conf-gen " +
 			"-c /path/to/buildbot/golden/k8s-config-templates/gold-common.json5 " +
-			"-c /path/to/buildbot/golden/k8s-instances/skia-public-instance.json5 " +
-			"-c /path/to/buildbot/golden/k8s-instances/skia-public-instance.json5 " +
+			"-c /path/to/buildbot/golden/k8s-instances/skia-public/skia-public.json5 " +
+			"-c /path/to/buildbot/golden/k8s-instances/skia-public/skia-public-skiacorrectness.json5 " +
 			"-extra INSTANCE_ID:skia-public " +
 			"-t /path/to/buildbot/golden/k8s-config-templates/gold-skiacorrectness-template.yaml " +
 			"-parse_conf=false " +

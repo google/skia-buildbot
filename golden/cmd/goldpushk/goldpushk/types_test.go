@@ -33,22 +33,6 @@ func TestDeployableUnitGetDeploymentFileTemplatePath(t *testing.T) {
 	require.Equal(t, p("/foo/bar/golden/k8s-config-templates/gold-diffserver-template.yaml"), unit.getDeploymentFileTemplatePath(p("/foo/bar/golden")))
 }
 
-func TestDeployableUnitGetConfigMapFileTemplatePath(t *testing.T) {
-	unittest.SmallTest(t)
-
-	unit := DeployableUnit{
-		DeployableUnitID: DeployableUnitID{
-			Instance: Skia,
-			Service:  DiffServer,
-		},
-		DeploymentOptions: DeploymentOptions{
-			configMapTemplate: p("path/to/config-map-template.json5"),
-		},
-	}
-
-	require.Equal(t, p("/foo/bar/path/to/config-map-template.json5"), unit.getConfigMapFileTemplatePath(p("/foo/bar")))
-}
-
 func TestDeployableUnitSetAdd(t *testing.T) {
 	unittest.SmallTest(t)
 

@@ -66,48 +66,6 @@ func TestProductionDeployableUnitsAllExactlyFuchsiaServicesAreInternal(t *testin
 	}
 }
 
-func TestProductionDeployableUnitsAllPublicSkiaCorrectnessDeploymentsRequireAConfigMap(t *testing.T) {
-	unittest.SmallTest(t)
-	deployableUnitSet := ProductionDeployableUnits()
-	for _, unit := range deployableUnitSet.deployableUnits {
-		if isPublicInstance(unit.Instance) && unit.Service == SkiaCorrectness {
-			require.NotEmpty(t, unit.configMapName, msg(unit.DeployableUnitID))
-		}
-	}
-}
-
-func TestProductionDeployableUnitsConfigMapNamesAreCorrect(t *testing.T) {
-	unittest.SmallTest(t)
-	deployableUnitSet := ProductionDeployableUnits()
-
-	// Public instance.
-	skiaPublicSkiaCorrectness, ok := deployableUnitSet.Get(DeployableUnitID{Instance: SkiaPublic, Service: SkiaCorrectness})
-	require.True(t, ok)
-	require.Equal(t, skiaPublicSkiaCorrectness.configMapName, "skia-public-authorized-params")
-}
-
-func TestProductionDeployableUnitsConfigMapInvariantsHold(t *testing.T) {
-	unittest.SmallTest(t)
-	deployableUnitSet := ProductionDeployableUnits()
-
-	for _, unit := range deployableUnitSet.deployableUnits {
-		// All DeployableUnits with any ConfigMap settings must have a configMapName
-		// and exactly one of fields configMapFile or configMapTemplate set.
-		if unit.configMapName != "" || unit.configMapFile != "" || unit.configMapTemplate != "" {
-			require.NotEmpty(t, unit.configMapName, unit.CanonicalName())
-
-			numFieldsSet := 0
-			if unit.configMapFile != "" {
-				numFieldsSet++
-			}
-			if unit.configMapTemplate != "" {
-				numFieldsSet++
-			}
-			require.Equal(t, 1, numFieldsSet, unit.CanonicalName())
-		}
-	}
-}
-
 func TestIsPublicInstance(t *testing.T) {
 	unittest.SmallTest(t)
 	require.True(t, isPublicInstance(SkiaPublic))

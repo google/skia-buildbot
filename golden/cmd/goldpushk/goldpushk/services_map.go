@@ -1,7 +1,5 @@
 package goldpushk
 
-import "fmt"
-
 // The contents of this file are goldpushk's source of truth, specifically the DeployableUnitSet
 // returned by ProductionDeployableUnits().
 
@@ -75,15 +73,12 @@ func ProductionDeployableUnits() DeployableUnitSet {
 	// Add common services to all known instances.
 	for _, instance := range s.knownInstances {
 		if isPublicInstance(instance) {
-			// Add common services for public view instances.
-			s.addWithOptions(instance, SkiaCorrectness, DeploymentOptions{
-				configMapName: fmt.Sprintf("%s-authorized-params", instance),
-				configMapFile: "k8s-instances/skia-public/authorized-params.json5",
-			})
+			// There is only one service for public view instances: - skiacorrectness.
+			s.add(instance, SkiaCorrectness)
 		} else {
 			// Add common services for regular instances.
-			s.addWithOptions(instance, DiffServer, DeploymentOptions{useJSON5InsteadOfFlags: true})
-			s.addWithOptions(instance, IngestionBT, DeploymentOptions{useJSON5InsteadOfFlags: true})
+			s.add(instance, DiffServer)
+			s.add(instance, IngestionBT)
 			s.add(instance, SkiaCorrectness)
 		}
 	}
@@ -93,22 +88,18 @@ func ProductionDeployableUnits() DeployableUnitSet {
 		Chrome, ChromeGPU, Flutter, FlutterEngine, FuchsiaPublic, SkiaInfra,
 	}
 	for _, instance := range publicInstancesNeedingBaselineServer {
-		s.addWithOptions(instance, BaselineServer, DeploymentOptions{
-			useJSON5InsteadOfFlags: true,
-		})
+		s.add(instance, BaselineServer)
 	}
 	// Internal baseline options.
 	s.addWithOptions(Fuchsia, BaselineServer, DeploymentOptions{
-		internal:               true,
-		useJSON5InsteadOfFlags: true,
+		internal: true,
 	})
 
 	// Overwrite common services for "fuchsia" instance, which need to run on skia-corp.
 	s.addWithOptions(Fuchsia, DiffServer, DeploymentOptions{
-		useJSON5InsteadOfFlags: true,
-		internal:               true,
+		internal: true,
 	})
-	s.addWithOptions(Fuchsia, IngestionBT, DeploymentOptions{useJSON5InsteadOfFlags: true, internal: true})
+	s.addWithOptions(Fuchsia, IngestionBT, DeploymentOptions{internal: true})
 	s.addWithOptions(Fuchsia, SkiaCorrectness, DeploymentOptions{internal: true})
 
 	return s
@@ -142,9 +133,7 @@ func TestingDeployableUnits() DeployableUnitSet {
 
 	addHealthyServerInstance := func(instance Instance, service Service, internal bool) {
 		s.addWithOptions(instance, service, DeploymentOptions{
-			configMapName:     fmt.Sprintf("gold-%s-healthy-server-config", instance),
-			configMapTemplate: "cmd/goldpushk/testing/healthy_server/config-template.json5",
-			internal:          internal,
+			internal: internal,
 		})
 	}
 

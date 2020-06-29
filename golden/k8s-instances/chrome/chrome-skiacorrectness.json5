@@ -1,0 +1,38 @@
+{
+  authorized_users: [
+    "google.com", "chromium.org", "microsoft.com",
+    "chrome-gpu-gold@chops-service-accounts.iam.gserviceaccount.com",
+  ],
+  cl_comment_template: "Gold has detected about %d untriaged digest(s) on patchset %d. \
+\
+Please triage them at %s/cl/%s/%s before submitting.\
+\
+If this is due to a failure in a gtest-based test, this functionality is currently experimental and won't block your CL.\
+If all the trybots passed and you don't expect your CL to have any effect on browser UI, you can likely ignore this message.\
+See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8FFvY3YF-6BT4Mqgrb9U40t0HMfEVSSEpNs/edit?usp=sharing",
+  client_secret_file: "/etc/skia.org/login.json",
+  crs_url_template: "https://chromium-review.googlesource.com/%s",
+  diff_server_grpc: "gold-chrome-diffserver:8000",
+  diff_server_http: "gold-chrome-diffserver:8001",
+  flaky_trace_threshold: 10000, // no trace is flaky
+  frontend: {
+    baseRepoURL: "<inherited from git_repo_url>",
+    crsTemplate: "<inherited from crs_url_template>",
+    defaultCorpus: "gtest-pixeltests",
+    title: "Chrome Gold",
+  },
+  gerrit_url: "https://chromium-review.googlesource.com",
+  lit_html_path: "/usr/local/share/skiacorrectness",
+  num_commits: 512,
+  port: ":8000",
+  prom_port: ":20000",
+  resources_path: "/usr/local/share/skiacorrectness/frontend",
+  site_url: "https://chrome-gold.skia.org",
+  tile_freshness: "1m",
+  trace_bt_table: "gold-chrome",
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  K8S_CPU: 4,
+  K8S_LOGIN_SECRETS: "skia-org-legacy-login-secrets",
+  K8S_MEMORY: "4Gi",
+}
