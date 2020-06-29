@@ -239,26 +239,7 @@ func (g *Goldpushk) regenerateConfigFiles(ctx context.Context) error {
 			return skerr.Wrapf(err, "error while regenerating %s", oPath)
 		}
 
-		// If the DeployableUnit has a ConfigMap template (as opposed to a ConfigMap
-		// file that already exists in $SKIA_INFRA_ROOT)), the template must be
-		// expanded and saved to the k8s-config Git repository.
-		if unit.configMapTemplate != "" {
-			// Path to the template file inside $SKIA_INFRA_ROOT/golden.
-			configMapFileTemplate := unit.getConfigMapFileTemplatePath(g.goldSrcDir)
-
-			// Path to the ConfigMap file (.json5) to be regenerated inside the k8s-config Git repository.
-			oPath, ok := g.getConfigMapFilePath(unit)
-			if !ok {
-				return skerr.Fmt("goldpushk.getConfigMapFilePath() failed for %s; this is probably a bug", unit.CanonicalName())
-			}
-
-			// Regenerate .json5 file.
-			if err := g.expandTemplate(ctx, unit, configMapFileTemplate, oPath); err != nil {
-				return skerr.Wrapf(err, "error while regenerating %s", oPath)
-			}
-		}
-
-		if unit.useJSON5InsteadOfFlags && !instanceConfigsCopied[unit.Instance] {
+		if !instanceConfigsCopied[unit.Instance] {
 			instanceConfigsCopied[unit.Instance] = true
 			// Copy all configuration files from the appropriate instance directory into the
 			// k8s-config repo so they can be checked in.
@@ -315,27 +296,6 @@ func (g *Goldpushk) getDeploymentFilePath(unit DeployableUnit) string {
 	return filepath.Join(g.getGitRepoSubdirPath(unit), unit.CanonicalName()+".yaml")
 }
 
-// getConfigMapFilePath returns the path to the ConfigFile (.json5) for the
-// given DeployableUnit.
-//
-// If the DeployableUnit has a ConfigMap file (e.g. gold-skiapublic-skiacorrectness)
-// this will be a path inside $SKIA_INFRA_ROOT.
-//
-// If the DeployableUnit has a ConfigMap template (e.g. gold-skia-ingestion-bt)
-// this will be a path inside the k8s-config Git repository pointing to the expanded
-// ConfigMap template.
-//
-// If neither is true, it will return ("", false).
-func (g *Goldpushk) getConfigMapFilePath(unit DeployableUnit) (string, bool) {
-	if unit.configMapFile != "" {
-		return filepath.Join(g.goldSrcDir, unit.configMapFile), true
-	} else if unit.configMapName != "" && unit.configMapTemplate != "" {
-		return filepath.Join(g.getGitRepoSubdirPath(unit), unit.configMapName+".json5"), true
-	} else {
-		return "", false
-	}
-}
-
 // getGitRepoSubdirPath returns the path to the subdirectory inside the k8s-config
 // repository checkout in which the config files for the given DeployableUnit
 // should be checked in  (e.g. /path/to/k8s-config/skia-public-config).
@@ -347,22 +307,18 @@ func (g *Goldpushk) getGitRepoSubdirPath(unit DeployableUnit) string {
 	return filepath.Join(string(g.k8sConfigCheckout.GitDir), subdir)
 }
 
-// expandTemplate executes the kube-conf-gen command with the given arguments in
-// a fashion similar to gen-k8s-config.sh.
+// expandTemplate executes the kube-conf-gen command with arguments sufficient to produce the
+// templated yaml files that control a Kuberenetes deployment. It makes use of the instance
+// specific configuration files.
 func (g *Goldpushk) expandTemplate(ctx context.Context, unit DeployableUnit, templatePath, outputPath string) error {
 	goldCommonJSON5 := filepath.Join(g.goldSrcDir, k8sConfigTemplatesDir, "gold-common.json5")
 
 	instanceStr := string(unit.Instance)
-	// TODO(kjlubick): remove when all instances use JSON5 instead of flags
-	instanceJSON5 := filepath.Join(g.goldSrcDir, k8sInstancesDir, instanceStr+"-instance.json5")
-	serviceJSON5 := instanceJSON5 // duplicate files have no impact.
-	if unit.useJSON5InsteadOfFlags {
-		instanceJSON5 = fmt.Sprintf("%s.json5", unit.Instance)
-		instanceJSON5 = filepath.Join(g.getInstanceSpecificConfigDir(unit.Instance), instanceJSON5)
+	instanceJSON5 := fmt.Sprintf("%s.json5", unit.Instance)
+	instanceJSON5 = filepath.Join(g.getInstanceSpecificConfigDir(unit.Instance), instanceJSON5)
 
-		serviceJSON5 = fmt.Sprintf("%s-%s.json5", unit.Instance, unit.Service)
-		serviceJSON5 = filepath.Join(g.getInstanceSpecificConfigDir(unit.Instance), serviceJSON5)
-	}
+	serviceJSON5 := fmt.Sprintf("%s-%s.json5", unit.Instance, unit.Service)
+	serviceJSON5 = filepath.Join(g.getInstanceSpecificConfigDir(unit.Instance), serviceJSON5)
 
 	cmd := &exec.Command{
 		Name: "kube-conf-gen",
@@ -547,11 +503,6 @@ func (g *Goldpushk) pushSingleDeployableUnit(ctx context.Context, unit Deployabl
 		}
 	}
 
-	// Push unit-specific ConfigMap if the DeployableUnit requires one.
-	if err := g.maybePushUnitSpecificConfigMap(ctx, unit); err != nil {
-		return skerr.Wrap(err)
-	}
-
 	// Push DeployableUnit.
 	path := g.getDeploymentFilePath(unit)
 	fmt.Printf("%s: applying %s.\n", unit.CanonicalName(), path)
@@ -566,20 +517,6 @@ func (g *Goldpushk) pushSingleDeployableUnit(ctx context.Context, unit Deployabl
 		return skerr.Wrapf(err, "failed to run %s", cmdToDebugStr(cmd))
 	}
 
-	return nil
-}
-
-// maybePushUnitSpecificConfigMap pushes the ConfigMap required by the given DeployableUnit, if it needs one.
-func (g *Goldpushk) maybePushUnitSpecificConfigMap(ctx context.Context, unit DeployableUnit) error {
-	// If the DeployableUnit requires a ConfigMap, delete and recreate it.
-	if path, ok := g.getConfigMapFilePath(unit); ok {
-		fmt.Printf("%s: creating ConfigMap named \"%s\" from file %s.\n", unit.CanonicalName(), unit.configMapName, path)
-
-		err := g.pushConfigMap(ctx, path, unit.configMapName)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-	}
 	return nil
 }
 

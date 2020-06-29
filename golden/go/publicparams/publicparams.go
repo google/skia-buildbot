@@ -16,10 +16,10 @@ type corpusName string
 type keyField string
 type value string
 
-type matchingRules map[corpusName]map[keyField][]value
+type MatchingRules map[corpusName]map[keyField][]value
 
 type paramMatcher struct {
-	Rules matchingRules
+	Rules MatchingRules
 }
 
 // Matches implements the Matcher interface following a set of rules set when constructed.
@@ -61,12 +61,21 @@ func (m paramMatcher) Matches(traceParams paramtools.Params) bool {
 // and their corresponding allowed values. If a trace belonging to a given corpus has all of the
 // required keys and the corresponding values are in the list of allowed values, then it will
 // be publicly visible. Otherwise, it will not be. See publicparams_test.go for a concrete example.
+// TODO(kjlubick) remove in favor of MatcherFromRules
 func MatcherFromJSON(jsonBytes []byte) (*paramMatcher, error) {
-	var rules matchingRules
+	var rules MatchingRules
 	if err := json5.Unmarshal(jsonBytes, &rules); err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	return MatcherFromRules(rules)
+}
 
+// MatcherFromRules creates a param matcher from a map of rules. The top level keys in this map are
+// the publicly viewable corpora. The values for those corpora is another map of required keys
+// and their corresponding allowed values. If a trace belonging to a given corpus has all of the
+// required keys and the corresponding values are in the list of allowed values, then it will
+// be publicly visible. Otherwise, it will not be. See publicparams_test.go for a concrete example.
+func MatcherFromRules(rules MatchingRules) (*paramMatcher, error) {
 	if len(rules) == 0 {
 		return nil, skerr.Fmt("No rules detected.")
 	}
@@ -74,7 +83,6 @@ func MatcherFromJSON(jsonBytes []byte) (*paramMatcher, error) {
 	if _, hasEmptyCorpus := rules[""]; hasEmptyCorpus {
 		return nil, skerr.Fmt("Cannot contain empty corpus")
 	}
-
 	return &paramMatcher{Rules: rules}, nil
 }
 

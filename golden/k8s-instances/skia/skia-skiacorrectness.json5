@@ -1,0 +1,35 @@
+{
+  authorized_users: [
+    "google.com", "mtklein@chromium.org", "skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com",
+  ],
+  cl_comment_template: "Gold has detected about %d untriaged digest(s) on patchset %d. \
+View them at %s/cl/%s/%s",
+  client_secret_file: "/etc/skia.org/login.json",
+  crs_url_template: "https://skia-review.googlesource.com/%s",
+  diff_server_grpc: "gold-skia-diffserver:8000",
+  diff_server_http: "gold-skia-diffserver:8001",
+  flaky_trace_threshold: 10,
+  force_login: true, // This instance requires authentication. It has a public view (skia-public)
+  frontend: {
+    baseRepoURL: "<inherited from git_repo_url>",
+    crsTemplate: "<inherited from crs_url_template>",
+    defaultCorpus: "gm",
+    title: "Skia Gold",
+  },
+  gerrit_url: "https://skia-review.googlesource.com",
+  lit_html_path: "/usr/local/share/skiacorrectness",
+  negatives_max_age: "4320h", // 180 days
+  num_commits: 256,
+  port: ":8000",
+  positives_max_age: "720h", // 30 days
+  prom_port: ":20000",
+  resources_path: "/usr/local/share/skiacorrectness/frontend",
+  site_url: "https://gold.skia.org",
+  tile_freshness: "5m",
+  trace_bt_table: "gold-skia",
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  K8S_CPU: 20,
+  K8S_LOGIN_SECRETS: "skia-org-legacy-login-secrets",
+  K8S_MEMORY: "80Gi",
+}
