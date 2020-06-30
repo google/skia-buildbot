@@ -10,13 +10,19 @@ import (
 	"cloud.google.com/go/datastore"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/time/rate"
 )
 
 const (
 	// Number of rolls to return from GetRecentRolls().
 	RECENT_ROLLS_LENGTH = 10
+)
+
+var (
+	rl = rate.NewLimiter(1, 1)
 )
 
 // Fake ancestor we supply for all ModeChanges, to force consistency.
@@ -105,6 +111,10 @@ func (r *RecentRolls) put(ctx context.Context, roll *autoroll.AutoRollIssue) err
 	key := ds.NewKey(ds.KIND_AUTOROLL_ROLL)
 	key.Name = obj.RollerIssue
 	key.Parent = fakeAncestor()
+	// Rate-limit calls to put, to avoid contention errors.
+	if err := rl.Wait(ctx); err != nil {
+		return skerr.Wrap(err)
+	}
 	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 		_, err := tx.Put(key, obj)
 		return err
