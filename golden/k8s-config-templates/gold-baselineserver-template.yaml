@@ -34,6 +34,16 @@ spec:
         prometheus.io.scrape: "true"
         prometheus.io.port: "20000"
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                      - gold-{{.INSTANCE_ID}}-baselineserver
+              topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       securityContext:
         runAsUser: 2000 # aka skia
