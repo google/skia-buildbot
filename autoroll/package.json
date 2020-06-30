@@ -26,7 +26,9 @@
     "native-promise-only": "~0.7.6-a",
     "sinon": "^1.17.2",
     "uglify-js": "~2.4.15",
-    "vulcanize": "~1.10.4"
+    "vulcanize": "~1.10.4",
+    "webpack": "^4.40.2",
+    "webpack-cli": "^3.3.12"
   },
   "dependencies": {
     "natives": "^1.1.6"
