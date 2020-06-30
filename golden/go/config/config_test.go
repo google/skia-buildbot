@@ -28,13 +28,12 @@ type testSpecificConfig struct {
 func TestLoadFromJSON5_Success(t *testing.T) {
 	unittest.MediumTest(t)
 
-	td, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	td := testutils.TestDataDir(t)
 	commonPath := filepath.Join(td, "common.json5")
 	specificPath := filepath.Join(td, "specific.json5")
 
 	var tsc testSpecificConfig
-	err = LoadFromJSON5(&tsc, &commonPath, &specificPath)
+	err := LoadFromJSON5(&tsc, &commonPath, &specificPath)
 	require.NoError(t, err)
 
 	assert.Equal(t, testSpecificConfig{
@@ -51,13 +50,12 @@ func TestLoadFromJSON5_Success(t *testing.T) {
 func TestLoadFromJSON5_WithDuration_Success(t *testing.T) {
 	unittest.MediumTest(t)
 
-	td, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	td := testutils.TestDataDir(t)
 	commonPath := filepath.Join(td, "common.json5")
 	specificPath := filepath.Join(td, "specific_duration.json5")
 
 	var tsc testSpecificConfig
-	err = LoadFromJSON5(&tsc, &commonPath, &specificPath)
+	err := LoadFromJSON5(&tsc, &commonPath, &specificPath)
 	require.NoError(t, err)
 
 	assert.Equal(t, testSpecificConfig{
@@ -75,13 +73,12 @@ func TestLoadFromJSON5_WithDuration_Success(t *testing.T) {
 func TestLoadFromJSON5_RequiredFieldMissing_Error(t *testing.T) {
 	unittest.MediumTest(t)
 
-	td, err := testutils.TestDataDir()
-	require.NoError(t, err)
+	td := testutils.TestDataDir(t)
 	commonPath := filepath.Join(td, "common_missing_field.json5")
 	specificPath := filepath.Join(td, "specific.json5")
 
 	var tsc testSpecificConfig
-	err = LoadFromJSON5(&tsc, &commonPath, &specificPath)
+	err := LoadFromJSON5(&tsc, &commonPath, &specificPath)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "CommonInt")
 }
