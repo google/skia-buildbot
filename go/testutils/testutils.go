@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
@@ -31,93 +32,58 @@ var (
 
 // TestDataDir returns the path to the caller's testdata directory, which
 // is assumed to be "<path to caller dir>/testdata".
-func TestDataDir() (string, error) {
+func TestDataDir(t sktest.TestingT) string {
 	_, thisFile, _, ok := runtime.Caller(0)
 	if !ok {
-		return "", fmt.Errorf("Could not find test data dir: runtime.Caller() failed.")
+		require.True(t, ok, "Could not find test data dir: runtime.Caller() failed.")
 	}
+	root, err := repo_root.Get()
+	require.NoError(t, err)
 	for skip := 0; ; skip++ {
 		_, file, _, ok := runtime.Caller(skip)
-		if !ok {
-			return "", fmt.Errorf("Could not find test data dir: runtime.Caller() failed.")
-		}
+		require.True(t, ok, "Could not find test data dir: runtime.Caller() failed.")
 		if file != thisFile {
-			return path.Join(path.Dir(file), "testdata"), nil
+			fileRoot, err := repo_root.GetFromString(file)
+			require.NoError(t, err)
+			virtualPath := strings.Replace(file, fileRoot, root, 1)
+			testDataDir := filepath.Join(filepath.Dir(virtualPath), "testdata")
+			return testDataDir
 		}
 	}
 }
 
-func readFile(filename string) (io.ReadCloser, error) {
-	dir, err := TestDataDir()
-	if err != nil {
-		return nil, fmt.Errorf("Could not read %s: %v", filename, err)
-	}
+func readFile(t sktest.TestingT, filename string) io.ReadCloser {
+	dir := TestDataDir(t)
 	f, err := os.Open(path.Join(dir, filename))
-	if err != nil {
-		return nil, fmt.Errorf("Could not read %s: %v", filename, err)
-	}
-	return f, nil
+	require.NoError(t, err)
+	return f
 }
 
 // ReadFileBytes reads a file from the caller's testdata directory and returns its contents as a
 // slice of bytes.
-func ReadFileBytes(filename string) ([]byte, error) {
-	f, err := readFile(filename)
-	if err != nil {
-		return nil, err
-	}
+func ReadFileBytes(t sktest.TestingT, filename string) []byte {
+	f := readFile(t, filename)
 	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, fmt.Errorf("Could not read %s: %v", filename, err)
-	}
-	return b, nil
+	require.NoError(t, err)
+	return b
 }
 
 // ReadFile reads a file from the caller's testdata directory.
-func ReadFile(filename string) (string, error) {
-	b, err := ReadFileBytes(filename)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
+func ReadFile(t sktest.TestingT, filename string) string {
+	return string(ReadFileBytes(t, filename))
 }
 
 // MustGetReader reads a file from the caller's testdata directory and panics on
 // error.
-func MustGetReader(filename string) io.ReadCloser {
-	r, err := readFile(filename)
-	if err != nil {
-		panic(err)
-	}
-	return r
-}
-
-// MustReadFile returns  from the caller's testdata directory and panics on
-// error.
-func MustReadFile(filename string) string {
-	s, err := ReadFile(filename)
-	if err != nil {
-		panic(err)
-	}
-	return s
+func MustGetReader(t sktest.TestingT, filename string) io.ReadCloser {
+	return readFile(t, filename)
 }
 
 // ReadJsonFile reads a JSON file from the caller's testdata directory into the
 // given interface.
-func ReadJsonFile(filename string, dest interface{}) error {
-	f, err := readFile(filename)
-	if err != nil {
-		return err
-	}
-	return json.NewDecoder(f).Decode(dest)
-}
-
-// MustReadJsonFile reads a JSON file from the caller's testdata directory into
-// the given interface and panics on error.
-func MustReadJsonFile(filename string, dest interface{}) {
-	if err := ReadJsonFile(filename, dest); err != nil {
-		panic(err)
-	}
+func ReadJsonFile(t sktest.TestingT, filename string, dest interface{}) {
+	f := readFile(t, filename)
+	require.NoError(t, json.NewDecoder(f).Decode(dest))
 }
 
 // WriteFile writes the given contents to the given file path, reporting any
