@@ -66,12 +66,18 @@ describe('list-page-sk', () => {
     it('should have links for searching and the cluster view', () => {
       const secondRow = $$('table tbody tr:nth-child(2)', listPageSk);
       const links = $('a', secondRow);
-      expect(links).to.have.length(2);
-      // First link should be to the search results
-      const sharedParams = 'unt=true&neg=true&pos=true&source_type=gm&query=name%3Dthis_is_another_test&head=true&include=false';
-      expect(links[0].href).to.contain(`/search?${sharedParams}`);
-      // Second link should be to cluster view (with a very similar href)
-      expect(links[1].href).to.contain(`/cluster?${sharedParams}`);
+      expect(links).to.have.length(6);
+      // First link should be to the search results for all digests.
+      const paramsForAllDigests = 'source_type=gm&query=name%3Dthis_is_another_test&head=true&include=false&unt=true&neg=true&pos=true';
+      expect(links[0].href).to.contain(`/search?${paramsForAllDigests}`);
+      // Second through Fourth links are for just positive, negative, untriaged
+      expect(links[1].href).to.not.contain('unt=true');
+      expect(links[2].href).to.not.contain('unt=true');
+      expect(links[3].href).to.not.contain('pos=true');
+      // Fifth link is the total count, which is the same as the first link.
+      expect(links[4].href).to.contain(`/search?${paramsForAllDigests}`);
+      // Sixth link should be to cluster view (with a very similar href)
+      expect(links[5].href).to.contain(`/cluster?${paramsForAllDigests}`);
     });
 
     it('updates the links based on toggle positions', () => {
@@ -80,12 +86,18 @@ describe('list-page-sk', () => {
       listPageSk._render();
       const secondRow = $$('table tbody tr:nth-child(2)', listPageSk);
       const links = $('a', secondRow);
-      expect(links).to.have.length(2);
+      expect(links).to.have.length(6);
       // First link should be to the search results
-      const sharedParams = 'unt=true&neg=true&pos=true&source_type=gm&query=name%3Dthis_is_another_test&head=false&include=true';
-      expect(links[0].href).to.contain(`/search?${sharedParams}`);
-      // Second link should be to cluster view (with a very similar href)
-      expect(links[1].href).to.contain(`/cluster?${sharedParams}`);
+      const paramsForAllDigests = 'source_type=gm&query=name%3Dthis_is_another_test&head=false&include=true&unt=true&neg=true&pos=true';
+      expect(links[0].href).to.contain(`/search?${paramsForAllDigests}`);
+      // Second through Fourth links are for just positive, negative, untriaged
+      expect(links[1].href).to.not.contain('unt=true');
+      expect(links[2].href).to.not.contain('unt=true');
+      expect(links[3].href).to.not.contain('pos=true');
+      // Fifth link is the total count, which is the same as the first link.
+      expect(links[4].href).to.contain(`/search?${paramsForAllDigests}`);
+      // Sixth link should be to cluster view (with a very similar href)
+      expect(links[5].href).to.contain(`/cluster?${paramsForAllDigests}`);
     });
 
     it('updates the sort order by clicking on sort-toggle-sk', async () => {
