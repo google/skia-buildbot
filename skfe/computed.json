@@ -2442,6 +2442,21 @@
                       ]
                     },
                     {
+                      "domains": "flutter-perf.skia.org",
+                      "name": "flutter-perf.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "redirect": {
+                            "host_redirect": "flutter-engine-perf.skia.org",
+                            "https_redirect": true
+                          }
+                        }
+                      ]
+                    },
+                    {
                       "domains": "android-perf.skia.org",
                       "name": "android-perf.skia.org",
                       "routes": [
@@ -3421,8 +3436,8 @@
                       ]
                     },
                     {
-                      "domains": "flutter-perf.skia.org",
-                      "name": "flutter-perf.skia.org",
+                      "domains": "flutter-engine-perf.skia.org",
+                      "name": "flutter-engine-perf.skia.org",
                       "routes": [
                         {
                           "match": {
