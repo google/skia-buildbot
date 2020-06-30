@@ -7,10 +7,12 @@ import (
 	"image/draw"
 	"image/png"
 	"io/ioutil"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/gold-client/go/imgmatching/fuzzy"
 	"go.skia.org/infra/gold-client/go/mocks"
@@ -455,15 +457,15 @@ func TestSobel_EdgesAtVariousAngles_Success(t *testing.T) {
 func TestSobel_GoldenImage_Success(t *testing.T) {
 	unittest.MediumTest(t)
 
-	// Attribution for the test/input.png image used below:
+	// Attribution for the testdata/input.png image used below:
 	//
 	//   Author: Simpsons contributor.
 	//   License: CC BY-SA (https://creativecommons.org/licenses/by-sa/3.0).
 	//   Source: https://en.wikipedia.org/wiki/File:Valve_original_%281%29.PNG.
 	//   Modifications: PNG image was recoded using Golang's png.Decode() and png.Encode().
-
-	input := readPngAsGray(t, "test/input.png")
-	expectedOutput := readPngAsGray(t, "test/sobel-expected-output.png")
+	dir := testutils.TestDataDir(t)
+	input := readPngAsGray(t, filepath.Join(dir, "input.png"))
+	expectedOutput := readPngAsGray(t, filepath.Join(dir, "sobel-expected-output.png"))
 	assert.Equal(t, expectedOutput, sobel(input))
 }
 
@@ -552,9 +554,10 @@ func TestZeroOutEdges_SmallImages_Success(t *testing.T) {
 func TestZeroOutEdges_GoldenImage_Success(t *testing.T) {
 	unittest.MediumTest(t)
 
-	input := readPng(t, "test/input.png")
-	edges := readPngAsGray(t, "test/sobel-expected-output.png")
-	expectedOutput := readPng(t, "test/zero-out-edges-expected-output.png")
+	dir := testutils.TestDataDir(t)
+	input := readPng(t, filepath.Join(dir, "input.png"))
+	edges := readPngAsGray(t, filepath.Join(dir, "sobel-expected-output.png"))
+	expectedOutput := readPng(t, filepath.Join(dir, "zero-out-edges-expected-output.png"))
 	assert.Equal(t, expectedOutput, zeroOutEdges(input, edges, 0x55))
 }
 

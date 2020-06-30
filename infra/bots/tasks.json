@@ -39,6 +39,31 @@
         "Infra-PerCommit-CreateDockerImage"
       ]
     },
+    "Infra-PerCommit-GoBuild-darwin-amd64": {
+      "tasks": [
+        "Infra-PerCommit-GoBuild-darwin-amd64"
+      ]
+    },
+    "Infra-PerCommit-GoBuild-linux-amd64": {
+      "tasks": [
+        "Infra-PerCommit-GoBuild-linux-amd64"
+      ]
+    },
+    "Infra-PerCommit-GoBuild-linux-arm": {
+      "tasks": [
+        "Infra-PerCommit-GoBuild-linux-arm"
+      ]
+    },
+    "Infra-PerCommit-GoBuild-windows-amd64": {
+      "tasks": [
+        "Infra-PerCommit-GoBuild-windows-amd64"
+      ]
+    },
+    "Infra-PerCommit-GoTests-linux-amd64": {
+      "tasks": [
+        "Infra-PerCommit-GoTests-linux-amd64"
+      ]
+    },
     "Infra-PerCommit-Large": {
       "tasks": [
         "Infra-PerCommit-Large"
@@ -869,6 +894,141 @@
         ]
       },
       "isolate": "empty.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-GoBuild-darwin-amd64": {
+      "command": [
+        "/bin/sh",
+        "-c",
+        "/usr/bin/docker run --env LUCI_CONTEXT=/auth/ctx.json --mount type=bind,destination=/auth/ctx.json,source=${LUCI_CONTEXT},readonly --net host --env SWARMING_BOT_ID=${SWARMING_BOT_ID} --env SWARMING_SERVER=${SWARMING_SERVER} --env SWARMING_TASK_ID=${SWARMING_TASK_ID} --env GOARCH=amd64 --env GOOS=darwin --mount type=bind,destination=/src,source=$(pwd)/buildbot --mount type=bind,destination=/out,source=${ISOLATED_OUTDIR} --workdir /src gcr.io/skia-public/go_deps@sha256:e3ce4653afe9199bf976c4cf55d3b27158d295d2b2561ddb4e93d06c211b06f8 go run /src/infra/bots/task_drivers/go_build/go_build.go --project-id skia-swarming-bots --task-id <(TASK_ID) --task-name Infra-PerCommit-GoBuild-darwin-amd64 --alsologtostderr --output-path /out --output-whitelist go_tests --target ./infra/bots/task_drivers/..."
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highcpu-64",
+        "docker_installed:true"
+      ],
+      "idempotent": true,
+      "isolate": "whole_repo.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-GoBuild-linux-amd64": {
+      "command": [
+        "/bin/sh",
+        "-c",
+        "/usr/bin/docker run --env LUCI_CONTEXT=/auth/ctx.json --mount type=bind,destination=/auth/ctx.json,source=${LUCI_CONTEXT},readonly --net host --env SWARMING_BOT_ID=${SWARMING_BOT_ID} --env SWARMING_SERVER=${SWARMING_SERVER} --env SWARMING_TASK_ID=${SWARMING_TASK_ID} --env CGO_ENABLED=1 --env GOARCH=amd64 --env GOOS=linux --mount type=bind,destination=/src,source=$(pwd)/buildbot --mount type=bind,destination=/out,source=${ISOLATED_OUTDIR} --workdir /src gcr.io/skia-public/go_deps@sha256:e3ce4653afe9199bf976c4cf55d3b27158d295d2b2561ddb4e93d06c211b06f8 go run /src/infra/bots/task_drivers/go_build/go_build.go --project-id skia-swarming-bots --task-id <(TASK_ID) --task-name Infra-PerCommit-GoBuild-linux-amd64 --alsologtostderr --output-path /out --output-whitelist go_tests --target ./..."
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highcpu-64",
+        "docker_installed:true"
+      ],
+      "idempotent": true,
+      "isolate": "whole_repo.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-GoBuild-linux-arm": {
+      "command": [
+        "/bin/sh",
+        "-c",
+        "/usr/bin/docker run --env LUCI_CONTEXT=/auth/ctx.json --mount type=bind,destination=/auth/ctx.json,source=${LUCI_CONTEXT},readonly --net host --env SWARMING_BOT_ID=${SWARMING_BOT_ID} --env SWARMING_SERVER=${SWARMING_SERVER} --env SWARMING_TASK_ID=${SWARMING_TASK_ID} --env GOARCH=arm --env GOOS=linux --mount type=bind,destination=/src,source=$(pwd)/buildbot --mount type=bind,destination=/out,source=${ISOLATED_OUTDIR} --workdir /src gcr.io/skia-public/go_deps@sha256:e3ce4653afe9199bf976c4cf55d3b27158d295d2b2561ddb4e93d06c211b06f8 go run /src/infra/bots/task_drivers/go_build/go_build.go --project-id skia-swarming-bots --task-id <(TASK_ID) --task-name Infra-PerCommit-GoBuild-linux-arm --alsologtostderr --output-path /out --output-whitelist go_tests --target ./infra/bots/task_drivers/..."
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highcpu-64",
+        "docker_installed:true"
+      ],
+      "idempotent": true,
+      "isolate": "whole_repo.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-GoBuild-windows-amd64": {
+      "command": [
+        "/bin/sh",
+        "-c",
+        "/usr/bin/docker run --env LUCI_CONTEXT=/auth/ctx.json --mount type=bind,destination=/auth/ctx.json,source=${LUCI_CONTEXT},readonly --net host --env SWARMING_BOT_ID=${SWARMING_BOT_ID} --env SWARMING_SERVER=${SWARMING_SERVER} --env SWARMING_TASK_ID=${SWARMING_TASK_ID} --env GOARCH=amd64 --env GOOS=windows --mount type=bind,destination=/src,source=$(pwd)/buildbot --mount type=bind,destination=/out,source=${ISOLATED_OUTDIR} --workdir /src gcr.io/skia-public/go_deps@sha256:e3ce4653afe9199bf976c4cf55d3b27158d295d2b2561ddb4e93d06c211b06f8 go run /src/infra/bots/task_drivers/go_build/go_build.go --project-id skia-swarming-bots --task-id <(TASK_ID) --task-name Infra-PerCommit-GoBuild-windows-amd64 --alsologtostderr --output-path /out --output-whitelist go_tests --target ./infra/bots/task_drivers/..."
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highcpu-64",
+        "docker_installed:true"
+      ],
+      "idempotent": true,
+      "isolate": "whole_repo.isolate",
+      "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Infra-PerCommit-GoTests-linux-amd64": {
+      "cipd_packages": [
+        {
+          "name": "infra/3pp/tools/git/linux-amd64",
+          "path": "cipd_bin_packages",
+          "version": "version:2.27.0.chromium.6"
+        },
+        {
+          "name": "infra/tools/git/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:dcbc469e851f0c1d88af53f1b4fc552125ee847a"
+        },
+        {
+          "name": "infra/tools/luci/git-credential-luci/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:dcbc469e851f0c1d88af53f1b4fc552125ee847a"
+        },
+        {
+          "name": "skia/bots/go",
+          "path": "go",
+          "version": "version:8"
+        }
+      ],
+      "command": [
+        "./bin/go_tests",
+        "--project-id",
+        "skia-swarming-bots",
+        "--task-id",
+        "<(TASK_ID)",
+        "--task-name",
+        "Infra-PerCommit-GoTests-linux-amd64",
+        "--alsologtostderr",
+        "--test-dir",
+        "./test",
+        "--test-data-dir",
+        "./buildbot",
+        "--n",
+        "32"
+      ],
+      "dependencies": [
+        "Infra-PerCommit-GoBuild-linux-amd64"
+      ],
+      "dimensions": [
+        "pool:Skia",
+        "os:Debian-10.3",
+        "gpu:none",
+        "cpu:x86-64-Haswell_GCE",
+        "machine_type:n1-highcpu-64",
+        "docker_installed:true"
+      ],
+      "env_prefixes": {
+        "PATH": [
+          "bin",
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin",
+          "go/go/bin"
+        ]
+      },
+      "idempotent": true,
+      "isolate": "go_tests.isolate",
+      "max_attempts": 2,
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
     "Infra-PerCommit-Large": {
