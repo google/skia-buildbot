@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -30,8 +31,8 @@ import (
 )
 
 const (
-	legacyGoldCtlFile = "testdata/legacy-tryjob-goldctl.json"
-	githubGoldCtlFile = "testdata/github-goldctl.json"
+	legacyGoldCtlFile = "legacy-tryjob-goldctl.json"
+	githubGoldCtlFile = "github-goldctl.json"
 )
 
 func TestGerritBuildbucketFactory(t *testing.T) {
@@ -63,6 +64,7 @@ func TestGerritBuildbucketFactory(t *testing.T) {
 func TestGitHubCirrusBuildbucketFactory(t *testing.T) {
 	unittest.LargeTest(t) // should use the emulator
 
+	fakeTokenFile := filepath.Join(testutils.TestDataDir(t), "fake_token")
 	config := ingestion.Config{
 		ExtraParams: map[string]string{
 			firestoreProjectIDParam: "should-use-emulator",
@@ -70,7 +72,7 @@ func TestGitHubCirrusBuildbucketFactory(t *testing.T) {
 
 			codeReviewSystemParam:      "github",
 			githubRepoParam:            "google/skia",
-			githubCredentialsPathParam: "testdata/fake_token", // this is actually a file on disk.
+			githubCredentialsPathParam: fakeTokenFile, // this is actually a file on disk.
 
 			continuousIntegrationSystemsParam: "cirrus,buildbucket",
 		},
@@ -112,7 +114,8 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 		tryJobStore:     mtjs,
 	}
 
-	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	mockResultFile := filepath.Join(testutils.TestDataDir(t), legacyGoldCtlFile)
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(mockResultFile)
 	require.NoError(t, err)
 
 	err = gtp.Process(context.Background(), fsResult)
@@ -153,7 +156,8 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 		tryJobStore:     mtjs,
 	}
 
-	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(githubGoldCtlFile)
+	mockResultFile := filepath.Join(testutils.TestDataDir(t), githubGoldCtlFile)
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(mockResultFile)
 	require.NoError(t, err)
 
 	err = gtp.Process(context.Background(), fsResult)
@@ -263,7 +267,8 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 		tryJobStore:     mtjs,
 	}
 
-	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	mockResultFile := filepath.Join(testutils.TestDataDir(t), legacyGoldCtlFile)
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(mockResultFile)
 	require.NoError(t, err)
 
 	err = gtp.Process(context.Background(), fsResult)
@@ -300,7 +305,8 @@ func TestTryJobProcessCLExistsPreviouslyAbandoned(t *testing.T) {
 		tryJobStore:     mtjs,
 	}
 
-	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	mockResultFile := filepath.Join(testutils.TestDataDir(t), legacyGoldCtlFile)
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(mockResultFile)
 	require.NoError(t, err)
 
 	err = gtp.Process(context.Background(), fsResult)
@@ -333,7 +339,8 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 		tryJobStore:     mtjs,
 	}
 
-	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
+	mockResultFile := filepath.Join(testutils.TestDataDir(t), legacyGoldCtlFile)
+	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(mockResultFile)
 	require.NoError(t, err)
 
 	err = gtp.Process(context.Background(), fsResult)
