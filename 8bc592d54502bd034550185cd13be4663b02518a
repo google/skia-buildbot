@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cb1d8109_aa7768b6",
+        "filename": "golden/modules/list-page-sk/list-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-30T19:05:26Z",
+      "side": 1,
+      "message": "I suspect we want to trigger a sort by clicking anywhere on the header. The sort arrows are a very tiny click target, which isn\u0027t ideal from a usability/accessibility perspective.\n\nI\u0027d recommend removing the \"sort-change\" event listener, and replacing it with \"click\" event listeners on the \u003cth\u003e elements instead. (Consider adding a new template just for the \u003cth\u003e elements to avoid repetition.)\n\nThis will likely require calling the corresponding sort-change-sk\u0027s toggle() method by hand when a \u003cth\u003e is click, and making changes to opt out of sort-change-sk\u0027s auto-toggling and event-triggering logic.",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 11
+      },
+      "revId": "8bc592d54502bd034550185cd13be4663b02518a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d3803560_63baf324",
+        "filename": "golden/modules/list-page-sk/list-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-30T19:05:26Z",
+      "side": 1,
+      "message": "Nit: line length.",
+      "range": {
+        "startLine": 54,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 106
+      },
+      "revId": "8bc592d54502bd034550185cd13be4663b02518a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e027645b_1f927e8f",
+        "filename": "golden/modules/list-page-sk/list-page-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-30T19:05:26Z",
+      "side": 1,
+      "message": "A comment explaining what this does would be helpful because _byTestCounts is a JSON object loaded from the server, and its structure is defined elsewhere.",
+      "range": {
+        "startLine": 255,
+        "startChar": 0,
+        "endLine": 255,
+        "endChar": 67
+      },
+      "revId": "8bc592d54502bd034550185cd13be4663b02518a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
