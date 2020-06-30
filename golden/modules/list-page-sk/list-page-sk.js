@@ -21,6 +21,7 @@ import 'elements-sk/icon/tune-icon-sk';
 import 'elements-sk/checkbox-sk';
 import '../corpus-selector-sk';
 import '../query-dialog-sk';
+import '../sort-toggle-sk';
 
 const template = (ele) => html`
 <div>
@@ -41,14 +42,33 @@ const template = (ele) => html`
 </div>
 
 <table>
-  <!-- TODO(kjlubick) make these sortable -->
-   <thead>
+   <thead @sort-change=${ele._sortChanged}>
      <tr>
-      <th>Test name</th>
-      <th>Positive</th>
-      <th>Negative</th>
-      <th>Untriaged</th>
-      <th>Total</th>
+      <th>
+        Test name
+        <sort-toggle-sk .key=${'name'} .direction=${ele._sortDir} .currentKey=${ele._sortCol}>
+        </sort-toggle-sk>
+      </th>
+      <th>
+        Positive
+        <sort-toggle-sk .key=${'positive_digests'} .direction=${ele._sortDir} .currentKey=${ele._sortCol}>
+        </sort-toggle-sk>
+      </th>
+      <th>
+        Negative
+        <sort-toggle-sk .key=${'negative_digests'} .direction=${ele._sortDir} .currentKey=${ele._sortCol}>
+        </sort-toggle-sk>
+      </th>
+      <th>
+        Untriaged
+        <sort-toggle-sk .key=${'untriaged_digests'} .direction=${ele._sortDir} .currentKey=${ele._sortCol}>
+        </sort-toggle-sk>
+      </th>
+      <th>
+        Total
+        <sort-toggle-sk .key=${'total_digests'} .direction=${ele._sortDir} .currentKey=${ele._sortCol}>
+        </sort-toggle-sk>
+      </th>
       <th>Cluster View</th>
     </tr>
   </thead>
@@ -76,7 +96,7 @@ const testRow = (row, ele) => {
   <td class=center>${row.positive_digests}</td>
   <td class=center>${row.negative_digests}</td>
   <td class=center>${row.untriaged_digests}</td>
-  <td class=center>${row.positive_digests + row.negative_digests + row.untriaged_digests}</td>
+  <td class=center>${row.total_digests}</td>
   <td class=center>
     <a href="/cluster?${searchParams}" target=_blank rel=noopener>
       <group-work-icon-sk></group-work-icon-sk>
@@ -102,6 +122,9 @@ define('list-page-sk', class extends ElementSk {
     this._currentQuery = '';
     this._currentCorpus = '';
 
+    this._sortCol = '';
+    this._sortDir = '';
+
     this._showAllDigests = false;
     this._disregardIgnoreRules = false;
 
@@ -112,6 +135,8 @@ define('list-page-sk', class extends ElementSk {
         disregard_ignores: this._disregardIgnoreRules,
         corpus: this._currentCorpus,
         query: this._currentQuery,
+        sort_col: this._sortCol,
+        sort_dir: this._sortDir,
       }), /* setState */(newState) => {
         if (!this._connected) {
           return;
@@ -121,6 +146,8 @@ define('list-page-sk', class extends ElementSk {
         this._disregardIgnoreRules = newState.disregard_ignores || false;
         this._currentCorpus = newState.corpus || defaultCorpus();
         this._currentQuery = newState.query || '';
+        this._sortCol = newState.sort_col || 'name';
+        this._sortDir = newState.sort_dir || 'asc';
         this._fetch();
         this._render();
       },
@@ -183,6 +210,10 @@ define('list-page-sk', class extends ElementSk {
       .then(jsonOrThrow)
       .then((jsonList) => {
         this._byTestCounts = jsonList;
+        this._byTestCounts.forEach((row) => {
+          row.total_digests = row.positive_digests + row.negative_digests + row.untriaged_digests;
+        });
+        this._sortData();
         this._render();
         sendEndTask(this);
       })
@@ -208,6 +239,35 @@ define('list-page-sk', class extends ElementSk {
 
   _showQueryDialog() {
     $$('query-dialog-sk').open(this._paramset, this._currentQuery);
+  }
+
+  _sortChanged(e) {
+    this._sortDir = e.detail.direction;
+    this._sortCol = e.detail.key;
+    this._stateChanged();
+    this._sortData();
+  }
+
+  _sortData() {
+    if (!this._byTestCounts.length) {
+      return;
+    }
+    if (typeof this._byTestCounts[0][this._sortCol] === 'string') {
+      this._byTestCounts.sort((a, b) => {
+        if (this._sortDir === 'asc') {
+          return a[this._sortCol].localeCompare(b[this._sortCol]);
+        }
+        return b[this._sortCol].localeCompare(a[this._sortCol]);
+      });
+    } else {
+      this._byTestCounts.sort((a, b) => {
+        if (this._sortDir === 'asc') {
+          return a[this._sortCol] - b[this._sortCol];
+        }
+        return b[this._sortCol] - a[this._sortCol];
+      });
+    }
+    this._render();
   }
 
   _toggleAllDigests(e) {
