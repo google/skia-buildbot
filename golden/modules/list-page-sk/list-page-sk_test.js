@@ -87,6 +87,27 @@ describe('list-page-sk', () => {
       // Second link should be to cluster view (with a very similar href)
       expect(links[1].href).to.contain(`/cluster?${sharedParams}`);
     });
+
+    it('updates the sort order by clicking on sort-toggle-sk', async () => {
+      expect(listPageSk._sortCol).to.equal('name');
+      expect(listPageSk._sortDir).to.equal('asc');
+
+      clickOnUntriagedSortToggle(listPageSk);
+
+      expect(listPageSk._sortCol).to.equal('untriaged_digests');
+      expect(listPageSk._sortDir).to.equal('asc');
+      let firstRow = $$('table tbody tr:nth-child(1)', listPageSk);
+      expect($$('td', firstRow).innerText).to.equal('this_is_another_test');
+      expectQueryStringToEqual('?corpus=gm&sort_col=untriaged_digests&sort_dir=asc');
+
+      clickOnUntriagedSortToggle(listPageSk);
+
+      expect(listPageSk._sortCol).to.equal('untriaged_digests');
+      expect(listPageSk._sortDir).to.equal('desc');
+      firstRow = $$('table tbody tr:nth-child(1)', listPageSk);
+      expect($$('td', firstRow).innerText).to.equal('this_is_a_test');
+      expectQueryStringToEqual('?corpus=gm&sort_col=untriaged_digests&sort_dir=desc');
+    });
   }); // end describe('html layout')
 
   describe('RPC calls', () => {
@@ -97,7 +118,7 @@ describe('list-page-sk', () => {
       const event = eventPromise('end-task');
       checkbox.click();
       await event;
-      expectQueryStringToEqual('?corpus=gm&disregard_ignores=true');
+      expectQueryStringToEqual('?corpus=gm&disregard_ignores=true&sort_col=name&sort_dir=asc');
     });
 
     it('has a checkbox to toggle measuring at head', async () => {
@@ -107,7 +128,7 @@ describe('list-page-sk', () => {
       const event = eventPromise('end-task');
       checkbox.click();
       await event;
-      expectQueryStringToEqual('?all_digests=true&corpus=gm');
+      expectQueryStringToEqual('?all_digests=true&corpus=gm&sort_col=name&sort_dir=asc');
     });
 
     it('changes the corpus based on an event from corpus-selector-sk', async () => {
@@ -122,7 +143,7 @@ describe('list-page-sk', () => {
         }),
       );
       await event;
-      expectQueryStringToEqual('?corpus=corpus%20with%20spaces');
+      expectQueryStringToEqual('?corpus=corpus%20with%20spaces&sort_col=name&sort_dir=asc');
     });
 
     it('changes the search params based on an event from query-dialog-sk', async () => {
@@ -140,7 +161,9 @@ describe('list-page-sk', () => {
         }),
       );
       await event;
-      expectQueryStringToEqual('?corpus=gm&query=alpha_type%3DOpaque%26arch%3Darm64');
+      expectQueryStringToEqual(
+        '?corpus=gm&query=alpha_type%3DOpaque%26arch%3Darm64&sort_col=name&sort_dir=asc',
+      );
     });
   });
 });
@@ -149,4 +172,8 @@ function setQueryString(q) {
   history.pushState(
     null, '', window.location.origin + window.location.pathname + q,
   );
+}
+
+function clickOnUntriagedSortToggle(ele) {
+  $$('table > thead > tr > th:nth-child(4) sort-toggle-sk div', ele).click();
 }
