@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -252,6 +253,21 @@ func (r *androidRepoManager) setTopic(changeNum int64) error {
 	return r.g.SetTopic(context.TODO(), topic, changeNum)
 }
 
+// applyPatch applies a patch from the specified issue and patchset to the
+// specified Skia checkout.
+func applyPatch(ctx context.Context, childRepo *git.Checkout, childRepoURL, refToPatch string) error {
+	// Run a git fetch for the branch where gerrit stores patches.
+	//
+	// Fetch Ref with retries incase GoB is having problems.
+	if err := childRepo.FetchRefFromRepo(ctx, childRepoURL, refToPatch); err != nil {
+		return fmt.Errorf("Failed to fetch ref in %s: %s", childRepo.Dir(), err)
+	}
+	if _, err := childRepo.Git(ctx, "reset", "--hard", "FETCH_HEAD"); err != nil {
+		return fmt.Errorf("Failed to checkout FETCH_HEAD in %s: %s", childRepo.Dir(), err)
+	}
+	return nil
+}
+
 // See documentation for RepoManager interface.
 func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
 	r.repoMtx.Lock()
@@ -266,9 +282,24 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 
 	// Create the roll CL.
 
-	// Start the merge.
+	// Do we need to merge or do we need to cherry pick?
 
-	if _, err := r.childRepo.Git(ctx, "merge", to.Id, "--no-commit"); err != nil {
+	// if strings.HasPrefix(to.Id, "refs/changes/") {
+	// 	fmt.Println("Going to try to apply patch")
+	// 	fmt.Println(to.Id)
+	// 	if err := applyPatch(ctx, r.childRepo, r.childRepoURL, to.Id); err != nil {
+	// 		return 0, fmt.Errorf("Could not apply patch from %s: %s", to.Id, err)
+	// 	}
+	// } else {
+	// Start the merge.
+	mergeTarget := to.Id
+	if strings.HasPrefix(to.Id, "refs/changes/") {
+		if err := r.childRepo.FetchRefFromRepo(ctx, r.childRepoURL, to.Id); err != nil {
+			return 0, fmt.Errorf("Failed to fetch ref in %s: %s", r.childRepo.Dir(), err)
+		}
+		mergeTarget = "FETCH_HEAD"
+	}
+	if _, err := r.childRepo.Git(ctx, "merge", mergeTarget, "--no-commit"); err != nil {
 		// Check to see if this was a merge conflict with ignoreMergeConflictFiles and deleteMergeConflictFiles.
 		conflictsOutput, conflictsErr := r.childRepo.Git(ctx, "diff", "--name-only", "--diff-filter=U")
 		if conflictsErr != nil || conflictsOutput == "" {
@@ -276,6 +307,7 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 			return 0, fmt.Errorf("Failed to roll to %s. Needs human investigation: %s", to, err)
 		}
 	}
+	// }
 
 	if r.projectMetadataFileConfig != nil {
 		// Populate the METADATA file.
