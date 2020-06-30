@@ -2,9 +2,12 @@
 package main
 
 import (
+	"archive/zip"
 	"context"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"time"
@@ -20,8 +23,11 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/glog_and_cloud"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/builders"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 	"google.golang.org/api/option"
@@ -43,6 +49,14 @@ var (
 	ingestStartFlag  string
 	ingestEndFlag    string
 	ingestDryrunFlag bool
+)
+
+const (
+	connectionStringFlag string = "connection_string"
+	outputFilenameFlag   string = "out"
+	inputFilenameFlag    string = "in"
+
+	regressionBatchSize = 1000
 )
 
 func mustGetStore() tracestore.TraceStore {
@@ -72,7 +86,7 @@ func main() {
 			return nil
 		},
 	}
-	cmd.PersistentFlags().StringVar(&configFilename, "config_filename", "./configs/nano.json", "The filename of the config file to use.")
+	cmd.PersistentFlags().StringVar(&configFilename, "config_filename", "", "The filename of the config file to use.")
 	err := cmd.MarkPersistentFlagRequired("config_filename")
 	if err != nil {
 		sklog.Fatal(err)
@@ -87,6 +101,38 @@ func main() {
 		RunE:  configCreatePubSubTopicsAction,
 	}
 	configCmd.AddCommand(configPubSubCmd)
+
+	databaseCmd := &cobra.Command{
+		Use: "database [sub]",
+	}
+	databaseCmd.PersistentFlags().String(connectionStringFlag, "", "Override the connection_string in the config file.")
+
+	databaseBackupSubCmd := &cobra.Command{
+		Use: "backup [sub]",
+	}
+
+	databaseBackupAlertsSubCmd := &cobra.Command{
+		Use:   "alerts",
+		Short: "Backup Alerts.",
+		RunE:  databaseDatabaseBackupAlertsSubAction,
+	}
+	databaseBackupAlertsSubCmd.Flags().String(outputFilenameFlag, "", "The output filename")
+	databaseBackupSubCmd.AddCommand(databaseBackupAlertsSubCmd)
+
+	databaseCmd.AddCommand(databaseBackupSubCmd)
+
+	databaseRestoreSubCmd := &cobra.Command{
+		Use: "restore [sub]",
+	}
+
+	databaseRestoreAlertsSubCmd := &cobra.Command{
+		Use:   "alerts",
+		Short: "Restores from the given backup.",
+		RunE:  databaseDatabaseRestoreAlertsSubAction,
+	}
+	databaseRestoreAlertsSubCmd.Flags().String(inputFilenameFlag, "", "The filename of the backup.")
+	databaseRestoreSubCmd.AddCommand(databaseRestoreAlertsSubCmd)
+	databaseCmd.AddCommand(databaseRestoreSubCmd)
 
 	indicesCmd := &cobra.Command{
 		Use: "indices [sub]",
@@ -165,6 +211,7 @@ func main() {
 
 	cmd.AddCommand(
 		configCmd,
+		databaseCmd,
 		indicesCmd,
 		tilesCmd,
 		tracesCmd,
@@ -176,6 +223,289 @@ func main() {
 		os.Exit(1)
 	}
 
+}
+
+type allRegressionsForCommitWithCommitNumber struct {
+	CommitNumber            types.CommitNumber
+	AllRegressionsForCommit *regression.AllRegressionsForCommit
+}
+
+func databaseDatabaseBackupAlertsSubAction(c *cobra.Command, args []string) error {
+	ctx := context.Background()
+	connectionStringOverride := c.Flag(connectionStringFlag).Value.String()
+	if connectionStringOverride != "" {
+		instanceConfig.DataStoreConfig.ConnectionString = connectionStringOverride
+	}
+
+	outputFilename := c.Flag(outputFilenameFlag).Value.String()
+	if outputFilename == "" {
+		return skerr.Fmt("The --%q flag is required.", outputFilename)
+	}
+	f, err := os.Create(outputFilename)
+	if err != nil {
+		return err
+	}
+	defer util.Close(f)
+	z := zip.NewWriter(f)
+
+	alertStore, err := builders.NewAlertStoreFromConfig(ctx, true, instanceConfig)
+	if err != nil {
+		return err
+	}
+	alerts, err := alertStore.List(ctx, true)
+	if err != nil {
+		return err
+	}
+	alertsZipWriter, err := z.Create("alerts")
+	if err != nil {
+		return err
+	}
+	encoder := gob.NewEncoder(alertsZipWriter)
+	for _, alert := range alerts {
+		fmt.Printf("Alert: %q\n", alert.DisplayName)
+		if err := encoder.Encode(alert); err != nil {
+			return err
+		}
+	}
+	/*
+		// Backup Shortcuts.
+		shortcutsZipWriter, err := z.Create("shortcuts")
+		if err != nil {
+			return err
+		}
+		shortcutsEncoder := gob.NewEncoder(shortcutsZipWriter)
+
+		shortcutStore, err := builders.NewShortcutStoreFromConfig(instanceConfig)
+		if err != nil {
+			return err
+		}
+		shortcutCh, err := shortcutStore.GetAll(ctx)
+		if err != nil {
+			return err
+		}
+		fmt.Print("Shortcuts: ")
+		total := 0
+		for shortcut := range shortcutCh {
+			if err := shortcutsEncoder.Encode(shortcut); err != nil {
+				return err
+			}
+			total++
+			if total%100 == 0 {
+				fmt.Print(".")
+			}
+		}
+		fmt.Println()
+
+		// Backup Regressions.
+		regressionsZipWriter, err := z.Create("regressions")
+		if err != nil {
+			return err
+		}
+
+		regresssionsEncoder := gob.NewEncoder(regressionsZipWriter)
+		perfGit, err := builders.NewPerfGitFromConfig(ctx, true, instanceConfig)
+		if err != nil {
+			return err
+		}
+		cidl := cid.New(ctx, perfGit, config.Config)
+		regressionStore, err := builders.NewRegressionStoreFromConfig(true, cidl, instanceConfig)
+		if err != nil {
+			return err
+		}
+
+		// Get the latest commit.
+		end, err := perfGit.CommitNumberFromTime(ctx, time.Time{})
+		if err != nil {
+			return err
+		}
+
+		for {
+			if end < 0 {
+				break
+			}
+
+			begin := end - regressionBatchSize + 1
+			if begin < 0 {
+				begin = 0
+			}
+
+			// Read out data in chunks of regressionBatchSize commits to store, going back N commits.
+			// Range reads [begin, end], i.e. inclusive of both ends of the interval.
+			regressions, err := regressionStore.Range(ctx, begin, end)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("Regressions: [%d, %d]. Total commits: %d\n", begin, end, len(regressions))
+
+			for commitNumber, allRegressionsForCommit := range regressions {
+				body := allRegressionsForCommitWithCommitNumber{
+					CommitNumber:            commitNumber,
+					AllRegressionsForCommit: allRegressionsForCommit,
+				}
+				if err := regresssionsEncoder.Encode(body); err != nil {
+					return err
+				}
+			}
+
+			end = begin - 1
+		}
+	*/
+	if err := z.Close(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func databaseDatabaseRestoreAlertsSubAction(c *cobra.Command, args []string) error {
+	ctx := context.Background()
+	connectionStringOverride := c.Flag(connectionStringFlag).Value.String()
+	if connectionStringOverride != "" {
+		instanceConfig.DataStoreConfig.ConnectionString = connectionStringOverride
+	}
+
+	inputFilename := c.Flag(inputFilenameFlag).Value.String()
+	if inputFilename == "" {
+		return skerr.Fmt("The --%q flag is required.", inputFilename)
+	}
+
+	z, err := zip.OpenReader(inputFilename)
+	if err != nil {
+		return err
+	}
+	defer util.Close(z)
+
+	alertStore, err := builders.NewAlertStoreFromConfig(ctx, true, instanceConfig)
+	if err != nil {
+		return err
+	}
+	// Find "alerts"
+	var alertsZipFile *zip.File
+	for _, zipReader := range z.File {
+		if zipReader.Name == "alerts" {
+			alertsZipFile = zipReader
+		}
+	}
+	if alertsZipFile == nil {
+		return skerr.Fmt("Could not find an alerts file in the backup: %q", inputFilename)
+	}
+	alertsZipReader, err := alertsZipFile.Open()
+	if err != nil {
+		return err
+	}
+
+	decoder := gob.NewDecoder(alertsZipReader)
+	for {
+		var alert alerts.Alert
+		err := decoder.Decode(&alert)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		if err := alertStore.Save(ctx, &alert); err != nil {
+			return err
+		}
+		fmt.Printf("Alerts: %q\n", alert.DisplayName)
+	}
+
+	/*
+		// Restore shortcuts.
+		shortcutStore, err := builders.NewShortcutStoreFromConfig(instanceConfig)
+		if err != nil {
+			return err
+		}
+
+		// Find "shortcuts"
+		var shortcutsZipFile *zip.File
+		for _, zipReader := range z.File {
+			if zipReader.Name == "shortcuts" {
+				shortcutsZipFile = zipReader
+			}
+		}
+		if shortcutsZipFile == nil {
+			return skerr.Fmt("Could not find an shortcuts file in the backup: %q", inputFilename)
+		}
+		shortcutsZipReader, err := shortcutsZipFile.Open()
+		if err != nil {
+			return err
+		}
+
+		total := 0
+		fmt.Print("Shortcuts: ")
+		shortcutDecoder := gob.NewDecoder(shortcutsZipReader)
+		for {
+			var s shortcut.Shortcut
+			err := shortcutDecoder.Decode(&s)
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				return err
+			}
+			_, err = shortcutStore.InsertShortcut(ctx, &s)
+			if err != nil {
+				return err
+			}
+			total++
+			if total%100 == 0 {
+				fmt.Print(".")
+			}
+		}
+		fmt.Println()
+
+		// Restore Regressions
+		perfGit, err := builders.NewPerfGitFromConfig(ctx, true, instanceConfig)
+		if err != nil {
+			return err
+		}
+		cidl := cid.New(ctx, perfGit, config.Config)
+		regressionStore, err := builders.NewRegressionStoreFromConfig(true, cidl, instanceConfig)
+		if err != nil {
+			return err
+		}
+
+		// Find "regressions"
+		var regressionsZipFile *zip.File
+		for _, zipReader := range z.File {
+			if zipReader.Name == "regressions" {
+				regressionsZipFile = zipReader
+			}
+		}
+		if regressionsZipFile == nil {
+			return skerr.Fmt("Could not find a regressions file in the backup: %q", inputFilename)
+		}
+		regressionsZipReader, err := shortcutsZipFile.Open()
+		if err != nil {
+			return err
+		}
+
+		total = 0
+		fmt.Print("Regressions: ")
+		regresssionsDecoder := gob.NewDecoder(regressionsZipReader)
+		for {
+			var a allRegressionsForCommitWithCommitNumber
+			err := regresssionsDecoder.Decode(&a)
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				return err
+			}
+			err = regressionStore.Write(ctx, map[types.CommitNumber]*regression.AllRegressionsForCommit{
+				a.CommitNumber: a.AllRegressionsForCommit,
+			})
+			if err != nil {
+				return err
+			}
+			total++
+			if total%100 == 0 {
+				fmt.Print(".")
+			}
+		}
+	*/
+	return nil
 }
 
 func tilesLastAction(c *cobra.Command, args []string) error {
