@@ -1,0 +1,54 @@
+@import '~elements-sk/themes/themes.css';
+
+calendar-sk {
+  h2 {
+    margin: 0;
+    padding: 0;
+  }
+
+  td {
+    font-size: 120%;
+    text-align: center;
+    border: solid 2px var(--background);
+  }
+
+  td.today button {
+    color: var(--secondary);
+  }
+
+  td.selected {
+    border: solid 2px var(--secondary);
+  }
+
+  th.clickable {
+    cursor: pointer;
+  }
+
+  th.clickable:hover {
+    background: var(--surface-1dp);
+  }
+
+  tr.weekdayHeader {
+    opacity: 0.6;
+  }
+
+  button {
+    cursor: pointer;
+    margin: 0;
+    padding: 0em;
+    min-width: 16px;
+    min-height: 0;
+    height: 20px;
+    width: 20px;
+    text-transform: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    navigate-next-icon-sk svg.icon-sk-svg,
+    navigate-before-icon-sk svg.icon-sk-svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
