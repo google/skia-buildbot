@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1d88ce33_e55928a7",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-30T18:27:01Z",
+      "side": 1,
+      "message": "Nit: The dash will appear as part of the documentation for the property on most IDEs, which is a bit weird. I don\u0027t think any punctuation is necessary after the name of the thing being documented, i.e. you can just do:\n\n  /** @prop {string} currentKey The currently selected ... */",
+      "range": {
+        "startLine": 38,
+        "startChar": 32,
+        "endLine": 38,
+        "endChar": 33
+      },
+      "revId": "dd0ee3bc4e993909dfcdea36ec5c28fdd0729ef1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60589790_c6e3b452",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-30T18:27:01Z",
+      "side": 1,
+      "message": "Nit: Not sure I understand the indentation criteria. It\u0027s probably OK to use two extra spaces to indicate continuity.",
+      "range": {
+        "startLine": 39,
+        "startChar": 29,
+        "endLine": 41,
+        "endChar": 29
+      },
+      "revId": "dd0ee3bc4e993909dfcdea36ec5c28fdd0729ef1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "14c117bd_9237ec8b",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-30T18:27:01Z",
+      "side": 1,
+      "message": "It looks to me like this component really has three possible states: \"ascending\", \"descending\" or \"none\" (i.e. current key !\u003d key).\n\nPerhaps if we add \"none\" as a third possible value for the \"direction\" property we could remove the \"currentKey\" property, simplifying the component a bit.\n\nWDYT?",
+      "range": {
+        "startLine": 43,
+        "startChar": 2,
+        "endLine": 50,
+        "endChar": 3
+      },
+      "revId": "dd0ee3bc4e993909dfcdea36ec5c28fdd0729ef1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "10143e34_105b13aa",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-30T18:27:01Z",
+      "side": 1,
+      "message": "Can we use the full words \u0027ascending\u0027 and \u0027descending\u0027? We use the full words in search-controls-sk and it leads to a more self documenting (\u0027ascending\u0027 | \u0027descending\u0027) union type in TypeScript.",
+      "range": {
+        "startLine": 79,
+        "startChar": 0,
+        "endLine": 81,
+        "endChar": 0
+      },
+      "revId": "dd0ee3bc4e993909dfcdea36ec5c28fdd0729ef1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bdf9f705_98d79b52",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-30T18:27:01Z",
+      "side": 1,
+      "message": "Maybe it would be simpler to use flexbox here:\n\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: space-between;\n\nThen, instead of hiding icons via the \"hidden\" attribute, we can use the visibility[1] CSS property, which hides an element without disrupting the flex layout:\n\n  .hidden {\n    visibility: hidden;\n  }\n\nThe main rationale is that the layout definition is centralized in one single place (i.e. the parent node) instead of being partially defined on the parent (position: relative) and on the child nodes (left/top/down properties).\n\n[1] https://developer.mozilla.org/en-US/docs/Web/CSS/visibility",
+      "range": {
+        "startLine": 2,
+        "startChar": 2,
+        "endLine": 3,
+        "endChar": 24
+      },
+      "revId": "dd0ee3bc4e993909dfcdea36ec5c28fdd0729ef1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1b15fcd_a2154443",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.scss",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-30T18:27:01Z",
+      "side": 1,
+      "message": "You probably want to give this an exact size as opposed to a min size (e.g. width: 16px; height: 16px;).",
+      "range": {
+        "startLine": 4,
+        "startChar": 2,
+        "endLine": 5,
+        "endChar": 19
+      },
+      "revId": "dd0ee3bc4e993909dfcdea36ec5c28fdd0729ef1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7781e66c_b916f594",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk_puppeteer_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-30T18:27:01Z",
+      "side": 1,
+      "message": "sort-toggle-sk_descending\n\n(I don\u0027t believe there\u0027s necessarily a \"canonical\" state for this component, so naming these screenshots ascending/descending is probably more useful.)",
+      "range": {
+        "startLine": 22,
+        "startChar": 51,
+        "endLine": 22,
+        "endChar": 65
+      },
+      "revId": "dd0ee3bc4e993909dfcdea36ec5c28fdd0729ef1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "afb45a03_032d4950",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk_puppeteer_test.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-30T18:27:01Z",
+      "side": 1,
+      "message": "sort-toggle-sk_ascending",
+      "range": {
+        "startLine": 28,
+        "startChar": 51,
+        "endLine": 28,
+        "endChar": 83
+      },
+      "revId": "dd0ee3bc4e993909dfcdea36ec5c28fdd0729ef1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c0c13e5_d79d0c2e",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk_test.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-06-30T18:27:01Z",
+      "side": 1,
+      "message": "Please add a comment explaining why the delay is necessary, or please remove it you find that it isn\u0027t.",
+      "range": {
+        "startLine": 16,
+        "startChar": 54,
+        "endLine": 16,
+        "endChar": 57
+      },
+      "revId": "dd0ee3bc4e993909dfcdea36ec5c28fdd0729ef1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
