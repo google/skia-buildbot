@@ -203,7 +203,7 @@ const template = (ele) => html`
         <div id=details>
           <paramset-sk id=simple_paramset clickable_values @paramset-key-value-click=${ele._paramsetKeyValueClick}></paramset-sk>
           <div>
-            <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
+            <commit-detail-panel-sk id=commits selectable></commit-detail-panel-sk>
             <json-source-sk id=jsonsource></json-source-sk>
           </div>
         </div>

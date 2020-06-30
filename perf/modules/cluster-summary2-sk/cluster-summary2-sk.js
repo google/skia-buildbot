@@ -67,7 +67,7 @@ const template = (ele) => html`
     <input type=text .value=${ele._triage.message} @change=${(e) => { ele._triage.message = e.target.value; }} label=Message>
     <button class=action @click=${ele._update}>Update</button>
   </div>
-  <commit-detail-panel-sk id=commits></commit-detail-panel-sk>
+  <commit-detail-panel-sk id=commits selectable></commit-detail-panel-sk>
   <div class=actions>
     <button id=shortcut @click=${ele._openShortcut}>View on dashboard</button>
     <a id=permalink class=${ele._hiddenClass()} href=${ele._permaLink()}>Permlink</a>
