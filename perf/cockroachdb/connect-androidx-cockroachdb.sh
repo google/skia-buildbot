@@ -1,5 +1,5 @@
 #!/bin/bash
-kubectl run cockroachdb -it \
+kubectl run androidx-cockroachdb -it \
 --image=cockroachdb/cockroach:v19.2.5 \
 --rm \
 --restart=Never \
