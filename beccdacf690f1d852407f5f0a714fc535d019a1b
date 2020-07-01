@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb0aea2b_c83c5ac2",
+        "filename": "golden/modules/list-page-sk/list-page-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-01T18:24:10Z",
+      "side": 1,
+      "message": "Nit: Please put a line break after each data-* attribute.",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 76,
+        "endChar": 36
+      },
+      "revId": "beccdacf690f1d852407f5f0a714fc535d019a1b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
