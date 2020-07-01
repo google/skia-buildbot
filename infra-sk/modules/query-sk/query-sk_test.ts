@@ -1,7 +1,7 @@
 import './index';
-import { $, $$ } from 'common-sk/modules/dom';
 import { ParamSet, toParamSet, fromParamSet } from 'common-sk/modules/query';
 import { QuerySk } from './query-sk';
+import { QuerySkPO } from './query-sk_po';
 import { setUpElementUnderTest } from '../test_util';
 import { assert } from 'chai';
 
@@ -41,91 +41,111 @@ describe('query-sk', () => {
   const newInstance = setUpElementUnderTest<QuerySk>('query-sk');
 
   let querySk: QuerySk;
-  let fast: HTMLInputElement;
+  let querySkPO: QuerySkPO;
+
   beforeEach(() => {
     querySk = newInstance();
     querySk.paramset = paramset;
-    fast = $$<HTMLInputElement>('#fast', querySk)!;
-  })
+    querySkPO = new QuerySkPO(querySk);
+  });
 
-  it('obeys key_order', () => {
-    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], keys(querySk));
+  it('sets the available options via the "paramset" property', async () => {
+    assert.deepEqual(paramset, await querySkPO.getParamSet());
+  });
+
+  it('can change the selection on the UI via the current_query property', async () => {
+    const query: ParamSet = {
+      arch: ['arm', 'x86'],
+      config: ['!8888'],
+      compiler: ['~CC'],
+    };
+
+    querySk.current_query = fromParamSet(query);
+    assert.deepEqual(query, await querySkPO.getCurrentQuery());
+  });
+
+  it('can change the current_query property via the UI', async () => {
+    const query: ParamSet = {
+      arch: ['arm', 'x86'],
+      config: ['!8888'],
+      compiler: ['~CC'],
+    };
+
+    await querySkPO.setCurrentQuery(query);
+    assert.deepEqual(fromParamSet(query), querySk.current_query);
+  });
+
+  it('obeys key_order', async () => {
+    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], await querySkPO.getKeys());
 
     // Setting key_order will change the key order.
     querySk.key_order = ['config'];
-    assert.deepEqual(['config', 'arch', 'bench_type', 'compiler'], keys(querySk));
+    assert.deepEqual(['config', 'arch', 'bench_type', 'compiler'], await querySkPO.getKeys());
 
     // Setting key_order to empty will go back to alphabetical order.
     querySk.key_order = [];
-    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], keys(querySk));
+    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], await querySkPO.getKeys());
   });
 
-  it('obeys filter', () => {
-    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], keys(querySk));
+  it('obeys filter', async () => {
+    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], await querySkPO.getKeys());
 
     // Setting the filter will change the keys displayed.
-    fast.value = 'cro'; // Only 'micro' in 'bench_type' should match.
-    fast.dispatchEvent(new Event('input')); // Emulate user input.
+    await querySkPO.setFilter('cro'); // Only 'micro' in 'bench_type' should match.
 
     // Only key should be bench_type.
-    assert.deepEqual(['bench_type'], keys(querySk));
+    assert.deepEqual(['bench_type'], await querySkPO.getKeys());
 
     // Clearing the filter will restore all options.
-    fast.value = '';
-    fast.dispatchEvent(new Event('input')); // Emulate user input.
+    await querySkPO.clickClearFilter();
 
-    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], keys(querySk));
+    assert.deepEqual(['arch', 'bench_type', 'compiler', 'config'], await querySkPO.getKeys());
   });
 
-  it('only edits displayed values when filter is used.', () => {
+  it('only edits displayed values when filter is used.', async () => {
     // Make a selection.
     querySk.current_query = 'arch=x86';
 
     // Setting the filter will change the keys displayed.
-    fast.value = '64'; // Only 'arm64' and 'x86_64' in 'arch' should match.
-    fast.dispatchEvent(new Event('input')); // Emulate user input.
+    await querySkPO.setFilter('64'); // Only 'arm64' and 'x86_64' in 'arch' should match.
 
     // Only key should be arch.
-    assert.deepEqual(['arch'], keys(querySk));
+    assert.deepEqual(['arch'], await querySkPO.getKeys());
 
     // Click on 'arch'.
-    ($$('select-sk', querySk)!.firstElementChild! as HTMLElement).click();
+    await querySkPO.clickKey('arch');
 
     // Click on the value 'arm64' to add it to the query.
-    ($$('multi-select-sk', querySk)!.firstElementChild! as HTMLElement).click();
+    await querySkPO.clickValue('arm64');
 
     // Confirm it gets added.
     assert.deepEqual(toParamSet('arch=x86&arch=arm64'), toParamSet(querySk.current_query));
 
     // Click on the value 'arm64' a second time to remove it from the query.
-    ($$('multi-select-sk', querySk)!.firstElementChild as HTMLElement).click();
+    await querySkPO.clickValue('arm64');
 
     // Confirm it gets removed.
     assert.deepEqual(toParamSet('arch=x86'), toParamSet(querySk.current_query));
   });
 
-  it('updates query-values-sk when the current_query property is set', () => {
+  it('updates query-values-sk when the current_query property is set', async () => {
     // Click on 'arch'.
-    ($$('select-sk', querySk)!.firstElementChild! as HTMLElement).click();
+    await querySkPO.clickKey('arch');
 
     // Click on the value 'arm' to add it to the query.
-    $$<HTMLDivElement>('multi-select-sk div[value="arm"]', querySk)!.click();
+    await querySkPO.clickValue('arm');
 
     // Assert that only 'arm' is selected.
-    assert.deepEqual(
-      ['arm'],
-      $<HTMLDivElement>('multi-select-sk div[selected]').map(div => div.getAttribute('value')));
+    assert.deepEqual(['arm'], await querySkPO.getSelectedValues());
 
     // Set selection via current_query.
     querySk.current_query = 'arch=x86&arch=x86_64&config=8888';
 
     // Assert that the previous selection is reflected in the UI.
-    assert.deepEqual(
-      ['x86', 'x86_64'],
-      $<HTMLDivElement>('multi-select-sk div[selected]').map(div => div.getAttribute('value')));
+    assert.deepEqual(['x86', 'x86_64'], await querySkPO.getSelectedValues());
   });
 
-  it('rationalizes current_query when set programmatically', () => {
+  it('rationalizes current_query when set programmatically', async () => {
     const validQuery = fromParamSet({
       arch: ['arm', 'x86'],
       config: ['!8888'],
@@ -140,11 +160,26 @@ describe('query-sk', () => {
     // Valid queries should remain unaltered.
     querySk.current_query = validQuery;
     assert.deepEqual(validQuery, querySk.current_query);
+    assert.deepEqual(validQuery, fromParamSet(await querySkPO.getCurrentQuery()));
 
     // Invalid queries should be rationalized.
     querySk.current_query = invalidQuery;
     assert.deepEqual(invalidQueryRationalized, querySk.current_query);
-  })
-});
+    assert.deepEqual(invalidQueryRationalized, fromParamSet(await querySkPO.getCurrentQuery()));
+  });
 
-const keys = (q: QuerySk) => $('select-sk div', q).map(e => e.textContent);
+  it('clears the selection when the "Clear Selections" button is clicked', async () => {
+    const query: ParamSet = {
+      arch: ['arm', 'x86'],
+      config: ['!8888'],
+      compiler: ['~CC'],
+    };
+
+    querySk.current_query = fromParamSet(query);
+    assert.deepEqual(query, await querySkPO.getCurrentQuery());
+
+    await querySkPO.clickClearSelections();
+    assert.deepEqual('', querySk.current_query);
+    assert.deepEqual({}, await querySkPO.getCurrentQuery());
+  });
+});
