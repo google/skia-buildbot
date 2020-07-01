@@ -8,13 +8,13 @@
  * @evt input - A CustomEvent<Date> with the new date.
  *
  */
-import {define} from 'elements-sk/define';
-import {html} from 'lit-html';
-import {ElementSk} from '../../../infra-sk/modules/ElementSk';
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/icon/date-range-icon-sk';
 import dialogPolyfill from 'dialog-polyfill';
 import '../calendar-sk';
-import {CalendarSk} from '../calendar-sk/calendar-sk';
+import { CalendarSk } from '../calendar-sk/calendar-sk';
 
 export class CalendarInputSk extends ElementSk {
   private static template = (ele: CalendarInputSk) => html`
@@ -118,7 +118,10 @@ export class CalendarInputSk extends ElementSk {
 
   private sendEvent() {
     this.dispatchEvent(
-      new CustomEvent<Date>('input', {detail: this.displayDate, bubbles: true})
+      new CustomEvent<Date>('input', {
+        detail: this.displayDate,
+        bubbles: true,
+      })
     );
   }
 

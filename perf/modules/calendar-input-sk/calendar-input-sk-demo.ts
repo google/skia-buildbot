@@ -1,5 +1,5 @@
 import './index.ts';
-import {CalendarInputSk} from './calendar-input-sk';
+import { CalendarInputSk } from './calendar-input-sk';
 
 const evt = document.getElementById('evt')!;
 const locales = [undefined, undefined, undefined, 'zh-Hans-CN'];

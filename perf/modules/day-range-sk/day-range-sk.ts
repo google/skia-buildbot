@@ -17,6 +17,8 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import '../calendar-input-sk';
+import { CalendarInputSk } from '../calendar-input-sk/calendar-input-sk';
 
 export interface DayRangeSkChangeDetail {
   // Seconds from the Unix epoch.
@@ -26,34 +28,26 @@ export interface DayRangeSkChangeDetail {
   end: number;
 }
 
-// Converts the timestamp in seconds from the epoch into
-// an acceptable format for an input of type=date.
-function inputDateFormatFromNumber(timestamp: number) {
-  const d = new Date(timestamp * 1000);
-
-  const month = `${d.getUTCMonth() + 1}`.padStart(2, '0');
-  const day = `${d.getUTCDate()}`.padStart(2, '0');
-  const year = d.getUTCFullYear();
-  return `${year}-${month}-${day}`;
+// Converts the timestamp in seconds from the epoch into a Date.
+function dateFromTimestamp(timestamp: number) {
+  return new Date(timestamp * 1000);
 }
 
 export class DayRangeSk extends ElementSk {
   static template = (ele: DayRangeSk) => html`
     <label class="begin">
       Begin
-      <input
-        type=date
+      <calendar-input-sk
         @change=${ele._beginChanged}
-        .value=${inputDateFormatFromNumber(ele.begin)}
-      ></input>
+        .displayDate=${dateFromTimestamp(ele.begin)}
+      ></calendar-input-sk>
     </label>
     <label class="end">
       End
-      <input
-        type=date
+      <calendar-input-sk
         @change=${ele._endChanged}
-        .value=${inputDateFormatFromNumber(ele.end)}
-      ></input>
+        .displayDate=${dateFromTimestamp(ele.end)}
+      ></calendar-input-sk>
     </label>
   `;
 
@@ -89,12 +83,16 @@ export class DayRangeSk extends ElementSk {
   }
 
   _beginChanged(e: Event) {
-    this.begin = (e.target! as HTMLInputElement).valueAsNumber / 1000;
+    this.begin = Math.floor(
+      (e.target! as CalendarInputSk).displayDate.valueOf() / 1000
+    );
     this._sendEvent();
   }
 
   _endChanged(e: Event) {
-    this.end = (e.target! as HTMLInputElement).valueAsNumber / 1000;
+    this.end = Math.floor(
+      (e.target! as CalendarInputSk).displayDate.valueOf() / 1000
+    );
     this._sendEvent();
   }
 

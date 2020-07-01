@@ -21,9 +21,9 @@
  * detached to/from the appropriate containing element when it is used, for
  * example, a containing 'dialog' element.
  */
-import {define} from 'elements-sk/define';
-import {html, TemplateResult} from 'lit-html';
-import {ElementSk} from '../../../infra-sk/modules/ElementSk';
+import { define } from 'elements-sk/define';
+import { html, TemplateResult } from 'lit-html';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/styles/buttons';
 import 'elements-sk/icon/navigate-before-icon-sk';
 import 'elements-sk/icon/navigate-next-icon-sk';
@@ -96,7 +96,7 @@ export class CalendarSk extends ElementSk {
         </th>
         <th colspan="5">
           <h2 aria-live="polite" id="calendar-year">
-            ${new Intl.DateTimeFormat(ele._locale, {year: 'numeric'}).format(
+            ${new Intl.DateTimeFormat(ele._locale, { year: 'numeric' }).format(
               ele._displayDate
             )}
           </h2>
@@ -125,7 +125,7 @@ export class CalendarSk extends ElementSk {
         </th>
         <th colspan="5">
           <h2 aria-live="polite" id="calendar-month">
-            ${new Intl.DateTimeFormat(ele._locale, {month: 'long'}).format(
+            ${new Intl.DateTimeFormat(ele._locale, { month: 'long' }).format(
               ele._displayDate
             )}
           </h2>
