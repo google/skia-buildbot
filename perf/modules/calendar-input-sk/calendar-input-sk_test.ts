@@ -1,7 +1,7 @@
 import './index';
-import {assert} from 'chai';
-import {CalendarInputSk} from './calendar-input-sk';
-import {setUpElementUnderTest} from '../../../infra-sk/modules/test_util';
+import { assert } from 'chai';
+import { CalendarInputSk } from './calendar-input-sk';
+import { setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 
 const container = document.createElement('div');
 document.body.appendChild(container);

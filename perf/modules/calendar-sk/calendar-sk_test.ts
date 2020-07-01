@@ -1,6 +1,6 @@
 import './index';
-import {assert} from 'chai';
-import {CalendarSk} from './calendar-sk';
+import { assert } from 'chai';
+import { CalendarSk } from './calendar-sk';
 import {
   setUpElementUnderTest,
   eventPromise,
@@ -87,7 +87,7 @@ describe('calendar-sk', () => {
     it('moves to next day when ArrowRight is pressed', () =>
       window.customElements.whenDefined('calendar-sk').then(() => {
         calendarSk.keyboardHandler(
-          new KeyboardEvent('keydown', {code: 'ArrowRight'})
+          new KeyboardEvent('keydown', { code: 'ArrowRight' })
         );
 
         assert.equal(
@@ -100,7 +100,7 @@ describe('calendar-sk', () => {
     it('moves to previous day when ArrowLeft is pressed', () =>
       window.customElements.whenDefined('calendar-sk').then(() => {
         calendarSk.keyboardHandler(
-          new KeyboardEvent('keydown', {code: 'ArrowLeft'})
+          new KeyboardEvent('keydown', { code: 'ArrowLeft' })
         );
 
         assert.equal(
@@ -113,7 +113,7 @@ describe('calendar-sk', () => {
     it('moves to previous week when ArrowUp is pressed', () =>
       window.customElements.whenDefined('calendar-sk').then(() => {
         calendarSk.keyboardHandler(
-          new KeyboardEvent('keydown', {code: 'ArrowUp'})
+          new KeyboardEvent('keydown', { code: 'ArrowUp' })
         );
 
         assert.equal(
@@ -126,7 +126,7 @@ describe('calendar-sk', () => {
     it('moves to next week when ArrowDown is pressed', () =>
       window.customElements.whenDefined('calendar-sk').then(() => {
         calendarSk.keyboardHandler(
-          new KeyboardEvent('keydown', {code: 'ArrowDown'})
+          new KeyboardEvent('keydown', { code: 'ArrowDown' })
         );
 
         assert.equal(
@@ -140,7 +140,7 @@ describe('calendar-sk', () => {
     it('moves to previous month when PageUp is pressed', () =>
       window.customElements.whenDefined('calendar-sk').then(() => {
         calendarSk.keyboardHandler(
-          new KeyboardEvent('keydown', {code: 'PageUp'})
+          new KeyboardEvent('keydown', { code: 'PageUp' })
         );
 
         assert.equal(
@@ -153,7 +153,7 @@ describe('calendar-sk', () => {
     it('moves to next month when PageDown is pressed', () =>
       window.customElements.whenDefined('calendar-sk').then(() => {
         calendarSk.keyboardHandler(
-          new KeyboardEvent('keydown', {code: 'PageDown'})
+          new KeyboardEvent('keydown', { code: 'PageDown' })
         );
 
         assert.equal(
