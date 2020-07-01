@@ -17,7 +17,7 @@ describe('sort-sk', () => {
 
   it('should render the demo page', async () => {
     // Smoke test.
-    expect(await testBed.page.$$('sort-sk')).to.have.length(4);
+    expect(await testBed.page.$$('sort-sk')).to.have.length(5);
   });
 
   describe('screenshots', () => {
