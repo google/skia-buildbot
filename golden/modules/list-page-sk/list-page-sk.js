@@ -64,8 +64,8 @@ const template = (ele) => html`
 `;
 
 const testRow = (row, ele) => {
-  const searchParams = 'unt=true&neg=true&pos=true'
-    + `&source_type=${encodeURIComponent(ele._currentCorpus)}`
+  const allDigests = 'unt=true&neg=true&pos=true';
+  const searchParams = `source_type=${encodeURIComponent(ele._currentCorpus)}`
     + `&query=${encodeURIComponent(`name=${row.name}`)}`
     + `&head=${ele._showAllDigests ? 'false' : 'true'}`
     + `&include=${ele._disregardIgnoreRules ? 'true' : 'false'}`;
@@ -77,16 +77,32 @@ const testRow = (row, ele) => {
     data-untriaged=${row.untriaged_digests}
     data-total=${row.total_digests}>
   <td>
-    <a href="/search?${searchParams}" target=_blank rel=noopener>
+    <a href="/search?${searchParams}&${allDigests}" target=_blank rel=noopener>
       ${row.name}
     </a>
   </td>
-  <td class=center>${row.positive_digests}</td>
-  <td class=center>${row.negative_digests}</td>
-  <td class=center>${row.untriaged_digests}</td>
-  <td class=center>${row.total_digests}</td>
   <td class=center>
-    <a href="/cluster?${searchParams}" target=_blank rel=noopener>
+    <a href="/search?${searchParams}&pos=true" target=_blank rel=noopener>
+     ${row.positive_digests}
+    </a>
+  </td>
+  <td class=center>
+    <a href="/search?${searchParams}&neg=true" target=_blank rel=noopener>
+     ${row.negative_digests}
+    </a>
+  </td>
+  <td class=center>
+    <a href="/search?${searchParams}&unt=true" target=_blank rel=noopener>
+     ${row.untriaged_digests}
+    </a>
+  </td>
+  <td class=center>
+    <a href="/search?${searchParams}&${allDigests}" target=_blank rel=noopener>
+     ${row.total_digests}
+    </a>
+  </td>
+  <td class=center>
+    <a href="/cluster?${searchParams}&${allDigests}" target=_blank rel=noopener>
       <group-work-icon-sk></group-work-icon-sk>
     </a>
   </td>
