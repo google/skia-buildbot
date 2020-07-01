@@ -164,6 +164,7 @@ func (vars *AddTaskCommonVars) IsAdminTask() bool {
 }
 
 func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
+	sklog.Info("In AddTaskHandler!")
 	if !ctfeutil.UserHasEditRights(r) {
 		httputils.ReportError(w, nil, "Please login with google account to add tasks", http.StatusInternalServerError)
 		return
