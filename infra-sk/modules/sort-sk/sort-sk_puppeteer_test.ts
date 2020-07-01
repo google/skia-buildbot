@@ -12,12 +12,12 @@ describe('sort-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/sort-sk.html`);
-    await testBed.page.setViewport({ width: 400, height: 750 });
+    await testBed.page.setViewport({ width: 400, height: 900 });
   });
 
   it('should render the demo page', async () => {
     // Smoke test.
-    expect(await testBed.page.$$('sort-sk')).to.have.length(4);
+    expect(await testBed.page.$$('sort-sk')).to.have.length(5);
   });
 
   describe('screenshots', () => {

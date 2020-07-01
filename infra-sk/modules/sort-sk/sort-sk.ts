@@ -56,10 +56,7 @@ interface SortableEntry {
 
 // Functions to pass to sort().
 const f_alpha_up = (x: SortableEntry, y: SortableEntry) => {
-  if (x.value === y.value) {
-    return 0;
-  }
-  return x.value > y.value ? 1 : -1;
+  return x.value.localeCompare(y.value);
 };
 const f_alpha_down = (x: SortableEntry, y: SortableEntry) => f_alpha_up(y, x);
 const f_num_up = (x: SortableEntry, y: SortableEntry) => {
@@ -107,7 +104,10 @@ export class SortSk extends ElementSk {
 
   _clickHandler(e: Event) {
     let ele = e.target! as HTMLElement;
-    while (ele.parentElement !== this) {
+    // The click might have been on something inside the button (e.g. on the arrow-drop-up-icon-sk),
+    // so we want to bubble up to where the key is and set the class that displays the appropriate
+    // arrow.
+    while (!ele.hasAttribute('data-key') && ele.parentElement !== this) {
       if (ele.parentElement === null) {
         break;
       }
@@ -121,25 +121,31 @@ export class SortSk extends ElementSk {
     });
     this._setSortClass(ele, dir);
 
-    // Remember the direction we are sorting in.
-    let up = dir === 'up';
-
     // Are we sorting alphabetically or numerically.
-    let alpha = ele.dataset.sortType === 'alpha';
+    const alpha = ele.dataset.sortType === 'alpha';
 
     // Sort the children of the element at #target.
-    let sortBy = ele.dataset.key || '(key not found)';
-    let container = this.parentElement!.querySelector(
-      `#${this.getAttribute('target')}`
+    const sortBy = ele.dataset.key || '(key not found)';
+    this.sort(sortBy, dir, alpha);
+  }
+
+  // re-sort the data by the given key in the given direction. If alpha is true, it will
+  // sort the data as if it were a string (using localeCompare).
+  sort(key: string, dir: string, alpha: boolean) {
+    // Remember the direction we are sorting in.
+    const up = dir === 'up';
+
+    const container = this.parentElement!.querySelector(
+        `#${this.getAttribute('target')}`
     );
     if (container === null) {
-      throw "Failed to find 'target' attribute.";
+      throw 'Failed to find "target" attribute.';
     }
-    let arr: SortableEntry[] = [];
+    const arr: SortableEntry[] = [];
     for (const ele of container.children) {
       const htmlEle = ele as HTMLElement;
-      let value: string = htmlEle.dataset[sortBy] || '';
-      let entry = {
+      const value: string = htmlEle.dataset[key] || '';
+      const entry = {
         value: value,
         valueAsNumber: +value,
         node: htmlEle,
@@ -158,6 +164,8 @@ export class SortSk extends ElementSk {
 
     // Rearrange the elements in the sorted order.
     arr.forEach((e) => {
+      // Reminder: appendChild will *move* existing nodes, which is what we want here while
+      // reordering things.
       container!.appendChild(e.node);
     });
   }
