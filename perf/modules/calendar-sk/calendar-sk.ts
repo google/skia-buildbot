@@ -21,6 +21,7 @@
  * detached to/from the appropriate containing element when it is used, for
  * example, a containing 'dialog' element.
  */
+import {define} from 'elements-sk/define';
 import {html, TemplateResult} from 'lit-html';
 import {ElementSk} from '../../../infra-sk/modules/ElementSk';
 import 'elements-sk/styles/buttons';
@@ -416,4 +417,4 @@ export class CalendarSk extends ElementSk {
   }
 }
 
-window.customElements.define('calendar-sk', CalendarSk);
+define('calendar-sk', CalendarSk);
