@@ -40,11 +40,8 @@ func buildChromium() error {
 		return errors.New("Must specify --skia_hash")
 	}
 
-	// Create the required chromium build.
-	// Note: chromium_builds.CreateChromiumBuildOnSwarming specifies the
-	//       "-DSK_WHITELIST_SERIALIZED_TYPEFACES" flag only when *runID is empty.
-	//       Since builds created by this master script will be consumed only by the
-	//       capture_skps tasks (which require that flag) specify runID as empty here.
+	// Create the required chromium build. Differentiate between the master script
+	// builds and build_chromium by specifying runID as empty here.
 	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(ctx, "build_chromium", "", "chromium", "Linux", "", []string{*chromiumHash, *skiaHash}, []string{}, []string{}, true /*singleBuild*/, *master_common.Local, 3*time.Hour, 1*time.Hour, swarmingClient)
 	if err != nil {
 		return fmt.Errorf("Error encountered when swarming build repo task: %s", err)

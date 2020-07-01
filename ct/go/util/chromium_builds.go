@@ -188,11 +188,8 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 		// Add "try" prefix and "withpatch" suffix.
 		googleStorageDirName = fmt.Sprintf("try-%s-withpatch", googleStorageDirName)
 	}
-	// Hack: Use the "-DSK_WHITELIST_SERIALIZED_TYPEFACES" flag only when *runID is
-	// empty i.e. when invoked by the build_chromium task.
-	useWhitelistedFonts := (runID == "")
 	// Build chromium.
-	if err := buildChromium(ctx, chromiumBuildDir, targetPlatform, useWhitelistedFonts); err != nil {
+	if err := buildChromium(ctx, chromiumBuildDir, targetPlatform); err != nil {
 		return "", "", fmt.Errorf("There was an error building chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
 	}
 
@@ -218,7 +215,7 @@ func CreateChromiumBuildOnSwarming(ctx context.Context, runID, targetPlatform, c
 			}
 		}
 		// Build chromium.
-		if err := buildChromium(ctx, chromiumBuildDir, targetPlatform, useWhitelistedFonts); err != nil {
+		if err := buildChromium(ctx, chromiumBuildDir, targetPlatform); err != nil {
 			return "", "", fmt.Errorf("There was an error building chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
 		}
 		// Upload to Google Storage.
@@ -278,7 +275,7 @@ func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GcsUtil)
 	return gs.UploadFile(CHROMIUM_BUILD_ZIP_NAME, ChromiumBuildsDir, gsDir)
 }
 
-func buildChromium(ctx context.Context, chromiumDir, targetPlatform string, useWhitelistedFonts bool) error {
+func buildChromium(ctx context.Context, chromiumDir, targetPlatform string) error {
 	if err := os.Chdir(filepath.Join(chromiumDir, "src")); err != nil {
 		return fmt.Errorf("Could not chdir to %s/src: %s", chromiumDir, err)
 	}
@@ -296,9 +293,6 @@ func buildChromium(ctx context.Context, chromiumDir, targetPlatform string, useW
 	gn_args = append(gn_args, "symbol_level=1")
 	if targetPlatform == "Android" {
 		gn_args = append(gn_args, "target_os=\"android\"")
-	}
-	if useWhitelistedFonts {
-		gn_args = append(gn_args, "skia_whitelist_serialized_typefaces=true")
 	}
 
 	// Run "gn gen out/Release --args=...".
