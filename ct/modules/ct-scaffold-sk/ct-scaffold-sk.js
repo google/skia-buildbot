@@ -133,18 +133,19 @@ define('ct-scaffold-sk', class extends ElementSk {
     this.addEventListener('end-task', this._finishedTask);
     this.addEventListener('fetch-error', this._fetchError);
 
+    const allFetches = [];
     ctfe_utils.taskDescriptors.forEach((obj) => {
       const queryParams = {
         size: 1,
         not_completed: true,
       };
       const queryStr = `?${fromObject(queryParams)}`;
-      fetch(obj.get_url + queryStr, { method: 'POST' })
+      allFetches.push(fetch(obj.get_url + queryStr, { method: 'POST' })
         .then(jsonOrThrow)
         .then((json) => {
           this._task_queue_length += json.pagination.total;
         })
-        .catch(errorMessage);
+        .catch(errorMessage));
     });
     // We aren't using shadow dom so we need to manually move the children of
     // ct-scaffold-sk to be children of 'main'. We have to do this for the
@@ -171,6 +172,8 @@ define('ct-scaffold-sk', class extends ElementSk {
       });
     });
     observer.observe(this, { childList: true });
+    // Once we've loaded the queue length, re-render.
+    Promise.all(allFetches).then(() => this._render());
   }
 
   disconnectedCallback() {
