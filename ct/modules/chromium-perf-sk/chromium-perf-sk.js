@@ -336,7 +336,7 @@ define('chromium-perf-sk', class extends ElementSk {
     params.task_priority = $$('#task_priority', this).priority;
     // Run on GCE if it is Windows. This will change in the future if we
     // get bare-metal Win machines.
-    params.run_on_gce = ($$('#platform_selector', this).selection === 'Windows').toString();
+    params.run_on_gce = (params.platform === 'Windows').toString();
     if ($$('#cc_list', this).value) {
       params.cc_list = $$('#cc_list', this).value.split(',');
     }
