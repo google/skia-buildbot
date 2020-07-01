@@ -11,7 +11,7 @@ BOWER_DIR=third_party/bower_components
 VULCANIZE1=true
 
 .PHONY: build
-build: elements_html core_js
+build: package-lock.json elements_html core_js
 	go install -v ./go/debugger-assets
 
 # Build debug versions of core.js and elements.html.
@@ -51,5 +51,8 @@ push: release
 .PHONY: run
 run:
 	 docker run -p8000:8000 -ti debugger-assets
+
+package-lock.json: package.json
+	npm install
 
 include ../webtools/webtools.mk
