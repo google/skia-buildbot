@@ -1,7 +1,7 @@
 @import '~elements-sk/themes/themes.css';
 
 day-range-sk {
-  label {
+  > label {
     display: block;
     margin: 0.4em;
   }
