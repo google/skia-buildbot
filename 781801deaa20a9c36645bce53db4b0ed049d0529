@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ab8593c_b1a4d3fe",
+        "filename": "infra-sk/modules/sort-sk/sort-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-01T18:24:44Z",
+      "side": 1,
+      "message": "Please export this type if you accept my below suggestion to use SortDirection in the sort method.",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 4
+      },
+      "revId": "781801deaa20a9c36645bce53db4b0ed049d0529",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "83366204_8f398361",
+        "filename": "infra-sk/modules/sort-sk/sort-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-01T18:24:44Z",
+      "side": 1,
+      "message": "Any chance you could s/Class/Attribute/, or rework it to use CSS classes while you\u0027re at it?",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 3
+      },
+      "revId": "781801deaa20a9c36645bce53db4b0ed049d0529",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5cd0f2a1_e30e8a62",
+        "filename": "infra-sk/modules/sort-sk/sort-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-01T18:24:44Z",
+      "side": 1,
+      "message": "Nit: Re-sort",
+      "range": {
+        "startLine": 132,
+        "startChar": 5,
+        "endLine": 132,
+        "endChar": 6
+      },
+      "revId": "781801deaa20a9c36645bce53db4b0ed049d0529",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "61daa1bf_4bec18ec",
+        "filename": "infra-sk/modules/sort-sk/sort-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-01T18:24:44Z",
+      "side": 1,
+      "message": "dir: SortDirection",
+      "range": {
+        "startLine": 134,
+        "startChar": 20,
+        "endLine": 134,
+        "endChar": 31
+      },
+      "revId": "781801deaa20a9c36645bce53db4b0ed049d0529",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76449a67_fa176731",
+        "filename": "infra-sk/modules/sort-sk/sort-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-01T18:24:44Z",
+      "side": 1,
+      "message": "Could you please convert to JSDoc style (i.e. /** ... */) so it\u0027s picked up by IDEs?",
+      "range": {
+        "startLine": 132,
+        "startChar": 0,
+        "endLine": 134,
+        "endChar": 0
+      },
+      "revId": "781801deaa20a9c36645bce53db4b0ed049d0529",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
