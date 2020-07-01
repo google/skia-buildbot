@@ -19,20 +19,32 @@
 <body>
   <h1>paramset-sk</h1>
 
-  <paramset-sk id=set1></paramset-sk>
+  <h2>One single ParamSet, no titles</h2>
+  <paramset-sk id=one-paramset-no-titles></paramset-sk>
 
-  <paramset-sk clickable id=set2></paramset-sk>
+  <h2>One single ParamSet, with titles</h2>
+  <paramset-sk id=one-paramset-with-titles></paramset-sk>
 
-  <paramset-sk clickable_values id=set3></paramset-sk>
+  <h2>Multiple ParamSets, no titles</h2>
+  <paramset-sk id=many-paramsets-no-titles></paramset-sk>
 
+  <h2>Multiple ParamSets, with titles</h2>
+  <paramset-sk id=many-paramsets-with-titles></paramset-sk>
+
+  <h2>Multiple ParamSets, with titles, values clickable</h2>
+  <paramset-sk id=many-paramsets-with-titles-values-clickable clickable_values></paramset-sk>
+
+  <h2>Multiple ParamSets, with titles, keys and values clickable</h2>
+  <paramset-sk id=many-paramsets-with-titles-keys-and-values-clickable clickable></paramset-sk>
+
+  <h2>Highlights</h2>
   <button id=highlight>Highlight</button>
   <button id=clear>Clear</button>
 
   <h2>Events</h2>
-  <pre id=events></pre>
   <table>
-    <tr><th>paramset-key-click      </th><td><pre id=key>  </pre></td></tr>
-    <tr><th>paramset-key-value-click</th><td><pre id=value></td></pre></tr>
+    <tr><th>paramset-key-click      </th><td><pre id=key-click-event>      </pre></td></tr>
+    <tr><th>paramset-key-value-click</th><td><pre id=key-value-click-event></td></pre></tr>
   </table>
 </body>
 </html>
