@@ -17,10 +17,11 @@ calendar-input-sk {
     height: initial;
   }
 
-  input {
+  label input {
     color: var(--on-surface);
     background: var(--surface-1dp);
     border: solid 1px var(--on-surface);
+    padding: 4px;
   }
 
   dialog {
