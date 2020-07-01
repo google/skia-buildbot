@@ -87,6 +87,23 @@ describe('list-page-sk', () => {
       // Second link should be to cluster view (with a very similar href)
       expect(links[1].href).to.contain(`/cluster?${sharedParams}`);
     });
+
+    it('updates the sort order by clicking on sort-toggle-sk', async () => {
+      let firstRow = $$('table tbody tr:nth-child(1)', listPageSk);
+      expect($$('td', firstRow).innerText).to.equal('this_is_a_test');
+
+      // After first click, it will be sorting in descending order by number of negatives.
+      clickOnNegativeHeader(listPageSk);
+
+      firstRow = $$('table tbody tr:nth-child(1)', listPageSk);
+      expect($$('td', firstRow).innerText).to.equal('this_is_another_test');
+
+      // After second click, it will be sorting in ascending order by number of negatives.
+      clickOnNegativeHeader(listPageSk);
+
+      firstRow = $$('table tbody tr:nth-child(1)', listPageSk);
+      expect($$('td', firstRow).innerText).to.equal('this_is_a_test');
+    });
   }); // end describe('html layout')
 
   describe('RPC calls', () => {
@@ -149,4 +166,8 @@ function setQueryString(q) {
   history.pushState(
     null, '', window.location.origin + window.location.pathname + q,
   );
+}
+
+function clickOnNegativeHeader(ele) {
+  $$('table > thead > tr > th:nth-child(3)', ele).click();
 }

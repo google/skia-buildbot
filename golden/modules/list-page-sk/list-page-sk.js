@@ -16,6 +16,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { defaultCorpus } from '../settings';
 
+import '../../../infra-sk/modules/sort-sk';
 import 'elements-sk/icon/group-work-icon-sk';
 import 'elements-sk/icon/tune-icon-sk';
 import 'elements-sk/checkbox-sk';
@@ -40,22 +41,24 @@ const template = (ele) => html`
   </div>
 </div>
 
-<table>
-  <!-- TODO(kjlubick) make these sortable -->
-   <thead>
-     <tr>
-      <th>Test name</th>
-      <th>Positive</th>
-      <th>Negative</th>
-      <th>Untriaged</th>
-      <th>Total</th>
-      <th>Cluster View</th>
-    </tr>
-  </thead>
-  <tbody>
-    ${ele._byTestCounts.map((row) => testRow(row, ele))}
-  </tbody>
-</table>
+<!-- lit-html (or maybe html in general) doesn't like sort-sk to go inside the table.-->
+<sort-sk id=sort_table target=rows>
+  <table>
+     <thead>
+         <tr>
+          <th data-key=name data-default=up data-sort-type=alpha>Test name</th>
+          <th data-key=positive>Positive</th>
+          <th data-key=negative>Negative</th>
+          <th data-key=untriaged>Untriaged</th>
+          <th data-key=total>Total</th>
+          <th>Cluster View</th>
+        </tr>
+    </thead>
+    <tbody id=rows>
+      ${ele._byTestCounts.map((row) => testRow(row, ele))}
+    </tbody>
+  </table>
+</sort-sk>
 
 <query-dialog-sk @edit=${ele._currentQueryChanged}></query-dialog-sk>
 `;
@@ -67,7 +70,12 @@ const testRow = (row, ele) => {
     + `&head=${ele._showAllDigests ? 'false' : 'true'}`
     + `&include=${ele._disregardIgnoreRules ? 'true' : 'false'}`;
 
-  return html`<tr>
+  return html`
+<tr data-name=${row.name}
+    data-positive=${row.positive_digests}
+    data-negative=${row.negative_digests}
+    data-untriaged=${row.untriaged_digests}
+    data-total=${row.total_digests}>
   <td>
     <a href="/search?${searchParams}" target=_blank rel=noopener>
       ${row.name}
@@ -76,7 +84,7 @@ const testRow = (row, ele) => {
   <td class=center>${row.positive_digests}</td>
   <td class=center>${row.negative_digests}</td>
   <td class=center>${row.untriaged_digests}</td>
-  <td class=center>${row.positive_digests + row.negative_digests + row.untriaged_digests}</td>
+  <td class=center>${row.total_digests}</td>
   <td class=center>
     <a href="/cluster?${searchParams}" target=_blank rel=noopener>
       <group-work-icon-sk></group-work-icon-sk>
@@ -183,7 +191,12 @@ define('list-page-sk', class extends ElementSk {
       .then(jsonOrThrow)
       .then((jsonList) => {
         this._byTestCounts = jsonList;
+        this._byTestCounts.forEach((row) => {
+          row.total_digests = row.positive_digests + row.negative_digests + row.untriaged_digests;
+        });
         this._render();
+        // Make sure the data is sorted by the default key in the default direction.
+        $$('#sort_table', this).sort('name', 'up', true);
         sendEndTask(this);
       })
       .catch((e) => sendFetchError(this, e, 'list'));
