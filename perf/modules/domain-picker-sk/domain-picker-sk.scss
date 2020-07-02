@@ -1,3 +1,5 @@
+@import '~elements-sk/colors';
+
 domain-picker-sk {
   .controls {
     justify-content: flex-end;
@@ -12,17 +14,26 @@ domain-picker-sk {
     font-style: italic;
   }
 
-  .ranges label {
+  .ranges > label {
     display: block;
-    height: 2em;
   }
 
-  .ranges label span {
+  .ranges > label > span.prefix {
     display: inline-block;
-    width: 10em;
+    width: 50px;
+  }
+
+  .ranges > label > input {
+    color: var(--on-surface);
+    background: var(--surface-1dp);
+    width: 50px;
   }
 
   input[type='number'] {
     width: 92px; // Because Safari has bad default sizing.
+  }
+
+  calendar-input-sk {
+    display: inline-block;
   }
 }
