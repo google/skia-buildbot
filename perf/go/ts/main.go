@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/dryrun"
 	"go.skia.org/infra/perf/go/frontend"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/stepfit"
@@ -22,6 +23,20 @@ func addMultiple(generator *go2ts.Go2TS, instances []interface{}) error {
 	for _, inst := range instances {
 		err := generator.Add(inst)
 		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type unionAndName struct {
+	v        interface{}
+	typeName string
+}
+
+func addMultipleUnions(generator *go2ts.Go2TS, unions []unionAndName) error {
+	for _, u := range unions {
+		if err := generator.AddUnionWithName(u.v, u.typeName); err != nil {
 			return err
 		}
 	}
@@ -40,22 +55,17 @@ func main() {
 		regression.TriageStatus{},
 		dataframe.FrameResponse{},
 		alerts.Alert{},
+		dryrun.UIDomain{},
 	})
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	err = generator.AddUnionWithName(regression.AllStatus, "Status")
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	err = generator.AddUnionWithName(types.AllClusterAlgos, "ClusterAlgo")
-	if err != nil {
-		sklog.Fatal(err)
-	}
-	err = generator.AddUnionWithName(stepfit.AllStepFitStatus, "StepFitStatus")
-	if err != nil {
-		sklog.Fatal(err)
-	}
+	err = addMultipleUnions(generator, []unionAndName{
+		{regression.AllStatus, "Status"},
+		{types.AllClusterAlgos, "ClusterAlgo"},
+		{stepfit.AllStepFitStatus, "StepFitStatus"},
+		{dataframe.AllRequestType, "RequestType"},
+	})
 	err = util.WithWriteFile("./modules/json/index.ts", func(w io.Writer) error {
 		return generator.Render(w)
 	})

@@ -95,6 +95,13 @@ export interface Alert {
 	category: string;
 }
 
+export interface UIDomain {
+	begin: number;
+	end: number;
+	num_commits: number;
+	request_type: RequestType;
+}
+
 export type ParamSet = { [key: string]: string[] };
 
 export type StepFitStatus = "Low" | "High" | "Uninteresting";
@@ -112,5 +119,7 @@ export type StepDetection = string;
 export type ConfigState = number;
 
 export type Direction = number;
+
+export type RequestType = 1 | 0;
 
 export type ClusterAlgo = "kmeans" | "stepfit";
