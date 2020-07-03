@@ -56,6 +56,8 @@ func main() {
 		dataframe.FrameResponse{},
 		alerts.Alert{},
 		dryrun.UIDomain{},
+		regression.FullSummary{},
+		frontend.SkPerfConfig{},
 	})
 	if err != nil {
 		sklog.Fatal(err)
