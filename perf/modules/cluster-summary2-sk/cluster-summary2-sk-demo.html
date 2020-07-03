@@ -21,11 +21,15 @@
 <body>
   <h1>Cluster</h1>
 
-  <h2>A cluster</h2>
-  <cluster-summary2-sk class="cluster" notriage></cluster-summary2-sk>
+  <section class="body-sk">
+    <h2>A cluster</h2>
+    <cluster-summary2-sk class="cluster" notriage></cluster-summary2-sk>
+  </section>
 
-  <h2>A cluster with triaging</h2>
-  <cluster-summary2-sk class="nostatus"></cluster-summary2-sk>
+  <section class="body-sk darkmode">
+    <h2>A cluster with triaging</h2>
+    <cluster-summary2-sk class="nostatus"></cluster-summary2-sk>
+  </section>
 
   <h3>Events</h3>
   <pre><code class=events></code></pre>
@@ -89,11 +93,11 @@
             { offset: 24754, timestamp: 1476987166 }
           ],
           paramset: {
-            arch: ["arm", "arm64", "x86", "x86_64"],
-            bench_type: ["skandroidcodec"],
-            compiler: ["Clang", "GCC", "MSVC"],
-            config: ["nonrendering"],
-            cpu_or_gpu: ["CPU"]
+            arch: [ "arm", "arm64", "x86", "x86_64" ],
+            bench_type: [ "skandroidcodec" ],
+            compiler: [ "Clang", "GCC", "MSVC" ],
+            config: [ "nonrendering" ],
+            cpu_or_gpu: [ "CPU" ]
           },
           skip: 0
         },
