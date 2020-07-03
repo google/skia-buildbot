@@ -174,9 +174,9 @@ func (f *Frontend) loadTemplates() {
 	}
 }
 
-// skPerfConfig is the configuration data that will appear
+// SkPerfConfig is the configuration data that will appear
 // in Javascript under the sk.perf variable.
-type skPerfConfig struct {
+type SkPerfConfig struct {
 	Radius         int      `json:"radius"`           // The number of commits when doing clustering.
 	KeyOrder       []string `json:"key_order"`        // The order of the keys to appear first in query-sk elements.
 	NumShift       int      `json:"num_shift"`        // The number of commits the shift navigation buttons should jump.
@@ -191,7 +191,7 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 		if f.flags.Local {
 			f.loadTemplates()
 		}
-		context := skPerfConfig{
+		context := SkPerfConfig{
 			Radius:         f.flags.Radius,
 			KeyOrder:       strings.Split(f.flags.KeyOrder, ","),
 			NumShift:       f.flags.NumShift,
