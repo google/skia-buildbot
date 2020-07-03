@@ -14,7 +14,7 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import '../tricon2-sk';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { TriageStatus, ClusterSummary, FrameResponse, Alert } from '../json';
+import { FullSummary, TriageStatus, Alert } from '../json';
 
 export interface TriageStatusSkStartTriageEventDetails {
   triage: TriageStatus;
@@ -22,12 +22,6 @@ export interface TriageStatusSkStartTriageEventDetails {
   alert: Alert | null;
   cluster_type: ClusterType;
   element: TriageStatusSk;
-}
-
-export interface FullSummary {
-  summary: ClusterSummary;
-  frame: FrameResponse;
-  triage: TriageStatus;
 }
 
 export type ClusterType = 'high' | 'low';
@@ -78,7 +72,7 @@ export class TriageStatusSk extends ElementSk {
     };
     this.dispatchEvent(
       new CustomEvent<TriageStatusSkStartTriageEventDetails>('start-triage', {
-        detail: detail,
+        detail,
         bubbles: true,
       })
     );

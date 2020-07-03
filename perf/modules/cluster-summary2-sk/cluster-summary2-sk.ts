@@ -46,52 +46,118 @@ import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { Login } from '../../../infra-sk/modules/login';
+import {
+  FullSummary,
+  FrameResponse,
+  ClusterSummary,
+  TriageStatus,
+  CommitID,
+  Status,
+  SkPerfConfig,
+} from '../json';
+import { PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
+import { PlotSimpleSk } from '../plot-simple-sk/plot-simple-sk';
+import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-panel-sk';
+import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
 
-function _trunc(value) {
+// Handle the sk namespace attached to window.
+declare global {
+  interface Window {
+    sk: {
+      perf: SkPerfConfig;
+    };
+  }
+}
+
+function _trunc(value: number) {
   return (+value).toPrecision(3);
 }
 
-const template = (ele) => html`
-  <div class='regression ${ele._statusClass()}'>
-    Regression: <span>${_trunc(ele._summary.step_fit.regression)}</span>
-  </div>
-  <div class=stats>
-    <div class=labelled>Cluster Size: <span>${ele._summary.num}</span></div>
-    <div class=labelled>Least Squares Error: <span>${_trunc(ele._summary.step_fit.least_squares)}</span></div>
-    <div class=labelled>Step Size: <span>${_trunc(ele._summary.step_fit.step_size)}</span></div>
-  </div>
-  <plot-simple-sk class=plot width=800 height=250 specialevents @trace_selected=${ele._traceSelected}></plot-simple-sk>
-  <div id=status class=${ele._hiddenClass()}>
-    <p class=disabledMessage>You must be logged in to change the status.</p>
-    <triage2-sk value=${ele._triage.status} @change=${(e) => { ele._triage.status = e.detail; }}></triage2-sk>
-    <input type=text .value=${ele._triage.message} @change=${(e) => { ele._triage.message = e.target.value; }} label=Message>
-    <button class=action @click=${ele._update}>Update</button>
-  </div>
-  <commit-detail-panel-sk id=commits selectable></commit-detail-panel-sk>
-  <div class=actions>
-    <button id=shortcut @click=${ele._openShortcut}>View on dashboard</button>
-    <a id=permalink class=${ele._hiddenClass()} href=${ele._permaLink()}>Permlink</a>
-    <a id=rangelink href='' target=_blank></a>
-    <button @click=${ele._toggleWordCloud}>Word Cloud</button>
-  </div>
-  <collapse-sk class=wordCloudCollapse closed>
-    <word-cloud-sk .items=${ele._summary.param_summaries2}></word-cloud-sk>
-  </collapse-sk>
-`;
-
 export class ClusterSummary2Sk extends ElementSk {
+  private static template = (ele: ClusterSummary2Sk) => html`
+    <div class="regression ${ele._statusClass()}">
+      Regression: <span>${_trunc(ele._summary!.step_fit!.regression)}</span>
+    </div>
+    <div class="stats">
+      <div class="labelled">Cluster Size: <span>${ele._summary.num}</span></div>
+      <div class="labelled"
+        >Least Squares Error:
+        <span>${_trunc(ele._summary!.step_fit!.least_squares)}</span></div
+      >
+      <div class="labelled"
+        >Step Size:
+        <span>${_trunc(ele._summary!.step_fit!.step_size)}</span></div
+      >
+    </div>
+    <plot-simple-sk
+      class="plot"
+      width="800"
+      height="250"
+      specialevents
+      @trace_selected=${ele._traceSelected}
+    ></plot-simple-sk>
+    <div id="status" class=${ele._hiddenClass()}>
+      <p class="disabledMessage">You must be logged in to change the status.</p>
+      <triage2-sk
+        value=${ele._triage.status}
+        @change=${(e: CustomEvent<Status>) => {
+          ele._triage.status = e.detail;
+        }}
+      ></triage2-sk>
+      <input
+        type="text"
+        .value=${ele._triage.message}
+        @change=${(e: InputEvent) => {
+          ele._triage.message = (e.currentTarget! as HTMLInputElement).value;
+        }}
+        label="Message"
+      />
+      <button class="action" @click=${ele._update}>Update</button>
+    </div>
+    <commit-detail-panel-sk id="commits" selectable></commit-detail-panel-sk>
+    <div class="actions">
+      <button id="shortcut" @click=${ele._openShortcut}
+        >View on dashboard</button
+      >
+      <a id="permalink" class=${ele._hiddenClass()} href=${ele._permaLink()}
+        >Permlink</a
+      >
+      <a id="rangelink" href="" target="_blank"></a>
+      <button @click=${ele._toggleWordCloud}>Word Cloud</button>
+    </div>
+    <collapse-sk class="wordCloudCollapse" closed>
+      <word-cloud-sk .items=${ele._summary.param_summaries2}></word-cloud-sk>
+    </collapse-sk>
+  `;
+
+  private _summary: ClusterSummary;
+  private _triage: TriageStatus;
+
+  private _wordCloud: CollapseSk | null = null;
+  private _status: HTMLDivElement | null = null;
+  private _graph: PlotSimpleSk | null = null;
+  private _rangelink: HTMLAnchorElement | null = null;
+  private _commits: CommitDetailPanelSk | null = null;
+  private _frame: FrameResponse | null = null;
+  private fullSummary: FullSummary | null = null;
+
   constructor() {
-    super(template);
+    super(ClusterSummary2Sk.template);
     this._summary = {
+      centroid: null,
+      shortcut: '',
+      step_point: null,
       num: 0,
       step_fit: {
         regression: 0,
         least_squares: 0,
         step_size: 0,
+        turning_point: 0,
+        status: 'Uninteresting',
       },
       param_summaries2: [],
     };
-    this.triage = {
+    this._triage = {
       status: '',
       message: '',
     };
@@ -108,7 +174,7 @@ export class ClusterSummary2Sk extends ElementSk {
     this._rangelink = this.querySelector('#rangelink');
     this._commits = this.querySelector('#commits');
     Login.then((status) => {
-      this._status.classList.toggle('disabled', status.Email === '');
+      this._status!.classList.toggle('disabled', status.Email === '');
     }).catch(errorMessage);
     this.full_summary = this.full_summary;
     this.triage = this.triage;
@@ -126,10 +192,11 @@ export class ClusterSummary2Sk extends ElementSk {
   _openShortcut() {
     const detail = {
       shortcut: this._summary.shortcut,
-      begin: this._frame.dataframe.header[0].timestamp,
+      begin: this._frame!.dataframe!.header![0].timestamp,
       end:
-        this._frame.dataframe.header[this._frame.dataframe.header.length - 1]
-          .timestamp + 1,
+        this._frame!.dataframe!.header![
+          this._frame!.dataframe!.header!.length - 1
+        ].timestamp + 1,
       xbar: this._summary.step_point,
     };
     this.dispatchEvent(new CustomEvent('open-keys', { detail, bubbles: true }));
@@ -141,7 +208,7 @@ export class ClusterSummary2Sk extends ElementSk {
    * @param {Array} cids - An array of serialized cid.CommitID.
    * @returns {Promise} A Promise that resolves the cids and returns an Array of serialized cid.CommitDetails.
    */
-  static _lookupCids(cids) {
+  static _lookupCids(cids: CommitID[]) {
     return fetch('/_/cid/', {
       method: 'POST',
       body: JSON.stringify(cids),
@@ -151,17 +218,17 @@ export class ClusterSummary2Sk extends ElementSk {
     }).then(jsonOrThrow);
   }
 
-  _traceSelected(e) {
-    const h = this._frame.dataframe.header[e.detail.x];
+  _traceSelected(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
+    const h = this._frame!.dataframe!.header![e.detail.x];
     ClusterSummary2Sk._lookupCids([h])
       .then((json) => {
-        this._commits.details = json;
+        this._commits!.details = json;
       })
       .catch(errorMessage);
   }
 
   _toggleWordCloud() {
-    this._wordCloud.closed = !this._wordCloud.closed;
+    this._wordCloud!.closed = !this._wordCloud!.closed;
   }
 
   _hiddenClass() {
@@ -183,7 +250,7 @@ export class ClusterSummary2Sk extends ElementSk {
     if (!this._summary) {
       return '';
     }
-    const status = this._summary.step_fit.status || '';
+    const status = this._summary!.step_fit!.status || '';
     return status.toLowerCase();
   }
 
@@ -196,7 +263,7 @@ export class ClusterSummary2Sk extends ElementSk {
    *
    */
   get full_summary() {
-    return this._full_summary;
+    return this.fullSummary;
   }
 
   set full_summary(val) {
@@ -206,7 +273,7 @@ export class ClusterSummary2Sk extends ElementSk {
     if (!val.frame) {
       return;
     }
-    this._full_summary = val;
+    this.fullSummary = val;
     this._summary = val.summary;
     this._frame = val.frame;
     if (!this._graph) {
@@ -214,26 +281,30 @@ export class ClusterSummary2Sk extends ElementSk {
     }
 
     // Set the data- attributes used for sorting cluster summaries.
-    this.dataset.clustersize = this._summary.num;
-    this.dataset.steplse = this._summary.step_fit.least_squares;
-    this.dataset.stepsize = this._summary.step_fit.step_size;
-    this.dataset.stepregression = this._summary.step_fit.regression;
+    this.dataset.clustersize = this._summary.num.toString();
+    this.dataset.steplse = this._summary!.step_fit!.least_squares.toPrecision(
+      2
+    );
+    this.dataset.stepsize = this._summary!.step_fit!.step_size.toPrecision(2);
+    this.dataset.stepregression = this._summary!.step_fit!.regression.toPrecision(
+      2
+    );
     // We take in a ClusterSummary, but need to transform all that data
     // into a format that plot-sk can handle.
     this._graph.removeAll();
-    const labels = [];
-    this.full_summary.frame.dataframe.header.forEach((header) => {
+    const labels: Date[] = [];
+    this.full_summary!.frame!.dataframe!.header!.forEach((header) => {
       labels.push(new Date(header.timestamp * 1000));
     });
-    this._graph.addLines({ centroid: this._summary.centroid }, labels);
+    this._graph.addLines({ centroid: this._summary.centroid! }, labels);
     // Set the x-bar but only if status != uninteresting.
-    if (this._summary.step_fit.status !== 'Uninteresting') {
+    if (this._summary!.step_fit!.status !== 'Uninteresting') {
       // Loop through the dataframe header to find the location we should
       // place the x-bar at.
       const step = this._summary.step_point;
       let xbar = -1;
-      this._frame.dataframe.header.forEach((h, i) => {
-        if (h.source === step.source && h.offset === step.offset) {
+      this._frame!.dataframe!.header!.forEach((h, i) => {
+        if (h.offset === step!.offset) {
           xbar = i;
         }
       });
@@ -244,12 +315,15 @@ export class ClusterSummary2Sk extends ElementSk {
       if (window.sk.perf.commit_range_url !== '') {
         // First find the commit at step_fit, and the next previous commit that has data.
         let prevCommit = xbar - 1;
-        while (prevCommit > 0 && this._summary.centroid[prevCommit] === 1e32) {
+        while (
+          prevCommit > 0 &&
+          this._summary!.centroid![prevCommit] === 1e32
+        ) {
           prevCommit -= 1;
         }
         const cids = [
-          this._frame.dataframe.header[prevCommit],
-          this._frame.dataframe.header[xbar],
+          this._frame!.dataframe!.header![prevCommit],
+          this._frame!.dataframe!.header![xbar],
         ];
         // Run those through cid lookup to get the hashes.
         ClusterSummary2Sk._lookupCids(cids)
@@ -259,17 +333,17 @@ export class ClusterSummary2Sk extends ElementSk {
             url = url.replace('{begin}', json[0].hash);
             url = url.replace('{end}', json[1].hash);
             // Now populate link, including text and href.
-            this._rangelink.href = url;
-            this._rangelink.innerText = 'Commits At Step';
+            this._rangelink!.href = url;
+            this._rangelink!.innerText = 'Commits At Step';
           })
           .catch(errorMessage);
       } else {
-        this._rangelink.href = '';
-        this._rangelink.innerText = '';
+        this._rangelink!.href = '';
+        this._rangelink!.innerText = '';
       }
     } else {
-      this._rangelink.href = '';
-      this._rangelink.innerText = '';
+      this._rangelink!.href = '';
+      this._rangelink!.innerText = '';
     }
 
     this._render();
