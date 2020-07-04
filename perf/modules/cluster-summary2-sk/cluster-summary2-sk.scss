@@ -1,29 +1,38 @@
-@import '~elements-sk/colors';
+@import '~elements-sk/themes/themes.css';
 
 cluster-summary2-sk {
+  .actions button {
+    min-width: 0;
+    text-transform: none;
+    padding: 8px;
+    border: solid var(--on-surface) 1px;
+    margin: 0 0 8px 8px;
+  }
+
+  input {
+    color: var(--on-surface);
+    background: var(--surface);
+    border: solid 1px var(--on-surface);
+  }
+
   #status.disabled {
     opacity: 0.5;
   }
 
   .regression {
-    background-color: var(--dark-white);
-    border-radius: 6px;
     padding: 3px 6px;
     margin-bottom: 0.5em;
+    font-size: 110%;
   }
 
   .high {
-    background-color: var(--red);
-    color: white;
-    border-radius: 6px;
-    padding: 3px 6px;
+    background: var(--red-700);
+    color: var(--surface);
   }
 
   .low {
-    background-color: var(--green);
-    color: white;
-    border-radius: 6px;
-    padding: 3px 6px;
+    background: var(--green-700);
+    color: var(--surface);
   }
 
   @media (max-width: 600px) {
@@ -45,8 +54,6 @@ cluster-summary2-sk {
   }
 
   #status {
-    padding: 0.5em 2em;
-    box-shadow: 3px 3px 3px var(--light-gray);
     border: solid var(--light-gray) 1px;
     display: flex;
     flex-flow: wrap column;
@@ -63,7 +70,7 @@ cluster-summary2-sk {
 
   #rangelink,
   #permalink {
-    color: var(--blue);
+    color: var(--primary);
     margin: 1em;
   }
 
@@ -88,6 +95,7 @@ cluster-summary2-sk {
     display: flex;
     flex-flow: wrap row;
     grid-area: stats;
+    margin-left: 8px;
   }
 
   .plot {
@@ -115,6 +123,10 @@ cluster-summary2-sk {
     grid-area: cloud;
   }
 
+  collapse-sk {
+    margin: 8px;
+  }
+
   display: grid;
   grid-template-columns: 1fr auto;
   grid-template-areas:
@@ -124,4 +136,16 @@ cluster-summary2-sk {
     'commits    commits'
     'actions    actions'
     'cloud      cloud';
+}
+
+.body-sk.darkmode cluster-summary2-sk {
+  .high {
+    color: var(--on-surface);
+    background: var(--red-500);
+  }
+
+  .low {
+    color: var(--on-surface);
+    background: var(--green-500);
+  }
 }

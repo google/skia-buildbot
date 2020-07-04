@@ -21,121 +21,20 @@
 <body>
   <h1>Cluster</h1>
 
-  <h2>A cluster</h2>
-  <cluster-summary2-sk class="cluster" notriage></cluster-summary2-sk>
+  <section class="body-sk">
+    <h2>A cluster</h2>
+    <cluster-summary2-sk class="cluster" notriage></cluster-summary2-sk>
+  </section>
 
-  <h2>A cluster with triaging</h2>
-  <cluster-summary2-sk class="nostatus"></cluster-summary2-sk>
+  <section class="body-sk darkmode">
+    <h2>A cluster with triaging</h2>
+    <cluster-summary2-sk class="nostatus"></cluster-summary2-sk>
+  </section>
 
   <h3>Events</h3>
   <pre><code class=events></code></pre>
 
-  <script type="text/javascript" charset="utf-8">
-    (function () {
-      let summary = {
-        centroid: [
-          -1.0826576,
-          0.33417022,
-          0.8747909,
-          0.11694965,
-          0.76775414,
-          -0.21376616,
-          0.026059598,
-          -0.08791064,
-          0.13508978,
-          -0.38292113,
-          -0.4874483
-        ],
-        keys: [
-          ",arch=x86_64,bench_type=skandroidcodec,compiler=Clang,config=nonrendering,cpu_or_gpu=CPU,cpu_or_gpu_value=AVX,extra_config=GN,model=MacMini6.2,name=AndroidCodec_01_original.jpg_SampleSize2,os=Mac,source_type=image,sub_result=min_ms,test=AndroidCodec_01_original.jpg_SampleSize2_640_480,",
-          ",arch=arm,bench_type=skandroidcodec,compiler=Clang,config=nonrendering,cpu_or_gpu=CPU,cpu_or_gpu_value=MT6582,extra_config=GN_Android,model=AndroidOne,name=AndroidCodec_01_original.jpg_SampleSize2,os=Android,source_type=image,sub_result=min_ms,test=AndroidCodec_01_original.jpg_SampleSize2_640_480,",
-          ",arch=x86,bench_type=skandroidcodec,compiler=Clang,config=nonrendering,cpu_or_gpu=CPU,cpu_or_gpu_value=Moorefield,extra_config=GN_Android,model=NexusPlayer,name=AndroidCodec_01_original.jpg_SampleSize2,os=Android,source_type=image,sub_result=min_ms,test=AndroidCodec_01_original.jpg_SampleSize2_640_480,",
-          ",arch=arm64,bench_type=skandroidcodec,compiler=Clang,config=nonrendering,cpu_or_gpu=CPU,cpu_or_gpu_value=Snapdragon810,extra_config=GN_Android,model=Nexus6p,name=AndroidCodec_01_original.jpg_SampleSize2,os=Android,source_type=image,sub_result=min_ms,test=AndroidCodec_01_original.jpg_SampleSize2_640_480,"
-        ],
-        param_summaries2: [
-          { value: "arch=arm", percent: 40 },
-          { value: "arch=arm64", percent: 30 },
-          { value: "arch=x86", percent: 20 },
-          { value: "bench_type=skandroidcodec", percent: 10 },
-          { value: "arch=x86_64", percent: 1 },
-        ],
-        step_fit: {
-          least_squares: 0.12262289,
-          turning_point: 1,
-          step_size: -1.1909344,
-          regression: -199.712171,
-          status: "Low"
-        },
-        step_point: {
-          offset: 24745,
-          timestamp: 1476983221
-        },
-        num: 4
-      };
-      let frame = {
-        dataframe: {
-          traceset: {},
-          header: [
-            { offset: 24744, timestamp: 1476982874 },
-            { offset: 24745, timestamp: 1476983221 },
-            { offset: 24746, timestamp: 1476983487 },
-            { offset: 24747, timestamp: 1476983833 },
-            { offset: 24748, timestamp: 1476984695 },
-            { offset: 24749, timestamp: 1476985138 },
-            { offset: 24750, timestamp: 1476985844 },
-            { offset: 24751, timestamp: 1476986630 },
-            { offset: 24752, timestamp: 1476986672 },
-            { offset: 24753, timestamp: 1476986679 },
-            { offset: 24754, timestamp: 1476987166 }
-          ],
-          paramset: {
-            arch: ["arm", "arm64", "x86", "x86_64"],
-            bench_type: ["skandroidcodec"],
-            compiler: ["Clang", "GCC", "MSVC"],
-            config: ["nonrendering"],
-            cpu_or_gpu: ["CPU"]
-          },
-          skip: 0
-        },
-        ticks: [],
-        skps: [],
-        msg: ""
-      };
-      let full_summary = {
-        summary: summary,
-        frame: frame
-      };
 
-      let cluster = document.querySelector("cluster-summary2-sk.cluster");
-      cluster.full_summary = full_summary;
-
-      let summary2 = JSON.parse(JSON.stringify(full_summary));
-      let triage = {
-        status: "untriaged",
-        message: "Nothing to see here."
-      };
-      summary2.summary.step_fit.status = "High";
-      summary2.summary.step_fit.regression = 201;
-      let nostatus = document.querySelector("cluster-summary2-sk.nostatus");
-      nostatus.full_summary = summary2;
-      nostatus.triage = triage;
-
-      document.body.addEventListener("triaged", function (e) {
-        document.querySelector("code.events").textContent = JSON.stringify(
-          e.detail,
-          null,
-          " "
-        );
-      });
-      document.body.addEventListener("open-keys", function (e) {
-        document.querySelector("code.events").textContent = JSON.stringify(
-          e.detail,
-          null,
-          " "
-        );
-      });
-    })();
-  </script>
 </body>
 
 </html>
