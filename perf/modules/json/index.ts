@@ -129,11 +129,11 @@ export type TraceSet = { [key: string]: Trace };
 
 export type RegressionDetectionGrouping = string;
 
-export type StepDetection = string;
+export type StepDetection = "" | "absolute" | "percent" | "cohen";
 
 export type ConfigState = number;
 
-export type Direction = number;
+export type Direction = 0 | 1 | 2;
 
 export type RequestType = 1 | 0;
 
