@@ -102,6 +102,21 @@ export interface UIDomain {
 	request_type: RequestType;
 }
 
+export interface FullSummary {
+	summary: ClusterSummary;
+	triage: TriageStatus;
+	frame: FrameResponse;
+}
+
+export interface SkPerfConfig {
+	radius: number;
+	key_order: string[] | null;
+	num_shift: number;
+	interesting: number;
+	step_up_only: boolean;
+	commit_range_url: string;
+}
+
 export type ParamSet = { [key: string]: string[] };
 
 export type StepFitStatus = "Low" | "High" | "Uninteresting";

@@ -1,6 +1,5 @@
 import './index';
 import { TriageStatusSk } from './triage-status-sk';
-import { TriageStatus } from '../json';
 
 document
   .querySelector<TriageStatusSk>('triage-status-sk')!

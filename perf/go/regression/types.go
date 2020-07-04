@@ -35,3 +35,10 @@ type Store interface {
 	// types.CommitNumber to all the regressions for that commit.
 	Write(ctx context.Context, regressions map[types.CommitNumber]*AllRegressionsForCommit) error
 }
+
+// FullSummary describes a single regression.
+type FullSummary struct {
+	Summary clustering2.ClusterSummary `json:"summary"`
+	Triage  TriageStatus               `json:"triage"`
+	Frame   dataframe.FrameResponse    `json:"frame"`
+}
