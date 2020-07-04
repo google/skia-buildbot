@@ -67,6 +67,9 @@ func main() {
 		{types.AllClusterAlgos, "ClusterAlgo"},
 		{stepfit.AllStepFitStatus, "StepFitStatus"},
 		{dataframe.AllRequestType, "RequestType"},
+		{alerts.AllDirections, "Direction"},
+		{types.AllStepDetections, "StepDetection"},
+		{alerts.AllConfigState, "ConfigState"},
 	})
 	err = util.WithWriteFile("./modules/json/index.ts", func(w io.Writer) error {
 		return generator.Render(w)
