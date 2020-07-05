@@ -25,9 +25,4 @@ func TestDirectionJSON(t *testing.T) {
 	err = json.Unmarshal(b, target)
 	assert.NoError(t, err)
 	assert.Equal(t, UP, target.Direction)
-
-	target = &testDirStruct{}
-	err = json.Unmarshal([]byte("{\"Direction\":\"NOT A VALID VALUE\"}"), target)
-	assert.NoError(t, err)
-	assert.Equal(t, BOTH, target.Direction)
 }

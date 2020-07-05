@@ -237,9 +237,10 @@ func (c *Alert) Validate() error {
 // NewConfig creates a new Config properly initialized.
 func NewConfig() *Alert {
 	return &Alert{
-		ID:     BadAlertID,
-		Algo:   types.KMeansGrouping,
-		State:  ACTIVE,
-		Sparse: DefaultSparse,
+		ID:        BadAlertID,
+		Algo:      types.KMeansGrouping,
+		State:     ACTIVE,
+		Sparse:    DefaultSparse,
+		Direction: BOTH,
 	}
 }
