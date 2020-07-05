@@ -46,6 +46,11 @@ type Alert struct {
 	Category       string                            `json:"category"         datastore:",noindex"` // Which category this alert falls into.
 }
 
+// ConfigStateToInt converts the State into an int which is used when storing Alerts.
+func (c *Alert) StateToInt() int {
+	return ConfigStateToInt(c.State)
+}
+
 // IDToString returns the alerts ID formatted as a string.
 func (c *Alert) IDToString() string {
 	return IDToString(c.ID)
@@ -237,9 +242,10 @@ func (c *Alert) Validate() error {
 // NewConfig creates a new Config properly initialized.
 func NewConfig() *Alert {
 	return &Alert{
-		ID:     BadAlertID,
-		Algo:   types.KMeansGrouping,
-		State:  ACTIVE,
-		Sparse: DefaultSparse,
+		ID:        BadAlertID,
+		Algo:      types.KMeansGrouping,
+		State:     ACTIVE,
+		Sparse:    DefaultSparse,
+		Direction: BOTH,
 	}
 }
