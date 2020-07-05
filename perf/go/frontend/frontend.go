@@ -1404,11 +1404,13 @@ func (f *Frontend) alertDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type tryBugRequest struct {
+// TryBugRequest is a request to try a bug template URI.
+type TryBugRequest struct {
 	BugURITemplate string `json:"bug_uri_template"`
 }
 
-type tryBugResponse struct {
+// TryBugResponse is response to a TryBugRequest.
+type TryBugResponse struct {
 	URL string `json:"url"`
 }
 
@@ -1419,13 +1421,13 @@ func alertBugTryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := &tryBugRequest{}
+	req := &TryBugRequest{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
 	auditlog.Log(r, "alert-bug-try", req)
-	resp := &tryBugResponse{
+	resp := &TryBugResponse{
 		URL: bug.ExampleExpand(req.BugURITemplate),
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {

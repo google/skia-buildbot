@@ -1,4 +1,4 @@
-@import '~elements-sk/colors';
+@import '~elements-sk/themes/themes.css';
 
 alert-config-sk {
   algo-select-sk {
@@ -22,6 +22,8 @@ alert-config-sk > button {
 
 alert-config-sk > input {
   display: block;
+  color: var(--on-surface);
+  background: var(--surface);
 }
 
 alert-config-sk > div,
@@ -44,14 +46,13 @@ alert-config-sk > query-chooser-sk button {
 }
 
 alert-config-sk a {
-  color: var(--blue);
+  color: var(--primary);
 }
 
 alert-config-sk > label {
   font-size: 12px;
   font-weight: normal;
   line-height: 20px;
-  color: var(--blue);
   padding: 0.4em;
   margin-left: 3em;
   display: block;
@@ -61,12 +62,10 @@ alert-config-sk > spinner-sk {
   width: 12px;
   height: 12px;
   margin: 0;
-  border: 3px solid var(--light-blue);
-  border-left: 3px solid var(--blue);
   top: 0.25em;
   position: relative;
 }
 
 select-sk > *[selected] {
-  color: var(--white);
+  color: var(--on-surface);
 }

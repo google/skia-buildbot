@@ -26,6 +26,10 @@ function toClusterAlgo(s: string): ClusterAlgo {
   }
 }
 
+export interface AlgoSelectAlgoChangeEventDetail {
+  algo: ClusterAlgo;
+}
+
 export class AlgoSelectSk extends ElementSk {
   // TODO(jcgregorio) select-sk needs something like attr-for-selected and
   // fallback-selection like iron-selector.
@@ -72,7 +76,10 @@ export class AlgoSelectSk extends ElementSk {
       algo: this.algo,
     };
     this.dispatchEvent(
-      new CustomEvent('algo-change', { detail, bubbles: true })
+      new CustomEvent<AlgoSelectAlgoChangeEventDetail>('algo-change', {
+        detail,
+        bubbles: true,
+      })
     );
   }
 

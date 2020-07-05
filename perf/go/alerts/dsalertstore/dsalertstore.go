@@ -70,7 +70,7 @@ func (s *DSAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alerts
 	ret := []*alerts.Alert{}
 	q := ds.NewQuery(ds.ALERT)
 	if !includeDeleted {
-		q = q.Filter("State =", int(alerts.ACTIVE))
+		q = q.Filter("State =", alerts.ConfigStateToInt(alerts.ACTIVE))
 	}
 	it := ds.DS.Run(ctx, q)
 	for {
