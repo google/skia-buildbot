@@ -117,6 +117,14 @@ export interface SkPerfConfig {
 	commit_range_url: string;
 }
 
+export interface TryBugRequest {
+	bug_uri_template: string;
+}
+
+export interface TryBugResponse {
+	url: string;
+}
+
 export type ParamSet = { [key: string]: string[] };
 
 export type StepFitStatus = "Low" | "High" | "Uninteresting";
@@ -129,11 +137,11 @@ export type TraceSet = { [key: string]: Trace };
 
 export type RegressionDetectionGrouping = string;
 
-export type StepDetection = string;
+export type StepDetection = "" | "absolute" | "percent" | "cohen";
 
-export type ConfigState = number;
+export type ConfigState = "ACTIVE" | "DELETED";
 
-export type Direction = number;
+export type Direction = "UP" | "DOWN" | "BOTH";
 
 export type RequestType = 1 | 0;
 

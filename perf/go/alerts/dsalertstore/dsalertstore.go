@@ -65,12 +65,20 @@ func (p configSlice) Len() int           { return len(p) }
 func (p configSlice) Less(i, j int) bool { return p[i].DisplayName < p[j].DisplayName }
 func (p configSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
+func alertConfigStateToInt(a alerts.ConfigState) int {
+	if a == alerts.ACTIVE {
+		return 0
+	} else {
+		return 1
+	}
+}
+
 // List implements the alerts.Store interface.
 func (s *DSAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alerts.Alert, error) {
 	ret := []*alerts.Alert{}
 	q := ds.NewQuery(ds.ALERT)
 	if !includeDeleted {
-		q = q.Filter("State =", int(alerts.ACTIVE))
+		q = q.Filter("State =", alertConfigStateToInt(alerts.ACTIVE))
 	}
 	it := ds.DS.Run(ctx, q)
 	for {
