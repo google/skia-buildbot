@@ -144,7 +144,7 @@ func (s *SQLAlertStore) Save(ctx context.Context, cfg *alerts.Alert) error {
 			return skerr.Wrapf(err, "Failed to insert alert")
 		}
 	} else {
-		if _, err := s.preparedStatements[updateAlert].ExecContext(ctx, cfg.ID, string(b), cfg.State, now); err != nil {
+		if _, err := s.preparedStatements[updateAlert].ExecContext(ctx, cfg.ID, string(b), cfg.StateToInt(), now); err != nil {
 			return skerr.Wrapf(err, "Failed to update Alert with ID=%d", cfg.ID)
 		}
 	}
