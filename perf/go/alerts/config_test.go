@@ -267,3 +267,10 @@ func TestQueriesFromParamset(t *testing.T) {
 	assert.Equal(t, []string{"model=nexus6"}, queries)
 
 }
+
+func TestConfigStateToInt_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, 0, ConfigStateToInt(ACTIVE))
+	assert.Equal(t, 1, ConfigStateToInt(DELETED))
+	assert.Equal(t, 0, ConfigStateToInt(ConfigState(17)), "Invalid ConfigState value.")
+}

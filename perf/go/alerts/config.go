@@ -24,6 +24,55 @@ var (
 	DefaultSparse = false
 )
 
+// Direction a step takes that will cause an alert.
+//
+type Direction string
+
+// The values for the Direction enum. Run 'go generate' if you
+// add/remove/update these values. You must have 'stringer' installed, i.e.
+//
+//    go get golang.org/x/tools/cmd/stringer
+const (
+	BOTH Direction = "BOTH"
+	UP   Direction = "UP"
+	DOWN Direction = "DOWN"
+)
+
+// AllDirections is a list of all possible Direction values.
+var AllDirections = []Direction{
+	UP,
+	DOWN,
+	BOTH,
+}
+
+// ConfigState is the current state of an alerts.Config.
+//
+type ConfigState string
+
+// The values for the AlertConfigState enum. Run 'go generate' if you
+// add/remove/update these values. You must have 'stringer' installed, i.e.
+//
+//    go get golang.org/x/tools/cmd/stringer
+const (
+	ACTIVE  ConfigState = "ACTIVE"
+	DELETED ConfigState = "DELETED"
+)
+
+// AllConfigState is a list of all possible ConfigState values.
+var AllConfigState = []ConfigState{
+	ACTIVE,
+	DELETED,
+}
+
+// ConfigStateToInt converts the string ConfigState into an int, which it used
+// to be, used only when storing Alerts.
+func ConfigStateToInt(c ConfigState) int {
+	if c == DELETED {
+		return 1
+	}
+	return 0
+}
+
 // Alert represents the configuration for one alert.
 type Alert struct {
 	ID             int64                             `json:"id"               datastore:",noindex"`
@@ -44,6 +93,11 @@ type Alert struct {
 	Sparse         bool                              `json:"sparse"           datastore:",noindex"` // Data is sparse, so only include commits that have data.
 	MinimumNum     int                               `json:"minimum_num"      datastore:",noindex"` // How many traces need to be found interesting before an alert is fired.
 	Category       string                            `json:"category"         datastore:",noindex"` // Which category this alert falls into.
+}
+
+// StateToInt converts the State into an int which is used when storing Alerts.
+func (c *Alert) StateToInt() int {
+	return ConfigStateToInt(c.State)
 }
 
 // IDToString returns the alerts ID formatted as a string.
@@ -237,9 +291,10 @@ func (c *Alert) Validate() error {
 // NewConfig creates a new Config properly initialized.
 func NewConfig() *Alert {
 	return &Alert{
-		ID:     BadAlertID,
-		Algo:   types.KMeansGrouping,
-		State:  ACTIVE,
-		Sparse: DefaultSparse,
+		ID:        BadAlertID,
+		Algo:      types.KMeansGrouping,
+		State:     ACTIVE,
+		Sparse:    DefaultSparse,
+		Direction: BOTH,
 	}
 }
