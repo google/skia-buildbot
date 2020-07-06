@@ -730,7 +730,7 @@
               "config": {
                 "access_log": {
                   "config": {
-                    "json_format": {
+                    "typed_json_format": {
                       "authority": "%REQ(:AUTHORITY)%",
                       "bytes_rcvd": "%BYTES_RECEIVED%",
                       "bytes_sent": "%BYTES_SENT%",
@@ -753,7 +753,7 @@
                 },
                 "http_filters": [
                   {
-                    "config": {},
+                    "typed_config": {},
                     "name": "envoy.router"
                   }
                 ],
@@ -1921,7 +1921,7 @@
                 },
                 "stat_prefix": "ingress_http"
               },
-              "name": "envoy.http_connection_manager"
+              "name": "envoy.filters.network.http_connection_manager"
             }
           ]
         }

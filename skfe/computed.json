@@ -1793,7 +1793,8 @@
               "config": {
                 "access_log": {
                   "config": {
-                    "json_format": {
+                    "path": "/dev/stdout",
+                    "typed_json_format": {
                       "authority": "%REQ(:AUTHORITY)%",
                       "bytes_rcvd": "%BYTES_RECEIVED%",
                       "bytes_sent": "%BYTES_SENT%",
@@ -1809,15 +1810,14 @@
                       "upstream-host": "%UPSTREAM_HOST%",
                       "upstream-time": "%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%",
                       "user-agent": "%REQ(USER-AGENT)%"
-                    },
-                    "path": "/dev/stdout"
+                    }
                   },
                   "name": "envoy.file_access_log"
                 },
                 "http_filters": [
                   {
-                    "config": {},
-                    "name": "envoy.router"
+                    "name": "envoy.router",
+                    "typed_config": {}
                   }
                 ],
                 "route_config": {
@@ -3680,7 +3680,7 @@
                 },
                 "stat_prefix": "ingress_http"
               },
-              "name": "envoy.http_connection_manager"
+              "name": "envoy.filters.network.http_connection_manager"
             }
           ]
         },
