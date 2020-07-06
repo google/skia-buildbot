@@ -44,6 +44,10 @@ const (
 	// Time to wait between the push and monitoring steps, to give Kubernetes a chance to update the
 	// status of the affected pods.
 	delayBetweenPushAndMonitoring = 10 * time.Second
+
+	// Kubernetes does not like colons in its strings, so we can't use time.RFC3999 (or any of the
+	// provided formats) as is. This replaces the colons with underscores.
+	rfc3999KubernetesSafe = "2006-01-02T15_04_05Z07_00"
 )
 
 // cluster represents a Kubernetes cluster on which to deploy DeployableUnits, and contains all the
@@ -82,6 +86,9 @@ type Goldpushk struct {
 	unitTest bool // Disables confirmation prompt from unit tests.
 
 	disableCopyingConfigsToCheckout bool
+
+	// If set, will return this time from .now() instead of the actual time. Used for tests.
+	fakeNow time.Time
 }
 
 // New is the Goldpushk constructor.
@@ -335,6 +342,7 @@ func (g *Goldpushk) expandTemplate(ctx context.Context, unit DeployableUnit, tem
 			"-c", instanceJSON5,
 			"-c", serviceJSON5,
 			"-extra", "INSTANCE_ID:" + instanceStr,
+			"-extra", "NOW:" + g.now().Format(rfc3999KubernetesSafe),
 			"-t", templatePath,
 			"-parse_conf=false", "-strict",
 			"-o", outputPath},
@@ -910,6 +918,14 @@ func (g *Goldpushk) forAllDeployableUnits(f func(unit DeployableUnit) error) err
 		}
 	}
 	return nil
+}
+
+// now returns the current time in UTC or a mocked out time.
+func (g *Goldpushk) now() time.Time {
+	if g.fakeNow.IsZero() {
+		return time.Now().UTC()
+	}
+	return g.fakeNow
 }
 
 // cmdToDebugStr returns a human-readable string representation of an *exec.Command.
