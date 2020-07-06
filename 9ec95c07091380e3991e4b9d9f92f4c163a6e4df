@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c62e7a21_32237906",
+        "filename": "perf/modules/domain-picker-sk/domain-picker-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T18:00:11Z",
+      "side": 1,
+      "message": "I recommend exporting this type because it\u0027s used in DomainPickerSk\u0027s public API.",
+      "range": {
+        "startLine": 27,
+        "startChar": 5,
+        "endLine": 27,
+        "endChar": 21
+      },
+      "revId": "9ec95c07091380e3991e4b9d9f92f4c163a6e4df",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6d3af158_766f6b4b",
+        "filename": "perf/modules/domain-picker-sk/domain-picker-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T18:00:11Z",
+      "side": 1,
+      "message": "Consider using a more self-documenting value. Perhaps \u0027none\u0027.",
+      "range": {
+        "startLine": 27,
+        "startChar": 44,
+        "endLine": 27,
+        "endChar": 46
+      },
+      "revId": "9ec95c07091380e3991e4b9d9f92f4c163a6e4df",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
