@@ -1,0 +1,69 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8717290c_986becd9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T21:53:07Z",
+      "side": 1,
+      "message": "Thanks!",
+      "revId": "3b4e543dcacbe0aee87b9b15ef3e72b389f5f3e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b36f6575_529a82b9",
+        "filename": "perf/modules/triage-page-sk/triage-page-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 240,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T21:53:07Z",
+      "side": 1,
+      "message": "\u003e Found trailing space\n\nPlease fix.",
+      "parentUuid": "3a214892_0a0af623",
+      "range": {
+        "startLine": 240,
+        "startChar": 10,
+        "endLine": 240,
+        "endChar": 10
+      },
+      "revId": "3b4e543dcacbe0aee87b9b15ef3e72b389f5f3e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ad7250e_aeb470a1",
+        "filename": "perf/modules/triage-page-sk/triage-page-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 268,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T21:53:07Z",
+      "side": 1,
+      "message": "\u003e Found trailing space\n\nPlease fix.",
+      "parentUuid": "933034c1_e0ff475b",
+      "range": {
+        "startLine": 268,
+        "startChar": 10,
+        "endLine": 268,
+        "endChar": 10
+      },
+      "revId": "3b4e543dcacbe0aee87b9b15ef3e72b389f5f3e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
