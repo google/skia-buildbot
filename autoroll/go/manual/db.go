@@ -102,6 +102,14 @@ type ManualRollRequest struct {
 	Status        ManualRollStatus `json:"status"`
 	Timestamp     time.Time        `json:"timestamp"`
 	Url           string           `json:"url,omitempty"`
+
+	DryRun bool `json:"dry_run"`
+	// Do not email sheriffs if this is true, only email the requester.
+	// We do not use `Emails []string` instead because that does not work with the Copy function
+	// below. The Copy function fails with `Field "Emails" not deep-copied.`
+	EmailOnlyRequester bool `json:"email_only_requester"`
+	// Do not call rm.GetRevision(Revision) if this is true. Use Revision{Id: Revision} instead.
+	NoResolveRevision bool `json:"no_resolve_revision"`
 }
 
 // Return a copy of the ManualRollRequest.
@@ -117,6 +125,10 @@ func (r *ManualRollRequest) Copy() *ManualRollRequest {
 		Status:        r.Status,
 		Timestamp:     r.Timestamp,
 		Url:           r.Url,
+
+		DryRun:             r.DryRun,
+		EmailOnlyRequester: r.EmailOnlyRequester,
+		NoResolveRevision:  r.NoResolveRevision,
 	}
 }
 
