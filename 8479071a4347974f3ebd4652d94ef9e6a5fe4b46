@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "742efac2_77d414f8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-06T16:45:23Z",
+      "side": 1,
+      "message": "Looks like this change contains some already submitted chromium_analysis changes. Should go away after a rebase.",
+      "revId": "8479071a4347974f3ebd4652d94ef9e6a5fe4b46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
