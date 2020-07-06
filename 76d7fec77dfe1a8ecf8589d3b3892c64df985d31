@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "960f41ae_1488cd52",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 11419
+      },
+      "writtenOn": "2020-07-06T20:51:04Z",
+      "side": 1,
+      "message": "Ok... based on Aaron\u0027s response we can go with our team for now. Asked for a tweak to the list to include everyone appropriate.",
+      "revId": "76d7fec77dfe1a8ecf8589d3b3892c64df985d31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0a3840c9_6883bd90",
         "filename": "autoroll/config/depot-tools-chromium.json",
         "patchSetId": 1
@@ -37,6 +54,30 @@
       "side": 1,
       "message": "Why is source team the right contacts / sheriff for this auto roller? I\u0027m curious if it should be an engprod team or someone else?",
       "parentUuid": "0a3840c9_6883bd90",
+      "range": {
+        "startLine": 13,
+        "startChar": 3,
+        "endLine": 13,
+        "endChar": 11
+      },
+      "revId": "76d7fec77dfe1a8ecf8589d3b3892c64df985d31",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9aef558e_c2c375b3",
+        "filename": "autoroll/config/depot-tools-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 11419
+      },
+      "writtenOn": "2020-07-06T20:51:04Z",
+      "side": 1,
+      "message": "Can you make this list and the one below also include:\n\napolito@google.com,\nsokcevic@google.com",
+      "parentUuid": "60d9863c_6554eb9a",
       "range": {
         "startLine": 13,
         "startChar": 3,
