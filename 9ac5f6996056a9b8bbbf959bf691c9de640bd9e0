@@ -16,6 +16,24 @@
       "revId": "9ac5f6996056a9b8bbbf959bf691c9de640bd9e0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a4c6d924_4f4e50bc",
+        "filename": "golden/modules/trace-filter-sk/trace-filter-sk_po.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T19:01:04Z",
+      "side": 1,
+      "message": "Yes. There\u0027s a few ways we can go about caching these objects if this becomes a performance bottleneck, but I don\u0027t foresee that being a problem for now.",
+      "parentUuid": "cce63bf0_b61c5107",
+      "revId": "9ac5f6996056a9b8bbbf959bf691c9de640bd9e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
