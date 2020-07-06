@@ -16,6 +16,100 @@
       "revId": "795d40df793a803f7fc9f298e072bd5442820c5d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cbe60fc9_28281179",
+        "filename": "perf/modules/triage-page-sk/triage-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T17:31:45Z",
+      "side": 1,
+      "message": "Would turning this into an optional property work? \n\n  full_summary?: FullSummary;",
+      "range": {
+        "startLine": 72,
+        "startChar": 27,
+        "endLine": 72,
+        "endChar": 34
+      },
+      "revId": "795d40df793a803f7fc9f298e072bd5442820c5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1992cf2a_147651cd",
+        "filename": "perf/modules/triage-page-sk/triage-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T17:31:45Z",
+      "side": 1,
+      "message": "Nit: Some of these private static templates are prefixed with _ (such as this one), whereas some others are not (e.g. template). You might want to use the same convention for all of them.",
+      "range": {
+        "startLine": 172,
+        "startChar": 17,
+        "endLine": 172,
+        "endChar": 22
+      },
+      "revId": "795d40df793a803f7fc9f298e072bd5442820c5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87f2f2e8_62b6d121",
+        "filename": "perf/modules/triage-page-sk/triage-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T17:31:45Z",
+      "side": 1,
+      "message": "\u003e Found trailing space\n\nPlease fix.",
+      "parentUuid": "9db875b0_fc248130",
+      "range": {
+        "startLine": 231,
+        "startChar": 8,
+        "endLine": 231,
+        "endChar": 8
+      },
+      "revId": "795d40df793a803f7fc9f298e072bd5442820c5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54d83a36_7cc6db29",
+        "filename": "perf/modules/triage-page-sk/triage-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T17:31:45Z",
+      "side": 1,
+      "message": "\u003e Found trailing space\n\nPlease fix.",
+      "parentUuid": "b75ed187_379febfb",
+      "range": {
+        "startLine": 254,
+        "startChar": 8,
+        "endLine": 254,
+        "endChar": 8
+      },
+      "revId": "795d40df793a803f7fc9f298e072bd5442820c5d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
