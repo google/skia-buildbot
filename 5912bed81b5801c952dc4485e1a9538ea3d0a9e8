@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2a7592c4_c53a70c0",
+        "filename": "perf/modules/alerts-page-sk/alerts-page-sk.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T21:52:31Z",
+      "side": 1,
+      "message": "Nit: remove?",
+      "range": {
+        "startLine": 138,
+        "startChar": 0,
+        "endLine": 138,
+        "endChar": 33
+      },
+      "revId": "5912bed81b5801c952dc4485e1a9538ea3d0a9e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
