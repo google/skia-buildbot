@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "be515ddd_94765709",
+        "filename": "perf/modules/cluster-summary2-sk/cluster-summary2-sk.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T18:04:28Z",
+      "side": 1,
+      "message": "Consider adding a /** One-line summary. */ to each of these.",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 1
+      },
+      "revId": "fa7211d2ad9becb0791d424f8429ce7144635a18",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40fc970f_a3e632b7",
+        "filename": "perf/modules/cluster-summary2-sk/cluster-summary2-sk.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T18:04:28Z",
+      "side": 1,
+      "message": "I suspect this should be a private static method.",
+      "range": {
+        "startLine": 233,
+        "startChar": 2,
+        "endLine": 233,
+        "endChar": 8
+      },
+      "revId": "fa7211d2ad9becb0791d424f8429ce7144635a18",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
