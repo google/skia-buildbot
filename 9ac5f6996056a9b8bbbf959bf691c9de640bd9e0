@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cce63bf0_b61c5107",
+        "filename": "golden/modules/trace-filter-sk/trace-filter-sk_po.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-06T18:31:08Z",
+      "side": 1,
+      "message": "This is going to create a new ParamSetSkPO every time it\u0027s called?",
+      "revId": "9ac5f6996056a9b8bbbf959bf691c9de640bd9e0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
