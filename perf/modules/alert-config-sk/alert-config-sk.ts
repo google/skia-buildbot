@@ -426,7 +426,7 @@ export class AlertConfigSk extends ElementSk {
   }
 
   set config(val) {
-    if (val === undefined || Object.keys(val).length === 0) {
+    if (val === undefined || val === null || Object.keys(val).length === 0) {
       return;
     }
     this._config = val;
