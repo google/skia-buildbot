@@ -7,6 +7,7 @@ const (
 	// Gold instances.
 	Chrome        Instance = "chrome"
 	ChromeGPU     Instance = "chrome-gpu"
+	ChromePublic  Instance = "chrome-public"
 	Flutter       Instance = "flutter"
 	FlutterEngine Instance = "flutter-engine"
 	Fuchsia       Instance = "fuchsia"
@@ -41,7 +42,7 @@ var (
 	// especially if we add more public instances in the future. For some potential ideas, see Kevin's
 	// comments here: https://skia-review.googlesource.com/c/buildbot/+/243778.
 	knownPublicInstances = []Instance{
-		SkiaPublic,
+		ChromePublic, SkiaPublic,
 	}
 )
 
@@ -52,6 +53,7 @@ func ProductionDeployableUnits() DeployableUnitSet {
 		knownInstances: []Instance{
 			Chrome,
 			ChromeGPU,
+			ChromePublic,
 			Flutter,
 			FlutterEngine,
 			Fuchsia,

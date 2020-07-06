@@ -1,15 +1,10 @@
 {
   authorized_users: [
-    "google.com", "chromium.org", "microsoft.com",
-    "chrome-gpu-gold@chops-service-accounts.iam.gserviceaccount.com",
+    "google.com",
+    "chromium.org",
+    "microsoft.com",
   ],
-  cl_comment_template: "Gold has detected about %d untriaged digest(s) on patchset %d.\n\
-\n\
-Please triage them at %s/cl/%s/%s before submitting.\n\
-\n\
-If this is due to a failure in a gtest-based test, this functionality is currently experimental and won't block your CL.\n\
-If all the trybots passed and you don't expect your CL to have any effect on browser UI, you can likely ignore this message.\n\
-See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8FFvY3YF-6BT4Mqgrb9U40t0HMfEVSSEpNs/edit?usp=sharing\n",
+  cl_comment_template: "<ignored>",
   client_secret_file: "/etc/skia.org/login.json",
   crs_url_template: "https://chromium-review.googlesource.com/%s",
   diff_server_grpc: "gold-chrome-diffserver:8000",
@@ -18,8 +13,8 @@ See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8F
   frontend: {
     baseRepoURL: "<inherited from git_repo_url>",
     crsTemplate: "<inherited from crs_url_template>",
-    defaultCorpus: "gtest-pixeltests",
-    title: "Chrome Gold",
+    defaultCorpus: "android-render-tests",
+    title: "Chrome Public Gold",
   },
   gerrit_url: "https://chromium-review.googlesource.com",
   lit_html_path: "/usr/local/share/skiacorrectness",
@@ -27,7 +22,7 @@ See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8F
   port: ":8000",
   prom_port: ":20000",
   resources_path: "/usr/local/share/skiacorrectness/frontend",
-  site_url: "https://chrome-gold.skia.org",
+  site_url: "https://chrome-public-gold.skia.org",
   tile_freshness: "1m",
   trace_bt_table: "gold-chrome",
 
@@ -35,4 +30,25 @@ See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8F
   K8S_CPU: 4,
   K8S_LOGIN_SECRETS: "skia-org-legacy-login-secrets",
   K8S_MEMORY: "4Gi",
+
+  is_public_view: true,
+  publicly_allowed_params: {
+    "android-render-tests": {
+      model: [
+        "Android SDK built for x86",
+        "AOSP on IA Emulator",
+        "Nexus 5",
+        "Nexus 5X",
+        "Nexus 7",
+        "Pixel 2"
+      ],
+      sdk_version: [
+        "22",
+        "23",
+        "28"
+      ]
+    },
+    "android-vr-render-tests": {}, // Everything public for this corpus
+    "gtest-pixeltests": {}, // Everything public for this corpus
+  },
 }
