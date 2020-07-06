@@ -71,9 +71,9 @@ describe('list-page-sk', () => {
       const paramsForAllDigests = 'source_type=gm&query=name%3Dthis_is_another_test&head=true&include=false&unt=true&neg=true&pos=true';
       expect(links[0].href).to.contain(`/search?${paramsForAllDigests}`);
       // Second through Fourth links are for just positive, negative, untriaged
-      expect(links[1].href).to.not.contain('unt=true');
-      expect(links[2].href).to.not.contain('unt=true');
-      expect(links[3].href).to.not.contain('pos=true');
+      expect(links[1].href).to.contain('pos=true&neg=false&unt=false');
+      expect(links[2].href).to.contain('pos=false&neg=true&unt=false');
+      expect(links[3].href).to.contain('pos=false&neg=false&unt=true');
       // Fifth link is the total count, which is the same as the first link.
       expect(links[4].href).to.contain(`/search?${paramsForAllDigests}`);
       // Sixth link should be to cluster view (with a very similar href)
@@ -91,9 +91,9 @@ describe('list-page-sk', () => {
       const paramsForAllDigests = 'source_type=gm&query=name%3Dthis_is_another_test&head=false&include=true&unt=true&neg=true&pos=true';
       expect(links[0].href).to.contain(`/search?${paramsForAllDigests}`);
       // Second through Fourth links are for just positive, negative, untriaged
-      expect(links[1].href).to.not.contain('unt=true');
-      expect(links[2].href).to.not.contain('unt=true');
-      expect(links[3].href).to.not.contain('pos=true');
+      expect(links[1].href).to.contain('pos=true&neg=false&unt=false');
+      expect(links[2].href).to.contain('pos=false&neg=true&unt=false');
+      expect(links[3].href).to.contain('pos=false&neg=false&unt=true');
       // Fifth link is the total count, which is the same as the first link.
       expect(links[4].href).to.contain(`/search?${paramsForAllDigests}`);
       // Sixth link should be to cluster view (with a very similar href)

@@ -82,17 +82,17 @@ const testRow = (row, ele) => {
     </a>
   </td>
   <td class=center>
-    <a href="/search?${searchParams}&pos=true" target=_blank rel=noopener>
+    <a href="/search?${searchParams}&pos=true&neg=false&unt=false" target=_blank rel=noopener>
      ${row.positive_digests}
     </a>
   </td>
   <td class=center>
-    <a href="/search?${searchParams}&neg=true" target=_blank rel=noopener>
+    <a href="/search?${searchParams}&pos=false&neg=true&unt=false" target=_blank rel=noopener>
      ${row.negative_digests}
     </a>
   </td>
   <td class=center>
-    <a href="/search?${searchParams}&unt=true" target=_blank rel=noopener>
+    <a href="/search?${searchParams}&pos=false&neg=false&unt=true" target=_blank rel=noopener>
      ${row.untriaged_digests}
     </a>
   </td>
