@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d49cb368_31a86aab",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-06T20:19:39Z",
+      "side": 1,
+      "message": "Follow-up review with these changes: https://skia-review.googlesource.com/c/buildbot/+/300715",
+      "revId": "8860a9911ef243baa630150af326bf862b25c92c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
