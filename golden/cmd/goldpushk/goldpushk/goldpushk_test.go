@@ -128,6 +128,8 @@ func TestRegenerateConfigFiles(t *testing.T) {
 
 		// Fake out the copy
 		disableCopyingConfigsToCheckout: true,
+
+		fakeNow: time.Date(2020, time.July, 6, 5, 4, 3, 0, time.UTC),
 	}
 	addFakeK8sConfigRepoCheckout(&g)
 
@@ -147,6 +149,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 			"-c /path/to/buildbot/golden/k8s-instances/skia/skia.json5 " +
 			"-c /path/to/buildbot/golden/k8s-instances/skia/skia-diffserver.json5 " +
 			"-extra INSTANCE_ID:skia " +
+			"-extra NOW:2020-07-06T05_04_03Z_00 " +
 			"-t /path/to/buildbot/golden/k8s-config-templates/gold-diffserver-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
@@ -158,6 +161,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 			"-c /path/to/buildbot/golden/k8s-instances/skia-public/skia-public.json5 " +
 			"-c /path/to/buildbot/golden/k8s-instances/skia-public/skia-public-skiacorrectness.json5 " +
 			"-extra INSTANCE_ID:skia-public " +
+			"-extra NOW:2020-07-06T05_04_03Z_00 " +
 			"-t /path/to/buildbot/golden/k8s-config-templates/gold-skiacorrectness-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
@@ -169,6 +173,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 			"-c /path/to/buildbot/golden/k8s-instances/skia/skia.json5 " +
 			"-c /path/to/buildbot/golden/k8s-instances/skia/skia-ingestion-bt.json5 " +
 			"-extra INSTANCE_ID:skia " +
+			"-extra NOW:2020-07-06T05_04_03Z_00 " +
 			"-t /path/to/buildbot/golden/k8s-config-templates/gold-ingestion-bt-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
@@ -180,6 +185,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 			"-c /path/to/buildbot/golden/k8s-instances/fuchsia/fuchsia.json5 " +
 			"-c /path/to/buildbot/golden/k8s-instances/fuchsia/fuchsia-diffserver.json5 " +
 			"-extra INSTANCE_ID:fuchsia " +
+			"-extra NOW:2020-07-06T05_04_03Z_00 " +
 			"-t /path/to/buildbot/golden/k8s-config-templates/gold-diffserver-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
@@ -191,6 +197,7 @@ func TestRegenerateConfigFiles(t *testing.T) {
 			"-c /path/to/buildbot/golden/k8s-instances/fuchsia/fuchsia.json5 " +
 			"-c /path/to/buildbot/golden/k8s-instances/fuchsia/fuchsia-ingestion-bt.json5 " +
 			"-extra INSTANCE_ID:fuchsia " +
+			"-extra NOW:2020-07-06T05_04_03Z_00 " +
 			"-t /path/to/buildbot/golden/k8s-config-templates/gold-ingestion-bt-template.yaml " +
 			"-parse_conf=false " +
 			"-strict " +
