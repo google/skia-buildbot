@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cddcfbaa_eea5432a",
+        "filename": "perf/go/alerts/config.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T18:19:13Z",
+      "side": 1,
+      "message": "Nit: I believe the convention is not to use uppercase names for consts, e.g.\n\n  const (\n    Both Direction \u003d \"BOTH\"\n    ...\n  )",
+      "range": {
+        "startLine": 36,
+        "startChar": 1,
+        "endLine": 36,
+        "endChar": 5
+      },
+      "revId": "e317f954b75893979a875f50ba32e2e4f099b367",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "659404e7_9e1e28f9",
+        "filename": "perf/modules/algo-select-sk/algo-select-sk.ts",
+        "patchSetId": 13
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T18:19:13Z",
+      "side": 1,
+      "message": "Please add a /** One-line summary. */",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 50
+      },
+      "revId": "e317f954b75893979a875f50ba32e2e4f099b367",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
