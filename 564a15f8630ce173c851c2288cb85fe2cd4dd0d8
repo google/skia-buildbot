@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bc6bf8f8_d58cdde2",
+        "filename": "golden/k8s-config-templates/gold-baselineserver-template.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T17:23:37Z",
+      "side": 1,
+      "message": "Nit: Should this be \"datetime\"? Or perhaps \"timestamp\"?",
+      "range": {
+        "startLine": 33,
+        "startChar": 8,
+        "endLine": 33,
+        "endChar": 12
+      },
+      "revId": "564a15f8630ce173c851c2288cb85fe2cd4dd0d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
