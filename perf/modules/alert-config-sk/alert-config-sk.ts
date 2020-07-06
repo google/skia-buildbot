@@ -92,15 +92,15 @@ export class AlertConfigSk extends ElementSk {
       count_url="/_/count/"
       @query-change=${(e: CustomEvent<QuerySkQueryChangeEventDetail>) =>
         (ele._config.query = e.detail.q)}
-    >
-    </query-chooser-sk>
+    ></query-chooser-sk>
 
     <div>
       <a
         href="/e/?queries=${encodeURIComponent(ele._config.query)}"
         target="_blank"
-        >Preview traces that match the query</a
       >
+        Preview traces that match the query
+      </a>
     </div>
 
     <h3>What triggers an alert</h3>
@@ -114,13 +114,14 @@ export class AlertConfigSk extends ElementSk {
       algo=${ele._config.algo}
       @algo-change=${(e: CustomEvent<AlgoSelectAlgoChangeEventDetail>) =>
         (ele._config.algo = e.detail.algo)}
-    >
-    </algo-select-sk>
+    ></algo-select-sk>
 
     <h4>Step Detection</h4>
     <label for="step">
       Choose the algorithm used to determine if a regression has occurred. The
-      actual value is set in <em>Threshold</em>.
+      actual value is set in
+      <em>Threshold</em>
+      .
     </label>
     <select-sk
       id="step"
@@ -153,7 +154,8 @@ export class AlertConfigSk extends ElementSk {
     <label for="threshold">
       The threshold for Step Detection to trigger an alert. The meaning of the
       value and meaningful range depends on the algorithm chosen for
-      <em>Step Detection</em>.
+      <em>Step Detection</em>
+      .
     </label>
     <input
       id="threshold"
@@ -166,10 +168,10 @@ export class AlertConfigSk extends ElementSk {
     />
 
     <h4>K</h4>
-    <label for="k"
-      >The number of clusters. Only used when Grouping is K-Means. 0 = use a
-      server chosen value.</label
-    >
+    <label for="k">
+      The number of clusters. Only used when Grouping is K-Means. 0 = use a
+      server chosen value.
+    </label>
     <input
       id="k"
       type="number"
@@ -180,8 +182,8 @@ export class AlertConfigSk extends ElementSk {
     />
 
     <h4>Radius</h4>
-    <label for="radius"
-      >Number of commits on either side to consider. 0 = use a server chosen
+    <label for="radius">
+      Number of commits on either side to consider. 0 = use a server chosen
       value.
     </label>
     <input
@@ -233,8 +235,7 @@ export class AlertConfigSk extends ElementSk {
       @input=${(e: InputEvent) =>
         (ele._config.sparse = (e.target! as HTMLInputElement).checked)}
       label="Data is sparse, so only include commits that have data."
-    >
-    </checkbox-sk>
+    ></checkbox-sk>
 
     <h3>Where are alerts sent</h3>
     <label for="sent">
@@ -302,14 +303,17 @@ export class AlertConfigSk extends ElementSk {
       <div value="0" title="Clusters that match this will generate alerts.">
         Active
       </div>
-      <div value="1" title="Currently inactive."> Deleted </div>
+      <div value="1" title="Currently inactive.">Deleted</div>
     </select-sk>
   `;
 
   private static _groupByChoices = (ele: AlertConfigSk) => {
     const groups = ele._config.group_by.split(',');
     return ele.paramkeys.map(
-      (p) => html`<div ?selected=${groups.indexOf(p) !== -1}>${p}</div>`
+      (p) =>
+        html`
+          <div ?selected=${groups.indexOf(p) !== -1}>${p}</div>
+        `
     );
   };
 
@@ -426,7 +430,7 @@ export class AlertConfigSk extends ElementSk {
   }
 
   set config(val) {
-    if (val === undefined || Object.keys(val).length === 0) {
+    if (!val || Object.keys(val).length === 0) {
       return;
     }
     this._config = val;
