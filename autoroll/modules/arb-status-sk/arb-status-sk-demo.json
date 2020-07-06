@@ -1,0 +1,3827 @@
+{
+  "childHead": "", 
+  "childName": "Skia", 
+  "config": {
+    "childDisplayName": "Skia", 
+    "commitMsg": {
+      "bugProject": "chromium", 
+      "childLogURLTmpl": "https://skia.googlesource.com/skia.git/+log/{{.RollingFrom}}..{{.RollingTo}}", 
+      "cqExtraTrybots": [
+        "luci.chromium.try:android_optional_gpu_tests_rel", 
+        "luci.chromium.try:linux-blink-rel", 
+        "luci.chromium.try:linux-chromeos-compile-dbg", 
+        "luci.chromium.try:linux_optional_gpu_tests_rel", 
+        "luci.chromium.try:mac_optional_gpu_tests_rel", 
+        "luci.chromium.try:win_optional_gpu_tests_rel"
+      ], 
+      "includeLog": true, 
+      "includeRevisionCount": true, 
+      "includeTbrLine": true, 
+      "includeTests": true
+    }, 
+    "contacts": [
+      "borenet@google.com"
+    ], 
+    "gerrit": {
+      "config": "chromium", 
+      "project": "chromium/src", 
+      "url": "https://chromium-review.googlesource.com"
+    }, 
+    "isInternal": false, 
+    "kubernetes": {
+      "cpu": "1", 
+      "memory": "2Gi", 
+      "readinessFailureThreshold": "10", 
+      "readinessInitialDelaySeconds": "30", 
+      "readinessPeriodSeconds": "30"
+    }, 
+    "maxRollFrequency": "0m", 
+    "noCheckoutDEPSRepoManager": {
+      "childBranch": "master", 
+      "childPath": "src/third_party/skia", 
+      "childRepo": "https://skia.googlesource.com/skia.git", 
+      "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+show/%s", 
+      "gerrit": {
+        "config": "chromium", 
+        "project": "chromium/src", 
+        "url": "https://chromium-review.googlesource.com"
+      }, 
+      "parentBranch": "master", 
+      "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+    }, 
+    "notifiers": [
+      {
+        "email": {
+          "emails": [
+            "borenet@google.com"
+          ]
+        }, 
+        "filter": "warning"
+      }
+    ], 
+    "ownerPrimary": "borenet", 
+    "ownerSecondary": "rmistry", 
+    "parentDisplayName": "Chromium", 
+    "parentWaterfall": "https://build.chromium.org", 
+    "rollerName": "skia-autoroll", 
+    "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com", 
+    "sheriff": [
+      "https://tree-status.skia.org/current-sheriff"
+    ], 
+    "supportsManualRolls": true
+  }, 
+  "currentRoll": {
+    "closed": false, 
+    "comments": null, 
+    "committed": false, 
+    "cqFinished": false, 
+    "cqSuccess": false, 
+    "created": "2020-07-01T17:30:29Z", 
+    "dryRunFinished": false, 
+    "dryRunSuccess": false, 
+    "isDryRun": false, 
+    "issue": 2278090, 
+    "modified": "2020-07-01T17:30:55Z", 
+    "patchSets": [
+      1, 
+      2
+    ], 
+    "result": "in progress", 
+    "rollingFrom": "ba7cbf76d49851be3be60cdc78870c4f110262d2", 
+    "rollingTo": "832936beeb97cf8bbc0909b9af74ef468a833ac5", 
+    "subject": "Roll Skia from ba7cbf76d498 to 832936beeb97 (5 revisions)", 
+    "tryResults": [
+      {
+        "builder": "android-binary-size", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343968"
+      }, 
+      {
+        "builder": "android-lollipop-arm-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343952"
+      }, 
+      {
+        "builder": "android-marshmallow-arm64-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343936"
+      }, 
+      {
+        "builder": "android-pie-arm64-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343920"
+      }, 
+      {
+        "builder": "android_compile_dbg", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343904"
+      }, 
+      {
+        "builder": "android_cronet", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "SUCCESS", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343888"
+      }, 
+      {
+        "builder": "android_optional_gpu_tests_rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "SUCCESS", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343872"
+      }, 
+      {
+        "builder": "cast_shell_android", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "SUCCESS", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343856"
+      }, 
+      {
+        "builder": "cast_shell_linux", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343840"
+      }, 
+      {
+        "builder": "chromeos-amd64-generic-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343824"
+      }, 
+      {
+        "builder": "chromeos-arm-generic-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343808"
+      }, 
+      {
+        "builder": "chromium_presubmit", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "SUCCESS", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343792"
+      }, 
+      {
+        "builder": "fuchsia-compile-x64-dbg", 
+        "category": "cq_experimental", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343776"
+      }, 
+      {
+        "builder": "fuchsia-x64-cast", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "SUCCESS", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343760"
+      }, 
+      {
+        "builder": "fuchsia_x64", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343744"
+      }, 
+      {
+        "builder": "ios-simulator", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343728"
+      }, 
+      {
+        "builder": "linux-blink-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343712"
+      }, 
+      {
+        "builder": "linux-chromeos-compile-dbg", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "FAILURE", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343696"
+      }, 
+      {
+        "builder": "linux-chromeos-compile-dbg", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:43:53.577017Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875956333319817440"
+      }, 
+      {
+        "builder": "linux-chromeos-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343680"
+      }, 
+      {
+        "builder": "linux-libfuzzer-asan-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "SUCCESS", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343664"
+      }, 
+      {
+        "builder": "linux-ozone-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343648"
+      }, 
+      {
+        "builder": "linux-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343632"
+      }, 
+      {
+        "builder": "linux_chromium_asan_rel_ng", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343616"
+      }, 
+      {
+        "builder": "linux_chromium_compile_dbg_ng", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343600"
+      }, 
+      {
+        "builder": "linux_chromium_tsan_rel_ng", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343584"
+      }, 
+      {
+        "builder": "linux_optional_gpu_tests_rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343568"
+      }, 
+      {
+        "builder": "mac-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343552"
+      }, 
+      {
+        "builder": "mac_chromium_compile_dbg_ng", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343536"
+      }, 
+      {
+        "builder": "mac_optional_gpu_tests_rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343520"
+      }, 
+      {
+        "builder": "win-libfuzzer-asan-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343504"
+      }, 
+      {
+        "builder": "win10_chromium_x64_rel_ng", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343488"
+      }, 
+      {
+        "builder": "win_chromium_compile_dbg_ng", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343472"
+      }, 
+      {
+        "builder": "win_optional_gpu_tests_rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:31:05.478832Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875957138730343456"
+      }
+    ]
+  }, 
+  "currentRollRev": "832936beeb97cf8bbc0909b9af74ef468a833ac5", 
+  "error": "", 
+  "fullHistoryUrl": "https://chromium-review.googlesource.com/q/owner:chromium-autoroll@skia-public.iam.gserviceaccount.com", 
+  "issueUrlBase": "https://chromium-review.googlesource.com/c/", 
+  "lastRoll": {
+    "closed": true, 
+    "comments": null, 
+    "committed": false, 
+    "cqFinished": true, 
+    "cqSuccess": false, 
+    "created": "2020-07-01T17:02:29Z", 
+    "dryRunFinished": false, 
+    "dryRunSuccess": false, 
+    "isDryRun": false, 
+    "issue": 2278014, 
+    "modified": "2020-07-01T17:28:29Z", 
+    "patchSets": [
+      1, 
+      2
+    ], 
+    "result": "failed", 
+    "rollingFrom": "ba7cbf76d49851be3be60cdc78870c4f110262d2", 
+    "rollingTo": "1298bc46ac779263485dd56b6c9efccb84150ef1", 
+    "subject": "Roll Skia from ba7cbf76d498 to 1298bc46ac77 (4 revisions)", 
+    "tryResults": [
+      {
+        "builder": "android-binary-size", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683920"
+      }, 
+      {
+        "builder": "android-lollipop-arm-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683904"
+      }, 
+      {
+        "builder": "android-marshmallow-arm64-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683888"
+      }, 
+      {
+        "builder": "android-pie-arm64-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683872"
+      }, 
+      {
+        "builder": "android_compile_dbg", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683856"
+      }, 
+      {
+        "builder": "android_cronet", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "SUCCESS", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683840"
+      }, 
+      {
+        "builder": "android_optional_gpu_tests_rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "SUCCESS", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683824"
+      }, 
+      {
+        "builder": "cast_shell_android", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "SUCCESS", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683808"
+      }, 
+      {
+        "builder": "cast_shell_linux", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "SUCCESS", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683792"
+      }, 
+      {
+        "builder": "chromeos-amd64-generic-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683776"
+      }, 
+      {
+        "builder": "chromeos-arm-generic-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "SUCCESS", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683760"
+      }, 
+      {
+        "builder": "chromium_presubmit", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "SUCCESS", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683744"
+      }, 
+      {
+        "builder": "fuchsia-compile-x64-dbg", 
+        "category": "cq_experimental", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683728"
+      }, 
+      {
+        "builder": "fuchsia-x64-cast", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "SUCCESS", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683712"
+      }, 
+      {
+        "builder": "fuchsia_arm64", 
+        "category": "cq_experimental", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683696"
+      }, 
+      {
+        "builder": "fuchsia_x64", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683680"
+      }, 
+      {
+        "builder": "ios-simulator", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683664"
+      }, 
+      {
+        "builder": "ios-simulator-code-coverage", 
+        "category": "cq_experimental", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683648"
+      }, 
+      {
+        "builder": "linux-blink-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683632"
+      }, 
+      {
+        "builder": "linux-chromeos-compile-dbg", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "FAILURE", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683616"
+      }, 
+      {
+        "builder": "linux-chromeos-compile-dbg", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:13:33.049145Z", 
+        "result": "FAILURE", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958242281261392"
+      }, 
+      {
+        "builder": "linux-chromeos-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "FAILURE", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683600"
+      }, 
+      {
+        "builder": "linux-chromeos-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:16:28.68956Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958058110397312"
+      }, 
+      {
+        "builder": "linux-libfuzzer-asan-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "SUCCESS", 
+        "status": "COMPLETED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683584"
+      }, 
+      {
+        "builder": "linux-ozone-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683568"
+      }, 
+      {
+        "builder": "linux-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683552"
+      }, 
+      {
+        "builder": "linux_chromium_asan_rel_ng", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683536"
+      }, 
+      {
+        "builder": "linux_chromium_compile_dbg_ng", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683520"
+      }, 
+      {
+        "builder": "linux_chromium_tsan_rel_ng", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683504"
+      }, 
+      {
+        "builder": "linux_optional_gpu_tests_rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683488"
+      }, 
+      {
+        "builder": "mac-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683472"
+      }, 
+      {
+        "builder": "mac_chromium_compile_dbg_ng", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683456"
+      }, 
+      {
+        "builder": "mac_optional_gpu_tests_rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683440"
+      }, 
+      {
+        "builder": "win-libfuzzer-asan-rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683424"
+      }, 
+      {
+        "builder": "win10_chromium_x64_rel_ng", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683408"
+      }, 
+      {
+        "builder": "win_chromium_compile_dbg_ng", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683392"
+      }, 
+      {
+        "builder": "win_optional_gpu_tests_rel", 
+        "category": "cq", 
+        "created_ts": "2020-07-01T17:03:05.137574Z", 
+        "result": "", 
+        "status": "STARTED", 
+        "url": "https://cr-buildbucket.appspot.com/build/8875958900695683376"
+      }
+    ]
+  }, 
+  "lastRollRev": "ba7cbf76d49851be3be60cdc78870c4f110262d2", 
+  "manualRequests": [
+    {
+      "id": "FqhQJmnVNupDaAb38Urb", 
+      "requester": "egdaniel@google.com", 
+      "result": "FAILURE", 
+      "revision": "aed25a93a42406aef01c80351d14834781b738e8", 
+      "rollerName": "skia-autoroll", 
+      "status": "COMPLETED", 
+      "timestamp": "2020-06-24T18:51:17.425615Z", 
+      "url": "https://chromium-review.googlesource.com/c/2265152"
+    }, 
+    {
+      "id": "ruTSTPc24HsQ1IrrGmPT", 
+      "requester": "egdaniel@google.com", 
+      "result": "FAILURE", 
+      "revision": "c5f25bc215e4a23fda887c81d177303f26f2118e", 
+      "rollerName": "skia-autoroll", 
+      "status": "COMPLETED", 
+      "timestamp": "2020-06-24T18:51:15.457022Z", 
+      "url": "https://chromium-review.googlesource.com/c/2264917"
+    }, 
+    {
+      "id": "MFxX3WtKVGKdZVVnlQh6", 
+      "requester": "egdaniel@google.com", 
+      "result": "FAILURE", 
+      "revision": "7d7cd2b17877c0bf39c9d15d384c781e9d92e719", 
+      "rollerName": "skia-autoroll", 
+      "status": "COMPLETED", 
+      "timestamp": "2020-06-24T18:51:14.270958Z", 
+      "url": "https://chromium-review.googlesource.com/c/2265153"
+    }, 
+    {
+      "id": "wue5CIhcgMcwagZCgTek", 
+      "requester": "egdaniel@google.com", 
+      "result": "FAILURE", 
+      "revision": "3b6b7478421b4819e0f5ea08c44d90818b2cd739", 
+      "rollerName": "skia-autoroll", 
+      "status": "COMPLETED", 
+      "timestamp": "2020-06-24T18:51:12.954572Z", 
+      "url": "https://chromium-review.googlesource.com/c/2265154"
+    }, 
+    {
+      "id": "Pu3yzs1sFPHcNCMSTctU", 
+      "requester": "egdaniel@google.com", 
+      "result": "FAILURE", 
+      "revision": "d34528c3576bccef9681e4fe947c825355782a1a", 
+      "rollerName": "skia-autoroll", 
+      "status": "COMPLETED", 
+      "timestamp": "2020-06-24T18:51:11.243028Z", 
+      "url": "https://chromium-review.googlesource.com/c/2265155"
+    }, 
+    {
+      "id": "DDfmxhFEwg9unmObih9x", 
+      "requester": "egdaniel@google.com", 
+      "result": "FAILURE", 
+      "revision": "d12c124d87986cddde490b8b947530257f7a8006", 
+      "rollerName": "skia-autoroll", 
+      "status": "COMPLETED", 
+      "timestamp": "2020-06-24T18:51:08.010506Z", 
+      "url": "https://chromium-review.googlesource.com/c/2265156"
+    }
+  ], 
+  "mode": {
+    "message": "", 
+    "mode": "running", 
+    "time": "2020-06-26T14:41:00.070874Z", 
+    "user": "mtklein@google.com"
+  }, 
+  "notRolledRevs": [
+    {
+      "author": "robertphillips@google.com", 
+      "bugs": {
+        "skia": [
+          "10441"
+        ]
+      }, 
+      "dependencies": null, 
+      "description": "Move GrRecordingContext.h and GrDirectContext.h into include/gpu", 
+      "details": "External clients will need access to these classes once GrContext\ngoes away.\n\nThis is a purely mechanical CL.\n\nBug: skia:10441\nChange-Id: I7ffeb29d88bcc0f012412fba911e8362d046e24a\nReviewed-on: https://skia-review.googlesource.com/c/skia/+/300206\nReviewed-by: Brian Salomon <bsalomon@google.com>\nCommit-Queue: Robert Phillips <robertphillips@google.com>\n", 
+      "display": "b7bfbc299aae", 
+      "id": "b7bfbc299aaeab626e9ace51598d4fe75d163831", 
+      "invalidReason": "", 
+      "tests": null, 
+      "time": "2020-07-01T17:32:14Z", 
+      "url": "https://skia.googlesource.com/skia.git/+show/b7bfbc299aaeab626e9ace51598d4fe75d163831"
+    }, 
+    {
+      "author": "bsalomon@google.com", 
+      "bugs": {}, 
+      "dependencies": null, 
+      "description": "Remove workaround for not calling SkImage release proc", 
+      "details": "Also rename release proc\n\nChange-Id: Id1900f6428466e71e14f612256e89e4c1248e6cd\nReviewed-on: https://skia-review.googlesource.com/c/skia/+/300202\nReviewed-by: Robert Phillips <robertphillips@google.com>\nCommit-Queue: Brian Salomon <bsalomon@google.com>\n", 
+      "display": "832936beeb97", 
+      "id": "832936beeb97cf8bbc0909b9af74ef468a833ac5", 
+      "invalidReason": "", 
+      "tests": null, 
+      "time": "2020-07-01T17:06:24Z", 
+      "url": "https://skia.googlesource.com/skia.git/+show/832936beeb97cf8bbc0909b9af74ef468a833ac5"
+    }, 
+    {
+      "author": "brianosman@google.com", 
+      "bugs": {}, 
+      "dependencies": null, 
+      "description": "Change SampleMatrix to SampleUsage", 
+      "details": "It now tracks all sample calls of a child (matrix, explicit coords,\npass through). There is now just one registerChild() call, and the\nsampling pattern of that child is fully determined by the SampleUsage\nparameter.\n\nChange-Id: Iaadcd325fca64a59f24192aadd06923c66362181\nReviewed-on: https://skia-review.googlesource.com/c/skia/+/299875\nReviewed-by: Michael Ludwig <michaelludwig@google.com>\nCommit-Queue: Brian Osman <brianosman@google.com>\n", 
+      "display": "1298bc46ac77", 
+      "id": "1298bc46ac779263485dd56b6c9efccb84150ef1", 
+      "invalidReason": "", 
+      "tests": null, 
+      "time": "2020-07-01T16:37:43Z", 
+      "url": "https://skia.googlesource.com/skia.git/+show/1298bc46ac779263485dd56b6c9efccb84150ef1"
+    }, 
+    {
+      "author": "robertphillips@google.com", 
+      "bugs": {
+        "skia": [
+          "10441"
+        ]
+      }, 
+      "dependencies": null, 
+      "description": "Make asDirectContext public", 
+      "details": "External clients will eventually have to call this to get access\nto a direct context from an SkCanvas or SkSurface (which will\nonly have 'recordingContext' accessors).\n\nBug: skia:10441\nChange-Id: I10e34081277b685fa59d03e1fce1887f3524e0fa\nReviewed-on: https://skia-review.googlesource.com/c/skia/+/300178\nReviewed-by: Adlai Holler <adlai@google.com>\nReviewed-by: Brian Salomon <bsalomon@google.com>\nCommit-Queue: Robert Phillips <robertphillips@google.com>\n", 
+      "display": "f8f45d91b2e7", 
+      "id": "f8f45d91b2e7e841719ed1d80ee74f68aeb8d0ec", 
+      "invalidReason": "", 
+      "tests": null, 
+      "time": "2020-07-01T16:30:03Z", 
+      "url": "https://skia.googlesource.com/skia.git/+show/f8f45d91b2e7e841719ed1d80ee74f68aeb8d0ec"
+    }, 
+    {
+      "author": "johnstiles@google.com", 
+      "bugs": {
+        "skia": [
+          "10338"
+        ]
+      }, 
+      "dependencies": null, 
+      "description": "Fix modifier key handling in OS X to allow command-keys to work.", 
+      "details": "A variety of modifier key handling issues are addressed in this CL:\n- Added a skui::Key for the Super key (this is ImGui's name for command)\n- Added OS X event handling for `flagsChanged` (sent when modifier keys\n  are pressed)\n- OS X manually tracks modifier key state and sends key-up and key-down\n  events to the ImGuiLayer as necessary\n- OS X does not send key-up events when hotkeys are pressed, so these\n  are manually synthesized and sent to ImGui (otherwise hotkeys are\n  repeated forever)\n- Replaced hardcoded Virtual Key valus in OS X code with named constants\n- Our custom bitmask type was lacking the ability to XOR\n\nThis CL does NOT enable the OS X clipboard; this uses the ImGui internal\nclipboard.\n\nChange-Id: I76b55215858bfb6441dbef18ad638426fa8bc073\nBug: skia:10338\nReviewed-on: https://skia-review.googlesource.com/c/skia/+/300182\nCommit-Queue: Jim Van Verth <jvanverth@google.com>\nReviewed-by: Jim Van Verth <jvanverth@google.com>\nAuto-Submit: John Stiles <johnstiles@google.com>\n", 
+      "display": "d2f870c91102", 
+      "id": "d2f870c9110272a65cbc27da5ec670f3bd17494e", 
+      "invalidReason": "", 
+      "tests": null, 
+      "time": "2020-07-01T16:07:03Z", 
+      "url": "https://skia.googlesource.com/skia.git/+show/d2f870c9110272a65cbc27da5ec670f3bd17494e"
+    }, 
+    {
+      "author": "jvanverth@google.com", 
+      "bugs": {
+        "skia": [
+          "9935"
+        ]
+      }, 
+      "dependencies": null, 
+      "description": "Fix D3D debug clang build.", 
+      "details": "Adds in the GR_D3D_CALL_ERRCHECK utility macro to avoid this in the\nfuture.\n\nChange-Id: I68112bcccbd8cb9d55ae02e99de954269d0ac4bd\nBug: skia:9935\nReviewed-on: https://skia-review.googlesource.com/c/skia/+/300176\nReviewed-by: Greg Daniel <egdaniel@google.com>\nCommit-Queue: Jim Van Verth <jvanverth@google.com>\n", 
+      "display": "e381036051eb", 
+      "id": "e381036051eb9586b71bc244665d14ac46647345", 
+      "invalidReason": "", 
+      "tests": null, 
+      "time": "2020-07-01T14:39:53Z", 
+      "url": "https://skia.googlesource.com/skia.git/+show/e381036051eb9586b71bc244665d14ac46647345"
+    }
+  ], 
+  "numBehind": 6, 
+  "numFailed": 1, 
+  "parentName": "", 
+  "recent": [
+    {
+      "closed": false, 
+      "comments": null, 
+      "committed": false, 
+      "cqFinished": false, 
+      "cqSuccess": false, 
+      "created": "2020-07-01T17:30:29Z", 
+      "dryRunFinished": false, 
+      "dryRunSuccess": false, 
+      "isDryRun": false, 
+      "issue": 2278090, 
+      "modified": "2020-07-01T17:30:55Z", 
+      "patchSets": [
+        1, 
+        2
+      ], 
+      "result": "in progress", 
+      "rollingFrom": "ba7cbf76d49851be3be60cdc78870c4f110262d2", 
+      "rollingTo": "832936beeb97cf8bbc0909b9af74ef468a833ac5", 
+      "subject": "Roll Skia from ba7cbf76d498 to 832936beeb97 (5 revisions)", 
+      "tryResults": [
+        {
+          "builder": "android-binary-size", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343968"
+        }, 
+        {
+          "builder": "android-lollipop-arm-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343952"
+        }, 
+        {
+          "builder": "android-marshmallow-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343936"
+        }, 
+        {
+          "builder": "android-pie-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343920"
+        }, 
+        {
+          "builder": "android_compile_dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343904"
+        }, 
+        {
+          "builder": "android_cronet", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343888"
+        }, 
+        {
+          "builder": "android_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343872"
+        }, 
+        {
+          "builder": "cast_shell_android", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343856"
+        }, 
+        {
+          "builder": "cast_shell_linux", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343840"
+        }, 
+        {
+          "builder": "chromeos-amd64-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343824"
+        }, 
+        {
+          "builder": "chromeos-arm-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343808"
+        }, 
+        {
+          "builder": "chromium_presubmit", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343792"
+        }, 
+        {
+          "builder": "fuchsia-compile-x64-dbg", 
+          "category": "cq_experimental", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343776"
+        }, 
+        {
+          "builder": "fuchsia-x64-cast", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343760"
+        }, 
+        {
+          "builder": "fuchsia_x64", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343744"
+        }, 
+        {
+          "builder": "ios-simulator", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343728"
+        }, 
+        {
+          "builder": "linux-blink-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343712"
+        }, 
+        {
+          "builder": "linux-chromeos-compile-dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "FAILURE", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343696"
+        }, 
+        {
+          "builder": "linux-chromeos-compile-dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:43:53.577017Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875956333319817440"
+        }, 
+        {
+          "builder": "linux-chromeos-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343680"
+        }, 
+        {
+          "builder": "linux-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343664"
+        }, 
+        {
+          "builder": "linux-ozone-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343648"
+        }, 
+        {
+          "builder": "linux-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343632"
+        }, 
+        {
+          "builder": "linux_chromium_asan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343616"
+        }, 
+        {
+          "builder": "linux_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343600"
+        }, 
+        {
+          "builder": "linux_chromium_tsan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343584"
+        }, 
+        {
+          "builder": "linux_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343568"
+        }, 
+        {
+          "builder": "mac-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343552"
+        }, 
+        {
+          "builder": "mac_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343536"
+        }, 
+        {
+          "builder": "mac_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343520"
+        }, 
+        {
+          "builder": "win-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343504"
+        }, 
+        {
+          "builder": "win10_chromium_x64_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343488"
+        }, 
+        {
+          "builder": "win_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343472"
+        }, 
+        {
+          "builder": "win_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:31:05.478832Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875957138730343456"
+        }
+      ]
+    }, 
+    {
+      "closed": true, 
+      "comments": null, 
+      "committed": false, 
+      "cqFinished": true, 
+      "cqSuccess": false, 
+      "created": "2020-07-01T17:02:29Z", 
+      "dryRunFinished": false, 
+      "dryRunSuccess": false, 
+      "isDryRun": false, 
+      "issue": 2278014, 
+      "modified": "2020-07-01T17:28:29Z", 
+      "patchSets": [
+        1, 
+        2
+      ], 
+      "result": "failed", 
+      "rollingFrom": "ba7cbf76d49851be3be60cdc78870c4f110262d2", 
+      "rollingTo": "1298bc46ac779263485dd56b6c9efccb84150ef1", 
+      "subject": "Roll Skia from ba7cbf76d498 to 1298bc46ac77 (4 revisions)", 
+      "tryResults": [
+        {
+          "builder": "android-binary-size", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683920"
+        }, 
+        {
+          "builder": "android-lollipop-arm-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683904"
+        }, 
+        {
+          "builder": "android-marshmallow-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683888"
+        }, 
+        {
+          "builder": "android-pie-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683872"
+        }, 
+        {
+          "builder": "android_compile_dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683856"
+        }, 
+        {
+          "builder": "android_cronet", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683840"
+        }, 
+        {
+          "builder": "android_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683824"
+        }, 
+        {
+          "builder": "cast_shell_android", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683808"
+        }, 
+        {
+          "builder": "cast_shell_linux", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683792"
+        }, 
+        {
+          "builder": "chromeos-amd64-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683776"
+        }, 
+        {
+          "builder": "chromeos-arm-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683760"
+        }, 
+        {
+          "builder": "chromium_presubmit", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683744"
+        }, 
+        {
+          "builder": "fuchsia-compile-x64-dbg", 
+          "category": "cq_experimental", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683728"
+        }, 
+        {
+          "builder": "fuchsia-x64-cast", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683712"
+        }, 
+        {
+          "builder": "fuchsia_arm64", 
+          "category": "cq_experimental", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683696"
+        }, 
+        {
+          "builder": "fuchsia_x64", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683680"
+        }, 
+        {
+          "builder": "ios-simulator", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683664"
+        }, 
+        {
+          "builder": "ios-simulator-code-coverage", 
+          "category": "cq_experimental", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683648"
+        }, 
+        {
+          "builder": "linux-blink-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683632"
+        }, 
+        {
+          "builder": "linux-chromeos-compile-dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "FAILURE", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683616"
+        }, 
+        {
+          "builder": "linux-chromeos-compile-dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:13:33.049145Z", 
+          "result": "FAILURE", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958242281261392"
+        }, 
+        {
+          "builder": "linux-chromeos-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "FAILURE", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683600"
+        }, 
+        {
+          "builder": "linux-chromeos-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:16:28.68956Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958058110397312"
+        }, 
+        {
+          "builder": "linux-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683584"
+        }, 
+        {
+          "builder": "linux-ozone-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683568"
+        }, 
+        {
+          "builder": "linux-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683552"
+        }, 
+        {
+          "builder": "linux_chromium_asan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683536"
+        }, 
+        {
+          "builder": "linux_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683520"
+        }, 
+        {
+          "builder": "linux_chromium_tsan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683504"
+        }, 
+        {
+          "builder": "linux_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683488"
+        }, 
+        {
+          "builder": "mac-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683472"
+        }, 
+        {
+          "builder": "mac_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683456"
+        }, 
+        {
+          "builder": "mac_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683440"
+        }, 
+        {
+          "builder": "win-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683424"
+        }, 
+        {
+          "builder": "win10_chromium_x64_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683408"
+        }, 
+        {
+          "builder": "win_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683392"
+        }, 
+        {
+          "builder": "win_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T17:03:05.137574Z", 
+          "result": "", 
+          "status": "STARTED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875958900695683376"
+        }
+      ]
+    }, 
+    {
+      "closed": true, 
+      "comments": null, 
+      "committed": true, 
+      "cqFinished": true, 
+      "cqSuccess": true, 
+      "created": "2020-07-01T14:02:29Z", 
+      "dryRunFinished": false, 
+      "dryRunSuccess": false, 
+      "isDryRun": false, 
+      "issue": 2278002, 
+      "modified": "2020-07-01T16:59:26Z", 
+      "patchSets": [
+        1, 
+        2, 
+        3
+      ], 
+      "result": "succeeded", 
+      "rollingFrom": "5638f489af56f34d849c31c1a492c044b656fb8f", 
+      "rollingTo": "ba7cbf76d49851be3be60cdc78870c4f110262d2", 
+      "subject": "Roll Skia from 5638f489af56 to ba7cbf76d498 (4 revisions)", 
+      "tryResults": [
+        {
+          "builder": "android-binary-size", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208624"
+        }, 
+        {
+          "builder": "android-lollipop-arm-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208608"
+        }, 
+        {
+          "builder": "android-marshmallow-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208592"
+        }, 
+        {
+          "builder": "android-pie-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208576"
+        }, 
+        {
+          "builder": "android_compile_dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208560"
+        }, 
+        {
+          "builder": "android_cronet", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208544"
+        }, 
+        {
+          "builder": "android_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208528"
+        }, 
+        {
+          "builder": "cast_shell_android", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208512"
+        }, 
+        {
+          "builder": "cast_shell_linux", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208496"
+        }, 
+        {
+          "builder": "chromeos-amd64-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208480"
+        }, 
+        {
+          "builder": "chromeos-arm-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208464"
+        }, 
+        {
+          "builder": "chromium_presubmit", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208448"
+        }, 
+        {
+          "builder": "fuchsia-compile-x64-dbg", 
+          "category": "cq_experimental", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208432"
+        }, 
+        {
+          "builder": "fuchsia-x64-cast", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208416"
+        }, 
+        {
+          "builder": "fuchsia_arm64", 
+          "category": "cq_experimental", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208400"
+        }, 
+        {
+          "builder": "fuchsia_x64", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208384"
+        }, 
+        {
+          "builder": "ios-simulator", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208368"
+        }, 
+        {
+          "builder": "linux-blink-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208352"
+        }, 
+        {
+          "builder": "linux-chromeos-compile-dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208336"
+        }, 
+        {
+          "builder": "linux-chromeos-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208320"
+        }, 
+        {
+          "builder": "linux-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208304"
+        }, 
+        {
+          "builder": "linux-ozone-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208288"
+        }, 
+        {
+          "builder": "linux-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208272"
+        }, 
+        {
+          "builder": "linux_chromium_asan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208256"
+        }, 
+        {
+          "builder": "linux_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208240"
+        }, 
+        {
+          "builder": "linux_chromium_tsan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208224"
+        }, 
+        {
+          "builder": "linux_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208208"
+        }, 
+        {
+          "builder": "mac-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208192"
+        }, 
+        {
+          "builder": "mac_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208176"
+        }, 
+        {
+          "builder": "mac_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208160"
+        }, 
+        {
+          "builder": "win-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208144"
+        }, 
+        {
+          "builder": "win10_chromium_x64_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208128"
+        }, 
+        {
+          "builder": "win_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208112"
+        }, 
+        {
+          "builder": "win_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T14:03:14.11925Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875970215898208096"
+        }
+      ]
+    }, 
+    {
+      "closed": true, 
+      "comments": null, 
+      "committed": false, 
+      "cqFinished": true, 
+      "cqSuccess": false, 
+      "created": "2020-07-01T05:12:29Z", 
+      "dryRunFinished": false, 
+      "dryRunSuccess": false, 
+      "isDryRun": false, 
+      "issue": 2276570, 
+      "modified": "2020-07-01T14:01:29Z", 
+      "patchSets": [
+        1, 
+        2
+      ], 
+      "result": "failed", 
+      "rollingFrom": "5638f489af56f34d849c31c1a492c044b656fb8f", 
+      "rollingTo": "16ee98ddeda3b67218277c529bd18858e73c59f5", 
+      "subject": "Roll Skia from 5638f489af56 to 16ee98ddeda3 (3 revisions)", 
+      "tryResults": [
+        {
+          "builder": "android-binary-size", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980847104"
+        }, 
+        {
+          "builder": "android-lollipop-arm-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980847088"
+        }, 
+        {
+          "builder": "android-marshmallow-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980847072"
+        }, 
+        {
+          "builder": "android-pie-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980847056"
+        }, 
+        {
+          "builder": "android_compile_dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980847040"
+        }, 
+        {
+          "builder": "android_cronet", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980847024"
+        }, 
+        {
+          "builder": "android_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980847008"
+        }, 
+        {
+          "builder": "cast_shell_android", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846992"
+        }, 
+        {
+          "builder": "cast_shell_linux", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846976"
+        }, 
+        {
+          "builder": "chromeos-amd64-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846960"
+        }, 
+        {
+          "builder": "chromeos-arm-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846944"
+        }, 
+        {
+          "builder": "chromium_presubmit", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846928"
+        }, 
+        {
+          "builder": "chromium_presubmit", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T09:35:53.740092Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875987035454442608"
+        }, 
+        {
+          "builder": "fuchsia-x64-cast", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846912"
+        }, 
+        {
+          "builder": "fuchsia_x64", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T08:16:51.248496Z", 
+          "result": "FAILURE", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875992008317392592"
+        }, 
+        {
+          "builder": "fuchsia_x64", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T09:35:53.740092Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875987035454442592"
+        }, 
+        {
+          "builder": "fuchsia_x64", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "FAILURE", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846896"
+        }, 
+        {
+          "builder": "ios-simulator", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846880"
+        }, 
+        {
+          "builder": "linux-blink-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846864"
+        }, 
+        {
+          "builder": "linux-chromeos-compile-dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T08:13:48.932843Z", 
+          "result": "FAILURE", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875992199489645184"
+        }, 
+        {
+          "builder": "linux-chromeos-compile-dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "FAILURE", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846848"
+        }, 
+        {
+          "builder": "linux-chromeos-compile-dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T09:35:53.740092Z", 
+          "result": "FAILURE", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8875987035454442576"
+        }, 
+        {
+          "builder": "linux-chromeos-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846832"
+        }, 
+        {
+          "builder": "linux-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846816"
+        }, 
+        {
+          "builder": "linux-ozone-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846800"
+        }, 
+        {
+          "builder": "linux-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846784"
+        }, 
+        {
+          "builder": "linux_chromium_asan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846768"
+        }, 
+        {
+          "builder": "linux_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846752"
+        }, 
+        {
+          "builder": "linux_chromium_tsan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846736"
+        }, 
+        {
+          "builder": "linux_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846720"
+        }, 
+        {
+          "builder": "mac-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846704"
+        }, 
+        {
+          "builder": "mac_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846688"
+        }, 
+        {
+          "builder": "mac_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846672"
+        }, 
+        {
+          "builder": "win-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846656"
+        }, 
+        {
+          "builder": "win10_chromium_x64_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846640"
+        }, 
+        {
+          "builder": "win_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846624"
+        }, 
+        {
+          "builder": "win_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T05:13:10.909113Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876003563980846608"
+        }
+      ]
+    }, 
+    {
+      "closed": true, 
+      "comments": null, 
+      "committed": true, 
+      "cqFinished": true, 
+      "cqSuccess": true, 
+      "created": "2020-07-01T03:32:29Z", 
+      "dryRunFinished": false, 
+      "dryRunSuccess": false, 
+      "isDryRun": false, 
+      "issue": 2276562, 
+      "modified": "2020-07-01T05:10:11Z", 
+      "patchSets": [
+        1, 
+        2, 
+        3
+      ], 
+      "result": "succeeded", 
+      "rollingFrom": "77d7d5ea92ca21bff7b31ef59e0cb5084010d2c0", 
+      "rollingTo": "5638f489af56f34d849c31c1a492c044b656fb8f", 
+      "subject": "Roll Skia from 77d7d5ea92ca to 5638f489af56 (3 revisions)", 
+      "tryResults": [
+        {
+          "builder": "android-binary-size", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276336"
+        }, 
+        {
+          "builder": "android-lollipop-arm-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276320"
+        }, 
+        {
+          "builder": "android-marshmallow-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276304"
+        }, 
+        {
+          "builder": "android-pie-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276288"
+        }, 
+        {
+          "builder": "android_compile_dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276272"
+        }, 
+        {
+          "builder": "android_cronet", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276256"
+        }, 
+        {
+          "builder": "android_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276240"
+        }, 
+        {
+          "builder": "cast_shell_android", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276224"
+        }, 
+        {
+          "builder": "cast_shell_linux", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276208"
+        }, 
+        {
+          "builder": "chromeos-amd64-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276192"
+        }, 
+        {
+          "builder": "chromeos-arm-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276176"
+        }, 
+        {
+          "builder": "chromium_presubmit", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276160"
+        }, 
+        {
+          "builder": "fuchsia-compile-x64-dbg", 
+          "category": "cq_experimental", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276144"
+        }, 
+        {
+          "builder": "fuchsia-x64-cast", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276128"
+        }, 
+        {
+          "builder": "fuchsia_arm64", 
+          "category": "cq_experimental", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276112"
+        }, 
+        {
+          "builder": "fuchsia_x64", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276096"
+        }, 
+        {
+          "builder": "ios-simulator", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276080"
+        }, 
+        {
+          "builder": "linux-blink-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276064"
+        }, 
+        {
+          "builder": "linux-chromeos-compile-dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276048"
+        }, 
+        {
+          "builder": "linux-chromeos-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276032"
+        }, 
+        {
+          "builder": "linux-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276016"
+        }, 
+        {
+          "builder": "linux-ozone-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235276000"
+        }, 
+        {
+          "builder": "linux-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235275984"
+        }, 
+        {
+          "builder": "linux_chromium_asan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235275968"
+        }, 
+        {
+          "builder": "linux_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235275952"
+        }, 
+        {
+          "builder": "linux_chromium_tsan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235275936"
+        }, 
+        {
+          "builder": "linux_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235275920"
+        }, 
+        {
+          "builder": "mac-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235275904"
+        }, 
+        {
+          "builder": "mac_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235275888"
+        }, 
+        {
+          "builder": "mac_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235275872"
+        }, 
+        {
+          "builder": "win-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235275856"
+        }, 
+        {
+          "builder": "win10_chromium_x64_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235275840"
+        }, 
+        {
+          "builder": "win_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235275824"
+        }, 
+        {
+          "builder": "win_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T03:33:02.51816Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876009864235275808"
+        }
+      ]
+    }, 
+    {
+      "closed": true, 
+      "comments": null, 
+      "committed": true, 
+      "cqFinished": true, 
+      "cqSuccess": true, 
+      "created": "2020-07-01T02:12:29Z", 
+      "dryRunFinished": false, 
+      "dryRunSuccess": false, 
+      "isDryRun": false, 
+      "issue": 2277270, 
+      "modified": "2020-07-01T03:29:42Z", 
+      "patchSets": [
+        1, 
+        2, 
+        3
+      ], 
+      "result": "succeeded", 
+      "rollingFrom": "fe7e74b3a78668bc9e2402f29e2be009d84a306c", 
+      "rollingTo": "77d7d5ea92ca21bff7b31ef59e0cb5084010d2c0", 
+      "subject": "Roll Skia from fe7e74b3a786 to 77d7d5ea92ca (2 revisions)", 
+      "tryResults": [
+        {
+          "builder": "android-binary-size", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629680"
+        }, 
+        {
+          "builder": "android-lollipop-arm-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629664"
+        }, 
+        {
+          "builder": "android-marshmallow-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629648"
+        }, 
+        {
+          "builder": "android-pie-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629632"
+        }, 
+        {
+          "builder": "android_compile_dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629616"
+        }, 
+        {
+          "builder": "android_cronet", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629600"
+        }, 
+        {
+          "builder": "android_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629584"
+        }, 
+        {
+          "builder": "cast_shell_android", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629568"
+        }, 
+        {
+          "builder": "cast_shell_linux", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629552"
+        }, 
+        {
+          "builder": "chromeos-amd64-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629536"
+        }, 
+        {
+          "builder": "chromeos-arm-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629520"
+        }, 
+        {
+          "builder": "chromium_presubmit", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629504"
+        }, 
+        {
+          "builder": "fuchsia-x64-cast", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629488"
+        }, 
+        {
+          "builder": "fuchsia_x64", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629472"
+        }, 
+        {
+          "builder": "ios-simulator", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629456"
+        }, 
+        {
+          "builder": "linux-blink-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629440"
+        }, 
+        {
+          "builder": "linux-chromeos-compile-dbg", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629424"
+        }, 
+        {
+          "builder": "linux-chromeos-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629408"
+        }, 
+        {
+          "builder": "linux-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629392"
+        }, 
+        {
+          "builder": "linux-ozone-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629376"
+        }, 
+        {
+          "builder": "linux-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629360"
+        }, 
+        {
+          "builder": "linux_chromium_asan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629344"
+        }, 
+        {
+          "builder": "linux_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629328"
+        }, 
+        {
+          "builder": "linux_chromium_tsan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629312"
+        }, 
+        {
+          "builder": "linux_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629296"
+        }, 
+        {
+          "builder": "mac-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629280"
+        }, 
+        {
+          "builder": "mac_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629264"
+        }, 
+        {
+          "builder": "mac_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629248"
+        }, 
+        {
+          "builder": "win-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629232"
+        }, 
+        {
+          "builder": "win10_chromium_x64_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629216"
+        }, 
+        {
+          "builder": "win_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629200"
+        }, 
+        {
+          "builder": "win_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-07-01T02:13:18.387988Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876014880759629184"
+        }
+      ]
+    }, 
+    {
+      "closed": true, 
+      "comments": null, 
+      "committed": true, 
+      "cqFinished": true, 
+      "cqSuccess": true, 
+      "created": "2020-06-30T23:12:29Z", 
+      "dryRunFinished": false, 
+      "dryRunSuccess": false, 
+      "isDryRun": false, 
+      "issue": 2274191, 
+      "modified": "2020-07-01T02:10:06Z", 
+      "patchSets": [
+        1, 
+        2, 
+        3
+      ], 
+      "result": "succeeded", 
+      "rollingFrom": "a68d933affcb53d86de966804fbfd789ba3b4487", 
+      "rollingTo": "fe7e74b3a78668bc9e2402f29e2be009d84a306c", 
+      "subject": "Roll Skia from a68d933affcb to fe7e74b3a786 (3 revisions)", 
+      "tryResults": [
+        {
+          "builder": "android-binary-size", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358512"
+        }, 
+        {
+          "builder": "android-lollipop-arm-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358496"
+        }, 
+        {
+          "builder": "android-marshmallow-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358480"
+        }, 
+        {
+          "builder": "android-pie-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358464"
+        }, 
+        {
+          "builder": "android_compile_dbg", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358448"
+        }, 
+        {
+          "builder": "android_cronet", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358432"
+        }, 
+        {
+          "builder": "android_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358416"
+        }, 
+        {
+          "builder": "cast_shell_android", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358400"
+        }, 
+        {
+          "builder": "cast_shell_linux", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358384"
+        }, 
+        {
+          "builder": "chromeos-amd64-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358368"
+        }, 
+        {
+          "builder": "chromeos-arm-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358352"
+        }, 
+        {
+          "builder": "chromium_presubmit", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358336"
+        }, 
+        {
+          "builder": "fuchsia-x64-cast", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358320"
+        }, 
+        {
+          "builder": "fuchsia_arm64", 
+          "category": "cq_experimental", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358304"
+        }, 
+        {
+          "builder": "fuchsia_x64", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358288"
+        }, 
+        {
+          "builder": "ios-simulator", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358272"
+        }, 
+        {
+          "builder": "linux-blink-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358256"
+        }, 
+        {
+          "builder": "linux-chromeos-compile-dbg", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358240"
+        }, 
+        {
+          "builder": "linux-chromeos-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358224"
+        }, 
+        {
+          "builder": "linux-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358208"
+        }, 
+        {
+          "builder": "linux-ozone-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358192"
+        }, 
+        {
+          "builder": "linux-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358176"
+        }, 
+        {
+          "builder": "linux_chromium_asan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358160"
+        }, 
+        {
+          "builder": "linux_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358144"
+        }, 
+        {
+          "builder": "linux_chromium_tsan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358128"
+        }, 
+        {
+          "builder": "linux_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358112"
+        }, 
+        {
+          "builder": "mac-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358096"
+        }, 
+        {
+          "builder": "mac_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358080"
+        }, 
+        {
+          "builder": "mac_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358064"
+        }, 
+        {
+          "builder": "win-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358048"
+        }, 
+        {
+          "builder": "win10_chromium_x64_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358032"
+        }, 
+        {
+          "builder": "win_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358016"
+        }, 
+        {
+          "builder": "win_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T23:13:02.467982Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876026222074358000"
+        }
+      ]
+    }, 
+    {
+      "closed": true, 
+      "comments": null, 
+      "committed": true, 
+      "cqFinished": true, 
+      "cqSuccess": true, 
+      "created": "2020-06-30T21:08:29Z", 
+      "dryRunFinished": false, 
+      "dryRunSuccess": false, 
+      "isDryRun": false, 
+      "issue": 2276505, 
+      "modified": "2020-06-30T23:10:03Z", 
+      "patchSets": [
+        1, 
+        2, 
+        3
+      ], 
+      "result": "succeeded", 
+      "rollingFrom": "09dbeff19a9d6c26c3ae25b8ff973850ddc12c17", 
+      "rollingTo": "a68d933affcb53d86de966804fbfd789ba3b4487", 
+      "subject": "Roll Skia from 09dbeff19a9d to a68d933affcb (7 revisions)", 
+      "tryResults": [
+        {
+          "builder": "android-binary-size", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694290032"
+        }, 
+        {
+          "builder": "android-lollipop-arm-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694290016"
+        }, 
+        {
+          "builder": "android-marshmallow-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694290000"
+        }, 
+        {
+          "builder": "android-pie-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289984"
+        }, 
+        {
+          "builder": "android_compile_dbg", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289968"
+        }, 
+        {
+          "builder": "android_cronet", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289952"
+        }, 
+        {
+          "builder": "android_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289936"
+        }, 
+        {
+          "builder": "cast_shell_android", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289920"
+        }, 
+        {
+          "builder": "cast_shell_linux", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289904"
+        }, 
+        {
+          "builder": "chromeos-amd64-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289888"
+        }, 
+        {
+          "builder": "chromeos-arm-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289872"
+        }, 
+        {
+          "builder": "chromium_presubmit", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289856"
+        }, 
+        {
+          "builder": "fuchsia-compile-x64-dbg", 
+          "category": "cq_experimental", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289840"
+        }, 
+        {
+          "builder": "fuchsia-x64-cast", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289824"
+        }, 
+        {
+          "builder": "fuchsia_x64", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289808"
+        }, 
+        {
+          "builder": "ios-simulator", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289792"
+        }, 
+        {
+          "builder": "linux-blink-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289776"
+        }, 
+        {
+          "builder": "linux-chromeos-compile-dbg", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289760"
+        }, 
+        {
+          "builder": "linux-chromeos-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289744"
+        }, 
+        {
+          "builder": "linux-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289728"
+        }, 
+        {
+          "builder": "linux-ozone-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289712"
+        }, 
+        {
+          "builder": "linux-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289696"
+        }, 
+        {
+          "builder": "linux_chromium_asan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289680"
+        }, 
+        {
+          "builder": "linux_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289664"
+        }, 
+        {
+          "builder": "linux_chromium_tsan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289648"
+        }, 
+        {
+          "builder": "linux_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289632"
+        }, 
+        {
+          "builder": "mac-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289616"
+        }, 
+        {
+          "builder": "mac_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289600"
+        }, 
+        {
+          "builder": "mac_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289584"
+        }, 
+        {
+          "builder": "win-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289568"
+        }, 
+        {
+          "builder": "win10_chromium_x64_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289552"
+        }, 
+        {
+          "builder": "win_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289536"
+        }, 
+        {
+          "builder": "win_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T21:08:58.448061Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876034027694289520"
+        }
+      ]
+    }, 
+    {
+      "closed": true, 
+      "comments": null, 
+      "committed": true, 
+      "cqFinished": true, 
+      "cqSuccess": true, 
+      "created": "2020-06-30T18:55:29Z", 
+      "dryRunFinished": false, 
+      "dryRunSuccess": false, 
+      "isDryRun": false, 
+      "issue": 2276536, 
+      "modified": "2020-06-30T21:03:34Z", 
+      "patchSets": [
+        1, 
+        2, 
+        3
+      ], 
+      "result": "succeeded", 
+      "rollingFrom": "1c62a7b034c073dae64784a57bb4f794d41db893", 
+      "rollingTo": "09dbeff19a9d6c26c3ae25b8ff973850ddc12c17", 
+      "subject": "Roll Skia from 1c62a7b034c0 to 09dbeff19a9d (7 revisions)", 
+      "tryResults": [
+        {
+          "builder": "android-binary-size", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342100016"
+        }, 
+        {
+          "builder": "android-lollipop-arm-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342100000"
+        }, 
+        {
+          "builder": "android-marshmallow-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099984"
+        }, 
+        {
+          "builder": "android-pie-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099968"
+        }, 
+        {
+          "builder": "android_compile_dbg", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099952"
+        }, 
+        {
+          "builder": "android_cronet", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099936"
+        }, 
+        {
+          "builder": "android_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099920"
+        }, 
+        {
+          "builder": "cast_shell_android", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099904"
+        }, 
+        {
+          "builder": "cast_shell_linux", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099888"
+        }, 
+        {
+          "builder": "chromeos-amd64-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099872"
+        }, 
+        {
+          "builder": "chromeos-arm-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099856"
+        }, 
+        {
+          "builder": "chromium_presubmit", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099840"
+        }, 
+        {
+          "builder": "fuchsia-x64-cast", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099824"
+        }, 
+        {
+          "builder": "fuchsia_x64", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099808"
+        }, 
+        {
+          "builder": "ios-simulator", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099792"
+        }, 
+        {
+          "builder": "linux-blink-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099776"
+        }, 
+        {
+          "builder": "linux-chromeos-compile-dbg", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099760"
+        }, 
+        {
+          "builder": "linux-chromeos-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099744"
+        }, 
+        {
+          "builder": "linux-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099728"
+        }, 
+        {
+          "builder": "linux-ozone-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099712"
+        }, 
+        {
+          "builder": "linux-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099696"
+        }, 
+        {
+          "builder": "linux_chromium_asan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099680"
+        }, 
+        {
+          "builder": "linux_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099664"
+        }, 
+        {
+          "builder": "linux_chromium_tsan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099648"
+        }, 
+        {
+          "builder": "linux_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099632"
+        }, 
+        {
+          "builder": "mac-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099616"
+        }, 
+        {
+          "builder": "mac_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099600"
+        }, 
+        {
+          "builder": "mac_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099584"
+        }, 
+        {
+          "builder": "win-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099568"
+        }, 
+        {
+          "builder": "win10_chromium_x64_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099552"
+        }, 
+        {
+          "builder": "win_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099536"
+        }, 
+        {
+          "builder": "win_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T18:56:55.657411Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876042335342099520"
+        }
+      ]
+    }, 
+    {
+      "closed": true, 
+      "comments": null, 
+      "committed": true, 
+      "cqFinished": true, 
+      "cqSuccess": true, 
+      "created": "2020-06-30T16:53:29Z", 
+      "dryRunFinished": false, 
+      "dryRunSuccess": false, 
+      "isDryRun": false, 
+      "issue": 2274111, 
+      "modified": "2020-06-30T18:52:58Z", 
+      "patchSets": [
+        1, 
+        2, 
+        3
+      ], 
+      "result": "succeeded", 
+      "rollingFrom": "8f3a83671a134f84b4863b65a2dbd05469242a28", 
+      "rollingTo": "1c62a7b034c073dae64784a57bb4f794d41db893", 
+      "subject": "Roll Skia from 8f3a83671a13 to 1c62a7b034c0 (7 revisions)", 
+      "tryResults": [
+        {
+          "builder": "android-binary-size", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917984"
+        }, 
+        {
+          "builder": "android-lollipop-arm-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917968"
+        }, 
+        {
+          "builder": "android-marshmallow-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917952"
+        }, 
+        {
+          "builder": "android-pie-arm64-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917936"
+        }, 
+        {
+          "builder": "android_compile_dbg", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917920"
+        }, 
+        {
+          "builder": "android_cronet", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917904"
+        }, 
+        {
+          "builder": "android_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917888"
+        }, 
+        {
+          "builder": "cast_shell_android", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917872"
+        }, 
+        {
+          "builder": "cast_shell_linux", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917856"
+        }, 
+        {
+          "builder": "chromeos-amd64-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917840"
+        }, 
+        {
+          "builder": "chromeos-arm-generic-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917824"
+        }, 
+        {
+          "builder": "chromium_presubmit", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917808"
+        }, 
+        {
+          "builder": "fuchsia-x64-cast", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917792"
+        }, 
+        {
+          "builder": "fuchsia_arm64", 
+          "category": "cq_experimental", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917776"
+        }, 
+        {
+          "builder": "fuchsia_x64", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917760"
+        }, 
+        {
+          "builder": "ios-simulator", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917744"
+        }, 
+        {
+          "builder": "linux-blink-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917728"
+        }, 
+        {
+          "builder": "linux-chromeos-compile-dbg", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917712"
+        }, 
+        {
+          "builder": "linux-chromeos-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917696"
+        }, 
+        {
+          "builder": "linux-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917680"
+        }, 
+        {
+          "builder": "linux-ozone-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917664"
+        }, 
+        {
+          "builder": "linux-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917648"
+        }, 
+        {
+          "builder": "linux_chromium_asan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917632"
+        }, 
+        {
+          "builder": "linux_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917616"
+        }, 
+        {
+          "builder": "linux_chromium_tsan_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917600"
+        }, 
+        {
+          "builder": "linux_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917584"
+        }, 
+        {
+          "builder": "mac-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917568"
+        }, 
+        {
+          "builder": "mac_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917552"
+        }, 
+        {
+          "builder": "mac_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917536"
+        }, 
+        {
+          "builder": "win-libfuzzer-asan-rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917520"
+        }, 
+        {
+          "builder": "win10_chromium_x64_rel_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917504"
+        }, 
+        {
+          "builder": "win_chromium_compile_dbg_ng", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917488"
+        }, 
+        {
+          "builder": "win_optional_gpu_tests_rel", 
+          "category": "cq", 
+          "created_ts": "2020-06-30T16:54:03.30644Z", 
+          "result": "SUCCESS", 
+          "status": "COMPLETED", 
+          "url": "https://cr-buildbucket.appspot.com/build/8876050065812917472"
+        }
+      ]
+    }
+  ], 
+  "status": "active", 
+  "strategy": {
+    "message": "going back to normal, doing manual rolls instead", 
+    "strategy": "batch", 
+    "time": "2020-06-24T18:51:37.308835Z", 
+    "user": "egdaniel@google.com"
+  }, 
+  "throttledUntil": 1593628109, 
+  "validModes": [
+    "running", 
+    "stopped", 
+    "dry run"
+  ], 
+  "validStrategies": [
+    "batch", 
+    "single"
+  ]
+}
