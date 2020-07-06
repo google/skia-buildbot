@@ -69,7 +69,7 @@ interface State {
 }
 
 interface DialogState {
-  full_summary: FullSummary | null;
+  full_summary?: FullSummary;
   triage: TriageStatus;
 }
 
@@ -114,7 +114,7 @@ export class TriagePageSk extends ElementSk {
         <h3>Which alerts to display.</h3>
 
         <select @input=${ele.filterChange}>
-          ${TriagePageSk._allFilters(ele)}
+          ${TriagePageSk.allFilters(ele)}
         </select>
       </details>
       <details>
@@ -125,8 +125,7 @@ export class TriagePageSk extends ElementSk {
           @day-range-change=${ele.rangeChange}
           begin=${ele.state.begin}
           end=${ele.state.end}
-        >
-        </day-range-sk>
+        ></day-range-sk>
       </details>
       <details @toggle=${ele.toggleStatus}>
         <summary>
@@ -135,13 +134,14 @@ export class TriagePageSk extends ElementSk {
         <div>
           <p>The current work on detecting regressions:</p>
           <div class="status">
-            ${TriagePageSk._statusItems(ele)}
+            ${TriagePageSk.statusItems(ele)}
           </div>
         </div>
       </details>
     </header>
-    <spinner-sk ?active=${ele.triageInProgress || ele.refreshRangeInProgress}>
-    </spinner-sk>
+    <spinner-sk
+      ?active=${ele.triageInProgress || ele.refreshRangeInProgress}
+    ></spinner-sk>
 
     <dialog>
       <cluster-summary2-sk
@@ -149,8 +149,7 @@ export class TriagePageSk extends ElementSk {
         @triaged=${ele.triaged}
         .full_summary=${ele.dialogState!.full_summary}
         .triage=${ele.dialogState!.triage}
-      >
-      </cluster-summary2-sk>
+      ></cluster-summary2-sk>
       <div class="buttons">
         <button @click=${ele.close}>Close</button>
       </div>
@@ -159,27 +158,29 @@ export class TriagePageSk extends ElementSk {
     <table @start-triage=${ele.triage_start}>
       <tr>
         <th>Commit</th>
-        ${TriagePageSk._headers(ele)}
+        ${TriagePageSk.headers(ele)}
       </tr>
       <tr>
         <th></th>
-        ${TriagePageSk._subHeaders(ele)}
+        ${TriagePageSk.subHeaders(ele)}
       </tr>
-      ${TriagePageSk._rows(ele)}
+      ${TriagePageSk.rows(ele)}
     </table>
   `;
 
-  private static _rows = (ele: TriagePageSk) =>
+  private static rows = (ele: TriagePageSk) =>
     ele.reg!.table!.map(
-      (row, rowIndex) => html` <tr>
-        <td class="fixed">
-          <commit-detail-sk .cid=${row.cid}></commit-detail-sk>
-        </td>
-        ${TriagePageSk._columns(ele, row, rowIndex)}
-      </tr>`
+      (row, rowIndex) => html`
+        <tr>
+          <td class="fixed">
+            <commit-detail-sk .cid=${row.cid}></commit-detail-sk>
+          </td>
+          ${TriagePageSk.columns(ele, row, rowIndex)}
+        </tr>
+      `
     );
 
-  private static _columns = (
+  private static columns = (
     ele: TriagePageSk,
     row: RegressionRow,
     rowIndex: number
@@ -190,7 +191,7 @@ export class TriagePageSk extends ElementSk {
       if (ele.stepDownAt(colIndex)) {
         ret.push(html`
           <td class="cluster">
-            ${TriagePageSk._lowCell(ele, rowIndex, col, colIndex)}
+            ${TriagePageSk.lowCell(ele, rowIndex, col, colIndex)}
           </td>
         `);
       }
@@ -198,81 +199,107 @@ export class TriagePageSk extends ElementSk {
       if (ele.stepUpAt(colIndex)) {
         ret.push(html`
           <td class="cluster">
-            ${TriagePageSk._highCell(ele, rowIndex, col, colIndex)}
+            ${TriagePageSk.highCell(ele, rowIndex, col, colIndex)}
           </td>
         `);
       }
 
       if (ele.notBoth(colIndex)) {
-        ret.push(html`<td></td>`);
+        ret.push(
+          html`
+            <td></td>
+          `
+        );
       }
       return ret;
     });
 
-  private static _lowCell = (
+  private static lowCell = (
     ele: TriagePageSk,
     rowIndex: number,
     col: Regression,
     colIndex: number
   ) => {
     if (col && col.low) {
-      return html`<triage-status-sk
-        .alert=${ele.alertAt(colIndex)}
-        .cluster_type=${'low'}
-        .full_summary=${_full_summary(col.frame!, col.low)}
-        .triage=${col.low_status}
-      >
-      </triage-status-sk> `;
+      return html`
+        <triage-status-sk
+          .alert=${ele.alertAt(colIndex)}
+          .cluster_type=${'low'}
+          .full_summary=${_full_summary(col.frame!, col.low)}
+          .triage=${col.low_status}
+        ></triage-status-sk>
+      `;
     }
-    return html`<a
-      title="No clusters found."
-      href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(colIndex)}"
-    >
-      ∅
-    </a> `;
+    return html`
+      <a
+        title="No clusters found."
+        href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(
+          colIndex
+        )}"
+      >
+        ∅
+      </a>
+    `;
   };
 
-  private static _highCell = (
+  private static highCell = (
     ele: TriagePageSk,
     rowIndex: number,
     col: Regression,
     colIndex: number
   ) => {
     if (col && col.high) {
-      return html`<triage-status-sk
-        .alert=${ele.alertAt(colIndex)}
-        .cluster_type=${'high'}
-        .full_summary=${_full_summary(col.frame!, col.high)}
-        .triage=${col.high_status}
-      >
-      </triage-status-sk> `;
+      return html`
+        <triage-status-sk
+          .alert=${ele.alertAt(colIndex)}
+          .cluster_type=${'high'}
+          .full_summary=${_full_summary(col.frame!, col.high)}
+          .triage=${col.high_status}
+        ></triage-status-sk>
+      `;
     }
-    return html`<a
-      title="No clusters found."
-      href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(colIndex)}"
-    >
-      ∅
-    </a> `;
+    return html`
+      <a
+        title="No clusters found."
+        href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(
+          colIndex
+        )}"
+      >
+        ∅
+      </a>
+    `;
   };
 
-  private static _subHeaders = (ele: TriagePageSk) =>
+  private static subHeaders = (ele: TriagePageSk) =>
     ele.reg.header!.map((_, index) => {
       const ret = [];
       if (ele.stepDownAt(index)) {
-        ret.push(html`<th>Low</th>`);
+        ret.push(
+          html`
+            <th>Low</th>
+          `
+        );
       }
       if (ele.stepUpAt(index)) {
-        ret.push(html`<th>High</th>`);
+        ret.push(
+          html`
+            <th>High</th>
+          `
+        );
       }
       // If we have only one of High or Low we stuff in an empty th to match
       // colspan=2 above.
       if (ele.notBoth(index)) {
-        ret.push(html`<th></th>`);
+        ret.push(
+          html`
+            <th></th>
+          `
+        );
       }
       return ret;
     });
 
-  private static _headers = (ele: TriagePageSk) =>
+  private static headers = (ele: TriagePageSk) =>
     ele.reg.header!.map((item) => {
       let displayName = item.display_name;
       if (!item.display_name) {
@@ -280,12 +307,12 @@ export class TriagePageSk extends ElementSk {
       }
       // The colspan=2 is important since we will have two columns under each
       // header, one for high and one for low.
-      return html`<th colspan="2"
-        ><a href="/a/?${item.id}">${displayName}</a></th
-      >`;
+      return html`
+        <th colspan="2"><a href="/a/?${item.id}">${displayName}</a></th>
+      `;
     });
 
-  private static _statusItems = (ele: TriagePageSk) =>
+  private static statusItems = (ele: TriagePageSk) =>
     ele.currentClusteringStatus.map(
       (item) => html`
         <table>
@@ -297,7 +324,7 @@ export class TriagePageSk extends ElementSk {
           </tr>
           <tr>
             <th>Commit</th>
-            <td><commit-detail-sk .cid=${item.commit}> </commit-detail-sk></td>
+            <td><commit-detail-sk .cid=${item.commit}></commit-detail-sk></td>
           </tr>
           <tr>
             <th>Step</th>
@@ -307,14 +334,17 @@ export class TriagePageSk extends ElementSk {
       `
     );
 
-  private static _allFilters = (ele: TriagePageSk) =>
+  private static allFilters = (ele: TriagePageSk) =>
     ele.allFilterOptions.map(
-      (o) => html` <option
-        ?selected=${ele.state.alert_filter === o.value}
-        value=${o.value}
-        title=${o.title}
-        >${o.display}
-      </option>`
+      (o) => html`
+        <option
+          ?selected=${ele.state.alert_filter === o.value}
+          value=${o.value}
+          title=${o.title}
+        >
+          ${o.display}
+        </option>
+      `
     );
 
   private state: State;
