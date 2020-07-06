@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "81836230_5802fd9c",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-06T18:26:59Z",
+      "side": 0,
+      "message": "As discussed last week. Do not check for merge errors for dry runs.",
+      "revId": "7f69500c35288c9ea60904f5c4d7091777c72bb1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

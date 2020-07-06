@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "85a7cfea_37308635",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 16
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-06T18:26:59Z",
+      "side": 1,
+      "message": "Without a \"\u003e 0\" check dry runs show up as successful immediately because github api takes a little time to start seeing checks.\nFlutter\u0027s bot works around this problem by only looking at PRs that are an 1 hour old. Might want to do something like that here one day.",
+      "revId": "713d2e2e2783ad970782a9585ea8dd50ccc473b8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
