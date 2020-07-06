@@ -19,6 +19,23 @@
     },
     {
       "key": {
+        "uuid": "c22d3a56_a7cf93f0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T21:48:09Z",
+      "side": 1,
+      "message": "Thanks! I\u0027ve responded with the missing rationale on the choice of names. Please take another look.",
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "65f1be8f_23938b5f",
         "filename": "infra-sk/modules/page_object/page_object.ts",
         "patchSetId": 8
@@ -42,6 +59,30 @@
     },
     {
       "key": {
+        "uuid": "ebc4d6c5_c21a649a",
+        "filename": "infra-sk/modules/page_object/page_object.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T21:48:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "65f1be8f_23938b5f",
+      "range": {
+        "startLine": 38,
+        "startChar": 6,
+        "endLine": 38,
+        "endChar": 39
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3edeb72d_57f15adc",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
@@ -53,6 +94,30 @@
       "writtenOn": "2020-07-06T17:48:44Z",
       "side": 1,
       "message": "Should we check this conversion/cast with a type assertion or something similar?",
+      "range": {
+        "startLine": 91,
+        "startChar": 7,
+        "endLine": 91,
+        "endChar": 30
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7e01b2d_fe10af08",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T21:48:09Z",
+      "side": 1,
+      "message": "Do you feel strongly about this? Or would you be OK adding this later if we find this to be a problem?\n\nI\u0027m inclined towards leaving it as is in case we later switch to using Puppeteer\u0027s ElementHandle#type() method, which applies to any kind of element and not just inputs/selects.",
+      "parentUuid": "3edeb72d_57f15adc",
       "range": {
         "startLine": 91,
         "startChar": 7,
@@ -88,6 +153,30 @@
     },
     {
       "key": {
+        "uuid": "b48ba135_e2e63a83",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T21:48:09Z",
+      "side": 1,
+      "message": "Summary of our chat:\n\n- Our current tests simulate input events in this fashion in multiple places. The rationale is to capture that pattern here so we don\u0027t have to repeat it on each PageObject subclass.\n- In the future we might want to use Puppeteer\u0027s type() method[1], which sends keydown/keyup/etc events for each key press.\n- Thus, moving the event emulation logic upstack just for the DOM \"backend\" might be awkward in the future.\n- If in the future we find event emulation to be problematic for some tests, we can add an optional argument to this method to opt out of event emulation.\n\n[1] https://pptr.dev/#?product\u003dPuppeteer\u0026version\u003dv5.0.0\u0026show\u003dapi-pagetypeselector-text-options",
+      "parentUuid": "79e311bd_abdbaa1c",
+      "range": {
+        "startLine": 94,
+        "startChar": 34,
+        "endLine": 94,
+        "endChar": 39
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "20481a3d_ea72803a",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
@@ -99,6 +188,30 @@
       "writtenOn": "2020-07-06T17:48:44Z",
       "side": 1,
       "message": "Should we call this evaluate, so as to be consistent with the Puppeteer API name?",
+      "range": {
+        "startLine": 106,
+        "startChar": 8,
+        "endLine": 106,
+        "endChar": 15
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1747c8b5_d2b302cb",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T21:48:09Z",
+      "side": 1,
+      "message": "That\u0027s how I had originally named this method, but I found it confusing after adding method $$apply. The difference between the two isn\u0027t immediately clear just based on their names.\n\nSo I figured I\u0027d include the word \"Dom\" in the name to make it more obvious that this operates against the raw DOM node (either directly on in-browser tests, or via Puppeteer\u0027s ElementHandle#evaluate() method).\n\nWDYT?",
+      "parentUuid": "20481a3d_ea72803a",
       "range": {
         "startLine": 106,
         "startChar": 8,
@@ -134,6 +247,30 @@
     },
     {
       "key": {
+        "uuid": "d23eb52c_84979236",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T21:48:09Z",
+      "side": 1,
+      "message": "I\u0027ve added a comment to the JSDoc for methods $ and $$, which are the aliases in common-sk style. It seems like the right place to call out this difference.",
+      "parentUuid": "56e11975_7b41a3c4",
+      "range": {
+        "startLine": 121,
+        "startChar": 40,
+        "endLine": 121,
+        "endChar": 41
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2c638f26_a6039db8",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
@@ -145,6 +282,30 @@
       "writtenOn": "2020-07-06T17:48:44Z",
       "side": 1,
       "message": "bikeshed: applyFnToSelector",
+      "range": {
+        "startLine": 151,
+        "startChar": 8,
+        "endLine": 151,
+        "endChar": 15
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "86ed1b1b_8e1ddaba",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T21:48:09Z",
+      "side": 1,
+      "message": "I\u0027m not sure that the \"ToSelector\" bit would make it clearer, because all $-prefixed functions take a selector as their first argument.\n\nMaybe $$applyFn would make more sense, but I\u0027m hesitant to add the \"Fn\" suffix because all $-prefixed functions (except $ and $$) take a function as their second argument.\n\nThat\u0027s why I settled with $$apply.\n\n(FTR, I named it \"apply\" as in Function.prototype.apply()[1].)\n\nWDYT?\n\n[1] https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply.",
+      "parentUuid": "2c638f26_a6039db8",
       "range": {
         "startLine": 151,
         "startChar": 8,
@@ -180,6 +341,30 @@
     },
     {
       "key": {
+        "uuid": "b95fae77_d21aaab1",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T21:48:09Z",
+      "side": 1,
+      "message": "Nevermind, turns out this isn\u0027t needed in any of the downstream CLs. Removed.",
+      "parentUuid": "345bcbc0_aee944df",
+      "range": {
+        "startLine": 164,
+        "startChar": 10,
+        "endLine": 164,
+        "endChar": 17
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "dcc7dde7_2e972304",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
@@ -191,6 +376,30 @@
       "writtenOn": "2020-07-06T17:48:44Z",
       "side": 1,
       "message": "bikeshed: applyFnToSelectorAll",
+      "range": {
+        "startLine": 177,
+        "startChar": 8,
+        "endLine": 177,
+        "endChar": 12
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa6c5d1e_7597e35e",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T21:48:09Z",
+      "side": 1,
+      "message": "Rationale: this is named for consistency with Array.prototype.map()[1].\n\nA typical use case for this method is as a replacement for the following pattern when using raw DOM nodes:\n\n  const innertTexts \u003d element.querySelectorAll(\u0027p\u0027).map((p) \u003d\u003e p.innerText);\n\nWith a PageObjectElement, this would be written as:\n\n  const innerTexts \u003d await poe.$map(\u0027p\u0027, (p) \u003d\u003e p.innerText);",
+      "parentUuid": "dcc7dde7_2e972304",
       "range": {
         "startLine": 177,
         "startChar": 8,
@@ -226,6 +435,30 @@
     },
     {
       "key": {
+        "uuid": "fa578db8_2c321930",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T21:48:09Z",
+      "side": 1,
+      "message": "The difference is semantic. If client code uses $map instead of $each, the reader will assume that the code cares about the return value, which might not be true.\n\nThis is analogous to Array.prototype.map()[1] vs. Array.prototype.forEach()[2].\n\n[1] https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map\n[2] https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach",
+      "parentUuid": "d66b5630_ba93471f",
+      "range": {
+        "startLine": 183,
+        "startChar": 8,
+        "endLine": 183,
+        "endChar": 13
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e119fb16_1cec632c",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
@@ -237,6 +470,30 @@
       "writtenOn": "2020-07-06T17:48:44Z",
       "side": 1,
       "message": "Either $$find to be consistent with other APIs (in that this only returns one element) or be more verbose findDescendantWithSelector or slightly more verbose findDescendant",
+      "range": {
+        "startLine": 191,
+        "startChar": 9,
+        "endLine": 191,
+        "endChar": 13
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a5d29d40_fa77c9e2",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T21:48:09Z",
+      "side": 1,
+      "message": "The reason this is named $$find and not $find is that it\u0027s a replacement for the following pattern when using raw DOM nodes, which is used when a query selector does not suffice:\n\n  // Using the native API.\n  const p \u003d element.querySelectorAll(\u0027p\u0027).find((p) \u003d\u003e p.innerText.startsWith(\u0027Hello\u0027));\n\n  // Or equivalently, using common-sk.\n  const p \u003d $(\u0027p\u0027).find((p) \u003d\u003e p.innerText.startsWith(\u0027Hello\u0027));\n\nSince the pattern uses $/querySelectorAll and Array.prototype.find, it makes sense to me to name this $find.\n\nNaming this method $$find would feel a bit weird to me given the underlying querySelectorAll call (as opposed to querySelector).\n\nLet me know if you still disagree and I\u0027ll be happy to rename it as you suggested.",
+      "parentUuid": "e119fb16_1cec632c",
       "range": {
         "startLine": 191,
         "startChar": 9,
