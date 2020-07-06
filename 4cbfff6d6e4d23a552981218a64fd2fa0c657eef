@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d27e63e_2371d4ce",
+        "filename": "perf/modules/calendar-input-sk/calendar-input-sk.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T17:45:38Z",
+      "side": 1,
+      "message": "Nit: The other private fields aren\u0027t _-prefixed.",
+      "range": {
+        "startLine": 54,
+        "startChar": 10,
+        "endLine": 54,
+        "endChar": 22
+      },
+      "revId": "4cbfff6d6e4d23a552981218a64fd2fa0c657eef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6fee0e3d_15bca7af",
+        "filename": "perf/modules/calendar-input-sk/calendar-input-sk.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T17:45:38Z",
+      "side": 1,
+      "message": "Could you please add a comment indicating where the exception caught here is first thrown?",
+      "range": {
+        "startLine": 113,
+        "startChar": 0,
+        "endLine": 113,
+        "endChar": 35
+      },
+      "revId": "4cbfff6d6e4d23a552981218a64fd2fa0c657eef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6474d9b5_4db64944",
+        "filename": "perf/modules/calendar-input-sk/calendar-input-sk_puppeteer_test.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T17:45:38Z",
+      "side": 1,
+      "message": "Having a screenshot with the calendar visible could be useful to to assess correctness and to detect unintended changes in how things look.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 7
+      },
+      "revId": "4cbfff6d6e4d23a552981218a64fd2fa0c657eef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b2e5cd4_94eba027",
+        "filename": "perf/modules/calendar-input-sk/calendar-input-sk_test.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-06T17:45:38Z",
+      "side": 1,
+      "message": "The test should work without waiting for the element to be defined, but if for some reason it doesn\u0027t, then I recommend moving the whenDefined() call to a before() hook.",
+      "range": {
+        "startLine": 25,
+        "startChar": 6,
+        "endLine": 25,
+        "endChar": 66
+      },
+      "revId": "4cbfff6d6e4d23a552981218a64fd2fa0c657eef",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
