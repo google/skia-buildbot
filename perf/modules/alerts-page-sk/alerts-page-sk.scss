@@ -1,26 +1,35 @@
-@import '~elements-sk/colors';
+@import '~elements-sk/themes/themes.css';
 
 alerts-page-sk {
+  dialog {
+    background: var(--background);
+    border: solid 1px var(--on-background);
+    color: var(--on-background);
+  }
+
   td {
     padding: 0.2em 1em;
   }
 
   td > build-icon-sk,
   td > create-icon-sk,
+  td > a > build-icon-sk,
   td > delete-icon-sk {
     padding: 0.4em;
     cursor: pointer;
-    fill: var(--black);
+    fill: var(--primary);
   }
 
   td > build-icon-sk:hover,
   td > create-icon-sk:hover,
+  td > a > build-icon-sk:hover,
   td > delete-icon-sk:hover {
-    background: var(--dark-white);
+    background: var(--surface-1dp);
   }
 
   create-icon-sk[disabled],
   delete-icon-sk[disabled],
+  build-icon-sk[disabled],
   button.fab[disabled] {
     opacity: 0.2;
   }
@@ -36,7 +45,7 @@ alerts-page-sk > {
   }
 
   .warning {
-    color: var(--red);
+    color: var(--error);
     font-weight: bold;
   }
 
@@ -47,6 +56,6 @@ alerts-page-sk > {
   }
 
   table > tbody > tr > td {
-    border-bottom: solid var(--dark-white) 1px;
+    border-bottom: solid var(--on-surface) 1px;
   }
 }
