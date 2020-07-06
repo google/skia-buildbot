@@ -60,6 +60,11 @@ func main() {
 		frontend.SkPerfConfig{},
 		frontend.TryBugRequest{},
 		frontend.TryBugResponse{},
+		frontend.RegressionRangeRequest{},
+		frontend.RegressionRangeResponse{},
+		frontend.TriageRequest{},
+		frontend.TriageResponse{},
+		regression.Current{},
 	})
 	if err != nil {
 		sklog.Fatal(err)
@@ -72,6 +77,7 @@ func main() {
 		{alerts.AllDirections, "Direction"},
 		{types.AllStepDetections, "StepDetection"},
 		{alerts.AllConfigState, "ConfigState"},
+		{frontend.AllRegressionSubset, "Subset"},
 	})
 	err = util.WithWriteFile("./modules/json/index.ts", func(w io.Writer) error {
 		return generator.Render(w)
