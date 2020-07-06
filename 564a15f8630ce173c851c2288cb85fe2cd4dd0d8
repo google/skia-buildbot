@@ -22,6 +22,30 @@
       "revId": "564a15f8630ce173c851c2288cb85fe2cd4dd0d8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b9c297f_dc597b1f",
+        "filename": "golden/k8s-config-templates/gold-baselineserver-template.yaml",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-06T17:51:03Z",
+      "side": 1,
+      "message": "The name can be arbitrary, so I don\u0027t think it matters too much. The examples I cite in the commit message all use date, so I did too.",
+      "parentUuid": "bc6bf8f8_d58cdde2",
+      "range": {
+        "startLine": 33,
+        "startChar": 8,
+        "endLine": 33,
+        "endChar": 12
+      },
+      "revId": "564a15f8630ce173c851c2288cb85fe2cd4dd0d8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
