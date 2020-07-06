@@ -861,16 +861,16 @@ func (f *Frontend) gotoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// triageRequest is used in triageHandler.
-type triageRequest struct {
+// TriageRequest is used in triageHandler.
+type TriageRequest struct {
 	Cid         *cid.CommitID           `json:"cid"`
 	Alert       alerts.Alert            `json:"alert"`
 	Triage      regression.TriageStatus `json:"triage"`
 	ClusterType string                  `json:"cluster_type"`
 }
 
-// triageResponse is used in triageHandler.
-type triageResponse struct {
+// TriageResponse is used in triageHandler.
+type TriageResponse struct {
 	Bug string `json:"bug"` // URL to bug reporting page.
 }
 
@@ -884,7 +884,7 @@ func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to triage.", http.StatusInternalServerError)
 		return
 	}
-	tr := &triageRequest{}
+	tr := &TriageRequest{}
 	if err := json.NewDecoder(r.Body).Decode(tr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
@@ -909,7 +909,7 @@ func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	link := fmt.Sprintf("%s/t/?begin=%d&end=%d&subset=all", r.Header.Get("Origin"), detail[0].Timestamp, detail[0].Timestamp+1)
 
-	resp := &triageResponse{}
+	resp := &TriageResponse{}
 
 	if tr.Triage.Status == regression.Negative {
 		cfgs, err := f.configProvider()
@@ -998,39 +998,41 @@ func (f *Frontend) regressionCountHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-// subset is the subset of regressions we are querying for.
-type subset string
+// Subset is the Subset of regressions we are querying for.
+type Subset string
 
 const (
-	subsetAll         subset = "all"         // Include all regressions in a range.
-	subsetRegressions subset = "regressions" // Only include regressions in a range that are alerting.
-	subsetUntriaged   subset = "untriaged"   // All untriaged alerting regressions regardless of range.
+	SubsetAll         Subset = "all"         // Include all regressions in a range.
+	SubsetRegressions Subset = "regressions" // Only include regressions in a range that are alerting.
+	SubsetUntriaged   Subset = "untriaged"   // All untriaged alerting regressions regardless of range.
 )
 
-// regressionRangeRequest is used in regressionRangeHandler and is used to query for a range of
+var AllRegressionSubset = []Subset{SubsetAll, SubsetRegressions, SubsetUntriaged}
+
+// RegressionRangeRequest is used in regressionRangeHandler and is used to query for a range of
 // of Regressions.
 //
 // Begin and End are Unix timestamps in seconds.
-type regressionRangeRequest struct {
+type RegressionRangeRequest struct {
 	Begin       int64  `json:"begin"`
 	End         int64  `json:"end"`
-	Subset      subset `json:"subset"`
+	Subset      Subset `json:"subset"`
 	AlertFilter string `json:"alert_filter"` // Can be an alertfilter constant, or a category prefixed with "cat:".
 }
 
-// regressionRow are all the Regression's for a specific commit. It is used in
+// RegressionRow are all the Regression's for a specific commit. It is used in
 // RegressionRangeResponse.
 //
 // The Columns have the same order as RegressionRangeResponse.Header.
-type regressionRow struct {
+type RegressionRow struct {
 	Id      *cid.CommitDetail        `json:"cid"`
 	Columns []*regression.Regression `json:"columns"`
 }
 
-// regressionRangeResponse is the response from regressionRangeHandler.
-type regressionRangeResponse struct {
+// RegressionRangeResponse is the response from regressionRangeHandler.
+type RegressionRangeResponse struct {
 	Header     []*alerts.Alert  `json:"header"`
-	Table      []*regressionRow `json:"table"`
+	Table      []*RegressionRow `json:"table"`
 	Categories []string         `json:"categories"`
 }
 
@@ -1050,7 +1052,7 @@ type regressionRangeResponse struct {
 func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	ctx := context.Background()
-	rr := &regressionRangeRequest{}
+	rr := &RegressionRangeRequest{}
 	if err := json.NewDecoder(r.Body).Decode(rr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
@@ -1111,7 +1113,7 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 
 	// Get a list of commits for the range.
 	var ids []*cid.CommitID
-	if rr.Subset == subsetAll {
+	if rr.Subset == SubsetAll {
 		commits, err := f.perfGit.CommitSliceFromTimeRange(r.Context(), time.Unix(rr.Begin, 0), time.Unix(rr.End, 0))
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to load git info.", http.StatusInternalServerError)
@@ -1164,14 +1166,14 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 	sort.Strings(categories)
 
 	// Build the RegressionRangeResponse.
-	ret := regressionRangeResponse{
+	ret := RegressionRangeResponse{
 		Header:     headers,
-		Table:      []*regressionRow{},
+		Table:      []*RegressionRow{},
 		Categories: categories,
 	}
 
 	for _, cid := range revCids {
-		row := &regressionRow{
+		row := &RegressionRow{
 			Id:      cid,
 			Columns: make([]*regression.Regression, len(headers), len(headers)),
 		}
@@ -1180,7 +1182,7 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 			for i, h := range headers {
 				key := h.IDToString()
 				if reg, ok := r.ByAlertID[key]; ok {
-					if rr.Subset == subsetUntriaged && reg.Triaged() {
+					if rr.Subset == SubsetUntriaged && reg.Triaged() {
 						continue
 					}
 					row.Columns[i] = reg
@@ -1188,7 +1190,7 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 				}
 			}
 		}
-		if count == 0 && rr.Subset != subsetAll {
+		if count == 0 && rr.Subset != SubsetAll {
 			continue
 		}
 		ret.Table = append(ret.Table, row)

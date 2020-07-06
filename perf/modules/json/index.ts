@@ -125,6 +125,49 @@ export interface TryBugResponse {
 	url: string;
 }
 
+export interface RegressionRangeRequest {
+	begin: number;
+	end: number;
+	subset: Subset;
+	alert_filter: string;
+}
+
+export interface Regression {
+	low: ClusterSummary | null;
+	high: ClusterSummary | null;
+	frame: FrameResponse | null;
+	low_status: TriageStatus;
+	high_status: TriageStatus;
+}
+
+export interface RegressionRow {
+	cid: CommitDetail | null;
+	columns: Regression[] | null;
+}
+
+export interface RegressionRangeResponse {
+	header: Alert[] | null;
+	table: RegressionRow[] | null;
+	categories: string[] | null;
+}
+
+export interface TriageRequest {
+	cid: CommitID | null;
+	alert: Alert;
+	triage: TriageStatus;
+	cluster_type: string;
+}
+
+export interface TriageResponse {
+	bug: string;
+}
+
+export interface Current {
+	commit: CommitDetail | null;
+	alert: Alert | null;
+	message: string;
+}
+
 export type ParamSet = { [key: string]: string[] };
 
 export type StepFitStatus = "Low" | "High" | "Uninteresting";
@@ -144,5 +187,7 @@ export type ConfigState = "ACTIVE" | "DELETED";
 export type Direction = "UP" | "DOWN" | "BOTH";
 
 export type RequestType = 1 | 0;
+
+export type Subset = "all" | "regressions" | "untriaged";
 
 export type ClusterAlgo = "kmeans" | "stepfit";
