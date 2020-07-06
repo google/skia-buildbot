@@ -2,13 +2,13 @@
   authorized_users: [
     "google.com", "chrome-gpu-gold@chops-service-accounts.iam.gserviceaccount.com",
   ],
-  cl_comment_template: "Gold has detected about %d untriaged digest(s) on patchset %d. \
-\
-Please triage them at %s/cl/%s/%s before submitting.\
-\
-If this is due to a failure in a gtest-based test, this functionality is currently experimental and won't block your CL.\
-If all the trybots passed and you don't expect your CL to have any effect on browser UI, you can likely ignore this message.\
-See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8FFvY3YF-6BT4Mqgrb9U40t0HMfEVSSEpNs/edit?usp=sharing",
+  cl_comment_template: "Gold has detected about %d untriaged digest(s) on patchset %d.\n\
+\n\
+Please triage them at %s/cl/%s/%s before submitting.\n\
+\n\
+If this is due to a failure in a gtest-based test, this functionality is currently experimental and won't block your CL.\n\
+If all the trybots passed and you don't expect your CL to have any effect on browser UI, you can likely ignore this message.\n\
+See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8FFvY3YF-6BT4Mqgrb9U40t0HMfEVSSEpNs/edit?usp=sharing\n",
   client_secret_file: "/etc/skia.org/login.json",
   crs_url_template: "https://chromium-review.googlesource.com/%s",
   diff_server_grpc: "gold-chrome-gpu-diffserver:8000",

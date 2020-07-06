@@ -535,6 +535,32 @@
           "seconds": 1
         },
         "load_assignment": {
+          "cluster_name": "gold-chrome-public-skiacorrectness",
+          "endpoints": [
+            {
+              "lb_endpoints": [
+                {
+                  "endpoint": {
+                    "address": {
+                      "socket_address": {
+                        "address": "gold-chrome-public-skiacorrectness",
+                        "port_value": 8000
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "name": "gold-chrome-public-skiacorrectness",
+        "type": "STRICT_DNS"
+      },
+      {
+        "connect_timeout": {
+          "seconds": 1
+        },
+        "load_assignment": {
           "cluster_name": "gold-flutter-engine-baselineserver",
           "endpoints": [
             {
@@ -2768,6 +2794,34 @@
                           },
                           "route": {
                             "cluster": "gold-chrome-skiacorrectness",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "chrome-public-gold.skia.org",
+                      "name": "chrome-public-gold.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/img/"
+                          },
+                          "route": {
+                            "cluster": "gold-chrome-diffserver",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        },
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "gold-chrome-public-skiacorrectness",
                             "timeout": {
                               "seconds": 600
                             }
