@@ -1,4 +1,4 @@
-@import '~elements-sk/colors';
+@import '~elements-sk/themes/themes.css';
 
 triage-page-sk {
   > dialog {
@@ -18,12 +18,12 @@ triage-page-sk {
     display: inline-block;
     margin: 1em 0.4em;
     padding: 1em;
-    background: var(--dark-white);
+    background: var(--surface);
   }
 
   details[open] {
-    border: solid 1px var(--light-gray);
-    background: var(--white);
+    border: solid 1px var(--on-surface);
+    background: var(--surface-1dp);
   }
 
   details table {
@@ -35,12 +35,12 @@ triage-page-sk {
   }
 
   summary:focus {
-    outline: dashed 2px var(--blue);
+    outline: dashed 2px var(--primary);
     outline-offset: 3px;
   }
 
   tr:nth-child(even) {
-    background-color: var(--dark-white);
+    background-color: var(--surface-1dp);
   }
 
   table {
@@ -57,6 +57,6 @@ triage-page-sk {
   }
 
   a {
-    color: var(--blue);
+    color: var(--primary);
   }
 }
