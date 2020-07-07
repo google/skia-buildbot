@@ -53,6 +53,7 @@ func main() {
 		cid.CommitDetail{},
 		clustering2.ClusterSummary{},
 		regression.TriageStatus{},
+		dataframe.FrameRequest{},
 		dataframe.FrameResponse{},
 		alerts.Alert{},
 		dryrun.UIDomain{},
