@@ -1,0 +1,20 @@
+export const buildsJson = {
+  data: [{
+    DatastoreKey: 'foobaz',
+    TsAdded: 20190823203328,
+    TsStarted: 20190823203340,
+    TsCompleted: 20190823210148,
+    Username: 'someone@google.com',
+    Failure: false,
+    RepeatAfterDays: 0,
+    SwarmingLogs: 'https://chrome-swarming.appspot.com/tasklist?things',
+    TaskDone: true,
+    SwarmingTaskID: '',
+    ChromiumRev: 'd8ce25aceb5725bb66cbafe4d05e4665ce9b08dd',
+    ChromiumRevTs: 20190823203051,
+    SkiaRev: 'a0ed070aa0c73a4281b2f35059d44feae1c74aea',
+  }],
+  ids: [1],
+  pagination: { offset: 0, size: 20, total: 1 },
+  permissions: [{ DeleteAllowed: true, RedoAllowed: true }],
+};
