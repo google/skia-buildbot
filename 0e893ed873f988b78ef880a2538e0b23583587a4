@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6546aba1_ac040b98",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-07T15:07:15Z",
+      "side": 1,
+      "message": "There are a bunch of instances of this throughout the repo which need to be cleaned up.  I suspect we\u0027ll want a template at some point, ie.\n\nChangeRefTmpl \u003d \"refs/changes/%s/%s/%s\"\n\nAnd possibly:\n\nChangeRefRegex \u003d regexp.MustCompile(fmt.Sprintf(ChangeRefTmpl, `(\\d{2})`, `(\\d+)`, `(\\d+)`))\n\nIn which case your call site could just do:\n\nif gerrit.ChangeRefRegexp.MatchString(rev.Id) { ... }",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 36
+      },
+      "revId": "0e893ed873f988b78ef880a2538e0b23583587a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
