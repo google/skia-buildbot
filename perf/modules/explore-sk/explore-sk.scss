@@ -1,4 +1,4 @@
-@import '~elements-sk/colors';
+@import '~elements-sk/themes/themes.css';
 
 explore-sk {
   display: block;
@@ -28,7 +28,7 @@ explore-sk {
   }
 
   help-icon-sk {
-    fill: var(--blue);
+    fill: var(--primary);
   }
 
   .query-parts {
@@ -67,7 +67,7 @@ explore-sk {
     margin: 0.6em;
     font-family: 'Roboto Mono', monospace;
     font-size: 36px;
-    color: var(--white);
+    color: var(--on-surface);
   }
 
   #tabs[hide_if_no_data],
@@ -131,7 +131,7 @@ explore-sk {
     justify-content: center;
     width: 100%;
     height: 100%;
-    background: #9998;
+    background: var(--surface-1dp);
   }
 
   #trace_id {
@@ -144,10 +144,9 @@ explore-sk {
 
   dialog {
     padding: 2em;
-  }
-
-  #help {
-    border: solid var(--black) 1px;
+    border: solid var(--on-background) 1px;
+    color: var(--on-background);
+    background: var(--background);
   }
 
   #help table * {
