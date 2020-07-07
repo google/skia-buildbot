@@ -1,0 +1,12 @@
+@import '../colors.css';
+
+chromium-build-selector-sk {
+  select-sk {
+    * {
+    padding: 0;
+    }
+    [selected] {
+      background-color: var(--primary-variant);
+    }
+  }
+}

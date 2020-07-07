@@ -124,6 +124,17 @@ export function moreThanThreeActiveTasksChecker() {
   };
 }
 
+export function shortHash(commitHash) {
+  return commitHash.substr(0, 7);
+}
+
+/**
+ * Returns a short description for the given build.
+ */
+export function chromiumBuildDescription(build) {
+  return `${shortHash(build.ChromiumRev)}-${shortHash(build.SkiaRev)} (Chromium rev created on ${getFormattedTimestamp(build.ChromiumRevTs)})`;
+}
+
 /**
  * List of task types and the associated urls to fetch and delete them.
  */
