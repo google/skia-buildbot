@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4a33e48a_ffd66d92",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-07T12:47:14Z",
+      "side": 1,
+      "message": "I think we also agreed to think of a name that better implies events will be sent.",
+      "range": {
+        "startLine": 86,
+        "startChar": 8,
+        "endLine": 86,
+        "endChar": 16
+      },
+      "revId": "1112f1e3acd881606abd66aaa4381c80fdcdd79a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

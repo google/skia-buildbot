@@ -130,6 +130,30 @@
     },
     {
       "key": {
+        "uuid": "77e194ce_60c12be7",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-07T12:47:14Z",
+      "side": 1,
+      "message": "I\u0027m not sure what\u0027s idiomatic TypeScript for a situation like this. All I know is that in Go, when a type assertion fails, it panics (or returns false), so errors like this are not quiet.",
+      "parentUuid": "e7e01b2d_fe10af08",
+      "range": {
+        "startLine": 91,
+        "startChar": 7,
+        "endLine": 91,
+        "endChar": 30
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "79e311bd_abdbaa1c",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
@@ -224,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "70b0d977_89af2603",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-07T12:47:14Z",
+      "side": 1,
+      "message": "Let\u0027s re-evaluate after deciding on the names below. Maybe executeOnThis or just \"execute\"?",
+      "parentUuid": "1747c8b5_d2b302cb",
+      "range": {
+        "startLine": 106,
+        "startChar": 8,
+        "endLine": 106,
+        "endChar": 15
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "56e11975_7b41a3c4",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
@@ -271,6 +319,30 @@
     },
     {
       "key": {
+        "uuid": "edcd57c4_6f9fb67d",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-07T12:47:14Z",
+      "side": 1,
+      "message": "The purpose of the comment I suggested was to help a future person reading the implementation of querySelector. While those docs you added are helpful, they don\u0027t assist with that goal.",
+      "parentUuid": "d23eb52c_84979236",
+      "range": {
+        "startLine": 121,
+        "startChar": 40,
+        "endLine": 121,
+        "endChar": 41
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2c638f26_a6039db8",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
@@ -306,6 +378,30 @@
       "side": 1,
       "message": "I\u0027m not sure that the \"ToSelector\" bit would make it clearer, because all $-prefixed functions take a selector as their first argument.\n\nMaybe $$applyFn would make more sense, but I\u0027m hesitant to add the \"Fn\" suffix because all $-prefixed functions (except $ and $$) take a function as their second argument.\n\nThat\u0027s why I settled with $$apply.\n\n(FTR, I named it \"apply\" as in Function.prototype.apply()[1].)\n\nWDYT?\n\n[1] https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply.",
       "parentUuid": "2c638f26_a6039db8",
+      "range": {
+        "startLine": 151,
+        "startChar": 8,
+        "endLine": 151,
+        "endChar": 15
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec6cf52d_9062bf1a",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-07T12:47:14Z",
+      "side": 1,
+      "message": "The goal of the suggested name(s) is to make the upstack callers more skimmable. I would argue that Function.prototype.apply is not well-known enough where I consider it \"skimmable\".\n\nThus the suggestion for a set of very clear, explicit names. I\u0027m ok being redundant and extra  verbose to make these Page Objects more reader-friendly. Remember, this is test code, and test code should be written DAMPly so it\u0027s obvious it\u0027s correct, because tests don\u0027t have tests.\n\nIn a below comment, I enumerate a fresh set of names that I feel are nice and DAMP",
+      "parentUuid": "86ed1b1b_8e1ddaba",
       "range": {
         "startLine": 151,
         "startChar": 8,
@@ -389,6 +485,30 @@
     },
     {
       "key": {
+        "uuid": "79fbc610_9b4cb350",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-07T12:47:14Z",
+      "side": 1,
+      "message": "New name suggestions to account for this distinction\n\nexecuteOnPOE/executeOnPageObject\nexecuteOnAllPOEs/mapOverAllPOEs (or PageObject instead of POE)\nexecuteOnDOMElement\nexecuteOnAllDOMElements/mapOverAllDOMElements",
+      "parentUuid": "e04f0b4a_e221da72",
+      "range": {
+        "startLine": 164,
+        "startChar": 10,
+        "endLine": 164,
+        "endChar": 17
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dcc7dde7_2e972304",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
@@ -424,6 +544,30 @@
       "side": 1,
       "message": "Rationale: this is named for consistency with Array.prototype.map()[1].\n\nA typical use case for this method is as a replacement for the following pattern when using raw DOM nodes:\n\n  const innertTexts \u003d element.querySelectorAll(\u0027p\u0027).map((p) \u003d\u003e p.innerText);\n\nWith a PageObjectElement, this would be written as:\n\n  const innerTexts \u003d await poe.$map(\u0027p\u0027, (p) \u003d\u003e p.innerText);",
       "parentUuid": "dcc7dde7_2e972304",
+      "range": {
+        "startLine": 177,
+        "startChar": 8,
+        "endLine": 177,
+        "endChar": 12
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48b2ea4b_bdfa3524",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-07T12:47:14Z",
+      "side": 1,
+      "message": "map *is*, in my opinion, well known enough to be skimmable, so I have included it above in my recommended names.",
+      "parentUuid": "fa6c5d1e_7597e35e",
       "range": {
         "startLine": 177,
         "startChar": 8,
@@ -483,6 +627,30 @@
     },
     {
       "key": {
+        "uuid": "6de262b5_90cfcdd9",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-07T12:47:14Z",
+      "side": 1,
+      "message": "I would like to borrow a little from Go philosophy here: There should be only one way to do something in a language. If there\u0027s only one way to do a task, you don\u0027t have to keep in your brain when it\u0027s appropriate to do one way over the alternative.\n\nIMO we don\u0027t need each when we have map.",
+      "parentUuid": "fa578db8_2c321930",
+      "range": {
+        "startLine": 183,
+        "startChar": 8,
+        "endLine": 183,
+        "endChar": 13
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e119fb16_1cec632c",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
@@ -518,6 +686,30 @@
       "side": 1,
       "message": "The reason this is named $$find and not $find is that it\u0027s a replacement for the following pattern when using raw DOM nodes, which is used when a query selector does not suffice:\n\n  // Using the native API.\n  const p \u003d element.querySelectorAll(\u0027p\u0027).find((p) \u003d\u003e p.innerText.startsWith(\u0027Hello\u0027));\n\n  // Or equivalently, using common-sk.\n  const p \u003d $(\u0027p\u0027).find((p) \u003d\u003e p.innerText.startsWith(\u0027Hello\u0027));\n\nSince the pattern uses $/querySelectorAll and Array.prototype.find, it makes sense to me to name this $find.\n\nNaming this method $$find would feel a bit weird to me given the underlying querySelectorAll call (as opposed to querySelector).\n\nLet me know if you still disagree and I\u0027ll be happy to rename it as you suggested.",
       "parentUuid": "e119fb16_1cec632c",
+      "range": {
+        "startLine": 191,
+        "startChar": 9,
+        "endLine": 191,
+        "endChar": 13
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7b792cc_721f1034",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-07T12:47:14Z",
+      "side": 1,
+      "message": "I will re-emphasize my suggestion of naming this findDescendantWithSelector or findDescendant",
+      "parentUuid": "a5d29d40_fa77c9e2",
       "range": {
         "startLine": 191,
         "startChar": 9,
