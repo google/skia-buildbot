@@ -125,8 +125,7 @@ export class TriagePageSk extends ElementSk {
           @day-range-change=${ele.rangeChange}
           begin=${ele.state.begin}
           end=${ele.state.end}
-        >
-        </day-range-sk>
+        ></day-range-sk>
       </details>
       <details @toggle=${ele.toggleStatus}>
         <summary>
@@ -140,8 +139,9 @@ export class TriagePageSk extends ElementSk {
         </div>
       </details>
     </header>
-    <spinner-sk ?active=${ele.triageInProgress || ele.refreshRangeInProgress}>
-    </spinner-sk>
+    <spinner-sk
+      ?active=${ele.triageInProgress || ele.refreshRangeInProgress}
+    ></spinner-sk>
 
     <dialog>
       <cluster-summary2-sk
@@ -149,8 +149,7 @@ export class TriagePageSk extends ElementSk {
         @triaged=${ele.triaged}
         .full_summary=${ele.dialogState!.full_summary}
         .triage=${ele.dialogState!.triage}
-      >
-      </cluster-summary2-sk>
+      ></cluster-summary2-sk>
       <div class="buttons">
         <button @click=${ele.close}>Close</button>
       </div>
@@ -171,12 +170,14 @@ export class TriagePageSk extends ElementSk {
 
   private static _rows = (ele: TriagePageSk) =>
     ele.reg!.table!.map(
-      (row, rowIndex) => html` <tr>
-        <td class="fixed">
-          <commit-detail-sk .cid=${row.cid}></commit-detail-sk>
-        </td>
-        ${TriagePageSk._columns(ele, row, rowIndex)}
-      </tr>`
+      (row, rowIndex) => html`
+        <tr>
+          <td class="fixed">
+            <commit-detail-sk .cid=${row.cid}></commit-detail-sk>
+          </td>
+          ${TriagePageSk._columns(ele, row, rowIndex)}
+        </tr>
+      `
     );
 
   private static _columns = (
@@ -204,7 +205,11 @@ export class TriagePageSk extends ElementSk {
       }
 
       if (ele.notBoth(colIndex)) {
-        ret.push(html`<td></td>`);
+        ret.push(
+          html`
+            <td></td>
+          `
+        );
       }
       return ret;
     });
@@ -216,20 +221,25 @@ export class TriagePageSk extends ElementSk {
     colIndex: number
   ) => {
     if (col && col.low) {
-      return html`<triage-status-sk
-        .alert=${ele.alertAt(colIndex)}
-        .cluster_type=${'low'}
-        .full_summary=${_full_summary(col.frame!, col.low)}
-        .triage=${col.low_status}
-      >
-      </triage-status-sk> `;
+      return html`
+        <triage-status-sk
+          .alert=${ele.alertAt(colIndex)}
+          .cluster_type=${'low'}
+          .full_summary=${_full_summary(col.frame!, col.low)}
+          .triage=${col.low_status}
+        ></triage-status-sk>
+      `;
     }
-    return html`<a
-      title="No clusters found."
-      href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(colIndex)}"
-    >
-      ∅
-    </a> `;
+    return html`
+      <a
+        title="No clusters found."
+        href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(
+          colIndex
+        )}"
+      >
+        ∅
+      </a>
+    `;
   };
 
   private static _highCell = (
@@ -239,35 +249,52 @@ export class TriagePageSk extends ElementSk {
     colIndex: number
   ) => {
     if (col && col.high) {
-      return html`<triage-status-sk
-        .alert=${ele.alertAt(colIndex)}
-        .cluster_type=${'high'}
-        .full_summary=${_full_summary(col.frame!, col.high)}
-        .triage=${col.high_status}
-      >
-      </triage-status-sk> `;
+      return html`
+        <triage-status-sk
+          .alert=${ele.alertAt(colIndex)}
+          .cluster_type=${'high'}
+          .full_summary=${_full_summary(col.frame!, col.high)}
+          .triage=${col.high_status}
+        ></triage-status-sk>
+      `;
     }
-    return html`<a
-      title="No clusters found."
-      href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(colIndex)}"
-    >
-      ∅
-    </a> `;
+    return html`
+      <a
+        title="No clusters found."
+        href="/g/c/${ele.hashFrom(rowIndex)}?query=${ele.encQueryFrom(
+          colIndex
+        )}"
+      >
+        ∅
+      </a>
+    `;
   };
 
   private static _subHeaders = (ele: TriagePageSk) =>
     ele.reg.header!.map((_, index) => {
       const ret = [];
       if (ele.stepDownAt(index)) {
-        ret.push(html`<th>Low</th>`);
+        ret.push(
+          html`
+            <th>Low</th>
+          `
+        );
       }
       if (ele.stepUpAt(index)) {
-        ret.push(html`<th>High</th>`);
+        ret.push(
+          html`
+            <th>High</th>
+          `
+        );
       }
       // If we have only one of High or Low we stuff in an empty th to match
       // colspan=2 above.
       if (ele.notBoth(index)) {
-        ret.push(html`<th></th>`);
+        ret.push(
+          html`
+            <th></th>
+          `
+        );
       }
       return ret;
     });
@@ -280,9 +307,9 @@ export class TriagePageSk extends ElementSk {
       }
       // The colspan=2 is important since we will have two columns under each
       // header, one for high and one for low.
-      return html`<th colspan="2"
-        ><a href="/a/?${item.id}">${displayName}</a></th
-      >`;
+      return html`
+        <th colspan="2"><a href="/a/?${item.id}">${displayName}</a></th>
+      `;
     });
 
   private static _statusItems = (ele: TriagePageSk) =>
@@ -297,7 +324,7 @@ export class TriagePageSk extends ElementSk {
           </tr>
           <tr>
             <th>Commit</th>
-            <td><commit-detail-sk .cid=${item.commit}> </commit-detail-sk></td>
+            <td><commit-detail-sk .cid=${item.commit}></commit-detail-sk></td>
           </tr>
           <tr>
             <th>Step</th>
@@ -309,12 +336,15 @@ export class TriagePageSk extends ElementSk {
 
   private static _allFilters = (ele: TriagePageSk) =>
     ele.allFilterOptions.map(
-      (o) => html` <option
-        ?selected=${ele.state.alert_filter === o.value}
-        value=${o.value}
-        title=${o.title}
-        >${o.display}
-      </option>`
+      (o) => html`
+        <option
+          ?selected=${ele.state.alert_filter === o.value}
+          value=${o.value}
+          title=${o.title}
+        >
+          ${o.display}
+        </option>
+      `
     );
 
   private state: State;
@@ -413,7 +443,7 @@ export class TriagePageSk extends ElementSk {
   }
 
   private triage_start(e: CustomEvent<TriageStatusSkStartTriageEventDetails>) {
-    this.dialogState = e.detail;
+    this.dialogState = { ...e.detail };
     this._render();
     this.dialog!.showModal();
   }
