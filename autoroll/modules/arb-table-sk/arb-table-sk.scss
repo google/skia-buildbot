@@ -1,0 +1,48 @@
+@import url(~elements-sk/colors.css);
+
+arb-table-sk {
+  /**
+   * Styling for tables.
+   * TODO(borenet): Move these to a common module.
+   */
+  table {
+    border-collapse: collapse;
+    display: table;
+  }
+
+  tr {
+    border-bottom: 1px solid #EEEEEE;
+    display: table-row;
+  }
+
+  tr:hover {
+    background-color: var(--dark-white);
+  }
+
+  tr:hover tr:hover {
+    background-color: var(--white);
+  }
+
+  tr-container {
+    display: table-row-group;
+  }
+
+  td,th {
+    display: table-cell;
+    padding: 10px;
+  }
+
+  td {
+    font-size: 0.813em;
+    vertical-align: middle;
+  }
+
+  th {
+    color: var(--gray);
+    font-size: 0.75em;
+  }
+
+  number {
+    text-align: right;
+  }
+}
