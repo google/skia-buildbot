@@ -1,0 +1,27 @@
+@import '../colors';
+
+cluster-digests-sk {
+  svg {
+    border: 1px solid grey;
+
+    circle.node {
+      stroke-width: 2px;
+
+      &.positive {
+        fill: var(--triaged-positive);
+      }
+
+      &.negative {
+        fill: var(--triaged-negative);
+      }
+
+      &.untriaged {
+        fill: var(--untriaged);
+      }
+
+      &.selected {
+        stroke-width: 5px;
+      }
+    }
+  }
+}
