@@ -22,6 +22,30 @@
       "revId": "5912bed81b5801c952dc4485e1a9538ea3d0a9e8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1ceb8abe_a6fb470e",
+        "filename": "perf/modules/alerts-page-sk/alerts-page-sk.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-07T14:24:40Z",
+      "side": 1,
+      "message": "Done in follow-up CL. https://skia-review.googlesource.com/c/buildbot/+/300900",
+      "parentUuid": "2a7592c4_c53a70c0",
+      "range": {
+        "startLine": 138,
+        "startChar": 0,
+        "endLine": 138,
+        "endChar": 33
+      },
+      "revId": "5912bed81b5801c952dc4485e1a9538ea3d0a9e8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
