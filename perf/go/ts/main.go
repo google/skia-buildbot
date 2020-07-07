@@ -46,39 +46,43 @@ func addMultipleUnions(generator *go2ts.Go2TS, unions []unionAndName) error {
 func main() {
 	generator := go2ts.New()
 	err := addMultiple(generator, []interface{}{
-		clustering2.ValuePercent{},
-		frontend.CountHandlerRequest{},
-		frontend.CountHandlerResponse{},
-		frontend.CommitDetailsRequest{},
+		alerts.Alert{},
 		cid.CommitDetail{},
 		clustering2.ClusterSummary{},
-		regression.TriageStatus{},
+		clustering2.ValuePercent{},
 		dataframe.FrameRequest{},
 		dataframe.FrameResponse{},
-		alerts.Alert{},
 		dryrun.UIDomain{},
-		regression.FullSummary{},
-		frontend.SkPerfConfig{},
-		frontend.TryBugRequest{},
-		frontend.TryBugResponse{},
+		frontend.ClusterStartResponse{},
+		frontend.ClusterStatus{},
+		frontend.CommitDetailsRequest{},
+		frontend.CountHandlerRequest{},
+		frontend.CountHandlerResponse{},
+		frontend.RangeRequest{},
 		frontend.RegressionRangeRequest{},
 		frontend.RegressionRangeResponse{},
+		frontend.SkPerfConfig{},
 		frontend.TriageRequest{},
 		frontend.TriageResponse{},
+		frontend.TryBugRequest{},
+		frontend.TryBugResponse{},
 		regression.Current{},
+		regression.FullSummary{},
+		regression.RegressionDetectionRequest{},
+		regression.TriageStatus{},
 	})
 	if err != nil {
 		sklog.Fatal(err)
 	}
 	err = addMultipleUnions(generator, []unionAndName{
-		{regression.AllStatus, "Status"},
-		{types.AllClusterAlgos, "ClusterAlgo"},
-		{stepfit.AllStepFitStatus, "StepFitStatus"},
-		{dataframe.AllRequestType, "RequestType"},
-		{alerts.AllDirections, "Direction"},
-		{types.AllStepDetections, "StepDetection"},
 		{alerts.AllConfigState, "ConfigState"},
+		{alerts.AllDirections, "Direction"},
+		{dataframe.AllRequestType, "RequestType"},
 		{frontend.AllRegressionSubset, "Subset"},
+		{regression.AllStatus, "Status"},
+		{stepfit.AllStepFitStatus, "StepFitStatus"},
+		{types.AllClusterAlgos, "ClusterAlgo"},
+		{types.AllStepDetections, "StepDetection"},
 	})
 	err = util.WithWriteFile("./modules/json/index.ts", func(w io.Writer) error {
 		return generator.Render(w)

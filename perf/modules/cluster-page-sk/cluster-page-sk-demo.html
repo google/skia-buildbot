@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>cluster-page-sk</title>
   <meta charset="utf-8" />
@@ -9,26 +10,16 @@
     var sk = {};
     sk.perf = {};
     sk.perf.commit_range_url = "";
-    sk.perf.key_order = ['config'];
+    sk.perf.key_order = [ 'config' ];
   </script>
 </head>
+
 <body>
-  <h1>cluster-page-sk</h1>
-  <!-- the element will appear here. -->
-
+  <section class="body-sk darkmode">
+    <h1>cluster-page-sk</h1>
+    <!-- the element will appear here. -->
+  </section>
   <error-toast-sk> </error-toast-sk>
-  <h2>Events</h2>
-  <pre id=events></pre>
-  <script type="text/javascript" charset="utf-8">
-    customElements.whenDefined('cluster-page-sk').then(() => {
-      // Insert the element later, which should given enough time for fetchMock to be in place.
-      document.querySelector('h1').insertAdjacentElement('afterend', document.createElement('cluster-page-sk'));
-
-      document.querySelector('cluster-page-sk').addEventListener('some-event-name', (e) => {
-        document.querySelector('#events').textContent = JSON.stringify(e.detail, null, '  ');
-      });
-
-    });
-  </script>
 </body>
+
 </html>
