@@ -95,6 +95,16 @@ const (
 
 	// extractReg is the regular expression used by ExtractIssueFromCommit.
 	extractRegTmpl = `^\s*Reviewed-on:.*%s.*/([0-9]+)\s*$`
+
+	// Change refs in Gerrit are of this form-
+	//  refs/changes/46/4546/1
+	//                |  |   |
+	//                |  |   +-> Patch set.
+	//                |  |
+	//                |  +-> Issue ID.
+	//                |
+	//                +-> Last two digits of Issue ID.
+	CHANGE_REF_PREFIX = "refs/changes/"
 )
 
 var (
