@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ebbf623_1bc55433",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-07T11:02:36Z",
+      "side": 1,
+      "message": "\u003e Patch Set 3:\n\u003e \n\u003e All three of the Beta rollers are failing with:\n\u003e \n\u003e main.go:277 Failed initial repo manager update: failed to get next revision to roll from Child: No valid files found in GCS.. At parent_child_repo_manager.go:42 autoroller.go:137 main.go:275 proc.go:203 asm_amd64.s:1357\n\u003e \n\u003e Is the new regex correct, and are the files actually getting uploaded to GCS?\n\nFriendly ping.",
+      "revId": "27fa3d05a90511fdba7817b229faf167269694cd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
