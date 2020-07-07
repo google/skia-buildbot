@@ -456,21 +456,20 @@ func (f *Frontend) initpageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// rangeRequest is used in cidRangeHandler and is used to query for a range of
+// RangeRequest is used in cidRangeHandler and is used to query for a range of
 // cid.CommitIDs that include the range between [begin, end) and include the
 // explicit CommitID of "Source, Offset".
-type rangeRequest struct {
-	Source string `json:"source"`
-	Offset int    `json:"offset"`
-	Begin  int64  `json:"begin"`
-	End    int64  `json:"end"`
+type RangeRequest struct {
+	Offset int   `json:"offset"`
+	Begin  int64 `json:"begin"`
+	End    int64 `json:"end"`
 }
 
 // cidRangeHandler accepts a POST'd JSON serialized RangeRequest
 // and returns a serialized JSON slice of cid.CommitDetails.
 func (f *Frontend) cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var rr rangeRequest
+	var rr RangeRequest
 	if err := json.NewDecoder(r.Body).Decode(&rr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
@@ -504,7 +503,7 @@ func (f *Frontend) cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 			found = true
 		}
 	}
-	if !found && rr.Source != "" && rr.Offset != -1 {
+	if !found && rr.Offset != -1 {
 		cids = append(cids, &cid.CommitID{
 			Offset: rr.Offset,
 		})
@@ -692,9 +691,9 @@ func (f *Frontend) cidHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// clusterStartResponse is serialized as JSON for the response in
+// ClusterStartResponse is serialized as JSON for the response in
 // clusterStartHandler.
-type clusterStartResponse struct {
+type ClusterStartResponse struct {
 	ID string `json:"id"`
 }
 
@@ -717,7 +716,7 @@ func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Cluster request was invalid", http.StatusInternalServerError)
 		return
 	}
-	resp := clusterStartResponse{
+	resp := ClusterStartResponse{
 		ID: id,
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -725,8 +724,8 @@ func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// clusterStatus is used to serialize a JSON response in clusterStatusHandler.
-type clusterStatus struct {
+// ClusterStatus is used to serialize a JSON response in clusterStatusHandler.
+type ClusterStatus struct {
 	State   regression.ProcessState                 `json:"state"`
 	Message string                                  `json:"message"`
 	Value   *regression.RegressionDetectionResponse `json:"value"`
@@ -740,7 +739,7 @@ func (f *Frontend) clusterStatusHandler(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
 
-	status := &clusterStatus{}
+	status := &ClusterStatus{}
 	state, msg, err := f.clusterRequests.Status(id)
 	if err != nil {
 		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
