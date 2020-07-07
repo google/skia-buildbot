@@ -61,6 +61,18 @@ export interface TriageStatus {
 	message: string;
 }
 
+export interface FrameRequest {
+	begin: number;
+	end: number;
+	formulas: string[] | null;
+	queries: string[] | null;
+	hidden: string[] | null;
+	keys: string;
+	tz: string;
+	num_commits: number;
+	request_type: RequestType;
+}
+
 export interface DataFrame {
 	traceset: TraceSet;
 	header: ColumnHeader[] | null;
@@ -174,6 +186,8 @@ export type StepFitStatus = "Low" | "High" | "Uninteresting";
 
 export type Status = "" | "positive" | "negative" | "untriaged";
 
+export type RequestType = 1 | 0;
+
 export type Trace = number[];
 
 export type TraceSet = { [key: string]: Trace };
@@ -185,8 +199,6 @@ export type StepDetection = "" | "absolute" | "percent" | "cohen";
 export type ConfigState = "ACTIVE" | "DELETED";
 
 export type Direction = "UP" | "DOWN" | "BOTH";
-
-export type RequestType = 1 | 0;
 
 export type Subset = "all" | "regressions" | "untriaged";
 
