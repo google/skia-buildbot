@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c02db6c4_61a69bef",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-07T17:56:54Z",
+      "side": 1,
+      "message": "This was my local hack to get around my building issues.\nToday I tried cleaning all dangling images and removing stopped containers and then it started working...",
+      "revId": "b86ce38b272b1e9dcb7b5b9047e1f7998416d951",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
