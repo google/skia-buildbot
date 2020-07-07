@@ -105,7 +105,7 @@ import { ticks } from './ticks';
 //  traces never receive focus and can't be clicked on.
 const SPECIAL = 'special';
 
-const MISSING_DATA_SENTINEL = 1e32;
+export const MISSING_DATA_SENTINEL = 1e32;
 
 const NUM_Y_TICKS = 4;
 
@@ -395,7 +395,8 @@ export class PlotSimpleSk extends ElementSk {
   // scale that matches the displays native resolution and then scaling that back
   // to fit on the page. Also see _updateScaledMeasurements for how the device
   // pixel ratio affects all of our pixel calculations.
-  private static template = (ele: PlotSimpleSk) => html` <canvas
+  private static template = (ele: PlotSimpleSk) => html`
+    <canvas
       class="traces"
       width=${ele.width * window.devicePixelRatio}
       height=${ele.height * window.devicePixelRatio}
@@ -408,7 +409,8 @@ export class PlotSimpleSk extends ElementSk {
       height=${ele.height * window.devicePixelRatio}
       style="transform-origin: 0 0; transform: scale(${1 /
       window.devicePixelRatio});"
-    ></canvas>`;
+    ></canvas>
+  `;
 
   // The location of the XBar. See the xbar property..
   private _xbar: number;
