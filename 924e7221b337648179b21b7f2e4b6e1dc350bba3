@@ -365,6 +365,30 @@
     },
     {
       "key": {
+        "uuid": "e04f0b4a_e221da72",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-07T02:02:49Z",
+      "side": 1,
+      "message": "Oops, that was incorrect. I am in fact using this in downstream CLs.\n\nThe difference is that a function passed to $$apply takes a PageObjectElement as a parameter, whereas a function passed to $$evalDom takes an HTMLElement (i.e. a raw DOM node) as a paramter.\n\n$$apply is useful for things that can be done directly against the PageObjectElement API, for example clicking a specific button:\n\n  // This calls PageObjectElement#click().\n  await pageObjectElement.$$apply(\u0027button.submit\u0027, (btn) \u003d\u003e btn.click())\n\n$$evalDom is useful for operations against the raw DOM node, for example checking the value of a property in a custom component:\n\n  // Retursn the value of the element-sk\u0027s CheckOrRadio component\u0027s \"checked\" property.\n  const checked \u003d await this.$$evalDom(\u0027checkbox-sk\u0027, (c) \u003d\u003e (c as CheckOrRadio).checked);",
+      "parentUuid": "b95fae77_d21aaab1",
+      "range": {
+        "startLine": 164,
+        "startChar": 10,
+        "endLine": 164,
+        "endChar": 17
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dcc7dde7_2e972304",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
