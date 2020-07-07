@@ -102,6 +102,12 @@ type ManualRollRequest struct {
 	Status        ManualRollStatus `json:"status"`
 	Timestamp     time.Time        `json:"timestamp"`
 	Url           string           `json:"url,omitempty"`
+
+	DryRun bool `json:"dry_run"`
+	// If Emails is empty then the requester and sheriffs will be emailed.
+	Emails []string `json:"emails"`
+	// Do not call rm.GetRevision(Revision) if this is true. Use Revision{Id: Revision} instead.
+	NoResolveRevision bool `json:"no_resolve_revision"`
 }
 
 // Return a copy of the ManualRollRequest.
@@ -117,6 +123,10 @@ func (r *ManualRollRequest) Copy() *ManualRollRequest {
 		Status:        r.Status,
 		Timestamp:     r.Timestamp,
 		Url:           r.Url,
+
+		DryRun:            r.DryRun,
+		Emails:            util.CopyStringSlice(r.Emails),
+		NoResolveRevision: r.NoResolveRevision,
 	}
 }
 

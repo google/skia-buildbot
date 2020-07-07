@@ -325,7 +325,7 @@ func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *gi
 		i.CqSuccess = false
 		// TODO(rmistry): Sometimes the github API does not return the correct number of checks, so this might
 		// return some false positives.
-		i.DryRunFinished = pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged() || i.AllTrybotsFinished() || (pullRequest.GetMergeableState() == github.MERGEABLE_STATE_DIRTY)
+		i.DryRunFinished = pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged() || (len(i.TryResults) > 0 && i.AllTrybotsFinished())
 		i.DryRunSuccess = pullRequest.GetMerged() || (i.DryRunFinished && i.AllTrybotsSucceeded())
 	} else {
 		i.CqFinished = pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged() || !doesWaitingForTreeLabelExist || (pullRequest.GetMergeableState() == github.MERGEABLE_STATE_DIRTY)

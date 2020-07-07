@@ -267,8 +267,14 @@ func (r *androidRepoManager) CreateNewRoll(ctx context.Context, from, to *revisi
 	// Create the roll CL.
 
 	// Start the merge.
-
-	if _, err := r.childRepo.Git(ctx, "merge", to.Id, "--no-commit"); err != nil {
+	mergeTarget := to.Id
+	if strings.HasPrefix(to.Id, gerrit.CHANGE_REF_PREFIX) {
+		if err := r.childRepo.FetchRefFromRepo(ctx, r.childRepoURL, to.Id); err != nil {
+			return 0, fmt.Errorf("Failed to fetch ref in %s: %s", r.childRepo.Dir(), err)
+		}
+		mergeTarget = "FETCH_HEAD"
+	}
+	if _, err := r.childRepo.Git(ctx, "merge", mergeTarget, "--no-commit"); err != nil {
 		// Check to see if this was a merge conflict with ignoreMergeConflictFiles and deleteMergeConflictFiles.
 		conflictsOutput, conflictsErr := r.childRepo.Git(ctx, "diff", "--name-only", "--diff-filter=U")
 		if conflictsErr != nil || conflictsOutput == "" {
