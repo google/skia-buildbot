@@ -22,6 +22,30 @@
       "revId": "0e893ed873f988b78ef880a2538e0b23583587a4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4f85bc87_9d6e00ba",
+        "filename": "go/gerrit/gerrit.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-07T17:23:30Z",
+      "side": 1,
+      "message": "Yep, agreed. That will have to be a separate change though.",
+      "parentUuid": "6546aba1_ac040b98",
+      "range": {
+        "startLine": 99,
+        "startChar": 0,
+        "endLine": 107,
+        "endChar": 36
+      },
+      "revId": "0e893ed873f988b78ef880a2538e0b23583587a4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
