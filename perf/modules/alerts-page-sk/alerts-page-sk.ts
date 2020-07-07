@@ -128,14 +128,15 @@ class AlertsPageSk extends ElementSk {
     const pList = this.listPromise().then((json) => {
       this.alerts = json;
     });
-    Promise.all([pInit, pList]).then(() => {
-      this._render();
-      this.dialog = this.querySelector<HTMLDialogElement>('dialog');
-      this.alertconfig = this.querySelector<AlertConfigSk>('#alertconfig');
-      dialogPolyfill.registerDialog(this.dialog!);
-      this.openOnLoad();
-    });
-    //      .catch(errorMessage);
+    Promise.all([pInit, pList])
+      .then(() => {
+        this._render();
+        this.dialog = this.querySelector<HTMLDialogElement>('dialog');
+        this.alertconfig = this.querySelector<AlertConfigSk>('#alertconfig');
+        dialogPolyfill.registerDialog(this.dialog!);
+        this.openOnLoad();
+      })
+      .catch(errorMessage);
   }
 
   private showChanged(e: InputEvent) {
