@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "367de22a_1f9e61e9",
+        "filename": "autoroll/go/manual/db.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-07T14:38:58Z",
+      "side": 1,
+      "message": "Oh, no, it needs to be assertdeep.Copy, to ensure that the object is actually copied.  You\u0027re missing a call to util.CopyStringSlice(r.Emails) in Copy().",
+      "parentUuid": "ce470ec3_56656d9d",
+      "range": {
+        "startLine": 107,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 73
+      },
+      "revId": "23144a807048d1231fee5ea8a762d16450e25841",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9c69cba7_1a9db45c",
         "filename": "autoroll/go/repo_manager/android_repo_manager.go",
         "patchSetId": 19
