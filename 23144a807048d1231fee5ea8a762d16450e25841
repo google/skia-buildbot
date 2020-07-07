@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ce470ec3_56656d9d",
+        "filename": "autoroll/go/manual/db.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-07T14:36:00Z",
+      "side": 1,
+      "message": "I completely misunderstood the issue, I thought it was a shortcoming of Copy() but it was a problem in the test. Using assertdeep.Equal instead of assertdeep.Copy fixes it. Went back to using \"Emails\".",
+      "parentUuid": "e2e72f8b_5899cd60",
+      "range": {
+        "startLine": 107,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 73
+      },
+      "revId": "23144a807048d1231fee5ea8a762d16450e25841",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9c69cba7_1a9db45c",
         "filename": "autoroll/go/repo_manager/android_repo_manager.go",
         "patchSetId": 19
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1e6c2ddf_f8082d0c",
+        "filename": "autoroll/go/repo_manager/android_repo_manager.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-07T14:36:00Z",
+      "side": 1,
+      "message": "Added a constant to gerrit, I think it will be generally useful.",
+      "parentUuid": "9c69cba7_1a9db45c",
+      "range": {
+        "startLine": 271,
+        "startChar": 30,
+        "endLine": 271,
+        "endChar": 44
+      },
+      "revId": "23144a807048d1231fee5ea8a762d16450e25841",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f3975b16_15be7df4",
         "filename": "autoroll/go/roller/autoroller.go",
         "patchSetId": 19
@@ -68,6 +116,30 @@
       "revId": "23144a807048d1231fee5ea8a762d16450e25841",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c22486bc_711e36c8",
+        "filename": "autoroll/go/roller/autoroller.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 932,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-07T14:36:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f3975b16_15be7df4",
+      "range": {
+        "startLine": 931,
+        "startChar": 9,
+        "endLine": 932,
+        "endChar": 6
+      },
+      "revId": "23144a807048d1231fee5ea8a762d16450e25841",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
