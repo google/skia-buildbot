@@ -443,7 +443,7 @@ export class TriagePageSk extends ElementSk {
   }
 
   private triage_start(e: CustomEvent<TriageStatusSkStartTriageEventDetails>) {
-    this.dialogState = e.detail;
+    this.dialogState = { ...e.detail };
     this._render();
     this.dialog!.showModal();
   }
