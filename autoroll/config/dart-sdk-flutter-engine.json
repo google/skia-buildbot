@@ -16,6 +16,7 @@
   "rollerName": "dart-sdk-flutter-engine",
   "serviceAccount": "flutter-engine-autoroll@skia-public.iam.gserviceaccount.com",
   "sheriff": ["dart-vm-team@google.com"],
+  "supportsManualRolls": true,
   "github": {
     "repoOwner": "flutter",
     "repoName": "engine",
