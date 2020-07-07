@@ -20,14 +20,17 @@ const (
 // req returns a dummy ManualRollRequest.
 func req() *ManualRollRequest {
 	return &ManualRollRequest{
-		Requester:     "user@google.com",
-		Result:        RESULT_FAILURE,
-		ResultDetails: "blah blah",
-		Revision:      "abc123",
-		RollerName:    rollerName,
-		Status:        STATUS_COMPLETE,
-		Timestamp:     firestore.FixTimestamp(time.Now()),
-		Url:           "http://my-roll.com",
+		DryRun:            true,
+		Emails:            []string{"user@google.com", "user2@google.com"},
+		NoResolveRevision: true,
+		Requester:         "user@google.com",
+		Result:            RESULT_FAILURE,
+		ResultDetails:     "blah blah",
+		Revision:          "abc123",
+		RollerName:        rollerName,
+		Status:            STATUS_COMPLETE,
+		Timestamp:         firestore.FixTimestamp(time.Now()),
+		Url:               "http://my-roll.com",
 	}
 }
 
@@ -36,7 +39,7 @@ func TestCopyManualRollRequest(t *testing.T) {
 	v := req()
 	v.Id = "abc123"
 	v.DbModified = time.Now()
-	assertdeep.Copy(t, v, v.Copy())
+	assertdeep.Equal(t, v, v.Copy())
 }
 
 func TestRequestValidation(t *testing.T) {
