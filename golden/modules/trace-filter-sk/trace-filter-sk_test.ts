@@ -1,144 +1,115 @@
 import './index';
-import { $, $$ } from 'common-sk/modules/dom';
 import { eventPromise, noEventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { ParamSet } from 'common-sk/modules/query';
 import { TraceFilterSk } from './trace-filter-sk';
+import { TraceFilterSkPO } from './trace-filter-sk_po';
 
 const expect = chai.expect;
+
+const paramSet: ParamSet = {
+  'car make': ['chevrolet', 'dodge', 'ford', 'lincoln motor company'],
+  'color': ['blue', 'green', 'red'],
+  'used': ['yes', 'no'],
+  'year': ['2020', '2019', '2018', '2017', '2016', '2015']
+};
+
+const selection: ParamSet = {'car make': ['dodge', 'ford'], 'color': ['blue']};
+const differentSelection: ParamSet = {'color': ['green'], 'used': ['yes', 'no']};
 
 describe('trace-filter-sk', () => {
   const newInstance = setUpElementUnderTest<TraceFilterSk>('trace-filter-sk');
 
   let traceFilterSk: TraceFilterSk;
+  let traceFilterSkPO: TraceFilterSkPO;
 
   beforeEach(() => {
     traceFilterSk = newInstance();
-    traceFilterSk.paramSet = {
-      'car make': ['chevrolet', 'dodge', 'ford', 'lincoln motor company'],
-      'color': ['blue', 'green', 'red'],
-      'used': ['yes', 'no'],
-      'year': ['2020', '2019', '2018', '2017', '2016', '2015']
-    };
+    traceFilterSk.paramSet = paramSet;
+
+    traceFilterSkPO = new TraceFilterSkPO(traceFilterSk);
   });
 
-  it('opens the query dialog when clicking the "edit query" button', () => {
-    clickEditBtn();
-    expect(isQueryDialogOpen()).to.be.true;
+  it('opens the query dialog with the given ParamSet when clicking the "edit query" button',
+      async () => {
+    await traceFilterSkPO.clickEditBtn();
+    expect(await traceFilterSkPO.isQueryDialogSkOpen()).to.be.true;
   });
 
   describe('empty selection', () => {
-    it('shows empty selection message', () => {
-      expect(isEmptySelectionMessageVisible()).to.be.true;
-      expect(isSelectionVisible()).to.be.false;
+    it('shows empty selection message', async () => {
+      expect(await traceFilterSkPO.isEmptyFilterMessageVisible()).to.be.true;
+      expect(await traceFilterSkPO.isParamSetSkVisible()).to.be.false;
+      expect(await traceFilterSkPO.getSelection()).to.deep.equal({});
     });
 
-    it('query dialog shows an empty selection', () => {
-      clickEditBtn();
-      expect(getQueryDialogSelection()).to.deep.equal({});
+    it('query dialog shows an empty selection', async () => {
+      await traceFilterSkPO.clickEditBtn();
+      expect(await traceFilterSkPO.getQueryDialogSkSelection()).to.deep.equal({});
     });
   });
 
   describe('non-empty selection', () => {
-    const selection: ParamSet = {'car make': ['dodge', 'ford'], 'color': ['blue']};
-
-    beforeEach(() => { traceFilterSk.selection = selection; });
-
-    it('shows the current selection', () => {
-      expect(isEmptySelectionMessageVisible()).to.be.false;
-      expect(getSelectionFromUI()).to.deep.equal(selection);
+    beforeEach(() => {
+      traceFilterSk.selection = selection;
     });
 
-    it('shows the current selection in the query dialog', () => {
-      clickEditBtn();
-      expect(getSelectionFromUI()).to.deep.equal(selection);
+    it('shows the current selection', async () => {
+      expect(await traceFilterSkPO.isEmptyFilterMessageVisible()).to.be.false;
+      expect(await traceFilterSkPO.getParamSetSkContents()).to.deep.equal(selection);
+      expect(await traceFilterSkPO.getSelection()).to.deep.equal(selection);
+    });
+
+    it('shows the current selection in the query dialog', async () => {
+      await traceFilterSkPO.clickEditBtn();
+      expect(await traceFilterSkPO.getQueryDialogSkSelection()).to.deep.equal(selection);
     });
   });
 
   describe('applying changes via the query dialog', () => {
-    const oldSelection: ParamSet = {'car make': ['dodge', 'ford'], 'color': ['blue']};
+    beforeEach(() => {
+      traceFilterSk.selection = selection;
+    });
 
-    beforeEach(() => { traceFilterSk.selection = oldSelection; });
+    it('updates the selection', async () => {
+      await traceFilterSkPO.clickEditBtn();
+      await traceFilterSkPO.setQueryDialogSkSelection(differentSelection);
+      await traceFilterSkPO.clickQueryDialogSkShowMatchesBtn();
 
-    it('updates the selection', () => {
-      clickEditBtn();
-      const newSelection = changeQueryDialogSelectionViaUI();
-      clickQueryDialogSubmitBtn();
-
-      expect(traceFilterSk.selection).to.deep.equal(newSelection);
-      expect(getSelectionFromUI()).to.deep.equal(newSelection);
+      expect(traceFilterSk.selection).to.deep.equal(differentSelection);
+      expect(await traceFilterSkPO.getParamSetSkContents()).to.deep.equal(differentSelection);
     });
 
     it('emits event "trace-filter-sk-change" with the new selection', async () => {
-      clickEditBtn();
-      const newSelection = changeQueryDialogSelectionViaUI();
+      await traceFilterSkPO.clickEditBtn();
+      await traceFilterSkPO.setQueryDialogSkSelection(differentSelection);
 
       const event = eventPromise<CustomEvent<ParamSet>>('trace-filter-sk-change');
-      clickQueryDialogSubmitBtn();
-      expect(((await event) as CustomEvent<ParamSet>).detail).to.deep.equal(newSelection);
+      await traceFilterSkPO.clickQueryDialogSkShowMatchesBtn();
+      expect(((await event) as CustomEvent<ParamSet>).detail).to.deep.equal(differentSelection);
     });
   });
 
   describe('dismissing the query dialog after making changes', () => {
-    const selection: ParamSet = {'car make': ['dodge', 'ford'], 'color': ['blue']};
+    beforeEach(() => {
+      traceFilterSk.selection = selection;
+    });
 
-    beforeEach(() => { traceFilterSk.selection = selection; });
-
-    it('leaves the current selection intact', () => {
-      clickEditBtn();
-      changeQueryDialogSelectionViaUI();
-      clickQueryDialogCancelBtn();
+    it('leaves the current selection intact', async () => {
+      await traceFilterSkPO.clickEditBtn();
+      await traceFilterSkPO.setQueryDialogSkSelection(differentSelection);
+      await traceFilterSkPO.clickQueryDialogSkCancelBtn();
 
       expect(traceFilterSk.selection).to.deep.equal(selection);
-      expect(getSelectionFromUI()).to.deep.equal(selection);
+      expect(await traceFilterSkPO.getParamSetSkContents()).to.deep.equal(selection);
     });
 
     it('does not emit the "trace-filter-sk-change" event', async () => {
-      clickEditBtn();
-      changeQueryDialogSelectionViaUI();
+      await traceFilterSkPO.clickEditBtn();
+      await traceFilterSkPO.setQueryDialogSkSelection(differentSelection);
 
       const noEvent = noEventPromise('trace-filter-sk-change');
-      clickQueryDialogCancelBtn();
+      await traceFilterSkPO.clickQueryDialogSkCancelBtn();
       await noEvent;
     });
   })
-
-  const clickEditBtn = () => $$<HTMLButtonElement>('.edit-query')!.click();
-
-  const isEmptySelectionMessageVisible = () => $$('.empty-placeholder', traceFilterSk) !== null;
-
-  const isSelectionVisible = () => $$('.selection paramset-sk', traceFilterSk) !== null;
-
-  const getSelectionFromUI = () => getParamSetContents('.selection');
-
-  const getQueryDialogSelection = () => getParamSetContents('query-dialog-sk');
-
-  const getParamSetContents = (containerSelector: string): ParamSet => {
-    const paramSet: ParamSet = {};
-    $(`${containerSelector} paramset-sk tr`, traceFilterSk).forEach((tr, i) => {
-      if (i === 0) return; // Skip the first row, which usually displays titles (empty in our case).
-      const key = $$('th', tr)!.textContent!;
-      const values = $('div', tr).map(div => div.textContent!);
-      paramSet[key] = values;
-    })
-    return paramSet;
-  };
-
-  const isQueryDialogOpen = () => $$<HTMLDialogElement>('dialog', traceFilterSk)!.open;
-
-  const changeQueryDialogSelectionViaUI = (): ParamSet => {
-    const queryDialogSk = $$('query-dialog-sk', traceFilterSk)!;
-    $$<HTMLButtonElement>('.clear_selections', queryDialogSk)!.click();
-    $$<HTMLDivElement>('select-sk div:nth-child(2)', queryDialogSk)!.click(); // Color.
-    $$<HTMLDivElement>('multi-select-sk div:nth-child(2)', queryDialogSk)!.click(); // Green.
-    $$<HTMLDivElement>('select-sk div:nth-child(3)', queryDialogSk)!.click(); // Used.
-    $$<HTMLDivElement>('multi-select-sk div:nth-child(1)', queryDialogSk)!.click(); // Yes.
-    $$<HTMLDivElement>('multi-select-sk div:nth-child(2)', queryDialogSk)!.click(); // No.
-    return {'color': ['green'], 'used': ['yes', 'no']};
-  };
-
-  const clickQueryDialogSubmitBtn =
-    () => $$<HTMLButtonElement>('query-dialog-sk .show-matches', traceFilterSk)!.click();
-
-  const clickQueryDialogCancelBtn = () => null;
-    () => $$<HTMLButtonElement>('query-dialog-sk .cancel', traceFilterSk)!.click();
 });
