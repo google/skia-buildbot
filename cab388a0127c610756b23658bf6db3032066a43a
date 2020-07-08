@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "615d4d9d_fe657673",
+        "filename": "perf/modules/explore-sk/explore-sk.ts",
+        "patchSetId": 10
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T22:36:00Z",
+      "side": 1,
+      "message": "These defaults can be inlined with the type declaration, e.g.\n\n  formulas: string \u003d [];",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 23
+      },
+      "revId": "cab388a0127c610756b23658bf6db3032066a43a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6cb7e525_e0400f6d",
+        "filename": "perf/modules/explore-sk/explore-sk.ts",
+        "patchSetId": 10
+      },
+      "lineNbr": 555,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T22:36:00Z",
+      "side": 1,
+      "message": "You might want to write this and other similar comments using /** ... */ so it\u0027s picked up by your IDE.",
+      "range": {
+        "startLine": 555,
+        "startChar": 0,
+        "endLine": 555,
+        "endChar": 56
+      },
+      "revId": "cab388a0127c610756b23658bf6db3032066a43a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
