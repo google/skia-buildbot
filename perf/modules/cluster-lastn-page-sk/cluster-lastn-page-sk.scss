@@ -1,8 +1,11 @@
-@import '~elements-sk/colors';
+@import '~elements-sk/themes/themes.css';
 
 cluster-lastn-page-sk {
   dialog {
     z-index: 4;
+    background: var(--background);
+    color: var(--on-background);
+    border: solid 1px var(--on-background);
   }
 
   .running {
@@ -12,12 +15,6 @@ cluster-lastn-page-sk {
     spinner-sk {
       width: 12px;
       height: 12px;
-    }
-  }
-
-  .controls {
-    label {
-      display: block;
     }
   }
 
