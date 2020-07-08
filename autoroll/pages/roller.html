@@ -1,17 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
-    {{template "header.html" .}}
-
     <title>{{.ChildName}} into {{.ParentName}} AutoRoller</title>
-
   </head>
   <body>
-<!--We must use is=custom-style here so the variables get piped through to the
-    app properly. Note that using custom-style inside <dom-module> can lead to
-    unintended consequences, such as CSS mixins not being visible.
-    https://www.polymer-project.org/1.0/docs/devguide/styling#custom-style -->
-    <style is="custom-style">
+    <style>
     app-sk {
       --app-sk-main: {
         background-color: #FFFFFF;
@@ -34,8 +27,17 @@
     }
     </style>
     <app-sk id="app" class="fit">
-      {{template "navbar.html" .}}
-      <h1 toolbar>{{.ChildName}} into {{.ParentName}} AutoRoller</h1>
+      <header>
+        <h1>{{.ChildName}} into {{.ParentName}} AutoRoller</h1>
+        <login-sk ?testing_offline=${ele.testingOffline}></login-sk>
+      </header>
+      <aside>
+        <nav>
+          <a href="/" tab-index=0>
+            <home-icon-sk></home-icon-sk><span>Home</span>
+          </a>
+        </nav>
+      </aside>
       <arb-status-sk></arb-status-sk>
     </app-sk>
   </body>
