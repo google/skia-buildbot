@@ -210,6 +210,13 @@ func testDB(t *testing.T, db DB) {
 	oldDbModified = reqs[0].DbModified
 	require.EqualError(t, db.Put(reqs[0]), ErrConcurrentUpdate.Error())
 	require.Equal(t, reqs[0].DbModified, oldDbModified) // Verify that we didn't update DbModified.
+
+	// Test Get.
+	r, err = db.Get(context.Background(), id)
+	require.NoError(t, err)
+	require.Equal(t, id, r.Id)
+	require.Equal(t, RESULT_SUCCESS, r.Result)
+	require.Equal(t, STATUS_COMPLETE, r.Status)
 }
 
 func TestMemoryDB(t *testing.T) {
