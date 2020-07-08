@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8cdd89ea_bae066c5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 12339
+      },
+      "writtenOn": "2020-07-08T16:44:34Z",
+      "side": 1,
+      "message": "+borenet@ - could you ptal for this sheriff list update as well for pgo bots? thanks!",
+      "revId": "f9accdf8486bac094ea5946f75fc8965e2b5c3ce",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
