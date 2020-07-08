@@ -1,5 +1,13 @@
 @import '~elements-sk/themes/themes.css';
 
+html {
+  --secondary: #2c6d3d;
+}
+
+.darkmode {
+  --primary: #629fe4;
+}
+
 // If the sidebar is to be hidden then we remove it from the grid.
 perf-scaffold-sk.sidebar_hidden {
   grid-template-areas:
@@ -47,7 +55,7 @@ perf-scaffold-sk {
     display: flex;
     flex-direction: column;
 
-    background: var(--surface-2dp);
+    background: var(--secondary);
 
     ul {
       padding-inline-start: 0;
@@ -63,8 +71,8 @@ perf-scaffold-sk {
     }
 
     li > * {
-      fill: var(--primary);
-      color: var(--primary);
+      fill: var(--on-primary);
+      color: var(--on-primary);
     }
 
     li:hover {
@@ -80,6 +88,7 @@ perf-scaffold-sk {
     color: var(--on-primary);
     fill: var(--on-primary);
     background: var(--primary);
+    border-bottom: 1px solid var(--on-primary);
 
     #toggleSidebarButton {
       fill: var(--on-primary);
@@ -102,20 +111,24 @@ perf-scaffold-sk {
       vertical-align: middle;
       padding: 0.2em;
       padding-left: 1em;
-      color: var(--primary);
+      color: var(--on-primary);
     }
 
     div {
       margin: 1em;
     }
-  }
 
-  login-sk {
-    margin-left: auto;
-    margin-right: 1em;
-    display: block;
-    color: var(--on-primary);
-    --login-sk-color: var(--on-primary);
+    login-sk {
+      margin-left: auto;
+      margin-right: 1em;
+      display: block;
+    }
+
+    login-sk .email,
+    login-sk .logInOut {
+      color: var(--on-primary);
+      --login-sk-color: var(--on-primary);
+    }
   }
 
   h1 {
