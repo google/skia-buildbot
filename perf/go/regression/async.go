@@ -36,6 +36,9 @@ const (
 	ProcessError ProcessState = "Error"
 )
 
+// AllProcessState is a list of all ProcessState possible values.
+var AllProcessState = []ProcessState{ProcessRunning, ProcessSuccess, ProcessError}
+
 const (
 	// maxFinishedProcessAge is the amount of time to keep a finished
 	// RegressionDetectionRequestProcess around before deleting it.
