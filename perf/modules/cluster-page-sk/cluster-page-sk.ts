@@ -424,8 +424,8 @@ export class ClusterPageSk extends ElementSk {
           }
           this.catch(json.message);
         }
-      })
-      .catch((msg) => this.catch(msg));
+      });
+    // .catch((msg) => this.catch(msg));
   }
 
   private start() {
