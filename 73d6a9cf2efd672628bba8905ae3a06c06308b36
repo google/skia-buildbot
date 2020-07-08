@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cef5f3cf_c72f9881",
+        "filename": "perf/modules/cluster-lastn-page-sk/cluster-lastn-page-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T22:41:57Z",
+      "side": 1,
+      "message": "Nit: Consider either prefixing all private fields with _, or dropping the prefix for consistency.",
+      "range": {
+        "startLine": 267,
+        "startChar": 10,
+        "endLine": 267,
+        "endChar": 22
+      },
+      "revId": "73d6a9cf2efd672628bba8905ae3a06c06308b36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
