@@ -26,11 +26,11 @@ domain-picker-sk {
   .ranges > label > input {
     color: var(--on-surface);
     background: var(--surface-1dp);
-    width: 50px;
+    width: 64px;
   }
 
   input[type='number'] {
-    width: 92px; // Because Safari has bad default sizing.
+    width: 64px; // Because Safari has bad default sizing.
   }
 
   calendar-input-sk {

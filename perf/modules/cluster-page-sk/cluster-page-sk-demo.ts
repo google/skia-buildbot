@@ -43,21 +43,10 @@ const paramSet = {
   cpu_or_gpu: ['CPU', 'GPU'],
 };
 
-fetchMock.post(
-  '/_/count/',
-  // Wait 1s before returning the content so we can see the spinner in action.
-  async () =>
-    new Promise((res) =>
-      setTimeout(
-        () =>
-          res({
-            count: Math.floor(Math.random() * 2000),
-            paramset: paramSet,
-          }),
-        1000
-      )
-    )
-);
+fetchMock.post('/_/count/', {
+  count: Math.floor(Math.random() * 2000),
+  paramset: paramSet,
+});
 
 fetchMock.get('/_/initpage/?tz=America/New_York', () => ({
   dataframe: {
