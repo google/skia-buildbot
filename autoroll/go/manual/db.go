@@ -104,8 +104,8 @@ type ManualRollRequest struct {
 	Url           string           `json:"url,omitempty"`
 
 	DryRun bool `json:"dry_run"`
-	// If Emails is empty then the requester and sheriffs will be emailed.
-	Emails []string `json:"emails"`
+	// Do not email the requester and sheriffs if this is true. Eg: for canaries.
+	NoEmail bool `json:"no_email"`
 	// Do not call rm.GetRevision(Revision) if this is true. Use Revision{Id: Revision} instead.
 	NoResolveRevision bool `json:"no_resolve_revision"`
 }
@@ -125,7 +125,7 @@ func (r *ManualRollRequest) Copy() *ManualRollRequest {
 		Url:           r.Url,
 
 		DryRun:            r.DryRun,
-		Emails:            util.CopyStringSlice(r.Emails),
+		NoEmail:           r.NoEmail,
 		NoResolveRevision: r.NoResolveRevision,
 	}
 }

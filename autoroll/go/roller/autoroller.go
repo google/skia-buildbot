@@ -880,10 +880,8 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 				}
 				continue
 			}
-			var emails []string
-			if req.Emails != nil && len(req.Emails) != 0 {
-				emails = req.Emails
-			} else {
+			emails := []string{}
+			if !req.NoEmail {
 				emails = r.GetEmails()
 				if !util.In(req.Requester, emails) {
 					emails = append(emails, req.Requester)
