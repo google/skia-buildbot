@@ -22,6 +22,30 @@
       "revId": "f04467a9c6fa9b6412df845011a25d26299c926d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3564e803_4472b0e6",
+        "filename": "autoroll/go/manual/db.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-08T15:36:14Z",
+      "side": 1,
+      "message": "Oh, I thought that would not have support for retries and timeouts but it does. Done.",
+      "parentUuid": "e92bb640_64050569",
+      "range": {
+        "startLine": 251,
+        "startChar": 1,
+        "endLine": 251,
+        "endChar": 152
+      },
+      "revId": "f04467a9c6fa9b6412df845011a25d26299c926d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
