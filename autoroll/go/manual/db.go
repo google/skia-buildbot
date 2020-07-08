@@ -181,6 +181,9 @@ type DB interface {
 	// Close cleans up resources associated with the DB.
 	Close() error
 
+	// Returns the ManualRollRequest with the specified rollId.
+	Get(rollId string) (*ManualRollRequest, error)
+
 	// Return recent ManualRollRequests for the given roller, up to the
 	// given limit, in reverse chronological order.
 	GetRecent(rollerName string, limit int) ([]*ManualRollRequest, error)
@@ -240,6 +243,27 @@ func (d *firestoreDB) GetRecent(rollerName string, limit int) ([]*ManualRollRequ
 		return nil, err
 	}
 	return rv, nil
+}
+
+// See documentation for DB interface.
+func (d *firestoreDB) Get(rollId string) (*ManualRollRequest, error) {
+	var manualRoll ManualRollRequest
+	getErr := d.client.RunTransaction(context.TODO(), "Get", rollId, DEFAULT_ATTEMPTS, QUERY_TIMEOUT, func(ctx context.Context, tx *fs.Transaction) error {
+		ref := d.coll.Doc(rollId)
+		doc, err := tx.Get(ref)
+		if err != nil {
+			if status.Code(err) == codes.NotFound {
+				return ErrNotFound
+			} else {
+				return err
+			}
+		}
+		if err := doc.DataTo(&manualRoll); err != nil {
+			return err
+		}
+		return nil
+	})
+	return &manualRoll, getErr
 }
 
 // See documentation for DB interface.
@@ -334,6 +358,20 @@ func NewInMemoryDB() DB {
 // See documentation for DB interface.
 func (d *memoryDB) Close() error {
 	return nil
+}
+
+// See documentation for DB interface.
+func (d *memoryDB) Get(rollId string) (*ManualRollRequest, error) {
+	d.mtx.RLock()
+	defer d.mtx.RUnlock()
+	for _, rolls := range d.data {
+		for _, r := range rolls {
+			if r.Id == rollId {
+				return r, nil
+			}
+		}
+	}
+	return nil, ErrNotFound
 }
 
 // See documentation for DB interface.
