@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1069137b_d43b2c34",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-08T21:00:16Z",
+      "side": 1,
+      "message": "PTAL. I reverted the earlier suggestions about Partial and default values because it was awkward to use downstream. As discussed, we\u0027ll keep it simple and add complexity later if needed.",
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
