@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c7fc290a_eec55306",
+        "filename": "perf/modules/cluster-page-sk/cluster-page-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T22:38:46Z",
+      "side": 1,
+      "message": "Consider inlining these with the field declarations.",
+      "range": {
+        "startLine": 61,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 62
+      },
+      "revId": "62a5a39a9efc2910c12b5b234b4c362892423891",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e39b9a8e_c2d9ded8",
+        "filename": "perf/modules/cluster-page-sk/cluster-page-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T22:38:46Z",
+      "side": 1,
+      "message": "Consider:\n\n  begin?: number;\n\nSame below.",
+      "range": {
+        "startLine": 75,
+        "startChar": 0,
+        "endLine": 75,
+        "endChar": 23
+      },
+      "revId": "62a5a39a9efc2910c12b5b234b4c362892423891",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95e04470_e16c7ce4",
+        "filename": "perf/modules/cluster-page-sk/cluster-page-sk.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T22:38:46Z",
+      "side": 1,
+      "message": "Consider annotating this with a TODO() comment.",
+      "range": {
+        "startLine": 250,
+        "startChar": 62,
+        "endLine": 250,
+        "endChar": 78
+      },
+      "revId": "62a5a39a9efc2910c12b5b234b4c362892423891",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
