@@ -88,7 +88,7 @@ export const clusterDiffJSON = {
       'AMD', 'nVidia',
     ],
     source_type: [
-      'infra',
+      'infra', 'some-other-corpus',
     ],
   },
 };
