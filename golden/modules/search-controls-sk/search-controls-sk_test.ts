@@ -1,400 +1,102 @@
 import './index';
-import { $, $$ } from 'common-sk/modules/dom';
 import { setUpElementUnderTest, eventPromise } from '../../../infra-sk/modules/test_util';
 import { ParamSet } from 'common-sk/modules/query';
 import { SearchControlsSk, SearchCriteria } from './search-controls-sk';
-import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { SearchControlsSkPO } from './search-controls-sk_po';
 
 const expect = chai.expect;
 
-describe('search-controls-sk', () => {
-  const corpora = ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg'];
+const corpora = ['canvaskit', 'colorImage', 'gm', 'image', 'pathkit', 'skp', 'svg'];
 
-  const paramSet: ParamSet = {
-    'car make': ['chevrolet', 'dodge', 'ford', 'lincoln motor company'],
-    'color': ['blue', 'green', 'red'],
-    'used': ['yes', 'no'],
-    'year': ['2020', '2019', '2018', '2017', '2016', '2015']
+const paramSet: ParamSet = {
+  'car make': ['chevrolet', 'dodge', 'ford', 'lincoln motor company'],
+  'color': ['blue', 'green', 'red'],
+  'used': ['yes', 'no'],
+  'year': ['2020', '2019', '2018', '2017', '2016', '2015']
+};
+
+// Takes a partial SearchCriteria and returns a full SearchCriteria by filling any missing fields
+// with either zero values or sensible defaults.
+const makeSearchCriteria = (partial: Partial<SearchCriteria> = {}) => {
+  const defaults: SearchCriteria = {
+    corpus: 'gm',
+    leftHandTraceFilter: {},
+    rightHandTraceFilter: {},
+    includePositiveDigests: false,
+    includeNegativeDigests: false,
+    includeUntriagedDigests: false,
+    includeDigestsNotAtHead: false,
+    includeIgnoredDigests: false,
+    minRGBADelta: 0,
+    maxRGBADelta: 0,
+    mustHaveReferenceImage: false,
+    sortOrder: 'ascending'
   };
+  return {...defaults, ...partial};
+}
 
-  // Takes a partial SearchCriteria and returns a full SearchCriteria by filling any missing fields
-  // with either zero values or sensible defaults.
-  const makeSearchCriteria = (partial: Partial<SearchCriteria> = {}) => {
-    const defaults: SearchCriteria = {
-      corpus: 'gm',
-      leftHandTraceFilter: {},
-      rightHandTraceFilter: {},
-      includePositiveDigests: false,
-      includeNegativeDigests: false,
-      includeUntriagedDigests: false,
-      includeDigestsNotAtHead: false,
-      includeIgnoredDigests: false,
-      minRGBADelta: 0,
-      maxRGBADelta: 0,
-      mustHaveReferenceImage: false,
-      sortOrder: 'ascending'
-    };
-    return {...defaults, ...partial};
-  }
-
+describe('search-controls-sk', () => {
   const newInstance = setUpElementUnderTest<SearchControlsSk>('search-controls-sk');
 
   let searchControlsSk: SearchControlsSk;
+  let searchControlsSkPO: SearchControlsSkPO;
 
   beforeEach(() => {
     searchControlsSk = newInstance();
     searchControlsSk.corpora = corpora;
     searchControlsSk.paramSet = paramSet;
     searchControlsSk.searchCriteria = makeSearchCriteria();
+
+    searchControlsSkPO = new SearchControlsSkPO(searchControlsSk);
   });
 
-  it('shows the initial value', () => {
-    expect(getSearchCriteriaFromUI()).to.deep.equal(makeSearchCriteria());
+  it('shows the initial value', async () => {
+    expect(await searchControlsSkPO.getSearchCriteria()).to.deep.equal(makeSearchCriteria());
   });
 
-  describe('corpus', () => {
-    const searchCriteria = makeSearchCriteria({corpus: 'image'});
+  const describeField = (name: string, partialSearchCriteria: Partial<SearchCriteria>) => {
+    const searchCriteria = makeSearchCriteria(partialSearchCriteria);
 
-    it('can change programmatically', () => {
-      searchControlsSk.searchCriteria = searchCriteria;
-      expect(getCorpus()).to.equal('image');
-    });
-
-    it('can change via the UI', async () => {
-      const event = changeEventPromise();
-      clickCorpus('image');
-      expect((await event).detail).to.deep.equal(searchCriteria);
-      expect(searchControlsSk.searchCriteria).to.deep.equal(searchCriteria);
-    });
-  });
-
-  describe('include positive digests', () => {
-    const searchCriteria = makeSearchCriteria({includePositiveDigests: true});
-
-    it('can change programmatically', () => {
-      searchControlsSk.searchCriteria = searchCriteria;
-      expect(getIncludePositiveDigestsCheckBox().checked).to.be.true;
-    });
-
-    it('can change via the UI', async () => {
-      const event = changeEventPromise();
-      getIncludePositiveDigestsCheckBox().click();
-      expect((await event).detail).to.deep.equal(searchCriteria);
-      expect(searchControlsSk.searchCriteria).to.deep.equal(searchCriteria);
-    });
-  });
-
-  describe('include negative digests', () => {
-    const searchCriteria = makeSearchCriteria({includeNegativeDigests: true});
-
-    it('can change programmatically', () => {
-      searchControlsSk.searchCriteria = searchCriteria;
-      expect(getIncludeNegativeDigestsCheckBox().checked).to.be.true;
-    });
-
-    it('can change via the UI', async () => {
-      const event = changeEventPromise();
-      getIncludeNegativeDigestsCheckBox().click();
-      expect((await event).detail).to.deep.equal(searchCriteria);
-      expect(searchControlsSk.searchCriteria).to.deep.equal(searchCriteria);
-    });
-  });
-
-  describe('include untriaged digests', () => {
-    const searchCriteria = makeSearchCriteria({includeUntriagedDigests: true});
-
-    it('can change programmatically', () => {
-      searchControlsSk.searchCriteria = searchCriteria;
-      expect(getIncludeUntriagedDigestsCheckBox().checked).to.be.true;
-    });
-
-    it('can change via the UI', async () => {
-      const event = changeEventPromise();
-      getIncludeUntriagedDigestsCheckBox().click();
-      expect((await event).detail).to.deep.equal(searchCriteria);
-      expect(searchControlsSk.searchCriteria).to.deep.equal(searchCriteria);
-    });
-  });
-
-  describe('include digests not at HEAD', () => {
-    const searchCriteria = makeSearchCriteria({includeDigestsNotAtHead: true});
-
-    it('can change programmatically', () => {
-      searchControlsSk.searchCriteria = searchCriteria;
-      expect(getIncludeDigestsNotAtHeadCheckBox().checked).to.be.true;
-    });
-
-    it('can change via the UI', async () => {
-      const event = changeEventPromise();
-      getIncludeDigestsNotAtHeadCheckBox().click();
-      expect((await event).detail).to.deep.equal(searchCriteria);
-      expect(searchControlsSk.searchCriteria).to.deep.equal(searchCriteria);
-    });
-  });
-
-  describe('include ignored digests', () => {
-    const searchCriteria = makeSearchCriteria({includeIgnoredDigests: true});
-
-    it('can change programmatically', () => {
-      searchControlsSk.searchCriteria = searchCriteria;
-      expect(getIncludeIgnoredDigestsCheckBox().checked).to.be.true;
-    });
-
-    it('can change via the UI', async () => {
-      const event = changeEventPromise();
-      getIncludeIgnoredDigestsCheckBox().click();
-      expect((await event).detail).to.deep.equal(searchCriteria);
-      expect(searchControlsSk.searchCriteria).to.deep.equal(searchCriteria);
-    });
-  });
-
-  describe('left-hand trace filter', () => {
-    it('can change programmatically', () => {
-      searchControlsSk.searchCriteria =
-        makeSearchCriteria({leftHandTraceFilter: {'car make': ['ford']}});
-      expect(getLeftHandTraceFilterValue()).to.deep.equal({'car make': ['ford']});
-    });
-
-    it('can change via the UI', async () => {
-      const event = changeEventPromise();
-      const traceFilter = changeLeftHandTraceFilter();
-      expect((await event).detail)
-        .to.deep.equal(makeSearchCriteria({leftHandTraceFilter: traceFilter}));
-      expect(searchControlsSk.searchCriteria)
-        .to.deep.equal(makeSearchCriteria({leftHandTraceFilter: traceFilter}));
-    });
-  });
-
-  describe('more filters', () => {
-    describe('right-hand trace filter', () => {
-      it('can change programmatically', () => {
-        searchControlsSk.searchCriteria =
-          makeSearchCriteria({rightHandTraceFilter: {'car make': ['ford']}});
-        clickMoreFiltersBtn();
-        expect(getRightHandTraceFilterValue()).to.deep.equal({'car make': ['ford']});
-      });
-
-      it('can change via the UI', async () => {
-        const event = changeEventPromise();
-        clickMoreFiltersBtn();
-        const traceFilter = changeRightHandTraceFilter();
-        clickFilterDialogSubmitBtn();
-        expect((await event).detail)
-          .to.deep.equal(makeSearchCriteria({rightHandTraceFilter: traceFilter}));
-        expect(searchControlsSk.searchCriteria)
-          .to.deep.equal(makeSearchCriteria({rightHandTraceFilter: traceFilter}));
-      });
-    });
-
-    describe('min RGBA delta', () => {
-      // Arbitrary number in the middle of the allowed range (0 to 255).
-      const searchCriteria = makeSearchCriteria({minRGBADelta: 100});
-
-      it('can change programmatically', () => {
+    describe(name, () => {
+      it('can change programmatically', async () => {
         searchControlsSk.searchCriteria = searchCriteria;
-        clickMoreFiltersBtn();
-        expect(getMinRGBADeltaInput().value).to.equal('100');
+        expect(await searchControlsSkPO.getSearchCriteria()).to.deep.equal(searchCriteria);
       });
 
       it('can change via the UI', async () => {
-        const event = changeEventPromise();
-        clickMoreFiltersBtn();
-        getMinRGBADeltaInput().value = '100';
-        getMinRGBADeltaInput().dispatchEvent(new CustomEvent('input')); // Simulate UI interaction.
-        clickFilterDialogSubmitBtn();
-        expect((await event).detail).to.deep.equal(searchCriteria);
+        await searchControlsSkPO.setSearchCriteria(searchCriteria);
         expect(searchControlsSk.searchCriteria).to.deep.equal(searchCriteria);
       });
-    });
 
-    describe('max RGBA delta', () => {
-      // Arbitrary number in the middle of the allowed range (0 to 255).
-      const searchCriteria = makeSearchCriteria({maxRGBADelta: 100});
-
-      it('can change programmatically', () => {
-        searchControlsSk.searchCriteria = searchCriteria;
-        clickMoreFiltersBtn();
-        expect(getMaxRGBADeltaInput().value).to.equal('100');
-      });
-
-      it('can change via the UI', async () => {
-        const event = changeEventPromise();
-        clickMoreFiltersBtn();
-        getMaxRGBADeltaInput().value = '100';
-        getMaxRGBADeltaInput().dispatchEvent(new CustomEvent('input')); // Simulate UI interaction.
-        clickFilterDialogSubmitBtn();
+      it('emits event "search-controls-sk-change" when it changes via the UI', async () => {
+        const event = eventPromise<CustomEvent<SearchCriteria>>('search-controls-sk-change');
+        await searchControlsSkPO.setSearchCriteria(searchCriteria);
         expect((await event).detail).to.deep.equal(searchCriteria);
-        expect(searchControlsSk.searchCriteria).to.deep.equal(searchCriteria);
       });
     });
-
-    describe('sort order', () => {
-      const searchCriteria = makeSearchCriteria({sortOrder: 'descending'});
-
-      it('can change programmatically', () => {
-        searchControlsSk.searchCriteria = searchCriteria;
-        clickMoreFiltersBtn();
-        expect(getSortOrderSelect().value).to.equal('descending');
-      });
-
-      it('can change via the UI', async () => {
-        const event = changeEventPromise();
-        clickMoreFiltersBtn();
-        getSortOrderSelect().value = 'descending';
-        getSortOrderSelect().dispatchEvent(new CustomEvent('change')); // Simulate UI interaction.
-        clickFilterDialogSubmitBtn();
-        expect((await event).detail).to.deep.equal(searchCriteria);
-        expect(searchControlsSk.searchCriteria).to.deep.equal(searchCriteria);
-      });
-    });
-
-    describe('must have reference image', () => {
-      const searchCriteria = makeSearchCriteria({mustHaveReferenceImage: true});
-
-      it('can change programmatically', () => {
-        searchControlsSk.searchCriteria = searchCriteria;
-        clickMoreFiltersBtn();
-        expect(getMustHaveReferenceImageCheckBox().checked).to.be.true;
-      });
-
-      it('can change via the UI', async () => {
-        const event = changeEventPromise();
-        clickMoreFiltersBtn();
-        getMustHaveReferenceImageCheckBox().click();
-        clickFilterDialogSubmitBtn();
-        expect((await event).detail).to.deep.equal(searchCriteria);
-        expect(searchControlsSk.searchCriteria).to.deep.equal(searchCriteria);
-      });
-    });
-  });
-
-  const changeEventPromise =
-    () => eventPromise<CustomEvent<SearchCriteria>>('search-controls-sk-change');
-
-  // Returns the SearchCriteria displayed by the search-controls-sk element by inspecting the DOM.
-  const getSearchCriteriaFromUI = (): SearchCriteria => {
-    const searchCriteria: Partial<SearchCriteria> = {}
-    searchCriteria.corpus = getCorpus();
-    searchCriteria.leftHandTraceFilter = getLeftHandTraceFilterValue();;
-    searchCriteria.includePositiveDigests = getIncludePositiveDigestsCheckBox().checked;
-    searchCriteria.includeNegativeDigests = getIncludeNegativeDigestsCheckBox().checked;
-    searchCriteria.includeUntriagedDigests = getIncludeUntriagedDigestsCheckBox().checked;
-    searchCriteria.includeDigestsNotAtHead = getIncludeDigestsNotAtHeadCheckBox().checked;
-    searchCriteria.includeIgnoredDigests = getIncludeIgnoredDigestsCheckBox().checked;
-
-    // More filters dialog.
-    clickMoreFiltersBtn();
-    searchCriteria.rightHandTraceFilter = getTraceFilterValue('filter-dialog-sk trace-filter-sk');
-    searchCriteria.minRGBADelta = parseInt(getMinRGBADeltaInput().value);
-    searchCriteria.maxRGBADelta = parseInt(getMaxRGBADeltaInput().value);
-    searchCriteria.mustHaveReferenceImage = getMustHaveReferenceImageCheckBox().checked;
-    searchCriteria.sortOrder = getSortOrderSelect().value as 'ascending' | 'descending';
-    clickFilterDialogCancelBtn();
-
-    return searchCriteria as SearchCriteria;
   };
 
-  // Corpus.
+  describeField('corpus', {corpus: 'image'});
 
-  const getCorpus =
-    () => $$<HTMLLIElement>('corpus-selector-sk li.selected', searchControlsSk)!.innerText;
+  describeField('include positive digests', {includePositiveDigests: true});
 
-  const clickCorpus =
-    (corpus: string) =>
-      $<HTMLLIElement>('corpus-selector-sk li', searchControlsSk)
-        .find(li => li.innerText === corpus)!
-        .click();
+  describeField('include negative digests', {includeNegativeDigests: true});
 
-  // Checkboxes.
+  describeField('include untriaged digests', {includeUntriagedDigests: true});
 
-  const getIncludePositiveDigestsCheckBox =
-    () => $$<CheckOrRadio>('.include-positive-digests', searchControlsSk)!;
+  describeField('include digests not at head', {includeDigestsNotAtHead: true});
 
-  const getIncludeNegativeDigestsCheckBox =
-    () => $$<CheckOrRadio>('.include-negative-digests', searchControlsSk)!;
+  describeField('include ignored digests', {includeIgnoredDigests: true});
 
-  const getIncludeUntriagedDigestsCheckBox =
-    () => $$<CheckOrRadio>('.include-untriaged-digests', searchControlsSk)!;
+  describeField('left-hand trace filter', {leftHandTraceFilter: {'car make': ['ford']}});
 
-  const getIncludeDigestsNotAtHeadCheckBox =
-    () => $$<CheckOrRadio>('.include-digests-not-at-head', searchControlsSk)!;
+  describeField('right-hand trace filter', {rightHandTraceFilter: {'car make': ['ford']}});
 
-  const getIncludeIgnoredDigestsCheckBox =
-    () => $$<CheckOrRadio>('.include-ignored-digests', searchControlsSk)!;
+  describeField('min RGBA delta', {minRGBADelta: 100}); // Arbitrary; valid range is (0 to 255).
 
-  // Trace filters.
+  describeField('max RGBA delta', {maxRGBADelta: 100}); // Arbitrary; valid range is (0 to 255).
 
-  const getLeftHandTraceFilterValue = () => getTraceFilterValue('.traces trace-filter-sk');
+  describeField('sort order', {sortOrder: 'descending'});
 
-  const getRightHandTraceFilterValue =
-    () => getTraceFilterValue('filter-dialog-sk trace-filter-sk');
-
-  const getTraceFilterValue = (selector: string): ParamSet => {
-    const paramSet: ParamSet = {};
-    $(`${selector} paramset-sk tr`, searchControlsSk).forEach((tr, i) => {
-      if (i === 0) return; // Skip the first row, which is empty as there are no titles.
-      const key = $$('th', tr)!.textContent!;
-      const values = $('div', tr).map(div => div.textContent!);
-      paramSet[key] = values;
-    })
-    return paramSet;
-  };
-
-  const changeLeftHandTraceFilter = () => {
-    const selector = '.traces trace-filter-sk query-dialog-sk';
-    $$<HTMLButtonElement>('.traces .edit-query')!.click();
-    const newFilter = changeQueryDialogSelection(selector);
-    clickQueryDialogSubmitBtn(selector);
-    return newFilter;
-  };
-
-  const changeRightHandTraceFilter = () => {
-    const selector = 'filter-dialog-sk query-dialog-sk';
-    $$<HTMLButtonElement>('filter-dialog-sk .edit-query')!.click();
-    const newFilter = changeQueryDialogSelection(selector);
-    clickQueryDialogSubmitBtn(selector);
-    return newFilter;
-  };
-
-  const changeQueryDialogSelection = (queryDialogSelector: string): ParamSet => {
-    const queryDialogSk = $$(queryDialogSelector, searchControlsSk)!;
-    $$<HTMLButtonElement>('.clear_selections', queryDialogSk)!.click();
-    $$<HTMLDivElement>('select-sk div:nth-child(2)', queryDialogSk)!.click(); // Color.
-    $$<HTMLDivElement>('multi-select-sk div:nth-child(2)', queryDialogSk)!.click(); // Green.
-    $$<HTMLDivElement>('select-sk div:nth-child(3)', queryDialogSk)!.click(); // Used.
-    $$<HTMLDivElement>('multi-select-sk div:nth-child(1)', queryDialogSk)!.click(); // Yes.
-    $$<HTMLDivElement>('multi-select-sk div:nth-child(2)', queryDialogSk)!.click(); // No.
-    return {'color': ['green'], 'used': ['yes', 'no']};
-  };
-
-  const clickQueryDialogSubmitBtn =
-    (queryDialogSelector: string) =>
-      $$<HTMLButtonElement>(`${queryDialogSelector} .show-matches`, searchControlsSk)!.click();
-
-  // More filters.
-
-  const clickMoreFiltersBtn =
-    () => $$<HTMLButtonElement>('.more-filters', searchControlsSk)!.click();
-
-  const clickFilterDialogSubmitBtn =
-    () =>
-      $$<HTMLButtonElement>(
-        'filter-dialog-sk .filter-dialog > .buttons .filter', searchControlsSk)!.click();
-
-  const clickFilterDialogCancelBtn =
-    () =>
-      $$<HTMLButtonElement>(
-        'filter-dialog-sk .filter-dialog > .buttons .cancel', searchControlsSk)!.click();
-
-  const getMinRGBADeltaInput =
-    () => $$<HTMLInputElement>('filter-dialog-sk #min-rgba-delta', searchControlsSk)!;
-
-  const getMaxRGBADeltaInput =
-    () => $$<HTMLInputElement>('filter-dialog-sk #max-rgba-delta', searchControlsSk)!;
-
-  const getSortOrderSelect =
-    () => $$<HTMLSelectElement>('filter-dialog-sk #sort-order', searchControlsSk)!;
-
-  const getMustHaveReferenceImageCheckBox =
-    () => $$<CheckOrRadio>('filter-dialog-sk #must-have-reference-image')!;
+  describeField('must have a reference image', {mustHaveReferenceImage: true});
 });
