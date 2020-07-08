@@ -44,7 +44,7 @@ const paramSet = {
 };
 
 fetchMock.post('/_/count/', {
-  count: Math.floor(Math.random() * 2000),
+  count: 117, // Don't make the demo page non-deterministic.
   paramset: paramSet,
 });
 
