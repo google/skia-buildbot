@@ -12,15 +12,65 @@ import { live } from 'lit-html/directives/live';
 import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import { deepCopy } from 'common-sk/modules/object';
-import { ParamSet } from 'common-sk/modules/query';
+import { fromParamSet, toParamSet, ParamSet } from 'common-sk/modules/query';
+import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { FilterDialogSk, Filters } from '../filter-dialog-sk/filter-dialog-sk';
+import { defaultCorpus } from '../settings';
 
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/styles/buttons';
 import '../corpus-selector-sk';
 import '../filter-dialog-sk';
 import '../trace-filter-sk';
+
+// fromURL returns a SearchCriteria filled in with the values returned by common-sk's toObject
+// value (when given a URL query string). If a value is missing, it sets a default value.
+export function fromURL(urlObj: HintableObject) {
+  return {
+    corpus: (urlObj.corpus as string) || defaultCorpus(),
+
+    leftHandTraceFilter: toParamSet(urlObj.left_filter as string),
+    rightHandTraceFilter: toParamSet(urlObj.right_filter as string),
+
+    includePositiveDigests: !!urlObj.positive,
+    includeNegativeDigests: !!urlObj.negative,
+    includeUntriagedDigests: !!urlObj.untriaged,
+    includeDigestsNotAtHead: !!urlObj.not_at_head,
+    includeIgnoredDigests: !!urlObj.include_ignored,
+
+    minRGBADelta: urlObj.min_rgba || 0,
+    maxRGBADelta: urlObj.max_rgba || 255,
+    mustHaveReferenceImage: !!urlObj.reference_required,
+
+    sortOrder: (urlObj.sort as string) || 'descending',
+  } as SearchCriteria
+}
+
+// toHintableObject returns a HintableObject filled with either the values of the passed in
+// object or a falsey value of the same type. This will be used by common-sk's toObject and
+// fromObject to create url params that correspond with a SearchCriteria. This and fromURL
+// coordinate on how the values of SearchCriteria will be shown in the url.
+export function toHintableObject(sc: SearchCriteria | Partial<SearchCriteria>) {
+  return {
+    corpus: sc.corpus || '',
+
+    left_filter: fromParamSet(sc.leftHandTraceFilter!), // note this is converted to a string.
+    right_filter: fromParamSet(sc.rightHandTraceFilter!), // note this is converted to a string.
+
+    positive: sc.includePositiveDigests || false,
+    negative: sc.includeNegativeDigests || false,
+    untriaged: sc.includeUntriagedDigests || false,
+    not_at_head: sc.includeDigestsNotAtHead || false,
+    include_ignored: sc.includeIgnoredDigests || false,
+
+    min_rgba: sc.minRGBADelta || 0,
+    max_rgba: sc.maxRGBADelta || 0,
+    reference_required: sc.mustHaveReferenceImage || false,
+
+    sort: sc.sortOrder || '',
+  } as HintableObject
+}
 
 /** A digest search criteria.  */
 export interface SearchCriteria {
@@ -42,7 +92,7 @@ export interface SearchCriteria {
   mustHaveReferenceImage: boolean;
 
   sortOrder: 'ascending' | 'descending';
-};
+}
 
 /** A component that allows the user to view and edit a digest search criteria. */
 export class SearchControlsSk extends ElementSk {
