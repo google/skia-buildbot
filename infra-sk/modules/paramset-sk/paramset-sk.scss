@@ -48,11 +48,11 @@ paramset-sk {
       background-color: var(--surface, --white);
     }
     to {
-      background-color: var(--surface-2dp, --orange);
+      background-color: var(--surface-1dp, --orange);
     }
   }
 
   tr:nth-child(even) {
-    background-color: var(--surface-1dp, --dark-white);
+    background-color: var(--surface, --dark-white);
   }
 }
