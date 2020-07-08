@@ -1,45 +1,48 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Skia Performance Monitoring | Help</title>
-    <style type="text/css" media="screen">
-      section {
-        margin: 2em;
-      }
 
-      p {
-        margin: 1em;
-      }
+<head>
+  <title>Skia Performance Monitoring | Help</title>
+  <style type="text/css" media="screen">
+    section {
+      margin: 2em;
+    }
 
-      h2 {
-        margin-bottom: 0.5em;
-        margin-top: 1em;
-      }
-    </style>
-  </head>
-  <body>
-    <perf-scaffold-sk>
-      <div id="container">
-        <section>
-          {{range $k, $v := .Funcs}}
-          <h2>{{$k}}</h2>
-          <p>{{$v.Describe}}</p>
-          {{end}}
-        </section>
+    p {
+      margin: 1em;
+    }
 
-        <section>
-          <h2>Examples</h2>
-          <code>ave(fill(filter("config=8888")))</code>
-          <p>Plot a single curve that's the average of all the traces that have a config of '8888'.
-            The traces have missing data points filled in from nearby runs.</p>
+    h2 {
+      margin-bottom: 0.5em;
+      margin-top: 1em;
+    }
+  </style>
+</head>
 
-          <code>ave(filter(""))</code>
-          <p>Plot a single curve that's the average of all the traces.</p>
+<body class="body-sk">
+  <perf-scaffold-sk>
+    <div id="container">
+      <section>
+        {{range $k, $v := .Funcs}}
+        <h2>{{$k}}</h2>
+        <p>{{$v.Describe}}</p>
+        {{end}}
+      </section>
 
-          <code>norm(filter("test=desk_linkedin.skp_1_1000_1000"))</code>
-          <p>Plot the normalized version of all the traces for 'desk_linkedin.skp_1_1000_1000'.</p>
-        </section>
-      </div>
-    </perf-scaffold-sk>
-  </body>
+      <section>
+        <h2>Examples</h2>
+        <code>ave(fill(filter("config=8888")))</code>
+        <p>Plot a single curve that's the average of all the traces that have a config of '8888'.
+          The traces have missing data points filled in from nearby runs.</p>
+
+        <code>ave(filter(""))</code>
+        <p>Plot a single curve that's the average of all the traces.</p>
+
+        <code>norm(filter("test=desk_linkedin.skp_1_1000_1000"))</code>
+        <p>Plot the normalized version of all the traces for 'desk_linkedin.skp_1_1000_1000'.</p>
+      </section>
+    </div>
+  </perf-scaffold-sk>
+</body>
+
 </html>
