@@ -37,6 +37,8 @@ import {
   ClusterStartResponse,
   ClusterStatus,
   FullSummary,
+  RegressionDetectionResponse,
+  RegressionRangeResponse,
 } from '../json';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { AlgoSelectAlgoChangeEventDetail } from '../algo-select-sk/algo-select-sk';
@@ -407,10 +409,12 @@ export class ClusterPageSk extends ElementSk {
     this._render();
   }
 
-  private checkClusterRequestStatus(cb: (summaries: ClusterStatus) => void) {
+  private checkClusterRequestStatus(
+    cb: (summaries: RegressionDetectionResponse) => void
+  ) {
     fetch(`/_/cluster/status/${this.requestId}`)
       .then(jsonOrThrow)
-      .then((json) => {
+      .then((json: ClusterStatus) => {
         if (json.state === 'Running') {
           this.status = json.message;
           this._render();
@@ -421,8 +425,8 @@ export class ClusterPageSk extends ElementSk {
           }
           this.catch(json.message);
         }
-      })
-      .catch((msg) => this.catch(msg));
+      });
+    // .catch((msg) => this.catch(msg));
   }
 
   private start() {
@@ -457,7 +461,7 @@ export class ClusterPageSk extends ElementSk {
       domain: {
         offset: +this.state.offset,
         n: 0,
-        end: '',
+        end: new Date().toISOString(),
       },
     };
     this.summaries = [];
@@ -475,20 +479,24 @@ export class ClusterPageSk extends ElementSk {
       .then(jsonOrThrow)
       .then((json: ClusterStartResponse) => {
         this.requestId = json.id;
-        this.checkClusterRequestStatus((summaries) => {
-          this.summaries = [];
-          summaries.value!.summary!.Clusters!.forEach((cl) => {
-            this.summaries.push({
-              summary: cl,
-              frame: summaries.value!.frame!,
-              triage: {
-                status: '',
-                message: '',
-              },
-            });
-          });
-          this._render();
-        });
+        this.checkClusterRequestStatus(
+          (regressionDetectionResponse: RegressionDetectionResponse) => {
+            this.summaries = [];
+            regressionDetectionResponse.summary!.Clusters!.forEach(
+              (clusterSummary) => {
+                this.summaries.push({
+                  summary: clusterSummary,
+                  frame: regressionDetectionResponse.frame!,
+                  triage: {
+                    status: '',
+                    message: '',
+                  },
+                });
+              }
+            );
+            this._render();
+          }
+        );
       })
       .catch((msg) => this.catch(msg));
   }
