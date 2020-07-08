@@ -86,11 +86,44 @@ export interface FrameResponse {
 	msg: string;
 }
 
+export interface TriageStatus {
+	status: Status;
+	message: string;
+}
+
+export interface Regression {
+	low: ClusterSummary | null;
+	high: ClusterSummary | null;
+	frame: FrameResponse | null;
+	low_status: TriageStatus;
+	high_status: TriageStatus;
+}
+
+export interface RegressionRow {
+	cid: CommitDetail | null;
+	regression: Regression | null;
+}
+
+export interface DryRunStatus {
+	finished: boolean;
+	message: string;
+	regressions: RegressionRow[] | null;
+}
+
 export interface UIDomain {
 	begin: number;
 	end: number;
 	num_commits: number;
 	request_type: RequestType;
+}
+
+export interface StartDryRunRequest {
+	config: Alert;
+	domain: UIDomain;
+}
+
+export interface StartDryRunResponse {
+	id: string;
 }
 
 export interface ClusterStartResponse {
@@ -141,19 +174,6 @@ export interface RegressionRangeRequest {
 	end: number;
 	subset: Subset;
 	alert_filter: string;
-}
-
-export interface TriageStatus {
-	status: Status;
-	message: string;
-}
-
-export interface Regression {
-	low: ClusterSummary | null;
-	high: ClusterSummary | null;
-	frame: FrameResponse | null;
-	low_status: TriageStatus;
-	high_status: TriageStatus;
 }
 
 export interface RegressionRow {
@@ -239,10 +259,10 @@ export type TraceSet = { [key: string]: Trace };
 
 export type ParamSet = { [key: string]: string[] };
 
+export type Status = "" | "positive" | "negative" | "untriaged";
+
 export type ProcessState = string;
 
 export type Subset = "all" | "regressions" | "untriaged";
-
-export type Status = "" | "positive" | "negative" | "untriaged";
 
 export type ClusterAlgo = "kmeans" | "stepfit";
