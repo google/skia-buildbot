@@ -25,8 +25,8 @@ const (
 	FtReadmeVersionTmpl  = "%sVersion: %s"
 	FtReadmeRevisionTmpl = "%sRevision: %s"
 
-	FtIncludeSrc  = "include/freetype/config"
-	FtIncludeDest = "third_party/freetype/include/freetype-custom-config"
+	FtIncludeSrc  = "include"
+	FtIncludeDest = "third_party/freetype/include/freetype-custom"
 )
 
 var (
@@ -34,8 +34,8 @@ var (
 	FtReadmeRevisionRegex = regexp.MustCompile(fmt.Sprintf(FtReadmeRevisionTmpl, "(?m)^", ".*"))
 
 	FtIncludesToMerge = []string{
-		"ftoption.h",
-		"ftconfig.h",
+		"freetype/config/ftoption.h",
+		"freetype/config/public-macros.h",
 	}
 )
 
@@ -97,64 +97,71 @@ func NewFreeTypeParent(ctx context.Context, c GitilesConfig, reg *config_vars.Re
 func mergeInclude(ctx context.Context, include, from, to, baseCommit string, changes map[string]string, parentRepo *gitiles_common.GitilesRepo, localChildRepo *git.Repo) error {
 	wd, err := ioutil.TempDir("", "")
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	defer util.RemoveAll(wd)
 
 	gd := git.GitDir(wd)
 	_, err = gd.Git(ctx, "init")
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 
 	// Obtain the current version of the file in the parent repo.
 	parentHeader := path.Join(FtIncludeDest, include)
 	dest := filepath.Join(wd, include)
 	var buf bytes.Buffer
 	if err := parentRepo.ReadFileAtRef(ctx, parentHeader, baseCommit, &buf); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	oldParentContents := buf.String()
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
+	}
+	dir := filepath.Dir(dest)
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return skerr.Wrap(err)
 	}
 	if err := ioutil.WriteFile(dest, buf.Bytes(), os.ModePerm); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	if _, err := gd.Git(ctx, "add", dest); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	if _, err := gd.Git(ctx, "commit", "-m", "fake"); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 
 	// Obtain the old version of the file in the child repo.
 	ftHeader := path.Join(FtIncludeSrc, include)
 	oldChildContents, err := localChildRepo.GetFile(ctx, ftHeader, from)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	oldPath := filepath.Join(wd, "old")
 	if err := ioutil.WriteFile(oldPath, []byte(oldChildContents), os.ModePerm); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 
 	// Obtain the new version of the file in the child repo.
 	newChildContents, err := localChildRepo.GetFile(ctx, ftHeader, to)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	newPath := filepath.Join(wd, "new")
 	if err := ioutil.WriteFile(newPath, []byte(newChildContents), os.ModePerm); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 
 	// Perform the merge.
 	if _, err := gd.Git(ctx, "merge-file", dest, oldPath, newPath); err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 
 	// Read the resulting contents.
 	newParentContents, err := ioutil.ReadFile(dest)
 	if err != nil {
-		return err
+		return skerr.Wrap(err)
 	}
 	if string(newParentContents) != string(oldParentContents) {
 		changes[parentHeader] = string(newParentContents)
