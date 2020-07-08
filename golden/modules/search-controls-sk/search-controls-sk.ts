@@ -12,7 +12,8 @@ import { live } from 'lit-html/directives/live';
 import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import { deepCopy } from 'common-sk/modules/object';
-import { ParamSet } from 'common-sk/modules/query';
+import { fromParamSet, toParamSet, ParamSet } from 'common-sk/modules/query';
+import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { FilterDialogSk, Filters } from '../filter-dialog-sk/filter-dialog-sk';
 
@@ -21,6 +22,92 @@ import 'elements-sk/styles/buttons';
 import '../corpus-selector-sk';
 import '../filter-dialog-sk';
 import '../trace-filter-sk';
+
+// fromURL returns a SearchCriteria filled in with the values returned by common-sk's toObject
+// value (when given a URL query string).
+export function fromURL(urlObj: HintableObject, defaultValues: SearchCriteria) {
+  const sc = {
+    corpus: (urlObj.corpus as string) || defaultValues.corpus,
+    sortOrder: (urlObj.sort as string) || defaultValues.sortOrder,
+  } as Partial<SearchCriteria>
+
+  if (urlObj.left_filter !== undefined) {
+    sc.leftHandTraceFilter = toParamSet(urlObj.left_filter as string);
+  } else {
+    sc.leftHandTraceFilter = defaultValues.leftHandTraceFilter;
+  }
+  if (urlObj.right_filter !== undefined) {
+    sc.rightHandTraceFilter = toParamSet(urlObj.right_filter as string);
+  } else {
+    sc.rightHandTraceFilter = defaultValues.rightHandTraceFilter;
+  }
+  if (urlObj.positive !== undefined) {
+    sc.includePositiveDigests = !!urlObj.positive;
+  } else {
+    sc.includePositiveDigests = defaultValues.includePositiveDigests;
+  }
+  if (urlObj.negative !== undefined) {
+    sc.includeNegativeDigests = !!urlObj.negative;
+  } else {
+    sc.includeNegativeDigests = defaultValues.includeNegativeDigests;
+  }
+  if (urlObj.untriaged !== undefined) {
+    sc.includeUntriagedDigests = !!urlObj.untriaged;
+  } else {
+    sc.includeUntriagedDigests = defaultValues.includeUntriagedDigests;
+  }
+  if (urlObj.not_at_head !== undefined) {
+    sc.includeDigestsNotAtHead = !!urlObj.not_at_head;
+  } else {
+    sc.includeDigestsNotAtHead = defaultValues.includeDigestsNotAtHead;
+  }
+  if (urlObj.include_ignored !== undefined) {
+    sc.includeIgnoredDigests = !!urlObj.include_ignored;
+  } else {
+    sc.includeIgnoredDigests = defaultValues.includeIgnoredDigests;
+  }
+  if (urlObj.min_rgba !== undefined) {
+    sc.minRGBADelta = +urlObj.min_rgba;
+  } else {
+    sc.minRGBADelta = defaultValues.minRGBADelta;
+  }
+  if (urlObj.max_rgba !== undefined) {
+    sc.maxRGBADelta = +urlObj.max_rgba;
+  } else {
+    sc.maxRGBADelta = defaultValues.maxRGBADelta;
+  }
+  if (urlObj.reference_required !== undefined) {
+    sc.mustHaveReferenceImage = !!urlObj.reference_required;
+  } else {
+    sc.mustHaveReferenceImage = defaultValues.mustHaveReferenceImage;
+  }
+  return sc as SearchCriteria
+}
+
+// toHintableObject returns a HintableObject filled with either the values of the passed in
+// object or a falsey value of the same type. This will be used by common-sk's toObject and
+// fromObject to create url params that correspond with a SearchCriteria. This and fromURL
+// coordinate on how the values of SearchCriteria will be shown in the url.
+export function toHintableObject(sc: SearchCriteria) {
+  return {
+    corpus: sc.corpus,
+
+    left_filter: fromParamSet(sc.leftHandTraceFilter!), // note this is converted to a string.
+    right_filter: fromParamSet(sc.rightHandTraceFilter!), // note this is converted to a string.
+
+    positive: sc.includePositiveDigests,
+    negative: sc.includeNegativeDigests,
+    untriaged: sc.includeUntriagedDigests,
+    not_at_head: sc.includeDigestsNotAtHead,
+    include_ignored: sc.includeIgnoredDigests,
+
+    min_rgba: sc.minRGBADelta,
+    max_rgba: sc.maxRGBADelta,
+    reference_required: sc.mustHaveReferenceImage,
+
+    sort: sc.sortOrder,
+  } as HintableObject
+}
 
 /** A digest search criteria.  */
 export interface SearchCriteria {
@@ -42,7 +129,7 @@ export interface SearchCriteria {
   mustHaveReferenceImage: boolean;
 
   sortOrder: 'ascending' | 'descending';
-};
+}
 
 /** A component that allows the user to view and edit a digest search criteria. */
 export class SearchControlsSk extends ElementSk {
