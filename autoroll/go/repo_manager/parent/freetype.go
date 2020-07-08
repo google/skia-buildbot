@@ -25,8 +25,8 @@ const (
 	FtReadmeVersionTmpl  = "%sVersion: %s"
 	FtReadmeRevisionTmpl = "%sRevision: %s"
 
-	FtIncludeSrc  = "include/freetype/config"
-	FtIncludeDest = "third_party/freetype/include/freetype-custom-config"
+	FtIncludeSrc  = "include"
+	FtIncludeDest = "third_party/freetype/include/freetype-custom"
 )
 
 var (
@@ -34,8 +34,8 @@ var (
 	FtReadmeRevisionRegex = regexp.MustCompile(fmt.Sprintf(FtReadmeRevisionTmpl, "(?m)^", ".*"))
 
 	FtIncludesToMerge = []string{
-		"ftoption.h",
-		"ftconfig.h",
+		"freetype/config/ftoption.h",
+		"freetype/config/public-macros.h",
 	}
 )
 
