@@ -1,8 +1,11 @@
-@import '~elements-sk/themes/themes.css';
+@import '../themes/themes.scss';
 
 triage-page-sk {
   > dialog {
     z-index: 2;
+    background: var(--background);
+    color: var(--on-background);
+    border: solid 1px var(--on-background);
   }
 
   summary h2 {
@@ -23,7 +26,7 @@ triage-page-sk {
 
   details[open] {
     border: solid 1px var(--on-surface);
-    background: var(--surface-1dp);
+    background: var(--surface);
   }
 
   details table {
@@ -40,7 +43,7 @@ triage-page-sk {
   }
 
   tr:nth-child(even) {
-    background-color: var(--surface-1dp);
+    background-color: var(--surface);
   }
 
   table {

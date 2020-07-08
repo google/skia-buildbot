@@ -1,4 +1,4 @@
-@import '~elements-sk/themes/themes.css';
+@import '../themes/themes.scss';
 
 triage-status-sk {
   button {
@@ -8,35 +8,39 @@ triage-status-sk {
 
 .body-sk.darkmode triage-status-sk {
   .positive {
-    background: var(--green-500);
-    fill: var(--on-surface);
+    fill: var(--green-500);
+    background: var(--surface);
 
     .inside_status check-circle-icon-sk {
-      fill: var(--on-surface);
+      background: var(--surface);
     }
   }
 
   .negative {
-    background: var(--red-500);
-    fill: var(--on-surface);
+    fill: var(--red-500);
+    background: var(--surface);
 
     .inside_status cancel-icon-sk {
-      fill: var(--on-surface);
+      background: var(--surface);
     }
   }
 
   .untriaged {
-    background: var(--brown-300);
-    fill: var(--on-surface);
+    fill: var(--brown-400);
+    background: var(--surface);
 
     .inside_status help-icon-sk {
-      fill: var(--on-surface);
+      background: var(--surface);
     }
   }
 
   .positive:hover,
   .negative:hover,
   .untriaged:hover {
-    opacity: 0.8;
+    background: var(--background);
+
+    .inside_status svg {
+      background: var(--background);
+    }
   }
 }
