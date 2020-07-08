@@ -27,6 +27,7 @@
   "rollerName": "pgo-win64-chromium",
   "serviceAccount": "chromium-autoroll@skia-public.google.com.iam.gserviceaccount.com",
   "sheriff": [
+    "sebmarchand@google.com",
     "jeffyoon@google.com",
     "liaoyuke@google.com"
   ],
