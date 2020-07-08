@@ -22,6 +22,30 @@
       "revId": "1112f1e3acd881606abd66aaa4381c80fdcdd79a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a56fa62_25f728d1",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T00:37:02Z",
+      "side": 1,
+      "message": "Renamed to enterValue as per our conversation.",
+      "parentUuid": "4a33e48a_ffd66d92",
+      "range": {
+        "startLine": 86,
+        "startChar": 8,
+        "endLine": 86,
+        "endChar": 16
+      },
+      "revId": "1112f1e3acd881606abd66aaa4381c80fdcdd79a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

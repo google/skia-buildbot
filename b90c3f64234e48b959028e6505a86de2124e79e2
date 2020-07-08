@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e9f77868_d6cc0b8c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 14
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T00:37:02Z",
+      "side": 1,
+      "message": "Thanks for the feedback! I\u0027ve renamed things as per our discussion earlier today. Please take another look.",
+      "revId": "b90c3f64234e48b959028e6505a86de2124e79e2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

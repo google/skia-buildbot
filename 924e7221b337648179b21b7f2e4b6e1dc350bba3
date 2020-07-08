@@ -154,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "07d720dc_a50d0eb7",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T00:37:02Z",
+      "side": 1,
+      "message": "AFAIK there\u0027s not much to be done on the TypeScript front, since any typing information is lost after compilation, and we\u0027re talking about a runtime assertion.\n\nThe closest thing I can think of is asserting that el.tagName equals \"INPUT\", or \"SELECT\", or \"TEXTAREA\", etc. But that will limit us if we later decide to actually emulate individual key presses a la Puppeteer\u0027s ElementHandle#type()[1] method or WebDriver\u0027s setValue()[2] method, which can work for any element and not just input, selects, etc.\n\nSo I\u0027ll leave it as is for now. We can always add an explicit check later if we find this inconvenient while writing tests.\n\n[1] https://pptr.dev/#?product\u003dPuppeteer\u0026version\u003dv5.0.0\u0026show\u003dapi-elementhandletypetext-options\n[2] https://webdriver.io/docs/api/element/setValue.html",
+      "parentUuid": "77e194ce_60c12be7",
+      "range": {
+        "startLine": 91,
+        "startChar": 7,
+        "endLine": 91,
+        "endChar": 30
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "79e311bd_abdbaa1c",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
@@ -272,6 +296,30 @@
     },
     {
       "key": {
+        "uuid": "14e98f9b_92dfffa6",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T00:37:02Z",
+      "side": 1,
+      "message": "Please take another look.",
+      "parentUuid": "70b0d977_89af2603",
+      "range": {
+        "startLine": 106,
+        "startChar": 8,
+        "endLine": 106,
+        "endChar": 15
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "56e11975_7b41a3c4",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
@@ -343,6 +391,30 @@
     },
     {
       "key": {
+        "uuid": "14e7fb6a_c4145b71",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T00:37:02Z",
+      "side": 1,
+      "message": "Right, I completely missed your point earlier. Hopefully this change will do.",
+      "parentUuid": "edcd57c4_6f9fb67d",
+      "range": {
+        "startLine": 121,
+        "startChar": 40,
+        "endLine": 121,
+        "endChar": 41
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "2c638f26_a6039db8",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
@@ -402,6 +474,30 @@
       "side": 1,
       "message": "The goal of the suggested name(s) is to make the upstack callers more skimmable. I would argue that Function.prototype.apply is not well-known enough where I consider it \"skimmable\".\n\nThus the suggestion for a set of very clear, explicit names. I\u0027m ok being redundant and extra  verbose to make these Page Objects more reader-friendly. Remember, this is test code, and test code should be written DAMPly so it\u0027s obvious it\u0027s correct, because tests don\u0027t have tests.\n\nIn a below comment, I enumerate a fresh set of names that I feel are nice and DAMP",
       "parentUuid": "86ed1b1b_8e1ddaba",
+      "range": {
+        "startLine": 151,
+        "startChar": 8,
+        "endLine": 151,
+        "endChar": 15
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "141f22eb_71f9b640",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T00:37:02Z",
+      "side": 1,
+      "message": "Please take another look.",
+      "parentUuid": "ec6cf52d_9062bf1a",
       "range": {
         "startLine": 151,
         "startChar": 8,
@@ -509,6 +605,30 @@
     },
     {
       "key": {
+        "uuid": "f8b21afb_46dd3de1",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T00:37:02Z",
+      "side": 1,
+      "message": "Please take another look.",
+      "parentUuid": "79fbc610_9b4cb350",
+      "range": {
+        "startLine": 164,
+        "startChar": 10,
+        "endLine": 164,
+        "endChar": 17
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dcc7dde7_2e972304",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
@@ -577,6 +697,30 @@
       "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "354396f0_0f658563",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T00:37:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "48b2ea4b_bdfa3524",
+      "range": {
+        "startLine": 177,
+        "startChar": 8,
+        "endLine": 177,
+        "endChar": 12
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -651,6 +795,30 @@
     },
     {
       "key": {
+        "uuid": "962a9bf4_ec8018e9",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T00:37:02Z",
+      "side": 1,
+      "message": "Marking as done as per our conversation today.",
+      "parentUuid": "6de262b5_90cfcdd9",
+      "range": {
+        "startLine": 183,
+        "startChar": 8,
+        "endLine": 183,
+        "endChar": 13
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e119fb16_1cec632c",
         "filename": "infra-sk/modules/page_object/page_object_element.ts",
         "patchSetId": 8
@@ -710,6 +878,30 @@
       "side": 1,
       "message": "I will re-emphasize my suggestion of naming this findDescendantWithSelector or findDescendant",
       "parentUuid": "a5d29d40_fa77c9e2",
+      "range": {
+        "startLine": 191,
+        "startChar": 9,
+        "endLine": 191,
+        "endChar": 13
+      },
+      "revId": "924e7221b337648179b21b7f2e4b6e1dc350bba3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e553f222_226b188a",
+        "filename": "infra-sk/modules/page_object/page_object_element.ts",
+        "patchSetId": 8
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T00:37:02Z",
+      "side": 1,
+      "message": "Please take another look.",
+      "parentUuid": "a7b792cc_721f1034",
       "range": {
         "startLine": 191,
         "startChar": 9,
