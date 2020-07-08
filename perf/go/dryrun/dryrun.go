@@ -39,19 +39,19 @@ type UIDomain struct {
 	RequestType dataframe.RequestType `json:"request_type"`
 }
 
-// StartRequest is the data POSTed to StartHandler.
-type StartRequest struct {
+// StartDryRunRequest is the data POSTed to StartHandler.
+type StartDryRunRequest struct {
 	Config alerts.Alert `json:"config"`
 	Domain UIDomain     `json:"domain"`
 }
 
 // Id is used to identify StartRequests as stored in Requests.inFlight.
-func (s *StartRequest) Id() string {
+func (s *StartDryRunRequest) Id() string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%#v", *s))))
 }
 
-// StartResponse is the JSON response sent from StartHandler.
-type StartResponse struct {
+// StartDryRunResponse is the JSON response sent from StartHandler.
+type StartDryRunResponse struct {
 	ID string `json:"id"`
 }
 
@@ -116,7 +116,7 @@ func (d *Requests) cleaner() {
 func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var req StartRequest
+	var req StartDryRunRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
@@ -188,7 +188,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 			running.Message = running.Message + "\nDry run complete."
 		}()
 	}
-	resp := StartResponse{
+	resp := StartDryRunResponse{
 		ID: id,
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -211,8 +211,8 @@ type RegressionRow struct {
 	Regression *regression.Regression `json:"regression"`
 }
 
-// Status is the JSON response sent from StatusHandler.
-type Status struct {
+// DryRunStatus is the JSON response sent from StatusHandler.
+type DryRunStatus struct {
 	Finished    bool             `json:"finished"`
 	Message     string           `json:"message"`
 	Regressions []*RegressionRow `json:"regressions"`
@@ -232,7 +232,7 @@ func (d *Requests) StatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status := &Status{
+	status := &DryRunStatus{
 		Finished:    running.Finished,
 		Message:     running.Message,
 		Regressions: []*RegressionRow{},
