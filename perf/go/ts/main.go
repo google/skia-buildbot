@@ -82,6 +82,7 @@ func main() {
 		{alerts.AllDirections, "Direction"},
 		{dataframe.AllRequestType, "RequestType"},
 		{frontend.AllRegressionSubset, "Subset"},
+		{regression.AllProcessState, "ProcessState"},
 		{regression.AllStatus, "Status"},
 		{stepfit.AllStepFitStatus, "StepFitStatus"},
 		{types.AllClusterAlgos, "ClusterAlgo"},
