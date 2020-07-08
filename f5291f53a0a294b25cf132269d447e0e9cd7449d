@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2b03b068_fba7593f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T20:34:47Z",
+      "side": 1,
+      "message": "Thanks! And thank you for the tour of d3-force earlier today!",
+      "revId": "f5291f53a0a294b25cf132269d447e0e9cd7449d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2b616bd6_7a858769",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T20:34:47Z",
+      "side": 1,
+      "message": "I suspect this can be removed. We can probably select this with just $$(\u0027svg\u0027, this).",
+      "range": {
+        "startLine": 22,
+        "startChar": 5,
+        "endLine": 22,
+        "endChar": 18
+      },
+      "revId": "f5291f53a0a294b25cf132269d447e0e9cd7449d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13e4df73_150617da",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T20:34:47Z",
+      "side": 1,
+      "message": "Nit: Just one space is enough.",
+      "range": {
+        "startLine": 48,
+        "startChar": 4,
+        "endLine": 48,
+        "endChar": 5
+      },
+      "revId": "f5291f53a0a294b25cf132269d447e0e9cd7449d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6a4e68c_2640db84",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T20:34:47Z",
+      "side": 1,
+      "message": "It might be desirable to skip the animation and just present the final layout to the user.",
+      "range": {
+        "startLine": 72,
+        "startChar": 37,
+        "endLine": 72,
+        "endChar": 74
+      },
+      "revId": "f5291f53a0a294b25cf132269d447e0e9cd7449d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f0f1014_4548df90",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T20:34:47Z",
+      "side": 1,
+      "message": "Nit: For multiline JSDoc comments it\u0027s conventional to start on the second line, e.g.\n\n  /**\n   * Sets the new data to render in a cluster view.\n   * ...\n   */",
+      "range": {
+        "startLine": 101,
+        "startChar": 5,
+        "endLine": 101,
+        "endChar": 6
+      },
+      "revId": "f5291f53a0a294b25cf132269d447e0e9cd7449d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a391cff_87545446",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T20:34:47Z",
+      "side": 1,
+      "message": "It might be worth asserting in a unit test that that the \u003csvg\u003e contains the expected number of items with the \"node\" class, and that the layout-complete event is dispatched.",
+      "range": {
+        "startLine": 108,
+        "startChar": 2,
+        "endLine": 108,
+        "endChar": 9
+      },
+      "revId": "f5291f53a0a294b25cf132269d447e0e9cd7449d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
