@@ -16,6 +16,345 @@
       "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6568137c_f9b71bd4",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T21:50:57Z",
+      "side": 1,
+      "message": "Thanks!",
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "836692a4_6e1fd2e1",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T21:50:57Z",
+      "side": 1,
+      "message": "Suggested JSDoc:\n\n  /**\n   * Returns a SearchCriteria built from a HintableObject with sensible defaults in case of any\n   * missing values. This is intended to be used with common-sk\u0027s stateReflector() function.\n   */\n\nRationale:\n- Make it clear this is intended to be used with the stateReflector() function.\n- By using /** ... */ IDEs will recognize this as a JSDoc.\n- We can skip the function name at the start of the comment (which seems to be a convention specific to Golang).",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 89
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "03907fd8_24577f38",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T21:50:57Z",
+      "side": 1,
+      "message": "Nit: hintableObject, or ho.",
+      "range": {
+        "startLine": 29,
+        "startChar": 24,
+        "endLine": 29,
+        "endChar": 30
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f088f40c_244e3ef1",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T21:50:57Z",
+      "side": 1,
+      "message": "Please call this SearchCriteriaFromHintableObject.\n\nRationale:\n- \"fromURL\" will be imported in other packages with no package prefix (unlike say, Golang), so the name might be ambiguous in client code.\n- Prefixing it with \"SearchCriteria\" makes it unambiguous and obvious.\n- \"FromHintableObject\" is more accurate and less surprising (\"fromURL\" suggests this will take a URL string as an argument), which IMO justifies the slightly longer name.",
+      "range": {
+        "startLine": 29,
+        "startChar": 16,
+        "endLine": 29,
+        "endChar": 23
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4fab03a_d1f82501",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T21:50:57Z",
+      "side": 1,
+      "message": "Suggestion:\n\n  /**\n   * Returns a HintableObject built from a SearchCriteria, suitable to be used with\n   * common-sk\u0027s searchReflector() function. \n   *\n   * If the given SearchCriteria is partial, it will be filled out with falsey values\n   * before the conversion to HintableObject takes place.\n   */",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 75
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "295f3cdf_81655b88",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T21:50:57Z",
+      "side": 1,
+      "message": "SearchCriteriaToHintableObject",
+      "range": {
+        "startLine": 54,
+        "startChar": 16,
+        "endLine": 54,
+        "endChar": 32
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b48d632_449ded03",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T21:50:57Z",
+      "side": 1,
+      "message": "Please define an interface describing the shape of the HintableObject.\n\nRationale:\n- To have a compile-time guarantee that both from/to methods use the same field names.\n- To enjoy the same benefits in our tests.\n\n  /**\n   * Describes the HintableObject used by the SearchCriteria(From/To)HintableObject()\n   * functions below.\n   */\n  export interface SearchCriteriaHintableObject {\n    corpus?: string;\n    left_filter?: string;\n    right_filter?: string;\n    positive?: boolean;\n    negative?: boolean;\n    not_at_head?: boolean;\n    ignored?: boolean;\n    min_rgba?: number;\n    max_rgba?: number;\n    reference_image_required?: boolean;\n    sort?: \u0027ascending\u0027 | \u0027descending\u0027;\n  };",
+      "range": {
+        "startLine": 55,
+        "startChar": 9,
+        "endLine": 72,
+        "endChar": 3
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dc0a988c_eec4199f",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T21:50:57Z",
+      "side": 1,
+      "message": "Please place the From/To methods here after the SearchCriteria definition to make this file a bit more linear for the reader.",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 96,
+        "endChar": 0
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a58adbf3_7ee74f5b",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T21:50:57Z",
+      "side": 1,
+      "message": "Please extract this out as a top-level describe block (sibling to describe(\u0027search-controls-sk\u0027, ...)) and name it either describe(\u0027SearchCriteria\u0027, ...) or describe(\u0027SearchCriteria HintableObject helpers\u0027, ...).\n\nRationale:\n- These are orthogonal to the search-controls-sk component.\n- They don\u0027t need the before/after hooks in the describe(\u0027search-controls-sk\u0027, ...) block.",
+      "range": {
+        "startLine": 272,
+        "startChar": 0,
+        "endLine": 272,
+        "endChar": 72
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d496b6e_8a517b70",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T21:50:57Z",
+      "side": 1,
+      "message": "Please group the \"from\" and \"to\" tests into two different describe() blocks, e.g.:\n\n  describe(\u0027SearchCriteria\u0027, () \u003d\u003e {\n    // ...\n\n    describe(\u0027SearchCriteriaFromHintableObject\u0027, () \u003d\u003e {\n      // ...\n    });\n\n    describe(\u0027SearchCriteriaToHintableObject\u0027, () \u003d\u003e {\n      // ...\n    });\n  });",
+      "range": {
+        "startLine": 282,
+        "startChar": 0,
+        "endLine": 282,
+        "endChar": 0
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ba72b40_74ebaa23",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T21:50:57Z",
+      "side": 1,
+      "message": "Please use function makeSearchCriteria defined above to make this and the below SearchCriterias. Fields with non-zero/default values can be omitted.\n\nConsider extracting any shared searchCriterias into constants if it\u0027s hard for the reader to tell whether two test cases use the same test inputs.\n- Rule of thumb: if two identical makeSearchCriteria() calls span more than one line, then the SearchCriteria can probably be made into a constant shared between test cases.",
+      "range": {
+        "startLine": 284,
+        "startChar": 17,
+        "endLine": 297,
+        "endChar": 10
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1dd7b3e3_810fa476",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T21:50:57Z",
+      "side": 1,
+      "message": "Nit: hintableObject, or ho.",
+      "range": {
+        "startLine": 299,
+        "startChar": 14,
+        "endLine": 299,
+        "endChar": 16
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87a2c4ff_15c787ca",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 306,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T21:50:57Z",
+      "side": 1,
+      "message": "Please write these tests using only HintableObjects and SearchCriterias as the input/expected outputs, since that is what the code under test operates on.\n\nThe suggested SearchCriteriaHintableObject interface will come in handy here.\n\nIf you really deem it necessary to test against the toObject / fromObject methods from common-sk, I recommend the following:\n\n- Add a describe(\u0027SearchCriteriaHintableObject from query string\u0027) block.\n- Add one it() call for each test case (full query string, partial query string, etc.).\n- Share any SearchCriteriaHintableObjects with the SearchCriteria(From/To)HintableObject test cases as needed.\n- Same with describe(\u0027SearchCriteriaHintableObject to query string\u0027).",
+      "range": {
+        "startLine": 301,
+        "startChar": 0,
+        "endLine": 306,
+        "endChar": 0
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b4219c4_2f389578",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T21:50:57Z",
+      "side": 1,
+      "message": "Nit: Please use a consistent name for these across all test cases (e.g. hintableObject, or ho).",
+      "range": {
+        "startLine": 309,
+        "startChar": 14,
+        "endLine": 309,
+        "endChar": 18
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47032c67_78da99ab",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-08T21:50:57Z",
+      "side": 1,
+      "message": "Nit: I\u0027d recommend against these since they tend to fall out of sync.",
+      "range": {
+        "startLine": 388,
+        "startChar": 7,
+        "endLine": 388,
+        "endChar": 71
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
