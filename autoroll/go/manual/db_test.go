@@ -21,7 +21,7 @@ const (
 func req() *ManualRollRequest {
 	return &ManualRollRequest{
 		DryRun:            true,
-		Emails:            []string{"user@google.com", "user2@google.com"},
+		NoEmail:           true,
 		NoResolveRevision: true,
 		Requester:         "user@google.com",
 		Result:            RESULT_FAILURE,
