@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "779dace1_eb6e7bf5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5140
+      },
+      "writtenOn": "2020-07-08T02:39:51Z",
+      "side": 1,
+      "message": "I think this is the right change to this file for the freetype-chromium autoroller. Not really sure off hand if there\u0027s anything else which needs to be done to land this. Let me know what else should be done, or if it\u0027s easier I\u0027ll let you do it.",
+      "revId": "e2b2481e51665150878d5dbe66fedd8c253e312f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
