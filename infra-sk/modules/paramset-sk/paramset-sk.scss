@@ -15,13 +15,13 @@ paramset-sk {
     padding: 0.2em;
   }
 
-  .clickable th,
+  .clickable tr:not(:nth-child(1)) th,
   .clickable div {
     cursor: pointer;
     color: var(--primary, --blue);
   }
 
-  .clickable th:hover,
+  .clickable tr:not(:nth-child(1)) th:hover,
   .clickable div:hover {
     text-decoration: underline;
   }
