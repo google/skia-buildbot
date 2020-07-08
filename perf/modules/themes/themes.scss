@@ -1,0 +1,67 @@
+@import '~elements-sk/themes/themes.css';
+/*
+  Only define deltas from the original theme and global changes from elemets-sk
+  elements.
+*/
+
+.body-sk {
+  --secondary: var(--green-500);
+  --primary-variant: var(--light-blue-600);
+  --surface-1dp: var(--grey-200);
+  --surface-2dp: var(--grey-400);
+
+  .darkmode {
+    --primary: var(--light-blue-500);
+    --primary-variant: var(--light-blue-200);
+    --on-primary-variant: var(--black);
+    --surface: var(--grey-900);
+    --surface-1dp: var(--grey-800);
+    --surface-2dp: var(--grey-700);
+  }
+
+  multi-select-sk {
+    border: solid 1px var(--on-surface);
+    background-color: var(--surface);
+    color: var(--on-surface);
+  }
+
+  multi-select-sk > * {
+    background-color: var(--surface);
+    border: solid 1px var(--surface);
+  }
+
+  multi-select-sk > [selected] {
+    background: var(--surface-1dp);
+  }
+
+  multi-select-sk > :hover {
+    border: var(--surface-1dp) solid 1px;
+  }
+
+  select-sk,
+  select-sk > * {
+    background-color: var(--surface);
+    color: var(--on-surface);
+  }
+
+  select-sk > [selected] {
+    background: var(--surface-1dp);
+  }
+
+  select-sk > * {
+    border: var(--surface) solid 1px;
+  }
+
+  select-sk > :hover {
+    border: var(--surface-1dp) solid 1px;
+  }
+
+  select-sk > :focus {
+    background-color: var(--surface-1dp);
+    transition: background-color 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  select-sk > [selected] {
+    background-color: var(--surface-1dp);
+  }
+}

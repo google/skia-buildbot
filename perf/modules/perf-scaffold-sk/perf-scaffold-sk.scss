@@ -47,7 +47,7 @@ perf-scaffold-sk {
     display: flex;
     flex-direction: column;
 
-    background: var(--surface-2dp);
+    background: var(--surface);
 
     ul {
       padding-inline-start: 0;
@@ -63,8 +63,8 @@ perf-scaffold-sk {
     }
 
     li > * {
-      fill: var(--primary);
-      color: var(--primary);
+      fill: var(--secondary);
+      color: var(--secondary);
     }
 
     li:hover {
@@ -77,14 +77,15 @@ perf-scaffold-sk {
     grid-area: topbar;
 
     align-items: center;
-    color: var(--on-primary);
-    fill: var(--on-primary);
-    background: var(--primary);
+    color: var(--primary);
+    fill: var(--primary);
+    background: var(--on-primary);
+    border-bottom: 1px solid var(--primary);
 
     #toggleSidebarButton {
-      fill: var(--on-primary);
-      color: var(--on-primary);
-      background: var(--primary);
+      fill: var(--primary);
+      color: var(--primary);
+      background: var(--on-primary);
       border: none;
       box-shadow: none;
       border-radius: 0;
@@ -108,14 +109,18 @@ perf-scaffold-sk {
     div {
       margin: 1em;
     }
-  }
 
-  login-sk {
-    margin-left: auto;
-    margin-right: 1em;
-    display: block;
-    color: var(--on-primary);
-    --login-sk-color: var(--on-primary);
+    login-sk {
+      margin-left: auto;
+      margin-right: 1em;
+      display: block;
+    }
+
+    login-sk .email,
+    login-sk .logInOut {
+      color: var(--primary);
+      --login-sk-color: var(--primary);
+    }
   }
 
   h1 {
@@ -129,5 +134,19 @@ perf-scaffold-sk {
 
   .name {
     font-size: 20px;
+  }
+
+  tabs-sk > button.selected,
+  button {
+    background: var(--surface);
+  }
+
+  tabs-sk > button.selected:hover,
+  button:hover {
+    background: var(--background);
+  }
+
+  checkbox-sk .box {
+    border-width: 2px;
   }
 }

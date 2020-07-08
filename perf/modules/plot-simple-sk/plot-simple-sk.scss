@@ -18,7 +18,7 @@ plot-simple-sk {
   }
 }
 
-@import '~elements-sk/themes/themes.css';
+@import '../themes/themes.scss';
 
 .body-sk plot-simple-sk {
   color: var(--on-background);
