@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4cf313ec_71637b45",
+        "filename": "infra-sk/modules/paramset-sk/paramset-sk_po.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-08T18:10:32Z",
+      "side": 1,
+      "message": "suggestion: have this take an object with those 3 key/values instead. It could make the callsites easier to read",
+      "range": {
+        "startLine": 52,
+        "startChar": 8,
+        "endLine": 52,
+        "endChar": 18
+      },
+      "revId": "14bbd75b75d91bbc18f2a644374b9cb474fbd348",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b296b8e1_eacf2d89",
+        "filename": "infra-sk/modules/paramset-sk/paramset-sk_puppeteer_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-08T18:10:32Z",
+      "side": 1,
+      "message": "suggestion: const leftParamSet \u003d 0 to make this magic value a smidge clearer.",
+      "range": {
+        "startLine": 77,
+        "startChar": 38,
+        "endLine": 77,
+        "endChar": 39
+      },
+      "revId": "14bbd75b75d91bbc18f2a644374b9cb474fbd348",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "68a27680_c6b2571e",
+        "filename": "infra-sk/modules/paramset-sk/paramset-sk_test.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-08T18:10:32Z",
+      "side": 1,
+      "message": "same const suggestion as on the puppeteer page",
+      "range": {
+        "startLine": 124,
+        "startChar": 38,
+        "endLine": 124,
+        "endChar": 39
+      },
+      "revId": "14bbd75b75d91bbc18f2a644374b9cb474fbd348",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
