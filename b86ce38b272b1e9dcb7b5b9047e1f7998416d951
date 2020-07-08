@@ -86,6 +86,24 @@
       "revId": "b86ce38b272b1e9dcb7b5b9047e1f7998416d951",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6b140606_6a920e71",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-08T13:43:39Z",
+      "side": 1,
+      "message": "Thanks! I\u0027ll submit after your LGTM.",
+      "parentUuid": "8803a27d_5211ba91",
+      "revId": "b86ce38b272b1e9dcb7b5b9047e1f7998416d951",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
