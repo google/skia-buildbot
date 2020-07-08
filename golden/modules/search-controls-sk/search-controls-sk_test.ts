@@ -2,8 +2,10 @@ import './index';
 import { $, $$ } from 'common-sk/modules/dom';
 import { setUpElementUnderTest, eventPromise } from '../../../infra-sk/modules/test_util';
 import { ParamSet } from 'common-sk/modules/query';
-import { SearchControlsSk, SearchCriteria } from './search-controls-sk';
+import { SearchControlsSk, SearchCriteria, fromURL, toHintableObject } from './search-controls-sk';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
+import { fromObject, toObject } from 'common-sk/modules/query';
+import { testOnlySetSettings } from '../settings';
 
 const expect = chai.expect;
 
@@ -35,7 +37,7 @@ describe('search-controls-sk', () => {
       sortOrder: 'ascending'
     };
     return {...defaults, ...partial};
-  }
+  };
 
   const newInstance = setUpElementUnderTest<SearchControlsSk>('search-controls-sk');
 
@@ -266,6 +268,124 @@ describe('search-controls-sk', () => {
         expect(searchControlsSk.searchCriteria).to.deep.equal(searchCriteria);
       });
     });
+
+    describe('url helpers and interaction with common-sk/query', () => {
+      before(() => {
+        testOnlySetSettings({
+          defaultCorpus: 'the_default_corpus',
+        });
+      });
+
+      after(() => {
+        testOnlySetSettings({});
+      });
+
+      it('produces a URL with all settings', () => {
+        const sc: SearchCriteria = {
+          corpus: 'some_corpus',
+          leftHandTraceFilter: {'os':['apple', 'banana'], 'config': ['1234', '5678']},
+          rightHandTraceFilter: {'gpu':['grape']},
+          includePositiveDigests: true,
+          includeNegativeDigests: false,
+          includeUntriagedDigests: true,
+          includeDigestsNotAtHead: false,
+          includeIgnoredDigests: true,
+          minRGBADelta: 7,
+          maxRGBADelta: 89,
+          mustHaveReferenceImage: true,
+          sortOrder: 'ascending'
+        };
+
+        const hi = toHintableObject(sc);
+        const url = fromObject(hi);
+        expect(url).to.equal('corpus=some_corpus&include_ignored=true' +
+            '&left_filter=config%3D1234%26config%3D5678%26os%3Dapple%26os%3Dbanana' +
+            '&max_rgba=89&min_rgba=7&negative=false&not_at_head=false&positive=true' +
+            '&reference_required=true&right_filter=gpu%3Dgrape' +
+            '&sort=ascending&untriaged=true');
+      });
+
+      it('can create a SearchCriteria from a complete url', () => {
+        const hint = toHintableObject({} as Partial<SearchCriteria>);
+        // Same as previous test output.
+        const url = 'corpus=some_corpus&include_ignored=true' +
+            '&left_filter=config%3D1234%26config%3D5678%26os%3Dapple%26os%3Dbanana' +
+            '&max_rgba=89&min_rgba=7&negative=false&not_at_head=false&positive=true' +
+            '&reference_required=true&right_filter=gpu%3Dgrape' +
+            '&sort=ascending&untriaged=true';
+        const urlObj = toObject(url, hint);
+        const sc = fromURL(urlObj);
+        expect(sc).to.deep.equal({
+          corpus: 'some_corpus',
+          leftHandTraceFilter: {'os':['apple', 'banana'], 'config': ['1234', '5678']},
+          rightHandTraceFilter: {'gpu':['grape']},
+          includePositiveDigests: true,
+          includeNegativeDigests: false,
+          includeUntriagedDigests: true,
+          includeDigestsNotAtHead: false,
+          includeIgnoredDigests: true,
+          minRGBADelta: 7,
+          maxRGBADelta: 89,
+          mustHaveReferenceImage: true,
+          sortOrder: 'ascending',
+        } as SearchCriteria);
+      });
+
+      it('produces a URL with missing settings', () => {
+        const sc: Partial<SearchCriteria> = {};
+        const hi = toHintableObject(sc);
+        const url = fromObject(hi);
+        expect(url).to.equal('corpus=&include_ignored=false&left_filter='+
+            '&max_rgba=0&min_rgba=0&negative=false&not_at_head=false&positive=false'+
+            '&reference_required=false&right_filter=&sort=&untriaged=false');
+      });
+
+      it('can create a SearchCriteria from a url with everything blank', () => {
+        const hint = toHintableObject({} as Partial<SearchCriteria>);
+        // Same as previous test output.
+        const url = 'corpus=&include_ignored=false&left_filter='+
+            '&max_rgba=0&min_rgba=0&negative=false&not_at_head=false&positive=false'+
+            '&reference_required=false&right_filter=&sort=&untriaged=false';
+        const urlObj = toObject(url, hint);
+        const sc = fromURL(urlObj);
+        expect(sc).to.deep.equal({
+          corpus: 'the_default_corpus',
+          leftHandTraceFilter: {},
+          rightHandTraceFilter: {},
+          includePositiveDigests: false,
+          includeNegativeDigests: false,
+          includeUntriagedDigests: false,
+          includeDigestsNotAtHead: false,
+          includeIgnoredDigests: false,
+          minRGBADelta: 0,
+          maxRGBADelta: 255,
+          mustHaveReferenceImage: false,
+          sortOrder: 'descending',
+        } as SearchCriteria);
+      });
+
+      it('can create a SearchCriteria from an empty url', () => {
+        const hint = toHintableObject({} as Partial<SearchCriteria>);
+        // Same as previous test output.
+        const url = '';
+        const urlObj = toObject(url, hint);
+        const sc = fromURL(urlObj);
+        expect(sc).to.deep.equal({
+          corpus: 'the_default_corpus',
+          leftHandTraceFilter: {},
+          rightHandTraceFilter: {},
+          includePositiveDigests: false,
+          includeNegativeDigests: false,
+          includeUntriagedDigests: false,
+          includeDigestsNotAtHead: false,
+          includeIgnoredDigests: false,
+          minRGBADelta: 0,
+          maxRGBADelta: 255,
+          mustHaveReferenceImage: false,
+          sortOrder: 'descending',
+        } as SearchCriteria);
+      });
+    }); // describe('url helpers and interaction with common-sk/query')
   });
 
   const changeEventPromise =
@@ -275,7 +395,7 @@ describe('search-controls-sk', () => {
   const getSearchCriteriaFromUI = (): SearchCriteria => {
     const searchCriteria: Partial<SearchCriteria> = {}
     searchCriteria.corpus = getCorpus();
-    searchCriteria.leftHandTraceFilter = getLeftHandTraceFilterValue();;
+    searchCriteria.leftHandTraceFilter = getLeftHandTraceFilterValue();
     searchCriteria.includePositiveDigests = getIncludePositiveDigestsCheckBox().checked;
     searchCriteria.includeNegativeDigests = getIncludeNegativeDigestsCheckBox().checked;
     searchCriteria.includeUntriagedDigests = getIncludeUntriagedDigestsCheckBox().checked;
