@@ -261,7 +261,7 @@ export type ParamSet = { [key: string]: string[] };
 
 export type Status = "" | "positive" | "negative" | "untriaged";
 
-export type ProcessState = string;
+export type ProcessState = "Running" | "Success" | "Error";
 
 export type Subset = "all" | "regressions" | "untriaged";
 
