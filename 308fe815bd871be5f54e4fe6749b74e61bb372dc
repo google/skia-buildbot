@@ -59,6 +59,30 @@
     },
     {
       "key": {
+        "uuid": "6a07d8db_4490886a",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T14:15:06Z",
+      "side": 1,
+      "message": "Can\u0027t everything be golang? :p Done.",
+      "parentUuid": "836692a4_6e1fd2e1",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 89
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "03907fd8_24577f38",
         "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
         "patchSetId": 4
@@ -105,6 +129,54 @@
     },
     {
       "key": {
+        "uuid": "dc1e32ca_a88acae8",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T14:15:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "03907fd8_24577f38",
+      "range": {
+        "startLine": 29,
+        "startChar": 24,
+        "endLine": 29,
+        "endChar": 30
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba49b116_a90743d5",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T14:15:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f088f40c_244e3ef1",
+      "range": {
+        "startLine": 29,
+        "startChar": 16,
+        "endLine": 29,
+        "endChar": 23
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f4fab03a_d1f82501",
         "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
         "patchSetId": 4
@@ -125,6 +197,30 @@
       "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81873631_c1e7f4f2",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T14:15:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f4fab03a_d1f82501",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 75
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -151,6 +247,30 @@
     },
     {
       "key": {
+        "uuid": "124e92ad_bcd59eef",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T14:15:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "295f3cdf_81655b88",
+      "range": {
+        "startLine": 54,
+        "startChar": 16,
+        "endLine": 54,
+        "endChar": 32
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0b48d632_449ded03",
         "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
         "patchSetId": 4
@@ -171,6 +291,30 @@
       "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d2df90b_dba44d9b",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T14:15:06Z",
+      "side": 1,
+      "message": "Done. Also used added some explicit return types to the function declarations.",
+      "parentUuid": "0b48d632_449ded03",
+      "range": {
+        "startLine": 55,
+        "startChar": 9,
+        "endLine": 72,
+        "endChar": 3
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -197,6 +341,30 @@
     },
     {
       "key": {
+        "uuid": "14e5dfd7_eaee9542",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T14:15:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "dc0a988c_eec4199f",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 96,
+        "endChar": 0
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a58adbf3_7ee74f5b",
         "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
         "patchSetId": 4
@@ -217,6 +385,30 @@
       "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c23f7a16_b3743531",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T14:15:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a58adbf3_7ee74f5b",
+      "range": {
+        "startLine": 272,
+        "startChar": 0,
+        "endLine": 272,
+        "endChar": 72
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -243,6 +435,30 @@
     },
     {
       "key": {
+        "uuid": "8da893f4_6640f58c",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T14:15:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1d496b6e_8a517b70",
+      "range": {
+        "startLine": 282,
+        "startChar": 0,
+        "endLine": 282,
+        "endChar": 0
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8ba72b40_74ebaa23",
         "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
         "patchSetId": 4
@@ -263,6 +479,30 @@
       "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4744efe6_53ab42d0",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T14:15:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8ba72b40_74ebaa23",
+      "range": {
+        "startLine": 284,
+        "startChar": 17,
+        "endLine": 297,
+        "endChar": 10
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -289,6 +529,30 @@
     },
     {
       "key": {
+        "uuid": "c320aec2_625c242b",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T14:15:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1dd7b3e3_810fa476",
+      "range": {
+        "startLine": 299,
+        "startChar": 14,
+        "endLine": 299,
+        "endChar": 16
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "87a2c4ff_15c787ca",
         "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
         "patchSetId": 4
@@ -309,6 +573,30 @@
       "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28c22458_b2918a3c",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 306,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T14:15:06Z",
+      "side": 1,
+      "message": "I prefer how the tests are structured because they are more realistic to how it will actually be used.",
+      "parentUuid": "87a2c4ff_15c787ca",
+      "range": {
+        "startLine": 301,
+        "startChar": 0,
+        "endLine": 306,
+        "endChar": 0
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -335,6 +623,30 @@
     },
     {
       "key": {
+        "uuid": "7e3102e0_7ae3dd88",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T14:15:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6b4219c4_2f389578",
+      "range": {
+        "startLine": 309,
+        "startChar": 14,
+        "endLine": 309,
+        "endChar": 18
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "47032c67_78da99ab",
         "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
         "patchSetId": 4
@@ -355,6 +667,30 @@
       "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d9047d5_1aa0178b",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T14:15:06Z",
+      "side": 1,
+      "message": "I don\u0027t mind them and they can help with deeply nested describe blocks.",
+      "parentUuid": "47032c67_78da99ab",
+      "range": {
+        "startLine": 388,
+        "startChar": 7,
+        "endLine": 388,
+        "endChar": 71
+      },
+      "revId": "308fe815bd871be5f54e4fe6749b74e61bb372dc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1132dda5_3a95d49d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T14:15:06Z",
+      "side": 1,
+      "message": "Thanks, that extra type made checking a lot nicer.",
+      "revId": "9e1564c2c632e7f04b4335668b5d1398e182eb98",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
