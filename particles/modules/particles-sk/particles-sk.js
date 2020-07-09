@@ -265,7 +265,7 @@ define('particles-sk', class extends HTMLElement {
     let match = window.location.pathname.match(/\/([a-zA-Z0-9]+)/);
     if (!match) {
       // Make this the hash of the particles file you want to play on startup.
-      this._hash = '4d646d4d5244569a540c65c13ad45804'; // fireworks.json
+      this._hash = 'fb7cb649b8303f588699bee018d8de4f'; // fireworks.json
     } else {
       this._hash = match[1];
     }
