@@ -93,6 +93,30 @@
       "revId": "3d48559cd08984b2c70ece3390d156f81e5c1426",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "872c80ed_5028aa37",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T19:16:36Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "38b4c104_263ea22b",
+      "range": {
+        "startLine": 79,
+        "startChar": 2,
+        "endLine": 79,
+        "endChar": 15
+      },
+      "revId": "3d48559cd08984b2c70ece3390d156f81e5c1426",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
