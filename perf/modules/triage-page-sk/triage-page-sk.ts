@@ -65,6 +65,7 @@ interface State {
   begin: number;
   end: number;
   subset: Subset;
+  filter: string; // Legacy query parameter alias for alert_filter.
   alert_filter: string;
 }
 
@@ -357,6 +358,7 @@ export class TriagePageSk extends ElementSk {
   private lastState: Partial<State> = {};
   private dialog: HTMLDialogElement | null = null;
   private allFilterOptions: ValueOptions[] = [];
+  // tslint:disable-next-line: no-empty
   private stateHasChanged: () => void = () => {};
   private currentClusteringStatus: Current[] = [];
 
@@ -371,6 +373,7 @@ export class TriagePageSk extends ElementSk {
       end: now,
       subset: 'untriaged',
       alert_filter: 'ALL',
+      filter: '',
     };
 
     this.reg = {
@@ -405,6 +408,10 @@ export class TriagePageSk extends ElementSk {
       () => (this.state as unknown) as HintableObject,
       (state) => {
         this.state = (state as unknown) as State;
+        // Support the legacy query parameter.
+        if (this.state.filter) {
+          this.state.alert_filter = this.state.filter;
+        }
         this._render();
         this.updateRange();
       }
