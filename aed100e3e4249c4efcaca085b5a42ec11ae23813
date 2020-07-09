@@ -1,0 +1,257 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b68b2365_f013d1bf",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-09T19:56:52Z",
+      "side": 1,
+      "message": "Nit: _getNodeCssClass",
+      "range": {
+        "startLine": 116,
+        "startChar": 2,
+        "endLine": 116,
+        "endChar": 12
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4f893e1c_772a14b9",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-09T19:56:52Z",
+      "side": 1,
+      "message": "Ubernit: s/svg/SVG/.",
+      "range": {
+        "startLine": 172,
+        "startChar": 68,
+        "endLine": 172,
+        "endChar": 71
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b4e8f0b_0a66e4a6",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-09T19:56:52Z",
+      "side": 1,
+      "message": "Please add evt.metaKey to this disjunction to support Mac users.\n\n(In macOS Ctrl+click opens the context menu, i.e. it emulates a right click; whereas Meta+click augments the current selection.)\n\nConsider removing evt.shiftKey from the disjunction, which usually means \"augment the current selection all the items in between the last item added to the current selection, and the item I just shift-clicked\" (see e.g. the checkboxes on Gmail\u0027s inbox).",
+      "range": {
+        "startLine": 181,
+        "startChar": 14,
+        "endLine": 181,
+        "endChar": 42
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2298857_38a575fd",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-09T19:56:52Z",
+      "side": 1,
+      "message": "Nit: extra space.",
+      "range": {
+        "startLine": 12,
+        "startChar": 22,
+        "endLine": 12,
+        "endChar": 23
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ddaacf3e_fe2384dd",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-09T19:56:52Z",
+      "side": 1,
+      "message": "Nit: eventPromise.",
+      "range": {
+        "startLine": 12,
+        "startChar": 8,
+        "endLine": 12,
+        "endChar": 22
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7e88114b_a240314f",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-09T19:56:52Z",
+      "side": 1,
+      "message": "Please move this into the beforeEach() hook and remove from all test cases.",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 70
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5197f90c_7a95ed1a",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-09T19:56:52Z",
+      "side": 1,
+      "message": "Please move the event logic into clickNodeWithDigest, and rename to clickNodeAndExpectSelectionChangedEvent(digest: string, expectedSelection: string[]).\n\nOr clickNodeAndExpectSelectionChange.\n\nRationale: More readable, more obviously correct, shorter, less potential for bugs.",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 52
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56603148_df34b4cd",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-09T19:56:52Z",
+      "side": 1,
+      "message": "Please import these from test_data.",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 87,
+        "endChar": 39
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2a9988e6_0f5979c7",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-09T19:56:52Z",
+      "side": 1,
+      "message": "Nits:\n\n- Add a blank line before this function.\n- Consider using arrow functions, for brevity and to make it clear it doesn\u0027t require binding \"this\" to anything (here and below).",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 56
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd220aca_82a5f139",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-09T19:56:52Z",
+      "side": 1,
+      "message": "string",
+      "range": {
+        "startLine": 91,
+        "startChar": 47,
+        "endLine": 91,
+        "endChar": 53
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de7e12c8_efa97b59",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-09T19:56:52Z",
+      "side": 1,
+      "message": "string",
+      "range": {
+        "startLine": 95,
+        "startChar": 52,
+        "endLine": 95,
+        "endChar": 58
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
