@@ -31,7 +31,7 @@ func RegressionFromClusterResponse(ctx context.Context, resp *RegressionDetectio
 	lastHighRegression := float64(-1.0)
 	for _, cl := range resp.Summary.Clusters {
 		if cl.StepPoint.Offset == midOffset {
-			if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.DOWN || cfg.Direction == alerts.BOTH) {
+			if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.DOWN || cfg.DirectionAsString == alerts.BOTH) {
 				if math.Abs(float64(cl.StepFit.Regression)) > lastLowRegression {
 					ret.Frame = resp.Frame
 					ret.Low = cl
@@ -41,7 +41,7 @@ func RegressionFromClusterResponse(ctx context.Context, resp *RegressionDetectio
 					lastLowRegression = math.Abs(float64(cl.StepFit.Regression))
 				}
 			}
-			if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.Direction == alerts.UP || cfg.Direction == alerts.BOTH) {
+			if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.UP || cfg.DirectionAsString == alerts.BOTH) {
 				if math.Abs(float64(cl.StepFit.Regression)) > lastHighRegression {
 					ret.Frame = resp.Frame
 					ret.High = cl

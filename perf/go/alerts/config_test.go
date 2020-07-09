@@ -39,11 +39,11 @@ func TestValidate(t *testing.T) {
 	a := NewConfig()
 	assert.NoError(t, a.Validate())
 
-	assert.Equal(t, BOTH, a.Direction)
+	assert.Equal(t, BOTH, a.DirectionAsString)
 	a.StepUpOnly = true
 	assert.NoError(t, a.Validate())
 	assert.False(t, a.StepUpOnly)
-	assert.Equal(t, UP, a.Direction)
+	assert.Equal(t, UP, a.DirectionAsString)
 
 	a.GroupBy = "foo"
 	assert.NoError(t, a.Validate())

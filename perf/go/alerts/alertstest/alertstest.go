@@ -23,8 +23,8 @@ func Store_SaveListDelete(t *testing.T, a alerts.Store) {
 
 	// Confirm it appears in the list.
 	cfgs, err := a.List(ctx, false)
-	assert.NoError(t, err)
-	assert.Len(t, cfgs, 1)
+	require.NoError(t, err)
+	require.Len(t, cfgs, 1)
 
 	// Delete it.
 	err = a.Delete(ctx, int(cfgs[0].ID))

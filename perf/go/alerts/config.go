@@ -78,26 +78,40 @@ type Alert struct {
 	ID             int64                             `json:"id"               datastore:",noindex"`
 	DisplayName    string                            `json:"display_name"     datastore:",noindex"`
 	Query          string                            `json:"query"            datastore:",noindex"` // The query to perform on the trace store to select the traces to alert on.
-	Alert          string                            `json:"alert"            datastore:",noindex"` // Email address or id of a chat room to send alerts to.
+	Alert          string                            `json:"alert"            datastore:",noindex"` // Email address to send alerts to.
 	Interesting    float32                           `json:"interesting"      datastore:",noindex"` // The regression interestingness threshold.
 	BugURITemplate string                            `json:"bug_uri_template" datastore:",noindex"` // URI Template used for reporting bugs. Format TBD.
 	Algo           types.RegressionDetectionGrouping `json:"algo"             datastore:",noindex"` // Which clustering algorithm to use.
-	Step           types.StepDetection               `json:"step"             datastore:",noindex"` // Which algorithm to use to detect steps.
-	State          ConfigState                       `json:"state"`                                 // The state of the config.
-	Owner          string                            `json:"owner"            datastore:",noindex"` // Email address of the person that owns this alert.
-	StepUpOnly     bool                              `json:"step_up_only"     datastore:",noindex"` // If true then only steps up will trigger an alert. [Deprecated, use Direction.]
-	Direction      Direction                         `json:"direction"        datastore:",noindex"` // Which direction will trigger an alert.
-	Radius         int                               `json:"radius"           datastore:",noindex"` // How many commits to each side of a commit to consider when looking for a step. 0 means use the server default.
-	K              int                               `json:"k"                datastore:",noindex"` // The K in k-means clustering. 0 means use an algorithmically chosen value based on the data.
-	GroupBy        string                            `json:"group_by"         datastore:",noindex"` // A comma separated list of keys in the paramset that all Clustering should be broken up across. Keys must not appear in Query.
-	Sparse         bool                              `json:"sparse"           datastore:",noindex"` // Data is sparse, so only include commits that have data.
-	MinimumNum     int                               `json:"minimum_num"      datastore:",noindex"` // How many traces need to be found interesting before an alert is fired.
-	Category       string                            `json:"category"         datastore:",noindex"` // Which category this alert falls into.
+	Step           types.StepDetection               `json:"step"             datastore:",noindex"`
+
+	// State is here to support the legacy format of Alerts where State was an
+	// integer enum, with 0 = ACTIVE, and 1 = DELETED. This is only needed for
+	// Cloud Datastore, not SQL backed stores. This can be deleted after
+	// migrating away from Cloud Datastore.
+	State int `json:"-"`
+
+	// Which algorithm to use to detect steps.
+	StateAsString ConfigState `json:"state"            datastore:",noindex"` // The state of the config.
+	Owner         string      `json:"owner"            datastore:",noindex"` // Email address of the person that owns this alert.
+	StepUpOnly    bool        `json:"step_up_only"     datastore:",noindex"` // If true then only steps up will trigger an alert. [Deprecated, use DirectionAsString.]
+
+	// Direction is here to support the legacy format of Alerts where Direction
+	// was an integer enum, with 0 = BOTH, 1 = UP, and 2 = DOWN. This is only
+	// needed for Cloud Datastore, not SQL backed stores. This can be deleted
+	// after migrating away from Cloud Datastore.
+	Direction         int       `json:"-"                datastore:",noindex"`
+	DirectionAsString Direction `json:"direction"        datastore:",noindex"` // Which direction will trigger an alert.
+	Radius            int       `json:"radius"           datastore:",noindex"` // How many commits to each side of a commit to consider when looking for a step. 0 means use the server default.
+	K                 int       `json:"k"                datastore:",noindex"` // The K in k-means clustering. 0 means use an algorithmically chosen value based on the data.
+	GroupBy           string    `json:"group_by"         datastore:",noindex"` // A comma separated list of keys in the paramset that all Clustering should be broken up across. Keys must not appear in Query.
+	Sparse            bool      `json:"sparse"           datastore:",noindex"` // Data is sparse, so only include commits that have data.
+	MinimumNum        int       `json:"minimum_num"      datastore:",noindex"` // How many traces need to be found interesting before an alert is fired.
+	Category          string    `json:"category"         datastore:",noindex"` // Which category this alert falls into.
 }
 
 // StateToInt converts the State into an int which is used when storing Alerts.
 func (c *Alert) StateToInt() int {
-	return ConfigStateToInt(c.State)
+	return ConfigStateToInt(c.StateAsString)
 }
 
 // IDToString returns the alerts ID formatted as a string.
@@ -283,7 +297,7 @@ func (c *Alert) Validate() error {
 	}
 	if c.StepUpOnly {
 		c.StepUpOnly = false
-		c.Direction = UP
+		c.DirectionAsString = UP
 	}
 	return nil
 }
@@ -291,10 +305,10 @@ func (c *Alert) Validate() error {
 // NewConfig creates a new Config properly initialized.
 func NewConfig() *Alert {
 	return &Alert{
-		ID:        BadAlertID,
-		Algo:      types.KMeansGrouping,
-		State:     ACTIVE,
-		Sparse:    DefaultSparse,
-		Direction: BOTH,
+		ID:                BadAlertID,
+		Algo:              types.KMeansGrouping,
+		StateAsString:     ACTIVE,
+		Sparse:            DefaultSparse,
+		DirectionAsString: BOTH,
 	}
 }
