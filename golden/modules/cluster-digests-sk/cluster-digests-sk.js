@@ -13,6 +13,9 @@
  *
  * @evt layout-complete; fired when the force layout has stabilized (i.e. finished rendering).
  *
+ * @evt selection-changed; fired when a digest is clicked on (or the selection is cleared). Detail
+ *   contains a list of digests that are selected.
+ *
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
@@ -40,6 +43,9 @@ define('cluster-digests-sk', class extends ElementSk {
     // has been laid out as.
     this._width = 400;
     this._height = 400;
+
+    // An array of digests (strings) that correspond to the currently selected digests (if any).
+    this._selectedDigests = [];
   }
 
   connectedCallback() {
@@ -107,10 +113,19 @@ define('cluster-digests-sk', class extends ElementSk {
       });
   }
 
+  _nodeClass(d) {
+    let base = `node ${d.status}`;
+    if (this._selectedDigests.indexOf(d.name) >= 0) {
+      base += ' selected';
+    }
+    return base;
+  }
+
   /**
    * Sets the new data to render in a cluster view.
    *
-   * @param nodes Array<Object>: contains Strings for keys digest and status.
+   * @param nodes Array<Object>: contains Strings for keys digest (called name for historical
+   *   reasons) and status.
    * @param links Array<Object>: contains Numbers for keys source, target, and value. source and
    *   target refer to the index of the nodes array. value represents how far apart those two
    *   nodes should be.
@@ -149,11 +164,53 @@ define('cluster-digests-sk', class extends ElementSk {
         .data(this._nodes)
         .enter()
         .append('circle')
-        .attr('class', (d) => `node ${d.status}`)
+        .attr('class', (d) => this._nodeClass(d))
         .attr('r', 12)
-        .attr('stroke', 'black');
+        .attr('stroke', 'black')
+        .attr('data-digest', (d) => d.name)
+        .on('click tap', (d) => {
+          // Capture this event (prevent it from propagating to the svg).
+          const evt = d3Select.event;
+          evt.preventDefault();
+          evt.stopPropagation();
+
+          const digest = d.name;
+          if (this._selectedDigests.indexOf(digest) >= 0) {
+            return; // It's already selected, do nothing.
+          }
+          if (evt.shiftKey || evt.ctrlKey) {
+            // Support multiselection if shift or control is held.
+            this._selectedDigests.push(digest);
+          } else {
+            // Clear the existing selection and replace it with this digest.
+            this._selectedDigests = [digest];
+          }
+          this._updateSelection();
+        });
+
+      d3Select.select(clusterSk).on('click tap', () => {
+        // Capture this event (prevent it from propagating outside the svg).
+        const evt = d3Select.event;
+        evt.preventDefault();
+        evt.stopPropagation();
+
+        this._selectedDigests = [];
+        this._updateSelection();
+      });
 
       this._layout();
     });
+  }
+
+  _updateSelection() {
+    d3Select.select($$('svg', this))
+      .selectAll('circle.node')
+      .data(this._nodes)
+      .attr('class', (d) => this._nodeClass(d));
+
+    this.dispatchEvent(new CustomEvent('selection-changed', {
+      bubbles: true,
+      detail: this._selectedDigests,
+    }));
   }
 });
