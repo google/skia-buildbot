@@ -11,4 +11,8 @@ html {
 
   --light-error-red: rgb(255, 230, 230);
   --transparent-white: rgba(255, 255, 255, 0);
+
+  --triaged-positive: #1B9E77;
+  --triaged-negative: #E7298A;
+  --untriaged: #A6761D;
 }
