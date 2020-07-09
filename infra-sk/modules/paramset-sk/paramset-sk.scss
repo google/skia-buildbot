@@ -53,6 +53,6 @@ paramset-sk {
   }
 
   tr:nth-child(even) {
-    background-color: var(--surface, --dark-white);
+    background-color: var(--surface-1dp, --dark-white);
   }
 }
