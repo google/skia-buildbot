@@ -1,4 +1,5 @@
 @import '~elements-sk/colors';
+@import '../colors';
 
 bulk-triage-sk {
 
@@ -11,19 +12,19 @@ bulk-triage-sk {
 
     &.positive {
       &.selected check-circle-icon-sk {
-        fill: #1B9E77;
+        fill: var(--triaged-positive);
       }
     }
 
     &.negative {
       &.selected cancel-icon-sk {
-        fill: #E7298A;
+        fill: var(--triaged-negative);
       }
     }
 
     &.untriaged {
       &.selected help-icon-sk {
-        fill: #A6761D;
+        fill: var(--untriaged);
       }
     }
 
