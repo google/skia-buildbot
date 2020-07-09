@@ -16,6 +16,23 @@
       "revId": "7bbb2325766acc32cefaf17a05d5a92ed9481f11",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b197d3f_08d45b17",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T12:43:31Z",
+      "side": 1,
+      "message": "Yeah, it seems to be having trouble downloading Chromium. I\u0027ll land despite that.",
+      "revId": "7bbb2325766acc32cefaf17a05d5a92ed9481f11",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
