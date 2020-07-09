@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "21832cd7_99ff671c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-09T23:30:08Z",
+      "side": 1,
+      "message": "PTAL. I\u0027ve merged with the upstream changes, and refactored the hintable object tests to 1) test the SearchCriteria(From/To)HintableObject behaviors separately from the end-to-end query string conversion behaviors, and 2) group related SearchCriteria/HintableObject/query strings together to make it more obvious that they are correct.",
+      "revId": "6ffe34264eeafc713c08836a32fe4e8d758881a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
