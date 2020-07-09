@@ -12,9 +12,11 @@ import { live } from 'lit-html/directives/live';
 import { $$ } from 'common-sk/modules/dom';
 import { define } from 'elements-sk/define';
 import { deepCopy } from 'common-sk/modules/object';
-import { ParamSet } from 'common-sk/modules/query';
+import { fromParamSet, toParamSet, ParamSet } from 'common-sk/modules/query';
+import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { FilterDialogSk, Filters } from '../filter-dialog-sk/filter-dialog-sk';
+import { defaultCorpus } from '../settings';
 
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/styles/buttons';
@@ -42,7 +44,80 @@ export interface SearchCriteria {
   mustHaveReferenceImage: boolean;
 
   sortOrder: 'ascending' | 'descending';
-};
+}
+
+/**
+ * Describes the HintableObject used by the SearchCriteria(From/To)HintableObject() functions below.
+ */
+export interface SearchCriteriaHintableObject {
+  corpus?: string;
+  left_filter?: string;
+  right_filter?: string;
+  positive?: boolean;
+  negative?: boolean;
+  untriaged?: boolean;
+  not_at_head?: boolean;
+  include_ignored?: boolean;
+  min_rgba?: number;
+  max_rgba?: number;
+  reference_image_required?: boolean;
+  sort?: 'ascending' | 'descending';
+}
+
+/**
+ * Returns a SearchCriteria built from a HintableObject with sensible defaults in case of any
+ * missing values. This is intended to be used with common-sk's stateReflector() function.
+ */
+export function SearchCriteriaFromHintableObject(hintObj: SearchCriteriaHintableObject | HintableObject) :
+    SearchCriteria {
+  return {
+    corpus: (hintObj.corpus as string) || defaultCorpus(),
+
+    leftHandTraceFilter: toParamSet(hintObj.left_filter as string),
+    rightHandTraceFilter: toParamSet(hintObj.right_filter as string),
+
+    includePositiveDigests: !!hintObj.positive,
+    includeNegativeDigests: !!hintObj.negative,
+    includeUntriagedDigests: !!hintObj.untriaged,
+    includeDigestsNotAtHead: !!hintObj.not_at_head,
+    includeIgnoredDigests: !!hintObj.include_ignored,
+
+    minRGBADelta: +(hintObj.min_rgba || 0),
+    maxRGBADelta: +(hintObj.max_rgba || 255),
+    mustHaveReferenceImage: !!hintObj.reference_image_required,
+
+    sortOrder: (hintObj.sort as 'ascending' | 'descending') || 'descending',
+  }
+}
+
+/**
+ * Returns a HintableObject built from a SearchCriteria, suitable to be used with
+ * common-sk's searchReflector() function.
+ *
+ * If the given SearchCriteria is partial, it will be filled out with falsey values
+ * before the conversion to HintableObject takes place.
+ */
+export function SearchCriteriaToHintableObject(sc: SearchCriteria | Partial<SearchCriteria>) :
+    SearchCriteriaHintableObject {
+  return {
+    corpus: sc.corpus || '',
+
+    left_filter: fromParamSet(sc.leftHandTraceFilter!), // note this is converted to a string.
+    right_filter: fromParamSet(sc.rightHandTraceFilter!), // note this is converted to a string.
+
+    positive: sc.includePositiveDigests || false,
+    negative: sc.includeNegativeDigests || false,
+    untriaged: sc.includeUntriagedDigests || false,
+    not_at_head: sc.includeDigestsNotAtHead || false,
+    include_ignored: sc.includeIgnoredDigests || false,
+
+    min_rgba: sc.minRGBADelta || 0,
+    max_rgba: sc.maxRGBADelta || 0,
+    reference_image_required: sc.mustHaveReferenceImage || false,
+
+    sort: sc.sortOrder || 'descending',
+  }
+}
 
 /** A component that allows the user to view and edit a digest search criteria. */
 export class SearchControlsSk extends ElementSk {
