@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "843cedb9_b8e97b2c",
+        "filename": "golden/modules/trace-filter-sk/trace-filter-sk_po.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T12:22:16Z",
+      "side": 1,
+      "message": "Add a reminder comment that this setting is done via interacting with the UI",
+      "range": {
+        "startLine": 55,
+        "startChar": 8,
+        "endLine": 55,
+        "endChar": 33
+      },
+      "revId": "4bc5194384029240bef7393ee45fd40c02024f89",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
