@@ -4,20 +4,20 @@
   elements.
 */
 
+.body-sk.darkmode {
+  --primary: var(--light-blue-500);
+  --primary-variant: var(--light-blue-200);
+  --on-primary-variant: var(--black);
+  --surface: var(--grey-900);
+  --surface-1dp: var(--grey-800);
+  --surface-2dp: var(--grey-700);
+}
+
 .body-sk {
   --secondary: var(--green-500);
   --primary-variant: var(--light-blue-600);
   --surface-1dp: var(--grey-200);
   --surface-2dp: var(--grey-400);
-
-  .darkmode {
-    --primary: var(--light-blue-500);
-    --primary-variant: var(--light-blue-200);
-    --on-primary-variant: var(--black);
-    --surface: var(--grey-900);
-    --surface-1dp: var(--grey-800);
-    --surface-2dp: var(--grey-700);
-  }
 
   multi-select-sk {
     border: solid 1px var(--on-surface);
