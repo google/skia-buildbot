@@ -1,0 +1,40 @@
+@import url(~elements-sk/colors.css);
+
+arb-status-sk {
+  :host {
+    font-family: sans-serif;
+  }
+  #loadstatus {
+    font-size: 0.8em;
+    padding: 0px 15px;
+  }
+  #tabsContainer {
+    width: 400px;
+  }
+  #pleaseLoginMsg {
+    color: red;
+    padding: 10px;
+  }
+  a,a.visited {
+    color: #1f78b4;
+  }
+
+  .big {
+    font-size: 1.3em;
+  }
+  .small {
+    font-size: 0.8em;
+  }
+  .hidden {
+    display: none;
+  }
+  .nowrap {
+    white-space: nowrap;
+  }
+  .rollCandidate {
+    height: 80px;
+  }
+  .trybot {
+    margin: 5px;
+  }
+}

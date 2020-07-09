@@ -14,8 +14,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"text/template"
 	"time"
@@ -99,22 +99,19 @@ type autoRollMiniStatus struct {
 }
 
 func reloadTemplates() {
-	// Change the current working directory to two directories up from this source file so that we
-	// can read templates and serve static (res/) files.
-
 	if *resourcesDir == "" {
-		_, filename, _, _ := runtime.Caller(0)
-		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
+		wd, err := os.Getwd()
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		*resourcesDir = filepath.Join(wd, "dist")
 	}
+	sklog.Infof("Reading resources from %s", *resourcesDir)
 	mainTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/main.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/navbar.html"),
+		filepath.Join(*resourcesDir, "index.html"),
 	))
 	rollerTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/roller.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/navbar.html"),
+		filepath.Join(*resourcesDir, "roller.html"),
 	))
 }
 
@@ -367,8 +364,8 @@ func runServer(ctx context.Context, serverURL string) {
 	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, allowed.Googlers(), allowed.Googlers(), viewAllow)
 
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", httputils.OriginTrial(mainHandler, *local))
+	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
 	r.HandleFunc("/json/all", jsonAllHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
