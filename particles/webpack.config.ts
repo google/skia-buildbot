@@ -19,6 +19,7 @@ const configFactory: webpack.ConfigurationFactory = (_, args) => {
       },
       { from: resolve(__dirname, 'build/canvaskit/canvaskit.js') },
       { from: resolve(__dirname, 'build/canvaskit/canvaskit.wasm') },
+      { from: resolve(__dirname, 'build/VERSION') },
       { from: resolve(__dirname, 'node_modules/@webcomponents/custom-elements/custom-elements.min.js') },
     ]),
   );
