@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "865d0a28_ae1d3cd1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T12:20:31Z",
+      "side": 1,
+      "message": "I think this CL nicely shows how the composable POs make things neat and orderly.",
+      "revId": "ef350b1db587c6f644a73ad3a0115f8abd8d5d07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "69a7e129_44a9913c",
+        "filename": "golden/modules/query-dialog-sk/query-dialog-sk_po.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T12:20:31Z",
+      "side": 1,
+      "message": "via emulated user interaction (just to remind the reader that this isn\u0027t as simple as setting the property)",
+      "range": {
+        "startLine": 61,
+        "startChar": 24,
+        "endLine": 61,
+        "endChar": 29
+      },
+      "revId": "ef350b1db587c6f644a73ad3a0115f8abd8d5d07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
