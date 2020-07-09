@@ -18,7 +18,7 @@
     "d3-array": "^2.4.0",
     "d3-scale": "^3.2.1",
     "dialog-polyfill": "^0.5.1",
-    "elements-sk": "3.3.3",
+    "elements-sk": "3.3.4",
     "elix": "^9.0.3",
     "fetch-mock": "^9.10.1",
     "lit-html": "^1.2.1",
