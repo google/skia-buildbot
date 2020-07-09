@@ -33,7 +33,9 @@ var AllStepFitStatus = []StepFitStatus{LOW, HIGH, UNINTERESTING}
 //
 // Used in ClusterSummary.
 type StepFit struct {
-	// LeastSquares is the Least Squares error for a step function curve fit to the trace.
+	// LeastSquares is the Least Squares error for a step function curve fit to
+	// the trace. Will be set to InvalidLeastSquaresError if LSE isn't
+	// calculated for a given algorithm.
 	LeastSquares float32 `json:"least_squares"`
 
 	// TurningPoint is the index where the Step Function changes value.
@@ -57,6 +59,10 @@ type StepFit struct {
 	// Values can be "High", "Low", and "Uninteresting"
 	Status StepFitStatus `json:"status"`
 }
+
+// InvalidLeastSquaresError signals that the value of StepFit.LeastSquares is
+// invalid, i.e. it is not calculated for the given algorithm.
+const InvalidLeastSquaresError = -1
 
 // NewStepFit creates an properly initialized StepFit struct.
 func NewStepFit() *StepFit {
@@ -92,7 +98,8 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 		trace = trace[0 : len(trace)-1]
 	}
 
-	var lse float32
+	var lse float32 = InvalidLeastSquaresError
+
 	var regression float32
 	stepSize := float32(-1.0)
 	i := len(trace) / 2
@@ -104,7 +111,7 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 	if stepDetection == types.OriginalStep {
 		// This is the original recipe step detection as described at
 		// https://bitworking.org/news/2014/11/detecting-benchmark-regressions
-		lse := float32(math.MaxFloat32)
+		lse = float32(math.MaxFloat32)
 		if y0 != y1 {
 			d := vec32.SSE(trace[:i], y0) + vec32.SSE(trace[i:], y1)
 			if d < lse {

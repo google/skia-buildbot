@@ -88,16 +88,18 @@ export interface ClusterSummary2SkOpenKeysEventDetail {
 export class ClusterSummary2Sk extends ElementSk {
   private static template = (ele: ClusterSummary2Sk) => html`
     <div class="regression ${ele.statusClass()}">
-      Regression: <span>${trunc(ele.summary!.step_fit!.regression)}</span>
+      Regression:
+      <span>${trunc(ele.summary!.step_fit!.regression)}</span>
     </div>
     <div class="stats">
-      <div class="labelled">Cluster Size: <span>${ele.summary.num}</span></div>
       <div class="labelled">
-        Least Squares Error:
-        <span> ${trunc(ele.summary!.step_fit!.least_squares)} </span>
+        Cluster Size:
+        <span>${ele.summary.num}</span>
       </div>
+      ${ClusterSummary2Sk.leastSquares(ele)}
       <div class="labelled">
-        Step Size: <span>${trunc(ele.summary!.step_fit!.step_size)} </span>
+        Step Size:
+        <span>${trunc(ele.summary!.step_fit!.step_size)}</span>
       </div>
     </div>
     <plot-simple-sk
@@ -106,8 +108,7 @@ export class ClusterSummary2Sk extends ElementSk {
       height="250"
       specialevents
       @trace_selected=${ele.traceSelected}
-    >
-    </plot-simple-sk>
+    ></plot-simple-sk>
     <div id="status" class=${ele.hiddenClass()}>
       <p class="disabledMessage">You must be logged in to change the status.</p>
       <triage2-sk
@@ -115,8 +116,7 @@ export class ClusterSummary2Sk extends ElementSk {
         @change=${(e: CustomEvent<Status>) => {
           ele.triageStatus.status = e.detail;
         }}
-      >
-      </triage2-sk>
+      ></triage2-sk>
       <input
         type="text"
         .value=${ele.triageStatus.message}
@@ -125,14 +125,14 @@ export class ClusterSummary2Sk extends ElementSk {
         }}
         label="Message"
       />
-      <button class="action" @click=${ele.update}> Update </button>
+      <button class="action" @click=${ele.update}>Update</button>
     </div>
     <commit-detail-panel-sk id="commits" selectable></commit-detail-panel-sk>
     <div class="actions">
       <button id="shortcut" @click=${ele.openShortcut}>
         View on dashboard
       </button>
-      <button @click=${ele.toggleWordCloud}> Word Cloud </button>
+      <button @click=${ele.toggleWordCloud}>Word Cloud</button>
       <a id="permalink" class=${ele.hiddenClass()} href=${ele.permaLink()}>
         Permlink
       </a>
@@ -142,6 +142,18 @@ export class ClusterSummary2Sk extends ElementSk {
       <word-cloud-sk .items=${ele.summary.param_summaries2}></word-cloud-sk>
     </collapse-sk>
   `;
+
+  private static leastSquares = (ele: ClusterSummary2Sk) => {
+    if (ele.summary!.step_fit!.least_squares >= 0) {
+      return html`
+        <div class="labelled">
+          Least Squares Error:
+          <span>${trunc(ele.summary!.step_fit!.least_squares)}</span>
+        </div>
+      `;
+    }
+    return html``;
+  };
 
   private summary: ClusterSummary;
   private triageStatus: TriageStatus;

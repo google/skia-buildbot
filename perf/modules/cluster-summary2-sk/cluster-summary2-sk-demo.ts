@@ -109,9 +109,10 @@ const cluster = document.querySelector<ClusterSummary2Sk>(
 );
 cluster!.full_summary = fullSummary;
 
-const summary2 = JSON.parse(JSON.stringify(fullSummary));
-summary2.summary.step_fit.status = 'High';
-summary2.summary.step_fit.regression = 201;
+const summary2: FullSummary = JSON.parse(JSON.stringify(fullSummary));
+summary2.summary.step_fit!.status = 'High';
+summary2.summary.step_fit!.regression = 201;
+summary2.summary.step_fit!.least_squares = -1; // Should be hidden.
 const nostatus = document.querySelector<ClusterSummary2Sk>(
   'cluster-summary2-sk.nostatus'
 );
