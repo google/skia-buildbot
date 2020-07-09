@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f7a3c79a_26b6dbad",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2020-07-09T12:42:55Z",
+      "side": 1,
+      "message": "Thanks Kevin!\n\nI guess the Puppeteer error is unrelated?",
+      "revId": "7bbb2325766acc32cefaf17a05d5a92ed9481f11",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
