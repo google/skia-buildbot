@@ -222,3 +222,21 @@ func NewClient(c *http.Client) Client {
 func (c *client) Get(ctx context.Context) (*Branches, error) {
 	return Get(ctx, c.Client)
 }
+
+// fakeClient implements Client with fake data.
+type fakeClient struct {
+	fakeBranches *Branches
+}
+
+// NewFakeClient returns a fake Client instance which just returns the given
+// Branches.
+func NewFakeClient(fakeBranches *Branches) Client {
+	return &fakeClient{
+		fakeBranches: fakeBranches.Copy(),
+	}
+}
+
+// See documentation for Client interface.
+func (c *fakeClient) Get(ctx context.Context) (*Branches, error) {
+	return c.fakeBranches.Copy(), nil
+}

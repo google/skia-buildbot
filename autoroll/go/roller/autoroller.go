@@ -102,7 +102,26 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to initialize code review")
 	}
-	reg, err := config_vars.NewRegistry(ctx, chrome_branch.NewClient(client))
+	// TODO(borenet): This is a temporary hack used as a workaround while
+	// Omaha proxy is down.
+	cbc := chrome_branch.NewFakeClient(&chrome_branch.Branches{
+		Master: &chrome_branch.Branch{
+			Milestone: 86,
+			Number:    0,
+			Ref:       "refs/heads/master",
+		},
+		Beta: &chrome_branch.Branch{
+			Milestone: 85,
+			Number:    4183,
+			Ref:       "refs/branch-heads/4183",
+		},
+		Stable: &chrome_branch.Branch{
+			Milestone: 84,
+			Number:    4147,
+			Ref:       "refs/branch-heads/4147",
+		},
+	})
+	reg, err := config_vars.NewRegistry(ctx, cbc)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create config var registry")
 	}
