@@ -29,6 +29,11 @@ func (s *DSAlertStore) Save(ctx context.Context, cfg *alerts.Alert) error {
 	if err := cfg.Validate(); err != nil {
 		return fmt.Errorf("Failed to save invalid Config: %s", err)
 	}
+
+	// Make sure StateAsString also appears in the legacy format of State since
+	// it is used for filtering in the List() func.
+	cfg.State = alerts.ConfigStateToInt(cfg.StateAsString)
+
 	key := ds.NewKey(ds.ALERT)
 	if cfg.ID != alerts.BadAlertID {
 		key.ID = int64(cfg.ID)
@@ -49,7 +54,12 @@ func (s *DSAlertStore) Delete(ctx context.Context, id int) error {
 		if err := tx.Get(key, cfg); err != nil {
 			return fmt.Errorf("Failed to retrieve from datastore: %s", err)
 		}
-		cfg.State = alerts.DELETED
+
+		// Set both State and StateAsString to deleted since State is used for filtering
+		// in the List() func.
+		cfg.StateAsString = alerts.DELETED
+		cfg.State = alerts.ConfigStateToInt(alerts.DELETED)
+
 		if _, err := tx.Put(key, cfg); err != nil {
 			return fmt.Errorf("Failed to write to database: %s", err)
 		}
@@ -85,11 +95,46 @@ func (s *DSAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alerts
 		if err := cfg.Validate(); err != nil {
 			sklog.Errorf("Found an invalid alert %v: %s", *cfg, err)
 		}
+		upgradeAlert(cfg)
 		ret = append(ret, cfg)
 	}
 
 	sort.Sort(configSlice(ret))
 	return ret, nil
+}
+
+// upgradeAlert migrates the legacy Direction and State properties into their
+// new string based forms.
+//
+// Note that this will only affect an Alert once, i.e. once an Alert has been
+// saved back into the datastore then the string version of the property is
+// considered the source of truth and the integer values are then subsequently
+// ignored.
+func upgradeAlert(a *alerts.Alert) {
+	if a.DirectionAsString == "" {
+		// Convert legacy int values to the new string values.
+		switch a.Direction {
+		case 0:
+			a.DirectionAsString = alerts.BOTH
+		case 1:
+			a.DirectionAsString = alerts.UP
+		case 2:
+			a.DirectionAsString = alerts.DOWN
+		default:
+			a.DirectionAsString = alerts.BOTH
+		}
+	}
+
+	if a.StateAsString == "" {
+		switch a.State {
+		case 0:
+			a.StateAsString = alerts.ACTIVE
+		case 1:
+			a.StateAsString = alerts.DELETED
+		default:
+			a.StateAsString = alerts.DELETED
+		}
+	}
 }
 
 // Confirm this Google Cloud Datastore implements the AlertStore interface.
