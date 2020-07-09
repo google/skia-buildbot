@@ -1,3 +1,5 @@
+@import '../colors';
+
 dots-legend-sk {
   display: inline-grid;
   grid-template-columns: auto auto auto auto;
@@ -13,17 +15,14 @@ dots-legend-sk {
   }
 
   .negative-icon {
-    // TODO(lovisolo): Use colors from palette defined in a shared style sheet.
-    fill: #E7298A;
+    fill: var(--triaged-negative);
   }
 
   .positive-icon {
-    // TODO(lovisolo): Use colors from palette defined in a shared style sheet.
-    fill: #1B9E77;
+    fill: var(--triaged-positive);
   }
 
   .untriaged-icon {
-    // TODO(lovisolo): Use colors from palette defined in a shared style sheet.
-    fill: #A6761D;
+    fill: var(--untriaged);
   }
 }
