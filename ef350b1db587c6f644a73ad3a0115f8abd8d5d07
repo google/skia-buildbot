@@ -39,6 +39,30 @@
       "revId": "ef350b1db587c6f644a73ad3a0115f8abd8d5d07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efaab212_e6a65f4a",
+        "filename": "golden/modules/query-dialog-sk/query-dialog-sk_po.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-09T18:44:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "69a7e129_44a9913c",
+      "range": {
+        "startLine": 61,
+        "startChar": 24,
+        "endLine": 61,
+        "endChar": 29
+      },
+      "revId": "ef350b1db587c6f644a73ad3a0115f8abd8d5d07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
