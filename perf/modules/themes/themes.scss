@@ -60,3 +60,38 @@
     background-color: var(--surface-1dp);
   }
 }
+
+/* autoprefixer: off */
+
+/* Turn on a 13x13 scrollbar */
+::-webkit-scrollbar {
+  width: 13px;
+  height: 13px;
+}
+
+/* Turn off single button up on top and down on bottom */
+::-webkit-scrollbar-button:start:decrement,
+::-webkit-scrollbar-button:end:increment,
+::-webkit-scrollbar-button:vertical:start:increment,
+::-webkit-scrollbar-button:vertical:end:decrement {
+  display: none;
+}
+
+/* Track below and above */
+::-webkit-scrollbar-track-piece {
+  background-color: var(--background);
+  border: solid 1px var(--surface-2dp);
+}
+
+/* The thumb itself */
+::-webkit-scrollbar-thumb {
+  border: solid 1px var(--on-surface);
+  background: var(--surface-1dp);
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--surface);
+}
+
+/* autoprefixer: on */
