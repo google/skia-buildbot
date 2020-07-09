@@ -68,8 +68,8 @@ export interface SearchCriteriaHintableObject {
  * Returns a SearchCriteria built from a HintableObject with sensible defaults in case of any
  * missing values. This is intended to be used with common-sk's stateReflector() function.
  */
-export function SearchCriteriaFromHintableObject(hintObj: SearchCriteriaHintableObject | HintableObject) :
-    SearchCriteria {
+export function SearchCriteriaFromHintableObject(
+    hintObj: SearchCriteriaHintableObject | HintableObject): SearchCriteria {
   return {
     corpus: (hintObj.corpus as string) || defaultCorpus(),
 
@@ -91,19 +91,19 @@ export function SearchCriteriaFromHintableObject(hintObj: SearchCriteriaHintable
 }
 
 /**
- * Returns a HintableObject built from a SearchCriteria, suitable to be used with
- * common-sk's searchReflector() function.
+ * Returns a HintableObject built from a SearchCriteria, suitable to be used with common-sk's
+ * searchReflector() function.
  *
- * If the given SearchCriteria is partial, it will be filled out with falsey values
- * before the conversion to HintableObject takes place.
+ * If the given SearchCriteria is partial, it will be filled out with falsey values before the
+ * conversion to HintableObject takes place.
  */
-export function SearchCriteriaToHintableObject(sc: SearchCriteria | Partial<SearchCriteria>) :
-    SearchCriteriaHintableObject {
+export function SearchCriteriaToHintableObject(
+    sc: SearchCriteria | Partial<SearchCriteria>): SearchCriteriaHintableObject {
   return {
     corpus: sc.corpus || '',
 
-    left_filter: fromParamSet(sc.leftHandTraceFilter!), // note this is converted to a string.
-    right_filter: fromParamSet(sc.rightHandTraceFilter!), // note this is converted to a string.
+    left_filter: fromParamSet(sc.leftHandTraceFilter!), // Note: this is converted to a string.
+    right_filter: fromParamSet(sc.rightHandTraceFilter!), // Note this is converted to a string.
 
     positive: sc.includePositiveDigests || false,
     negative: sc.includeNegativeDigests || false,
