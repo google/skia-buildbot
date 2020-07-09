@@ -92,7 +92,10 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 		trace = trace[0 : len(trace)-1]
 	}
 
-	var lse float32
+	// A negative LSE doesn't make sense, use -1 to signal to the UI not to
+	// display the LSE value.
+	var lse float32 = -1
+
 	var regression float32
 	stepSize := float32(-1.0)
 	i := len(trace) / 2
@@ -104,7 +107,7 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 	if stepDetection == types.OriginalStep {
 		// This is the original recipe step detection as described at
 		// https://bitworking.org/news/2014/11/detecting-benchmark-regressions
-		lse := float32(math.MaxFloat32)
+		lse = float32(math.MaxFloat32)
 		if y0 != y1 {
 			d := vec32.SSE(trace[:i], y0) + vec32.SSE(trace[i:], y1)
 			if d < lse {
