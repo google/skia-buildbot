@@ -9,9 +9,11 @@ export interface Alert {
 	bug_uri_template: string;
 	algo: RegressionDetectionGrouping;
 	step: StepDetection;
+	State: number;
 	state: ConfigState;
 	owner: string;
 	step_up_only: boolean;
+	Direction: number;
 	direction: Direction;
 	radius: number;
 	k: number;
