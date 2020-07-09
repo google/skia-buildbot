@@ -300,10 +300,13 @@ export class AlertConfigSk extends ElementSk {
           ].getAttribute('value')
         ))}
     >
-      <div value="0" title="Clusters that match this will generate alerts.">
+      <div
+        value="ACTIVE"
+        title="Clusters that match this will generate alerts."
+      >
         Active
       </div>
-      <div value="1" title="Currently inactive.">Deleted</div>
+      <div value="DELETED" title="Currently inactive.">Deleted</div>
     </select-sk>
   `;
 

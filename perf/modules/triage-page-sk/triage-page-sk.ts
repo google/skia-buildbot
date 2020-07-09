@@ -404,6 +404,9 @@ export class TriagePageSk extends ElementSk {
     this.stateHasChanged = stateReflector(
       () => (this.state as unknown) as HintableObject,
       (state) => {
+        if (state.hasOwnProperty('filter')) {
+          state.alert_filter = state.filter;
+        }
         this.state = (state as unknown) as State;
         this._render();
         this.updateRange();
