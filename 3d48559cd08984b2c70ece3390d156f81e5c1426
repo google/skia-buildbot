@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3619a403_63f8756a",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_po.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T12:28:44Z",
+      "side": 1,
+      "message": "except it gets the data from the actually visible components. (maybe a similar comment for the setter)",
+      "range": {
+        "startLine": 74,
+        "startChar": 47,
+        "endLine": 74,
+        "endChar": 53
+      },
+      "revId": "3d48559cd08984b2c70ece3390d156f81e5c1426",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "43af267d_4821c24d",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 5
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-09T12:28:44Z",
+      "side": 1,
+      "message": "I would personally prefer not to dynamically create test cases like this. It\u0027s harder to reason about for me. What about having one describe and a helper function that then is called many times in a similar fashion, but not adding n tests for n traits?",
+      "range": {
+        "startLine": 79,
+        "startChar": 2,
+        "endLine": 79,
+        "endChar": 15
+      },
+      "revId": "3d48559cd08984b2c70ece3390d156f81e5c1426",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
