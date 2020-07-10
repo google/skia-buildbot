@@ -35,15 +35,20 @@ package-lock.json: package.json
 	touch package-lock.json
 
 
-.PHONY: typescript_definitions
-typescript_definitions:
+# First create a list of all the modules that ./go/ts depends upon.
+tsDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' go.skia.org/infra/perf/go/ts/  )
+
+# Then use that list to find all the Go files that make up those dependent modules.
+tsDependentFiles := $(shell echo $(tsDependentModules) | xargs -L 1 go list -f '{{ $$dir := .Dir }}{{ range  .GoFiles }}{{ $$dir }}/{{ . }}{{ "\n" }}{{ end }}' )
+
+./modules/json/index.ts: $(tsDependentFiles)
 	go run ./go/ts
 
 MODULES = $(shell find ./modules -type f)
 
 # We can depend on the timestamp of the dist directory since webpack will delete
 # the directory before repopulating it.
-./dist: package-lock.json $(MODULES) typescript_definitions
+./dist: package-lock.json $(MODULES) ./modules/json/index.ts
 	npx webpack-cli --mode=production
 
 watch: package-lock.json
