@@ -1,6 +1,6 @@
 package main
 
-// This is a dummy service used to test goldpushk. It should get stuck in a "CrashLoopBackOff" state
+// This is a test service used to test goldpushk. It should get stuck in a "CrashLoopBackOff" state
 // on Kubernetes.
 
 import (

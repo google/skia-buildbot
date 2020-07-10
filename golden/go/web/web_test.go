@@ -1424,7 +1424,7 @@ func TestBaselineHandler_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
 
-	// Prepare a dummy response from the BaselineFetcher and the handler's expected JSON response.
+	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
 	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
 
@@ -1465,7 +1465,7 @@ func TestBaselineHandler_IssueSet_Success(t *testing.T) {
 	// GET parameter "issue" is set.
 	r := httptest.NewRequest(http.MethodGet, requestURL+"?issue=123456", nil)
 
-	// Prepare a dummy response from the BaselineFetcher and the handler's expected JSON response.
+	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
 	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
 
@@ -1506,7 +1506,7 @@ func TestBaselineHandler_IssueSet_IssueOnly_Success(t *testing.T) {
 	// GET parameters "issue" and "issueOnly" are set.
 	r := httptest.NewRequest(http.MethodGet, requestURL+"?issue=123456&issueOnly=true", nil)
 
-	// Prepare a dummy response from the BaselineFetcher and the handler's expected JSON response.
+	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
 	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
 
@@ -1583,7 +1583,7 @@ func TestBaselineHandler_CommitHashSet_IgnoresCommitHash_Success(t *testing.T) {
 	// Set the {commit_hash} URL variable in /json/expectations/commit/{commit_hash}.
 	r = mux.SetURLVars(r, map[string]string{"commit_hash": "09e87c3d93e2bb188a8dae01b7f8b9ffb2ebcad1"})
 
-	// Prepare a dummy response from the BaselineFetcher and the handler's expected JSON response.
+	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
 	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
 
@@ -1629,7 +1629,7 @@ func TestBaselineHandler_CommitHashSet_IssueSet_IgnoresCommitHash_Success(t *tes
 	// Set the {commit_hash} URL variable in /json/expectations/commit/{commit_hash}.
 	r = mux.SetURLVars(r, map[string]string{"commit_hash": "09e87c3d93e2bb188a8dae01b7f8b9ffb2ebcad1"})
 
-	// Prepare a dummy response from the BaselineFetcher and the handler's expected JSON response.
+	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
 	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
 
@@ -1675,7 +1675,7 @@ func TestBaselineHandler_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Succ
 	// Set the {commit_hash} URL variable in /json/expectations/commit/{commit_hash}.
 	r = mux.SetURLVars(r, map[string]string{"commit_hash": "09e87c3d93e2bb188a8dae01b7f8b9ffb2ebcad1"})
 
-	// Prepare a dummy response from the BaselineFetcher and the handler's expected JSON response.
+	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
 	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
 

@@ -16,7 +16,7 @@ describe('triagelog-page-sk', () => {
   });
 
   it('should render the demo page', async () => {
-    // Basic sanity check.
+    // Basic smoke check.
     expect(await testBed.page.$$('triagelog-page-sk')).to.have.length(1);
   });
 

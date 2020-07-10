@@ -1,6 +1,6 @@
 package main
 
-// This is a dummy service used to test goldpushk. It should eventually reach the "Running" state on
+// This is a test service used to test goldpushk. It should eventually reach the "Running" state on
 // Kubernetes.
 
 import (
