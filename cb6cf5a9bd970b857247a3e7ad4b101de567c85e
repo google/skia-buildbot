@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "a1a6591a_35a9923b",
+        "filename": "infra-sk/modules/test_util_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-10T19:12:45Z",
+      "side": 1,
+      "message": "I think it\u0027s worth testing these two functions thoroughly and independently from each other. The back/forward browser button functionality and tests depend on them, both of which are tricky to get right and prone to subtle bugs.\n\nThe ~10 extra lines of test code are well worth it, IMO.",
+      "parentUuid": "9dffb66c_bd35e3c5",
+      "range": {
+        "startLine": 200,
+        "startChar": 0,
+        "endLine": 200,
+        "endChar": 0
+      },
+      "revId": "cb6cf5a9bd970b857247a3e7ad4b101de567c85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dea29469_5c0fa0c4",
         "filename": "infra-sk/modules/test_util_test.ts",
         "patchSetId": 3
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "Maybe, but it seems odd to me to essentially copy and paste the implementation of both into the test for the other.",
       "parentUuid": "dea29469_5c0fa0c4",
+      "range": {
+        "startLine": 203,
+        "startChar": 0,
+        "endLine": 203,
+        "endChar": 25
+      },
+      "revId": "cb6cf5a9bd970b857247a3e7ad4b101de567c85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8845f599_02c098d9",
+        "filename": "infra-sk/modules/test_util_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-10T19:12:45Z",
+      "side": 1,
+      "message": "I think that oddity is OK. IMO testing these two orthogonal functions independently from each other should take priority over writing tests that do not look like they contain an implementation of one of said functions.",
+      "parentUuid": "c5a362f5_202f4200",
       "range": {
         "startLine": 203,
         "startChar": 0,
