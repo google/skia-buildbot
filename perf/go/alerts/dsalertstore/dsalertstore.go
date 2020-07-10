@@ -85,6 +85,10 @@ func (s *DSAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alerts
 	it := ds.DS.Run(ctx, q)
 	for {
 		cfg := alerts.NewConfig()
+		// NewConfig sets these values, but we want them cleared in this case so
+		// upgradeAlert can do its work.
+		cfg.DirectionAsString = ""
+		cfg.StateAsString = ""
 		k, err := it.Next(cfg)
 		if err == iterator.Done {
 			break
