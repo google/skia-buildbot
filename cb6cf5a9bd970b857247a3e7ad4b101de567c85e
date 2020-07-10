@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9dffb66c_bd35e3c5",
+        "filename": "infra-sk/modules/test_util_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T18:10:03Z",
+      "side": 1,
+      "message": "For such basic functionality, I\u0027m not sure it\u0027s really required to split them apart.",
+      "parentUuid": "2366051e_7525cda2",
+      "range": {
+        "startLine": 200,
+        "startChar": 0,
+        "endLine": 200,
+        "endChar": 0
+      },
+      "revId": "cb6cf5a9bd970b857247a3e7ad4b101de567c85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dea29469_5c0fa0c4",
         "filename": "infra-sk/modules/test_util_test.ts",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2020-07-10T17:22:14Z",
       "side": 1,
       "message": "I think it\u0027s best to test these two helpers independently from each other. Otherwise we\u0027re testing two behaviors at the same time that can break independently from each other.\n\nIt\u0027s OK for this test to be slightly more verbose by using history.pushState directly.",
+      "range": {
+        "startLine": 203,
+        "startChar": 0,
+        "endLine": 203,
+        "endChar": 25
+      },
+      "revId": "cb6cf5a9bd970b857247a3e7ad4b101de567c85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c5a362f5_202f4200",
+        "filename": "infra-sk/modules/test_util_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T18:10:03Z",
+      "side": 1,
+      "message": "Maybe, but it seems odd to me to essentially copy and paste the implementation of both into the test for the other.",
+      "parentUuid": "dea29469_5c0fa0c4",
       "range": {
         "startLine": 203,
         "startChar": 0,
