@@ -95,6 +95,8 @@ func GetStepFitAtMid(trace []float32, stddevThreshold float32, interesting float
 	} else {
 		// For all non-ORIGINAL_STEP regression types we use a symmetric (2*N)
 		// trace, while in ORIGINAL_STEP uses the 2*N+1 length trace supplied.
+
+		// !!!! This
 		trace = trace[0 : len(trace)-1]
 	}
 

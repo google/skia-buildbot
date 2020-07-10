@@ -86,10 +86,14 @@ func NewDataFrameIterator(
 		// slicer size, so we set them both to 2*Radius+1.
 		n := int32(2*req.Alert.Radius + 1)
 		// Need to find an End time, which is the commit time of the commit at Offset+Radius.
-		commit, err := perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(int(req.Domain.Offset)+req.Alert.Radius-1))
+
+		// Want point 21 with a Radius of 3.
+		// [ 18, 19, 20, 21, 22, 23, 24]
+		endCommit := types.CommitNumber(int(req.Domain.Offset) + req.Alert.Radius)
+		commit, err := perfGit.CommitFromCommitNumber(ctx, endCommit)
 		if err != nil {
 			if regressionStateCallback != nil {
-				regressionStateCallback(fmt.Sprintf("Not a valid commit number %d. Make sure you choose a commit old enough to have Radius results before and after it.", int(req.Domain.Offset)+req.Alert.Radius-1))
+				regressionStateCallback(fmt.Sprintf("Not a valid commit number %d. Make sure you choose a commit old enough to have Radius results before and after it.", endCommit))
 			}
 
 			return nil, skerr.Wrapf(err, "Failed to look up CommitNumber of a single cluster request")
