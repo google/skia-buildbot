@@ -8,7 +8,7 @@
 // reflect any relevant changes in configuration.
 //
 // For testing, function TestingDeployableUnits should be used instead, which only contains
-// information about dummy services that can be deployed the public or corp clusters without
+// information about testing services that can be deployed the public or corp clusters without
 // disrupting any production services.
 package goldpushk
 
