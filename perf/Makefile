@@ -35,15 +35,15 @@ package-lock.json: package.json
 	touch package-lock.json
 
 
-.PHONY: typescript_definitions
-typescript_definitions:
+tsdeps := $(shell echo go list -f '{{ join .Imports "\n" }}' go.skia.org/infra/perf/go/ts/ | xargs -L 1 go list -f '{{ $dir := .Dir}}{{range  .GoFiles }}{{$dir}}/{{.}}{{ "\n" }}{{ end }}' )
+./modules/json/index.ts: $(tsdeps)
 	go run ./go/ts
 
 MODULES = $(shell find ./modules -type f)
 
 # We can depend on the timestamp of the dist directory since webpack will delete
 # the directory before repopulating it.
-./dist: package-lock.json $(MODULES) typescript_definitions
+./dist: package-lock.json $(MODULES) ./modules/json/index.ts
 	npx webpack-cli --mode=production
 
 watch: package-lock.json
