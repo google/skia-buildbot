@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3116222b_de593302",
+        "filename": "go/metadata/metadata.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-10T18:36:09Z",
+      "side": 1,
+      "message": "@Joe, this is used in go/login, but I suspect that it\u0027s not actually needed. WDYT?",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 31
+      },
+      "revId": "d1b967ddb0546bd5a4b920aa70071a7548124ef9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec4c7993_9d40bddc",
+        "filename": "go/notifier/notifier.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-10T18:36:09Z",
+      "side": 1,
+      "message": "This requires a change to autoroll configs: https://skia-review.googlesource.com/c/skia-autoroll-internal-config/+/301957",
+      "range": {
+        "startLine": 37,
+        "startChar": 33,
+        "endLine": 37,
+        "endChar": 48
+      },
+      "revId": "d1b967ddb0546bd5a4b920aa70071a7548124ef9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e89f0880_8e5de65d",
+        "filename": "leasing/go/leasing/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-10T18:36:09Z",
+      "side": 1,
+      "message": "@Ravi, this flag appears to be unused.",
+      "range": {
+        "startLine": 73,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 148
+      },
+      "revId": "d1b967ddb0546bd5a4b920aa70071a7548124ef9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
