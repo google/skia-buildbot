@@ -2,7 +2,7 @@
 
 set -x -e
 
-# Create and upload a container image for goldpushk healthy-server, a dummy service for testing
+# Create and upload a container image for goldpushk healthy-server, a fake service for testing
 # purposes only that does nothing.
 APPNAME=goldpushk-healthy-server
 

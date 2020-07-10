@@ -180,7 +180,7 @@ func (m *MemDiffStore) ImageHandler(urlPrefix string) (http.Handler, error) {
 		//
 		// TODO(lovisolo): Diff in NRGBA64?
 		// TODO(lovisolo): Make sure each pair of images is in the same color space before diffing?
-		//                 (They probably are today but it'd be a good sanity check to make sure.)
+		//                 (They probably are today but it'd be a good correctness check to make sure.)
 
 		dotExt := "." + common.IMG_EXTENSION
 		urlPath := r.URL.Path
