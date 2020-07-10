@@ -54,6 +54,7 @@ import {
   Status,
   SkPerfConfig,
   ColumnHeader,
+  CommitDetail,
 } from '../json';
 import { PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { PlotSimpleSk } from '../plot-simple-sk/plot-simple-sk';
@@ -345,6 +346,20 @@ export class ClusterSummary2Sk extends ElementSk {
       if (xbar !== -1) {
         this.graph.xbar = xbar;
       }
+
+      // If step_point is set then display the commit
+      // details for the xbar location.
+      if (step && step.offset > 0) {
+        const commitIDAtXBar = {
+          offset: step.offset,
+        };
+        ClusterSummary2Sk.lookupCids([commitIDAtXBar])
+          .then((json: CommitDetail[]) => {
+            this.commits!.details = json;
+          })
+          .catch(errorMessage);
+      }
+
       // Populate rangelink.
       if (window.sk.perf.commit_range_url !== '') {
         // First find the commit at step_fit, and the next previous commit that has data.
