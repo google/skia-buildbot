@@ -5,6 +5,7 @@ import { fetchMock } from 'fetch-mock';
 import {
   eventPromise,
   expectQueryStringToEqual,
+  setQueryString,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
 import { sampleByTestList } from './test_data';
@@ -173,12 +174,6 @@ describe('list-page-sk', () => {
     });
   });
 });
-
-function setQueryString(q) {
-  history.pushState(
-    null, '', window.location.origin + window.location.pathname + q,
-  );
-}
 
 function clickOnNegativeHeader(ele) {
   $$('table > thead > tr > th:nth-child(3)', ele).click();
