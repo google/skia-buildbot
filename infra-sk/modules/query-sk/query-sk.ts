@@ -38,10 +38,6 @@ export interface QuerySkQueryChangeEventDetail {
 export class QuerySk extends ElementSk {
 
   private static template = (ele: QuerySk) => html`
-    <div>
-      <label>Filter <input id=fast @input=${ele._fastFilter}></label>
-      <button @click=${ele._clearFilter} class=clear_filters>Clear Filter</button>
-    </div>
     <div class=bottom>
       <div class=selection>
         <select-sk @selection-changed=${ele._keyChange}>
@@ -51,6 +47,17 @@ export class QuerySk extends ElementSk {
       </div>
       <query-values-sk id=values @query-values-changed=${ele._valuesChanged}
         ?hide_invert=${ele.hide_invert} ?hide_regex=${ele.hide_regex}></query-values-sk>
+    </div>
+    <div>
+      <label>
+        Filter
+        <input
+          id=fast
+          @input=${ele._fastFilter}
+          placeholder="Filter Parameters and Values"
+        >
+        </label>
+      <button @click=${ele._clearFilter} class=clear_filters>Clear Filter</button>
     </div>
   `;
 
