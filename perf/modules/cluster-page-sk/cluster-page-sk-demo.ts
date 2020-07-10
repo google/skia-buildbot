@@ -112,3 +112,15 @@ customElements.whenDefined('cluster-page-sk').then(() => {
       document.createElement('cluster-page-sk')
     );
 });
+
+window.sk = {
+  perf: {
+    commit_range_url: '',
+    key_order: ['config'],
+    demo: true,
+    radius: 7,
+    num_shift: 10,
+    interesting: 25,
+    step_up_only: false,
+  },
+};

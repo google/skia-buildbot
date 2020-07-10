@@ -61,6 +61,10 @@ class State {
   constructor() {
     this.begin = Math.floor(Date.now() / 1000 - 24 * 60 * 60);
     this.end = Math.floor(Date.now() / 1000);
+    if (window.sk.perf.demo) {
+      this.begin = Math.floor(new Date(2020, 4, 1).valueOf() / 1000);
+      this.end = Math.floor(new Date(2020, 5, 1).valueOf() / 1000);
+    }
     this.offset = -1;
     this.radius = window.sk.perf.radius;
     this.query = '';

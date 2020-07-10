@@ -183,6 +183,7 @@ type SkPerfConfig struct {
 	Interesting    float32  `json:"interesting"`      // The threshold for a cluster to be interesting.
 	StepUpOnly     bool     `json:"step_up_only"`     // If true then only regressions that are a step up are displayed.
 	CommitRangeURL string   `json:"commit_range_url"` // A URI Template to be used for expanding details on a range of commits. See cluster-summary2-sk.
+	Demo           bool     `json:"demo"`             // True if this is a demo page, as opposed to being in production. Used to make puppeteer tests deterministic.
 }
 
 func (f *Frontend) templateHandler(name string) http.HandlerFunc {

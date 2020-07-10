@@ -194,6 +194,7 @@ export interface SkPerfConfig {
 	interesting: number;
 	step_up_only: boolean;
 	commit_range_url: string;
+	demo: boolean;
 }
 
 export interface TriageRequest {
