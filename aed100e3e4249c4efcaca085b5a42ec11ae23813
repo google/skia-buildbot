@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "d220d74f_827c46fb",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T12:29:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b68b2365_f013d1bf",
+      "range": {
+        "startLine": 116,
+        "startChar": 2,
+        "endLine": 116,
+        "endChar": 12
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4f893e1c_772a14b9",
         "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk.js",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "7b651038_478e4f3d",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T12:29:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4f893e1c_772a14b9",
+      "range": {
+        "startLine": 172,
+        "startChar": 68,
+        "endLine": 172,
+        "endChar": 71
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4b4e8f0b_0a66e4a6",
         "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk.js",
         "patchSetId": 2
@@ -68,6 +116,30 @@
       "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0349ea21_380f31ca",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T12:29:50Z",
+      "side": 1,
+      "message": "meta \u003d\u003e done\n\nI intentionally put Shift in (despite that it usually implies select all the things between what I clicked) because I usually forget which one is which. Since there are no plans about treating shift differently than ctrl, I think it is best to plan around human error like this and make it do what the user probably intended.",
+      "parentUuid": "4b4e8f0b_0a66e4a6",
+      "range": {
+        "startLine": 181,
+        "startChar": 14,
+        "endLine": 181,
+        "endChar": 42
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +189,54 @@
     },
     {
       "key": {
+        "uuid": "4376863e_ff972174",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T12:29:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c2298857_38a575fd",
+      "range": {
+        "startLine": 12,
+        "startChar": 22,
+        "endLine": 12,
+        "endChar": 23
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cc5d43f3_bcbac25c",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T12:29:50Z",
+      "side": 1,
+      "message": "I find promiseFactory more intuitive a name.",
+      "parentUuid": "ddaacf3e_fe2384dd",
+      "range": {
+        "startLine": 12,
+        "startChar": 8,
+        "endLine": 12,
+        "endChar": 22
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7e88114b_a240314f",
         "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
         "patchSetId": 2
@@ -137,6 +257,30 @@
       "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "10a372db_677057bd",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T12:29:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7e88114b_a240314f",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 70
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "62ffdff1_beda674a",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T12:29:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5197f90c_7a95ed1a",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 52
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56603148_df34b4cd",
         "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
         "patchSetId": 2
@@ -183,6 +351,30 @@
       "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13edc4fe_a69043df",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T12:29:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "56603148_df34b4cd",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 87,
+        "endChar": 39
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -232,6 +424,54 @@
     },
     {
       "key": {
+        "uuid": "4fbe46f8_599b6303",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T12:29:50Z",
+      "side": 1,
+      "message": "I have a slight preference for using function on helpers and reserving arrow functions for more lambda-y things.",
+      "parentUuid": "2a9988e6_0f5979c7",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 56
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9b1122bc_5e9a3eca",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T12:29:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd220aca_82a5f139",
+      "range": {
+        "startLine": 91,
+        "startChar": 47,
+        "endLine": 91,
+        "endChar": 53
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "de7e12c8_efa97b59",
         "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
         "patchSetId": 2
@@ -252,6 +492,30 @@
       "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48062b7b_f2add188",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T12:29:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "de7e12c8_efa97b59",
+      "range": {
+        "startLine": 95,
+        "startChar": 52,
+        "endLine": 95,
+        "endChar": 58
+      },
+      "revId": "aed100e3e4249c4efcaca085b5a42ec11ae23813",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
