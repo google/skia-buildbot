@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "89dd16e4_61f8f4a5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-10T16:59:36Z",
+      "side": 1,
+      "message": "This comment isn\u0027t attached to any code?",
+      "parentUuid": "5c2fa720_145e4d90",
+      "revId": "f3ecabbf772482262308ca607dfcaa826851f8ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7fdd4e89_4ef79287",
         "filename": "infra-sk/modules/query-sk/query-sk.ts",
         "patchSetId": 1
@@ -30,6 +48,30 @@
       "writtenOn": "2020-07-10T16:28:20Z",
       "side": 1,
       "message": "This clear selection button looks a bit strange now that the filter is below it. WDYT?",
+      "range": {
+        "startLine": 46,
+        "startChar": 9,
+        "endLine": 46,
+        "endChar": 15
+      },
+      "revId": "f3ecabbf772482262308ca607dfcaa826851f8ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4870b828_25f395d4",
+        "filename": "infra-sk/modules/query-sk/query-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-10T16:59:36Z",
+      "side": 1,
+      "message": "The \"Clear Selection\" button clears the selections, i.e. the \u003cselect-sk\u003e above it. The filter has its own clean button \"Clear Filter\" below.",
+      "parentUuid": "7fdd4e89_4ef79287",
       "range": {
         "startLine": 46,
         "startChar": 9,
