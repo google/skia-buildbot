@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "c82da34a_1f1e3533",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T19:11:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5f2ace9b_f4e22d39",
+      "range": {
+        "startLine": 80,
+        "startChar": 58,
+        "endLine": 80,
+        "endChar": 69
+      },
+      "revId": "c62c5da8dee78baf430758dba4089ea9c53ae93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7dc5064e_6bb7821c",
         "filename": "golden/go/diffstore/mem_diffstore.go",
         "patchSetId": 2
@@ -45,6 +69,30 @@
       "revId": "c62c5da8dee78baf430758dba4089ea9c53ae93c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6752796f_1b23524c",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T19:11:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7dc5064e_6bb7821c",
+      "range": {
+        "startLine": 183,
+        "startChar": 65,
+        "endLine": 183,
+        "endChar": 70
+      },
+      "revId": "c62c5da8dee78baf430758dba4089ea9c53ae93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "8b1b6c56_adf87b39",
+        "filename": "golden/k8s_release_goldpushk_crashing_server",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T19:11:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9bb4bd2f_5ea8d1c5",
+      "range": {
+        "startLine": 5,
+        "startChar": 71,
+        "endLine": 6,
+        "endChar": 10
+      },
+      "revId": "c62c5da8dee78baf430758dba4089ea9c53ae93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "60178073_2199b499",
         "filename": "golden/k8s_release_goldpushk_healthy_server",
         "patchSetId": 2
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "758913c9_40b6b816",
+        "filename": "golden/k8s_release_goldpushk_healthy_server",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T19:11:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "60178073_2199b499",
+      "range": {
+        "startLine": 5,
+        "startChar": 70,
+        "endLine": 6,
+        "endChar": 11
+      },
+      "revId": "c62c5da8dee78baf430758dba4089ea9c53ae93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "84e1a9f4_a3232a58",
         "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_puppeteer_test.ts",
         "patchSetId": 2
@@ -114,6 +210,30 @@
       "revId": "c62c5da8dee78baf430758dba4089ea9c53ae93c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a9d39f29_f5231a44",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T19:11:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "84e1a9f4_a3232a58",
+      "range": {
+        "startLine": 19,
+        "startChar": 13,
+        "endLine": 19,
+        "endChar": 24
+      },
+      "revId": "c62c5da8dee78baf430758dba4089ea9c53ae93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
