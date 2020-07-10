@@ -156,6 +156,30 @@
     },
     {
       "key": {
+        "uuid": "d2b8a82d_f2ed67c1",
+        "filename": "infra-sk/modules/query-sk/query-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-10T19:48:45Z",
+      "side": 1,
+      "message": "OK, dropped the label and moved the clear button to be an \"X\" inside the input.\n\nBut then I moved the filter input back to the top, when it was below the selection controls every keystroke could cause the size of the selection controls to change and thus move the filter input, which was very disorienting.",
+      "parentUuid": "0bf00ff1_95c2f339",
+      "range": {
+        "startLine": 46,
+        "startChar": 9,
+        "endLine": 46,
+        "endChar": 15
+      },
+      "revId": "f3ecabbf772482262308ca607dfcaa826851f8ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "60707898_ab1f3344",
         "filename": "infra-sk/modules/query-sk/query-sk.ts",
         "patchSetId": 1
