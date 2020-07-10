@@ -1,0 +1,48 @@
+/**
+  * Color palette used for displaying success/failure/etc results of eg. CI.
+  *
+  * Taken from http://blog.mollietaylor.com/2012/10/color-blindness-and-palette-choice.html
+  */
+
+/* CSS variables */
+:root {
+  --result-color-redorange: #D95F02;
+  --result-color-purple: #7570B3;
+  --result-color-lightgreen: 102, 166, 30;
+  --result-color-lightorange: #E6AB02;
+  --result-color-gray: 187, 187, 187;
+}
+
+/* Success/Failure/Exception background colors. */
+.bg-success {
+  background-color: #{'rgba(var(--result-color-lightgreen), 0.3)'};
+}
+.bg-failure {
+  background-color: var(--result-color-redorange);
+}
+.bg-exception {
+  background-color: var(--result-color-purple);
+}
+.bg-inprogress {
+  background-color: #{'rgba(var(--result-color-gray), 0.0)'}; /* Transparent background */
+}
+.bg-unknown {
+  background-color: #{'rgba(var(--result-color-gray), 0.55)'};
+}
+
+/* Success/Failure/Exception foreground colors. */
+.fg-success {
+  color: #{'rgb(var(--result-color-lightgreen))'};
+}
+.fg-failure {
+  color: var(--result-color-redorange);
+}
+.fg-exception {
+  color: var(--result-color-purple);
+}
+.fg-inprogress {
+  color: var(--result-color-lightorange);
+}
+.fg-unknown {
+  color: #{'rgb(var(--result-color-gray))'};
+}
