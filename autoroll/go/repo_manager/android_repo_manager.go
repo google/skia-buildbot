@@ -362,9 +362,13 @@ third_party {
 	}
 
 	// Upload the CL to Gerrit.
+	uploadArgs := []string{"upload", "--no-verify"}
+	if rollEmails != nil && len(rollEmails) > 0 {
+		uploadArgs = append(uploadArgs, fmt.Sprintf("--re=%s", strings.Join(rollEmails, ",")))
+	}
 	uploadCommand := &exec.Command{
 		Name: r.repoToolPath,
-		Args: []string{"upload", fmt.Sprintf("--re=%s", strings.Join(rollEmails, ",")), "--no-verify"},
+		Args: uploadArgs,
 		Dir:  r.childDir,
 		// The below is to bypass the blocking
 		// "ATTENTION: You are uploading an unusually high number of commits."
