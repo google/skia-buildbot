@@ -1,0 +1,62 @@
+@import '~elements-sk/colors';
+@import '../colors';
+
+arb-scaffold-sk {
+  * {
+    font-family:Roboto,Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+  }
+
+  header {
+    h1 {
+      font-weight: 400;
+      font-size: 1.5em;
+      padding: 0 0.25em;
+    }
+
+    .spinner-spacer {
+      min-width: 40px;
+    }
+
+    spinner-sk {
+      width: 24px;
+      height: 24px;
+      margin: 0;
+      border: 8px solid var(--on-primary);
+      border-left: 8px solid var(--primary-variant);
+    }
+  }
+
+  nav {
+    display:flex;
+    flex-direction: column;
+    a {
+      padding: 1em 1em;
+      color: var(--on-surface); /* Override User Agent SS*/
+      text-decoration: none;
+    }
+    span {
+      padding: 0 0.5em;
+      vertical-align: middle;
+    }
+  }
+
+  login-sk {
+    margin-right: 1em;
+  }
+
+  /* Overrides to elements-sk elements since they set color internally. */
+  svg.icon-sk-svg {
+    fill: var(--on-surface);
+  }
+
+  app-sk aside {
+    /* Soften the sidebar border a bit. */
+    border-right: 1px solid var(--surface-2dp, #ddd);
+  }
+}
+
+// Make sure the app doesn't leave empty space on the bottom. e.g. blank
+// white in darkmode.
+html, body, app-sk {
+  height:100%;
+}
