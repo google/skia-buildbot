@@ -61,6 +61,20 @@
   }
 }
 
+/* The way webpack is configured currently it will strip the following rules
+   from the output so we turn the autoprefixer off.
+
+   The following styles are for scrollbars. They are non-standard looking
+   because it is 2020 and there's still no standard way to style scrollbars on a
+   web page.
+
+   https://caniuse.com/#feat=css-scrollbar
+*/
+
+* {
+  scrollbar-color: var(--surface-2dp) var(--background);
+}
+
 /* autoprefixer: off */
 
 /* Turn on a 13x13 scrollbar */
@@ -93,5 +107,3 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--surface);
 }
-
-/* autoprefixer: on */
