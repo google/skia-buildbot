@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1adbc6c0_60ecec04",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 17
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-10T16:46:10Z",
+      "side": 1,
+      "message": "There are no tests yet; I wanted to get this uploaded in some form sooner, since this already took longer than I expected.",
+      "revId": "69cb33d8e80033b6cfe29873c8ff3edda7c82b2d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
