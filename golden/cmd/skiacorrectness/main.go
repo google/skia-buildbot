@@ -79,12 +79,8 @@ type frontendServerConfig struct {
 	// A list of email addresses or domains that can log into this instance.
 	AuthorizedUsers []string `json:"authorized_users"`
 
-	// A string with five placeholders that will be used to make a comment. Those placeholders are
-	//  - number of untriaged digests (int)
-	//  - affected PatchSet order (int)
-	//  - gold instance url (string)
-	//  - code review system (string)
-	//  - affected ChangeList id (string)
+	// A string with placeholders for generating a comment message. See
+	// commenter.commentTemplateContext for the exact fields.
 	CLCommentTemplate string `json:"cl_comment_template"`
 
 	// Client secret file for OAuth2 authentication.
@@ -150,6 +146,9 @@ type frontendServerConfig struct {
 	// If non empty, this map of rules will be applied to traces to see if they can be showed on
 	// this instance.
 	PubliclyAllowableParams publicparams.MatchingRules `json:"publicly_allowed_params" optional:"true"`
+
+	// This can be used in a CL comment to direct users to the public instance for triaging.
+	PublicSiteURL string `json:"public_site_url" optional:"true"`
 
 	// The path to the directory that contains Polymer templates, JS, and CSS files.
 	ResourcesPath string `json:"resources_path"`
@@ -428,7 +427,10 @@ func main() {
 	sklog.Infof("Search API created")
 
 	if isAuthoritative && !fsc.DisableCLTracking {
-		clCommenter := commenter.New(crs, cls, searchAPI, fsc.CLCommentTemplate, fsc.SiteURL, fsc.DisableCLComments)
+		clCommenter, err := commenter.New(crs, cls, searchAPI, fsc.CLCommentTemplate, fsc.SiteURL, fsc.PublicSiteURL, fsc.DisableCLComments)
+		if err != nil {
+			sklog.Fatalf("Could not initialize commenter: %s", err)
+		}
 		startCommenter(ctx, clCommenter)
 	}
 

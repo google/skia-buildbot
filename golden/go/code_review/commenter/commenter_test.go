@@ -74,7 +74,7 @@ func TestUpdateNotOpenBotsSunnyDay(t *testing.T) {
 	})
 	mcs.On("PutChangeList", testutils.AnyContext, putClMatcher).Return(nil).Once()
 
-	c := newTestCommenter(mcr, mcs, nil)
+	c := newTestCommenter(t, mcr, mcs, nil)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 	assert.Equal(t, "8", metrics_utils.GetRecordedMetric(t, numRecentOpenCLsMetric, nil))
@@ -109,7 +109,7 @@ func TestUpdateNotOpenBotsNotFound(t *testing.T) {
 		return xcl[i]
 	}, nil)
 
-	c := newTestCommenter(mcr, mcs, nil)
+	c := newTestCommenter(t, mcr, mcs, nil)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 	// The one CL that was not found should not be counted as an open CL.
@@ -128,7 +128,7 @@ func TestUpdateBorkedCL(t *testing.T) {
 	mcs.On("GetChangeLists", testutils.AnyContext, mock.Anything).Return(makeChangeLists(5), 5, nil)
 	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(code_review.ChangeList{}, code_review.ErrNotFound)
 
-	c := newTestCommenter(mcr, mcs, nil)
+	c := newTestCommenter(t, mcr, mcs, nil)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 	// This shouldn't hang and we'll see 0 open CLs
@@ -154,7 +154,7 @@ func TestUpdateNotOpenBotsCRSError(t *testing.T) {
 	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(code_review.ChangeList{}, errors.New("GitHub down"))
 	mcr.On("System").Return("github")
 
-	c := newTestCommenter(mcr, mcs, nil)
+	c := newTestCommenter(t, mcr, mcs, nil)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	assertErrorWasCanceledOrContains(t, err, "down", "github")
 }
@@ -182,7 +182,7 @@ func TestUpdateNotOpenBotsCLStoreError(t *testing.T) {
 
 	mcs.On("PutChangeList", testutils.AnyContext, mock.Anything).Return(errors.New("firestore broke"))
 
-	c := newTestCommenter(mcr, mcs, nil)
+	c := newTestCommenter(t, mcr, mcs, nil)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	assertErrorWasCanceledOrContains(t, err, "firestore broke")
 }
@@ -237,6 +237,7 @@ func TestCommentOnCLsSunnyDay(t *testing.T) {
 			assert.Fail(t, "unexpected call")
 		}
 		assert.Contains(t, msg, "2 untriaged digest(s)")
+		assert.Contains(t, msg, publicInstanceURL)
 		return nil
 	}, nil)
 	mcr.On("System").Return("github")
@@ -247,7 +248,7 @@ func TestCommentOnCLsSunnyDay(t *testing.T) {
 		TS:      indexTime,
 	}, nil)
 
-	c := newTestCommenter(mcr, mcs, msa)
+	c := newTestCommenter(t, mcr, mcs, msa)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 }
@@ -294,7 +295,7 @@ func TestCommentOnChangeListsWithUntriagedDigests_NoUntriagedDigests_Success(t *
 		TS:      indexTime,
 	}, nil)
 
-	c := newTestCommenter(mcr, mcs, msa)
+	c := newTestCommenter(t, mcr, mcs, msa)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 }
@@ -333,7 +334,7 @@ func TestCommentOnChangeListsWithUntriagedDigests_SearchAPIError_LogsErrorAndSuc
 	// Simulate an error working with the
 	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(nil, errors.New("boom"))
 
-	c := newTestCommenter(mcr, mcs, msa)
+	c := newTestCommenter(t, mcr, mcs, msa)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 }
@@ -376,7 +377,7 @@ func TestCommentOnCLsLogCommentsOnly(t *testing.T) {
 		Digests: []types.Digest{"doesn't", "matter"},
 	}, nil)
 
-	c := newTestCommenter(mcr, mcs, msa)
+	c := newTestCommenter(t, mcr, mcs, msa)
 	c.logCommentsOnly = true
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
@@ -404,7 +405,7 @@ func TestCommentOnCLsOnlyCommentOnce(t *testing.T) {
 	}, nil)
 	// no calls to CommentOn expected because the CL has already been commented on
 
-	c := newTestCommenter(mcr, mcs, nil)
+	c := newTestCommenter(t, mcr, mcs, nil)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 }
@@ -428,7 +429,7 @@ func TestCommentOnCLsPatchSetsRetrievalError(t *testing.T) {
 		return xcl[i]
 	}, nil)
 
-	c := newTestCommenter(mcr, mcs, nil)
+	c := newTestCommenter(t, mcr, mcs, nil)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "firestore kaput")
@@ -462,7 +463,7 @@ func TestCommentOnCLsCommentError(t *testing.T) {
 		Digests: []types.Digest{"doesn't", "matter"},
 	}, nil)
 
-	c := newTestCommenter(mcr, mcs, msa)
+	c := newTestCommenter(t, mcr, mcs, msa)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	assertErrorWasCanceledOrContains(t, err, "internet down")
 }
@@ -504,7 +505,7 @@ func TestCommentOnCLs_CLNotFound_NoError(t *testing.T) {
 		Digests: []types.Digest{"doesn't", "matter"},
 	}, nil)
 
-	c := newTestCommenter(mcr, mcs, msa)
+	c := newTestCommenter(t, mcr, mcs, msa)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
 	require.NoError(t, err)
 }
@@ -557,8 +558,9 @@ func assertErrorWasCanceledOrContains(t *testing.T, err error, submessages ...st
 	}
 }
 
-func newTestCommenter(mcr *mock_codereview.Client, mcs *mock_clstore.Store, msa *mock_search.SearchAPI) *Impl {
-	c := New(mcr, mcs, msa, basicTemplate, instanceURL, false)
+func newTestCommenter(t *testing.T, mcr *mock_codereview.Client, mcs *mock_clstore.Store, msa *mock_search.SearchAPI) *Impl {
+	c, err := New(mcr, mcs, msa, basicTemplate, instanceURL, publicInstanceURL, false)
+	require.NoError(t, err)
 	c.now = func() time.Time {
 		return fakeNow
 	}
@@ -566,9 +568,11 @@ func newTestCommenter(mcr *mock_codereview.Client, mcs *mock_clstore.Store, msa 
 }
 
 const (
-	instanceURL   = "gold.skia.org"
-	basicTemplate = `Gold has detected about %d untriaged digest(s) on patchset %d.
-Please triage them at %s/cl/%s/%s.`
+	instanceURL       = "gold.skia.org"
+	publicInstanceURL = "public-gold.skia.org"
+	basicTemplate     = `Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchSetOrder}}.
+Please triage them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangeListID}}.
+The public instance is {{.PublicInstanceURL}}.`
 )
 
 var (
