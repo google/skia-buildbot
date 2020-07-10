@@ -31,6 +31,15 @@ func TestStepFit_SimpleStepUp(t *testing.T) {
 		GetStepFitAtMid([]float32{0, 0, 1, 1, 1}, minStdDev, 20, types.OriginalStep))
 }
 
+func TestStepFit_RealWorldExample(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t,
+		&StepFit{TurningPoint: 2, StepSize: -2.0412414, Status: HIGH, Regression: -20.412415},
+		GetStepFitAtMid([]float32{608100,
+			672970,
+			653180}, minStdDev, 2, types.OriginalStep))
+}
+
 func TestStepFit_SimpleStepDown(t *testing.T) {
 	unittest.SmallTest(t)
 	assert.Equal(t,
