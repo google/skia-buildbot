@@ -77,7 +77,7 @@ func TestGoldpushkCheckOutK8sConfigGitRepository(t *testing.T) {
 	defer g.k8sConfigCheckout.Delete()
 
 	// Assert that the local path to the checkout is not the same as the local path to the fake
-	// k8s-config repo created earlier. This is just a basic sanity check to ensure that we're
+	// k8s-config repo created earlier. This is just a basic correctness check to ensure that we're
 	// actually dealing with a clone of the original repo, as opposed to the original repo itself.
 	require.NotEqual(t, g.k8sConfigCheckout.GitDir, fakeK8sConfig.Dir())
 

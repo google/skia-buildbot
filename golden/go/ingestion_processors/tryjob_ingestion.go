@@ -24,7 +24,7 @@ import (
 	"go.skia.org/infra/golden/go/code_review/github_crs"
 	"go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis"
-	"go.skia.org/infra/golden/go/continuous_integration/dummy_cis"
+	"go.skia.org/infra/golden/go/continuous_integration/simple_cis"
 	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/ingestion"
 	"go.skia.org/infra/golden/go/jsonio"
@@ -162,7 +162,7 @@ func continuousIntegrationSystemFactory(cisName string, _ ingestion.Config, clie
 		return buildbucket_cis.New(bbClient), nil
 	}
 	if cisName == cirrusCIS {
-		return dummy_cis.New(cisName), nil
+		return simple_cis.New(cisName), nil
 	}
 	return nil, skerr.Fmt("ContinuousIntegrationSystem %q not recognized", cisName)
 }

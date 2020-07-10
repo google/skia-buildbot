@@ -117,7 +117,7 @@ func isPublicInstance(instance Instance) bool {
 	return false
 }
 
-// TestingDeployableUnits returns a DeployableUnitSet comprised of dummy services that can be
+// TestingDeployableUnits returns a DeployableUnitSet comprised of test services that can be
 // deployed without disrupting any production services for the purpose of testing goldpushk.
 func TestingDeployableUnits() DeployableUnitSet {
 	s := DeployableUnitSet{

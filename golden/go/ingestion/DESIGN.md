@@ -16,7 +16,7 @@ Key concepts
   The result files are either produced by polling the source or via
   events that are issued by the source. Any source is only required
   to implement the polling method, but can provide a non-functional
-  dummy implementation of the events channel.
+  no-op implementation of the events channel.
 
 * Processor: processes a list of result files and (most often) stores them
    in some data store.

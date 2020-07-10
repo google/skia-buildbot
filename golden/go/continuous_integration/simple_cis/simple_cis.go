@@ -1,6 +1,6 @@
-// Package dummy_cis is a simple implementation of CIS that
+// Package simple_cis is a simple implementation of CIS that
 // pretends every TryJob exists. It can be used as a placeholder.
-package dummy_cis
+package simple_cis
 
 import (
 	"context"

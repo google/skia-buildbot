@@ -2,7 +2,7 @@
 
 set -x -e
 
-# Create and upload a container image for goldpushk crashing-server, a dummy service for testing
+# Create and upload a container image for goldpushk crashing-server, a fake service for testing
 # purposes only that crashes after a number of seconds specified via a command-line flag.
 APPNAME=goldpushk-crashing-server
 
