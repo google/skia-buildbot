@@ -16,6 +16,23 @@
       "revId": "3f9cf7ee06b9dc226990a856153b2d1fced3eb8c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a81ef1f_997fd12f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5855
+      },
+      "writtenOn": "2020-07-10T12:37:25Z",
+      "side": 1,
+      "message": "Hey Eric,\n\ncan we use this type of email (sebmarchand+foo@ instead of sebmarchand@) in Gerrit?",
+      "revId": "3f9cf7ee06b9dc226990a856153b2d1fced3eb8c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
