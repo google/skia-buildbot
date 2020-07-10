@@ -55,3 +55,10 @@ document
       ele.paramset = [paramset, paramset2][n];
     });
   });
+
+// Set filtering on one of the demo elements.
+const activeFilter = document.querySelector<HTMLInputElement>(
+  '#activeFilter #fast'
+)!;
+activeFilter.value = 'one';
+activeFilter.dispatchEvent(new InputEvent('input'));

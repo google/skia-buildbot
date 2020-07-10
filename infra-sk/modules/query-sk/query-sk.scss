@@ -42,5 +42,21 @@ query-sk {
     color: var(--on-surface);
     background: var(--surface-1dp);
     border: solid 1px var(--on-surface);
+    padding: 4px;
+    height: 20px;
+  }
+
+  .clear_filters {
+    border: none;
+    min-width: 0;
+    margin: 0 0 0 -20px;
+    background: none;
+    cursor: pointer;
+    height: 20px;
+    padding: 0;
+  }
+
+  .filtering {
+    margin-bottom: 8px;
   }
 }
