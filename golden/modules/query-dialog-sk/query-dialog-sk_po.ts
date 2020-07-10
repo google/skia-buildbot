@@ -60,6 +60,8 @@ export class QueryDialogSkPO extends PageObject {
 
   /** Sets the selected query via simulated UI interactions. */
   async setSelection(selection: ParamSet) {
-    return (await this.getQuerySkPO()).setCurrentQuery(selection);
+    const querySkPO = await this.getQuerySkPO();
+    await querySkPO.setCurrentQuery(selection);
+    await this.element.click(); // Remove focus from the query-sk.
   }
 };
