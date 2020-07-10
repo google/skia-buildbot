@@ -46,6 +46,30 @@
       "revId": "3b2b05d0b005fc28c795d0bfe14069cd4bb3897f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e43d9b72_8499ce0d",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T13:01:36Z",
+      "side": 1,
+      "message": "PTAL",
+      "parentUuid": "03ee740f_6b481124",
+      "range": {
+        "startLine": 57,
+        "startChar": 8,
+        "endLine": 57,
+        "endChar": 49
+      },
+      "revId": "3b2b05d0b005fc28c795d0bfe14069cd4bb3897f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }

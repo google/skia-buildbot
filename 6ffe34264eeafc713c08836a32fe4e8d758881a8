@@ -16,6 +16,24 @@
       "revId": "6ffe34264eeafc713c08836a32fe4e8d758881a8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "acb31a83_d9be0dcc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T13:01:36Z",
+      "side": 1,
+      "message": "lgtm. Only have one nit that probably was the result of merge issues.",
+      "parentUuid": "21832cd7_99ff671c",
+      "revId": "6ffe34264eeafc713c08836a32fe4e8d758881a8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
