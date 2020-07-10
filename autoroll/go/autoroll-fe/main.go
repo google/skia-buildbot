@@ -12,12 +12,12 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
-	"runtime"
 	"sort"
-	"text/template"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -99,22 +99,24 @@ type autoRollMiniStatus struct {
 }
 
 func reloadTemplates() {
-	// Change the current working directory to two directories up from this source file so that we
-	// can read templates and serve static (res/) files.
-
 	if *resourcesDir == "" {
-		_, filename, _, _ := runtime.Caller(0)
-		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
+		wd, err := os.Getwd()
+		if err != nil {
+			sklog.Fatal(err)
+		}
+		*resourcesDir = filepath.Join(wd, "dist")
 	}
-	mainTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/main.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/navbar.html"),
+	sklog.Infof("Reading resources from %s", *resourcesDir)
+	mainTemplate = template.Must(template.New("index.html").Funcs(map[string]interface{}{
+		"marshal": func(data interface{}) template.JS {
+			b, _ := json.Marshal(data)
+			return template.JS(b)
+		},
+	}).ParseFiles(
+		filepath.Join(*resourcesDir, "index.html"),
 	))
 	rollerTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/roller.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/navbar.html"),
+		filepath.Join(*resourcesDir, "roller.html"),
 	))
 }
 
@@ -290,8 +292,7 @@ func rollerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func jsonAllHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func getAllMiniStatuses() map[string]*autoRollMiniStatus {
 	statuses := make(map[string]*autoRollMiniStatus, len(rollers))
 	for name, roller := range rollers {
 		status := roller.Status.GetMini()
@@ -307,6 +308,12 @@ func jsonAllHandler(w http.ResponseWriter, r *http.Request) {
 			ParentName:         roller.Cfg.ParentDisplayName,
 		}
 	}
+	return statuses
+}
+
+func jsonAllHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	statuses := getAllMiniStatuses()
 	if err := json.NewEncoder(w).Encode(statuses); err != nil {
 		httputils.ReportError(w, err, "Failed to obtain status.", http.StatusInternalServerError)
 		return
@@ -347,9 +354,9 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		reloadTemplates()
 	}
 	page := struct {
-		Rollers []string
+		Rollers map[string]*autoRollMiniStatus
 	}{
-		Rollers: rollerNames,
+		Rollers: getAllMiniStatuses(),
 	}
 	if err := mainTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, errors.New("Failed to expand template."), fmt.Sprintf("Failed to expand template: %s", err), http.StatusInternalServerError)
@@ -367,8 +374,8 @@ func runServer(ctx context.Context, serverURL string) {
 	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, allowed.Googlers(), allowed.Googlers(), viewAllow)
 
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", httputils.OriginTrial(mainHandler, *local))
+	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
 	r.HandleFunc("/json/all", jsonAllHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
