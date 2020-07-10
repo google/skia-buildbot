@@ -97,3 +97,4 @@ customElements.whenDefined('cluster-lastn-page-sk').then(() => {
 window.sk = window.sk || {};
 window.sk.perf = window.sk.perf || {};
 window.sk.perf.key_order = [];
+window.sk.perf.demo = true;

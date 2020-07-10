@@ -283,6 +283,9 @@ export class ClusterLastNPageSk extends ElementSk {
 
   constructor() {
     super(ClusterLastNPageSk.template);
+    if (window.sk.perf.demo) {
+      this.domain.end = Math.floor(new Date(2020, 4, 1).valueOf() / 1000);
+    }
   }
 
   connectedCallback() {

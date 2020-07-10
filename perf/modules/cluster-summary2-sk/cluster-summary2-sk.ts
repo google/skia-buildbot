@@ -61,6 +61,8 @@ import { CommitDetailPanelSk } from '../commit-detail-panel-sk/commit-detail-pan
 import { CollapseSk } from 'elements-sk/collapse-sk/collapse-sk';
 
 // Handle the sk namespace attached to window.
+//
+// TODO(jcgregorio) SkPerfConfig handling should be moved into its own module.
 declare global {
   interface Window {
     sk: {
