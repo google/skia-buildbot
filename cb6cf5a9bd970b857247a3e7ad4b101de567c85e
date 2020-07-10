@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2366051e_7525cda2",
+        "filename": "infra-sk/modules/test_util_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-10T17:22:14Z",
+      "side": 1,
+      "message": "Could you please add a describe(\u0027setQueryString\u0027) block with test cases it(\u0027can clear the query string\u0027) and it(\u0027can set the query string\u0027)?\n\nPlease write the \"expect\" statements without using expectQueryStringToEqual; see my feedback below.",
+      "range": {
+        "startLine": 200,
+        "startChar": 0,
+        "endLine": 200,
+        "endChar": 0
+      },
+      "revId": "cb6cf5a9bd970b857247a3e7ad4b101de567c85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dea29469_5c0fa0c4",
+        "filename": "infra-sk/modules/test_util_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-10T17:22:14Z",
+      "side": 1,
+      "message": "I think it\u0027s best to test these two helpers independently from each other. Otherwise we\u0027re testing two behaviors at the same time that can break independently from each other.\n\nIt\u0027s OK for this test to be slightly more verbose by using history.pushState directly.",
+      "range": {
+        "startLine": 203,
+        "startChar": 0,
+        "endLine": 203,
+        "endChar": 25
+      },
+      "revId": "cb6cf5a9bd970b857247a3e7ad4b101de567c85e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
