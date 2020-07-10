@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5f2ace9b_f4e22d39",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk_test.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-10T18:33:30Z",
+      "side": 1,
+      "message": "\"correctness check\", or \"smoke test\".\n\nBut I don\u0027t think \"smoke check\" or \"smoke test\" means the same thing, so I recommend \"correctness check\".",
+      "range": {
+        "startLine": 80,
+        "startChar": 58,
+        "endLine": 80,
+        "endChar": 69
+      },
+      "revId": "c62c5da8dee78baf430758dba4089ea9c53ae93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7dc5064e_6bb7821c",
+        "filename": "golden/go/diffstore/mem_diffstore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-10T18:33:30Z",
+      "side": 1,
+      "message": "correctness",
+      "range": {
+        "startLine": 183,
+        "startChar": 65,
+        "endLine": 183,
+        "endChar": 70
+      },
+      "revId": "c62c5da8dee78baf430758dba4089ea9c53ae93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9bb4bd2f_5ea8d1c5",
+        "filename": "golden/k8s_release_goldpushk_crashing_server",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-10T18:33:30Z",
+      "side": 1,
+      "message": "fake service for testing purposes",
+      "range": {
+        "startLine": 5,
+        "startChar": 71,
+        "endLine": 6,
+        "endChar": 10
+      },
+      "revId": "c62c5da8dee78baf430758dba4089ea9c53ae93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60178073_2199b499",
+        "filename": "golden/k8s_release_goldpushk_healthy_server",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-10T18:33:30Z",
+      "side": 1,
+      "message": "fake service for testing purposes",
+      "range": {
+        "startLine": 5,
+        "startChar": 70,
+        "endLine": 6,
+        "endChar": 11
+      },
+      "revId": "c62c5da8dee78baf430758dba4089ea9c53ae93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84e1a9f4_a3232a58",
+        "filename": "golden/modules/triagelog-page-sk/triagelog-page-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-10T18:33:30Z",
+      "side": 1,
+      "message": "\"correctness check\", or \"smoke test\".",
+      "range": {
+        "startLine": 19,
+        "startChar": 13,
+        "endLine": 19,
+        "endChar": 24
+      },
+      "revId": "c62c5da8dee78baf430758dba4089ea9c53ae93c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
