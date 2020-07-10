@@ -180,6 +180,33 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchAfterLastCommit
 	require.Contains(t, err.Error(), "Failed to look up CommitNumber")
 }
 
+func TestNewDataFrameIterator_ExactDataframeRequest_Success(t *testing.T) {
+	unittest.LargeTest(t)
+	ctx, dfb, g, cleanup := newForTest(t)
+	defer cleanup()
+
+	// This is an ExactDataframeRequest because Offset != 0.
+	request := &RegressionDetectionRequest{
+		Alert: &alerts.Alert{
+			Radius: 1,
+		},
+		Domain: types.Domain{
+			N:      2,
+			Offset: 6, // Start at 6 with a radius of 1 to get the commit at 7.
+		},
+		Query: "arch=x86",
+	}
+	iter, err := NewDataFrameIterator(ctx, nil, request, dfb, g, nil)
+	require.NoError(t, err)
+	require.True(t, iter.Next())
+	df, err := iter.Value(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 3, len(df.Header))
+	assert.Equal(t, int64(0), df.Header[0].Offset)
+	assert.Equal(t, int64(1), df.Header[1].Offset)
+	assert.Equal(t, int64(7), df.Header[2].Offset)
+}
+
 func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchBeforeFirstCommit(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, dfb, g, cleanup := newForTest(t)
