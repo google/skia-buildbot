@@ -36,7 +36,7 @@ func TestRouter(t *testing.T) {
 	n2 := &testNotifier{}
 	m.Add(n2, FILTER_WARNING, nil, "")
 	n3 := &testNotifier{}
-	m.Add(n3, Filter(0), []string{"whitelisted type"}, "")
+	m.Add(n3, Filter(0), []string{"included type"}, "")
 
 	require.NoError(t, m.Send(ctx, &Message{
 		Subject:  "Hi!",
@@ -58,7 +58,7 @@ func TestRouter(t *testing.T) {
 		Subject:  "My subject",
 		Body:     "Second Message",
 		Severity: SEVERITY_ERROR,
-		Type:     "whitelisted type",
+		Type:     "included type",
 	}))
 
 	require.Equal(t, 1, len(n4.sent))

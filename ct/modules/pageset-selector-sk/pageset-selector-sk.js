@@ -102,8 +102,8 @@ define('pageset-selector-sk', class extends ElementSk {
   }
 
   _filterPageSets() {
-    const blacklist = this._hideIfKeyContains;
-    const psHasSubstring = (ps) => blacklist.some((s) => ps.key.includes(s));
+    const exclude = this._hideIfKeyContains;
+    const psHasSubstring = (ps) => exclude.some((s) => ps.key.includes(s));
     this._pageSets = this._unfilteredPageSets
       .filter((ps) => !psHasSubstring(ps));
   }

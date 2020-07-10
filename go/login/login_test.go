@@ -13,7 +13,7 @@ import (
 var once sync.Once
 
 func loginInit() {
-	initLogin("id", "secret", "http://localhost", "salt", DEFAULT_SCOPE, DEFAULT_DOMAIN_WHITELIST)
+	initLogin("id", "secret", "http://localhost", "salt", DEFAULT_SCOPE, DEFAULT_ALLOWED_DOMAINS)
 }
 
 func TestLoginURL(t *testing.T) {
@@ -43,7 +43,7 @@ func TestLoginURL(t *testing.T) {
 func TestLoggedInAs(t *testing.T) {
 	unittest.SmallTest(t)
 	once.Do(loginInit)
-	setActiveWhitelists(DEFAULT_DOMAIN_WHITELIST)
+	setActiveAllowLists(DEFAULT_ALLOWED_DOMAINS)
 
 	r, err := http.NewRequest("GET", "http://www.skia.org/", nil)
 	if err != nil {
@@ -67,13 +67,13 @@ func TestLoggedInAs(t *testing.T) {
 	url := LoginURL(w, r)
 	assert.Contains(t, url, "approval_prompt=auto", "Not forced into prompt.")
 
-	delete(activeUserDomainWhiteList, "chromium.org")
-	assert.Equal(t, LoggedInAs(r), "", "Not in the domain whitelist.")
+	delete(activeUserDomainAllowList, "chromium.org")
+	assert.Equal(t, LoggedInAs(r), "", "Not in the domain allow list.")
 	url = LoginURL(w, r)
 	assert.Contains(t, url, "prompt=consent", "Force into prompt.")
 
-	activeUserEmailWhiteList["fred@chromium.org"] = true
-	assert.Equal(t, LoggedInAs(r), "fred@chromium.org", "Found in the email whitelist.")
+	activeUserEmailAllowList["fred@chromium.org"] = true
+	assert.Equal(t, LoggedInAs(r), "fred@chromium.org", "Found in the email allow list.")
 }
 
 func TestDomainFromHost(t *testing.T) {
@@ -86,7 +86,7 @@ func TestDomainFromHost(t *testing.T) {
 	assert.Equal(t, "skia.org", domainFromHost("example.com:443"))
 }
 
-func TestSplitAuthWhiteList(t *testing.T) {
+func TestSplitAuthAllowList(t *testing.T) {
 	unittest.SmallTest(t)
 
 	type testCase struct {
@@ -127,20 +127,20 @@ func TestSplitAuthWhiteList(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		d, e := splitAuthWhiteList(tc.Input)
+		d, e := splitAuthAllowList(tc.Input)
 		assert.Equal(t, tc.ExpectedDomains, d)
 		assert.Equal(t, tc.ExpectedEmails, e)
 	}
 }
 
-func TestInWhitelist(t *testing.T) {
+func TestIsAuthorized(t *testing.T) {
 	unittest.SmallTest(t)
 	once.Do(loginInit)
-	setActiveWhitelists("google.com chromium.org skia.org service-account@proj.iam.gserviceaccount.com")
+	setActiveAllowLists("google.com chromium.org skia.org service-account@proj.iam.gserviceaccount.com")
 
-	assert.True(t, inWhitelist("fred@chromium.org"))
-	assert.True(t, inWhitelist("service-account@proj.iam.gserviceaccount.com"))
+	assert.True(t, isAuthorized("fred@chromium.org"))
+	assert.True(t, isAuthorized("service-account@proj.iam.gserviceaccount.com"))
 
-	assert.False(t, inWhitelist("fred@example.com"))
-	assert.False(t, inWhitelist("evil@proj.iam.gserviceaccount.com"))
+	assert.False(t, isAuthorized("fred@example.com"))
+	assert.False(t, isAuthorized("evil@proj.iam.gserviceaccount.com"))
 }

@@ -57,8 +57,8 @@ All above task drivers send a [pubsub message](https://skia.googlesource.com/bui
 ### Docker Pushes Watcher App
 
 The [docker pushes watcher](https://skia.googlesource.com/buildbot/+show/master/docker_pushes_watcher/) app listens for [pubsub messages](https://skia.googlesource.com/buildbot/+show/master/go/docker/build/pubsub/pubsub.go#15) for 2 main tasks:
-* Tags images in the app's whitelist with the "prod" tag when they correspond to the latest commit in the Skia/Buildbot repository. This is done to account for bots running out of order because of backfilling.
-* Deploys apps to k8s using pushk for images in the app's whitelist when they correspond to the latest commit.
+* Tags images in the app's list with the "prod" tag when they correspond to the latest commit in the Skia/Buildbot repository. This is done to account for bots running out of order because of backfilling.
+* Deploys apps to k8s using pushk for images in the app's list when they correspond to the latest commit.
 
 
 ## Auto-deploying infra apps

@@ -68,7 +68,7 @@ func main() {
 	for _, b := range bots {
 		if b.AuthenticatedAs == "bot:whitelisted-ip" {
 			if len(ip) == 0 {
-				log("The following bots are IP-whitelisted:")
+				log("The following bots are allowed via IP:")
 			}
 			log("  %s", b.BotId)
 			ip = append(ip, b)
@@ -81,7 +81,7 @@ func main() {
 		}
 	}
 	log("")
-	logResult(ip, "IP whitelist")
+	logResult(ip, "Allowed via IP")
 	logResult(bot, "as bot\t")
 	logResult(user, "as user\t")
 	logResult(other, "other\t")

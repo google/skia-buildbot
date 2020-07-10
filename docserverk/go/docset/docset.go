@@ -231,7 +231,7 @@ func NewDocSetForIssue(ctx context.Context, workDir, repo string, issue int64) (
 		return nil, fmt.Errorf("CL contains invalid author email: %s", err)
 	}
 	domain := strings.Split(addr.Address, "@")[1]
-	if !util.In(domain, config.WHITELIST) {
+	if !util.In(domain, config.ALLOWED_DOMAINS) {
 		return nil, fmt.Errorf("User is not authorized to test docset CLs.")
 	}
 	return newDocSet(ctx, workDir, repo, issue, patchset, false)

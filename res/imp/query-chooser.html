@@ -5,7 +5,7 @@
 
   Attributes:
     query - The underlying query-sk element.
-    whitelist - A list of keys for params that should always be shown.
+    showparams - A list of keys for params that should always be shown.
 
   Events:
     See query-sk.
@@ -43,7 +43,7 @@
   </style>
   <template>
     <div id="dialog">
-      <query-sk id=query whitelist="{{whitelist}}"></query-sk>
+      <query-sk id=query showparams="{{showparams}}"></query-sk>
       <div class=buttons>
         <button id=close class=action>Close</button>
       </div>
@@ -58,7 +58,7 @@
     is: "query-chooser-sk",
 
     properties: {
-      whitelist: {
+      showparams: {
         type: Array,
         value: function() {
           return [

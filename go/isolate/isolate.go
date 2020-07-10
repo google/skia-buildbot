@@ -67,7 +67,7 @@ func NewClient(workdir, server string) (*Client, error) {
 
 // NewClientWithServiceAccount returns a Client instance which uses
 // "--service-account-json" for its isolate binary calls. This is required for
-// servers that are not ip whitelisted in chrome-infra-auth/ip_whitelist.cfg.
+// servers that are not listed in the chrome-infra-auth bypass list.
 func NewClientWithServiceAccount(workdir, server, serviceAccountJSON string) (*Client, error) {
 	c, err := NewClient(workdir, server)
 	if err != nil {

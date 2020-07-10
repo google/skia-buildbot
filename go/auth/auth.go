@@ -410,8 +410,8 @@ func NewDefaultJWTServiceAccountTokenSource(scopes ...string) (oauth2.TokenSourc
 // request. For more information, see:
 // https://github.com/luci/luci-py/blob/master/client/LUCI_CONTEXT.md
 //
-// Individual scopes need to be whitelisted by the LUCI token server. For this
-// reason, it is recommended to use the compute.CloudPlatform scope.
+// Individual scopes need to be specifically allowed by the LUCI token server.
+// For this reason, it is recommended to use the compute.CloudPlatform scope.
 func NewLUCIContextTokenSource(scopes ...string) (oauth2.TokenSource, error) {
 	authenticator := luci_auth.NewAuthenticator(context.Background(), luci_auth.SilentLogin, luci_auth.Options{
 		Method: luci_auth.LUCIContextMethod,

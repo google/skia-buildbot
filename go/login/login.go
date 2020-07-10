@@ -57,17 +57,19 @@ const (
 	SESSION_COOKIE_NAME = "sksession"
 	DEFAULT_COOKIE_SALT = "notverysecret"
 
-	// DEFAULT_REDIRECT_URL is the redirect URL to use if Init is called with DEFAULT_DOMAIN_WHITELIST.
+	// DEFAULT_REDIRECT_URL is the redirect URL to use if Init is called with
+	// DEFAULT_ALLOWED_DOMAINS.
 	DEFAULT_REDIRECT_URL = "https://skia.org/oauth2callback/"
 
 	// DEFAULT_OAUTH2_CALLBACK is the default relative OAuth2 redirect URL.
 	DEFAULT_OAUTH2_CALLBACK = "/oauth2callback/"
 
-	// DEFAULT_DOMAIN_WHITELIST is a white list of domains we use frequently.
-	DEFAULT_DOMAIN_WHITELIST = "google.com chromium.org skia.org"
+	// DEFAULT_ALLOWED_DOMAINS is a list of domains we use frequently.
+	DEFAULT_ALLOWED_DOMAINS = "google.com chromium.org skia.org"
 
-	// DEFAULT_ADMIN_WHITELIST is the white list of users we consider admins when we can't retrieve the whitelist from metadata.
-	DEFAULT_ADMIN_WHITELIST = "borenet@google.com jcgregorio@google.com kjlubick@google.com lovisolo@google.com rmistry@google.com westont@google.com"
+	// DEFAULT_ADMIN_LIST is list of users we consider to be admins as a
+	// fallback when we can't retrieve the list from metadata.
+	DEFAULT_ADMIN_LIST = "borenet@google.com jcgregorio@google.com kjlubick@google.com lovisolo@google.com rmistry@google.com westont@google.com"
 
 	// COOKIE_DOMAIN_SKIA_ORG is the cookie domain for skia.org.
 	COOKIE_DOMAIN_SKIA_ORG = "skia.org"
@@ -97,24 +99,23 @@ var (
 		RedirectURL:  "http://localhost:8000/oauth2callback/",
 	}
 
-	// activeUserDomainWhiteList is the list of domains that are allowed to
+	// activeUserDomainAllowList is the list of domains that are allowed to
 	// log in.
-	activeUserDomainWhiteList map[string]bool
+	activeUserDomainAllowList map[string]bool
 
-	// activeUserEmailWhiteList is the list of email addresses that are
-	// allowed to log in (even if the domain is not whitelisted).
-	activeUserEmailWhiteList map[string]bool
+	// activeUserEmailAllowList is the list of email addresses that are
+	// allowed to log in (even if the domain is not explicitly allowed).
+	activeUserEmailAllowList map[string]bool
 
-	// activeAdminEmailWhiteList is the list of email addresses that are
+	// activeAdminEmailAllowList is the list of email addresses that are
 	// allowed to perform admin tasks.
-	activeAdminEmailWhiteList map[string]bool
+	activeAdminEmailAllowList map[string]bool
 
 	// DEFAULT_SCOPE is the scope we request when logging in.
 	DEFAULT_SCOPE = []string{"email"}
 
 	// Auth groups which determine whether a given user has particular types
-	// of access. If nil, fall back on domain and individual email
-	// whitelist.
+	// of access. If nil, fall back on domain and individual email allow lists.
 	adminAllow allowed.Allow
 	editAllow  allowed.Allow
 	viewAllow  allowed.Allow
@@ -129,8 +130,8 @@ type Session struct {
 }
 
 // SimpleInitMust initializes the login system for the default case, which uses
-// DEFAULT_REDIRECT_URL in prod along with the DEFAULT_DOMAIN_WHITELIST and
-// uses a localhost'port' redirect URL if 'local' is true.
+// DEFAULT_REDIRECT_URL in prod along with the DEFAULT_ALLOWED_DOMAINS and uses
+// a localhost'port' redirect URL if 'local' is true.
 //
 // If an error occurs then the function fails fatally.
 func SimpleInitMust(port string, local bool) {
@@ -138,14 +139,14 @@ func SimpleInitMust(port string, local bool) {
 	if !local {
 		redirectURL = DEFAULT_REDIRECT_URL
 	}
-	if err := Init(redirectURL, DEFAULT_DOMAIN_WHITELIST, ""); err != nil {
+	if err := Init(redirectURL, DEFAULT_ALLOWED_DOMAINS, ""); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 }
 
 // SimpleInitWithAllow initializes the login system for the default case (see
 // docs for SimpleInitMust) and sets the admin, editor, and viewer lists. These
-// may be nil, in which case we fall back on the default whitelists. For editors
+// may be nil, in which case we fall back on the default settings. For editors
 // we default to denying access to everyone, and for viewers we default to
 // allowing access to everyone.
 func SimpleInitWithAllow(port string, local bool, admin, edit, view allowed.Allow) {
@@ -158,14 +159,14 @@ func SimpleInitWithAllow(port string, local bool, admin, edit, view allowed.Allo
 
 // InitWithAllow initializes the login system with the given redirect URL. Sets
 // the admin, editor, and viewer lists as provided. These may be nil, in which
-// case we fall back on the default whitelists. For editors we default to
-// denying access to everyone, and for viewers we default to allowing access
-// to everyone.
+// case we fall back on the default settings. For editors we default to denying
+// access to everyone, and for viewers we default to allowing access to
+// everyone.
 func InitWithAllow(redirectURL string, admin, edit, view allowed.Allow) {
 	adminAllow = admin
 	editAllow = edit
 	viewAllow = view
-	if err := Init(redirectURL, DEFAULT_DOMAIN_WHITELIST, ""); err != nil {
+	if err := Init(redirectURL, DEFAULT_ALLOWED_DOMAINS, ""); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
 	}
 	RestrictAdmin = RestrictWithMessage(adminAllow, "User is not an admin")
@@ -180,9 +181,9 @@ func InitWithAllow(redirectURL string, admin, edit, view allowed.Allow) {
 // "client_secret.json" file in the current directory to extract the client id
 // and client secret from. If both of those fail then it returns an error.
 //
-// The authWhiteList is the space separated list of domains and email addresses
+// The authAllowList is the space separated list of domains and email addresses
 // that are allowed to log in.
-func Init(redirectURL string, authWhiteList string, clientSecretFile string) error {
+func Init(redirectURL string, authAllowList string, clientSecretFile string) error {
 	cookieSalt, clientID, clientSecret := tryLoadingFromKnownLocations()
 	if clientID == "" {
 		if clientSecretFile == "" {
@@ -201,20 +202,20 @@ func Init(redirectURL string, authWhiteList string, clientSecretFile string) err
 		clientID = config.ClientID
 		clientSecret = config.ClientSecret
 	}
-	initLogin(clientID, clientSecret, redirectURL, cookieSalt, DEFAULT_SCOPE, authWhiteList)
+	initLogin(clientID, clientSecret, redirectURL, cookieSalt, DEFAULT_SCOPE, authAllowList)
 	return nil
 }
 
 // initLogin sets the params.  It should only be called directly for testing purposes.
 // Clients should use Init().
-func initLogin(clientID, clientSecret, redirectURL, cookieSalt string, scopes []string, authWhiteList string) {
+func initLogin(clientID, clientSecret, redirectURL, cookieSalt string, scopes []string, authAllowList string) {
 	secureCookie = securecookie.New([]byte(cookieSalt), nil)
 	oauthConfig.ClientID = clientID
 	oauthConfig.ClientSecret = clientSecret
 	oauthConfig.RedirectURL = redirectURL
 	oauthConfig.Scopes = scopes
 
-	setActiveWhitelists(authWhiteList)
+	setActiveAllowLists(authAllowList)
 }
 
 // LoginURL returns a URL that the user is to be directed to for login.
@@ -267,12 +268,12 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 
 	// Only retrieve an online access token, i.e. no refresh token. And when we
 	// go through the approval flow again don't stop if they've already approved
-	// once, unless they have a valid token but aren't in the whitelist,
-	// in which case we want to use ApprovalForce so they get the chance
-	// to pick a different account to log in with.
+	// once, unless they have a valid token but aren't in the allow list, in
+	// which case we want to use ApprovalForce so they get the chance to pick a
+	// different account to log in with.
 	opts := []oauth2.AuthCodeOption{oauth2.AccessTypeOnline}
 	s, err := getSession(r)
-	if err == nil && !inWhitelist(s.Email) {
+	if err == nil && !isAuthorized(s.Email) {
 		opts = append(opts, oauth2.ApprovalForce)
 	} else {
 		opts = append(opts, oauth2.SetAuthURLParam("approval_prompt", "auto"))
@@ -321,9 +322,9 @@ func LoggedInAs(r *http.Request) string {
 	} else if e, err := ViaBearerToken(r); err == nil {
 		email = e
 	}
-	if inWhitelist(email) {
+	if isAuthorized(email) {
 		// TODO(stephana): Uncomment the following line when Debugf is different from Infof.
-		// sklog.Debugf("User %s is on the whitelist", email)
+		// sklog.Debugf("User %s is on the allowlist", email)
 		return email
 	}
 
@@ -357,18 +358,18 @@ func IsGoogler(r *http.Request) bool {
 }
 
 // IsAdmin determines whether the user is logged in with an account on the admin
-// whitelist. If true, user is allowed to perform admin tasks.
+// allow list. If true, user is allowed to perform admin tasks.
 func IsAdmin(r *http.Request) bool {
 	email := LoggedInAs(r)
 	if adminAllow != nil {
 		return adminAllow.Member(email)
 	}
-	return activeAdminEmailWhiteList[email]
+	return activeAdminEmailAllowList[email]
 }
 
 // IsEditor determines whether the user is logged in with an account on the
-// editor whitelist. If true, user is allowed to perform edits. Defaults to
-// false if no editor whitelist is provided.
+// editor allow list. If true, user is allowed to perform edits. Defaults to
+// false if no editor allow list is provided.
 func IsEditor(r *http.Request) bool {
 	email := LoggedInAs(r)
 	if editAllow != nil {
@@ -378,7 +379,7 @@ func IsEditor(r *http.Request) bool {
 }
 
 // IsViewer determines whether the user is allowed to view this server. Defaults
-// to true if no viewer whitelist is provided.
+// to true if no viewer allow list is provided.
 func IsViewer(r *http.Request) bool {
 	email := LoggedInAs(r)
 	if viewAllow != nil {
@@ -541,8 +542,8 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !inWhitelist(email) {
-		http.Error(w, "Accounts from your domain are not allowed or your email address is not white listed.", 500)
+	if !isAuthorized(email) {
+		http.Error(w, "Accounts from your domain are not allowed or your email address is not on the allow list.", 500)
 		return
 	}
 	s := Session{
@@ -555,9 +556,9 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirect, 302)
 }
 
-// inWhitelist returns true if the given email address matches either the
-// domain or the user whitelist.
-func inWhitelist(email string) bool {
+// isAuthorized returns true if the given email address matches either the
+// domain or the user allow list.
+func isAuthorized(email string) bool {
 	parts := strings.Split(email, "@")
 	if len(parts) != 2 {
 		return false
@@ -565,7 +566,7 @@ func inWhitelist(email string) bool {
 	if viewAllow != nil {
 		return viewAllow.Member(email)
 	}
-	if len(activeUserDomainWhiteList) > 0 && !activeUserDomainWhiteList[parts[1]] && !activeUserEmailWhiteList[email] {
+	if len(activeUserDomainAllowList) > 0 && !activeUserDomainAllowList[parts[1]] && !activeUserEmailAllowList[email] {
 		return false
 	}
 	return true
@@ -738,13 +739,13 @@ func RestrictViewerFn(h http.HandlerFunc) http.HandlerFunc {
 	return RestrictViewer(h).(http.HandlerFunc)
 }
 
-// splitAuthWhiteList splits the given whitelist into a set of domains and a set of
-// individual emails
-func splitAuthWhiteList(whiteList string) (map[string]bool, map[string]bool) {
+// splitAuthAllowList splits the given allow list into a set of domains and a
+// set of individual emails
+func splitAuthAllowList(allowList string) (map[string]bool, map[string]bool) {
 	domains := map[string]bool{}
 	emails := map[string]bool{}
 
-	for _, entry := range strings.Fields(whiteList) {
+	for _, entry := range strings.Fields(allowList) {
 		trimmed := strings.ToLower(strings.TrimSpace(entry))
 		if strings.Contains(trimmed, "@") {
 			emails[trimmed] = true
@@ -756,15 +757,15 @@ func splitAuthWhiteList(whiteList string) (map[string]bool, map[string]bool) {
 	return domains, emails
 }
 
-// setActiveWhitelists initializes activeDomainWhiteList and
-// activeEmailWhiteList from authWhiteList.
-func setActiveWhitelists(authWhiteList string) {
+// setActiveAllowLists initializes activeUserDomainAllowList and
+// activeUserEmailAllowList from authAllowList.
+func setActiveAllowLists(authAllowList string) {
 	if adminAllow != nil || editAllow != nil || viewAllow != nil {
 		return
 	}
-	activeUserDomainWhiteList, activeUserEmailWhiteList = splitAuthWhiteList(authWhiteList)
-	adminWhiteList := metadata.ProjectGetWithDefault(metadata.ADMIN_WHITE_LIST, DEFAULT_ADMIN_WHITELIST)
-	_, activeAdminEmailWhiteList = splitAuthWhiteList(adminWhiteList)
+	activeUserDomainAllowList, activeUserEmailAllowList = splitAuthAllowList(authAllowList)
+	adminAllowList := metadata.ProjectGetWithDefault(metadata.ADMIN_ALLOW_LIST, DEFAULT_ADMIN_LIST)
+	_, activeAdminEmailAllowList = splitAuthAllowList(adminAllowList)
 }
 
 // loginInfo is the JSON file format that client info is stored in as a kubernetes secret.

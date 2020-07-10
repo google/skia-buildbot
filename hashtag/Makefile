@@ -16,8 +16,8 @@ watch: package-lock.json
 	npx webpack --mode=development --watch
 
 run: build
-	# To run locally download the whitelisted service account and point to it
-	# via the GOOGLE_APPLICATION_CREDENTIALS environment variable.
+	# To run locally download the service account and point to it via the
+	# GOOGLE_APPLICATION_CREDENTIALS environment variable.
 	GOOGLE_APPLICATION_CREDENTIALS=${HOME}/.hashtag_creds hashtag --local --logtostderr
 
 test:
