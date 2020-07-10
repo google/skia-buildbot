@@ -3,9 +3,10 @@
 package commenter
 
 import (
+	"bytes"
 	"context"
-	"fmt"
 	"sync"
+	"text/template"
 	"time"
 
 	"go.skia.org/infra/go/metrics2"
@@ -29,8 +30,9 @@ type Impl struct {
 	crs             code_review.Client
 	store           clstore.Store
 	instanceURL     string
+	publicURL       string
 	logCommentsOnly bool
-	messageTemplate string
+	messageTemplate *template.Template
 	search          search.SearchAPI
 
 	liveness metrics2.Liveness
@@ -38,17 +40,22 @@ type Impl struct {
 	now func() time.Time
 }
 
-func New(c code_review.Client, s clstore.Store, search search.SearchAPI, messageTemplate, instanceURL string, logCommentsOnly bool) *Impl {
+func New(c code_review.Client, s clstore.Store, search search.SearchAPI, messageTemplate, instanceURL, publicURL string, logCommentsOnly bool) (*Impl, error) {
+	templ, err := template.New("message").Parse(messageTemplate)
+	if err != nil && messageTemplate != "" {
+		return nil, skerr.Wrapf(err, "Message template %q", messageTemplate)
+	}
 	return &Impl{
 		crs:             c,
 		store:           s,
 		instanceURL:     instanceURL,
+		publicURL:       publicURL,
 		logCommentsOnly: logCommentsOnly,
-		messageTemplate: messageTemplate,
+		messageTemplate: templ,
 		liveness:        metrics2.NewLiveness(completedCommentCycle),
 		search:          search,
 		now:             time.Now,
-	}
+	}, nil
 }
 
 // CommentOnChangeListsWithUntriagedDigests implements the code_review.ChangeListCommenter
@@ -163,11 +170,20 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 // logs if this commenter is configured to not actually comment.
 func (i *Impl) maybeCommentOn(ctx context.Context, cl code_review.ChangeList, ps code_review.PatchSet, untriagedDigests int) error {
 	crs := i.crs.System()
+	msg, err := i.untriagedMessage(commentTemplateContext{
+		CRS:           crs,
+		ChangeListID:  cl.SystemID,
+		PatchSetOrder: ps.Order,
+		NumUntriaged:  untriagedDigests,
+	})
+	if err != nil {
+		return skerr.Wrap(err)
+	}
 	if i.logCommentsOnly {
-		sklog.Infof("Should comment on CL %s with message %s", cl.SystemID, i.untriagedMessage(crs, cl, ps, untriagedDigests))
+		sklog.Infof("Should comment on CL %s with message %s", cl.SystemID, msg)
 		return nil
 	}
-	if err := i.crs.CommentOn(ctx, cl.SystemID, i.untriagedMessage(crs, cl, ps, untriagedDigests)); err != nil {
+	if err := i.crs.CommentOn(ctx, cl.SystemID, msg); err != nil {
 		if err == code_review.ErrNotFound {
 			sklog.Warningf("Cannot comment on %s CL %s because it does not exist", i.crs.System(), cl.SystemID)
 			return nil
@@ -177,9 +193,25 @@ func (i *Impl) maybeCommentOn(ctx context.Context, cl code_review.ChangeList, ps
 	return nil
 }
 
+// commentTemplateContext contains the fields that can be substituted into
+type commentTemplateContext struct {
+	ChangeListID      string
+	CRS               string
+	InstanceURL       string
+	NumUntriaged      int
+	PatchSetOrder     int
+	PublicInstanceURL string
+}
+
 // untriagedMessage returns a message about untriaged images on the given CL/PS.
-func (i *Impl) untriagedMessage(crs string, cl code_review.ChangeList, ps code_review.PatchSet, untriagedDigests int) string {
-	return fmt.Sprintf(i.messageTemplate, untriagedDigests, ps.Order, i.instanceURL, crs, cl.SystemID)
+func (i *Impl) untriagedMessage(c commentTemplateContext) (string, error) {
+	c.InstanceURL = i.instanceURL
+	c.PublicInstanceURL = i.publicURL
+	var b bytes.Buffer
+	if err := i.messageTemplate.Execute(&b, c); err != nil {
+		return "", skerr.Wrapf(err, "With template context %#v", c)
+	}
+	return b.String(), nil
 }
 
 // updateCLInStoreIfAbandoned checks with the CRS to see if the cl is still Open. If it is, it
