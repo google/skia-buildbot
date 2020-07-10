@@ -1,17 +1,21 @@
+export const positiveDigest = '99c58c7002073346ff55f446d47d6311';
+export const negativeDigest = 'ec3b8f27397d99581e06eaa46d6d5837';
+export const untriagedDigest = '6246b773851984c726cb2e1cb13510c2';
+
 // This is the data returned from Gold's /clusterdiff RPC. Not all of it is used in
 // cluster-digests-sk.
 export const clusterDiffJSON = {
   nodes: [
     {
-      name: '99c58c7002073346ff55f446d47d6311',
+      name: positiveDigest,
       status: 'positive',
     },
     {
-      name: '6246b773851984c726cb2e1cb13510c2',
+      name: untriagedDigest,
       status: 'untriaged',
     },
     {
-      name: 'ec3b8f27397d99581e06eaa46d6d5837',
+      name: negativeDigest,
       status: 'negative',
     },
   ],
