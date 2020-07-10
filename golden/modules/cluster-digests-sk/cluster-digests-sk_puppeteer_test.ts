@@ -3,7 +3,7 @@ import { addEventListenersToPuppeteerPage, EventName,
     takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { loadGoldWebpack } from '../common_puppeteer_test/common_puppeteer_test';
 import { ElementHandle } from 'puppeteer';
-import { positiveDigest, negativeDigest, untriagedDigest } from './test_data';
+import { positiveDigest, negativeDigest, untriagedDigest } from '../cluster-page-sk/test_data';
 
 describe('cluster-digests-sk', () => {
     let testBed: TestBed;
