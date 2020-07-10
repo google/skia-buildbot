@@ -81,6 +81,76 @@
       "revId": "f3ecabbf772482262308ca607dfcaa826851f8ff",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff1d92fe_1e8f9661",
+        "filename": "infra-sk/modules/query-sk/query-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-10T17:12:23Z",
+      "side": 1,
+      "message": "I agree with Kevin. I think the component is more confusing with the filter field below the \"Clear Selections\" button. Mainly for two reasons:\n\n1. The \"Clear Selection\" button is now sandwiched between the selection and the filter field, which makes the relationship between the filter and the thing being filtered less obvious.\n\n2. Having these \"Clear\" buttons in close proximity requires a few extra cycles to make sense of; the fact that these buttons are unrelated isn\u0027t necessarily clear, visually speaking. The user really needs to parse the labels in the buttons before things \"click\" in their mind.\n\nI\u0027d also argue this leads to a higher chance of the user accidentally clearing the selection when what they actually wanted is to clear the filter.\n\nBefore/after screenshots for reference:\n\nBefore: https://skia-infra-gold.skia.org/img/images/0307e2a9286fc2b8159d2ba3a16e9dc7.png\nAfter: https://skia-infra-gold.skia.org/img/images/7a1f703210aca8f874d4d4b8731185e0.png",
+      "parentUuid": "7fdd4e89_4ef79287",
+      "range": {
+        "startLine": 46,
+        "startChar": 9,
+        "endLine": 46,
+        "endChar": 15
+      },
+      "revId": "f3ecabbf772482262308ca607dfcaa826851f8ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60707898_ab1f3344",
+        "filename": "infra-sk/modules/query-sk/query-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-10T17:12:23Z",
+      "side": 1,
+      "message": "This label can probably be removed now that we have a placeholder text. As is, the word \"Filter\" appears three times in this component\u0027s UI.",
+      "range": {
+        "startLine": 53,
+        "startChar": 8,
+        "endLine": 53,
+        "endChar": 14
+      },
+      "revId": "f3ecabbf772482262308ca607dfcaa826851f8ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ccad097c_9eec76e4",
+        "filename": "infra-sk/modules/query-sk/query-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-10T17:12:23Z",
+      "side": 1,
+      "message": "I think just the word \"Clear\" would be enough here.",
+      "range": {
+        "startLine": 60,
+        "startChar": 61,
+        "endLine": 60,
+        "endChar": 73
+      },
+      "revId": "f3ecabbf772482262308ca607dfcaa826851f8ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
