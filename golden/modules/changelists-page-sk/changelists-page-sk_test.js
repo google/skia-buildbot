@@ -11,6 +11,7 @@ import {
 import {
   eventPromise,
   expectQueryStringToEqual,
+  setQueryString,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
 
@@ -93,7 +94,7 @@ describe('changelists-page-sk', () => {
       changelistsPageSk._page_size = 10;
       changelistsPageSk._showAll = false;
 
-      changelistsPageSk._fetch();
+      await changelistsPageSk._fetch();
     });
   }); // end describe('api calls')
 
@@ -190,12 +191,6 @@ describe('changelists-page-sk', () => {
     });
   }); // end describe('dynamic content')
 });
-
-function setQueryString(q) {
-  history.pushState(
-    null, '', window.location.origin + window.location.pathname + q,
-  );
-}
 
 function goToNextPage(changelistsPageSk) {
   const event = eventPromise('end-task');
