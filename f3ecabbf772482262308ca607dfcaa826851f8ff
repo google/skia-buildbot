@@ -180,6 +180,30 @@
     },
     {
       "key": {
+        "uuid": "6d141b0a_91b09394",
+        "filename": "infra-sk/modules/query-sk/query-sk.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-10T19:53:29Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "d2b8a82d_f2ed67c1",
+      "range": {
+        "startLine": 46,
+        "startChar": 9,
+        "endLine": 46,
+        "endChar": 15
+      },
+      "revId": "f3ecabbf772482262308ca607dfcaa826851f8ff",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "60707898_ab1f3344",
         "filename": "infra-sk/modules/query-sk/query-sk.ts",
         "patchSetId": 1
