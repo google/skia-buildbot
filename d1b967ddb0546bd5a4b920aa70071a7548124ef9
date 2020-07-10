@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f459ca92_76b78f1c",
+        "filename": "go/metadata/metadata.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-10T19:23:37Z",
+      "side": 1,
+      "message": "That looks like it\u0027s only used as a metadata key? If so then it should be deleted, nobody should be using metadata anymore.",
+      "parentUuid": "3116222b_de593302",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 31
+      },
+      "revId": "d1b967ddb0546bd5a4b920aa70071a7548124ef9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ec4c7993_9d40bddc",
         "filename": "go/notifier/notifier.go",
         "patchSetId": 1
