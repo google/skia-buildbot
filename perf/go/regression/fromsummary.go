@@ -20,7 +20,7 @@ func RegressionFromClusterResponse(ctx context.Context, resp *RegressionDetectio
 	midOffset := resp.Frame.DataFrame.Header[midPoint].Offset
 
 	id := &cid.CommitID{
-		Offset: int(midOffset),
+		Offset: midOffset,
 	}
 
 	details, err := cidl.Lookup(ctx, []*cid.CommitID{id})

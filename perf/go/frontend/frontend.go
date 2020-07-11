@@ -461,9 +461,9 @@ func (f *Frontend) initpageHandler(w http.ResponseWriter, r *http.Request) {
 // cid.CommitIDs that include the range between [begin, end) and include the
 // explicit CommitID of "Source, Offset".
 type RangeRequest struct {
-	Offset int   `json:"offset"`
-	Begin  int64 `json:"begin"`
-	End    int64 `json:"end"`
+	Offset types.CommitNumber `json:"offset"`
+	Begin  int64              `json:"begin"`
+	End    int64              `json:"end"`
 }
 
 // cidRangeHandler accepts a POST'd JSON serialized RangeRequest
@@ -498,13 +498,13 @@ func (f *Frontend) cidRangeHandler(w http.ResponseWriter, r *http.Request) {
 	cids := []*cid.CommitID{}
 	for _, h := range df.Header {
 		cids = append(cids, &cid.CommitID{
-			Offset: int(h.Offset),
+			Offset: h.Offset,
 		})
-		if int(h.Offset) == rr.Offset {
+		if h.Offset == rr.Offset {
 			found = true
 		}
 	}
-	if !found && rr.Offset != -1 {
+	if !found && rr.Offset != types.BadCommitNumber {
 		cids = append(cids, &cid.CommitID{
 			Offset: rr.Offset,
 		})
@@ -835,10 +835,10 @@ func (f *Frontend) gotoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	details, err := f.cidl.Lookup(ctx, []*cid.CommitID{
 		{
-			Offset: begin,
+			Offset: types.CommitNumber(begin),
 		},
 		{
-			Offset: end,
+			Offset: types.CommitNumber(end),
 		},
 	})
 	if err != nil {
@@ -1122,7 +1122,7 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 		ids = make([]*cid.CommitID, len(commits), len(commits))
 		for i, c := range commits {
 			ids[i] = &cid.CommitID{
-				Offset: int(c.CommitNumber),
+				Offset: c.CommitNumber,
 			}
 		}
 	} else {
@@ -1138,7 +1138,7 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 		})
 		for _, key := range keys {
 			c := &cid.CommitID{
-				Offset: int(key),
+				Offset: key,
 			}
 			if err != nil {
 				httputils.ReportError(w, err, "Got an invalid commit id.", http.StatusInternalServerError)

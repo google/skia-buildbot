@@ -16,12 +16,11 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
-// CommitID represents the time of a particular commit, where a commit could either be
-// a real commit into the repo, or an event like running a trybot.
+// CommitID represents a single commit.
 //
 // TODO(jcgregorio) Collapse this into just types.CommitNumber.
 type CommitID struct {
-	Offset int `json:"offset"` // The index number of the commit from beginning of time, or the index of the patch number in Reitveld.
+	Offset types.CommitNumber `json:"offset"`
 }
 
 // ID returns a unique ID for the CommitID.
@@ -35,7 +34,7 @@ func (c CommitID) ID() string {
 // usage into types.CommitNumber.
 func CommitIDFromCommitNumber(n types.CommitNumber) *CommitID {
 	return &CommitID{
-		Offset: int(n),
+		Offset: n,
 	}
 }
 
@@ -53,7 +52,7 @@ func FromID(s string) (*CommitID, error) {
 		return nil, fmt.Errorf("Invalid ID format: %s", s)
 	}
 	return &CommitID{
-		Offset: int(i),
+		Offset: types.CommitNumber(i),
 	}, nil
 }
 

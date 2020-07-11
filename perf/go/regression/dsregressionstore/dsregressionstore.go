@@ -78,11 +78,11 @@ func (s *RegressionStoreDS) storeToDS(tx *datastore.Transaction, cid *cid.Commit
 
 // Range implements the RegressionStore interface.
 func (s *RegressionStoreDS) Range(ctx context.Context, begin, end types.CommitNumber) (map[types.CommitNumber]*regression.AllRegressionsForCommit, error) {
-	beginDetail, err := s.lookup(ctx, &cid.CommitID{Offset: int(begin)})
+	beginDetail, err := s.lookup(ctx, &cid.CommitID{Offset: begin})
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed for begin=%d", begin)
 	}
-	endDetail, err := s.lookup(ctx, &cid.CommitID{Offset: int(end)})
+	endDetail, err := s.lookup(ctx, &cid.CommitID{Offset: end})
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed for end=%d", end)
 	}
