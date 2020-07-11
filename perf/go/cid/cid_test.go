@@ -142,7 +142,7 @@ func TestCommitIDLookup_Success(t *testing.T) {
 	details[0].Message = ""
 	details[0].URL = ""
 	assert.Equal(t, &CommitDetail{
-		CommitID:  CommitID{Offset: 0},
+		Offset:    0,
 		Author:    "test <test@google.com>",
 		Message:   "",
 		URL:       "",
