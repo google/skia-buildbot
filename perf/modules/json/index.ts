@@ -22,7 +22,7 @@ export interface Alert {
 }
 
 export interface CommitID {
-	offset: number;
+	offset: CommitNumber;
 }
 
 export interface CommitDetail {
@@ -48,7 +48,7 @@ export interface StepFit {
 }
 
 export interface ColumnHeader {
-	offset: number;
+	offset: CommitNumber;
 	timestamp: number;
 }
 
@@ -164,7 +164,7 @@ export interface CountHandlerResponse {
 }
 
 export interface RangeRequest {
-	offset: number;
+	offset: CommitNumber;
 	begin: number;
 	end: number;
 }
@@ -249,6 +249,8 @@ export type StepDetection = "" | "absolute" | "percent" | "cohen";
 export type ConfigState = "ACTIVE" | "DELETED";
 
 export type Direction = "UP" | "DOWN" | "BOTH";
+
+export type CommitNumber = number;
 
 export type StepFitStatus = "Low" | "High" | "Uninteresting";
 
