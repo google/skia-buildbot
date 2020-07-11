@@ -155,9 +155,6 @@ export class ExploreSk extends ElementSk {
       <checkbox-sk name=auto @change=${ele.autoRefreshHandler} ?checked=${
     ele.state.autoRefresh
   } label='Auto-refresh'   title='Auto-refresh the data displayed in the graph.'>Auto-Refresh</checkbox-sk>
-      <button @click=${ele.zoomToRange} ?disabled=${
-    ele._zoomRange === null
-  } title="Fit the time range to the current zoom window.">Zoom Range</button>
     </div>
   </div>
 
@@ -337,9 +334,6 @@ export class ExploreSk extends ElementSk {
 
   // All the data converted into a CVS blob to download.
   private _csvBlobURL: string = '';
-
-  // Either null if the user hasn't zoomed, or {xBegin: Date(), xEnd: Date()}.
-  private _zoomRange: PlotSimpleSkZoomEventDetails | null = null;
 
   // Call this anytime something in private state is changed. Will be replaced
   // with the real function once stateReflector has been setup.
@@ -593,20 +587,7 @@ export class ExploreSk extends ElementSk {
 
   // User has zoomed in on the graph.
   private plotZoom(e: CustomEvent<PlotSimpleSkZoomEventDetails>) {
-    const shouldRender = this._zoomRange === null;
-    this._zoomRange = { ...e.detail };
-    if (shouldRender) {
-      this._render();
-    }
-  }
-
-  // Fit the time range to the zoom being displayed.
-  // Reload all the queries/formulas on the new time range.
-  private zoomToRange() {
-    this.state.begin = this._zoomRange!.xBegin.valueOf() / 1000;
-    this.state.end = this._zoomRange!.xEnd.valueOf() / 1000;
-    this._zoomRange = null;
-    this.rangeChangeImpl();
+    this._render();
   }
 
   // Highlight a trace when it is clicked on.
@@ -960,7 +941,6 @@ export class ExploreSk extends ElementSk {
     this._dataframe.traceset = {};
     this.paramset!.paramsets = [];
     this.traceID!.textContent = '';
-    this._zoomRange = null;
     this.detailTab!.selected = PARAMS_TAB_INDEX;
     this._render();
     if (!skipHistory) {
