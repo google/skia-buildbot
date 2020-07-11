@@ -16,6 +16,9 @@ cluster-page-sk {
   }
   div#inputs > label > input {
     display: block;
+    background: var(--surface);
+    color: var(--on-surface);
+    border: solid 1px var(--on-surface);
   }
 
   .query-action {

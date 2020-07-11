@@ -14,6 +14,16 @@
   --secondary: var(--green-500);
   --primary-variant: var(--light-blue-600);
 
+  button {
+    min-width: auto;
+    text-align: center;
+    text-transform: none;
+    outline: none;
+    padding: 4px;
+    margin: 8px;
+    height: auto;
+  }
+
   multi-select-sk {
     border: solid 1px var(--on-surface);
     background-color: var(--surface);
