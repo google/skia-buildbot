@@ -296,6 +296,10 @@ func updateIssueFromGitHub(ctx context.Context, a *autoroll.AutoRollIssue, g *gi
 	if err != nil {
 		return nil, err
 	}
+	if a.IsDryRun {
+		// Do not wait for any checks if it is a dry run.
+		checksWaitFor = []string{}
+	}
 	a.TryResults = autoroll.TryResultsFromGithubChecks(checks, checksWaitFor)
 
 	if err := updateIssueFromGitHubPullRequest(a, pullRequest); err != nil {
