@@ -197,4 +197,10 @@ explore-sk {
   #query-dialog paramset-sk div {
     display: block;
   }
+
+  textarea {
+    background: var(--surface);
+    color: var(--on-surface);
+    border: solid 1px var(--on-surface);
+  }
 }

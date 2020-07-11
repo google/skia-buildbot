@@ -154,30 +154,15 @@ export class ClusterPageSk extends ElementSk {
       <div id="inputs">
         <label>
           K (A value of 0 means the server chooses).
-          <input
-            type="number"
-            min="0"
-            max="100"
-            .value=${ele.state.k}
-            @input=${ele.kChange}
-          />
+          <input .value=${ele.state.k} @input=${ele.kChange} />
         </label>
         <label>
           Number of commits to include on either side.
-          <input
-            type="number"
-            min="1"
-            max="25"
-            .value=${ele.state.radius}
-            @input=${ele.radiusChange}
-          />
+          <input .value=${ele.state.radius} @input=${ele.radiusChange} />
         </label>
         <label>
           Clusters are interesting if regression score &gt;= this.
           <input
-            type="number"
-            min="0"
-            max="500"
             .value=${ele.state.interesting}
             @input=${ele.interestingChange}
           />
