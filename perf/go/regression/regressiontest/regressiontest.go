@@ -33,7 +33,7 @@ func GetDetailLookupForTests() regression.DetailLookup {
 	for i := 0; i < len(timestamps); i++ {
 		lookupValues = append(lookupValues, &cid.CommitDetail{
 			CommitID: cid.CommitID{
-				Offset: i,
+				Offset: types.CommitNumber(i),
 			},
 			Timestamp: timestamps[i],
 		})
