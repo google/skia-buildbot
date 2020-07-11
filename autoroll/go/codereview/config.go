@@ -107,8 +107,11 @@ func (c *GerritConfig) CanQueryTrybots() bool {
 
 // GithubConfig provides configuration for Github.
 type GithubConfig struct {
-	RepoOwner     string   `json:"repoOwner,omitempty"`
-	RepoName      string   `json:"repoName,omitempty"`
+	RepoOwner string `json:"repoOwner,omitempty"`
+	RepoName  string `json:"repoName,omitempty"`
+	// If these checks are failing then we wait for them to succeed (eg: tree-status checks).
+	// Note: These checks are ignored during dry runs because the PR is not going to be submitted
+	// so the tree-status checks will not be important in that case.
 	ChecksWaitFor []string `json:"checksWaitFor,omitempty"`
 }
 
