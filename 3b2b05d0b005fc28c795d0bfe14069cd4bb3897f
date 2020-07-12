@@ -70,6 +70,30 @@
       "revId": "3b2b05d0b005fc28c795d0bfe14069cd4bb3897f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c1e3b626_a43f00b8",
+        "filename": "golden/modules/search-controls-sk/search-controls-sk_test.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-12T17:48:43Z",
+      "side": 1,
+      "message": "Forgot to mention that I had to undo this change because otherwise the TS compiler fails with \"ReferenceError: Cannot access \u0027fieldCanChangeProgrammaticallyAndViaTheUI\u0027 before initialization\".",
+      "parentUuid": "e43d9b72_8499ce0d",
+      "range": {
+        "startLine": 57,
+        "startChar": 8,
+        "endLine": 57,
+        "endChar": 49
+      },
+      "revId": "3b2b05d0b005fc28c795d0bfe14069cd4bb3897f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
