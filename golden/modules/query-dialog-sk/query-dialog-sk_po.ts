@@ -60,6 +60,10 @@ export class QueryDialogSkPO extends PageObject {
 
   /** Sets the selected query via simulated UI interactions. */
   async setSelection(selection: ParamSet) {
-    return (await this.getQuerySkPO()).setCurrentQuery(selection);
+    const querySkPO = await this.getQuerySkPO();
+    await querySkPO.setCurrentQuery(selection);
+
+    // Remove focus from the last selected value in the query-sk component. This reduces flakiness.
+    await this.selectOnePOEThenApplyFn('dialog', (el) => el.click());
   }
 };
