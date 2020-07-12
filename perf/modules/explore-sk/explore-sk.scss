@@ -197,4 +197,8 @@ explore-sk {
   #query-dialog paramset-sk div {
     display: block;
   }
+
+  #commitsTab[disabled] {
+    display: none;
+  }
 }
