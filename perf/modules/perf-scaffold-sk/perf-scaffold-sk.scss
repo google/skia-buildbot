@@ -5,7 +5,12 @@ perf-scaffold-sk.sidebar_hidden {
   grid-template-areas:
     'topbar'
     'main';
+
   grid-template-columns: 100%;
+
+  #sidebar {
+    display: none;
+  }
 }
 
 perf-scaffold-sk {
