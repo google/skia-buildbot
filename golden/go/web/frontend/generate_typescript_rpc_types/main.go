@@ -1,0 +1,44 @@
+package main
+
+import (
+	"flag"
+	"io"
+
+	"github.com/skia-dev/go2ts"
+	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/search/frontend"
+	"go.skia.org/infra/golden/go/status"
+)
+
+func main() {
+	var outputPath = flag.String("o", "", "Path to the output TypeScript file.")
+	flag.Parse()
+
+	generator := go2ts.New()
+	if err := addTypes(generator); err != nil {
+		sklog.Fatal(err)
+	}
+
+	err := util.WithWriteFile(*outputPath, func(w io.Writer) error {
+		return generator.Render(w)
+	})
+	if err != nil {
+		sklog.Fatal(err)
+	}
+}
+
+func addTypes(generator *go2ts.Go2TS) error {
+	// Response for the /json/search RPC endpoint.
+	if err := generator.Add(frontend.SearchResponse{}); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	// Response for the /json/trstatus RPC endpoint.
+	if err := generator.AddWithName(status.GUIStatus{}, "StatusResponse"); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	return nil
+}
