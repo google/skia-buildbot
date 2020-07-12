@@ -246,7 +246,7 @@ export class ExploreSk extends ElementSk {
     </div>
     <details>
       <summary><h2>Time Range</h2></summary>
-      <domain-picker-sk id=range .state=${ele.state}>
+      <domain-picker-sk id=range>
       </domain-picker-sk>
     </details>
 
@@ -881,7 +881,14 @@ export class ExploreSk extends ElementSk {
 
     this.plot!.addLines(dataframe.traceset, labels);
 
-    this.plot!.bands = json.skps!;
+    // Normalize bands to be just offsets.
+    const bands: number[] = [];
+    dataframe.header?.forEach((h, i) => {
+      if (json.skps?.indexOf(h.offset) !== -1) {
+        bands.push(i);
+      }
+    });
+    this.plot!.bands = bands;
 
     // Populate the xbar if present.
     if (this.state.xbaroffset !== -1) {
@@ -922,7 +929,10 @@ export class ExploreSk extends ElementSk {
       errorMessage('The query must not be empty.');
       return;
     }
-    this.state = Object.assign({}, this.state, this.range!.state);
+    this.state.begin = this.range!.state.begin;
+    this.state.end = this.range!.state.end;
+    this.state.numCommits = this.range!.state.num_commits;
+    this.state.requestType = this.range!.state.request_type;
     if (replace) {
       this.removeAll(true);
     }
@@ -1122,7 +1132,12 @@ export class ExploreSk extends ElementSk {
       errorMessage('The formula must not be empty.');
       return;
     }
-    this.state = Object.assign({}, this.state, this.range!.state);
+
+    this.state.begin = this.range!.state.begin;
+    this.state.end = this.range!.state.end;
+    this.state.numCommits = this.range!.state.num_commits;
+    this.state.requestType = this.range!.state.request_type;
+
     if (replace) {
       this.removeAll(true);
     }
