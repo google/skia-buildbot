@@ -37,6 +37,17 @@ alerts-page-sk {
   td > paramset-sk div {
     display: block;
   }
+
+  .dialogButtons {
+    display: flex;
+    justify-content: flex-end;
+    margin: 8px;
+  }
+
+  .dialogButtons button {
+    font-size: 110%;
+    margin: 8px;
+  }
 }
 
 alerts-page-sk > {

@@ -32,7 +32,7 @@ calendar-sk {
     opacity: 0.6;
   }
 
-  button {
+  table.calendar button {
     cursor: pointer;
     margin: 0;
     padding: 0em;
@@ -40,6 +40,7 @@ calendar-sk {
     min-height: 0;
     height: 20px;
     width: 20px;
+    margin: 0;
     text-transform: none;
     display: flex;
     align-items: center;

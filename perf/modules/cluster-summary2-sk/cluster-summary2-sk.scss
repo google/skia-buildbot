@@ -57,6 +57,9 @@ cluster-summary2-sk {
     border: solid var(--light-gray) 1px;
     display: flex;
     flex-flow: wrap column;
+    triage2-sk {
+      margin: 8px;
+    }
   }
 
   #status.disabled .disabledMessage {
