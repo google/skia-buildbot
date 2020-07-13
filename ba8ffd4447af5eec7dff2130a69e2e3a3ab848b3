@@ -52,6 +52,138 @@
       "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "afe0f1b6_27ccec63",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 18
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-13T12:45:57Z",
+      "side": 1,
+      "message": "I commented on one element, but the same comments apply to the other elements also.",
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "def63d92_a22746c3",
+        "filename": "autoroll/modules/arb-scaffold-sk/arb-scaffold-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-13T12:45:57Z",
+      "side": 1,
+      "message": "Make this a private static member of ARBScaffoldSk.",
+      "range": {
+        "startLine": 35,
+        "startChar": 6,
+        "endLine": 35,
+        "endChar": 14
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d278975c_02bc4b7e",
+        "filename": "autoroll/modules/arb-scaffold-sk/arb-scaffold-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-13T12:45:57Z",
+      "side": 1,
+      "message": "optional: Since TS can label variables as private the leading underscore is no longer needed and can be removed.",
+      "range": {
+        "startLine": 75,
+        "startChar": 10,
+        "endLine": 75,
+        "endChar": 15
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "effb5936_3de35f0f",
+        "filename": "autoroll/modules/arb-scaffold-sk/arb-scaffold-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-13T12:45:57Z",
+      "side": 1,
+      "message": "Move initializations to be part of the declarations, for example:\n\n  private _spinner: SpinnerSk | null \u003d null;",
+      "range": {
+        "startLine": 82,
+        "startChar": 1,
+        "endLine": 85,
+        "endChar": 25
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "096be3f6_b0ecfb4d",
+        "filename": "autoroll/modules/arb-scaffold-sk/arb-scaffold-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-13T12:45:57Z",
+      "side": 1,
+      "message": "You can drop all the type annotations in the comments since that\u0027s now covered by TypeScript.",
+      "range": {
+        "startLine": 136,
+        "startChar": 22,
+        "endLine": 136,
+        "endChar": 31
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea5ac138_ff48195f",
+        "filename": "autoroll/modules/arb-scaffold-sk/arb-scaffold-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-13T12:45:57Z",
+      "side": 1,
+      "message": "Make private. Here and below.",
+      "range": {
+        "startLine": 169,
+        "startChar": 2,
+        "endLine": 169,
+        "endChar": 14
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
