@@ -15,6 +15,13 @@ type CommitNumber int32
 // BadCommitNumber is an invalid CommitNumber.
 const BadCommitNumber CommitNumber = -1
 
+// CommitNumberSlice is a utility class for sorting CommitNumbers.
+type CommitNumberSlice []CommitNumber
+
+func (p CommitNumberSlice) Len() int           { return len(p) }
+func (p CommitNumberSlice) Less(i, j int) bool { return p[i] < p[j] }
+func (p CommitNumberSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
 // TileNumber is the number of a Tile in the TraceStore. The first tile is
 // always 0. The number of commits per Tile is configured per TraceStore.
 type TileNumber int32

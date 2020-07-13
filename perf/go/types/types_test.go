@@ -1,6 +1,7 @@
 package types
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,4 +36,11 @@ func TestTileCommitRangeForTileNumber(t *testing.T) {
 	begin, end = TileCommitRangeForTileNumber(TileNumber(1), 256)
 	assert.Equal(t, CommitNumber(256), begin)
 	assert.Equal(t, CommitNumber(511), end)
+}
+
+func TestCommitNumberSlice_Sort_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	toSort := CommitNumberSlice{2, BadCommitNumber, 1}
+	sort.Sort(toSort)
+	assert.Equal(t, CommitNumberSlice{BadCommitNumber, 1, 2}, toSort)
 }

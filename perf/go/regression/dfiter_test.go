@@ -202,9 +202,9 @@ func TestNewDataFrameIterator_ExactDataframeRequest_Success(t *testing.T) {
 	df, err := iter.Value(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, 3, len(df.Header))
-	assert.Equal(t, int64(0), df.Header[0].Offset)
-	assert.Equal(t, int64(1), df.Header[1].Offset)
-	assert.Equal(t, int64(7), df.Header[2].Offset)
+	assert.Equal(t, types.CommitNumber(0), df.Header[0].Offset)
+	assert.Equal(t, types.CommitNumber(1), df.Header[1].Offset)
+	assert.Equal(t, types.CommitNumber(7), df.Header[2].Offset)
 }
 
 func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchBeforeFirstCommit(t *testing.T) {
