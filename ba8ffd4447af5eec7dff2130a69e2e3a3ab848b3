@@ -72,6 +72,23 @@
     },
     {
       "key": {
+        "uuid": "6dc47e14_b1d4c598",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 18
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-13T14:12:24Z",
+      "side": 1,
+      "message": "LGTM % comments from Joe+Leandro",
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "def63d92_a22746c3",
         "filename": "autoroll/modules/arb-scaffold-sk/arb-scaffold-sk.ts",
         "patchSetId": 18
@@ -181,6 +198,23 @@
         "endLine": 169,
         "endChar": 14
       },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5025dcbc_95ac40a9",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk-demo.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-13T14:12:24Z",
+      "side": 1,
+      "message": "nit: Lots of trailing whitespace in this file?",
       "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
