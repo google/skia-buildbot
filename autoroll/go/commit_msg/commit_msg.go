@@ -332,6 +332,7 @@ func FakeCommitMsgInputs() (*revision.Revision, *revision.Revision, []*revision.
 
 	blah`,
 		Timestamp: time.Unix(1586908800, 0),
+		URL:       "https://fake.com/aaaaaaaaaaaa",
 	}
 	b := &revision.Revision{
 		Id:      "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
@@ -352,6 +353,7 @@ func FakeCommitMsgInputs() (*revision.Revision, *revision.Revision, []*revision.
 
 	blah`,
 		Timestamp: time.Unix(1586995200, 0),
+		URL:       "https://fake.com/bbbbbbbbbbbb",
 	}
 	c := &revision.Revision{
 		Id:      "cccccccccccccccccccccccccccccccccccccccc",
@@ -373,6 +375,7 @@ func FakeCommitMsgInputs() (*revision.Revision, *revision.Revision, []*revision.
 
 	blah`,
 		Timestamp: time.Unix(1587081600, 0),
+		URL:       "https://fake.com/cccccccccccc",
 	}
 	return a, c, []*revision.Revision{c, b}, []string{"reviewer@google.com"}
 }
