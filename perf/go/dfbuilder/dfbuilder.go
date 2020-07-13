@@ -76,7 +76,7 @@ func fromIndexRange(ctx context.Context, git *perfgit.Git, beginIndex, endIndex 
 	commitNumbers := make([]types.CommitNumber, len(commits), len(commits))
 	for i, commit := range commits {
 		colHeader[i] = &dataframe.ColumnHeader{
-			Offset:    int64(commit.CommitNumber),
+			Offset:    commit.CommitNumber,
 			Timestamp: commit.Timestamp,
 		}
 		commitNumbers[i] = commit.CommitNumber
@@ -259,7 +259,7 @@ func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.Comm
 	indices := []types.CommitNumber{}
 	for _, d := range details {
 		colHeaders = append(colHeaders, &dataframe.ColumnHeader{
-			Offset:    int64(d.Offset),
+			Offset:    d.Offset,
 			Timestamp: d.Timestamp,
 		})
 		indices = append(indices, types.CommitNumber(d.Offset))

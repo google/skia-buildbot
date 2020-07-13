@@ -134,7 +134,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *RegressionDetec
 		midOffset := resp.Frame.DataFrame.Header[midPoint].Offset
 
 		id := &cid.CommitID{
-			Offset: int(midOffset),
+			Offset: midOffset,
 		}
 
 		details, err := c.cidl.Lookup(ctx, []*cid.CommitID{id})

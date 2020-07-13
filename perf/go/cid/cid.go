@@ -16,12 +16,11 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
-// CommitID represents the time of a particular commit, where a commit could either be
-// a real commit into the repo, or an event like running a trybot.
+// CommitID represents a single commit.
 //
 // TODO(jcgregorio) Collapse this into just types.CommitNumber.
 type CommitID struct {
-	Offset int `json:"offset"` // The index number of the commit from beginning of time, or the index of the patch number in Reitveld.
+	Offset types.CommitNumber `json:"offset"`
 }
 
 // ID returns a unique ID for the CommitID.
@@ -33,9 +32,9 @@ func (c CommitID) ID() string {
 //
 // This is a transitional step on the way to completely replacing all CommitID
 // usage into types.CommitNumber.
-func CommitIDFromCommitNumber(n types.CommitNumber) *CommitID {
+func CommitIDFromCommitNumber(commitNumber types.CommitNumber) *CommitID {
 	return &CommitID{
-		Offset: int(n),
+		Offset: commitNumber,
 	}
 }
 
@@ -53,18 +52,23 @@ func FromID(s string) (*CommitID, error) {
 		return nil, fmt.Errorf("Invalid ID format: %s", s)
 	}
 	return &CommitID{
-		Offset: int(i),
+		Offset: types.CommitNumber(i),
 	}, nil
 }
 
-// CommitDetail describes a CommitID.
+// CommitDetail describes a CommitNumber.
 type CommitDetail struct {
-	CommitID
-	Author    string `json:"author"`
-	Message   string `json:"message"`
-	URL       string `json:"url"`
-	Hash      string `json:"hash"`
-	Timestamp int64  `json:"ts"`
+	Offset    types.CommitNumber `json:"offset"`
+	Author    string             `json:"author"`
+	Message   string             `json:"message"`
+	URL       string             `json:"url"`
+	Hash      string             `json:"hash"`
+	Timestamp int64              `json:"ts"`
+}
+
+// ID returns a unique ID for the CommitID.
+func (c CommitDetail) ID() string {
+	return fmt.Sprintf("%s-%06d", "master", c.Offset)
 }
 
 // CommitIDLookup allows getting CommitDetails from CommitIDs.
@@ -114,7 +118,7 @@ func (c *CommitIDLookup) Lookup(ctx context.Context, cids []*CommitID) ([]*Commi
 		}
 
 		ret[i] = &CommitDetail{
-			CommitID:  *cid,
+			Offset:    cid.Offset,
 			Author:    commit.Author,
 			Message:   fmt.Sprintf("%.7s - %s - %.50s", commit.GitHash, human.Duration(now.Sub(time.Unix(commit.Timestamp, 0))), commit.Subject),
 			URL:       urlFromParts(c.instanceConfig.GitRepoConfig.URL, commit.GitHash, commit.Subject, c.instanceConfig.GitRepoConfig.DebouceCommitURL),

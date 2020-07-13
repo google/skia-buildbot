@@ -20,6 +20,14 @@ func TestCommitID(t *testing.T) {
 	assert.Equal(t, "master-000051", c.ID())
 }
 
+func TestCommitDetailID_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	c := &CommitDetail{
+		Offset: 51,
+	}
+	assert.Equal(t, "master-000051", c.ID())
+}
+
 func TestFromID(t *testing.T) {
 	unittest.SmallTest(t)
 	testCases := []struct {
@@ -142,7 +150,7 @@ func TestCommitIDLookup_Success(t *testing.T) {
 	details[0].Message = ""
 	details[0].URL = ""
 	assert.Equal(t, &CommitDetail{
-		CommitID:  CommitID{Offset: 0},
+		Offset:    0,
 		Author:    "test <test@google.com>",
 		Message:   "",
 		URL:       "",

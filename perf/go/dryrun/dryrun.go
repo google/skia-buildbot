@@ -59,9 +59,9 @@ type StartDryRunResponse struct {
 type Running struct {
 	mutex        sync.Mutex
 	whenFinished time.Time
-	Finished     bool                              `json:"finished"`    // True if the dry run is complete.
-	Message      string                            `json:"message"`     // Human readable string describing the dry run state.
-	Regressions  map[string]*regression.Regression `json:"regressions"` // All the regressions found so far.
+	Finished     bool                                          `json:"finished"`    // True if the dry run is complete.
+	Message      string                                        `json:"message"`     // Human readable string describing the dry run state.
+	Regressions  map[types.CommitNumber]*regression.Regression `json:"regressions"` // All the regressions found so far.
 }
 
 // Requests handles HTTP request for doing dryruns.
@@ -144,7 +144,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 		running := &Running{
 			Finished:    false,
 			Message:     "Starting dry run.",
-			Regressions: map[string]*regression.Regression{},
+			Regressions: map[types.CommitNumber]*regression.Regression{},
 		}
 		d.inFlight[id] = running
 		go func() {
@@ -161,16 +161,15 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 						sklog.Errorf("Failed to convert to Regression: %s", err)
 						return
 					}
-					id := c.ID()
-					running.Message = fmt.Sprintf("Step: %d/%d\nQuery: %q\nLooking for regressions in query results.\n  Commit: %d\n  Details: %q", queryRequest.Step+1, queryRequest.TotalQueries, queryRequest.Query, c.CommitID.Offset, message)
+					running.Message = fmt.Sprintf("Step: %d/%d\nQuery: %q\nLooking for regressions in query results.\n  Commit: %d\n  Details: %q", queryRequest.Step+1, queryRequest.TotalQueries, queryRequest.Query, c.Offset, message)
 					// We might not have found any regressions.
 					if reg.Low == nil && reg.High == nil {
 						continue
 					}
-					if origReg, ok := running.Regressions[id]; !ok {
-						running.Regressions[id] = reg
+					if origReg, ok := running.Regressions[c.Offset]; !ok {
+						running.Regressions[c.Offset] = reg
 					} else {
-						running.Regressions[id] = origReg.Merge(reg)
+						running.Regressions[c.Offset] = origReg.Merge(reg)
 					}
 				}
 			}
@@ -242,20 +241,17 @@ func (d *Requests) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	if running.Finished {
 		running.mutex.Lock()
 		defer running.mutex.Unlock()
-		keys := []string{}
+		keys := []types.CommitNumber{}
 		for id := range running.Regressions {
 			keys = append(keys, id)
 		}
-		sort.Strings(keys)
+		sort.Sort(types.CommitNumberSlice(keys))
 
 		cids := []*cid.CommitID{}
 		for _, key := range keys {
-			commitId, err := cid.FromID(key)
-			if err != nil {
-				httputils.ReportError(w, err, "Failed to parse commit id.", http.StatusInternalServerError)
-				return
-			}
-			cids = append(cids, commitId)
+			cids = append(cids, &cid.CommitID{
+				Offset: key,
+			})
 		}
 
 		cidd, err := d.cidl.Lookup(r.Context(), cids)
@@ -266,7 +262,7 @@ func (d *Requests) StatusHandler(w http.ResponseWriter, r *http.Request) {
 		for _, details := range cidd {
 			status.Regressions = append(status.Regressions, &RegressionRow{
 				CID:        details,
-				Regression: running.Regressions[details.ID()],
+				Regression: running.Regressions[details.Offset],
 			})
 		}
 	}

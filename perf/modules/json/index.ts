@@ -21,12 +21,8 @@ export interface Alert {
 	category: string;
 }
 
-export interface CommitID {
-	offset: number;
-}
-
 export interface CommitDetail {
-	CommitID: CommitID;
+	offset: CommitNumber;
 	author: string;
 	message: string;
 	url: string;
@@ -48,7 +44,7 @@ export interface StepFit {
 }
 
 export interface ColumnHeader {
-	offset: number;
+	offset: CommitNumber;
 	timestamp: number;
 }
 
@@ -147,6 +143,10 @@ export interface ClusterStatus {
 	value: RegressionDetectionResponse | null;
 }
 
+export interface CommitID {
+	offset: CommitNumber;
+}
+
 export interface CommitDetailsRequest {
 	cid: CommitID;
 	traceid: string;
@@ -164,7 +164,7 @@ export interface CountHandlerResponse {
 }
 
 export interface RangeRequest {
-	offset: number;
+	offset: CommitNumber;
 	begin: number;
 	end: number;
 }
@@ -249,6 +249,8 @@ export type StepDetection = "" | "absolute" | "percent" | "cohen";
 export type ConfigState = "ACTIVE" | "DELETED";
 
 export type Direction = "UP" | "DOWN" | "BOTH";
+
+export type CommitNumber = number;
 
 export type StepFitStatus = "Low" | "High" | "Uninteresting";
 

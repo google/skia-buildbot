@@ -58,8 +58,8 @@ type DataFrameBuilder interface {
 
 // ColumnHeader describes each column in a DataFrame.
 type ColumnHeader struct {
-	Offset    int64 `json:"offset"`
-	Timestamp int64 `json:"timestamp"` // In seconds from the Unix epoch.
+	Offset    types.CommitNumber `json:"offset"`
+	Timestamp int64              `json:"timestamp"` // In seconds from the Unix epoch.
 }
 
 // DataFrame stores Perf measurements in a table where each row is a Trace
@@ -243,7 +243,7 @@ func FromTimeRange(ctx context.Context, git *perfgit.Git, begin, end time.Time, 
 	commitNumbers := make([]types.CommitNumber, len(commits), len(commits))
 	for i, commit := range commits {
 		colHeader[i] = &ColumnHeader{
-			Offset:    int64(commit.CommitNumber),
+			Offset:    commit.CommitNumber,
 			Timestamp: commit.Timestamp,
 		}
 		commitNumbers[i] = commit.CommitNumber

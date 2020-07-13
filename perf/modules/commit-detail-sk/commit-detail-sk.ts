@@ -13,10 +13,8 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CommitDetail } from '../json';
 
 export class CommitDetailSk extends ElementSk {
-  private static template = (ele: CommitDetailSk) => html`<div
-      @click=${() => ele._click()}
-      class="linkish"
-    >
+  private static template = (ele: CommitDetailSk) => html`
+    <div @click=${() => ele._click()} class="linkish">
       <pre>${ele.cid.message}</pre>
     </div>
     <div class="tip hidden">
@@ -24,7 +22,8 @@ export class CommitDetailSk extends ElementSk {
       <a href="/g/c/${ele.cid.hash}">Cluster</a>
       <a href="/g/t/${ele.cid.hash}">Triage</a>
       <a href="${ele.cid.url}">Commit</a>
-    </div>`;
+    </div>
+  `;
 
   private _cid: CommitDetail;
 
@@ -36,9 +35,7 @@ export class CommitDetailSk extends ElementSk {
       url: '',
       ts: 0,
       hash: '',
-      CommitID: {
-        offset: 0,
-      },
+      offset: 0,
     };
   }
 

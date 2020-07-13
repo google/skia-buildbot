@@ -8,9 +8,7 @@ const commitinfo = [
     url: 'skia.googlesource.com/bar',
     message: 'Commit from foo.',
     hash: 'abcdef123',
-    CommitID: {
-      offset: 1,
-    },
+    offset: 1,
   },
   {
     ts: 1439648914,
@@ -18,9 +16,7 @@ const commitinfo = [
     url: 'skia.googlesource.com/foo',
     message: 'Commit from bar',
     hash: 'abcdef456',
-    CommitID: {
-      offset: 2,
-    },
+    offset: 2,
   },
   {
     ts: 1439649951,
@@ -28,9 +24,7 @@ const commitinfo = [
     url: 'https://codereview.chromium.org/1490543002',
     message: 'Whitespace change',
     hash: 'abcdef789',
-    CommitID: {
-      offset: 3,
-    },
+    offset: 3,
   },
   {
     ts: 1439699951,
@@ -38,9 +32,7 @@ const commitinfo = [
     url: 'https://codereview.chromium.org/1490543002',
     message: 'Another whitespace change',
     hash: 'abcdef101112',
-    CommitID: {
-      offset: 4,
-    },
+    offset: 4,
   },
 ];
 
@@ -50,7 +42,7 @@ document
   .querySelectorAll<CommitDetailPanelSk>('commit-detail-panel-sk')
   .forEach((panel) => {
     panel.details = commitinfo;
-    panel.addEventListener('commit-selected', function (e: Event) {
+    panel.addEventListener('commit-selected', (e: Event) => {
       evt.textContent = JSON.stringify((e as CustomEvent).detail, null, '  ');
     });
   });

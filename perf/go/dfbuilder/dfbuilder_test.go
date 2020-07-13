@@ -122,9 +122,9 @@ func TestBuildNew(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
 	assert.Len(t, df.Header, 3)
-	assert.Equal(t, df.Header[0].Offset, int64(0))
-	assert.Equal(t, df.Header[1].Offset, int64(1))
-	assert.Equal(t, df.Header[2].Offset, int64(7))
+	assert.Equal(t, df.Header[0].Offset, types.CommitNumber(0))
+	assert.Equal(t, df.Header[1].Offset, types.CommitNumber(1))
+	assert.Equal(t, df.Header[2].Offset, types.CommitNumber(7))
 	assert.Equal(t, df.TraceSet[",arch=x86,config=8888,"][0], float32(1.2))
 	assert.Equal(t, df.TraceSet[",arch=x86,config=8888,"][1], float32(1.3))
 	assert.Equal(t, df.TraceSet[",arch=x86,config=8888,"][2], float32(1.0))
@@ -133,7 +133,7 @@ func TestBuildNew(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
 	assert.Len(t, df.Header, 2)
-	assert.Equal(t, df.Header[1].Offset, int64(7))
+	assert.Equal(t, df.Header[1].Offset, types.CommitNumber(7))
 	assert.Equal(t, df.TraceSet[",arch=x86,config=8888,"][1], float32(1.0))
 
 	// NewFromQueryAndRange where query doesn't encode.
