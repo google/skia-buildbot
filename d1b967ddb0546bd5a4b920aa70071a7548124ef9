@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "89c895d3_b95eeb3a",
+        "filename": "go/metadata/metadata.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-13T11:24:05Z",
+      "side": 1,
+      "message": "That\u0027s my understanding.  I\u0027ll do it in a follow-up CL on the off chance that it needs to be reverted.",
+      "parentUuid": "f459ca92_76b78f1c",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 31
+      },
+      "revId": "d1b967ddb0546bd5a4b920aa70071a7548124ef9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ec4c7993_9d40bddc",
         "filename": "go/notifier/notifier.go",
         "patchSetId": 1
