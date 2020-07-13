@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e42417e4_70f9f0d3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 18
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-13T11:17:02Z",
+      "side": 1,
+      "message": "Ravi requested a second set of eyes for typescript",
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
