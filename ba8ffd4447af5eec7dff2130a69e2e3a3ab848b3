@@ -89,6 +89,29 @@
     },
     {
       "key": {
+        "uuid": "be85ef1e_d8222bf0",
+        "filename": "autoroll/Makefile",
+        "patchSetId": 18
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "I suspect --mode\u003dproduction will suffice here, but please correct me if I\u0027m wrong.",
+      "range": {
+        "startLine": 10,
+        "startChar": 1,
+        "endLine": 10,
+        "endChar": 23
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "def63d92_a22746c3",
         "filename": "autoroll/modules/arb-scaffold-sk/arb-scaffold-sk.ts",
         "patchSetId": 18
@@ -136,6 +159,76 @@
     },
     {
       "key": {
+        "uuid": "8765e319_85df25e6",
+        "filename": "autoroll/modules/arb-scaffold-sk/arb-scaffold-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "+1. This will give you access to ARBScaffoldSk\u0027s private members from the template.\n\n  class ARBScaffoldSk extends ElementSk {\n    private static template \u003d (ele: ARBScaffoldSk) \u003d\u003e html`${ele._privateField}`;\n\n    private _privateField: string \u003d \u0027hello\u0027;\n\n    constructor() {\n      super(ARBScaffoldSk.template);\n    }\n  }",
+      "parentUuid": "def63d92_a22746c3",
+      "range": {
+        "startLine": 35,
+        "startChar": 6,
+        "endLine": 35,
+        "endChar": 14
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "85681501_165efed6",
+        "filename": "autoroll/modules/arb-scaffold-sk/arb-scaffold-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "Can probably be replaced with just /** Moves a list of elements as children of the given parent element. */ or something like that.\n\n(No need for type annotations; and it seems this used to operate on two lists, whereas now it only takes one list and one parent node).",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 3
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a1082d4f_07087695",
+        "filename": "autoroll/modules/arb-scaffold-sk/arb-scaffold-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "You probably want to prepend the class declaration with the word \"export\" so it becomes available to use from tests / demo pages.",
+      "range": {
+        "startLine": 74,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 5
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d278975c_02bc4b7e",
         "filename": "autoroll/modules/arb-scaffold-sk/arb-scaffold-sk.ts",
         "patchSetId": 18
@@ -180,6 +273,30 @@
       "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "37b1d6c8_ba5a03d1",
+        "filename": "autoroll/modules/arb-scaffold-sk/arb-scaffold-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "+1. IMO it only makes sense to prepend private fields in TypeScript with an underscore if the TypeScript code will be consumed from JavaScript, where the private visibility is not enforced.",
+      "parentUuid": "d278975c_02bc4b7e",
+      "range": {
+        "startLine": 75,
+        "startChar": 10,
+        "endLine": 75,
+        "endChar": 15
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     },
     {
       "key": {
@@ -277,6 +394,30 @@
     },
     {
       "key": {
+        "uuid": "86c5df83_946c7b35",
+        "filename": "autoroll/modules/arb-scaffold-sk/arb-scaffold-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "096be3f6_b0ecfb4d",
+      "range": {
+        "startLine": 136,
+        "startChar": 22,
+        "endLine": 136,
+        "endChar": 31
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ea5ac138_ff48195f",
         "filename": "autoroll/modules/arb-scaffold-sk/arb-scaffold-sk.ts",
         "patchSetId": 18
@@ -356,6 +497,374 @@
       "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8e256f6f_171ccc81",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk-demo.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "Please extract this into a demo_data.ts file to make this file easier to read.",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 48
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "48658acd_ae6aa2fd",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk-demo.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 3951,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "Nit: const",
+      "range": {
+        "startLine": 3951,
+        "startChar": 0,
+        "endLine": 3951,
+        "endChar": 3
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d90a82ff_d2ec500f",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk-demo.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 3970,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "Nit: line length (100 cols).",
+      "range": {
+        "startLine": 3970,
+        "startChar": 0,
+        "endLine": 3970,
+        "endChar": 9
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8fd5eef9_fdc5f6a7",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "Nit: Please use the /** ... */ comment style to turn this into a JSDoc that can be picked up by VS Code and IntelliJ.",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 0
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef7afbc6_5f5089c7",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "Please turn into a static private field of ARBStatusSk. This will give you access to ARBStatusSk\u0027s private fields.\n\n- You\u0027ll be able to get the status from the component directly instead of passing it as a parameter.\n- There will be no need for the various read-only property getter to access private fields from the template, which will simplify this component\u0027s public API.",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 60
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c20f5a58_f906a8fe",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "Nit: Please cap line lengths at 100 columns. Same below.\n\nSuggestion:\n  ${!ele.editRights\n      ? html`...`\n      : html``}",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 102
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f2aa437_cc8fd289",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 304,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "Optional: Consider turning this and most other exported classes into interfaces, because they only seem to describe the shape or the data and they have no methods besides the constructor, which assigns \"zero values\" to all fields, and perhaps could be replaced with optional properties[1].\n\nBut you know best, so feel free to ignore.\n\n[1] https://www.typescriptlang.org/docs/handbook/interfaces.html#optional-properties",
+      "range": {
+        "startLine": 293,
+        "startChar": 0,
+        "endLine": 304,
+        "endChar": 0
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c692bc82_49de5ee7",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "Consider extending ElementsSk so you don\u0027t have to reimplement the _render() method.",
+      "range": {
+        "startLine": 493,
+        "startChar": 26,
+        "endLine": 493,
+        "endChar": 37
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0680dd7a_9a4bb01a",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "Please set these default values in the field declarations. Same for the classes above and elsewhere.",
+      "range": {
+        "startLine": 508,
+        "startChar": 0,
+        "endLine": 516,
+        "endChar": 22
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90ad287a_920bbf90",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 542,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "I suspect these won\u0027t be necessary if you turn the template into a private static field.",
+      "range": {
+        "startLine": 519,
+        "startChar": 0,
+        "endLine": 542,
+        "endChar": 3
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00a5f8a4_61e88da6",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 599,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "Nit: Please use \"const\" instead of \"let\" anywhere where the variable only gets assigned once.\n\nTip: Do a massive s/let/const/ rename and only revert to \"let\" where the compiler complains about consts with multiple assignments.\n\nRationale:\n- Less potential for bugs.\n- Less cognitive load for the reader.\n- A \"let\" with just one assignment makes the reader suspect there might be a bug (the programmer must have intended to make multiple assignments but forgot to do so?)",
+      "range": {
+        "startLine": 599,
+        "startChar": 4,
+        "endLine": 599,
+        "endChar": 7
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4e14df1_7808117e",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 625,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "The standard syntax for generic[1] function calls is to sandwich the type argument between the function name and the argument list, e.g. hello\u003cstring\u003e(\"world\").\n\nTry this:\n\n  $$\u003cHTMLDialogElement\u003e(#strategyChangeDialog\", this)\n\nThen you can drop the outer parentheses and write this directly:\n\n  $$\u003cHTMLDialogElement\u003e(#strategyChangeDialog\", this)?.close();\n\nActually, optional chaining (?.) will fail silently[1] if for some reason the #strategyChangeDialog isn\u0027t found, but you probably want a loud error on the console since this almost surely indicates a bug.\n\nFor that reason it might be better to use (!.), which tells the compiler to assume that the left hand is non-null[2], and will cause a runtime error if that\u0027s not true:\n\n    $$\u003cHTMLDialogElement\u003e(#strategyChangeDialog\", this)!.close();\n\n[1] https://www.typescriptlang.org/docs/handbook/generics.html#hello-world-of-generics\n[2] https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-7.html#optional-chaining\n[3] https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-0.html#non-null-assertion-operator",
+      "range": {
+        "startLine": 625,
+        "startChar": 5,
+        "endLine": 625,
+        "endChar": 57
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8167429_c41d0c56",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 663,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "I think this check can be removed because config is guaranteed to be non-null by the compiler (assuming this method is only ever called from TypeScript and not raw JavaScript).\n\nSame on the other private methods below.\n\nNote: if you actually want to allow null arguments, please declare their type as T | null, e.g.\n\n  _computeRollWindowStart(config: Config | null) { ... }",
+      "range": {
+        "startLine": 663,
+        "startChar": 8,
+        "endLine": 663,
+        "endChar": 15
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d0589b2_24a8f0c5",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 792,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "Consider defining a type for these strings, e.g.:\n\n  type Mode \u003d \u0027dry run\u0027 | \u0027running\u0027 | \u0027stopped\u0027;\n\nThen you could write this method as so:\n\n  _getModeButtonLabel(currentMode: Mode, mode: Mode) { ... }",
+      "range": {
+        "startLine": 792,
+        "startChar": 0,
+        "endLine": 792,
+        "endChar": 58
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed4e5f95_495a5fb4",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 794,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "I suspect we could leverage type inference here (i.e. by removing the type declaration).",
+      "range": {
+        "startLine": 794,
+        "startChar": 27,
+        "endLine": 794,
+        "endChar": 67
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7c0e59d_a1f6537e",
+        "filename": "autoroll/modules/arb-table-sk/arb-table-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-13T17:21:03Z",
+      "side": 1,
+      "message": "Same feedback as before: ElementsSk, static private template, consider using an interface for Roller instead of a class, etc.",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 50
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
