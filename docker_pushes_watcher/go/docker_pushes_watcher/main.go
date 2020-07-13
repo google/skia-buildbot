@@ -1,5 +1,5 @@
 // docker_pushes_watcher monitors pubsub events for docker pushes and looks at a
-// whitelist of image names to do one or more of the following:
+// list of image names to do one or more of the following:
 // * tag new images with "prod"
 // * deploy images using pushk
 
@@ -374,7 +374,7 @@ func main() {
 				return
 			}
 
-			// See if the image is in the whitelist of images to be tagged.
+			// See if the image is in the list of images to be tagged.
 			if util.In(baseImageName(imageName), *tagProdImages) {
 				// Instantiate gitiles using the repo.
 				gitRepo := gitiles.NewRepo(buildInfo.Repo, httpClient)
@@ -388,7 +388,7 @@ func main() {
 				}
 				tagFailure.Reset()
 				if taggedWithProd {
-					// See if the image is in the whitelist of images to be deployed by pushk.
+					// See if the image is in the list of images to be deployed by pushk.
 					if util.In(baseImageName(imageName), *deployImages) {
 						pushFailure := metrics2.GetCounter(PUSH_FAILURE_METRIC, map[string]string{"image": baseImageName(imageName), "repo": buildInfo.Repo})
 						fullyQualifiedImageName := fmt.Sprintf("%s:%s", imageName, tag)
@@ -399,11 +399,11 @@ func main() {
 						}
 						pushFailure.Reset()
 					} else {
-						sklog.Infof("Not going to deploy %s. It is not in the whitelist of images to deploy: %s", buildInfo, *deployImages)
+						sklog.Infof("Not going to deploy %s. It is not in the list of images to deploy: %s", buildInfo, *deployImages)
 					}
 				}
 			} else {
-				sklog.Infof("Not going to tag %s with prod. It is not in the whitelist of images to tag: %s", buildInfo, *tagProdImages)
+				sklog.Infof("Not going to tag %s with prod. It is not in the list of images to tag: %s", buildInfo, *tagProdImages)
 			}
 
 			pubSubReceive.Reset()

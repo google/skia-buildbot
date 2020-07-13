@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	EMAIL_FROM_ADDRESS = "noreply@skia.org"
+	emailFromAddress = "noreply@skia.org"
 )
 
 // Notifier is an interface used for sending notifications from an AutoRoller.
@@ -33,8 +33,8 @@ type Config struct {
 
 	// Configuration for filtering out messages. Exactly one of these should
 	// be specified.
-	Filter           string   `json:"filter,omitempty"`
-	MsgTypeWhitelist []string `json:"msgTypeWhitelist,omitempty"`
+	Filter          string   `json:"filter,omitempty"`
+	IncludeMsgTypes []string `json:"includeMsgTypes,omitempty"`
 
 	// Exactly one of these should be specified.
 	Email    *EmailNotifierConfig    `json:"email,omitempty"`
@@ -50,11 +50,11 @@ type Config struct {
 
 // Validate the Config.
 func (c *Config) Validate() error {
-	if c.Filter == "" && c.MsgTypeWhitelist == nil {
-		return errors.New("Either Filter or MsgTypeWhitelist is required.")
+	if c.Filter == "" && c.IncludeMsgTypes == nil {
+		return errors.New("Either Filter or IncludeMsgTypes is required.")
 	}
-	if c.Filter != "" && c.MsgTypeWhitelist != nil {
-		return errors.New("Only one of Filter or MsgTypeWhitelist may be provided.")
+	if c.Filter != "" && c.IncludeMsgTypes != nil {
+		return errors.New("Only one of Filter or IncludeMsgTypes may be provided.")
 	}
 	if c.Filter != "" {
 		if _, err := ParseFilter(c.Filter); err != nil {
@@ -104,15 +104,15 @@ func (c *Config) Create(ctx context.Context, client *http.Client, emailer *email
 	if err != nil {
 		return nil, FILTER_SILENT, nil, "", err
 	}
-	return n, filter, c.MsgTypeWhitelist, c.Subject, nil
+	return n, filter, c.IncludeMsgTypes, c.Subject, nil
 }
 
 // Create a copy of this Config.
 func (c *Config) Copy() *Config {
 	configCopy := &Config{
-		Filter:           c.Filter,
-		MsgTypeWhitelist: util.CopyStringSlice(c.MsgTypeWhitelist),
-		Subject:          c.Subject,
+		Filter:          c.Filter,
+		IncludeMsgTypes: util.CopyStringSlice(c.IncludeMsgTypes),
+		Subject:         c.Subject,
 	}
 	if c.Email != nil {
 		configCopy.Email = &EmailNotifierConfig{
@@ -179,7 +179,7 @@ func (n *emailNotifier) Send(_ context.Context, subject string, msg *Message) er
 // Sends the same ViewAction markup with each message.
 func EmailNotifier(emails []string, emailer *email.GMail, markup string) (Notifier, error) {
 	return &emailNotifier{
-		from:   EMAIL_FROM_ADDRESS,
+		from:   emailFromAddress,
 		gmail:  emailer,
 		markup: markup,
 		to:     emails,

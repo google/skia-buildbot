@@ -12,7 +12,7 @@ func TestConfigs(t *testing.T) {
 	unittest.SmallTest(t)
 
 	c := Config{}
-	require.EqualError(t, c.Validate(), "Either Filter or MsgTypeWhitelist is required.")
+	require.EqualError(t, c.Validate(), "Either Filter or IncludeMsgTypes is required.")
 
 	c = Config{
 		Filter: "bogus",
@@ -20,10 +20,10 @@ func TestConfigs(t *testing.T) {
 	require.EqualError(t, c.Validate(), "Unknown filter \"bogus\"")
 
 	c = Config{
-		Filter:           "debug",
-		MsgTypeWhitelist: []string{"whitelisted-type"},
+		Filter:          "debug",
+		IncludeMsgTypes: []string{"included-type"},
 	}
-	require.EqualError(t, c.Validate(), "Only one of Filter or MsgTypeWhitelist may be provided.")
+	require.EqualError(t, c.Validate(), "Only one of Filter or IncludeMsgTypes may be provided.")
 
 	c = Config{
 		Filter: "debug",
@@ -76,19 +76,19 @@ func TestConfigs(t *testing.T) {
 	require.EqualError(t, c.Validate(), "Exactly one notification config must be supplied, but got 2")
 
 	c = Config{
-		MsgTypeWhitelist: []string{"filebug"},
-		Monorail:         &MonorailNotifierConfig{},
+		IncludeMsgTypes: []string{"filebug"},
+		Monorail:        &MonorailNotifierConfig{},
 	}
 	require.EqualError(t, c.Validate(), "Project is required.")
 
 	c = Config{
-		MsgTypeWhitelist: []string{"filebug"},
-		Monorail:         &MonorailNotifierConfig{},
+		IncludeMsgTypes: []string{"filebug"},
+		Monorail:        &MonorailNotifierConfig{},
 	}
 	require.EqualError(t, c.Validate(), "Project is required.")
 
 	c = Config{
-		MsgTypeWhitelist: []string{"filebug"},
+		IncludeMsgTypes: []string{"filebug"},
 		Monorail: &MonorailNotifierConfig{
 			Project: "my-project",
 		},
@@ -100,9 +100,9 @@ func TestConfigCopy(t *testing.T) {
 	unittest.SmallTest(t)
 
 	c := &Config{
-		Filter:           "info",
-		MsgTypeWhitelist: []string{"a", "b"},
-		Subject:          "blah blah",
+		Filter:          "info",
+		IncludeMsgTypes: []string{"a", "b"},
+		Subject:         "blah blah",
 		Chat: &ChatNotifierConfig{
 			RoomID: "my-room",
 		},

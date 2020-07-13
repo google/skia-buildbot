@@ -29,13 +29,10 @@ const (
 	GMAIL_CLIENT_ID             = "gmail_clientid"
 	GMAIL_CLIENT_SECRET         = "gmail_clientsecret"
 
-	// AUTH_WHITE_LIST is the comma or whitespace separated list of domains
-	// and email address that are allowed to log into an app.
-	AUTH_WHITE_LIST = "auth_white_list"
-
-	// ADMIN_WHITE_LIST is the comma or whitespace separated list of domains
+	// ADMIN_ALLOW_LIST is the comma or whitespace separated list of domains
 	// and email address that are allowed to perform admin tasks.
-	ADMIN_WHITE_LIST = "admin_white_list"
+	// TODO: Is this still needed?
+	ADMIN_ALLOW_LIST = "admin_white_list"
 
 	// METADATA_PATH_PREFIX_TMPL is the template for the first part of the
 	// metadata URL. The placeholder is for the level ("instance" or

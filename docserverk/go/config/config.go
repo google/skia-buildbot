@@ -11,6 +11,6 @@ const (
 )
 
 var (
-	// WHITELIST is the list of domains that are allowed to have their CLs previewed.
-	WHITELIST = []string{"google.com", "chromium.org", "skia.org"}
+	// ALLOWED_DOMAINS is the list of domains that are allowed to have their CLs previewed.
+	ALLOWED_DOMAINS = []string{"google.com", "chromium.org", "skia.org"}
 )

@@ -44,7 +44,7 @@ type AllowedFromChromeInfraAuth struct {
 
 // NewAllowedFromChromeInfraAuth creates an AllowedFromChromeInfraAuth.
 //
-// client - Must be authenticated and whitelisted to access GROUP_URL_TEMPLATE.
+// client - Must be authenticated and allowed to access GROUP_URL_TEMPLATE.
 // group - The name of the group we want to restrict access to.
 //
 // The presumption is that an AllowedFromChromeInfraAuth will be created

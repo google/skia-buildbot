@@ -20,24 +20,24 @@ def _MakeFileFilter(input_api, include_extensions=None,
   If include_extensions is empty, all files, even those without any extension,
   are included.
   """
-  white_list = [input_api.re.compile(r'.+')]
+  include = [input_api.re.compile(r'.+')]
   if include_extensions:
-    white_list = [input_api.re.compile(r'.+\.%s$' % ext)
-                  for ext in include_extensions]
-  black_list = []
+    include = [input_api.re.compile(r'.+\.%s$' % ext)
+               for ext in include_extensions]
+  exclude = []
   if exclude_extensions:
-    black_list = [input_api.re.compile(r'.+\.%s$' % ext)
-                  for ext in exclude_extensions]
+    exclude = [input_api.re.compile(r'.+\.%s$' % ext)
+               for ext in exclude_extensions]
   if exclude_filenames:
-    black_list += [input_api.re.compile(r'.*%s$' % filename.replace('.', '\.'))
+    exclude += [input_api.re.compile(r'.*%s$' % filename.replace('.', '\.'))
                    for filename in exclude_filenames]
-  if len(black_list) == 0:
-    # If black_list is empty, the InputApi default is used, so always include at
+  if len(exclude) == 0:
+    # If exclude is empty, the InputApi default is used, so always include at
     # least one regexp.
-    black_list = [input_api.re.compile(r'^$')]
+    exclude = [input_api.re.compile(r'^$')]
 
-  return lambda x: input_api.FilterSourceFile(x, white_list=white_list,
-                                              black_list=black_list)
+  return lambda x: input_api.FilterSourceFile(x, white_list=include,
+                                              black_list=exclude)
 
 def _CheckNonAscii(input_api, output_api):
   """Check for non-ASCII characters and throw warnings if any are found."""
@@ -191,12 +191,12 @@ def CheckChange(input_api, output_api):
   """
   results = []
 
-  pylint_blacklist = [
+  pylint_skip = [
       r'infra[\\\/]bots[\\\/]recipes.py',
       r'.*[\\\/]\.recipe_deps[\\\/].*',
       r'.*[\\\/]node_modules[\\\/].*',
   ]
-  pylint_blacklist.extend(input_api.DEFAULT_BLACK_LIST)
+  pylint_skip.extend(input_api.DEFAULT_BLACK_LIST)
   pylint_disabled_warnings = (
       'F0401',  # Unable to import.
       'E0611',  # No name in module.
@@ -210,7 +210,7 @@ def CheckChange(input_api, output_api):
   results += input_api.canned_checks.RunPylint(
       input_api, output_api,
       disabled_warnings=pylint_disabled_warnings,
-      black_list=pylint_blacklist)
+      black_list=pylint_skip)
 
   # Use 100 for max length for files other than python. Python length is
   # already checked during the Pylint above. No max length for Go files.

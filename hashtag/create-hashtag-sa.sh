@@ -29,5 +29,5 @@ gcloud beta iam service-accounts keys create ${SA_NAME}.json --iam-account="${SA
 kubectl create secret generic "${SA_NAME}" --from-file=key.json=${SA_NAME}.json
 cd -
 
-# Should be added to Monorail whitelist:
+# Should be added to Monorail api_clients list:
 #    https://bugs.chromium.org/p/monorail/issues/detail?id=6529

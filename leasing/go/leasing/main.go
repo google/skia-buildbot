@@ -70,7 +70,7 @@ var (
 	projectName = flag.String("project_name", "google.com:skia-buildbots", "The Google Cloud project name.")
 
 	// OAUTH params
-	authWhiteList = flag.String("auth_whitelist", "google.com", "White space separated list of domains and email addresses that are allowed to login.")
+	authAllowList = flag.String("auth_allowlist", "google.com", "White space separated list of domains and email addresses that are allowed to login.")
 
 	poolToDetails      map[string]*PoolDetails
 	poolToDetailsMutex sync.Mutex
@@ -125,7 +125,7 @@ func New() (baseapp.App, error) {
 
 	var allow allowed.Allow
 	if !*baseapp.Local {
-		allow = allowed.NewAllowedFromList([]string{*authWhiteList})
+		allow = allowed.NewAllowedFromList([]string{*authAllowList})
 	} else {
 		allow = allowed.NewAllowedFromList([]string{"fred@example.org", "barney@example.org", "wilma@example.org"})
 	}

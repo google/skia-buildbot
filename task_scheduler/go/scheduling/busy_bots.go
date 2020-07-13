@@ -28,10 +28,10 @@ const (
 )
 
 var (
-	// dimensionWhitelist includes all dimensions used in
+	// includeDimensions includes all dimensions used in
 	// https://skia.googlesource.com/skia/+show/42974b73cd6f3515af69c553aac8dd15e3fc1927/infra/bots/gen_tasks.go
 	// (except for "image" which has a TODO to remove).
-	dimensionWhitelist = []string{
+	includeDimensions = []string{
 		"cpu",
 		"device",
 		"device_os",
@@ -45,7 +45,7 @@ var (
 )
 
 func init() {
-	sort.Strings(dimensionWhitelist)
+	sort.Strings(includeDimensions)
 }
 
 // busyBots is a struct used for marking a bot as busy while it runs a Task.
@@ -64,13 +64,15 @@ func newBusyBots() *busyBots {
 	}
 }
 
-// Return a space-separated string of sorted dimensions and values, filtered by dimensionWhitelist.
-// Similar to flatten in task_scheduler.go. When there are multiple values for a dimension, the
-// longest is used. (The longest value is usually the most interesting.)
+// Return a space-separated string of sorted dimensions and values, filtered by
+// includeDimensions.
+// Similar to flatten in task_scheduler.go. When there are multiple values for a
+// dimension, the longest is used. (The longest value is usually the most
+// interesting.)
 func dimensionsString(dims []*swarming_api.SwarmingRpcsStringListPair) string {
-	vals := make(map[string]string, len(dimensionWhitelist))
+	vals := make(map[string]string, len(includeDimensions))
 	for _, dim := range dims {
-		if util.In(dim.Key, dimensionWhitelist) {
+		if util.In(dim.Key, includeDimensions) {
 			for _, val := range dim.Value {
 				if len(val) > len(vals[dim.Key]) {
 					vals[dim.Key] = val
@@ -79,7 +81,7 @@ func dimensionsString(dims []*swarming_api.SwarmingRpcsStringListPair) string {
 		}
 	}
 	rv := make([]string, 0, 2*len(vals))
-	for _, key := range dimensionWhitelist {
+	for _, key := range includeDimensions {
 		if vals[key] != "" {
 			rv = append(rv, key, vals[key])
 		}

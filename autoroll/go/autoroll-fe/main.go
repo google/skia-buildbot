@@ -55,7 +55,7 @@ var (
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	hang              = flag.Bool("hang", false, "If true, don't spin up the server, just hang without doing anything.")
 
-	WHITELISTED_VIEWERS = []string{
+	allowedViewers = []string{
 		"prober@skia-public.iam.gserviceaccount.com",
 		"skia-status@skia-public.iam.gserviceaccount.com",
 		"skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com",
@@ -362,7 +362,7 @@ func runServer(ctx context.Context, serverURL string) {
 	// config file, and viewers are either public or @google.com.
 	var viewAllow allowed.Allow
 	if *internal {
-		viewAllow = allowed.UnionOf(allowed.NewAllowedFromList(WHITELISTED_VIEWERS), allowed.Googlers())
+		viewAllow = allowed.UnionOf(allowed.NewAllowedFromList(allowedViewers), allowed.Googlers())
 	}
 	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, allowed.Googlers(), allowed.Googlers(), viewAllow)
 

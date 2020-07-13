@@ -51,7 +51,7 @@
   "timeWindow": "M-F 15:00-19:00",
   "notifiers": [
     {
-      "msgTypeWhitelist": ["last n failed"],
+      "includeMsgTypes": ["last n failed"],
       "monorail": {
         "project": "chromium",
         "owner": "bpastene@chromium.org",

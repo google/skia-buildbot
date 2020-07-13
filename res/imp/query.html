@@ -17,9 +17,9 @@
   Properties:
     currentquery - The current URL query formatted selections.
 
-    whitelist - A list of keys for params that should always be shown.
+    showparams - A list of keys for params that should always be shown.
 
-    blacklist - A list of keys for params that should never be shown.
+    hideparams - A list of keys for params that should never be shown.
 
     matches - A URL for reporting the number of items that match
        the currentquery. If not the empty string then a request
@@ -154,7 +154,7 @@
           value: false,
           reflectToAttribute: true
         },
-        whitelist: {
+        showparams: {
           type: Array,
           value: function() {
             return [
@@ -171,7 +171,7 @@
           },
           reflectToAttribute: true
         },
-        blacklist: {
+        hideparams: {
           type: Array,
           value: function() { return []; }
         },
@@ -190,7 +190,7 @@
         //    values: ["565", "8888", "gpu"]
         //  }
         //
-        // Where _primary contains selections that are in the whitelist, and
+        // Where _primary contains selections that are in the showparams, and
         // _secondary contains all the other selections.
         this._primary = [];
         this._secondary = [];
@@ -294,7 +294,7 @@
         this.splice('_secondary', 0, this._secondary.length);
         for (var i = 0; i < keylist.length; i++) {
           var key = keylist[i];
-          if ((this.blacklist.length > 0) && (this.blacklist.indexOf(key) != -1)) {
+          if ((this.hideparams.length > 0) && (this.hideparams.indexOf(key) != -1)) {
             continue;
           }
 
@@ -302,7 +302,7 @@
             name: key,
             values: paramset[key].sort()
           };
-          if (this.whitelist.length == 0 || this.whitelist.indexOf(key) != -1) {
+          if (this.showparams.length == 0 || this.showparams.indexOf(key) != -1) {
             this.push('_primary', sel);
           } else {
             this.push('_secondary', sel);
