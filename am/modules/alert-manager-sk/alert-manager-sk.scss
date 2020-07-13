@@ -100,8 +100,6 @@ alert-manager-sk {
   .stats,
   .mine,
   .incidents {
-    overflow-y: auto;
-
     checkbox-sk {
       display: inline-block;
     }
@@ -114,7 +112,6 @@ alert-manager-sk {
 
   .stats,
   .silences {
-    overflow-y: auto;
     padding: 1em;
 
     h2 {
