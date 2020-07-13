@@ -10,9 +10,7 @@ document.querySelectorAll<CommitDetailSk>('commit-detail-sk').forEach((ele) => {
       'e699a3a - 19h 59m - Roll third_party/externals/swiftshader 522d5121905',
     author: '',
     ts: 0,
-    CommitID: {
-      offset: 0,
-    },
+    offset: 0,
   };
   ele.querySelector('div')!.click();
 });
