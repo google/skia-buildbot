@@ -82,7 +82,7 @@ class CalendarDate {
 
 export class CalendarSk extends ElementSk {
   private static template = (ele: CalendarSk) => html`
-    <table>
+    <table class="calendar">
       <tr>
         <th>
           <button
@@ -155,14 +155,16 @@ export class CalendarSk extends ElementSk {
     if (date < 1 || date > daysInMonth) {
       return html``;
     }
-    return html`<button
-      @click=${ele.dateClick}
-      data-date=${date}
-      tabindex=${selected ? 0 : -1}
-      aria-selected=${selected}
-    >
-      ${date}
-    </button>`;
+    return html`
+      <button
+        @click=${ele.dateClick}
+        data-date=${date}
+        tabindex=${selected ? 0 : -1}
+        aria-selected=${selected}
+      >
+        ${date}
+      </button>
+    `;
   };
 
   private static rowTemplate = (ele: CalendarSk, weekIndex: number) => {
@@ -177,21 +179,30 @@ export class CalendarSk extends ElementSk {
     const daysInMonth = getNumberOfDaysInMonth(year, monthIndex);
     const selectedDate = ele._displayDate.getDate();
     const currentDate = new CalendarDate(ele._displayDate);
-    return html`<tr>
-      ${sevenDaysInAWeek.map((i) => {
-        const date = 7 * weekIndex + i + 1 - firstDayOfTheMonthIndex;
-        currentDate.date = date;
-        const selected = selectedDate === date;
-        return html`<td
-          class="
+    return html`
+      <tr>
+        ${sevenDaysInAWeek.map((i) => {
+          const date = 7 * weekIndex + i + 1 - firstDayOfTheMonthIndex;
+          currentDate.date = date;
+          const selected = selectedDate === date;
+          return html`
+            <td
+              class="
             ${currentDate.equal(today) ? 'today' : ''}
             ${selected ? 'selected' : ''}
           "
-        >
-          ${CalendarSk.buttonForDateTemplate(ele, date, daysInMonth, selected)}
-        </td>`;
-      })}
-    </tr>`;
+            >
+              ${CalendarSk.buttonForDateTemplate(
+                ele,
+                date,
+                daysInMonth,
+                selected
+              )}
+            </td>
+          `;
+        })}
+      </tr>
+    `;
   };
 
   private _displayDate: Date = new Date();
@@ -263,16 +274,20 @@ export class CalendarSk extends ElementSk {
     const longFormatter = new Intl.DateTimeFormat(this._locale, {
       weekday: 'long',
     });
-    this._weekDayHeader = html`<tr class="weekdayHeader">
-      ${sevenDaysInAWeek.map(
-        (i) =>
-          html`<td>
-            <span abbr="${longFormatter.format(new Date(2020, 2, i + 1))}">
-              ${narrowFormatter.format(new Date(2020, 2, i + 1))}
-            </span>
-          </td>`
-      )}
-    </tr>`;
+    this._weekDayHeader = html`
+      <tr class="weekdayHeader">
+        ${sevenDaysInAWeek.map(
+          (i) =>
+            html`
+              <td>
+                <span abbr="${longFormatter.format(new Date(2020, 2, i + 1))}">
+                  ${narrowFormatter.format(new Date(2020, 2, i + 1))}
+                </span>
+              </td>
+            `
+        )}
+      </tr>
+    `;
   }
 
   private dateClick(e: MouseEvent) {
