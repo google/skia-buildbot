@@ -203,4 +203,8 @@ explore-sk {
     color: var(--on-surface);
     border: solid 1px var(--on-surface);
   }
+
+  #commitsTab[disabled] {
+    display: none;
+  }
 }
