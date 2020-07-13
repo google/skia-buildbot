@@ -33,6 +33,7 @@ export class CalendarInputSk extends ElementSk {
       </span>
     </label>
     <button
+      class="calendar"
       @click=${ele.openHandler}
       title="Open calendar dialog to choose the date."
     >
@@ -42,8 +43,7 @@ export class CalendarInputSk extends ElementSk {
       <calendar-sk
         @change=${ele.calendarChangeHandler}
         .displayDate=${ele.displayDate}
-      >
-      </calendar-sk>
+      ></calendar-sk>
       <button @click=${ele.dialogCancelHandler}>Cancel</button>
     </dialog>
   `;

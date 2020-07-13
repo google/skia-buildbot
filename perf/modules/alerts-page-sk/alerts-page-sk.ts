@@ -38,7 +38,7 @@ class AlertsPageSk extends ElementSk {
         .paramset=${ele.paramset}
         .config=${ele.cfg}
       ></alert-config-sk>
-      <div class="buttons">
+      <div class="dialogButtons">
         <button @click=${ele.cancel}>Cancel</button>
         <button @click=${ele.accept}>Accept</button>
       </div>
