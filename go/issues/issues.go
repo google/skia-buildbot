@@ -83,10 +83,9 @@ type IssueRequest struct {
 
 // MonorailIssueTracker implements IssueTracker.
 //
-// Note that to use a MonorailIssueTracker from GCE that client id of the
-// project needs to be whitelisted in Monorail, which is already done for Skia
-// Infra. Also note that the instance running needs to have the
-// https://www.googleapis.com/auth/userinfo.email scope added to it.
+// Note that, in order to use a MonorailIssueTracker from GCE, the client id of
+// the project needs to be known to Monorail.  Also note that the
+// https://www.googleapis.com/auth/userinfo.email scope is needed.
 type MonorailIssueTracker struct {
 	client  *http.Client
 	project string

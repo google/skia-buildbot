@@ -282,7 +282,7 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 		redirectURL = login.DEFAULT_REDIRECT_URL
 	}
 	if f.flags.AuthBypassList == "" {
-		f.flags.AuthBypassList = login.DEFAULT_DOMAIN_WHITELIST
+		f.flags.AuthBypassList = login.DEFAULT_ALLOWED_DOMAINS
 	}
 	if err := login.Init(redirectURL, f.flags.AuthBypassList, ""); err != nil {
 		sklog.Fatalf("Failed to initialize the login system: %s", err)
@@ -1475,16 +1475,17 @@ func oldAlertsHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/t/", http.StatusMovedPermanently)
 }
 
-var internalOnlyWhitelist = []string{
+var internalOnlyExceptions = []string{
 	"/oauth2callback/",
 	"/_/reg/count",
 }
 
 // internalOnlyHandler wraps the handler with a handler that only allows
-// authenticated access, with the exception of the /oauth2callback/ handler.
+// authenticated access, with the exception of the endpoints listed in
+// internalOnlyExceptions.
 func internalOnlyHandler(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if util.In(r.URL.Path, internalOnlyWhitelist) || login.LoggedInAs(r) != "" {
+		if util.In(r.URL.Path, internalOnlyExceptions) || login.LoggedInAs(r) != "" {
 			h.ServeHTTP(w, r)
 		} else {
 			http.Redirect(w, r, login.LoginURL(w, r), http.StatusTemporaryRedirect)

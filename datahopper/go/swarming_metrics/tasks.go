@@ -31,7 +31,7 @@ const (
 )
 
 var (
-	DIMENSION_WHITELIST = util.NewStringSet([]string{
+	includeDimensions = util.NewStringSet([]string{
 		"os",
 		"model",
 		"cpu",
@@ -244,11 +244,11 @@ func addMetric(s *events.EventStream, metric, pool string, period time.Duration,
 			tags := map[string]string{
 				"task_name": t.TaskResult.Name,
 			}
-			for d := range DIMENSION_WHITELIST {
+			for d := range includeDimensions {
 				tags[d] = ""
 			}
 			for _, dim := range swarming.GetTaskRequestProperties(t).Dimensions {
-				if _, ok := DIMENSION_WHITELIST[dim.Key]; ok {
+				if _, ok := includeDimensions[dim.Key]; ok {
 					tags[dim.Key] = dim.Value
 				}
 			}
@@ -408,7 +408,7 @@ func dedupeMetrics(ev []*events.Event) ([]map[string]string, []float64, error) {
 	// they're left empty.
 	for _, tagSet := range tagSets {
 		tagSet["task_name"] = ""
-		for k := range DIMENSION_WHITELIST {
+		for k := range includeDimensions {
 			tagSet[k] = ""
 		}
 	}

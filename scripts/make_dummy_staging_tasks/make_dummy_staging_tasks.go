@@ -60,7 +60,7 @@ func main() {
 
 	nowTs := time.Unix(int64(*now), 0)
 
-	dimWhitelist := map[string]bool{}
+	includeDimensions := map[string]bool{}
 
 	ctx := context.Background()
 	ts, err := auth.NewDefaultTokenSource(true, datastore.ScopeDatastore, swarming.AUTH_SCOPE)
@@ -143,7 +143,7 @@ func main() {
 				if len(split) != 2 {
 					sklog.Fatalf("Invalid dimension: %s", dim)
 				}
-				dimWhitelist[split[0]] = true
+				includeDimensions[split[0]] = true
 			}
 
 			taskSpec.EnvPrefixes = nil
@@ -192,7 +192,7 @@ func main() {
 
 		subKeys := []string{}
 		for _, dim := range bot.Dimensions {
-			if dimWhitelist[dim.Key] {
+			if includeDimensions[dim.Key] {
 				vals := make([]string, 0, len(dim.Value))
 				valsMap := make(map[string]bool, len(dim.Value))
 				for _, val := range dim.Value {

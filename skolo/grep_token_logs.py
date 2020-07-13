@@ -14,7 +14,7 @@ import sys
 
 SYSLOG = '/var/log/syslog'
 
-WHITELIST_LINES = [
+INCLUDE_LINES = [
   # (process-name,     pattern)
   ('metadata-server',  'Updated token: '),
   ('metadata-server',  'Token requested by '),
@@ -23,8 +23,8 @@ WHITELIST_LINES = [
 
 
 def transform_line(line):
-  """Trim the log line and return it iff it matches a whitelisted pattern."""
-  for proc, pattern in WHITELIST_LINES:
+  """Trim the log line and return it iff it matches INCLUDE_LINES."""
+  for proc, pattern in INCLUDE_LINES:
     if pattern in line:
       # Log lines look like this:
       # pylint: disable=line-too-long

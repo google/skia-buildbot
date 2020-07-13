@@ -23,7 +23,7 @@ const (
 	MEASUREMENT_SWARM_BOTS_UPTIME      = "swarming_bots_uptime_s"
 )
 
-var batteryBlacklist = []*regexp.Regexp{
+var ignoreBatteries = []*regexp.Regexp{
 	// max77621-(cpu|gpu) are on the pixel Cs and constantly at 100. Not useful
 	regexp.MustCompile("max77621-(cpu|gpu)"),
 	// dram is on the Nexus players and goes between 0 and 2.
@@ -191,8 +191,8 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 
 			outer:
 				for zone, temp := range device.DevTemperatureMap {
-					for _, blacklisted := range batteryBlacklist {
-						if blacklisted.MatchString(zone) {
+					for _, ignoreBattery := range ignoreBatteries {
+						if ignoreBattery.MatchString(zone) {
 							continue outer
 						}
 					}

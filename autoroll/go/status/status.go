@@ -17,7 +17,7 @@ import (
 var (
 	// Insert the AutoRollMiniStatus for these internal rollers into the
 	// external datastore.
-	EXPORT_WHITELIST = []string{
+	exportRollers = []string{
 		"android-master-autoroll",
 		"google3-autoroll",
 	}
@@ -111,7 +111,7 @@ func Set(ctx context.Context, rollerName string, st *AutoRollStatus) error {
 
 	// Optionally export the mini version of the internal roller's status
 	// to the external datastore.
-	if util.In(rollerName, EXPORT_WHITELIST) {
+	if util.In(rollerName, exportRollers) {
 		exportStatus := &AutoRollStatus{
 			AutoRollMiniStatus: st.AutoRollMiniStatus,
 		}

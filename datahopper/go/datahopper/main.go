@@ -7,7 +7,6 @@ package main
 import (
 	"context"
 	"flag"
-	"regexp"
 	"time"
 
 	"cloud.google.com/go/bigtable"
@@ -36,7 +35,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-const APPNAME = "datahopper"
+const appName = "datahopper"
 
 // flags
 var (
@@ -55,20 +54,9 @@ var (
 	swarmingPools     = common.NewMultiStringFlag("swarming_pool", nil, "Swarming pools to use.")
 )
 
-var (
-	// Regexp matching non-alphanumeric characters.
-	re = regexp.MustCompile("[^A-Za-z0-9]+")
-
-	BUILDSLAVE_OFFLINE_BLACKLIST = []string{
-		"build3-a3",
-		"build4-a3",
-		"vm255-m3",
-	}
-)
-
 func main() {
 	common.InitWithMust(
-		APPNAME,
+		appName,
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
@@ -101,7 +89,7 @@ func main() {
 		ProjectID:  *btProject,
 		InstanceID: *btInstance,
 		TableID:    *gitstoreTable,
-		AppProfile: APPNAME,
+		AppProfile: appName,
 	}
 	repos, err := bt_gitstore.NewBTGitStoreMap(ctx, *repoUrls, btConf)
 	if err != nil {

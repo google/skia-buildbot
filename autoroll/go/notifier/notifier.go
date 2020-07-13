@@ -15,7 +15,7 @@ import (
 
 const (
 	// Types of notification message sent by the roller. These can be
-	// whitelisted in the notifier configs.
+	// selected via notifier.Config.IncludeMsgTypes.
 	MSG_TYPE_ISSUE_UPDATE         = "issue update"
 	MSG_TYPE_LAST_N_FAILED        = "last n failed"
 	MSG_TYPE_MODE_CHANGE          = "mode change"

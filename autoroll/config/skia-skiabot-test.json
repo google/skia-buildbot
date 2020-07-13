@@ -46,7 +46,7 @@
   "maxRollFrequency": "0m",
   "notifiers": [
     {
-      "msgTypeWhitelist": ["last n failed"],
+      "includeMsgTypes": ["last n failed"],
       "monorail": {
         "project": "skia",
         "owner": "borenet",

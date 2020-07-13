@@ -484,14 +484,14 @@ func (r *repoImpl) Update(ctx context.Context) error {
 	if err != nil {
 		return skerr.Wrapf(err, "Failed loading branches from Gitiles.")
 	}
-	// If any of the whitelisted old branches disappeared, add it back.
+	// If any of the ignoreDeletedBranches disappeared, add it back.
 	newBranches := make(map[string]string, len(branches))
 	for _, branch := range branches {
 		newBranches[branch.Name] = branch.Head
 	}
 	for name, b := range oldBranches {
 		if _, ok := newBranches[name]; !ok && ignoreDeletedBranch[r.gitiles.URL][name] {
-			sklog.Warningf("Branch %q missing from new branches; ignoring due to explicit whitelist.", name)
+			sklog.Warningf("Branch %q missing from new branches; ignoring.", name)
 			branches = append(branches, b)
 		}
 	}

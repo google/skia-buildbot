@@ -396,7 +396,7 @@ func (c *Client) withTimeoutAndRetries(ctx context.Context, attempts int, timeou
 			// Do not retry if the passed-in context is expired.
 			return ctx.Err()
 		} else if st, ok := status.FromError(unwrapped); ok {
-			// Retry if we encountered a whitelisted error code.
+			// Retry if we encountered a retryable error code.
 			code := st.Code()
 			retry := false
 			for _, retryCode := range retryErrors {

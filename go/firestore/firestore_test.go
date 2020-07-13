@@ -70,7 +70,7 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, attempted)
 
-	// Retry whitelisted errors.
+	// Retry retryable errors.
 	attempted = 0
 	e := status.Errorf(codes.ResourceExhausted, "Retry Me")
 	err = c.withTimeoutAndRetries(context.Background(), maxAttempts, timeout, func(ctx context.Context) error {
@@ -80,7 +80,7 @@ func TestWithTimeoutAndRetries(t *testing.T) {
 	require.EqualError(t, err, e.Error())
 	require.Equal(t, maxAttempts, attempted)
 
-	// No retry for non-whitelisted errors.
+	// No retry for non-retryable errors.
 	attempted = 0
 	err = c.withTimeoutAndRetries(context.Background(), maxAttempts, timeout, func(ctx context.Context) error {
 		attempted++

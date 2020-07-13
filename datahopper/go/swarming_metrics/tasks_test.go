@@ -220,7 +220,7 @@ func TestMetrics(t *testing.T) {
 			"stream":    streamForPool("Skia"),
 			"task_name": "my-task",
 		}
-		for k := range DIMENSION_WHITELIST {
+		for k := range includeDimensions {
 			if _, ok := tags[k]; !ok {
 				tags[k] = ""
 			}

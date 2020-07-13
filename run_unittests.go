@@ -385,10 +385,10 @@ func main() {
 	var gotests []*test
 
 	// Search for Python tests and Go dirs to test in the repo.
-	// These tests are blacklisted from running on our bots because they
+	// These tests are prevented from running on our bots because they
 	// depend on packages (django) which are not included with Python in
 	// CIPD.
-	pythonTestBlacklist := map[string]bool{
+	pythonTestSkip := map[string]bool{
 		"csv_comparer_test.py":          true,
 		"json_summary_combiner_test.py": true,
 		"make_test.py":                  runtime.GOOS == "windows",
@@ -416,7 +416,7 @@ func main() {
 				gotests = append(gotests, goTestLarge(p))
 			}
 		}
-		if strings.HasSuffix(basename, "_test.py") && !pythonTestBlacklist[basename] {
+		if strings.HasSuffix(basename, "_test.py") && !pythonTestSkip[basename] {
 			tests = append(tests, pythonTest(p))
 		}
 		return nil

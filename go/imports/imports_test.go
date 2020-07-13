@@ -69,7 +69,7 @@ func isTestPackage(pkg string) bool {
 		util.In(pkg, testPackages))
 }
 
-// testImportAllowed returns true if the given non-test package is whitelisted
+// testImportAllowed returns true if the given non-test package is allowed
 // to import the given test package.
 func testImportAllowed(importer, importee string) bool {
 	return util.In(importee, legacyTestImportExceptions[importer])
@@ -113,8 +113,8 @@ func TestImports(t *testing.T) {
 		// Verify that legacyTestImportExceptions doesn't contain more
 		// entries than it should.
 		// TODO: Remove this once legacyTestImportExceptions is empty.
-		for _, whitelistedTestImport := range legacyTestImportExceptions[name] {
-			assert.Truef(t, util.In(whitelistedTestImport, pkg.Imports), "Non-test package %s is whitelisted to import %s but does not.", name, whitelistedTestImport)
+		for _, allowedTestImport := range legacyTestImportExceptions[name] {
+			assert.Truef(t, util.In(allowedTestImport, pkg.Imports), "Non-test package %s is allowed to import %s but does not.", name, allowedTestImport)
 		}
 	}
 

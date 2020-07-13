@@ -21,7 +21,7 @@ type Message struct {
 	// Severity of the message. May cause the message not to be sent,
 	// depending on filter settings.
 	Severity Severity
-	// Type of message. This is used with the optional MsgTypeWhitelist to
+	// Type of message. This is used with the optional IncludeMsgTypes to
 	// send only specific types of messages.
 	Type string
 }
@@ -43,7 +43,7 @@ func (m *Message) Validate() error {
 // filteredThreadedNotifier groups a Notifier with a Filter and an optional
 // static subject line for all messages to this Notifier.
 type filteredThreadedNotifier struct {
-	msgTypeWhitelist    []string
+	includeMsgTypes     []string
 	notifier            Notifier
 	filter              Filter
 	singleThreadSubject string
@@ -67,8 +67,8 @@ func (r *Router) Send(ctx context.Context, msg *Message) error {
 	for _, n := range r.notifiers {
 		n := n
 		group.Go(func() error {
-			if n.msgTypeWhitelist != nil {
-				if !util.In(msg.Type, n.msgTypeWhitelist) {
+			if n.includeMsgTypes != nil {
+				if !util.In(msg.Type, n.includeMsgTypes) {
 					return nil
 				}
 			} else if !n.filter.ShouldSend(msg.Severity) {
@@ -97,9 +97,9 @@ func NewRouter(client *http.Client, emailer *email.GMail, chatBotConfigReader ch
 // Add a new Notifier, which filters according to the given Filter. If
 // singleThreadSubject is provided, that will be used as the subject for all
 // Messages, ignoring their Subject field.
-func (r *Router) Add(n Notifier, f Filter, msgTypeWhitelist []string, singleThreadSubject string) {
+func (r *Router) Add(n Notifier, f Filter, includeMsgTypes []string, singleThreadSubject string) {
 	r.notifiers = append(r.notifiers, &filteredThreadedNotifier{
-		msgTypeWhitelist:    msgTypeWhitelist,
+		includeMsgTypes:     includeMsgTypes,
 		notifier:            n,
 		filter:              f,
 		singleThreadSubject: singleThreadSubject,
