@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/depot_tools"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -91,10 +92,13 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 		})
 		return skerr.Wrap(err)
 	}
-	sync := func(ctx context.Context) error {
+	sync := func(ctx context.Context, extraArgs ...string) error {
 		args := []string{"sync", "--delete_unversioned_trees", "--force"}
 		if !c.RunHooks {
 			args = append(args, "--nohooks")
+		}
+		if len(extraArgs) > 0 {
+			args = append(args, extraArgs...)
 		}
 		return skerr.Wrap(gclient(ctx, args...))
 	}
@@ -136,8 +140,17 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 			return "", skerr.Wrap(err)
 		}
 
-		// Run "gclient sync" to sync dependencies.
-		if err := sync(ctx); err != nil {
+		syncExtraArgs := []string{}
+		if strings.HasPrefix(to.Id, gerrit.CHANGE_REF_PREFIX) {
+			// If the rev is a patch ref then add patch-ref args to gclient sync. Syncing
+			// the child repo will not work without these args.
+			syncExtraArgs = append(syncExtraArgs,
+				"--patch-ref", fmt.Sprintf("%s@%s:%s", c.DependencyConfig.ID, c.Branch, to.Id),
+				"--no-rebase-patch-ref",
+				"--no-reset-patch-ref",
+			)
+		}
+		if err := sync(ctx, syncExtraArgs...); err != nil {
 			return "", skerr.Wrap(err)
 		}
 
