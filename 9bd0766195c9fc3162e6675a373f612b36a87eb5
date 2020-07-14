@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9887e44d_56c1ef82",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-14T18:08:53Z",
+      "side": 1,
+      "message": "The step after this will be to have machines.skia.org schedule machines for update if they have been running more than 24 hours.",
+      "revId": "9bd0766195c9fc3162e6675a373f612b36a87eb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
