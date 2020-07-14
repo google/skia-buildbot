@@ -7,6 +7,7 @@ import (
 	"flag"
 	"io"
 	"os"
+	"time"
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/sklog"
@@ -47,7 +48,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	m, err := machine.New(ctx, *local, instanceConfig)
+	m, err := machine.New(ctx, *local, instanceConfig, time.Now())
 	if err != nil {
 		sklog.Fatal("Failed to create machine: %s", err)
 	}
