@@ -3,7 +3,7 @@ import { addEventListenersToPuppeteerPage, EventName,
     takeScreenshot, TestBed } from '../../../puppeteer-tests/util';
 import { loadGoldWebpack } from '../common_puppeteer_test/common_puppeteer_test';
 import { ElementHandle } from 'puppeteer';
-import { positiveDigest, negativeDigest, untriagedDigest } from './test_data';
+import { positiveDigest, negativeDigest, untriagedDigest } from '../cluster-page-sk/test_data';
 
 describe('cluster-digests-sk', () => {
     let testBed: TestBed;
@@ -67,27 +67,27 @@ describe('cluster-digests-sk', () => {
         expect(evt).to.deep.equal([]);
     });
 
-    async function clickNodeWithDigest(digest: string) {
-        await testBed.page.click(`circle.node[data-digest="${digest}"]`);
-    }
-
-    async function shiftClickNodeWithDigest(digest: string) {
-        await testBed.page.keyboard.down('Shift');
-        await clickNodeWithDigest(digest);
-        await testBed.page.keyboard.up('Shift');
-    }
-
     async function clickNodeAndExpectSelectionChangedEvent(digest: string, expectedSelection: string[]) {
         const clickEvent = promiseFactory<Array<string>>('selection-changed');
-        await clickNodeWithDigest(digest);
+        await clickNodeWithDigest(testBed, digest);
         const evt = await clickEvent;
         expect(evt).to.deep.equal(expectedSelection);
     }
 
     async function shiftClickNodeAndExpectSelectionChangedEvent(digest: string, expectedSelection: string[]) {
         const clickEvent = promiseFactory<Array<string>>('selection-changed');
-        await shiftClickNodeWithDigest(digest);
+        await shiftClickNodeWithDigest(testBed, digest);
         const evt = await clickEvent;
         expect(evt).to.deep.equal(expectedSelection);
     }
 });
+
+export async function clickNodeWithDigest(testBed: TestBed, digest: string) {
+    await testBed.page.click(`circle.node[data-digest="${digest}"]`);
+}
+
+export async function shiftClickNodeWithDigest(testBed: TestBed, digest: string) {
+    await testBed.page.keyboard.down('Shift');
+    await clickNodeWithDigest(testBed, digest);
+    await testBed.page.keyboard.up('Shift');
+}

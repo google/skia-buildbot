@@ -146,6 +146,9 @@ define('cluster-digests-sk', class extends ElementSk {
         .selectAll('.link,.node')
         .remove();
 
+      // Reset selection.
+      this._selectedDigests = [];
+
       // We don't have any lines or dots spawn in or dynamically get removed from the drawing, so
       // we don't need to supply an id function to the data calls below.
 

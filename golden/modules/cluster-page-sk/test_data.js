@@ -36,14 +36,14 @@ export const clusterDiffJSON = {
       value: 11, // The third image is quite different from the other two
     },
   ],
-  test: 'dots-legend-sk',
+  test: 'dots-legend-sk_too-many-digests',
   paramsetByDigest: {
     '99c58c7002073346ff55f446d47d6311': {
       ext: [
         'png',
       ],
       name: [
-        'dots-legend-sk',
+        'dots-legend-sk_too-many-digests',
       ],
       gpu: [
         'nVidia',
@@ -57,7 +57,7 @@ export const clusterDiffJSON = {
         'png',
       ],
       name: [
-        'dots-legend-sk',
+        'dots-legend-sk_too-many-digests',
       ],
       gpu: [
         'AMD',
@@ -71,7 +71,7 @@ export const clusterDiffJSON = {
         'png',
       ],
       name: [
-        'dots-legend-sk',
+        'dots-legend-sk_too-many-digests',
       ],
       gpu: [
         'AMD', 'nVidia',
@@ -86,13 +86,13 @@ export const clusterDiffJSON = {
       'png',
     ],
     name: [
-      'dots-legend-sk',
+      'dots-legend-sk_too-many-digests',
     ],
     gpu: [
       'AMD', 'nVidia',
     ],
     source_type: [
-      'infra',
+      'infra', 'some-other-corpus',
     ],
   },
 };
