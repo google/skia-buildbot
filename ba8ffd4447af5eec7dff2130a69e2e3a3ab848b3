@@ -1255,6 +1255,30 @@
     },
     {
       "key": {
+        "uuid": "aca9b7b6_ea4ebac9",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 663,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-14T17:55:58Z",
+      "side": 1,
+      "message": "Unfortunately type safety goes out the window the moment we start dealing with stuff \"outside\" of TypeScript. It\u0027s best to think of types as just hints for the compiler, e.g. \"assume this object has this shape\".\n\nGuaranteeing at runtime that the field exists (or more generally, that a random JS object conforms to some expected shape) is orthogonal to the TypeScript compiler and must be done by hand.\n\nFYI: In Gold (and I think most other buildbot apps) we just assume the data has the right shape. If for some reason it doesn\u0027t, we generally find out in production in the form of a ReferenceError or a TypeError on the browser\u0027s console.\n\nFor the purposes of landing this CL, I would recommend that you simply assume the data has the right shape. No need for null checks, etc.\n\nMoving forward, two possibilities come to mind to alleviate this:\n\n- Have an RPC layer on your frontend code in the form of a class with a method for each RPC endpoint, (e.g. Foo(request: FooRequest): FooResponse { ... }), where the FooRequest/Response types are generated from go2ts. This is an ideal place to perform explicit checks about the shape of the data because it will apply to any component in your app hitting that RPC. It will also make writing tests and demo pages easier because you\u0027ll only need to mock your RPC class instead of emulating your server API with e.g. fetch-mock[1].\n\n- Have integration tests that spin up your Go web server and drive the app via its UI using Puppeteer, make assertions and test that both the front and back end \"speak the same language\".\n\n[1] http://www.wheresrhys.co.uk/fetch-mock/",
+      "parentUuid": "cd3458fd_c1e59f1e",
+      "range": {
+        "startLine": 663,
+        "startChar": 8,
+        "endLine": 663,
+        "endChar": 15
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7d0589b2_24a8f0c5",
         "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
         "patchSetId": 18
@@ -1350,6 +1374,30 @@
     },
     {
       "key": {
+        "uuid": "f0826e2b_72a0d7ff",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 792,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-14T17:55:58Z",
+      "side": 1,
+      "message": "LGTM if you\u0027d rather leave this as-is for now.",
+      "parentUuid": "d7f21214_1d5d761d",
+      "range": {
+        "startLine": 792,
+        "startChar": 0,
+        "endLine": 792,
+        "endChar": 58
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ed4e5f95_495a5fb4",
         "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
         "patchSetId": 18
@@ -1385,6 +1433,30 @@
       "side": 1,
       "message": "I get a compiler error when I do that:\n\nElement implicitly has an \u0027any\u0027 type because expression of type \u0027string\u0027 can\u0027t be used to index type \u0027{ running: { stopped: string; \"dry run\": string; }; stopped: { running: string; \"dry run\": string; }; \"dry run\": { running: string; stopped: string; }; }\u0027.\n  No index signature with a parameter of type \u0027string\u0027 was found on type \u0027{ running: { stopped: string; \"dry run\": string; }; stopped: { running: string; \"dry run\": string; }; \"dry run\": { running: string; stopped: string; }; }\u0027",
       "parentUuid": "ed4e5f95_495a5fb4",
+      "range": {
+        "startLine": 794,
+        "startChar": 27,
+        "endLine": 794,
+        "endChar": 67
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cace5843_76d3a112",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 794,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-14T17:55:58Z",
+      "side": 1,
+      "message": "Ack.",
+      "parentUuid": "8bfe4629_fb2e0a02",
       "range": {
         "startLine": 794,
         "startChar": 27,
