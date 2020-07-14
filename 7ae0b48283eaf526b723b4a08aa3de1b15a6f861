@@ -56,6 +56,30 @@
       "revId": "7ae0b48283eaf526b723b4a08aa3de1b15a6f861",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13d5b054_625b05da",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk-demo-data.ts",
+        "patchSetId": 20
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-14T18:39:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b58b7600_a2fb515d",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 41
+      },
+      "revId": "7ae0b48283eaf526b723b4a08aa3de1b15a6f861",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
