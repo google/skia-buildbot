@@ -86,7 +86,8 @@ groups:
       severity: warning
       owner: jcgregorio@google.com
     annotations:
-      description: 'Some named fiddles are failing. Visit https://named-fiddles.skia.org to see which ones.'
+      description: 'Some named fiddles are failing. Run `kubectl logs -f -lapp=named-fiddles`
+ to see which ones.'
 
   - alert: FiddlerPodCommunicationErrors
     expr: rate(run_exhaustion[20m]) * 20 * 60 > 5
