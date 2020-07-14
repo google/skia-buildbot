@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
+	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
@@ -23,6 +24,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -60,7 +62,7 @@ func depsCfg(t *testing.T) *DEPSRepoManagerConfig {
 	}
 }
 
-func setupDEPSRepoManager(t *testing.T, cfg *DEPSRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, *mockhttpclient.URLMock, func()) {
+func setupDEPSRepoManager(t *testing.T, cfg *DEPSRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, *mockhttpclient.URLMock, *bool, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -85,6 +87,7 @@ func setupDEPSRepoManager(t *testing.T, cfg *DEPSRepoManagerConfig) (context.Con
 	parent.Commit(ctx)
 
 	lastUpload := new(vcsinfo.LongCommit)
+	patchRefInSyncCmd := new(bool)
 	mockRun := &exec.CommandCollector{}
 	ctx = exec.NewContext(ctx, mockRun.Run)
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
@@ -94,6 +97,9 @@ func setupDEPSRepoManager(t *testing.T, cfg *DEPSRepoManagerConfig) (context.Con
 				return skerr.Wrap(err)
 			}
 			*lastUpload = *d
+			return nil
+		} else if cmd.Name == "python" && strings.Contains(cmd.Args[0], "gclient.py") && cmd.Args[1] == "sync" && util.In("--patch-ref", cmd.Args) && util.In("--no-rebase-patch-ref", cmd.Args) && util.In("--no-reset-patch-ref", cmd.Args) {
+			*patchRefInSyncCmd = true
 			return nil
 		}
 		return exec.DefaultRun(ctx, cmd)
@@ -129,7 +135,7 @@ func setupDEPSRepoManager(t *testing.T, cfg *DEPSRepoManagerConfig) (context.Con
 		parent.Cleanup()
 	}
 
-	return ctx, rm, wd, child, childCommits, parent, mockRun, lastUpload, urlmock, cleanup
+	return ctx, rm, wd, child, childCommits, parent, mockRun, lastUpload, urlmock, patchRefInSyncCmd, cleanup
 }
 
 func setupFakeGerrit(t *testing.T, cfg *codereview.GerritConfig, urlMock *mockhttpclient.URLMock) *gerrit.Gerrit {
@@ -160,7 +166,7 @@ func TestDEPSRepoManager(t *testing.T) {
 	unittest.LargeTest(t)
 
 	cfg := depsCfg(t)
-	ctx, rm, _, _, childCommits, _, _, _, _, cleanup := setupDEPSRepoManager(t, cfg)
+	ctx, rm, _, _, childCommits, _, _, _, _, _, cleanup := setupDEPSRepoManager(t, cfg)
 	defer cleanup()
 
 	// Test update.
@@ -212,7 +218,7 @@ func TestDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	unittest.LargeTest(t)
 
 	cfg := depsCfg(t)
-	ctx, rm, _, _, _, _, _, _, urlmock, cleanup := setupDEPSRepoManager(t, cfg)
+	ctx, rm, _, _, _, _, _, _, urlmock, _, cleanup := setupDEPSRepoManager(t, cfg)
 	defer cleanup()
 
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
@@ -224,6 +230,30 @@ func TestDEPSRepoManagerCreateNewRoll(t *testing.T) {
 	// Create a roll, assert that it's at tip of tree.
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, emails, false, fakeCommitMsg)
 	require.NoError(t, err)
+	require.Equal(t, int64(123), issue)
+}
+
+func TestDEPSRepoManagerCreateNewRollWithPatchRef(t *testing.T) {
+	unittest.LargeTest(t)
+
+	cfg := depsCfg(t)
+	ctx, rm, _, _, _, _, _, _, urlmock, patchRefInSyncCmd, cleanup := setupDEPSRepoManager(t, cfg)
+	defer cleanup()
+
+	lastRollRev, _, notRolledRevs, err := rm.Update(ctx)
+	require.NoError(t, err)
+	require.Equal(t, false, *patchRefInSyncCmd)
+
+	// Mock the request to load the change.
+	mockGerritGetAndPublishChange(t, urlmock, cfg)
+
+	// Use a patch ref and create a roll.
+	unsubmittedRev := &revision.Revision{
+		Id: "refs/changes/11/1111/1",
+	}
+	issue, err := rm.CreateNewRoll(ctx, lastRollRev, unsubmittedRev, notRolledRevs, emails, false, fakeCommitMsg)
+	require.NoError(t, err)
+	require.Equal(t, true, *patchRefInSyncCmd)
 	require.Equal(t, int64(123), issue)
 }
 
@@ -241,7 +271,7 @@ func TestDEPSRepoManagerPreUploadSteps(t *testing.T) {
 	cfg := depsCfg(t)
 	cfg.PreUploadSteps = []string{stepName}
 
-	ctx, rm, _, _, _, _, _, _, urlmock, cleanup := setupDEPSRepoManager(t, cfg)
+	ctx, rm, _, _, _, _, _, _, urlmock, _, cleanup := setupDEPSRepoManager(t, cfg)
 	defer cleanup()
 
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
@@ -280,7 +310,7 @@ cache_dir=None
 	cfg.GClientSpec = gclientSpec
 	cfg.ParentPath = filepath.Join("alternate", "location", "{{.ParentBase}}")
 
-	ctx, rm, _, _, _, _, mockRun, _, urlmock, cleanup := setupDEPSRepoManager(t, cfg)
+	ctx, rm, _, _, _, _, mockRun, _, urlmock, _, cleanup := setupDEPSRepoManager(t, cfg)
 	defer cleanup()
 
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
