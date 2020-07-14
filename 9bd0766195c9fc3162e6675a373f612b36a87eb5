@@ -39,6 +39,30 @@
       "revId": "9bd0766195c9fc3162e6675a373f612b36a87eb5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3cecb76c_0b153f29",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-14T18:53:15Z",
+      "side": 1,
+      "message": "Done.\n\nWeird, not sure why VS Code didn\u0027t catch that.",
+      "parentUuid": "aba7abfa_ace7743d",
+      "range": {
+        "startLine": 123,
+        "startChar": 4,
+        "endLine": 123,
+        "endChar": 8
+      },
+      "revId": "9bd0766195c9fc3162e6675a373f612b36a87eb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
