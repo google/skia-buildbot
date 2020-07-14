@@ -71,7 +71,6 @@ var (
 
 	POLYMER_PATHS = []string{
 		"res/imp",
-		"autoroll/res/imp",
 	}
 
 	// goTestRegexp is a regular expression used for finding the durations
