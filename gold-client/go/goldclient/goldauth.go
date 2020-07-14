@@ -2,6 +2,8 @@ package goldclient
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"path/filepath"
 
@@ -9,6 +11,8 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/types"
 	"golang.org/x/oauth2"
 )
 
@@ -33,9 +37,15 @@ type AuthOpt interface {
 	// uploading to GCS.
 	GetGCSUploader() (GCSUploader, error)
 
-	// GetGCSDownloader returns an authenticated goldclient.GCSDownloader, the interface for
+	// GetImageDownloader returns an authenticated goldclient.ImageDownloader, the interface for
 	// downloading from GCS.
-	GetGCSDownloader() (GCSDownloader, error)
+	GetImageDownloader() (ImageDownloader, error)
+}
+
+// ImageDownloader implementations provide functions to download images from Gold.
+type ImageDownloader interface {
+	// DownloadImage returns the bytes belonging to a digest from a given instance.
+	DownloadImage(ctx context.Context, goldURL string, digest types.Digest) ([]byte, error)
 }
 
 // authOpt implements the AuthOpt interface
@@ -89,23 +99,26 @@ func (a *authOpt) GetGCSUploader() (GCSUploader, error) {
 		return &dryRunImpl{}, nil
 	}
 	if a.Luci || a.ServiceAccount != "" {
-		return a.httpImpl()
+		return a.httpGCSImpl()
 	}
 	return &gsutilImpl{}, nil
 }
 
-// GetGCSDownloader implements the AuthOpt interface.
-func (a *authOpt) GetGCSDownloader() (GCSDownloader, error) {
+// GetImageDownloader implements the AuthOpt interface.
+func (a *authOpt) GetImageDownloader() (ImageDownloader, error) {
 	if a.dryRun {
 		return &dryRunImpl{}, nil
 	}
-	if a.Luci || a.ServiceAccount != "" {
-		return a.httpImpl()
+	hc, err := a.GetHTTPClient()
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
-	return &gsutilImpl{}, nil
+	return &httpImageDownloader{
+		httpClient: hc,
+	}, nil
 }
 
-func (a *authOpt) httpImpl() (*clientImpl, error) {
+func (a *authOpt) httpGCSImpl() (*clientImpl, error) {
 	if httpClient, err := a.GetHTTPClient(); err != nil {
 		return nil, err
 	} else {
@@ -122,6 +135,23 @@ func (a *authOpt) httpImpl() (*clientImpl, error) {
 // SetDryRun implements the AuthOpt interface.
 func (a *authOpt) SetDryRun(isDryRun bool) {
 	a.dryRun = isDryRun
+}
+
+// httpImageDownloader implements the ImageDownloaderAPI by downloading images over HTTP.
+type httpImageDownloader struct {
+	httpClient HTTPClient
+}
+
+// DownloadImage implements the ImageDownloader API. It downloads the image from the instance
+// (not from GCS itself), which removes the need for the service account to have read access.
+func (h *httpImageDownloader) DownloadImage(_ context.Context, goldURL string, digest types.Digest) ([]byte, error) {
+	u := fmt.Sprintf("%s/img/images/%s.png", goldURL, digest)
+	resp, err := h.httpClient.Get(u)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "getting digest from url %s", u)
+	}
+	defer util.Close(resp.Body)
+	return ioutil.ReadAll(resp.Body)
 }
 
 // LoadAuthOpt will load a serialized *authOpt from disk and return it.
