@@ -1,15 +1,13 @@
-// package export has the functionality needed to export results from search
-// to JSON. It is primarily used by the skia_knowledge executable.
+// Package export has the functionality needed to export results from search
+// to JSON. It was at one point used by skqp. That dependency is unclear at present.
 package export
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/types"
@@ -44,7 +42,7 @@ func ToTestRecords(searchResp *frontend.SearchResponse, imgBaseURL string) []*Te
 
 		digestInfo := &DigestInfo{
 			SearchResult: oneDigest,
-			URL:          DigestUrl(imgBaseURL, oneDigest.Digest),
+			URL:          digestURL(imgBaseURL, oneDigest.Digest),
 		}
 
 		testName := types.TestName(oneDigest.ParamSet[types.PrimaryKeyField][0])
@@ -67,37 +65,22 @@ func ToTestRecords(searchResp *frontend.SearchResponse, imgBaseURL string) []*Te
 	return ret
 }
 
-// WriteTestRecordsFile writes the retrieved information about tests to a file as JSON.
-func WriteTestRecordsFile(testRecs []*TestRecord, outputPath string) error {
-	f, err := os.Create(outputPath)
-	if err != nil {
-		return err
-	}
-	if err := WriteTestRecords(testRecs, f); err != nil {
-		return skerr.Wrapf(err, "writing test records to %s", outputPath)
-	}
-	if err := f.Close(); err != nil {
-		return skerr.Wrapf(err, "closing %s", outputPath)
-	}
-	return nil
-}
-
 // WriteTestRecords writes the retrieved information about tests to the given writer JSON.
 func WriteTestRecords(testRecs []*TestRecord, writer io.Writer) error {
 	return json.NewEncoder(writer).Encode(testRecs)
 }
 
-// ReadTestRecords loads a file with test records.
-func ReadTestRecords(reader io.Reader) ([]*TestRecord, error) {
-	ret := []*TestRecord{}
+// readTestRecords loads a file with test records.
+func readTestRecords(reader io.Reader) ([]*TestRecord, error) {
+	var ret []*TestRecord
 	if err := json.NewDecoder(reader).Decode(&ret); err != nil {
 		return nil, err
 	}
 	return ret, nil
 }
 
-// GetURL returns the URL given a base URL and the digest.
-func DigestUrl(baseURL string, digest types.Digest) string {
+// digestURL returns the URL given a base URL and the digest.
+func digestURL(baseURL string, digest types.Digest) string {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return fmt.Sprintf(urlTemplate, baseURL, digest)
 }
