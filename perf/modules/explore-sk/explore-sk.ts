@@ -138,14 +138,26 @@ export class ExploreSk extends ElementSk {
   <div id=buttons>
     <button @click=${ele.openQuery}>Query</button>
     <div id=traceButtons ?hide_if_no_data=${!ele.hasData()}>
-      <button @click=${() =>
-        ele.removeAll(false)} title='Remove all the traces.'>Remove All</button>
-      <button @click=${
-        ele.removeHighlighted
-      } title='Remove all the highlighted traces.'>Remove Highlighted</button>
-      <button @click=${
-        ele.highlightedOnly
-      } title='Remove all but the highlighted traces.'>Highlighted Only</button>
+      <button
+        @click=${() => ele.removeAll(false)}
+        title='Remove all the traces.'>
+        Remove All
+      </button>
+
+      <button
+        @click=${ele.removeHighlighted}
+        ?hidden=${!(ele.plot && ele.plot!.highlight.length)}
+        title='Remove all the highlighted traces.'>
+        Remove Highlighted
+      </button>
+
+      <button
+        @click=${ele.highlightedOnly}
+        ?hidden=${!(ele.plot && ele.plot!.highlight.length)}
+        title='Remove all but the highlighted traces.'>
+        Highlighted Only
+      </button>
+
       <span title='Number of commits skipped between each point displayed.' ?hidden=${ele.isZero(
         ele._dataframe.skip
       )} id=skip>${ele._dataframe.skip}</span>
@@ -613,6 +625,8 @@ export class ExploreSk extends ElementSk {
       paramset[key] = [params[key]];
     });
 
+    this._render();
+
     // Request populated commits from the server.
     fetch('/_/cid/', {
       method: 'POST',
@@ -698,6 +712,7 @@ export class ExploreSk extends ElementSk {
     } else {
       this.plot!.highlight = keys;
     }
+    this._render();
   }
 
   private shiftBoth() {
@@ -978,6 +993,7 @@ export class ExploreSk extends ElementSk {
         this.state.keys = json.id;
         this.state.queries = [];
         this._stateHasChanged();
+        this._render();
       })
       .catch(errorMessage);
   }
@@ -1066,6 +1082,7 @@ export class ExploreSk extends ElementSk {
       }
     });
     this.plot!.deleteLines(ids);
+    this.plot!.highlight = [];
     this.reShortCut(toShortcut);
   }
 
@@ -1095,6 +1112,7 @@ export class ExploreSk extends ElementSk {
     });
 
     this.plot!.deleteLines(toremove);
+    this.plot!.highlight = [];
     this.reShortCut(toShortcut);
   }
 

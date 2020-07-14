@@ -100,11 +100,11 @@ explore-sk {
 
   #traceButtons {
     display: flex;
+    align-items: center;
   }
 
   button {
     padding: 0.4em;
-    height: auto;
     text-transform: none;
   }
 
