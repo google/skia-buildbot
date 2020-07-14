@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Directory of AutoRollers</title>
+  </head>
+  <body>
+    <arb-scaffold-sk title="Directory of AutoRollers">
+      <arb-table-sk></arb-table-sk>
+    </arb-scaffold-sk>
+  </body>
+  <script>
+    const rollers = JSON.parse('{{marshal .Rollers}}');
+    const elem = document.getElementsByTagName("arb-table-sk")[0];
+    elem.rollers = rollers;
+  </script>
+</html>

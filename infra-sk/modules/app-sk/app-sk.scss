@@ -62,7 +62,7 @@ app-sk > {
   }
 
   aside {
-    border-right: 1px solid var(--on-surface, #ddd);
+    border-right: 1px solid var(--on-surface);
     padding: 0 var(--sidebar-horiz-padding);
     z-index: 2;
     background-color: var(--sidebar-background-color);

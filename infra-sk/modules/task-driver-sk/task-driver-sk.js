@@ -9,7 +9,6 @@
  */
 import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
-import { $$ } from 'common-sk/modules/dom'
 import { localeTime, strDuration } from 'common-sk/modules/human'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
 import { errorMessage } from 'elements-sk/errorMessage'

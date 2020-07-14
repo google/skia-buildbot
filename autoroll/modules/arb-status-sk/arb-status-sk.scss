@@ -1,0 +1,38 @@
+@import url(~elements-sk/themes/themes.css);
+@import '../../../infra-sk/modules/results.css';
+
+arb-status-sk {
+  :host {
+    font-family: sans-serif;
+  }
+  #loadstatus {
+    font-size: 0.8em;
+    padding: 0px 15px;
+  }
+  #tabsContainer {
+    width: 400px;
+  }
+  #pleaseLoginMsg {
+    color: var(--error);
+    padding: 10px;
+  }
+
+  .big {
+    font-size: 1.3em;
+  }
+  .small {
+    font-size: 0.8em;
+  }
+  .hidden {
+    display: none;
+  }
+  .nowrap {
+    white-space: nowrap;
+  }
+  .rollCandidate {
+    height: 80px;
+  }
+  .trybot {
+    margin: 5px;
+  }
+}
