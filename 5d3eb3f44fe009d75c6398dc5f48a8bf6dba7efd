@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "665f2bd7_e8ee0f51",
+        "filename": "gold-client/go/goldclient/goldauth.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-14T20:03:04Z",
+      "side": 1,
+      "message": "Does this actually need to be authenticated? If we\u0027re hitting the Gold instance directly via its public API, we can probably do so anonymously.",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 0
+      },
+      "revId": "5d3eb3f44fe009d75c6398dc5f48a8bf6dba7efd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
