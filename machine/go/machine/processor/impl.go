@@ -37,6 +37,11 @@ const (
 	maxTemperatureC float64 = 35
 
 	batteryTemperatureKey = "dumpsys_battery"
+
+	maxPodLifetime = 24 * time.Hour
+
+	// The username for annotations made by the machine server.
+	machineUserName = "machines.skia.org"
 )
 
 var (
@@ -170,10 +175,19 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		ret.Dimensions[k] = values
 	}
 
+	// If the pod gets too old we schedule it for deletion.
+	if time.Now().Sub(event.Host.StartTime) > maxPodLifetime && ret.ScheduledForDeletion == "" {
+		ret.ScheduledForDeletion = ret.PodName
+		ret.Annotation.Timestamp = time.Now()
+		ret.Annotation.Message = fmt.Sprintf("Pod too old, requested update for %q", ret.PodName)
+		ret.Annotation.User = machineUserName
+	}
+
 	// Once a pod has restarted it will have a new podname so clear the deletion.
 	if ret.ScheduledForDeletion != "" && ret.PodName != ret.ScheduledForDeletion {
 		ret.ScheduledForDeletion = ""
 	}
+
 	// If the machine was quarantined, but hasn't been quarantined this trip
 	// through Process then take the machine out of quarantine.
 	if previous.Mode == machine.ModeAvailable && len(previous.Dimensions[machine.DimQuarantined]) != 0 && len(dimensions[machine.DimQuarantined]) == 0 {

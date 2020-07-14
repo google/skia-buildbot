@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -435,7 +436,50 @@ func TestProcess_QuarantineIfDeviceBatteryTooLow(t *testing.T) {
 	assert.Equal(t, "Battery is too low: 9 < 30 (%)", next.Dimensions[machine.DimQuarantined][0])
 	assert.Equal(t, 9, next.Battery)
 	assert.Equal(t, int64(9), metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": "skia-rpi2-0001"}).Get())
+}
 
+func TestProcess_ScheduleForDeletionIfPodIsTooOld(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	previous := machine.NewDescription()
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name:      "skia-rpi2-0001",
+			StartTime: time.Now().Add(-2 * maxPodLifetime),
+			PodName:   "rpi-swarming-123",
+		},
+		Android: machine.Android{},
+	}
+
+	p := newProcessorForTest(t)
+	next := p.Process(ctx, previous, event)
+	assert.Equal(t, next.ScheduledForDeletion, next.PodName)
+	assert.NotEmpty(t, next.PodName)
+	assert.Equal(t, next.Annotation.User, machineUserName)
+	assert.Equal(t, next.Annotation.Message, "Pod too old, requested update for \"rpi-swarming-123\"")
+}
+
+func TestProcess_DoNoScheduleForDeletionIfPodIsntTooOld(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	previous := machine.NewDescription()
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name:      "skia-rpi2-0001",
+			StartTime: time.Now().Add(-1 * maxPodLifetime / 2),
+			PodName:   "rpi-swarming-123",
+		},
+		Android: machine.Android{},
+	}
+
+	p := newProcessorForTest(t)
+	next := p.Process(ctx, previous, event)
+	assert.Empty(t, next.ScheduledForDeletion)
+	assert.NotEmpty(t, next.PodName)
 }
 
 func TestProcess_QuarantineIfDeviceTooHot(t *testing.T) {
