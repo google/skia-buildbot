@@ -22,6 +22,30 @@
       "revId": "5d3eb3f44fe009d75c6398dc5f48a8bf6dba7efd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3428aae5_4a9df51b",
+        "filename": "gold-client/go/goldclient/goldauth.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-14T20:09:24Z",
+      "side": 1,
+      "message": "Yes, I would like the requesting to be done in a way that supports authentication. At the moment, the /img/ url doesn\u0027t check credentials, but we may change our mind on that. By having the client always be authenticated, we can make that change server side w/o having to roll goldctl again.",
+      "parentUuid": "665f2bd7_e8ee0f51",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 0
+      },
+      "revId": "5d3eb3f44fe009d75c6398dc5f48a8bf6dba7efd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
