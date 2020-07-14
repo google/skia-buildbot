@@ -16,6 +16,29 @@
       "revId": "9bd0766195c9fc3162e6675a373f612b36a87eb5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "aba7abfa_ace7743d",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-14T18:26:54Z",
+      "side": 1,
+      "message": "style: StartTime is when the bot_config...",
+      "range": {
+        "startLine": 123,
+        "startChar": 4,
+        "endLine": 123,
+        "endChar": 8
+      },
+      "revId": "9bd0766195c9fc3162e6675a373f612b36a87eb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
