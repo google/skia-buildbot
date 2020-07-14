@@ -2,24 +2,12 @@
 # containing the same, and generate, apply, and push Kubernetes configs
 # for the autorollers.
 
-VULCANIZE1=true
-
-# The list of files we want to go into core.js, which is concat'd and
-# minified. These files should be either present in the project, brought
-# into third_party/bower_compoents via bower, or in node_modules.
-CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
-          third_party/bower_components/webcomponentsjs/webcomponents.min.js \
-          ../res/js/common.js
-
-BOWER_DIR=third_party/bower_components
-
-include ../go/skiaversion/skiaversion.mk
 include ../kube/kube.mk
-include ../webtools/webtools.mk
 
 .PHONY: autoroll-fe
-autoroll-fe: core_js elements_html skiaversion
-	ln -sf ../../res res/imp/res
+autoroll-fe:
+	npm ci
+	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-fe
 
 .PHONY: autoroll-be
@@ -33,9 +21,10 @@ autoroll-google3: skiaversion
 .PHONY: all
 all: autoroll-fe autoroll-be autoroll-google3
 
-# Build debug versions of core.js and elements.html.
-.PHONY: debug
-debug: clean_webtools debug_core_js debug_elements_html
+.PHONY: serve
+serve:
+	npm ci
+	npx webpack-dev-server --mode=development --watch-poll
 
 ROLLER_INTERNAL_CONFIG_DIR = "/tmp/skia-autoroll-internal-config"
 USE_INTERNAL_CONFIG_DIR_PROMPT ?= $$(bash -c 'read -s -p "The checkout in $(ROLLER_INTERNAL_CONFIG_DIR) is dirty. Would you still like to use it? (y/n): " ans; echo $$ans')
