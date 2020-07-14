@@ -12,6 +12,7 @@ import {
 import {
   eventPromise,
   expectQueryStringToEqual,
+  setQueryString,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
 
@@ -177,14 +178,6 @@ describe('triagelog-page-sk', () => {
     });
   });
 });
-
-function setQueryString(string) {
-  history.pushState(
-    null,
-    '',
-    window.location.origin + window.location.pathname + string,
-  );
-}
 
 function goToNextPageOfResults(triagelogPageSk) {
   const event = eventPromise('end-task');
