@@ -119,6 +119,9 @@ type Host struct {
 
 	// KubernetesImage is the container image being run.
 	KubernetesImage string `json:"image"`
+
+	// When the bot_config started running.
+	StartTime time.Time `json:"start_time"`
 }
 
 // Event is the information a machine should send via Source when
