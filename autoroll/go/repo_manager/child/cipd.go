@@ -172,7 +172,7 @@ func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription)
 	rev := &revision.Revision{
 		Id:          instance.Pin.InstanceID,
 		Author:      instance.RegisteredBy,
-		Display:     instance.Pin.InstanceID[:5] + "...",
+		Display:     util.Truncate(instance.Pin.InstanceID, 12),
 		Description: instance.Pin.String(),
 		Timestamp:   time.Time(instance.RegisteredTs),
 		URL:         fmt.Sprintf(cipdPackageUrlTmpl, cipd.ServiceUrl, name, instance.Pin.InstanceID),
