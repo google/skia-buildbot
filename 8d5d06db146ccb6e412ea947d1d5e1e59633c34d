@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0fafd6e3_b257e968",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 13
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-14T02:33:44Z",
+      "side": 1,
+      "message": "Thanks! Mostly nits.",
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6878e392_4ff02ffa",
+        "filename": "golden/modules/cluster-digests-sk/cluster-digests-sk_puppeteer_test.ts",
+        "patchSetId": 13
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-14T02:33:44Z",
+      "side": 1,
+      "message": "As discussed, let\u0027s land this as is and then refactor these into a PageObject after we add support for shift-clicking (and any other keybaord modifiers).",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 0
+      },
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "11e6518c_aff101be",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-14T02:33:44Z",
+      "side": 1,
+      "message": "Nit: Any chance you could indent these? It\u0027s a bit hard to read as is.\n\n  if (!ele._selectedDigests.length) {\n    return html`  \n      \u003cdiv\u003eClick on one digest ...\u003c/div\u003e\n      ...\n      \u003cparamset-sk ...\u003e\u003c/paramset-sk\u003e`;\n  }\n\nSame elsewhere.",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 96
+      },
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26997313_b44b0423",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-14T02:33:44Z",
+      "side": 1,
+      "message": "Nit: Please indent so text starts on the same column as the previous line (as e.g. on line 31).",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 6
+      },
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e1e146fe_e1ef7d79",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-14T02:33:44Z",
+      "side": 1,
+      "message": "Nit: Please indent as suggested above.",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 6
+      },
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "53768167_ab2eb81c",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-14T02:33:44Z",
+      "side": 1,
+      "message": "Nit: values",
+      "range": {
+        "startLine": 84,
+        "startChar": 10,
+        "endLine": 84,
+        "endChar": 18
+      },
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b9c58ccc_8b0112a2",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-14T02:33:44Z",
+      "side": 1,
+      "message": "Nit:\n      if (!existing.includes(value)) {\n        existing.push(value);\n      }",
+      "range": {
+        "startLine": 86,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 27
+      },
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "616e64fa_171c2a1a",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-14T02:33:44Z",
+      "side": 1,
+      "message": "search-controls-sk expects a valid SearchCriteria (all fields are required).\n\nI recommend explicitly initializing this with a valid search criteria with the Gold instance\u0027s default corpus, empty trace filters, all booleans set to false, etc.\n\nRationale:\n- The incomplete object works for now \"by chance\", but this is not part of the component\u0027s contract and will likely break in the future.\n- We\u0027ll have to do this anyway when we add types to this file.",
+      "range": {
+        "startLine": 107,
+        "startChar": 4,
+        "endLine": 109,
+        "endChar": 6
+      },
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51ed9471_0872d015",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk_puppeteer_test.ts",
+        "patchSetId": 13
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-14T02:33:44Z",
+      "side": 1,
+      "message": "Nit: Please call this eventPromise (defacto convention), or makeEventPromise.",
+      "range": {
+        "startLine": 17,
+        "startChar": 6,
+        "endLine": 17,
+        "endChar": 20
+      },
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
