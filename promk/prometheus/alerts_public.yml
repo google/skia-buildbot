@@ -78,6 +78,16 @@ groups:
     annotations:
       description: 'Fiddle is experiencing heavy load and has insufficient idle fiddler pods. https://skia.googlesource.com/buildbot/%2B/master/fiddlek/PROD.md#fiddler_pods'
 
+  - alert: NamedFiddlesFailing
+    expr: named_fiddles_total_invalid > 0
+    for: 15m
+    labels:
+      category: infra
+      severity: warning
+      owner: jcgregorio@google.com
+    annotations:
+      description: 'Some named fiddles are failing. Visit https://named-fiddles.skia.org to see which ones.'
+
   - alert: FiddlerPodCommunicationErrors
     expr: rate(run_exhaustion[20m]) * 20 * 60 > 5
     for: 5m

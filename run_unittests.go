@@ -430,6 +430,7 @@ func main() {
 	tests = append(tests, cmdTest([]string{"go", "run", "infra/bots/gen_tasks.go", "--test"}, ".", "gen_tasks.go --test", unittest.SMALL_TEST))
 	tests = append(tests, cmdTest([]string{"python", "go/testutils/unittest/uncategorized_tests.py"}, ".", "uncategorized tests", unittest.SMALL_TEST))
 	if runtime.GOOS == "linux" {
+		tests = append(tests, cmdTest([]string{"make", "testci"}, "named-fiddles", "named-fiddles elements", unittest.MEDIUM_TEST))
 		tests = append(tests, cmdTest([]string{"make", "test-frontend-ci"}, ".", "front-end tests", unittest.MEDIUM_TEST))
 		tests = append(tests, cmdTest([]string{"make", "validate"}, "proberk", "validate probers", unittest.SMALL_TEST))
 		tests = append(tests, cmdTest([]string{"make"}, "licenses", "check go package licenses", unittest.MEDIUM_TEST))
