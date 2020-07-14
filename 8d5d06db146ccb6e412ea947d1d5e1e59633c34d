@@ -65,6 +65,30 @@
     },
     {
       "key": {
+        "uuid": "8865459d_ce9db1f8",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-14T18:25:08Z",
+      "side": 1,
+      "message": "I generally move my html in templates to be all the way left aligned. It makes me pretend it\u0027s normal HTML a little better than a string.",
+      "parentUuid": "11e6518c_aff101be",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 96
+      },
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "26997313_b44b0423",
         "filename": "golden/modules/cluster-page-sk/cluster-page-sk.js",
         "patchSetId": 13
@@ -85,6 +109,30 @@
       "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de712930_f8ad504d",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-14T18:25:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "26997313_b44b0423",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 50,
+        "endChar": 6
+      },
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -111,6 +159,30 @@
     },
     {
       "key": {
+        "uuid": "c4631fa8_2a4f5a2b",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-14T18:25:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e1e146fe_e1ef7d79",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 6
+      },
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "53768167_ab2eb81c",
         "filename": "golden/modules/cluster-page-sk/cluster-page-sk.js",
         "patchSetId": 13
@@ -131,6 +203,30 @@
       "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bece9118_22e18615",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-14T18:25:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "53768167_ab2eb81c",
+      "range": {
+        "startLine": 84,
+        "startChar": 10,
+        "endLine": 84,
+        "endChar": 18
+      },
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -157,6 +253,30 @@
     },
     {
       "key": {
+        "uuid": "1f8ff764_c605307b",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-14T18:25:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b9c58ccc_8b0112a2",
+      "range": {
+        "startLine": 86,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 27
+      },
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "616e64fa_171c2a1a",
         "filename": "golden/modules/cluster-page-sk/cluster-page-sk.js",
         "patchSetId": 13
@@ -180,6 +300,30 @@
     },
     {
       "key": {
+        "uuid": "c50f3b66_3586cd90",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-14T18:25:08Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "616e64fa_171c2a1a",
+      "range": {
+        "startLine": 107,
+        "startChar": 4,
+        "endLine": 109,
+        "endChar": 6
+      },
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "51ed9471_0872d015",
         "filename": "golden/modules/cluster-page-sk/cluster-page-sk_puppeteer_test.ts",
         "patchSetId": 13
@@ -191,6 +335,30 @@
       "writtenOn": "2020-07-14T02:33:44Z",
       "side": 1,
       "message": "Nit: Please call this eventPromise (defacto convention), or makeEventPromise.",
+      "range": {
+        "startLine": 17,
+        "startChar": 6,
+        "endLine": 17,
+        "endChar": 20
+      },
+      "revId": "8d5d06db146ccb6e412ea947d1d5e1e59633c34d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8fecc183_2105c4af",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk_puppeteer_test.ts",
+        "patchSetId": 13
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-14T18:25:08Z",
+      "side": 1,
+      "message": "I dislike the \"eventPromise\" name - it isn\u0027t evocative as it could be. In a previous CL (cluster-digests-sk), I\u0027ve started calling this helper promiseFactory.",
+      "parentUuid": "51ed9471_0872d015",
       "range": {
         "startLine": 17,
         "startChar": 6,
