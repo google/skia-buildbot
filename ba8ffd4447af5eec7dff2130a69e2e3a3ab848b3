@@ -1326,6 +1326,30 @@
     },
     {
       "key": {
+        "uuid": "06c18d5d_b25f12f4",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 18
+      },
+      "lineNbr": 792,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-14T17:44:08Z",
+      "side": 1,
+      "message": "Hrm, I don\u0027t think we can actually use an enum here.  It\u0027s currently possible for each roller to define its own (subset of) valid modes, eg. the google3 roller can\u0027t be stopped or put into dry run mode.  Same with strategies.",
+      "parentUuid": "d7f21214_1d5d761d",
+      "range": {
+        "startLine": 792,
+        "startChar": 0,
+        "endLine": 792,
+        "endChar": 58
+      },
+      "revId": "ba8ffd4447af5eec7dff2130a69e2e3a3ab848b3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ed4e5f95_495a5fb4",
         "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
         "patchSetId": 18
