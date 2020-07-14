@@ -1,6 +1,6 @@
-import { Status } from './arb-status-sk';
+import { AutoRollStatus } from '../rpc_types';
 
-export const fakeStatus: Status = JSON.parse(String.raw`{
+export const fakeStatus: AutoRollStatus = JSON.parse(String.raw`{
     "childHead": "",
     "childName": "Skia",
     "config": {

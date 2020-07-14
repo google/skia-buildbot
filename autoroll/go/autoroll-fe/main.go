@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/roller"
+	"go.skia.org/infra/autoroll/go/rpc_types"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/autoroll/go/unthrottle"
@@ -82,22 +83,6 @@ type autoroller struct {
 	Strategy *strategy.StrategyHistory
 }
 
-// Union types for combining roller status with modes and strategies.
-type autoRollStatus struct {
-	*status.AutoRollStatus
-	Config         *roller.AutoRollerConfig    `json:"config"`
-	ManualRequests []*manual.ManualRollRequest `json:"manualRequests"`
-	Mode           *modes.ModeChange           `json:"mode"`
-	Strategy       *strategy.StrategyChange    `json:"strategy"`
-}
-
-type autoRollMiniStatus struct {
-	*status.AutoRollMiniStatus
-	ChildName  string `json:"childName,omitempty"`
-	Mode       string `json:"mode"`
-	ParentName string `json:"parentName,omitempty"`
-}
-
 func reloadTemplates() {
 	if *resourcesDir == "" {
 		wd, err := os.Getwd()
@@ -120,10 +105,6 @@ func reloadTemplates() {
 	))
 }
 
-func Init() {
-	reloadTemplates()
-}
-
 func getRoller(w http.ResponseWriter, r *http.Request) *autoroller {
 	name, ok := mux.Vars(r)["roller"]
 	if !ok {
@@ -138,17 +119,14 @@ func getRoller(w http.ResponseWriter, r *http.Request) *autoroller {
 	return roller
 }
 
-func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
+func modeJSONHandler(w http.ResponseWriter, r *http.Request) {
 	roller := getRoller(w, r)
 	if roller == nil {
 		// Errors are handled by getRoller().
 		return
 	}
 
-	var mode struct {
-		Message string `json:"message"`
-		Mode    string `json:"mode"`
-	}
+	var mode rpc_types.AutoRollModeChangeRequest
 	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(&mode); err != nil {
 		httputils.ReportError(w, err, "Failed to decode request body.", http.StatusInternalServerError)
@@ -161,20 +139,17 @@ func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return the ARB status.
-	statusJsonHandler(w, r)
+	statusJSONHandler(w, r)
 }
 
-func strategyJsonHandler(w http.ResponseWriter, r *http.Request) {
+func strategyJSONHandler(w http.ResponseWriter, r *http.Request) {
 	roller := getRoller(w, r)
 	if roller == nil {
 		// Errors are handled by getRoller().
 		return
 	}
 
-	var strategy struct {
-		Message  string `json:"message"`
-		Strategy string `json:"strategy"`
-	}
+	var strategy rpc_types.AutoRollStrategyChangeRequest
 	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(&strategy); err != nil {
 		httputils.ReportError(w, err, "Failed to decode request body.", http.StatusInternalServerError)
@@ -187,10 +162,10 @@ func strategyJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return the ARB status.
-	statusJsonHandler(w, r)
+	statusJSONHandler(w, r)
 }
 
-func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
+func statusJSONHandler(w http.ResponseWriter, r *http.Request) {
 	roller := getRoller(w, r)
 	if roller == nil {
 		// Errors are handled by getRoller().
@@ -223,7 +198,7 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Encode response.
-	if err := json.NewEncoder(w).Encode(&autoRollStatus{
+	if err := json.NewEncoder(w).Encode(&rpc_types.AutoRollStatus{
 		AutoRollStatus: status,
 		Config:         roller.Cfg,
 		ManualRequests: manualRequests,
@@ -235,7 +210,7 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func miniStatusJsonHandler(w http.ResponseWriter, r *http.Request) {
+func miniStatusJSONHandler(w http.ResponseWriter, r *http.Request) {
 	roller := getRoller(w, r)
 	if roller == nil {
 		// Errors are handled by getRoller().
@@ -245,7 +220,7 @@ func miniStatusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	status := roller.Status.GetMini()
 	mode := roller.Mode.CurrentMode()
-	if err := json.NewEncoder(w).Encode(&autoRollMiniStatus{
+	if err := json.NewEncoder(w).Encode(&rpc_types.AutoRollMiniStatus{
 		AutoRollMiniStatus: status,
 		Mode:               mode.Mode,
 	}); err != nil {
@@ -292,8 +267,8 @@ func rollerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getAllMiniStatuses() map[string]*autoRollMiniStatus {
-	statuses := make(map[string]*autoRollMiniStatus, len(rollers))
+func getAllMiniStatuses() rpc_types.AutoRollMiniStatuses {
+	statuses := make(rpc_types.AutoRollMiniStatuses, len(rollers))
 	for name, roller := range rollers {
 		status := roller.Status.GetMini()
 		mode := roller.Mode.CurrentMode()
@@ -301,7 +276,7 @@ func getAllMiniStatuses() map[string]*autoRollMiniStatus {
 		if mode != nil {
 			modeStr = mode.Mode
 		}
-		statuses[name] = &autoRollMiniStatus{
+		statuses[name] = &rpc_types.AutoRollMiniStatus{
 			AutoRollMiniStatus: status,
 			ChildName:          roller.Cfg.ChildDisplayName,
 			Mode:               modeStr,
@@ -354,12 +329,12 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		reloadTemplates()
 	}
 	page := struct {
-		Rollers map[string]*autoRollMiniStatus
+		Rollers rpc_types.AutoRollMiniStatuses
 	}{
 		Rollers: getAllMiniStatuses(),
 	}
 	if err := mainTemplate.Execute(w, page); err != nil {
-		httputils.ReportError(w, errors.New("Failed to expand template."), fmt.Sprintf("Failed to expand template: %s", err), http.StatusInternalServerError)
+		httputils.ReportError(w, errors.New("failed to expand template"), fmt.Sprintf("failed to expand template: %s", err), http.StatusInternalServerError)
 	}
 }
 
@@ -384,11 +359,11 @@ func runServer(ctx context.Context, serverURL string) {
 
 	rollerRouter := r.PathPrefix("/r/{roller}").Subrouter()
 	rollerRouter.HandleFunc("", httputils.OriginTrial(rollerHandler, *local))
-	rollerRouter.HandleFunc("/json/ministatus", httputils.CorsHandler(miniStatusJsonHandler))
-	rollerRouter.HandleFunc("/json/status", httputils.CorsHandler(statusJsonHandler))
-	rollerRouter.Handle("/json/mode", login.RestrictEditorFn(modeJsonHandler)).Methods("POST")
+	rollerRouter.HandleFunc("/json/ministatus", httputils.CorsHandler(miniStatusJSONHandler))
+	rollerRouter.HandleFunc("/json/status", httputils.CorsHandler(statusJSONHandler))
+	rollerRouter.Handle("/json/mode", login.RestrictEditorFn(modeJSONHandler)).Methods("POST")
 	rollerRouter.Handle("/json/manual", login.RestrictEditorFn(newManualRollHandler)).Methods("POST")
-	rollerRouter.Handle("/json/strategy", login.RestrictEditorFn(strategyJsonHandler)).Methods("POST")
+	rollerRouter.Handle("/json/strategy", login.RestrictEditorFn(strategyJSONHandler)).Methods("POST")
 	rollerRouter.Handle("/json/unthrottle", login.RestrictEditorFn(unthrottleHandler)).Methods("POST")
 	h := httputils.LoggingGzipRequestResponse(r)
 	if !*local {
@@ -411,7 +386,7 @@ func main() {
 	)
 	defer common.Defer()
 
-	Init()
+	reloadTemplates()
 	skiaversion.MustLogVersion()
 
 	if *hang {

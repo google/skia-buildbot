@@ -13,15 +13,7 @@ import { define } from 'elements-sk/define'
 import 'elements-sk/styles/table';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-
-
-export class Roller {
-  mode: string = "";
-  childName: string = "";
-  parentName: string = "";
-  numBehind: number = 0;
-  numFailed: number = 0;
-}
+import { AutoRollMiniStatuses } from '../rpc_types';
 
 export class ARBTableSk extends ElementSk {
   private static template = (ele: ARBTableSk) => html`
@@ -44,7 +36,7 @@ export class ARBTableSk extends ElementSk {
   `)}
   </table>
 `;
-  private _rollers: {[key:string]: Roller} = {};
+  private _rollers: AutoRollMiniStatuses = {};
 
   constructor() {
     super(ARBTableSk.template);
@@ -57,7 +49,7 @@ export class ARBTableSk extends ElementSk {
   }
 
   get rollers() { return this._rollers; }
-  set rollers(val: {[key:string]: Roller}) {
+  set rollers(val: AutoRollMiniStatuses) {
     this._rollers = val;
     this._render();
   }
