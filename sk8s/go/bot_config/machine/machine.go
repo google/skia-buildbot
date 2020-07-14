@@ -44,6 +44,9 @@ type Machine struct {
 	// KubernetesImage is the container image being run.
 	KubernetesImage string
 
+	// startTime is the time when this machine started running.
+	startTime time.Time
+
 	// Metrics
 	interrogateTimer           metrics2.Float64SummaryMetric
 	interrogateAndSendFailures metrics2.Counter
@@ -61,7 +64,7 @@ type Machine struct {
 }
 
 // New return an instance of *Machine.
-func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) (*Machine, error) {
+func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig, startTime time.Time) (*Machine, error) {
 	store, err := store.New(ctx, false, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to build store instance.")
@@ -86,6 +89,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 		MachineID:                  machineID,
 		Hostname:                   hostname,
 		KubernetesImage:            kubernetesImage,
+		startTime:                  startTime,
 		interrogateTimer:           metrics2.GetFloat64SummaryMetric("bot_config_machine_interrogate_timer", map[string]string{"machine": machineID}),
 		interrogateAndSendFailures: metrics2.GetCounter("bot_config_machine_interrogate_and_send_errors", map[string]string{"machine": machineID}),
 		storeWatchArrivalCounter:   metrics2.GetCounter("bot_config_machine_store_watch_arrival", map[string]string{"machine": machineID}),
@@ -120,6 +124,8 @@ func (m *Machine) interrogate(ctx context.Context) machine.Event {
 	}
 
 	ret.RunningSwarmingTask = m.runningTask
+
+	ret.Host.StartTime = m.startTime
 
 	return ret
 }
