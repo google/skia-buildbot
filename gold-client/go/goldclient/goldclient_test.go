@@ -853,8 +853,7 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 	httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse([]byte(latestPositiveDigestResponse), "200 OK", http.StatusOK), nil)
 
 	// Mock out downloading the latest positive digest returned by the previous mocked RPC.
-	const latestPositiveDigestGcsPath = "gs://skia-gold-testing/dm-images-v1/" + string(latestPositiveImageHash) + ".png"
-	downloader.On("Download", testutils.AnyContext, latestPositiveDigestGcsPath, filepath.Join(wd, digestsDirectory)).Return(latestPositiveImageBytes, nil)
+	downloader.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", latestPositiveImageHash).Return(latestPositiveImageBytes, nil)
 
 	// Mock out RPC to automatically triage the new image as positive.
 	body := bytes.NewReader([]byte(`{"testDigestStatus":{"ThisIsTheOnlyTest":{"` + newImageHash + `":"positive"}},"issue":"867","imageMatchingAlgorithm":"fuzzy"}`))
@@ -1338,9 +1337,9 @@ func TestDiffSunnyDay(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/digests?test=This+IsTheOnly+Test&corpus=This+Has+spaces").Return(digests, nil)
 
 	img2 := imageToPngBytes(t, image2)
-	dlr.On("Download", testutils.AnyContext, "gs://skia-gold-testing/dm-images-v1/"+rightHash+".png", mock.Anything).Return(img2, nil)
+	dlr.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", types.Digest(rightHash)).Return(img2, nil)
 	img3 := imageToPngBytes(t, image3)
-	dlr.On("Download", testutils.AnyContext, "gs://skia-gold-testing/dm-images-v1/"+otherHash+".png", mock.Anything).Return(img3, nil)
+	dlr.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", types.Digest(otherHash)).Return(img3, nil)
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
@@ -1372,8 +1371,8 @@ func TestDiffCaching(t *testing.T) {
 
 	const corpus = "whatever"
 	const testName = types.TestName("ThisIsTheOnlyTest")
-	const rightHash = "bbb0dc56d0429ef3586629787666ce09"
-	const otherHash = "ccc2912653148661835084a809fee263"
+	const rightHash = types.Digest("bbb0dc56d0429ef3586629787666ce09")
+	const otherHash = types.Digest("ccc2912653148661835084a809fee263")
 
 	wd, cleanup := testutils.TempDir(t)
 	outDir := filepath.Join(wd, "out")
@@ -1395,9 +1394,9 @@ func TestDiffCaching(t *testing.T) {
 	}, nil).Twice()
 
 	img2 := imageToPngBytes(t, image2)
-	dlr.On("Download", testutils.AnyContext, "gs://skia-gold-testing/dm-images-v1/"+rightHash+".png", mock.Anything).Return(img2, nil).Once()
+	dlr.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", rightHash).Return(img2, nil)
 	img3 := imageToPngBytes(t, image3)
-	dlr.On("Download", testutils.AnyContext, "gs://skia-gold-testing/dm-images-v1/"+otherHash+".png", mock.Anything).Return(img3, nil).Once()
+	dlr.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", otherHash).Return(img3, nil)
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
@@ -1632,7 +1631,7 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Succ
 
 	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/latestpositivedigest/,name=my_test,"
 	const latestPositiveDigestResponse = `{"digest":"22222222222222222222222222222222"}`
-	const latestPositiveDigestGcsPath = "gs://skia-gold-testing/dm-images-v1/22222222222222222222222222222222.png"
+	const latestPositiveDigest = types.Digest("22222222222222222222222222222222")
 	latestPositiveImageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
 	2 2
 	0x00000000 0x00000000
@@ -1675,13 +1674,13 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Succ
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			goldClient, cleanup, httpClient, gcsClient := makeGoldClientForMatchImageAgainstBaselineTests(t)
+			goldClient, cleanup, httpClient, dlr := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer cleanup()
 			defer httpClient.AssertExpectations(t)
-			defer gcsClient.AssertExpectations(t)
+			defer dlr.AssertExpectations(t)
 
 			httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse([]byte(latestPositiveDigestResponse), "200 OK", http.StatusOK), nil)
-			gcsClient.On("Download", testutils.AnyContext, latestPositiveDigestGcsPath, filepath.Join(goldClient.workDir, digestsDirectory)).Return(latestPositiveImageBytes, nil)
+			dlr.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", latestPositiveDigest).Return(latestPositiveImageBytes, nil)
 
 			optionalKeys := map[string]string{
 				imgmatching.AlgorithmNameOptKey:         string(imgmatching.FuzzyMatching),
@@ -1827,7 +1826,7 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage
 
 	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/latestpositivedigest/,name=my_test,"
 	const latestPositiveDigestResponse = `{"digest":"22222222222222222222222222222222"}`
-	const latestPositiveDigestGcsPath = "gs://skia-gold-testing/dm-images-v1/22222222222222222222222222222222.png"
+	const latestPositiveDigest = types.Digest("22222222222222222222222222222222")
 	latestPositiveImageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
 	8 8
 	0x44 0x44 0x44 0x44 0x44 0x44 0x49 0x83
@@ -1841,13 +1840,13 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage
 
 	test := func(name, edgeThreshold string, expected bool) {
 		t.Run(name, func(t *testing.T) {
-			goldClient, cleanup, httpClient, gcsClient := makeGoldClientForMatchImageAgainstBaselineTests(t)
+			goldClient, cleanup, httpClient, dlr := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer cleanup()
 			defer httpClient.AssertExpectations(t)
-			defer gcsClient.AssertExpectations(t)
+			defer dlr.AssertExpectations(t)
 
 			httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse([]byte(latestPositiveDigestResponse), "200 OK", http.StatusOK), nil)
-			gcsClient.On("Download", testutils.AnyContext, latestPositiveDigestGcsPath, filepath.Join(goldClient.workDir, digestsDirectory)).Return(latestPositiveImageBytes, nil)
+			dlr.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", latestPositiveDigest).Return(latestPositiveImageBytes, nil)
 
 			optionalKeys := map[string]string{
 				imgmatching.AlgorithmNameOptKey:         string(imgmatching.SobelFuzzyMatching),
@@ -1955,11 +1954,10 @@ func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsImageFromGCS_Su
 	assert.NoError(t, err)
 
 	const digest = types.Digest("11111111111111111111111111111111")
-	const digestGcsPath = "gs://skia-gold-testing/dm-images-v1/11111111111111111111111111111111.png"
 	digestImage := image1
 	digestBytes := imageToPngBytes(t, image1)
 
-	gcsDownloader.On("Download", testutils.AnyContext, digestGcsPath, filepath.Join(wd, digestsDirectory)).Return(digestBytes, nil)
+	gcsDownloader.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", digest).Return(digestBytes, nil)
 
 	actualImage, actualBytes, err := goldClient.getDigestFromCacheOrGCS(context.Background(), digest)
 	assert.NoError(t, err)
@@ -1983,10 +1981,9 @@ func TestCloudClient_GetDigestFromCacheOrGCS_NotInCache_DownloadsCorruptedImageF
 	assert.NoError(t, err)
 
 	const digest = types.Digest("11111111111111111111111111111111")
-	const digestGcsPath = "gs://skia-gold-testing/dm-images-v1/11111111111111111111111111111111.png"
 	digestBytes := []byte("corrupted image")
 
-	gcsDownloader.On("Download", testutils.AnyContext, digestGcsPath, filepath.Join(wd, digestsDirectory)).Return(digestBytes, nil)
+	gcsDownloader.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", digest).Return(digestBytes, nil)
 
 	_, _, err = goldClient.getDigestFromCacheOrGCS(context.Background(), digest)
 	assert.Error(t, err)
@@ -1999,8 +1996,7 @@ func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsImageFromDisk_Success(
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, _, _, gcsDownloader := makeMocks()
-	gcsDownloader.AssertExpectations(t) // Assert that the GCSDownloader is never used.
+	auth, _, _, _ := makeMocks()
 
 	goldClient, err := NewCloudClient(auth, GoldClientConfig{
 		WorkDir:    wd,
@@ -2032,8 +2028,7 @@ func TestCloudClient_GetDigestFromCacheOrGCS_InCache_ReadsCorruptedImageFromDisk
 	wd, cleanup := testutils.TempDir(t)
 	defer cleanup()
 
-	auth, _, _, gcsDownloader := makeMocks()
-	gcsDownloader.AssertExpectations(t) // Assert that the GCSDownloader is never used.
+	auth, _, _, _ := makeMocks()
 
 	goldClient, err := NewCloudClient(auth, GoldClientConfig{
 		WorkDir:    wd,
@@ -2287,14 +2282,14 @@ func TestCloudClient_MostRecentPositiveDigest_InternalServerError_Failure(t *tes
 	assert.Contains(t, err.Error(), "500")
 }
 
-func makeMocks() (AuthOpt, *mocks.HTTPClient, *mocks.GCSUploader, *mocks.GCSDownloader) {
+func makeMocks() (AuthOpt, *mocks.HTTPClient, *mocks.GCSUploader, *mocks.ImageDownloader) {
 	mh := mocks.HTTPClient{}
 	mg := mocks.GCSUploader{}
-	md := mocks.GCSDownloader{}
+	md := mocks.ImageDownloader{}
 	ma := fakeAuthOpt{
 		httpClient:    &mh,
 		gcsUploader:   &mg,
-		gcsDownloader: &md,
+		imgDownloader: &md,
 	}
 	return &ma, &mh, &mg, &md
 }
@@ -2305,7 +2300,7 @@ func makeMocks() (AuthOpt, *mocks.HTTPClient, *mocks.GCSUploader, *mocks.GCSDown
 type fakeAuthOpt struct {
 	httpClient    *mocks.HTTPClient
 	gcsUploader   *mocks.GCSUploader
-	gcsDownloader *mocks.GCSDownloader
+	imgDownloader *mocks.ImageDownloader
 }
 
 func (a *fakeAuthOpt) Validate() error {
@@ -2323,8 +2318,8 @@ func (a *fakeAuthOpt) GetGCSUploader() (GCSUploader, error) {
 	return a.gcsUploader, nil
 }
 
-func (a *fakeAuthOpt) GetGCSDownloader() (GCSDownloader, error) {
-	return a.gcsDownloader, nil
+func (a *fakeAuthOpt) GetImageDownloader() (ImageDownloader, error) {
+	return a.imgDownloader, nil
 }
 
 // loadGoldClient will load the cloudClient off the disk and returns it
@@ -2364,7 +2359,7 @@ func makeGoldClient(auth AuthOpt, passFail bool, uploadOnly bool, workDir string
 
 // makeGoldClientForMatchImageAgainstBaselineTests returns a new CloudClient to be used in
 // CloudClient#matchImageAgainstBaseline() tests.
-func makeGoldClientForMatchImageAgainstBaselineTests(t *testing.T) (*CloudClient, func(), *mocks.HTTPClient, *mocks.GCSDownloader) {
+func makeGoldClientForMatchImageAgainstBaselineTests(t *testing.T) (*CloudClient, func(), *mocks.HTTPClient, *mocks.ImageDownloader) {
 	wd, cleanup := testutils.TempDir(t)
 	auth, httpClient, _, gcsDownloader := makeMocks()
 	goldClient, err := NewCloudClient(auth, GoldClientConfig{

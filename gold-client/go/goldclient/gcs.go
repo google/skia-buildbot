@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/types"
 )
 
 const (
@@ -39,14 +40,7 @@ type GCSUploader interface {
 	UploadJSON(ctx context.Context, data interface{}, tempFileName, gcsObjectPath string) error
 }
 
-// GCSDownloader implementations provide functions to download from GCS.
-type GCSDownloader interface {
-	// Download returns the bytes belonging to a GCS file. If anything needs to be saved to
-	// disk (e.g. when using gsutil), it will be written to tempDir
-	Download(ctx context.Context, gcsFile, tempDir string) ([]byte, error)
-}
-
-// gsutilImpl implements the  GCSUploader and GCSDownloader interfaces.
+// gsutilImpl implements the  GCSUploader and ImageDownloader interfaces.
 type gsutilImpl struct{}
 
 // UploadJSON serializes the given data to JSON and writes the result to the given
@@ -104,7 +98,7 @@ func (g *gsutilImpl) gsutilCmd(ctx context.Context, cmd ...string) error {
 	return nil
 }
 
-// Download implements the GCSDownloader interface.
+// Download implements the ImageDownloader interface.
 func (g *gsutilImpl) Download(ctx context.Context, gcsFile, tempDir string) ([]byte, error) {
 	tp := filepath.Join(tempDir, "temp.png")
 	if err := g.gsutilCmd(ctx, "cp", gcsFile, tp); err != nil {
@@ -113,7 +107,7 @@ func (g *gsutilImpl) Download(ctx context.Context, gcsFile, tempDir string) ([]b
 	return ioutil.ReadFile(tp)
 }
 
-// clientImpl implements the  GCSUploader and GCSDownloader interfaces using an authenticated
+// clientImpl implements the  GCSUploader and ImageDownloader interfaces using an authenticated
 // (via an OAuth service account) http client.
 type clientImpl struct {
 	client *gstorage.Client
@@ -175,7 +169,7 @@ func (h *clientImpl) uploadToGCS(ctx context.Context, data []byte, dst string) e
 	return w.Close()
 }
 
-// Download implements the GCSDownloader interface.
+// Download implements the ImageDownloader interface.
 func (h *clientImpl) Download(ctx context.Context, gcsFile, _ string) ([]byte, error) {
 	src := strings.TrimPrefix(gcsFile, gcsPrefix)
 	bucket, objPath := gcs.SplitGSPath(src)
@@ -193,7 +187,7 @@ func (h *clientImpl) Download(ctx context.Context, gcsFile, _ string) ([]byte, e
 	return b, nil
 }
 
-// dryRunImpl implements the GCSUploader and GCSDownloader interfaces (but doesn't
+// dryRunImpl implements the GCSUploader and ImageDownloader interfaces (but doesn't
 // actually upload or download anything)
 type dryRunImpl struct{}
 
@@ -209,7 +203,7 @@ func (h *dryRunImpl) UploadJSON(_ context.Context, _ interface{}, tempFileName, 
 	return nil
 }
 
-// Download implements the GCSDownloader interface.
-func (h *dryRunImpl) Download(_ context.Context, gcsFile, _ string) ([]byte, error) {
-	return nil, skerr.Fmt("Dry run download from %s", gcsFile)
+// Download implements the ImageDownloader interface.
+func (h *dryRunImpl) DownloadImage(_ context.Context, goldURL string, digest types.Digest) ([]byte, error) {
+	return nil, skerr.Fmt("Dry run download image %s from %s", digest, goldURL)
 }

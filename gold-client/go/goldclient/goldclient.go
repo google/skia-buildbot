@@ -758,14 +758,14 @@ func (c *CloudClient) getDigestFromCacheOrGCS(ctx context.Context, digest types.
 
 	// Download and cache digest if it wasn't found on the cache.
 	if os.IsNotExist(err) {
-		downloader, err := c.auth.GetGCSDownloader()
+		downloader, err := c.auth.GetImageDownloader()
 		if err != nil {
 			return nil, nil, skerr.Wrap(err)
 		}
 
 		// Download digest.
 		digestGcsPath := c.resultState.getGCSImagePath(digest)
-		digestBytes, err = downloader.Download(ctx, digestGcsPath, cachePath)
+		digestBytes, err = downloader.DownloadImage(ctx, c.resultState.GoldURL, digest)
 		if err != nil {
 			return nil, nil, skerr.Wrapf(err, "downloading %s", digestGcsPath)
 		}
