@@ -5,6 +5,7 @@ import { fetchMock } from 'fetch-mock';
 import {
   eventPromise,
   expectQueryStringToEqual,
+  setQueryString,
   setUpElementUnderTest,
 } from '../../../infra-sk/modules/test_util';
 import { fakeNow, ignoreRules_10 } from './test_data';
@@ -200,12 +201,6 @@ describe('ignores-page-sk', () => {
     });
   });
 });
-
-function setQueryString(q) {
-  history.pushState(
-    null, '', window.location.origin + window.location.pathname + q,
-  );
-}
 
 function findUntriagedDigestsCheckbox(ele) {
   return $$('.controls checkbox-sk', ele);

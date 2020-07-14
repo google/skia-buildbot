@@ -20,7 +20,7 @@ import { expect } from 'chai';
  * The returned factory function optionally takes a callback function that will
  * be called with the newly instantiated element before it is attached to the
  * DOM, giving client code a chance to finish setting up the element before e.g.
- * the element's connecetedCallback() method is invoked.
+ * the element's connectedCallback() method is invoked.
  *
  * Sample usage:
  *
@@ -201,4 +201,13 @@ function buildEventPromise<T extends Event | void>(
  */
 export function expectQueryStringToEqual(expected: string) {
   expect(window.location.search).to.equal(expected);
+}
+
+/**
+ * Sets the query string to be the provided value. Does *not* cause a page reload.
+ */
+export function setQueryString(q: string) {
+  history.pushState(
+      null, '', window.location.origin + window.location.pathname + q,
+  );
 }

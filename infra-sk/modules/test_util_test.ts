@@ -6,6 +6,7 @@ import {
   eventPromise,
   noEventPromise,
   expectQueryStringToEqual,
+  setQueryString,
 } from './test_util';
 
 describe('test utilities', () => {
@@ -211,6 +212,18 @@ describe('test utilities', () => {
       // push some query params
       history.pushState(null, '', '?foo=bar&alpha=beta&alpha=gamma');
       expectQueryStringToEqual('?foo=bar&alpha=beta&alpha=gamma');
+    });
+  });
+
+  describe('setQueryString', () => {
+    it('can set the query to be empty', () => {
+      setQueryString('');
+      expectQueryStringToEqual('');
+    });
+
+    it('can set the query to be not empty', () => {
+      setQueryString('?alpha=beta');
+      expectQueryStringToEqual('?alpha=beta');
     });
   });
 });

@@ -8,6 +8,7 @@ import {
 import {
   setUpElementUnderTest,
   eventPromise,
+  setQueryString,
   expectQueryStringToEqual,
 } from '../../../infra-sk/modules/test_util';
 import { testOnlySetSettings } from '../settings';
@@ -164,14 +165,6 @@ describe('byblame-page-sk', () => {
       });
   });
 });
-
-function setQueryString(string) {
-  history.pushState(
-    null,
-    '',
-    window.location.origin + window.location.pathname + string,
-  );
-}
 
 function selectCorpus(byblamePageSk, corpus) {
   const event = eventPromise('end-task');
