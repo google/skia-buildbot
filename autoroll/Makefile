@@ -2,20 +2,21 @@
 # containing the same, and generate, apply, and push Kubernetes configs
 # for the autorollers.
 
+include ../go/skiaversion/skiaversion.mk
 include ../kube/kube.mk
 
 .PHONY: autoroll-fe
-autoroll-fe:
+autoroll-fe: skiaversion
 	npm ci
 	npx webpack --mode=production
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-fe
 
 .PHONY: autoroll-be
-autoroll-be:
+autoroll-be: skiaversion
 	GOOS=linux go install -a ./go/autoroll-be
 
 .PHONY: autoroll-google3
-autoroll-google3:
+autoroll-google3: skiaversion
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-google3
 
 .PHONY: all
