@@ -9,7 +9,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/periodic"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -27,7 +26,6 @@ var (
 func main() {
 	common.Init()
 	defer common.Defer()
-	skiaversion.MustLogVersion()
 	ts, err := auth.NewDefaultTokenSource(*local, periodic.AUTH_SCOPE)
 	if err != nil {
 		sklog.Fatal(err)

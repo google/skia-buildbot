@@ -3,14 +3,12 @@ KGO := CGO_ENABLED=0 GOOS=linux go build
 .PHONY: default
 default: allgo
 
-include ../go/skiaversion/skiaversion.mk
-
 .PHONY: test
 test:
 	go test ./go/... -v
 
 .PHONY: allgo
-allgo: skiaversion
+allgo:
 	go install -v ./cmd/...
 
 .PHONY: release-goldctl-gcs

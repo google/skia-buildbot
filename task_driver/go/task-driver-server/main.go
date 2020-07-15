@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_driver/go/db"
 	bigtable_db "go.skia.org/infra/task_driver/go/db/bigtable"
@@ -230,7 +229,6 @@ func runServer(ctx context.Context, serverURL string) {
 	loadTemplates()
 	r := mux.NewRouter()
 	r.HandleFunc("/td/{taskId}", taskDriverHandler)
-	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
@@ -295,7 +293,6 @@ func main() {
 	if *project == "" {
 		sklog.Fatal("--project_id is required.")
 	}
-	skiaversion.MustLogVersion()
 	if *hang {
 		select {}
 	}

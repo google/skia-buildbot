@@ -2,7 +2,7 @@
 `app-sk` provides general application layout, introducing a
 responsive scaffold containing a header, toolbar, mtoolbar, rtoolbar, title and
 areas for application content, as well as automatic inclusion of
-common menu items, login status, and version tag.
+common menu items and login status.
 
 Example:
 
@@ -32,8 +32,6 @@ Properties:
 
   no_drawer - If true, no drawer panel is displayed at all.
 
-  no_version - If true, no version element is displayed.
-
   responsive_width - Screen width at which the paper-drawer-panel switches into
       narrow mode.
 
@@ -53,7 +51,6 @@ Events:
 <link rel="import" href="/res/imp/bower_components/paper-toolbar/paper-toolbar.html">
 <link rel="import" href="error-toast-sk.html">
 <link rel="import" href="login.html">
-<link rel="import" href="version-sk.html">
 <dom-module id="app-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
     paper-toolbar {
@@ -97,21 +94,11 @@ Events:
       <template is="dom-if" if="{{no_drawer}}">
         <div main id="mainContent" class="layout vertical">
           <content select="*"></content>
-          <template is="dom-if" if="{{_showVersion(no_version)}}">
-            <div class="layout horizontal">
-              <div class="flex"></div>
-              <version-sk></version-sk>
-            </div>
-          </template>
         </div>
       </template>
       <paper-drawer-panel id="drawerPanel" drawer-width="{{drawer_width}}" responsive-width="{{responsive_width}}" force-narrow$="{{force_narrow}}" narrow="{{narrow}}" hidden$="{{no_drawer}}">
         <div drawer id="drawer" class="vertical layout">
           <content id="navContent" select="[navigation], nav, [drawer], drawer"></content>
-          <template is="dom-if" if="{{_showVersion(no_version)}}">
-            <div class="flex"></div>
-            <version-sk></version-sk>
-          </template>
         </div>
         <div main id="mainContent" class="layout vertical">
           <content select="*"></content>
@@ -166,10 +153,6 @@ Events:
           type: Boolean,
           value: false,
         },
-        no_version: {
-          type: Boolean,
-          value: false,
-        },
         responsive_width: {
           type: String,
           value: "800px",
@@ -189,10 +172,6 @@ Events:
           return false;
         }
         return narrow;
-      },
-
-      _showVersion: function(no_version) {
-        return !no_version;
       },
 
       _headerStyle: function(isNarrow, height, responsive_height) {

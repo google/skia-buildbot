@@ -27,7 +27,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -620,7 +619,6 @@ func runServer(serverURL string) {
 	//r.HandleFunc("/json/taskCandidates/search", jsonTaskCandidateSearchHandler)
 	r.HandleFunc("/json/tasks/search", jsonTaskSearchHandler)
 	r.HandleFunc("/json/trigger", login.RestrictEditorFn(jsonTriggerHandler)).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/google2c59f97e1ced9fdc.html", googleVerificationHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
@@ -646,8 +644,6 @@ func main() {
 	defer common.Defer()
 
 	reloadTemplates()
-
-	skiaversion.MustLogVersion()
 
 	serverURL := "https://" + *host
 	if *local {

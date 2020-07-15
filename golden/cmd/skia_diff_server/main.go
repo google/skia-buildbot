@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/diffstore"
@@ -79,9 +78,6 @@ func main() {
 
 	_, appName := filepath.Split(os.Args[0])
 	common.InitWithMust(appName, opts...)
-
-	// Get the version of the repo.
-	skiaversion.MustLogVersion()
 
 	// Start the internal server on the internal port if requested.
 	if dsc.DebugPort != "" {

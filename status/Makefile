@@ -24,10 +24,10 @@ touch_elements:
 	rm -f res/js/core.js
 	touch elements.html
 
-testgo: skiaversion
+testgo:
 	go test ./go/... -v
 
-status: web skiaversion
+status: web
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/status
 
 release: status
@@ -43,6 +43,5 @@ push: release pushk
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
 
-include ../go/skiaversion/skiaversion.mk
 include ../webtools/webtools.mk
 include webpack/webpack.mk

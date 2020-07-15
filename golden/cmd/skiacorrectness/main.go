@@ -29,7 +29,6 @@ import (
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -204,7 +203,6 @@ func main() {
 
 	_, appName := filepath.Split(os.Args[0])
 	common.InitWithMust(appName, logOpts...)
-	skiaversion.MustLogVersion()
 
 	ctx := context.Background()
 
@@ -500,7 +498,6 @@ func main() {
 	loggedRouter.PathPrefix("/dist/").HandlerFunc(web.MakeResourceHandler(fsc.LitHTMLPath))
 	loggedRouter.HandleFunc(callbackPath, login.OAuth2CallbackHandler)
 
-	loggedRouter.HandleFunc("/json/version", skiaversion.JsonHandler)
 	loggedRouter.HandleFunc("/loginstatus/", login.StatusHandler)
 	loggedRouter.HandleFunc("/logout/", login.LogoutHandler)
 

@@ -15,7 +15,6 @@ import (
 	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/skolo/go/skmetadata"
 )
@@ -57,7 +56,6 @@ func main() {
 		APP_NAME,
 		common.PrometheusOpt(promPort),
 	)
-	skiaversion.MustLogVersion()
 
 	// TODO(borenet): Load these from a file?
 	var pm projectMetadataMap = map[string]string{

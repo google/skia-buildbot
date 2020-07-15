@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
 	"go.skia.org/infra/golden/go/clstore/fs_clstore"
@@ -71,7 +70,6 @@ func main() {
 
 	_, appName := filepath.Split(os.Args[0])
 	common.InitWithMust(appName, logOpts...)
-	skiaversion.MustLogVersion()
 	// Auth note: the underlying firestore.NewClient looks at the
 	// GOOGLE_APPLICATION_CREDENTIALS env variable, so we don't need to supply
 	// a token source.

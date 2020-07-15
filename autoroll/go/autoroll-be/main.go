@@ -38,7 +38,6 @@ import (
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
@@ -84,8 +83,6 @@ func main() {
 		sklog.Infof("--hang provided; doing nothing.")
 		httputils.RunHealthCheckServer(*port)
 	}
-
-	skiaversion.MustLogVersion()
 
 	// Rollers use a custom temporary dir, to ensure that it's on a
 	// persistent disk. Create it if it does not exist.

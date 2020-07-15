@@ -37,7 +37,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/status/go/capacity"
@@ -670,7 +669,6 @@ func runServer(serverURL string) {
 	r.HandleFunc("/capacity", httputils.OriginTrial(capacityHandler, *testing))
 	r.HandleFunc("/capacity/json", capacityStatsHandler)
 	r.HandleFunc("/json/autorollers", autorollStatusHandler)
-	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/{repo}/all_comments", commentsForRepoHandler)
 	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
 	r.HandleFunc("/json/{repo}/incremental", incrementalJsonHandler)
@@ -713,8 +711,6 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
-
-	skiaversion.MustLogVersion()
 
 	Init()
 	serverURL := "https://" + *host

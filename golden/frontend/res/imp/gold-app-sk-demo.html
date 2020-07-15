@@ -41,16 +41,6 @@
             LoginURL:"https://accounts.google.com/"
           }));
     });
-
-    // version requester.
-    server.respondWith("GET", "/json/version", function(request) {
-        request.respond(200, {"Content-Type":"application/json"},
-          JSON.stringify({
-            commit: "d316ad4ee47f4b0a6918cc3a3f215c40cf10d3d7",
-            date: "2016-02-01T13:36:37-05:00"
-          }));
-    });
-
   </script>
 
   <link rel="import" href="gold-app-sk.html">

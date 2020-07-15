@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
@@ -38,8 +37,6 @@ func main() {
 		common.MetricsLoggingOpt(),
 	)
 	defer common.Defer()
-
-	skiaversion.MustLogVersion()
 
 	if *webhookSalt == "" {
 		sklog.Fatal("--webhook_request_salt is required.")

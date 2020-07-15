@@ -1,5 +1,3 @@
-include ../go/skiaversion/skiaversion.mk
-
 # Go build command to build static binaries suitable for lean Alpine containers.
 KGO := CGO_ENABLED=0 GOOS=linux go build
 

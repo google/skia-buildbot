@@ -3,8 +3,6 @@ KGO := CGO_ENABLED=0 GOOS=linux go build
 .PHONY: default
 default: frontend allgo
 
-include ../go/skiaversion/skiaversion.mk
-
 .PHONY: packages
 packages:
 	go build -v ./go/...
@@ -65,7 +63,7 @@ serve:
 	npx webpack-dev-server --watch-poll --mode=development
 
 .PHONY: allgo
-allgo: skiaversion
+allgo:
 	go install -v ./cmd/...
 
 .PHONY: k8s-release-skiacorrectness
@@ -93,25 +91,25 @@ k8s-release-goldpushk-crashing-server: build-static-goldpushk-crashing-server
 	./k8s_release_goldpushk_crashing_server
 
 .PHONY: build-static-skiacorrectness
-build-static-skiacorrectness: skiaversion frontend
+build-static-skiacorrectness: frontend
 	mkdir -p ./build
 	rm -f ./build/skiacorrectness_k8s
 	$(KGO) -o build/skiacorrectness_k8s -a ./cmd/skiacorrectness/main.go
 
 .PHONY: build-static-baseline-server
-build-static-baseline-server: skiaversion
+build-static-baseline-server:
 	mkdir -p ./build
 	rm -f ./build/baseline_server_k8s
 	$(KGO) -o build/baseline_server_k8s -a ./cmd/baseline_server/main.go
 
 .PHONY: build-static-diffserver
-build-static-diffserver: skiaversion
+build-static-diffserver:
 	mkdir -p ./build
 	rm -f ./build/diff_server_k8s
 	$(KGO) -o build/diff_server_k8s -a ./cmd/skia_diff_server/main.go
 
 .PHONY: build-static-ingestion
-build-static-ingestion: skiaversion
+build-static-ingestion:
 	mkdir -p ./build
 	rm -f ./build/gold_ingestion_k8s
 	$(KGO) -o build/gold_ingestion_k8s -a ./cmd/gold_ingestion/main.go

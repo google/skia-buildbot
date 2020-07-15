@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/periodic"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
@@ -72,8 +71,6 @@ func main() {
 		common.MetricsLoggingOpt(),
 	)
 	defer common.Defer()
-
-	skiaversion.MustLogVersion()
 
 	serverURL := "https://" + *host
 	if *local {

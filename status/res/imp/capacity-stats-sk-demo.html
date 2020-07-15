@@ -86,9 +86,6 @@
 
     var login = {"Email":"test@google.com","LoginURL":"http://www.example.com","IsAGoogler":true};
     server.respondWith("GET","/loginstatus/", JSON.stringify(login));
-
-    var version = {"commit":"3e0fcf9b99baf4256851a6767bc6955266fc2369","date":"2016-02-19T13:57:18-05:00"};
-    server.respondWith("GET","/json/version", JSON.stringify(version));
   </script>
   <link rel="import" href="capacity-stats-sk.html">
   </head>
