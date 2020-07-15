@@ -15,6 +15,7 @@ func init() {
 	gob.Register(map[string]interface{}{})
 	gob.Register([]interface{}{})
 	gob.Register(td.LogData{})
+	gob.Register(td.TextData{})
 	gob.Register(td.ExecData{})
 	gob.Register(td.HttpRequestData{})
 	gob.Register(td.HttpResponseData{})
