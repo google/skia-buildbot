@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "30149dd8_c8186694",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-15T19:52:48Z",
+      "side": 1,
+      "message": "I have an idea for TextData. PTAL.",
+      "parentUuid": "bb70e842_38bea571",
+      "revId": "fbd1e9f8310de3151308bcf46012596e7ff29223",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4cc45892_3737b401",
         "filename": "infra-sk/modules/task-driver-sk/task-driver-sk.js",
         "patchSetId": 9
@@ -131,6 +149,30 @@
       "side": 1,
       "message": "I think I do prefer showing the URL, but I\u0027m okay waiting to see how it looks as-is.  FTR we could truncate the URL if necessary.",
       "parentUuid": "5713b50a_3d50421b",
+      "range": {
+        "startLine": 39,
+        "startChar": 51,
+        "endLine": 39,
+        "endChar": 55
+      },
+      "revId": "fbd1e9f8310de3151308bcf46012596e7ff29223",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5cdfc88b_9cbb323d",
+        "filename": "infra-sk/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-15T19:52:48Z",
+      "side": 1,
+      "message": "Changed to show the URL. We can add truncating later if required.",
+      "parentUuid": "a88ee0b2_cad99d04",
       "range": {
         "startLine": 39,
         "startChar": 51,
