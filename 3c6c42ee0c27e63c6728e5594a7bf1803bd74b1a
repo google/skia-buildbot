@@ -16,6 +16,24 @@
       "revId": "3c6c42ee0c27e63c6728e5594a7bf1803bd74b1a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2641ee34_d6b58b55",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-15T11:23:02Z",
+      "side": 1,
+      "message": "I removed the include from the Makefile, so the build was failing since these targets still depended on it.  The reason for skiaversion existing was to know what commit generated the executable, either via logging at the beginning of the run or a link on the UI.  We didn\u0027t really have any other way of doing this before Kubernetes, but now the commit is embedded in the name of the docker image and we have much more control and visibility overall.  I\u0027m planning to remove it in a follow-up CL, unless others object.  I think the only thing we might miss is the link on the UI, but the cost is that it prevents our builds from being reproducible.",
+      "parentUuid": "17f8a92a_96d5a11a",
+      "revId": "3c6c42ee0c27e63c6728e5594a7bf1803bd74b1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
