@@ -50,7 +50,7 @@ spec:
             - "--host={{.hostName}}"
             - "--port=:8000"
             - "--prom_port=:20000"
-            - "--resources_dir=/usr/local/share/autoroll"{{if eq .internal "true"}}
+            - "--resources_dir=/usr/local/share/autoroll-fe/dist"{{if eq .internal "true"}}
             - "--internal"{{end}}{{- range $index, $config := .configs}}
             - "--config={{$config.base64}}"{{- end}}
           ports:
