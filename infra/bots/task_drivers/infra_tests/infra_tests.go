@@ -114,6 +114,7 @@ func main() {
 	} else {
 		cmd = append(cmd, "--small")
 	}
+
 	if err := golang.Test(ctx, infraDir, cmd...); err != nil {
 		td.Fatal(ctx, err)
 	}
