@@ -16,6 +16,69 @@
       "revId": "fbd1e9f8310de3151308bcf46012596e7ff29223",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "994bfad4_30374455",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-15T18:33:00Z",
+      "side": 1,
+      "message": "LGTM with a couple of nits. Generally, I wonder if we could make this \"Text\" instead of \"Link\" and then linkify the text.",
+      "revId": "fbd1e9f8310de3151308bcf46012596e7ff29223",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "4cc45892_3737b401",
+        "filename": "infra-sk/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-15T18:33:00Z",
+      "side": 1,
+      "message": "Nit: Any reason not to put the URL here too?  That way it\u0027s obvious where you\u0027re going to go, without needing to hover or right click.",
+      "range": {
+        "startLine": 39,
+        "startChar": 51,
+        "endLine": 39,
+        "endChar": 55
+      },
+      "revId": "fbd1e9f8310de3151308bcf46012596e7ff29223",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6cb4973d_a5f25e8a",
+        "filename": "task_driver/go/td/step.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-15T18:33:00Z",
+      "side": 1,
+      "message": "Nit: I think I prefer \"StepLink\", but I don\u0027t feel strongly.",
+      "range": {
+        "startLine": 181,
+        "startChar": 5,
+        "endLine": 181,
+        "endChar": 16
+      },
+      "revId": "fbd1e9f8310de3151308bcf46012596e7ff29223",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
