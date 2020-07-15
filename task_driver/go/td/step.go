@@ -361,6 +361,47 @@ func (fs *FileStream) FilePath() string {
 	return fs.file.Name()
 }
 
+// LinkData is extra Step data for displaying a link at a step's top-level.
+type LinkData struct {
+	Link string `json:"link"`
+	Desc string `json:"desc"`
+}
+
+func linkCtx(ctx context.Context) context.Context {
+	return exec.NewContext(ctx, func(ctx context.Context, cmd *exec.Command) error {
+		name := strings.Join(append([]string{cmd.Name}, cmd.Args...), " ")
+
+		// Merge the command's env into that of its parent.
+		cmd.Env = MergeEnv(getCtx(ctx).env, cmd.Env)
+
+		return Do(ctx, Props(name).Env(cmd.Env), func(ctx context.Context) error {
+			// // Set up stdout and stderr streams.
+			// stdout := NewLogStream(ctx, "stdout", Info)
+			// if cmd.Stdout != nil {
+			// 	stdout = util.MultiWriter([]io.Writer{cmd.Stdout, stdout})
+			// }
+			// cmd.Stdout = stdout
+			// stderr := NewLogStream(ctx, "stderr", Error)
+			// if cmd.Stderr != nil {
+			// 	stderr = util.MultiWriter([]io.Writer{cmd.Stderr, stderr})
+			// }
+			// cmd.Stderr = stderr
+
+			// Collect step metadata about the command.
+			d := &ExecData{
+				Cmd: append([]string{cmd.Name}, cmd.Args...),
+				Env: cmd.Env,
+			}
+			// TODO: change this to the description???? where will you get the description from????
+			StepData(ctx, DATA_TYPE_LINK, d)
+
+			// TODO: What do I do over here????
+			// Run the command.
+			return getCtx(ctx).execRun(ctx, cmd)
+		})
+	})
+}
+
 // ExecData is extra Step data generated when executing commands through the
 // exec package.
 type ExecData struct {
