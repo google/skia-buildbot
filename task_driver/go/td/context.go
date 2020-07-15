@@ -68,6 +68,8 @@ func withChildCtx(ctx context.Context, child *Context) context.Context {
 	// Any time we set the parent step, env, or execRun, we need to set a
 	// new execCtx to ensure that exec has access to the new information.
 	ctx = execCtx(ctx)
+	// HERE HERE???
+	ctx = linkCtx(ctx)
 	return ctx
 }
 

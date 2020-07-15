@@ -114,9 +114,21 @@ func main() {
 	} else {
 		cmd = append(cmd, "--small")
 	}
-	if err := golang.Test(ctx, infraDir, cmd...); err != nil {
-		td.Fatal(ctx, err)
+
+	d := &td.LinkData{
+		Link: "google.com",
+		Desc: "Google home page",
 	}
+	td.StepData(ctx, "Google home page", d)
+	// TODO: change this to the description???? where will you get the description from????
+	// ctx.AddStepData(StepData(ctx, DATA_TYPE_LINK, d)
+
+	// HERE HER
+	// Add something here??
+
+	// if err := golang.Test(ctx, infraDir, cmd...); err != nil {
+	// 	td.Fatal(ctx, err)
+	// }
 
 	// Sanity check; none of the above should have modified the go.mod file.
 	if _, err := gd.Git(ctx, "diff", "--no-ext-diff", "--exit-code", "go.mod"); err != nil {
