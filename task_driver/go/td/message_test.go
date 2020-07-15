@@ -60,7 +60,22 @@ func TestMessageValidation(t *testing.T) {
 			Type:      MSG_TYPE_STEP_FINISHED,
 		}
 	}
-	msgStepData := func() *Message {
+	msgTextStepData := func() *Message {
+		return &Message{
+			Index:     int(atomic.AddInt32(&msgIndex, 1)),
+			StepId:    "fake-step-id",
+			TaskId:    "fake-task-id",
+			Timestamp: now,
+			Type:      MSG_TYPE_STEP_DATA,
+			Data: &TextData{
+				Text:   "www.google.com",
+				IsLink: true,
+				Desc:   "Google homepage",
+			},
+			DataType: DATA_TYPE_TEXT,
+		}
+	}
+	msgCommandStepData := func() *Message {
 		return &Message{
 			Index:     int(atomic.AddInt32(&msgIndex, 1)),
 			StepId:    "fake-step-id",
@@ -104,7 +119,8 @@ func TestMessageValidation(t *testing.T) {
 	nonRootStarted.Step.Parent = STEP_ID_ROOT
 	checkValid(nonRootStarted)
 	checkValid(msgStepFinished())
-	checkValid(msgStepData())
+	checkValid(msgTextStepData())
+	checkValid(msgCommandStepData())
 	checkValid(msgStepFailed())
 	checkValid(msgStepException())
 
@@ -161,17 +177,17 @@ func TestMessageValidation(t *testing.T) {
 		return m
 	}, fmt.Sprintf("StepId is required for %s", MSG_TYPE_STEP_FINISHED))
 	checkNotValid(func() *Message {
-		m := msgStepData()
+		m := msgCommandStepData()
 		m.StepId = ""
 		return m
 	}, fmt.Sprintf("StepId is required for %s", MSG_TYPE_STEP_DATA))
 	checkNotValid(func() *Message {
-		m := msgStepData()
+		m := msgCommandStepData()
 		m.Data = nil
 		return m
 	}, fmt.Sprintf("Data is required for %s", MSG_TYPE_STEP_DATA))
 	checkNotValid(func() *Message {
-		m := msgStepData()
+		m := msgCommandStepData()
 		m.DataType = "fake"
 		return m
 	}, "Invalid DataType \"fake\"")

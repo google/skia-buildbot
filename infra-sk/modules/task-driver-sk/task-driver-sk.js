@@ -34,6 +34,14 @@ function stepData(ele, s, d) {
       return propLine("HTTP Request", d.data.url);
     case "httpResponse":
       return propLine("HTTP Response", d.data.status);
+    case "text":
+      if (d.data.is_link) {
+        return propLine(d.data.desc, html`
+            <a href="${d.data.text}" target="_blank">${d.data.text}</a>
+        `);
+      } else {
+        return propLine(d.data.desc, d.data.text);
+      }
     case "log":
       return propLine("Log (" + d.data.name + ")", html`
           <a href="${ele._logLink(s.id, d.data.id)}" target="_blank">${d.data.name}</a>
