@@ -11,11 +11,11 @@ autoroll-fe:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-fe
 
 .PHONY: autoroll-be
-autoroll-be: skiaversion
+autoroll-be:
 	GOOS=linux go install -a ./go/autoroll-be
 
 .PHONY: autoroll-google3
-autoroll-google3: skiaversion
+autoroll-google3:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-google3
 
 .PHONY: all
