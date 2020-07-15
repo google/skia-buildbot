@@ -95,31 +95,39 @@ func main() {
 	sklog.Infof("Go version %s", goVer)
 
 	// Sync dependencies.
-	if err := golang.ModDownload(ctx, infraDir); err != nil {
-		td.Fatal(ctx, err)
-	}
-	if err := golang.InstallCommonDeps(ctx, infraDir); err != nil {
-		td.Fatal(ctx, err)
-	}
+	// if err := golang.ModDownload(ctx, infraDir); err != nil {
+	// 	td.Fatal(ctx, err)
+	// }
+	// if err := golang.InstallCommonDeps(ctx, infraDir); err != nil {
+	// 	td.Fatal(ctx, err)
+	// }
 
 	// Run the tests.
 	//cmd := []string{"run", "./run_unittests.go", "--alsologtostderr"}
-	cmd := []string{"./..."}
-	if strings.Contains(*taskName, "Race") {
-		cmd = append(cmd, "--race", "--large", "--medium", "--small")
-	} else if strings.Contains(*taskName, "Large") {
-		cmd = append(cmd, "--large")
-	} else if strings.Contains(*taskName, "Medium") {
-		cmd = append(cmd, "--medium")
-	} else {
-		cmd = append(cmd, "--small")
-	}
-	if err := golang.Test(ctx, infraDir, cmd...); err != nil {
-		td.Fatal(ctx, err)
-	}
+	// cmd := []string{"./..."}
+	// if strings.Contains(*taskName, "Race") {
+	// 	cmd = append(cmd, "--race", "--large", "--medium", "--small")
+	// } else if strings.Contains(*taskName, "Large") {
+	// 	cmd = append(cmd, "--large")
+	// } else if strings.Contains(*taskName, "Medium") {
+	// 	cmd = append(cmd, "--medium")
+	// } else {
+	// 	cmd = append(cmd, "--small")
+	// }
+
+	td.DisplayLink(ctx, "Google home page", "www.google.com")
+	// TODO: change this to the description???? where will you get the description from????
+	// ctx.AddStepData(StepData(ctx, DATA_TYPE_LINK, d)
+
+	// HERE HER
+	// Add something here??
+
+	// if err := golang.Test(ctx, infraDir, cmd...); err != nil {
+	// 	td.Fatal(ctx, err)
+	// }
 
 	// Sanity check; none of the above should have modified the go.mod file.
-	if _, err := gd.Git(ctx, "diff", "--no-ext-diff", "--exit-code", "go.mod"); err != nil {
-		td.Fatal(ctx, err)
-	}
+	// if _, err := gd.Git(ctx, "diff", "--no-ext-diff", "--exit-code", "go.mod"); err != nil {
+	// 	td.Fatal(ctx, err)
+	// }
 }
