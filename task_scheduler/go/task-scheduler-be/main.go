@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/isolate"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -78,8 +77,6 @@ func main() {
 		common.MetricsLoggingOpt(),
 	)
 	defer common.Defer()
-
-	skiaversion.MustLogVersion()
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 	cleanup.AtExit(cancelFn)

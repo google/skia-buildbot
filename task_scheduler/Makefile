@@ -10,23 +10,21 @@ CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
 	$(BOWER_DIR)/d3/d3.js \
 	../res/js/common.js
 
-
-include ../go/skiaversion/skiaversion.mk
 include ../kube/kube.mk
 
 .PHONY: all
 all: task-scheduler-be task-scheduler-fe task-scheduler-jc validate_db
 
 .PHONY: task-scheduler-be
-task-scheduler-be: skiaversion
+task-scheduler-be:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-scheduler-be
 
 .PHONY: task-scheduler-fe
-task-scheduler-fe: core_js elements_html skiaversion
+task-scheduler-fe: core_js elements_html
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-scheduler-fe
 
 .PHONY: task-scheduler-jc
-task-scheduler-jc: skiaversion
+task-scheduler-jc:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-scheduler-jc
 
 # Build debug versions of core.js and elements.html.
@@ -34,7 +32,7 @@ task-scheduler-jc: skiaversion
 debug: clean_webtools debug_core_js debug_elements_html
 
 .PHONY: task-scheduler-fe-debug
-task-scheduler-fe-debug: debug skiaversion
+task-scheduler-fe-debug: debug
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/task-scheduler-fe
 
 .PHONY: release-be

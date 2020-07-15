@@ -42,9 +42,6 @@
     var login = {"Email":"test@google.com","IsAdmin":true,"IsEditor":true,"IsViewer":true};
     server.respondWith("GET","/loginstatus/", JSON.stringify(login));
 
-    var version = {"commit":"3e0fcf9b99baf4256851a6767bc6955266fc2369","date":"2016-02-19T13:57:18-05:00"};
-    server.respondWith("GET","/json/version", JSON.stringify(version));
-
     var gold = { corpStatus: [
       {name: "svg", untriagedCount: 47, negativeCount:949 },
       {name: "colorImage", untriagedCount: 17, negativeCount:449 },

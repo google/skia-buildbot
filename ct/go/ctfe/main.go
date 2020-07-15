@@ -35,7 +35,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
@@ -121,7 +120,6 @@ func runServer(serverURL string) {
 	externalRouter.PathPrefix(ctfeutil.RESULTS_URI).HandlerFunc(resultsHandler)
 
 	// Common handlers used by different pages.
-	externalRouter.HandleFunc("/json/version", skiaversion.JsonHandler)
 	externalRouter.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
 	externalRouter.HandleFunc("/logout/", login.LogoutHandler)
 	externalRouter.HandleFunc("/loginstatus/", login.StatusHandler)
@@ -341,7 +339,6 @@ func main() {
 		common.PrometheusOpt(promPort),
 		common.MetricsLoggingOpt(),
 	)
-	skiaversion.MustLogVersion()
 	ctx := context.Background()
 
 	Init()

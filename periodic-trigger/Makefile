@@ -1,8 +1,7 @@
-include ../go/skiaversion/skiaversion.mk
 include ../kube/kube.mk
 
 .PHONY: build
-build: skiaversion
+build:
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/periodic-trigger
 
 .PHONY: release

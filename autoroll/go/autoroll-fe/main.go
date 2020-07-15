@@ -36,7 +36,6 @@ import (
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/option"
@@ -377,7 +376,6 @@ func runServer(ctx context.Context, serverURL string) {
 	r.HandleFunc("/", httputils.OriginTrial(mainHandler, *local))
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
 	r.HandleFunc("/json/all", jsonAllHandler)
-	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
@@ -412,7 +410,6 @@ func main() {
 	defer common.Defer()
 
 	Init()
-	skiaversion.MustLogVersion()
 
 	if *hang {
 		select {}

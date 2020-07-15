@@ -28,7 +28,6 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -310,7 +309,6 @@ func main() {
 
 	common.InitWithMust("android_compile", common.PrometheusOpt(promPort), common.MetricsLoggingOpt())
 	defer common.Defer()
-	skiaversion.MustLogVersion()
 	ctx := context.Background()
 
 	var err error

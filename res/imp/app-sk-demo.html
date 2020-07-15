@@ -9,9 +9,7 @@
   <script type="text/javascript">
     sk.get = function(url) {
       return new Promise(function (resolve, reject) {
-        if (url == "/json/version") {
-          resolve('{"commit":"abc123","date":"2015-09-28T10:15:48-04:00"}');
-        } else if (url == "/loginstatus/") {
+        if (url == "/loginstatus/") {
           resolve('{"Email":"user@google.com","LoginURL":"https://accounts.google.com/"}');
         } else {
           reject("no such URL: " + url);
