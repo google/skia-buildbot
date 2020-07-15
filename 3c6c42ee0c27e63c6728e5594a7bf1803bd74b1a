@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "17f8a92a_96d5a11a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-15T11:16:54Z",
+      "side": 1,
+      "message": "Does skiaversion no longer exist?",
+      "revId": "3c6c42ee0c27e63c6728e5594a7bf1803bd74b1a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
