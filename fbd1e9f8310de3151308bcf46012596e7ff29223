@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "5616e6a4_1b082106",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-15T18:42:00Z",
+      "side": 1,
+      "message": "Since we are linkifying it, I figured it would be better to be explicit and call it \"Link\".",
+      "parentUuid": "994bfad4_30374455",
+      "revId": "fbd1e9f8310de3151308bcf46012596e7ff29223",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4cc45892_3737b401",
         "filename": "infra-sk/modules/task-driver-sk/task-driver-sk.js",
         "patchSetId": 9
@@ -47,6 +65,30 @@
       "writtenOn": "2020-07-15T18:33:00Z",
       "side": 1,
       "message": "Nit: Any reason not to put the URL here too?  That way it\u0027s obvious where you\u0027re going to go, without needing to hover or right click.",
+      "range": {
+        "startLine": 39,
+        "startChar": 51,
+        "endLine": 39,
+        "endChar": 55
+      },
+      "revId": "fbd1e9f8310de3151308bcf46012596e7ff29223",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5713b50a_3d50421b",
+        "filename": "infra-sk/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 9
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-15T18:42:00Z",
+      "side": 1,
+      "message": "I was minorly worried that the URL might be very long in some cases making it ugly to look at. But can change if you prefer.",
+      "parentUuid": "4cc45892_3737b401",
       "range": {
         "startLine": 39,
         "startChar": 51,
@@ -79,6 +121,30 @@
       "revId": "fbd1e9f8310de3151308bcf46012596e7ff29223",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9b904fcf_58c9bb8d",
+        "filename": "task_driver/go/td/step.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-15T18:42:00Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "6cb4973d_a5f25e8a",
+      "range": {
+        "startLine": 181,
+        "startChar": 5,
+        "endLine": 181,
+        "endChar": 16
+      },
+      "revId": "fbd1e9f8310de3151308bcf46012596e7ff29223",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
