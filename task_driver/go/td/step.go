@@ -177,6 +177,15 @@ func StepData(ctx context.Context, typ DataType, d interface{}) {
 	getCtx(ctx).run.AddStepData(props.Id, typ, d)
 }
 
+// StepLink displays the provided link with the description in the Step's UI.
+func StepLink(ctx context.Context, desc, link string) {
+	d := &LinkData{
+		Desc: desc,
+		Link: link,
+	}
+	StepData(ctx, DATA_TYPE_LINK, d)
+}
+
 // Do is a convenience function which runs the given function as a Step. It
 // handles creation of the sub-step and calling EndStep() for you.
 func Do(ctx context.Context, props *StepProperties, fn func(context.Context) error) error {
@@ -359,6 +368,12 @@ func (fs *FileStream) Close() error {
 // Return the path to the logfile used by this FileStream.
 func (fs *FileStream) FilePath() string {
 	return fs.file.Name()
+}
+
+// LinkData is extra Step data for displaying a link in a step.
+type LinkData struct {
+	Desc string `json:"desc"`
+	Link string `json:"link"`
 }
 
 // ExecData is extra Step data generated when executing commands through the
