@@ -10,18 +10,16 @@ BOWER_DIR=third_party/bower_components
 
 VULCANIZE1=true
 
-include ../go/skiaversion/skiaversion.mk
-
 # Require clean_webtools to ensure changes to res/common/imp/*.html are reflected.
 .PHONY: ctfe
-ctfe: res/css/ctfe.css clean_webtools core_js elements_html skiaversion
+ctfe: res/css/ctfe.css clean_webtools core_js elements_html
 	cd ../infra-sk && npm ci
 	npm ci
 	npx webpack --mode=production
 	go install -v ./go/ctfe
 
 .PHONY: ctfe_debug
-ctfe_debug: res/css/ctfe.css debug skiaversion
+ctfe_debug: res/css/ctfe.css debug
 	npx webpack --mode=development
 	go install -v ./go/ctfe
 
