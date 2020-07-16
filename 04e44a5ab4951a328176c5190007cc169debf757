@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c8a84c9a_e4e31f69",
+        "filename": "infra-sk/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-16T11:06:24Z",
+      "side": 1,
+      "message": "Is it necessary to specify this?  Could we use escapeAndLinkify from infra-sk/modules/linkify.js instead?",
+      "range": {
+        "startLine": 38,
+        "startChar": 6,
+        "endLine": 38,
+        "endChar": 27
+      },
+      "revId": "04e44a5ab4951a328176c5190007cc169debf757",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a67668f7_60bc09b0",
+        "filename": "task_driver/go/td/step.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-16T11:06:24Z",
+      "side": 1,
+      "message": "Nit: it might be clearer if these were named \"label\" and \"value\" or some such.",
+      "range": {
+        "startLine": 182,
+        "startChar": 35,
+        "endLine": 182,
+        "endChar": 45
+      },
+      "revId": "04e44a5ab4951a328176c5190007cc169debf757",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
