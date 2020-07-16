@@ -9,9 +9,9 @@
   "author": "",
   "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
-    "common-sk": "^3.4.0",
+    "common-sk": "^3.4.1",
     "copy-webpack-plugin": "~5.1.1",
-    "elements-sk": "^3.3.1",
+    "elements-sk": "^3.3.4",
     "lit-html": "^1.2.1"
   },
   "devDependencies": {
