@@ -54,16 +54,12 @@ export interface TraceGroup {
 	total_digests: number;
 }
 
-export interface DiffMetrics {
-	numDiffPixels: number;
-	pixelDiffPercent: number;
-	maxRGBADiffs: number[];
-	dimDiffer: boolean;
-	diffs: { [key: string]: number };
-}
-
 export interface SRDiffDigest {
-	DiffMetrics: DiffMetrics | null;
+	numDiffPixels?: number;
+	pixelDiffPercent?: number;
+	maxRGBADiffs?: number[];
+	dimDiffer?: boolean;
+	diffs?: { [key: string]: number };
 	digest: Digest;
 	status: string;
 	paramset: ParamSet;
