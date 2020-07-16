@@ -2,7 +2,7 @@
   "URL": "https://ct-perf.skia.org",
   "data_store_config": {
     "datastore_type": "gcp",
-    "connection_string": "postgresql://root@perf-ct-cockroachdb-public:26257/ct?sslmode=disable",
+    "connection_string": "postgresql://root@perf-cockroachdb-public:26257/ct?sslmode=disable",
     "tile_size": 256,
     "project": "skia-public",
     "instance": "production",
