@@ -527,7 +527,7 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 			}
 			tn := types.TestName(tr.ResultParams[types.PrimaryKeyField])
 			// Filter by classification.
-			c := exp.Classification(tn, tr.Digest)
+			c := exp.Classification(tn, tr.Digest).String()
 			if q.ExcludesClassification(c) {
 				continue
 			}
@@ -696,7 +696,7 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, idx indexe
 	results := make([]*frontend.SearchResult, 0, len(resultsByGroupingAndDigest))
 	for _, srd := range resultsByGroupingAndDigest {
 		// Normalizing the ParamSet makes the return values deterministic.
-		srd.ParamSet.Normalize()
+		srd.ParamtargetLabelSet.Normalize()
 		results = append(results, srd)
 	}
 

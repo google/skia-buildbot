@@ -72,14 +72,14 @@ func iterTile(ctx context.Context, q *query.Search, addFn iterTileAddFn, acceptF
 				// Iterate over the digests and filter them.
 				test := trace.TestName()
 				for _, digest := range digests {
-					cl := exp.Classification(test, digest)
+					cl := exp.Classification(test, digest).String()
 					if q.ExcludesClassification(cl) {
 						continue
 					}
 
 					// Fix blamer to make this easier.
 					if q.BlameGroupID != "" {
-						if cl == expectations.Untriaged {
+						if cl == expectations.UntriagedStr {
 							b := idx.GetBlame(test, digest, cpxTile.DataCommits())
 							if b.IsEmpty() || q.BlameGroupID != blameGroupID(b, cpxTile.DataCommits()) {
 								continue
