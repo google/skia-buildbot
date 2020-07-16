@@ -381,7 +381,8 @@ func (ix *Indexer) start(ctx context.Context, interval time.Duration) error {
 
 	// We can start indexing the ChangeLists right away since it only depends on the expectations
 	// (and nothing from the master branch index).
-	go util.RepeatCtx(ctx, interval, ix.calcChangeListIndices)
+	// FIXME
+	// go util.RepeatCtx(ctx, interval, ix.calcChangeListIndices)
 
 	defer shared.NewMetricsTimer("initial_synchronous_index").Stop()
 	// Build the first index synchronously.

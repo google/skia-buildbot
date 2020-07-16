@@ -102,6 +102,12 @@ func (s *CachedTileSourceImpl) updateTile(ctx context.Context) error {
 		return skerr.Wrapf(err, "fetching dense tile")
 	}
 
+	for id, trace := range denseTile.Traces {
+		if trace.Keys["cpu_or_gpu_value"] == "RadeonHD7770" {
+			sklog.Infof("trace %s: %#v", id, trace.Digests)
+		}
+	}
+
 	// Filter down to the publicly viewable ones
 	denseTile = s.filterTile(denseTile)
 	// Now that we have filtered the public list, compute metrics. We don't care about ignores,

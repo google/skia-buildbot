@@ -681,7 +681,7 @@ func TestGetTileKey(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		key, index := traceStore.getTileKey(test.InputRepoIndex)
+		key, index := traceStore.GetTileKey(test.InputRepoIndex)
 		require.Equal(t, test.ExpectedKey, key)
 		require.Equal(t, test.ExpectedIndex, index)
 	}

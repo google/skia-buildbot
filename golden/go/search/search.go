@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	ttlcache "github.com/patrickmn/go-cache"
 	"golang.org/x/sync/errgroup"
 
@@ -687,6 +688,7 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, idx indexe
 			RawTrace: trace,
 			Params:   trace.Params(),
 		})
+		sklog.Infof("Added trace %s with digests %#v", traceID, trace.Digests)
 	}
 
 	if err := iterTile(ctx, q, addFn, acceptFn, exp, idx); err != nil {
@@ -852,6 +854,8 @@ func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestNam
 	if len(traceGroup.Traces) == 0 {
 		return
 	}
+	sklog.Infof("traceGroup to fill in", traceGroup)
+	spew.Dump(traceGroup)
 
 	// Put the traces in a deterministic order
 	sort.Slice(traceGroup.Traces, func(i, j int) bool {
@@ -875,6 +879,7 @@ func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestNam
 	// information specific to this trace.
 	for idx, oneTrace := range traceGroup.Traces {
 		traceLen := len(oneTrace.RawTrace.Digests)
+		sklog.Infof("tracelen for %s: %d", oneTrace.ID, traceLen)
 		if appendPrimaryDigest {
 			traceLen++
 		}
@@ -912,6 +917,7 @@ func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestNam
 		traceGroup.TileSize = traceLen // TileSize will go away soon.
 	}
 	traceGroup.TotalDigests = totalDigests
+	sklog.Infof("Traces at end: %#v", traceGroup.Traces)
 }
 
 type digestCountAndLastSeen struct {

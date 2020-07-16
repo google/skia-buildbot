@@ -136,7 +136,7 @@ func (b *BTTraceStore) Put(ctx context.Context, commitHash string, entries []*tr
 
 	// Find out what tile we need to fetch and what index into that tile we need.
 	// Reminder that tileKeys start at 2^32-1 and decrease in value.
-	tileKey, commitIndex := b.getTileKey(repoIndex)
+	tileKey, commitIndex := GetTileKey(repoIndex)
 
 	// If these entries have any params we haven't seen before, we need to store those in BigTable.
 	ops, err := b.updateOrderedParamSet(ctx, tileKey, paramSet)
@@ -222,10 +222,10 @@ func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile,
 
 	// These commits could span across multiple tiles, so derive the tiles we need to query.
 	c := idxCommits[0]
-	startTileKey, startCommitIndex := b.getTileKey(c.Index)
+	startTileKey, startCommitIndex := GetTileKey(c.Index)
 
 	c = idxCommits[len(idxCommits)-1]
-	endTileKey, endCommitIndex := b.getTileKey(c.Index)
+	endTileKey, endCommitIndex := GetTileKey(c.Index)
 
 	var egroup errgroup.Group
 
@@ -266,6 +266,10 @@ func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile,
 	}
 
 	return ret, commits, nil
+}
+
+func (b *BTTraceStore) DEBUG_getTracesInRange(ctx context.Context, startTileKey, endTileKey tileKey, startCommitIndex, endCommitIndex int) (traceMap, paramtools.ParamSet, error) {
+	return b.getTracesInRange(ctx, startTileKey, endTileKey, startCommitIndex, endCommitIndex)
 }
 
 // getTracesInRange returns a traceMap with data from the given start and stop points (tile and index).
@@ -386,7 +390,7 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 	}
 
 	c := idxCommits[0]
-	endKey, endIdx := b.getTileKey(c.Index)
+	endKey, endIdx := GetTileKey(c.Index)
 	tileStartCommitIdx := c.Index - endIdx
 
 	// Given nCommits and the current index, we can figure out how many tiles to
@@ -512,12 +516,12 @@ func (b *BTTraceStore) commitsFromVCS(ctx context.Context, commitsWithData []int
 	return allCommits, denseCommits, nil
 }
 
-// getTileKey retrieves the tile key and the index of the commit in the given tile (commitIndex)
+// GetTileKey retrieves the tile key and the index of the commit in the given tile (commitIndex)
 // given the index of a commit in the repo (repoIndex).
 // commitIndex starts at 0 for the oldest commit in the tile.
-func (b *BTTraceStore) getTileKey(repoIndex int) (tileKey, int) {
+func GetTileKey(repoIndex int) (tileKey, int) {
 	tileIndex := int32(repoIndex) / DefaultTileSize
-	commitIndex := repoIndex % int(DefaultTileSize)
+	commitIndex := repoIndex % DefaultTileSize
 	return tileKeyFromIndex(tileIndex), commitIndex
 }
 
@@ -696,7 +700,7 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 					bigtable.ChainFilters(
 						bigtable.FamilyFilter(traceFamily),
 						// can be used for local testing to keep RAM usage lower
-						//bigtable.RowSampleFilter(0.1),
+						bigtable.RowSampleFilter(0.01),
 						bigtable.LatestNFilter(1),
 						bigtable.CellsPerRowLimitFilter(DefaultTileSize),
 					),

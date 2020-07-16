@@ -19,7 +19,7 @@
   },
   gerrit_url: "https://skia-review.googlesource.com",
   lit_html_path: "/usr/local/share/skiacorrectness",
-  num_commits: 256,
+  num_commits: 30,
   port: ":8000",
   prom_port: ":20000",
   resources_path: "/usr/local/share/skiacorrectness/frontend",
