@@ -17,6 +17,7 @@ const (
 	MSG_TYPE_STEP_EXCEPTION MessageType = "STEP_EXCEPTION"
 
 	DATA_TYPE_LOG           DataType = "log"
+	DATA_TYPE_TEXT          DataType = "text"
 	DATA_TYPE_COMMAND       DataType = "command"
 	DATA_TYPE_HTTP_REQUEST  DataType = "httpRequest"
 	DATA_TYPE_HTTP_RESPONSE DataType = "httpResponse"
@@ -115,6 +116,7 @@ func (m *Message) Validate() error {
 		}
 		switch m.DataType {
 		case DATA_TYPE_LOG:
+		case DATA_TYPE_TEXT:
 		case DATA_TYPE_COMMAND:
 		case DATA_TYPE_HTTP_REQUEST:
 		case DATA_TYPE_HTTP_RESPONSE:
