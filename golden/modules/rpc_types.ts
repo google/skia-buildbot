@@ -77,7 +77,7 @@ export interface SearchResult {
 	triage_history: TriageHistory[] | null;
 	paramset: ParamSet;
 	traces: TraceGroup;
-	refDiffs: { [key: string]: SRDiffDigest };
+	refDiffs: { [key: string]: SRDiffDigest | null };
 	closestRef: RefClosest;
 }
 
@@ -100,7 +100,7 @@ export interface TraceComment {
 }
 
 export interface SearchResponse {
-	digests: SearchResult[] | null;
+	digests: (SearchResult | null)[] | null;
 	offset: number;
 	size: number;
 	commits: Commit[] | null;
@@ -122,16 +122,16 @@ export interface StatusResponse {
 	lastCommit: Commit;
 	totalCommits: number;
 	filledCommits: number;
-	corpStatus: GUICorpusStatus[] | null;
+	corpStatus: (GUICorpusStatus | null)[] | null;
 }
 
-export type ParamSetResponse = { [key: string]: string[] };
+export type ParamSetResponse = { [key: string]: string[] | null };
 
 export type Digest = string;
 
 export type TestName = string;
 
-export type ParamSet = { [key: string]: string[] };
+export type ParamSet = { [key: string]: string[] | null };
 
 export type TraceID = string;
 
