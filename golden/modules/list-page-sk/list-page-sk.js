@@ -66,8 +66,8 @@ const template = (ele) => html`
 const testRow = (row, ele) => {
   // TODO(kjlubick) update this to use helpers in search-controls-sk.
   const allDigests = 'unt=true&neg=true&pos=true';
-  const searchParams = `source_type=${encodeURIComponent(ele._currentCorpus)}`
-    + `&query=${encodeURIComponent(`name=${row.name}`)}`
+  const query = encodeURIComponent(`name=${row.name}&source_type=${ele._currentCorpus}`);
+  const searchParams = `query=${query}`
     + `&head=${ele._showAllDigests ? 'false' : 'true'}`
     + `&include=${ele._disregardIgnoreRules ? 'true' : 'false'}`;
 
