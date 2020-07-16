@@ -15,3 +15,6 @@ const (
 	// NoRef indicates no other digests match.
 	NoRef = RefClosest("")
 )
+
+// AllRefClosest is a list of all possible RefClosest values.
+var AllRefClosest = []RefClosest{PositiveRef, NegativeRef, NoRef}

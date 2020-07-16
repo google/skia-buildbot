@@ -131,6 +131,6 @@ export type ParamSet = { [key: string]: string[] | null };
 
 export type TraceID = string;
 
-export type RefClosest = string;
+export type RefClosest = "pos" | "neg" | "";
 
 export type ID = string;
