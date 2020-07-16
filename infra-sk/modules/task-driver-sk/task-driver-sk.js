@@ -8,6 +8,7 @@
  *
  */
 import { define } from 'elements-sk/define'
+import { escapeAndLinkify } from '../linkify'
 import { html, render } from 'lit-html'
 import { localeTime, strDuration } from 'common-sk/modules/human'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
@@ -34,6 +35,8 @@ function stepData(ele, s, d) {
       return propLine("HTTP Request", d.data.url);
     case "httpResponse":
       return propLine("HTTP Response", d.data.status);
+    case "text":
+      return propLine(d.data.label, escapeAndLinkify(d.data.value));
     case "log":
       return propLine("Log (" + d.data.name + ")", html`
           <a href="${ele._logLink(s.id, d.data.id)}" target="_blank">${d.data.name}</a>
