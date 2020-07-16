@@ -1,15 +1,15 @@
 package expectations
 
 // Label for classifying digests.
-type Label int
+type Label string
 
 const (
 	// Untriaged represents a previously unseen digest.
-	Untriaged Label = iota // == 0
+	Untriaged = Label("untriaged")
 	// Positive represents a known good digest.
-	Positive
+	Positive = Label("positive")
 	// Negative represents a known bad digest.
-	Negative
+	Negative = Label("negative")
 )
 
 // LabelStr is the string version of Label. Used e.g. to represent digest classifications in JSON.
@@ -31,7 +31,7 @@ const (
 var AllLabelStr = []LabelStr{UntriagedStr, PositiveStr, NegativeStr}
 
 func (l Label) String() LabelStr {
-	return AllLabelStr[l]
+	return LabelStr(l)
 }
 
 var labels = map[LabelStr]Label{

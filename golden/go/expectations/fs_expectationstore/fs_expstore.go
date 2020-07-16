@@ -132,20 +132,62 @@ func entryID(id expectations.ID) string {
 	}).ID()
 }
 
+// firestoreExpLabel represents an expectations.Label as an int that is stored on Firestore.
+type firestoreExpLabel int
+
+const (
+	// fsUntriaged is the Firestore equivalent of expectations.Untriaged.
+	fsUntriaged firestoreExpLabel = iota // == 0
+
+	// fsPositive is the Firestore equivalent of expectations.Positive.
+	fsPositive
+
+	// fsNegative is the Firestore equivalent of expectations.Negative.
+	fsNegative
+)
+
+func (l firestoreExpLabel) toExpectationsLabel() expectations.Label {
+	switch l {
+	case fsUntriaged:
+		return expectations.Untriaged
+	case fsPositive:
+		return expectations.Positive
+	case fsNegative:
+		return expectations.Negative
+	}
+
+	// This should never happen in practice. If it does, it's a bug and we want to fail loudly.
+	panic(fmt.Sprintf("Attempted to convert invalid firestoreExpLabel %q to expectations.Label.", l))
+}
+
+func expectationsLabelToFirestoreExpLabel(label expectations.Label) firestoreExpLabel {
+	switch label {
+	case expectations.Untriaged:
+		return fsUntriaged
+	case expectations.Positive:
+		return fsPositive
+	case expectations.Negative:
+		return fsNegative
+	}
+
+	// This should never happen in practice. If it does, it's a bug and we want to fail loudly.
+	panic(fmt.Sprintf("Attempted to convert invalid expectations.Label %q to firestoreExpLabel.", label))
+}
+
 // expectationChange represents the changing of a single expectation entry.
 type expectationChange struct {
 	// RecordID refers to a document in the records collection.
-	RecordID      string             `firestore:"record_id"`
-	Grouping      types.TestName     `firestore:"grouping"`
-	Digest        types.Digest       `firestore:"digest"`
-	AffectedRange triageRange        `firestore:"affected_range"`
-	LabelBefore   expectations.Label `firestore:"label_before"`
+	RecordID      string            `firestore:"record_id"`
+	Grouping      types.TestName    `firestore:"grouping"`
+	Digest        types.Digest      `firestore:"digest"`
+	AffectedRange triageRange       `firestore:"affected_range"`
+	LabelBefore   firestoreExpLabel `firestore:"label_before"`
 }
 
 type triageRange struct {
-	FirstIndex int                `firestore:"first_index"`
-	LastIndex  int                `firestore:"last_index"`
-	Label      expectations.Label `firestore:"label"`
+	FirstIndex int               `firestore:"first_index"`
+	LastIndex  int               `firestore:"last_index"`
+	Label      firestoreExpLabel `firestore:"label"`
 }
 
 // triageRecord represents a group of changes made in a single triage action by a user.
@@ -410,9 +452,9 @@ func (s *Store) makeEntriesAndChanges(ctx context.Context, now time.Time, delta 
 		newRange := triageRange{
 			FirstIndex: firstIdx,
 			LastIndex:  lastIdx,
-			Label:      d.Label,
+			Label:      expectationsLabelToFirestoreExpLabel(d.Label),
 		}
-		previousLabel := expectations.Untriaged
+		previousLabel := fsUntriaged
 		replacedRange := false
 		// TODO(kjlubick): if needed, this could be a binary search, but since there will be < 20
 		//   ranges for almost all entries, it probably doesn't matter.
@@ -534,7 +576,7 @@ func (s *Store) loadExpectations(ctx context.Context) (*expectations.Expectation
 		for _, entry := range entries {
 			// TODO(kjlubick) If we decide to handle ranges of expectations, Get will need to take a
 			//   parameter indicating the commit index for which we should return valid ranges.
-			e.Set(entry.Grouping, entry.Digest, entry.Ranges[0].Label)
+			e.Set(entry.Grouping, entry.Digest, entry.Ranges[0].Label.toExpectationsLabel())
 			toCache[expectations.ID{
 				Grouping: entry.Grouping,
 				Digest:   entry.Digest,
@@ -561,7 +603,7 @@ func (s *Store) assembleExpectations() *expectations.Expectations {
 		}
 		// TODO(kjlubick) If we decide to handle ranges of expectations, Get will need to take a
 		//   parameter indicating the commit index for which we should return valid ranges.
-		e.Set(entry.Grouping, entry.Digest, entry.Ranges[0].Label)
+		e.Set(entry.Grouping, entry.Digest, entry.Ranges[0].Label.toExpectationsLabel())
 	}
 	return e
 }
@@ -640,7 +682,7 @@ func (s *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 			Grouping: tc.Grouping,
 			Digest:   tc.Digest,
 			// TODO(kjlubick) If we expose ranges, we should include FirstIndex/LastIndex here.
-			Label: tc.AffectedRange.Label,
+			Label: tc.AffectedRange.Label.toExpectationsLabel(),
 		})
 		return nil
 	})
@@ -690,7 +732,7 @@ func (s *Store) UndoChange(ctx context.Context, changeID, userID string) error {
 			Grouping: tc.Grouping,
 			Digest:   tc.Digest,
 			// TODO(kjlubick): if we support ranges, we will want to add them here.
-			Label: tc.LabelBefore,
+			Label: tc.LabelBefore.toExpectationsLabel(),
 		})
 		return nil
 	})
@@ -811,7 +853,7 @@ func (s *Store) MarkUnusedEntriesForGC(ctx context.Context, label expectations.L
 			return nil
 		}
 		latestRange := er.Ranges[0]
-		if latestRange.Label != label {
+		if latestRange.Label.toExpectationsLabel() != label {
 			return nil
 		}
 		toGC = append(toGC, doc.Ref)
