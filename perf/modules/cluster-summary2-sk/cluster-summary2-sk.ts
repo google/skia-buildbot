@@ -224,11 +224,11 @@ export class ClusterSummary2Sk extends ElementSk {
   private openShortcut() {
     const detail: ClusterSummary2SkOpenKeysEventDetail = {
       shortcut: this.summary.shortcut,
-      begin: this.frame!.dataframe!.header![0].timestamp,
+      begin: this.frame!.dataframe!.header![0]!.timestamp,
       end:
         this.frame!.dataframe!.header![
           this.frame!.dataframe!.header!.length - 1
-        ].timestamp + 1,
+        ]!.timestamp + 1,
       xbar: this.summary.step_point!,
     };
     this.dispatchEvent(
@@ -257,7 +257,7 @@ export class ClusterSummary2Sk extends ElementSk {
 
   private traceSelected(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
     const h = this.frame!.dataframe!.header![e.detail.x];
-    ClusterSummary2Sk.lookupCids([h])
+    ClusterSummary2Sk.lookupCids([h!])
       .then((json) => {
         this.commits!.details = json;
       })
@@ -329,7 +329,7 @@ export class ClusterSummary2Sk extends ElementSk {
     this.graph.removeAll();
     const labels: Date[] = [];
     this.full_summary!.frame!.dataframe!.header!.forEach((header) => {
-      labels.push(new Date(header.timestamp * 1000));
+      labels.push(new Date(header!.timestamp * 1000));
     });
     this.graph.addLines({ centroid: this.summary.centroid! }, labels);
     // Set the x-bar but only if status != uninteresting.
@@ -339,7 +339,7 @@ export class ClusterSummary2Sk extends ElementSk {
       const step = this.summary.step_point;
       let xbar = -1;
       this.frame!.dataframe!.header!.forEach((h, i) => {
-        if (h.offset === step!.offset) {
+        if (h!.offset === step!.offset) {
           xbar = i;
         }
       });
@@ -367,9 +367,9 @@ export class ClusterSummary2Sk extends ElementSk {
         while (prevCommit > 0 && this.summary!.centroid![prevCommit] === 1e32) {
           prevCommit -= 1;
         }
-        const cids = [
-          this.frame!.dataframe!.header![prevCommit],
-          this.frame!.dataframe!.header![xbar],
+        const cids: ColumnHeader[] = [
+          this.frame!.dataframe!.header![prevCommit]!,
+          this.frame!.dataframe!.header![xbar]!,
         ];
         // Run those through cid lookup to get the hashes.
         ClusterSummary2Sk.lookupCids(cids)

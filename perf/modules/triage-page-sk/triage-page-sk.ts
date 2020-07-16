@@ -174,9 +174,9 @@ export class TriagePageSk extends ElementSk {
       (row, rowIndex) => html`
         <tr>
           <td class="fixed">
-            <commit-detail-sk .cid=${row.cid}></commit-detail-sk>
+            <commit-detail-sk .cid=${row!.cid}></commit-detail-sk>
           </td>
-          ${TriagePageSk.columns(ele, row, rowIndex)}
+          ${TriagePageSk.columns(ele, row!, rowIndex)}
         </tr>
       `
     );
@@ -192,7 +192,7 @@ export class TriagePageSk extends ElementSk {
       if (ele.stepDownAt(colIndex)) {
         ret.push(html`
           <td class="cluster">
-            ${TriagePageSk.lowCell(ele, rowIndex, col, colIndex)}
+            ${TriagePageSk.lowCell(ele, rowIndex, col!, colIndex)}
           </td>
         `);
       }
@@ -200,7 +200,7 @@ export class TriagePageSk extends ElementSk {
       if (ele.stepUpAt(colIndex)) {
         ret.push(html`
           <td class="cluster">
-            ${TriagePageSk.highCell(ele, rowIndex, col, colIndex)}
+            ${TriagePageSk.highCell(ele, rowIndex, col!, colIndex)}
           </td>
         `);
       }
@@ -302,14 +302,14 @@ export class TriagePageSk extends ElementSk {
 
   private static headers = (ele: TriagePageSk) =>
     ele.reg.header!.map((item) => {
-      let displayName = item.display_name;
-      if (!item.display_name) {
-        displayName = item.query.slice(0, 10);
+      let displayName = item!.display_name;
+      if (!item!.display_name) {
+        displayName = item!.query.slice(0, 10);
       }
       // The colspan=2 is important since we will have two columns under each
       // header, one for high and one for low.
       return html`
-        <th colspan="2"><a href="/a/?${item.id}">${displayName}</a></th>
+        <th colspan="2"><a href="/a/?${item!.id}">${displayName}</a></th>
       `;
     });
 
@@ -498,17 +498,17 @@ export class TriagePageSk extends ElementSk {
   }
 
   private stepUpAt(index: number) {
-    const dir = this.reg.header![index].direction;
+    const dir = this.reg.header![index]!.direction;
     return dir === 'UP' || dir === 'BOTH';
   }
 
   private stepDownAt(index: number) {
-    const dir = this.reg.header![index].direction;
+    const dir = this.reg.header![index]!.direction;
     return dir === 'DOWN' || dir === 'BOTH';
   }
 
   private notBoth(index: number) {
-    return this.reg.header![index].direction !== 'BOTH';
+    return this.reg.header![index]!.direction !== 'BOTH';
   }
 
   private alertAt(index: number) {
@@ -516,11 +516,11 @@ export class TriagePageSk extends ElementSk {
   }
 
   private encQueryFrom(colIndex: number) {
-    return encodeURIComponent(this.reg.header![colIndex].query);
+    return encodeURIComponent(this.reg.header![colIndex]!.query);
   }
 
   private hashFrom(rowIndex: number) {
-    return this.reg.table![rowIndex].cid!.hash;
+    return this.reg.table![rowIndex]!.cid!.hash;
   }
 
   private openKeys(e: CustomEvent<ClusterSummary2SkOpenKeysEventDetail>) {

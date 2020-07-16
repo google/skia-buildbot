@@ -47,6 +47,7 @@ import {
   ParamSetSk,
   ParamSetSkClickEventDetail,
 } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
+import { ParamSet as CommonSkParamSet } from 'common-sk/modules/query';
 import {
   QuerySk,
   QuerySkQueryChangeEventDetail,
@@ -569,7 +570,7 @@ export class ExploreSk extends ElementSk {
   }
 
   private paramsetChanged(e: CustomEvent<ParamSet>) {
-    this.query!.paramset = e.detail;
+    this.query!.paramset = e.detail as CommonSkParamSet;
   }
 
   private queryChangeDelayedHandler(
@@ -613,7 +614,7 @@ export class ExploreSk extends ElementSk {
     const commits = [this._dataframe.header![x]];
     const trace = this._dataframe.traceset[e.detail.name];
     for (let i = x - 1; i >= 0; i--) {
-      if (trace[i] !== MISSING_DATA_SENTINEL) {
+      if (trace![i] !== MISSING_DATA_SENTINEL) {
         break;
       }
       commits.push(this._dataframe.header![i]);
@@ -639,7 +640,7 @@ export class ExploreSk extends ElementSk {
       .then((json) => {
         this.commits!.details = json;
         this.commitsTab!.disabled = false;
-        this.simpleParamset!.paramsets = [paramset];
+        this.simpleParamset!.paramsets = [paramset as CommonSkParamSet];
         this.detailTab!.selected = COMMIT_TAB_INDEX;
         this.jsonsource!.cid = commits[0];
         this.jsonsource!.traceid = e.detail.name;
@@ -872,7 +873,7 @@ export class ExploreSk extends ElementSk {
     this.plot!.removeAll();
     const labels: Date[] = [];
     dataframe.header!.forEach((header) => {
-      labels.push(new Date(header.timestamp * 1000));
+      labels.push(new Date(header!.timestamp * 1000));
     });
 
     this.plot!.addLines(dataframe.traceset, labels);
@@ -880,7 +881,7 @@ export class ExploreSk extends ElementSk {
     // Normalize bands to be just offsets.
     const bands: number[] = [];
     dataframe.header?.forEach((h, i) => {
-      if (json.skps?.indexOf(h.offset) !== -1) {
+      if (json.skps?.indexOf(h!.offset) !== -1) {
         bands.push(i);
       }
     });
@@ -891,7 +892,7 @@ export class ExploreSk extends ElementSk {
       const xbaroffset = this.state.xbaroffset;
       let xbar = -1;
       this._dataframe.header!.forEach((h, i) => {
-        if (h.offset === xbaroffset) {
+        if (h!.offset === xbaroffset) {
           xbar = i;
         }
       });
@@ -905,7 +906,7 @@ export class ExploreSk extends ElementSk {
     }
 
     // Populate the paramset element.
-    this.paramset!.paramsets = [dataframe.paramset];
+    this.paramset!.paramsets = [dataframe.paramset as CommonSkParamSet];
     if (tab) {
       this.detailTab!.selected = PARAMS_TAB_INDEX;
     }
@@ -1255,7 +1256,7 @@ export class ExploreSk extends ElementSk {
         return;
       }
       line = [`"${traceId}"`];
-      this._dataframe.traceset[traceId].forEach((f) => {
+      this._dataframe.traceset[traceId]!.forEach((f) => {
         if (f !== MISSING_DATA_SENTINEL) {
           line.push(f);
         } else {
