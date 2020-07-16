@@ -91,6 +91,9 @@ func (r ManualRollStatus) Validate() error {
 }
 
 // ManualRollRequest represents a request for a manual roll.
+// Note: This struct is directly used from the canary.go task driver in the
+// Skia repo to interact with firestore. Please update that task driver if
+// this struct changes significantly.
 type ManualRollRequest struct {
 	Id            string           `json:"id"`
 	DbModified    time.Time        `json:"-"`
