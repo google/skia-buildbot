@@ -69,7 +69,7 @@ describe('list-page-sk', () => {
       const links = $('a', secondRow);
       expect(links).to.have.length(6);
       // First link should be to the search results for all digests.
-      const paramsForAllDigests = 'source_type=gm&query=name%3Dthis_is_another_test&head=true&include=false&unt=true&neg=true&pos=true';
+      const paramsForAllDigests = 'query=name%3Dthis_is_another_test%26source_type%3Dgm&head=true&include=false&unt=true&neg=true&pos=true';
       expect(links[0].href).to.contain(`/search?${paramsForAllDigests}`);
       // Second through Fourth links are for just positive, negative, untriaged
       expect(links[1].href).to.contain('pos=true&neg=false&unt=false');
@@ -89,7 +89,7 @@ describe('list-page-sk', () => {
       const links = $('a', secondRow);
       expect(links).to.have.length(6);
       // First link should be to the search results
-      const paramsForAllDigests = 'source_type=gm&query=name%3Dthis_is_another_test&head=false&include=true&unt=true&neg=true&pos=true';
+      const paramsForAllDigests = 'query=name%3Dthis_is_another_test%26source_type%3Dgm&head=false&include=true&unt=true&neg=true&pos=true';
       expect(links[0].href).to.contain(`/search?${paramsForAllDigests}`);
       // Second through Fourth links are for just positive, negative, untriaged
       expect(links[1].href).to.contain('pos=true&neg=false&unt=false');
