@@ -208,11 +208,12 @@ export class ClusterLastNPageSk extends ElementSk {
       (reg) => html`
         <tr>
           <td class="fixed">
-            <commit-detail-sk .cid=${reg.cid}></commit-detail-sk>
+            <commit-detail-sk .cid=${reg!.cid}></commit-detail-sk>
           </td>
 
-          ${ClusterLastNPageSk.low(ele, reg)}
-          ${ClusterLastNPageSk.high(ele, reg)} ${ClusterLastNPageSk.filler(ele)}
+          ${ClusterLastNPageSk.low(ele, reg!)}
+          ${ClusterLastNPageSk.high(ele, reg!)}
+          ${ClusterLastNPageSk.filler(ele)}
         </tr>
       `
     );
@@ -264,7 +265,7 @@ export class ClusterLastNPageSk extends ElementSk {
   private state: Alert | null = null;
 
   // The regressions detected from the dryrun.
-  private _regressions: RegressionRow[] = [];
+  private _regressions: (RegressionRow | null)[] = [];
 
   private alertDialog: HTMLDialogElement | null = null;
   private triageDialog: HTMLDialogElement | null = null;
@@ -387,7 +388,7 @@ export class ClusterLastNPageSk extends ElementSk {
       .then((json: StartDryRunResponse) => {
         this.requestId = json.id;
         this._render();
-        this.checkDryRunStatus((regressions: RegressionRow[]) => {
+        this.checkDryRunStatus((regressions: (RegressionRow | null)[]) => {
           this._regressions = regressions;
           this._render();
         });
@@ -395,7 +396,9 @@ export class ClusterLastNPageSk extends ElementSk {
       .catch((msg) => this.catch(msg));
   }
 
-  private checkDryRunStatus(cb: (regressions: RegressionRow[]) => void) {
+  private checkDryRunStatus(
+    cb: (regressions: (RegressionRow | null)[]) => void
+  ) {
     fetch(`/_/dryrun/status/${this.requestId}`)
       .then(jsonOrThrow)
       .then((json: DryRunStatus) => {

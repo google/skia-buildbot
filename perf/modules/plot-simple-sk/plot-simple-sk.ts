@@ -1001,7 +1001,7 @@ export class PlotSimpleSk extends ElementSk {
    * @param {Array} labels - An array of Date objects the same length as the values.
    *
    */
-  addLines(lines: { [key: string]: number[] }, labels: Date[]) {
+  addLines(lines: { [key: string]: number[] | null }, labels: Date[]) {
     const keys = Object.keys(lines);
     if (keys.length === 0) {
       return;
@@ -1015,12 +1015,12 @@ export class PlotSimpleSk extends ElementSk {
     keys.forEach((key) => {
       // You can't encode NaN in JSON, so convert sentinel values to NaN here so
       // that dsArray functions will operate correctly.
-      lines[key].forEach((x, i) => {
+      lines[key]!.forEach((x, i) => {
         if (x === MISSING_DATA_SENTINEL) {
-          lines[key][i] = NaN;
+          lines[key]![i] = NaN;
         }
       });
-      const values = lines[key];
+      const values = lines[key]!;
       this._lineData.push({
         name: key,
         values,

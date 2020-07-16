@@ -473,7 +473,7 @@ export class ClusterPageSk extends ElementSk {
             regressionDetectionResponse.summary!.Clusters!.forEach(
               (clusterSummary) => {
                 this.summaries.push({
-                  summary: clusterSummary,
+                  summary: clusterSummary!,
                   frame: regressionDetectionResponse.frame!,
                   triage: {
                     status: '',

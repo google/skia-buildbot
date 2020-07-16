@@ -71,7 +71,7 @@ export interface FrameRequest {
 
 export interface DataFrame {
 	traceset: TraceSet;
-	header: ColumnHeader[] | null;
+	header: (ColumnHeader | null)[] | null;
 	paramset: ParamSet;
 	skip: number;
 }
@@ -103,7 +103,7 @@ export interface RegressionRow {
 export interface DryRunStatus {
 	finished: boolean;
 	message: string;
-	regressions: RegressionRow[] | null;
+	regressions: (RegressionRow | null)[] | null;
 }
 
 export interface UIDomain {
@@ -127,7 +127,7 @@ export interface ClusterStartResponse {
 }
 
 export interface ClusterSummaries {
-	Clusters: ClusterSummary[] | null;
+	Clusters: (ClusterSummary | null)[] | null;
 	StdDevThreshold: number;
 	K: number;
 }
@@ -178,12 +178,12 @@ export interface RegressionRangeRequest {
 
 export interface RegressionRow {
 	cid: CommitDetail | null;
-	columns: Regression[] | null;
+	columns: (Regression | null)[] | null;
 }
 
 export interface RegressionRangeResponse {
-	header: Alert[] | null;
-	table: RegressionRow[] | null;
+	header: (Alert | null)[] | null;
+	table: (RegressionRow | null)[] | null;
 	categories: string[] | null;
 }
 
@@ -256,11 +256,11 @@ export type StepFitStatus = "Low" | "High" | "Uninteresting";
 
 export type RequestType = 1 | 0;
 
-export type Trace = number[];
+export type Trace = number[] | null;
 
 export type TraceSet = { [key: string]: Trace };
 
-export type ParamSet = { [key: string]: string[] };
+export type ParamSet = { [key: string]: string[] | null };
 
 export type Status = "" | "positive" | "negative" | "untriaged";
 
