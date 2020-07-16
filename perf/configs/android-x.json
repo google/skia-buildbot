@@ -2,7 +2,7 @@
   "URL": "https://androidx-perf.skia.org/",
   "data_store_config": {
     "datastore_type": "gcp",
-    "connection_string": "postgresql://root@perf-androidx-cockroachdb-public:26257/androidx?sslmode=disable",
+    "connection_string": "postgresql://root@perf-cockroachdb-public:26257/android_x?sslmode=disable",
     "tile_size": 512,
     "project": "skia-public",
     "instance": "production",
