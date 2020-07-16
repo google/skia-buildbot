@@ -790,7 +790,7 @@ func (s *Store) MarkUnusedEntriesForGC(ctx context.Context, label expectations.L
 	var toGC []*firestore.DocumentRef
 	// Use IterDocs instead of q.Documents(ctx).GetAll because this might be a very large query
 	// and we want to use the retry/restart logic of IterDocs to get them all.
-	err := s.client.IterDocs(ctx, "mark_expectations_for_GC", label.String(), q, 3, 10*time.Minute, func(doc *firestore.DocumentSnapshot) error {
+	err := s.client.IterDocs(ctx, "mark_expectations_for_GC", string(label.String()), q, 3, 10*time.Minute, func(doc *firestore.DocumentSnapshot) error {
 		if doc == nil {
 			return nil
 		}
