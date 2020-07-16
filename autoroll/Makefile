@@ -4,26 +4,46 @@
 
 include ../kube/kube.mk
 
-.PHONY: autoroll-fe
-autoroll-fe:
+# First create a list of all the modules that ./go/ts depends upon.
+tsDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' ./go/rpc)
+
+# Then use that list to find all the Go files that make up those dependent modules.
+tsDependentFiles := ./go/rpc/rpc.proto $(shell echo $(tsDependentModules) | xargs -L 1 go list -f '{{ $$dir := .Dir }}{{ range  .GoFiles }}{{ $$dir }}/{{ . }}{{ "\n" }}{{ end }}')
+
+tsOutputFiles := ./modules/rpc/rpc.ts ./modules/rpc/twirp.ts
+
+$(tsOutputFiles): $(tsDependentFiles)
+	go generate ./go/rpc
+
+./package-lock.json: package.json
+	npm install
+
+./node_modules/lastupdate: ./package-lock.json
 	npm ci
+	touch ./node_modules/lastupdate
+
+frontendFiles := $(shell find ./modules/ ./pages -type f)
+
+./dist: ./node_modules/lastupdate $(tsOutputFiles) $(frontendFiles)
 	npx webpack --mode=production
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-fe
+
+.PHONY: autoroll-fe
+autoroll-fe: ./dist
+	CGO_ENABLED=0 GOOS=linux go install -v ./go/autoroll-fe
 
 .PHONY: autoroll-be
 autoroll-be:
-	GOOS=linux go install -a ./go/autoroll-be
+	GOOS=linux go install -v ./go/autoroll-be
 
 .PHONY: autoroll-google3
 autoroll-google3:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-google3
+	CGO_ENABLED=0 GOOS=linux go install -v ./go/autoroll-google3
 
 .PHONY: all
 all: autoroll-fe autoroll-be autoroll-google3
 
 .PHONY: serve
-serve:
-	npm ci
+serve: ./dist
 	npx webpack-dev-server --mode=development --watch-poll
 
 ROLLER_INTERNAL_CONFIG_DIR = "/tmp/skia-autoroll-internal-config"

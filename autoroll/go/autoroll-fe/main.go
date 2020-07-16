@@ -17,8 +17,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sort"
-	"time"
 
 	"cloud.google.com/go/datastore"
 	"github.com/flynn/json5"
@@ -26,9 +24,9 @@ import (
 	"go.skia.org/infra/autoroll/go/manual"
 	"go.skia.org/infra/autoroll/go/modes"
 	"go.skia.org/infra/autoroll/go/roller"
+	"go.skia.org/infra/autoroll/go/rpc"
 	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/autoroll/go/unthrottle"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -65,10 +63,6 @@ var (
 
 	mainTemplate   *template.Template = nil
 	rollerTemplate *template.Template = nil
-
-	manualRollDB manual.DB              = nil
-	rollerNames  []string               = nil
-	rollers      map[string]*autoroller = nil
 )
 
 // Struct used for organizing information about a roller.
@@ -119,229 +113,16 @@ func reloadTemplates() {
 	))
 }
 
-func Init() {
-	reloadTemplates()
-}
-
-func getRoller(w http.ResponseWriter, r *http.Request) *autoroller {
-	name, ok := mux.Vars(r)["roller"]
-	if !ok {
-		http.Error(w, "Unable to find roller name in request path.", http.StatusBadRequest)
-		return nil
-	}
-	roller, ok := rollers[name]
-	if !ok {
-		http.Error(w, "No such roller", http.StatusNotFound)
-		return nil
-	}
-	return roller
-}
-
-func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
-	roller := getRoller(w, r)
-	if roller == nil {
-		// Errors are handled by getRoller().
-		return
-	}
-
-	var mode struct {
-		Message string `json:"message"`
-		Mode    string `json:"mode"`
-	}
-	defer util.Close(r.Body)
-	if err := json.NewDecoder(r.Body).Decode(&mode); err != nil {
-		httputils.ReportError(w, err, "Failed to decode request body.", http.StatusInternalServerError)
-		return
-	}
-
-	if err := roller.Mode.Add(context.Background(), mode.Mode, login.LoggedInAs(r), mode.Message); err != nil {
-		httputils.ReportError(w, err, "Failed to set AutoRoll mode.", http.StatusInternalServerError)
-		return
-	}
-
-	// Return the ARB status.
-	statusJsonHandler(w, r)
-}
-
-func strategyJsonHandler(w http.ResponseWriter, r *http.Request) {
-	roller := getRoller(w, r)
-	if roller == nil {
-		// Errors are handled by getRoller().
-		return
-	}
-
-	var strategy struct {
-		Message  string `json:"message"`
-		Strategy string `json:"strategy"`
-	}
-	defer util.Close(r.Body)
-	if err := json.NewDecoder(r.Body).Decode(&strategy); err != nil {
-		httputils.ReportError(w, err, "Failed to decode request body.", http.StatusInternalServerError)
-		return
-	}
-
-	if err := roller.Strategy.Add(context.Background(), strategy.Strategy, login.LoggedInAs(r), strategy.Message); err != nil {
-		httputils.ReportError(w, err, "Failed to set AutoRoll strategy.", http.StatusInternalServerError)
-		return
-	}
-
-	// Return the ARB status.
-	statusJsonHandler(w, r)
-}
-
-func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
-	roller := getRoller(w, r)
-	if roller == nil {
-		// Errors are handled by getRoller().
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	// Obtain the status info. Only display potentially sensitive info if the user is a logged-in
-	// Googler.
-	status := roller.Status.Get()
-	if !login.IsAdmin(r) {
-		status.Error = ""
-	}
-	mode := roller.Mode.CurrentMode()
-	strategy := roller.Strategy.CurrentStrategy()
-
-	// Obtain manual roll requests, if supported by the roller.
-	var manualRequests []*manual.ManualRollRequest
-	if roller.Cfg.SupportsManualRolls {
-		var err error
-		manualRequests, err = manualRollDB.GetRecent(roller.Cfg.RollerName, len(status.NotRolledRevisions))
-		if err != nil {
-			httputils.ReportError(w, err, "Failed to obtain manual roll requests.", http.StatusInternalServerError)
-			return
-		}
-	} else {
-		// NotRolledRevisions can take up a lot of space, and they aren't needed
-		// if the roller doesn't support manual rolls.
-		status.NotRolledRevisions = nil
-	}
-
-	// Encode response.
-	if err := json.NewEncoder(w).Encode(&autoRollStatus{
-		AutoRollStatus: status,
-		Config:         roller.Cfg,
-		ManualRequests: manualRequests,
-		Mode:           mode,
-		Strategy:       strategy,
-	}); err != nil {
-		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
-		return
-	}
-}
-
-func miniStatusJsonHandler(w http.ResponseWriter, r *http.Request) {
-	roller := getRoller(w, r)
-	if roller == nil {
-		// Errors are handled by getRoller().
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	status := roller.Status.GetMini()
-	mode := roller.Mode.CurrentMode()
-	if err := json.NewEncoder(w).Encode(&autoRollMiniStatus{
-		AutoRollMiniStatus: status,
-		Mode:               mode.Mode,
-	}); err != nil {
-		httputils.ReportError(w, err, "Failed to obtain status.", http.StatusInternalServerError)
-		return
-	}
-}
-
-func unthrottleHandler(w http.ResponseWriter, r *http.Request) {
-	roller := getRoller(w, r)
-	if roller == nil {
-		// Errors are handled by getRoller().
-		return
-	}
-
-	if err := unthrottle.Unthrottle(context.Background(), roller.Cfg.RollerName); err != nil {
-		httputils.ReportError(w, err, "Failed to unthrottle.", http.StatusInternalServerError)
-		return
-	}
-}
-
 func rollerHandler(w http.ResponseWriter, r *http.Request) {
-	roller := getRoller(w, r)
-	if roller == nil {
-		// Errors are handled by getRoller().
-		return
-	}
-
 	w.Header().Set("Content-Type", "text/html")
 
 	// Don't use cached templates in testing mode.
 	if *local {
 		reloadTemplates()
 	}
-	page := struct {
-		ChildName  string
-		ParentName string
-	}{
-		ChildName:  roller.Cfg.ChildDisplayName,
-		ParentName: roller.Cfg.ParentDisplayName,
-	}
+	page := struct{}{}
 	if err := rollerTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, err, "Failed to expand template.", http.StatusInternalServerError)
-	}
-}
-
-func getAllMiniStatuses() map[string]*autoRollMiniStatus {
-	statuses := make(map[string]*autoRollMiniStatus, len(rollers))
-	for name, roller := range rollers {
-		status := roller.Status.GetMini()
-		mode := roller.Mode.CurrentMode()
-		modeStr := ""
-		if mode != nil {
-			modeStr = mode.Mode
-		}
-		statuses[name] = &autoRollMiniStatus{
-			AutoRollMiniStatus: status,
-			ChildName:          roller.Cfg.ChildDisplayName,
-			Mode:               modeStr,
-			ParentName:         roller.Cfg.ParentDisplayName,
-		}
-	}
-	return statuses
-}
-
-func jsonAllHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	statuses := getAllMiniStatuses()
-	if err := json.NewEncoder(w).Encode(statuses); err != nil {
-		httputils.ReportError(w, err, "Failed to obtain status.", http.StatusInternalServerError)
-		return
-	}
-}
-
-func newManualRollHandler(w http.ResponseWriter, r *http.Request) {
-	roller := getRoller(w, r)
-	if roller == nil {
-		// Errors are handled by getRoller().
-		return
-	}
-	var req manual.ManualRollRequest
-	defer util.Close(r.Body)
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ReportError(w, err, "Failed to decode request body.", http.StatusInternalServerError)
-		return
-	}
-	req.Requester = login.LoggedInAs(r)
-	req.RollerName = roller.Cfg.RollerName
-	req.Status = manual.STATUS_PENDING
-	req.Timestamp = firestore.FixTimestamp(time.Now())
-	if err := manualRollDB.Put(&req); err != nil {
-		httputils.ReportError(w, err, "Failed to insert manual roll request.", http.StatusInternalServerError)
-		return
-	}
-	if err := json.NewEncoder(w).Encode(&req); err != nil {
-		httputils.ReportError(w, err, "Failed to encode response.", http.StatusInternalServerError)
-		return
 	}
 }
 
@@ -352,51 +133,33 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		reloadTemplates()
 	}
-	page := struct {
-		Rollers map[string]*autoRollMiniStatus
-	}{
-		Rollers: getAllMiniStatuses(),
-	}
+	page := struct{}{}
 	if err := mainTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, errors.New("Failed to expand template."), fmt.Sprintf("Failed to expand template: %s", err), http.StatusInternalServerError)
 	}
 }
 
-func runServer(ctx context.Context, serverURL string) {
-	// TODO(borenet): Use CRIA groups instead of @google.com, ie. admins are
-	// "google/skia-root@google.com", editors are specified in each roller's
-	// config file, and viewers are either public or @google.com.
-	var viewAllow allowed.Allow
-	if *internal {
-		viewAllow = allowed.UnionOf(allowed.NewAllowedFromList(allowedViewers), allowed.Googlers())
-	}
-	login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, allowed.Googlers(), allowed.Googlers(), viewAllow)
+func runServer(ctx context.Context, serverURL string, rpcs http.Handler) {
+	//login.InitWithAllow(serverURL+login.DEFAULT_OAUTH2_CALLBACK, allowed.Googlers(), allowed.Googlers(), viewAllow)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", httputils.OriginTrial(mainHandler, *local))
+	r.HandleFunc("/", mainHandler)
 	r.PathPrefix("/dist/").Handler(http.StripPrefix("/dist/", http.HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))))
-	r.HandleFunc("/json/all", jsonAllHandler)
 	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
-
 	rollerRouter := r.PathPrefix("/r/{roller}").Subrouter()
-	rollerRouter.HandleFunc("", httputils.OriginTrial(rollerHandler, *local))
-	rollerRouter.HandleFunc("/json/ministatus", httputils.CorsHandler(miniStatusJsonHandler))
-	rollerRouter.HandleFunc("/json/status", httputils.CorsHandler(statusJsonHandler))
-	rollerRouter.Handle("/json/mode", login.RestrictEditorFn(modeJsonHandler)).Methods("POST")
-	rollerRouter.Handle("/json/manual", login.RestrictEditorFn(newManualRollHandler)).Methods("POST")
-	rollerRouter.Handle("/json/strategy", login.RestrictEditorFn(strategyJsonHandler)).Methods("POST")
-	rollerRouter.Handle("/json/unthrottle", login.RestrictEditorFn(unthrottleHandler)).Methods("POST")
-	h := httputils.LoggingGzipRequestResponse(r)
+	rollerRouter.HandleFunc("", rollerHandler)
+	r.Handle(rpc.AutoRollRPCsPathPrefix, rpcs)
+	/*h := httputils.LoggingGzipRequestResponse(r)
 	if !*local {
 		if viewAllow != nil {
 			h = login.RestrictViewer(h)
 			h = login.ForceAuth(h, login.DEFAULT_OAUTH2_CALLBACK)
 		}
 		h = httputils.HealthzAndHTTPS(h)
-	}
-	http.Handle("/", h)
+	}*/
+	http.Handle("/", r)
 	sklog.Infof("Ready to serve on %s", serverURL)
 	sklog.Fatal(http.ListenAndServe(*port, nil))
 }
@@ -409,7 +172,7 @@ func main() {
 	)
 	defer common.Defer()
 
-	Init()
+	reloadTemplates()
 
 	if *hang {
 		select {}
@@ -429,7 +192,7 @@ func main() {
 
 	ctx := context.Background()
 
-	manualRollDB, err = manual.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
+	manualRollDB, err := manual.NewDBWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -462,9 +225,7 @@ func main() {
 		cfgs = append(cfgs, &cfg)
 	}
 
-	// Process the configs.
-	rollerNames = []string{}
-	rollers = map[string]*autoroller{}
+	// Validate the configs.
 	for _, cfg := range cfgs {
 		if err := cfg.Validate(); err != nil {
 			sklog.Fatalf("Invalid roller config %q: %s", cfg.RollerName, err)
@@ -472,51 +233,29 @@ func main() {
 
 		// Public frontend only displays public rollers, private-private.
 		if *internal != cfg.IsInternal {
-			continue
-		}
-
-		// Set up DBs for the roller.
-		arbMode, err := modes.NewModeHistory(ctx, cfg.RollerName)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		go util.RepeatCtx(ctx, 10*time.Second, func(ctx context.Context) {
-			if err := arbMode.Update(ctx); err != nil {
-				sklog.Error(err)
-			}
-		})
-		arbStatus, err := status.NewCache(ctx, cfg.RollerName)
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		go util.RepeatCtx(ctx, 10*time.Second, func(ctx context.Context) {
-			if err := arbStatus.Update(ctx); err != nil {
-				sklog.Error(err)
-			}
-		})
-		arbStrategy, err := strategy.NewStrategyHistory(ctx, cfg.RollerName, cfg.ValidStrategies())
-		if err != nil {
-			sklog.Fatal(err)
-		}
-		go util.RepeatCtx(ctx, 10*time.Second, func(ctx context.Context) {
-			if err := arbStrategy.Update(ctx); err != nil {
-				sklog.Error(err)
-			}
-		})
-		rollerNames = append(rollerNames, cfg.RollerName)
-		rollers[cfg.RollerName] = &autoroller{
-			Cfg:      cfg,
-			Mode:     arbMode,
-			Status:   arbStatus,
-			Strategy: arbStrategy,
+			sklog.Fatalf("Internal/external mismatch for %s", cfg.RollerName)
 		}
 	}
-	sort.Strings(rollerNames)
 
 	serverURL := "https://" + *host
 	if *local {
 		serverURL = "http://" + *host + *port
 	}
 
-	runServer(ctx, serverURL)
+	// Create the server.
+	// TODO(borenet): Use CRIA groups instead of @google.com, ie. admins are
+	// "google/skia-root@google.com", editors are specified in each roller's
+	// config file, and viewers are either public or @google.com.
+	viewAllow := allowed.Allow(allowed.Anyone())
+	if *internal {
+		viewAllow = allowed.UnionOf(allowed.NewAllowedFromList(allowedViewers), allowed.Googlers())
+	}
+	editAllow := allowed.Googlers()
+	adminAllow := allowed.Googlers()
+	rpcs, err := rpc.NewAutoRollServer(ctx, cfgs, manualRollDB, viewAllow, editAllow, adminAllow)
+	if err != nil {
+		sklog.Fatal(err)
+	}
+
+	runServer(ctx, serverURL, rpcs)
 }
