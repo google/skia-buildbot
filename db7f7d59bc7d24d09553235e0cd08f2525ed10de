@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0d124ab2_bc8fab98",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-16T17:26:27Z",
+      "side": 1,
+      "message": "A quick review is all I\u0027m looking for here. trace_tool is not a production tool, ",
+      "revId": "db7f7d59bc7d24d09553235e0cd08f2525ed10de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
