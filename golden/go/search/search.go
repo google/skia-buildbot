@@ -201,21 +201,21 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	return searchRet, nil
 }
 
-func collectDigestsForBulkTriage(results []*frontend.SearchResult) map[types.TestName]map[types.Digest]string {
-	testNameToPrimaryDigest := map[types.TestName]map[types.Digest]string{}
+func collectDigestsForBulkTriage(results []*frontend.SearchResult) map[types.TestName]map[types.Digest]expectations.LabelStr {
+	testNameToPrimaryDigest := map[types.TestName]map[types.Digest]expectations.LabelStr{}
 	for _, r := range results {
 		test := r.Test
 		digestToLabel, ok := testNameToPrimaryDigest[test]
 		if !ok {
-			digestToLabel = map[types.Digest]string{}
+			digestToLabel = map[types.Digest]expectations.LabelStr{}
 			testNameToPrimaryDigest[test] = digestToLabel
 		}
 		primary := r.Digest
 		switch r.ClosestRef {
 		case common.PositiveRef:
-			digestToLabel[primary] = expectations.Positive.String()
+			digestToLabel[primary] = expectations.PositiveStr
 		case common.NegativeRef:
-			digestToLabel[primary] = expectations.Negative.String()
+			digestToLabel[primary] = expectations.NegativeStr
 		case common.NoRef:
 			digestToLabel[primary] = ""
 		}

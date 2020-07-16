@@ -197,12 +197,12 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 				},
 			},
 		},
-		BulkTriageData: map[types.TestName]map[types.Digest]string{
+		BulkTriageData: map[types.TestName]map[types.Digest]expectations.LabelStr{
 			data.AlphaTest: {
-				data.AlphaUntriagedDigest: expectations.Positive.String(),
+				data.AlphaUntriagedDigest: expectations.PositiveStr,
 			},
 			data.BetaTest: {
-				data.BetaUntriagedDigest: expectations.Positive.String(),
+				data.BetaUntriagedDigest: expectations.PositiveStr,
 			},
 		},
 	}, resp)
@@ -245,12 +245,12 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	// This checks that the returned result is the first one of the results we expect.
 	assert.Equal(t, data.AlphaUntriagedDigest, resp.Results[0].Digest)
 	// BulkTriageData should still be fully filled out for all digests in the full results.
-	assert.Equal(t, map[types.TestName]map[types.Digest]string{
+	assert.Equal(t, map[types.TestName]map[types.Digest]expectations.LabelStr{
 		data.AlphaTest: {
-			data.AlphaUntriagedDigest: expectations.Positive.String(),
+			data.AlphaUntriagedDigest: expectations.PositiveStr,
 		},
 		data.BetaTest: {
-			data.BetaUntriagedDigest: expectations.Positive.String(),
+			data.BetaUntriagedDigest: expectations.PositiveStr,
 		},
 	}, resp.BulkTriageData)
 
@@ -266,12 +266,12 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	// This checks that the returned result is the second one of the results we expect.
 	assert.Equal(t, data.BetaUntriagedDigest, resp.Results[0].Digest)
 	// BulkTriageData should still be fully filled out for all digests in the full results.
-	assert.Equal(t, map[types.TestName]map[types.Digest]string{
+	assert.Equal(t, map[types.TestName]map[types.Digest]expectations.LabelStr{
 		data.AlphaTest: {
-			data.AlphaUntriagedDigest: expectations.Positive.String(),
+			data.AlphaUntriagedDigest: expectations.PositiveStr,
 		},
 		data.BetaTest: {
-			data.BetaUntriagedDigest: expectations.Positive.String(),
+			data.BetaUntriagedDigest: expectations.PositiveStr,
 		},
 	}, resp.BulkTriageData)
 }
@@ -294,7 +294,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	type spotCheck struct {
 		test            types.TestName
 		digest          types.Digest
-		labelStr        string
+		labelStr        expectations.LabelStr
 		closestPositive types.Digest
 		closestNegative types.Digest
 	}
@@ -895,9 +895,9 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 				},
 			},
 		},
-		BulkTriageData: map[types.TestName]map[types.Digest]string{
+		BulkTriageData: map[types.TestName]map[types.Digest]expectations.LabelStr{
 			data.BetaTest: {
-				BetaBrandNewDigest: expectations.Positive.String(),
+				BetaBrandNewDigest: expectations.PositiveStr,
 			},
 		},
 	}, resp)
@@ -1135,7 +1135,7 @@ func TestDigestDetails_ChangeListAltersExpectations_Success(t *testing.T) {
 
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)
-	assert.Equal(t, details.Result.Status, expectations.Negative.String())
+	assert.Equal(t, details.Result.Status, expectations.NegativeStr)
 	assert.Equal(t, []frontend.TriageHistory{
 		{
 			User: clUser,
@@ -1429,7 +1429,7 @@ func TestDigestDetails_TestIgnored_DetailsContainResults_Success(t *testing.T) {
 		common.NegativeRef: {
 			DiffMetrics: makeBigDiffMetric(),
 			Digest:      data.AlphaNegativeDigest,
-			Status:      expectations.Negative.String(),
+			Status:      expectations.NegativeStr,
 			ParamSet: paramtools.ParamSet{
 				"device":              []string{data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
 				types.PrimaryKeyField: []string{string(data.AlphaTest)},
@@ -1459,7 +1459,7 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 		Left: frontend.SearchResult{
 			Test:   testWeWantDetailsAbout,
 			Digest: leftDigest,
-			Status: expectations.Untriaged.String(),
+			Status: expectations.UntriagedStr,
 			ParamSet: paramtools.ParamSet{
 				"device":              []string{data.BullheadDevice},
 				types.PrimaryKeyField: []string{string(data.AlphaTest)},
@@ -1468,7 +1468,7 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 		},
 		Right: &frontend.SRDiffDigest{
 			Digest:      rightDigest,
-			Status:      expectations.Positive.String(),
+			Status:      expectations.PositiveStr,
 			DiffMetrics: makeSmallDiffMetric(),
 			ParamSet: paramtools.ParamSet{
 				"device":              []string{data.AnglerDevice, data.CrosshatchDevice},
@@ -1501,7 +1501,7 @@ func TestDiffDigestsChangeList(t *testing.T) {
 
 	cd, err := s.DiffDigests(context.Background(), testWeWantDetailsAbout, leftDigest, rightDigest, clID, crs)
 	require.NoError(t, err)
-	assert.Equal(t, cd.Left.Status, expectations.Negative.String())
+	assert.Equal(t, cd.Left.Status, expectations.NegativeStr)
 }
 
 // TestUntriagedUnignoredTryJobExclusiveDigests_NoIndexBuilt_Success models the case where a set of
@@ -2093,22 +2093,22 @@ func TestAddExpectations_Success(t *testing.T) {
 		{
 			Test:   data.AlphaTest,
 			Digest: data.AlphaPositiveDigest,
-			Status: expectations.Positive.String(),
+			Status: expectations.PositiveStr,
 		},
 		{
 			Test:   data.AlphaTest,
 			Digest: data.AlphaNegativeDigest,
-			Status: expectations.Negative.String(),
+			Status: expectations.NegativeStr,
 		},
 		{
 			Test:   data.BetaTest,
 			Digest: data.BetaPositiveDigest,
-			Status: expectations.Positive.String(),
+			Status: expectations.PositiveStr,
 		},
 		{
 			Test:   data.BetaTest,
 			Digest: data.BetaUntriagedDigest,
-			Status: expectations.Untriaged.String(),
+			Status: expectations.UntriagedStr,
 		},
 	}, results)
 }
@@ -2305,7 +2305,7 @@ func TestCollectDigestsForBulkTriage_Success(t *testing.T) {
 	}
 
 	bulkTriageData := collectDigestsForBulkTriage(results)
-	assert.Equal(t, map[types.TestName]map[types.Digest]string{
+	assert.Equal(t, map[types.TestName]map[types.Digest]expectations.LabelStr{
 		"apple": {
 			"grannysmith": "positive",
 			"honeycrisp":  "",

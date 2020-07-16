@@ -93,9 +93,9 @@ type StatusWatcher struct {
 func New(ctx context.Context, swc StatusWatcherConfig) (*StatusWatcher, error) {
 	ret := &StatusWatcher{
 		StatusWatcherConfig: swc,
-		allUntriagedGauge:   metrics2.GetInt64Metric(allMetric, map[string]string{"type": expectations.Untriaged.String()}),
-		allPositiveGauge:    metrics2.GetInt64Metric(allMetric, map[string]string{"type": expectations.Positive.String()}),
-		allNegativeGauge:    metrics2.GetInt64Metric(allMetric, map[string]string{"type": expectations.Negative.String()}),
+		allUntriagedGauge:   metrics2.GetInt64Metric(allMetric, map[string]string{"type": string(expectations.UntriagedStr)}),
+		allPositiveGauge:    metrics2.GetInt64Metric(allMetric, map[string]string{"type": string(expectations.PositiveStr)}),
+		allNegativeGauge:    metrics2.GetInt64Metric(allMetric, map[string]string{"type": string(expectations.NegativeStr)}),
 		totalGauge:          metrics2.GetInt64Metric(totalDigestsMetric, nil),
 		corpusGauges:        map[string]map[expectations.Label]metrics2.Int64Metric{},
 	}
@@ -250,9 +250,9 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 
 			if _, ok := s.corpusGauges[corpus]; !ok {
 				s.corpusGauges[corpus] = map[expectations.Label]metrics2.Int64Metric{
-					expectations.Untriaged: metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": expectations.Untriaged.String(), "corpus": corpus}),
-					expectations.Positive:  metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": expectations.Positive.String(), "corpus": corpus}),
-					expectations.Negative:  metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": expectations.Negative.String(), "corpus": corpus}),
+					expectations.Untriaged: metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": string(expectations.UntriagedStr), "corpus": corpus}),
+					expectations.Positive:  metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": string(expectations.PositiveStr), "corpus": corpus}),
+					expectations.Negative:  metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": string(expectations.NegativeStr), "corpus": corpus}),
 				}
 			}
 		}

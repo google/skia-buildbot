@@ -578,9 +578,9 @@ func TestTriage_SingleDigestOnMaster_Success(t *testing.T) {
 
 	tr := frontend.TriageRequest{
 		ChangeListID: "",
-		TestDigestStatus: map[types.TestName]map[types.Digest]string{
+		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.LabelStr{
 			bug_revert.TestOne: {
-				bug_revert.BravoUntriagedDigest: expectations.Negative.String(),
+				bug_revert.BravoUntriagedDigest: expectations.NegativeStr,
 			},
 		},
 	}
@@ -614,9 +614,9 @@ func TestTriage_SingleDigestOnMaster_ImageMatchingAlgorithmSet_UsesAlgorithmName
 
 	tr := frontend.TriageRequest{
 		ChangeListID: "",
-		TestDigestStatus: map[types.TestName]map[types.Digest]string{
+		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.LabelStr{
 			bug_revert.TestOne: {
-				bug_revert.BravoUntriagedDigest: expectations.Negative.String(),
+				bug_revert.BravoUntriagedDigest: expectations.NegativeStr,
 			},
 		},
 		ImageMatchingAlgorithm: algorithmName,
@@ -663,9 +663,9 @@ func TestTriage_SingleDigestOnCL_Success(t *testing.T) {
 
 	tr := frontend.TriageRequest{
 		ChangeListID: clID,
-		TestDigestStatus: map[types.TestName]map[types.Digest]string{
+		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.LabelStr{
 			bug_revert.TestOne: {
-				bug_revert.BravoUntriagedDigest: expectations.Negative.String(),
+				bug_revert.BravoUntriagedDigest: expectations.NegativeStr,
 			},
 		},
 	}
@@ -710,9 +710,9 @@ func TestTriage_SingleDigestOnCL_ImageMatchingAlgorithmSet_UsesAlgorithmNameAsAu
 
 	tr := frontend.TriageRequest{
 		ChangeListID: clID,
-		TestDigestStatus: map[types.TestName]map[types.Digest]string{
+		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.LabelStr{
 			bug_revert.TestOne: {
-				bug_revert.BravoUntriagedDigest: expectations.Negative.String(),
+				bug_revert.BravoUntriagedDigest: expectations.NegativeStr,
 			},
 		},
 		ImageMatchingAlgorithm: algorithmName,
@@ -766,14 +766,14 @@ func TestTriage_BulkTriageOnMaster_SunnyDay_Success(t *testing.T) {
 
 	tr := frontend.TriageRequest{
 		ChangeListID: "",
-		TestDigestStatus: map[types.TestName]map[types.Digest]string{
+		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.LabelStr{
 			bug_revert.TestOne: {
-				bug_revert.AlfaPositiveDigest:   expectations.Untriaged.String(),
-				bug_revert.BravoUntriagedDigest: expectations.Negative.String(),
+				bug_revert.AlfaPositiveDigest:   expectations.UntriagedStr,
+				bug_revert.BravoUntriagedDigest: expectations.NegativeStr,
 			},
 			bug_revert.TestTwo: {
-				bug_revert.CharliePositiveDigest: expectations.Positive.String(),
-				bug_revert.DeltaUntriagedDigest:  expectations.Negative.String(),
+				bug_revert.CharliePositiveDigest: expectations.PositiveStr,
+				bug_revert.DeltaUntriagedDigest:  expectations.NegativeStr,
 				"digestWithNoClosestPositive":    "",
 			},
 		},
@@ -809,9 +809,9 @@ func TestTriage_SingleLegacyDigestOnMaster_SunnyDay_Success(t *testing.T) {
 
 	tr := frontend.TriageRequest{
 		ChangeListID: "0",
-		TestDigestStatus: map[types.TestName]map[types.Digest]string{
+		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.LabelStr{
 			bug_revert.TestOne: {
-				bug_revert.BravoUntriagedDigest: expectations.Negative.String(),
+				bug_revert.BravoUntriagedDigest: expectations.NegativeStr,
 			},
 		},
 	}
@@ -889,7 +889,7 @@ func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 			TS:          ts1.Unix() * 1000,
 			Details: []frontend.TriageDelta{
 				{
-					Label:    expectations.Positive.String(),
+					Label:    expectations.PositiveStr,
 					Digest:   bug_revert.DeltaUntriagedDigest,
 					TestName: bug_revert.TestOne,
 				},
@@ -902,12 +902,12 @@ func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 			TS:          ts2.Unix() * 1000,
 			Details: []frontend.TriageDelta{
 				{
-					Label:    expectations.Positive.String(),
+					Label:    expectations.PositiveStr,
 					Digest:   bug_revert.BravoUntriagedDigest,
 					TestName: bug_revert.TestOne,
 				},
 				{
-					Label:    expectations.Negative.String(),
+					Label:    expectations.NegativeStr,
 					Digest:   bug_revert.CharliePositiveDigest,
 					TestName: bug_revert.TestOne,
 				},
