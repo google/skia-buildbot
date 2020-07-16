@@ -136,7 +136,7 @@ func (b *BTTraceStore) Put(ctx context.Context, commitHash string, entries []*tr
 
 	// Find out what tile we need to fetch and what index into that tile we need.
 	// Reminder that tileKeys start at 2^32-1 and decrease in value.
-	tileKey, commitIndex := b.getTileKey(repoIndex)
+	tileKey, commitIndex := GetTileKey(repoIndex)
 
 	// If these entries have any params we haven't seen before, we need to store those in BigTable.
 	ops, err := b.updateOrderedParamSet(ctx, tileKey, paramSet)
@@ -162,7 +162,7 @@ func (b *BTTraceStore) Put(ctx context.Context, commitHash string, entries []*tr
 // the rows that need updating and the mutations to apply to those rows.
 // Specifically, the mutations will add the given entries to BT, clearing out
 // anything that was there previously.
-func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, tk tileKey, commitIndex int, ops *paramtools.OrderedParamSet, digestTS, optionsTS time.Time) ([]string, []*bigtable.Mutation, error) {
+func (b *BTTraceStore) createPutMutations(entries []*tracestore.Entry, tk TileKey, commitIndex int, ops *paramtools.OrderedParamSet, digestTS, optionsTS time.Time) ([]string, []*bigtable.Mutation, error) {
 	// These mutations...
 	mutations := make([]*bigtable.Mutation, 0, len(entries))
 	// .. should be applied to these rows.
@@ -222,10 +222,10 @@ func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile,
 
 	// These commits could span across multiple tiles, so derive the tiles we need to query.
 	c := idxCommits[0]
-	startTileKey, startCommitIndex := b.getTileKey(c.Index)
+	startTileKey, startCommitIndex := GetTileKey(c.Index)
 
 	c = idxCommits[len(idxCommits)-1]
-	endTileKey, endCommitIndex := b.getTileKey(c.Index)
+	endTileKey, endCommitIndex := GetTileKey(c.Index)
 
 	var egroup errgroup.Group
 
@@ -268,9 +268,15 @@ func (b *BTTraceStore) GetTile(ctx context.Context, nCommits int) (*tiling.Tile,
 	return ret, commits, nil
 }
 
+// DEBUG_getTracesInRange exposes getTracesInRange to make it easy to call directly from a helper
+// executable such as trace_tool.
+func (b *BTTraceStore) DEBUG_getTracesInRange(ctx context.Context, startTileKey, endTileKey TileKey, startCommitIndex, endCommitIndex int) (traceMap, paramtools.ParamSet, error) {
+	return b.getTracesInRange(ctx, startTileKey, endTileKey, startCommitIndex, endCommitIndex)
+}
+
 // getTracesInRange returns a traceMap with data from the given start and stop points (tile and index).
 // It also includes the ParamSet for that range.
-func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTileKey tileKey, startCommitIndex, endCommitIndex int) (traceMap, paramtools.ParamSet, error) {
+func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTileKey TileKey, startCommitIndex, endCommitIndex int) (traceMap, paramtools.ParamSet, error) {
 	sklog.Debugf("getTracesInRange(%d, %d, %d, %d)", startTileKey, endTileKey, startCommitIndex, endCommitIndex)
 	// Query those tiles.
 	nTiles := int(startTileKey - endTileKey + 1)
@@ -280,7 +286,7 @@ func (b *BTTraceStore) getTracesInRange(ctx context.Context, startTileKey, endTi
 	var egroup errgroup.Group
 	tk := startTileKey
 	for idx := 0; idx < nTiles; idx++ {
-		func(idx int, tk tileKey) {
+		func(idx int, tk TileKey) {
 			egroup.Go(func() error {
 				var err error
 				encTiles[idx], err = b.loadTile(ctx, tk)
@@ -386,7 +392,7 @@ func (b *BTTraceStore) GetDenseTile(ctx context.Context, nCommits int) (*tiling.
 	}
 
 	c := idxCommits[0]
-	endKey, endIdx := b.getTileKey(c.Index)
+	endKey, endIdx := GetTileKey(c.Index)
 	tileStartCommitIdx := c.Index - endIdx
 
 	// Given nCommits and the current index, we can figure out how many tiles to
@@ -512,17 +518,17 @@ func (b *BTTraceStore) commitsFromVCS(ctx context.Context, commitsWithData []int
 	return allCommits, denseCommits, nil
 }
 
-// getTileKey retrieves the tile key and the index of the commit in the given tile (commitIndex)
+// GetTileKey retrieves the tile key and the index of the commit in the given tile (commitIndex)
 // given the index of a commit in the repo (repoIndex).
 // commitIndex starts at 0 for the oldest commit in the tile.
-func (b *BTTraceStore) getTileKey(repoIndex int) (tileKey, int) {
+func GetTileKey(repoIndex int) (TileKey, int) {
 	tileIndex := int32(repoIndex) / DefaultTileSize
-	commitIndex := repoIndex % int(DefaultTileSize)
+	commitIndex := repoIndex % DefaultTileSize
 	return tileKeyFromIndex(tileIndex), commitIndex
 }
 
-// loadTile returns an *encTile corresponding to the tileKey.
-func (b *BTTraceStore) loadTile(ctx context.Context, tileKey tileKey) (*encTile, error) {
+// loadTile returns an *encTile corresponding to the TileKey.
+func (b *BTTraceStore) loadTile(ctx context.Context, tileKey TileKey) (*encTile, error) {
 	defer metrics2.FuncTimer().Stop()
 	var egroup errgroup.Group
 
@@ -558,7 +564,7 @@ func (b *BTTraceStore) loadTile(ctx context.Context, tileKey tileKey) (*encTile,
 }
 
 // loadOptions returns the options map corresponding to the given tile.
-func (b *BTTraceStore) loadOptions(ctx context.Context, tileKey tileKey) (map[encodedTraceID]paramtools.Params, error) {
+func (b *BTTraceStore) loadOptions(ctx context.Context, tileKey TileKey) (map[encodedTraceID]paramtools.Params, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	var egroup errgroup.Group
@@ -628,10 +634,10 @@ func (b *BTTraceStore) loadOptions(ctx context.Context, tileKey tileKey) (map[en
 	return ret, nil
 }
 
-// loadEncodedTraces returns all traces belonging to the given tileKey.
+// loadEncodedTraces returns all traces belonging to the given TileKey.
 // As outlined in BIGTABLE.md, the trace ids and the digest ids they
 // map to are in an encoded form and will need to be expanded prior to use.
-func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) ([]*encodedTracePair, error) {
+func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey TileKey) ([]*encodedTracePair, error) {
 	defer metrics2.FuncTimer().Stop()
 	var egroup errgroup.Group
 	shardResults := [DefaultShards][]*encodedTracePair{}
@@ -696,7 +702,7 @@ func (b *BTTraceStore) loadEncodedTraces(ctx context.Context, tileKey tileKey) (
 					bigtable.ChainFilters(
 						bigtable.FamilyFilter(traceFamily),
 						// can be used for local testing to keep RAM usage lower
-						//bigtable.RowSampleFilter(0.1),
+						// bigtable.RowSampleFilter(0.01),
 						bigtable.LatestNFilter(1),
 						bigtable.CellsPerRowLimitFilter(DefaultTileSize),
 					),
@@ -751,9 +757,9 @@ func (b *BTTraceStore) applyBulkBatched(ctx context.Context, rowNames []string, 
 }
 
 // calcShardedRowName deterministically assigns a shard for the given subkey (e.g. traceID)
-// Once this is done, the shard, rowtype, tileKey and the subkey are combined into a
+// Once this is done, the shard, rowtype, TileKey and the subkey are combined into a
 // single string to be used as a row name in BT.
-func (b *BTTraceStore) calcShardedRowName(tileKey tileKey, rowType, subkey string) string {
+func (b *BTTraceStore) calcShardedRowName(tileKey TileKey, rowType, subkey string) string {
 	shard := int32(crc32.ChecksumIEEE([]byte(subkey)) % uint32(DefaultShards))
 	return shardedRowName(shard, rowType, tileKey, subkey)
 }
@@ -761,8 +767,8 @@ func (b *BTTraceStore) calcShardedRowName(tileKey tileKey, rowType, subkey strin
 // Copied from btts.go in infra/perf
 
 // UpdateOrderedParamSet will add all params from 'p' to the OrderedParamSet
-// for 'tileKey' and write it back to BigTable.
-func (b *BTTraceStore) updateOrderedParamSet(ctx context.Context, tileKey tileKey, p paramtools.ParamSet) (*paramtools.OrderedParamSet, error) {
+// for 'TileKey' and write it back to BigTable.
+func (b *BTTraceStore) updateOrderedParamSet(ctx context.Context, tileKey TileKey, p paramtools.ParamSet) (*paramtools.OrderedParamSet, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	tctx, cancel := context.WithTimeout(ctx, writeTimeout)
@@ -866,7 +872,7 @@ func (b *BTTraceStore) updateOrderedParamSet(ctx context.Context, tileKey tileKe
 // Note that it will create a new OpsCacheEntry if none exists.
 //
 // getOps returns false if the OPS in BT was empty, true otherwise (even if cached).
-func (b *BTTraceStore) getOPS(ctx context.Context, tk tileKey) (*opsCacheEntry, bool, error) {
+func (b *BTTraceStore) getOPS(ctx context.Context, tk TileKey) (*opsCacheEntry, bool, error) {
 	defer metrics2.FuncTimer().Stop()
 	if b.cacheOps {
 		entry, ok := b.opsCache.Load(tk.OpsRowName())

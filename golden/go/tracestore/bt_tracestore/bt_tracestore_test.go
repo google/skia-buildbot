@@ -637,51 +637,42 @@ func TestBTTraceStoreOverwrite(t *testing.T) {
 }
 
 // TestGetTileKey tests the internal workings of deriving a
-// tileKey from the commit index. See BIGTABLE.md for more.
+// TileKey from the commit index. See BIGTABLE.md for more.
 func TestGetTileKey(t *testing.T) {
-	unittest.LargeTest(t)
-	unittest.RequiresBigTableEmulator(t)
-
-	btConf := BTConfig{
-		// Leaving other things blank because we won't actually hit BT or use VCS.
-	}
-
-	ctx := context.Background()
-	traceStore, err := New(ctx, btConf, true)
-	require.NoError(t, err)
+	unittest.SmallTest(t)
 
 	type testStruct struct {
 		InputRepoIndex int
 
-		ExpectedKey   tileKey
+		ExpectedKey   TileKey
 		ExpectedIndex int
 	}
 	// test data is valid, but arbitrary.
 	tests := []testStruct{
 		{
 			InputRepoIndex: 0,
-			ExpectedKey:    tileKey(2147483647),
+			ExpectedKey:    TileKey(2147483647),
 			ExpectedIndex:  0,
 		},
 		{
 			InputRepoIndex: 10,
-			ExpectedKey:    tileKey(2147483647),
+			ExpectedKey:    TileKey(2147483647),
 			ExpectedIndex:  10,
 		},
 		{
 			InputRepoIndex: 300,
-			ExpectedKey:    tileKey(2147483646),
+			ExpectedKey:    TileKey(2147483646),
 			ExpectedIndex:  44,
 		},
 		{
 			InputRepoIndex: 123456,
-			ExpectedKey:    tileKey(2147483165),
+			ExpectedKey:    TileKey(2147483165),
 			ExpectedIndex:  64,
 		},
 	}
 
 	for _, test := range tests {
-		key, index := traceStore.getTileKey(test.InputRepoIndex)
+		key, index := GetTileKey(test.InputRepoIndex)
 		require.Equal(t, test.ExpectedKey, key)
 		require.Equal(t, test.ExpectedIndex, index)
 	}
@@ -703,7 +694,7 @@ func TestCalcShardedRowName(t *testing.T) {
 	require.NoError(t, err)
 
 	type testStruct struct {
-		InputKey     tileKey
+		InputKey     TileKey
 		InputRowType string
 		InputSubKey  string
 
@@ -712,14 +703,14 @@ func TestCalcShardedRowName(t *testing.T) {
 	// test data is valid, but arbitrary.
 	tests := []testStruct{
 		{
-			InputKey:     tileKey(2147483647),
+			InputKey:     TileKey(2147483647),
 			InputRowType: typeTrace,
 			InputSubKey:  ",0=1,1=3,3=0,",
 
 			ExpectedRowName: "09:ts:t:2147483647:,0=1,1=3,3=0,",
 		},
 		{
-			InputKey:     tileKey(2147483647),
+			InputKey:     TileKey(2147483647),
 			InputRowType: typeTrace,
 			InputSubKey:  ",0=1,1=3,9=0,",
 
