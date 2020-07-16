@@ -104,7 +104,7 @@ describe('machine-server-sk', () => {
         await fetchMock.flush(true);
 
         // Confirm the button text has been updated.
-        assert.equal('maintenance', button.textContent);
+        assert.equal('maintenance', button.textContent?.trim());
       }));
   });
 
@@ -173,7 +173,7 @@ describe('machine-server-sk', () => {
         await fetchMock.flush(true);
 
         // Confirm the button text has been updated.
-        assert.equal('Waiting for update.', button.textContent);
+        assert.equal('Waiting for update.', button.textContent?.trim());
       }));
   });
 
@@ -304,14 +304,89 @@ describe('machine-server-sk', () => {
         ]);
 
         // Click the button.
-        const button = s!.querySelector<HTMLButtonElement>('.powercycle')!;
+        const button = s!.querySelector<HTMLElement>(
+          'power-settings-new-icon-sk'
+        )!;
         button.click();
 
         // Wait for all requests to finish.
         await fetchMock.flush(true);
 
         // Confirm the button text has been updated.
-        assert.equal('Waiting for Power Cycle', button.textContent);
+        assert.equal(
+          'Waiting for Power Cycle',
+          s!.querySelector('.powercycle')?.textContent?.trim()
+        );
+      }));
+  });
+
+  describe('clears Dimensions on click', () => {
+    fetchMock.get('/_/machines', [
+      {
+        Mode: 'available',
+        Battery: 100,
+        PodName: 'rpi-swarming-123456-987',
+        ScheduledForDeletion: '',
+        Dimensions: {
+          id: ['skia-rpi2-rack4-shelf1-002'],
+          android_devices: ['1'],
+          device_os: ['H', 'HUAWEIELE-L29'],
+        },
+        Annotation: {
+          User: '',
+          Message: '',
+          LastUpdated: '2020-04-21T17:33:09.638275Z',
+        },
+        PowerCycle: false,
+        LastUpdated: '2020-04-21T17:33:09.638275Z',
+        Temperature: { dumpsys_battery: 26 },
+      },
+    ]);
+
+    it('updates PowerCycle when you click on the button', () =>
+      window.customElements.whenDefined('machine-server-sk').then(async () => {
+        container.innerHTML = '<machine-server-sk></machine-server-sk>';
+        const s = container.firstElementChild;
+
+        // Wait for the initial fetch to finish.
+        await fetchMock.flush(true);
+
+        // Confirm there are row in the dimensions.
+        assert.isNotNull(s!.querySelector('details.dimensions table tr'));
+
+        // Now set up fetchMock for the requests that happen when the button is clicked.
+        fetchMock.reset();
+        fetchMock.get(
+          '/_/machine/remove_device/skia-rpi2-rack4-shelf1-002',
+          200
+        );
+        fetchMock.get('/_/machines', [
+          {
+            Mode: 'maintenance',
+            Battery: 100,
+            PodName: 'rpi-swarming-123456-987',
+            ScheduledForDeletion: 'rpi-swarming-123456-987',
+            Dimensions: {},
+            Annotation: {
+              User: '',
+              Message: '',
+              LastUpdated: '2020-04-21T17:33:09.638275Z',
+            },
+            PowerCycle: true,
+            LastUpdated: '2020-04-21T17:33:09.638275Z',
+            Temperature: { dumpsys_battery: 26 },
+          },
+        ]);
+
+        // Click the button.
+        const button = s!.querySelector<HTMLElement>('clear-icon-sk')!;
+        button.click();
+
+        // Wait for all requests to finish.
+        await fetchMock.flush(true);
+
+        // Confirm the dimensions are now empty.
+        assert.isNull(s!.querySelector('details.dimensions table tr'));
       }));
   });
 });

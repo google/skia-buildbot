@@ -18,6 +18,7 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/theme-chooser-sk';
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/cached-icon-sk';
+import 'elements-sk/icon/clear-icon-sk';
 import 'elements-sk/icon/pause-icon-sk';
 import 'elements-sk/icon/play-arrow-icon-sk';
 import 'elements-sk/icon/power-settings-new-icon-sk';
@@ -44,10 +45,12 @@ const temps = (temperatures: { [key: string]: number }) => {
       <table>
         ${Object.entries(temperatures).map(
           (pair) =>
-            html`<tr>
-              <td>${pair[0]}</td>
-              <td>${pair[1]}</td>
-            </tr>`
+            html`
+              <tr>
+                <td>${pair[0]}</td>
+                <td>${pair[1]}</td>
+              </tr>
+            `
         )}
       </table>
     </details>
@@ -56,7 +59,9 @@ const temps = (temperatures: { [key: string]: number }) => {
 
 const isRunning = (machine: Description) =>
   machine.RunningSwarmingTask
-    ? html`<cached-icon-sk title="Running"></cached-icon-sk>`
+    ? html`
+        <cached-icon-sk title="Running"></cached-icon-sk>
+      `
     : '';
 
 const asList = (arr: string[]) => arr.join(' | ');
@@ -66,15 +71,17 @@ const dimensions = (machine: Description) => {
     return '';
   }
   return html`
-    <details>
+    <details class="dimensions">
       <summary>Dimensions</summary>
       <table>
         ${Object.entries(machine.Dimensions).map(
           (pair) =>
-            html`<tr>
-              <td>${pair[0]}</td>
-              <td>${asList(pair[1])}</td>
-            </tr>`
+            html`
+              <tr>
+                <td>${pair[0]}</td>
+                <td>${asList(pair[1])}</td>
+              </tr>
+            `
         )}
       </table>
     </details>
@@ -91,11 +98,17 @@ const annotation = (machine: Description) => {
   `;
 };
 
-const update = (machine: Description) => {
-  if (machine.ScheduledForDeletion) {
-    return 'Waiting for update.';
-  }
-  return 'Update';
+const update = (ele: MachineServerSk, machine: Description) => {
+  const msg = machine.ScheduledForDeletion ? 'Waiting for update.' : 'Update';
+  return html`
+    <button
+      title="Force the pod to be killed and re-created"
+      class="update"
+      @click=${() => ele._toggleUpdate(machine.Dimensions.id)}
+    >
+      ${msg}
+    </button>
+  `;
 };
 
 const imageName = (machine: Description) => {
@@ -112,51 +125,62 @@ const imageName = (machine: Description) => {
   return parts[1];
 };
 
-const powerCycle = (machine: Description) => {
+const powerCycle = (ele: MachineServerSk, machine: Description) => {
   if (machine.PowerCycle) {
     return 'Waiting for Power Cycle';
   }
-  return html`<power-settings-new-icon-sk></power-settings-new-icon-sk>`;
+  return html`
+    <power-settings-new-icon-sk
+      title="Powercycle the host"
+      @click=${() => ele._togglePowerCycle(machine.Dimensions.id)}
+    ></power-settings-new-icon-sk>
+  `;
+};
+
+const clearDevice = (ele: MachineServerSk, machine: Description) => {
+  return machine.RunningSwarmingTask
+    ? ''
+    : html`
+        <clear-icon-sk
+          title="Clear the dimensions for the bot"
+          @click=${() => ele._clearDevice(machine.Dimensions.id)}
+        ></clear-icon-sk>
+      `;
+};
+
+const toggleMode = (ele: MachineServerSk, machine: Description) => {
+  return html`
+    <button class="mode" @click=${() => ele._toggleMode(machine.Dimensions.id)}>
+      ${machine.Mode}
+    </button>
+  `;
+};
+
+const machineLink = (machine: Description) => {
+  return html`
+    <a
+      href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions.id}"
+    >
+      ${machine.Dimensions.id}
+    </a>
+  `;
 };
 
 const rows = (ele: MachineServerSk) =>
   ele._machines.map(
     (machine) => html`
       <tr id=${machine.Dimensions.id}>
-        <td>
-          <a
-            href="https://chromium-swarm.appspot.com/bot?id=${machine.Dimensions
-              .id}"
-            >${machine.Dimensions.id}</a
-          >
-        </td>
+        <td>${machineLink(machine)}</td>
         <td>${machine.PodName}</td>
         <td>${machine.Dimensions.device_type}</td>
-        <td>
-          <button
-            class="mode"
-            @click=${() => ele._toggleMode(machine.Dimensions.id)}
-            >${machine.Mode}</button
-          >
-        </td>
-        <td>
-          <button
-            class="update"
-            @click=${() => ele._toggleUpdate(machine.Dimensions.id)}
-            >${update(machine)}</button
-          >
-        </td>
-        <td
-          class="powercycle"
-          @click=${() => ele._togglePowerCycle(machine.Dimensions.id)}
-          >${powerCycle(machine)}</td
-        >
+        <td>${toggleMode(ele, machine)}</td>
+        <td>${update(ele, machine)}</td>
+        <td class="powercycle">${powerCycle(ele, machine)}</td>
+        <td>${clearDevice(ele, machine)}</td>
         <td>${machine.Dimensions.quarantined}</td>
         <td>${isRunning(machine)}</td>
         <td>${machine.Battery}</td>
-        <td>
-          ${temps(machine.Temperature)}
-        </td>
+        <td>${temps(machine.Temperature)}</td>
         <td>${diffDate(machine.LastUpdated)}</td>
         <td>${dimensions(machine)}</td>
         <td>${annotation(machine)}</td>
@@ -167,9 +191,13 @@ const rows = (ele: MachineServerSk) =>
 
 const refreshButtonDisplayValue = (ele: MachineServerSk) => {
   if (ele.refreshing) {
-    return html`<pause-icon-sk></pause-icon-sk>`;
+    return html`
+      <pause-icon-sk></pause-icon-sk>
+    `;
   }
-  return html`<play-arrow-icon-sk></play-arrow-icon-sk>`;
+  return html`
+    <play-arrow-icon-sk></play-arrow-icon-sk>
+  `;
 };
 
 const template = (ele: MachineServerSk) => html`
@@ -178,8 +206,9 @@ const template = (ele: MachineServerSk) => html`
       id="refresh"
       @click=${() => ele._toggleRefresh()}
       title="Start/Stop the automatic refreshing of data on the page."
-      >${refreshButtonDisplayValue(ele)}</span
     >
+      ${refreshButtonDisplayValue(ele)}
+    </span>
     <theme-chooser-sk
       title="Toggle between light and dark mode."
     ></theme-chooser-sk>
@@ -193,6 +222,7 @@ const template = (ele: MachineServerSk) => html`
         <th>Mode</th>
         <th>Update</th>
         <th>Host</th>
+        <th>Device</th>
         <th>Quarantined</th>
         <th>Task</th>
         <th>Battery</th>
@@ -285,6 +315,17 @@ export class MachineServerSk extends ElementSk {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_powercycle/${id}`);
+      this.removeAttribute('waiting');
+      this._update(true);
+    } catch (error) {
+      this._onError(error);
+    }
+  }
+
+  async _clearDevice(id: string[]) {
+    try {
+      this.setAttribute('waiting', '');
+      await fetch(`/_/machine/remove_device/${id}`);
       this.removeAttribute('waiting');
       this._update(true);
     } catch (error) {
