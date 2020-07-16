@@ -923,7 +923,7 @@ func (wh *Handlers) triage(ctx context.Context, user string, req frontend.Triage
 				// side than make the JS check for empty string and mutate the POST body.
 				continue
 			}
-			if !expectations.ValidLabel(label) {
+			if !expectations.ValidLabelStr(label) {
 				return skerr.Fmt("invalid label %q in triage request", label)
 			}
 			tc = append(tc, expectations.Delta{
@@ -1047,8 +1047,8 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 
 // Node represents a single node in a d3 diagram. Used in ClusterDiffResult.
 type Node struct {
-	Name   types.Digest `json:"name"`
-	Status string       `json:"status"`
+	Name   types.Digest          `json:"name"`
+	Status expectations.LabelStr `json:"status"`
 }
 
 // Link represents a link between d3 nodes, used in ClusterDiffResult.
