@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d501b668_fb9576a0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-16T18:39:28Z",
+      "side": 1,
+      "message": "My only concern here is that we may fail due to transient errors, but I think we can deal with that if it becomes a problem.",
+      "revId": "730f9244916c2306a1c930d2e503413ea46c8964",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
