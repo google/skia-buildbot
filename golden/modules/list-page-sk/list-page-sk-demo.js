@@ -11,10 +11,10 @@ testOnlySetSettings({
   defaultCorpus: 'gm',
 });
 
-const fetchMock = require('fetch-mock');
-
-fetchMock.get('/json/paramset', delay(manyParams, 100));
-fetchMock.get('glob:/json/list*', delay(sampleByTestList, 100));
+// const fetchMock = require('fetch-mock');
+//
+// fetchMock.get('/json/paramset', delay(manyParams, 100));
+// fetchMock.get('glob:/json/list*', delay(sampleByTestList, 100));
 
 // By adding this element after all the fetches are mocked out, it should load ok.
 const newList = document.createElement('list-page-sk');
