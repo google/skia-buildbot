@@ -15,24 +15,24 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-// tileKeyFromIndex converts the tile index to the tileKey.
+// tileKeyFromIndex converts the tile index to the TileKey.
 // See BIGTABLE.md for more on this conversion.
-func tileKeyFromIndex(tileIndex int32) tileKey {
+func tileKeyFromIndex(tileIndex int32) TileKey {
 	if tileIndex < 0 {
 		return badTileKey
 	}
-	return tileKey(math.MaxInt32 - tileIndex)
+	return TileKey(math.MaxInt32 - tileIndex)
 }
 
 // OpsRowName returns the name of the BigTable row which stores the OrderedParamSet
 // for this tile.
-func (t tileKey) OpsRowName() string {
+func (t TileKey) OpsRowName() string {
 	return unshardedRowName(typeOPS, t)
 }
 
 // unshardedRowName calculates the row for the given data which all has the same format:
 // :[namespace]:[type]:[tile]:
-func unshardedRowName(rowType string, tileKey tileKey) string {
+func unshardedRowName(rowType string, tileKey TileKey) string {
 	return fmt.Sprintf(":%s:%s:%010d:", traceStoreNameSpace, rowType, tileKey)
 }
 
@@ -40,7 +40,7 @@ func unshardedRowName(rowType string, tileKey tileKey) string {
 // [shard]:[namespace]:[type]:[tile]:[subkey]
 // For some data types, where there is only one row,  or when doing a prefix-match,
 // subkey may be "".
-func shardedRowName(shard int32, rowType string, tileKey tileKey, subkey string) string {
+func shardedRowName(shard int32, rowType string, tileKey TileKey, subkey string) string {
 	return fmt.Sprintf("%02d:%s:%s:%010d:%s", shard, traceStoreNameSpace, rowType, tileKey, subkey)
 }
 

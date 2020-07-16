@@ -73,7 +73,7 @@ const (
 	maxTilesForDenseTile = 50
 
 	// BadTileKey is returned in error conditions.
-	badTileKey = tileKey(-1)
+	badTileKey = TileKey(-1)
 )
 
 var (
@@ -81,12 +81,12 @@ var (
 	missingDigestBytes = []byte("")
 )
 
-// tileKey is the identifier for each tile held in BigTable.
+// TileKey is the identifier for each tile held in BigTable.
 //
 // Note that tile keys are in the opposite order of tile offset, that is, the first commit
 // in a repo goes in the first tile, which has key 2^32-1. We do this so more recent
 // tiles come first in sort order.
-type tileKey int32
+type TileKey int32
 
 // encodedTraceID is a shortened form of a tiling.TraceID, e.g. 0=1,1=3,3=0,
 // Those indices are references to the OrderedParamSet stored in encTile.
