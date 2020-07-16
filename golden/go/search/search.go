@@ -201,13 +201,13 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	return searchRet, nil
 }
 
-func collectDigestsForBulkTriage(results []*frontend.SearchResult) map[types.TestName]map[types.Digest]string {
-	testNameToPrimaryDigest := map[types.TestName]map[types.Digest]string{}
+func collectDigestsForBulkTriage(results []*frontend.SearchResult) map[types.TestName]map[types.Digest]expectations.LabelStr {
+	testNameToPrimaryDigest := map[types.TestName]map[types.Digest]expectations.LabelStr{}
 	for _, r := range results {
 		test := r.Test
 		digestToLabel, ok := testNameToPrimaryDigest[test]
 		if !ok {
-			digestToLabel = map[types.Digest]string{}
+			digestToLabel = map[types.Digest]expectations.LabelStr{}
 			testNameToPrimaryDigest[test] = digestToLabel
 		}
 		primary := r.Digest
