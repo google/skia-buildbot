@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "dad33aed_dd7d298f",
+        "filename": "infra-sk/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-16T11:17:33Z",
+      "side": 1,
+      "message": "This was to handle showing just \"a blob of text\" if we wanted to in the future instead of assuming everything is a link. Another way is to detect if the blob of text is a link and linkify that, but this seemed simpler.",
+      "parentUuid": "c8a84c9a_e4e31f69",
+      "range": {
+        "startLine": 38,
+        "startChar": 6,
+        "endLine": 38,
+        "endChar": 27
+      },
+      "revId": "04e44a5ab4951a328176c5190007cc169debf757",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a67668f7_60bc09b0",
         "filename": "task_driver/go/td/step.go",
         "patchSetId": 13
