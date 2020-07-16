@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "c59ca0f4_68e4af05",
+        "filename": "infra-sk/modules/task-driver-sk/task-driver-sk.js",
+        "patchSetId": 13
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-16T11:29:12Z",
+      "side": 1,
+      "message": "Right, I\u0027m suggesting that the blob of text could contain (potentially multiple) links, rather than the whole thing being either a link or not.  We already have the code written to do that, so I think it would actually be simpler to just do:\n\ncase \"text\":\n  return propLine(d.data.desc, escapeAndLinkify(d.data.text));",
+      "parentUuid": "dad33aed_dd7d298f",
+      "range": {
+        "startLine": 38,
+        "startChar": 6,
+        "endLine": 38,
+        "endChar": 27
+      },
+      "revId": "04e44a5ab4951a328176c5190007cc169debf757",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a67668f7_60bc09b0",
         "filename": "task_driver/go/td/step.go",
         "patchSetId": 13
