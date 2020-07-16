@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/golden/go/comment/trace"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/search/common"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
@@ -25,10 +26,10 @@ type SearchResponse struct {
 	Commits       []frontend.Commit `json:"commits"`
 	TraceComments []TraceComment    `json:"trace_comments"`
 	// BulkTriageData contains *all* digests that match the query as keys. The value for each key is
-	// an expectations.Label.String() value giving the label of the closest triaged digest to the
-	// key digest or empty string if there is no "closest digest". Note the similarity to the
+	// an expectations.LabelStr value giving the label of the closest triaged digest to the key digest
+	// or empty string if there is no "closest digest". Note the similarity to the
 	// frontend.TriageRequest type.
-	BulkTriageData map[types.TestName]map[types.Digest]string `json:"bulk_triage_data"`
+	BulkTriageData map[types.TestName]map[types.Digest]expectations.LabelStr `json:"bulk_triage_data"`
 }
 
 // TriageHistory represents who last triaged a certain digest for a certain test.
@@ -47,7 +48,7 @@ type SearchResult struct {
 	Test types.TestName `json:"test"`
 	// Status is positive, negative, or untriaged. This is also known as the expectation for the
 	// primary digest (for Test).
-	Status string `json:"status"`
+	Status expectations.LabelStr `json:"status"`
 	// TriageHistory is a history of all the times the primary digest has been retriaged for the
 	// given Test.
 	TriageHistory []TriageHistory `json:"triage_history"`
@@ -76,7 +77,7 @@ type SRDiffDigest struct {
 	// is the image on the right side of the comparison.
 	Digest types.Digest `json:"digest"`
 	// Status represents the expectation.Label for this digest.
-	Status string `json:"status"`
+	Status expectations.LabelStr `json:"status"`
 	// ParamSet is all of the params of all traces that produce this digest (the digest on the right).
 	// It is for frontend UI presentation only; essentially a word cloud of what drew the primary
 	// digest.
@@ -163,8 +164,8 @@ type TraceGroup struct {
 
 // DigestStatus is a digest and its status, used in TraceGroup.
 type DigestStatus struct {
-	Digest types.Digest `json:"digest"`
-	Status string       `json:"status"`
+	Digest types.Digest          `json:"digest"`
+	Status expectations.LabelStr `json:"status"`
 }
 
 // DigestComparison contains the result of comparing two digests.

@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/expectations"
 	"go.skia.org/infra/golden/go/search/common"
 	search_frontend "go.skia.org/infra/golden/go/search/frontend"
 	"go.skia.org/infra/golden/go/status"
@@ -45,6 +46,10 @@ func addTypes(generator *go2ts.Go2TS) error {
 
 	// Response for the /json/search RPC endpoint.
 	if err := generator.AddWithName(search_frontend.SearchResponse{}, "SearchResponse"); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	if err := generator.AddUnionWithName(expectations.AllLabelStr, "LabelStr"); err != nil {
 		return skerr.Wrap(err)
 	}
 
