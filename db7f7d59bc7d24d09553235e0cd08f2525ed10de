@@ -16,6 +16,29 @@
       "revId": "db7f7d59bc7d24d09553235e0cd08f2525ed10de",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "03077fb0_d3585daa",
+        "filename": "golden/cmd/trace_tool/trace_tool.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-16T18:28:50Z",
+      "side": 1,
+      "message": "Maybe add a comment saying the user is expected to edit these by hand and \"go run\" this program as needed.\n\nMaaaybe add a TODO to turn these into flags if the above becomes too annoying.",
+      "range": {
+        "startLine": 21,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 7
+      },
+      "revId": "db7f7d59bc7d24d09553235e0cd08f2525ed10de",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
