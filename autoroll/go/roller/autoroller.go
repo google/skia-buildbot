@@ -892,7 +892,14 @@ func (r *AutoRoller) handleManualRolls(ctx context.Context) error {
 
 			issue, err = r.createNewRoll(ctx, from, to, emails, req.DryRun)
 			if err != nil {
-				return skerr.Wrapf(err, "Failed to create manual roll for %s: %s", req.Id, err)
+				req.Status = manual.STATUS_COMPLETE
+				req.Result = manual.RESULT_FAILURE
+				req.ResultDetails = fmt.Sprintf("Failed to create manual roll for %s: %s", req.Id, err)
+				sklog.Errorf("Failed to create manual roll: %s", req.ResultDetails)
+				if err := r.manualRollDB.Put(req); err != nil {
+					return skerr.Wrapf(err, "Failed to update manual roll request")
+				}
+				continue
 			}
 		} else if req.Status == manual.STATUS_STARTED {
 			split := strings.Split(req.Url, "/")
