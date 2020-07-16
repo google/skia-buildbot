@@ -44,7 +44,7 @@ export interface Trace {
 
 export interface DigestStatus {
 	digest: Digest;
-	status: string;
+	status: LabelStr;
 }
 
 export interface TraceGroup {
@@ -61,7 +61,7 @@ export interface SRDiffDigest {
 	dimDiffer?: boolean;
 	diffs?: { [key: string]: number };
 	digest: Digest;
-	status: string;
+	status: LabelStr;
 	paramset: ParamSet;
 	n: number;
 }
@@ -69,7 +69,7 @@ export interface SRDiffDigest {
 export interface SearchResult {
 	digest: Digest;
 	test: TestName;
-	status: string;
+	status: LabelStr;
 	triage_history: TriageHistory[] | null;
 	paramset: ParamSet;
 	traces: TraceGroup;
@@ -101,7 +101,7 @@ export interface SearchResponse {
 	size: number;
 	commits: Commit[] | null;
 	trace_comments: TraceComment[] | null;
-	bulk_triage_data: { [key: string]: { [key: string]: string } };
+	bulk_triage_data: { [key: string]: { [key: string]: LabelStr } };
 }
 
 export interface GUICorpusStatus {
@@ -126,6 +126,8 @@ export type ParamSetResponse = { [key: string]: string[] | null };
 export type Digest = string;
 
 export type TestName = string;
+
+export type LabelStr = "untriaged" | "positive" | "negative";
 
 export type ParamSet = { [key: string]: string[] | null };
 
