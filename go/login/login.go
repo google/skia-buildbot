@@ -236,6 +236,7 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 			Domain:   domainFromHost(r.Host),
 			HttpOnly: true,
 			Expires:  time.Now().Add(365 * 24 * time.Hour),
+			SameSite: http.SameSiteNoneMode,
 		}
 		http.SetCookie(w, cookie)
 	} else {
@@ -433,6 +434,7 @@ func CookieFor(value *Session, r *http.Request) (*http.Cookie, error) {
 		Domain:   domainFromHost(r.Host),
 		HttpOnly: true,
 		Expires:  time.Now().Add(365 * 24 * time.Hour),
+		SameSite: http.SameSiteNoneMode,
 	}, nil
 }
 
