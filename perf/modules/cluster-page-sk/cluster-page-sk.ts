@@ -428,6 +428,7 @@ export class ClusterPageSk extends ElementSk {
       total_queries: 0,
       alert: {
         id: -1,
+        id_as_string: '-1',
         display_name: '',
         radius: +this.state.radius,
         query: this.state.query,
