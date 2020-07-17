@@ -64,7 +64,7 @@ func Store_SaveWithID(t *testing.T, a alerts.Store) {
 	// Add some data to the empty config.
 	cfg.Query = "source_type=svg"
 	cfg.DisplayName = "bar"
-	cfg.ID = 12
+	cfg.IDAsString = "12"
 	err := a.Save(ctx, cfg)
 	require.NoError(t, err)
 

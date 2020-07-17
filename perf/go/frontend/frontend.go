@@ -1357,6 +1357,9 @@ func (f *Frontend) alertListHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to retrieve alert configs.", http.StatusInternalServerError)
 	}
+	for _, a := range resp {
+		sklog.Info("%#v", a)
+	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to write JSON response: %s", err)
 	}

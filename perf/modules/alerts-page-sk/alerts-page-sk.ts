@@ -173,7 +173,7 @@ class AlertsPageSk extends ElementSk {
     if (window.location.search.length === 0) {
       return;
     }
-    const id = +window.location.search.slice(1);
+    const id = window.location.search.slice(1);
     const matchingAlert = this.alerts.find((alert) => id === alert.id);
     if (matchingAlert) {
       this.startEditing(matchingAlert);
