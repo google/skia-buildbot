@@ -173,8 +173,10 @@ class AlertsPageSk extends ElementSk {
     if (window.location.search.length === 0) {
       return;
     }
-    const id = +window.location.search.slice(1);
-    const matchingAlert = this.alerts.find((alert) => id === alert.id);
+    const id = window.location.search.slice(1);
+    const matchingAlert = this.alerts.find(
+      (alert) => id === alert.id_as_string
+    );
     if (matchingAlert) {
       this.startEditing(matchingAlert);
     }
@@ -231,9 +233,12 @@ class AlertsPageSk extends ElementSk {
   }
 
   private delete(e: MouseEvent) {
-    fetch(`/_/alert/delete/${((e.target! as any).__config as Alert).id}`, {
-      method: 'POST',
-    })
+    fetch(
+      `/_/alert/delete/${((e.target! as any).__config as Alert).id_as_string}`,
+      {
+        method: 'POST',
+      }
+    )
       .then(okOrThrow)
       .then(() => {
         this.list();

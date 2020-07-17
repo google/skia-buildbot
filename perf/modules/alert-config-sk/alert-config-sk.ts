@@ -334,6 +334,7 @@ export class AlertConfigSk extends ElementSk {
     this.paramkeys = [];
     this._config = {
       id: -1,
+      id_as_string: '-1',
       display_name: 'Name',
       query: '',
       alert: '',
@@ -402,7 +403,6 @@ export class AlertConfigSk extends ElementSk {
         'Content-Type': 'application/json',
       },
     })
-      .then(jsonOrThrow)
       .then(() => {
         this.alertSpinner!.active = false;
       })
