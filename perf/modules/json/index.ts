@@ -2,6 +2,7 @@
 
 export interface Alert {
 	id: number;
+	id_as_string: string;
 	display_name: string;
 	query: string;
 	alert: string;

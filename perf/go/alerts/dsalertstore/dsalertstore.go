@@ -26,6 +26,7 @@ func New() *DSAlertStore {
 
 // Save implements the alerts.Store interface.
 func (s *DSAlertStore) Save(ctx context.Context, cfg *alerts.Alert) error {
+	cfg.SetIDFromString(cfg.IDAsString)
 	if err := cfg.Validate(); err != nil {
 		return fmt.Errorf("Failed to save invalid Config: %s", err)
 	}
@@ -96,6 +97,7 @@ func (s *DSAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alerts
 			return nil, fmt.Errorf("Failed retrieving alert list: %s", err)
 		}
 		cfg.ID = k.ID
+		cfg.IDAsString = fmt.Sprintf("%d", k.ID)
 		if err := cfg.Validate(); err != nil {
 			sklog.Errorf("Found an invalid alert %v: %s", *cfg, err)
 		}
