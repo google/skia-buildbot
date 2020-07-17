@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a68807a5_0e817b73",
+        "filename": "go/login/login_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-17T15:17:57Z",
+      "side": 1,
+      "message": "I think we should also check that Secure is set:\nhttps://web.dev/samesite-cookies-explained/#samesitenone-must-be-secure",
+      "range": {
+        "startLine": 30,
+        "startChar": 61,
+        "endLine": 30,
+        "endChar": 65
+      },
+      "revId": "50dbb39aa676dfb031ece8c265842cd7eb8b6a9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
