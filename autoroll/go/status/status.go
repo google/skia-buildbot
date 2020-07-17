@@ -55,9 +55,7 @@ type AutoRollMiniStatus struct {
 	// Revision of the last successful roll.
 	LastRollRev string `json:"lastRollRev"`
 
-	// The current mode of the roller.
-	// Note: This duplicates what is stored in the modes DB but is more
-	// convenient for users like status.skia.org.
+	// Mode is not set by the autoroller!  DO NOT USE.
 	Mode string `json:"mode"`
 
 	// The number of failed rolls since the last successful roll.
