@@ -1,0 +1,648 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f061e722_65aff61b",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk-demo.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Nit: format, e.g.:\n  import { html, render } from \u0027lit-html\u0027;\n\nSame below.",
+      "range": {
+        "startLine": 2,
+        "startChar": 7,
+        "endLine": 2,
+        "endChar": 21
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "562243e9_f6b194b5",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk-demo.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "const data: DemoSortable \u003d [ ... ];",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 14
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e478ba30_45d4a35d",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk-demo.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "I think it\u0027s reasonable to place the sort-toggle-sk component as the parent to a table. We can probably remove the disclaimer.",
+      "range": {
+        "startLine": 45,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 90
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fbde9fd6_4b29a00a",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk-demo.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Could you please expand on this a bit?",
+      "range": {
+        "startLine": 58,
+        "startChar": 26,
+        "endLine": 58,
+        "endChar": 81
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a93e266f_720d3570",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "This is probably too opinionated for a wrapper component with no children of its own. I recommend leaving this up to the client code.",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 15
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5660a16d_8c6b2264",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.scss",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Please add a brief comment explaining why this can\u0027t default to display:none like the other icon, or make both icons default to display:none.",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 0
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "007f236e_c0532789",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "SortDirection | \u0027\u0027",
+      "range": {
+        "startLine": 27,
+        "startChar": 23,
+        "endLine": 27,
+        "endChar": 29
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae4348d3_91eb19d1",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Please make this class generic by adding a type parameter T (the type of the data to be sorted).\n\n  export class SortToggleSk\u003cT\u003e extends ElementsSk {\n    // ...\n\n    private _data: Array\u003cT\u003e \u003d [];\n  }\n\nExample of a generic component in our repo: https://github.com/google/skia-buildbot/blob/41fbd6c9479a05767287dd6562bc0c7151cb6e20/golden/modules/corpus-selector-sk/corpus-selector-sk.ts#L30",
+      "range": {
+        "startLine": 31,
+        "startChar": 13,
+        "endLine": 31,
+        "endChar": 25
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d13d404_66cdc751",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Nit: Please initialize inline (see e.g. the above suggestion).",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 20
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29c52425_8bcf83e4",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "I think it\u0027s best to leave it to client code to decide whether/how to add these indicators. This component doesn\u0027t have any markup of its own, and manipulating its child elements like this will likely generate confusion and make it difficult to style.",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 71
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "55162266_26c50d93",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Nit: ele.addEventListener(\u0027click\u0027, this._clickHandler);",
+      "range": {
+        "startLine": 50,
+        "startChar": 6,
+        "endLine": 50,
+        "endChar": 66
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "837e8555_8b3bb5e7",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Please see suggestion below; we might be able to infer this dynamically.",
+      "range": {
+        "startLine": 61,
+        "startChar": 12,
+        "endLine": 61,
+        "endChar": 44
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ea30c5dd_a17b03a7",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Array\u003cT\u003e",
+      "range": {
+        "startLine": 70,
+        "startChar": 20,
+        "endLine": 70,
+        "endChar": 26
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2534fa6_13cd1a68",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Can this be removed?",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 19
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ad0147c_27c5b4e0",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Please mark this and the below methods as private.",
+      "range": {
+        "startLine": 75,
+        "startChar": 2,
+        "endLine": 75,
+        "endChar": 15
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b237ca5_29f12760",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Did you mean data-sort-toggle-sk? (Here and below.)",
+      "range": {
+        "startLine": 76,
+        "startChar": 22,
+        "endLine": 76,
+        "endChar": 34
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "62351e0a_8d6edd51",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "It might be clearer to name these _{get/set/clear}SortAttribute, because they operate on a custom attribute and not on CSS classes.",
+      "range": {
+        "startLine": 79,
+        "startChar": 2,
+        "endLine": 79,
+        "endChar": 17
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76b9652b_f5037ea5",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Please add a return type to make this compatible with the toggle() function defined at the top.\n\n  _getSortAttribute(ele: Element): SortDirection | \u0027\u0027 {\n    // ...\n  }",
+      "range": {
+        "startLine": 83,
+        "startChar": 29,
+        "endLine": 83,
+        "endChar": 30
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2054ac5f_1a7ab2ef",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "It might be a good idea to check here whether this is one of \u0027up\u0027 or \u0027down\u0027, and throw an error if it\u0027s not.",
+      "range": {
+        "startLine": 84,
+        "startChar": 11,
+        "endLine": 84,
+        "endChar": 43
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4eb3bdcd_d6a8b40b",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Please either add a return statement here if !ele.hasAttribute(\u0027data-key\u0027) to prevent undefined behavior, or fail loudly by throwing an error.",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 0
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f204f43_15e01180",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Let\u0027s throw an error if the key isn\u0027t found, which is almost surely a bug.",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 110,
+        "endChar": 56
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6e5e499c_8b708eb1",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "key: keyof T\n\nReference: https://www.typescriptlang.org/docs/handbook/advanced-types.html#index-types.",
+      "range": {
+        "startLine": 116,
+        "startChar": 7,
+        "endLine": 116,
+        "endChar": 18
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "55e4a510_25cf3e87",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Nit: format, e.g.:\n\n  /**\n   * XXX\n   */",
+      "range": {
+        "startLine": 114,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 0
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32549ffd_5664474c",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "Suggestion:\n\n  sort(key: keyof T, dir: SortDirection) {\n    this._data.sort((a, b) \u003d\u003e {\n      let left \u003d a[key] as unknown;\n      let right \u003d b[key] as unknown;\n\n      if (dir \u003d\u003d\u003d \"down\") {\n        [right, left] \u003d [left, right];\n      }\n\n      if (typeof left \u003d\u003d\u003d \"number\" \u0026\u0026 typeof right \u003d\u003d\u003d \"number\") {\n        return left - right;\n      }\n\n      if (typeof left \u003d\u003d\u003d \"string\" \u0026\u0026 typeof right \u003d\u003d\u003d \"string\") {\n        return left.localeCompare(right);\n      }\n\n      throw new Error(\n        `Trying to sort by key \"${key}\", which is neither a number nor a string.`);\n    });\n    this.dispatchEvent(new CustomEvent(\u0027sort-changed\u0027, {bubbles: true}));\n  }\n\nRationale:\n- The compiler will complain when client code tries to sort by a key that does not exist on type T.\n- No need for @ts-ignore; we can preserve type safety by casting to unknown and then narrowing down with typeof.\n- No need to provide the alpha argument.\n- Less code repetition, less surface area for bugs.",
+      "range": {
+        "startLine": 117,
+        "startChar": 0,
+        "endLine": 146,
+        "endChar": 5
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d7746462_b897312f",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk_puppeteer_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "expectSortOrderToMatch([\u0027alfa\u0027, \u0027bravo\u0027, \u0027charlie\u0027, \u0027delta\u0027], 1 /* Index of column \"name\". */);\n\nSame below.",
+      "range": {
+        "startLine": 31,
+        "startChar": 14,
+        "endLine": 31,
+        "endChar": 76
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b3dd52ae_721d0ebd",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk_puppeteer_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "expectSortOrderToMatch([\u0027200\u0027, \u002716\u0027, \u002713\u0027, \u00274\u0027], 3 /* Index of column \"weight\". */);",
+      "range": {
+        "startLine": 45,
+        "startChar": 14,
+        "endLine": 45,
+        "endChar": 72
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "01cf9083_bcd9f3ea",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk_puppeteer_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "expectSortOrderToMatch(values: string[], columnIndex: number) { ... }",
+      "range": {
+        "startLine": 57,
+        "startChar": 42,
+        "endLine": 57,
+        "endChar": 58
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b187ba29_e09c5c60",
+        "filename": "golden/modules/sort-toggle-sk/sort-toggle-sk_puppeteer_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-17T16:32:12Z",
+      "side": 1,
+      "message": "sortToggleSk.$$eval(`tbody tr td:nth-child(${columnIndex})`, ...)",
+      "range": {
+        "startLine": 58,
+        "startChar": 52,
+        "endLine": 58,
+        "endChar": 77
+      },
+      "revId": "cd2a251b7d53a3f37f7f36aef704dd1a78216af0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
