@@ -402,7 +402,6 @@ export class AlertConfigSk extends ElementSk {
         'Content-Type': 'application/json',
       },
     })
-      .then(jsonOrThrow)
       .then(() => {
         this.alertSpinner!.active = false;
       })
