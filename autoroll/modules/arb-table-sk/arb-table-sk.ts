@@ -13,15 +13,7 @@ import { define } from 'elements-sk/define'
 import 'elements-sk/styles/table';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-
-
-export class Roller {
-  mode: string = "";
-  childName: string = "";
-  parentName: string = "";
-  numBehind: number = 0;
-  numFailed: number = 0;
-}
+import { AutoRollMiniStatuses, AutoRollRPCsClient} from '../rpc/rpc';
 
 export class ARBTableSk extends ElementSk {
   private static template = (ele: ARBTableSk) => html`
@@ -32,19 +24,19 @@ export class ARBTableSk extends ElementSk {
       <th>Num Behind</th>
       <th>Num Failed</th>
     </tr>
-    ${Object.keys(ele.rollers).sort().map((id) => html`
+    ${ele.rollers.statuses?.map((st) => html`
     <tr>
       <td>
-        <a href="/r/${id}">${ele.rollers[id].childName} into ${ele.rollers[id].parentName}</a>
+        <a href="/r/${st.roller}">${st.childname} into ${st.parentname}</a>
       </td>
-      <td>${ele.rollers[id].mode}</td>
-      <td>${ele.rollers[id].numBehind}</td>
-      <td>${ele.rollers[id].numFailed}</td>
+      <td>${st.mode}</td>
+      <td>${st.numbehind}</td>
+      <td>${st.numfailed}</td>
     </tr>
   `)}
   </table>
 `;
-  private _rollers: {[key:string]: Roller} = {};
+  private rollers: AutoRollMiniStatuses = {statuses:[]};
 
   constructor() {
     super(ARBTableSk.template);
@@ -52,14 +44,46 @@ export class ARBTableSk extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
-    this._upgradeProperty('rollers');
     this._render();
+    this.reload();
   }
 
-  get rollers() { return this._rollers; }
-  set rollers(val: {[key:string]: Roller}) {
-    this._rollers = val;
-    this._render();
+  fetch(input: RequestInfo, init?: RequestInit | undefined): Promise<Response> {
+    console.log("fetching");
+    console.log(input);
+    return fetch(input, init);
+  }
+
+  private reload() {
+    console.log("loading")
+    const host = window.location.protocol + "//" + window.location.host;
+    const rpcs = new AutoRollRPCsClient(host, this.fetch.bind(this));
+    this.dispatchEvent(new CustomEvent('begin-task', {bubbles: true}));
+    rpcs.view_GetRollers({}).then((rollers) => {
+      console.log("fetched:");
+      console.log(rollers);
+      this.rollers = rollers;
+      this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+      this._render();
+    }, (err: any) => {
+      console.log(err);
+      this.dispatchEvent(new CustomEvent('fetch-error', {
+        detail: {
+          error: err,
+          loading: "GetRollers",
+        },
+        bubbles: true,
+      }));
+    }).catch((err: any) => {
+      console.log(err);
+      this.dispatchEvent(new CustomEvent('fetch-error', {
+        detail: {
+          error: err,
+          loading: "GetRollers",
+        },
+        bubbles: true,
+      }));
+    });
   }
 }
 
