@@ -27,6 +27,9 @@ func TestLoginURL(t *testing.T) {
 	}
 	url := LoginURL(w, r)
 	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), SESSION_COOKIE_NAME, "Session cookie should be set.")
+	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), "SameSite=None", "SameSite should be set.")
+	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), "Secure", "Secure should be set.")
+
 	assert.Contains(t, url, "approval_prompt=auto", "Not forced into prompt.")
 	cookie := &http.Cookie{
 		Name:  SESSION_COOKIE_NAME,
