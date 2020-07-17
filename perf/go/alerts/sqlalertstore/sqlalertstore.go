@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"go.skia.org/infra/go/skerr"
@@ -133,6 +134,7 @@ func New(db *sql.DB, dialect perfsql.Dialect) (*SQLAlertStore, error) {
 
 // Save implements the alerts.Store interface.
 func (s *SQLAlertStore) Save(ctx context.Context, cfg *alerts.Alert) error {
+	cfg.SetIDFromString(cfg.IDAsString)
 	b, err := json.Marshal(cfg)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to serialize Alert for saving with ID=%d", cfg.ID)
@@ -177,12 +179,13 @@ func (s *SQLAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alert
 		if err := rows.Scan(&id, &serializedAlert); err != nil {
 			return nil, err
 		}
-		var a alerts.Alert
-		if err := json.Unmarshal([]byte(serializedAlert), &a); err != nil {
+		a := &alerts.Alert{}
+		if err := json.Unmarshal([]byte(serializedAlert), a); err != nil {
 			return nil, skerr.Wrapf(err, "Failed to deserialize JSON Alert.")
 		}
 		a.ID = id
-		ret = append(ret, &a)
+		a.IDAsString = fmt.Sprintf("%d", id)
+		ret = append(ret, a)
 	}
 	return ret, nil
 }

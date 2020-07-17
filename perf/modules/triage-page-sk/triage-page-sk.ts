@@ -309,7 +309,9 @@ export class TriagePageSk extends ElementSk {
       // The colspan=2 is important since we will have two columns under each
       // header, one for high and one for low.
       return html`
-        <th colspan="2"><a href="/a/?${item!.id}">${displayName}</a></th>
+        <th colspan="2">
+          <a href="/a/?${item!.id_as_string}">${displayName}</a>
+        </th>
       `;
     });
 
@@ -320,7 +322,9 @@ export class TriagePageSk extends ElementSk {
           <tr>
             <th>Alert</th>
             <td>
-              <a href="/a/?${item.alert!.id}">${item.alert!.display_name}</a>
+              <a href="/a/?${item.alert!.id_as_string}">
+                ${item.alert!.display_name}
+              </a>
             </td>
           </tr>
           <tr>
