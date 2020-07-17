@@ -22,6 +22,30 @@
       "revId": "50dbb39aa676dfb031ece8c265842cd7eb8b6a9d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "18cd8d63_6fc89037",
+        "filename": "go/login/login_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-17T15:34:16Z",
+      "side": 1,
+      "message": "Good catch! Done.",
+      "parentUuid": "a68807a5_0e817b73",
+      "range": {
+        "startLine": 30,
+        "startChar": 61,
+        "endLine": 30,
+        "endChar": 65
+      },
+      "revId": "50dbb39aa676dfb031ece8c265842cd7eb8b6a9d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
