@@ -110,3 +110,21 @@ func (allows Union) Emails() []string {
 	sort.Strings(rv)
 	return rv
 }
+
+// Anyone returns an Allow which allows access to anyone.
+func Anyone() *AllowAnyone {
+	return &AllowAnyone{}
+}
+
+// AllowAnyone is an Allow which allows access to anyone.
+type AllowAnyone struct{}
+
+func (*AllowAnyone) Member(_ string) bool {
+	return true
+}
+
+func (*AllowAnyone) Emails() []string {
+	return []string{"*"}
+}
+
+var _ Allow = &AllowAnyone{}
