@@ -1,0 +1,144 @@
+syntax = "proto3";
+package autoroll.rpc;
+option go_package = "go.skia.org/infra/autoroll/go/rpc";
+
+service AutoRollRPCs {
+  rpc View_GetRollers(GetRollersRequest) returns (AutoRollMiniStatuses);
+  rpc View_GetMiniStatus(GetMiniStatusRequest) returns (AutoRollMiniStatus);
+  rpc View_GetStatus(GetStatusRequest) returns (AutoRollStatus);
+  rpc Edit_SetMode(SetModeRequest) returns (AutoRollStatus);
+  rpc Edit_SetStrategy(SetStrategyRequest) returns (AutoRollStatus);
+  rpc Edit_CreateManualRoll(CreateManualRollRequest) returns (ManualRollRequest);
+  rpc Edit_Unthrottle(UnthrottleRequest) returns (UnthrottleResponse);
+}
+
+message AutoRollMiniStatus {
+  string roller = 1;
+  string childName = 2;
+  string parentName = 3;
+  string mode = 4;
+  string currentRollRev = 5;
+  string lastRollRev = 6;
+  int32 numFailed = 7;
+  int32 numBehind = 8;
+}
+
+message AutoRollMiniStatuses {
+  repeated AutoRollMiniStatus statuses = 1;
+}
+
+message TryResult {
+  string name = 1;
+  string status = 2;
+  string result = 3;
+  string url = 4;
+  string category = 5;
+}
+
+message AutoRollCL {
+  string id = 1;
+  string result = 2;
+  string subject = 3;
+  string rollingTo = 4;
+  string rollingFrom = 5;
+  int64 created = 6;
+  int64 modified = 7;
+  repeated TryResult tryResults = 8;
+}
+
+message Revision {
+  string id = 1;
+  string display = 2;
+  string description = 3;
+  int64 time = 4;
+  string url = 5;
+}
+
+message AutoRollConfig {
+  string parentWaterfall = 1;
+  bool supportsManualRolls = 2;
+  string timeWindow = 3;
+}
+
+message ModeChange {
+  string roller = 1;
+  string mode = 2;
+  string user = 3;
+  int64 time = 4;
+  string message = 5; 
+}
+
+message StrategyChange {
+  string roller = 1;
+  string strategy = 2;
+  string user = 3;
+  int64 time = 4;
+  string message = 5; 
+}
+
+message ManualRollRequest {
+  string id = 1;
+  string roller = 2;
+  string revision = 3;
+  string requester = 4;
+  string result = 5;
+  string status = 6;
+  int64 timestamp = 7;
+  string url = 8;
+  bool dryRun = 9;
+  bool noEmail = 10;
+  bool noResolveRevision = 11;
+}
+
+message AutoRollStatus {
+  AutoRollMiniStatus miniStatus = 1;
+  string status = 2;
+  AutoRollConfig config = 3;
+  string childHead = 4;
+  string fullHistoryUrl = 5;
+  string issueUrlBase = 6;
+  ModeChange mode = 7;
+  StrategyChange strategy = 8;
+  repeated Revision notRolledRevisions = 9;
+  AutoRollCL currentRoll = 10;
+  AutoRollCL LastRoll = 11;
+  repeated AutoRollCL recent = 12;
+  repeated string validModes = 13;
+  repeated string validStrategies = 14;
+  repeated ManualRollRequest manualRequests = 15;
+  string error = 16;
+  int64 throttledUntil = 17;
+}
+
+message GetRollersRequest {}
+
+message GetMiniStatusRequest {
+  string roller = 1;
+}
+
+message GetStatusRequest {
+  string roller = 1;
+}
+
+message SetModeRequest {
+  string roller = 1;
+  string mode = 2;
+  string message = 4;
+}
+
+message SetStrategyRequest {
+  string roller = 1;
+  string strategy = 2;
+  string message = 4;
+}
+
+message CreateManualRollRequest {
+  string roller = 1;
+  string revision = 2;
+}
+
+message UnthrottleRequest {
+  string roller = 1;
+}
+
+message UnthrottleResponse {}

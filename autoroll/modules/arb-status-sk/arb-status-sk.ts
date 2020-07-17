@@ -7,11 +7,10 @@
  * </p>
  */
 
-import { html, render } from 'lit-html'
+import { html } from 'lit-html'
 
 import { $$ } from 'common-sk/modules/dom';
 import { diffDate, localeTime } from 'common-sk/modules/human';
-import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 
 import { define } from 'elements-sk/define'
 import 'elements-sk/styles/buttons';
@@ -22,122 +21,28 @@ import 'elements-sk/tabs-sk';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { LoginTo } from '../../../infra-sk/modules/login';
+import { truncate } from '../../../infra-sk/modules/string';
 
-/** Truncate the given string to the given length. If the string was
- * shortened, change the last three characters to ellipsis.
- *
- * TODO(borenet): Move this somewhere common so that it can be shared.
- */
-export function truncate(str: string, len: number) {
-  if (str.length > len) {
-    const ellipsis = "..."
-    return str.substring(0, len - ellipsis.length) + ellipsis;
-  }
-  return str
+import {
+  AutoRollConfig,
+  AutoRollCL,
+  AutoRollRPCs,
+  AutoRollStatus,
+  GetAutoRollRPCs,
+  ManualRollRequest,
+  ModeChange,
+  Revision,
+  StrategyChange,
+  TryResult,
+} from '../rpc';
+
+interface RollCandidate{
+  revision: Revision;
+  roll: ManualRollRequest | null;
 }
 
-export class Config {
-  parentWaterfall: string = "";
-  supportsManualRolls: boolean = false;
-  timeWindow: string = "";
-}
-
-export class ManualRollRequest {
-  dry_run: boolean = false;
-  emails: string[] | null = null;
-  id: string = "";
-  no_resolve_revision: boolean = false;
-  requester: string = "";
-  result: string = "";
-  resultDetails: string = "";
-  revision: string = "";
-  rollerName: string = "";
-  status: string = "";
-  timestamp: string = "";
-  url: string = "";
-}
-
-export class Mode {
-  message: string = "";
-  mode: string = "";
-  time: string = "";
-  user: string = "";
-}
-
-export class TryResult {
-  builder: string = "";
-  category: string = "";
-  created_ts: string = "";
-  result: string = "";
-  status: string = "";
-  url: string = "";
-}
-
-export class Roll {
-  closed: boolean = false;
-  commitQueue: boolean = false;
-  committed: boolean = false;
-  cqDryRun: boolean = false;
-  created: string = "";
-  issue: number = 0;
-  modified: string = "";
-  subject: string = "";
-  result: string = "";
-  rollingFrom: string = "";
-  rollingTo: string = "";
-  tryResults: TryResult[] | null = null;
-}
-
-export class Revision {
-  author: string = "";
-  bugs: { [key:string]: string[] } | null = null;
-  dependencies: { [key:string]: string } | null = null;
-  id: string = "";
-  description: string = "";
-  details: string = "";
-  display: string = "";
-  invalidReason: string = "";
-  tests: string[] | null = null;
-  time: string = "";
-  url: string = "";
-}
-
-export class RollCandidate{
-  revision: Revision = new Revision();
-  roll: ManualRollRequest = new ManualRollRequest();
-}
-
-export class Strategy {
-  message: string = "";
-  strategy: string = "";
-  time: string = "";
-  user: string = "";
-}
-
-export class Status {
-  config: Config = new Config();
-  currentRoll: Roll | null = null;
-  currentRollRev: string = "";
-  error: string = "";
-  fullHistoryUrl: string = "";
-  issueUrlBase: string = "";
-  lastRoll: Roll | null = null;
-  lastRollRev: string = "";
-  manualRequests: ManualRollRequest[] | null = null;
-  mode: Mode = new Mode();
-  notRolledRevs: Revision[] | null = null;
-  numBehind: number = 0;
-  numFailed: number = 0;
-  recent: Roll[] | null = null;
-  status: string = "";
-  strategy: Strategy = new Strategy();
-  throttledUntil: number = 0;
-  validModes: string[] = [];
-  validStrategies: string[] = [];
-}
-
-class ARBStatusSk extends ElementSk {
-  private static template = (ele: ARBStatusSk) => html`
+export class ARBStatusSk extends ElementSk {
+  private static template = (ele: ARBStatusSk) => !ele.status? html`` : html`
   <tabs-sk>
     <button value="status">Roller Status</button>
     <button value="manual">Trigger Manual Rolls</button>
@@ -159,13 +64,13 @@ class ARBStatusSk extends ElementSk {
         Last loaded at <span>${localeTime(ele.lastLoaded)}</span>
       </div>
       <table>
-        ${ele.status.config.parentWaterfall ? html`
+        ${ele.status.config?.parentwaterfall ? html`
           <tr>
             <td class="nowrap">Parent Repo Build Status</td>
             <td class="nowrap unknown">
               <span>
-                <a href="${ele.status.config.parentWaterfall}" target="_blank">
-                  ${ele.status.config.parentWaterfall}
+                <a href="${ele.status.config.parentwaterfall}" target="_blank">
+                  ${ele.status.config.parentwaterfall}
                 </a>
               </span>
             </td>
@@ -174,26 +79,27 @@ class ARBStatusSk extends ElementSk {
         <tr>
           <td class="nowrap">Current Mode:</td>
           <td class="nowrap unknown">
-            <span class="big">${ele.status.mode.mode}</span>
+            <span class="big">${ele.status.mode?.mode}</span>
           </td>
         </tr>
         <tr>
           <td class="nowrap">Set By:</td>
           <td class="nowrap unknown">
-            ${ele.status.mode.user}${ele.status.mode.message
+            ${ele.status.mode?.user}${ele.status.mode?.message
                 ? html`: ${ele.status.mode.message}`: html``}
           </td>
         </tr>
         <tr>
           <td class="nowrap">Change Mode:</td>
           <td class="nowrap">
-            ${ele.status.validModes.map((mode: string) => mode == ele.status.mode.mode ? "" : html`
+            ${ele.status.validmodes?.map((mode: string) => mode == ele.status?.mode?.mode
+                  ? "" : html`
               <button
                   @click="${() => {ele.modeButtonPressed(mode)}}"
                   ?disabled="${!ele.editRights || ele.modeChangePending}"
                   title="${ele.editRights ? "Change the mode." : ele.pleaseLoginMsg}"
                   value="${mode}">
-                ${ele.getModeButtonLabel(ele.status.mode.mode, mode)}
+                ${ele.status?.mode?.mode ? ele.getModeButtonLabel(ele.status.mode.mode, mode) : ""}
               </button>
             `)}
           </td>
@@ -205,7 +111,7 @@ class ARBStatusSk extends ElementSk {
               <span class="big">${ele.status.status}</span>
             </span>
             ${ele.status.status.indexOf("throttle") >= 0 ? html`
-              <span>until ${localeTime(new Date(ele.status.throttledUntil * 1000))}</span>
+              <span>until ${localeTime(new Date(ele.status.throttleduntil * 1000))}</span>
               <button
                   @click="${ele.unthrottle}"
                   ?disabled="${!ele.editRights}"
@@ -228,26 +134,26 @@ class ARBStatusSk extends ElementSk {
           <td class="nowrap">Current Roll:</td>
           <td>
             <div>
-              ${ele.status.currentRoll ? html`
-                <a href="${ele.issueURL(ele.status.currentRoll)}" class="big" target="_blank">
-                  ${ele.status.currentRoll.subject}
+              ${ele.status.currentroll ? html`
+                <a href="${ele.issueURL(ele.status.currentroll)}" class="big" target="_blank">
+                  ${ele.status.currentroll.subject}
                 </a>
               ` : html`<span>(none)</span>`}
             </div>
             <div>
-              ${ele.status.currentRoll && ele.status.currentRoll.tryResults ?
-                  ele.status.currentRoll.tryResults.map((tryResult) => html`
+              ${ele.status.currentroll && ele.status.currentroll.tryresults ?
+                  ele.status.currentroll.tryresults.map((tryResult) => html`
                 <div class="trybot">
                   ${tryResult.url ? html`
                     <a href="${tryResult.url}"
                         class="${ele.trybotClass(tryResult)}"
                         target="_blank">
-                      ${tryResult.builder}
+                      ${tryResult.name}
                     </a>
                   ` : html`
                     <span class="nowrap"
                         class="${ele.trybotClass(tryResult)}">
-                      ${tryResult.builder}
+                      ${tryResult.name}
                     </span>
                   `}
                   ${tryResult.category === "cq" ? html`` : html`
@@ -258,14 +164,14 @@ class ARBStatusSk extends ElementSk {
             </div>
           </td>
         </tr>
-        ${ele.status.lastRoll ? html`
+        ${ele.status.lastroll ? html`
           <tr>
             <td class="nowrap">Previous roll result:</td>
             <td>
-              <span class="${ele.rollClass(ele.status.lastRoll)}">
-                ${ele.rollResult(ele.status.lastRoll)}
+              <span class="${ele.rollClass(ele.status.lastroll)}">
+                ${ele.rollResult(ele.status.lastroll)}
               </span>
-              <a href="${ele.issueURL(ele.status.lastRoll)}" target="_blank" class="small">
+              <a href="${ele.issueURL(ele.status.lastroll)}" target="_blank" class="small">
                 (detail)
               </a>
             </td>
@@ -280,10 +186,10 @@ class ARBStatusSk extends ElementSk {
                 <th>Last Modified</th>
                 <th>Result</th>
               </tr>
-              ${ele.status.recent?.map((roll: Roll) => html`
+              ${ele.status.recent?.map((roll: AutoRollCL) => html`
                 <tr>
                   <td><a href="${ele.issueURL(roll)}" target="_blank">${roll.subject}</a></td>
-                  <td>${diffDate(roll.modified)} ago</td>
+                  <td>${diffDate(roll.modified * 1000)} ago</td>
                   <td><span class="${ele.rollClass(roll)}">${ele.rollResult(roll)}</span></td>
                 </tr>
               `)}
@@ -293,8 +199,8 @@ class ARBStatusSk extends ElementSk {
         <tr>
           <td class="nowrap">Full History:</td>
           <td>
-            <a href="${ele.status.fullHistoryUrl}" target="_blank">
-              ${ele.status.fullHistoryUrl}
+            <a href="${ele.status.fullhistoryurl}" target="_blank">
+              ${ele.status.fullhistoryurl}
             </a>
           </td>
         </tr>
@@ -308,10 +214,10 @@ class ARBStatusSk extends ElementSk {
                     ? "Change the strategy for choosing the next revision to roll."
                     : ele.pleaseLoginMsg}"
                 @change="${ele.selectedStrategyChanged}">
-              ${ele.status.validStrategies.map((strategy: string) => html`
+              ${ele.status?.validstrategies?.map((strategy: string) => html`
                 <option
                     value="${strategy}"
-                    ?selected="${strategy == ele.status.strategy.strategy}">
+                    ?selected="${strategy == ele.status?.strategy?.strategy}">
                   ${strategy}
                 </option>
               `)}
@@ -321,7 +227,7 @@ class ARBStatusSk extends ElementSk {
         <tr>
           <td class="nowrap">Set By:</td>
           <td class="nowrap unknown">
-            ${ele.status.strategy.user}${ele.status.strategy.message ?
+            ${ele.status.strategy?.user}${ele.status.strategy?.message ?
                 html`: ${ele.status.strategy.message}` : html``}
           </td>
         </tr>
@@ -329,7 +235,7 @@ class ARBStatusSk extends ElementSk {
     </div>
     <div class="manual">
       <table>
-        ${ele.status.config.supportsManualRolls ? html`
+        ${ele.status.config?.supportsmanualrolls ? html`
           ${!ele.rollCandidates ? html`
             The roller is up to date; there are no revisions which could be manually rolled.
           ` : html``}
@@ -435,8 +341,9 @@ class ARBStatusSk extends ElementSk {
   private refreshInterval = 60;
   private rollCandidates: RollCandidate[] = [];
   private rollWindowStart: Date = new Date(0);
+  private rpc: AutoRollRPCs = GetAutoRollRPCs(this);
   private selectedMode: string = "";
-  private status: Status = new Status();
+  private status: AutoRollStatus | null = null;
   private strategyChangePending: boolean = false;
   private timeout: number = 0;
 
@@ -446,6 +353,7 @@ class ARBStatusSk extends ElementSk {
 
   connectedCallback() {
     super.connectedCallback();
+    this._upgradeProperty("roller");
     this._render();
     LoginTo("/loginstatus/").then((loginstatus: any) => {
       this.editRights = loginstatus.IsAGoogler;
@@ -454,40 +362,20 @@ class ARBStatusSk extends ElementSk {
     this.reload();
   }
 
+  get roller() {
+    return <string>this.getAttribute('roller');
+  }
+  set roller(v: string) {
+    this.setAttribute('roller', v);
+    this.reload();
+  }
+
   private modeButtonPressed(mode: string) {
-    if (mode == this.status.mode.mode) {
+    if (mode == this.status?.mode?.mode) {
       return;
     }
     this.selectedMode = mode;
     $$<HTMLDialogElement>("#modeChangeDialog", this)!.showModal();
-  }
-
-  private fetch(input: RequestInfo, init?: RequestInit | undefined): Promise<any> {
-    this.dispatchEvent(new CustomEvent('begin-task', { bubbles: true }));
-    return fetch(input, init).then(jsonOrThrow)
-        .then((v: any) => {
-          this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
-          return v;
-        }, (err: any) => {
-          this.dispatchEvent(new CustomEvent('fetch-error', {
-            detail: {
-              error: err,
-              loading: input,
-            },
-            bubbles: true,
-          }));
-          return err;
-        })
-        .catch((err: any) => {
-          this.dispatchEvent(new CustomEvent('fetch-error', {
-            detail: {
-              error: err,
-              loading: input,
-            },
-            bubbles: true,
-          }));
-          throw err;
-        })
   }
 
   private changeMode(submit: boolean) {
@@ -501,21 +389,15 @@ class ARBStatusSk extends ElementSk {
       return;
     }
     this.modeChangePending = true;
-    const mode = new Mode();
-    mode.message = modeChangeMsgInput.value;
-    mode.mode = this.selectedMode;
-    const url = window.location.pathname + "/json/mode";
-    this.fetch(url, {
-      method: "POST",
-      body: JSON.stringify(mode),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }).then((json) => {
+    this.rpc.edit_SetMode({
+      message: modeChangeMsgInput.value,
+      mode: this.selectedMode,
+      roller: this.roller,
+    }).then((status: AutoRollStatus) => {
       this.modeChangePending = false;
       modeChangeMsgInput.value = "";
-      this.update(json);
-    }, (err) => {
+      this.update(status);
+    }, () => {
       this.modeChangePending = false;
       this._render();
     });
@@ -526,8 +408,8 @@ class ARBStatusSk extends ElementSk {
     const strategySelect = <HTMLSelectElement>$$("#strategySelect");
     const strategyChangeMsgInput = <HTMLInputElement>$$("#strategyChangeMsgInput");
     if (!submit) {
-      if (!!strategySelect) {
-        strategySelect.value = this.status.strategy.strategy;
+      if (!!strategySelect && !!this.status?.strategy) {
+        strategySelect.value = this.status?.strategy.strategy;
       }
       return;
     }
@@ -535,23 +417,19 @@ class ARBStatusSk extends ElementSk {
       return;
     }
     this.strategyChangePending = true;
-    const strategy = new Strategy();
-    strategy.message = strategyChangeMsgInput.value;
-    strategy.strategy = strategySelect.value;
-    const url = window.location.pathname + "/json/strategy";
-    this.fetch(url, {
-      method: "POST",
-      body: JSON.stringify(strategy),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }).then((json) => {
+    this.rpc.edit_SetStrategy({
+      message: strategyChangeMsgInput.value,
+      roller: this.roller,
+      strategy: strategySelect.value,
+    }).then((status: AutoRollStatus) => {
       this.strategyChangePending = false;
       strategyChangeMsgInput.value = "";
-      this.update(json);
-    }, (err) => {
+      this.update(status);
+    }, () => {
       this.strategyChangePending = false;
-      strategySelect.value = this.status.strategy.strategy;
+      if (this.status?.strategy?.strategy) {
+        strategySelect!.value = this.status.strategy.strategy;
+      }
       this._render();
     });
   }
@@ -560,8 +438,8 @@ class ARBStatusSk extends ElementSk {
   // roll window will start. If errors are encountered, in particular those
   // relating to parsing the roll window, the returned string will contain
   // the error.
-  private computeRollWindowStart(config: Config) {
-    if (!config || !config.timeWindow) {
+  private computeRollWindowStart(config: AutoRollConfig) {
+    if (!config || !config.timewindow) {
       return "";
     }
     // TODO(borenet): This duplicates code in the go/time_window package.
@@ -587,7 +465,7 @@ class ARBStatusSk extends ElementSk {
 
     // Parse multiple day/time windows, eg. M-W 00:00-04:00; Th-F 00:00-02:00
     const windows = [];
-    const split = config.timeWindow.split(";");
+    const split = config.timewindow.split(";");
     for (let i = 0; i < split.length; i++) {
       const dayTimeWindow = split[i].trim();
       // Parse individual day/time window, eg. M-W 00:00-04:00
@@ -683,15 +561,15 @@ class ARBStatusSk extends ElementSk {
     return openTimes[0].toLocaleString();
   }
 
-  private issueURL(roll: Roll): string {
+  private issueURL(roll: AutoRollCL): string {
     if (roll) {
-      return this.status.issueUrlBase + roll.issue;
+      return (this.status?.issueurlbase || "") + roll.id;
     }
     return "";
   }
 
   private getModeButtonLabel(currentMode: string, mode: string) {
-    // TODO(borenet): This is a hack; it doesn't respect this.validModes.
+    // TODO(borenet): This is a hack; it doesn't respect this.validmodes.
     const modeButtonLabels: {[key:string]: {[key:string]: string}} = {
       "running": {
         "stopped": "stop",
@@ -729,12 +607,13 @@ class ARBStatusSk extends ElementSk {
   }
 
   private reload() {
-    const url = window.location.pathname + "/json/status";
-    console.log("Loading status from " + url);
-    this.fetch(url).then((json) => {
-      this.update(json);
+    console.log("Loading status...");
+    this.rpc.view_GetStatus({
+      roller: this.roller,
+    }).then((status: AutoRollStatus) => {
+      this.update(status);
       this.resetTimeout();
-    }).catch((err) => {
+    }).catch((err: any) => {
       this.resetTimeout();
     });
   }
@@ -747,49 +626,24 @@ class ARBStatusSk extends ElementSk {
       "SUCCESS": "fg-success",
       "FAILURE": "fg-failure",
     }
-    return manualRequestResultClass[req.result];
+    return manualRequestResultClass[req.result || ""];
   }
 
   private requestManualRoll(rev: string) {
-    const url = window.location.pathname + "/json/manual";
-    const req: ManualRollRequest = {
-      dry_run: false,
-      emails: null,
-      id: "",
-      no_resolve_revision: false,
-      result: "",
-      resultDetails: "",
+    this.rpc.edit_CreateManualRoll({
       revision: rev,
-      requester: "",
-      rollerName: "",
-      status: "",
-      timestamp: "",
-      url: "",
-    };
-    this.fetch(url, {
-      method: "POST",
-      body: JSON.stringify(req),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }).then((json) => {
-      const req = <ManualRollRequest>json;
+      roller: this.roller,
+    }).then((req: ManualRollRequest) => {
       const exist = this.rollCandidates.find((r) => r.revision.id == req.revision);
       if (!!exist) {
         exist.roll = req;
       } else {
         this.rollCandidates.push({
           revision: {
-            author: "",
-            bugs: null,
-            dependencies: null,
             description: "",
-            details: "",
             display: req.revision,
             id: req.revision,
-            invalidReason: "",
-            tests: null,
-            time: "",
+            time: 0,
             url: "",
           },
           roll: req,
@@ -803,7 +657,7 @@ class ARBStatusSk extends ElementSk {
     });
   }
 
-  private rollClass(roll: Roll) {
+  private rollClass(roll: AutoRollCL) {
     if (!roll) {
       return "unknown";
     }
@@ -818,7 +672,7 @@ class ARBStatusSk extends ElementSk {
     return rollClassMap[roll.result] || "fg-unknown";
   }
 
-  private rollResult(roll: Roll) {
+  private rollResult(roll: AutoRollCL) {
     if (!roll) {
       return "unknown";
     }
@@ -844,7 +698,7 @@ class ARBStatusSk extends ElementSk {
   }
 
   private selectedStrategyChanged() {
-    if ($$<HTMLSelectElement>("strategySelect", this)!.value == this.status.strategy.strategy) {
+    if ($$<HTMLSelectElement>("strategySelect", this)!.value == this.status?.strategy?.strategy) {
       return;
     }
     $$<HTMLDialogElement>("#strategyChangeDialog", this)!.showModal();
@@ -866,34 +720,43 @@ class ARBStatusSk extends ElementSk {
   }
 
   private unthrottle() {
-    const url = window.location.pathname + "/json/unthrottle";
-    this.fetch(url, {method: "POST"});
+    this.rpc.edit_Unthrottle({
+      roller: this.roller,
+    });
   }
 
-  private update(status: Status) {
+  private update(status: AutoRollStatus) {
     const rollCandidates: RollCandidate[] = [];
     const manualByRev: {[key:string]:ManualRollRequest} = {};
-    if (status.notRolledRevs) {
-      if (status.manualRequests) {
-        for (let i = 0; i < status.manualRequests.length; i++) {
-          const req = status.manualRequests[i];
+    if (status.notrolledrevisions) {
+      if (status.manualrequests) {
+        for (let i = 0; i < status.manualrequests.length; i++) {
+          const req = status.manualrequests[i];
           manualByRev[req.revision] = req;
         }
       }
-      for (let i = 0; i < status.notRolledRevs.length; i++) {
-        const rev = status.notRolledRevs[i];
-        const candidate = new RollCandidate();
-        candidate.revision = rev;
+      for (let i = 0; i < status.notrolledrevisions.length; i++) {
+        const rev = status.notrolledrevisions[i];
+        const candidate: RollCandidate = {
+          revision: rev,
+          roll: null,
+        };
         let req = manualByRev[rev.id];
         delete manualByRev[rev.id];
-        if (!req && status.currentRoll && status.currentRoll.rollingTo == rev.id) {
-          req = new ManualRollRequest();
-          req.requester = "autoroller";
-          req.result = "";
-          req.revision = "";
-          req.status = "STARTED",
-          req.timestamp = status.currentRoll.created;
-          req.url = this.issueURL(status.currentRoll);
+        if (!req && status.currentroll && status.currentroll.rollingto == rev.id) {
+          req = {
+            dryrun: false,
+            id: "",
+            noemail: false,
+            noresolverevision: false,
+            requester: "autoroller",
+            result: "",
+            roller: "",
+            revision: "",
+            status: "STARTED",
+            timestamp: status.currentroll.created,
+            url: this.issueURL(status.currentroll),
+          };
         }
         candidate.roll = req;
         rollCandidates.push(candidate);
@@ -901,9 +764,13 @@ class ARBStatusSk extends ElementSk {
     }
     for (const key in manualByRev) {
       const req = manualByRev[key];
-      const rev = new Revision();
-      rev.id = req.revision;
-      rev.display = req.revision;
+        const rev: Revision = {
+          description: "",
+          display: req.revision,
+          id: req.revision,
+          time: 0,
+          url: "",
+        };
       rollCandidates.push({
         revision: rev,
         roll: req,
@@ -911,7 +778,9 @@ class ARBStatusSk extends ElementSk {
     };
     this.lastLoaded = new Date();
     this.rollCandidates = rollCandidates;
-    this.rollWindowStart = this.computeRollWindowStart(status.config);
+    if (status.config) {
+      this.rollWindowStart = this.computeRollWindowStart(status.config);
+    }
     this.status = status;
     console.log("Reloaded status.");
     this._render();
