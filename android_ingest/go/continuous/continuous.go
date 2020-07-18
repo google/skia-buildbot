@@ -84,7 +84,9 @@ func (c *Process) Start(ctx context.Context) {
 		t := metrics2.NewTimer("repobuilder")
 		liveness := metrics2.NewLiveness("last_successful_add")
 		failures := metrics2.GetCounter("process_failures", nil)
-		for range time.Tick(time.Minute) {
+		for range time.Tick(time.Second) {
+			begin := time.Now()
+			sklog.Info("= START")
 			t.Start()
 			buildid, startTS, _, err := c.Repo.GetLast(ctx)
 			if err != nil {
@@ -92,12 +94,17 @@ func (c *Process) Start(ctx context.Context) {
 				sklog.Errorf("Failed to get last buildid: %s", err)
 				continue
 			}
+			sklog.Info("= After GetLast")
+			sklog.Info("= Before List")
 			builds, err := c.api.List(buildid)
 			if err != nil {
 				failures.Inc(1)
 				sklog.Errorf("Failed to get buildids from api: %s", err)
 				continue
 			}
+			sklog.Infof("= List Timer: %s", time.Now().Sub(begin).String())
+			begin = time.Now()
+			sklog.Info("= After List")
 			sort.Sort(BuildSlice(builds))
 			builds = rationalizeTimestamps(builds, startTS)
 			for _, b := range builds {
@@ -117,6 +124,7 @@ func (c *Process) Start(ctx context.Context) {
 				}
 				c.lookup.Add(buildid, hash)
 			}
+			sklog.Infof("= Gerrit Timer: %s", time.Now().Sub(begin).String())
 			liveness.Reset()
 			t.Stop()
 		}
