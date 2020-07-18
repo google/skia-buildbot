@@ -39,6 +39,7 @@ var (
 	traceStore     tracestore.TraceStore
 	configFilename string
 	instanceConfig *config.InstanceConfig
+	local          bool
 )
 
 // flags
@@ -58,6 +59,7 @@ const (
 	outputFilenameFlag   string = "out"
 	inputFilenameFlag    string = "in"
 	backupToDateFlag     string = "backup_to_date"
+	databaseLocalFlag    string = "local"
 
 	regressionBatchSize = 1000
 )
@@ -93,6 +95,7 @@ func main() {
 		},
 	}
 	cmd.PersistentFlags().StringVar(&configFilename, "config_filename", "", "The filename of the config file to use.")
+	cmd.PersistentFlags().BoolVar(&local, "local", true, "If true then use glcloud credentials.")
 
 	configCmd := &cobra.Command{
 		Use: "config [sub]",
@@ -285,7 +288,7 @@ func databaseDatabaseBackupAlertsSubAction(c *cobra.Command, args []string) erro
 	defer util.Close(f)
 	z := zip.NewWriter(f)
 
-	alertStore, err := builders.NewAlertStoreFromConfig(ctx, true, instanceConfig)
+	alertStore, err := builders.NewAlertStoreFromConfig(ctx, local, instanceConfig)
 	if err != nil {
 		return err
 	}
@@ -340,7 +343,7 @@ func databaseDatabaseBackupShortcutsSubAction(c *cobra.Command, args []string) e
 	}
 	shortcutsEncoder := gob.NewEncoder(shortcutsZipWriter)
 
-	shortcutStore, err := builders.NewShortcutStoreFromConfig(instanceConfig)
+	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, local, instanceConfig)
 	if err != nil {
 		return err
 	}
@@ -416,7 +419,7 @@ func databaseDatabaseBackupRegressionsSubAction(c *cobra.Command, args []string)
 		return err
 	}
 	cidl := cid.New(ctx, perfGit, config.Config)
-	regressionStore, err := builders.NewRegressionStoreFromConfig(true, cidl, instanceConfig)
+	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, true, cidl, instanceConfig)
 	if err != nil {
 		return err
 	}
@@ -546,7 +549,7 @@ func databaseDatabaseRestoreShortcutsSubAction(c *cobra.Command, args []string) 
 	defer util.Close(z)
 
 	// Restore shortcuts.
-	shortcutStore, err := builders.NewShortcutStoreFromConfig(instanceConfig)
+	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, local, instanceConfig)
 	if err != nil {
 		return err
 	}
@@ -603,7 +606,7 @@ func databaseDatabaseRestoreRegressionsSubAction(c *cobra.Command, args []string
 		return err
 	}
 	cidl := cid.New(ctx, perfGit, config.Config)
-	regressionStore, err := builders.NewRegressionStoreFromConfig(true, cidl, instanceConfig)
+	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, true, cidl, instanceConfig)
 	if err != nil {
 		return err
 	}

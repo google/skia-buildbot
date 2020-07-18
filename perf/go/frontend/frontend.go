@@ -368,7 +368,7 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	f.shortcutStore, err = builders.NewShortcutStoreFromConfig(config.Config)
+	f.shortcutStore, err = builders.NewShortcutStoreFromConfig(ctx, f.flags.Local, config.Config)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -385,7 +385,7 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 
 	f.frameRequests = dataframe.NewRunningFrameRequests(f.perfGit, f.dfBuilder, f.shortcutStore)
 	f.clusterRequests = regression.NewRunningRegressionDetectionRequests(f.perfGit, f.cidl, float32(f.flags.Interesting), f.dfBuilder, f.shortcutStore)
-	f.regStore, err = builders.NewRegressionStoreFromConfig(f.flags.Local, f.cidl, cfg)
+	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, f.flags.Local, f.cidl, cfg)
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
 	}
