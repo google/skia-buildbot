@@ -220,9 +220,13 @@ func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 // the InstanceConfig.
 //
 // If local is true then we aren't running in production.
-func NewRegressionStoreFromConfig(local bool, cidl *cid.CommitIDLookup, instanceConfig *config.InstanceConfig) (regression.Store, error) {
+func NewRegressionStoreFromConfig(ctx context.Context, local bool, cidl *cid.CommitIDLookup, instanceConfig *config.InstanceConfig) (regression.Store, error) {
 	switch instanceConfig.DataStoreConfig.DataStoreType {
 	case config.GCPDataStoreType:
+		if err := initCloudDatastoreOnce(ctx, local, instanceConfig); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
 		lookup := func(ctx context.Context, c *cid.CommitID) (*cid.CommitDetail, error) {
 			details, err := cidl.Lookup(ctx, []*cid.CommitID{c})
 			if err != nil {
@@ -249,9 +253,13 @@ func NewRegressionStoreFromConfig(local bool, cidl *cid.CommitIDLookup, instance
 
 // NewShortcutStoreFromConfig creates a new shortcut.Store from the
 // InstanceConfig.
-func NewShortcutStoreFromConfig(instanceConfig *config.InstanceConfig) (shortcut.Store, error) {
+func NewShortcutStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (shortcut.Store, error) {
 	switch instanceConfig.DataStoreConfig.DataStoreType {
 	case config.GCPDataStoreType:
+		if err := initCloudDatastoreOnce(ctx, local, instanceConfig); err != nil {
+			return nil, skerr.Wrap(err)
+		}
+
 		return dsshortcutstore.New(), nil
 	case config.SQLite3DataStoreType:
 		db, err := newSQLite3DBFromConfig(instanceConfig)

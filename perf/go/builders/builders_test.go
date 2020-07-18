@@ -202,10 +202,10 @@ func TestNewAlertStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 
 func TestNewRegressionStoreFromConfig_Sqlite3_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	_, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
+	ctx, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
 	defer cleanup()
 
-	store, err := NewRegressionStoreFromConfig(false, nil, instanceConfig)
+	store, err := NewRegressionStoreFromConfig(ctx, false, nil, instanceConfig)
 	require.NoError(t, err)
 
 	regressiontest.SetLowAndTriage(t, store)
@@ -213,10 +213,10 @@ func TestNewRegressionStoreFromConfig_Sqlite3_Success(t *testing.T) {
 
 func TestNewRegressionStoreFromConfig_CochroachDB_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	_, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
+	ctx, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
 	defer cleanup()
 
-	store, err := NewRegressionStoreFromConfig(false, nil, instanceConfig)
+	store, err := NewRegressionStoreFromConfig(ctx, false, nil, instanceConfig)
 	require.NoError(t, err)
 
 	regressiontest.SetLowAndTriage(t, store)
@@ -224,23 +224,23 @@ func TestNewRegressionStoreFromConfig_CochroachDB_Success(t *testing.T) {
 
 func TestNewRegressionStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 	unittest.LargeTest(t)
-	_, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
+	ctx, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
 	defer cleanup()
 
 	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
 	instanceConfig.DataStoreConfig.DataStoreType = invalidDataStoreType
 
-	_, err := NewRegressionStoreFromConfig(false, nil, instanceConfig)
+	_, err := NewRegressionStoreFromConfig(ctx, false, nil, instanceConfig)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), invalidDataStoreType)
 }
 
 func TestNewShortcutStoreFromConfig_GCPDatastore_Success(t *testing.T) {
 	unittest.ManualTest(t)
-	_, instanceConfig, cleanup := newGCPDatastoreConfigForTest(t, ds.SHORTCUT)
+	ctx, instanceConfig, cleanup := newGCPDatastoreConfigForTest(t, ds.SHORTCUT)
 	defer cleanup()
 
-	store, err := NewShortcutStoreFromConfig(instanceConfig)
+	store, err := NewShortcutStoreFromConfig(ctx, false, instanceConfig)
 	require.NoError(t, err)
 
 	shortcuttest.InsertGet(t, store)
@@ -248,10 +248,10 @@ func TestNewShortcutStoreFromConfig_GCPDatastore_Success(t *testing.T) {
 
 func TestNewShortcutStoreFromConfig_Sqlite3_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	_, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
+	ctx, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
 	defer cleanup()
 
-	store, err := NewShortcutStoreFromConfig(instanceConfig)
+	store, err := NewShortcutStoreFromConfig(ctx, false, instanceConfig)
 	require.NoError(t, err)
 
 	shortcuttest.InsertGet(t, store)
@@ -259,10 +259,10 @@ func TestNewShortcutStoreFromConfig_Sqlite3_Success(t *testing.T) {
 
 func TestNewShortcutStoreFromConfig_CockroachDB_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	_, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
+	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
 	defer cleanup()
 
-	store, err := NewShortcutStoreFromConfig(instanceConfig)
+	store, err := NewShortcutStoreFromConfig(ctx, false, instanceConfig)
 	require.NoError(t, err)
 
 	shortcuttest.InsertGet(t, store)
@@ -270,13 +270,13 @@ func TestNewShortcutStoreFromConfig_CockroachDB_Success(t *testing.T) {
 
 func TestNewShortcutStoreFromConfig_Sqlite3_InvalidDatastoreTypeIsError(t *testing.T) {
 	unittest.LargeTest(t)
-	_, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
+	ctx, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
 	defer cleanup()
 
 	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
 	instanceConfig.DataStoreConfig.DataStoreType = invalidDataStoreType
 
-	_, err := NewShortcutStoreFromConfig(instanceConfig)
+	_, err := NewShortcutStoreFromConfig(ctx, false, instanceConfig)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), invalidDataStoreType)
 }
