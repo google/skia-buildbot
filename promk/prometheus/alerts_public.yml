@@ -218,6 +218,16 @@ groups:
     annotations:
       description: 'Error rate for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#process_failures'
 
+  - alert: AndroidIngestLiveness
+    expr: liveness_last_successful_add_s > 300
+    labels:
+      category: infra
+      severity: critical
+      owner: jcgregorio@google.com
+    annotations:
+      description: 'Liveness for processing buildids is too high. See https://github.com/google/skia-buildbot/blob/master/android_ingest/PROD.md#liveness'
+
+
   - alert: AndroidIngestBadFilesTooHigh
     expr: bad_files/uploads > 0.5
     labels:
