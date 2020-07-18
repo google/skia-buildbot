@@ -24,7 +24,7 @@ dist_source: go/dist/rice-box.go
 migration_source: go/sql/migrations/sqlite3/rice-box.go go/sql/migrations/cockroachdb/rice-box.go
 
 build: migration_source dist_source
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/perfserver
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/perfserver ./go/perf-tool
 	./images/perfserver/release
 
 push: build
