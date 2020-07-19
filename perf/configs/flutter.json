@@ -2,7 +2,7 @@
   "URL": "https://flutter-engine-perf.skia.org/",
   "data_store_config": {
     "datastore_type": "gcp",
-    "connection_string": "postgresql://root@perf-cockroachdb-public:26257/flutter_engine?sslmode=disable",
+    "connection_string": "postgresql://root@localhost:26257/flutter_engine?sslmode=disable",
     "tile_size": 256,
     "project": "skia-public",
     "instance": "production",
@@ -22,7 +22,7 @@
   },
   "git_repo_config": {
     "url": "https://github.com/flutter/engine",
-    "dir": "/tmp/repo",
+    "dir": "/tmp/flutter-engine",
     "debounce_commit_url": false,
     "commit_url": "%s/commit/%s"
   }
