@@ -22,7 +22,7 @@
   },
   "git_repo_config": {
     "url": "https://github.com/flutter/engine",
-    "dir": "/tmp/repo",
+    "dir": "/tmp/flutter-engine",
     "debounce_commit_url": false,
     "commit_url": "%s/commit/%s"
   }

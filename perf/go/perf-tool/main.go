@@ -90,6 +90,7 @@ func main() {
 			if err != nil {
 				return skerr.Wrap(err)
 			}
+			config.Config = instanceConfig
 
 			return nil
 		},
@@ -394,7 +395,7 @@ func databaseDatabaseBackupRegressionsSubAction(c *cobra.Command, args []string)
 		backupToDate = time.Now().Add(-time.Hour * 24 * 7 * 4)
 	} else {
 		var err error
-		backupToDate, err = time.Parse("2006-01-02", backupToDateFlag)
+		backupToDate, err = time.Parse("2006-01-02", c.Flag(backupToDateFlag).Value.String())
 		if err != nil {
 			return err
 		}
@@ -418,7 +419,7 @@ func databaseDatabaseBackupRegressionsSubAction(c *cobra.Command, args []string)
 	if err != nil {
 		return err
 	}
-	cidl := cid.New(ctx, perfGit, config.Config)
+	cidl := cid.New(ctx, perfGit, instanceConfig)
 	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, true, cidl, instanceConfig)
 	if err != nil {
 		return err
@@ -477,10 +478,9 @@ End:
 // findFileInZip finds and opens a file within a .zip archive and returns the
 // io.ReadCloser for it.
 func findFileInZip(filename string, z *zip.ReadCloser) (io.ReadCloser, error) {
-	// Find "alerts"
 	var zipFile *zip.File
 	for _, zipReader := range z.File {
-		if zipReader.Name == "alerts" {
+		if zipReader.Name == filename {
 			zipFile = zipReader
 		}
 	}
@@ -605,7 +605,7 @@ func databaseDatabaseRestoreRegressionsSubAction(c *cobra.Command, args []string
 	if err != nil {
 		return err
 	}
-	cidl := cid.New(ctx, perfGit, config.Config)
+	cidl := cid.New(ctx, perfGit, instanceConfig)
 	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, true, cidl, instanceConfig)
 	if err != nil {
 		return err
