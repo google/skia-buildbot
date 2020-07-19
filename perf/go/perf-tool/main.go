@@ -69,7 +69,7 @@ func mustGetStore() tracestore.TraceStore {
 		return traceStore
 	}
 	var err error
-	traceStore, err = builders.NewTraceStoreFromConfig(context.Background(), true, instanceConfig)
+	traceStore, err = builders.NewTraceStoreFromConfig(context.Background(), local, instanceConfig)
 	if err != nil {
 		sklog.Fatalf("Failed to create client: %s", err)
 	}
@@ -415,12 +415,12 @@ func databaseDatabaseBackupRegressionsSubAction(c *cobra.Command, args []string)
 	}
 
 	regresssionsEncoder := gob.NewEncoder(regressionsZipWriter)
-	perfGit, err := builders.NewPerfGitFromConfig(ctx, true, instanceConfig)
+	perfGit, err := builders.NewPerfGitFromConfig(ctx, local, instanceConfig)
 	if err != nil {
 		return err
 	}
 	cidl := cid.New(ctx, perfGit, instanceConfig)
-	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, true, cidl, instanceConfig)
+	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, local, cidl, instanceConfig)
 	if err != nil {
 		return err
 	}
@@ -508,7 +508,7 @@ func databaseDatabaseRestoreAlertsSubAction(c *cobra.Command, args []string) err
 	}
 	defer util.Close(z)
 
-	alertStore, err := builders.NewAlertStoreFromConfig(ctx, true, instanceConfig)
+	alertStore, err := builders.NewAlertStoreFromConfig(ctx, local, instanceConfig)
 	if err != nil {
 		return err
 	}
@@ -601,12 +601,12 @@ func databaseDatabaseRestoreRegressionsSubAction(c *cobra.Command, args []string
 	defer util.Close(z)
 
 	// Restore Regressions
-	perfGit, err := builders.NewPerfGitFromConfig(ctx, true, instanceConfig)
+	perfGit, err := builders.NewPerfGitFromConfig(ctx, local, instanceConfig)
 	if err != nil {
 		return err
 	}
 	cidl := cid.New(ctx, perfGit, instanceConfig)
-	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, true, cidl, instanceConfig)
+	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, local, cidl, instanceConfig)
 	if err != nil {
 		return err
 	}
@@ -810,7 +810,7 @@ func configCreatePubSubTopicsAction(c *cobra.Command, args []string) error {
 
 func ingestForceReingestAction(c *cobra.Command, args []string) error {
 	ctx := context.Background()
-	ts, err := auth.NewDefaultTokenSource(true, storage.ScopeReadOnly)
+	ts, err := auth.NewDefaultTokenSource(local, storage.ScopeReadOnly)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
