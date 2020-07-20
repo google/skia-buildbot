@@ -15,6 +15,7 @@
       "source_type": "gcs",
       "project": "skia-public",
       "topic": "perf-ingestion-skia-production",
+      "subscription": "perf-ingestion-skia-production-cdb-prod",
       "sources": [
         "gs://skia-perf/nano-json-v1",
         "gs://skia-perf/task-duration",

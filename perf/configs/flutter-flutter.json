@@ -11,6 +11,7 @@
       "source_type": "gcs",
       "project": "skia-public",
       "topic": "perf-ingestion-flutter-flutter",
+      "subscription": "perf-ingestion-flutter-flutter-cdb-prod",
       "sources": ["gs://flutter-skia-perf/flutter-flutter"]
     },
     "branches": [],
