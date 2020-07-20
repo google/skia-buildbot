@@ -113,6 +113,11 @@ type SourceConfig struct {
 	// for source of type "gcs".
 	Topic string `json:"topic"`
 
+	// Subscription is the name of the subscription to use when requestion
+	// events from the PubSub Topic. If not supplied then a name that
+	// incorporates the Topic name will be used.
+	Subscription string `json:"subscription"`
+
 	// Sources is the list of sources of data files. For a source of "gcs" this
 	// is a list of Google Cloud Storage URLs, e.g.
 	// "gs://skia-perf/nano-json-v1". For a source of type "dir" is must only

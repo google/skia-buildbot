@@ -15,6 +15,7 @@
       "source_type": "gcs",
       "project": "skia-public",
       "topic": "perf-ingestion-ct-production",
+      "subscription": "perf-ingestion-ct-cdb-prod",
       "sources": ["gs://cluster-telemetry-perf/ingest"]
     },
     "branches": [],

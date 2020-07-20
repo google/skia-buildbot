@@ -85,15 +85,18 @@ func New(ctx context.Context, instanceConfig *config.InstanceConfig, local bool)
 
 	// When running in production we have every instance use the same topic name so that
 	// they load-balance pulling items from the topic.
-	subName := fmt.Sprintf("%s%s", instanceConfig.IngestionConfig.SourceConfig.Topic, subscriptionSuffix)
-	if local {
-		hostname, err := os.Hostname()
-		if err != nil {
-			hostname = "unknown-hostname"
-		}
+	subName := instanceConfig.IngestionConfig.SourceConfig.Subscription
+	if subName == "" {
+		subName = fmt.Sprintf("%s%s", instanceConfig.IngestionConfig.SourceConfig.Topic, subscriptionSuffix)
+		if local {
+			hostname, err := os.Hostname()
+			if err != nil {
+				hostname = "unknown-hostname"
+			}
 
-		// When running locally create a new topic for every host.
-		subName = fmt.Sprintf("%s-%s", instanceConfig.IngestionConfig.SourceConfig.Topic, hostname)
+			// When running locally create a new topic for every host.
+			subName = fmt.Sprintf("%s-%s", instanceConfig.IngestionConfig.SourceConfig.Topic, hostname)
+		}
 	}
 	sklog.Infof("Creating subscription %q for topic %q", subName, instanceConfig.IngestionConfig.SourceConfig.Topic)
 	sub := pubSubClient.Subscription(subName)

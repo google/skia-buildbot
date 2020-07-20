@@ -15,6 +15,7 @@
       "source_type": "gcs",
       "project": "skia-public",
       "topic": "perf-ingestion-android-production",
+      "subscription": "perf-ingestion-android-cdb-prod",
       "sources": ["gs://skia-perf/android-master-ingest"],
       "reject_if_name_matches": "/tx_log/"
     },
