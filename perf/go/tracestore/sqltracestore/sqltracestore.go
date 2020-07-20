@@ -136,6 +136,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/vec32"
 	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/tracestore"
@@ -742,6 +743,10 @@ func (s *SQLTraceStore) updateSourceFile(filename string) (int64, error) {
 // the given traceID and tileNumber. The Params given are from the parse trace
 // name.
 func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.TileNumber, traceID int64) error {
+	postingCacheEntryID := fmt.Sprintf("%d-%d", traceID, tileNumber)
+	if _, ok := s.cache.Get(postingCacheEntryID); ok {
+		return nil
+	}
 	for k, v := range p {
 		keyValue := fmt.Sprintf("%s=%s", k, v)
 		_, err := s.preparedStatements[insertIntoPostings].ExecContext(context.TODO(), tileNumber, keyValue, traceID)
@@ -749,6 +754,7 @@ func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.Til
 			return skerr.Wrap(err)
 		}
 	}
+	s.cache.Add(postingCacheEntryID, true)
 	return nil
 }
 
@@ -767,11 +773,15 @@ func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Par
 	if iret, ok := s.cache.Get(traceName); ok {
 		ret = iret.(int64)
 	} else {
+		t := timer.New("insertIntoTraceIDs")
 		_, err := s.preparedStatements[insertIntoTraceIDs].ExecContext(context.TODO(), traceName)
+		t.Stop()
 		if err != nil {
 			return ret, skerr.Wrapf(err, "traceName=%q", traceName)
 		}
+		t = timer.New("getTraceID")
 		err = s.preparedStatements[getTraceID].QueryRowContext(context.TODO(), traceName).Scan(&ret)
+		t.Stop()
 		if err != nil {
 			return ret, skerr.Wrapf(err, "traceName=%q", traceName)
 		}
@@ -779,6 +789,7 @@ func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Par
 	}
 
 	// Update postings.
+	defer timer.New("udpatePostings").Stop()
 	if err := s.updatePostings(traceNameAsParams, tileNumber, ret); err != nil {
 		return ret, skerr.Wrapf(err, "traceName=%q", traceName)
 	}
@@ -813,6 +824,7 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 		traceIDs[i] = traceID
 	}
 
+	defer timer.New("updateTraceValues").Stop()
 	// Now add each trace value.
 	for i, x := range values {
 		if err := s.updateTraceValues(traceIDs[i], commitNumber, x, sourceID); err != nil {
