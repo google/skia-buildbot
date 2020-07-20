@@ -1,9 +1,12 @@
 /**
- * @module module/sort-sk
+ * @module modules/sort-sk
  * @description <h2><code>sort-sk</code></h2>
  *
  * Allows sorting the members of the indicated element by the values of the
  * data attributes.
+ *
+ * This element does *not* support the elements to sort changing. It assumes the data in
+ * the table is constant (otherwise, lit-html will not be able to render it accurately).
  *
  * Add children to <sort-sk> that generate click events and that have child
  * content, such as buttons. Add a data-key * attribute to each child element

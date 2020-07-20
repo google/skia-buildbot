@@ -16,12 +16,12 @@ import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { defaultCorpus } from '../settings';
 
-import '../../../infra-sk/modules/sort-sk';
-import 'elements-sk/icon/group-work-icon-sk';
-import 'elements-sk/icon/tune-icon-sk';
-import 'elements-sk/checkbox-sk';
 import '../corpus-selector-sk';
 import '../query-dialog-sk';
+import '../sort-toggle-sk';
+import 'elements-sk/checkbox-sk';
+import 'elements-sk/icon/group-work-icon-sk';
+import 'elements-sk/icon/tune-icon-sk';
 
 const template = (ele) => html`
 <div>
@@ -41,24 +41,27 @@ const template = (ele) => html`
   </div>
 </div>
 
-<!-- lit-html (or maybe html in general) doesn't like sort-sk to go inside the table.-->
-<sort-sk id=sort_table target=rows>
+<!-- lit-html (or maybe html in general) doesn't like sort-toggle-sk to go inside the table.-->
+<sort-toggle-sk id=sort_table .data=${ele._byTestCounts} @sort-changed=${ele._render}>
   <table>
      <thead>
          <tr>
-          <th data-key=name data-default=up data-sort-type=alpha>Test name</th>
-          <th data-key=positive>Positive</th>
-          <th data-key=negative>Negative</th>
-          <th data-key=untriaged>Untriaged</th>
-          <th data-key=total>Total</th>
+          <th data-key=name data-sort-toggle-sk=up>Test name</th>
+          <th data-key=positive_digests>Positive</th>
+          <th data-key=negative_digests>Negative</th>
+          <th data-key=untriaged_digests>Untriaged</th>
+          <th data-key=total_digests>Total</th>
           <th>Cluster View</th>
         </tr>
     </thead>
-    <tbody id=rows>
+    <tbody>
+      <!-- repeat was tested here; map is about twice as fast as using the repeat directive
+           (which moves the existing elements). This is because reusing the existing templates
+           is pretty fast because there isn't a lot to change.-->
       ${ele._byTestCounts.map((row) => testRow(row, ele))}
     </tbody>
   </table>
-</sort-sk>
+</sort-toggle-sk>
 
 <query-dialog-sk @edit=${ele._currentQueryChanged}></query-dialog-sk>
 `;
@@ -72,11 +75,7 @@ const testRow = (row, ele) => {
     + `&include=${ele._disregardIgnoreRules ? 'true' : 'false'}`;
 
   return html`
-<tr data-name=${row.name}
-    data-positive=${row.positive_digests}
-    data-negative=${row.negative_digests}
-    data-untriaged=${row.untriaged_digests}
-    data-total=${row.total_digests}>
+<tr>
   <td>
     <a href="/search?${searchParams}&${allDigests}" target=_blank rel=noopener>
       ${row.name}
@@ -212,8 +211,8 @@ define('list-page-sk', class extends ElementSk {
           row.total_digests = row.positive_digests + row.negative_digests + row.untriaged_digests;
         });
         this._render();
-        // Make sure the data is sorted by the default key in the default direction.
-        $$('#sort_table', this).sort('name', 'up', true);
+        // By default, sort the data by name in ascending order (to match the direction set above).
+        $$('#sort_table', this).sort('name', 'up');
         sendEndTask(this);
       })
       .catch((e) => sendFetchError(this, e, 'list'));
