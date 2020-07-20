@@ -103,6 +103,10 @@ SELECT tile_number, key_value, trace_id FROM Postings
 WHERE tile_number=0 AND key_value="arch=x86"
 ORDER BY trace_id;
 
+-- Have Postings for a traceID and tileNumber been written?
+SELET count(*) FROM Postings
+WHERE tile_number=0 AND trace_id=2;
+
 -- Retrieve matching values. Note that sqlite querys are limited to 1MB,
 -- so we might need to break up the trace_ids if the query is too long.
 SELECT trace_id, commit_number, val FROM TraceValues
