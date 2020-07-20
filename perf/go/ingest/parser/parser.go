@@ -165,19 +165,23 @@ func (p *Parser) Parse(file file.File) ([]paramtools.Params, []float32, string, 
 
 	// Read the whole content into bytes.Reader since we may take more than one
 	// pass at the data.
+	sklog.Infof("About to read.")
 	b, err := ioutil.ReadAll(file.Contents)
+	sklog.Infof("Finished readall.")
 	if err != nil {
 		return nil, nil, "", skerr.Wrap(err)
 	}
 	r := bytes.NewReader(b)
 
 	// Expect the file to be in format.FileFormat.
+	sklog.Info("About to extract")
 	params, values, hash, commonKeys, err := p.extractFromVersion1File(r, file.Name)
 	if err != nil {
 		// Fallback to the legacy format.
 		if _, err := r.Seek(0, io.SeekStart); err != nil {
 			return nil, nil, "", skerr.Wrap(err)
 		}
+		sklog.Info("About to extract from legacy.")
 		params, values, hash, commonKeys, err = p.extractFromLegacyFile(r, file.Name)
 	}
 	if err != nil && err != ErrFileShouldBeSkipped {
