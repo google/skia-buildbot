@@ -134,7 +134,7 @@ func main() {
 
 	databaseBackupRegressionsSubCmd := &cobra.Command{
 		Use:   "regressions",
-		Short: "Backup Regressions.",
+		Short: "Backups up regressions and any shortcuts they rely on.",
 		RunE:  databaseDatabaseBackupRegressionsSubAction,
 	}
 	databaseBackupRegressionsSubCmd.Flags().String(backupToDateFlag, "", "How far back in time to back up Regressions. Defaults to four weeks.")
@@ -163,7 +163,7 @@ func main() {
 
 	databaseRestoreRegressionsSubCmd := &cobra.Command{
 		Use:   "regressions",
-		Short: "Restores from the given backup.",
+		Short: "Restores from the given backup both the regressions and their associated shortcuts.",
 		RunE:  databaseDatabaseRestoreRegressionsSubAction,
 	}
 	databaseRestoreSubCmd.AddCommand(databaseRestoreRegressionsSubCmd)
@@ -611,6 +611,12 @@ func databaseDatabaseRestoreRegressionsSubAction(c *cobra.Command, args []string
 		return err
 	}
 
+	// Also re-create the shortcuts in each regression.
+	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, local, instanceConfig)
+	if err != nil {
+		return err
+	}
+
 	// Find "regressions"
 	regressionsZipReader, err := findFileInZip(backupFilenameRegressions, z)
 	if err != nil {
@@ -638,6 +644,27 @@ func databaseDatabaseRestoreRegressionsSubAction(c *cobra.Command, args []string
 		total++
 		if total%100 == 0 {
 			fmt.Print(".")
+		}
+		// Re-create the shortcuts. Each regression already shorts the shortcut
+		// key, so there's no need to modify them and we can ignore the ID
+		// returned by InsertShortcut since the ID generation is deterministic
+		// and won't change.
+		for _, r := range a.AllRegressionsForCommit.ByAlertID {
+			_, err = shortcutStore.InsertShortcut(ctx, &shortcut.Shortcut{
+				Keys: r.High.Keys,
+			})
+			if err != nil {
+				sklog.Warningf("Failed to create shortcut: %s", err)
+			}
+			_, err = shortcutStore.InsertShortcut(ctx, &shortcut.Shortcut{
+				Keys: r.Low.Keys,
+			})
+			if err != nil {
+				sklog.Warningf("Failed to create shortcut: %s", err)
+			}
+		}
+		if total%100 == 0 {
+			fmt.Print("o")
 		}
 	}
 
