@@ -22,7 +22,7 @@
   },
   "git_repo_config": {
     "url": "https://skia.googlesource.com/perf-ct",
-    "dir": "/tmp/repo",
+    "dir": "/tmp/ct",
     "debounce_commit_url": false
   }
 }

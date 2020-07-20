@@ -26,7 +26,7 @@
   },
   "git_repo_config": {
     "url": "https://skia.googlesource.com/skia",
-    "dir": "/tmp/repo",
+    "dir": "/tmp/skiaperf",
     "debounce_commit_url": false,
     "file_change_marker": "infra/bots/assets/skp/VERSION"
   }
