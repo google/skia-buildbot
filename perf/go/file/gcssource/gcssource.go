@@ -73,7 +73,6 @@ func New(ctx context.Context, instanceConfig *config.InstanceConfig, local bool)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().Client()
 	gcsClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
 	if err != nil {
