@@ -75,7 +75,11 @@ func ConfigStateToInt(c ConfigState) int {
 
 // Alert represents the configuration for one alert.
 type Alert struct {
+	// We need to keep the int64 version of the ID around to support Cloud
+	// Datastore. Once everyone migrates to SQL backed datastores it can be
+	// removed.
 	ID             int64                             `json:"id"               datastore:",noindex"`
+	IDAsString     string                            `json:"id_as_string"     datastore:",noindex"`
 	DisplayName    string                            `json:"display_name"     datastore:",noindex"`
 	Query          string                            `json:"query"            datastore:",noindex"` // The query to perform on the trace store to select the traces to alert on.
 	Alert          string                            `json:"alert"            datastore:",noindex"` // Email address to send alerts to.
@@ -306,6 +310,7 @@ func (c *Alert) Validate() error {
 func NewConfig() *Alert {
 	return &Alert{
 		ID:                BadAlertID,
+		IDAsString:        fmt.Sprintf("%d", BadAlertID),
 		Algo:              types.KMeansGrouping,
 		StateAsString:     ACTIVE,
 		Sparse:            DefaultSparse,
