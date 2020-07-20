@@ -117,6 +117,7 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 
 		// Parse the file.
 		params, values, gitHash, err := p.Parse(f)
+		sklog.Infof("Parse error: %s", err)
 		if err != nil {
 			if err == parser.ErrFileShouldBeSkipped {
 				skipped.Inc(1)
@@ -127,6 +128,7 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 			continue
 		}
 
+		sklog.Info("Lookup CommitNumber")
 		// Convert gitHash to commitNumber.
 		commitNumber, err := g.CommitNumberFromGitHash(ctx, gitHash)
 		if err != nil {
@@ -142,12 +144,14 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 			}
 		}
 
+		sklog.Info("Build ParamSet")
 		// Build paramset from params.
 		ps := paramtools.NewParamSet()
 		for _, p := range params {
 			ps.AddParams(p)
 		}
 
+		sklog.Info("WriteTraces")
 		// Write data to the trace store.
 		if err := store.WriteTraces(commitNumber, params, values, ps, f.Name, time.Now()); err != nil {
 			failedToWrite.Inc(1)
