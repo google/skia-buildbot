@@ -149,7 +149,7 @@ func (et emailTicker) remindAlertOwners() error {
 		if err != nil {
 			return fmt.Errorf("Failed to get view action markup: %s", err)
 		}
-		if _, err := et.emailAuth.SendWithMarkup("Alert Manager", []string{o, "rmistry@google.com" /*temporary*/}, emailSubject, emailBytes.String(), viewActionMarkup, ""); err != nil {
+		if _, err := et.emailAuth.SendWithMarkup("Alert Manager", []string{o}, emailSubject, emailBytes.String(), viewActionMarkup, ""); err != nil {
 			return fmt.Errorf("Could not send email: %s", err)
 		}
 	}
