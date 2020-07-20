@@ -40,6 +40,24 @@ chromium-builds-sk {
     text-align:center;
     padding-top:2em;
   }
+  .rev-detail-container {
+      position: relative;
+      text-align: center;
+      width: 350px;
+      height: 100px;
+    }
+
+    .loading-rev-spinner {
+      margin: auto;
+      vertical-align: middle
+    }
+
+    .rev-detail {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      text-align: start;
+    }
 }
 
 .darkmode chromium-builds-sk table.options {
