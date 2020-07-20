@@ -24,7 +24,7 @@
   "git_repo_config": {
     "git_auth_type": "gerrit",
     "url": "https://skia.googlesource.com/perf-buildid/android-master",
-    "dir": "/tmp/repo",
+    "dir": "/tmp/android",
     "debounce_commit_url": true
   }
 }
