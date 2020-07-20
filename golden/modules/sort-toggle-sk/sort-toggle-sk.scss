@@ -1,0 +1,31 @@
+sort-toggle-sk {
+  [data-sort-toggle-sk='up'] {
+    arrow-drop-up-icon-sk {
+      visibility: visible;
+      display: inline-block;
+    }
+    arrow-drop-down-icon-sk {
+      display: none;
+    }
+  }
+
+  [data-sort-toggle-sk='down'] {
+    arrow-drop-up-icon-sk {
+      visibility: hidden;
+      display: none;
+    }
+    arrow-drop-down-icon-sk {
+      display: inline-block;
+    }
+  }
+
+  arrow-drop-down-icon-sk {
+    display: none;
+  }
+  arrow-drop-up-icon-sk {
+    /* This pre-allocates the space for the arrows to go so the header doesn't have to re-layout
+       (i.e. shift around) when things are toggled. */
+    visibility: hidden;
+    display: inline-block;
+  }
+}
