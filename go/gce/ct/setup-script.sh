@@ -11,7 +11,7 @@ sudo apt-get update
 sudo apt-get -y install libosmesa-dev clang-3.6 poppler-utils netpbm \
     python-django libgif-dev lua5.2 libnss3 python-setuptools python-pip \
     libglu1 libgtk3.0 xvfb gperf bison libglu1-mesa-dev libgbm-dev
-sudo pip install -U crcmod mock psutil httplib2 numpy
+sudo pip install -U crcmod mock psutil httplib2 numpy pandas
 
 # Install openjdk-8. See skbug.com/6975 for context.
 sudo apt-get -y install openjdk-8-jdk openjdk-8-jre
