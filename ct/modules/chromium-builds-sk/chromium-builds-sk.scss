@@ -3,6 +3,7 @@
 chromium-builds-sk {
   background-color: var(--surface);
   color: var(--on-surface);
+
   table.options {
     padding-left: 2em;
     margin: 1em;
@@ -11,8 +12,9 @@ chromium-builds-sk {
 
   select-sk {
     * {
-    padding: 0;
+      padding: 0;
     }
+
     [selected] {
       background-color: var(--primary-variant);
     }
@@ -37,8 +39,27 @@ chromium-builds-sk {
   }
 
   td.center {
-    text-align:center;
-    padding-top:2em;
+    text-align: center;
+    padding-top: 2em;
+  }
+
+  .rev-detail-container {
+    position: relative;
+    text-align: center;
+    width: 350px;
+    height: 100px;
+  }
+
+  .loading-rev-spinner {
+    margin: auto;
+    vertical-align: middle
+  }
+
+  .rev-detail {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    text-align: start;
   }
 }
 
