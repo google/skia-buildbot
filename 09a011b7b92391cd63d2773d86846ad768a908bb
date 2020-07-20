@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "54a73a03_ae9d5c51",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-20T18:07:58Z",
+      "side": 1,
+      "message": "WDYT?  I\u0027ll need to figure out the issue with version mismatches during \"go generate\".",
+      "revId": "09a011b7b92391cd63d2773d86846ad768a908bb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
