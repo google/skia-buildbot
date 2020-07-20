@@ -38,6 +38,8 @@ exclude (
 	k8s.io/client-go v9.0.0+incompatible // #2
 )
 
+replace go.larrymyers.com/protoc-gen-twirp_typescript => github.com/s19-tech/protoc-gen-twirp_typescript v0.0.0-20191017103916-3ccab48e3ce6
+
 require (
 	cloud.google.com/go v0.60.0
 	cloud.google.com/go/bigtable v1.4.0
@@ -123,6 +125,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/texttheater/golang-levenshtein v0.0.0-20191208221605-eb6844b05fc6
+	github.com/twitchtv/twirp v5.12.0+incompatible
 	github.com/unrolled/secure v1.0.8
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/willf/bitset v1.1.10
@@ -130,6 +133,7 @@ require (
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
 	go.chromium.org/luci v0.0.0-20200707033358-8fb6a0ac9ee5
+	go.larrymyers.com/protoc-gen-twirp_typescript v0.0.0-20200623200853-f5da1af25b54
 	go.opencensus.io v0.22.4
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
