@@ -1,0 +1,47 @@
+@import '../colors.css';
+
+chromium-builds-sk {
+  background-color: var(--surface);
+  color: var(--on-surface);
+  table.options {
+    padding-left: 2em;
+    margin: 1em;
+    border-style: solid;
+  }
+
+  select-sk {
+    * {
+    padding: 0;
+    }
+    [selected] {
+      background-color: var(--primary-variant);
+    }
+  }
+
+  .triggering-spinner {
+    margin: auto;
+    vertical-align: middle;
+  }
+
+
+  .long-field {
+    width: 40em;
+  }
+
+  .smaller-font {
+    font-size: 80%;
+  }
+
+  table.options>tbody>tr>td {
+    padding: 1em 2em;
+  }
+
+  td.center {
+    text-align:center;
+    padding-top:2em;
+  }
+}
+
+.darkmode chromium-builds-sk table.options {
+  background-color: var(--surface-2dp);
+}
