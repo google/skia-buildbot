@@ -21,7 +21,7 @@
     "chai": "~4.2.0",
     "css-loader": "^3.5.3",
     "cssmin": "~0.4.2",
-    "fetch-mock": "~7.3.9",
+    "fetch-mock": "~7.7.0",
     "html-loader": "^0.5.5",
     "html-minifier": "~3.0.0",
     "karma": "~4.3.0",
