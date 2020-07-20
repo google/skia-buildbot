@@ -24,7 +24,7 @@ import (
 const (
 	// maxParallelReceives is the number of Go routines we want to run.
 	// Determined experimentally.
-	maxParallelReceives = 10
+	maxParallelReceives = 1
 
 	// subscriptionSuffix is the name we append to a topic name to build a
 	// subscription name.
@@ -73,7 +73,6 @@ func New(ctx context.Context, instanceConfig *config.InstanceConfig, local bool)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).WithoutRetries().Client()
 	gcsClient, err := storage.NewClient(ctx, option.WithHTTPClient(client))
 	if err != nil {
