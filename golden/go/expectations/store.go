@@ -72,7 +72,7 @@ type GarbageCollector interface {
 type Delta struct {
 	Grouping types.TestName
 	Digest   types.Digest
-	Label    LabelStr
+	Label    Label
 }
 
 // ID returns the ID for the Delta, as a method of convenience.
@@ -94,7 +94,7 @@ type DeltaWithRange struct {
 // AsDelta converts an Expectations object into a slice of Deltas.
 func AsDelta(e ReadOnly) []Delta {
 	var delta []Delta
-	_ = e.ForAll(func(tn types.TestName, d types.Digest, l LabelStr) error {
+	_ = e.ForAll(func(tn types.TestName, d types.Digest, l Label) error {
 		delta = append(delta, Delta{Grouping: tn, Digest: d, Label: l})
 		return nil
 	})
