@@ -33,9 +33,7 @@ var (
 
 func ReloadTemplates(resourcesDir string) {
 	addTaskTemplate = template.Must(template.ParseFiles(
-		filepath.Join(resourcesDir, "templates/admin_tasks.html"),
-		filepath.Join(resourcesDir, "templates/header.html"),
-		filepath.Join(resourcesDir, "templates/titlebar.html"),
+		filepath.Join(resourcesDir, "dist", "admin_tasks.html"),
 	))
 	recreatePageSetsRunsHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(resourcesDir, "templates/recreate_page_sets_runs_history.html"),
