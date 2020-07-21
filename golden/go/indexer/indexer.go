@@ -265,7 +265,7 @@ func (idx *SearchIndex) MostRecentPositiveDigest(ctx context.Context, traceID ti
 	// Find and return the most recent positive digest in the Trace.
 	for i := len(trace.Digests) - 1; i >= 0; i-- {
 		digest := trace.Digests[i]
-		if digest != tiling.MissingDigest && exps.Classification(trace.TestName(), digest) == expectations.Positive {
+		if digest != tiling.MissingDigest && exps.Classification(trace.TestName(), digest) == expectations.PositiveStr {
 			return digest, nil
 		}
 	}
@@ -845,7 +845,7 @@ func indexTryJobResults(existing, newResults []tjstore.TryJobResult, exps expect
 		params.AddParams(tjr.ResultParams)
 		params.AddParams(tjr.Options)
 		tn := types.TestName(tjr.ResultParams[types.PrimaryKeyField])
-		if exps.Classification(tn, tjr.Digest) == expectations.Untriaged {
+		if exps.Classification(tn, tjr.Digest) == expectations.UntriagedStr {
 			// If the same digest somehow shows up twice (maybe because of how we
 			alreadyInList := false
 			for _, existingResult := range existing {

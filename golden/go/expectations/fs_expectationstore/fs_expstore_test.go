@@ -52,12 +52,12 @@ func TestGet_ExpectationsInCLPartition_Success(t *testing.T) {
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaUntriagedDigest,
-			Label:    expectations.Positive, // Intentionally wrong. Will be fixed by the next AddChange.
+			Label:    expectations.PositiveStr, // Intentionally wrong. Will be fixed by the next AddChange.
 		},
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 	}, userOne)
 	require.NoError(t, err)
@@ -66,17 +66,17 @@ func TestGet_ExpectationsInCLPartition_Success(t *testing.T) {
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
+			Label:    expectations.NegativeStr,
 		},
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaUntriagedDigest, // overwrites previous
-			Label:    expectations.Untriaged,
+			Label:    expectations.UntriagedStr,
 		},
 		{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaPositiveDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 	}, userTwo)
 	require.NoError(t, err)
@@ -112,12 +112,12 @@ func TestGet_ExpectationsInMasterPartition_Success(t *testing.T) {
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaUntriagedDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 	}, userOne)
 	require.NoError(t, err)
@@ -126,17 +126,17 @@ func TestGet_ExpectationsInMasterPartition_Success(t *testing.T) {
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
+			Label:    expectations.NegativeStr,
 		},
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaUntriagedDigest, // overwrites previous
-			Label:    expectations.Untriaged,
+			Label:    expectations.UntriagedStr,
 		},
 		{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaPositiveDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 	}, userTwo)
 	require.NoError(t, err)
@@ -165,11 +165,11 @@ func TestGet_ExpectationsInMasterPartition_Success(t *testing.T) {
 }
 
 func assertExpectationsMatchDefaults(t *testing.T, e expectations.ReadOnly) {
-	assert.Equal(t, expectations.Positive, e.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	assert.Equal(t, expectations.Negative, e.Classification(data.AlphaTest, data.AlphaNegativeDigest))
-	assert.Equal(t, expectations.Untriaged, e.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
-	assert.Equal(t, expectations.Positive, e.Classification(data.BetaTest, data.BetaPositiveDigest))
-	assert.Equal(t, expectations.Untriaged, e.Classification(data.BetaTest, data.BetaUntriagedDigest))
+	assert.Equal(t, expectations.PositiveStr, e.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.NegativeStr, e.Classification(data.AlphaTest, data.AlphaNegativeDigest))
+	assert.Equal(t, expectations.UntriagedStr, e.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
+	assert.Equal(t, expectations.PositiveStr, e.Classification(data.BetaTest, data.BetaPositiveDigest))
+	assert.Equal(t, expectations.UntriagedStr, e.Classification(data.BetaTest, data.BetaUntriagedDigest))
 	assert.Equal(t, 3, e.Len())
 }
 
@@ -187,17 +187,17 @@ func TestGetCopy_CLPartition_CallerMutatesReturnValue_StoreUnaffected(t *testing
 	clExps, err := clStore.GetCopy(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, 1, clExps.Len())
-	assert.Equal(t, expectations.Positive, clExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	assert.Equal(t, expectations.Untriaged, clExps.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
+	assert.Equal(t, expectations.PositiveStr, clExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.UntriagedStr, clExps.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
 
-	clExps.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.Negative)
-	clExps.Set(data.AlphaTest, data.AlphaUntriagedDigest, expectations.Positive)
+	clExps.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.NegativeStr)
+	clExps.Set(data.AlphaTest, data.AlphaUntriagedDigest, expectations.PositiveStr)
 
 	shouldBeUnaffected, err := clStore.GetCopy(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, 1, shouldBeUnaffected.Len())
-	assert.Equal(t, expectations.Positive, shouldBeUnaffected.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	assert.Equal(t, expectations.Untriaged, shouldBeUnaffected.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
+	assert.Equal(t, expectations.PositiveStr, shouldBeUnaffected.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.UntriagedStr, shouldBeUnaffected.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
 }
 
 // TestGetCopy_MasterPartition_CallerMutatesReturnValue_StoreUnaffected mutates the result of
@@ -225,17 +225,17 @@ func TestGetCopy_MasterPartition_CallerMutatesReturnValue_StoreUnaffected(t *tes
 	masterExps, err := masterStore.GetCopy(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, 1, masterExps.Len())
-	assert.Equal(t, expectations.Positive, masterExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	assert.Equal(t, expectations.Untriaged, masterExps.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
+	assert.Equal(t, expectations.PositiveStr, masterExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.UntriagedStr, masterExps.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
 
-	masterExps.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.Negative)
-	masterExps.Set(data.AlphaTest, data.AlphaUntriagedDigest, expectations.Positive)
+	masterExps.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.NegativeStr)
+	masterExps.Set(data.AlphaTest, data.AlphaUntriagedDigest, expectations.PositiveStr)
 
 	shouldBeUnaffected, err := masterStore.GetCopy(ctx)
 	require.NoError(t, err)
 	assert.Equal(t, 1, shouldBeUnaffected.Len())
-	assert.Equal(t, expectations.Positive, shouldBeUnaffected.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	assert.Equal(t, expectations.Untriaged, shouldBeUnaffected.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
+	assert.Equal(t, expectations.PositiveStr, shouldBeUnaffected.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.UntriagedStr, shouldBeUnaffected.Classification(data.AlphaTest, data.AlphaUntriagedDigest))
 }
 
 // TestInitialize_ExpectationCacheIsFilledAndUpdated_Success has both a read-write and a read-only
@@ -267,9 +267,9 @@ func TestInitialize_ExpectationCacheIsFilledAndUpdated_Success(t *testing.T) {
 	assert.Len(t, readOnly.entryCache, 3)
 	roExps, err := readOnly.Get(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, expectations.Positive, roExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	assert.Equal(t, expectations.Negative, roExps.Classification(data.AlphaTest, data.AlphaNegativeDigest))
-	assert.Equal(t, expectations.Positive, roExps.Classification(data.AlphaTest, firstPositiveThenUntriaged))
+	assert.Equal(t, expectations.PositiveStr, roExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.NegativeStr, roExps.Classification(data.AlphaTest, data.AlphaNegativeDigest))
+	assert.Equal(t, expectations.PositiveStr, roExps.Classification(data.AlphaTest, firstPositiveThenUntriaged))
 
 	// This should update the existing entry, leaving us with 4 total entries, not 5
 	putEntry(ctx, t, masterStore, data.AlphaTest, firstPositiveThenUntriaged, expectations.Untriaged, userOne)
@@ -284,11 +284,11 @@ func TestInitialize_ExpectationCacheIsFilledAndUpdated_Success(t *testing.T) {
 	roExps2, err := readOnly.Get(ctx)
 	require.NoError(t, err)
 	assertExpectationsMatchDefaults(t, roExps2)
-	assert.Equal(t, expectations.Untriaged, roExps2.Classification(data.AlphaTest, firstPositiveThenUntriaged))
+	assert.Equal(t, expectations.UntriagedStr, roExps2.Classification(data.AlphaTest, firstPositiveThenUntriaged))
 
 	// Spot check that the expectations we got first were not impacted by the new expectations
 	// coming in or the second call to Get.
-	assert.Equal(t, expectations.Positive, roExps.Classification(data.AlphaTest, firstPositiveThenUntriaged))
+	assert.Equal(t, expectations.PositiveStr, roExps.Classification(data.AlphaTest, firstPositiveThenUntriaged))
 
 	assert.Equal(t, 5, countExpectationChanges(ctx, t, masterStore))
 	assert.Equal(t, 5, countTriageRecords(ctx, t, masterStore))
@@ -310,27 +310,27 @@ func TestAddChange_MasterPartition_FromManyGoroutines_Success(t *testing.T) {
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaUntriagedDigest,
-			Label:    expectations.Untriaged,
+			Label:    expectations.UntriagedStr,
 		},
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
+			Label:    expectations.NegativeStr,
 		},
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 		{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaPositiveDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 		{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaUntriagedDigest,
-			Label:    expectations.Untriaged,
+			Label:    expectations.UntriagedStr,
 		},
 	}
 
@@ -402,15 +402,15 @@ func TestAddChange_ExpectationsDoNotConflictBetweenMasterAndCLPartition(t *testi
 	require.NoError(t, err)
 
 	// Make sure the CL expectations did not leak to the master expectations
-	assert.Equal(t, expectations.Negative, masterExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	assert.Equal(t, expectations.Negative, masterExps.Classification(data.AlphaTest, data.AlphaNegativeDigest))
-	assert.Equal(t, expectations.Untriaged, masterExps.Classification(data.BetaTest, data.BetaPositiveDigest))
+	assert.Equal(t, expectations.NegativeStr, masterExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.NegativeStr, masterExps.Classification(data.AlphaTest, data.AlphaNegativeDigest))
+	assert.Equal(t, expectations.UntriagedStr, masterExps.Classification(data.BetaTest, data.BetaPositiveDigest))
 	assert.Equal(t, 2, masterExps.Len())
 
 	// Make sure the CL expectations are separate from the master expectations.
-	assert.Equal(t, expectations.Positive, clExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	assert.Equal(t, expectations.Untriaged, clExps.Classification(data.AlphaTest, data.AlphaNegativeDigest))
-	assert.Equal(t, expectations.Positive, clExps.Classification(data.BetaTest, data.BetaPositiveDigest))
+	assert.Equal(t, expectations.PositiveStr, clExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.UntriagedStr, clExps.Classification(data.AlphaTest, data.AlphaNegativeDigest))
+	assert.Equal(t, expectations.PositiveStr, clExps.Classification(data.BetaTest, data.BetaPositiveDigest))
 	assert.Equal(t, 2, clExps.Len())
 }
 
@@ -482,19 +482,19 @@ func TestAddChange_MasterPartition_NotifierEventsCorrect(t *testing.T) {
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 	}
 	change2 := []expectations.Delta{
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
+			Label:    expectations.NegativeStr,
 		},
 		{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaPositiveDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 	}
 
@@ -524,12 +524,12 @@ func TestGetTriageHistory_MasterPartition_Success(t *testing.T) {
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 	}, userOne)
 	require.NoError(t, err)
@@ -538,7 +538,7 @@ func TestGetTriageHistory_MasterPartition_Success(t *testing.T) {
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
+			Label:    expectations.NegativeStr,
 		},
 	}, userTwo)
 	require.NoError(t, err)
@@ -652,12 +652,12 @@ func TestGetTriageHistory_MasterAndCLPartitionsDoNotConflict_Success(t *testing.
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaPositiveDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 	}, userOne)
 	require.NoError(t, err)
@@ -668,7 +668,7 @@ func TestGetTriageHistory_MasterAndCLPartitionsDoNotConflict_Success(t *testing.
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
+			Label:    expectations.NegativeStr,
 		},
 	}, userTwo)
 	require.NoError(t, err)
@@ -723,12 +723,12 @@ func TestQueryLog_WithoutDetails_OffsetsAndLimitsAreRespected(t *testing.T) {
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
+			Label:    expectations.NegativeStr,
 		},
 		{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaPositiveDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 	}, userTwo)
 	require.NoError(t, err)
@@ -798,12 +798,12 @@ func TestQueryLog_MasterAndCLPartitionsDoNotConflict_Success(t *testing.T) {
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
+			Label:    expectations.NegativeStr,
 		},
 		{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaPositiveDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 	}, userTwo)
 	require.NoError(t, err)
@@ -878,12 +878,12 @@ func TestQueryLog_WithDetails_Success(t *testing.T) {
 		{
 			Grouping: data.AlphaTest,
 			Digest:   data.AlphaNegativeDigest,
-			Label:    expectations.Negative,
+			Label:    expectations.NegativeStr,
 		},
 		{
 			Grouping: data.BetaTest,
 			Digest:   data.BetaPositiveDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 	}, userTwo)
 	require.NoError(t, err)
@@ -903,12 +903,12 @@ func TestQueryLog_WithDetails_Success(t *testing.T) {
 				{
 					Grouping: data.AlphaTest,
 					Digest:   data.AlphaNegativeDigest,
-					Label:    expectations.Negative,
+					Label:    expectations.NegativeStr,
 				},
 				{
 					Grouping: data.BetaTest,
 					Digest:   data.BetaPositiveDigest,
-					Label:    expectations.Positive,
+					Label:    expectations.PositiveStr,
 				},
 			},
 		},
@@ -921,7 +921,7 @@ func TestQueryLog_WithDetails_Success(t *testing.T) {
 				{
 					Grouping: data.AlphaTest,
 					Digest:   data.AlphaPositiveDigest,
-					Label:    expectations.Positive,
+					Label:    expectations.PositiveStr,
 				},
 			},
 		},
@@ -947,7 +947,7 @@ func TestQueryLog_WritingManyExpectations_Success(t *testing.T) {
 		delta = append(delta, expectations.Delta{
 			Grouping: n,
 			Digest:   d,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		})
 	}
 	err := masterStore.AddChange(ctx, delta, "test@example.com")
@@ -966,27 +966,27 @@ func TestQueryLog_WritingManyExpectations_Success(t *testing.T) {
 	require.Equal(t, expectations.Delta{
 		Grouping: "test_000",
 		Digest:   "00000000000000000000000000000000",
-		Label:    expectations.Positive,
+		Label:    expectations.PositiveStr,
 	}, entry.Details[0])
 	require.Equal(t, expectations.Delta{
 		Grouping: "test_200",
 		Digest:   "00000000000000000000000000000200",
-		Label:    expectations.Positive,
+		Label:    expectations.PositiveStr,
 	}, entry.Details[200])
 	require.Equal(t, expectations.Delta{
 		Grouping: "test_400",
 		Digest:   "00000000000000000000000000000400",
-		Label:    expectations.Positive,
+		Label:    expectations.PositiveStr,
 	}, entry.Details[400])
 	require.Equal(t, expectations.Delta{
 		Grouping: "test_600",
 		Digest:   "00000000000000000000000000000600",
-		Label:    expectations.Positive,
+		Label:    expectations.PositiveStr,
 	}, entry.Details[600])
 	require.Equal(t, expectations.Delta{
 		Grouping: "test_799",
 		Digest:   "00000000000000000000000000000799",
-		Label:    expectations.Positive,
+		Label:    expectations.PositiveStr,
 	}, entry.Details[799])
 }
 
@@ -1014,8 +1014,8 @@ func TestUndo_MasterPartition_EntriesExist_Success(t *testing.T) {
 
 	masterExps, err := masterStore.Get(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, expectations.Positive, masterExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	assert.Equal(t, expectations.Negative, masterExps.Classification(data.AlphaTest, data.AlphaNegativeDigest))
+	assert.Equal(t, expectations.PositiveStr, masterExps.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.NegativeStr, masterExps.Classification(data.AlphaTest, data.AlphaNegativeDigest))
 
 	// Check that the undo shows up as the most recent entry.
 	entries, _, err = masterStore.QueryLog(ctx, 0, 10, true)
@@ -1027,7 +1027,7 @@ func TestUndo_MasterPartition_EntriesExist_Success(t *testing.T) {
 	assert.Equal(t, expectations.Delta{
 		Grouping: data.AlphaTest,
 		Digest:   data.AlphaPositiveDigest,
-		Label:    expectations.Positive,
+		Label:    expectations.PositiveStr,
 	}, undidEntry.Details[0])
 }
 
@@ -1056,8 +1056,8 @@ func TestUndo_CLPartition_EntriesExist_Success(t *testing.T) {
 
 	exp, err := clStore.Get(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, expectations.Positive, exp.Classification(data.AlphaTest, data.AlphaPositiveDigest))
-	assert.Equal(t, expectations.Negative, exp.Classification(data.AlphaTest, data.AlphaNegativeDigest))
+	assert.Equal(t, expectations.PositiveStr, exp.Classification(data.AlphaTest, data.AlphaPositiveDigest))
+	assert.Equal(t, expectations.NegativeStr, exp.Classification(data.AlphaTest, data.AlphaNegativeDigest))
 
 	// Check that the undo shows up as the most recent entry.
 	entries, _, err = clStore.QueryLog(ctx, 0, 10, true)
@@ -1069,7 +1069,7 @@ func TestUndo_CLPartition_EntriesExist_Success(t *testing.T) {
 	assert.Equal(t, expectations.Delta{
 		Grouping: data.AlphaTest,
 		Digest:   data.AlphaPositiveDigest,
-		Label:    expectations.Positive,
+		Label:    expectations.PositiveStr,
 	}, undidEntry.Details[0])
 }
 
@@ -1390,7 +1390,7 @@ func TestMarkUnusedEntriesForGC_CLEntriesNotAffected_Success(t *testing.T) {
 		{
 			Grouping: entryOneGrouping,
 			Digest:   entryOneDigest,
-			Label:    expectations.Positive,
+			Label:    expectations.PositiveStr,
 		},
 	}, "test@example.com")
 	require.NoError(t, err)
@@ -1453,7 +1453,7 @@ func putEntry(ctx context.Context, t *testing.T, f expectations.Store, name type
 		{
 			Grouping: name,
 			Digest:   digest,
-			Label:    label,
+			Label:    label.String(),
 		},
 	}, user))
 }
@@ -1567,11 +1567,11 @@ func makeBigExpectations(start, end int) (*expectations.Expectations, []expectat
 		for j := 0; j < 32; j++ {
 			tn := types.TestName(fmt.Sprintf("test-%03d", i))
 			d := types.Digest(fmt.Sprintf("digest-%03d", j))
-			e.Set(tn, d, expectations.Positive)
+			e.Set(tn, d, expectations.PositiveStr)
 			delta = append(delta, expectations.Delta{
 				Grouping: tn,
 				Digest:   d,
-				Label:    expectations.Positive,
+				Label:    expectations.PositiveStr,
 			})
 
 		}
