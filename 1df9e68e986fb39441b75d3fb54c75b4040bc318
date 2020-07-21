@@ -1,0 +1,28 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "90ccc09d_e9c735e0",
+        "filename": "ct/modules/admin-tasks-sk/admin-tasks-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-21T18:15:00Z",
+      "side": 1,
+      "message": "\u003e \"Ded\" is a possible misspelling of \"Dead\".\n\nPlease fix (just kidding)",
+      "parentUuid": "ee7fca5e_165f27d4",
+      "range": {
+        "startLine": 99,
+        "startChar": 50,
+        "endLine": 99,
+        "endChar": 53
+      },
+      "revId": "1df9e68e986fb39441b75d3fb54c75b4040bc318",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
