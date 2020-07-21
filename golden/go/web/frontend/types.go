@@ -138,7 +138,7 @@ func ConvertLogEntry(entry expectations.TriageLogEntry) TriageLogEntry {
 		tle.Details = append(tle.Details, TriageDelta{
 			TestName: d.Grouping,
 			Digest:   d.Digest,
-			Label:    d.Label.String(),
+			Label:    d.Label,
 		})
 	}
 	return tle

@@ -15,14 +15,14 @@ type Classifier struct {
 }
 
 // Classification provides a mock function with given fields: test, digest
-func (_m *Classifier) Classification(test types.TestName, digest types.Digest) expectations.Label {
+func (_m *Classifier) Classification(test types.TestName, digest types.Digest) expectations.LabelStr {
 	ret := _m.Called(test, digest)
 
-	var r0 expectations.Label
-	if rf, ok := ret.Get(0).(func(types.TestName, types.Digest) expectations.Label); ok {
+	var r0 expectations.LabelStr
+	if rf, ok := ret.Get(0).(func(types.TestName, types.Digest) expectations.LabelStr); ok {
 		r0 = rf(test, digest)
 	} else {
-		r0 = ret.Get(0).(expectations.Label)
+		r0 = ret.Get(0).(expectations.LabelStr)
 	}
 
 	return r0
