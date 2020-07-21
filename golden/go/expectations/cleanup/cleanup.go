@@ -76,7 +76,7 @@ func update(ctx context.Context, byTest map[types.TestName]digest_counter.Digest
 		for digest := range dc {
 			// Untriaged digests will not (usually) be in the DB, so we shouldn't try to
 			// update them.
-			if classifier.Classification(tn, digest) == expectations.Untriaged {
+			if classifier.Classification(tn, digest) == expectations.UntriagedStr {
 				continue
 			}
 			expToUpdate = append(expToUpdate, expectations.ID{

@@ -755,7 +755,7 @@ func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []*frontend.Ignor
 					idxMatched = i
 
 					// Check to see if the digest is untriaged at head
-					if d := trace.AtHead(); d != tiling.MissingDigest && exp.Classification(trace.TestName(), d) == expectations.Untriaged {
+					if d := trace.AtHead(); d != tiling.MissingDigest && exp.Classification(trace.TestName(), d) == expectations.UntriagedStr {
 						ruleCounts[i].UntriagedCount++
 						untMatched++
 						untIdxMatched = i
@@ -929,7 +929,7 @@ func (wh *Handlers) triage(ctx context.Context, user string, req frontend.Triage
 			tc = append(tc, expectations.Delta{
 				Grouping: test,
 				Digest:   d,
-				Label:    expectations.LabelFromString(label),
+				Label:    label,
 			})
 		}
 	}
