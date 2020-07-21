@@ -410,7 +410,7 @@ func (s *Store) makeEntriesAndChanges(ctx context.Context, now time.Time, delta 
 		newRange := triageRange{
 			FirstIndex: firstIdx,
 			LastIndex:  lastIdx,
-			Label:      d.Label,
+			Label:      expectations.LabelFromString(d.Label),
 		}
 		previousLabel := expectations.Untriaged
 		replacedRange := false
@@ -534,7 +534,7 @@ func (s *Store) loadExpectations(ctx context.Context) (*expectations.Expectation
 		for _, entry := range entries {
 			// TODO(kjlubick) If we decide to handle ranges of expectations, Get will need to take a
 			//   parameter indicating the commit index for which we should return valid ranges.
-			e.Set(entry.Grouping, entry.Digest, entry.Ranges[0].Label)
+			e.Set(entry.Grouping, entry.Digest, entry.Ranges[0].Label.String())
 			toCache[expectations.ID{
 				Grouping: entry.Grouping,
 				Digest:   entry.Digest,
@@ -561,7 +561,7 @@ func (s *Store) assembleExpectations() *expectations.Expectations {
 		}
 		// TODO(kjlubick) If we decide to handle ranges of expectations, Get will need to take a
 		//   parameter indicating the commit index for which we should return valid ranges.
-		e.Set(entry.Grouping, entry.Digest, entry.Ranges[0].Label)
+		e.Set(entry.Grouping, entry.Digest, entry.Ranges[0].Label.String())
 	}
 	return e
 }
@@ -640,7 +640,7 @@ func (s *Store) QueryLog(ctx context.Context, offset, size int, details bool) ([
 			Grouping: tc.Grouping,
 			Digest:   tc.Digest,
 			// TODO(kjlubick) If we expose ranges, we should include FirstIndex/LastIndex here.
-			Label: tc.AffectedRange.Label,
+			Label: tc.AffectedRange.Label.String(),
 		})
 		return nil
 	})
@@ -690,7 +690,7 @@ func (s *Store) UndoChange(ctx context.Context, changeID, userID string) error {
 			Grouping: tc.Grouping,
 			Digest:   tc.Digest,
 			// TODO(kjlubick): if we support ranges, we will want to add them here.
-			Label: tc.LabelBefore,
+			Label: tc.LabelBefore.String(),
 		})
 		return nil
 	})

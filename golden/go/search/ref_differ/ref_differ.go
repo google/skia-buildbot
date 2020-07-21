@@ -52,8 +52,8 @@ func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SearchResult, m
 	paramsByDigest := r.idx.GetParamsetSummaryByTest(iState)[d.Test]
 
 	// TODO(kjlubick) maybe make this use an errgroup
-	posDigests := r.getDigestsWithLabel(d, match, paramsByDigest, rhsQuery, expectations.Positive)
-	negDigests := r.getDigestsWithLabel(d, match, paramsByDigest, rhsQuery, expectations.Negative)
+	posDigests := r.getDigestsWithLabel(d, match, paramsByDigest, rhsQuery, expectations.PositiveStr)
+	negDigests := r.getDigestsWithLabel(d, match, paramsByDigest, rhsQuery, expectations.NegativeStr)
 
 	var err error
 	ret := make(map[common.RefClosest]*frontend.SRDiffDigest, 2)
@@ -73,7 +73,7 @@ func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SearchResult, m
 	for ref, srdd := range ret {
 		if srdd != nil {
 			// Fill in the missing fields.
-			srdd.Status = r.exp.Classification(d.Test, srdd.Digest).String()
+			srdd.Status = r.exp.Classification(d.Test, srdd.Digest)
 			srdd.ParamSet = paramsByDigest[srdd.Digest]
 			srdd.OccurrencesInTile = dCount[srdd.Digest]
 
@@ -92,7 +92,7 @@ func (r *DiffImpl) FillRefDiffs(ctx context.Context, d *frontend.SearchResult, m
 // getDigestsWithLabel return all digests within the given test that
 // have the given label assigned to them and where the parameters
 // listed in 'match' match.
-func (r *DiffImpl) getDigestsWithLabel(s *frontend.SearchResult, match []string, paramsByDigest map[types.Digest]paramtools.ParamSet, rhsQuery paramtools.ParamSet, targetLabel expectations.Label) types.DigestSlice {
+func (r *DiffImpl) getDigestsWithLabel(s *frontend.SearchResult, match []string, paramsByDigest map[types.Digest]paramtools.ParamSet, rhsQuery paramtools.ParamSet, targetLabel expectations.LabelStr) types.DigestSlice {
 	ret := types.DigestSlice{}
 	for d, digestParams := range paramsByDigest {
 		// Accept all digests that are:  in the set of allowed digests
