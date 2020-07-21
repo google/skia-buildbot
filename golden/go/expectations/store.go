@@ -59,7 +59,7 @@ type GarbageCollector interface {
 	// they have a modified ts and a last used ts before the given ts. It returns the number of
 	// affected entries or an error if there were issues. This bulk operation need not appear in the
 	// triage log. It does not affect CL expectations.
-	MarkUnusedEntriesForGC(context.Context, Label, time.Time) (int, error)
+	MarkUnusedEntriesForGC(context.Context, LabelInt, time.Time) (int, error)
 
 	// GarbageCollect removes all entries that have previously been marked for GC. It returns the
 	// number of affected entries or an error if there were issues. This bulk operation will not

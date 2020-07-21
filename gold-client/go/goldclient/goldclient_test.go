@@ -93,8 +93,8 @@ func TestLoadBaseline(t *testing.T) {
 	assert.Len(t, bl, 1, "only one test")
 	digests := bl["ThisIsTheOnlyTest"]
 	assert.Len(t, digests, 2, "two previously seen images")
-	assert.Equal(t, expectations.Negative, digests["badbadbad1325855590527db196112e0"])
-	assert.Equal(t, expectations.Positive, digests["beef00d3a1527db19619ec12a4e0df68"])
+	assert.Equal(t, expectations.NegativeInt, digests["badbadbad1325855590527db196112e0"])
+	assert.Equal(t, expectations.PositiveInt, digests["beef00d3a1527db19619ec12a4e0df68"])
 
 	assert.Equal(t, testIssueID, goldClient.resultState.SharedConfig.ChangeListID)
 
@@ -136,8 +136,8 @@ func TestLoadBaselineMaster(t *testing.T) {
 	assert.Len(t, bl, 1, "only one test")
 	digests := bl["ThisIsTheOnlyTest"]
 	assert.Len(t, digests, 2, "two previously seen images")
-	assert.Equal(t, expectations.Negative, digests["badbadbad1325855590527db196112e0"])
-	assert.Equal(t, expectations.Positive, digests["beef00d3a1527db19619ec12a4e0df68"])
+	assert.Equal(t, expectations.NegativeInt, digests["badbadbad1325855590527db196112e0"])
+	assert.Equal(t, expectations.PositiveInt, digests["beef00d3a1527db19619ec12a4e0df68"])
 
 	assert.Equal(t, "", goldClient.resultState.SharedConfig.ChangeListID)
 
@@ -1519,9 +1519,9 @@ func TestCloudClient_MatchImageAgainstBaseline_NoAlgorithmSpecified_DefaultsToEx
 
 	const testName = types.TestName("my_test")
 	const digest = types.Digest("11111111111111111111111111111111")
-	const unlabeled = expectations.Label(-1) // Sentinel value.
+	const unlabeled = expectations.LabelInt(-1) // Sentinel value.
 
-	test := func(name string, label expectations.Label, want bool) {
+	test := func(name string, label expectations.LabelInt, want bool) {
 		t.Run(name, func(t *testing.T) {
 			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer cleanup()
@@ -1543,9 +1543,9 @@ func TestCloudClient_MatchImageAgainstBaseline_NoAlgorithmSpecified_DefaultsToEx
 		})
 	}
 
-	test("image label positive, returns true", expectations.Positive, true)
-	test("image label negative, returns false", expectations.Negative, false)
-	test("image label untriaged, returns false", expectations.Untriaged, false)
+	test("image label positive, returns true", expectations.PositiveInt, true)
+	test("image label negative, returns false", expectations.NegativeInt, false)
+	test("image label untriaged, returns false", expectations.UntriagedInt, false)
 	test("image unlabeled, returns false", unlabeled, false)
 }
 
@@ -1554,9 +1554,9 @@ func TestCloudClient_MatchImageAgainstBaseline_ExactMatching_Success(t *testing.
 
 	const testName = types.TestName("my_test")
 	const digest = types.Digest("11111111111111111111111111111111")
-	const unlabeled = expectations.Label(-1) // Sentinel value.
+	const unlabeled = expectations.LabelInt(-1) // Sentinel value.
 
-	test := func(name string, label expectations.Label, want bool) {
+	test := func(name string, label expectations.LabelInt, want bool) {
 		t.Run(name, func(t *testing.T) {
 			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer cleanup()
@@ -1582,16 +1582,16 @@ func TestCloudClient_MatchImageAgainstBaseline_ExactMatching_Success(t *testing.
 		})
 	}
 
-	test("image labeled positive, returns true", expectations.Positive, true)
-	test("image labeled negative, returns false", expectations.Negative, false)
-	test("image labeled untriaged, returns false", expectations.Untriaged, false)
+	test("image labeled positive, returns true", expectations.PositiveInt, true)
+	test("image labeled negative, returns false", expectations.NegativeInt, false)
+	test("image labeled untriaged, returns false", expectations.UntriagedInt, false)
 	test("image unlabeled, returns false", unlabeled, false)
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_ImageAlreadyLabeled_Success(t *testing.T) {
 	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
-	test := func(name string, label expectations.Label, want bool) {
+	test := func(name string, label expectations.LabelInt, want bool) {
 		t.Run(name, func(t *testing.T) {
 			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer cleanup()
@@ -1618,8 +1618,8 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_ImageAlreadyLabeled
 		})
 	}
 
-	test("labeled positive, returns true", expectations.Positive, true)
-	test("labeled negative, returns false", expectations.Negative, false)
+	test("labeled positive, returns true", expectations.PositiveInt, true)
+	test("labeled negative, returns false", expectations.NegativeInt, false)
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Success(t *testing.T) {
@@ -1775,7 +1775,7 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDig
 func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLabeled_Success(t *testing.T) {
 	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
-	test := func(name string, label expectations.Label, want bool) {
+	test := func(name string, label expectations.LabelInt, want bool) {
 		t.Run(name, func(t *testing.T) {
 			goldClient, cleanup, _, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
 			defer cleanup()
@@ -1803,8 +1803,8 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLa
 		})
 	}
 
-	test("labeled positive, returns true", expectations.Positive, true)
-	test("labeled negative, returns false", expectations.Negative, false)
+	test("labeled positive, returns true", expectations.PositiveInt, true)
+	test("labeled negative, returns false", expectations.NegativeInt, false)
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage_Success(t *testing.T) {
