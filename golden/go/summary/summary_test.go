@@ -584,46 +584,41 @@ func makeFullTile() *tiling.Tile {
 		Traces: map[tiling.TraceID]*tiling.Trace{
 			// These trace ids have been shortened for test terseness.
 			// A real trace id would be like "8888:gm:test_first"
-			"a": {
-				Digests: types.DigestSlice{"aaa", "bbb"},
-				Keys: map[string]string{
+			"a": tiling.NewTrace(
+				[]types.Digest{"aaa", "bbb"},
+				map[string]string{
 					"config":              "8888",
 					types.CorpusField:     "gm",
 					types.PrimaryKeyField: string(FirstTest),
-				},
-			},
-			"b": {
-				Digests: types.DigestSlice{"ccc", "ddd"},
-				Keys: map[string]string{
+				}),
+			"b": tiling.NewTrace(
+				[]types.Digest{"ccc", "ddd"},
+				map[string]string{
 					"config":              "565",
 					types.CorpusField:     "gm",
 					types.PrimaryKeyField: string(FirstTest),
-				},
-			},
-			"c": {
-				Digests: types.DigestSlice{"eee", tiling.MissingDigest},
-				Keys: map[string]string{
+				}),
+			"c": tiling.NewTrace(
+				[]types.Digest{"eee", tiling.MissingDigest},
+				map[string]string{
 					"config":              "gpu",
 					types.CorpusField:     "gm",
 					types.PrimaryKeyField: string(FirstTest),
-				},
-			},
-			"d": {
-				Digests: types.DigestSlice{"fff", "ggg"},
-				Keys: map[string]string{
+				}),
+			"d": tiling.NewTrace(
+				[]types.Digest{"fff", "ggg"},
+				map[string]string{
 					"config":              "8888",
 					types.CorpusField:     "gm",
 					types.PrimaryKeyField: string(SecondTest),
-				},
-			},
-			"e": {
-				Digests: types.DigestSlice{"jjj", tiling.MissingDigest},
-				Keys: map[string]string{
+				}),
+			"e": tiling.NewTrace(
+				[]types.Digest{"jjj", tiling.MissingDigest},
+				map[string]string{
 					"config":              "8888",
 					types.CorpusField:     "image",
 					types.PrimaryKeyField: string(ThirdTest),
-				},
-			},
+				}),
 		},
 		Commits: []tiling.Commit{
 			{
@@ -647,38 +642,34 @@ func makeTileWithIgnores() *tiling.Tile {
 		Traces: map[tiling.TraceID]*tiling.Trace{
 			// These trace ids have been shortened for test terseness.
 			// A real trace id would be like "8888:gm:test_first"
-			"a": {
-				Digests: types.DigestSlice{"aaa", "bbb"},
-				Keys: map[string]string{
+			"a": tiling.NewTrace(
+				[]types.Digest{"aaa", "bbb"},
+				map[string]string{
 					"config":              "8888",
 					types.CorpusField:     "gm",
 					types.PrimaryKeyField: string(FirstTest),
-				},
-			},
-			"c": {
-				Digests: types.DigestSlice{"eee", tiling.MissingDigest},
-				Keys: map[string]string{
+				}),
+			"c": tiling.NewTrace(
+				[]types.Digest{"eee", tiling.MissingDigest},
+				map[string]string{
 					"config":              "gpu",
 					types.CorpusField:     "gm",
 					types.PrimaryKeyField: string(FirstTest),
-				},
-			},
-			"d": {
-				Digests: types.DigestSlice{"fff", "ggg"},
-				Keys: map[string]string{
+				}),
+			"d": tiling.NewTrace(
+				[]types.Digest{"fff", "ggg"},
+				map[string]string{
 					"config":              "8888",
 					types.CorpusField:     "gm",
 					types.PrimaryKeyField: string(SecondTest),
-				},
-			},
-			"e": {
-				Digests: types.DigestSlice{"jjj", tiling.MissingDigest},
-				Keys: map[string]string{
+				}),
+			"e": tiling.NewTrace(
+				[]types.Digest{"jjj", tiling.MissingDigest},
+				map[string]string{
 					"config":              "8888",
 					types.CorpusField:     "image",
 					types.PrimaryKeyField: string(ThirdTest),
-				},
-			},
+				}),
 		},
 		Commits: []tiling.Commit{
 			{

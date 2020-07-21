@@ -182,17 +182,15 @@ func TestBlamerCalculateBugRevertPossibleGlitch(t *testing.T) {
 
 	tile := bug_revert.MakeTestTile()
 
-	tile.Traces[",device=alpha,name=test_one,source_type=gm,"] = &tiling.Trace{
-		Digests: types.DigestSlice{
+	tile.Traces[",device=alpha,name=test_one,source_type=gm,"] = tiling.NewTrace(
+		[]types.Digest{
 			bug_revert.AlfaPositiveDigest, bug_revert.AlfaPositiveDigest, bug_revert.BravoUntriagedDigest,
 			bug_revert.AlfaPositiveDigest, bug_revert.AlfaPositiveDigest,
-		},
-		Keys: map[string]string{
+		}, map[string]string{
 			"device":              bug_revert.AlphaDevice,
 			types.PrimaryKeyField: string(bug_revert.TestOne),
 			types.CorpusField:     "gm",
-		},
-	}
+		})
 
 	blamer, err := New(tile, bug_revert.MakeTestExpectations())
 	require.NoError(t, err)

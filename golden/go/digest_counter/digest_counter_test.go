@@ -131,22 +131,20 @@ func makePartialTileOne() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
 		Traces: map[tiling.TraceID]*tiling.Trace{
-			x86TestAlphaTraceID: {
-				Digests: types.DigestSlice{FirstDigest, FirstDigest, SecondDigest},
-				Keys: map[string]string{
+			x86TestAlphaTraceID: tiling.NewTrace(
+				[]types.Digest{FirstDigest, FirstDigest, SecondDigest},
+				map[string]string{
 					"config":              "x86",
 					types.PrimaryKeyField: string(AlphaTest),
 					types.CorpusField:     "gm",
-				},
-			},
-			x64TestAlphaTraceID: {
-				Digests: types.DigestSlice{ThirdDigest, FirstDigest, tiling.MissingDigest},
-				Keys: map[string]string{
+				}),
+			x64TestAlphaTraceID: tiling.NewTrace(
+				[]types.Digest{ThirdDigest, FirstDigest, tiling.MissingDigest},
+				map[string]string{
 					"config":              "x86_64",
 					types.PrimaryKeyField: string(AlphaTest),
 					types.CorpusField:     "image",
-				},
-			},
+				}),
 		},
 	}
 }

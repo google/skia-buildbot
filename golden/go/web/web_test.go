@@ -234,11 +234,12 @@ func TestComputeByBlame_MultipleUntriagedDigests_Success(t *testing.T) {
 // real objects work correctly, so we should feel safe to use them here.
 func makeBugRevertIndex(endIndex int) *indexer.SearchIndex {
 	tile := bug_revert.MakeTestTile()
-	// Trim is [start, end)
-	tile, err := tile.Trim(0, endIndex)
-	if err != nil {
-		panic(err) // this means our static data is horribly broken
+
+	// Trim down the traces to end sooner (to make the data "more interesting")
+	for _, trace := range tile.Traces {
+		trace.Digests = trace.Digests[:endIndex]
 	}
+	tile.Commits = tile.Commits[:endIndex]
 
 	cpxTile := tiling.NewComplexTile(tile)
 	dc := digest_counter.New(tile)

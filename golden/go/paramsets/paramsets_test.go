@@ -159,46 +159,41 @@ func makePartialTestTile() *tiling.Tile {
 		Traces: map[tiling.TraceID]*tiling.Trace{
 			// These trace ids have been shortened for test terseness.
 			// A real trace id would be like ",config=8888,source_type=gm,name=foo,"
-			"a": {
-				Digests: types.DigestSlice{DigestA, DigestB},
-				Keys: map[string]string{
+			"a": tiling.NewTrace(
+				[]types.Digest{DigestA, DigestB},
+				map[string]string{
 					"config":              "8888",
 					types.CorpusField:     "gm",
 					types.PrimaryKeyField: string(testOne),
-				},
-			},
-			"b": {
-				Digests: types.DigestSlice{DigestC, DigestD, DigestA},
-				Keys: map[string]string{
+				}),
+			"b": tiling.NewTrace(
+				[]types.Digest{DigestC, DigestD, DigestA},
+				map[string]string{
 					"config":              "565",
 					types.CorpusField:     "gm",
 					types.PrimaryKeyField: string(testOne),
-				},
-			},
-			"c": {
-				Digests: types.DigestSlice{DigestE, tiling.MissingDigest},
-				Keys: map[string]string{
+				}),
+			"c": tiling.NewTrace(
+				[]types.Digest{DigestE, tiling.MissingDigest},
+				map[string]string{
 					"config":              "gpu",
 					types.CorpusField:     "gm",
 					types.PrimaryKeyField: string(testOne),
-				},
-			},
-			"e": {
-				Digests: types.DigestSlice{DigestF, DigestG, DigestG},
-				Keys: map[string]string{
+				}),
+			"e": tiling.NewTrace(
+				[]types.Digest{DigestF, DigestG, DigestG},
+				map[string]string{
 					"config":              "565",
 					types.CorpusField:     "gm",
 					types.PrimaryKeyField: string(testTwo),
-				},
-			},
-			"f": {
-				Digests: types.DigestSlice{DigestF, tiling.MissingDigest},
-				Keys: map[string]string{
+				}),
+			"f": tiling.NewTrace(
+				[]types.Digest{DigestF, tiling.MissingDigest},
+				map[string]string{
 					"config":              "gpu",
 					types.CorpusField:     "gm",
 					types.PrimaryKeyField: string(testTwo),
-				},
-			},
+				}),
 		},
 	}
 }

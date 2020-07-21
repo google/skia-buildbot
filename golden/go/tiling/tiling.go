@@ -3,7 +3,6 @@ package tiling
 import (
 	"time"
 
-	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -38,34 +37,6 @@ func (t *Tile) LastCommitIndex() int {
 		}
 	}
 	return 0
-}
-
-// Trim trims the measurements to just the range from [begin, end).
-//
-// Just like a Go [:] slice this is inclusive of begin and exclusive of end.
-// The length on the Traces will then become end-begin.
-func (t *Tile) Trim(begin, end int) (*Tile, error) {
-	length := end - begin
-	if end < begin || end > len(t.Commits) || begin < 0 {
-		return nil, skerr.Fmt("Invalid Trim range [%d, %d) of [0, %d]", begin, end, length)
-	}
-	ret := &Tile{
-		Traces:   map[TraceID]*Trace{},
-		ParamSet: t.ParamSet,
-		Commits:  make([]Commit, length),
-	}
-
-	for i := 0; i < length; i++ {
-		ret.Commits[i] = t.Commits[i+begin]
-	}
-	for k, v := range t.Traces {
-		t := v.DeepCopy()
-		if err := t.Trim(begin, end); err != nil {
-			return nil, skerr.Wrapf(err, "trimming trace %s", k)
-		}
-		ret.Traces[k] = t
-	}
-	return ret, nil
 }
 
 const (

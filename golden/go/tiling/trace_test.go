@@ -16,7 +16,7 @@ func TestNewEmptyTrace_Success(t *testing.T) {
 	// Test NewTrace.
 	g := NewEmptyTrace(N, nil)
 	assert.Equal(t, N, g.Len(), "wrong digests size")
-	assert.Equal(t, 0, len(g.Keys), "wrong keys initial size")
+	assert.Equal(t, 0, len(g.keys), "wrong keys initial size")
 	g.Digests[0] = "a digest"
 
 	assert.True(t, g.IsMissing(1), "values start missing")
@@ -53,23 +53,6 @@ func TestTrace_Grow_FillAfter_Success(t *testing.T) {
 	g.Digests[0] = "foo"
 	g.Grow(2*N, FillAfter)
 	assert.Equal(t, types.Digest("foo"), g.Digests[0], "Grow didn't FillAfter correctly")
-}
-
-func TestTrace_Trim(t *testing.T) {
-	unittest.SmallTest(t)
-	const N = 5
-	g := NewEmptyTrace(N, nil)
-	g.Digests[1] = "foo"
-	require.NoError(t, g.Trim(1, 3))
-	assert.Equal(t, types.Digest("foo"), g.Digests[0], "Trim didn't copy correctly")
-	assert.Equal(t, 2, g.Len(), "Trim wrong length")
-
-	assert.Error(t, g.Trim(-1, 1))
-	assert.Error(t, g.Trim(1, 3))
-	assert.Error(t, g.Trim(2, 1))
-
-	require.NoError(t, g.Trim(1, 1))
-	assert.Equal(t, 0, g.Len(), "final size wrong")
 }
 
 func TestTraceIDFromParams_ValidKeysAndValues_Success(t *testing.T) {

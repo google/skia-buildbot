@@ -105,7 +105,7 @@ func TestTraceViewFn(t *testing.T) {
 		// Run through all the traces and make sure they are properly trimmed
 		for _, trace := range data.MakeTestTile().Traces {
 			reducedTr := fn(trace)
-			assert.Equal(t, trace.Digests[tc.trimmedStartIndex:tc.trimmedEndIndex+1], reducedTr.Digests, "test case %s with trace %v", tc.name, trace.Keys)
+			assert.Equal(t, trace.Digests[tc.trimmedStartIndex:tc.trimmedEndIndex+1], reducedTr.Digests, "test case %s with trace %v", tc.name, trace.Keys())
 		}
 	}
 }

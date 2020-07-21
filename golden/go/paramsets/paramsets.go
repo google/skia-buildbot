@@ -30,16 +30,16 @@ func byTestForTile(tile *tiling.Tile, digestCountsByTrace map[tiling.TraceID]dig
 
 	for id, dc := range digestCountsByTrace {
 		if tr, ok := tile.Traces[id]; ok {
-			test := types.TestName(tr.Params()[types.PrimaryKeyField])
+			test := types.TestName(tr.Keys()[types.PrimaryKeyField])
 			for digest := range dc {
 				if foundTest, ok := ret[test]; !ok {
 					ret[test] = map[types.Digest]paramtools.ParamSet{
-						digest: paramtools.NewParamSet(tr.Params()),
+						digest: paramtools.NewParamSet(tr.Keys()),
 					}
 				} else if foundDigest, ok := foundTest[digest]; !ok {
-					foundTest[digest] = paramtools.NewParamSet(tr.Params())
+					foundTest[digest] = paramtools.NewParamSet(tr.Keys())
 				} else {
-					foundDigest.AddParams(tr.Params())
+					foundDigest.AddParams(tr.Keys())
 				}
 			}
 		}
