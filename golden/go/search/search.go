@@ -376,7 +376,7 @@ func (s *SearchImpl) getCLOnlyDigestDetails(ctx context.Context, test types.Test
 		Result: frontend.SearchResult{
 			Test:          test,
 			Digest:        digest,
-			Status:        exp.Classification(test, digest).String(),
+			Status:        exp.Classification(test, digest),
 			TriageHistory: nil, // TODO(skbug.com/10097)
 			ParamSet:      paramSet,
 			// The trace-related fields can be omitted because there are no traces on master branch of
@@ -631,13 +631,13 @@ func (s *SearchImpl) DiffDigests(ctx context.Context, test types.TestName, left,
 		Left: frontend.SearchResult{
 			Test:          test,
 			Digest:        left,
-			Status:        exp.Classification(test, left).String(),
+			Status:        exp.Classification(test, left),
 			TriageHistory: s.getTriageHistory(ctx, history, test, left),
 			ParamSet:      psLeft,
 		},
 		Right: &frontend.SRDiffDigest{
 			Digest:      right,
-			Status:      exp.Classification(test, right).String(),
+			Status:      exp.Classification(test, right),
 			ParamSet:    psRight,
 			DiffMetrics: diffResult[right],
 		},
@@ -714,7 +714,7 @@ type groupingAndDigest struct {
 // Classifier. TODO(kjlubick) this can be moved into filterTile/etc
 func addExpectations(results []*frontend.SearchResult, exp expectations.Classifier) {
 	for _, r := range results {
-		r.Status = exp.Classification(r.Test, r.Digest).String()
+		r.Status = exp.Classification(r.Test, r.Digest)
 	}
 }
 
@@ -869,7 +869,7 @@ func fillInFrontEndTraceData(traceGroup *frontend.TraceGroup, test types.TestNam
 	for digest, idx := range digestIndices {
 		traceGroup.Digests[idx] = frontend.DigestStatus{
 			Digest: digest,
-			Status: exp.Classification(test, digest).String(),
+			Status: exp.Classification(test, digest),
 		}
 	}
 
@@ -1071,7 +1071,7 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 			return nil, skerr.Wrap(err)
 		}
 		tn := types.TestName(tr.ResultParams[types.PrimaryKeyField])
-		if exp.Classification(tn, tr.Digest) != expectations.Untriaged {
+		if exp.Classification(tn, tr.Digest) != expectations.UntriagedStr {
 			// It's been triaged already.
 			continue
 		}

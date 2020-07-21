@@ -165,11 +165,11 @@ func MakeTestTile() *tiling.Tile {
 
 func MakeTestExpectations() *expectations.Expectations {
 	var e expectations.Expectations
-	e.Set(AlphaTest, AlphaPositiveDigest, expectations.Positive)
-	e.Set(AlphaTest, AlphaUntriagedDigest, expectations.Untriaged)
-	e.Set(AlphaTest, AlphaNegativeDigest, expectations.Negative)
+	e.Set(AlphaTest, AlphaPositiveDigest, expectations.PositiveStr)
+	e.Set(AlphaTest, AlphaUntriagedDigest, expectations.UntriagedStr)
+	e.Set(AlphaTest, AlphaNegativeDigest, expectations.NegativeStr)
 
-	e.Set(BetaTest, BetaPositiveDigest, expectations.Positive)
-	e.Set(BetaTest, BetaUntriagedDigest, expectations.Untriaged)
+	e.Set(BetaTest, BetaPositiveDigest, expectations.PositiveStr)
+	e.Set(BetaTest, BetaUntriagedDigest, expectations.UntriagedStr)
 	return &e
 }

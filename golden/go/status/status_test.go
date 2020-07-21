@@ -82,8 +82,8 @@ func TestStatusWatcherExpectationsChange(t *testing.T) {
 	// that a user has triaged the two untraiged images
 	mes.On("Get", testutils.AnyContext).Return(data.MakeTestExpectations(), nil).Once()
 	everythingTriaged := data.MakeTestExpectations()
-	everythingTriaged.Set(data.AlphaTest, data.AlphaUntriagedDigest, expectations.Positive)
-	everythingTriaged.Set(data.BetaTest, data.BetaUntriagedDigest, expectations.Negative)
+	everythingTriaged.Set(data.AlphaTest, data.AlphaUntriagedDigest, expectations.PositiveStr)
+	everythingTriaged.Set(data.BetaTest, data.BetaUntriagedDigest, expectations.NegativeStr)
 	mes.On("Get", testutils.AnyContext).Return(everythingTriaged, nil)
 
 	eb := expectations.NewEventDispatcherForTesting()

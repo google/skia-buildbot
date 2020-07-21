@@ -77,7 +77,7 @@ func (w *WarmerImpl) PrecomputeDiffs(ctx context.Context, d Data, diffFinder dig
 				nt := metrics2.NewTimer("gold_warmer_cycle")
 				// Calculating the closest digest has the side effect of filling
 				// in the diffstore with the diff images.
-				_, err := diffFinder.ClosestDigest(ctx, test, digest, expectations.Positive)
+				_, err := diffFinder.ClosestDigest(ctx, test, digest, expectations.PositiveStr)
 				if err != nil {
 					if firstErr == nil {
 						firstErr = err
@@ -85,7 +85,7 @@ func (w *WarmerImpl) PrecomputeDiffs(ctx context.Context, d Data, diffFinder dig
 					sklog.Debugf("non-terminating error precomputing diff: %s", err)
 					errCount++
 				}
-				_, err = diffFinder.ClosestDigest(ctx, test, digest, expectations.Negative)
+				_, err = diffFinder.ClosestDigest(ctx, test, digest, expectations.NegativeStr)
 				if err != nil {
 					if firstErr == nil {
 						firstErr = err

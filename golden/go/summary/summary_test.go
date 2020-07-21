@@ -382,7 +382,7 @@ func TestSummaryMap_OverlappingCorpora(t *testing.T) {
 	}
 
 	var e expectations.Expectations
-	e.Set(bug_revert.TestOne, bug_revert.AlfaPositiveDigest, expectations.Positive)
+	e.Set(bug_revert.TestOne, bug_revert.AlfaPositiveDigest, expectations.PositiveStr)
 
 	dc := digest_counter.New(tile)
 	blamer, err := blame.New(tile, &e)
@@ -664,12 +664,12 @@ func makeTileWithIgnores() *tiling.Tile {
 
 func makeExpectations() *expectations.Expectations {
 	var e expectations.Expectations
-	e.Set(FirstTest, "aaa", expectations.Positive)
-	e.Set(FirstTest, "bbb", expectations.Negative)
-	e.Set(FirstTest, "ccc", expectations.Untriaged)
-	e.Set(FirstTest, "ddd", expectations.Untriaged)
-	e.Set(FirstTest, "eee", expectations.Positive)
+	e.Set(FirstTest, "aaa", expectations.PositiveStr)
+	e.Set(FirstTest, "bbb", expectations.NegativeStr)
+	e.Set(FirstTest, "ccc", expectations.UntriagedStr)
+	e.Set(FirstTest, "ddd", expectations.UntriagedStr)
+	e.Set(FirstTest, "eee", expectations.PositiveStr)
 
-	e.Set(SecondTest, "fff", expectations.Negative)
+	e.Set(SecondTest, "fff", expectations.NegativeStr)
 	return &e
 }

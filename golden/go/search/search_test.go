@@ -722,7 +722,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 
 	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
-	ie.Set(data.AlphaTest, AlphaNowGoodDigest, expectations.Positive)
+	ie.Set(data.AlphaTest, AlphaNowGoodDigest, expectations.PositiveStr)
 	issueStore := addChangeListExpectations(mes, crs, clID, &ie)
 	// Hasn't been triaged yet
 	issueStore.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
@@ -1125,7 +1125,7 @@ func TestDigestDetails_ChangeListAltersExpectations_Success(t *testing.T) {
 
 	// Mock out some ChangeList expectations in which the digest we care about is negative
 	var ie expectations.Expectations
-	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.Negative)
+	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.NegativeStr)
 	issueStore := addChangeListExpectations(mes, testCRS, testCLID, &ie)
 	issueStore.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return([]expectations.TriageHistory{
 		{
@@ -1249,7 +1249,7 @@ func TestDigestDetails_NewTestOnChangeList_Success(t *testing.T) {
 	empty := expectations.Expectations{}
 	mes.On("Get", testutils.AnyContext).Return(&empty, nil)
 	var ie expectations.Expectations
-	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.Positive)
+	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.PositiveStr)
 	addChangeListExpectations(mes, testCRS, testCLID, &ie)
 
 	// This index emulates the fact that master branch does not have the newly added test.
@@ -1336,7 +1336,7 @@ func TestDigestDetails_NewTestOnChangeList_WithPublicParams_Success(t *testing.T
 	empty := expectations.Expectations{}
 	mes.On("Get", testutils.AnyContext).Return(&empty, nil)
 	var ie expectations.Expectations
-	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.Positive)
+	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.PositiveStr)
 	addChangeListExpectations(mes, testCRS, testCLID, &ie)
 
 	// This index emulates the fact that master branch does not have the newly added test.
@@ -1506,7 +1506,7 @@ func TestDiffDigestsChangeList(t *testing.T) {
 
 	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
-	ie.Set(data.AlphaTest, leftDigest, expectations.Negative)
+	ie.Set(data.AlphaTest, leftDigest, expectations.NegativeStr)
 	issueStore := addChangeListExpectations(mes, crs, clID, &ie)
 	issueStore.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
 
@@ -1550,7 +1550,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_NoIndexBuilt_Success(t *testin
 	// gammaNegativeTryJobDigest negative (it would be untriaged on master).
 	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
-	ie.Set(data.AlphaTest, gammaNegativeTryJobDigest, expectations.Negative)
+	ie.Set(data.AlphaTest, gammaNegativeTryJobDigest, expectations.NegativeStr)
 	addChangeListExpectations(mes, crs, clID, &ie)
 
 	cpxTile := tiling.NewComplexTile(data.MakeTestTile())
@@ -1742,7 +1742,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_UsesIndex_Success(t *testing.T
 	// gammaNegativeTryJobDigest negative (it would be untriaged on master).
 	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
-	ie.Set(data.AlphaTest, gammaNegativeTryJobDigest, expectations.Negative)
+	ie.Set(data.AlphaTest, gammaNegativeTryJobDigest, expectations.NegativeStr)
 	addChangeListExpectations(mes, crs, clID, &ie)
 
 	cpxTile := tiling.NewComplexTile(data.MakeTestTile())
@@ -1854,7 +1854,7 @@ func TestFillInFrontEndTraceData_SingleTrace_DigestIndicesAreCorrect(t *testing.
 		// stubClassifier returns Positive for everything. For the purposes of drawing traces,
 		// don't actually care about the expectations.
 		stubClassifier := &mock_expectations.Classifier{}
-		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
+		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.PositiveStr)
 		t.Run(desc, func(t *testing.T) {
 			traces := []frontend.Trace{
 				{
@@ -1925,7 +1925,7 @@ func TestFillInFrontEndTraceData_MultipleTraces_DigestIndicesAreCorrect(t *testi
 		// stubClassifier returns Positive for everything. For the purposes of drawing traces,
 		// don't actually care about the expectations.
 		stubClassifier := &mock_expectations.Classifier{}
-		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
+		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.PositiveStr)
 		t.Run(desc, func(t *testing.T) {
 			traces := []frontend.Trace{
 				{
@@ -1994,7 +1994,7 @@ func TestFillInFrontEndTraceData_AppendPrimaryDigest_DigestIndicesAreCorrect(t *
 		// stubClassifier returns Positive for everything. For the purposes of drawing traces,
 		// don't actually care about the expectations.
 		stubClassifier := &mock_expectations.Classifier{}
-		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
+		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.PositiveStr)
 		t.Run(desc, func(t *testing.T) {
 			traces := []frontend.Trace{
 				{
@@ -2043,7 +2043,7 @@ func TestFillInFrontEndTraceData_TotalDigestsCorrect(t *testing.T) {
 		// stubClassifier returns Positive for everything. For the purposes of counting digests,
 		// don't actually care about the expectations.
 		stubClassifier := &mock_expectations.Classifier{}
-		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
+		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.PositiveStr)
 		t.Run(desc, func(t *testing.T) {
 			traces := make([]frontend.Trace, 0, len(inputTraceDigests))
 			for i, digests := range inputTraceDigests {

@@ -25,7 +25,7 @@ type ClosestDiffFinder interface {
 	// or NoDigestFound if there aren't any positive digests.
 	//
 	// If no digest of type 'label' is found then Closest.Digest is the empty string.
-	ClosestDigest(ctx context.Context, test types.TestName, digest types.Digest, label expectations.Label) (*Closest, error)
+	ClosestDigest(ctx context.Context, test types.TestName, digest types.Digest, label expectations.LabelStr) (*Closest, error)
 }
 
 // Closest describes one digest that is the closest another digest.
@@ -72,7 +72,7 @@ func (i *Impl) Precompute(ctx context.Context) error {
 }
 
 // ClosestDigest implements the ClosestDiffFinder interface.
-func (i *Impl) ClosestDigest(ctx context.Context, test types.TestName, digest types.Digest, label expectations.Label) (*Closest, error) {
+func (i *Impl) ClosestDigest(ctx context.Context, test types.TestName, digest types.Digest, label expectations.LabelStr) (*Closest, error) {
 	ret := newClosest()
 
 	// Locate all digests that this test produces and match the given label.

@@ -172,7 +172,7 @@ func (b *BlamerImpl) calculate(tile *tiling.Tile, exp expectations.ReadOnly) err
 			}
 
 			status := exp.Classification(testName, digest)
-			if (status == expectations.Untriaged) && !found[digest] {
+			if (status == expectations.UntriagedStr) && !found[digest] {
 				found[digest] = true
 
 				var startIdx int

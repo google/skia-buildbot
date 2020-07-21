@@ -36,7 +36,7 @@ type Store interface {
 	// with the given id (aka a CLExpectations). Any Expectations added to the returned Store
 	// will be kept separate from the master branch. Any Expectations returned should be
 	// treated as the delta between the MasterBranch and the given issue. The parameter crs is
-	// the CodeReviewSystem (e.g. "gerrit", "github") and id is the id of the CL in that CRS.
+	// the CodeReviewSystem (e.g. "gerrit", "github") and id is the id of the CL in that CRS.p
 	// (This allows us to avoid a collision between two CLs with the same id in the event that
 	// we transition from one CRS to another).
 	ForChangeList(id, crs string) Store
@@ -72,7 +72,7 @@ type GarbageCollector interface {
 type Delta struct {
 	Grouping types.TestName
 	Digest   types.Digest
-	Label    Label
+	Label    LabelStr
 }
 
 // ID returns the ID for the Delta, as a method of convenience.
@@ -94,7 +94,7 @@ type DeltaWithRange struct {
 // AsDelta converts an Expectations object into a slice of Deltas.
 func AsDelta(e ReadOnly) []Delta {
 	var delta []Delta
-	_ = e.ForAll(func(tn types.TestName, d types.Digest, l Label) error {
+	_ = e.ForAll(func(tn types.TestName, d types.Digest, l LabelStr) error {
 		delta = append(delta, Delta{Grouping: tn, Digest: d, Label: l})
 		return nil
 	})

@@ -87,7 +87,7 @@ type StatusWatcher struct {
 	totalGauge        metrics2.Int64Metric
 
 	// Gauges to track counts of digests by corpus / label
-	corpusGauges map[string]map[expectations.Label]metrics2.Int64Metric
+	corpusGauges map[string]map[expectations.LabelStr]metrics2.Int64Metric
 }
 
 func New(ctx context.Context, swc StatusWatcherConfig) (*StatusWatcher, error) {
@@ -97,7 +97,7 @@ func New(ctx context.Context, swc StatusWatcherConfig) (*StatusWatcher, error) {
 		allPositiveGauge:    metrics2.GetInt64Metric(allMetric, map[string]string{"type": string(expectations.PositiveStr)}),
 		allNegativeGauge:    metrics2.GetInt64Metric(allMetric, map[string]string{"type": string(expectations.NegativeStr)}),
 		totalGauge:          metrics2.GetInt64Metric(totalDigestsMetric, nil),
-		corpusGauges:        map[string]map[expectations.Label]metrics2.Int64Metric{},
+		corpusGauges:        map[string]map[expectations.LabelStr]metrics2.Int64Metric{},
 	}
 
 	if err := ret.calcAndWatchStatus(ctx); err != nil {
@@ -214,7 +214,7 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 	}
 
 	// Gathers unique labels by corpus and label.
-	byCorpus := map[string]map[expectations.Label]map[string]bool{}
+	byCorpus := map[string]map[expectations.LabelStr]map[string]bool{}
 
 	// Iterate over the current traces
 	dataTile := cpxTile.GetTile(types.ExcludeIgnoredTraces)
@@ -242,17 +242,17 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 		corpus := trace.Corpus()
 		if _, ok := byCorpus[corpus]; !ok {
 			okByCorpus[corpus] = true
-			byCorpus[corpus] = map[expectations.Label]map[string]bool{
-				expectations.Positive:  {},
-				expectations.Negative:  {},
-				expectations.Untriaged: {},
+			byCorpus[corpus] = map[expectations.LabelStr]map[string]bool{
+				expectations.PositiveStr:  {},
+				expectations.NegativeStr:  {},
+				expectations.UntriagedStr: {},
 			}
 
 			if _, ok := s.corpusGauges[corpus]; !ok {
-				s.corpusGauges[corpus] = map[expectations.Label]metrics2.Int64Metric{
-					expectations.Untriaged: metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": string(expectations.UntriagedStr), "corpus": corpus}),
-					expectations.Positive:  metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": string(expectations.PositiveStr), "corpus": corpus}),
-					expectations.Negative:  metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": string(expectations.NegativeStr), "corpus": corpus}),
+				s.corpusGauges[corpus] = map[expectations.LabelStr]metrics2.Int64Metric{
+					expectations.UntriagedStr: metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": string(expectations.UntriagedStr), "corpus": corpus}),
+					expectations.PositiveStr:  metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": string(expectations.PositiveStr), "corpus": corpus}),
+					expectations.NegativeStr:  metrics2.GetInt64Metric(corpusMetric, map[string]string{"type": string(expectations.NegativeStr), "corpus": corpus}),
 				}
 			}
 		}
@@ -263,7 +263,7 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 		status := exp.Classification(testName, digest)
 
 		okByCorpus[corpus] = okByCorpus[corpus] &&
-			((status == expectations.Positive) || (status == expectations.Negative))
+			((status == expectations.PositiveStr) || (status == expectations.NegativeStr))
 		byCorpus[corpus][status][string(testName)+string(digest)] = true
 	}
 
@@ -274,9 +274,9 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 	corpStatus := make([]*GUICorpusStatus, 0, len(byCorpus))
 	for corpus := range byCorpus {
 		overallOk = overallOk && okByCorpus[corpus]
-		untriagedCount := len(byCorpus[corpus][expectations.Untriaged])
-		positiveCount := len(byCorpus[corpus][expectations.Positive])
-		negativeCount := len(byCorpus[corpus][expectations.Negative])
+		untriagedCount := len(byCorpus[corpus][expectations.UntriagedStr])
+		positiveCount := len(byCorpus[corpus][expectations.PositiveStr])
+		negativeCount := len(byCorpus[corpus][expectations.NegativeStr])
 		corpStatus = append(corpStatus, &GUICorpusStatus{
 			Name:           corpus,
 			OK:             okByCorpus[corpus],
@@ -287,9 +287,9 @@ func (s *StatusWatcher) calcStatus(ctx context.Context, cpxTile tiling.ComplexTi
 		allNegativeCount += negativeCount
 		allPositiveCount += positiveCount
 
-		s.corpusGauges[corpus][expectations.Positive].Update(int64(positiveCount))
-		s.corpusGauges[corpus][expectations.Negative].Update(int64(negativeCount))
-		s.corpusGauges[corpus][expectations.Untriaged].Update(int64(untriagedCount))
+		s.corpusGauges[corpus][expectations.PositiveStr].Update(int64(positiveCount))
+		s.corpusGauges[corpus][expectations.NegativeStr].Update(int64(negativeCount))
+		s.corpusGauges[corpus][expectations.UntriagedStr].Update(int64(untriagedCount))
 	}
 	s.allUntriagedGauge.Update(int64(allUntriagedCount))
 	s.allPositiveGauge.Update(int64(allPositiveCount))
