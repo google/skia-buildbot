@@ -27,7 +27,7 @@ type Expectations struct {
 
 // Baseline is a simplified view of the Expectations, suitable for JSON encoding. A Baseline only
 // has entries with positive and negative labels (i.e. no untriaged entries).
-type Baseline map[types.TestName]map[types.Digest]Label
+type Baseline map[types.TestName]map[types.Digest]LabelInt
 
 // ReadOnly is an interface with the non-mutating functions of Expectations.
 // By using this instead of Expectations, we can make fewer copies, helping performance.
@@ -213,7 +213,7 @@ func (e *Expectations) AsBaseline() Baseline {
 	// TODO(lovisolo): Remove once expectations.LabelStr -> expectations.Label refactoring is done.
 	baseline := Baseline{}
 	for testName, digestToLabelStrMap := range n.labels {
-		digestToLabelMap := map[types.Digest]Label{}
+		digestToLabelMap := map[types.Digest]LabelInt{}
 		for digest, labelStr := range digestToLabelStrMap {
 			digestToLabelMap[digest] = LabelFromString(labelStr)
 		}

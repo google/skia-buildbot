@@ -10,21 +10,21 @@ import (
 
 func TestLabel_String_Success(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.Equal(t, UntriagedStr, Untriaged.String())
-	assert.Equal(t, PositiveStr, Positive.String())
-	assert.Equal(t, NegativeStr, Negative.String())
+	assert.Equal(t, UntriagedStr, UntriagedInt.String())
+	assert.Equal(t, PositiveStr, PositiveInt.String())
+	assert.Equal(t, NegativeStr, NegativeInt.String())
 }
 
 func TestLabelFromString_KnownLabelStr_ReturnsCorrespondingLabel(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.Equal(t, Untriaged, LabelFromString(UntriagedStr))
-	assert.Equal(t, Positive, LabelFromString(PositiveStr))
-	assert.Equal(t, Negative, LabelFromString(NegativeStr))
+	assert.Equal(t, UntriagedInt, LabelFromString(UntriagedStr))
+	assert.Equal(t, PositiveInt, LabelFromString(PositiveStr))
+	assert.Equal(t, NegativeInt, LabelFromString(NegativeStr))
 }
 
 func TestLabelFromString_UnknownLabelStr_ReturnsUntriaged(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.Equal(t, Untriaged, LabelFromString("unknown label"))
+	assert.Equal(t, UntriagedInt, LabelFromString("unknown label"))
 }
 
 func TestValidLabel_KnownLabelStr_ReturnsTrue(t *testing.T) {
