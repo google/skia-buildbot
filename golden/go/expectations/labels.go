@@ -1,56 +1,59 @@
 package expectations
 
-// LabelInt for classifying digests.
+// LabelInt is the integer version of Label, used as the storage format in fs_expstore.go and in
+// goldctl.
+//
+// TODO(skbug.com/10522): Make this private to fs_expstore.go once we migrate goldctl to use Label.
 type LabelInt int
 
 const (
-	// UntriagedInt represents a previously unseen digest.
+	// UntriagedInt represents a previously unseen digest. Int version of Untriaged.
 	UntriagedInt LabelInt = iota // == 0
-	// PositiveInt represents a known good digest.
+	// PositiveInt represents a known good digest. Int version of Positive.
 	PositiveInt
-	// NegativeInt represents a known bad digest.
+	// NegativeInt represents a known bad digest. Int version of Negative.
 	NegativeInt
 )
 
-// LabelStr is the string version of LabelInt. Used e.g. to represent digest classifications in JSON.
-type LabelStr string
+// Label represents a digest classification.
+type Label string
 
 const (
-	// UntriagedStr represents a previously unseen digest. String version of Untriaged.
-	UntriagedStr = LabelStr("untriaged")
+	// Untriaged represents a previously unseen digest.
+	Untriaged = Label("untriaged")
 
-	// PositiveStr represents a known good digest. String version of Positive.
-	PositiveStr = LabelStr("positive")
+	// Positive represents a known good digest
+	Positive = Label("positive")
 
-	// NegativeStr represents a known bad digest. String version of Negative.
-	NegativeStr = LabelStr("negative")
+	// Negative represents a known bad digest.
+	Negative = Label("negative")
 )
 
-// AllLabelStr is a list of all possible LabelStr values. The index of each element in this list
+// AllLabel is a list of all possible Label values. The index of each element in this list
 // must match its LabelInt value (Untriaged = 0, etc.).
-var AllLabelStr = []LabelStr{UntriagedStr, PositiveStr, NegativeStr}
+var AllLabel = []Label{Untriaged, Positive, Negative}
 
-func (l LabelInt) String() LabelStr {
-	return AllLabelStr[l]
+func (l LabelInt) String() Label {
+	return AllLabel[l]
 }
 
-var labels = map[LabelStr]LabelInt{
-	UntriagedStr: UntriagedInt,
-	PositiveStr:  PositiveInt,
-	NegativeStr:  NegativeInt,
+var labels = map[Label]LabelInt{
+	Untriaged: UntriagedInt,
+	Positive:  PositiveInt,
+	Negative:  NegativeInt,
 }
 
-// LabelFromString returns the LabelInt corresponding to the given LabelStr, or Untriaged if there is
+// LabelIntFromString returns the LabelInt corresponding to the given Label, or Untriaged if there is
 // no match.
-func LabelFromString(s LabelStr) LabelInt {
+func LabelIntFromString(s Label) LabelInt {
 	if l, ok := labels[s]; ok {
 		return l
 	}
 	return UntriagedInt
 }
 
-// ValidLabelStr returns true if the given LabelStr is valid.
-func ValidLabelStr(s LabelStr) bool {
+// ValidLabel returns true if the given Label is valid.
+func ValidLabel(s Label) bool {
 	_, ok := labels[s]
 	return ok
 }

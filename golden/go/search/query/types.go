@@ -70,8 +70,8 @@ func (q *Search) IgnoreState() types.IgnoreState {
 
 // ExcludesClassification returns true if the given label/status for a digest
 // should be excluded based on the values in the query.
-func (q *Search) ExcludesClassification(cl expectations.LabelStr) bool {
-	return ((cl == expectations.NegativeStr) && !q.IncludeNegativeDigests) ||
-		((cl == expectations.PositiveStr) && !q.IncludePositiveDigests) ||
-		((cl == expectations.UntriagedStr) && !q.IncludeUntriagedDigests)
+func (q *Search) ExcludesClassification(cl expectations.Label) bool {
+	return ((cl == expectations.Negative) && !q.IncludeNegativeDigests) ||
+		((cl == expectations.Positive) && !q.IncludePositiveDigests) ||
+		((cl == expectations.Untriaged) && !q.IncludeUntriagedDigests)
 }
