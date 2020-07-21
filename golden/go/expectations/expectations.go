@@ -29,12 +29,6 @@ type Expectations struct {
 // has entries with positive and negative labels (i.e. no untriaged entries).
 type Baseline map[types.TestName]map[types.Digest]Label
 
-// BaselineInt is the LabelInt version of Baseline.
-//
-// Used by goldctl while the expectations.LabelStr -> expectations.Label migration is in progress.
-// TODO(skbug.com/10522): Delete once the aforementioned migration is finished.
-type BaselineInt map[types.TestName]map[types.Digest]LabelInt
-
 // ReadOnly is an interface with the non-mutating functions of Expectations.
 // By using this instead of Expectations, we can make fewer copies, helping performance.
 type ReadOnly interface {
@@ -215,25 +209,6 @@ func (e *Expectations) AsBaseline() Baseline {
 		}
 	}
 	return n.labels
-}
-
-// AsBaselineInt is the LabelInt version of AsBaseline.
-//
-// TODO(skbug.com/10522): Remove once the expectations.LabelStr -> expectations.Label refactoring
-//                        is complete.
-func (e *Expectations) AsBaselineInt() BaselineInt {
-	baseline := e.AsBaseline()
-
-	baselineInt := BaselineInt{}
-	for testName, digestToLabelStrMap := range baseline {
-		digestToLabelMap := map[types.Digest]LabelInt{}
-		for digest, labelStr := range digestToLabelStrMap {
-			digestToLabelMap[digest] = LabelIntFromString(labelStr)
-		}
-		baselineInt[testName] = digestToLabelMap
-	}
-
-	return baselineInt
 }
 
 // ensureInit expects that the write mutex is held prior to entry.
