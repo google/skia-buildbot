@@ -916,6 +916,7 @@ func makeSearchIndexWithSingleTrace(digests ...types.Digest) (*SearchIndex, tili
 	const device = "my_device"
 	const corpus = "my_corpus"
 	const testName = types.TestName("my_test")
+	const extension = "png"
 
 	// Constructed to resemble traceIDs seen in production. It shouldn't matter for these tests.
 	traceID := tiling.TraceID(fmt.Sprintf(",device=%s,name=%s,source_type=%s,", device, testName, corpus))
@@ -927,12 +928,15 @@ func makeSearchIndexWithSingleTrace(digests ...types.Digest) (*SearchIndex, tili
 				"device":              device,
 				types.PrimaryKeyField: string(testName),
 				types.CorpusField:     corpus,
+			}, map[string]string{
+				"ext": extension,
 			}),
 		},
 		ParamSet: map[string][]string{
 			"device":              {device},
 			types.PrimaryKeyField: {string(testName)},
 			types.CorpusField:     {corpus},
+			"ext":                 {extension},
 		},
 	}
 
