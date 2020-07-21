@@ -131,20 +131,16 @@ func makePartialTileOne() *tiling.Tile {
 	return &tiling.Tile{
 		// Commits, Scale and Tile Index omitted (should not affect things)
 		Traces: map[tiling.TraceID]*tiling.Trace{
-			x86TestAlphaTraceID: tiling.NewTrace(
-				[]types.Digest{FirstDigest, FirstDigest, SecondDigest},
-				map[string]string{
-					"config":              "x86",
-					types.PrimaryKeyField: string(AlphaTest),
-					types.CorpusField:     "gm",
-				}),
-			x64TestAlphaTraceID: tiling.NewTrace(
-				[]types.Digest{ThirdDigest, FirstDigest, tiling.MissingDigest},
-				map[string]string{
-					"config":              "x86_64",
-					types.PrimaryKeyField: string(AlphaTest),
-					types.CorpusField:     "image",
-				}),
+			x86TestAlphaTraceID: tiling.NewTrace([]types.Digest{FirstDigest, FirstDigest, SecondDigest}, map[string]string{
+				"config":              "x86",
+				types.PrimaryKeyField: string(AlphaTest),
+				types.CorpusField:     "gm",
+			}, nil),
+			x64TestAlphaTraceID: tiling.NewTrace([]types.Digest{ThirdDigest, FirstDigest, tiling.MissingDigest}, map[string]string{
+				"config":              "x86_64",
+				types.PrimaryKeyField: string(AlphaTest),
+				types.CorpusField:     "image",
+			}, nil),
 		},
 	}
 }
@@ -157,20 +153,16 @@ func makePartialTileTwo() *tiling.Tile {
 		Traces: map[tiling.TraceID]*tiling.Trace{
 			// Reminder that the ids for the traces are created by concatenating
 			// all the values in alphabetical order of the keys.
-			x86TestAlphaTraceID: tiling.NewTrace(
-				types.DigestSlice{FirstDigest, FirstDigest, SecondDigest, SecondDigest},
-				map[string]string{
-					"config":              "x86",
-					types.PrimaryKeyField: string(AlphaTest),
-					types.CorpusField:     "gm",
-				}),
-			x64TestBetaTraceID: tiling.NewTrace(
-				types.DigestSlice{ThirdDigest, FirstDigest, ThirdDigest, FirstDigest},
-				map[string]string{
-					"config":              "x86_64",
-					types.PrimaryKeyField: string(BetaTest),
-					types.CorpusField:     "image",
-				}),
+			x86TestAlphaTraceID: tiling.NewTrace(types.DigestSlice{FirstDigest, FirstDigest, SecondDigest, SecondDigest}, map[string]string{
+				"config":              "x86",
+				types.PrimaryKeyField: string(AlphaTest),
+				types.CorpusField:     "gm",
+			}, nil),
+			x64TestBetaTraceID: tiling.NewTrace(types.DigestSlice{ThirdDigest, FirstDigest, ThirdDigest, FirstDigest}, map[string]string{
+				"config":              "x86_64",
+				types.PrimaryKeyField: string(BetaTest),
+				types.CorpusField:     "image",
+			}, nil),
 		},
 	}
 }
