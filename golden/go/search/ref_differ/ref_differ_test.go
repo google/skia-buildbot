@@ -464,10 +464,10 @@ func makeUntriagedParamSet() paramtools.ParamSet {
 // makeExpClassifier returns a Classifier which has two positive entries and one negative one.
 func makeExpClassifier() expectations.Classifier {
 	var expOne expectations.Expectations
-	expOne.Set(testName, alphaPositiveDigest, expectations.Positive)
-	expOne.Set(testName, gammaPositiveDigest, expectations.Positive)
+	expOne.Set(testName, alphaPositiveDigest, expectations.PositiveStr)
+	expOne.Set(testName, gammaPositiveDigest, expectations.PositiveStr)
 
 	var expTwo expectations.Expectations
-	expTwo.Set(testName, betaNegativeDigest, expectations.Negative)
+	expTwo.Set(testName, betaNegativeDigest, expectations.NegativeStr)
 	return expectations.Join(&expOne, &expTwo)
 }

@@ -56,13 +56,13 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	NuNewDigest := types.Digest("5555c0dab629ef092bc0dab629ef092b")
 
 	var additionalTriages expectations.Expectations
-	additionalTriages.Set("brand-new-test", IotaNewDigest, expectations.Positive)
-	additionalTriages.Set("brand-new-test", KappaNewDigest, expectations.Negative)
-	additionalTriages.Set("brand-new-test", LambdaNewDigest, expectations.Untriaged)
-	additionalTriages.Set(three_devices.BetaTest, MuNewDigest, expectations.Positive)
-	additionalTriages.Set(three_devices.BetaTest, NuNewDigest, expectations.Untriaged)
-	additionalTriages.Set(three_devices.BetaTest, three_devices.BetaPositiveDigest, expectations.Negative)
-	additionalTriages.Set(three_devices.BetaTest, three_devices.BetaUntriagedDigest, expectations.Positive)
+	additionalTriages.Set("brand-new-test", IotaNewDigest, expectations.PositiveStr)
+	additionalTriages.Set("brand-new-test", KappaNewDigest, expectations.NegativeStr)
+	additionalTriages.Set("brand-new-test", LambdaNewDigest, expectations.UntriagedStr)
+	additionalTriages.Set(three_devices.BetaTest, MuNewDigest, expectations.PositiveStr)
+	additionalTriages.Set(three_devices.BetaTest, NuNewDigest, expectations.UntriagedStr)
+	additionalTriages.Set(three_devices.BetaTest, three_devices.BetaPositiveDigest, expectations.NegativeStr)
+	additionalTriages.Set(three_devices.BetaTest, three_devices.BetaUntriagedDigest, expectations.PositiveStr)
 
 	mes := &mock_expectations.Store{}
 	mesCL := &mock_expectations.Store{}
