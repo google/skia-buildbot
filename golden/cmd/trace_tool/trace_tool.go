@@ -201,7 +201,7 @@ func readTracesForTile(ctx context.Context, btc bt_tracestore.BTConfig, tk bt_tr
 		sklog.Fatalf("Could not get traces: %s", err)
 	}
 	for id, trace := range traceMap {
-		if trace.Keys["extra_config"] == "Direct3D" && trace.Keys["cpu_or_gpu_value"] == "RadeonHD7770" {
+		if trace.Keys()["extra_config"] == "Direct3D" && trace.Keys()["cpu_or_gpu_value"] == "RadeonHD7770" {
 			sklog.Infof("trace %s has digests %q", id, trace.Digests)
 		}
 	}

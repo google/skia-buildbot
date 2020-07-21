@@ -241,7 +241,7 @@ func (t traceMap) MakeFromCommitIndexes(indices []int) traceMap {
 			newDigests[i] = trace.Digests[idx]
 		}
 
-		r[id] = tiling.NewTrace(newDigests, trace.Keys)
+		r[id] = tiling.NewTrace(newDigests, trace.Keys())
 	}
 	return r
 }
