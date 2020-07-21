@@ -34,6 +34,23 @@
       "revId": "83d567a17c9510c832884aeec68f085e6e9a52a0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cdfc5dd1_aae8a445",
+        "filename": "go/depot_tools/cmd/flatten_commits/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-21T18:10:13Z",
+      "side": 1,
+      "message": "nit: Is flatten_roll_commits a better name? or maybe just needs documentation at the top of the file that explains what it is doing.",
+      "revId": "83d567a17c9510c832884aeec68f085e6e9a52a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
