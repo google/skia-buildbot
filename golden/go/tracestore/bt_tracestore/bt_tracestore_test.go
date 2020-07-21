@@ -73,7 +73,7 @@ func assertTilesEqual(t *testing.T, a *tiling.Tile, b *tiling.Tile) {
 	for id, traceA := range a.Traces {
 		assert.Contains(t, b.Traces, id)
 		traceB := b.Traces[id]
-		assert.Equal(t, traceA.Keys, traceB.Keys)
+		assert.Equal(t, traceA.Keys(), traceB.Keys())
 		assert.Equal(t, traceA.Digests, traceB.Digests)
 	}
 }
@@ -93,7 +93,7 @@ func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []tilin
 			}
 			e := tracestore.Entry{
 				Digest: trace.Digests[i],
-				Params: trace.Keys,
+				Params: trace.Keys(),
 			}
 			if options {
 				if i == 0 {
@@ -134,7 +134,7 @@ func TestBTTraceStorePutGetOverride(t *testing.T) {
 	require.NoError(t, err)
 	putTestTile(t, traceStore, commits, false /*=options*/)
 
-	alphaParams := data.MakeTestTile().Traces[data.AnglerAlphaTraceID].Params()
+	alphaParams := data.MakeTestTile().Traces[data.AnglerAlphaTraceID].Keys()
 	require.NotEmpty(t, alphaParams)
 
 	veryOldDigest := types.Digest("00069e4bb9c71ba0f7e2c7e03bf96699")
@@ -327,7 +327,7 @@ func TestBTTraceStorePutGetGrouped(t *testing.T) {
 	}
 	for _, trace := range traces {
 		require.Len(t, trace.Digests, len(commits), "test data should have one digest per commit")
-		dev := trace.Keys["device"]
+		dev := trace.Keys()["device"]
 		byDevice[dev] = append(byDevice[dev], trace)
 	}
 	require.Len(t, byDevice, 3, "test data should have exactly 3 devices")
@@ -341,7 +341,7 @@ func TestBTTraceStorePutGetGrouped(t *testing.T) {
 			for _, gTrace := range gTraces {
 				entries = append(entries, &tracestore.Entry{
 					Digest: gTrace.Digests[i],
-					Params: gTrace.Keys,
+					Params: gTrace.Keys(),
 				})
 			}
 
@@ -408,7 +408,7 @@ func TestBTTraceStorePutGetThreaded(t *testing.T) {
 				defer wg.Done()
 				e := tracestore.Entry{
 					Digest: trace.Digests[i],
-					Params: trace.Keys,
+					Params: trace.Keys(),
 				}
 				err := traceStore.Put(ctx, commits[i].Hash, []*tracestore.Entry{&e}, now)
 				require.NoError(t, err)
@@ -493,9 +493,7 @@ func TestBTTraceStoreGetDenseTile(t *testing.T) {
 	realCommitIndices = []int{501, 557}
 	totalCommits = 1101
 	mvcs, lCommits = mockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
-	expectedTile = data.MakeTestTile()
-	expectedTile, err := expectedTile.Trim(1, 3)
-	require.NoError(t, err)
+	expectedTile = makeTrimmedTile()
 	testDenseTile(t, expectedTile, mvcs, commits, lCommits, realCommitIndices)
 
 	// All commits are on the first commit of their tile
@@ -521,6 +519,72 @@ func TestBTTraceStoreGetDenseTile(t *testing.T) {
 	mvcs, lCommits = mockSparseVCSWithCommits(commits, realCommitIndices, totalCommits)
 	expectedTile = data.MakeTestTile()
 	testDenseTile(t, expectedTile, mvcs, commits, lCommits, realCommitIndices)
+}
+
+func makeTrimmedTile() *tiling.Tile {
+	return &tiling.Tile{
+		Commits: data.MakeTestCommits(),
+		Traces: map[tiling.TraceID]*tiling.Trace{
+			data.AnglerAlphaTraceID: tiling.NewTrace(
+				types.DigestSlice{data.AlphaNegativeDigest, data.AlphaPositiveDigest},
+				map[string]string{
+					"device":              data.AnglerDevice,
+					types.PrimaryKeyField: string(data.AlphaTest),
+					types.CorpusField:     data.GMCorpus,
+				},
+			),
+			data.AnglerBetaTraceID: tiling.NewTrace(
+				types.DigestSlice{data.BetaPositiveDigest, data.BetaPositiveDigest},
+				map[string]string{
+					"device":              data.AnglerDevice,
+					types.PrimaryKeyField: string(data.BetaTest),
+					types.CorpusField:     data.GMCorpus,
+				},
+			),
+
+			data.BullheadAlphaTraceID: tiling.NewTrace(
+				types.DigestSlice{data.AlphaNegativeDigest, data.AlphaUntriagedDigest},
+				map[string]string{
+					"device":              data.BullheadDevice,
+					types.PrimaryKeyField: string(data.AlphaTest),
+					types.CorpusField:     data.GMCorpus,
+				},
+			),
+			data.BullheadBetaTraceID: tiling.NewTrace(
+				types.DigestSlice{data.BetaPositiveDigest, data.BetaPositiveDigest},
+				map[string]string{
+					"device":              data.BullheadDevice,
+					types.PrimaryKeyField: string(data.BetaTest),
+					types.CorpusField:     data.GMCorpus,
+				},
+			),
+
+			data.CrosshatchAlphaTraceID: tiling.NewTrace(
+				types.DigestSlice{data.AlphaNegativeDigest, data.AlphaPositiveDigest},
+				map[string]string{
+					"device":              data.CrosshatchDevice,
+					types.PrimaryKeyField: string(data.AlphaTest),
+					types.CorpusField:     data.GMCorpus,
+				},
+			),
+			data.CrosshatchBetaTraceID: tiling.NewTrace(
+				types.DigestSlice{tiling.MissingDigest, tiling.MissingDigest},
+				map[string]string{
+					"device":              data.CrosshatchDevice,
+					types.PrimaryKeyField: string(data.BetaTest),
+					types.CorpusField:     data.GMCorpus,
+				},
+			),
+		},
+
+		// Summarizes all the keys and values seen in this tile
+		// The values should be in alphabetical order (see paramset.Normalize())
+		ParamSet: map[string][]string{
+			"device":              {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
+			types.PrimaryKeyField: {string(data.AlphaTest), string(data.BetaTest)},
+			types.CorpusField:     {data.GMCorpus},
+		},
+	}
 }
 
 // testDenseTile takes the data from tile, Puts it into BT, then pulls the tile given
@@ -552,7 +616,7 @@ func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits 
 		for i := len(trace.Digests) - 1; i >= 0; i-- {
 			e := tracestore.Entry{
 				Digest: trace.Digests[i],
-				Params: trace.Keys,
+				Params: trace.Keys(),
 			}
 			err := traceStore.Put(ctx, commits[i].Hash, []*tracestore.Entry{&e}, now)
 			require.NoError(t, err)
@@ -933,11 +997,11 @@ func makeTestTileWithOptions() *tiling.Tile {
 		// optionsOne applied.
 		if id == data.CrosshatchBetaTraceID {
 			for k, v := range makeOptionsOne() {
-				trace.Keys[k] = v
+				trace.Keys()[k] = v
 			}
 		} else {
 			for k, v := range makeOptionsTwo() {
-				trace.Keys[k] = v
+				trace.Keys()[k] = v
 			}
 		}
 		tile.Traces[id] = trace
