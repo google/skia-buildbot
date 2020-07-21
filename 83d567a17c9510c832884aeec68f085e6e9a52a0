@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "53e46d21_e785f59d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-21T15:29:22Z",
+      "side": 1,
+      "message": "I was inspired when I saw this bug, involving a DEPS roll which was singled out as having caused a regression.  The roll contains a number of nested levels of additional rolls, which makes it really hard to see what\u0027s actually included in the top-level roll commit.  The default output mode only prints commits which contain changes to files other than DEPS.  With --tree, the commits are broken down by roll commit.\n\nWDYT?  Would this be more useful in the Skia repo?  Maybe as part of the autoroller itself?  A web UI might be cool, possibly linked from the autoroll CLs.",
+      "revId": "83d567a17c9510c832884aeec68f085e6e9a52a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
