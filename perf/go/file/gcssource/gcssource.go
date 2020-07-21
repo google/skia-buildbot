@@ -24,7 +24,7 @@ import (
 const (
 	// maxParallelReceives is the number of Go routines we want to run.
 	// Determined experimentally.
-	maxParallelReceives = 1
+	maxParallelReceives = 10
 
 	// subscriptionSuffix is the name we append to a topic name to build a
 	// subscription name.
