@@ -454,10 +454,10 @@ func (c *CloudClient) Check(name types.TestName, imgFileName string, keys, optio
 func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId tiling.TraceID, imageBytes []byte, imageHash types.Digest, optionalKeys map[string]string) (bool, imgmatching.AlgorithmName, error) {
 	// First we check whether the digest is a known positive or negative, regardless of the specified
 	// image matching algorithm.
-	if c.resultState.Expectations[testName][imageHash] == expectations.Positive {
+	if c.resultState.Expectations[testName][imageHash] == expectations.PositiveInt {
 		return true, imgmatching.ExactMatching, nil
 	}
-	if c.resultState.Expectations[testName][imageHash] == expectations.Negative {
+	if c.resultState.Expectations[testName][imageHash] == expectations.NegativeInt {
 		return false, imgmatching.ExactMatching, nil
 	}
 
@@ -852,7 +852,7 @@ func (c *CloudClient) DumpBaseline() (string, error) {
 	return stringifyBaseline(c.resultState.Expectations), nil
 }
 
-func stringifyBaseline(b map[types.TestName]map[types.Digest]expectations.Label) string {
+func stringifyBaseline(b map[types.TestName]map[types.Digest]expectations.LabelInt) string {
 	names := make([]string, 0, len(b))
 	for testName := range b {
 		names = append(names, string(testName))
