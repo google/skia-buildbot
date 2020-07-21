@@ -135,17 +135,17 @@ func entryID(id expectations.ID) string {
 // expectationChange represents the changing of a single expectation entry.
 type expectationChange struct {
 	// RecordID refers to a document in the records collection.
-	RecordID      string             `firestore:"record_id"`
-	Grouping      types.TestName     `firestore:"grouping"`
-	Digest        types.Digest       `firestore:"digest"`
-	AffectedRange triageRange        `firestore:"affected_range"`
-	LabelBefore   expectations.Label `firestore:"label_before"`
+	RecordID      string                `firestore:"record_id"`
+	Grouping      types.TestName        `firestore:"grouping"`
+	Digest        types.Digest          `firestore:"digest"`
+	AffectedRange triageRange           `firestore:"affected_range"`
+	LabelBefore   expectations.LabelInt `firestore:"label_before"`
 }
 
 type triageRange struct {
-	FirstIndex int                `firestore:"first_index"`
-	LastIndex  int                `firestore:"last_index"`
-	Label      expectations.Label `firestore:"label"`
+	FirstIndex int                   `firestore:"first_index"`
+	LastIndex  int                   `firestore:"last_index"`
+	Label      expectations.LabelInt `firestore:"label"`
 }
 
 // triageRecord represents a group of changes made in a single triage action by a user.
@@ -412,7 +412,7 @@ func (s *Store) makeEntriesAndChanges(ctx context.Context, now time.Time, delta 
 			LastIndex:  lastIdx,
 			Label:      expectations.LabelFromString(d.Label),
 		}
-		previousLabel := expectations.Untriaged
+		previousLabel := expectations.UntriagedInt
 		replacedRange := false
 		// TODO(kjlubick): if needed, this could be a binary search, but since there will be < 20
 		//   ranges for almost all entries, it probably doesn't matter.
@@ -781,7 +781,7 @@ func (s *Store) UpdateLastUsed(ctx context.Context, ids []expectations.ID, now t
 }
 
 // MarkUnusedEntriesForGC implements the expectations.GarbageCollector interface.
-func (s *Store) MarkUnusedEntriesForGC(ctx context.Context, label expectations.Label, ts time.Time) (int, error) {
+func (s *Store) MarkUnusedEntriesForGC(ctx context.Context, label expectations.LabelInt, ts time.Time) (int, error) {
 	if s.partition != masterPartition {
 		return 0, skerr.Fmt("Cannot call UpdateLastUsed except on the master partition")
 	}
