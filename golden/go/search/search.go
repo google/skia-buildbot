@@ -264,11 +264,12 @@ func (s *SearchImpl) GetDigestDetails(ctx context.Context, test types.TestName, 
 				continue
 			}
 			if _, ok := byTrace[traceID][digest]; ok {
-				result.ParamSet.AddParams(trace.Keys())
+				ko := trace.KeysAndOptions()
+				result.ParamSet.AddParams(ko)
 				result.TraceGroup.Traces = append(result.TraceGroup.Traces, frontend.Trace{
 					ID:       traceID,
 					RawTrace: trace,
-					Params:   trace.Keys(),
+					Params:   ko,
 				})
 			}
 		}
@@ -417,7 +418,7 @@ func (s *SearchImpl) queryChangeList(ctx context.Context, q *query.Search, idx i
 			existing.TraceGroup.Traces = append(existing.TraceGroup.Traces, frontend.Trace{
 				ID:       tp.ID,
 				RawTrace: tp.Trace,
-				Params:   tp.Trace.Keys(),
+				Params:   tp.Trace.KeysAndOptions(),
 			})
 		}
 	}
@@ -678,14 +679,15 @@ func (s *SearchImpl) filterTile(ctx context.Context, q *query.Search, idx indexe
 			}
 			resultsByGroupingAndDigest[key] = existing
 		}
-		existing.ParamSet.AddParams(trace.Keys())
+		ko := trace.KeysAndOptions()
+		existing.ParamSet.AddParams(ko)
 		// It is tempting to think we could just convert the RawTrace into the frontend.Trace right
 		// here, but in fact we need all the traces for a given digest (i.e. in a given TraceGroup)
 		// to be able to do that. Specifically, we want to be able to share the digest indices.
 		existing.TraceGroup.Traces = append(existing.TraceGroup.Traces, frontend.Trace{
 			ID:       traceID,
 			RawTrace: trace,
-			Params:   trace.Keys(),
+			Params:   ko,
 		})
 	}
 

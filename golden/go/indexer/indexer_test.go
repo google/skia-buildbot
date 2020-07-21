@@ -927,7 +927,7 @@ func makeSearchIndexWithSingleTrace(digests ...types.Digest) (*SearchIndex, tili
 				"device":              device,
 				types.PrimaryKeyField: string(testName),
 				types.CorpusField:     corpus,
-			}),
+			}, nil),
 		},
 		ParamSet: map[string][]string{
 			"device":              {device},
