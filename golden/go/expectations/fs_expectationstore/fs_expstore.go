@@ -410,7 +410,7 @@ func (s *Store) makeEntriesAndChanges(ctx context.Context, now time.Time, delta 
 		newRange := triageRange{
 			FirstIndex: firstIdx,
 			LastIndex:  lastIdx,
-			Label:      expectations.LabelFromString(d.Label),
+			Label:      expectations.LabelIntFromString(d.Label),
 		}
 		previousLabel := expectations.UntriagedInt
 		replacedRange := false
