@@ -39,11 +39,11 @@ func TestUpdateSunnyDay(t *testing.T) {
 	commits := makeCommits()
 
 	var alphaChanges expectations.Expectations
-	alphaChanges.Set(someTest, digestOne, expectations.Negative)
+	alphaChanges.Set(someTest, digestOne, expectations.NegativeStr)
 	alphaDelta := expectations.AsDelta(&alphaChanges)
 
 	var betaChanges expectations.Expectations
-	betaChanges.Set(someTest, digestTwo, expectations.Positive)
+	betaChanges.Set(someTest, digestTwo, expectations.PositiveStr)
 	betaDelta := expectations.AsDelta(&betaChanges)
 
 	// This data is all arbitrary.

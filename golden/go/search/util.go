@@ -79,7 +79,7 @@ func iterTile(ctx context.Context, q *query.Search, addFn iterTileAddFn, acceptF
 
 					// Fix blamer to make this easier.
 					if q.BlameGroupID != "" {
-						if cl == expectations.Untriaged {
+						if cl == expectations.UntriagedStr {
 							b := idx.GetBlame(test, digest, cpxTile.DataCommits())
 							if b.IsEmpty() || q.BlameGroupID != blameGroupID(b, cpxTile.DataCommits()) {
 								continue
