@@ -31,12 +31,12 @@ func TestClosestDigest(t *testing.T) {
 	defer mdc.AssertExpectations(t)
 
 	var exp expectations.Expectations
-	exp.Set(mockTest, mockDigestA, expectations.PositiveStr)
-	exp.Set(mockTest, mockDigestB, expectations.NegativeStr)
-	exp.Set(mockTest, mockDigestC, expectations.UntriagedStr)
-	exp.Set(mockTest, mockDigestD, expectations.UntriagedStr)
-	exp.Set(mockTest, mockDigestF, expectations.PositiveStr)
-	exp.Set(mockTest, mockDigestG, expectations.PositiveStr)
+	exp.Set(mockTest, mockDigestA, expectations.Positive)
+	exp.Set(mockTest, mockDigestB, expectations.Negative)
+	exp.Set(mockTest, mockDigestC, expectations.Untriaged)
+	exp.Set(mockTest, mockDigestD, expectations.Untriaged)
+	exp.Set(mockTest, mockDigestF, expectations.Positive)
+	exp.Set(mockTest, mockDigestG, expectations.Positive)
 
 	digestCounts := map[types.TestName]digest_counter.DigestCount{
 		mockTest: {
@@ -60,7 +60,7 @@ func TestClosestDigest(t *testing.T) {
 	expectedToCompareAgainst := types.DigestSlice{mockDigestA}
 	mds.On("Get", testutils.AnyContext, mockDigestF, expectedToCompareAgainst).Return(diffEIsClosest(), nil).Once()
 	// First test against a test that has positive digests.
-	c, err := cdf.ClosestDigest(context.Background(), mockTest, mockDigestF, expectations.PositiveStr)
+	c, err := cdf.ClosestDigest(context.Background(), mockTest, mockDigestF, expectations.Positive)
 	require.NoError(t, err)
 	require.InDelta(t, 0.0372, float64(c.Diff), 0.01)
 	require.Equal(t, mockDigestE, c.Digest)
@@ -70,7 +70,7 @@ func TestClosestDigest(t *testing.T) {
 	expectedToCompareAgainst = types.DigestSlice{mockDigestB}
 	mds.On("Get", testutils.AnyContext, mockDigestF, expectedToCompareAgainst).Return(diffBIsClosest(), nil).Once()
 	// Now test against negative digests.
-	c, err = cdf.ClosestDigest(context.Background(), mockTest, mockDigestF, expectations.NegativeStr)
+	c, err = cdf.ClosestDigest(context.Background(), mockTest, mockDigestF, expectations.Negative)
 	require.NoError(t, err)
 	require.InDelta(t, 0.0558, float64(c.Diff), 0.01)
 	require.Equal(t, mockDigestB, c.Digest)
@@ -87,12 +87,12 @@ func TestClosestDigest_TestHasNoDigest_ReturnsNoDigestFound(t *testing.T) {
 	defer mdc.AssertExpectations(t)
 
 	var exp expectations.Expectations
-	exp.Set(mockTest, mockDigestA, expectations.PositiveStr)
-	exp.Set(mockTest, mockDigestB, expectations.NegativeStr)
-	exp.Set(mockTest, mockDigestC, expectations.PositiveStr)
-	exp.Set(mockTest, mockDigestD, expectations.PositiveStr)
-	exp.Set(mockTest, mockDigestF, expectations.PositiveStr)
-	exp.Set(mockTest, mockDigestG, expectations.PositiveStr)
+	exp.Set(mockTest, mockDigestA, expectations.Positive)
+	exp.Set(mockTest, mockDigestB, expectations.Negative)
+	exp.Set(mockTest, mockDigestC, expectations.Positive)
+	exp.Set(mockTest, mockDigestD, expectations.Positive)
+	exp.Set(mockTest, mockDigestF, expectations.Positive)
+	exp.Set(mockTest, mockDigestG, expectations.Positive)
 
 	digestCounts := map[types.TestName]digest_counter.DigestCount{
 		mockTest: {
@@ -121,14 +121,14 @@ func TestClosestDigest_TestHasNoDigest_ReturnsNoDigestFound(t *testing.T) {
 
 	mds.On("Get", testutils.AnyContext, mockDigestF, expectedDigests).Return(diffEIsClosest(), nil).Once()
 
-	c, err := cdf.ClosestDigest(context.Background(), mockTest, mockDigestF, expectations.PositiveStr)
+	c, err := cdf.ClosestDigest(context.Background(), mockTest, mockDigestF, expectations.Positive)
 	require.NoError(t, err)
 	require.InDelta(t, 0.0372, float64(c.Diff), 0.01)
 	require.Equal(t, mockDigestE, c.Digest)
 	require.Equal(t, [4]int{5, 3, 4, 0}, c.MaxRGBA)
 
 	// Now test against a test with no digests at all in the latest tile.
-	c, err = cdf.ClosestDigest(context.Background(), testThatDoesNotExist, mockDigestF, expectations.PositiveStr)
+	c, err = cdf.ClosestDigest(context.Background(), testThatDoesNotExist, mockDigestF, expectations.Positive)
 	require.NoError(t, err)
 	require.Equal(t, float32(math.MaxFloat32), c.Diff)
 	require.Equal(t, digesttools.NoDigestFound, c.Digest)

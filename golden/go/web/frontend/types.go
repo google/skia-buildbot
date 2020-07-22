@@ -93,7 +93,7 @@ func ConvertTryJob(tj ci.TryJob, urlTempl string) TryJob {
 type TriageRequest struct {
 	// TestDigestStatus maps status to test name and digests. The strings are
 	// expectation.Label.String() values
-	TestDigestStatus map[types.TestName]map[types.Digest]expectations.LabelStr `json:"testDigestStatus"`
+	TestDigestStatus map[types.TestName]map[types.Digest]expectations.Label `json:"testDigestStatus"`
 
 	// ChangeListID is the id of the ChangeList for which we want to change the expectations.
 	// "issue" is the JSON field for backwards compatibility.
@@ -112,9 +112,9 @@ type TriageRequest struct {
 // TriageDelta represents one changed digest and the label that was
 // assigned as part of the triage operation.
 type TriageDelta struct {
-	TestName types.TestName        `json:"test_name"`
-	Digest   types.Digest          `json:"digest"`
-	Label    expectations.LabelStr `json:"label"`
+	TestName types.TestName     `json:"test_name"`
+	Digest   types.Digest       `json:"digest"`
+	Label    expectations.Label `json:"label"`
 }
 
 // TriageLogEntry represents a set of changes by a single person.

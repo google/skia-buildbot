@@ -8,34 +8,34 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func TestLabel_String_Success(t *testing.T) {
+func TestLabelInt_String_Success(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.Equal(t, UntriagedStr, UntriagedInt.String())
-	assert.Equal(t, PositiveStr, PositiveInt.String())
-	assert.Equal(t, NegativeStr, NegativeInt.String())
+	assert.Equal(t, Untriaged, UntriagedInt.String())
+	assert.Equal(t, Positive, PositiveInt.String())
+	assert.Equal(t, Negative, NegativeInt.String())
 }
 
-func TestLabelFromString_KnownLabelStr_ReturnsCorrespondingLabel(t *testing.T) {
+func TestLabelIntFromString_KnownLabel_ReturnsCorrespondingLabelInt(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.Equal(t, UntriagedInt, LabelFromString(UntriagedStr))
-	assert.Equal(t, PositiveInt, LabelFromString(PositiveStr))
-	assert.Equal(t, NegativeInt, LabelFromString(NegativeStr))
+	assert.Equal(t, UntriagedInt, LabelIntFromString(Untriaged))
+	assert.Equal(t, PositiveInt, LabelIntFromString(Positive))
+	assert.Equal(t, NegativeInt, LabelIntFromString(Negative))
 }
 
-func TestLabelFromString_UnknownLabelStr_ReturnsUntriaged(t *testing.T) {
+func TestLabelFromString_UnknownLabel_ReturnsUntriagedInt(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.Equal(t, UntriagedInt, LabelFromString("unknown label"))
+	assert.Equal(t, UntriagedInt, LabelIntFromString("unknown label"))
 }
 
-func TestValidLabel_KnownLabelStr_ReturnsTrue(t *testing.T) {
+func TestValidLabel_KnownLabel_ReturnsTrue(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.True(t, ValidLabelStr(UntriagedStr))
-	assert.True(t, ValidLabelStr(PositiveStr))
-	assert.True(t, ValidLabelStr(NegativeStr))
+	assert.True(t, ValidLabel(Untriaged))
+	assert.True(t, ValidLabel(Positive))
+	assert.True(t, ValidLabel(Negative))
 
 }
 
-func TestValidLabel_UnknownLabelStr_ReturnsFalse(t *testing.T) {
+func TestValidLabel_UnknownLabel_ReturnsFalse(t *testing.T) {
 	unittest.SmallTest(t)
-	assert.False(t, ValidLabelStr("unknown label"))
+	assert.False(t, ValidLabel("unknown label"))
 }

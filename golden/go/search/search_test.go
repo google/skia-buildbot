@@ -204,12 +204,12 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 				},
 			},
 		},
-		BulkTriageData: map[types.TestName]map[types.Digest]expectations.LabelStr{
+		BulkTriageData: map[types.TestName]map[types.Digest]expectations.Label{
 			data.AlphaTest: {
-				data.AlphaUntriagedDigest: expectations.PositiveStr,
+				data.AlphaUntriagedDigest: expectations.Positive,
 			},
 			data.BetaTest: {
-				data.BetaUntriagedDigest: expectations.PositiveStr,
+				data.BetaUntriagedDigest: expectations.Positive,
 			},
 		},
 	}, resp)
@@ -252,12 +252,12 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	// This checks that the returned result is the first one of the results we expect.
 	assert.Equal(t, data.AlphaUntriagedDigest, resp.Results[0].Digest)
 	// BulkTriageData should still be fully filled out for all digests in the full results.
-	assert.Equal(t, map[types.TestName]map[types.Digest]expectations.LabelStr{
+	assert.Equal(t, map[types.TestName]map[types.Digest]expectations.Label{
 		data.AlphaTest: {
-			data.AlphaUntriagedDigest: expectations.PositiveStr,
+			data.AlphaUntriagedDigest: expectations.Positive,
 		},
 		data.BetaTest: {
-			data.BetaUntriagedDigest: expectations.PositiveStr,
+			data.BetaUntriagedDigest: expectations.Positive,
 		},
 	}, resp.BulkTriageData)
 
@@ -273,12 +273,12 @@ func TestSearch_UntriagedWithLimitAndOffset_LimitAndOffsetRespected(t *testing.T
 	// This checks that the returned result is the second one of the results we expect.
 	assert.Equal(t, data.BetaUntriagedDigest, resp.Results[0].Digest)
 	// BulkTriageData should still be fully filled out for all digests in the full results.
-	assert.Equal(t, map[types.TestName]map[types.Digest]expectations.LabelStr{
+	assert.Equal(t, map[types.TestName]map[types.Digest]expectations.Label{
 		data.AlphaTest: {
-			data.AlphaUntriagedDigest: expectations.PositiveStr,
+			data.AlphaUntriagedDigest: expectations.Positive,
 		},
 		data.BetaTest: {
-			data.BetaUntriagedDigest: expectations.PositiveStr,
+			data.BetaUntriagedDigest: expectations.Positive,
 		},
 	}, resp.BulkTriageData)
 }
@@ -301,7 +301,7 @@ func TestSearchThreeDevicesQueries(t *testing.T) {
 	type spotCheck struct {
 		test            types.TestName
 		digest          types.Digest
-		labelStr        expectations.LabelStr
+		labelStr        expectations.Label
 		closestPositive types.Digest
 		closestNegative types.Digest
 	}
@@ -722,7 +722,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 
 	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
-	ie.Set(data.AlphaTest, AlphaNowGoodDigest, expectations.PositiveStr)
+	ie.Set(data.AlphaTest, AlphaNowGoodDigest, expectations.Positive)
 	issueStore := addChangeListExpectations(mes, crs, clID, &ie)
 	// Hasn't been triaged yet
 	issueStore.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
@@ -902,9 +902,9 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 				},
 			},
 		},
-		BulkTriageData: map[types.TestName]map[types.Digest]expectations.LabelStr{
+		BulkTriageData: map[types.TestName]map[types.Digest]expectations.Label{
 			data.BetaTest: {
-				BetaBrandNewDigest: expectations.PositiveStr,
+				BetaBrandNewDigest: expectations.Positive,
 			},
 		},
 	}, resp)
@@ -1125,7 +1125,7 @@ func TestDigestDetails_ChangeListAltersExpectations_Success(t *testing.T) {
 
 	// Mock out some ChangeList expectations in which the digest we care about is negative
 	var ie expectations.Expectations
-	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.NegativeStr)
+	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.Negative)
 	issueStore := addChangeListExpectations(mes, testCRS, testCLID, &ie)
 	issueStore.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return([]expectations.TriageHistory{
 		{
@@ -1146,7 +1146,7 @@ func TestDigestDetails_ChangeListAltersExpectations_Success(t *testing.T) {
 
 	details, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)
-	assert.Equal(t, details.Result.Status, expectations.NegativeStr)
+	assert.Equal(t, details.Result.Status, expectations.Negative)
 	assert.Equal(t, []frontend.TriageHistory{
 		{
 			User: clUser,
@@ -1249,7 +1249,7 @@ func TestDigestDetails_NewTestOnChangeList_Success(t *testing.T) {
 	empty := expectations.Expectations{}
 	mes.On("Get", testutils.AnyContext).Return(&empty, nil)
 	var ie expectations.Expectations
-	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.PositiveStr)
+	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.Positive)
 	addChangeListExpectations(mes, testCRS, testCLID, &ie)
 
 	// This index emulates the fact that master branch does not have the newly added test.
@@ -1336,7 +1336,7 @@ func TestDigestDetails_NewTestOnChangeList_WithPublicParams_Success(t *testing.T
 	empty := expectations.Expectations{}
 	mes.On("Get", testutils.AnyContext).Return(&empty, nil)
 	var ie expectations.Expectations
-	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.PositiveStr)
+	ie.Set(testWeWantDetailsAbout, digestWeWantDetailsAbout, expectations.Positive)
 	addChangeListExpectations(mes, testCRS, testCLID, &ie)
 
 	// This index emulates the fact that master branch does not have the newly added test.
@@ -1442,7 +1442,7 @@ func TestDigestDetails_TestIgnored_DetailsContainResults_Success(t *testing.T) {
 		common.NegativeRef: {
 			DiffMetrics: makeBigDiffMetric(),
 			Digest:      data.AlphaNegativeDigest,
-			Status:      expectations.NegativeStr,
+			Status:      expectations.Negative,
 			ParamSet: paramtools.ParamSet{
 				"device":              {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
 				types.PrimaryKeyField: {string(data.AlphaTest)},
@@ -1473,7 +1473,7 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 		Left: frontend.SearchResult{
 			Test:   testWeWantDetailsAbout,
 			Digest: leftDigest,
-			Status: expectations.UntriagedStr,
+			Status: expectations.Untriaged,
 			ParamSet: paramtools.ParamSet{
 				"device":              []string{data.BullheadDevice},
 				types.PrimaryKeyField: []string{string(data.AlphaTest)},
@@ -1483,7 +1483,7 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 		},
 		Right: &frontend.SRDiffDigest{
 			Digest:      rightDigest,
-			Status:      expectations.PositiveStr,
+			Status:      expectations.Positive,
 			DiffMetrics: makeSmallDiffMetric(),
 			ParamSet: paramtools.ParamSet{
 				"device":              []string{data.AnglerDevice, data.CrosshatchDevice},
@@ -1506,7 +1506,7 @@ func TestDiffDigestsChangeList(t *testing.T) {
 
 	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
-	ie.Set(data.AlphaTest, leftDigest, expectations.NegativeStr)
+	ie.Set(data.AlphaTest, leftDigest, expectations.Negative)
 	issueStore := addChangeListExpectations(mes, crs, clID, &ie)
 	issueStore.On("GetTriageHistory", testutils.AnyContext, mock.Anything, mock.Anything).Return(nil, nil)
 
@@ -1517,7 +1517,7 @@ func TestDiffDigestsChangeList(t *testing.T) {
 
 	cd, err := s.DiffDigests(context.Background(), testWeWantDetailsAbout, leftDigest, rightDigest, clID, crs)
 	require.NoError(t, err)
-	assert.Equal(t, cd.Left.Status, expectations.NegativeStr)
+	assert.Equal(t, cd.Left.Status, expectations.Negative)
 }
 
 // TestUntriagedUnignoredTryJobExclusiveDigests_NoIndexBuilt_Success models the case where a set of
@@ -1550,7 +1550,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_NoIndexBuilt_Success(t *testin
 	// gammaNegativeTryJobDigest negative (it would be untriaged on master).
 	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
-	ie.Set(data.AlphaTest, gammaNegativeTryJobDigest, expectations.NegativeStr)
+	ie.Set(data.AlphaTest, gammaNegativeTryJobDigest, expectations.Negative)
 	addChangeListExpectations(mes, crs, clID, &ie)
 
 	cpxTile := tiling.NewComplexTile(data.MakeTestTile())
@@ -1742,7 +1742,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_UsesIndex_Success(t *testing.T
 	// gammaNegativeTryJobDigest negative (it would be untriaged on master).
 	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
-	ie.Set(data.AlphaTest, gammaNegativeTryJobDigest, expectations.NegativeStr)
+	ie.Set(data.AlphaTest, gammaNegativeTryJobDigest, expectations.Negative)
 	addChangeListExpectations(mes, crs, clID, &ie)
 
 	cpxTile := tiling.NewComplexTile(data.MakeTestTile())
@@ -1854,7 +1854,7 @@ func TestFillInFrontEndTraceData_SingleTrace_DigestIndicesAreCorrect(t *testing.
 		// stubClassifier returns Positive for everything. For the purposes of drawing traces,
 		// don't actually care about the expectations.
 		stubClassifier := &mock_expectations.Classifier{}
-		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.PositiveStr)
+		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
 		t.Run(desc, func(t *testing.T) {
 			traces := []frontend.Trace{
 				{
@@ -1925,7 +1925,7 @@ func TestFillInFrontEndTraceData_MultipleTraces_DigestIndicesAreCorrect(t *testi
 		// stubClassifier returns Positive for everything. For the purposes of drawing traces,
 		// don't actually care about the expectations.
 		stubClassifier := &mock_expectations.Classifier{}
-		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.PositiveStr)
+		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
 		t.Run(desc, func(t *testing.T) {
 			traces := []frontend.Trace{
 				{
@@ -1994,7 +1994,7 @@ func TestFillInFrontEndTraceData_AppendPrimaryDigest_DigestIndicesAreCorrect(t *
 		// stubClassifier returns Positive for everything. For the purposes of drawing traces,
 		// don't actually care about the expectations.
 		stubClassifier := &mock_expectations.Classifier{}
-		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.PositiveStr)
+		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
 		t.Run(desc, func(t *testing.T) {
 			traces := []frontend.Trace{
 				{
@@ -2043,7 +2043,7 @@ func TestFillInFrontEndTraceData_TotalDigestsCorrect(t *testing.T) {
 		// stubClassifier returns Positive for everything. For the purposes of counting digests,
 		// don't actually care about the expectations.
 		stubClassifier := &mock_expectations.Classifier{}
-		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.PositiveStr)
+		stubClassifier.On("Classification", mock.Anything, mock.Anything).Return(expectations.Positive)
 		t.Run(desc, func(t *testing.T) {
 			traces := make([]frontend.Trace, 0, len(inputTraceDigests))
 			for i, digests := range inputTraceDigests {
@@ -2109,22 +2109,22 @@ func TestAddExpectations_Success(t *testing.T) {
 		{
 			Test:   data.AlphaTest,
 			Digest: data.AlphaPositiveDigest,
-			Status: expectations.PositiveStr,
+			Status: expectations.Positive,
 		},
 		{
 			Test:   data.AlphaTest,
 			Digest: data.AlphaNegativeDigest,
-			Status: expectations.NegativeStr,
+			Status: expectations.Negative,
 		},
 		{
 			Test:   data.BetaTest,
 			Digest: data.BetaPositiveDigest,
-			Status: expectations.PositiveStr,
+			Status: expectations.Positive,
 		},
 		{
 			Test:   data.BetaTest,
 			Digest: data.BetaUntriagedDigest,
-			Status: expectations.UntriagedStr,
+			Status: expectations.Untriaged,
 		},
 	}, results)
 }
@@ -2321,7 +2321,7 @@ func TestCollectDigestsForBulkTriage_Success(t *testing.T) {
 	}
 
 	bulkTriageData := collectDigestsForBulkTriage(results)
-	assert.Equal(t, map[types.TestName]map[types.Digest]expectations.LabelStr{
+	assert.Equal(t, map[types.TestName]map[types.Digest]expectations.Label{
 		"apple": {
 			"grannysmith": "positive",
 			"honeycrisp":  "",

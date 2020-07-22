@@ -15,31 +15,31 @@ func TestSet(t *testing.T) {
 	unittest.SmallTest(t)
 
 	var e Expectations
-	e.Set("a", "pos", PositiveStr)
-	e.Set("b", "neg", NegativeStr)
-	e.Set("c", "untr", PositiveStr)
-	e.Set("c", "untr", UntriagedStr)
+	e.Set("a", "pos", Positive)
+	e.Set("b", "neg", Negative)
+	e.Set("c", "untr", Positive)
+	e.Set("c", "untr", Untriaged)
 
-	assert.Equal(t, e.Classification("a", "pos"), PositiveStr)
-	assert.Equal(t, e.Classification("b", "neg"), NegativeStr)
-	assert.Equal(t, e.Classification("c", "untr"), UntriagedStr)
-	assert.Equal(t, e.Classification("d", "also_untriaged"), UntriagedStr)
-	assert.Equal(t, e.Classification("a", "nope"), UntriagedStr)
-	assert.Equal(t, e.Classification("b", "pos"), UntriagedStr)
+	assert.Equal(t, e.Classification("a", "pos"), Positive)
+	assert.Equal(t, e.Classification("b", "neg"), Negative)
+	assert.Equal(t, e.Classification("c", "untr"), Untriaged)
+	assert.Equal(t, e.Classification("d", "also_untriaged"), Untriaged)
+	assert.Equal(t, e.Classification("a", "nope"), Untriaged)
+	assert.Equal(t, e.Classification("b", "pos"), Untriaged)
 
 	assert.Equal(t, 2, e.Len())
 	assert.Equal(t, 3, e.NumTests()) // c was seen, but has all untriaged entries
 
-	e.Set("c", "untr", PositiveStr)
-	assert.Equal(t, e.Classification("c", "untr"), PositiveStr)
-	assert.Equal(t, e.Classification("c", "nope"), UntriagedStr)
-	assert.Equal(t, e.Classification("a", "nope"), UntriagedStr)
+	e.Set("c", "untr", Positive)
+	assert.Equal(t, e.Classification("c", "untr"), Positive)
+	assert.Equal(t, e.Classification("c", "nope"), Untriaged)
+	assert.Equal(t, e.Classification("a", "nope"), Untriaged)
 
 	assert.Equal(t, 3, e.Len())
 	assert.Equal(t, 3, e.NumTests())
 
-	e.Set("a", "oops", NegativeStr)
-	assert.Equal(t, e.Classification("a", "oops"), NegativeStr)
+	e.Set("a", "oops", Negative)
+	assert.Equal(t, e.Classification("a", "oops"), Negative)
 	assert.Equal(t, 4, e.Len())
 	assert.Equal(t, 3, e.NumTests())
 }
@@ -48,32 +48,32 @@ func TestMerge(t *testing.T) {
 	unittest.SmallTest(t)
 
 	var e Expectations
-	e.Set("a", "pos", PositiveStr)
-	e.Set("b", "neg", PositiveStr)
-	e.Set("c", "untr", UntriagedStr)
+	e.Set("a", "pos", Positive)
+	e.Set("b", "neg", Positive)
+	e.Set("c", "untr", Untriaged)
 
-	f := Expectations{}            // test both ways of initialization
-	f.Set("a", "neg", NegativeStr) // creates new in existing test
-	f.Set("b", "neg", NegativeStr) // overwrites previous
-	f.Set("d", "neg", NegativeStr) // creates new test
+	f := Expectations{}         // test both ways of initialization
+	f.Set("a", "neg", Negative) // creates new in existing test
+	f.Set("b", "neg", Negative) // overwrites previous
+	f.Set("d", "neg", Negative) // creates new test
 
 	e.MergeExpectations(&f)
 	e.MergeExpectations(nil)
 
-	assert.Equal(t, PositiveStr, e.Classification("a", "pos"))
-	assert.Equal(t, NegativeStr, e.Classification("a", "neg"))
-	assert.Equal(t, NegativeStr, e.Classification("b", "neg"))
-	assert.Equal(t, UntriagedStr, e.Classification("c", "untr"))
-	assert.Equal(t, NegativeStr, e.Classification("d", "neg"))
+	assert.Equal(t, Positive, e.Classification("a", "pos"))
+	assert.Equal(t, Negative, e.Classification("a", "neg"))
+	assert.Equal(t, Negative, e.Classification("b", "neg"))
+	assert.Equal(t, Untriaged, e.Classification("c", "untr"))
+	assert.Equal(t, Negative, e.Classification("d", "neg"))
 
 	assert.Equal(t, 4, e.Len())
 
 	// f should be unchanged
-	assert.Equal(t, UntriagedStr, f.Classification("a", "pos"))
-	assert.Equal(t, NegativeStr, f.Classification("a", "neg"))
-	assert.Equal(t, NegativeStr, f.Classification("b", "neg"))
-	assert.Equal(t, UntriagedStr, f.Classification("c", "untr"))
-	assert.Equal(t, NegativeStr, f.Classification("d", "neg"))
+	assert.Equal(t, Untriaged, f.Classification("a", "pos"))
+	assert.Equal(t, Negative, f.Classification("a", "neg"))
+	assert.Equal(t, Negative, f.Classification("b", "neg"))
+	assert.Equal(t, Untriaged, f.Classification("c", "untr"))
+	assert.Equal(t, Negative, f.Classification("d", "neg"))
 	assert.Equal(t, 3, f.Len())
 }
 
@@ -81,30 +81,30 @@ func TestForAll(t *testing.T) {
 	unittest.SmallTest(t)
 
 	var e Expectations
-	e.Set("a", "pos", PositiveStr)
-	e.Set("b", "neg", NegativeStr)
-	e.Set("c", "pos", PositiveStr)
-	e.Set("c", "untr", UntriagedStr)
+	e.Set("a", "pos", Positive)
+	e.Set("b", "neg", Negative)
+	e.Set("c", "pos", Positive)
+	e.Set("c", "untr", Untriaged)
 
-	labels := map[types.TestName]map[types.Digest]LabelStr{}
-	err := e.ForAll(func(testName types.TestName, d types.Digest, l LabelStr) error {
+	labels := map[types.TestName]map[types.Digest]Label{}
+	err := e.ForAll(func(testName types.TestName, d types.Digest, l Label) error {
 		if digests, ok := labels[testName]; ok {
 			digests[d] = l
 		} else {
-			labels[testName] = map[types.Digest]LabelStr{d: l}
+			labels[testName] = map[types.Digest]Label{d: l}
 		}
 		return nil
 	})
 	require.NoError(t, err)
-	assert.Equal(t, map[types.TestName]map[types.Digest]LabelStr{
+	assert.Equal(t, map[types.TestName]map[types.Digest]Label{
 		"a": {
-			"pos": PositiveStr,
+			"pos": Positive,
 		},
 		"b": {
-			"neg": NegativeStr,
+			"neg": Negative,
 		},
 		"c": {
-			"pos": PositiveStr,
+			"pos": Positive,
 		},
 	}, labels)
 }
@@ -114,13 +114,13 @@ func TestForAllError(t *testing.T) {
 	unittest.SmallTest(t)
 
 	var e Expectations
-	e.Set("a", "pos", PositiveStr)
-	e.Set("b", "neg", NegativeStr)
-	e.Set("c", "pos", PositiveStr)
-	e.Set("c", "untr", UntriagedStr)
+	e.Set("a", "pos", Positive)
+	e.Set("b", "neg", Negative)
+	e.Set("c", "pos", Positive)
+	e.Set("c", "untr", Untriaged)
 
 	counter := 0
-	err := e.ForAll(func(testName types.TestName, d types.Digest, l LabelStr) error {
+	err := e.ForAll(func(testName types.TestName, d types.Digest, l Label) error {
 		if counter == 2 {
 			return errors.New("oops")
 		}
@@ -137,17 +137,17 @@ func TestDeepCopy(t *testing.T) {
 	unittest.SmallTest(t)
 
 	var e Expectations
-	e.Set("a", "pos", PositiveStr)
+	e.Set("a", "pos", Positive)
 
 	f := e.DeepCopy()
-	e.Set("b", "neg", NegativeStr)
-	f.Set("b", "neg", PositiveStr)
+	e.Set("b", "neg", Negative)
+	f.Set("b", "neg", Positive)
 
-	require.Equal(t, PositiveStr, e.Classification("a", "pos"))
-	require.Equal(t, NegativeStr, e.Classification("b", "neg"))
+	require.Equal(t, Positive, e.Classification("a", "pos"))
+	require.Equal(t, Negative, e.Classification("b", "neg"))
 
-	require.Equal(t, PositiveStr, f.Classification("a", "pos"))
-	require.Equal(t, PositiveStr, f.Classification("b", "neg"))
+	require.Equal(t, Positive, f.Classification("a", "pos"))
+	require.Equal(t, Positive, f.Classification("b", "neg"))
 }
 
 func TestCounts(t *testing.T) {
@@ -157,11 +157,11 @@ func TestCounts(t *testing.T) {
 	require.True(t, e.Empty())
 	require.Equal(t, 0, e.NumTests())
 	require.Equal(t, 0, e.Len())
-	e.Set("a", "pos", PositiveStr)
-	e.Set("b", "neg", NegativeStr)
-	e.Set("c", "untr", UntriagedStr)
-	e.Set("c", "pos", PositiveStr)
-	e.Set("c", "neg", NegativeStr)
+	e.Set("a", "pos", Positive)
+	e.Set("b", "neg", Negative)
+	e.Set("c", "untr", Untriaged)
+	e.Set("c", "pos", Positive)
+	e.Set("c", "neg", Negative)
 
 	require.False(t, e.Empty())
 	assert.Equal(t, 3, e.NumTests())
@@ -177,16 +177,16 @@ func TestCounts(t *testing.T) {
 func TestExpString(t *testing.T) {
 	unittest.SmallTest(t)
 	te := Expectations{
-		labels: map[types.TestName]map[types.Digest]LabelStr{
+		labels: map[types.TestName]map[types.Digest]Label{
 			"beta": {
-				"hash1": PositiveStr,
-				"hash3": NegativeStr,
-				"hash2": UntriagedStr,
+				"hash1": Positive,
+				"hash3": Negative,
+				"hash2": Untriaged,
 			},
 			"alpha": {
-				"hashB": UntriagedStr,
-				"hashA": NegativeStr,
-				"hashC": UntriagedStr,
+				"hashB": Untriaged,
+				"hashA": Negative,
+				"hashC": Untriaged,
 			},
 		},
 	}
@@ -205,22 +205,22 @@ beta:
 func TestAsBaseline(t *testing.T) {
 	unittest.SmallTest(t)
 	input := Expectations{
-		labels: map[types.TestName]map[types.Digest]LabelStr{
+		labels: map[types.TestName]map[types.Digest]Label{
 			"gamma": {
-				"hashX": UntriagedStr,
-				"hashY": UntriagedStr,
-				"hashZ": UntriagedStr,
+				"hashX": Untriaged,
+				"hashY": Untriaged,
+				"hashZ": Untriaged,
 			},
 			"beta": {
-				"hash1": PositiveStr,
-				"hash3": NegativeStr,
-				"hash2": UntriagedStr,
-				"hash4": PositiveStr,
+				"hash1": Positive,
+				"hash3": Negative,
+				"hash2": Untriaged,
+				"hash4": Positive,
 			},
 			"alpha": {
-				"hashB": UntriagedStr,
-				"hashA": NegativeStr,
-				"hashC": UntriagedStr,
+				"hashB": Untriaged,
+				"hashA": Negative,
+				"hashC": Untriaged,
 			},
 		},
 	}
@@ -251,27 +251,27 @@ func TestJoin(t *testing.T) {
 	unittest.SmallTest(t)
 
 	var masterE Expectations
-	masterE.Set(testName, alphaPositiveDigest, PositiveStr)
-	masterE.Set(testName, betaNegativeDigest, PositiveStr)
+	masterE.Set(testName, alphaPositiveDigest, Positive)
+	masterE.Set(testName, betaNegativeDigest, Positive)
 
 	var changeListE Expectations
-	changeListE.Set(testName, gammaPositiveDigest, PositiveStr)
-	changeListE.Set(testName, betaNegativeDigest, NegativeStr) // this should win
+	changeListE.Set(testName, gammaPositiveDigest, Positive)
+	changeListE.Set(testName, betaNegativeDigest, Negative) // this should win
 
 	e := Join(&changeListE, &masterE)
 
-	assert.Equal(t, PositiveStr, e.Classification(testName, alphaPositiveDigest))
-	assert.Equal(t, PositiveStr, e.Classification(testName, gammaPositiveDigest))
-	assert.Equal(t, NegativeStr, e.Classification(testName, betaNegativeDigest))
-	assert.Equal(t, UntriagedStr, e.Classification(testName, untriagedDigest))
+	assert.Equal(t, Positive, e.Classification(testName, alphaPositiveDigest))
+	assert.Equal(t, Positive, e.Classification(testName, gammaPositiveDigest))
+	assert.Equal(t, Negative, e.Classification(testName, betaNegativeDigest))
+	assert.Equal(t, Untriaged, e.Classification(testName, untriagedDigest))
 }
 
 func TestEmptyClassifier(t *testing.T) {
 	unittest.SmallTest(t)
 
 	e := EmptyClassifier()
-	assert.Equal(t, UntriagedStr, e.Classification(testName, alphaPositiveDigest))
-	assert.Equal(t, UntriagedStr, e.Classification(testName, gammaPositiveDigest))
-	assert.Equal(t, UntriagedStr, e.Classification(testName, betaNegativeDigest))
-	assert.Equal(t, UntriagedStr, e.Classification(testName, untriagedDigest))
+	assert.Equal(t, Untriaged, e.Classification(testName, alphaPositiveDigest))
+	assert.Equal(t, Untriaged, e.Classification(testName, gammaPositiveDigest))
+	assert.Equal(t, Untriaged, e.Classification(testName, betaNegativeDigest))
+	assert.Equal(t, Untriaged, e.Classification(testName, untriagedDigest))
 }

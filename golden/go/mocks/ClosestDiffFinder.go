@@ -19,11 +19,11 @@ type ClosestDiffFinder struct {
 }
 
 // ClosestDigest provides a mock function with given fields: ctx, test, digest, label
-func (_m *ClosestDiffFinder) ClosestDigest(ctx context.Context, test types.TestName, digest types.Digest, label expectations.LabelStr) (*digesttools.Closest, error) {
+func (_m *ClosestDiffFinder) ClosestDigest(ctx context.Context, test types.TestName, digest types.Digest, label expectations.Label) (*digesttools.Closest, error) {
 	ret := _m.Called(ctx, test, digest, label)
 
 	var r0 *digesttools.Closest
-	if rf, ok := ret.Get(0).(func(context.Context, types.TestName, types.Digest, expectations.LabelStr) *digesttools.Closest); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, types.TestName, types.Digest, expectations.Label) *digesttools.Closest); ok {
 		r0 = rf(ctx, test, digest, label)
 	} else {
 		if ret.Get(0) != nil {
@@ -32,7 +32,7 @@ func (_m *ClosestDiffFinder) ClosestDigest(ctx context.Context, test types.TestN
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, types.TestName, types.Digest, expectations.LabelStr) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, types.TestName, types.Digest, expectations.Label) error); ok {
 		r1 = rf(ctx, test, digest, label)
 	} else {
 		r1 = ret.Error(1)

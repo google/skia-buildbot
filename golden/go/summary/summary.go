@@ -158,13 +158,13 @@ func (s *Data) makeSummary(name types.TestName, corpus string, digests types.Dig
 	untHashes := types.DigestSlice{}
 	for _, digest := range digests {
 		switch s.Expectations.Classification(name, digest) {
-		case expectations.UntriagedStr:
+		case expectations.Untriaged:
 			unt += 1
 			diamDigests = append(diamDigests, digest)
 			untHashes = append(untHashes, digest)
-		case expectations.NegativeStr:
+		case expectations.Negative:
 			neg += 1
-		case expectations.PositiveStr:
+		case expectations.Positive:
 			pos += 1
 			diamDigests = append(diamDigests, digest)
 		}

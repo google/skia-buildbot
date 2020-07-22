@@ -201,21 +201,21 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	return searchRet, nil
 }
 
-func collectDigestsForBulkTriage(results []*frontend.SearchResult) map[types.TestName]map[types.Digest]expectations.LabelStr {
-	testNameToPrimaryDigest := map[types.TestName]map[types.Digest]expectations.LabelStr{}
+func collectDigestsForBulkTriage(results []*frontend.SearchResult) map[types.TestName]map[types.Digest]expectations.Label {
+	testNameToPrimaryDigest := map[types.TestName]map[types.Digest]expectations.Label{}
 	for _, r := range results {
 		test := r.Test
 		digestToLabel, ok := testNameToPrimaryDigest[test]
 		if !ok {
-			digestToLabel = map[types.Digest]expectations.LabelStr{}
+			digestToLabel = map[types.Digest]expectations.Label{}
 			testNameToPrimaryDigest[test] = digestToLabel
 		}
 		primary := r.Digest
 		switch r.ClosestRef {
 		case common.PositiveRef:
-			digestToLabel[primary] = expectations.PositiveStr
+			digestToLabel[primary] = expectations.Positive
 		case common.NegativeRef:
-			digestToLabel[primary] = expectations.NegativeStr
+			digestToLabel[primary] = expectations.Negative
 		case common.NoRef:
 			digestToLabel[primary] = ""
 		}
@@ -1071,7 +1071,7 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 			return nil, skerr.Wrap(err)
 		}
 		tn := types.TestName(tr.ResultParams[types.PrimaryKeyField])
-		if exp.Classification(tn, tr.Digest) != expectations.UntriagedStr {
+		if exp.Classification(tn, tr.Digest) != expectations.Untriaged {
 			// It's been triaged already.
 			continue
 		}

@@ -22,7 +22,7 @@ type Expectations struct {
 	//     digest types.Digest
 	//     grouping types.TestName
 	//   }
-	labels map[types.TestName]map[types.Digest]LabelStr
+	labels map[types.TestName]map[types.Digest]Label
 }
 
 // Baseline is a simplified view of the Expectations, suitable for JSON encoding. A Baseline only
@@ -35,7 +35,7 @@ type ReadOnly interface {
 	Classifier
 	// ForAll will iterate through all entries in Expectations and call the callback with them.
 	// Iteration will stop if a non-nil error is returned (and will be forwarded to the caller).
-	ForAll(fn func(types.TestName, types.Digest, LabelStr) error) error
+	ForAll(fn func(types.TestName, types.Digest, Label) error) error
 
 	// Empty returns true iff NumTests() == 0
 	Empty() bool
@@ -51,37 +51,37 @@ type ReadOnly interface {
 type Classifier interface {
 	// Classification returns the label for the given test/digest pair. By definition,
 	// this will return Untriaged if there isn't already a classification set.
-	Classification(test types.TestName, digest types.Digest) LabelStr
+	Classification(test types.TestName, digest types.Digest) Label
 }
 
 // Set sets the label for a test_name/digest pair. If the pair already exists,
 // it will be over written.
-func (e *Expectations) Set(testName types.TestName, digest types.Digest, label LabelStr) {
+func (e *Expectations) Set(testName types.TestName, digest types.Digest, label Label) {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 	e.ensureInit()
 	if digests, ok := e.labels[testName]; ok {
-		if label == UntriagedStr {
+		if label == Untriaged {
 			delete(digests, digest)
 		} else {
 			digests[digest] = label
 		}
 	} else {
-		if label != UntriagedStr {
-			e.labels[testName] = map[types.Digest]LabelStr{digest: label}
+		if label != Untriaged {
+			e.labels[testName] = map[types.Digest]Label{digest: label}
 		}
 	}
 }
 
 // setDigests is a convenience function to set the expectations of a set of digests for a
 // given test_name. Callers should have the write mutex locked.
-func (e *Expectations) setDigests(testName types.TestName, labels map[types.Digest]LabelStr) {
+func (e *Expectations) setDigests(testName types.TestName, labels map[types.Digest]Label) {
 	digests, ok := e.labels[testName]
 	if !ok {
-		digests = make(map[types.Digest]LabelStr, len(labels))
+		digests = make(map[types.Digest]Label, len(labels))
 	}
 	for digest, label := range labels {
-		if label != UntriagedStr {
+		if label != Untriaged {
 			digests[digest] = label
 		}
 	}
@@ -106,7 +106,7 @@ func (e *Expectations) MergeExpectations(other *Expectations) {
 }
 
 // ForAll implements the ReadOnly interface.
-func (e *Expectations) ForAll(fn func(types.TestName, types.Digest, LabelStr) error) error {
+func (e *Expectations) ForAll(fn func(types.TestName, types.Digest, Label) error) error {
 	e.mutex.RLock()
 	defer e.mutex.RUnlock()
 	for test, digests := range e.labels {
@@ -123,20 +123,20 @@ func (e *Expectations) ForAll(fn func(types.TestName, types.Digest, LabelStr) er
 // DeepCopy makes a deep copy of the current expectations/baseline.
 func (e *Expectations) DeepCopy() *Expectations {
 	ret := Expectations{
-		labels: make(map[types.TestName]map[types.Digest]LabelStr, len(e.labels)),
+		labels: make(map[types.TestName]map[types.Digest]Label, len(e.labels)),
 	}
 	ret.MergeExpectations(e)
 	return &ret
 }
 
 // Classification implements the ReadOnly interface.
-func (e *Expectations) Classification(test types.TestName, digest types.Digest) LabelStr {
+func (e *Expectations) Classification(test types.TestName, digest types.Digest) Label {
 	e.mutex.RLock()
 	defer e.mutex.RUnlock()
 	if label, ok := e.labels[test][digest]; ok {
 		return label
 	}
-	return UntriagedStr
+	return Untriaged
 }
 
 // Empty implements the ReadOnly interface.
@@ -199,11 +199,11 @@ func (e *Expectations) AsBaseline() Baseline {
 	e.mutex.RLock()
 	defer e.mutex.RUnlock()
 	n := Expectations{
-		labels: map[types.TestName]map[types.Digest]LabelStr{},
+		labels: map[types.TestName]map[types.Digest]Label{},
 	}
 	for testName, digests := range e.labels {
 		for d, c := range digests {
-			if c != UntriagedStr {
+			if c != Untriaged {
 				n.Set(testName, d, c)
 			}
 		}
@@ -216,7 +216,7 @@ func (e *Expectations) AsBaseline() Baseline {
 	for testName, digestToLabelStrMap := range n.labels {
 		digestToLabelMap := map[types.Digest]LabelInt{}
 		for digest, labelStr := range digestToLabelStrMap {
-			digestToLabelMap[digest] = LabelFromString(labelStr)
+			digestToLabelMap[digest] = LabelIntFromString(labelStr)
 		}
 		baseline[testName] = digestToLabelMap
 	}
@@ -227,7 +227,7 @@ func (e *Expectations) AsBaseline() Baseline {
 // ensureInit expects that the write mutex is held prior to entry.
 func (e *Expectations) ensureInit() {
 	if e.labels == nil {
-		e.labels = map[types.TestName]map[types.Digest]LabelStr{}
+		e.labels = map[types.TestName]map[types.Digest]Label{}
 	}
 }
 
@@ -246,13 +246,13 @@ func Join(first, second ReadOnly, others ...ReadOnly) JoinedExp {
 
 // Classification returns the first non-untriaged label for the given
 // test and digest. If none of the given ReadOnly have a match, Untriaged is returned.
-func (e JoinedExp) Classification(test types.TestName, digest types.Digest) LabelStr {
+func (e JoinedExp) Classification(test types.TestName, digest types.Digest) Label {
 	for _, exp := range e {
-		if label := exp.Classification(test, digest); label != UntriagedStr {
+		if label := exp.Classification(test, digest); label != Untriaged {
 			return label
 		}
 	}
-	return UntriagedStr
+	return Untriaged
 }
 
 // EmptyClassifier returns a Classifier which returns Untriaged for given input.

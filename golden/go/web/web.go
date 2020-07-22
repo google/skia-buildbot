@@ -755,7 +755,7 @@ func (wh *Handlers) addIgnoreCounts(ctx context.Context, rules []*frontend.Ignor
 					idxMatched = i
 
 					// Check to see if the digest is untriaged at head
-					if d := trace.AtHead(); d != tiling.MissingDigest && exp.Classification(trace.TestName(), d) == expectations.UntriagedStr {
+					if d := trace.AtHead(); d != tiling.MissingDigest && exp.Classification(trace.TestName(), d) == expectations.Untriaged {
 						ruleCounts[i].UntriagedCount++
 						untMatched++
 						untIdxMatched = i
@@ -923,7 +923,7 @@ func (wh *Handlers) triage(ctx context.Context, user string, req frontend.Triage
 				// side than make the JS check for empty string and mutate the POST body.
 				continue
 			}
-			if !expectations.ValidLabelStr(label) {
+			if !expectations.ValidLabel(label) {
 				return skerr.Fmt("invalid label %q in triage request", label)
 			}
 			tc = append(tc, expectations.Delta{
@@ -1047,8 +1047,8 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 
 // Node represents a single node in a d3 diagram. Used in ClusterDiffResult.
 type Node struct {
-	Name   types.Digest          `json:"name"`
-	Status expectations.LabelStr `json:"status"`
+	Name   types.Digest       `json:"name"`
+	Status expectations.Label `json:"status"`
 }
 
 // Link represents a link between d3 nodes, used in ClusterDiffResult.
