@@ -339,7 +339,7 @@ func (c *CloudClient) addTest(name types.TestName, imgFileName string, additiona
 
 	fmt.Printf("Given image with hash %s for test %s\n", imgHash, name)
 	for expectHash, expectLabel := range c.resultState.Expectations[name] {
-		fmt.Printf("Expectation for test: %s (%s)\n", expectHash, expectLabel.String())
+		fmt.Printf("Expectation for test: %s (%s)\n", expectHash, expectLabel)
 	}
 
 	var egroup errgroup.Group
@@ -428,7 +428,7 @@ func (c *CloudClient) Check(name types.TestName, imgFileName string, keys, optio
 	}
 	fmt.Printf("Given image with hash %s for test %s\n", imgHash, name)
 	for expectHash, expectLabel := range c.resultState.Expectations[name] {
-		fmt.Printf("Expectation for test: %s (%s)\n", expectHash, expectLabel.String())
+		fmt.Printf("Expectation for test: %s (%s)\n", expectHash, expectLabel)
 	}
 
 	_, traceID := c.makeResultKeyAndTraceId(name, keys)
@@ -454,10 +454,10 @@ func (c *CloudClient) Check(name types.TestName, imgFileName string, keys, optio
 func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId tiling.TraceID, imageBytes []byte, imageHash types.Digest, optionalKeys map[string]string) (bool, imgmatching.AlgorithmName, error) {
 	// First we check whether the digest is a known positive or negative, regardless of the specified
 	// image matching algorithm.
-	if c.resultState.Expectations[testName][imageHash] == expectations.PositiveInt {
+	if c.resultState.Expectations[testName][imageHash] == expectations.Positive {
 		return true, imgmatching.ExactMatching, nil
 	}
-	if c.resultState.Expectations[testName][imageHash] == expectations.NegativeInt {
+	if c.resultState.Expectations[testName][imageHash] == expectations.Negative {
 		return false, imgmatching.ExactMatching, nil
 	}
 
@@ -852,7 +852,7 @@ func (c *CloudClient) DumpBaseline() (string, error) {
 	return stringifyBaseline(c.resultState.Expectations), nil
 }
 
-func stringifyBaseline(b map[types.TestName]map[types.Digest]expectations.LabelInt) string {
+func stringifyBaseline(b map[types.TestName]map[types.Digest]expectations.Label) string {
 	names := make([]string, 0, len(b))
 	for testName := range b {
 		names = append(names, string(testName))
@@ -868,7 +868,7 @@ func stringifyBaseline(b map[types.TestName]map[types.Digest]expectations.LabelI
 		sort.Strings(digests)
 		_, _ = fmt.Fprintf(&s, "%s:\n", testName)
 		for _, d := range digests {
-			_, _ = fmt.Fprintf(&s, "\t%s : %s\n", d, digestMap[types.Digest(d)].String())
+			_, _ = fmt.Fprintf(&s, "\t%s : %s\n", d, digestMap[types.Digest(d)])
 		}
 	}
 	return s.String()
