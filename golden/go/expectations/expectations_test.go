@@ -227,12 +227,12 @@ func TestAsBaseline(t *testing.T) {
 
 	expectedOutput := Baseline{
 		"beta": {
-			"hash1": Positive,
-			"hash3": Negative,
-			"hash4": Positive,
+			"hash1": PositiveInt,
+			"hash3": NegativeInt,
+			"hash4": PositiveInt,
 		},
 		"alpha": {
-			"hashA": Negative,
+			"hashA": NegativeInt,
 		},
 	}
 	require.Equal(t, expectedOutput, input.AsBaseline())

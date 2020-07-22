@@ -87,12 +87,12 @@ type v2Impl struct {
 }
 
 type v2ExpectationEntry struct {
-	Grouping   types.TestName     `firestore:"grouping"`
-	Digest     types.Digest       `firestore:"digest"`
-	Label      expectations.Label `firestore:"label"`
-	Updated    time.Time          `firestore:"updated"`
-	CRSAndCLID string             `firestore:"crs_cl_id"`
-	LastUsed   time.Time          `firestore:"last_used"`
+	Grouping   types.TestName        `firestore:"grouping"`
+	Digest     types.Digest          `firestore:"digest"`
+	Label      expectations.LabelInt `firestore:"label"`
+	Updated    time.Time             `firestore:"updated"`
+	CRSAndCLID string                `firestore:"crs_cl_id"`
+	LastUsed   time.Time             `firestore:"last_used"`
 }
 
 type v2TriageRecord struct {
@@ -104,11 +104,11 @@ type v2TriageRecord struct {
 }
 
 type v2TriageChange struct {
-	RecordID    string             `firestore:"record_id"`
-	Grouping    types.TestName     `firestore:"grouping"`
-	Digest      types.Digest       `firestore:"digest"`
-	LabelBefore expectations.Label `firestore:"before"`
-	LabelAfter  expectations.Label `firestore:"after"`
+	RecordID    string                `firestore:"record_id"`
+	Grouping    types.TestName        `firestore:"grouping"`
+	Digest      types.Digest          `firestore:"digest"`
+	LabelBefore expectations.LabelInt `firestore:"before"`
+	LabelAfter  expectations.LabelInt `firestore:"after"`
 }
 
 func (v v2Impl) loadExpectationEntries(ctx context.Context) ([]v2ExpectationEntry, error) {
@@ -224,9 +224,9 @@ func (e *v3ExpectationEntry) id() string {
 }
 
 type v3TriageRange struct {
-	FirstIndex int                `firestore:"first_index"`
-	LastIndex  int                `firestore:"last_index"`
-	Label      expectations.Label `firestore:"label"`
+	FirstIndex int                   `firestore:"first_index"`
+	LastIndex  int                   `firestore:"last_index"`
+	Label      expectations.LabelInt `firestore:"label"`
 }
 
 type v3TriageRecord struct {
@@ -238,11 +238,11 @@ type v3TriageRecord struct {
 
 type v3ExpectationChange struct {
 	// RecordID refers to a document in the records collection.
-	RecordID      string             `firestore:"record_id"`
-	Grouping      types.TestName     `firestore:"grouping"`
-	Digest        types.Digest       `firestore:"digest"`
-	AffectedRange v3TriageRange      `firestore:"affected_range"`
-	LabelBefore   expectations.Label `firestore:"label_before"`
+	RecordID      string                `firestore:"record_id"`
+	Grouping      types.TestName        `firestore:"grouping"`
+	Digest        types.Digest          `firestore:"digest"`
+	AffectedRange v3TriageRange         `firestore:"affected_range"`
+	LabelBefore   expectations.LabelInt `firestore:"label_before"`
 }
 
 func (v v3Impl) migrateAndStoreEntries(ctx context.Context, oldEntries []v2ExpectationEntry) error {

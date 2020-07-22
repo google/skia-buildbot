@@ -86,18 +86,18 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	// with additionalTriages overwriting existing expectations, if applicable.
 	assert.Equal(t, expectations.Baseline{
 		"brand-new-test": {
-			IotaNewDigest:  expectations.Positive,
-			KappaNewDigest: expectations.Negative,
+			IotaNewDigest:  expectations.PositiveInt,
+			KappaNewDigest: expectations.NegativeInt,
 		},
 		// AlphaTest should be unchanged from the master baseline.
 		three_devices.AlphaTest: {
-			three_devices.AlphaPositiveDigest: expectations.Positive,
-			three_devices.AlphaNegativeDigest: expectations.Negative,
+			three_devices.AlphaPositiveDigest: expectations.PositiveInt,
+			three_devices.AlphaNegativeDigest: expectations.NegativeInt,
 		},
 		three_devices.BetaTest: {
-			MuNewDigest:                       expectations.Positive,
-			three_devices.BetaPositiveDigest:  expectations.Negative,
-			three_devices.BetaUntriagedDigest: expectations.Positive,
+			MuNewDigest:                       expectations.PositiveInt,
+			three_devices.BetaPositiveDigest:  expectations.NegativeInt,
+			three_devices.BetaUntriagedDigest: expectations.PositiveInt,
 		},
 	}, b.Expectations)
 
