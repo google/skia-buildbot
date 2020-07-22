@@ -672,7 +672,23 @@ func TestUpdateFromGitHubPullRequest(t *testing.T) {
 	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
 	assertdeep.Equal(t, expect, a)
 
+	// Set Created to now and add try results. Dry run should still be running because
+	// PR is not older than 15 mins.
+	now = time.Now()
+	pr.CreatedAt = &now
+	pr.UpdatedAt = &now
+	expect.Created = now
+	expect.Modified = now
+	a.TryResults = expect.TryResults
+	require.NoError(t, updateIssueFromGitHubPullRequest(a, pr))
+	assertdeep.Equal(t, expect, a)
+
 	// Dry run failed.
+	before16Mins := now.Add(-16 * time.Minute)
+	pr.CreatedAt = &before16Mins
+	pr.UpdatedAt = &before16Mins
+	expect.Created = before16Mins
+	expect.Modified = before16Mins
 	expect.DryRunFinished = true
 	expect.DryRunSuccess = false
 	expect.Result = autoroll.ROLL_RESULT_DRY_RUN_FAILURE
