@@ -200,8 +200,8 @@ func (e *Expectations) String() string {
 	return s.String()
 }
 
-// AsBaselineInt returns a copy that has all untriaged digests removed.
-func (e *Expectations) AsBaselineInt() BaselineInt {
+// AsBaseline returns a copy that has all untriaged digests removed.
+func (e *Expectations) AsBaseline() Baseline {
 	e.mutex.RLock()
 	defer e.mutex.RUnlock()
 	n := Expectations{
@@ -214,20 +214,26 @@ func (e *Expectations) AsBaselineInt() BaselineInt {
 			}
 		}
 	}
+	return n.labels
+}
 
-	// Convert the above into a BaselineInt.
-	// TODO(skbug.com/10522): Remove once the expectations.LabelStr -> expectations.Label refactoring
-	//                        is complete.
-	baseline := BaselineInt{}
-	for testName, digestToLabelStrMap := range n.labels {
+// AsBaselineInt is the LabelInt version of AsBaseline.
+//
+// TODO(skbug.com/10522): Remove once the expectations.LabelStr -> expectations.Label refactoring
+//                        is complete.
+func (e *Expectations) AsBaselineInt() BaselineInt {
+	baseline := e.AsBaseline()
+
+	baselineInt := BaselineInt{}
+	for testName, digestToLabelStrMap := range baseline {
 		digestToLabelMap := map[types.Digest]LabelInt{}
 		for digest, labelStr := range digestToLabelStrMap {
 			digestToLabelMap[digest] = LabelIntFromString(labelStr)
 		}
-		baseline[testName] = digestToLabelMap
+		baselineInt[testName] = digestToLabelMap
 	}
 
-	return baseline
+	return baselineInt
 }
 
 // ensureInit expects that the write mutex is held prior to entry.
