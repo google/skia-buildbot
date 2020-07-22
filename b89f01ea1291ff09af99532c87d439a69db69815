@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f074abb8_2e1cfa0a",
+        "filename": "golden/go/tiling/trace.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-22T08:44:08Z",
+      "side": 1,
+      "message": "Can we disallow this instead of recommending against it?\n\nIf not, then please explain why we strongly recommend against it (e.g. could it result in unspecified behavior?)",
+      "range": {
+        "startLine": 24,
+        "startChar": 10,
+        "endLine": 24,
+        "endChar": 30
+      },
+      "revId": "b89f01ea1291ff09af99532c87d439a69db69815",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d30416b_2a3b43c2",
+        "filename": "golden/go/tiling/trace.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-22T08:44:08Z",
+      "side": 1,
+      "message": "What about optionalKeys? This would be in line with the terminology used in goldctl.",
+      "range": {
+        "startLine": 25,
+        "startChar": 1,
+        "endLine": 25,
+        "endChar": 8
+      },
+      "revId": "b89f01ea1291ff09af99532c87d439a69db69815",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
