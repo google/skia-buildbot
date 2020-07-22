@@ -3,6 +3,7 @@ package sqltracestore
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -48,6 +49,7 @@ func TestCockroachDB(t *testing.T) {
 
 	for name, subTest := range subTests {
 		t.Run(name, func(t *testing.T) {
+			fmt.Println(name)
 			db, cleanup := sqltest.NewCockroachDBForTests(t, "tracestore", sqltest.ApplyMigrations)
 			// Commenting out the defer cleanup() can sometimes make failures
 			// easier to understand.
@@ -81,21 +83,42 @@ func testUpdateSourceFile(t *testing.T, s *SQLTraceStore) {
 func testWriteTraceIDAndPostings(t *testing.T, s *SQLTraceStore) {
 	p := paramtools.NewParams(",config=8888,arch=x86,")
 
+	tileNumber := types.TileNumber(1)
+
 	// Do each update twice to ensure the IDs don't change.
-	traceID, err := s.writeTraceIDAndPostings(p, 1)
+	traceID, err := s.writeTraceIDAndPostings(p, tileNumber)
 	assert.NoError(t, err)
 
-	traceID2, err := s.writeTraceIDAndPostings(p, 1)
+	// Confirm we get a cache entry.
+	postingCacheEntryID := fmt.Sprintf("%d-%d", traceID, tileNumber)
+	_, ok := s.postingsWrittenCache.Get(postingCacheEntryID)
+	assert.True(t, ok)
+
+	// Remove the cache entry so we try to write again.
+	ok = s.postingsWrittenCache.Remove(postingCacheEntryID)
+	assert.True(t, ok)
+
+	// Confirm the second write returns the same value.
+	traceID2, err := s.writeTraceIDAndPostings(p, tileNumber)
 	assert.NoError(t, err)
 	assert.Equal(t, traceID, traceID2)
 
+	// Exercise the countPostingsForTraceID statement.
+
+	/*
+		var count int
+		err = s.preparedStatements[countPostingsForTraceID].QueryRowContext(context.TODO(), tileNumber, traceID).Scan(&count)
+		require.NoError(t, err)
+		assert.Equal(t, len(p), count)
+	*/
+
 	p2 := paramtools.NewParams(",config=8888,arch=arm,")
 
-	traceID, err = s.writeTraceIDAndPostings(p2, 1)
+	traceID, err = s.writeTraceIDAndPostings(p2, tileNumber)
 	assert.NoError(t, err)
 	assert.NotEqual(t, traceID, traceID2)
 
-	traceID2, err = s.writeTraceIDAndPostings(p2, 1)
+	traceID2, err = s.writeTraceIDAndPostings(p2, tileNumber)
 	assert.NoError(t, err)
 	assert.Equal(t, traceID, traceID2)
 }
