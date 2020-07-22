@@ -101,7 +101,7 @@ func update(ctx context.Context, byTest map[types.TestName]digest_counter.Digest
 func cleanup(ctx context.Context, gc expectations.GarbageCollector, policy Policy, now time.Time) error {
 	posMax := policy.PositiveMaxLastUsed
 	if posMax > 0 {
-		if n, err := gc.MarkUnusedEntriesForGC(ctx, expectations.PositiveInt, now.Add(-posMax)); err != nil {
+		if n, err := gc.MarkUnusedEntriesForGC(ctx, expectations.Positive, now.Add(-posMax)); err != nil {
 			return skerr.Wrapf(err, "untriaging positive expectation entries before %s", now.Add(-posMax))
 		} else {
 			sklog.Infof("%d positive expectations have aged out", n)
@@ -110,7 +110,7 @@ func cleanup(ctx context.Context, gc expectations.GarbageCollector, policy Polic
 
 	negMax := policy.NegativeMaxLastUsed
 	if negMax > 0 {
-		if n, err := gc.MarkUnusedEntriesForGC(ctx, expectations.NegativeInt, now.Add(-negMax)); err != nil {
+		if n, err := gc.MarkUnusedEntriesForGC(ctx, expectations.Negative, now.Add(-negMax)); err != nil {
 			return skerr.Wrapf(err, "untriaging negative expectation entries before %s", now.Add(-negMax))
 		} else {
 			sklog.Infof("%d negative expectations have aged out", n)
