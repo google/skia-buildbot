@@ -98,6 +98,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					"device":              {data.BullheadDevice},
 					types.PrimaryKeyField: {string(data.AlphaTest)},
 					types.CorpusField:     {"gm"},
+					"ext":                 {data.PNGExtension},
 				},
 				TraceGroup: frontend.TraceGroup{
 					TileSize:     3, // 3 commits in tile
@@ -110,6 +111,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 								"device":              data.BullheadDevice,
 								types.PrimaryKeyField: string(data.AlphaTest),
 								types.CorpusField:     "gm",
+								"ext":                 data.PNGExtension,
 							},
 						},
 					},
@@ -134,6 +136,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 							"device":              {data.AnglerDevice, data.CrosshatchDevice},
 							types.PrimaryKeyField: {string(data.AlphaTest)},
 							types.CorpusField:     {"gm"},
+							"ext":                 {data.PNGExtension},
 						},
 						OccurrencesInTile: 2,
 					},
@@ -145,6 +148,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 							"device":              {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
 							types.PrimaryKeyField: {string(data.AlphaTest)},
 							types.CorpusField:     {"gm"},
+							"ext":                 {data.PNGExtension},
 						},
 						OccurrencesInTile: 6,
 					},
@@ -158,6 +162,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 					"device":              {data.CrosshatchDevice},
 					types.PrimaryKeyField: {string(data.BetaTest)},
 					types.CorpusField:     {"gm"},
+					"ext":                 {data.PNGExtension},
 				},
 				TraceGroup: frontend.TraceGroup{
 					TileSize:     3,
@@ -170,6 +175,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 								"device":              data.CrosshatchDevice,
 								types.PrimaryKeyField: string(data.BetaTest),
 								types.CorpusField:     "gm",
+								"ext":                 data.PNGExtension,
 							},
 						},
 					},
@@ -190,6 +196,7 @@ func TestSearch_UntriagedDigestsAtHead_Success(t *testing.T) {
 							"device":              {data.AnglerDevice, data.BullheadDevice},
 							types.PrimaryKeyField: {string(data.BetaTest)},
 							types.CorpusField:     {"gm"},
+							"ext":                 {data.PNGExtension},
 						},
 						OccurrencesInTile: 6,
 					},
@@ -755,7 +762,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 		"device": data.BullheadDevice,
 	}
 	options := map[string]string{
-		"ext": "png",
+		"ext": data.PNGExtension,
 	}
 
 	mtjs.On("GetResults", testutils.AnyContext, expectedID, anyTime).Return([]tjstore.TryJobResult{
@@ -846,7 +853,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 					"device":              {data.BullheadDevice},
 					types.PrimaryKeyField: {string(data.BetaTest)},
 					types.CorpusField:     {"gm"},
-					"ext":                 {"png"},
+					"ext":                 {data.PNGExtension},
 				},
 				TraceGroup: frontend.TraceGroup{
 					Traces: []frontend.Trace{
@@ -860,6 +867,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 								"device":              data.BullheadDevice,
 								types.PrimaryKeyField: string(data.BetaTest),
 								types.CorpusField:     "gm",
+								"ext":                 data.PNGExtension,
 							},
 						},
 					},
@@ -886,8 +894,7 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 							"device":              {data.AnglerDevice, data.BullheadDevice},
 							types.PrimaryKeyField: {string(data.BetaTest)},
 							types.CorpusField:     {"gm"},
-							// Note: the data from three_devices lacks an "ext" entry, so
-							// we don't see one here
+							"ext":                 {data.PNGExtension},
 						},
 						OccurrencesInTile: 6,
 					},
@@ -940,7 +947,7 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 		"device": data.BullheadDevice,
 	}
 	options := map[string]string{
-		"ext": "png",
+		"ext": data.PNGExtension,
 	}
 	mi.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{
 		LatestPatchSet: combinedID,
@@ -1045,6 +1052,7 @@ func TestDigestDetails_MasterBranch_Success(t *testing.T) {
 				"device":              {data.AnglerDevice, data.CrosshatchDevice},
 				types.PrimaryKeyField: {string(data.AlphaTest)},
 				types.CorpusField:     {"gm"},
+				"ext":                 {data.PNGExtension},
 			},
 			TraceGroup: frontend.TraceGroup{
 				TileSize:     3, // 3 commits in tile
@@ -1057,6 +1065,7 @@ func TestDigestDetails_MasterBranch_Success(t *testing.T) {
 							"device":              data.AnglerDevice,
 							types.PrimaryKeyField: string(data.AlphaTest),
 							types.CorpusField:     "gm",
+							"ext":                 data.PNGExtension,
 						},
 					},
 					{
@@ -1066,6 +1075,7 @@ func TestDigestDetails_MasterBranch_Success(t *testing.T) {
 							"device":              data.CrosshatchDevice,
 							types.PrimaryKeyField: string(data.AlphaTest),
 							types.CorpusField:     "gm",
+							"ext":                 data.PNGExtension,
 						},
 					},
 				},
@@ -1091,6 +1101,7 @@ func TestDigestDetails_MasterBranch_Success(t *testing.T) {
 						"device":              {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
 						types.PrimaryKeyField: {string(data.AlphaTest)},
 						types.CorpusField:     {"gm"},
+						"ext":                 {data.PNGExtension},
 					},
 					OccurrencesInTile: 6,
 				},
@@ -1177,6 +1188,7 @@ func TestDigestDetails_DigestTooOld_ReturnsComparisonToRecentDigest(t *testing.T
 				"device":              []string{data.AnglerDevice, data.BullheadDevice},
 				types.PrimaryKeyField: []string{string(data.BetaTest)},
 				types.CorpusField:     []string{"gm"},
+				"ext":                 {data.PNGExtension},
 			},
 			OccurrencesInTile: 6,
 		},
@@ -1265,25 +1277,25 @@ func TestDigestDetails_NewTestOnChangeList_Success(t *testing.T) {
 			Digest:       digestWeWantDetailsAbout,
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(testWeWantDetailsAbout)},
 			GroupParams:  paramtools.Params{"os": "Android"},
-			Options:      paramtools.Params{"ext": "png"},
+			Options:      paramtools.Params{"ext": data.PNGExtension},
 		},
 		{
 			Digest:       digestWeWantDetailsAbout,
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(testWeWantDetailsAbout)},
 			GroupParams:  paramtools.Params{"os": "iOS"},
-			Options:      paramtools.Params{"ext": "png"},
+			Options:      paramtools.Params{"ext": data.PNGExtension},
 		},
 		{
 			Digest:       digestWeWantDetailsAbout,
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.BetaTest)},
 			GroupParams:  paramtools.Params{"os": "Android"},
-			Options:      paramtools.Params{"ext": "png"},
+			Options:      paramtools.Params{"ext": data.PNGExtension},
 		},
 		{
 			Digest:       "some other digest",
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(testWeWantDetailsAbout)},
 			GroupParams:  paramtools.Params{"os": "Android"},
-			Options:      paramtools.Params{"ext": "png"},
+			Options:      paramtools.Params{"ext": data.PNGExtension},
 		},
 	}, nil)
 
@@ -1301,7 +1313,7 @@ func TestDigestDetails_NewTestOnChangeList_Success(t *testing.T) {
 			ParamSet: paramtools.ParamSet{
 				types.PrimaryKeyField: []string{string(testWeWantDetailsAbout)},
 				"os":                  []string{"Android", "iOS"},
-				"ext":                 []string{"png"},
+				"ext":                 []string{data.PNGExtension},
 			},
 		},
 	}, rv)
@@ -1352,13 +1364,13 @@ func TestDigestDetails_NewTestOnChangeList_WithPublicParams_Success(t *testing.T
 			Digest:       digestWeWantDetailsAbout,
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(testWeWantDetailsAbout)},
 			GroupParams:  paramtools.Params{"os": "Android", types.CorpusField: data.GMCorpus},
-			Options:      paramtools.Params{"ext": "png"},
+			Options:      paramtools.Params{"ext": data.PNGExtension},
 		},
 		{
 			Digest:       digestWeWantDetailsAbout,
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(testWeWantDetailsAbout)},
 			GroupParams:  paramtools.Params{"os": "super_secret_device_do_not_leak", types.CorpusField: data.GMCorpus},
-			Options:      paramtools.Params{"ext": "png"},
+			Options:      paramtools.Params{"ext": data.PNGExtension},
 		},
 	}, nil)
 
@@ -1385,7 +1397,7 @@ func TestDigestDetails_NewTestOnChangeList_WithPublicParams_Success(t *testing.T
 				types.PrimaryKeyField: []string{string(testWeWantDetailsAbout)},
 				types.CorpusField:     []string{data.GMCorpus},
 				"os":                  []string{"Android"},
-				"ext":                 []string{"png"},
+				"ext":                 []string{data.PNGExtension},
 			},
 		},
 	}, rv)
@@ -1421,9 +1433,10 @@ func TestDigestDetails_TestIgnored_DetailsContainResults_Success(t *testing.T) {
 	result, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, "", "")
 	require.NoError(t, err)
 	assert.Equal(t, paramtools.ParamSet{
-		"device":              []string{data.AnglerDevice, data.CrosshatchDevice},
-		types.PrimaryKeyField: []string{string(data.AlphaTest)},
-		types.CorpusField:     []string{"gm"},
+		"device":              {data.AnglerDevice, data.CrosshatchDevice},
+		types.PrimaryKeyField: {string(data.AlphaTest)},
+		types.CorpusField:     {"gm"},
+		"ext":                 {data.PNGExtension},
 	}, result.Result.ParamSet)
 	assert.Equal(t, map[common.RefClosest]*frontend.SRDiffDigest{
 		common.NegativeRef: {
@@ -1431,9 +1444,10 @@ func TestDigestDetails_TestIgnored_DetailsContainResults_Success(t *testing.T) {
 			Digest:      data.AlphaNegativeDigest,
 			Status:      expectations.NegativeStr,
 			ParamSet: paramtools.ParamSet{
-				"device":              []string{data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
-				types.PrimaryKeyField: []string{string(data.AlphaTest)},
-				types.CorpusField:     []string{"gm"},
+				"device":              {data.AnglerDevice, data.BullheadDevice, data.CrosshatchDevice},
+				types.PrimaryKeyField: {string(data.AlphaTest)},
+				types.CorpusField:     {"gm"},
+				"ext":                 {data.PNGExtension},
 			},
 			OccurrencesInTile: 6,
 		},
@@ -1464,6 +1478,7 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 				"device":              []string{data.BullheadDevice},
 				types.PrimaryKeyField: []string{string(data.AlphaTest)},
 				types.CorpusField:     []string{"gm"},
+				"ext":                 {data.PNGExtension},
 			},
 		},
 		Right: &frontend.SRDiffDigest{
@@ -1474,6 +1489,7 @@ func TestDiffDigestsSunnyDay(t *testing.T) {
 				"device":              []string{data.AnglerDevice, data.CrosshatchDevice},
 				types.PrimaryKeyField: []string{string(data.AlphaTest)},
 				types.CorpusField:     []string{"gm"},
+				"ext":                 {data.PNGExtension},
 			},
 		},
 	}, cd)
@@ -1564,7 +1580,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_NoIndexBuilt_Success(t *testin
 		"device": data.CrosshatchDevice,
 	}
 	options := map[string]string{
-		"ext": "png",
+		"ext": data.PNGExtension,
 	}
 	mtjs.On("GetResults", testutils.AnyContext, expectedID, anyTime).Return([]tjstore.TryJobResult{
 		{
@@ -1664,7 +1680,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_LowFlakyTraceThreshold_FlakyTr
 		"device": data.AnglerDevice,
 	}
 	options := map[string]string{
-		"ext": "png",
+		"ext": data.PNGExtension,
 	}
 	mtjs.On("GetResults", testutils.AnyContext, expectedID, anyTime).Return([]tjstore.TryJobResult{
 		{
@@ -1755,7 +1771,7 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_UsesIndex_Success(t *testing.T
 		"device": data.CrosshatchDevice,
 	}
 	options := map[string]string{
-		"ext": "png",
+		"ext": data.PNGExtension,
 	}
 	indexTS := time.Date(2020, time.May, 1, 2, 3, 4, 0, time.UTC)
 	mi.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{

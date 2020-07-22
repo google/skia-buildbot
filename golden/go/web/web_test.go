@@ -1819,7 +1819,7 @@ func TestGetPerTraceDigestsByTestName_Success(t *testing.T) {
 				"name":        "MyTest",
 				"foo":         "alpha",
 				"source_type": "MyCorpus",
-			}),
+			}, nil),
 		},
 		{
 			ID: ",name=MyTest,foo=beta,source_type=MyCorpus,",
@@ -1830,7 +1830,7 @@ func TestGetPerTraceDigestsByTestName_Success(t *testing.T) {
 				"name":        "MyTest",
 				"foo":         "beta",
 				"source_type": "MyCorpus",
-			}),
+			}, nil),
 		},
 	})
 

@@ -17,12 +17,13 @@ type Trace struct {
 	// Digests represents the images seen over the last N commits. Index 0 is the oldest data, index
 	// len-1 is the newest data.
 	Digests []types.Digest
-	// Keys describe how the digest was produced. These keys and values contribute to the trace id
+	// keys describe how the digest was produced. These keys and values contribute to the trace id
 	// (that is, they contribute to uniqueness).
 	keys map[string]string
-	// Options describe other parameters. These do not contribute to the trace id, but are searchable.
-	// TODO(kjlubick)
-	// Options map[string]string
+	// options describe other parameters. These do not contribute to the trace id, but are searchable.
+	// It is strongly recommended to not have the same string be a key in both keys and options.
+	// Doing so could lead to unspecified behavior.
+	options map[string]string
 
 	// cache these values so as not to incur the non-zero map lookup cost (~15 ns) repeatedly.
 	testName types.TestName
@@ -33,10 +34,11 @@ type Trace struct {
 //
 // The Trace Digests are pre-filled in with the missing data sentinel since not
 // all tests will be run on all commits.
-func NewEmptyTrace(numDigests int, keys map[string]string) *Trace {
+func NewEmptyTrace(numDigests int, keys, options map[string]string) *Trace {
 	g := &Trace{
 		Digests: make([]types.Digest, numDigests),
 		keys:    keys,
+		options: options,
 
 		// Prefetch these now, while we have the chance.
 		testName: types.TestName(keys[types.PrimaryKeyField]),
@@ -49,10 +51,11 @@ func NewEmptyTrace(numDigests int, keys map[string]string) *Trace {
 }
 
 // NewTrace creates a new Trace with the given data.
-func NewTrace(digests []types.Digest, keys map[string]string) *Trace {
+func NewTrace(digests []types.Digest, keys, options map[string]string) *Trace {
 	return &Trace{
 		Digests: digests,
 		keys:    keys,
+		options: options,
 
 		// Prefetch these now, while we have the chance.
 		testName: types.TestName(keys[types.PrimaryKeyField]),
@@ -61,63 +64,103 @@ func NewTrace(digests []types.Digest, keys map[string]string) *Trace {
 }
 
 // Keys returns the key value pairs associated with this trace.
-func (g *Trace) Keys() map[string]string {
-	return g.keys
+func (t *Trace) Keys() map[string]string {
+	return t.keys
 }
 
-// Matches returns true if the given Trace matches the given query.
-func (g *Trace) Matches(query paramtools.ParamSet) bool {
-	for k, values := range query {
-		if p, ok := g.Keys()[k]; !ok || !util.In(p, values) {
-			return false
+// Options returns the optional key value pairs associated with this trace (those that don't affect
+// the trace id).
+func (t *Trace) Options() map[string]string {
+	return t.options
+}
+
+// KeysAndOptions returns a combined copy of Keys() and Options().
+func (t *Trace) KeysAndOptions() map[string]string {
+	m := make(map[string]string, len(t.keys)+len(t.options))
+	for k, v := range t.keys {
+		m[k] = v
+	}
+	for k, v := range t.options {
+		m[k] = v
+	}
+	return m
+}
+
+// Matches returns true if this trace matches the given ParamSet. To match, the trace must have
+// each of the keys defined in the ParamSet in either the Keys() or the Options() and the associated
+// value for each of those keys must be in the values from the ParamSet.
+func (t *Trace) Matches(ps paramtools.ParamSet) bool {
+	for k, values := range ps {
+		if p, ok := t.keys[k]; ok && util.In(p, values) {
+			continue
 		}
+		if len(t.options) > 0 {
+			if p, ok := t.options[k]; ok && util.In(p, values) {
+				continue
+			}
+		}
+		// Not in keys nor options.
+		return false
 	}
 	return true
 }
 
 // TestName is a helper for extracting just the test name for this
 // trace, of which there should always be exactly one.
-func (g *Trace) TestName() types.TestName {
-	if g.testName == "" {
-		g.testName = types.TestName(g.keys[types.PrimaryKeyField])
+func (t *Trace) TestName() types.TestName {
+	if t.testName == "" {
+		t.testName = types.TestName(t.keys[types.PrimaryKeyField])
 	}
-	return g.testName
+	return t.testName
 }
 
 // Corpus is a helper for extracting just the corpus key for this
 // trace, of which there should always be exactly one.
-func (g *Trace) Corpus() string {
-	if g.corpus == "" {
-		g.corpus = g.keys[types.CorpusField]
+func (t *Trace) Corpus() string {
+	if t.corpus == "" {
+		t.corpus = t.keys[types.CorpusField]
 	}
-	return g.corpus
+	return t.corpus
 }
 
-// Len implements the tiling.Trace interface.
-func (g *Trace) Len() int {
-	return len(g.Digests)
+// Len returns how many digests are in this trace.
+func (t *Trace) Len() int {
+	return len(t.Digests)
 }
 
 // IsMissing implements the tiling.Trace interface.
-func (g *Trace) IsMissing(i int) bool {
-	return g.Digests[i] == MissingDigest
+func (t *Trace) IsMissing(i int) bool {
+	return t.Digests[i] == MissingDigest
 }
 
-// Merge implements the tiling.Trace interface.
-func (g *Trace) Merge(next *Trace) *Trace {
-	n := len(g.Digests) + len(next.Digests)
-	n1 := len(g.Digests)
+// Merge returns a new Trace that has the digests joined together and the keys and options
+// combined (with the other Trace's values overriding this trace's values in the event of a
+// collision).
+func (t *Trace) Merge(other *Trace) *Trace {
+	n := len(t.Digests) + len(other.Digests)
 
-	merged := NewEmptyTrace(n, g.keys)
-	for k, v := range next.keys {
+	merged := NewEmptyTrace(n, copyStringMap(t.keys), copyStringMap(t.options))
+	for k, v := range other.keys {
 		merged.keys[k] = v
 	}
-	copy(merged.Digests, g.Digests)
-
-	for i, v := range next.Digests {
-		merged.Digests[n1+i] = v
+	for k, v := range other.options {
+		merged.options[k] = v
+	}
+	// Combine the digests
+	copy(merged.Digests, t.Digests)
+	for i, v := range other.Digests {
+		merged.Digests[len(t.Digests)+i] = v
 	}
 	return merged
+}
+
+// copyStringMap returns a copy of the given string map.
+func copyStringMap(m map[string]string) map[string]string {
+	c := make(map[string]string, len(m))
+	for k, v := range m {
+		c[k] = v
+	}
+	return c
 }
 
 // FillType is how filling in of missing values should be done in Trace.Grow().
@@ -129,40 +172,40 @@ const (
 )
 
 // Grow implements the tiling.Trace interface.
-func (g *Trace) Grow(n int, fill FillType) {
-	if n < len(g.Digests) {
-		panic(fmt.Sprintf("Grow must take a value (%d) larger than the current Trace size: %d", n, len(g.Digests)))
+func (t *Trace) Grow(n int, fill FillType) {
+	if n < len(t.Digests) {
+		panic(fmt.Sprintf("Grow must take a value (%d) larger than the current Trace size: %d", n, len(t.Digests)))
 	}
-	delta := n - len(g.Digests)
+	delta := n - len(t.Digests)
 	newDigests := make([]types.Digest, n)
 
 	if fill == FillAfter {
-		copy(newDigests, g.Digests)
+		copy(newDigests, t.Digests)
 		for i := 0; i < delta; i++ {
-			newDigests[i+len(g.Digests)] = MissingDigest
+			newDigests[i+len(t.Digests)] = MissingDigest
 		}
 	} else {
 		for i := 0; i < delta; i++ {
 			newDigests[i] = MissingDigest
 		}
-		copy(newDigests[delta:], g.Digests)
+		copy(newDigests[delta:], t.Digests)
 	}
-	g.Digests = newDigests
+	t.Digests = newDigests
 }
 
 // AtHead returns the last digest in the trace (HEAD) or the empty string otherwise.
-func (g *Trace) AtHead() types.Digest {
-	if idx := g.LastIndex(); idx >= 0 {
-		return g.Digests[idx]
+func (t *Trace) AtHead() types.Digest {
+	if idx := t.LastIndex(); idx >= 0 {
+		return t.Digests[idx]
 	}
 	return MissingDigest
 }
 
 // LastIndex returns the index of last non-empty value in this trace and -1 if
 // if the entire trace is empty.
-func (g *Trace) LastIndex() int {
-	for i := len(g.Digests) - 1; i >= 0; i-- {
-		if g.Digests[i] != MissingDigest {
+func (t *Trace) LastIndex() int {
+	for i := len(t.Digests) - 1; i >= 0; i-- {
+		if t.Digests[i] != MissingDigest {
 			return i
 		}
 	}
@@ -170,8 +213,8 @@ func (g *Trace) LastIndex() int {
 }
 
 // String prints a human friendly version of this trace.
-func (g *Trace) String() string {
-	return fmt.Sprintf("Keys: %#v, Digests: %q", g.keys, g.Digests)
+func (t *Trace) String() string {
+	return fmt.Sprintf("Keys: %#v, Options: %#v, Digests: %q", t.keys, t.options, t.Digests)
 }
 
 // TraceIDFromParams deterministically returns a TraceID that uniquely encodes

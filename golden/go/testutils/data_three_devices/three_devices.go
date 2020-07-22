@@ -59,7 +59,8 @@ const (
 	BullheadDevice   = "bullhead"
 	CrosshatchDevice = "crosshatch"
 
-	GMCorpus = "gm"
+	GMCorpus     = "gm"
+	PNGExtension = "png"
 )
 
 func MakeTestBaseline() *baseline.Baseline {
@@ -105,56 +106,50 @@ func MakeTestTile() *tiling.Tile {
 	return &tiling.Tile{
 		Commits: MakeTestCommits(),
 		Traces: map[tiling.TraceID]*tiling.Trace{
-			AnglerAlphaTraceID: tiling.NewTrace(
-				types.DigestSlice{AlphaNegativeDigest, AlphaNegativeDigest, AlphaPositiveDigest},
-				map[string]string{
-					"device":              AnglerDevice,
-					types.PrimaryKeyField: string(AlphaTest),
-					types.CorpusField:     GMCorpus,
-				},
-			),
-			AnglerBetaTraceID: tiling.NewTrace(
-				types.DigestSlice{BetaPositiveDigest, BetaPositiveDigest, BetaPositiveDigest},
-				map[string]string{
-					"device":              AnglerDevice,
-					types.PrimaryKeyField: string(BetaTest),
-					types.CorpusField:     GMCorpus,
-				},
-			),
+			AnglerAlphaTraceID: tiling.NewTrace(types.DigestSlice{AlphaNegativeDigest, AlphaNegativeDigest, AlphaPositiveDigest}, map[string]string{
+				"device":              AnglerDevice,
+				types.PrimaryKeyField: string(AlphaTest),
+				types.CorpusField:     GMCorpus,
+			}, map[string]string{
+				"ext": PNGExtension,
+			}),
+			AnglerBetaTraceID: tiling.NewTrace(types.DigestSlice{BetaPositiveDigest, BetaPositiveDigest, BetaPositiveDigest}, map[string]string{
+				"device":              AnglerDevice,
+				types.PrimaryKeyField: string(BetaTest),
+				types.CorpusField:     GMCorpus,
+			}, map[string]string{
+				"ext": PNGExtension,
+			}),
 
-			BullheadAlphaTraceID: tiling.NewTrace(
-				types.DigestSlice{AlphaNegativeDigest, AlphaNegativeDigest, AlphaUntriagedDigest},
-				map[string]string{
-					"device":              BullheadDevice,
-					types.PrimaryKeyField: string(AlphaTest),
-					types.CorpusField:     GMCorpus,
-				},
-			),
-			BullheadBetaTraceID: tiling.NewTrace(
-				types.DigestSlice{BetaPositiveDigest, BetaPositiveDigest, BetaPositiveDigest},
-				map[string]string{
-					"device":              BullheadDevice,
-					types.PrimaryKeyField: string(BetaTest),
-					types.CorpusField:     GMCorpus,
-				},
-			),
+			BullheadAlphaTraceID: tiling.NewTrace(types.DigestSlice{AlphaNegativeDigest, AlphaNegativeDigest, AlphaUntriagedDigest}, map[string]string{
+				"device":              BullheadDevice,
+				types.PrimaryKeyField: string(AlphaTest),
+				types.CorpusField:     GMCorpus,
+			}, map[string]string{
+				"ext": PNGExtension,
+			}),
+			BullheadBetaTraceID: tiling.NewTrace(types.DigestSlice{BetaPositiveDigest, BetaPositiveDigest, BetaPositiveDigest}, map[string]string{
+				"device":              BullheadDevice,
+				types.PrimaryKeyField: string(BetaTest),
+				types.CorpusField:     GMCorpus,
+			}, map[string]string{
+				"ext": PNGExtension,
+			}),
 
-			CrosshatchAlphaTraceID: tiling.NewTrace(
-				types.DigestSlice{AlphaNegativeDigest, AlphaNegativeDigest, AlphaPositiveDigest},
-				map[string]string{
-					"device":              CrosshatchDevice,
-					types.PrimaryKeyField: string(AlphaTest),
-					types.CorpusField:     GMCorpus,
-				},
-			),
-			CrosshatchBetaTraceID: tiling.NewTrace(
-				types.DigestSlice{BetaUntriagedDigest, tiling.MissingDigest, tiling.MissingDigest},
-				map[string]string{
-					"device":              CrosshatchDevice,
-					types.PrimaryKeyField: string(BetaTest),
-					types.CorpusField:     GMCorpus,
-				},
-			),
+			CrosshatchAlphaTraceID: tiling.NewTrace(types.DigestSlice{AlphaNegativeDigest, AlphaNegativeDigest, AlphaPositiveDigest}, map[string]string{
+				"device":              CrosshatchDevice,
+				types.PrimaryKeyField: string(AlphaTest),
+				types.CorpusField:     GMCorpus,
+			}, map[string]string{
+				"ext": PNGExtension,
+			}),
+			CrosshatchBetaTraceID: tiling.NewTrace(types.DigestSlice{BetaUntriagedDigest, tiling.MissingDigest, tiling.MissingDigest}, map[string]string{
+				"device":              CrosshatchDevice,
+				types.PrimaryKeyField: string(BetaTest),
+				types.CorpusField:     GMCorpus,
+			}, map[string]string{
+				"ext": PNGExtension,
+			}),
 		},
 
 		// Summarizes all the keys and values seen in this tile
@@ -163,6 +158,7 @@ func MakeTestTile() *tiling.Tile {
 			"device":              {AnglerDevice, BullheadDevice, CrosshatchDevice},
 			types.PrimaryKeyField: {string(AlphaTest), string(BetaTest)},
 			types.CorpusField:     {GMCorpus},
+			"ext":                 {PNGExtension},
 		},
 	}
 }

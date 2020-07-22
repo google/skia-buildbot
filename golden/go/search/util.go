@@ -58,7 +58,7 @@ func iterTile(ctx context.Context, q *query.Search, addFn iterTileAddFn, acceptF
 			id, trace := tp.ID, tp.Trace
 			// Check if the query matches.
 			if trace.Matches(q.TraceValues) {
-				params := trace.Keys()
+				params := trace.KeysAndOptions()
 				reducedTr := traceView(trace)
 				digests := digestsFromTrace(id, reducedTr, q.OnlyIncludeDigestsProducedAtHead, digestCountsByTrace)
 
@@ -135,7 +135,7 @@ func getTraceViewFn(commits []tiling.Commit, startHash, endHash string) (traceVi
 	}
 
 	ret := func(trace *tiling.Trace) *tiling.Trace {
-		return tiling.NewTrace(trace.Digests[startIdx:endIdx], trace.Keys())
+		return tiling.NewTrace(trace.Digests[startIdx:endIdx], trace.Keys(), trace.Options())
 	}
 	return ret, nil
 }

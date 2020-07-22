@@ -30,6 +30,7 @@ func TestParamsetByTraceForTile(t *testing.T) {
 		"config":              []string{"8888"},
 		types.CorpusField:     []string{"gm"},
 		types.PrimaryKeyField: []string{string(testOne)},
+		"ext":                 []string{"png"},
 	}, ps)
 
 	ps = byTest[testOne][DigestA]
@@ -39,6 +40,7 @@ func TestParamsetByTraceForTile(t *testing.T) {
 		"config":              []string{"565", "8888"},
 		types.CorpusField:     []string{"gm"},
 		types.PrimaryKeyField: []string{string(testOne)},
+		"ext":                 []string{"png"},
 	}, ps)
 
 	ps = byTest[testTwo][DigestG]
@@ -48,6 +50,7 @@ func TestParamsetByTraceForTile(t *testing.T) {
 		"config":              []string{"565"},
 		types.CorpusField:     []string{"gm"},
 		types.PrimaryKeyField: []string{string(testTwo)},
+		"ext":                 []string{"png"},
 	}, ps)
 
 	ps = byTest[testTwo][DigestF]
@@ -57,6 +60,7 @@ func TestParamsetByTraceForTile(t *testing.T) {
 		"config":              []string{"565", "gpu"},
 		types.CorpusField:     []string{"gm"},
 		types.PrimaryKeyField: []string{string(testTwo)},
+		"ext":                 []string{"jpeg", "png"},
 	}, ps)
 
 	assert.Nil(t, byTest[nonExistentTest])
@@ -84,6 +88,7 @@ func TestParamsetCalculate(t *testing.T) {
 		"config":              []string{"565"},
 		types.CorpusField:     []string{"gm"},
 		types.PrimaryKeyField: []string{string(testTwo)},
+		"ext":                 []string{"png"},
 	}, p)
 
 }
@@ -159,41 +164,41 @@ func makePartialTestTile() *tiling.Tile {
 		Traces: map[tiling.TraceID]*tiling.Trace{
 			// These trace ids have been shortened for test terseness.
 			// A real trace id would be like ",config=8888,source_type=gm,name=foo,"
-			"a": tiling.NewTrace(
-				[]types.Digest{DigestA, DigestB},
-				map[string]string{
-					"config":              "8888",
-					types.CorpusField:     "gm",
-					types.PrimaryKeyField: string(testOne),
-				}),
-			"b": tiling.NewTrace(
-				[]types.Digest{DigestC, DigestD, DigestA},
-				map[string]string{
-					"config":              "565",
-					types.CorpusField:     "gm",
-					types.PrimaryKeyField: string(testOne),
-				}),
-			"c": tiling.NewTrace(
-				[]types.Digest{DigestE, tiling.MissingDigest},
-				map[string]string{
-					"config":              "gpu",
-					types.CorpusField:     "gm",
-					types.PrimaryKeyField: string(testOne),
-				}),
-			"e": tiling.NewTrace(
-				[]types.Digest{DigestF, DigestG, DigestG},
-				map[string]string{
-					"config":              "565",
-					types.CorpusField:     "gm",
-					types.PrimaryKeyField: string(testTwo),
-				}),
-			"f": tiling.NewTrace(
-				[]types.Digest{DigestF, tiling.MissingDigest},
-				map[string]string{
-					"config":              "gpu",
-					types.CorpusField:     "gm",
-					types.PrimaryKeyField: string(testTwo),
-				}),
+			"a": tiling.NewTrace([]types.Digest{DigestA, DigestB}, map[string]string{
+				"config":              "8888",
+				types.CorpusField:     "gm",
+				types.PrimaryKeyField: string(testOne),
+			}, map[string]string{
+				"ext": "png",
+			}),
+			"b": tiling.NewTrace([]types.Digest{DigestC, DigestD, DigestA}, map[string]string{
+				"config":              "565",
+				types.CorpusField:     "gm",
+				types.PrimaryKeyField: string(testOne),
+			}, map[string]string{
+				"ext": "png",
+			}),
+			"c": tiling.NewTrace([]types.Digest{DigestE, tiling.MissingDigest}, map[string]string{
+				"config":              "gpu",
+				types.CorpusField:     "gm",
+				types.PrimaryKeyField: string(testOne),
+			}, map[string]string{
+				"ext": "jpeg",
+			}),
+			"e": tiling.NewTrace([]types.Digest{DigestF, DigestG, DigestG}, map[string]string{
+				"config":              "565",
+				types.CorpusField:     "gm",
+				types.PrimaryKeyField: string(testTwo),
+			}, map[string]string{
+				"ext": "png",
+			}),
+			"f": tiling.NewTrace([]types.Digest{DigestF, tiling.MissingDigest}, map[string]string{
+				"config":              "gpu",
+				types.CorpusField:     "gm",
+				types.PrimaryKeyField: string(testTwo),
+			}, map[string]string{
+				"ext": "jpeg",
+			}),
 		},
 	}
 }

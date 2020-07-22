@@ -126,52 +126,42 @@ func TestTraceMapPrependTraces(t *testing.T) {
 	unittest.SmallTest(t)
 
 	tm1 := traceMap{
-		",key=first,": &tiling.Trace{
-			Digests: []types.Digest{
-				tiling.MissingDigest, tiling.MissingDigest, AlphaDigest,
-			},
-		},
-		",key=second,": &tiling.Trace{
-			Digests: []types.Digest{
-				GammaDigest, tiling.MissingDigest, tiling.MissingDigest,
-			},
-		},
+		",key=first,": tiling.NewTrace(
+			[]types.Digest{tiling.MissingDigest, tiling.MissingDigest, AlphaDigest},
+			map[string]string{"key": "first"},
+			map[string]string{"opt": "foo"}),
+		",key=second,": tiling.NewTrace(
+			[]types.Digest{GammaDigest, tiling.MissingDigest, tiling.MissingDigest},
+			map[string]string{"key": "second"},
+			map[string]string{"opt": "foo"}),
 	}
 
 	tm2 := traceMap{
-		",key=first,": &tiling.Trace{
-			Digests: []types.Digest{
-				tiling.MissingDigest, GammaDigest,
-			},
-		},
-		",key=third,": &tiling.Trace{
-			Digests: []types.Digest{
-				GammaDigest, BetaDigest,
-			},
-		},
+		",key=first,": tiling.NewTrace(
+			[]types.Digest{tiling.MissingDigest, GammaDigest},
+			map[string]string{"key": "first"},
+			map[string]string{"opt": "bar"}),
+		",key=third,": tiling.NewTrace(
+			[]types.Digest{GammaDigest, BetaDigest},
+			map[string]string{"key": "third"},
+			map[string]string{"opt": "bar"}),
 	}
 
 	tm1.PrependTraces(tm2)
 
 	require.Equal(t, traceMap{
-		",key=first,": &tiling.Trace{
-			Digests: []types.Digest{
-				tiling.MissingDigest, GammaDigest,
-				tiling.MissingDigest, tiling.MissingDigest, AlphaDigest,
-			},
-		},
-		",key=second,": &tiling.Trace{
-			Digests: []types.Digest{
-				tiling.MissingDigest, tiling.MissingDigest,
-				GammaDigest, tiling.MissingDigest, tiling.MissingDigest,
-			},
-		},
-		",key=third,": &tiling.Trace{
-			Digests: []types.Digest{
-				GammaDigest, BetaDigest,
-				tiling.MissingDigest, tiling.MissingDigest, tiling.MissingDigest,
-			},
-		},
+		",key=first,": tiling.NewTrace(
+			[]types.Digest{tiling.MissingDigest, GammaDigest, tiling.MissingDigest, tiling.MissingDigest, AlphaDigest},
+			map[string]string{"key": "first"},
+			map[string]string{"opt": "foo"}),
+		",key=second,": tiling.NewTrace(
+			[]types.Digest{tiling.MissingDigest, tiling.MissingDigest, GammaDigest, tiling.MissingDigest, tiling.MissingDigest},
+			map[string]string{"key": "second"},
+			map[string]string{"opt": "foo"}),
+		",key=third,": tiling.NewTrace(
+			[]types.Digest{GammaDigest, BetaDigest, tiling.MissingDigest, tiling.MissingDigest, tiling.MissingDigest},
+			map[string]string{"key": "third"},
+			map[string]string{"opt": "bar"}),
 	}, tm1)
 }
 

@@ -85,95 +85,71 @@ func MakeTestTile() *tiling.Tile {
 	return &tiling.Tile{
 		Commits: MakeTestCommits(),
 		Traces: map[tiling.TraceID]*tiling.Trace{
-			",device=alpha,name=test_one,source_type=gm,": tiling.NewTrace(
-				types.DigestSlice{
-					// A very clear history showing 2nd commit as the change to bravo
-					// The next three traces are the same data, just with various bits missing.
-					AlfaPositiveDigest, BravoUntriagedDigest, BravoUntriagedDigest, AlfaPositiveDigest, AlfaPositiveDigest,
-				},
-				map[string]string{
-					"device":              AlphaDevice,
-					types.PrimaryKeyField: string(TestOne),
-					types.CorpusField:     "gm",
-				},
-			),
-			",device=beta,name=test_one,source_type=gm,": tiling.NewTrace(
-				types.DigestSlice{
-					AlfaPositiveDigest, missingDigest, BravoUntriagedDigest, missingDigest, AlfaPositiveDigest,
-				},
-				map[string]string{
-					"device":              BetaDevice,
-					types.PrimaryKeyField: string(TestOne),
-					types.CorpusField:     "gm",
-				},
-			),
-			",device=gamma,name=test_one,source_type=gm,": tiling.NewTrace(
-				types.DigestSlice{
-					AlfaPositiveDigest, BravoUntriagedDigest, missingDigest, missingDigest, AlfaPositiveDigest,
-				},
-				map[string]string{
-					"device":              GammaDevice,
-					types.PrimaryKeyField: string(TestOne),
-					types.CorpusField:     "gm",
-				},
-			),
-			",device=delta,name=test_one,source_type=gm,": tiling.NewTrace(
-				types.DigestSlice{
-					missingDigest, BravoUntriagedDigest, missingDigest, missingDigest, AlfaPositiveDigest,
-				},
-				map[string]string{
-					"device":              DeltaDevice,
-					types.PrimaryKeyField: string(TestOne),
-					types.CorpusField:     "gm",
-				},
-			),
+			",device=alpha,name=test_one,source_type=gm,": tiling.NewTrace(types.DigestSlice{
+				// A very clear history showing 2nd commit as the change to bravo
+				// The next three traces are the same data, just with various bits missing.
+				AlfaPositiveDigest, BravoUntriagedDigest, BravoUntriagedDigest, AlfaPositiveDigest, AlfaPositiveDigest,
+			}, map[string]string{
+				"device":              AlphaDevice,
+				types.PrimaryKeyField: string(TestOne),
+				types.CorpusField:     "gm",
+			}, nil),
+			",device=beta,name=test_one,source_type=gm,": tiling.NewTrace(types.DigestSlice{
+				AlfaPositiveDigest, missingDigest, BravoUntriagedDigest, missingDigest, AlfaPositiveDigest,
+			}, map[string]string{
+				"device":              BetaDevice,
+				types.PrimaryKeyField: string(TestOne),
+				types.CorpusField:     "gm",
+			}, nil),
+			",device=gamma,name=test_one,source_type=gm,": tiling.NewTrace(types.DigestSlice{
+				AlfaPositiveDigest, BravoUntriagedDigest, missingDigest, missingDigest, AlfaPositiveDigest,
+			}, map[string]string{
+				"device":              GammaDevice,
+				types.PrimaryKeyField: string(TestOne),
+				types.CorpusField:     "gm",
+			}, nil),
+			",device=delta,name=test_one,source_type=gm,": tiling.NewTrace(types.DigestSlice{
+				missingDigest, BravoUntriagedDigest, missingDigest, missingDigest, AlfaPositiveDigest,
+			}, map[string]string{
+				"device":              DeltaDevice,
+				types.PrimaryKeyField: string(TestOne),
+				types.CorpusField:     "gm",
+			}, nil),
 
-			",device=alpha,name=test_two,source_type=gm,": tiling.NewTrace(
-				types.DigestSlice{
-					// A very clear history showing 2nd commit as the change to bravo
-					// The next trace is the same data, just with various bits missing.
-					CharliePositiveDigest, DeltaUntriagedDigest, DeltaUntriagedDigest, CharliePositiveDigest, CharliePositiveDigest,
-				},
-				map[string]string{
-					"device":              AlphaDevice,
-					types.PrimaryKeyField: string(TestTwo),
-					types.CorpusField:     "gm",
-				},
-			),
-			",device=beta,name=test_two,source_type=gm,": tiling.NewTrace(
-				types.DigestSlice{
-					CharliePositiveDigest, missingDigest, missingDigest, missingDigest, CharliePositiveDigest,
-				},
-				map[string]string{
-					"device":              BetaDevice,
-					types.PrimaryKeyField: string(TestTwo),
-					types.CorpusField:     "gm",
-				},
-			),
-			",device=gamma,name=test_two,source_type=gm,": tiling.NewTrace(
-				types.DigestSlice{
-					// A somewhat flaky trace, using multiple positive/untriaged digests.
-					CharliePositiveDigest, DeltaUntriagedDigest, FoxtrotUntriagedDigest, missingDigest, EchoPositiveDigest,
-				},
-				map[string]string{
-					"device":              GammaDevice,
-					types.PrimaryKeyField: string(TestTwo),
-					types.CorpusField:     "gm",
-				},
-			),
-			",device=delta,name=test_two,source_type=gm,": tiling.NewTrace(
-				types.DigestSlice{
-					// Here's an interesting case where the culprit isn't accurately identified
-					// due to missing data. Here, both the authors of the 2nd and 3rd commit
-					// are possibly to blame.
-					EchoPositiveDigest, missingDigest, FoxtrotUntriagedDigest, missingDigest, missingDigest,
-				},
-				map[string]string{
-					"device":              DeltaDevice,
-					types.PrimaryKeyField: string(TestTwo),
-					types.CorpusField:     "gm",
-				},
-			),
+			",device=alpha,name=test_two,source_type=gm,": tiling.NewTrace(types.DigestSlice{
+				// A very clear history showing 2nd commit as the change to bravo
+				// The next trace is the same data, just with various bits missing.
+				CharliePositiveDigest, DeltaUntriagedDigest, DeltaUntriagedDigest, CharliePositiveDigest, CharliePositiveDigest,
+			}, map[string]string{
+				"device":              AlphaDevice,
+				types.PrimaryKeyField: string(TestTwo),
+				types.CorpusField:     "gm",
+			}, nil),
+			",device=beta,name=test_two,source_type=gm,": tiling.NewTrace(types.DigestSlice{
+				CharliePositiveDigest, missingDigest, missingDigest, missingDigest, CharliePositiveDigest,
+			}, map[string]string{
+				"device":              BetaDevice,
+				types.PrimaryKeyField: string(TestTwo),
+				types.CorpusField:     "gm",
+			}, nil),
+			",device=gamma,name=test_two,source_type=gm,": tiling.NewTrace(types.DigestSlice{
+				// A somewhat flaky trace, using multiple positive/untriaged digests.
+				CharliePositiveDigest, DeltaUntriagedDigest, FoxtrotUntriagedDigest, missingDigest, EchoPositiveDigest,
+			}, map[string]string{
+				"device":              GammaDevice,
+				types.PrimaryKeyField: string(TestTwo),
+				types.CorpusField:     "gm",
+			}, nil),
+			",device=delta,name=test_two,source_type=gm,": tiling.NewTrace(types.DigestSlice{
+				// Here's an interesting case where the culprit isn't accurately identified
+				// due to missing data. Here, both the authors of the 2nd and 3rd commit
+				// are possibly to blame.
+				EchoPositiveDigest, missingDigest, FoxtrotUntriagedDigest, missingDigest, missingDigest,
+			}, map[string]string{
+				"device":              DeltaDevice,
+				types.PrimaryKeyField: string(TestTwo),
+				types.CorpusField:     "gm",
+			}, nil),
 		},
 
 		// Summarizes all the keys and values seen in this tile

@@ -153,9 +153,10 @@ func (s *CachedTileSourceImpl) filterTile(tile *tiling.Tile) *tiling.Tile {
 	// Build the paramset in the process.
 	paramSet := paramtools.ParamSet{}
 	for traceID, trace := range tile.Traces {
-		if s.PubliclyViewableParams.Matches(trace.Keys()) {
+		ko := trace.KeysAndOptions()
+		if s.PubliclyViewableParams.Matches(ko) {
 			ret.Traces[traceID] = trace
-			paramSet.AddParams(trace.Keys())
+			paramSet.AddParams(ko)
 		}
 	}
 	paramSet.Normalize()
