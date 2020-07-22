@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "127e2c67_23bdfc97",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-22T11:15:19Z",
+      "side": 1,
+      "message": "See discussion on design doc for possible simpler outcome.",
+      "revId": "73f6c3d8583c0b994962f0b02b4722774649f095",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
