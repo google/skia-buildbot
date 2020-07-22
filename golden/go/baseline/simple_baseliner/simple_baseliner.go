@@ -32,11 +32,12 @@ func (f *SimpleBaselineFetcher) FetchBaseline(ctx context.Context, clID, crs str
 	if clID == "" {
 		exp, err := f.exp.GetCopy(ctx)
 		if err != nil {
-			return nil, skerr.Wrapf(err, "geting master branch expectations")
+			return nil, skerr.Wrapf(err, "getting master branch expectations")
 		}
 		b := baseline.Baseline{
 			ChangeListID:     "",
 			CodeReviewSystem: "",
+			Expectations:     exp.AsBaseline(),
 			ExpectationsInt:  exp.AsBaselineInt(),
 		}
 		md5Sum, err := util.MD5Sum(b.ExpectationsInt)
@@ -61,6 +62,7 @@ func (f *SimpleBaselineFetcher) FetchBaseline(ctx context.Context, clID, crs str
 		return &baseline.Baseline{
 			ChangeListID:     clID,
 			CodeReviewSystem: crs,
+			Expectations:     iexp.AsBaseline(),
 			ExpectationsInt:  iexp.AsBaselineInt(),
 			MD5:              md5Sum,
 		}, nil
@@ -76,6 +78,7 @@ func (f *SimpleBaselineFetcher) FetchBaseline(ctx context.Context, clID, crs str
 	b := baseline.Baseline{
 		ChangeListID:     clID,
 		CodeReviewSystem: crs,
+		Expectations:     exp.AsBaseline(),
 		ExpectationsInt:  exp.AsBaselineInt(),
 	}
 	md5Sum, err := util.MD5Sum(b.ExpectationsInt)
