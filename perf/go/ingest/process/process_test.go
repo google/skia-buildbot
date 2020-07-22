@@ -56,7 +56,7 @@ func setupPubSubClient(t *testing.T) (*pubsub.Client, *config.InstanceConfig) {
 	return pubsubClient, instanceConfig
 }
 
-func TestStart_IngestDemoRepoWithSQLite3TraceStore_Success(t *testing.T) {
+func TestStart_IngestDemoRepoWithCockroachDBTraceStore_Success(t *testing.T) {
 	unittest.LargeTest(t)
 
 	// Get a temp file to use as an sqlite3 database.
@@ -78,7 +78,7 @@ func TestStart_IngestDemoRepoWithSQLite3TraceStore_Success(t *testing.T) {
 
 	instanceConfig := config.InstanceConfig{
 		DataStoreConfig: config.DataStoreConfig{
-			DataStoreType:    config.SQLite3DataStoreType,
+			DataStoreType:    config.CockroachDBDataStoreType,
 			TileSize:         256,
 			ConnectionString: tmpfile.Name(),
 		},
