@@ -5,7 +5,6 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb" // For support of connection URLs that start with "cochroach://".
-	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"     // For support of connection URLs that start with "sqlite3://".
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	"go.skia.org/infra/go/skerr"
