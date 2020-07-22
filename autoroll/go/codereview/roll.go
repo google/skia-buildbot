@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	github_api "github.com/google/go-github/v29/github"
 	"go.skia.org/infra/autoroll/go/recent_rolls"
@@ -14,6 +15,11 @@ import (
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/travisci"
+)
+
+const (
+	// The duration after a PR is created that checks should be looked at.
+	GITHUB_PR_DURATION_FOR_CHECKS = time.Minute * 15
 )
 
 type RollImpl interface {
@@ -327,10 +333,21 @@ func updateIssueFromGitHubPullRequest(i *autoroll.AutoRollIssue, pullRequest *gi
 	if i.IsDryRun {
 		i.CqFinished = false
 		i.CqSuccess = false
-		// TODO(rmistry): Sometimes the github API does not return the correct number of checks, so this might
-		// return some false positives.
-		i.DryRunFinished = pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged() || (len(i.TryResults) > 0 && i.AllTrybotsFinished())
-		i.DryRunSuccess = pullRequest.GetMerged() || (i.DryRunFinished && i.AllTrybotsSucceeded())
+		// The roller should not be looking at github checks to determine when the dry run passes,
+		// it should be relying on the project's "commit queue" to do this instead.
+		// Flutter's merge bot does not handle dry runs yet. https://github.com/flutter/flutter/issues/61955
+		// has been filed to add this functionality.
+		//
+		// Sometimes the github API does not return the correct number of checks, try to workaround
+		// this by only looking at a PR if it is > GITHUB_PR_DURATION_FOR_CHECKS old (Flutter's merge
+		// bot waits for 1 hour).
+		if time.Since(pullRequest.GetCreatedAt()) > GITHUB_PR_DURATION_FOR_CHECKS {
+			i.DryRunFinished = pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged() || (len(i.TryResults) > 0 && i.AllTrybotsFinished())
+			i.DryRunSuccess = pullRequest.GetMerged() || (i.DryRunFinished && i.AllTrybotsSucceeded())
+		} else {
+			i.DryRunFinished = false
+			i.DryRunSuccess = false
+		}
 	} else {
 		i.CqFinished = pullRequest.GetState() == github.CLOSED_STATE || pullRequest.GetMerged() || !doesWaitingForTreeLabelExist || (pullRequest.GetMergeableState() == github.MERGEABLE_STATE_DIRTY)
 		i.CqSuccess = pullRequest.GetMerged()
