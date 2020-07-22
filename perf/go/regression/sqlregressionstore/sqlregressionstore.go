@@ -35,30 +35,6 @@ type statements map[statement]string
 
 // statementsByDialect holds all the raw SQL statemens used per Dialect of SQL.
 var statementsByDialect = map[perfsql.Dialect]statements{
-	perfsql.SQLiteDialect: {
-		write: `
-		INSERT OR REPLACE INTO
-			Regressions (commit_number, alert_id, regression)
-		VALUES
-			(?, ?, ?)`,
-		read: `
-		SELECT
-			regression
-		FROM
-			Regressions
-		WHERE
-			commit_number=? AND
-			alert_id=?`,
-		readRange: `
-		SELECT
-			commit_number, alert_id, regression
-		FROM
-			Regressions
-		WHERE
-			commit_number >= ?
-			AND commit_number <= ?
-		`,
-	},
 	perfsql.CockroachDBDialect: {
 		write: `
 		UPSERT INTO

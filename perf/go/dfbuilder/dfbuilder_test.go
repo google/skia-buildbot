@@ -34,13 +34,15 @@ var (
 	}
 )
 
+const CockroachDatabaseName = "dfbuilder"
+
 func TestBuildTraceMapper(t *testing.T) {
 	unittest.LargeTest(t)
 
-	db, cleanup := sqltest.NewSQLite3DBForTests(t)
+	db, cleanup := sqltest.NewCockroachDBForTests(t, CockroachDatabaseName, sqltest.ApplyMigrations)
 	defer cleanup()
 
-	store, err := sqltracestore.New(db, perfsql.SQLiteDialect, 256)
+	store, err := sqltracestore.New(db, perfsql.CockroachDBDialect, 256)
 	require.NoError(t, err)
 
 	tileMap := buildTileMapOffsetToIndex([]types.CommitNumber{0, 1, 255, 256, 257}, store)
@@ -73,14 +75,14 @@ func TestBuildNew(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx := context.Background()
 
-	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store, err := sqltracestore.New(db, perfsql.SQLiteDialect, instanceConfig.DataStoreConfig.TileSize)
+	store, err := sqltracestore.New(db, perfsql.CockroachDBDialect, instanceConfig.DataStoreConfig.TileSize)
 	require.NoError(t, err)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store)
@@ -204,7 +206,7 @@ func TestBuildNew(t *testing.T) {
 
 func TestFromIndexRange_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)
@@ -230,7 +232,7 @@ func TestFromIndexRange_Success(t *testing.T) {
 
 func TestFromIndexRange_EmptySliceOnBadCommitNumber(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)
