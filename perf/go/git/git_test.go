@@ -19,20 +19,6 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
-func TestSQLite(t *testing.T) {
-	unittest.LargeTest(t)
-
-	for name, subTest := range subTests {
-		t.Run(name, func(t *testing.T) {
-			ctx, db, gb, hashes, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
-			g, err := New(ctx, true, db, dialect, instanceConfig)
-			require.NoError(t, err)
-
-			subTest(t, ctx, g, gb, hashes, cleanup)
-		})
-	}
-}
-
 func TestCockroachDB(t *testing.T) {
 	unittest.LargeTest(t)
 

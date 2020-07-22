@@ -121,7 +121,7 @@ func TestURLFromParts_BounceSupplied(t *testing.T) {
 
 func TestCommitIDLookup_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, hashes, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	ctx, db, _, hashes, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)
@@ -161,7 +161,7 @@ func TestCommitIDLookup_Success(t *testing.T) {
 
 func TestCommitIDLookup_ErrOnBadCommit(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)
