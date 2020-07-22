@@ -15,10 +15,14 @@ type Baseline struct {
 
 	// Expectations captures the "baseline expectations", that is, the Expectations with only the
 	// positive and negative digests (i.e. no untriaged digest) of the current commit.
+	Expectations expectations.Baseline `json:"master"`
+
+	// ExpectationsStr captures the "baseline expectations", that is, the Expectations with only the
+	// positive and negative digests (i.e. no untriaged digest) of the current commit.
 	//
 	// TODO(skbug.com/10522): Rename to json:"master" once the refactor from expectations.LabelStr to
 	//                 expectations.Label is finished.
-	Expectations expectations.Baseline `json:"master_str"`
+	ExpectationsStr expectations.Baseline `json:"master_str"`
 
 	// ChangeListID indicates the Gerrit or GitHub issue id of this baseline.
 	// "" indicates the master branch.
