@@ -93,6 +93,7 @@ require (
 	github.com/kisielk/errcheck v1.2.0
 	github.com/kr/text v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
+	github.com/lib/pq v1.3.0
 	github.com/maruel/subcommands v0.0.0-20200206125935-de1d40e70d4b // indirect
 	github.com/maruel/ut v1.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
@@ -149,6 +150,7 @@ require (
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
+	gotest.tools v2.2.0+incompatible
 	k8s.io/api v0.18.5
 	k8s.io/apimachinery v0.18.5
 	k8s.io/client-go v0.18.5

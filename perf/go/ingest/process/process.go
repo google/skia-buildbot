@@ -133,13 +133,12 @@ func Start(ctx context.Context, local bool, instanceConfig *config.InstanceConfi
 		commitNumber, err := g.CommitNumberFromGitHash(ctx, gitHash)
 		if err != nil {
 			if err := g.Update(ctx); err != nil {
-				sklog.Errorf("Failed to Update: ", err)
-
+				sklog.Errorf("Failed to Update: %s", err)
 			}
 			commitNumber, err = g.CommitNumberFromGitHash(ctx, gitHash)
 			if err != nil {
 				badGitHash.Inc(1)
-				sklog.Error("Failed to find gitHash %v: %s", f, err)
+				sklog.Errorf("Failed to find gitHash %v: %s", f, err)
 				continue
 			}
 		}

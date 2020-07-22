@@ -136,6 +136,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/vec32"
 	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/tracestore"
@@ -159,6 +160,7 @@ const (
 	insertIntoTraceIDs
 	getTraceID
 	insertIntoPostings
+	countPostingsForTraceID
 	replaceTraceValues
 	countIndices
 	getLatestTile
@@ -200,6 +202,14 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 			Postings (tile_number, key_value, trace_id)
 		VALUES
 			(?, ?, ?)`,
+		countPostingsForTraceID: `
+		SELECT
+			trace_id
+		FROM
+			Postings
+		WHERE
+			tile_number=? AND key_value=? AND trace_id=?;
+		`,
 		replaceTraceValues: `
 		INSERT OR REPLACE INTO
 			TraceValues (trace_id, commit_number, val, source_file_id)
@@ -282,6 +292,14 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 			($1, $2, $3)
 		ON CONFLICT
 		DO NOTHING`,
+		countPostingsForTraceID: `
+		SELECT
+			trace_id
+		FROM
+			Postings
+		WHERE
+			tile_number=$1 AND key_value=$2 AND trace_id=$3;
+		`,
 		replaceTraceValues: `
 		UPSERT INTO
 			TraceValues (trace_id, commit_number, val, source_file_id)
@@ -341,6 +359,11 @@ type SQLTraceStore struct {
 	// cache is an LRU cache used to store the ids (int64) of trace names (string).
 	cache *lru.Cache
 
+	// postingsWrittenCache stores a boolean true if the postings for a traceID
+	// at a given tileNumber have already been written. The key is encoded as
+	// fmt.Sprintf("%d-%d", traceID, tileNumber).
+	postingsWrittenCache *lru.Cache
+
 	// tileSize is the number of commits per Tile.
 	tileSize int32
 }
@@ -364,11 +387,17 @@ func New(db *sql.DB, dialect perfsql.Dialect, tileSize int32) (*SQLTraceStore, e
 		return nil, skerr.Wrap(err)
 	}
 
+	postingsWrittenCache, err := lru.New(cacheSize)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
 	return &SQLTraceStore{
-		db:                 db,
-		preparedStatements: preparedStatements,
-		cache:              cache,
-		tileSize:           tileSize,
+		db:                   db,
+		preparedStatements:   preparedStatements,
+		cache:                cache,
+		postingsWrittenCache: postingsWrittenCache,
+		tileSize:             tileSize,
 	}, nil
 }
 
@@ -725,6 +754,8 @@ func (s *SQLTraceStore) WriteIndices(ctx context.Context, tileNumber types.TileN
 // updateSourceFile writes the filename into the SourceFiles table and returns
 // the int64 id of that filename.
 func (s *SQLTraceStore) updateSourceFile(filename string) (int64, error) {
+
+	// TODO(jcgregorio) Collapse into a single query.
 	ret := int64(-1)
 	_, err := s.preparedStatements[insertIntoSourceFiles].ExecContext(context.TODO(), filename)
 	if err != nil {
@@ -742,13 +773,48 @@ func (s *SQLTraceStore) updateSourceFile(filename string) (int64, error) {
 // the given traceID and tileNumber. The Params given are from the parse trace
 // name.
 func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.TileNumber, traceID int64) error {
-	for k, v := range p {
-		keyValue := fmt.Sprintf("%s=%s", k, v)
-		_, err := s.preparedStatements[insertIntoPostings].ExecContext(context.TODO(), tileNumber, keyValue, traceID)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
+	// First avoid writing the postings if we have already written the postings, as recorded
+	// in postingsWrittenCache.
+	postingCacheEntryID := fmt.Sprintf("%d-%d", traceID, tileNumber)
+	if _, ok := s.postingsWrittenCache.Get(postingCacheEntryID); ok {
+		return nil
 	}
+
+	key := ""
+	value := ""
+	for key, value = range p {
+		break
+	}
+	keyValue := fmt.Sprintf("%s=%s", key, value)
+
+	err := s.preparedStatements[countPostingsForTraceID].QueryRowContext(context.TODO(), tileNumber, keyValue, traceID).Scan(&traceID)
+	if err == nil {
+		s.postingsWrittenCache.Add(postingCacheEntryID, true)
+		return nil
+	}
+	defer timer.New("updatePostings").Stop()
+
+	insert := `INSERT INTO
+	Postings (tile_number, key_value, trace_id)
+VALUES
+`
+
+	values := make([]string, 0, len(p))
+	for k, v := range p {
+		values = append(values, fmt.Sprintf("  (%d, '%s=%s', %d)", tileNumber, k, v, traceID))
+
+	}
+
+	onConflict := ` ON CONFLICT
+DO NOTHING;`
+	statement := insert + strings.Join(values, ",") + onConflict
+
+	_, err = s.db.ExecContext(context.TODO(), statement)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
+	s.postingsWrittenCache.Add(postingCacheEntryID, true)
 	return nil
 }
 
@@ -756,34 +822,42 @@ func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.Til
 // int64 id of that trace name. This operation will happen repeatedly as data is
 // ingested so we cache the results in the LRU cache.
 func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Params, tileNumber types.TileNumber) (int64, error) {
-	ret := int64(-1)
+	traceID := int64(-1)
 
 	traceName, err := query.MakeKey(traceNameAsParams)
 	if err != nil {
-		return ret, skerr.Wrap(err)
+		return traceID, skerr.Wrap(err)
 	}
 
 	// Get an int64 trace id for the traceName.
 	if iret, ok := s.cache.Get(traceName); ok {
-		ret = iret.(int64)
+		traceID = iret.(int64)
 	} else {
-		_, err := s.preparedStatements[insertIntoTraceIDs].ExecContext(context.TODO(), traceName)
-		if err != nil {
-			return ret, skerr.Wrapf(err, "traceName=%q", traceName)
+		if err := s.preparedStatements[getTraceID].QueryRowContext(context.TODO(), traceName).Scan(&traceID); err != nil {
+			t := timer.New("insertIntoTraceIDs")
+
+			// TODO(jcgregorio) Since we are CDB only, use the stmt that returns the ID of the newly created traceID on insert.
+			_, err := s.preparedStatements[insertIntoTraceIDs].ExecContext(context.TODO(), traceName)
+			t.Stop()
+			if err != nil {
+				return traceID, skerr.Wrapf(err, "traceName=%q", traceName)
+			}
+			t = timer.New("getTraceID")
+			err = s.preparedStatements[getTraceID].QueryRowContext(context.TODO(), traceName).Scan(&traceID)
+			t.Stop()
+			if err != nil {
+				return traceID, skerr.Wrapf(err, "traceName=%q", traceName)
+			}
 		}
-		err = s.preparedStatements[getTraceID].QueryRowContext(context.TODO(), traceName).Scan(&ret)
-		if err != nil {
-			return ret, skerr.Wrapf(err, "traceName=%q", traceName)
-		}
-		s.cache.Add(traceName, ret)
+		s.cache.Add(traceName, traceID)
 	}
 
 	// Update postings.
-	if err := s.updatePostings(traceNameAsParams, tileNumber, ret); err != nil {
-		return ret, skerr.Wrapf(err, "traceName=%q", traceName)
+	if err := s.updatePostings(traceNameAsParams, tileNumber, traceID); err != nil {
+		return traceID, skerr.Wrapf(err, "traceName=%q", traceName)
 	}
 
-	return ret, nil
+	return traceID, nil
 }
 
 // updateTraceValues writes a single entry in to the TraceValues table.
@@ -794,13 +868,17 @@ func (s *SQLTraceStore) updateTraceValues(traceID int64, commitNumber types.Comm
 
 // WriteTraces implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []paramtools.Params, values []float32, _ paramtools.ParamSet, source string, _ time.Time) error {
+	defer timer.New("WriteTraces").Stop()
 	tileNumber := types.TileNumberFromCommitNumber(commitNumber, s.tileSize)
 	// Get the row id for the source file.
+	t := timer.New("WriteTraces - updateSourceFile")
 	sourceID, err := s.updateSourceFile(source)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
+	t.Stop()
 
+	t = timer.New(fmt.Sprintf("WriteTraces - writeTraceIDAndPostings - %d", len(params)))
 	// Get trace ids for each trace and add trace ids to the index/postings.
 	// We populate the traceIDs slice whose values are 1:1 with the values and
 	// params slices.
@@ -812,13 +890,35 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 		}
 		traceIDs[i] = traceID
 	}
+	t.Stop()
 
+	t = timer.New("WriteTraces - createInsert")
+	upsert := `
+	UPSERT INTO
+		TraceValues (trace_id, commit_number, val, source_file_id)
+	VALUES
+		`
+
+	sqlValues := make([]string, 0, len(values))
+	defer timer.New("updateTraceValues").Stop()
 	// Now add each trace value.
 	for i, x := range values {
-		if err := s.updateTraceValues(traceIDs[i], commitNumber, x, sourceID); err != nil {
-			return skerr.Wrap(err)
-		}
+		sqlValues = append(sqlValues, fmt.Sprintf("(%d, %d, %f, %d)", traceIDs[i], commitNumber, x, sourceID))
+		//		if err := s.updateTraceValues(traceIDs[i], commitNumber, x, sourceID); err != nil {
+		//return skerr.Wrap(err)
+		//		}
 	}
+
+	statement := upsert + strings.Join(sqlValues, ",") + ";"
+	t.Stop()
+
+	t = timer.New("WriteTraces - insertValues")
+	_, err = s.db.ExecContext(context.TODO(), statement)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	t.Stop()
+
 	return nil
 }
 
