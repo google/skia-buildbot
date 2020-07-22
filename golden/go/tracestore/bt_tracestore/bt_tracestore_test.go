@@ -53,7 +53,7 @@ func TestBTTraceStorePutGet(t *testing.T) {
 	require.NotNil(t, actualTile)
 	require.Empty(t, actualTile.Traces)
 
-	putTestTile(t, traceStore, commits, false /*=options*/)
+	putTestTile(t, traceStore, commits)
 
 	// Get the tile back and make sure it exactly matches the tile
 	// we hand-crafted for the test data.
@@ -74,11 +74,18 @@ func assertTilesEqual(t *testing.T, a *tiling.Tile, b *tiling.Tile) {
 		assert.Contains(t, b.Traces, id)
 		traceB := b.Traces[id]
 		assert.Equal(t, traceA.Keys(), traceB.Keys())
+		// Sometimes we see an empty map and other times a nil map; we don't care which it is really,
+		// because both are empty.
+		if len(traceA.Options()) == 0 {
+			assert.Empty(t, traceB.Options())
+		} else {
+			assert.Equal(t, traceA.Options(), traceB.Options())
+		}
 		assert.Equal(t, traceA.Digests, traceB.Digests)
 	}
 }
 
-func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []tiling.Commit, options bool) {
+func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []tiling.Commit) {
 	// This time is an arbitrary point in time
 	now := time.Date(2019, time.May, 5, 1, 3, 4, 0, time.UTC)
 
@@ -92,15 +99,9 @@ func putTestTile(t *testing.T, traceStore tracestore.TraceStore, commits []tilin
 				continue
 			}
 			e := tracestore.Entry{
-				Digest: trace.Digests[i],
-				Params: trace.Keys(),
-			}
-			if options {
-				if i == 0 {
-					e.Options = makeOptionsOne()
-				} else {
-					e.Options = makeOptionsTwo()
-				}
+				Digest:  trace.Digests[i],
+				Params:  trace.Keys(),
+				Options: trace.Options(),
 			}
 			err := traceStore.Put(context.Background(), commits[i].Hash, []*tracestore.Entry{&e}, now)
 			require.NoError(t, err)
@@ -132,7 +133,7 @@ func TestBTTraceStorePutGetOverride(t *testing.T) {
 	ctx := context.Background()
 	traceStore, err := New(ctx, btConf, true)
 	require.NoError(t, err)
-	putTestTile(t, traceStore, commits, false /*=options*/)
+	putTestTile(t, traceStore, commits)
 
 	alphaParams := data.MakeTestTile().Traces[data.AnglerAlphaTraceID].Keys()
 	require.NotEmpty(t, alphaParams)
@@ -175,40 +176,6 @@ func TestBTTraceStorePutGetOverride(t *testing.T) {
 	require.Equal(t, commits, actualCommits)
 }
 
-// TestBTTraceStorePutGetOptions adds a bunch of entries (with options) one at a time and
-// then retrieves the full tile.
-func TestBTTraceStorePutGetOptions(t *testing.T) {
-	unittest.LargeTest(t)
-	unittest.RequiresBigTableEmulator(t)
-
-	commits := data.MakeTestCommits()
-	mvcs := mockVCSWithCommits(commits, 0)
-	defer mvcs.AssertExpectations(t)
-
-	btConf := BTConfig{
-		ProjectID:  "should-use-the-emulator",
-		InstanceID: "testinstance",
-		TableID:    "three_devices_options",
-		VCS:        mvcs,
-	}
-
-	require.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	require.NoError(t, InitBT(context.Background(), btConf))
-
-	ctx := context.Background()
-	traceStore, err := New(ctx, btConf, true)
-	require.NoError(t, err)
-
-	putTestTile(t, traceStore, commits, true /*=options*/)
-
-	// Get the tile back and make make sure the options are there.
-	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
-	require.NoError(t, err)
-
-	assertTilesEqual(t, makeTestTileWithOptions(), actualTile)
-	require.Equal(t, commits, actualCommits)
-}
-
 // TestBTTraceStorePutGetSpanTile is like TestBTTraceStorePutGet except the 3 commits
 // are lined up to go across two tiles.
 func TestBTTraceStorePutGetSpanTile(t *testing.T) {
@@ -239,7 +206,7 @@ func TestBTTraceStorePutGetSpanTile(t *testing.T) {
 	require.NotNil(t, actualTile)
 	require.Empty(t, actualTile.Traces)
 
-	putTestTile(t, traceStore, commits, false /*=options*/)
+	putTestTile(t, traceStore, commits)
 
 	// Get the tile back and make sure it exactly matches the tile
 	// we hand-crafted for the test data.
@@ -247,41 +214,6 @@ func TestBTTraceStorePutGetSpanTile(t *testing.T) {
 	require.NoError(t, err)
 
 	assertTilesEqual(t, data.MakeTestTile(), actualTile)
-	require.Equal(t, commits, actualCommits)
-}
-
-// TestBTTraceStorePutGetSpanOptionsTile is like TestBTTraceStorePutGetOptions except the 3 commits
-// are lined up to go across two tiles.
-func TestBTTraceStorePutGetOptionsSpanTile(t *testing.T) {
-	unittest.LargeTest(t)
-	unittest.RequiresBigTableEmulator(t)
-
-	commits := data.MakeTestCommits()
-	mvcs := mockVCSWithCommits(commits, DefaultTileSize-2)
-	defer mvcs.AssertExpectations(t)
-
-	btConf := BTConfig{
-		ProjectID:  "should-use-the-emulator",
-		InstanceID: "testinstance",
-		TableID:    "three_devices_test_span",
-		VCS:        mvcs,
-	}
-
-	require.NoError(t, bt.DeleteTables(btConf.ProjectID, btConf.InstanceID, btConf.TableID))
-	require.NoError(t, InitBT(context.Background(), btConf))
-
-	ctx := context.Background()
-	traceStore, err := New(ctx, btConf, true)
-	require.NoError(t, err)
-
-	putTestTile(t, traceStore, commits, true /*=options*/)
-
-	// Get the tile back and make sure it exactly matches the tile
-	// we hand-crafted for the test data.
-	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
-	require.NoError(t, err)
-
-	assertTilesEqual(t, makeTestTileWithOptions(), actualTile)
 	require.Equal(t, commits, actualCommits)
 }
 
@@ -340,8 +272,9 @@ func TestBTTraceStorePutGetGrouped(t *testing.T) {
 			var entries []*tracestore.Entry
 			for _, gTrace := range gTraces {
 				entries = append(entries, &tracestore.Entry{
-					Digest: gTrace.Digests[i],
-					Params: gTrace.Keys(),
+					Digest:  gTrace.Digests[i],
+					Params:  gTrace.Keys(),
+					Options: gTrace.Options(),
 				})
 			}
 
@@ -407,8 +340,9 @@ func TestBTTraceStorePutGetThreaded(t *testing.T) {
 			go func(now time.Time, i int, trace *tiling.Trace) {
 				defer wg.Done()
 				e := tracestore.Entry{
-					Digest: trace.Digests[i],
-					Params: trace.Keys(),
+					Digest:  trace.Digests[i],
+					Params:  trace.Keys(),
+					Options: trace.Options(),
 				}
 				err := traceStore.Put(ctx, commits[i].Hash, []*tracestore.Entry{&e}, now)
 				require.NoError(t, err)
@@ -525,56 +459,38 @@ func makeTrimmedTile() *tiling.Tile {
 	return &tiling.Tile{
 		Commits: data.MakeTestCommits(),
 		Traces: map[tiling.TraceID]*tiling.Trace{
-			data.AnglerAlphaTraceID: tiling.NewTrace(
-				types.DigestSlice{data.AlphaNegativeDigest, data.AlphaPositiveDigest},
-				map[string]string{
-					"device":              data.AnglerDevice,
-					types.PrimaryKeyField: string(data.AlphaTest),
-					types.CorpusField:     data.GMCorpus,
-				},
-			),
-			data.AnglerBetaTraceID: tiling.NewTrace(
-				types.DigestSlice{data.BetaPositiveDigest, data.BetaPositiveDigest},
-				map[string]string{
-					"device":              data.AnglerDevice,
-					types.PrimaryKeyField: string(data.BetaTest),
-					types.CorpusField:     data.GMCorpus,
-				},
-			),
+			data.AnglerAlphaTraceID: tiling.NewTrace(types.DigestSlice{data.AlphaNegativeDigest, data.AlphaPositiveDigest}, map[string]string{
+				"device":              data.AnglerDevice,
+				types.PrimaryKeyField: string(data.AlphaTest),
+				types.CorpusField:     data.GMCorpus,
+			}, nil),
+			data.AnglerBetaTraceID: tiling.NewTrace(types.DigestSlice{data.BetaPositiveDigest, data.BetaPositiveDigest}, map[string]string{
+				"device":              data.AnglerDevice,
+				types.PrimaryKeyField: string(data.BetaTest),
+				types.CorpusField:     data.GMCorpus,
+			}, nil),
 
-			data.BullheadAlphaTraceID: tiling.NewTrace(
-				types.DigestSlice{data.AlphaNegativeDigest, data.AlphaUntriagedDigest},
-				map[string]string{
-					"device":              data.BullheadDevice,
-					types.PrimaryKeyField: string(data.AlphaTest),
-					types.CorpusField:     data.GMCorpus,
-				},
-			),
-			data.BullheadBetaTraceID: tiling.NewTrace(
-				types.DigestSlice{data.BetaPositiveDigest, data.BetaPositiveDigest},
-				map[string]string{
-					"device":              data.BullheadDevice,
-					types.PrimaryKeyField: string(data.BetaTest),
-					types.CorpusField:     data.GMCorpus,
-				},
-			),
+			data.BullheadAlphaTraceID: tiling.NewTrace(types.DigestSlice{data.AlphaNegativeDigest, data.AlphaUntriagedDigest}, map[string]string{
+				"device":              data.BullheadDevice,
+				types.PrimaryKeyField: string(data.AlphaTest),
+				types.CorpusField:     data.GMCorpus,
+			}, nil),
+			data.BullheadBetaTraceID: tiling.NewTrace(types.DigestSlice{data.BetaPositiveDigest, data.BetaPositiveDigest}, map[string]string{
+				"device":              data.BullheadDevice,
+				types.PrimaryKeyField: string(data.BetaTest),
+				types.CorpusField:     data.GMCorpus,
+			}, nil),
 
-			data.CrosshatchAlphaTraceID: tiling.NewTrace(
-				types.DigestSlice{data.AlphaNegativeDigest, data.AlphaPositiveDigest},
-				map[string]string{
-					"device":              data.CrosshatchDevice,
-					types.PrimaryKeyField: string(data.AlphaTest),
-					types.CorpusField:     data.GMCorpus,
-				},
-			),
-			data.CrosshatchBetaTraceID: tiling.NewTrace(
-				types.DigestSlice{tiling.MissingDigest, tiling.MissingDigest},
-				map[string]string{
-					"device":              data.CrosshatchDevice,
-					types.PrimaryKeyField: string(data.BetaTest),
-					types.CorpusField:     data.GMCorpus,
-				},
-			),
+			data.CrosshatchAlphaTraceID: tiling.NewTrace(types.DigestSlice{data.AlphaNegativeDigest, data.AlphaPositiveDigest}, map[string]string{
+				"device":              data.CrosshatchDevice,
+				types.PrimaryKeyField: string(data.AlphaTest),
+				types.CorpusField:     data.GMCorpus,
+			}, nil),
+			data.CrosshatchBetaTraceID: tiling.NewTrace(types.DigestSlice{tiling.MissingDigest, tiling.MissingDigest}, map[string]string{
+				"device":              data.CrosshatchDevice,
+				types.PrimaryKeyField: string(data.BetaTest),
+				types.CorpusField:     data.GMCorpus,
+			}, nil),
 		},
 
 		// Summarizes all the keys and values seen in this tile
@@ -615,8 +531,9 @@ func testDenseTile(t *testing.T, tile *tiling.Tile, mvcs *mock_vcs.VCS, commits 
 		// Put them in backwards, just to test that order doesn't matter
 		for i := len(trace.Digests) - 1; i >= 0; i-- {
 			e := tracestore.Entry{
-				Digest: trace.Digests[i],
-				Params: trace.Keys(),
+				Digest:  trace.Digests[i],
+				Params:  trace.Keys(),
+				Options: trace.Options(),
 			}
 			err := traceStore.Put(ctx, commits[i].Hash, []*tracestore.Entry{&e}, now)
 			require.NoError(t, err)
@@ -689,14 +606,14 @@ func TestBTTraceStoreOverwrite(t *testing.T) {
 	}
 
 	// Now overwrite it.
-	putTestTile(t, traceStore, commits, true /*=options*/)
+	putTestTile(t, traceStore, commits)
 
 	// Get the tile back and make sure it exactly matches the tile
 	// we hand-crafted for the test data.
 	actualTile, actualCommits, err := traceStore.GetTile(ctx, len(commits))
 	require.NoError(t, err)
 
-	assertTilesEqual(t, makeTestTileWithOptions(), actualTile)
+	assertTilesEqual(t, data.MakeTestTile(), actualTile)
 	require.Equal(t, commits, actualCommits)
 }
 
@@ -985,41 +902,4 @@ func mockSparseVCSWithCommits(commits []tiling.Commit, realCommitIndices []int, 
 	mvcs.On("DetailsMulti", testutils.AnyContext, hashes[firstRealCommitIdx:], false).Return(longCommits[firstRealCommitIdx:], nil).Maybe()
 
 	return mvcs, longCommits
-}
-
-func makeTestTileWithOptions() *tiling.Tile {
-	tile := data.MakeTestTile()
-	for id, trace := range tile.Traces {
-		// CrosshatchBetaTraceID has a digest at index 0 and is missing in all
-		// other indices (and this is the only trace for which this occurs).
-		// optionsOne are written to index 0 and optionsTwo are for all other
-		// indices. Thus, CrosshatchBetaTraceID will be the only trace with
-		// optionsOne applied.
-		if id == data.CrosshatchBetaTraceID {
-			for k, v := range makeOptionsOne() {
-				trace.Keys()[k] = v
-			}
-		} else {
-			for k, v := range makeOptionsTwo() {
-				trace.Keys()[k] = v
-			}
-		}
-		tile.Traces[id] = trace
-	}
-	tile.ParamSet["resolution"] = []string{"1080p", "4k"}
-	tile.ParamSet["color"] = []string{"orange"}
-	return tile
-}
-
-func makeOptionsOne() map[string]string {
-	return map[string]string{
-		"resolution": "1080p",
-		"color":      "orange",
-	}
-}
-
-func makeOptionsTwo() map[string]string {
-	return map[string]string{
-		"resolution": "4k",
-	}
 }
