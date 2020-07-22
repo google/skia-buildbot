@@ -1426,7 +1426,7 @@ func TestBaselineHandler_Success(t *testing.T) {
 
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
-	expectedJSONResponse := `{"md5":"fakehash","master":null,"master_str":null,"crs":"gerrit"}`
+	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
 
 	// FetchBaseline should be called as per the request parameters.
 	mbf.On("FetchBaseline", testutils.AnyContext, "" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
@@ -1467,7 +1467,7 @@ func TestBaselineHandler_IssueSet_Success(t *testing.T) {
 
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
-	expectedJSONResponse := `{"md5":"fakehash","master":null,"master_str":null,"crs":"gerrit"}`
+	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
 
 	// FetchBaseline should be called as per the request parameters.
 	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
@@ -1508,7 +1508,7 @@ func TestBaselineHandler_IssueSet_IssueOnly_Success(t *testing.T) {
 
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
-	expectedJSONResponse := `{"md5":"fakehash","master":null,"master_str":null,"crs":"gerrit"}`
+	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
 
 	// FetchBaseline should be called as per the request parameters.
 	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", true /* =issueOnly */).Return(bl, nil)
@@ -1585,7 +1585,7 @@ func TestBaselineHandler_CommitHashSet_IgnoresCommitHash_Success(t *testing.T) {
 
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
-	expectedJSONResponse := `{"md5":"fakehash","master":null,"master_str":null,"crs":"gerrit"}`
+	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
 
 	// Note that the {commit_hash} doesn't appear anywhere in the FetchBaseline call.
 	mbf.On("FetchBaseline", testutils.AnyContext, "" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
@@ -1631,7 +1631,7 @@ func TestBaselineHandler_CommitHashSet_IssueSet_IgnoresCommitHash_Success(t *tes
 
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
-	expectedJSONResponse := `{"md5":"fakehash","master":null,"master_str":null,"crs":"gerrit"}`
+	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
 
 	// Note that the {commit_hash} doesn't appear anywhere in the FetchBaseline call.
 	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
@@ -1677,7 +1677,7 @@ func TestBaselineHandler_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Succ
 
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
 	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
-	expectedJSONResponse := `{"md5":"fakehash","master":null,"master_str":null,"crs":"gerrit"}`
+	expectedJSONResponse := `{"md5":"fakehash","master":null,"crs":"gerrit"}`
 
 	// Note that the {commit_hash} doesn't appear anywhere in the FetchBaseline call.
 	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", true /* =issueOnly */).Return(bl, nil)
