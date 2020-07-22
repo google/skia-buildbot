@@ -32,42 +32,6 @@ type statements map[statement]string
 
 // statementsByDialect holds all the raw SQL statemens used per Dialect of SQL.
 var statementsByDialect = map[perfsql.Dialect]statements{
-	perfsql.SQLiteDialect: {
-		insertAlert: `
-		INSERT INTO
-			Alerts (alert, last_modified)
-		VALUES
-			(?, ?)`,
-		updateAlert: `
-		INSERT OR REPLACE INTO
-			  Alerts (id, alert, config_state, last_modified)
-		VALUES
-		    (?, ?, ?, ?)
-		`,
-		deleteAlert: `
-		UPDATE
-		  	Alerts
-		SET
-			config_state=1, -- alerts.DELETED
-			last_modified=?
-		WHERE
-			id=?
-		`,
-		listActiveAlerts: `
-		SELECT
-			id, alert
-		FROM
-			Alerts
-		WHERE
-			config_state=0 -- alerts.ACTIVE
-		`,
-		listAllAlerts: `
-		SELECT
-			id, alert
-		FROM
-			Alerts
-		`,
-	},
 	perfsql.CockroachDBDialect: {
 		insertAlert: `
 		INSERT INTO

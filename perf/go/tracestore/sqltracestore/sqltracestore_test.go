@@ -2,9 +2,6 @@ package sqltracestore
 
 import (
 	"context"
-	"database/sql"
-	"io/ioutil"
-	"os"
 	"testing"
 	"time"
 
@@ -26,22 +23,6 @@ const (
 	// testTileSize is the size of tiles we use for tests.
 	testTileSize = 8
 )
-
-func TestSQLite(t *testing.T) {
-	unittest.LargeTest(t)
-
-	for name, subTest := range subTests {
-		t.Run(name, func(t *testing.T) {
-			db, cleanup := sqltest.NewSQLite3DBForTests(t)
-			defer cleanup()
-
-			store, err := New(db, perfsql.SQLiteDialect, testTileSize)
-			require.NoError(t, err)
-
-			subTest(t, store)
-		})
-	}
-}
 
 func TestCockroachDB(t *testing.T) {
 	unittest.LargeTest(t)
@@ -507,100 +488,4 @@ var subTests = map[string]subTestFunction{
 	"testQueryTracesByIndex_QueryAgainstTileWithNoDataReturnsNoError": testQueryTracesByIndex_QueryAgainstTileWithNoDataReturnsNoError,
 	"testTraceCount":                                                  testTraceCount,
 	"testGetSource":                                                   testGetSource,
-}
-
-type cleanupFunc func()
-
-// We only benchmark sqlite since that's the only one we can do on the desktop.
-// Getting legit CockroachDB benchmarks would require standing up a 3 or more
-// node cluster to test against, which we might do one day, but not today.
-func newBenchTestDB(b *testing.B) (*SQLTraceStore, cleanupFunc) {
-	tmpfile, _ := ioutil.TempFile("", "sqlts")
-	_ = tmpfile.Close()
-	db, _ := sql.Open("sqlite3", tmpfile.Name())
-	s, _ := New(db, perfsql.SQLiteDialect, 8)
-
-	return s, func() {
-		_ = os.Remove(tmpfile.Name())
-	}
-}
-
-func BenchmarkUpdateSourceFile(b *testing.B) {
-	s, cleanup := newBenchTestDB(b)
-	defer cleanup()
-	b.ResetTimer()
-
-	for n := 0; n < b.N; n++ {
-		_, _ = s.updateSourceFile("foo.txt")
-	}
-}
-
-func BenchmarkUpdateTraceID(b *testing.B) {
-	s, cleanup := newBenchTestDB(b)
-	p := paramtools.NewParams(",config=8888,arch=x86,")
-	defer cleanup()
-
-	b.ResetTimer()
-
-	for n := 0; n < b.N; n++ {
-		_, _ = s.writeTraceIDAndPostings(p, 1)
-	}
-}
-
-func BenchmarkReadTraces(b *testing.B) {
-	s, cleanup := newBenchTestDB(b)
-	defer cleanup()
-
-	traceNames := []paramtools.Params{
-		{"config": "8888", "arch": "x86"},
-		{"config": "565", "arch": "x86"},
-	}
-	_ = s.WriteTraces(1, traceNames,
-		[]float32{1.5, 2.3},
-		paramtools.ParamSet{},
-		"gs://perf-bucket/2020/02/08/11/testdata.json",
-		time.Now())
-	_ = s.WriteTraces(2, traceNames,
-		[]float32{2.5, 3.3},
-		paramtools.ParamSet{},
-		"gs://perf-bucket/2020/02/08/12/testdata.json",
-		time.Now())
-	keys := make([]string, len(traceNames))
-	for i, p := range traceNames {
-		keys[i], _ = query.MakeKeyFast(p)
-	}
-
-	b.ResetTimer()
-
-	for n := 0; n < b.N; n++ {
-		_, _ = s.ReadTraces(0, keys)
-	}
-}
-
-func BenchmarkQueryTracesByIndex(b *testing.B) {
-	s, cleanup := newBenchTestDB(b)
-	defer cleanup()
-
-	traceNames := []paramtools.Params{
-		{"config": "8888", "arch": "x86"},
-		{"config": "565", "arch": "x86"},
-	}
-	_ = s.WriteTraces(1, traceNames,
-		[]float32{1.5, 2.3},
-		paramtools.ParamSet{},
-		"gs://perf-bucket/2020/02/08/11/testdata.json",
-		time.Now())
-	_ = s.WriteTraces(2, traceNames,
-		[]float32{2.5, 3.3},
-		paramtools.ParamSet{},
-		"gs://perf-bucket/2020/02/08/12/testdata.json",
-		time.Now())
-	q, _ := query.NewFromString("config=565")
-	ctx := context.Background()
-
-	b.ResetTimer()
-
-	for n := 0; n < b.N; n++ {
-		_, _ = s.QueryTracesByIndex(ctx, 0, q)
-	}
 }

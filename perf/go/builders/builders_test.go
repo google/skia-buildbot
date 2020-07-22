@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -72,24 +71,6 @@ func TestNewSourceFromConfig_MissingSourceForDirSourceIsError(t *testing.T) {
 
 type cleanupFunc func()
 
-func newSqlite3ConfigForTest(t *testing.T) (context.Context, *config.InstanceConfig, cleanupFunc) {
-	ctx := context.Background()
-	dir, err := ioutil.TempDir("", "perf-builders")
-	require.NoError(t, err)
-	cleanup := func() {
-		assert.NoError(t, os.RemoveAll(dir))
-	}
-
-	instanceConfig := &config.InstanceConfig{
-		DataStoreConfig: config.DataStoreConfig{
-			DataStoreType:    config.SQLite3DataStoreType,
-			ConnectionString: filepath.Join(dir, "test.db"),
-		},
-	}
-
-	return ctx, instanceConfig, cleanup
-}
-
 func newCockroachDBConfigForTest(t *testing.T) (context.Context, *config.InstanceConfig, sqltest.Cleanup) {
 	ctx := context.Background()
 
@@ -119,17 +100,6 @@ func newGCPDatastoreConfigForTest(t *testing.T, kind ds.Kind) (context.Context, 
 	return ctx, instanceConfig, cleanup
 }
 
-func TestNewTraceStoreFromConfig_SQLite3_Success(t *testing.T) {
-	unittest.LargeTest(t)
-	ctx, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
-	defer cleanup()
-
-	store, err := NewTraceStoreFromConfig(ctx, true, instanceConfig)
-	require.NoError(t, err)
-	err = store.WriteTraces(types.CommitNumber(0), []paramtools.Params{{"config": "8888"}}, []float32{1.2}, nil, "gs://foobar", time.Now())
-	assert.NoError(t, err)
-}
-
 func TestNewTraceStoreFromConfig_CockroachDB_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
@@ -143,7 +113,7 @@ func TestNewTraceStoreFromConfig_CockroachDB_Success(t *testing.T) {
 
 func TestNewTraceStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
+	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
 	defer cleanup()
 
 	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
@@ -165,17 +135,6 @@ func TestNewAlertStoreFromConfig_GCPDatastore_Success(t *testing.T) {
 	alertstest.Store_SaveListDelete(t, store)
 }
 
-func TestNewAlertStoreFromConfig_Sqlite3_Success(t *testing.T) {
-	unittest.LargeTest(t)
-	ctx, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
-	defer cleanup()
-
-	store, err := NewAlertStoreFromConfig(ctx, false, instanceConfig)
-	require.NoError(t, err)
-
-	alertstest.Store_SaveListDelete(t, store)
-}
-
 func TestNewAlertStoreFromConfig_CockroachDB_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
@@ -189,7 +148,7 @@ func TestNewAlertStoreFromConfig_CockroachDB_Success(t *testing.T) {
 
 func TestNewAlertStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
+	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
 	defer cleanup()
 
 	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
@@ -200,20 +159,9 @@ func TestNewAlertStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 	assert.Contains(t, err.Error(), invalidDataStoreType)
 }
 
-func TestNewRegressionStoreFromConfig_Sqlite3_Success(t *testing.T) {
-	unittest.LargeTest(t)
-	ctx, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
-	defer cleanup()
-
-	store, err := NewRegressionStoreFromConfig(ctx, false, nil, instanceConfig)
-	require.NoError(t, err)
-
-	regressiontest.SetLowAndTriage(t, store)
-}
-
 func TestNewRegressionStoreFromConfig_CochroachDB_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
+	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
 	defer cleanup()
 
 	store, err := NewRegressionStoreFromConfig(ctx, false, nil, instanceConfig)
@@ -224,7 +172,7 @@ func TestNewRegressionStoreFromConfig_CochroachDB_Success(t *testing.T) {
 
 func TestNewRegressionStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
+	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
 	defer cleanup()
 
 	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
@@ -246,17 +194,6 @@ func TestNewShortcutStoreFromConfig_GCPDatastore_Success(t *testing.T) {
 	shortcuttest.InsertGet(t, store)
 }
 
-func TestNewShortcutStoreFromConfig_Sqlite3_Success(t *testing.T) {
-	unittest.LargeTest(t)
-	ctx, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
-	defer cleanup()
-
-	store, err := NewShortcutStoreFromConfig(ctx, false, instanceConfig)
-	require.NoError(t, err)
-
-	shortcuttest.InsertGet(t, store)
-}
-
 func TestNewShortcutStoreFromConfig_CockroachDB_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
@@ -268,9 +205,9 @@ func TestNewShortcutStoreFromConfig_CockroachDB_Success(t *testing.T) {
 	shortcuttest.InsertGet(t, store)
 }
 
-func TestNewShortcutStoreFromConfig_Sqlite3_InvalidDatastoreTypeIsError(t *testing.T) {
+func TestNewShortcutStoreFromConfig_CockroachDB_InvalidDatastoreTypeIsError(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, instanceConfig, cleanup := newSqlite3ConfigForTest(t)
+	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
 	defer cleanup()
 
 	const invalidDataStoreType = config.DataStoreType("not-a-valid-datastore-type")
@@ -283,7 +220,7 @@ func TestNewShortcutStoreFromConfig_Sqlite3_InvalidDatastoreTypeIsError(t *testi
 
 func TestNewPerfGitFromConfig_ErrIfConnectionStringNotSet(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, _, _, _, _, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	ctx, _, _, _, _, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
 	defer cleanup()
 
 	instanceConfig.DataStoreConfig.DataStoreType = config.GCPDataStoreType
@@ -293,9 +230,9 @@ func TestNewPerfGitFromConfig_ErrIfConnectionStringNotSet(t *testing.T) {
 	assert.Contains(t, err.Error(), "connection_string")
 }
 
-func TestNewPerfGitFromConfig_GCP_Success(t *testing.T) {
+func TestNewPerfGitFromConfig_GCP_ErrorsOnNonPostgresConnectionString(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, _, _, hashes, _, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	ctx, _, _, _, _, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
 	defer cleanup()
 
 	instanceConfig.DataStoreConfig.DataStoreType = config.GCPDataStoreType
@@ -309,12 +246,8 @@ func TestNewPerfGitFromConfig_GCP_Success(t *testing.T) {
 	}()
 	instanceConfig.DataStoreConfig.ConnectionString = tmpfile.Name()
 
-	g, err := NewPerfGitFromConfig(ctx, false, instanceConfig)
-	require.NoError(t, err)
-
-	gitHash, err := g.GitHashFromCommitNumber(ctx, types.CommitNumber(2))
-	require.NoError(t, err)
-	assert.Equal(t, hashes[2], gitHash)
+	_, err = NewPerfGitFromConfig(ctx, false, instanceConfig)
+	require.Error(t, err)
 }
 
 func TestNewPerfGitFromConfig_GCP_SuccessIfConnectionStringIsCockroachDB(t *testing.T) {
@@ -333,33 +266,9 @@ func TestNewPerfGitFromConfig_GCP_SuccessIfConnectionStringIsCockroachDB(t *test
 	assert.Equal(t, hashes[2], gitHash)
 }
 
-func TestNewPerfGitFromConfig_SQLite3_Success(t *testing.T) {
-	unittest.LargeTest(t)
-	ctx, _, _, hashes, _, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
-	defer cleanup()
-
-	instanceConfig.DataStoreConfig.DataStoreType = config.SQLite3DataStoreType
-
-	// Create temp file to use for connection string.
-	tmpfile, err := ioutil.TempFile("", "newperfgit")
-	require.NoError(t, err)
-	require.NoError(t, tmpfile.Close())
-	defer func() {
-		assert.NoError(t, os.Remove(tmpfile.Name()))
-	}()
-	instanceConfig.DataStoreConfig.ConnectionString = tmpfile.Name()
-
-	g, err := NewPerfGitFromConfig(ctx, false, instanceConfig)
-	require.NoError(t, err)
-
-	gitHash, err := g.GitHashFromCommitNumber(ctx, types.CommitNumber(2))
-	require.NoError(t, err)
-	assert.Equal(t, hashes[2], gitHash)
-}
-
 func TestNewPerfGitFromConfig_CockroachDB_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, _, _, hashes, _, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	ctx, _, _, hashes, _, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
 	defer cleanup()
 
 	instanceConfig.DataStoreConfig.DataStoreType = config.CockroachDBDataStoreType
