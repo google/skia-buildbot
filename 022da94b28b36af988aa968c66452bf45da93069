@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c502224a_1495ea6a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-22T21:01:53Z",
+      "side": 1,
+      "message": "Keep the migrator around. define some constants in that file to be the previous int values.",
+      "revId": "022da94b28b36af988aa968c66452bf45da93069",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
