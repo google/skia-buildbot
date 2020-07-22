@@ -66,12 +66,12 @@ const (
 func MakeTestBaseline() *baseline.Baseline {
 	e := MakeTestExpectations()
 	b := baseline.Baseline{
-		Expectations:     e.AsBaselineInt(),
+		ExpectationsInt:  e.AsBaselineInt(),
 		ChangeListID:     "",
 		CodeReviewSystem: "",
 	}
 	var err error
-	b.MD5, err = util.MD5Sum(b.Expectations)
+	b.MD5, err = util.MD5Sum(b.ExpectationsInt)
 	if err != nil {
 		panic(fmt.Sprintf("Error computing MD5 of the baseline: %s", err))
 	}

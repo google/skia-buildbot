@@ -145,7 +145,7 @@ func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 		return skerr.Wrapf(err, "parsing JSON; this sometimes means auth issues")
 	}
 
-	r.Expectations = exp.Expectations
+	r.Expectations = exp.ExpectationsInt
 	return nil
 }
 

@@ -34,7 +34,7 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 	exp := three_devices.MakeTestExpectations()
 	expectedBaseline := exp.AsBaselineInt()
 
-	assert.Equal(t, expectedBaseline, b.Expectations)
+	assert.Equal(t, expectedBaseline, b.ExpectationsInt)
 	assert.Equal(t, masterBranch, b.ChangeListID)
 	assert.Equal(t, noCRS, b.CodeReviewSystem)
 	assert.NotEqual(t, "", b.MD5)
@@ -99,7 +99,7 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 			three_devices.BetaPositiveDigest:  expectations.NegativeInt,
 			three_devices.BetaUntriagedDigest: expectations.PositiveInt,
 		},
-	}, b.Expectations)
+	}, b.ExpectationsInt)
 
 	mes.On("GetCopy", testutils.AnyContext).Return(three_devices.MakeTestExpectations(), nil).Once()
 
