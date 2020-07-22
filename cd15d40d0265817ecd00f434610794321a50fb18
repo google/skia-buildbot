@@ -16,6 +16,46 @@
       "revId": "cd15d40d0265817ecd00f434610794321a50fb18",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f1af567e_5a46f07d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-22T11:47:30Z",
+      "side": 1,
+      "message": "Sorry, I missed this yesterday.",
+      "revId": "cd15d40d0265817ecd00f434610794321a50fb18",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "02881f6b_66c8afba",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-22T11:47:30Z",
+      "side": 1,
+      "message": "Let\u0027s make this a constant, or maybe make it part of the roller configuration",
+      "range": {
+        "startLine": 338,
+        "startChar": 46,
+        "endLine": 338,
+        "endChar": 60
+      },
+      "revId": "cd15d40d0265817ecd00f434610794321a50fb18",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
