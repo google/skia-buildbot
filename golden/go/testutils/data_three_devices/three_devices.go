@@ -66,7 +66,7 @@ const (
 func MakeTestBaseline() *baseline.Baseline {
 	e := MakeTestExpectations()
 	b := baseline.Baseline{
-		Expectations:     e.AsBaseline(),
+		Expectations:     e.AsBaselineInt(),
 		ChangeListID:     "",
 		CodeReviewSystem: "",
 	}
