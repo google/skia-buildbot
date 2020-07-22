@@ -32,9 +32,6 @@ const (
 	// BigTable for tracestore.Store, and the rest in Cloud Datastore..
 	GCPDataStoreType DataStoreType = "gcp"
 
-	// SQLite3DataStoreType is for storing all data in an SQLite3 database.
-	SQLite3DataStoreType DataStoreType = "sqlite3"
-
 	// CockroachDBDataStoreType is for storing all data in a CockroachDB database.
 	CockroachDBDataStoreType DataStoreType = "cockroachdb"
 )
@@ -45,9 +42,6 @@ type DataStoreConfig struct {
 	// determine how the rest of the DataStoreConfig values are interpreted.
 	DataStoreType DataStoreType `json:"datastore_type"`
 
-	// If the datastore type is 'sqlite3' this value is a filename of the
-	// database.
-	//
 	// If the datastore type is 'cockroachdb' then this value is a connection
 	// string of the form "postgres://...". See
 	// https://www.cockroachlabs.com/docs/stable/connection-parameters.html for

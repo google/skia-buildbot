@@ -7,7 +7,6 @@ package builders
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strings"
 
 	"cloud.google.com/go/bigtable"
@@ -34,33 +33,11 @@ import (
 	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/migrations"
 	"go.skia.org/infra/perf/go/sql/migrations/cockroachdb"
-	"go.skia.org/infra/perf/go/sql/migrations/sqlite3"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/btts"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
 	"google.golang.org/api/option"
 )
-
-// newSQLite3DBFromConfig opens an existing, or creates a new, sqlite3 database
-// with all migrations applied.
-func newSQLite3DBFromConfig(instanceConfig *config.InstanceConfig) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", instanceConfig.DataStoreConfig.ConnectionString)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	migrationsConnection := fmt.Sprintf("sqlite3://%s", instanceConfig.DataStoreConfig.ConnectionString)
-	sqlite3Migrations, err := sqlite3.New()
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	err = migrations.Up(sqlite3Migrations, migrationsConnection)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	return db, nil
-}
 
 // newCockroachDBFromConfig opens an existing CockroachDB database with all
 // migrations applied.
@@ -109,28 +86,17 @@ func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *confi
 			// "gcs" world.
 			dialect = perfsql.CockroachDBDialect
 		} else {
-			// Even for BigTable backed datastores we still stand up an sqlite
-			// instance to hold the perfgit info.
-			dialect = perfsql.SQLiteDialect
+			return nil, skerr.Fmt("unknown connection_string: Must begni with postgresql://.")
 		}
 	case config.CockroachDBDataStoreType:
 		dialect = perfsql.CockroachDBDialect
-	case config.SQLite3DataStoreType:
-		dialect = perfsql.SQLiteDialect
 	default:
 		return nil, skerr.Fmt("Unknown datastore_type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 	}
 	sklog.Infof("Constructing perfgit with dialect: %q and connection_string: %q", dialect, instanceConfig.DataStoreConfig.ConnectionString)
 
 	// Now create the appropriate db.
-	var db *sql.DB
-	var err error
-	switch dialect {
-	case perfsql.SQLiteDialect:
-		db, err = newSQLite3DBFromConfig(instanceConfig)
-	case perfsql.CockroachDBDialect:
-		db, err = newCockroachDBFromConfig(instanceConfig)
-	}
+	db, err := newCockroachDBFromConfig(instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -157,12 +123,6 @@ func NewTraceStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 			return nil, skerr.Wrapf(err, "Failed to open BigTable trace store.")
 		}
 		return traceStore, nil
-	case config.SQLite3DataStoreType:
-		db, err := newSQLite3DBFromConfig(instanceConfig)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return sqltracestore.New(db, perfsql.SQLiteDialect, instanceConfig.DataStoreConfig.TileSize)
 	case config.CockroachDBDataStoreType:
 		db, err := newCockroachDBFromConfig(instanceConfig)
 		if err != nil {
@@ -200,12 +160,6 @@ func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 			return nil, skerr.Wrap(err)
 		}
 		return dsalertstore.New(), nil
-	case config.SQLite3DataStoreType:
-		db, err := newSQLite3DBFromConfig(instanceConfig)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return sqlalertstore.New(db, perfsql.SQLiteDialect)
 	case config.CockroachDBDataStoreType:
 		db, err := newCockroachDBFromConfig(instanceConfig)
 		if err != nil {
@@ -235,12 +189,6 @@ func NewRegressionStoreFromConfig(ctx context.Context, local bool, cidl *cid.Com
 			return details[0], nil
 		}
 		return dsregressionstore.NewRegressionStoreDS(lookup), nil
-	case config.SQLite3DataStoreType:
-		db, err := newSQLite3DBFromConfig(instanceConfig)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return sqlregressionstore.New(db, perfsql.SQLiteDialect)
 	case config.CockroachDBDataStoreType:
 		db, err := newCockroachDBFromConfig(instanceConfig)
 		if err != nil {
@@ -261,12 +209,6 @@ func NewShortcutStoreFromConfig(ctx context.Context, local bool, instanceConfig 
 		}
 
 		return dsshortcutstore.New(), nil
-	case config.SQLite3DataStoreType:
-		db, err := newSQLite3DBFromConfig(instanceConfig)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return sqlshortcutstore.New(db, perfsql.SQLiteDialect)
 	case config.CockroachDBDataStoreType:
 		db, err := newCockroachDBFromConfig(instanceConfig)
 		if err != nil {

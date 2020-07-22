@@ -10,20 +10,6 @@ import (
 	"go.skia.org/infra/perf/go/sql/sqltest"
 )
 
-func TestShortcutStore_SQLite(t *testing.T) {
-	unittest.LargeTest(t)
-
-	for name, subTest := range shortcuttest.SubTests {
-		t.Run(name, func(t *testing.T) {
-			db, cleanup := sqltest.NewSQLite3DBForTests(t)
-			defer cleanup()
-			store, err := New(db, perfsql.SQLiteDialect)
-			require.NoError(t, err)
-			subTest(t, store)
-		})
-	}
-}
-
 func TestShortcutStore_CockroachDB(t *testing.T) {
 	unittest.LargeTest(t)
 

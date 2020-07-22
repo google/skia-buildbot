@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
-	"os"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -21,8 +20,11 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/ingestevents"
+	"go.skia.org/infra/perf/go/sql/sqltest"
 	"google.golang.org/api/option"
 )
+
+const CockroachDatabaseName = "ingest"
 
 func setupPubSubClient(t *testing.T) (*pubsub.Client, *config.InstanceConfig) {
 	unittest.RequiresPubSubEmulator(t)
@@ -56,31 +58,22 @@ func setupPubSubClient(t *testing.T) (*pubsub.Client, *config.InstanceConfig) {
 	return pubsubClient, instanceConfig
 }
 
-func TestStart_IngestDemoRepoWithSQLite3TraceStore_Success(t *testing.T) {
-	unittest.LargeTest(t)
+func TestStart_IngestDemoRepoWithCockroachDBTraceStore_Success(t *testing.T) {
+	unittest.ManualTest(t)
 
-	// Get a temp file to use as an sqlite3 database.
-	tmpfile, err := ioutil.TempFile("", "ingest-process")
-	require.NoError(t, err)
-	require.NoError(t, tmpfile.Close())
+	_, cleanup := sqltest.NewCockroachDBForTests(t, CockroachDatabaseName, sqltest.ApplyMigrations)
+	defer cleanup()
 
 	// Get tmp dir to use for repo checkout.
 	tmpDir, err := ioutil.TempDir("", "ingest-process")
 	require.NoError(t, err)
 	tmpDir = filepath.Join(tmpDir, "repo")
 
-	defer func() {
-		err = os.Remove(tmpfile.Name())
-		assert.NoError(t, err)
-		err = os.RemoveAll(tmpDir)
-		assert.NoError(t, err)
-	}()
-
 	instanceConfig := config.InstanceConfig{
 		DataStoreConfig: config.DataStoreConfig{
-			DataStoreType:    config.SQLite3DataStoreType,
+			DataStoreType:    config.CockroachDBDataStoreType,
 			TileSize:         256,
-			ConnectionString: tmpfile.Name(),
+			ConnectionString: fmt.Sprintf("postgresql://root@localhost:26257/%s?sslmode=disable", CockroachDatabaseName),
 		},
 		IngestionConfig: config.IngestionConfig{
 			SourceConfig: config.SourceConfig{

@@ -31,27 +31,6 @@ type statements map[statement]string
 
 // statementsByDialect holds all the raw SQL statemens used per Dialect of SQL.
 var statementsByDialect = map[perfsql.Dialect]statements{
-	perfsql.SQLiteDialect: {
-		insertShortcut: `
-		INSERT OR IGNORE INTO
-			Shortcuts (id, trace_ids)
-		VALUES
-			(?, ?)`,
-		getShortcut: `
-		SELECT
-			(trace_ids)
-		FROM
-			Shortcuts
-		WHERE
-			id=?
-		`,
-		getAllShortcuts: `
-		SELECT
-			(trace_ids)
-		FROM
-			Shortcuts
-		`,
-	},
 	perfsql.CockroachDBDialect: {
 		insertShortcut: `
 		INSERT INTO

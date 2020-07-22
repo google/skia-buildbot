@@ -134,7 +134,7 @@ func TestSlice(t *testing.T) {
 
 func TestFromTimeRange_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)
@@ -156,7 +156,7 @@ func TestFromTimeRange_Success(t *testing.T) {
 
 func TestFromTimeRange_EmptySlicesIfNothingInTimeRange(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)

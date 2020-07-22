@@ -24,6 +24,8 @@ import (
 
 const testTileSize = 6
 
+const CockroachDatabaseName = "dfiter"
+
 func addValuesAtIndex(store tracestore.TraceStore, index types.CommitNumber, keyValues map[string]float32, filename string, ts time.Time) error {
 	ps := paramtools.ParamSet{}
 	params := []paramtools.Params{}
@@ -43,9 +45,9 @@ func addValuesAtIndex(store tracestore.TraceStore, index types.CommitNumber, key
 type cleanupFunc func()
 
 func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *perfgit.Git, cleanupFunc) {
-	db, dbCleanup := sqltest.NewSQLite3DBForTests(t)
+	db, dbCleanup := sqltest.NewCockroachDBForTests(t, CockroachDatabaseName, sqltest.ApplyMigrations)
 
-	store, err := sqltracestore.New(db, perfsql.SQLiteDialect, testTileSize)
+	store, err := sqltracestore.New(db, perfsql.CockroachDBDialect, testTileSize)
 	require.NoError(t, err)
 
 	// Add some points to the first and second tile.
@@ -68,7 +70,7 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *per
 	}, "gs://foo.json", time.Now()) // Time is irrelevent.
 	assert.NoError(t, err)
 
-	ctx, db, _, _, dialect, instanceConfig, gitCleanup := gittest.NewForTest(t, perfsql.SQLiteDialect)
+	ctx, db, _, _, dialect, instanceConfig, gitCleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
 	instanceConfig.DataStoreConfig.TileSize = testTileSize
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)

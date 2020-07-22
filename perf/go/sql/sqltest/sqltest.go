@@ -3,8 +3,6 @@ package sqltest
 import (
 	"database/sql"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,42 +10,11 @@ import (
 	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/migrations"
 	"go.skia.org/infra/perf/go/sql/migrations/cockroachdb"
-	"go.skia.org/infra/perf/go/sql/migrations/sqlite3"
 )
 
 // Cleanup is a function to call after the test has ended to clean up any
 // database resources.
 type Cleanup func()
-
-// NewSQLite3DBForTests creates a new temporary sqlite3 database with all
-// migrations applied for testing. It also returns a function to call to clean
-// up the database after the tests have completed.
-func NewSQLite3DBForTests(t *testing.T) (*sql.DB, Cleanup) {
-	// Get a temp file to use as an sqlite3 database.
-	tmpfile, err := ioutil.TempFile("", "sqlts")
-	require.NoError(t, err)
-	require.NoError(t, tmpfile.Close())
-
-	db, err := sql.Open("sqlite3", tmpfile.Name())
-	require.NoError(t, err)
-
-	migrationsConnection := fmt.Sprintf("sqlite3://%s", tmpfile.Name())
-
-	sqlite3Migrations, err := sqlite3.New()
-	require.NoError(t, err)
-
-	err = migrations.Up(sqlite3Migrations, migrationsConnection)
-	require.NoError(t, err)
-
-	cleanup := func() {
-		err := migrations.Down(sqlite3Migrations, migrationsConnection)
-		require.NoError(t, err)
-		err = os.Remove(tmpfile.Name())
-		assert.NoError(t, err)
-	}
-
-	return db, cleanup
-}
 
 // ApplyMigrationsOption indicates if migrations should be applied to an SQL database.
 type ApplyMigrationsOption bool
@@ -97,10 +64,8 @@ func NewCockroachDBForTests(t *testing.T, databaseName string, applyMigrations A
 	}
 
 	cleanup := func() {
-		if applyMigrations {
-			err := migrations.Down(cockroachdbMigrations, migrationsConnection)
-			assert.NoError(t, err)
-		}
+		// Don't bother applying migrations.Down since we aren't testing
+		// migrations here and it just slows down the tests.
 		_, err = db.Exec(fmt.Sprintf("DROP DATABASE %s CASCADE;", databaseName))
 		assert.NoError(t, err)
 	}

@@ -1,7 +1,7 @@
 /*
 Package sqltracestore implements a tracestore.TraceStore on top of SQL.
 
-We'll look that the SQLite schema used to explain how SQLTraceStore maps
+We'll look that the SQL schema used to explain how SQLTraceStore maps
 traces into an SQL database.
 
 Each trace name, which is a structured key (See /infra/go/query) of the form
@@ -170,82 +170,6 @@ const (
 type statements map[statement]string
 
 var statementsByDialect = map[perfsql.Dialect]statements{
-	perfsql.SQLiteDialect: {
-		insertIntoSourceFiles: `
-		INSERT OR IGNORE INTO
-			SourceFiles (source_file)
-		VALUES
-			(?)`,
-		getSourceFileID: `
-		SELECT
-			source_file_id
-		FROM
-			SourceFiles
-		WHERE
-			source_file=?`,
-		insertIntoTraceIDs: `
-		INSERT OR IGNORE INTO
-			TraceIDs (trace_name)
-		VALUES
-			(?)`,
-		getTraceID: `
-		SELECT
-			trace_id
-		FROM
-			TraceIDs
-		WHERE
-			trace_name=?`,
-		insertIntoPostings: `
-		INSERT OR IGNORE INTO
-			Postings (tile_number, key_value, trace_id)
-		VALUES
-			(?, ?, ?)`,
-		replaceTraceValues: `
-		INSERT OR REPLACE INTO
-			TraceValues (trace_id, commit_number, val, source_file_id)
-		VALUES
-			(?, ?, ?, ?)`,
-		countIndices: `
-		SELECT
-			COUNT(*)
-		FROM
-			Postings
-		WHERE
-			tile_number=?`,
-		getLatestTile: `
-		SELECT
-			tile_number
-		FROM
-			Postings
-		ORDER BY
-			tile_number DESC
-		LIMIT 1`,
-		paramSetForTile: `
-		SELECT DISTINCT
-			key_value
-		FROM
-			Postings
-		WHERE
-			tile_number=?`,
-		getSource: `
-		SELECT
-			SourceFiles.source_file
-		FROM
-			TraceIDs
-		INNER JOIN
-			TraceValues ON TraceValues.trace_id = TraceIDs.trace_id
-		INNER JOIN
-			SourceFiles ON SourceFiles.source_file_id = TraceValues.source_file_id
-		WHERE
-			TraceIDs.trace_name=? AND TraceValues.commit_number=?`,
-		traceCount: `
-		SELECT
-			COUNT(DISTINCT trace_id)
-		FROM
-			TraceValues
-		WHERE
-		  commit_number >= ? AND commit_number <= ?`,
-	},
 	perfsql.CockroachDBDialect: {
 		insertIntoSourceFiles: `
 		INSERT INTO

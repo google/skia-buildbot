@@ -53,13 +53,7 @@ func NewForTest(t *testing.T, dialect perfsql.Dialect) (context.Context, *sql.DB
 	hashes = append(hashes, gb.CommitGenAt(ctx, "foo.txt", StartTime.Add(7*time.Minute)))
 
 	// Init our sql database.
-	var db *sql.DB
-	var sqlCleanup sqltest.Cleanup
-	if dialect == perfsql.SQLiteDialect {
-		db, sqlCleanup = sqltest.NewSQLite3DBForTests(t)
-	} else {
-		db, sqlCleanup = sqltest.NewCockroachDBForTests(t, CockroachDatabaseName, sqltest.ApplyMigrations)
-	}
+	db, sqlCleanup := sqltest.NewCockroachDBForTests(t, CockroachDatabaseName, sqltest.ApplyMigrations)
 
 	// Get tmp dir to use for repo checkout.
 	tmpDir, err := ioutil.TempDir("", "git")

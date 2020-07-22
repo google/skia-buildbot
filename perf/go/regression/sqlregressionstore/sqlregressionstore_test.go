@@ -13,34 +13,6 @@ import (
 	"go.skia.org/infra/perf/go/sql/sqltest"
 )
 
-func TestSQLRegressionStore_SQLite(t *testing.T) {
-	unittest.LargeTest(t)
-
-	// Common regressiontest tests.
-	for name, subTest := range regressiontest.SubTests {
-		t.Run(name, func(t *testing.T) {
-			db, cleanup := sqltest.NewSQLite3DBForTests(t)
-			defer cleanup()
-
-			store, err := New(db, perfsql.SQLiteDialect)
-			require.NoError(t, err)
-			subTest(t, store)
-		})
-	}
-
-	// SQLRegressionStore specific tests.
-	for name, subTest := range subTests {
-		t.Run(name, func(t *testing.T) {
-			db, cleanup := sqltest.NewSQLite3DBForTests(t)
-			defer cleanup()
-
-			store, err := New(db, perfsql.SQLiteDialect)
-			require.NoError(t, err)
-			subTest(t, store)
-		})
-	}
-}
-
 func TestSQLRegressionStore_CockroachDB(t *testing.T) {
 	unittest.LargeTest(t)
 
