@@ -56,6 +56,30 @@
       "revId": "cd15d40d0265817ecd00f434610794321a50fb18",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cb8983c4_f34d5274",
+        "filename": "autoroll/go/codereview/roll.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-22T13:05:26Z",
+      "side": 1,
+      "message": "Done. Made it a constant, did not want to plumb into config because I really hope this is temporary.",
+      "parentUuid": "02881f6b_66c8afba",
+      "range": {
+        "startLine": 338,
+        "startChar": 46,
+        "endLine": 338,
+        "endChar": 60
+      },
+      "revId": "cd15d40d0265817ecd00f434610794321a50fb18",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
