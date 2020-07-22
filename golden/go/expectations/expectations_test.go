@@ -202,6 +202,44 @@ beta:
 `, te.String())
 }
 
+func TestAsBaseline(t *testing.T) {
+	unittest.SmallTest(t)
+	input := Expectations{
+		labels: map[types.TestName]map[types.Digest]Label{
+			"gamma": {
+				"hashX": Untriaged,
+				"hashY": Untriaged,
+				"hashZ": Untriaged,
+			},
+			"beta": {
+				"hash1": Positive,
+				"hash3": Negative,
+				"hash2": Untriaged,
+				"hash4": Positive,
+			},
+			"alpha": {
+				"hashB": Untriaged,
+				"hashA": Negative,
+				"hashC": Untriaged,
+			},
+		},
+	}
+
+	expectedOutput := Baseline{
+		"beta": {
+			"hash1": Positive,
+			"hash3": Negative,
+			"hash4": Positive,
+		},
+		"alpha": {
+			"hashA": Negative,
+		},
+	}
+	require.Equal(t, expectedOutput, input.AsBaseline())
+}
+
+// TODO(skbug.com/10522): Remove once the expectations.LabelStr -> expectations.Label refactoring
+//                        is complete.
 func TestAsBaselineInt(t *testing.T) {
 	unittest.SmallTest(t)
 	input := Expectations{
