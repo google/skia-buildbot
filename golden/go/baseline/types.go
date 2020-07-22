@@ -20,12 +20,6 @@ type Baseline struct {
 	//                 expectations.Label is finished.
 	Expectations expectations.Baseline `json:"master_str"`
 
-	// Expectations captures the "baseline expectations", that is, the Expectations with only the
-	// positive and negative digests (i.e. no untriaged digest) of the current commit.
-	//
-	// TODO(skbug.com/10522): Delete after expectations.LabelStr to expectations.Label is finished.
-	ExpectationsInt expectations.BaselineInt `json:"master"`
-
 	// ChangeListID indicates the Gerrit or GitHub issue id of this baseline.
 	// "" indicates the master branch.
 	ChangeListID string `json:"cl_id,omitempty"`
