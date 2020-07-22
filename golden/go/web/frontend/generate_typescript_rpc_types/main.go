@@ -49,7 +49,7 @@ func addTypes(generator *go2ts.Go2TS) error {
 		return skerr.Wrap(err)
 	}
 
-	if err := generator.AddUnionWithName(expectations.AllLabelStr, "LabelStr"); err != nil {
+	if err := generator.AddUnionWithName(expectations.AllLabel, "Label"); err != nil {
 		return skerr.Wrap(err)
 	}
 

@@ -222,10 +222,10 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 	mts := &mock_tjstore.Store{}
 
 	masterExp := expectations.Expectations{}
-	masterExp.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveStr)
+	masterExp.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive)
 
 	firstCLExp := expectations.Expectations{}
-	firstCLExp.Set(data.AlphaTest, data.AlphaNegativeDigest, expectations.NegativeStr)
+	firstCLExp.Set(data.AlphaTest, data.AlphaNegativeDigest, expectations.Negative)
 
 	// secondCL has no additional expectations
 	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
@@ -379,8 +379,8 @@ func TestIndexer_CalcChangeListIndices_HasIndexForPreviousPS_Success(t *testing.
 	mts := &mock_tjstore.Store{}
 
 	masterExp := expectations.Expectations{}
-	masterExp.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveStr)
-	masterExp.Set(data.AlphaTest, data.AlphaNegativeDigest, expectations.NegativeStr)
+	masterExp.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive)
+	masterExp.Set(data.AlphaTest, data.AlphaNegativeDigest, expectations.Negative)
 
 	// The CL has no additional expectations.
 	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
@@ -616,8 +616,8 @@ func TestIndexer_CalcChangeListIndices_PreviousIndexDoesNotNeedUpdating_Success(
 	mes := &mock_expectations.Store{}
 
 	masterExp := expectations.Expectations{}
-	masterExp.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.PositiveStr)
-	masterExp.Set(data.AlphaTest, data.AlphaNegativeDigest, expectations.NegativeStr)
+	masterExp.Set(data.AlphaTest, data.AlphaPositiveDigest, expectations.Positive)
+	masterExp.Set(data.AlphaTest, data.AlphaNegativeDigest, expectations.Negative)
 
 	// The CL has no additional expectations.
 	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
@@ -942,11 +942,11 @@ func makeSearchIndexWithSingleTrace(digests ...types.Digest) (*SearchIndex, tili
 
 	// Generate expectations for the known digests.
 	var exps expectations.Expectations
-	exps.Set(testName, goodDigest1, expectations.PositiveStr)
-	exps.Set(testName, goodDigest2, expectations.PositiveStr)
-	exps.Set(testName, goodDigest3, expectations.PositiveStr)
-	exps.Set(testName, badDigest1, expectations.NegativeStr)
-	exps.Set(testName, badDigest2, expectations.NegativeStr)
+	exps.Set(testName, goodDigest1, expectations.Positive)
+	exps.Set(testName, goodDigest2, expectations.Positive)
+	exps.Set(testName, goodDigest3, expectations.Positive)
+	exps.Set(testName, badDigest1, expectations.Negative)
+	exps.Set(testName, badDigest2, expectations.Negative)
 
 	// Build mock expectations store.
 	mockExpStore := &mock_expectations.Store{}
