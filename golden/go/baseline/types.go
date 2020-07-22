@@ -15,7 +15,7 @@ type Baseline struct {
 
 	// Expectations captures the "baseline expectations", that is, the Expectations with only the
 	// positive and negative digests (i.e. no untriaged digest) of the current commit.
-	Expectations expectations.Baseline `json:"master"`
+	Expectations expectations.BaselineInt `json:"master"`
 
 	// ChangeListID indicates the Gerrit or GitHub issue id of this baseline.
 	// "" indicates the master branch.

@@ -202,7 +202,7 @@ beta:
 `, te.String())
 }
 
-func TestAsBaseline(t *testing.T) {
+func TestAsBaselineInt(t *testing.T) {
 	unittest.SmallTest(t)
 	input := Expectations{
 		labels: map[types.TestName]map[types.Digest]Label{
@@ -225,7 +225,7 @@ func TestAsBaseline(t *testing.T) {
 		},
 	}
 
-	expectedOutput := Baseline{
+	expectedOutput := BaselineInt{
 		"beta": {
 			"hash1": PositiveInt,
 			"hash3": NegativeInt,
@@ -235,7 +235,7 @@ func TestAsBaseline(t *testing.T) {
 			"hashA": NegativeInt,
 		},
 	}
-	require.Equal(t, expectedOutput, input.AsBaseline())
+	require.Equal(t, expectedOutput, input.AsBaselineInt())
 }
 
 // All this test data is valid, but arbitrary.

@@ -1527,7 +1527,7 @@ func TestCloudClient_MatchImageAgainstBaseline_NoAlgorithmSpecified_DefaultsToEx
 			defer cleanup()
 
 			if label != unlabeled {
-				goldClient.resultState.Expectations = expectations.Baseline{
+				goldClient.resultState.Expectations = expectations.BaselineInt{
 					testName: {
 						digest: label,
 					},
@@ -1562,7 +1562,7 @@ func TestCloudClient_MatchImageAgainstBaseline_ExactMatching_Success(t *testing.
 			defer cleanup()
 
 			if label != unlabeled {
-				goldClient.resultState.Expectations = expectations.Baseline{
+				goldClient.resultState.Expectations = expectations.BaselineInt{
 					testName: {
 						digest: label,
 					},
@@ -1605,7 +1605,7 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_ImageAlreadyLabeled
 				string(imgmatching.PixelDeltaThreshold): "0",
 			}
 
-			goldClient.resultState.Expectations = expectations.Baseline{
+			goldClient.resultState.Expectations = expectations.BaselineInt{
 				testName: {
 					digest: label,
 				},
@@ -1790,7 +1790,7 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLa
 				string(imgmatching.PixelDeltaThreshold): "0",
 			}
 
-			goldClient.resultState.Expectations = expectations.Baseline{
+			goldClient.resultState.Expectations = expectations.BaselineInt{
 				testName: {
 					digest: label,
 				},

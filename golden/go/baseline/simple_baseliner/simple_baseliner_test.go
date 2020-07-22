@@ -32,7 +32,7 @@ func TestFetchBaselineSunnyDay(t *testing.T) {
 	assert.NoError(t, err)
 
 	exp := three_devices.MakeTestExpectations()
-	expectedBaseline := exp.AsBaseline()
+	expectedBaseline := exp.AsBaselineInt()
 
 	assert.Equal(t, expectedBaseline, b.Expectations)
 	assert.Equal(t, masterBranch, b.ChangeListID)
@@ -84,7 +84,7 @@ func TestFetchBaselineChangeListSunnyDay(t *testing.T) {
 	assert.Equal(t, crs, b.CodeReviewSystem)
 	// The expectation should be the master baseline merged in with the additionalTriages
 	// with additionalTriages overwriting existing expectations, if applicable.
-	assert.Equal(t, expectations.Baseline{
+	assert.Equal(t, expectations.BaselineInt{
 		"brand-new-test": {
 			IotaNewDigest:  expectations.PositiveInt,
 			KappaNewDigest: expectations.NegativeInt,

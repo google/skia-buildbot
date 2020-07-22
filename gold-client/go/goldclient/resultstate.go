@@ -62,7 +62,7 @@ type resultState struct {
 	GoldURL         string
 	Bucket          string
 	KnownHashes     types.DigestSet
-	Expectations    expectations.Baseline
+	Expectations    expectations.BaselineInt
 }
 
 // newResultState creates a new instance of resultState
