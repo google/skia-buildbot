@@ -17,6 +17,7 @@ See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8F
   diff_server_grpc: "gold-chrome-diffserver:8000",
   diff_server_http: "gold-chrome-diffserver:8001",
   flaky_trace_threshold: 10000, // no trace is flaky
+  force_login: true, // This instance requires authentication. It has a public view (chrome-public)
   frontend: {
     baseRepoURL: "<inherited from git_repo_url>",
     crsTemplate: "<inherited from crs_url_template>",
