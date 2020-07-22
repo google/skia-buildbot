@@ -472,6 +472,7 @@ func (g *Git) Update(ctx context.Context) error {
 		}
 		return nil
 	})
+	sklog.Infof("Added %d total commits this update cycle.", total)
 	if err != nil {
 		// Once we've successfully called cmd.Start() we must always call
 		// cmd.Wait() to close stdout.
