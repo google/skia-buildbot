@@ -1,0 +1,49 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/example/project/machine/go/machineserver",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@com_github_gorilla_mux//:go_default_library",
+        "@com_github_unrolled_secure//:go_default_library",
+        "@org_skia_go_infra//go/allowed:go_default_library",
+        "@org_skia_go_infra//go/auditlog:go_default_library",
+        "@org_skia_go_infra//go/baseapp:go_default_library",
+        "@org_skia_go_infra//go/httputils:go_default_library",
+        "@org_skia_go_infra//go/login:go_default_library",
+        "@org_skia_go_infra//go/metrics2:go_default_library",
+        "@org_skia_go_infra//go/skerr:go_default_library",
+        "@org_skia_go_infra//go/sklog:go_default_library",
+        "@org_skia_go_infra//go/util:go_default_library",
+        "@org_skia_go_infra//machine/go/machine:go_default_library",
+        "@org_skia_go_infra//machine/go/machine/processor:go_default_library",
+        "@org_skia_go_infra//machine/go/machine/source/pubsubsource:go_default_library",
+        "@org_skia_go_infra//machine/go/machine/store:go_default_library",
+        "@org_skia_go_infra//machine/go/machineserver/config:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "machineserver",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["main_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "@com_github_google_uuid//:go_default_library",
+        "@com_github_gorilla_mux//:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+        "@org_skia_go_infra//go/baseapp:go_default_library",
+        "@org_skia_go_infra//go/testutils/unittest:go_default_library",
+        "@org_skia_go_infra//machine/go/machine:go_default_library",
+        "@org_skia_go_infra//machine/go/machine/store:go_default_library",
+        "@org_skia_go_infra//machine/go/machineserver/config:go_default_library",
+    ],
+)
