@@ -97,6 +97,8 @@ func buildRepo() error {
 		BaseDir:     buildOutDir,
 		IsolateFile: isolateFile,
 	}
+	fmt.Println("isolateFile")
+	fmt.Println(isolateFile)
 	isolateTasks := []*isolate.Task{isolateTask}
 	hashes, _, err := i.IsolateTasks(ctx, isolateTasks)
 	if err != nil {
