@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@bazel_gazelle//:def.bzl", "gazelle")
+
+# gazelle:prefix github.com/example/project
+gazelle(name = "gazelle")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["run_unittests.go"],
+    importpath = "github.com/example/project",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@org_skia_go_infra//go/common:go_default_library",
+        "@org_skia_go_infra//go/fileutil:go_default_library",
+        "@org_skia_go_infra//go/git:go_default_library",
+        "@org_skia_go_infra//go/sklog:go_default_library",
+        "@org_skia_go_infra//go/testutils/unittest:go_default_library",
+        "@org_skia_go_infra//go/timer:go_default_library",
+        "@org_skia_go_infra//go/util:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "project",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
