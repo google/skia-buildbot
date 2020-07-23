@@ -406,6 +406,7 @@ func (c *Client) ReUploadIsolatedFiles(ctx context.Context, isolatedFiles []*iso
 		if runtime.GOOS == "windows" {
 			// Win path prefixes seem to confuse isolate server.
 			dirname = strings.TrimPrefix(dirname, `c:`)
+			filename = strings.TrimPrefix(filename, `c:`)
 		}
 		cmd = append(cmd, "--files", fmt.Sprintf("%s:%s", dirname, filename))
 	}
