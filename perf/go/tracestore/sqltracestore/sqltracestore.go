@@ -169,6 +169,23 @@ const (
 
 type statements map[statement]string
 
+type templates map[statement]string
+
+// https://play.golang.org/p/ScxN-rNDWPP
+var templatesByDialect = map[perfsql.Dialect]templates{
+	perfsql.CockroachDBDialect: {
+		insertIntoPostings: `
+		INSERT INTO
+			Postings (tile_number, key_value, trace_id)
+		VALUES
+			{{ range $index, $element :=  . -}}
+				{{ if $index }},{{end}}({{.TileNumber}}, {{.KeyValue}}, {{.TraceID}})
+	  		{{ end }}
+		ON CONFLICT
+		DO NOTHING`,
+	},
+}
+
 var statementsByDialect = map[perfsql.Dialect]statements{
 	perfsql.CockroachDBDialect: {
 		insertIntoSourceFiles: `
