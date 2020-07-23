@@ -289,6 +289,7 @@ func (c *Client) BatchArchiveTasks(ctx context.Context, genJsonFiles []string, j
 	cmd = append(cmd, genJsonFiles...)
 	output, err := exec.RunCwd(ctx, c.workdir, cmd...)
 	if err != nil {
+		fmt.Println("IN BATCHARCHIVE")
 		return fmt.Errorf("Failed to run isolate: %s\nOutput:\n%s", err, output)
 	}
 	return nil
@@ -321,6 +322,8 @@ func (c *Client) IsolateTasks(ctx context.Context, tasks []*Task) ([]string, []*
 		taskId := fmt.Sprintf(TASK_ID_TMPL, strconv.Itoa(i))
 		genJsonFile := filepath.Join(tmpDir, fmt.Sprintf("%s.isolated.gen.json", taskId))
 		isolatedFile := filepath.Join(tmpDir, fmt.Sprintf("%s.isolated", taskId))
+		fmt.Println("isoaltedFile")
+		fmt.Println(isolatedFile)
 		if err := WriteIsolatedGenJson(t, genJsonFile, isolatedFile); err != nil {
 			return nil, nil, err
 		}
@@ -406,6 +409,7 @@ func (c *Client) ReUploadIsolatedFiles(ctx context.Context, isolatedFiles []*iso
 		if runtime.GOOS == "windows" {
 			// Win path prefixes seem to confuse isolate server.
 			dirname = strings.TrimPrefix(dirname, `c:`)
+			filename = strings.TrimPrefix(filename, `c:`)
 		}
 		cmd = append(cmd, "--files", fmt.Sprintf("%s:%s", dirname, filename))
 	}
