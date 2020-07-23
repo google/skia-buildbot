@@ -5,6 +5,8 @@
 
     @import '../colors';
 */
+@import '~elements-sk/themes/themes.css';
+
 
 /* Use the default theme except for the primary colors, and we'll use
  * complete default dark theme.

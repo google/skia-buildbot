@@ -1,0 +1,13 @@
+@import '../colors.css';
+
+pagination-sk {
+
+  button {
+    border-radius: 5px;
+  }
+
+  button:not(.action)[disabled] {
+    font-weight: 900;
+    text-decoration: underline;
+  }
+}
