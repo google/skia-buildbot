@@ -123,12 +123,14 @@ a simple example dataset.
 package sqltracestore
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"fmt"
 	"sort"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
@@ -168,6 +170,29 @@ const (
 )
 
 type statements map[statement]string
+
+type templates map[statement]string
+
+var templatesByDialect = map[perfsql.Dialect]templates{
+	perfsql.CockroachDBDialect: {
+		insertIntoPostings: `
+		INSERT INTO
+			Postings (tile_number, key_value, trace_id)
+		VALUES
+			{{ range $index, $element :=  . -}}
+				{{ if $index }},{{end}}({{ $element.TileNumber }}, '{{ $element.KeyValue }}', {{ $element.TraceID }})
+	  		{{ end }}
+		ON CONFLICT
+		DO NOTHING`,
+	},
+}
+
+// insertIntoPostingsValue represents the values used in the insertIntoPostings template.
+type insertIntoPostingsValue struct {
+	TileNumber types.TileNumber
+	KeyValue   string
+	TraceID    int64
+}
 
 var statementsByDialect = map[perfsql.Dialect]statements{
 	perfsql.CockroachDBDialect: {
@@ -262,6 +287,9 @@ type SQLTraceStore struct {
 	// preparedStatements are all the prepared SQL statements.
 	preparedStatements map[statement]*sql.Stmt
 
+	// unpreparedStatements are parsed templates that can be used to construct SQL statements.
+	unpreparedStatements map[statement]*template.Template
+
 	// cache is an LRU cache used to store the ids (int64) of trace names (string).
 	cache *lru.Cache
 
@@ -283,16 +311,26 @@ func New(db *sql.DB, dialect perfsql.Dialect, tileSize int32) (*SQLTraceStore, e
 		preparedStatements[key] = prepared
 	}
 
+	unpreparedStatements := map[statement]*template.Template{}
+	for key, tmpl := range templatesByDialect[dialect] {
+		t, err := template.New("").Parse(tmpl)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "parsting template %v, %q", key, tmpl)
+		}
+		unpreparedStatements[key] = t
+	}
+
 	cache, err := lru.New(cacheSize)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	return &SQLTraceStore{
-		db:                 db,
-		preparedStatements: preparedStatements,
-		cache:              cache,
-		tileSize:           tileSize,
+		db:                   db,
+		preparedStatements:   preparedStatements,
+		unpreparedStatements: unpreparedStatements,
+		cache:                cache,
+		tileSize:             tileSize,
 	}, nil
 }
 
@@ -666,13 +704,30 @@ func (s *SQLTraceStore) updateSourceFile(filename string) (int64, error) {
 // the given traceID and tileNumber. The Params given are from the parse trace
 // name.
 func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.TileNumber, traceID int64) error {
+	p = query.ForceValid(p)
+
+	// Prepare the data for the SQL template.
+	values := make([]insertIntoPostingsValue, 0, len(p))
 	for k, v := range p {
 		keyValue := fmt.Sprintf("%s=%s", k, v)
-		_, err := s.preparedStatements[insertIntoPostings].ExecContext(context.TODO(), tileNumber, keyValue, traceID)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
+		values = append(values, insertIntoPostingsValue{
+			TileNumber: tileNumber,
+			KeyValue:   keyValue,
+			TraceID:    traceID,
+		})
 	}
+
+	// Expand the template.
+	var b bytes.Buffer
+	if err := s.unpreparedStatements[insertIntoPostings].Execute(&b, values); err != nil {
+		return skerr.Wrapf(err, "Failed to expand insertIntoPostings template with: %v", values)
+	}
+
+	_, err := s.db.ExecContext(context.TODO(), b.String())
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+
 	return nil
 }
 
