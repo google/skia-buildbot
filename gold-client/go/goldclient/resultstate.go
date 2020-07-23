@@ -62,7 +62,7 @@ type resultState struct {
 	GoldURL         string
 	Bucket          string
 	KnownHashes     types.DigestSet
-	Expectations    expectations.BaselineInt
+	Expectations    expectations.Baseline
 }
 
 // newResultState creates a new instance of resultState
@@ -145,7 +145,7 @@ func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 		return skerr.Wrapf(err, "parsing JSON; this sometimes means auth issues")
 	}
 
-	r.Expectations = exp.ExpectationsInt
+	r.Expectations = exp.Expectations
 	return nil
 }
 
