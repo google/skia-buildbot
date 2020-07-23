@@ -151,6 +151,8 @@ import (
 // per instance.
 const cacheSize = 10 * 1000 * 1000
 
+const traceValuesInsertBatchSize = 100
+
 // statement is an SQL statement or fragment of an SQL statement.
 type statement int
 
@@ -173,6 +175,7 @@ type statements map[statement]string
 
 type templates map[statement]string
 
+// https://play.golang.org/p/uTB205OOsxI
 var templatesByDialect = map[perfsql.Dialect]templates{
 	perfsql.CockroachDBDialect: {
 		insertIntoPostings: `
@@ -184,6 +187,14 @@ var templatesByDialect = map[perfsql.Dialect]templates{
 	  		{{ end }}
 		ON CONFLICT
 		DO NOTHING`,
+
+		replaceTraceValues: `
+		UPSERT INTO
+			TraceValues (trace_id, commit_number, val, source_file_id)
+		VALUES
+		{{ range $index, $element :=  . -}}
+			{{ if $index }},{{end}}({{ .TraceID }}, {{ .CommitNumber }}, {{ .Val }}, {{ .SourceFileID }})
+		{{ end }}`,
 	},
 }
 
@@ -192,6 +203,13 @@ type insertIntoPostingsValue struct {
 	TileNumber types.TileNumber
 	KeyValue   string
 	TraceID    int64
+}
+
+type replaceTraceValue struct {
+	TraceID      int64
+	CommitNumber types.CommitNumber
+	Val          float32
+	SourceFileID int64
 }
 
 var statementsByDialect = map[perfsql.Dialect]statements{
@@ -231,11 +249,6 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 			($1, $2, $3)
 		ON CONFLICT
 		DO NOTHING`,
-		replaceTraceValues: `
-		UPSERT INTO
-			TraceValues (trace_id, commit_number, val, source_file_id)
-		VALUES
-			($1, $2, $3, $4)`,
 		countIndices: `
 		SELECT
 			COUNT(*)
@@ -766,8 +779,12 @@ func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Par
 }
 
 // updateTraceValues writes a single entry in to the TraceValues table.
-func (s *SQLTraceStore) updateTraceValues(traceID int64, commitNumber types.CommitNumber, x float32, sourceID int64) error {
-	_, err := s.preparedStatements[replaceTraceValues].ExecContext(context.TODO(), traceID, commitNumber, x, sourceID)
+func (s *SQLTraceStore) updateTraceValues(templateContext []replaceTraceValue) error {
+	var b bytes.Buffer
+	if err := s.unpreparedStatements[replaceTraceValues].Execute(&b, templateContext); err != nil {
+		return skerr.Wrapf(err, "failed to expand template")
+	}
+	_, err := s.db.ExecContext(context.TODO(), b.String())
 	return skerr.Wrap(err)
 }
 
@@ -783,21 +800,34 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 	// Get trace ids for each trace and add trace ids to the index/postings.
 	// We populate the traceIDs slice whose values are 1:1 with the values and
 	// params slices.
-	traceIDs := make([]int64, len(params))
+	context := make([]replaceTraceValue, 0, len(params))
 	for i, p := range params {
 		traceID, err := s.writeTraceIDAndPostings(p, tileNumber)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
-		traceIDs[i] = traceID
+		context = append(context, replaceTraceValue{
+			TraceID:      traceID,
+			CommitNumber: commitNumber,
+			Val:          values[i],
+			SourceFileID: sourceID,
+		})
 	}
 
-	// Now add each trace value.
-	for i, x := range values {
-		if err := s.updateTraceValues(traceIDs[i], commitNumber, x, sourceID); err != nil {
-			return skerr.Wrap(err)
+	// Now break up context into sub-slices of 'batchsize' and execute them.
+	for len(context) > 0 {
+		subSlice := context
+		if len(context) > traceValuesInsertBatchSize {
+			subSlice = context[:traceValuesInsertBatchSize]
+			context = context[traceValuesInsertBatchSize:]
+		} else {
+			context = nil
+		}
+		if err := s.updateTraceValues(subSlice); err != nil {
+			return skerr.Wrapf(err, "failed inserting subSlice")
 		}
 	}
+
 	return nil
 }
 
