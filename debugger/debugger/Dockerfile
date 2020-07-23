@@ -19,8 +19,8 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y  \
 
 USER skia
 
-ADD --chown=skia:skia https://storage.googleapis.com/swiftshader-binaries/OpenGL_ES/Latest/Linux/libGLESv2.so /usr/local/lib/libGLESv2.so
-ADD --chown=skia:skia https://storage.googleapis.com/swiftshader-binaries/OpenGL_ES/Latest/Linux/libEGL.so /usr/local/lib/libEGL.so
+ADD --chown=skia:skia https://storage.googleapis.com/skia-swiftshader/libGLESv2.so /usr/local/lib/libGLESv2.so
+ADD --chown=skia:skia https://storage.googleapis.com/skia-swiftshader/libEGL.so /usr/local/lib/libEGL.so
 COPY . /
 COPY --from=SKIA_IMAGE /tmp/skia/skia/out/Static/skiaserve /usr/local/bin/skiaserve
 COPY --from=SKIA_IMAGE /tmp/skia/skia/VERSION /etc/skia-prod/VERSION
