@@ -38,9 +38,8 @@ func (f *SimpleBaselineFetcher) FetchBaseline(ctx context.Context, clID, crs str
 			ChangeListID:     "",
 			CodeReviewSystem: "",
 			Expectations:     exp.AsBaseline(),
-			ExpectationsInt:  exp.AsBaselineInt(),
 		}
-		md5Sum, err := util.MD5Sum(b.ExpectationsInt)
+		md5Sum, err := util.MD5Sum(b.Expectations)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "calculating md5 hash of expectations")
 		}
@@ -63,7 +62,6 @@ func (f *SimpleBaselineFetcher) FetchBaseline(ctx context.Context, clID, crs str
 			ChangeListID:     clID,
 			CodeReviewSystem: crs,
 			Expectations:     iexp.AsBaseline(),
-			ExpectationsInt:  iexp.AsBaselineInt(),
 			MD5:              md5Sum,
 		}, nil
 	}
@@ -79,9 +77,8 @@ func (f *SimpleBaselineFetcher) FetchBaseline(ctx context.Context, clID, crs str
 		ChangeListID:     clID,
 		CodeReviewSystem: crs,
 		Expectations:     exp.AsBaseline(),
-		ExpectationsInt:  exp.AsBaselineInt(),
 	}
-	md5Sum, err := util.MD5Sum(b.ExpectationsInt)
+	md5Sum, err := util.MD5Sum(b.Expectations)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "calculating md5 hash of expectations")
 	}

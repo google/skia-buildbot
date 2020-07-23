@@ -238,44 +238,6 @@ func TestAsBaseline(t *testing.T) {
 	require.Equal(t, expectedOutput, input.AsBaseline())
 }
 
-// TODO(skbug.com/10522): Remove once the expectations.LabelStr -> expectations.Label refactoring
-//                        is complete.
-func TestAsBaselineInt(t *testing.T) {
-	unittest.SmallTest(t)
-	input := Expectations{
-		labels: map[types.TestName]map[types.Digest]Label{
-			"gamma": {
-				"hashX": Untriaged,
-				"hashY": Untriaged,
-				"hashZ": Untriaged,
-			},
-			"beta": {
-				"hash1": Positive,
-				"hash3": Negative,
-				"hash2": Untriaged,
-				"hash4": Positive,
-			},
-			"alpha": {
-				"hashB": Untriaged,
-				"hashA": Negative,
-				"hashC": Untriaged,
-			},
-		},
-	}
-
-	expectedOutput := BaselineInt{
-		"beta": {
-			"hash1": PositiveInt,
-			"hash3": NegativeInt,
-			"hash4": PositiveInt,
-		},
-		"alpha": {
-			"hashA": NegativeInt,
-		},
-	}
-	require.Equal(t, expectedOutput, input.AsBaselineInt())
-}
-
 // All this test data is valid, but arbitrary.
 const (
 	alphaPositiveDigest = types.Digest("aaa884cd5ac3d6785c35cff8f26d2da5")
