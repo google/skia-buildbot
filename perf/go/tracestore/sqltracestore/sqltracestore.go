@@ -185,6 +185,14 @@ var templatesByDialect = map[perfsql.Dialect]templates{
 	  		{{ end }}
 		ON CONFLICT
 		DO NOTHING`,
+
+		replaceTraceValues: `
+		UPSERT INTO
+			TraceValues (trace_id, commit_number, val, source_file_id)
+		VALUES
+		{{ range $index, $element :=  . -}}
+			{{ if $index }},{{end}}({{ .TileNumber }}, '{{ .KeyValue }}', {{ .TraceID }})
+		{{ end }}`,
 	},
 }
 
@@ -232,11 +240,6 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 			($1, $2, $3)
 		ON CONFLICT
 		DO NOTHING`,
-		replaceTraceValues: `
-		UPSERT INTO
-			TraceValues (trace_id, commit_number, val, source_file_id)
-		VALUES
-			($1, $2, $3, $4)`,
 		countIndices: `
 		SELECT
 			COUNT(*)
