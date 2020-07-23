@@ -123,6 +123,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/texttheater/golang-levenshtein v0.0.0-20191208221605-eb6844b05fc6
+	github.com/twitchtv/twirp v5.12.0+incompatible // indirect
 	github.com/unrolled/secure v1.0.8
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/willf/bitset v1.1.10

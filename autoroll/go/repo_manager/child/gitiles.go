@@ -3,23 +3,29 @@ package child
 import (
 	"context"
 	"net/http"
+	"os"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
 )
 
 // GitilesConfig provides configuration for gitilesChild.
 type GitilesConfig struct {
 	gitiles_common.GitilesConfig
+	// Path indicates one path of the repo to watch for changes; all other
+	// commits are ignored.
+	Path string `json:"path"`
 }
 
 // gitilesChild is an implementation of Child which uses Gitiles rather than a
 // local checkout.
 type gitilesChild struct {
 	*gitiles_common.GitilesRepo
+	logOpts []gitiles.LogOption
 }
 
 // NewGitiles returns an implementation of Child which uses Gitiles rather
@@ -29,8 +35,13 @@ func NewGitiles(ctx context.Context, c GitilesConfig, reg *config_vars.Registry,
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	var logOpts []gitiles.LogOption
+	if c.Path != "" {
+		logOpts = append(logOpts, gitiles.LogPath(c.Path))
+	}
 	return &gitilesChild{
 		GitilesRepo: g,
+		logOpts:     logOpts,
 	}, nil
 }
 
@@ -40,7 +51,7 @@ func (c *gitilesChild) Update(ctx context.Context, lastRollRev *revision.Revisio
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "Failed to retrieve tip rev")
 	}
-	notRolledRevs, err := c.LogFirstParent(ctx, lastRollRev, tipRev)
+	notRolledRevs, err := c.LogFirstParent(ctx, lastRollRev, tipRev, c.logOpts...)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "Failed to retrieve not-rolled revisions")
 	}
@@ -50,6 +61,21 @@ func (c *gitilesChild) Update(ctx context.Context, lastRollRev *revision.Revisio
 // See documentation for Child interface.
 func (c *gitilesChild) Download(ctx context.Context, rev *revision.Revision, dest string) error {
 	return git_common.Clone(ctx, c.URL, dest, rev)
+}
+
+// ReadFile implements Reader.
+func (c *gitilesChild) ReadFile(ctx context.Context, rev *revision.Revision, path string) (string, error) {
+	return "", skerr.Fmt("NOT IMPLEMENTED")
+}
+
+// ReadDir implements Reader.
+func (c *gitilesChild) ReadDir(ctx context.Context, rev *revision.Revision, path string) ([]os.FileInfo, error) {
+	return nil, skerr.Fmt("NOT IMPLEMENTED")
+}
+
+// Stat implements Reader.
+func (c *gitilesChild) Stat(ctx context.Context, rev *revision.Revision, path string) (os.FileInfo, error) {
+	return nil, skerr.Fmt("NOT IMPLEMENTED")
 }
 
 // gitilesChild implements Child.

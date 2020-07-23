@@ -6,6 +6,7 @@ package child
 
 import (
 	"context"
+	"os"
 
 	"go.skia.org/infra/autoroll/go/revision"
 )
@@ -25,4 +26,22 @@ type Child interface {
 	// Download downloads the Child at the given Revision to the given
 	// destination.
 	Download(context.Context, *revision.Revision, string) error
+
+	Reader
+}
+
+// Reader provides methods for reading the contents of a Child at a
+// particular Revision.
+type Reader interface {
+	// ReadFile retrieves the FileInfo and contents of the given file path
+	// within the Child at the given Revision.
+	ReadFile(context.Context, *revision.Revision, string) (string, error)
+
+	// ReadDir retrieves the contents of the given directory of the Child at the
+	// given Revision.
+	ReadDir(context.Context, *revision.Revision, string) ([]os.FileInfo, error)
+
+	// Stat returns an os.FileInfo describing the given path at the given
+	// Revision.
+	Stat(context.Context, *revision.Revision, string) (os.FileInfo, error)
 }

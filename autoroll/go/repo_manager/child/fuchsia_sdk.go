@@ -33,6 +33,7 @@ func (c FuchsiaSDKConfig) Validate() error {
 
 // FuchsiaSDKChild is an implementation of Child which deals with the Fuchsia SDK.
 type FuchsiaSDKChild struct {
+	*readerHelper
 	gsBucket          string
 	gsLatestPathLinux string
 	gsLatestPathMac   string
@@ -57,6 +58,7 @@ func NewFuchsiaSDK(ctx context.Context, c FuchsiaSDKConfig, client *http.Client)
 		includeMacSDK:     c.IncludeMacSDK,
 		storageClient:     storageClient,
 	}
+	rv.readerHelper = newReaderHelper(rv)
 	return rv, nil
 }
 

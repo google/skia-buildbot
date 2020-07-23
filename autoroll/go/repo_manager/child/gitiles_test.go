@@ -45,7 +45,7 @@ func TestGitilesChild_Download(t *testing.T) {
 }`)
 	hash := child.Commit(context.Background())
 	cfg := GitilesConfig{
-		gitiles_common.GitilesConfig{
+		GitilesConfig: gitiles_common.GitilesConfig{
 			Branch:  masterBranchTmpl(t),
 			RepoURL: child.RepoUrl(),
 		},

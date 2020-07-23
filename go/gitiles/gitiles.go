@@ -353,10 +353,13 @@ func (r *Repo) GetTreeDiffs(ctx context.Context, ref string) ([]*TreeDiff, error
 	return c.TreeDiffs, nil
 }
 
-// LogOption represents an optional parameter to a Log function.
+// LogOption represents an optional parameter to a Log function. Either Key()
+// AND Value() OR Path() must return non-empty strings. Only one LogOption in
+// a given set may return a non-empty value for Path().
 type LogOption interface {
 	Key() string
 	Value() string
+	Path() string
 }
 
 type stringLogOption [2]string
@@ -367,6 +370,10 @@ func (s stringLogOption) Key() string {
 
 func (s stringLogOption) Value() string {
 	return s[1]
+}
+
+func (s stringLogOption) Path() string {
+	return ""
 }
 
 // LogReverse is a LogOption which indicates that the commits in the Log should
@@ -395,21 +402,53 @@ func (n logLimit) Value() string {
 	return strconv.Itoa(int(n))
 }
 
+func (n logLimit) Path() string {
+	return ""
+}
+
 // LogLimit is a LogOption which makes Log return at most N commits.
 func LogLimit(n int) LogOption {
 	return logLimit(n)
 }
 
-// LogOptionsToQuery converts the given LogOptions to a URL query string.
-// Returns the query string and the maximum number of commits to return from a
-// Log query (or zero if none is provided, indicating no limit), or any error
-// which occurred.
-func LogOptionsToQuery(opts []LogOption) (string, int, error) {
+// logPath restricts the log to a given path.
+type logPath string
+
+func (p logPath) Key() string {
+	return ""
+}
+
+func (p logPath) Value() string {
+	return ""
+}
+
+func (p logPath) Path() string {
+	return string(p)
+}
+
+// LogPath is a LogOption which limits the git log to the given path.
+func LogPath(path string) LogOption {
+	return logPath(path)
+}
+
+// LogOptionsToQuery converts the given LogOptions to a URL sub-path and query
+// string. Returns the URL sub-path and query string and the maximum number of
+// commits to return from a Log query (or zero if none is provided, indicating
+// no limit), or any error which occurred.
+func LogOptionsToQuery(opts []LogOption) (string, string, int, error) {
 	limit := 0
+	path := ""
 	query := ""
 	if len(opts) > 0 {
 		paramsMap := make(map[string]string, len(opts))
 		for _, opt := range opts {
+			optPath := opt.Path()
+			if optPath != "" {
+				if path != "" {
+					return "", "", 0, skerr.Fmt("Only one log option may change the URL path")
+				}
+				path = optPath
+			}
 			// If LogLimit and LogBatchSize are both provided, or if
 			// LogBatchSize is provided more than once, use the
 			// smaller value. This ensures that we respect the batch
@@ -425,13 +464,13 @@ func LogOptionsToQuery(opts []LogOption) (string, int, error) {
 				if err != nil {
 					// This shouldn't happen, since we used
 					// strconv.Itoi to create it.
-					return "", 0, skerr.Wrap(err)
+					return "", "", 0, skerr.Wrap(err)
 				}
 				newInt, err := strconv.Atoi(opt.Value())
 				if err != nil {
 					// This shouldn't happen, since we used
 					// strconv.Itoi to create it.
-					return "", 0, skerr.Wrap(err)
+					return "", "", 0, skerr.Wrap(err)
 				}
 				if newInt < existInt {
 					paramsMap[opt.Key()] = opt.Value()
@@ -450,7 +489,7 @@ func LogOptionsToQuery(opts []LogOption) (string, int, error) {
 		sort.Strings(params) // For consistency in tests.
 		query = strings.Join(params, "&")
 	}
-	return query, limit, nil
+	return path, query, limit, nil
 }
 
 // logHelper is used to perform requests which are equivalent to "git log".
@@ -459,9 +498,12 @@ func LogOptionsToQuery(opts []LogOption) (string, int, error) {
 // returned, unless it was ErrStopIteration.
 func (r *Repo) logHelper(ctx context.Context, url string, fn func(context.Context, []*vcsinfo.LongCommit) error, opts ...LogOption) error {
 	// Build the query parameters.
-	query, limit, err := LogOptionsToQuery(opts)
+	path, query, limit, err := LogOptionsToQuery(opts)
 	if err != nil {
 		return err
+	}
+	if path != "" {
+		url += "/" + path
 	}
 	if query != "" {
 		url += "&" + query

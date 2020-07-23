@@ -129,5 +129,5 @@ func NewNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoMana
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return newParentChildRepoManager(ctx, parentRM, childRM)
+	return newParentChildRepoManager(ctx, parentRM, childRM, nil)
 }
