@@ -19,7 +19,7 @@
 ** DO NOT MODIFY **
 *******************
 
-This is a copy of https://chromium.googlesource.com/infra/luci/recipes-py/+show/master/recipes.py.
+This is a copy of https://chromium.googlesource.com/infra/luci/recipes-py/+/master/recipes.py.
 To fix bugs, fix in the googlesource repo then run the autoroller.
 """
 
