@@ -7,7 +7,6 @@ import (
 	"regexp"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
@@ -23,20 +22,14 @@ var (
 // Git checkout of a Github repo.
 type GitCheckoutGithubConfig struct {
 	GitCheckoutConfig
-	BuildbucketRevisionFilter *revision_filter.BuildbucketRevisionFilterConfig `json:"buildbucketFilter"`
-	GithubRepoName            string                                           `json:"githubRepoName"`
-	GithubUserName            string                                           `json:"githubUserName"`
+	GithubRepoName string `json:"githubRepoName"`
+	GithubUserName string `json:"githubUserName"`
 }
 
 // See documentation for util.Validator interface.
 func (c GitCheckoutGithubConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
-	}
-	if c.BuildbucketRevisionFilter != nil {
-		if err := c.BuildbucketRevisionFilter.Validate(); err != nil {
-			return skerr.Wrap(err)
-		}
 	}
 	if c.GithubRepoName == "" {
 		return skerr.Fmt("GithubRepoName is required")
@@ -51,9 +44,8 @@ func (c GitCheckoutGithubConfig) Validate() error {
 // checkout of a Github repo.
 type GitCheckoutGithubChild struct {
 	*GitCheckoutChild
-	repoName  string
-	revFilter revision_filter.RevisionFilter
-	userName  string
+	repoName string
+	userName string
 }
 
 // NewGitCheckoutGithub returns an implementation of Child which uses a local
@@ -66,17 +58,9 @@ func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *c
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	var rf revision_filter.RevisionFilter
-	if c.BuildbucketRevisionFilter != nil {
-		rf, err = revision_filter.NewBuildbucketRevisionFilter(client, c.BuildbucketRevisionFilter.Project, c.BuildbucketRevisionFilter.Bucket)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-	}
 	return &GitCheckoutGithubChild{
 		GitCheckoutChild: child,
 		repoName:         c.GithubRepoName,
-		revFilter:        rf,
 		userName:         c.GithubUserName,
 	}, nil
 }
@@ -114,18 +98,6 @@ func (c *GitCheckoutGithubChild) Update(ctx context.Context, lastRollRev *revisi
 	for _, rev := range notRolledRevs {
 		if err := c.fixPullRequestLinks(rev); err != nil {
 			return nil, nil, skerr.Wrap(err)
-		}
-	}
-	// Optionally filter not-rolled revisions.
-	// TODO(borenet): Move this to parentChildRepoManager.
-	if c.revFilter != nil {
-		if err := revision_filter.MaybeSetInvalid(ctx, c.revFilter, tipRev); err != nil {
-			return nil, nil, skerr.Wrap(err)
-		}
-		for _, notRolledRev := range notRolledRevs {
-			if err := revision_filter.MaybeSetInvalid(ctx, c.revFilter, notRolledRev); err != nil {
-				return nil, nil, skerr.Wrap(err)
-			}
 		}
 	}
 	return tipRev, notRolledRevs, nil

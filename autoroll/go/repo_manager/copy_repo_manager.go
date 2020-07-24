@@ -19,7 +19,7 @@ import (
 // CopyRepoManagerConfig provides configuration for the copy
 // RepoManager.
 type CopyRepoManagerConfig struct {
-	DepotToolsRepoManagerConfig
+	NoCheckoutRepoManagerConfig
 	Gerrit *codereview.GerritConfig `json:"gerrit,omitempty"`
 
 	// ChildRepo is the URL of the child repo.
@@ -103,5 +103,7 @@ func NewCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, reg *conf
 	if err := gerrit_common.SetupGerrit(ctx, parentRM.Checkout.Checkout, g); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return newParentChildRepoManager(ctx, parentRM, childRM)
+
+	revFilter := parent.NewCopyRevisionFilter(parentCfg)
+	return newParentChildRepoManager(ctx, parentRM, childRM, revFilter)
 }

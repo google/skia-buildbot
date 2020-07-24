@@ -58,16 +58,19 @@ func NewCIPD(ctx context.Context, c CIPDConfig, client *http.Client, workdir str
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return &CIPDChild{
+	rv := &CIPDChild{
 		client: cipdClient,
 		name:   c.Name,
 		root:   workdir,
 		tag:    c.Tag,
-	}, nil
+	}
+	rv.readerHelper = newReaderHelper(rv)
+	return rv, nil
 }
 
 // CIPDChild is an implementation of Child which deals with a CIPD package.
 type CIPDChild struct {
+	*readerHelper
 	client cipd.CIPDClient
 	name   string
 	root   string

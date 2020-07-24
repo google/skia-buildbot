@@ -82,6 +82,7 @@ type gcsShortRevFunc func(string) string
 
 // gcsChild is a Child implementation which loads revisions from GCS.
 type gcsChild struct {
+	*readerHelper
 	gcs           *gcsclient.StorageClient
 	gcsBucket     string
 	gcsPath       string
@@ -99,13 +100,15 @@ func newGCS(ctx context.Context, c GCSConfig, client *http.Client, getVersion gc
 		return nil, err
 	}
 	gcsClient := gcsclient.New(storageClient, c.GCSBucket)
-	return &gcsChild{
+	rv := &gcsChild{
 		gcs:           gcsClient,
 		gcsBucket:     c.GCSBucket,
 		gcsPath:       c.GCSPath,
 		getGCSVersion: getVersion,
 		shortRev:      shortRev,
-	}, nil
+	}
+	rv.readerHelper = newReaderHelper(rv)
+	return rv, nil
 }
 
 // See documentation for Child interface.

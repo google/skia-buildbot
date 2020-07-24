@@ -1,6 +1,7 @@
 package gitiles_common
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -97,8 +98,8 @@ func (r *GitilesRepo) GetTipRevision(ctx context.Context) (*revision.Revision, e
 }
 
 // LogFirstParent returns a slice of revision.Revision instances in the given range.
-func (r *GitilesRepo) LogFirstParent(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
-	commits, err := r.Repo.LogFirstParent(ctx, from.Id, to.Id)
+func (r *GitilesRepo) LogFirstParent(ctx context.Context, from, to *revision.Revision, logOpts ...gitiles.LogOption) ([]*revision.Revision, error) {
+	commits, err := r.Repo.LogFirstParent(ctx, from.Id, to.Id, logOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -115,9 +116,9 @@ func (r *GitilesRepo) LogFirstParent(ctx context.Context, from, to *revision.Rev
 
 // GetFile retrieves the contents of the given file at the given ref.
 func (r *GitilesRepo) GetFile(ctx context.Context, file, ref string) (string, error) {
-	contents, err := r.ReadFileAtRef(ctx, file, ref)
-	if err != nil {
+	var buf bytes.Buffer
+	if err := r.ReadFileAtRef(ctx, file, ref, &buf); err != nil {
 		return "", skerr.Wrap(err)
 	}
-	return string(contents), nil
+	return buf.String(), nil
 }

@@ -20,6 +20,7 @@ type GitCheckoutConfig struct {
 // checkout.
 type GitCheckoutChild struct {
 	*git_common.Checkout
+	*readerHelper
 }
 
 // NewGitCheckout returns an implementation of Child which uses a local Git
@@ -29,7 +30,9 @@ func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.R
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return &GitCheckoutChild{Checkout: checkout}, nil
+	rv := &GitCheckoutChild{Checkout: checkout}
+	rv.readerHelper = newReaderHelper(rv)
+	return rv, nil
 }
 
 // See documentation for Child interface.
