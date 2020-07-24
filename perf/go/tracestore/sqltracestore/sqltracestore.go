@@ -176,14 +176,12 @@ type templates map[statement]string
 var templatesByDialect = map[perfsql.Dialect]templates{
 	perfsql.CockroachDBDialect: {
 		insertIntoPostings: `
-		INSERT INTO
+		UPSERT INTO
 			Postings (tile_number, key_value, trace_id)
 		VALUES
 			{{ range $index, $element :=  . -}}
 				{{ if $index }},{{end}}({{ $element.TileNumber }}, '{{ $element.KeyValue }}', {{ $element.TraceID }})
-	  		{{ end }}
-		ON CONFLICT
-		DO NOTHING`,
+	  		{{ end }}`,
 	},
 }
 
@@ -315,7 +313,7 @@ func New(db *sql.DB, dialect perfsql.Dialect, tileSize int32) (*SQLTraceStore, e
 	for key, tmpl := range templatesByDialect[dialect] {
 		t, err := template.New("").Parse(tmpl)
 		if err != nil {
-			return nil, skerr.Wrapf(err, "parsting template %v, %q", key, tmpl)
+			return nil, skerr.Wrapf(err, "parsing template %v, %q", key, tmpl)
 		}
 		unpreparedStatements[key] = t
 	}
@@ -704,6 +702,7 @@ func (s *SQLTraceStore) updateSourceFile(filename string) (int64, error) {
 // the given traceID and tileNumber. The Params given are from the parse trace
 // name.
 func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.TileNumber, traceID int64) error {
+	// Clean the data to avoid SQL injection attacks.
 	p = query.ForceValid(p)
 
 	// Prepare the data for the SQL template.
