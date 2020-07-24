@@ -77,11 +77,11 @@ func main() {
 	baseCommit := baseCommitInfo.Hash
 
 	// Download the CQ config file and modify it.
-	var buf bytes.Buffer
-	if err := repo.ReadFileAtRef(ctx, cq.CQ_CFG_FILE, baseCommit, &buf); err != nil {
+	cfgContents, err := repo.ReadFileAtRef(ctx, cq.CQ_CFG_FILE, baseCommit)
+	if err != nil {
 		sklog.Fatal(err)
 	}
-	newCfgBytes, err := cq.WithUpdateCQConfig(buf.Bytes(), func(cfg *cq_config.Config) error {
+	newCfgBytes, err := cq.WithUpdateCQConfig(cfgContents, func(cfg *cq_config.Config) error {
 		cg, _, _, err := cq.MatchConfigGroup(cfg, newRef)
 		if err != nil {
 			return err
@@ -102,11 +102,11 @@ func main() {
 	})
 
 	// Download and modify the supported-branches.json file.
-	buf = bytes.Buffer{}
-	if err := repo.ReadFileAtRef(ctx, supported_branches.SUPPORTED_BRANCHES_FILE, baseCommit, &buf); err != nil {
+	branchesContents, err := repo.ReadFileAtRef(ctx, supported_branches.SUPPORTED_BRANCHES_FILE, baseCommit)
+	if err != nil {
 		sklog.Fatal(err)
 	}
-	sbc, err := supported_branches.DecodeConfig(&buf)
+	sbc, err := supported_branches.DecodeConfig(bytes.NewReader(branchesContents))
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -133,7 +133,7 @@ func main() {
 		})
 	}
 	sbc.Branches = newBranches
-	buf = bytes.Buffer{}
+	buf := bytes.Buffer{}
 	if err := supported_branches.EncodeConfig(&buf, sbc); err != nil {
 		sklog.Fatal(err)
 	}

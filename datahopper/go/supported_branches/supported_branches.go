@@ -1,7 +1,6 @@
 package supported_branches
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -97,11 +96,11 @@ func metricsForRepo(repo *gitiles.Repo, newMetrics map[metrics2.Int64Metric]stru
 		}
 
 		// Obtain the tasks cfg for this branch.
-		var buf bytes.Buffer
-		if err := repo.ReadFileAtRef(context.Background(), specs.TASKS_CFG_FILE, branch.Ref, &buf); err != nil {
+		tasksContents, err := repo.ReadFileAtRef(context.Background(), specs.TASKS_CFG_FILE, branch.Ref)
+		if err != nil {
 			return fmt.Errorf("Failed to read %s on %s of %s: %s", specs.TASKS_CFG_FILE, branch.Ref, repo.URL, err)
 		}
-		tasksCfg, err := specs.ParseTasksCfg(buf.String())
+		tasksCfg, err := specs.ParseTasksCfg(string(tasksContents))
 		if err != nil {
 			return fmt.Errorf("Failed to parse %s on %s of %s: %s", specs.TASKS_CFG_FILE, branch.Ref, repo.URL, err)
 		}

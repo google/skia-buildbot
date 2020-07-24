@@ -2,7 +2,6 @@
 package cq
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"path/filepath"
@@ -114,12 +113,12 @@ func MatchConfigGroup(cqCfg *config.Config, ref string) (*config.ConfigGroup, *c
 
 // GetCQConfig returns the Config for the given repo.
 func GetCQConfig(repo *gitiles.Repo) (*config.Config, error) {
-	var buf bytes.Buffer
-	if err := repo.ReadFileAtRef(context.Background(), CQ_CFG_FILE, CQ_CFG_REF, &buf); err != nil {
+	contents, err := repo.ReadFileAtRef(context.Background(), CQ_CFG_FILE, CQ_CFG_REF)
+	if err != nil {
 		return nil, err
 	}
 	var cqCfg config.Config
-	if err := proto.UnmarshalText(buf.String(), &cqCfg); err != nil {
+	if err := proto.UnmarshalText(string(contents), &cqCfg); err != nil {
 		return nil, err
 	}
 	return &cqCfg, nil

@@ -492,8 +492,17 @@ func TestListDir(t *testing.T) {
 040000 tree 81b1fde7557bd75ad0392143a9d79ed78d0ed4ab    testutils`))
 	urlMock.MockOnce(fmt.Sprintf(DownloadURL, repoURL, "my/ref", "go/gitiles"), mockhttpclient.MockGetDialogue([]byte(resp1)))
 
-	files, dirs, err := repo.ListDirAtRef(ctx, "go/gitiles", "my/ref")
+	infos, err := repo.ListDirAtRef(ctx, "go/gitiles", "my/ref")
 	require.NoError(t, err)
+	files := []string{}
+	dirs := []string{}
+	for _, fi := range infos {
+		if fi.IsDir() {
+			dirs = append(dirs, fi.Name())
+		} else {
+			files = append(files, fi.Name())
+		}
+	}
 	assertdeep.Equal(t, []string{"gitiles.go", "gitiles_test.go"}, files)
 	assertdeep.Equal(t, []string{"testutils"}, dirs)
 
@@ -530,20 +539,22 @@ func TestListDir(t *testing.T) {
 func TestLogOptionsToQuery(t *testing.T) {
 	unittest.SmallTest(t)
 
-	test := func(expectQuery string, expectLimit int, opts ...LogOption) {
-		query, limit, err := LogOptionsToQuery(opts)
+	test := func(expectPath string, expectQuery string, expectLimit int, opts ...LogOption) {
+		path, query, limit, err := LogOptionsToQuery(opts)
 		require.NoError(t, err)
+		require.Equal(t, expectPath, path)
 		require.Equal(t, expectQuery, query)
 		require.Equal(t, expectLimit, limit)
 	}
-	test("", 0)
-	test("reverse=true", 0, LogReverse())
-	test("n=1", 0, LogBatchSize(1))
-	test("n=2", 2, LogLimit(2))
-	test("n=5", 5, LogLimit(5), LogBatchSize(10))
-	test("n=5", 5, LogBatchSize(10), LogLimit(5))
-	test("n=5", 0, LogBatchSize(5), LogBatchSize(10))
-	test("n=3&reverse=true", 10, LogReverse(), LogLimit(10), LogBatchSize(3))
+	test("", "", 0)
+	test("", "reverse=true", 0, LogReverse())
+	test("", "n=1", 0, LogBatchSize(1))
+	test("", "n=2", 2, LogLimit(2))
+	test("", "n=5", 5, LogLimit(5), LogBatchSize(10))
+	test("", "n=5", 5, LogBatchSize(10), LogLimit(5))
+	test("", "n=5", 0, LogBatchSize(5), LogBatchSize(10))
+	test("", "n=3&reverse=true", 10, LogReverse(), LogLimit(10), LogBatchSize(3))
+	test("mypath", "n=3&reverse=true", 10, LogReverse(), LogLimit(10), LogBatchSize(3), LogPath("mypath"))
 }
 
 func TestDetails(t *testing.T) {
