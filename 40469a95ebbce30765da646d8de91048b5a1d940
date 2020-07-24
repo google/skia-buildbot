@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "66f87701_6df59929",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-24T11:29:16Z",
+      "side": 1,
+      "message": "Why was this size chosen? Are there SQL limits you are working around?",
+      "range": {
+        "startLine": 154,
+        "startChar": 6,
+        "endLine": 154,
+        "endChar": 32
+      },
+      "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a32b96fc_2dcd38c2",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 814,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-24T11:29:16Z",
+      "side": 1,
+      "message": "util.ChunkIter might be a good fit here",
+      "range": {
+        "startLine": 814,
+        "startChar": 5,
+        "endLine": 814,
+        "endChar": 8
+      },
+      "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97d90949_c0bf9339",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-24T11:29:16Z",
+      "side": 1,
+      "message": "nit: const commitNumber \u003d",
+      "range": {
+        "startLine": 88,
+        "startChar": 1,
+        "endLine": 88,
+        "endChar": 13
+      },
+      "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efd857da_9e26a048",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-24T11:29:16Z",
+      "side": 1,
+      "message": "nit: const testLength \u003d",
+      "range": {
+        "startLine": 91,
+        "startChar": 1,
+        "endLine": 91,
+        "endChar": 11
+      },
+      "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47ef86d5_4b70d779",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-24T11:29:16Z",
+      "side": 1,
+      "message": "Is this also unused? Maybe use value \"/donotcare.json\" to emphasize this.",
+      "range": {
+        "startLine": 108,
+        "startChar": 3,
+        "endLine": 108,
+        "endChar": 47
+      },
+      "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6f26e3df_a740eea2",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-24T11:29:16Z",
+      "side": 1,
+      "message": "nit: extract into a function-level const called firstTile",
+      "range": {
+        "startLine": 122,
+        "startChar": 36,
+        "endLine": 122,
+        "endChar": 38
+      },
+      "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "88060b2f_dbed507e",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-24T11:29:16Z",
+      "side": 1,
+      "message": "nit: add a reminder comment that we store 0 to commit number 0, 1 to commit number 1, etc.",
+      "range": {
+        "startLine": 124,
+        "startChar": 1,
+        "endLine": 124,
+        "endChar": 7
+      },
+      "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
