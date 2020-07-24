@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dbdeb46d_fce7f78d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-24T19:34:36Z",
+      "side": 1,
+      "message": "This will be used to make Copy rollers checkoutless.",
+      "revId": "7be6db43be88f083a01f6de33be51c7d659d5ee3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
