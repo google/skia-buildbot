@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "75f3f540_c2e69f13",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 777,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-24T18:34:52Z",
+      "side": 1,
+      "message": "INSERT ON CONFLICT RETURNING doesn\u0027t work as needed\nbecause the below query doesn\u0027t return anything because it\nstops at DO NOTHING, i.e. it only RETURNs on no-conflict.\n\nINSERT INTO SourceFiles (source_file)\nVALUES\n  (\u0027gs://perf-bucket/2020/02/08/11/testdata.json\u0027)\nON CONFLICT\nDO NOTHING\nRETURNING source_file_id;",
+      "parentUuid": "56ff2bd3_4cd786ce",
+      "range": {
+        "startLine": 770,
+        "startChar": 2,
+        "endLine": 777,
+        "endChar": 3
+      },
+      "revId": "3862503134b00192a91535a9601917c03f761491",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d4797a74_f370b8be",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "68333d6d_e0c033b7",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 784,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-24T18:34:52Z",
+      "side": 1,
+      "message": "I was planning a follow-up CL where I made types for the traceID and sourceFileID int64s returned from the database.",
+      "parentUuid": "d4797a74_f370b8be",
+      "range": {
+        "startLine": 784,
+        "startChar": 100,
+        "endLine": 784,
+        "endChar": 107
+      },
+      "revId": "3862503134b00192a91535a9601917c03f761491",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b0cd6db0_f528ff6f",
         "filename": "perf/migrations/cdb.sql",
         "patchSetId": 3
@@ -68,6 +116,30 @@
       "revId": "3862503134b00192a91535a9601917c03f761491",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3af8d918_0b6ca082",
+        "filename": "perf/migrations/cdb.sql",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-24T18:34:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b0cd6db0_f528ff6f",
+      "range": {
+        "startLine": 10,
+        "startChar": 29,
+        "endLine": 10,
+        "endChar": 36
+      },
+      "revId": "3862503134b00192a91535a9601917c03f761491",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
