@@ -2,6 +2,46 @@
   "comments": [
     {
       "key": {
+        "uuid": "8942eb1e_40a97ae4",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-24T11:21:40Z",
+      "side": 1,
+      "message": "A test",
+      "revId": "47361460e5d8405e8409975732501af866a5ebbb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "70850203_27588a12",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-24T11:21:40Z",
+      "side": 1,
+      "message": "Please add a test for this.",
+      "range": {
+        "startLine": 178,
+        "startChar": 2,
+        "endLine": 178,
+        "endChar": 20
+      },
+      "revId": "47361460e5d8405e8409975732501af866a5ebbb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "e236b70e_066c8063",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 6
