@@ -62,8 +62,8 @@ func testUpdateSourceFile(t *testing.T, s *SQLTraceStore) {
 
 func testWriteTraceIDAndPostings(t *testing.T, s *SQLTraceStore) {
 	const traceName = ",arch=x86,config=8888,"
-	const tileNumber types.TileNumber = 1
 	p := paramtools.NewParams(traceName)
+	const tileNumber types.TileNumber = 1
 
 	// Do each update twice to ensure the IDs don't change.
 	traceID, err := s.writeTraceIDAndPostings(p, tileNumber)
@@ -76,7 +76,7 @@ func testWriteTraceIDAndPostings(t *testing.T, s *SQLTraceStore) {
 	// Confirm the cache entries exist.
 	got, ok := s.cache.Get(traceName)
 	assert.True(t, ok)
-	assert.Equal(t, traceID, got.(int64))
+	assert.Equal(t, traceID, got.(traceIDFromSQL))
 	assert.True(t, s.cache.Contains(getPostingsCacheEntryKey(traceID, tileNumber)))
 
 	const traceName2 = ",arch=arm,config=8888,"
@@ -359,13 +359,14 @@ func testTraceCount(t *testing.T, s *SQLTraceStore) {
 }
 
 func testParamSetForTile(t *testing.T, s *SQLTraceStore) {
-	_, err := s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=x86,"), 1)
+	const tileNumber types.TileNumber = 1
+	_, err := s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=x86,"), tileNumber)
 	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=565,arch=arm,"), 1)
+	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=565,arch=arm,"), tileNumber)
 	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=arm64,"), 1)
+	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=arm64,"), tileNumber)
 	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=gpu,arch=x86_64,"), 1)
+	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=gpu,arch=x86_64,"), tileNumber)
 	assert.NoError(t, err)
 
 	ps, err := s.paramSetForTile(1)
@@ -385,11 +386,11 @@ func testParamSetForTile_Empty(t *testing.T, s *SQLTraceStore) {
 }
 
 func testGetLatestTile(t *testing.T, s *SQLTraceStore) {
-	_, err := s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=x86,"), 1)
+	_, err := s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=x86,"), types.TileNumber(1))
 	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=arm64,"), 5)
+	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=arm64,"), types.TileNumber(5))
 	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=gpu,arch=x86_64,"), 7)
+	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=gpu,arch=x86_64,"), types.TileNumber(7))
 	assert.NoError(t, err)
 
 	tileNumber, err := s.GetLatestTile()
@@ -407,14 +408,15 @@ func testGetLatestTile_Empty(t *testing.T, s *SQLTraceStore) {
 func testGetOrderedParamSet(t *testing.T, s *SQLTraceStore) {
 	ctx := context.Background()
 
+	const tileNumber types.TileNumber = 1
 	// Now add some trace ids.
-	_, err := s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=x86,"), 1)
+	_, err := s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=x86,"), tileNumber)
 	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=565,arch=arm,"), 1)
+	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=565,arch=arm,"), tileNumber)
 	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=arm64,"), 1)
+	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=arm64,"), tileNumber)
 	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=gpu,arch=x86_64,"), 1)
+	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=gpu,arch=x86_64,"), tileNumber)
 	assert.NoError(t, err)
 
 	ops, err := s.GetOrderedParamSet(ctx, 1)
@@ -439,14 +441,15 @@ func testGetOrderedParamSet_Empty(t *testing.T, s *SQLTraceStore) {
 func testCountIndices(t *testing.T, s *SQLTraceStore) {
 	ctx := context.Background()
 
+	const tileNumber types.TileNumber = 1
 	// Now add some trace ids.
-	_, err := s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=x86,"), 1)
+	_, err := s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=x86,"), tileNumber)
 	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=565,arch=arm,"), 1)
+	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=565,arch=arm,"), tileNumber)
 	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=arm64,"), 1)
+	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=arm64,"), tileNumber)
 	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=gpu,arch=x86_64,"), 1)
+	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=gpu,arch=x86_64,"), tileNumber)
 	assert.NoError(t, err)
 
 	count, err := s.CountIndices(ctx, 1)
