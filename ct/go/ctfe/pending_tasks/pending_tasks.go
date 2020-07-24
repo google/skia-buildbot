@@ -37,11 +37,7 @@ var (
 )
 
 func ReloadTemplates(resourcesDir string) {
-	runsHistoryTemplate = template.Must(template.ParseFiles(
-		filepath.Join(resourcesDir, "templates/runs_history.html"),
-		filepath.Join(resourcesDir, "templates/header.html"),
-		filepath.Join(resourcesDir, "templates/titlebar.html"),
-	))
+	runsHistoryTemplate = template.Must(template.ParseFiles(filepath.Join(resourcesDir, "dist", "runs_history.html")))
 	pendingTasksTemplate = template.Must(template.ParseFiles(filepath.Join(resourcesDir, "dist", "queue.html")))
 }
 
