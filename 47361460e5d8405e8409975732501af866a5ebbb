@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "2af160c4_41c57ca2",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-24T12:39:48Z",
+      "side": 1,
+      "message": "The existing tests for writeTraceIDAndPostings cover this.",
+      "parentUuid": "70850203_27588a12",
+      "range": {
+        "startLine": 178,
+        "startChar": 2,
+        "endLine": 178,
+        "endChar": 20
+      },
+      "revId": "47361460e5d8405e8409975732501af866a5ebbb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "e236b70e_066c8063",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 6
@@ -62,6 +86,30 @@
       "revId": "47361460e5d8405e8409975732501af866a5ebbb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fbb01172_8a4412c5",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-24T12:39:48Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "e236b70e_066c8063",
+      "range": {
+        "startLine": 185,
+        "startChar": 2,
+        "endLine": 186,
+        "endChar": 12
+      },
+      "revId": "47361460e5d8405e8409975732501af866a5ebbb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -88,6 +136,30 @@
     },
     {
       "key": {
+        "uuid": "64cc80bb_3108350b",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-24T12:39:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "94f861d7_3dcf7fe3",
+      "range": {
+        "startLine": 318,
+        "startChar": 33,
+        "endLine": 318,
+        "endChar": 41
+      },
+      "revId": "47361460e5d8405e8409975732501af866a5ebbb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3b158513_4eefe209",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 6
@@ -102,6 +174,24 @@
       "revId": "47361460e5d8405e8409975732501af866a5ebbb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f30c3e5b_e978211f",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 707,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-24T12:39:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3b158513_4eefe209",
+      "revId": "47361460e5d8405e8409975732501af866a5ebbb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
