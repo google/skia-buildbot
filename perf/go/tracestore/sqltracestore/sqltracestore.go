@@ -156,6 +156,14 @@ const cacheSize = 10 * 1000 * 1000
 // pick a batch size that allows roughly one request per core.
 const traceValuesInsertBatchSize = 1000
 
+type traceIDFromSQL int64
+
+const badTraceIDFromSQL traceIDFromSQL = -1
+
+type sourceFileIDFromSQL int64
+
+const badSourceFileIDFromSQL sourceFileIDFromSQL = -1
+
 // statement is an SQL statement or fragment of an SQL statement.
 type statement int
 
@@ -201,15 +209,15 @@ var templatesByDialect = map[perfsql.Dialect]templates{
 type insertIntoPostingsValue struct {
 	TileNumber types.TileNumber
 	KeyValue   string
-	TraceID    int64
+	TraceID    traceIDFromSQL
 }
 
 // replaceTraceValue is used in the replaceTraceValues template.
 type replaceTraceValue struct {
-	TraceID      int64
+	TraceID      traceIDFromSQL
 	CommitNumber types.CommitNumber
 	Val          float32
-	SourceFileID int64
+	SourceFileID sourceFileIDFromSQL
 }
 
 var statementsByDialect = map[perfsql.Dialect]statements{
@@ -699,8 +707,8 @@ func (s *SQLTraceStore) WriteIndices(ctx context.Context, tileNumber types.TileN
 
 // updateSourceFile writes the filename into the SourceFiles table and returns
 // the int64 id of that filename.
-func (s *SQLTraceStore) updateSourceFile(filename string) (int64, error) {
-	ret := int64(-1)
+func (s *SQLTraceStore) updateSourceFile(filename string) (sourceFileIDFromSQL, error) {
+	ret := badSourceFileIDFromSQL
 	_, err := s.preparedStatements[insertIntoSourceFiles].ExecContext(context.TODO(), filename)
 	if err != nil {
 		return ret, skerr.Wrap(err)
@@ -716,7 +724,7 @@ func (s *SQLTraceStore) updateSourceFile(filename string) (int64, error) {
 // updatePostings writes all the entries into our inverted index in Postings for
 // the given traceID and tileNumber. The Params given are from the parse trace
 // name.
-func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.TileNumber, traceID int64) error {
+func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.TileNumber, traceID traceIDFromSQL) error {
 	// Clean the data to avoid SQL injection attacks.
 	p = query.ForceValid(p)
 
@@ -748,17 +756,17 @@ func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.Til
 // writeTraceIDAndPostings writes the trace name into the TraceIDs table and returns the
 // int64 id of that trace name. This operation will happen repeatedly as data is
 // ingested so we cache the results in the LRU cache.
-func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Params, tileNumber types.TileNumber) (int64, error) {
-	ret := int64(-1)
+func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Params, tileNumber types.TileNumber) (traceIDFromSQL, error) {
+	ret := badTraceIDFromSQL
 
 	traceName, err := query.MakeKey(traceNameAsParams)
 	if err != nil {
 		return ret, skerr.Wrap(err)
 	}
 
-	// Get an int64 trace id for the traceName.
+	// Get a traceIDFromSQL for the traceName.
 	if iret, ok := s.cache.Get(traceName); ok {
-		ret = iret.(int64)
+		ret = iret.(traceIDFromSQL)
 	} else {
 		_, err := s.preparedStatements[insertIntoTraceIDs].ExecContext(context.TODO(), traceName)
 		if err != nil {
