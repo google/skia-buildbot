@@ -2,6 +2,7 @@ package sqltracestore
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -79,6 +80,57 @@ func testWriteTraceIDAndPostings(t *testing.T, s *SQLTraceStore) {
 	traceID2, err = s.writeTraceIDAndPostings(p2, 1)
 	assert.NoError(t, err)
 	assert.Equal(t, traceID, traceID2)
+}
+
+func testWriteTraces_MultipleBatches_Success(t *testing.T, s *SQLTraceStore) {
+	ctx := context.Background()
+
+	const commitNumber = types.CommitNumber(1)
+
+	// Add enough values to force it to be done in batches.
+	const testLength = 2*traceValuesInsertBatchSize + 1
+
+	const tileNumber = types.TileNumber(0)
+
+	traceNames := make([]paramtools.Params, 0, testLength)
+	values := make([]float32, 0, testLength)
+
+	for i := 0; i < testLength; i++ {
+		traceNames = append(traceNames, paramtools.Params{
+			"traceid": fmt.Sprintf("%d", i),
+			"config":  "8888",
+		})
+		values = append(values, float32(i))
+	}
+	err := s.WriteTraces(
+		commitNumber,
+		traceNames,
+		values,
+		paramtools.ParamSet{}, // ParamSet is empty because WriteTraces doesn't use it in this impl.
+		"gs://not-tested-as-part-of-this-test.json",
+		time.Time{}) // time is unused in this impl of TraceStore.
+	require.NoError(t, err)
+
+	// Confirm all traces were written.
+	q, err := query.NewFromString("config=8888")
+	require.NoError(t, err)
+	ts, err := s.QueryTracesByIndex(ctx, tileNumber, q)
+	assert.NoError(t, err)
+	assert.Len(t, ts, testLength)
+
+	// Spot test some values.
+	q, err = query.NewFromString("config=8888&traceid=0")
+	require.NoError(t, err)
+	ts, err = s.QueryTracesByIndex(ctx, tileNumber, q)
+	assert.NoError(t, err)
+
+	assert.Equal(t, float32(0), ts[",config=8888,traceid=0,"][s.OffsetFromIndex(commitNumber)])
+
+	q, err = query.NewFromString(fmt.Sprintf("config=8888&traceid=%d", testLength-1))
+	require.NoError(t, err)
+	ts, err = s.QueryTracesByIndex(ctx, tileNumber, q)
+	assert.NoError(t, err)
+	assert.Equal(t, float32(testLength-1), ts[fmt.Sprintf(",config=8888,traceid=%d,", testLength-1)][s.OffsetFromIndex(commitNumber)])
 }
 
 func testReadTraces(t *testing.T, s *SQLTraceStore) {
@@ -474,6 +526,7 @@ var subTests = map[string]subTestFunction{
 	"testCountIndices_Empty":                                          testCountIndices_Empty,
 	"testGetSource_Empty":                                             testGetSource_Empty,
 	"testReadTraces":                                                  testReadTraces,
+	"testWriteTraces_MultipleBatches_Success":                         testWriteTraces_MultipleBatches_Success,
 	"testReadTraces_InvalidKey":                                       testReadTraces_InvalidKey,
 	"testReadTraces_NoResults":                                        testReadTraces_NoResults,
 	"testReadTraces_EmptyTileReturnsNoData":                           testReadTraces_EmptyTileReturnsNoData,
