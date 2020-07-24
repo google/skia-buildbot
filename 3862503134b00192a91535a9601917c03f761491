@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "56ff2bd3_4cd786ce",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 777,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-24T17:44:44Z",
+      "side": 1,
+      "message": "With SQLite support gone, you may be able to use a RETURNING clause and drop this from two queries to one:\nhttps://www.cockroachlabs.com/docs/cockroachcloud/v20.1/performance-best-practices-overview.html#use-insert-with-the-returning-clause-to-generate-unique-ids\n\nI\u0027m fine if you want to resolve in a followup CL.",
+      "range": {
+        "startLine": 770,
+        "startChar": 2,
+        "endLine": 777,
+        "endChar": 3
+      },
+      "revId": "3862503134b00192a91535a9601917c03f761491",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d4797a74_f370b8be",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 784,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-24T17:44:44Z",
+      "side": 1,
+      "message": "optional: Could you call this traceSQLID to differentiate it from traceID (which you call traceName here). I think that will be less confusing because of the use of traceID outside this package to me an the string version. traceNumber could also work.",
+      "range": {
+        "startLine": 784,
+        "startChar": 100,
+        "endLine": 784,
+        "endChar": 107
+      },
+      "revId": "3862503134b00192a91535a9601917c03f761491",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b0cd6db0_f528ff6f",
+        "filename": "perf/migrations/cdb.sql",
+        "patchSetId": 3
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-24T17:44:44Z",
+      "side": 1,
+      "message": "I thought sqlite is gone?",
+      "range": {
+        "startLine": 10,
+        "startChar": 29,
+        "endLine": 10,
+        "endChar": 36
+      },
+      "revId": "3862503134b00192a91535a9601917c03f761491",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
