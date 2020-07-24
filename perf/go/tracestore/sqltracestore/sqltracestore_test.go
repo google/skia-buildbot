@@ -61,23 +61,31 @@ func testUpdateSourceFile(t *testing.T, s *SQLTraceStore) {
 }
 
 func testWriteTraceIDAndPostings(t *testing.T, s *SQLTraceStore) {
-	p := paramtools.NewParams(",config=8888,arch=x86,")
+	const traceName = ",config=8888,arch=x86,"
+	const tileNumber types.TileNumber = 1
+	p := paramtools.NewParams(traceName)
 
 	// Do each update twice to ensure the IDs don't change.
-	traceID, err := s.writeTraceIDAndPostings(p, 1)
+	traceID, err := s.writeTraceIDAndPostings(p, tileNumber)
 	assert.NoError(t, err)
 
-	traceID2, err := s.writeTraceIDAndPostings(p, 1)
+	traceID2, err := s.writeTraceIDAndPostings(p, tileNumber)
 	assert.NoError(t, err)
 	assert.Equal(t, traceID, traceID2)
 
+	// Confirm the cache entries exist.
+	got, ok := s.cache.Get(traceName)
+	assert.True(t, ok)
+	assert.Equal(t, traceID, got.(int64))
+	assert.True(t, s.cache.Contains(getPostingsCacheEntryKey(traceID, tileNumber)))
+
 	p2 := paramtools.NewParams(",config=8888,arch=arm,")
 
-	traceID, err = s.writeTraceIDAndPostings(p2, 1)
+	traceID, err = s.writeTraceIDAndPostings(p2, tileNumber)
 	assert.NoError(t, err)
 	assert.NotEqual(t, traceID, traceID2)
 
-	traceID2, err = s.writeTraceIDAndPostings(p2, 1)
+	traceID2, err = s.writeTraceIDAndPostings(p2, tileNumber)
 	assert.NoError(t, err)
 	assert.Equal(t, traceID, traceID2)
 }
