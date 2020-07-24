@@ -31,8 +31,8 @@ type TraceStore interface {
 	// 'index' of trace 'traceId'.
 	GetSource(ctx context.Context, commitNumber types.CommitNumber, traceId string) (string, error)
 
-	// OffsetFromIndex returns the offset from within a Tile that a commit sits.
-	OffsetFromIndex(commitNumber types.CommitNumber) int32
+	// OffsetFromCommitNumber returns the offset from within a Tile that a commit sits.
+	OffsetFromCommitNumber(commitNumber types.CommitNumber) int32
 
 	// QueryTracesByIndex returns a map of trace keys to a slice of floats for
 	// all traces that match the given query.

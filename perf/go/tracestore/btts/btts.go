@@ -291,12 +291,13 @@ func (b *BigTableTraceStore) tileKey(commitNumber types.CommitNumber) bttsTileKe
 	return TileKeyFromTileNumber(types.TileNumberFromCommitNumber(commitNumber, b.TileSize()))
 }
 
+// TileNumber implements the TraceStore interface.
 func (b *BigTableTraceStore) TileNumber(commitNumber types.CommitNumber) types.TileNumber {
 	return types.TileNumberFromCommitNumber(commitNumber, b.TileSize())
 }
 
-// OffsetFromIndex returns the offset within a tile for the given index.
-func (b *BigTableTraceStore) OffsetFromIndex(commitNumber types.CommitNumber) int32 {
+// OffsetFromCommitNumber returns the offset within a tile for the given index.
+func (b *BigTableTraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) int32 {
 	return int32(commitNumber) % b.tileSize
 }
 
@@ -366,7 +367,7 @@ func (b *BigTableTraceStore) WriteTraces(commitNumber types.CommitNumber, params
 	}
 
 	sourceHash := md5.Sum([]byte(source))
-	col := strconv.Itoa(int(b.OffsetFromIndex(commitNumber)))
+	col := strconv.Itoa(int(b.OffsetFromCommitNumber(commitNumber)))
 	ts := bigtable.Time(timestamp)
 
 	// Write values as batches of mutations.
@@ -1021,7 +1022,7 @@ func (b *BigTableTraceStore) tileKeys(ctx context.Context, tileNumber types.Tile
 func (b *BigTableTraceStore) GetSource(ctx context.Context, commitNumber types.CommitNumber, traceId string) (string, error) {
 	tileKey := b.tileKey(commitNumber)
 	tileNumber := types.TileNumberFromCommitNumber(commitNumber, b.tileSize)
-	offset := b.OffsetFromIndex(commitNumber)
+	offset := b.OffsetFromCommitNumber(commitNumber)
 	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	if err != nil {
 		return "", fmt.Errorf("Failed to load OrderedParamSet for tile: %s", err)

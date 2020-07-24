@@ -97,10 +97,10 @@ func buildTileMapOffsetToIndex(indices []types.CommitNumber, store tracestore.Tr
 		tileNumber := store.TileNumber(commitNumber)
 		if traceMap, ok := ret[tileNumber]; !ok {
 			ret[tileNumber] = map[int32]int32{
-				store.OffsetFromIndex(commitNumber): int32(targetIndex),
+				store.OffsetFromCommitNumber(commitNumber): int32(targetIndex),
 			}
 		} else {
-			traceMap[store.OffsetFromIndex(commitNumber)] = int32(targetIndex)
+			traceMap[store.OffsetFromCommitNumber(commitNumber)] = int32(targetIndex)
 		}
 	}
 	return ret
