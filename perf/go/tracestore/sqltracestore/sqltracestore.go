@@ -138,6 +138,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
 	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/tracestore"
@@ -150,6 +151,10 @@ import (
 // TODO(jcgregorio) Move to config.InstanceConfig since this should be tweaked
 // per instance.
 const cacheSize = 10 * 1000 * 1000
+
+// Ingest instances have around 8 cores and many ingested files have ~10K values, so
+// pick a batch size that allows roughly one request per core.
+const traceValuesInsertBatchSize = 1000
 
 // statement is an SQL statement or fragment of an SQL statement.
 type statement int
@@ -182,6 +187,13 @@ var templatesByDialect = map[perfsql.Dialect]templates{
 			{{ range $index, $element :=  . -}}
 				{{ if $index }},{{end}}({{ $element.TileNumber }}, '{{ $element.KeyValue }}', {{ $element.TraceID }})
 	  		{{ end }}`,
+		replaceTraceValues: `
+		UPSERT INTO
+			TraceValues (trace_id, commit_number, val, source_file_id)
+		VALUES
+		{{ range $index, $element :=  . -}}
+			{{ if $index }},{{end}}({{ $element.TraceID }}, {{ $element.CommitNumber }}, {{ $element.Val }}, {{ $element.SourceFileID }})
+		{{ end }}`,
 	},
 }
 
@@ -190,6 +202,14 @@ type insertIntoPostingsValue struct {
 	TileNumber types.TileNumber
 	KeyValue   string
 	TraceID    int64
+}
+
+// replaceTraceValue is used in the replaceTraceValues template.
+type replaceTraceValue struct {
+	TraceID      int64
+	CommitNumber types.CommitNumber
+	Val          float32
+	SourceFileID int64
 }
 
 var statementsByDialect = map[perfsql.Dialect]statements{
@@ -229,11 +249,6 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 			($1, $2, $3)
 		ON CONFLICT
 		DO NOTHING`,
-		replaceTraceValues: `
-		UPSERT INTO
-			TraceValues (trace_id, commit_number, val, source_file_id)
-		VALUES
-			($1, $2, $3, $4)`,
 		countIndices: `
 		SELECT
 			COUNT(*)
@@ -764,9 +779,13 @@ func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Par
 	return ret, nil
 }
 
-// updateTraceValues writes a single entry in to the TraceValues table.
-func (s *SQLTraceStore) updateTraceValues(traceID int64, commitNumber types.CommitNumber, x float32, sourceID int64) error {
-	_, err := s.preparedStatements[replaceTraceValues].ExecContext(context.TODO(), traceID, commitNumber, x, sourceID)
+// updateTraceValues writes the given slice of replaceTraceValues into the store.
+func (s *SQLTraceStore) updateTraceValues(templateContext []replaceTraceValue) error {
+	var b bytes.Buffer
+	if err := s.unpreparedStatements[replaceTraceValues].Execute(&b, templateContext); err != nil {
+		return skerr.Wrapf(err, "failed to expand template")
+	}
+	_, err := s.db.ExecContext(context.TODO(), b.String())
 	return skerr.Wrap(err)
 }
 
@@ -779,25 +798,29 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 		return skerr.Wrap(err)
 	}
 
-	// Get trace ids for each trace and add trace ids to the index/postings.
-	// We populate the traceIDs slice whose values are 1:1 with the values and
-	// params slices.
-	traceIDs := make([]int64, len(params))
+	// Build the context for the SQL template.
+	templateContext := make([]replaceTraceValue, 0, len(params))
 	for i, p := range params {
 		traceID, err := s.writeTraceIDAndPostings(p, tileNumber)
 		if err != nil {
 			return skerr.Wrap(err)
 		}
-		traceIDs[i] = traceID
+		templateContext = append(templateContext, replaceTraceValue{
+			TraceID:      traceID,
+			CommitNumber: commitNumber,
+			Val:          values[i],
+			SourceFileID: sourceID,
+		})
 	}
 
-	// Now add each trace value.
-	for i, x := range values {
-		if err := s.updateTraceValues(traceIDs[i], commitNumber, x, sourceID); err != nil {
-			return skerr.Wrap(err)
+	err = util.ChunkIterParallel(context.TODO(), len(templateContext), traceValuesInsertBatchSize, func(ctx context.Context, startIdx int, endIdx int) error {
+		if err := s.updateTraceValues(templateContext[startIdx:endIdx]); err != nil {
+			return skerr.Wrapf(err, "failed inserting subSlice: [%d:%d]", startIdx, endIdx)
 		}
-	}
-	return nil
+		return nil
+	})
+
+	return err
 }
 
 // Confirm that *SQLTraceStore fulfills the tracestore.TraceStore interface.
