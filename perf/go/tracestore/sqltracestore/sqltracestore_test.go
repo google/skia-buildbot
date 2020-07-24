@@ -124,13 +124,13 @@ func testWriteTraces_MultipleBatches_Success(t *testing.T, s *SQLTraceStore) {
 	ts, err = s.QueryTracesByIndex(ctx, tileNumber, q)
 	assert.NoError(t, err)
 
-	assert.Equal(t, float32(0), ts[",config=8888,traceid=0,"][s.OffsetFromIndex(commitNumber)])
+	assert.Equal(t, float32(0), ts[",config=8888,traceid=0,"][s.OffsetFromCommitNumber(commitNumber)])
 
 	q, err = query.NewFromString(fmt.Sprintf("config=8888&traceid=%d", testLength-1))
 	require.NoError(t, err)
 	ts, err = s.QueryTracesByIndex(ctx, tileNumber, q)
 	assert.NoError(t, err)
-	assert.Equal(t, float32(testLength-1), ts[fmt.Sprintf(",config=8888,traceid=%d,", testLength-1)][s.OffsetFromIndex(commitNumber)])
+	assert.Equal(t, float32(testLength-1), ts[fmt.Sprintf(",config=8888,traceid=%d,", testLength-1)][s.OffsetFromCommitNumber(commitNumber)])
 }
 
 func testReadTraces(t *testing.T, s *SQLTraceStore) {

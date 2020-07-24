@@ -417,8 +417,8 @@ func (s *SQLTraceStore) GetSource(ctx context.Context, commitNumber types.Commit
 	return filename, nil
 }
 
-// OffsetFromIndex implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) OffsetFromIndex(commitNumber types.CommitNumber) int32 {
+// OffsetFromCommitNumber implements the tracestore.TraceStore interface.
+func (s *SQLTraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) int32 {
 	return int32(commitNumber) % s.tileSize
 }
 
@@ -798,7 +798,7 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 		return skerr.Wrap(err)
 	}
 
-	// Build the context for the SQL template.
+	// Build the 'context' which will be used to populate the SQL template.
 	templateContext := make([]replaceTraceValue, 0, len(params))
 	for i, p := range params {
 		traceID, err := s.writeTraceIDAndPostings(p, tileNumber)
