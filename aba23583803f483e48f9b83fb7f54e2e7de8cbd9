@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b6ced7e2_7d7b8071",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-24T19:54:28Z",
+      "side": 1,
+      "message": "tbr because it\u0027s 4pm on friday",
+      "revId": "aba23583803f483e48f9b83fb7f54e2e7de8cbd9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
