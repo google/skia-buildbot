@@ -152,9 +152,21 @@ import (
 // per instance.
 const cacheSize = 20 * 1000 * 1000
 
-// Ingest instances have around 8 cores and many ingested files have ~10K values, so
-// pick a batch size that allows roughly one request per core.
+// Ingest instances have around 8 cores and many ingested files have ~10K
+// values, so pick a batch size that allows roughly one request per core.
 const traceValuesInsertBatchSize = 1000
+
+// traceIDFromSQL is the type of the IDs that are used in the SQL database for
+// traces.
+type traceIDFromSQL int64
+
+const badTraceIDFromSQL traceIDFromSQL = -1
+
+// sourceFileIDFromSQL is the type of the IDs that are used in the SQL database
+// for source files.
+type sourceFileIDFromSQL int64
+
+const badSourceFileIDFromSQL sourceFileIDFromSQL = -1
 
 // statement is an SQL statement or fragment of an SQL statement.
 type statement int
@@ -201,15 +213,15 @@ var templatesByDialect = map[perfsql.Dialect]templates{
 type insertIntoPostingsValue struct {
 	TileNumber types.TileNumber
 	KeyValue   string
-	TraceID    int64
+	TraceID    traceIDFromSQL
 }
 
 // replaceTraceValue is used in the replaceTraceValues template.
 type replaceTraceValue struct {
-	TraceID      int64
+	TraceID      traceIDFromSQL
 	CommitNumber types.CommitNumber
 	Val          float32
-	SourceFileID int64
+	SourceFileID sourceFileIDFromSQL
 }
 
 var statementsByDialect = map[perfsql.Dialect]statements{
@@ -303,8 +315,8 @@ type SQLTraceStore struct {
 	// unpreparedStatements are parsed templates that can be used to construct SQL statements.
 	unpreparedStatements map[statement]*template.Template
 
-	// cache is an LRU cache used to store the ids (int64) of trace names (string):
-	//    "traceName" -> int64
+	// cache is an LRU cache used to store the ids (traceIDFromSQL) of trace names (string):
+	//    "traceName" -> traceIDFromSQL
 	// and if a traces postings have been written for a tile (bool).
 	//    "traceID-tileNumber" -> bool
 	cache *lru.Cache
@@ -368,11 +380,11 @@ func (s *SQLTraceStore) CountIndices(ctx context.Context, tileNumber types.TileN
 
 // GetLatestTile implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetLatestTile() (types.TileNumber, error) {
-	var tileNumber int64
+	tileNumber := types.BadTileNumber
 	if err := s.preparedStatements[getLatestTile].QueryRowContext(context.TODO()).Scan(&tileNumber); err != nil {
-		return types.BadTileNumber, skerr.Wrap(err)
+		return tileNumber, skerr.Wrap(err)
 	}
-	return types.TileNumber(tileNumber), nil
+	return tileNumber, nil
 }
 
 func (s *SQLTraceStore) paramSetForTile(tileNumber types.TileNumber) (paramtools.ParamSet, error) {
@@ -495,19 +507,19 @@ WHERE
 
 	for rows.Next() {
 		var traceName string
-		var commitNumber int64
+		var commitNumber types.CommitNumber
 		var val float64
 		if err := rows.Scan(&traceName, &commitNumber, &val); err != nil {
 			return nil, skerr.Wrap(err)
 		}
 		if _, ok := ret[traceName]; ok {
-			ret[traceName][commitNumber%int64(s.tileSize)] = float32(val)
+			ret[traceName][s.OffsetFromCommitNumber(commitNumber)] = float32(val)
 		} else {
 			// TODO(jcgregorio) Replace this vec32.New() with a
 			// https://golang.org/pkg/sync/#Pool since this is our most used/reused
 			// type of memory.
 			ret[traceName] = vec32.New(int(s.tileSize))
-			ret[traceName][commitNumber%int64(s.tileSize)] = float32(val)
+			ret[traceName][s.OffsetFromCommitNumber(commitNumber)] = float32(val)
 		}
 	}
 	if err := rows.Err(); err != nil {
@@ -571,6 +583,7 @@ WHERE
 	AND `, beginCommit, endCommit)
 
 	// TODO(jcgregorio) Break out into own function.
+	// TODO(jcgregorio) Convert to use text/templates.
 	whereClauses := make([]string, len(plan))
 	clauseIndex := 0
 	for key, values := range plan {
@@ -662,12 +675,12 @@ WHERE
 	}
 	for rows.Next() {
 		var traceName string
-		var commitNumber int64
+		var commitNumber types.CommitNumber
 		var val float64
 		if err := rows.Scan(&traceName, &commitNumber, &val); err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		ret[traceName][commitNumber%int64(s.tileSize)] = float32(val)
+		ret[traceName][s.OffsetFromCommitNumber(commitNumber)] = float32(val)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, skerr.Wrapf(err, "tileNumber=%d", tileNumber)
@@ -701,9 +714,9 @@ func (s *SQLTraceStore) WriteIndices(ctx context.Context, tileNumber types.TileN
 }
 
 // updateSourceFile writes the filename into the SourceFiles table and returns
-// the int64 id of that filename.
-func (s *SQLTraceStore) updateSourceFile(filename string) (int64, error) {
-	ret := int64(-1)
+// the sourceFileIDFromSQL of that filename.
+func (s *SQLTraceStore) updateSourceFile(filename string) (sourceFileIDFromSQL, error) {
+	ret := badSourceFileIDFromSQL
 	_, err := s.preparedStatements[insertIntoSourceFiles].ExecContext(context.TODO(), filename)
 	if err != nil {
 		return ret, skerr.Wrap(err)
@@ -719,7 +732,7 @@ func (s *SQLTraceStore) updateSourceFile(filename string) (int64, error) {
 // updatePostings writes all the entries into our inverted index in Postings for
 // the given traceID and tileNumber. The Params given are from the parse trace
 // name.
-func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.TileNumber, traceID int64) error {
+func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.TileNumber, traceID traceIDFromSQL) error {
 	// Clean the data to avoid SQL injection attacks.
 	p = query.ForceValid(p)
 
@@ -748,24 +761,24 @@ func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.Til
 	return nil
 }
 
-func getPostingsCacheEntryKey(traceID int64, tileNumber types.TileNumber) string {
+func getPostingsCacheEntryKey(traceID traceIDFromSQL, tileNumber types.TileNumber) string {
 	return fmt.Sprintf("%d-%d", traceID, tileNumber)
 }
 
-// writeTraceIDAndPostings writes the trace name into the TraceIDs table and returns the
-// int64 id of that trace name. This operation will happen repeatedly as data is
-// ingested so we cache the results in the LRU cache.
-func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Params, tileNumber types.TileNumber) (int64, error) {
-	traceID := int64(-1)
+// writeTraceIDAndPostings writes the trace name into the TraceIDs table and
+// returns the traceIDFromSQL of that trace name. This operation will happen
+// repeatedly as data is ingested so we cache the results in the LRU cache.
+func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Params, tileNumber types.TileNumber) (traceIDFromSQL, error) {
+	traceID := badTraceIDFromSQL
 
 	traceName, err := query.MakeKey(traceNameAsParams)
 	if err != nil {
 		return traceID, skerr.Wrap(err)
 	}
 
-	// Get an int64 trace id for the traceName.
+	// Get a traceIDFromSQL for the traceName.
 	if iret, ok := s.cache.Get(traceName); ok {
-		traceID = iret.(int64)
+		traceID = iret.(traceIDFromSQL)
 	} else {
 		_, err := s.preparedStatements[insertIntoTraceIDs].ExecContext(context.TODO(), traceName)
 		if err != nil {
