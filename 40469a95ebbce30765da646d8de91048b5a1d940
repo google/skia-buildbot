@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3530110e_47c289da",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-24T14:51:46Z",
+      "side": 1,
+      "message": "Added comment.",
+      "parentUuid": "66f87701_6df59929",
+      "range": {
+        "startLine": 154,
+        "startChar": 6,
+        "endLine": 154,
+        "endChar": 32
+      },
+      "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "a32b96fc_2dcd38c2",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 7
@@ -45,6 +69,30 @@
       "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "810d5622_26a74749",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 814,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-24T14:51:46Z",
+      "side": 1,
+      "message": "Oooh, util.ChunkIterParallel is even better.",
+      "parentUuid": "a32b96fc_2dcd38c2",
+      "range": {
+        "startLine": 814,
+        "startChar": 5,
+        "endLine": 814,
+        "endChar": 8
+      },
+      "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "f23c5397_847567df",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-24T14:51:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "97d90949_c0bf9339",
+      "range": {
+        "startLine": 88,
+        "startChar": 1,
+        "endLine": 88,
+        "endChar": 13
+      },
+      "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "efd857da_9e26a048",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
         "patchSetId": 7
@@ -91,6 +163,30 @@
       "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d0755a9_3e2ab4c0",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-24T14:51:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "efd857da_9e26a048",
+      "range": {
+        "startLine": 91,
+        "startChar": 1,
+        "endLine": 91,
+        "endChar": 11
+      },
+      "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "8c51b8f1_b811c026",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-24T14:51:46Z",
+      "side": 1,
+      "message": "Used, but not tested in this test. Renamed.",
+      "parentUuid": "47ef86d5_4b70d779",
+      "range": {
+        "startLine": 108,
+        "startChar": 3,
+        "endLine": 108,
+        "endChar": 47
+      },
+      "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6f26e3df_a740eea2",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
         "patchSetId": 7
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "647c0dcc_cd527912",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-24T14:51:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6f26e3df_a740eea2",
+      "range": {
+        "startLine": 122,
+        "startChar": 36,
+        "endLine": 122,
+        "endChar": 38
+      },
+      "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "88060b2f_dbed507e",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
         "patchSetId": 7
@@ -160,6 +304,30 @@
       "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fe4fdb7d_da0dccfe",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-24T14:51:46Z",
+      "side": 1,
+      "message": "Changed to call OffsetFromIndex (which is a bad name and I will change in a follow-up CL).",
+      "parentUuid": "88060b2f_dbed507e",
+      "range": {
+        "startLine": 124,
+        "startChar": 1,
+        "endLine": 124,
+        "endChar": 7
+      },
+      "revId": "40469a95ebbce30765da646d8de91048b5a1d940",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
