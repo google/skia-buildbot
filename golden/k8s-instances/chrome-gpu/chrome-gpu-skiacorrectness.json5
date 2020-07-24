@@ -1,6 +1,7 @@
 {
   authorized_users: [
     "google.com", "chrome-gpu-gold@chops-service-accounts.iam.gserviceaccount.com",
+    "chrome-gold-internal@chops-service-accounts.iam.gserviceaccount.com",
   ],
   cl_comment_template: "Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchSetOrder}}.\n\
 \n\
