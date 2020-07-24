@@ -9,9 +9,6 @@ ${GOPATH}/bin/rice:
 go/sql/migrations/cockroachdb/rice-box.go: $(wildcard ./migrations/cockroachdb/*) ${GOPATH}/bin/rice
 	cd go/sql/migrations/cockroachdb; rice embed-go
 
-go/sql/migrations/sqlite3/rice-box.go: $(wildcard ./migrations/sqlite3/*) ${GOPATH}/bin/rice
-	cd go/sql/migrations/sqlite3; rice embed-go
-
 go/dist/rice-box.go: ./dist ${GOPATH}/bin/rice
 	cd go/dist; rice embed-go
 
@@ -21,7 +18,7 @@ dist_source: go/dist/rice-box.go
 
 # The SQL migration files are embedded via Go files and linked into the executable.
 .PHONY: migration_source
-migration_source: go/sql/migrations/sqlite3/rice-box.go go/sql/migrations/cockroachdb/rice-box.go
+migration_source: go/sql/migrations/cockroachdb/rice-box.go
 
 build: migration_source dist_source
 	CGO_ENABLED=0 GOOS=linux go install -a ./go/perfserver ./go/perf-tool
