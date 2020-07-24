@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e236b70e_066c8063",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-24T11:18:35Z",
+      "side": 1,
+      "message": "I\u0027m a little confused because in this CL you do INSERT .. ON CONFLICT DO NOTHING.\n\nIn the next CL, you change it to be UPSERT. These are not the same behavior; please take the changes in the followon CL and move them here so the intended final behavior is clear.",
+      "range": {
+        "startLine": 185,
+        "startChar": 2,
+        "endLine": 186,
+        "endChar": 12
+      },
+      "revId": "47361460e5d8405e8409975732501af866a5ebbb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94f861d7_3dcf7fe3",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 318,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-24T11:18:35Z",
+      "side": 1,
+      "message": "nit: typo",
+      "range": {
+        "startLine": 318,
+        "startChar": 33,
+        "endLine": 318,
+        "endChar": 41
+      },
+      "revId": "47361460e5d8405e8409975732501af866a5ebbb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b158513_4eefe209",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 707,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-24T11:18:35Z",
+      "side": 1,
+      "message": "nit: add a comment saying that this should clean the data to not allow SQL injections",
+      "revId": "47361460e5d8405e8409975732501af866a5ebbb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
