@@ -150,7 +150,7 @@ import (
 //
 // TODO(jcgregorio) Move to config.InstanceConfig since this should be tweaked
 // per instance.
-const cacheSize = 10 * 1000 * 1000
+const cacheSize = 20 * 1000 * 1000
 
 // Ingest instances have around 8 cores and many ingested files have ~10K values, so
 // pick a batch size that allows roughly one request per core.
@@ -303,7 +303,10 @@ type SQLTraceStore struct {
 	// unpreparedStatements are parsed templates that can be used to construct SQL statements.
 	unpreparedStatements map[statement]*template.Template
 
-	// cache is an LRU cache used to store the ids (int64) of trace names (string).
+	// cache is an LRU cache used to store the ids (int64) of trace names (string):
+	//    "traceName" -> int64
+	// and if a traces postings have been written for a tile (bool).
+	//    "traceID-tileNumber" -> bool
 	cache *lru.Cache
 
 	// tileSize is the number of commits per Tile.
@@ -745,38 +748,45 @@ func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.Til
 	return nil
 }
 
+func getPostingsCacheEntryKey(traceID int64, tileNumber types.TileNumber) string {
+	return fmt.Sprintf("%d-%d", traceID, tileNumber)
+}
+
 // writeTraceIDAndPostings writes the trace name into the TraceIDs table and returns the
 // int64 id of that trace name. This operation will happen repeatedly as data is
 // ingested so we cache the results in the LRU cache.
 func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Params, tileNumber types.TileNumber) (int64, error) {
-	ret := int64(-1)
+	traceID := int64(-1)
 
 	traceName, err := query.MakeKey(traceNameAsParams)
 	if err != nil {
-		return ret, skerr.Wrap(err)
+		return traceID, skerr.Wrap(err)
 	}
 
 	// Get an int64 trace id for the traceName.
 	if iret, ok := s.cache.Get(traceName); ok {
-		ret = iret.(int64)
+		traceID = iret.(int64)
 	} else {
 		_, err := s.preparedStatements[insertIntoTraceIDs].ExecContext(context.TODO(), traceName)
 		if err != nil {
-			return ret, skerr.Wrapf(err, "traceName=%q", traceName)
+			return traceID, skerr.Wrapf(err, "traceName=%q", traceName)
 		}
-		err = s.preparedStatements[getTraceID].QueryRowContext(context.TODO(), traceName).Scan(&ret)
+		err = s.preparedStatements[getTraceID].QueryRowContext(context.TODO(), traceName).Scan(&traceID)
 		if err != nil {
-			return ret, skerr.Wrapf(err, "traceName=%q", traceName)
+			return traceID, skerr.Wrapf(err, "traceName=%q", traceName)
 		}
-		s.cache.Add(traceName, ret)
+		s.cache.Add(traceName, traceID)
+	}
+	postingsCacheEntryKey := getPostingsCacheEntryKey(traceID, tileNumber)
+	if !s.cache.Contains(postingsCacheEntryKey) {
+		// Update postings.
+		if err := s.updatePostings(traceNameAsParams, tileNumber, traceID); err != nil {
+			return traceID, skerr.Wrapf(err, "traceName=%q tileNumber=%d traceID=%d", traceName, tileNumber, traceID)
+		}
+		s.cache.Add(postingsCacheEntryKey, true)
 	}
 
-	// Update postings.
-	if err := s.updatePostings(traceNameAsParams, tileNumber, ret); err != nil {
-		return ret, skerr.Wrapf(err, "traceName=%q", traceName)
-	}
-
-	return ret, nil
+	return traceID, nil
 }
 
 // updateTraceValues writes the given slice of replaceTraceValues into the store.
