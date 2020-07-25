@@ -3,6 +3,7 @@ package sqltracestore
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
@@ -76,7 +77,9 @@ func testWriteTraceIDAndPostings(t *testing.T, s *SQLTraceStore) {
 	// Confirm the cache entries exist.
 	got, ok := s.cache.Get(getHashedTraceName(traceName))
 	assert.True(t, ok)
-	assert.Equal(t, traceID, got.(traceIDFromSQL))
+	gotInt, err := strconv.ParseInt(got, 10, 64)
+	require.NoError(t, err)
+	assert.Equal(t, traceID, traceIDFromSQL(gotInt))
 	assert.True(t, s.cache.Exists(getPostingsCacheEntryKey(traceID, tileNumber)))
 
 	const traceName2 = ",arch=arm,config=8888,"
