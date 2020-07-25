@@ -144,17 +144,17 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/cache"
 	"go.skia.org/infra/perf/go/cache/local"
+	"go.skia.org/infra/perf/go/cache/memcached"
+	"go.skia.org/infra/perf/go/config"
 	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore/engine"
 	"go.skia.org/infra/perf/go/types"
 )
 
-// cacheSize is the size of the LRU cache.
-//
-// TODO(jcgregorio) Move to config.InstanceConfig since this should be tweaked
-// per instance.
-const cacheSize = 20 * 1000 * 1000
+// defaultCacheSize is the size of the in-memory LRU cache is no size was
+// specified in the config file.
+const defaultCacheSize = 20 * 1000 * 1000
 
 // Ingest instances have around 8 cores and many ingested files have ~10K
 // values, so pick a batch size that allows roughly one request per core.
@@ -346,7 +346,7 @@ type SQLTraceStore struct {
 //
 // We presume all migrations have been run against db before this function is
 // called.
-func New(db *sql.DB, dialect perfsql.Dialect, tileSize int32) (*SQLTraceStore, error) {
+func New(db *sql.DB, dialect perfsql.Dialect, datastoreConfig config.DataStoreConfig) (*SQLTraceStore, error) {
 	preparedStatements := map[statement]*sql.Stmt{}
 	for key, statement := range statementsByDialect[dialect] {
 		prepared, err := db.Prepare(statement)
@@ -365,9 +365,28 @@ func New(db *sql.DB, dialect perfsql.Dialect, tileSize int32) (*SQLTraceStore, e
 		unpreparedStatements[key] = t
 	}
 
-	cache, err := local.New(cacheSize)
-	if err != nil {
-		return nil, skerr.Wrap(err)
+	var memoryCacheSize = datastoreConfig.Cache.Size
+	if memoryCacheSize == 0 {
+		memoryCacheSize = defaultCacheSize
+	}
+
+	var err error
+	var cache cache.Cache
+	if len(datastoreConfig.Cache.MemcachedServers) > 0 && datastoreConfig.Cache.Namespace != "" {
+		cache, err = memcached.New(datastoreConfig.Cache.MemcachedServers, datastoreConfig.Cache.Namespace)
+		if err != nil {
+			// Fall back to in-memory cache.
+			cache, err = local.New(memoryCacheSize)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+
+		}
+	} else {
+		cache, err = local.New(memoryCacheSize)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 	}
 
 	return &SQLTraceStore{
@@ -375,7 +394,7 @@ func New(db *sql.DB, dialect perfsql.Dialect, tileSize int32) (*SQLTraceStore, e
 		preparedStatements:                     preparedStatements,
 		unpreparedStatements:                   unpreparedStatements,
 		cache:                                  cache,
-		tileSize:                               tileSize,
+		tileSize:                               datastoreConfig.TileSize,
 		writeTracesMetric:                      metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_writeTraces"),
 		updateTraceValuesMetric:                metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_updateTraceValues"),
 		buildTracesContextMetric:               metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_buildTracesContext"),
