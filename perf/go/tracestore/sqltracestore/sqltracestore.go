@@ -125,6 +125,7 @@ package sqltracestore
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
 	"database/sql"
 	"fmt"
 	"sort"
@@ -317,10 +318,13 @@ type SQLTraceStore struct {
 	// unpreparedStatements are parsed templates that can be used to construct SQL statements.
 	unpreparedStatements map[statement]*template.Template
 
-	// cache is an LRU cache used to store the ids (traceIDFromSQL) of trace names (string):
-	//    "traceName" -> traceIDFromSQL
+	// cache is an LRU cache used to store the ids (traceIDFromSQL) of hashed trace names (string):
+	//    "md5(traceName)" -> traceIDFromSQL
 	// and if a traces postings have been written for a tile (bool).
 	//    "traceID-tileNumber" -> bool
+	//
+	// For traceNames the md5 sum is used to keep the cache keys shorter, thus preserving
+	// memory and also allowing the use of memcached which restricts keys to 250 chars.
 	cache *lru.Cache
 
 	// tileSize is the number of commits per Tile.
@@ -785,6 +789,10 @@ func getPostingsCacheEntryKey(traceID traceIDFromSQL, tileNumber types.TileNumbe
 	return fmt.Sprintf("%d-%d", traceID, tileNumber)
 }
 
+func getHashedTraceName(traceName string) string {
+	return fmt.Sprintf("%x", md5.Sum([]byte(traceName)))
+}
+
 // writeTraceIDAndPostings writes the trace name into the TraceIDs table and
 // returns the traceIDFromSQL of that trace name. This operation will happen
 // repeatedly as data is ingested so we cache the results in the LRU cache.
@@ -796,9 +804,10 @@ func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Par
 	if err != nil {
 		return traceID, skerr.Wrap(err)
 	}
+	hashedTraceName := getHashedTraceName(traceName)
 
 	// Get a traceIDFromSQL for the traceName.
-	if iret, ok := s.cache.Get(traceName); ok {
+	if iret, ok := s.cache.Get(hashedTraceName); ok {
 		traceID = iret.(traceIDFromSQL)
 		s.writeTraceIDAndPostingsCacheHitMetric.Inc(1)
 	} else {
@@ -811,7 +820,7 @@ func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Par
 		if err != nil {
 			return traceID, skerr.Wrapf(err, "traceName=%q", traceName)
 		}
-		s.cache.Add(traceName, traceID)
+		s.cache.Add(hashedTraceName, traceID)
 	}
 	postingsCacheEntryKey := getPostingsCacheEntryKey(traceID, tileNumber)
 	if !s.cache.Contains(postingsCacheEntryKey) {
