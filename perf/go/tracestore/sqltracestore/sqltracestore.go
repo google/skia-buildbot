@@ -134,7 +134,6 @@ import (
 	"text/template"
 	"time"
 
-	lru "github.com/hashicorp/golang-lru"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
@@ -143,6 +142,8 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/cache"
+	"go.skia.org/infra/perf/go/cache/local"
 	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore/engine"
@@ -325,7 +326,7 @@ type SQLTraceStore struct {
 	//
 	// For traceNames the md5 sum is used to keep the cache keys shorter, thus preserving
 	// memory and also allowing the use of memcached which restricts keys to 250 chars.
-	cache *lru.Cache
+	cache cache.Cache
 
 	// tileSize is the number of commits per Tile.
 	tileSize int32
@@ -364,7 +365,7 @@ func New(db *sql.DB, dialect perfsql.Dialect, tileSize int32) (*SQLTraceStore, e
 		unpreparedStatements[key] = t
 	}
 
-	cache, err := lru.New(cacheSize)
+	cache, err := local.New(cacheSize)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -823,8 +824,10 @@ func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Par
 		s.cache.Add(hashedTraceName, traceID)
 	}
 	postingsCacheEntryKey := getPostingsCacheEntryKey(traceID, tileNumber)
-	if !s.cache.Contains(postingsCacheEntryKey) {
+	if !s.cache.Exists(postingsCacheEntryKey) {
 		s.writeTraceIDAndPostingsPostingsCacheMissMetric.Inc(1)
+		// TODO(jcgregorio) Do a query on the database to see if the postings are there.
+
 		// Update postings.
 		if err := s.updatePostings(traceNameAsParams, tileNumber, traceID); err != nil {
 			return traceID, skerr.Wrapf(err, "traceName=%q tileNumber=%d traceID=%d", traceName, tileNumber, traceID)
