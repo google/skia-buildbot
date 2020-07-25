@@ -77,7 +77,7 @@ func testWriteTraceIDAndPostings(t *testing.T, s *SQLTraceStore) {
 	got, ok := s.cache.Get(getHashedTraceName(traceName))
 	assert.True(t, ok)
 	assert.Equal(t, traceID, got.(traceIDFromSQL))
-	assert.True(t, s.cache.Contains(getPostingsCacheEntryKey(traceID, tileNumber)))
+	assert.True(t, s.cache.Exists(getPostingsCacheEntryKey(traceID, tileNumber)))
 
 	const traceName2 = ",arch=arm,config=8888,"
 	p2 := paramtools.NewParams(traceName2)
