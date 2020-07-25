@@ -74,9 +74,9 @@ func testWriteTraceIDAndPostings(t *testing.T, s *SQLTraceStore) {
 	assert.Equal(t, traceID, traceID2)
 
 	// Confirm the cache entries exist.
-	got, ok := s.cache.Get(getHashedTraceName(traceName))
-	assert.True(t, ok)
-	assert.Equal(t, traceID, got.(traceIDFromSQL))
+	got, ok := s.getTraceIDFromCache(getHashedTraceName(traceName))
+	require.True(t, ok)
+	assert.Equal(t, traceID, got)
 	assert.True(t, s.cache.Exists(getPostingsCacheEntryKey(traceID, tileNumber)))
 
 	const traceName2 = ",arch=arm,config=8888,"

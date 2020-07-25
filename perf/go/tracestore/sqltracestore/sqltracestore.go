@@ -794,6 +794,22 @@ func getHashedTraceName(traceName string) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(traceName)))
 }
 
+func (s *SQLTraceStore) getTraceIDFromCache(hashedTraceName string) (traceIDFromSQL, bool) {
+	if traceIDString, ok := s.cache.Get(hashedTraceName); ok {
+		traceIDInt64, err := strconv.ParseInt(traceIDString, 10, 64)
+		if err != nil {
+			return badTraceIDFromSQL, false
+		}
+		return traceIDFromSQL(traceIDInt64), true
+	}
+	return badTraceIDFromSQL, false
+}
+
+// postingsCacheValue is what we write to the cache when postings exist for the
+// given key. The actual value doesn't matter since we only check for existence
+// when reading the cache.
+const postingsCacheValue = "1"
+
 // writeTraceIDAndPostings writes the trace name into the TraceIDs table and
 // returns the traceIDFromSQL of that trace name. This operation will happen
 // repeatedly as data is ingested so we cache the results in the LRU cache.
@@ -808,8 +824,8 @@ func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Par
 	hashedTraceName := getHashedTraceName(traceName)
 
 	// Get a traceIDFromSQL for the traceName.
-	if iret, ok := s.cache.Get(hashedTraceName); ok {
-		traceID = iret.(traceIDFromSQL)
+	var ok bool
+	if traceID, ok = s.getTraceIDFromCache(hashedTraceName); ok {
 		s.writeTraceIDAndPostingsCacheHitMetric.Inc(1)
 	} else {
 		s.writeTraceIDAndPostingsCacheMissMetric.Inc(1)
@@ -821,7 +837,7 @@ func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Par
 		if err != nil {
 			return traceID, skerr.Wrapf(err, "traceName=%q", traceName)
 		}
-		s.cache.Add(hashedTraceName, traceID)
+		s.cache.Add(hashedTraceName, fmt.Sprintf("%d", traceID))
 	}
 	postingsCacheEntryKey := getPostingsCacheEntryKey(traceID, tileNumber)
 	if !s.cache.Exists(postingsCacheEntryKey) {
@@ -832,7 +848,7 @@ func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Par
 		if err := s.updatePostings(traceNameAsParams, tileNumber, traceID); err != nil {
 			return traceID, skerr.Wrapf(err, "traceName=%q tileNumber=%d traceID=%d", traceName, tileNumber, traceID)
 		}
-		s.cache.Add(postingsCacheEntryKey, true)
+		s.cache.Add(postingsCacheEntryKey, postingsCacheValue)
 	} else {
 		s.writeTraceIDAndPostingsPostingsCacheHitMetric.Inc(1)
 	}
