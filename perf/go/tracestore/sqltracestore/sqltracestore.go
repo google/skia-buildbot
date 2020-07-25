@@ -134,10 +134,12 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vec32"
 	perfsql "go.skia.org/infra/perf/go/sql"
@@ -323,6 +325,16 @@ type SQLTraceStore struct {
 
 	// tileSize is the number of commits per Tile.
 	tileSize int32
+
+	// metrics
+	writeTracesMetric                              metrics2.Float64SummaryMetric
+	updateTraceValuesMetric                        metrics2.Float64SummaryMetric
+	buildTracesContextMetric                       metrics2.Float64SummaryMetric
+	writeTraceIDAndPostingsMetric                  metrics2.Float64SummaryMetric
+	writeTraceIDAndPostingsCacheHitMetric          metrics2.Counter
+	writeTraceIDAndPostingsCacheMissMetric         metrics2.Counter
+	writeTraceIDAndPostingsPostingsCacheHitMetric  metrics2.Counter
+	writeTraceIDAndPostingsPostingsCacheMissMetric metrics2.Counter
 }
 
 // New returns a new *SQLTraceStore.
@@ -354,11 +366,19 @@ func New(db *sql.DB, dialect perfsql.Dialect, tileSize int32) (*SQLTraceStore, e
 	}
 
 	return &SQLTraceStore{
-		db:                   db,
-		preparedStatements:   preparedStatements,
-		unpreparedStatements: unpreparedStatements,
-		cache:                cache,
-		tileSize:             tileSize,
+		db:                                     db,
+		preparedStatements:                     preparedStatements,
+		unpreparedStatements:                   unpreparedStatements,
+		cache:                                  cache,
+		tileSize:                               tileSize,
+		writeTracesMetric:                      metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_writeTraces"),
+		updateTraceValuesMetric:                metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_updateTraceValues"),
+		buildTracesContextMetric:               metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_buildTracesContext"),
+		writeTraceIDAndPostingsMetric:          metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_writeTraceIDAndPostings"),
+		writeTraceIDAndPostingsCacheHitMetric:  metrics2.GetCounter("perfserver_sqltracestore_writeTraceIDAndPostings_cache_hit"),
+		writeTraceIDAndPostingsCacheMissMetric: metrics2.GetCounter("perfserver_sqltracestore_writeTraceIDAndPostings_cache_miss"),
+		writeTraceIDAndPostingsPostingsCacheHitMetric:  metrics2.GetCounter("perfserver_sqltracestore_writeTraceIDAndPostings_postings_cache_hit"),
+		writeTraceIDAndPostingsPostingsCacheMissMetric: metrics2.GetCounter("perfserver_sqltracestore_writeTraceIDAndPostings_postings_cache_miss"),
 	}, nil
 }
 
@@ -769,6 +789,7 @@ func getPostingsCacheEntryKey(traceID traceIDFromSQL, tileNumber types.TileNumbe
 // returns the traceIDFromSQL of that trace name. This operation will happen
 // repeatedly as data is ingested so we cache the results in the LRU cache.
 func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Params, tileNumber types.TileNumber) (traceIDFromSQL, error) {
+	defer timer.NewWithSummary("perfserver_sqltracestore_writeTraceIDAndPostings", s.writeTraceIDAndPostingsMetric).Stop()
 	traceID := badTraceIDFromSQL
 
 	traceName, err := query.MakeKey(traceNameAsParams)
@@ -779,7 +800,9 @@ func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Par
 	// Get a traceIDFromSQL for the traceName.
 	if iret, ok := s.cache.Get(traceName); ok {
 		traceID = iret.(traceIDFromSQL)
+		s.writeTraceIDAndPostingsCacheHitMetric.Inc(1)
 	} else {
+		s.writeTraceIDAndPostingsCacheMissMetric.Inc(1)
 		_, err := s.preparedStatements[insertIntoTraceIDs].ExecContext(context.TODO(), traceName)
 		if err != nil {
 			return traceID, skerr.Wrapf(err, "traceName=%q", traceName)
@@ -792,11 +815,14 @@ func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Par
 	}
 	postingsCacheEntryKey := getPostingsCacheEntryKey(traceID, tileNumber)
 	if !s.cache.Contains(postingsCacheEntryKey) {
+		s.writeTraceIDAndPostingsPostingsCacheMissMetric.Inc(1)
 		// Update postings.
 		if err := s.updatePostings(traceNameAsParams, tileNumber, traceID); err != nil {
 			return traceID, skerr.Wrapf(err, "traceName=%q tileNumber=%d traceID=%d", traceName, tileNumber, traceID)
 		}
 		s.cache.Add(postingsCacheEntryKey, true)
+	} else {
+		s.writeTraceIDAndPostingsPostingsCacheHitMetric.Inc(1)
 	}
 
 	return traceID, nil
@@ -804,6 +830,7 @@ func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Par
 
 // updateTraceValues writes the given slice of replaceTraceValues into the store.
 func (s *SQLTraceStore) updateTraceValues(templateContext []replaceTraceValue) error {
+	defer timer.NewWithSummary("perfserver_sqltracestore_updateTraceValues", s.updateTraceValuesMetric).Stop()
 	var b bytes.Buffer
 	if err := s.unpreparedStatements[replaceTraceValues].Execute(&b, templateContext); err != nil {
 		return skerr.Wrapf(err, "failed to expand template")
@@ -814,6 +841,7 @@ func (s *SQLTraceStore) updateTraceValues(templateContext []replaceTraceValue) e
 
 // WriteTraces implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []paramtools.Params, values []float32, _ paramtools.ParamSet, source string, _ time.Time) error {
+	defer timer.NewWithSummary("perfserver_sqltracestore_writeTraces", s.writeTracesMetric).Stop()
 	tileNumber := types.TileNumberFromCommitNumber(commitNumber, s.tileSize)
 	// Get the row id for the source file.
 	sourceID, err := s.updateSourceFile(source)
@@ -821,11 +849,13 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 		return skerr.Wrap(err)
 	}
 
+	t := timer.NewWithSummary("perfserver_sqltracestore_buildTracesContext", s.buildTracesContextMetric)
 	// Build the 'context' which will be used to populate the SQL template.
 	templateContext := make([]replaceTraceValue, 0, len(params))
 	for i, p := range params {
 		traceID, err := s.writeTraceIDAndPostings(p, tileNumber)
 		if err != nil {
+			t.Stop()
 			return skerr.Wrap(err)
 		}
 		templateContext = append(templateContext, replaceTraceValue{
@@ -835,6 +865,7 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 			SourceFileID: sourceID,
 		})
 	}
+	t.Stop()
 
 	err = util.ChunkIterParallel(context.TODO(), len(templateContext), traceValuesInsertBatchSize, func(ctx context.Context, startIdx int, endIdx int) error {
 		if err := s.updateTraceValues(templateContext[startIdx:endIdx]); err != nil {
