@@ -12,31 +12,40 @@ import (
 // Cache implements the cache.Cache interface.
 type Cache struct {
 	client *memcache.Client
+
+	// namespace is the string to add to each key to avoid conflicts with more
+	// than one application or application instance using the same memcached
+	// server.
+	namespace string
 }
 
 // New returns a new in-memory cache of the given size.
-func New(server ...string) (*Cache, error) {
-	c := memcache.New(server...)
+//
+// The namespace is the string to add to each key to avoid conflicts with more
+// than one application or application instance using the same memcached server.
+func New(servers []string, namespace string) (*Cache, error) {
+	c := memcache.New(servers...)
 	c.Timeout = time.Second * 5
 	return &Cache{
-		client: c,
+		client:    c,
+		namespace: namespace,
 	}, c.Ping()
 }
 
 // Add implements the cache.Cache interface.
 func (c *Cache) Add(key string, value string) {
-	err := c.client.Add(&memcache.Item{
-		Key:   key,
+	err := c.client.Set(&memcache.Item{
+		Key:   key + c.namespace,
 		Value: []byte(value),
 	})
 	if err != nil {
-		sklog.Errorf("Memcached failed to write: %s", err)
+		sklog.Errorf("Memcached failed to write: [%q: %q] %s", key, value, err)
 	}
 }
 
 // Get implements the cache.Cache interface.
 func (c *Cache) Get(key string) (string, bool) {
-	item, err := c.client.Get(key)
+	item, err := c.client.Get(key + c.namespace)
 	if err != nil {
 		if err != memcache.ErrCacheMiss {
 			sklog.Errorf("Memcached failed to get: %s", err)
@@ -48,7 +57,7 @@ func (c *Cache) Get(key string) (string, bool) {
 
 // Exists implements the cache.Cache interface.
 func (c *Cache) Exists(key string) bool {
-	_, err := c.client.Get(key)
+	_, err := c.client.Get(key + c.namespace)
 	return err == nil
 }
 
