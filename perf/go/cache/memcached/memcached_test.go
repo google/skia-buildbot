@@ -1,4 +1,4 @@
-package local
+package memcached
 
 import (
 	"testing"
@@ -8,15 +8,17 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
+const localServerAddress = "127.0.0.1:11211"
+
 func TestCache_New_Failure(t *testing.T) {
-	unittest.SmallTest(t)
-	_, err := New(-12)
+	unittest.ManualTest(t)
+	_, err := New("")
 	require.Error(t, err)
 }
 
 func TestCache_Get_Success(t *testing.T) {
-	unittest.SmallTest(t)
-	c, err := New(12)
+	unittest.ManualTest(t)
+	c, err := New(localServerAddress)
 	require.NoError(t, err)
 
 	c.Add("foo", "bar")
@@ -29,8 +31,8 @@ func TestCache_Get_Success(t *testing.T) {
 }
 
 func TestCache_Get_FalseOnMiss(t *testing.T) {
-	unittest.SmallTest(t)
-	c, err := New(12)
+	unittest.ManualTest(t)
+	c, err := New(localServerAddress)
 	require.NoError(t, err)
 
 	_, ok := c.Get("quux")
@@ -38,8 +40,8 @@ func TestCache_Get_FalseOnMiss(t *testing.T) {
 }
 
 func TestCache_Exists_Success(t *testing.T) {
-	unittest.SmallTest(t)
-	c, err := New(12)
+	unittest.ManualTest(t)
+	c, err := New(localServerAddress)
 	require.NoError(t, err)
 
 	c.Add("foo", "bar")
@@ -48,9 +50,11 @@ func TestCache_Exists_Success(t *testing.T) {
 }
 
 func TestCache_Exists_FalseOnMiss(t *testing.T) {
-	unittest.SmallTest(t)
-	c, err := New(12)
+	unittest.ManualTest(t)
+	c, err := New(localServerAddress)
 	require.NoError(t, err)
+
+	_ = c.client.Delete("foo")
 
 	ok := c.Exists("foo")
 	assert.False(t, ok)
