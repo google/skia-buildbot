@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dfbuilder"
 	perfgit "go.skia.org/infra/perf/go/git"
@@ -47,7 +48,15 @@ type cleanupFunc func()
 func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *perfgit.Git, cleanupFunc) {
 	db, dbCleanup := sqltest.NewCockroachDBForTests(t, CockroachDatabaseName, sqltest.ApplyMigrations)
 
-	store, err := sqltracestore.New(db, perfsql.CockroachDBDialect, testTileSize)
+	cfg := config.DataStoreConfig{
+		TileSize: testTileSize,
+		Project:  "test",
+		Instance: "test",
+		Table:    "test",
+		Shards:   8,
+	}
+
+	store, err := sqltracestore.New(db, perfsql.CockroachDBDialect, cfg)
 	require.NoError(t, err)
 
 	// Add some points to the first and second tile.

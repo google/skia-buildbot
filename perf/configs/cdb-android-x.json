@@ -8,7 +8,15 @@
     "instance": "production",
     "table": "perf-android-x",
     "shards": 8,
-    "namespace": "perf-android-x"
+    "namespace": "perf-android-x",
+    "cache": {
+      "memcached_servers": [
+        "perf-memcached-0.perf-memcached:11211",
+        "perf-memcached-1.perf-memcached:11211",
+        "perf-memcached-2.perf-memcached:11211"
+      ],
+      "namespace": "and_x"
+    }
   },
   "ingestion_config": {
     "source_config": {
