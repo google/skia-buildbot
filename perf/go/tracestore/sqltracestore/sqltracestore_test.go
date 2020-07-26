@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
+	"go.skia.org/infra/perf/go/config"
 	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/perf/go/types"
@@ -28,6 +29,14 @@ const (
 func TestCockroachDB(t *testing.T) {
 	unittest.LargeTest(t)
 
+	cfg := config.DataStoreConfig{
+		TileSize: testTileSize,
+		Project:  "test",
+		Instance: "test",
+		Table:    "test",
+		Shards:   8,
+	}
+
 	for name, subTest := range subTests {
 		t.Run(name, func(t *testing.T) {
 			db, cleanup := sqltest.NewCockroachDBForTests(t, "tracestore", sqltest.ApplyMigrations)
@@ -35,7 +44,7 @@ func TestCockroachDB(t *testing.T) {
 			// easier to understand.
 			defer cleanup()
 
-			store, err := New(db, perfsql.CockroachDBDialect, testTileSize)
+			store, err := New(db, perfsql.CockroachDBDialect, cfg)
 			require.NoError(t, err)
 
 			subTest(t, store)
