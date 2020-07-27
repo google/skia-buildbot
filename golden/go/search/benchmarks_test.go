@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/tiling"
 
 	"go.skia.org/infra/go/paramtools"
@@ -36,6 +37,7 @@ const (
 // BenchmarkExtractChangeListDigests benchmarks extractChangeListDigests, specifically
 // focusing on the filtering logic after the TryJobResults are returned.
 func BenchmarkExtractChangeListDigests(b *testing.B) {
+	const gerritCRS = "gerrit"
 	mis := &mock_index.IndexSearcher{}
 	mcls := &mock_clstore.Store{}
 	mtjs := &mock_tjstore.Store{}
@@ -54,7 +56,6 @@ func BenchmarkExtractChangeListDigests(b *testing.B) {
 			// All the rest are ignored
 		},
 	}, nil)
-	mcls.On("System").Return("gerrit")
 
 	mis.On("GetIgnoreMatcher").Return(makeIgnoreRules())
 	combinedID := tjstore.CombinedPSID{CL: "123", CRS: "gerrit", PS: "first_one"}
@@ -65,9 +66,17 @@ func BenchmarkExtractChangeListDigests(b *testing.B) {
 		return c
 	}, nil)
 
+	reviewSystems := []clstore.CRSPackage{
+		{
+			ID:    gerritCRS,
+			Store: mcls,
+			// Client and URLTemplate are unused here
+		},
+	}
+
 	s := &SearchImpl{
-		changeListStore: mcls,
-		tryJobStore:     mtjs,
+		reviewSystems: reviewSystems,
+		tryJobStore:   mtjs,
 	}
 
 	fn := func(_ types.TestName, _ types.Digest, _ paramtools.Params, _ tiling.TracePair) {}
@@ -78,6 +87,7 @@ func BenchmarkExtractChangeListDigests(b *testing.B) {
 			PatchSets:               []int64{int64(psOrder)},
 			TraceValues:             map[string][]string{},
 			IncludeUntriagedDigests: true,
+			CodeReviewSystemID:      "gerrit",
 			ChangeListID:            clID,
 		}, mis, expectations.EmptyClassifier(), fn)
 		require.NoError(b, err)
