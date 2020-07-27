@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["codesearchsource.go"],
+    importpath = "go.skia.org/infra/hashtag/go/codesearchsource",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/codesearch:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/sklog:go_default_library",
+        "//hashtag/go/source:go_default_library",
+        "@com_github_spf13_viper//:go_default_library",
+    ],
+)

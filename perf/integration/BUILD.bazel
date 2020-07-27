@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["generate_data.go"],
+    importpath = "go.skia.org/infra/perf/integration",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog:go_default_library",
+        "//perf/go/ingest/format:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "integration",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

@@ -12,7 +12,6 @@ import (
 
 	cloud_metadata "cloud.google.com/go/compute/metadata"
 	"cloud.google.com/go/pubsub"
-	luci_auth "go.chromium.org/luci/auth"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
@@ -403,6 +402,7 @@ func NewDefaultJWTServiceAccountTokenSource(scopes ...string) (oauth2.TokenSourc
 	return NewJWTServiceAccountTokenSource("", "", scopes...)
 }
 
+/*
 // NewLUCIContextTokenSource creates a new oauth2.TokenSource that uses
 // LUCI_CONTEXT to generate tokens. This is the canonical way to obtain tokens
 // for a service account tied to a Swarming task, ie. not the default GCE
@@ -419,6 +419,7 @@ func NewLUCIContextTokenSource(scopes ...string) (oauth2.TokenSource, error) {
 	})
 	return authenticator.TokenSource()
 }
+*/
 
 // SimpleTokenSrc implements the oauth2.TokenSource interface and wraps around a token
 // that has been retrieved by other means

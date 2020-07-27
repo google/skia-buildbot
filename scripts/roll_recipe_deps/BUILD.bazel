@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["roll_recipe_deps.go"],
+    importpath = "go.skia.org/infra/scripts/roll_recipe_deps",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common:go_default_library",
+        "//go/exec:go_default_library",
+        "//go/git:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "roll_recipe_deps",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

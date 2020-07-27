@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["gerrit_steps.go"],
+    importpath = "go.skia.org/infra/task_driver/go/lib/gerrit_steps",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gerrit:go_default_library",
+        "//go/git:go_default_library",
+        "//go/httputils:go_default_library",
+        "//task_driver/go/lib/git_steps:go_default_library",
+        "//task_driver/go/lib/os_steps:go_default_library",
+        "//task_driver/go/td:go_default_library",
+    ],
+)

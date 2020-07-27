@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["gcr.go"],
+    importpath = "go.skia.org/infra/go/gcr",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/httputils:go_default_library",
+        "//go/util:go_default_library",
+        "@org_golang_x_oauth2//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["gcr_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/mockhttpclient:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)

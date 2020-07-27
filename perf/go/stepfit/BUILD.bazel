@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["stepfit.go"],
+    importpath = "go.skia.org/infra/perf/go/stepfit",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/vec32:go_default_library",
+        "//perf/go/types:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["stepfit_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/testutils/unittest:go_default_library",
+        "//go/vec32:go_default_library",
+        "//perf/go/types:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)
