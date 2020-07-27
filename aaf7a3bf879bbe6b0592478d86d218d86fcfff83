@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "706391b8_f03539a6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-27T17:04:04Z",
+      "side": 1,
+      "message": "I updated the dashboard to match: https://grafana2.skia.org/d/63aNh3DWk/outgoing-qps",
+      "revId": "aaf7a3bf879bbe6b0592478d86d218d86fcfff83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
