@@ -128,7 +128,7 @@ func NewTraceStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		return sqltracestore.New(db, perfsql.CockroachDBDialect, instanceConfig.DataStoreConfig.TileSize)
+		return sqltracestore.New(db, perfsql.CockroachDBDialect, instanceConfig.DataStoreConfig)
 	}
 	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }

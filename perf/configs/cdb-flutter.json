@@ -8,7 +8,15 @@
     "instance": "production",
     "table": "perf-flutter",
     "shards": 8,
-    "namespace": "perf-flutter"
+    "namespace": "perf-flutter",
+    "cache": {
+      "memcached_servers": [
+        "perf-memcached-0.perf-memcached:11211",
+        "perf-memcached-1.perf-memcached:11211",
+        "perf-memcached-2.perf-memcached:11211"
+      ],
+      "namespace": "flut-e"
+    }
   },
   "ingestion_config": {
     "source_config": {

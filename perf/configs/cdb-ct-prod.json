@@ -8,7 +8,15 @@
     "instance": "production",
     "table": "perf-ct",
     "shards": 8,
-    "namespace": "perf-ct"
+    "namespace": "perf-ct",
+    "cache": {
+      "memcached_servers": [
+        "perf-memcached-0.perf-memcached:11211",
+        "perf-memcached-1.perf-memcached:11211",
+        "perf-memcached-2.perf-memcached:11211"
+      ],
+      "namespace": "ct"
+    }
   },
   "ingestion_config": {
     "source_config": {

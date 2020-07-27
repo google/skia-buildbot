@@ -42,7 +42,7 @@ func TestBuildTraceMapper(t *testing.T) {
 	db, cleanup := sqltest.NewCockroachDBForTests(t, CockroachDatabaseName, sqltest.ApplyMigrations)
 	defer cleanup()
 
-	store, err := sqltracestore.New(db, perfsql.CockroachDBDialect, 256)
+	store, err := sqltracestore.New(db, perfsql.CockroachDBDialect, cfg.DataStoreConfig)
 	require.NoError(t, err)
 
 	tileMap := buildTileMapOffsetToIndex([]types.CommitNumber{0, 1, 255, 256, 257}, store)
@@ -82,7 +82,7 @@ func TestBuildNew(t *testing.T) {
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store, err := sqltracestore.New(db, perfsql.CockroachDBDialect, instanceConfig.DataStoreConfig.TileSize)
+	store, err := sqltracestore.New(db, perfsql.CockroachDBDialect, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store)

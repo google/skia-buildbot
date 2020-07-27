@@ -144,17 +144,17 @@ import (
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/cache"
 	"go.skia.org/infra/perf/go/cache/local"
+	"go.skia.org/infra/perf/go/cache/memcached"
+	"go.skia.org/infra/perf/go/config"
 	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore/engine"
 	"go.skia.org/infra/perf/go/types"
 )
 
-// cacheSize is the size of the LRU cache.
-//
-// TODO(jcgregorio) Move to config.InstanceConfig since this should be tweaked
-// per instance.
-const cacheSize = 20 * 1000 * 1000
+// defaultCacheSize is the size of the in-memory LRU cache if no size was
+// specified in the config file.
+const defaultCacheSize = 20 * 1000 * 1000
 
 // Ingest instances have around 8 cores and many ingested files have ~10K
 // values, so pick a batch size that allows roughly one request per core.
@@ -333,9 +333,9 @@ type SQLTraceStore struct {
 
 	// metrics
 	writeTracesMetric                              metrics2.Float64SummaryMetric
+	writeTracesMetricSQL                           metrics2.Float64SummaryMetric
 	updateTraceValuesMetric                        metrics2.Float64SummaryMetric
 	buildTracesContextMetric                       metrics2.Float64SummaryMetric
-	writeTraceIDAndPostingsMetric                  metrics2.Float64SummaryMetric
 	writeTraceIDAndPostingsCacheHitMetric          metrics2.Counter
 	writeTraceIDAndPostingsCacheMissMetric         metrics2.Counter
 	writeTraceIDAndPostingsPostingsCacheHitMetric  metrics2.Counter
@@ -346,7 +346,7 @@ type SQLTraceStore struct {
 //
 // We presume all migrations have been run against db before this function is
 // called.
-func New(db *sql.DB, dialect perfsql.Dialect, tileSize int32) (*SQLTraceStore, error) {
+func New(db *sql.DB, dialect perfsql.Dialect, datastoreConfig config.DataStoreConfig) (*SQLTraceStore, error) {
 	preparedStatements := map[statement]*sql.Stmt{}
 	for key, statement := range statementsByDialect[dialect] {
 		prepared, err := db.Prepare(statement)
@@ -365,9 +365,28 @@ func New(db *sql.DB, dialect perfsql.Dialect, tileSize int32) (*SQLTraceStore, e
 		unpreparedStatements[key] = t
 	}
 
-	cache, err := local.New(cacheSize)
-	if err != nil {
-		return nil, skerr.Wrap(err)
+	var memoryCacheSize = datastoreConfig.Cache.Size
+	if memoryCacheSize == 0 {
+		memoryCacheSize = defaultCacheSize
+	}
+
+	var err error
+	var cache cache.Cache
+	if len(datastoreConfig.Cache.MemcachedServers) > 0 && datastoreConfig.Cache.Namespace != "" {
+		cache, err = memcached.New(datastoreConfig.Cache.MemcachedServers, datastoreConfig.Cache.Namespace)
+		if err != nil {
+			// Fall back to in-memory cache.
+			cache, err = local.New(memoryCacheSize)
+			if err != nil {
+				return nil, skerr.Wrap(err)
+			}
+
+		}
+	} else {
+		cache, err = local.New(memoryCacheSize)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 	}
 
 	return &SQLTraceStore{
@@ -375,11 +394,11 @@ func New(db *sql.DB, dialect perfsql.Dialect, tileSize int32) (*SQLTraceStore, e
 		preparedStatements:                     preparedStatements,
 		unpreparedStatements:                   unpreparedStatements,
 		cache:                                  cache,
-		tileSize:                               tileSize,
+		tileSize:                               datastoreConfig.TileSize,
 		writeTracesMetric:                      metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_writeTraces"),
+		writeTracesMetricSQL:                   metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_writeTracesSQL"),
 		updateTraceValuesMetric:                metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_updateTraceValues"),
 		buildTracesContextMetric:               metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_buildTracesContext"),
-		writeTraceIDAndPostingsMetric:          metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_writeTraceIDAndPostings"),
 		writeTraceIDAndPostingsCacheHitMetric:  metrics2.GetCounter("perfserver_sqltracestore_writeTraceIDAndPostings_cache_hit"),
 		writeTraceIDAndPostingsCacheMissMetric: metrics2.GetCounter("perfserver_sqltracestore_writeTraceIDAndPostings_cache_miss"),
 		writeTraceIDAndPostingsPostingsCacheHitMetric:  metrics2.GetCounter("perfserver_sqltracestore_writeTraceIDAndPostings_postings_cache_hit"),
@@ -814,7 +833,6 @@ const postingsCacheValue = "1"
 // returns the traceIDFromSQL of that trace name. This operation will happen
 // repeatedly as data is ingested so we cache the results in the LRU cache.
 func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Params, tileNumber types.TileNumber) (traceIDFromSQL, error) {
-	defer timer.NewWithSummary("perfserver_sqltracestore_writeTraceIDAndPostings", s.writeTraceIDAndPostingsMetric).Stop()
 	traceID := badTraceIDFromSQL
 
 	traceName, err := query.MakeKey(traceNameAsParams)
@@ -895,6 +913,7 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 	}
 	t.Stop()
 
+	defer timer.NewWithSummary("perfserver_sqltracestore_writeTraces_sql", s.writeTracesMetricSQL).Stop()
 	err = util.ChunkIterParallel(context.TODO(), len(templateContext), traceValuesInsertBatchSize, func(ctx context.Context, startIdx int, endIdx int) error {
 		if err := s.updateTraceValues(templateContext[startIdx:endIdx]); err != nil {
 			return skerr.Wrapf(err, "failed inserting subSlice: [%d:%d]", startIdx, endIdx)

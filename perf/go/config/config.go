@@ -36,6 +36,24 @@ const (
 	CockroachDBDataStoreType DataStoreType = "cockroachdb"
 )
 
+// Cache is the configuration for the LRU cache used by the storage client.
+type Cache struct {
+	// MemcachedServers is a list of memcached server names and addresses, e.g.
+	// ['memcached-0:11211', 'memcached-1:11211', 'memcached-2:11211']
+	//
+	// If this list is empty then the server will fall back to using an
+	// in-memory LRU cache per instance.
+	MemcachedServers []string `json:"memcached_servers"`
+
+	// Namespace is the string to add to each key to avoid conflicts with more
+	// than one application or application instance using the same memcached
+	// server.
+	Namespace string `json:"namespace"`
+
+	// Size is the size of the LRU cache to use if memcached isn't being used.
+	Size int `json:"size"`
+}
+
 // DataStoreConfig is the configuration for how Perf stores data.
 type DataStoreConfig struct {
 	// DataStoreType determines what type of datastore to build. This value will
@@ -79,6 +97,9 @@ type DataStoreConfig struct {
 	// regressions, and shortcuts should use. This value is only used for 'gcp'
 	// datastore types.
 	Namespace string `json:"namespace"`
+
+	// Cache is the configuration for the LRU cache used by the storage client.
+	Cache Cache `json:"cache"`
 }
 
 // SourceType determines what type of file.Source to build from a SourceConfig.
