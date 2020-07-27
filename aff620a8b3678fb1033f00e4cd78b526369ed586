@@ -39,6 +39,30 @@
       "revId": "aff620a8b3678fb1033f00e4cd78b526369ed586",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "87993b09_2173dc84",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-27T11:48:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0b94f9bf_ecc95551",
+      "range": {
+        "startLine": 155,
+        "startChar": 59,
+        "endLine": 155,
+        "endChar": 61
+      },
+      "revId": "aff620a8b3678fb1033f00e4cd78b526369ed586",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
