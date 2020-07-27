@@ -433,7 +433,7 @@ func TestProcess_QuarantineIfDeviceBatteryTooLow(t *testing.T) {
 
 	p := newProcessorForTest(t)
 	next := p.Process(ctx, previous, event)
-	assert.Equal(t, "Battery is too low: 9 < 30 (%)", next.Dimensions[machine.DimQuarantined][0])
+	assert.Equal(t, "Battery is too low", next.Dimensions[machine.DimQuarantined][0])
 	assert.Equal(t, 9, next.Battery)
 	assert.Equal(t, int64(9), metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": "skia-rpi2-0001"}).Get())
 }
@@ -544,7 +544,7 @@ Current cooling devices from HAL:
 
 	p := newProcessorForTest(t)
 	next := p.Process(ctx, previous, event)
-	assert.Equal(t, "Temperature is too hot: 44.1 > 35 (C)", next.Dimensions[machine.DimQuarantined][0])
+	assert.Equal(t, "Temperature is too hot", next.Dimensions[machine.DimQuarantined][0])
 	assert.Equal(t, float64(44.1), metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": "skia-rpi2-0001", "sensor": "cpu1-silver-usr"}).Get())
 
 }
