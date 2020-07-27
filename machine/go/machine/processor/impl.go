@@ -134,7 +134,7 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	battery, ok := batteryFromAndroidDumpSys(event.Android.DumpsysBattery)
 	if ok {
 		if battery < minBatteryLevel {
-			dimensions[machine.DimQuarantined] = []string{fmt.Sprintf("Battery is too low: %d < %d (%%)", battery, minBatteryLevel)}
+			dimensions[machine.DimQuarantined] = []string{"Battery is too low"}
 		}
 		metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": machineID}).Update(int64(battery))
 	}
@@ -143,7 +143,7 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	if ok {
 		temperature := findMaxTemperature(temperatures)
 		if temperature > maxTemperatureC {
-			dimensions[machine.DimQuarantined] = []string{fmt.Sprintf("Temperature is too hot: %g > %g (C)", temperature, maxTemperatureC)}
+			dimensions[machine.DimQuarantined] = []string{"Temperature is too hot"}
 		}
 		for sensor, temp := range temperatures {
 			metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": machineID, "sensor": sensor}).Update(temp)
