@@ -51,6 +51,24 @@
       "revId": "d4e9ec080d4f4697787681194ff9074f54323934",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d0e85bfc_0933f15c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-27T12:47:59Z",
+      "side": 1,
+      "message": "Just as a follow-up, adding\n\n       build_file_proto_mode \u003d \"disable\",\n\nto the go_repository() rule in WORKSPACE fixes the issue.",
+      "parentUuid": "2bc01f1e_feaf981c",
+      "revId": "d4e9ec080d4f4697787681194ff9074f54323934",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
