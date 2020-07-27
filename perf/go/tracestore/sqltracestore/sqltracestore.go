@@ -127,6 +127,7 @@ import (
 	"context"
 	"crypto/md5"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"sort"
 	"strconv"
@@ -791,7 +792,7 @@ func getPostingsCacheEntryKey(traceID traceIDFromSQL, tileNumber types.TileNumbe
 }
 
 func getHashedTraceName(traceName string) string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(traceName)))
+	return hex.EncodeToString(md5.Sum([]byte(traceName)))
 }
 
 func (s *SQLTraceStore) getTraceIDFromCache(hashedTraceName string) (traceIDFromSQL, bool) {
