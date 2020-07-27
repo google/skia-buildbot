@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f4f17f14_27966c2a",
+        "filename": "perf/go/cache/memcached/memcached.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-27T11:25:57Z",
+      "side": 1,
+      "message": "nit: Briefly explain why servers can be multiple strings.",
+      "range": {
+        "startLine": 22,
+        "startChar": 49,
+        "endLine": 22,
+        "endChar": 54
+      },
+      "revId": "4450baa2efa66eb1c2846513cbe391f82dbeafa5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "efc62e22_2b240e65",
+        "filename": "perf/go/cache/memcached/memcached.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-27T11:25:57Z",
+      "side": 1,
+      "message": "switching the order of these arguments allows for var args servers.",
+      "range": {
+        "startLine": 26,
+        "startChar": 9,
+        "endLine": 26,
+        "endChar": 43
+      },
+      "revId": "4450baa2efa66eb1c2846513cbe391f82dbeafa5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
