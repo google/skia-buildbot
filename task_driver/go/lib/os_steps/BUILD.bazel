@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["os_steps.go"],
+    importpath = "go.skia.org/infra/task_driver/go/lib/os_steps",
+    visibility = ["//visibility:public"],
+    deps = ["//task_driver/go/td:go_default_library"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["os_steps_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/testutils/unittest:go_default_library",
+        "//task_driver/go/td:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

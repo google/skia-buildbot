@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["handlers.go"],
+    importpath = "go.skia.org/infra/task_driver/go/handlers",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/httputils:go_default_library",
+        "//task_driver/go/db:go_default_library",
+        "//task_driver/go/display:go_default_library",
+        "//task_driver/go/logs:go_default_library",
+        "//task_driver/go/td:go_default_library",
+        "@com_github_gorilla_mux//:go_default_library",
+    ],
+)

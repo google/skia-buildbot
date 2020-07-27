@@ -1,0 +1,51 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "bots.go",
+        "tasks.go",
+    ],
+    importpath = "go.skia.org/infra/datahopper/go/swarming_metrics",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/common:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/metrics2/events:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/swarming:go_default_library",
+        "//go/taskname:go_default_library",
+        "//go/util:go_default_library",
+        "//perf/go/ingest/format:go_default_library",
+        "//perf/go/perfclient:go_default_library",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:go_default_library",
+        "@org_golang_x_oauth2//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "bots_test.go",
+        "tasks_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/bt/testutil:go_default_library",
+        "//go/common:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/metrics2/events:go_default_library",
+        "//go/metrics2/testutils:go_default_library",
+        "//go/swarming:go_default_library",
+        "//go/taskname:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//go/util:go_default_library",
+        "//perf/go/ingest/format:go_default_library",
+        "//perf/go/perfclient:go_default_library",
+        "@com_github_prometheus_client_golang//prometheus:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:go_default_library",
+    ],
+)

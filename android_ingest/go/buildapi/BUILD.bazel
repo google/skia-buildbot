@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["buildapi.go"],
+    importpath = "go.skia.org/infra/android_ingest/go/buildapi",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/androidbuildinternal/v2beta1:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+    ],
+)

@@ -1,0 +1,56 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "btts.go",
+        "execute.go",
+        "paramindex.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/tracestore/btts",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2:go_default_library",
+        "//go/paramtools:go_default_library",
+        "//go/query:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/timer:go_default_library",
+        "//go/util:go_default_library",
+        "//go/vec32:go_default_library",
+        "//perf/go/config:go_default_library",
+        "//perf/go/tracestore:go_default_library",
+        "//perf/go/tracestore/btts/engine:go_default_library",
+        "//perf/go/types:go_default_library",
+        "@com_github_hashicorp_go_multierror//:go_default_library",
+        "@com_github_hashicorp_golang_lru//:go_default_library",
+        "@com_google_cloud_go_bigtable//:go_default_library",
+        "@io_opencensus_go//trace:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+        "@org_golang_x_oauth2//:go_default_library",
+        "@org_golang_x_sync//errgroup:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "btts_test.go",
+        "execute_test.go",
+        "paramindex_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/paramtools:go_default_library",
+        "//go/query:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//go/vec32:go_default_library",
+        "//perf/go/config:go_default_library",
+        "//perf/go/tracestore/btts/btts_testutils:go_default_library",
+        "//perf/go/types:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_google_cloud_go_bigtable//:go_default_library",
+    ],
+)

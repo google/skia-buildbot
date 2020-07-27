@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["git_steps.go"],
+    importpath = "go.skia.org/infra/task_driver/go/lib/git_steps",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//task_driver/go/lib/auth_steps:go_default_library",
+        "@org_golang_x_oauth2//:go_default_library",
+    ],
+)

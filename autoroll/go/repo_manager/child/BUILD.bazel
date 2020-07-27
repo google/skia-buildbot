@@ -1,0 +1,58 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "child.go",
+        "cipd.go",
+        "fuchsia_sdk.go",
+        "gcs.go",
+        "git_checkout.go",
+        "git_checkout_github.go",
+        "gitiles.go",
+        "semver_gcs.go",
+    ],
+    importpath = "go.skia.org/infra/autoroll/go/repo_manager/child",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/config_vars:go_default_library",
+        "//autoroll/go/repo_manager/child/revision_filter:go_default_library",
+        "//autoroll/go/repo_manager/common/git_common:go_default_library",
+        "//autoroll/go/repo_manager/common/gitiles_common:go_default_library",
+        "//autoroll/go/revision:go_default_library",
+        "//go/cipd:go_default_library",
+        "//go/gcs:go_default_library",
+        "//go/gcs/gcsclient:go_default_library",
+        "//go/git:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "@com_google_cloud_go_storage//:go_default_library",
+        "@org_chromium_go_luci//cipd/client/cipd:go_default_library",
+        "@org_chromium_go_luci//cipd/common:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "cipd_test.go",
+        "gitiles_test.go",
+        "semver_gcs_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//autoroll/go/config_vars:go_default_library",
+        "//autoroll/go/repo_manager/common/gitiles_common:go_default_library",
+        "//autoroll/go/revision:go_default_library",
+        "//go/auth:go_default_library",
+        "//go/chrome_branch/mocks:go_default_library",
+        "//go/git/testutils:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

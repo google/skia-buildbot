@@ -1,0 +1,40 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "graph.go",
+        "pubsub.go",
+    ],
+    importpath = "go.skia.org/infra/go/gitstore/pubsub",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cleanup:go_default_library",
+        "//go/git/repograph:go_default_library",
+        "//go/gitstore:go_default_library",
+        "//go/gitstore/bt_gitstore:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "@com_google_cloud_go_pubsub//:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+        "@org_golang_x_oauth2//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["pubsub_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/deepequal/assertdeep:go_default_library",
+        "//go/git:go_default_library",
+        "//go/git/repograph:go_default_library",
+        "//go/git/testutils:go_default_library",
+        "//go/gitstore/bt_gitstore:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_google_uuid//:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_google_cloud_go_pubsub//:go_default_library",
+    ],
+)

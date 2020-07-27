@@ -1,0 +1,37 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/go/perf-tool",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/fileutil:go_default_library",
+        "//go/gcs:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/query:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/sklog/glog_and_cloud:go_default_library",
+        "//go/util:go_default_library",
+        "//perf/go/alerts:go_default_library",
+        "//perf/go/builders:go_default_library",
+        "//perf/go/cid:go_default_library",
+        "//perf/go/config:go_default_library",
+        "//perf/go/regression:go_default_library",
+        "//perf/go/shortcut:go_default_library",
+        "//perf/go/tracestore:go_default_library",
+        "//perf/go/types:go_default_library",
+        "@com_github_spf13_cobra//:go_default_library",
+        "@com_google_cloud_go_pubsub//:go_default_library",
+        "@com_google_cloud_go_storage//:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "perf-tool",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

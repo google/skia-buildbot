@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "diff.go",
+        "metrics.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/diff",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//golden/go/types:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["diff_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":go_default_library"],
+    deps = [
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//go/util:go_default_library",
+        "//golden/go/image/text:go_default_library",
+        "//golden/go/testutils/data_one_by_five:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)

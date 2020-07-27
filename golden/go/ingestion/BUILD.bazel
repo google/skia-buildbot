@@ -1,0 +1,50 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "helpers.go",
+        "ingestion.go",
+        "types.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/ingestion",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/config:go_default_library",
+        "//go/fileutil:go_default_library",
+        "//go/gcs:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "//golden/go/eventbus:go_default_library",
+        "@com_github_cenkalti_backoff//:go_default_library",
+        "@com_google_cloud_go_storage//:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "helpers_test.go",
+        "ingestion_test.go",
+    ],
+    data = glob(["testdata/**"]),
+    embed = [":go_default_library"],
+    deps = [
+        "//go/config:go_default_library",
+        "//go/gcs/gcs_testutils:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "//go/vcsinfo/mocks:go_default_library",
+        "//golden/go/eventbus:go_default_library",
+        "//golden/go/eventbus/mocks:go_default_library",
+        "//golden/go/ingestion/mocks:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)
