@@ -16,6 +16,52 @@
       "revId": "aaf7a3bf879bbe6b0592478d86d218d86fcfff83",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "46034722_a6821a9b",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-27T17:18:46Z",
+      "side": 1,
+      "message": "Let\u0027s take it to 200 or 500 if we really want the false positive rate low.",
+      "range": {
+        "startLine": 173,
+        "startChar": 83,
+        "endLine": 173,
+        "endChar": 86
+      },
+      "revId": "aaf7a3bf879bbe6b0592478d86d218d86fcfff83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6ac2bee7_89c9bd66",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-27T17:18:46Z",
+      "side": 1,
+      "message": "similarly, can we bump this to at least 100?",
+      "range": {
+        "startLine": 181,
+        "startChar": 74,
+        "endLine": 181,
+        "endChar": 89
+      },
+      "revId": "aaf7a3bf879bbe6b0592478d86d218d86fcfff83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
