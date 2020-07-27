@@ -16,6 +16,40 @@
       "revId": "7be6db43be88f083a01f6de33be51c7d659d5ee3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "505c9b17_b2b38000",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-27T13:20:32Z",
+      "side": 1,
+      "message": "Looks like there are some bot failures",
+      "revId": "7be6db43be88f083a01f6de33be51c7d659d5ee3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "33b2c3e4_17b2f2ca",
+        "filename": "go/git/util.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-27T13:20:32Z",
+      "side": 1,
+      "message": "Nit: Is this always the format? could the output be custom formatted to not match this? (maybe this expected format should be in the documentation of the function to make it clear what is expected).",
+      "revId": "7be6db43be88f083a01f6de33be51c7d659d5ee3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
