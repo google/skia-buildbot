@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ab4b8dc1_c7c29397",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 792,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-27T11:07:45Z",
+      "side": 1,
+      "message": "Would defer metrics2.FuncTimer().Stop() suffice for this (and some similar metrics below)?",
+      "range": {
+        "startLine": 792,
+        "startChar": 13,
+        "endLine": 792,
+        "endChar": 27
+      },
+      "revId": "1b5267a60d359d3a17610ebbdacc7eb484564421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
