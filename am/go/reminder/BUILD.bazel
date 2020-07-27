@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["reminder.go"],
+    importpath = "go.skia.org/infra/am/go/reminder",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//am/go/incident:go_default_library",
+        "//am/go/silence:go_default_library",
+        "//go/ds:go_default_library",
+        "//go/email:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/rotations:go_default_library",
+        "//go/sklog:go_default_library",
+        "@com_google_cloud_go_datastore//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["reminder_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//am/go/incident:go_default_library",
+        "//am/go/silence:go_default_library",
+        "//go/paramtools:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)

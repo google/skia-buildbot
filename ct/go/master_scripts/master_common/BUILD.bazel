@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["master_common.go"],
+    importpath = "go.skia.org/infra/ct/go/master_scripts/master_common",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ct/go/util:go_default_library",
+        "//go/auth:go_default_library",
+        "//go/common:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/swarming:go_default_library",
+    ],
+)

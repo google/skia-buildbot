@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/push/go/pushcli",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/chatbot:go_default_library",
+        "//go/common:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/packages:go_default_library",
+        "//go/sklog:go_default_library",
+        "//push/go/trigger:go_default_library",
+        "@org_golang_google_api//compute/v1:go_default_library",
+        "@org_golang_google_api//storage/v1:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "pushcli",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

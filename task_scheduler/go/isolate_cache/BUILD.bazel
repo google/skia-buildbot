@@ -1,0 +1,38 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "isolate_cache.go",
+        "testutils.go",
+    ],
+    importpath = "go.skia.org/infra/task_scheduler/go/isolate_cache",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/atomic_miss_cache:go_default_library",
+        "//go/bt:go_default_library",
+        "//go/bt/testutil:go_default_library",
+        "//go/isolate:go_default_library",
+        "//go/sktest:go_default_library",
+        "//task_scheduler/go/types:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+        "@com_google_cloud_go_bigtable//:go_default_library",
+        "@org_chromium_go_luci//common/isolated:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+        "@org_golang_x_oauth2//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["isolate_cache_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/atomic_miss_cache:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//task_scheduler/go/types:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+        "@org_chromium_go_luci//common/isolated:go_default_library",
+    ],
+)

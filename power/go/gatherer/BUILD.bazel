@@ -1,0 +1,39 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["gatherer.go"],
+    importpath = "go.skia.org/infra/power/go/gatherer",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//am/go/alertclient:go_default_library",
+        "//am/go/incident:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/swarming:go_default_library",
+        "//go/util:go_default_library",
+        "//power/go/decider:go_default_library",
+        "//power/go/recorder:go_default_library",
+        "//skolo/go/powercycle:go_default_library",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["gatherer_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//am/go/alertclient/mocks:go_default_library",
+        "//am/go/incident:go_default_library",
+        "//am/go/silence:go_default_library",
+        "//go/swarming:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//power/go/decider:go_default_library",
+        "//power/go/recorder:go_default_library",
+        "//power/go/testdata:go_default_library",
+        "//skolo/go/powercycle:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:go_default_library",
+    ],
+)

@@ -1,0 +1,53 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "bt_tracestore.go",
+        "types.go",
+        "util.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/tracestore/bt_tracestore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/bt:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/paramtools:go_default_library",
+        "//go/query:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "//golden/go/tiling:go_default_library",
+        "//golden/go/tracestore:go_default_library",
+        "//golden/go/types:go_default_library",
+        "@com_google_cloud_go_bigtable//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_x_sync//errgroup:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "bt_tracestore_test.go",
+        "types_test.go",
+        "util_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/bt:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "//go/vcsinfo/mocks:go_default_library",
+        "//golden/go/testutils/data_bug_revert:go_default_library",
+        "//golden/go/testutils/data_three_devices:go_default_library",
+        "//golden/go/tiling:go_default_library",
+        "//golden/go/tracestore:go_default_library",
+        "//golden/go/types:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

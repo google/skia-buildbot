@@ -1,0 +1,41 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "datastore.go",
+        "mail.go",
+        "main.go",
+        "poller.go",
+        "swarming.go",
+        "util.go",
+    ],
+    importpath = "go.skia.org/infra/leasing/go/leasing",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/allowed:go_default_library",
+        "//go/auth:go_default_library",
+        "//go/baseapp:go_default_library",
+        "//go/ds:go_default_library",
+        "//go/email:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/isolate:go_default_library",
+        "//go/login:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/swarming:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_gorilla_mux//:go_default_library",
+        "@com_github_unrolled_secure//:go_default_library",
+        "@com_google_cloud_go_datastore//:go_default_library",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:go_default_library",
+        "@org_golang_google_api//iterator:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "leasing",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

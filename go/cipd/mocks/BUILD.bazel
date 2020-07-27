@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "CIPDClient.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/go/cipd/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cipd:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+        "@org_chromium_go_luci//cipd/client/cipd:go_default_library",
+        "@org_chromium_go_luci//cipd/client/cipd/deployer:go_default_library",
+        "@org_chromium_go_luci//cipd/client/cipd/pkg:go_default_library",
+        "@org_chromium_go_luci//cipd/common:go_default_library",
+    ],
+)

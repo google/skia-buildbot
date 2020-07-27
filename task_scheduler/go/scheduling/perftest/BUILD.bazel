@@ -1,0 +1,37 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["perftest.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/scheduling/perftest",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/common:go_default_library",
+        "//go/exec:go_default_library",
+        "//go/git:go_default_library",
+        "//go/git/repograph:go_default_library",
+        "//go/isolate:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/swarming:go_default_library",
+        "//go/util:go_default_library",
+        "//task_scheduler/go/db/cache:go_default_library",
+        "//task_scheduler/go/db/firestore:go_default_library",
+        "//task_scheduler/go/isolate_cache:go_default_library",
+        "//task_scheduler/go/scheduling:go_default_library",
+        "//task_scheduler/go/specs:go_default_library",
+        "//task_scheduler/go/task_cfg_cache:go_default_library",
+        "//task_scheduler/go/testutils:go_default_library",
+        "//task_scheduler/go/types:go_default_library",
+        "//task_scheduler/go/window:go_default_library",
+        "@com_github_davecgh_go_spew//spew:go_default_library",
+        "@com_google_cloud_go_datastore//:go_default_library",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "perftest",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

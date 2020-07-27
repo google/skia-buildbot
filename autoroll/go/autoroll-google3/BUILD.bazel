@@ -1,0 +1,62 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "google3.go",
+        "main.go",
+    ],
+    importpath = "go.skia.org/infra/autoroll/go/autoroll-google3",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//autoroll/go/modes:go_default_library",
+        "//autoroll/go/recent_rolls:go_default_library",
+        "//autoroll/go/roller:go_default_library",
+        "//autoroll/go/state_machine:go_default_library",
+        "//autoroll/go/status:go_default_library",
+        "//autoroll/go/strategy:go_default_library",
+        "//go/auth:go_default_library",
+        "//go/autoroll:go_default_library",
+        "//go/cleanup:go_default_library",
+        "//go/common:go_default_library",
+        "//go/ds:go_default_library",
+        "//go/gitiles:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/jsonutils:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//go/webhook:go_default_library",
+        "@com_github_flynn_json5//:go_default_library",
+        "@com_github_gorilla_mux//:go_default_library",
+        "@com_google_cloud_go_datastore//:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "autoroll-google3",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["google3_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//autoroll/go/recent_rolls:go_default_library",
+        "//autoroll/go/roller:go_default_library",
+        "//go/autoroll:go_default_library",
+        "//go/deepequal/assertdeep:go_default_library",
+        "//go/ds:go_default_library",
+        "//go/ds/testutil:go_default_library",
+        "//go/git:go_default_library",
+        "//go/git/testutils:go_default_library",
+        "//go/gitiles/testutils:go_default_library",
+        "//go/jsonutils:go_default_library",
+        "//go/mockhttpclient:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

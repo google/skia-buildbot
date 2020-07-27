@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["roll_cipd_packages.go"],
+    importpath = "go.skia.org/infra/infra/bots/task_drivers/roll_cipd_packages",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/cipd:go_default_library",
+        "//go/gitiles:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "//task_driver/go/lib/auth_steps:go_default_library",
+        "//task_driver/go/lib/checkout:go_default_library",
+        "//task_driver/go/lib/gerrit_steps:go_default_library",
+        "//task_driver/go/lib/golang:go_default_library",
+        "//task_driver/go/lib/os_steps:go_default_library",
+        "//task_driver/go/lib/rotations:go_default_library",
+        "//task_driver/go/td:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "roll_cipd_packages",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

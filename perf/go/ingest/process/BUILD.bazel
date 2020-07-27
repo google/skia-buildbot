@@ -1,0 +1,40 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["process.go"],
+    importpath = "go.skia.org/infra/perf/go/ingest/process",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/paramtools:go_default_library",
+        "//go/query:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//perf/go/builders:go_default_library",
+        "//perf/go/config:go_default_library",
+        "//perf/go/ingest/parser:go_default_library",
+        "//perf/go/ingestevents:go_default_library",
+        "@com_google_cloud_go_pubsub//:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["process_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/paramtools:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//perf/go/config:go_default_library",
+        "//perf/go/ingestevents:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+        "@com_google_cloud_go_pubsub//:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+    ],
+)

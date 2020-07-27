@@ -1,0 +1,37 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["sqltracestore.go"],
+    importpath = "go.skia.org/infra/perf/go/tracestore/sqltracestore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools:go_default_library",
+        "//go/query:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/vec32:go_default_library",
+        "//perf/go/sql:go_default_library",
+        "//perf/go/tracestore:go_default_library",
+        "//perf/go/tracestore/sqltracestore/engine:go_default_library",
+        "//perf/go/types:go_default_library",
+        "@com_github_hashicorp_golang_lru//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["sqltracestore_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/paramtools:go_default_library",
+        "//go/query:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//go/vec32:go_default_library",
+        "//perf/go/sql:go_default_library",
+        "//perf/go/sql/sqltest:go_default_library",
+        "//perf/go/types:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

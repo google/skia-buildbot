@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["dsshortcutstore.go"],
+    importpath = "go.skia.org/infra/perf/go/shortcut/dsshortcutstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/ds:go_default_library",
+        "//go/sklog:go_default_library",
+        "//perf/go/shortcut:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["dsshortcutstore_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/ds:go_default_library",
+        "//go/ds/testutil:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//perf/go/shortcut/shortcuttest:go_default_library",
+    ],
+)

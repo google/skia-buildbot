@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "cloud_logging.go",
+        "glog_and_cloud.go",
+        "slog.go",
+    ],
+    importpath = "go.skia.org/infra/go/sklog/glog_and_cloud",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr:go_default_library",
+        "//go/sklog/sklog_impl:go_default_library",
+        "@com_github_davecgh_go_spew//spew:go_default_library",
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_jcgregorio_logger//:go_default_library",
+        "@com_github_jcgregorio_slog//:go_default_library",
+        "@org_golang_google_api//logging/v2:go_default_library",
+    ],
+)

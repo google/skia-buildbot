@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/sheriff_emails/go/sheriff_emails",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common:go_default_library",
+        "//go/email:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "sheriff_emails",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

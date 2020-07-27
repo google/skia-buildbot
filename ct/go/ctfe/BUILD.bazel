@@ -1,0 +1,39 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/ct/go/ctfe",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//ct/go/ctfe/admin_tasks:go_default_library",
+        "//ct/go/ctfe/capture_skps:go_default_library",
+        "//ct/go/ctfe/chromium_analysis:go_default_library",
+        "//ct/go/ctfe/chromium_builds:go_default_library",
+        "//ct/go/ctfe/chromium_perf:go_default_library",
+        "//ct/go/ctfe/metrics_analysis:go_default_library",
+        "//ct/go/ctfe/pending_tasks:go_default_library",
+        "//ct/go/ctfe/task_common:go_default_library",
+        "//ct/go/ctfe/task_types:go_default_library",
+        "//ct/go/ctfe/util:go_default_library",
+        "//ct/go/util:go_default_library",
+        "//go/allowed:go_default_library",
+        "//go/auth:go_default_library",
+        "//go/common:go_default_library",
+        "//go/ds:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/login:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/swarming:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_gorilla_mux//:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "ctfe",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
