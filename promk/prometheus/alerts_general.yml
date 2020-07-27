@@ -151,9 +151,8 @@ groups:
       description: '{{ $labels.app }} is failing to upload CLs.
       https://console.cloud.google.com/logs/viewer?project={{ $labels.project }}&minLogLevel=500&resource=container&logName=projects%2F{{ $labels.project }}%2Flogs%2F{{ $labels.app }}'
 
-
   - alert: HighOutgoingQPS
-    expr: sum(rate(http_request_metrics{host!="www.googleapis.com",app!="gold-skia-diffserver"}[30m])) by (host) > 25
+    expr: sum(rate(http_request_metrics{host!~".*googleapis.*"}[30m])) by (host) > 25
     labels:
       category: infra
       severity: warning
@@ -161,22 +160,30 @@ groups:
       abbr: '{{ $labels.host }}'
       description: 'QPS to {{ $labels.host }} is high. Verify that this is expected.'
 
-  - alert: HighOutgoingQPS
-    expr: sum(rate(http_request_metrics{host!="www.googleapis.com",app="gold-skia-diffserver"}[30m])) by (host) > 25
+  - alert: HighOutgoingQPSByApp
+    expr: sum(rate(http_request_metrics{host!~".*googleapis.*"}[30m])) by (host,app) > 15
     labels:
       category: infra
       severity: warning
     annotations:
       abbr: '{{ $labels.host }}'
-      description: 'QPS to {{ $labels.host }} from gold-skia-diffserver is high. Verify that this is expected.'
+      description: 'QPS to {{ $labels.host }} from {{ $labels.app }} is high. Verify that this is expected.'
 
   - alert: HighOutgoingQPSGoogleAPIs
-    expr: sum(rate(http_request_metrics{host="www.googleapis.com"}[30m])) > 60
+    expr: sum(rate(http_request_metrics{host=~".*googleapis.*"}[30m])) by (host) > 100
     labels:
       category: infra
       severity: warning
     annotations:
-      description: 'QPS to www.googleapis.com is high. Verify that this is expected.'
+      description: 'QPS to googleapis is high. Verify that this is expected.'
+
+  - alert: HighOutgoingQPSGoogleAPIsByApp
+    expr: sum(rate(http_request_metrics{host=~".*googleapis.*"}[30m])) by (host,app) > 50
+    labels:
+      category: infra
+      severity: warning
+    annotations:
+      description: 'QPS to googleapis from {{ $labels.app }} is high. Verify that this is expected.'
 
   - alert: HighFirestoreUsageSustained
     expr: sum(rate(firestore_ops_count{count="rows", app!~"gold.+"}[24h])) by (app) > 25
