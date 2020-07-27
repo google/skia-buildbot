@@ -22,6 +22,30 @@
       "revId": "1b5267a60d359d3a17610ebbdacc7eb484564421",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d81526dc_6f7ad8cf",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 792,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-27T11:30:32Z",
+      "side": 1,
+      "message": "For these I actually wanted the logs along with the summary metric.",
+      "parentUuid": "ab4b8dc1_c7c29397",
+      "range": {
+        "startLine": 792,
+        "startChar": 13,
+        "endLine": 792,
+        "endChar": 27
+      },
+      "revId": "1b5267a60d359d3a17610ebbdacc7eb484564421",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
