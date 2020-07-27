@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["gittest.go"],
+    importpath = "go.skia.org/infra/perf/go/git/gittest",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/git/testutils:go_default_library",
+        "//perf/go/config:go_default_library",
+        "//perf/go/sql:go_default_library",
+        "//perf/go/sql/sqltest:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

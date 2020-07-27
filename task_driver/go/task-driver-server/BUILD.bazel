@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/task_driver/go/task-driver-server",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/common:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/login:go_default_library",
+        "//go/sklog:go_default_library",
+        "//task_driver/go/db:go_default_library",
+        "//task_driver/go/db/bigtable:go_default_library",
+        "//task_driver/go/display:go_default_library",
+        "//task_driver/go/handlers:go_default_library",
+        "//task_driver/go/logs:go_default_library",
+        "//task_driver/go/td:go_default_library",
+        "@com_github_gorilla_mux//:go_default_library",
+        "@com_google_cloud_go_bigtable//:go_default_library",
+        "@com_google_cloud_go_pubsub//:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "task-driver-server",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

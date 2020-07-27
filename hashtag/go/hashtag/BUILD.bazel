@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/hashtag/go/hashtag",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/allowed:go_default_library",
+        "//go/auditlog:go_default_library",
+        "//go/baseapp:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/login:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//hashtag/go/codesearchsource:go_default_library",
+        "//hashtag/go/drivesource:go_default_library",
+        "//hashtag/go/gerritsource:go_default_library",
+        "//hashtag/go/hiddenstore:go_default_library",
+        "//hashtag/go/monorailsource:go_default_library",
+        "//hashtag/go/source:go_default_library",
+        "@com_github_gorilla_mux//:go_default_library",
+        "@com_github_spf13_viper//:go_default_library",
+        "@com_github_unrolled_secure//:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "hashtag",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["chromium_builds.go"],
+    importpath = "go.skia.org/infra/ct/go/ctfe/chromium_builds",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ct/go/ctfe/task_common:go_default_library",
+        "//ct/go/ctfe/util:go_default_library",
+        "//ct/go/util:go_default_library",
+        "//go/buildskia:go_default_library",
+        "//go/common:go_default_library",
+        "//go/ds:go_default_library",
+        "//go/gitiles:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/swarming:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_gorilla_mux//:go_default_library",
+        "@com_google_cloud_go_datastore//:go_default_library",
+        "@org_golang_google_api//iterator:go_default_library",
+    ],
+)

@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["types.go"],
+    importpath = "go.skia.org/infra/golden/go/search/frontend",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools:go_default_library",
+        "//golden/go/comment/trace:go_default_library",
+        "//golden/go/diff:go_default_library",
+        "//golden/go/expectations:go_default_library",
+        "//golden/go/search/common:go_default_library",
+        "//golden/go/tiling:go_default_library",
+        "//golden/go/types:go_default_library",
+        "//golden/go/web/frontend:go_default_library",
+    ],
+)

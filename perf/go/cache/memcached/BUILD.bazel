@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["memcached.go"],
+    importpath = "go.skia.org/infra/perf/go/cache/memcached",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog:go_default_library",
+        "//perf/go/cache:go_default_library",
+        "@com_github_bradfitz_gomemcache//memcache:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["memcached_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

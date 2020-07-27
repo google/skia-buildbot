@@ -1,0 +1,41 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["machine.go"],
+    importpath = "go.skia.org/infra/sk8s/go/bot_config/machine",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/timer:go_default_library",
+        "//go/util:go_default_library",
+        "//machine/go/machine:go_default_library",
+        "//machine/go/machine/sink:go_default_library",
+        "//machine/go/machine/store:go_default_library",
+        "//machine/go/machineserver/config:go_default_library",
+        "//sk8s/go/bot_config/adb:go_default_library",
+        "//sk8s/go/bot_config/swarming:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["machine_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":go_default_library"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/executil:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//machine/go/machine:go_default_library",
+        "//machine/go/machine/source/pubsubsource:go_default_library",
+        "//machine/go/machineserver/config:go_default_library",
+        "//sk8s/go/bot_config/swarming:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+        "@com_google_cloud_go_pubsub//:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+    ],
+)

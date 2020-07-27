@@ -1,0 +1,57 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "chromium_builds.go",
+        "constants.go",
+        "ct_perf.go",
+        "gs.go",
+        "local.go",
+        "util.go",
+    ],
+    importpath = "go.skia.org/infra/ct/go/util",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/cipd:go_default_library",
+        "//go/common:go_default_library",
+        "//go/exec:go_default_library",
+        "//go/fileutil:go_default_library",
+        "//go/gcs:go_default_library",
+        "//go/git:go_default_library",
+        "//go/gitiles:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/isolate:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/swarming:go_default_library",
+        "//go/util:go_default_library",
+        "//go/util/zip:go_default_library",
+        "//perf/go/ingest/format:go_default_library",
+        "//task_scheduler/go/specs:go_default_library",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:go_default_library",
+        "@org_golang_google_api//googleapi:go_default_library",
+        "@org_golang_google_api//storage/v1:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "ct_perf_test.go",
+        "gs_test.go",
+        "util_test.go",
+    ],
+    data = glob(["testdata/**"]),
+    embed = [":go_default_library"],
+    deps = [
+        "//go/git:go_default_library",
+        "//go/git/testutils:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

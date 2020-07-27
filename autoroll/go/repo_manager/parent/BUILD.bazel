@@ -1,0 +1,56 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "copy.go",
+        "deps_local.go",
+        "freetype.go",
+        "git_checkout.go",
+        "git_checkout_gerrit.go",
+        "git_checkout_github.go",
+        "git_checkout_github_file.go",
+        "gitiles.go",
+        "gitiles_file.go",
+        "parent.go",
+        "pre_upload_steps.go",
+    ],
+    importpath = "go.skia.org/infra/autoroll/go/repo_manager/parent",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/codereview:go_default_library",
+        "//autoroll/go/config_vars:go_default_library",
+        "//autoroll/go/repo_manager/child:go_default_library",
+        "//autoroll/go/repo_manager/common/gerrit_common:go_default_library",
+        "//autoroll/go/repo_manager/common/git_common:go_default_library",
+        "//autoroll/go/repo_manager/common/github_common:go_default_library",
+        "//autoroll/go/repo_manager/common/gitiles_common:go_default_library",
+        "//autoroll/go/repo_manager/common/version_file_common:go_default_library",
+        "//autoroll/go/revision:go_default_library",
+        "//go/android_skia_checkout:go_default_library",
+        "//go/cipd:go_default_library",
+        "//go/depot_tools:go_default_library",
+        "//go/depot_tools/deps_parser:go_default_library",
+        "//go/exec:go_default_library",
+        "//go/gerrit:go_default_library",
+        "//go/git:go_default_library",
+        "//go/github:go_default_library",
+        "//go/go_install:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_google_uuid//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["pre_upload_steps_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/exec:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)

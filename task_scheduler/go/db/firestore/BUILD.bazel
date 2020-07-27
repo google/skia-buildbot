@@ -1,0 +1,42 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "comments.go",
+        "firestore.go",
+        "jobs.go",
+        "modified_chan.go",
+        "tasks.go",
+    ],
+    importpath = "go.skia.org/infra/task_scheduler/go/db/firestore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/firestore:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//task_scheduler/go/db:go_default_library",
+        "//task_scheduler/go/types:go_default_library",
+        "@com_github_cenkalti_backoff//:go_default_library",
+        "@com_google_cloud_go_firestore//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+        "@org_golang_google_grpc//status:go_default_library",
+        "@org_golang_x_oauth2//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "firestore_test.go",
+        "modified_chan_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/deepequal/assertdeep:go_default_library",
+        "//go/firestore:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//task_scheduler/go/db:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)
