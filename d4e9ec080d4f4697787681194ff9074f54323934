@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "04a80290_bb94bd0a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-27T11:27:05Z",
+      "side": 1,
+      "message": "LGTM, but if we\u0027re going to use Bazel across the board we\u0027ll need to figure out how to make it build.",
+      "revId": "d4e9ec080d4f4697787681194ff9074f54323934",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
