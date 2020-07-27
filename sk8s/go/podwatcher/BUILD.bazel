@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/sk8s/go/podwatcher",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//machine/go/machine/store:go_default_library",
+        "//machine/go/machineserver/config:go_default_library",
+        "//sk8s/go/podwatcher/deleter:go_default_library",
+        "//skolo/go/powercycle:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "podwatcher",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

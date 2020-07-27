@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/ct/go/worker_scripts/capture_archives",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//ct/go/util:go_default_library",
+        "//ct/go/worker_scripts/worker_common:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "capture_archives",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

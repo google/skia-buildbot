@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "counter.go",
+        "docs.go",
+        "liveness.go",
+        "metrics.go",
+        "metrics_helpers.go",
+        "prom.go",
+        "timer.go",
+    ],
+    importpath = "go.skia.org/infra/go/metrics2",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_gorilla_mux//:go_default_library",
+        "@com_github_prometheus_client_golang//prometheus:go_default_library",
+        "@com_github_prometheus_client_golang//prometheus/promhttp:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["prom_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/metrics2/testutils:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_prometheus_client_golang//prometheus:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

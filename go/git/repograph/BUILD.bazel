@@ -1,0 +1,45 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "graph.go",
+        "local.go",
+        "mem.go",
+    ],
+    importpath = "go.skia.org/infra/go/git/repograph",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/git:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/timer:go_default_library",
+        "//go/util:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "@com_github_willf_bitset//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "graph_test.go",
+        "local_serialize_test.go",
+        "local_test.go",
+        "mem_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/deepequal/assertdeep:go_default_library",
+        "//go/git:go_default_library",
+        "//go/git/repograph/shared_tests:go_default_library",
+        "//go/git/testutils:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//go/util:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

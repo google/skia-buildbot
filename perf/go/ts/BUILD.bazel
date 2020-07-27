@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/go/ts",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//perf/go/alerts:go_default_library",
+        "//perf/go/cid:go_default_library",
+        "//perf/go/clustering2:go_default_library",
+        "//perf/go/dataframe:go_default_library",
+        "//perf/go/dryrun:go_default_library",
+        "//perf/go/frontend:go_default_library",
+        "//perf/go/regression:go_default_library",
+        "//perf/go/stepfit:go_default_library",
+        "//perf/go/types:go_default_library",
+        "@com_github_skia_dev_go2ts//:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "ts",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

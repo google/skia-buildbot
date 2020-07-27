@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "dist.go",
+        "rice-box.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/dist",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr:go_default_library",
+        "@com_github_geertjohan_go_rice//:go_default_library",
+        "@com_github_geertjohan_go_rice//embedded:go_default_library",
+    ],
+)

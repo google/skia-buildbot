@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["skmetadata.go"],
+    importpath = "go.skia.org/infra/skolo/go/skmetadata",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/metadata:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_gorilla_mux//:go_default_library",
+        "@org_golang_google_api//compute/v1:go_default_library",
+        "@org_golang_x_oauth2//:go_default_library",
+    ],
+)

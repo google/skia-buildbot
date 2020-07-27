@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["capacity.go"],
+    importpath = "go.skia.org/infra/status/go/capacity",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cq:go_default_library",
+        "//go/git/repograph:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/swarming:go_default_library",
+        "//go/util:go_default_library",
+        "//task_scheduler/go/db/cache:go_default_library",
+        "//task_scheduler/go/specs:go_default_library",
+        "//task_scheduler/go/task_cfg_cache:go_default_library",
+        "//task_scheduler/go/types:go_default_library",
+    ],
+)

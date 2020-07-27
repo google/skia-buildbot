@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "autofix.go",
+        "main.go",
+    ],
+    importpath = "go.skia.org/infra/skolo/go/powercycle-cli",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//power/go/gatherer:go_default_library",
+        "//skolo/go/powercycle:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "powercycle-cli",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["autofix_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

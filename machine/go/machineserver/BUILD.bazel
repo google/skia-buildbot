@@ -1,0 +1,49 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/machine/go/machineserver",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/allowed:go_default_library",
+        "//go/auditlog:go_default_library",
+        "//go/baseapp:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/login:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//machine/go/machine:go_default_library",
+        "//machine/go/machine/processor:go_default_library",
+        "//machine/go/machine/source/pubsubsource:go_default_library",
+        "//machine/go/machine/store:go_default_library",
+        "//machine/go/machineserver/config:go_default_library",
+        "@com_github_gorilla_mux//:go_default_library",
+        "@com_github_unrolled_secure//:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "machineserver",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["main_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/baseapp:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//machine/go/machine:go_default_library",
+        "//machine/go/machine/store:go_default_library",
+        "//machine/go/machineserver/config:go_default_library",
+        "@com_github_google_uuid//:go_default_library",
+        "@com_github_gorilla_mux//:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "constants.go",
+        "factory.go",
+        "matcher.go",
+    ],
+    importpath = "go.skia.org/infra/gold-client/go/imgmatching",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr:go_default_library",
+        "//gold-client/go/imgmatching/fuzzy:go_default_library",
+        "//gold-client/go/imgmatching/sobel:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["factory_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/testutils/unittest:go_default_library",
+        "//gold-client/go/imgmatching/fuzzy:go_default_library",
+        "//gold-client/go/imgmatching/sobel:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)

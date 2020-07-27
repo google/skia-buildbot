@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/go/tracestore/btts/btts_query_example",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/common:go_default_library",
+        "//go/query:go_default_library",
+        "//go/sklog:go_default_library",
+        "//perf/go/config:go_default_library",
+        "//perf/go/tracestore/btts:go_default_library",
+        "@com_google_cloud_go_bigtable//:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "btts_query_example",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

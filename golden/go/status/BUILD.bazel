@@ -1,0 +1,38 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["status.go"],
+    importpath = "go.skia.org/infra/golden/go/status",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "//golden/go/expectations:go_default_library",
+        "//golden/go/shared:go_default_library",
+        "//golden/go/tilesource:go_default_library",
+        "//golden/go/tiling:go_default_library",
+        "//golden/go/types:go_default_library",
+        "//golden/go/web/frontend:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["status_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/deepequal:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//golden/go/expectations:go_default_library",
+        "//golden/go/expectations/mocks:go_default_library",
+        "//golden/go/mocks:go_default_library",
+        "//golden/go/testutils/data_three_devices:go_default_library",
+        "//golden/go/tiling:go_default_library",
+        "//golden/go/web/frontend:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

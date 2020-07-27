@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["shared_tests.go"],
+    importpath = "go.skia.org/infra/task_driver/go/db/shared_tests",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/deepequal/assertdeep:go_default_library",
+        "//go/gcs/gcs_testutils:go_default_library",
+        "//go/sktest:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/util:go_default_library",
+        "//task_driver/go/db:go_default_library",
+        "//task_driver/go/td:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

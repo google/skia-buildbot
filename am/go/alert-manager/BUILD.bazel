@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/am/go/alert-manager",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//am/go/incident:go_default_library",
+        "//am/go/note:go_default_library",
+        "//am/go/reminder:go_default_library",
+        "//am/go/silence:go_default_library",
+        "//go/alerts:go_default_library",
+        "//go/allowed:go_default_library",
+        "//go/auditlog:go_default_library",
+        "//go/auth:go_default_library",
+        "//go/baseapp:go_default_library",
+        "//go/ds:go_default_library",
+        "//go/email:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/login:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_gorilla_mux//:go_default_library",
+        "@com_github_unrolled_secure//:go_default_library",
+        "@com_google_cloud_go_pubsub//:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "alert-manager",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

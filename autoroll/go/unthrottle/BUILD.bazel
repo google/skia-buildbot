@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["unthrottle.go"],
+    importpath = "go.skia.org/infra/autoroll/go/unthrottle",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/ds:go_default_library",
+        "@com_google_cloud_go_datastore//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["unthrottle_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/ds:go_default_library",
+        "//go/ds/testutil:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

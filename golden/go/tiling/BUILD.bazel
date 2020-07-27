@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "complex_tile.go",
+        "tiling.go",
+        "trace.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/tiling",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools:go_default_library",
+        "//go/query:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//golden/go/types:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["trace_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/paramtools:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//golden/go/types:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

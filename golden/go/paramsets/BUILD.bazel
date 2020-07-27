@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["paramsets.go"],
+    importpath = "go.skia.org/infra/golden/go/paramsets",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools:go_default_library",
+        "//golden/go/digest_counter:go_default_library",
+        "//golden/go/shared:go_default_library",
+        "//golden/go/tiling:go_default_library",
+        "//golden/go/types:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["paramsets_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/paramtools:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//golden/go/digest_counter:go_default_library",
+        "//golden/go/mocks:go_default_library",
+        "//golden/go/tiling:go_default_library",
+        "//golden/go/types:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)

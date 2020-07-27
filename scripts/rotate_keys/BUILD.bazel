@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["rotate_keys.go"],
+    importpath = "go.skia.org/infra/scripts/rotate_keys",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/common:go_default_library",
+        "//go/sklog:go_default_library",
+        "//skolo/go/service_accounts:go_default_library",
+        "@com_google_cloud_go//iam/admin/apiv1:go_default_library",
+        "@go_googleapis//google/iam/admin/v1:admin_go_proto",
+        "@org_golang_google_api//option:go_default_library",
+        "@org_golang_x_oauth2//google:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "rotate_keys",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["gitiles.go"],
+    importpath = "go.skia.org/infra/go/gitiles",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/git:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/util:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "@org_golang_x_time//rate:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["gitiles_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/deepequal/assertdeep:go_default_library",
+        "//go/git:go_default_library",
+        "//go/git/testutils:go_default_library",
+        "//go/git/testutils/mem_git:go_default_library",
+        "//go/gitstore/mem_gitstore:go_default_library",
+        "//go/mockhttpclient:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+        "@org_golang_x_time//rate:go_default_library",
+    ],
+)
