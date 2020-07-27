@@ -11,6 +11,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/luciauth"
 	"go.skia.org/infra/task_driver/go/td"
 	"golang.org/x/oauth2"
 )
@@ -22,7 +23,7 @@ func Init(ctx context.Context, local bool, scopes ...string) (oauth2.TokenSource
 		if local {
 			ts, err = auth.NewDefaultTokenSource(true, scopes...)
 		} else {
-			ts, err = auth.NewLUCIContextTokenSource(scopes...)
+			ts, err = luciauth.NewLUCIContextTokenSource(scopes...)
 		}
 		return err
 	})

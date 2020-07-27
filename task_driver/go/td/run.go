@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/luciauth"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sklog/cloud_logging"
 	"go.skia.org/infra/go/sklog/sklog_impl"
@@ -186,7 +187,7 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 		}
 	} else {
 		var err error
-		ts, err = auth.NewLUCIContextTokenSource(SCOPES...)
+		ts, err = luciauth.NewLUCIContextTokenSource(SCOPES...)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to obtain LUCI TokenSource: %s", err)
 		}

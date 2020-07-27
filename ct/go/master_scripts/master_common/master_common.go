@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/luciauth"
 	"go.skia.org/infra/go/swarming"
 )
 
@@ -25,7 +26,7 @@ func Init(appName string) (swarming.ApiClient, error) {
 	initRest()
 
 	// Use task based authentication and Luci context.
-	ts, err := auth.NewLUCIContextTokenSource(auth.SCOPE_FULL_CONTROL)
+	ts, err := luciauth.NewLUCIContextTokenSource(auth.SCOPE_FULL_CONTROL)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get token source: %s", err)
 	}

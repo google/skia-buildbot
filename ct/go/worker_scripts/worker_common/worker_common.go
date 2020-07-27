@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/luciauth"
 	"go.skia.org/infra/go/sklog"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -64,7 +65,7 @@ func Init(ctx context.Context, useDepotTools bool) (*http.Client, error) {
 		}
 	}
 	// Use task based authentication and Luci context.
-	ts, err := auth.NewLUCIContextTokenSource(auth.SCOPE_FULL_CONTROL)
+	ts, err := luciauth.NewLUCIContextTokenSource(auth.SCOPE_FULL_CONTROL)
 	if err != nil {
 		return nil, fmt.Errorf("Could not get token source: %s", err)
 	}
