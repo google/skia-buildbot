@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "61c2691a_8a7eef2b",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 793,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-27T11:09:54Z",
+      "side": 1,
+      "message": "hex.EncodeToString is probably more performant.",
+      "range": {
+        "startLine": 793,
+        "startChar": 8,
+        "endLine": 793,
+        "endChar": 53
+      },
+      "revId": "922d9605db0b334778135177297aeb15a2577130",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
