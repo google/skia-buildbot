@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "101940da_4c7f92ad",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-27T18:56:08Z",
+      "side": 1,
+      "message": "In the last 30 days, the maximum was 374 and the average was 26: https://screenshot.googleplex.com/WyNEcyE1U5F\nPersonally, I\u0027m okay with the occasional false positive if it means we\u0027re more likely to catch real problems. IMO those extreme spikes warrant investigation.  Maybe we can should the team for consensus, but IMO if we never want to see these alerts, we should just remove them.",
+      "parentUuid": "46034722_a6821a9b",
+      "range": {
+        "startLine": 173,
+        "startChar": 83,
+        "endLine": 173,
+        "endChar": 86
+      },
+      "revId": "aaf7a3bf879bbe6b0592478d86d218d86fcfff83",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6ac2bee7_89c9bd66",
         "filename": "promk/prometheus/alerts_general.yml",
         "patchSetId": 1
