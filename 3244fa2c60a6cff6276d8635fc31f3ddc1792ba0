@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d3213c4a_9472737f",
+        "filename": "perf/go/cache/cache.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-27T11:23:26Z",
+      "side": 1,
+      "message": "Depending on your performance needs, maybe []byte is the better value type here. It naturally becomes a string if you need it to, and you can encode your traceIDs (int64) directly to and from binary w/o needing to convert to string (which I imagine takes longer).\n\nhttps://golang.org/pkg/encoding/binary/#PutVarint for ideas on the int \u003d\u003e bytes",
+      "range": {
+        "startLine": 7,
+        "startChar": 23,
+        "endLine": 7,
+        "endChar": 29
+      },
+      "revId": "3244fa2c60a6cff6276d8635fc31f3ddc1792ba0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ccf67de_f9e3acca",
+        "filename": "perf/go/cache/memcached/memcached_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-27T11:23:26Z",
+      "side": 1,
+      "message": "Is this a real address? Maybe add some comments on how to run these tests manually?",
+      "range": {
+        "startLine": 11,
+        "startChar": 27,
+        "endLine": 11,
+        "endChar": 44
+      },
+      "revId": "3244fa2c60a6cff6276d8635fc31f3ddc1792ba0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
