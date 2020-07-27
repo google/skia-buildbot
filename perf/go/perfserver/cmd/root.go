@@ -2,9 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
+	_ "net/http/pprof" // pprof
+
 	"github.com/spf13/cobra"
+	"go.skia.org/infra/go/sklog"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -24,6 +28,9 @@ to run the ingestion process:
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	go func() {
+		sklog.Error(http.ListenAndServe(":6060", nil))
+	}()
 	if err := initSubCommands(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
