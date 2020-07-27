@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/android_ingest/go/androidingest",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//android_ingest/go/continuous:go_default_library",
+        "//android_ingest/go/lookup:go_default_library",
+        "//android_ingest/go/parser:go_default_library",
+        "//android_ingest/go/recent:go_default_library",
+        "//android_ingest/go/upload:go_default_library",
+        "//go/allowed:go_default_library",
+        "//go/androidbuildinternal/v2beta1:go_default_library",
+        "//go/auth:go_default_library",
+        "//go/common:go_default_library",
+        "//go/git:go_default_library",
+        "//go/gitauth:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/login:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_gorilla_mux//:go_default_library",
+        "@com_google_cloud_go_storage//:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "androidingest",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

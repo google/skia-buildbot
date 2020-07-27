@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "download_helper.go",
+        "helpers.go",
+        "types.go",
+    ],
+    importpath = "go.skia.org/infra/go/gcs",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/untar:go_default_library",
+        "//go/util:go_default_library",
+        "@com_google_cloud_go_storage//:go_default_library",
+        "@org_golang_google_api//iterator:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "download_helper_test.go",
+        "helpers_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/gcs/mem_gcsclient:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+        "@com_google_cloud_go_storage//:go_default_library",
+    ],
+)

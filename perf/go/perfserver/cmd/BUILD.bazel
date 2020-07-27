@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "cluster.go",
+        "frontend.go",
+        "ingest.go",
+        "root.go",
+    ],
+    importpath = "go.skia.org/infra/perf/go/perfserver/cmd",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/metrics2:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/sklog/glog_and_cloud:go_default_library",
+        "//perf/go/config:go_default_library",
+        "//perf/go/frontend:go_default_library",
+        "//perf/go/ingest/process:go_default_library",
+        "@com_github_jcgregorio_logger//:go_default_library",
+        "@com_github_spf13_cobra//:go_default_library",
+        "@com_github_spf13_pflag//:go_default_library",
+    ],
+)

@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "GCSUploader.go",
+        "GoldClient.go",
+        "HTTPClient.go",
+        "ImageDownloader.go",
+        "Matcher.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/gold-client/go/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//golden/go/jsonio:go_default_library",
+        "//golden/go/tiling:go_default_library",
+        "//golden/go/types:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+    ],
+)

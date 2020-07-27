@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/sk8s/go/bot_config",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//machine/go/machineserver/config:go_default_library",
+        "//sk8s/go/bot_config/machine:go_default_library",
+        "//sk8s/go/bot_config/server:go_default_library",
+        "//sk8s/go/bot_config/swarming:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "bot_config",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

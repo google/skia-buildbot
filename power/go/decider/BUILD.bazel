@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "decider.go",
+        "mock_decider.go",
+    ],
+    importpath = "go.skia.org/infra/power/go/decider",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//skolo/go/powercycle:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["decider_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/testutils/unittest:go_default_library",
+        "//power/go/testdata:go_default_library",
+        "//skolo/go/powercycle:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:go_default_library",
+    ],
+)

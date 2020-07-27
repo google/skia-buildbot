@@ -1,0 +1,47 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "comments.go",
+        "commits.go",
+        "incremental.go",
+        "tasks.go",
+    ],
+    importpath = "go.skia.org/infra/status/go/incremental",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/git:go_default_library",
+        "//go/git/repograph:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "//task_scheduler/go/db:go_default_library",
+        "//task_scheduler/go/types:go_default_library",
+        "//task_scheduler/go/window:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "commits_test.go",
+        "incremental_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/deepequal/assertdeep:go_default_library",
+        "//go/git:go_default_library",
+        "//go/git/repograph:go_default_library",
+        "//go/git/testutils:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//go/util:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "//task_scheduler/go/db/memory:go_default_library",
+        "//task_scheduler/go/types:go_default_library",
+        "//task_scheduler/go/window:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

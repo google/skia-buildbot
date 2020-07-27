@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["dryrun.go"],
+    importpath = "go.skia.org/infra/perf/go/dryrun",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auditlog:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/sklog:go_default_library",
+        "//perf/go/alerts:go_default_library",
+        "//perf/go/cid:go_default_library",
+        "//perf/go/dataframe:go_default_library",
+        "//perf/go/git:go_default_library",
+        "//perf/go/regression:go_default_library",
+        "//perf/go/shortcut:go_default_library",
+        "//perf/go/types:go_default_library",
+        "@com_github_gorilla_mux//:go_default_library",
+    ],
+)

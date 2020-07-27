@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["supported_branches.go"],
+    importpath = "go.skia.org/infra/datahopper/go/supported_branches",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/cq:go_default_library",
+        "//go/gitiles:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/supported_branches:go_default_library",
+        "//go/swarming:go_default_library",
+        "//go/util:go_default_library",
+        "//task_scheduler/go/specs:go_default_library",
+        "@org_chromium_go_luci//common/api/swarming/swarming/v1:go_default_library",
+    ],
+)

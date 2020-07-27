@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "BaselineFetcher.go",
+        "ClosestDiffFinder.go",
+        "ComplexTile.go",
+        "DigestCounter.go",
+        "GCSClient.go",
+        "TileSource.go",
+        "TraceStore.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools:go_default_library",
+        "//golden/go/baseline:go_default_library",
+        "//golden/go/digest_counter:go_default_library",
+        "//golden/go/digesttools:go_default_library",
+        "//golden/go/expectations:go_default_library",
+        "//golden/go/storage:go_default_library",
+        "//golden/go/tiling:go_default_library",
+        "//golden/go/tracestore:go_default_library",
+        "//golden/go/types:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+    ],
+)

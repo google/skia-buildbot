@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "BuildBucketInterface.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/go/buildbucket/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra/bots/.recipe_deps/recipe_engine/recipe_proto/go.chromium.org/luci/buildbucket/proto:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+    ],
+)

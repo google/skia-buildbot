@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["docset.go"],
+    importpath = "go.skia.org/infra/docserverk/go/docset",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//docserverk/go/config:go_default_library",
+        "//go/auth:go_default_library",
+        "//go/gerrit:go_default_library",
+        "//go/git:go_default_library",
+        "//go/git/gitinfo:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_golang_groupcache//lru:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["docset_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":go_default_library"],
+    deps = ["//go/testutils/unittest:go_default_library"],
+)

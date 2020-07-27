@@ -1,0 +1,55 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "context.go",
+        "message.go",
+        "receiver.go",
+        "run.go",
+        "step.go",
+        "step_properties.go",
+        "testutil.go",
+    ],
+    importpath = "go.skia.org/infra/task_driver/go/td",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/common:go_default_library",
+        "//go/exec:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/luciauth:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/sklog/cloud_logging:go_default_library",
+        "//go/sklog/sklog_impl:go_default_library",
+        "//go/sktest:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_golang_glog//:go_default_library",
+        "@com_github_google_uuid//:go_default_library",
+        "@com_github_hashicorp_go_multierror//:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+        "@com_google_cloud_go_logging//:go_default_library",
+        "@in_gopkg_fsnotify_v1//:go_default_library",
+        "@org_golang_google_api//compute/v1:go_default_library",
+        "@org_golang_x_oauth2//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "context_test.go",
+        "message_test.go",
+        "run_test.go",
+        "step_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/deepequal/assertdeep:go_default_library",
+        "//go/exec:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)
