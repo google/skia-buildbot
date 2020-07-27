@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b6924f28_21e74d15",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 7
+      },
+      "lineNbr": 817,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-27T11:29:23Z",
+      "side": 0,
+      "message": "Why remove this? Too many cache hits make this usually zero?",
+      "range": {
+        "startLine": 817,
+        "startChar": 29,
+        "endLine": 817,
+        "endChar": 77
+      },
+      "revId": "4450baa2efa66eb1c2846513cbe391f82dbeafa5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
