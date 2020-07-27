@@ -10,6 +10,7 @@ import (
 	gstorage "cloud.google.com/go/storage"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/luciauth"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
@@ -73,7 +74,7 @@ func (a *authOpt) GetHTTPClient() (HTTPClient, error) {
 	var tokenSrc oauth2.TokenSource
 	if a.Luci {
 		var err error
-		tokenSrc, err = auth.NewLUCIContextTokenSource(gstorage.ScopeFullControl, auth.SCOPE_USERINFO_EMAIL)
+		tokenSrc, err = luciauth.NewLUCIContextTokenSource(gstorage.ScopeFullControl, auth.SCOPE_USERINFO_EMAIL)
 		if err != nil {
 			return nil, skerr.Wrapf(err, "instantiating LUCI auth token source")
 		}
