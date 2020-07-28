@@ -36,7 +36,7 @@
         FirestoreProjectID: "skia-firestore",
         FirestoreNamespace: "fuchsia-public",
 
-        CodeReviewSystem:  "gerrit",
+        CodeReviewSystems: "gerrit",
         GerritURL:         "https://fuchsia-review.googlesource.com",
 
         ContinuousIntegrationSystems: "buildbucket",

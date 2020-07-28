@@ -32,7 +32,8 @@ type Search struct {
 	RightTraceValues paramtools.ParamSet `json:"-"`
 
 	// TryJob support.
-	ChangeListID string `json:"issue"`
+	ChangeListID       string `json:"issue"`
+	CodeReviewSystemID string `json:"crs_id"`
 	// TODO(kjlubick) Change this so only one patchset is allowed. It will simplify the backend code.
 	PatchSetsStr string  `json:"patchsets"` // Comma-separated list of patchsets.
 	PatchSets    []int64 `json:"-"`
