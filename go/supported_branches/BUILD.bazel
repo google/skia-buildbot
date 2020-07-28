@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["supported_branches.go"],
+    importpath = "go.skia.org/infra/go/supported_branches",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gitiles:go_default_library",
+        "//go/util:go_default_library",
+    ],
+)
