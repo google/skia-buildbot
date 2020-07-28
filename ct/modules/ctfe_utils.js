@@ -51,6 +51,36 @@ export function getCtDbTimestamp(d) {
 }
 
 /**
+ * Append gsPath with appropriate url to fetch from ct.skia.org.
+ */
+export function getGSLink(gsPath) {
+  return `https://ct.skia.org/results/cluster-telemetry/${gsPath}`;
+}
+
+/**
+   * Returns true if gsPath is not set or if the patch's SHA1 digest in the specified
+   * google storage path is for an empty string.
+   */
+export function isEmptyPatch(gsPath) {
+  // Compare against empty string and against the SHA1 digest of an empty string.
+  return gsPath === '' || gsPath === 'patches/da39a3ee5e6b4b0d3255bfef95601890afd80709.patch';
+}
+
+/**
+ * Express numeric days in a readable format (e.g. 'Weekly'; 'Every 3 days')
+ */
+export function formatRepeatAfterDays(num) {
+  if (num === 0) {
+    return 'N/A';
+  } if (num === 1) {
+    return 'Daily';
+  } if (num === 7) {
+    return 'Weekly';
+  }
+  return `Every ${num} days`;
+}
+
+/**
  * Fetches benchmarks with doc links, and platforms with descriptions.
  *
  * @param {func<Object>} func - Function called with fetched benchmarks and
