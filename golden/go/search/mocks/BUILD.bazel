@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "SearchAPI.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/search/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//golden/go/search/frontend:go_default_library",
+        "//golden/go/search/query:go_default_library",
+        "//golden/go/tjstore:go_default_library",
+        "//golden/go/types:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+    ],
+)

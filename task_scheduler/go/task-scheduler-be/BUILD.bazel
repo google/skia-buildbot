@@ -1,0 +1,41 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/task_scheduler/go/task-scheduler-be",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/cleanup:go_default_library",
+        "//go/common:go_default_library",
+        "//go/gcs/gcsclient:go_default_library",
+        "//go/git/repograph:go_default_library",
+        "//go/gitauth:go_default_library",
+        "//go/gitstore/bt_gitstore:go_default_library",
+        "//go/gitstore/pubsub:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/human:go_default_library",
+        "//go/isolate:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/swarming:go_default_library",
+        "//go/util:go_default_library",
+        "//task_scheduler/go/blacklist:go_default_library",
+        "//task_scheduler/go/db/firestore:go_default_library",
+        "//task_scheduler/go/isolate_cache:go_default_library",
+        "//task_scheduler/go/scheduling:go_default_library",
+        "//task_scheduler/go/task_cfg_cache:go_default_library",
+        "@com_google_cloud_go_bigtable//:go_default_library",
+        "@com_google_cloud_go_datastore//:go_default_library",
+        "@com_google_cloud_go_pubsub//:go_default_library",
+        "@com_google_cloud_go_storage//:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+        "@org_golang_x_oauth2//:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "task-scheduler-be",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

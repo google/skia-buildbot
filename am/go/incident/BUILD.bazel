@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["incident.go"],
+    importpath = "go.skia.org/infra/am/go/incident",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//am/go/note:go_default_library",
+        "//am/go/silence:go_default_library",
+        "//go/alerts:go_default_library",
+        "//go/ds:go_default_library",
+        "//go/human:go_default_library",
+        "//go/paramtools:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "@com_google_cloud_go_datastore//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["incident_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//am/go/note:go_default_library",
+        "//am/go/silence:go_default_library",
+        "//go/alerts:go_default_library",
+        "//go/ds:go_default_library",
+        "//go/ds/testutil:go_default_library",
+        "//go/paramtools:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)

@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["state_machine.go"],
+    importpath = "go.skia.org/infra/autoroll/go/state_machine",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//autoroll/go/modes:go_default_library",
+        "//autoroll/go/notifier:go_default_library",
+        "//autoroll/go/revision:go_default_library",
+        "//go/autoroll:go_default_library",
+        "//go/counters:go_default_library",
+        "//go/exec:go_default_library",
+        "//go/gcs:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/state_machine:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["state_machine_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//autoroll/go/modes:go_default_library",
+        "//autoroll/go/notifier:go_default_library",
+        "//autoroll/go/revision:go_default_library",
+        "//go/autoroll:go_default_library",
+        "//go/gcs:go_default_library",
+        "//go/gcs/mem_gcsclient:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

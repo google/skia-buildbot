@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/perf/go/perfserver",
+    visibility = ["//visibility:private"],
+    deps = ["//perf/go/perfserver/cmd:go_default_library"],
+)
+
+go_binary(
+    name = "perfserver",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

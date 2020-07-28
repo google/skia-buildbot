@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "IndexSearcher.go",
+        "IndexSource.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/indexer/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/paramtools:go_default_library",
+        "//golden/go/blame:go_default_library",
+        "//golden/go/digest_counter:go_default_library",
+        "//golden/go/indexer:go_default_library",
+        "//golden/go/summary:go_default_library",
+        "//golden/go/tiling:go_default_library",
+        "//golden/go/types:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+    ],
+)

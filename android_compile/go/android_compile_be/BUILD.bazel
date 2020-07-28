@@ -1,0 +1,40 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "checkouts.go",
+        "main.go",
+    ],
+    importpath = "go.skia.org/infra/android_compile/go/android_compile_be",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//android_compile/go/util:go_default_library",
+        "//go/android_skia_checkout:go_default_library",
+        "//go/auth:go_default_library",
+        "//go/cleanup:go_default_library",
+        "//go/common:go_default_library",
+        "//go/exec:go_default_library",
+        "//go/fileutil:go_default_library",
+        "//go/gerrit:go_default_library",
+        "//go/git:go_default_library",
+        "//go/gitauth:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/timer:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_cenkalti_backoff//:go_default_library",
+        "@com_google_cloud_go_datastore//:go_default_library",
+        "@com_google_cloud_go_pubsub//:go_default_library",
+        "@com_google_cloud_go_storage//:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+        "@org_golang_x_oauth2//:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "android_compile_be",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

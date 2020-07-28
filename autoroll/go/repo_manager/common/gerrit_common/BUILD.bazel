@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["gerrit_common.go"],
+    importpath = "go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gerrit:go_default_library",
+        "//go/git:go_default_library",
+        "//go/skerr:go_default_library",
+    ],
+)

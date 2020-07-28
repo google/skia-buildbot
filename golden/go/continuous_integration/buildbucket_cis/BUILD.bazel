@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["buildbucket_cis.go"],
+    importpath = "go.skia.org/infra/golden/go/continuous_integration/buildbucket_cis",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/buildbucket:go_default_library",
+        "//go/skerr:go_default_library",
+        "//golden/go/continuous_integration:go_default_library",
+        "//infra/bots/.recipe_deps/recipe_engine/recipe_proto/go.chromium.org/luci/buildbucket/proto:go_default_library",
+        "@com_github_golang_protobuf//ptypes:go_default_library_gen",
+        "@org_golang_x_time//rate:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["buildbucket_cis_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/buildbucket/mocks:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//golden/go/continuous_integration:go_default_library",
+        "//infra/bots/.recipe_deps/recipe_engine/recipe_proto/go.chromium.org/luci/buildbucket/proto:go_default_library",
+        "@com_github_golang_protobuf//ptypes:go_default_library_gen",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+        "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
+    ],
+)
