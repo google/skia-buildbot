@@ -1,0 +1,43 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "buildskia.go",
+        "continuous.go",
+    ],
+    importpath = "go.skia.org/infra/go/buildskia",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/common:go_default_library",
+        "//go/depot_tools/deps_parser:go_default_library",
+        "//go/exec:go_default_library",
+        "//go/git/gitinfo:go_default_library",
+        "//go/gitiles:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//go/util/limitwriter:go_default_library",
+        "//go/vcsinfo:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "buildskia_test.go",
+        "continuous_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/exec:go_default_library",
+        "//go/git:go_default_library",
+        "//go/git/git_common:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//go/util:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

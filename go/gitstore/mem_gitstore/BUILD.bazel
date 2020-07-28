@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["mem_gitstore.go"],
+    importpath = "go.skia.org/infra/go/gitstore/mem_gitstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gitstore:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/vcsinfo:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "mem_gitstore_test.go",
+        "repo_impl_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/git:go_default_library",
+        "//go/git/repograph:go_default_library",
+        "//go/git/repograph/shared_tests:go_default_library",
+        "//go/git/testutils:go_default_library",
+        "//go/gitstore:go_default_library",
+        "//go/gitstore/shared_tests:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)
