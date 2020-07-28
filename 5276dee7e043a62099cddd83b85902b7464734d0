@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "d111b27f_65ef0db9",
+        "filename": "go/gce/swarming/setup-script-linux.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-28T20:43:01Z",
+      "side": 1,
+      "message": "I have no recollection of this line of code. I would probably check if this still exists, but I think all machines just use /b/s/",
+      "parentUuid": "46f975cf_8f207668",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 59
+      },
+      "revId": "5276dee7e043a62099cddd83b85902b7464734d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0cadc268_9a439f75",
         "filename": "task_scheduler/go/types/task.go",
         "patchSetId": 3
