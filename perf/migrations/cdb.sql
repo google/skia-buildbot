@@ -137,3 +137,127 @@ SELECT COUNT(DISTINCT trace_id) FROM TraceValues
 WHERE
   commit_number > 0
   AND commit_number < 8;
+
+--
+-- Queries for the new schema.
+--
+
+UPSERT INTO TraceNames (trace_name, trace_id, params)
+VALUES
+ (',arch=x86,config=8888,',   'fe385b159ff55dca481069805e5ff050', ARRAY['arch=x86',   'config=8888']),
+ (',arch=x86,config=565,',    '277262a9236d571883d47dab102070bc', ARRAY['arch=x86',   'config=565']),
+ (',arch=arm,config=8888,',   '0f17700460ee99c6488c2f6130804de5', ARRAY['arch=arm',   'config=8888']),
+ (',arch=arm,config=565,',    '6a5622e86c6059d74373f6a79df96054', ARRAY['arch=arm',   'config=565']),
+ (',arch=riscv,config=565,',  '0d1f35f01672b2105bbc3f19adfcef67', ARRAY['arch=riscv', 'config=565']);
+
+UPSERT INTO Tiles (tile_number, trace_id)
+VALUES
+  (0, 'fe385b159ff55dca481069805e5ff050'),
+  (0, '277262a9236d571883d47dab102070bc'),
+  (0, '0f17700460ee99c6488c2f6130804de5'),
+  (0, '6a5622e86c6059d74373f6a79df96054'),
+  (1, '0d1f35f01672b2105bbc3f19adfcef67');
+
+
+
+UPSERT INTO TraceValues2 (trace_id, commit_number, val, source_file_id)
+VALUES
+   ('fe385b159ff55dca481069805e5ff050', 1,   1.2, 1),
+   ('fe385b159ff55dca481069805e5ff050', 2,   1.3, 2),
+   ('fe385b159ff55dca481069805e5ff050', 3,   1.4, 3),
+   ('0d1f35f01672b2105bbc3f19adfcef67', 256, 1.1, 4),
+   ('277262a9236d571883d47dab102070bc', 1,   2.2, 1),
+   ('277262a9236d571883d47dab102070bc', 2,   2.3, 2),
+   ('277262a9236d571883d47dab102070bc', 3,   2.4, 3),
+   ('0d1f35f01672b2105bbc3f19adfcef67', 256, 2.1, 4);
+
+
+-- All trace_ids that match a particular key=value.
+SELECT trace_name FROM TraceNames
+WHERE ARRAY['arch=x86'] <@ params
+ORDER BY trace_name;
+
+-- Retrieve matching values. Note that sqlite querys are limited to 1MB,
+-- so we might need to break up the trace_ids if the query is too long.
+SELECT trace_id, commit_number, val FROM TraceValues2
+WHERE commit_number>=0 AND commit_number<255 AND trace_id IN ('fe385b159ff55dca481069805e5ff050', '277262a9236d571883d47dab102070bc');
+
+-- Build traces using a JOIN.
+SELECT TraceNames.trace_name, TraceValues2.commit_number, TraceValues2.val FROM TraceNames
+INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+WHERE TraceNames.trace_name=',arch=x86,config=8888,' OR TraceNames.trace_name=',arch=x86,config=565,';
+
+-- Compound queries.
+SELECT
+  trace_name
+FROM
+  TraceNames
+WHERE
+  params @> ARRAY['arch=x86'] AND params @> ARRAY['config=8888']
+ORDER BY
+  trace_name;
+
+-- Fully query traces from tile based on query plan.
+SELECT TraceNames.trace_name, TraceValues2.commit_number, TraceValues2.val FROM TraceNames
+INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+WHERE
+TraceValues2.trace_id IN (
+  SELECT trace_id FROM TraceNames
+  WHERE
+      params @> ARRAY['arch=x86']
+    AND
+      params @> ARRAY['config=565']
+);
+
+-- ParamSet for a Tile
+SELECT DISTINCT unnest(TraceNames.params) FROM TraceNames
+INNER JOIN
+  Tiles
+ON
+  TraceNames.trace_id = Tiles.trace_id
+WHERE
+  Tiles.tile_number=0;
+
+-- ParamSet for a Tile
+SELECT DISTINCT unnest(TraceNames.params) FROM TraceNames
+INNER JOIN Tiles
+ON
+  TraceNames.trace_id = Tiles.trace_id
+WHERE Tiles.tile_number=1;
+
+-- Count the number traces that are in a single tile.
+SELECT COUNT(DISTINCT trace_id) FROM TraceValues2
+WHERE
+  commit_number > 0
+  AND commit_number < 256;
+
+-- Most recent tile.
+SELECT tile_number FROM Tiles ORDER BY tile_number DESC LIMIT 1;
+
+-- GetSource by trace name.
+SELECT
+  SourceFiles.source_file
+FROM
+  TraceNames
+INNER JOIN
+  TraceValues2
+ON
+    TraceValues2.trace_id = TraceNames.trace_id
+INNER JOIN
+  SourceFiles
+ON
+  SourceFiles.source_file_id = TraceValues2.source_file_id
+WHERE
+  TraceNames.trace_name=',arch=x86,config=8888,' AND TraceValues2.commit_number=256;
+
+-- Count the number of matches to a query.
+SELECT
+  COUNT(*)
+FROM
+  TraceNames
+INNER JOIN
+  Tiles
+ON Tiles.trace_id = TraceNames.trace_id
+WHERE
+  TraceNames.params @> ARRAY['arch=riscv']
+  AND Tiles.tile_number=1;
