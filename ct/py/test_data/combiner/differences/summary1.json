@@ -1,17 +1,17 @@
 {
-    "slave1": {
+    "worker1": {
         "failedFiles": [
                 {
-                    "fileName": "fileslave1_1.png",
-                    "skpLocation": "gs://dummy-bucket/skps/slave1/fileslave1_.skp",
+                    "fileName": "fileworker1_1.png",
+                    "skpLocation": "gs://dummy-bucket/skps/worker1/fileworker1_.skp",
                     "numPixelsDiffering": 111,
                     "percentPixelsDiffering": 112,
                     "maxDiffPerChannel": 114,
                     "perceptualDiff": 115
                 }, 
                 {
-                    "fileName": "fileslave1_2.png",
-                    "skpLocation": "gs://dummy-bucket/skps/slave1/fileslave1_.skp",
+                    "fileName": "fileworker1_2.png",
+                    "skpLocation": "gs://dummy-bucket/skps/worker1/fileworker1_.skp",
                     "numPixelsDiffering": 121,
                     "percentPixelsDiffering": 122,
                     "maxDiffPerChannel": 124,
@@ -19,10 +19,10 @@
                 }
         ], 
         "failedFilesCount": 2, 
-        "filesLocationNopatch": "gs://dummy-bucket/output-dir/slave1/nopatch-images", 
-        "filesLocationWithpatch": "gs://dummy-bucket/output-dir/slave1/withpatch-images", 
-        "filesLocationDiffs": "gs://dummy-bucket/output-dir/slave1/diffs", 
-        "filesLocationWhiteDiffs": "gs://dummy-bucket/output-dir/slave1/whitediffs", 
-        "skpsLocation": "gs://dummy-bucket/skps/slave1"
+        "filesLocationNopatch": "gs://dummy-bucket/output-dir/worker1/nopatch-images", 
+        "filesLocationWithpatch": "gs://dummy-bucket/output-dir/worker1/withpatch-images", 
+        "filesLocationDiffs": "gs://dummy-bucket/output-dir/worker1/diffs", 
+        "filesLocationWhiteDiffs": "gs://dummy-bucket/output-dir/worker1/whitediffs", 
+        "skpsLocation": "gs://dummy-bucket/skps/worker1"
     }
 }

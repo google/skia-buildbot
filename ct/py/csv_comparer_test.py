@@ -70,7 +70,7 @@ class TestCsvComparer(unittest.TestCase):
         pageset_type='Mobile10k',
         chromium_hash='abcdefg1234567',
         skia_hash='tuvwxyz1234567',
-        missing_output_slaves='1 3 100',
+        missing_output_workers='1 3 100',
         logs_link_prefix=('https://chrome-swarming.appspot.com/tasklist?'
                           'l=500&f=runid:testing&f=name:perf_task_'),
         description='E2EComparerWithDiscardOutliers',
@@ -102,7 +102,7 @@ class TestCsvComparer(unittest.TestCase):
         pageset_type='10k',
         chromium_hash='abcdefg1234567',
         skia_hash='tuvwxyz1234567',
-        missing_output_slaves='',
+        missing_output_workers='',
         logs_link_prefix='',
         description='E2EComparerWithNoDiscardOutliers',
         total_archives='10',
