@@ -123,7 +123,7 @@ func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 func (r *resultState) loadExpectations(httpClient HTTPClient) error {
 	urlPath := shared.ExpectationsRoute
 	if r.SharedConfig != nil && r.SharedConfig.ChangeListID != "" {
-		urlPath = fmt.Sprintf("%s?issue=%s", urlPath, url.QueryEscape(r.SharedConfig.ChangeListID))
+		urlPath = fmt.Sprintf("%s?issue=%s&crs=%s", urlPath, url.QueryEscape(r.SharedConfig.ChangeListID), url.QueryEscape(r.SharedConfig.CodeReviewSystem))
 	}
 
 	u := fmt.Sprintf("%s/%s", r.GoldURL, strings.TrimLeft(urlPath, "/"))
