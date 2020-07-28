@@ -99,6 +99,10 @@ type TriageRequest struct {
 	// "issue" is the JSON field for backwards compatibility.
 	ChangeListID string `json:"issue"`
 
+	// CodeReviewSystem is the id of the crs that the ChangeListID belongs. If ChangeListID is set,
+	// CodeReviewSystem should be also.
+	CodeReviewSystem string `json:"crs"`
+
 	// ImageMatchingAlgorithm is the name of the non-exact image matching algorithm requesting the
 	// triage (see http://go/gold-non-exact-matching). If set, the algorithm name will be used as
 	// the author of the triage action.
@@ -214,11 +218,11 @@ type GetPerTraceDigestsByTestNameResponse map[tiling.TraceID][]types.Digest
 // Commit represents a git Commit for use on the frontend.
 type Commit struct {
 	// CommitTime is in seconds since the epoch
-	CommitTime   int64  `json:"commit_time"`
-	Hash         string `json:"hash"` // For CLs, this is the CL ID.
-	Author       string `json:"author"`
-	Subject      string `json:"message"`
-	IsChangeList bool   `json:"is_cl"`
+	CommitTime    int64  `json:"commit_time"`
+	Hash          string `json:"hash"` // For CLs, this is the CL ID.
+	Author        string `json:"author"`
+	Subject       string `json:"message"`
+	ChangeListURL string `json:"cl_url"`
 }
 
 // FromTilingCommit converts a tiling.Commit into a frontend.Commit.

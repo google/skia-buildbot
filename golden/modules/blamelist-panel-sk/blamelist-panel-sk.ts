@@ -13,7 +13,7 @@ import { html } from 'lit-html';
 import { diffDate } from 'common-sk/modules/human';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { truncateWithEllipses } from '../common';
-import { baseRepoURL, codeReviewURLTemplate } from '../settings';
+import { baseRepoURL } from '../settings';
 
 const maxCommitsToDisplay = 15;
 
@@ -45,7 +45,7 @@ const commitRange = (commits: Commit[], lastGoodCommit: Commit) => {
   // in quotes because we re-use the Commit structure to pass in information about a CL for the
   // purpose of drawing a trace.
   let newestCommit = commits[0];
-  if (newestCommit.is_cl) {
+  if (newestCommit.cl_url) {
     newestCommit = commits[1];
   }
 
@@ -65,9 +65,8 @@ const commitRange = (commits: Commit[], lastGoodCommit: Commit) => {
 };
 
 const commitHref = (commit: Commit) => {
-  if (commit.is_cl) {
-    const crsTemplate = codeReviewURLTemplate();
-    return crsTemplate.replace('%s', commit.hash);
+  if (commit.cl_url) {
+    return commit.cl_url;
   }
   // TODO(kjlubick): Deduplicate with by-blame-sk.
   const repo = baseRepoURL();
@@ -90,7 +89,7 @@ export interface Commit {
   readonly author: string;
   readonly message: string;
   readonly commit_time: number;
-  readonly is_cl: boolean;
+  readonly cl_url: string;
 }
 
 export class BlamelistPanelSk extends ElementSk {
@@ -112,7 +111,7 @@ export class BlamelistPanelSk extends ElementSk {
 
   private _commits: Commit[] = [];
   private _lastGoodCommit: Commit = {
-    hash: '', author: '', message: '', commit_time: 0, is_cl: false
+    hash: '', author: '', message: '', commit_time: 0, cl_url: ''
   };
 
   constructor() {
