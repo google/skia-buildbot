@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "IngestionStore.go",
+        "ResultFileLocation.go",
+        "generate.go",
+        "helpers.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/ingestion/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+    ],
+)

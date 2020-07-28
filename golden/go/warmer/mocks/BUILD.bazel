@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "DiffWarmer.go",
+        "generate.go",
+    ],
+    importpath = "go.skia.org/infra/golden/go/warmer/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//golden/go/digesttools:go_default_library",
+        "//golden/go/warmer:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+    ],
+)

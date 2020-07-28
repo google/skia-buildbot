@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["common.go"],
+    importpath = "go.skia.org/infra/go/buildbucket/common",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//infra/bots/.recipe_deps/recipe_engine/recipe_proto/go.chromium.org/luci/buildbucket/proto:go_default_library",
+        "@io_bazel_rules_go//proto/wkt:field_mask_go_proto",
+    ],
+)

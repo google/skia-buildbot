@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["swarming_vm.go"],
+    importpath = "go.skia.org/infra/go/gce/swarming",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common:go_default_library",
+        "//go/gce:go_default_library",
+        "//go/gce/swarming/instance_types:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "swarming",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

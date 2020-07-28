@@ -1,0 +1,82 @@
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
+proto_library(
+    name = "diffstore_proto",
+    srcs = ["diffservice.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "diffstore_go_proto",
+    compilers = ["@io_bazel_rules_go//proto:go_grpc"],
+    importpath = "go.skia.org/infra/golden/go/diffstore",
+    proto = ":diffstore_proto",
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "diffservice_impl.go",
+        "doc.go",
+        "imgloader.go",
+        "mem_diffstore.go",
+        "net_diffstore.go",
+    ],
+    embed = [":diffstore_go_proto"],
+    importpath = "go.skia.org/infra/golden/go/diffstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gcs:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/rtcache:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//golden/go/diff:go_default_library",
+        "//golden/go/diffstore/common:go_default_library",
+        "//golden/go/diffstore/metricsstore:go_default_library",
+        "//golden/go/shared:go_default_library",
+        "//golden/go/types:go_default_library",
+        "//golden/go/validation:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_x_sync//errgroup:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "imgloader_test.go",
+        "mem_diffstore_test.go",
+        "net_diffstore_grpc_test.go",
+        "net_diffstore_test.go",
+    ],
+    data = glob(["testdata/**"]),
+    embed = [":go_default_library"],
+    deps = [
+        "//go/firestore:go_default_library",
+        "//go/gcs/gcsclient:go_default_library",
+        "//go/gcs/test_gcsclient:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/testutils:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//go/util:go_default_library",
+        "//golden/go/diff:go_default_library",
+        "//golden/go/diffstore/common:go_default_library",
+        "//golden/go/diffstore/grpc_mocks:go_default_library",
+        "//golden/go/diffstore/metricsstore/fs_metricsstore:go_default_library",
+        "//golden/go/diffstore/mocks:go_default_library",
+        "//golden/go/image/text:go_default_library",
+        "//golden/go/testutils/data_one_by_five:go_default_library",
+        "//golden/go/types:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+        "@com_google_cloud_go_storage//:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+    ],
+)

@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/golden/cmd/bt_reingester",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/bt:go_default_library",
+        "//go/fileutil:go_default_library",
+        "//go/gcs:go_default_library",
+        "//go/sklog:go_default_library",
+        "//golden/go/eventbus:go_default_library",
+        "//golden/go/gevent:go_default_library",
+        "//golden/go/tracestore/bt_tracestore:go_default_library",
+        "@com_google_cloud_go_storage//:go_default_library",
+        "@org_golang_google_api//option:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "bt_reingester",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
