@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["git_common.go"],
+    importpath = "go.skia.org/infra/go/git/git_common",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/exec:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["git_common_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/exec:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)
