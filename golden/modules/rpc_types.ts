@@ -82,7 +82,7 @@ export interface Commit {
 	hash: string;
 	author: string;
 	message: string;
-	is_cl: boolean;
+	cl_url: string;
 }
 
 export interface TraceComment {
