@@ -23,6 +23,9 @@ type Cache struct {
 //
 // The namespace is the string to add to each key to avoid conflicts with more
 // than one application or application instance using the same memcached server.
+//
+// Memcached can spread cache values across multiple servers, which is why
+// 'servers' is a string slice of addresses of the form "dns_name:port".
 func New(servers []string, namespace string) (*Cache, error) {
 	c := memcache.New(servers...)
 	c.Timeout = time.Second * 5

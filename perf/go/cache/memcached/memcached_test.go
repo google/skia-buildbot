@@ -8,6 +8,10 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
+// To run these tests manually run a local memcached instance at the given port
+// and interface:
+//
+// $ memcached -p 11211 -l 127.0.0.1
 var localServerAddress = []string{"127.0.0.1:11211"}
 
 func TestCache_New_Failure(t *testing.T) {
