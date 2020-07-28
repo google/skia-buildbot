@@ -137,3 +137,46 @@ SELECT COUNT(DISTINCT trace_id) FROM TraceValues
 WHERE
   commit_number > 0
   AND commit_number < 8;
+
+-- Queries for the new schema.
+
+UPSERT INTO TraceNames (trace_name, trace_id, params)
+VALUES
+ (',arch=x86,config=8888,', 'fe385b159ff55dca481069805e5ff050', ARRAY['arch=x86', 'config=8888']),
+ (',arch=x86,config=565,',  '277262a9236d571883d47dab102070bc', ARRAY['arch=x86', 'config=565']),
+ (',arch=arm,config=8888,', '0f17700460ee99c6488c2f6130804de5', ARRAY['arch=arm', 'config=8888']),
+ (',arch=arm,config=565,',  '6a5622e86c6059d74373f6a79df96054', ARRAY['arch=arm', 'config=565']);
+
+UPSERT INTO Tiles (tile_number, trace_id)
+VALUES
+  (0, 'fe385b159ff55dca481069805e5ff050'),
+  (0, '277262a9236d571883d47dab102070bc'),
+  (0, '0f17700460ee99c6488c2f6130804de5'),
+  (0, '6a5622e86c6059d74373f6a79df96054');
+
+UPSERT INTO TraceValues2 (trace_id, commit_number, val, source_file_id)
+VALUES
+   ('fe385b159ff55dca481069805e5ff050', 1,   1.2, 1),
+   ('fe385b159ff55dca481069805e5ff050', 2,   1.3, 2),
+   ('fe385b159ff55dca481069805e5ff050', 3,   1.4, 3),
+   ('fe385b159ff55dca481069805e5ff050', 256, 1.1, 4),
+   ('277262a9236d571883d47dab102070bc', 1,   2.2, 1),
+   ('277262a9236d571883d47dab102070bc', 2,   2.3, 2),
+   ('277262a9236d571883d47dab102070bc', 3,   2.4, 3),
+   ('277262a9236d571883d47dab102070bc', 256, 2.1, 4);
+
+
+-- All trace_ids that match a particular key=value.
+SELECT trace_name FROM TraceNames
+WHERE ARRAY['arch=x86'] <@ params
+ORDER BY trace_name;
+
+-- Retrieve matching values. Note that sqlite querys are limited to 1MB,
+-- so we might need to break up the trace_ids if the query is too long.
+SELECT trace_id, commit_number, val FROM TraceValues2
+WHERE commit_number>=0 AND commit_number<255 AND trace_id IN ('fe385b159ff55dca481069805e5ff050', '277262a9236d571883d47dab102070bc');
+
+-- Build traces using a JOIN.
+SELECT TraceNames.trace_name, TraceValues2.commit_number, TraceValues2.val FROM TraceNames
+INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+WHERE TraceNames.trace_name=',arch=x86,config=8888,' OR TraceNames.trace_name=',arch=x86,config=565,';
