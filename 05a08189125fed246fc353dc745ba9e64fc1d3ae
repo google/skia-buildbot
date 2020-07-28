@@ -16,6 +16,29 @@
       "revId": "05a08189125fed246fc353dc745ba9e64fc1d3ae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7ac33b1a_dd76d3f3",
+        "filename": "gitsync/go/gitsync/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-28T18:57:25Z",
+      "side": 1,
+      "message": "I know this works, but maybe tweak the name so the loop variable is different than the closure variable to make it a bit more obvious. \nfor _, u :\u003d range config.RepoURLs{\n  repoURL :\u003d u\n  ...\n\n???",
+      "range": {
+        "startLine": 139,
+        "startChar": 2,
+        "endLine": 139,
+        "endChar": 9
+      },
+      "revId": "05a08189125fed246fc353dc745ba9e64fc1d3ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
