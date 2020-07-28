@@ -1,11 +1,18 @@
 {
   bt_instance: "production",
   bt_project_id: "skia-public",
+  code_review_systems: [
+    {
+      id: "gerrit",
+      flavor: "gerrit",
+      gerrit_url: "https://fuchsia-review.googlesource.com/",
+      url_template: "https://fuchsia-review.googlesource.com/%s"
+    },
+  ],
   gcs_bucket: "skia-gold-fuchsia-public",
   git_bt_table: "git-repos2",
   git_repo_url: "https://fuchsia.googlesource.com/fuchsia",
   fs_namespace: "fuchsia-public",
   fs_project_id: "skia-firestore",
   known_hashes_gcs_path: "skia-gold-fuchsia-public/hash_files/gold-fuchsia-public-hashes.txt",
-  primary_crs: "gerrit",
 }
