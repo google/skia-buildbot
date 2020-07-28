@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6be8b1df_7c7f0b1e",
+        "filename": "golden/go/clstore/clstore.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-28T18:57:36Z",
+      "side": 1,
+      "message": "I\u0027d suggest naming this clstore.CRS, or clstore.CRSInfo, or clstore.ReviewSystem, etc. The word \"package\" might give the reader the impression that this is meant to be shipped somewhere (TCP package, RPC call, etc.).",
+      "range": {
+        "startLine": 68,
+        "startChar": 5,
+        "endLine": 68,
+        "endChar": 15
+      },
+      "revId": "a0082c7cdf7f7e883ac2ff5557897e6dc8d80829",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd334f92_991d4abe",
+        "filename": "golden/go/clstore/clstore.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-28T18:57:36Z",
+      "side": 1,
+      "message": "// E.g. \"gerrit\", \"gerrit-internal\", etc.",
+      "range": {
+        "startLine": 69,
+        "startChar": 1,
+        "endLine": 69,
+        "endChar": 19
+      },
+      "revId": "a0082c7cdf7f7e883ac2ff5557897e6dc8d80829",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "591b4468_4f70b14f",
+        "filename": "golden/go/config/config.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-28T18:57:36Z",
+      "side": 1,
+      "message": "Nit: Consider renaming this field (and the JSON field name) as Kind, or Type, or CRSKind, or CRSType. The name \"Flavor\" might be interpreted as denoting which variant of a specific system this struct represents.",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 30
+      },
+      "revId": "a0082c7cdf7f7e883ac2ff5557897e6dc8d80829",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
