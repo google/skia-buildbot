@@ -150,7 +150,11 @@ const clearDevice = (ele: MachineServerSk, machine: Description) => {
 
 const toggleMode = (ele: MachineServerSk, machine: Description) => {
   return html`
-    <button class="mode" @click=${() => ele._toggleMode(machine.Dimensions.id)}>
+    <button
+      class="mode"
+      @click=${() => ele._toggleMode(machine.Dimensions.id)}
+      title="Put the machine in maintenance mode."
+    >
       ${machine.Mode}
     </button>
   `;
