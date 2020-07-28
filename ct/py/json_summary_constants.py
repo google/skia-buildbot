@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Module that contains constants for the master/slave JSON summary scripts."""
+"""Module that contains constants for the master/worker JSON summary scripts."""
 
 
 JSONKEY_FAILED_FILES = 'failedFiles'

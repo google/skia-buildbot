@@ -590,8 +590,8 @@ func GetPathToTelemetryCTBinaries(local bool) string {
 func MergeUploadCSVFiles(ctx context.Context, runID, pathToPyFiles string, gs *GcsUtil, totalPages, maxPagesPerBot int, handleStrings bool, repeatValue int) (string, []string, error) {
 	localOutputDir := filepath.Join(StorageDir, BenchmarkRunsDir, runID)
 	MkdirAll(localOutputDir, 0700)
-	noOutputSlaves := []string{}
-	// Copy outputs from all slaves locally.
+	noOutputWorkers := []string{}
+	// Copy outputs from all workers locally.
 	numPagesPerBot := GetNumPagesPerBot(repeatValue, maxPagesPerBot)
 	numTasks := int(math.Ceil(float64(totalPages) / float64(numPagesPerBot)))
 	for i := 1; i <= numTasks; i++ {
@@ -601,27 +601,27 @@ func MergeUploadCSVFiles(ctx context.Context, runID, pathToPyFiles string, gs *G
 		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
 		if err != nil {
 			sklog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
-			noOutputSlaves = append(noOutputSlaves, strconv.Itoa(i))
+			noOutputWorkers = append(noOutputWorkers, strconv.Itoa(i))
 			continue
 		}
 		defer util.Close(respBody)
 		out, err := os.Create(workerLocalOutputPath)
 		if err != nil {
-			return "", noOutputSlaves, fmt.Errorf("Unable to create file %s: %s", workerLocalOutputPath, err)
+			return "", noOutputWorkers, fmt.Errorf("Unable to create file %s: %s", workerLocalOutputPath, err)
 		}
 		defer util.Close(out)
 		defer util.Remove(workerLocalOutputPath)
 		if _, err = io.Copy(out, respBody); err != nil {
-			return "", noOutputSlaves, fmt.Errorf("Unable to copy to file %s: %s", workerLocalOutputPath, err)
+			return "", noOutputWorkers, fmt.Errorf("Unable to copy to file %s: %s", workerLocalOutputPath, err)
 		}
-		// If an output is less than 20 bytes that means something went wrong on the slave.
+		// If an output is less than 20 bytes that means something went wrong on the worker.
 		outputInfo, err := out.Stat()
 		if err != nil {
-			return "", noOutputSlaves, fmt.Errorf("Unable to stat file %s: %s", workerLocalOutputPath, err)
+			return "", noOutputWorkers, fmt.Errorf("Unable to stat file %s: %s", workerLocalOutputPath, err)
 		}
 		if outputInfo.Size() <= 20 {
 			sklog.Errorf("Output file was less than 20 bytes %s: %s", workerLocalOutputPath, err)
-			noOutputSlaves = append(noOutputSlaves, strconv.Itoa(i))
+			noOutputWorkers = append(noOutputWorkers, strconv.Itoa(i))
 			continue
 		}
 	}
@@ -639,14 +639,14 @@ func MergeUploadCSVFiles(ctx context.Context, runID, pathToPyFiles string, gs *G
 	}
 	err := ExecuteCmd(ctx, "python", args, []string{}, CSV_MERGER_TIMEOUT, nil, nil)
 	if err != nil {
-		return outputFilePath, noOutputSlaves, fmt.Errorf("Error running csv_merger.py: %s", err)
+		return outputFilePath, noOutputWorkers, fmt.Errorf("Error running csv_merger.py: %s", err)
 	}
 	// Copy the output file to Google Storage.
 	remoteOutputDir := path.Join(BenchmarkRunsStorageDir, runID, "consolidated_outputs")
 	if err := gs.UploadFile(outputFileName, localOutputDir, remoteOutputDir); err != nil {
-		return outputFilePath, noOutputSlaves, fmt.Errorf("Unable to upload %s to %s: %s", outputFileName, remoteOutputDir, err)
+		return outputFilePath, noOutputWorkers, fmt.Errorf("Unable to upload %s to %s: %s", outputFileName, remoteOutputDir, err)
 	}
-	return outputFilePath, noOutputSlaves, nil
+	return outputFilePath, noOutputWorkers, nil
 }
 
 // GetRepeatValue returns the defaultValue if "--pageset-repeat" is not specified in benchmarkArgs.

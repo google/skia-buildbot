@@ -24,40 +24,40 @@
       <tbody>
         <tr ng-controller="ImageController">
           <td align="center">
-            <a>fileslave3_4.png</a><br/>
-            <a href='http://storage.cloud.google.com/dummy-bucket/skps/slave3/fileslave3_.skp'>Download SKP</a>
+            <a>fileworker3_3.png</a><br/>
+            <a href='http://storage.cloud.google.com/dummy-bucket/skps/worker3/fileworker3_.skp'>Download SKP</a>
           </td>
           <td>
-            <a href='http://storage.cloud.google.com/dummy-bucket/slave3/nopatch/fileslave3_4.png' target="_blank">View Image</a>
+            <a href='http://storage.cloud.google.com/dummy-bucket/worker3/nopatch/fileworker3_3.png' target="_blank">View Image</a>
             <br/>
             <img-compare type="baseline"
                          name="baseline"
-                         src="http://storage.cloud.google.com/dummy-bucket/slave3/nopatch/fileslave3_4.png"
+                         src="http://storage.cloud.google.com/dummy-bucket/worker3/nopatch/fileworker3_3.png"
                          class="gm-image left-image" />
           </td>
           <td>
-            <a href='http://storage.cloud.google.com/dummy-bucket/slave3/withpatch/fileslave3_4.png' target="_blank">View Image</a>
+            <a href='http://storage.cloud.google.com/dummy-bucket/worker3/withpatch/fileworker3_3.png' target="_blank">View Image</a>
             <br/>
             <img-compare type="test"
                          name="test"
-                         src="http://storage.cloud.google.com/dummy-bucket/slave3/withpatch/fileslave3_4.png"
+                         src="http://storage.cloud.google.com/dummy-bucket/worker3/withpatch/fileworker3_3.png"
                          class="gm-image right-image" />
           </td>
           <td>
-            <a id='compare_value'>342</a>% (341)
-            <a href='http://storage.cloud.google.com/dummy-bucket/slave3/whitediffs/fileslave3_4_nopatch_png-vs-fileslave3_4_withpatch_png.png' target="_blank">View Image</a>
+            <a id='compare_value'>332</a>% (331)
+            <a href='http://storage.cloud.google.com/dummy-bucket/worker3/whitediffs/fileworker3_3_nopatch_png-vs-fileworker3_3_withpatch_png.png' target="_blank">View Image</a>
             <br/>
             <img-compare type="differingPixelsInWhite"
                          class="left-image"
-                         src="http://storage.cloud.google.com/dummy-bucket/slave3/whitediffs/fileslave3_4_nopatch_png-vs-fileslave3_4_withpatch_png.png" />
+                         src="http://storage.cloud.google.com/dummy-bucket/worker3/whitediffs/fileworker3_3_nopatch_png-vs-fileworker3_3_withpatch_png.png" />
           </td>
           <td>
-            <a id='compare_value'>345</a>% (perceptual diff) | 344
-            <a href='http://storage.cloud.google.com/dummy-bucket/slave3/diffs/fileslave3_4_nopatch_png-vs-fileslave3_4_withpatch_png.png' target="_blank">View Image</a>
+            <a id='compare_value'>335</a>% (perceptual diff) | 334
+            <a href='http://storage.cloud.google.com/dummy-bucket/worker3/diffs/fileworker3_3_nopatch_png-vs-fileworker3_3_withpatch_png.png' target="_blank">View Image</a>
             <br/>
             <img-compare type="differencePerPixel"
                          class="left-image"
-                         src="http://storage.cloud.google.com/dummy-bucket/slave3/diffs/fileslave3_4_nopatch_png-vs-fileslave3_4_withpatch_png.png"
+                         src="http://storage.cloud.google.com/dummy-bucket/worker3/diffs/fileworker3_3_nopatch_png-vs-fileworker3_3_withpatch_png.png"
                          ng-mousedown="MagnifyDraw($event, true)"
                          ng-mousemove="MagnifyDraw($event, false)"
                          ng-mouseup="MagnifyEnd($event)"
