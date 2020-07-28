@@ -39,6 +39,30 @@
       "revId": "05a08189125fed246fc353dc745ba9e64fc1d3ae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8cfb1060_107916d0",
+        "filename": "gitsync/go/gitsync/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-28T19:28:21Z",
+      "side": 1,
+      "message": "Personally, I like to overwrite the variable here.  It prevents me from making the mistake of reading the variable name from the \"for\" line and trying to use it.",
+      "parentUuid": "7ac33b1a_dd76d3f3",
+      "range": {
+        "startLine": 139,
+        "startChar": 2,
+        "endLine": 139,
+        "endChar": 9
+      },
+      "revId": "05a08189125fed246fc353dc745ba9e64fc1d3ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
