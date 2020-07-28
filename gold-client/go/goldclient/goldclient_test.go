@@ -3,6 +3,7 @@ package goldclient
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"image"
 	"image/png"
 	"io"
@@ -31,6 +32,7 @@ import (
 	one_by_five "go.skia.org/infra/golden/go/testutils/data_one_by_five"
 	"go.skia.org/infra/golden/go/tiling"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/web/frontend"
 )
 
 // test data processing of the known hashes input.
@@ -48,7 +50,7 @@ func TestLoadKnownHashes(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
@@ -81,7 +83,7 @@ func TestLoadBaseline(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
@@ -162,7 +164,7 @@ func TestInit(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// no uploader calls
 
@@ -331,7 +333,7 @@ func TestNewReportNormal(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	expectedUploadPath := string("gs://skia-gold-testing/dm-images-v1/" + imgHash + ".png")
 	uploader.On("UploadBytes", testutils.AnyContext, imgData, testImgPath, expectedUploadPath).Return(nil)
@@ -372,7 +374,7 @@ func TestNewReportNormalBadKeys(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// Notice the JSON is not uploaded if we are not in passfail mode - a client
 	// would need to call finalize first.
@@ -592,7 +594,7 @@ func TestNewReportPassFail(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	expectedUploadPath := string("gs://skia-gold-testing/dm-images-v1/" + imgHash + ".png")
 	uploader.On("UploadBytes", testutils.AnyContext, imgData, testImgPath, expectedUploadPath).Return(nil)
@@ -671,7 +673,7 @@ func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
 	checkResults := func(g *jsonio.GoldResults) bool {
@@ -748,7 +750,7 @@ func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
 	checkResults := func(g *jsonio.GoldResults) bool {
@@ -845,7 +847,7 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 
 	// Mock out getting the test baselines.
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// Mock out retrieving the latest positive image hash for ThisIsTheOnlyTest.
 	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/latestpositivedigest/,another_notch=emeril,gpu=GPUTest,name=ThisIsTheOnlyTest,os=WinTest,source_type=gtest-pixeltests,"
@@ -856,8 +858,29 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 	downloader.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", latestPositiveImageHash).Return(latestPositiveImageBytes, nil)
 
 	// Mock out RPC to automatically triage the new image as positive.
-	body := bytes.NewReader([]byte(`{"testDigestStatus":{"ThisIsTheOnlyTest":{"` + newImageHash + `":"positive"}},"issue":"867","imageMatchingAlgorithm":"fuzzy"}`))
-	httpClient.On("Post", "https://testing-gold.skia.org/json/triage", "application/json", body).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
+	bodyMatcher := mock.MatchedBy(func(r io.Reader) bool {
+		b, err := ioutil.ReadAll(r)
+		assert.NoError(t, err)
+		if len(b) == 0 {
+			// This matcher can get called a second time during AssertExpectations. This check makes sure
+			// we don't erroniously fail.
+			return false
+		}
+		tr := frontend.TriageRequest{}
+		assert.NoError(t, json.Unmarshal(b, &tr))
+		assert.Equal(t, frontend.TriageRequest{
+			TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
+				"ThisIsTheOnlyTest": {
+					newImageHash: expectations.Positive,
+				},
+			},
+			ChangeListID:           "867",
+			CodeReviewSystem:       "gerrit",
+			ImageMatchingAlgorithm: "fuzzy",
+		}, tr)
+		return true
+	})
+	httpClient.On("Post", "https://testing-gold.skia.org/json/triage", "application/json", bodyMatcher).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
 
 	// Mock out uploading the JSON file with the test results to Gold.
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
@@ -939,7 +962,7 @@ func TestNegativePassFail(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// No upload expected because the bytes were already seen in json/hashes.
 
@@ -994,7 +1017,7 @@ func TestPositivePassFail(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// No upload expected because the bytes were already seen in json/hashes.
 
@@ -1152,9 +1175,10 @@ func TestCheckIssue(t *testing.T) {
 
 	imgData := []byte("some bytes")
 	// These are defined in mockBaselineJSON
-	imgHash := types.Digest("beef00d3a1527db19619ec12a4e0df68")
-	testName := types.TestName("ThisIsTheOnlyTest")
-	changeListID := "abc"
+	const imgHash = types.Digest("beef00d3a1527db19619ec12a4e0df68")
+	const testName = types.TestName("ThisIsTheOnlyTest")
+	const githubCRS = "github"
+	const changeListID = "abc"
 
 	auth, httpClient, _, _ := makeMocks()
 	defer httpClient.AssertExpectations(t)
@@ -1163,7 +1187,7 @@ func TestCheckIssue(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=abc").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=abc&crs=github").Return(exp, nil)
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
@@ -1173,8 +1197,9 @@ func TestCheckIssue(t *testing.T) {
 	assert.NoError(t, err)
 
 	gr := jsonio.GoldResults{
-		ChangeListID: changeListID,
-		GitHash:      "HEAD",
+		CodeReviewSystem: githubCRS,
+		ChangeListID:     changeListID,
+		GitHash:          "HEAD",
 	}
 	err = goldClient.SetSharedConfig(gr, true)
 	assert.NoError(t, err)
@@ -2126,8 +2151,27 @@ func TestCloudClient_TriageAsPositive_NoCL_Success(t *testing.T) {
 
 	url := "https://testing-gold.skia.org/json/triage"
 	contentType := "application/json"
-	body := bytes.NewReader([]byte(`{"testDigestStatus":{"MyTest":{"deadbeefcafefe771d61bf0ed3d84bc2":"positive"}},"issue":"","imageMatchingAlgorithm":"fuzzy"}`))
-	httpClient.On("Post", url, contentType, body).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
+	bodyMatcher := mock.MatchedBy(func(r io.Reader) bool {
+		b, err := ioutil.ReadAll(r)
+		assert.NoError(t, err)
+		if len(b) == 0 {
+			// This matcher can get called a second time during AssertExpectations. This check makes sure
+			// we don't erroniously fail.
+			return false
+		}
+		tr := frontend.TriageRequest{}
+		assert.NoError(t, json.Unmarshal(b, &tr))
+		assert.Equal(t, frontend.TriageRequest{
+			TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
+				"MyTest": {
+					"deadbeefcafefe771d61bf0ed3d84bc2": expectations.Positive,
+				},
+			},
+			ImageMatchingAlgorithm: "fuzzy",
+		}, tr)
+		return true
+	})
+	httpClient.On("Post", url, contentType, bodyMatcher).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
 
 	err = goldClient.TriageAsPositive("MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "fuzzy")
 	assert.NoError(t, err)
@@ -2144,7 +2188,8 @@ func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
 	j := resultState{
 		GoldURL: "https://testing-gold.skia.org",
 		SharedConfig: &jsonio.GoldResults{
-			ChangeListID: "123456",
+			CodeReviewSystem: "gerrit",
+			ChangeListID:     "123456",
 		},
 	}
 	jsonToWrite := testutils.MarshalJSON(t, &j)
@@ -2158,8 +2203,29 @@ func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
 
 	url := "https://testing-gold.skia.org/json/triage"
 	contentType := "application/json"
-	body := bytes.NewReader([]byte(`{"testDigestStatus":{"MyTest":{"deadbeefcafefe771d61bf0ed3d84bc2":"positive"}},"issue":"123456","imageMatchingAlgorithm":"fuzzy"}`))
-	httpClient.On("Post", url, contentType, body).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
+	bodyMatcher := mock.MatchedBy(func(r io.Reader) bool {
+		b, err := ioutil.ReadAll(r)
+		assert.NoError(t, err)
+		if len(b) == 0 {
+			// This matcher can get called a second time during AssertExpectations. This check makes sure
+			// we don't erroniously fail.
+			return false
+		}
+		tr := frontend.TriageRequest{}
+		assert.NoError(t, json.Unmarshal(b, &tr))
+		assert.Equal(t, frontend.TriageRequest{
+			TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
+				"MyTest": {
+					"deadbeefcafefe771d61bf0ed3d84bc2": expectations.Positive,
+				},
+			},
+			CodeReviewSystem:       "gerrit",
+			ChangeListID:           "123456",
+			ImageMatchingAlgorithm: "fuzzy",
+		}, tr)
+		return true
+	})
+	httpClient.On("Post", url, contentType, bodyMatcher).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
 
 	err = goldClient.TriageAsPositive("MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "fuzzy")
 	assert.NoError(t, err)
@@ -2174,10 +2240,8 @@ func TestCloudClient_TriageAsPositive_InternalServerError_Failure(t *testing.T) 
 
 	// Pretend "goldctl imgtest init" was called.
 	j := resultState{
-		GoldURL: "https://testing-gold.skia.org",
-		SharedConfig: &jsonio.GoldResults{
-			ChangeListID: "123456",
-		},
+		GoldURL:      "https://testing-gold.skia.org",
+		SharedConfig: &jsonio.GoldResults{},
 	}
 	jsonToWrite := testutils.MarshalJSON(t, &j)
 	testutils.WriteFile(t, filepath.Join(wd, stateFile), jsonToWrite)
@@ -2190,8 +2254,7 @@ func TestCloudClient_TriageAsPositive_InternalServerError_Failure(t *testing.T) 
 
 	url := "https://testing-gold.skia.org/json/triage"
 	contentType := "application/json"
-	body := bytes.NewReader([]byte(`{"testDigestStatus":{"MyTest":{"deadbeefcafefe771d61bf0ed3d84bc2":"positive"}},"issue":"123456","imageMatchingAlgorithm":"fuzzy"}`))
-	httpClient.On("Post", url, contentType, body).Return(httpResponse([]byte{}, "500 Internal Server Error", http.StatusInternalServerError), nil)
+	httpClient.On("Post", url, contentType, mock.Anything).Return(httpResponse([]byte{}, "500 Internal Server Error", http.StatusInternalServerError), nil)
 
 	err = goldClient.TriageAsPositive("MyTest", "deadbeefcafefe771d61bf0ed3d84bc2", "fuzzy")
 	assert.Error(t, err)
