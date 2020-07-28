@@ -21,8 +21,8 @@
     "childBranch": "master",
     "childPath": "src/fuchsia/toolchain/linux",
     "childRepo": "", // Unused
-    "cipdAssetName": "fuchsia/clang/linux-amd64",
-    "cipdAssetTag": "goma",
+    "cipdAssetName": "fuchsia/third_party/clang/linux-amd64",
+    "cipdAssetTag": "integration",
     "forkRepoURL": "git@github.com:skia-flutter-autoroll/engine.git",
     "gclientSpec": "solutions=[{\"name\":\"src/flutter\",\"url\":\"git@github.com:flutter/engine.git\",\"deps_file\":\"DEPS\",\"managed\":False,\"custom_deps\":{},\"safesync_url\":\"\"}]",
     "githubParentPath": "src/flutter",
