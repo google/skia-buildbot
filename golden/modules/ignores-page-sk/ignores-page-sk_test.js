@@ -4,6 +4,7 @@ import { $, $$ } from 'common-sk/modules/dom';
 import { fetchMock } from 'fetch-mock';
 import {
   eventPromise,
+  eventSequencePromise,
   expectQueryStringToEqual,
   setQueryString,
   setUpElementUnderTest,
@@ -99,9 +100,7 @@ describe('ignores-page-sk', () => {
       expectQueryStringToEqual('');
     });
 
-    it.skip('responds to back and forward browser buttons', async () => {
-      // TODO(kjlubick,lovisolo) goBack/goForward only waits until one
-      //   fetch returns - maybe eventPromise should be updated for that?
+    it('responds to back and forward browser buttons', async () => {
       // Create some mock history so we can use the back button.
       setQueryString('?count_all=true');
       setQueryString('');
@@ -261,17 +260,15 @@ function setIgnoreRuleProperties(ele, query, expires, note) {
 }
 
 async function goBack() {
-  const event2 = eventPromise('end-task');
-  const event = eventPromise('end-task');
+  // Wait for /json/ignores and /json/paramset RPCs to complete.
+  const events = eventSequencePromise(['end-task', 'end-task']);
   history.back();
-  await event;
-  return event2;
+  await events;
 }
 
 async function goForward() {
-  const event2 = eventPromise('end-task');
-  const event = eventPromise('end-task');
+  // Wait for /json/ignores and /json/paramset RPCs to complete.
+  const events = eventSequencePromise(['end-task', 'end-task']);
   history.forward();
-  await event;
-  return event2;
+  await events;
 }
