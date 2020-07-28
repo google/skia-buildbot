@@ -23,6 +23,10 @@ type Common struct {
 	// GCP project ID that houses the BigTable Instance.
 	BTProjectID string `json:"bt_project_id"`
 
+	// One or more code review systems that we support linking to / commenting on, etc. Used also to
+	// identify valid CLs when ingesting data.
+	CodeReviewSystems []CodeReviewSystem `json:"code_review_systems"`
+
 	// Google Cloud Storage bucket name.
 	GCSBucket string `json:"gcs_bucket"`
 
@@ -43,15 +47,35 @@ type Common struct {
 	// GCS path, where the known hashes file should be stored. Format: <bucket>/<path>.
 	KnownHashesGCSPath string `json:"known_hashes_gcs_path"`
 
-	// Primary CodeReviewSystem (e.g. 'gerrit', 'github')
-	PrimaryCRS string `json:"primary_crs"`
-
 	// If provided (e.g. ":9002"), a port serving performance-related and other debugging RPCS will
 	// be opened up. This RPC will not require authentication.
 	DebugPort string `json:"debug_port" optional:"true"`
 
 	// If running locally (not in production).
 	Local bool `json:"local"`
+}
+
+// CodeReviewSystem represents the details needed to interact with a CodeReviewSystem (e.g.
+// "gerrit", "github")
+type CodeReviewSystem struct {
+	// ID is how this CRS will be identified via query arguments and ingestion data. This is arbitrary
+	// and can be used to distinguish between and internal and public version (e.g. "gerrit-internal")
+	ID string `json:"id"`
+
+	// Specifies the APIs/code needed to interact ("gerrit", "github").
+	Flavor string `json:"flavor"`
+
+	// A URL with %s where a CL ID should be placed to complete it.
+	URLTemplate string `json:"url_template"`
+
+	// URL of the Gerrit instance (if any) where we retrieve CL metadata.
+	GerritURL string `json:"gerrit_url" optional:"true"`
+
+	// Filepath to file containing GitHub token (if this instance needs to talk to GitHub).
+	GitHubCredPath string `json:"github_cred_path" optional:"true"`
+
+	// User and repo of GitHub project to connect to (if any), e.g. google/skia
+	GitHubRepo string `json:"github_repo" optional:"true"`
 }
 
 // LoadFromJSON5 reads the contents of path and tries to decode the JSON5 there into the provided

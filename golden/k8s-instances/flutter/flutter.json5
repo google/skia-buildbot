@@ -1,11 +1,19 @@
 {
   bt_instance: "production",
   bt_project_id: "skia-public",
+  code_review_systems: [
+    {
+      id: "github",
+      flavor: "github",
+      github_cred_path: "/var/secrets/github/github_token",
+      github_repo: "flutter/flutter",
+      url_template: "https://github.com/flutter/flutter/pull/%s"
+    },
+  ],
   gcs_bucket: "skia-gold-flutter",
   git_bt_table: "git-repos2",
   git_repo_url: "https://github.com/flutter/flutter",
   fs_namespace: "flutter",
   fs_project_id: "skia-firestore",
   known_hashes_gcs_path: "skia-gold-flutter/hash_files/gold-flutter-hashes.txt",
-  primary_crs: "github",
 }

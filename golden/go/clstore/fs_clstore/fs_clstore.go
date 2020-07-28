@@ -34,15 +34,16 @@ const (
 
 // StoreImpl is the Firestore based implementation of clstore.
 type StoreImpl struct {
-	client  *ifirestore.Client
-	crsName string
+	client *ifirestore.Client
+	crsID  string
 }
 
-// New returns a new StoreImpl
-func New(client *ifirestore.Client, crsName string) *StoreImpl {
+// New returns a new StoreImpl. The crsID should be distinct enough to separate an internal CRS
+// from an external one, if needed (e.g. "gerrit" vs "gerrit-internal")
+func New(client *ifirestore.Client, crsID string) *StoreImpl {
 	return &StoreImpl{
-		client:  client,
-		crsName: crsName,
+		client: client,
+		crsID:  crsID,
 	}
 }
 
@@ -97,7 +98,7 @@ func (s *StoreImpl) GetChangeList(ctx context.Context, id string) (code_review.C
 	cle := changeListEntry{}
 	if err := doc.DataTo(&cle); err != nil {
 		id := doc.Ref.ID
-		return code_review.ChangeList{}, skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal %s changelist with id %s", s.crsName, id)
+		return code_review.ChangeList{}, skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal %s changelist with id %s", s.crsID, id)
 	}
 	cl := code_review.ChangeList{
 		SystemID: cle.SystemID,
@@ -113,7 +114,7 @@ func (s *StoreImpl) GetChangeList(ctx context.Context, id string) (code_review.C
 // changeListFirestoreID returns the id for a given CL in a given CRS - this allows us to
 // look up a document by id w/o having to perform a query.
 func (s *StoreImpl) changeListFirestoreID(clID string) string {
-	return clID + "_" + s.crsName
+	return clID + "_" + s.crsID
 }
 
 // GetChangeLists implements the clstore.Store interface.
@@ -188,7 +189,7 @@ func (s *StoreImpl) GetPatchSet(ctx context.Context, clID, psID string) (code_re
 	pse := patchSetEntry{}
 	if err := doc.DataTo(&pse); err != nil {
 		id := doc.Ref.ID
-		return code_review.PatchSet{}, skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal %s patchset with id %s", s.crsName, id)
+		return code_review.PatchSet{}, skerr.Wrapf(err, "corrupt data in Firestore, could not unmarshal %s patchset with id %s", s.crsID, id)
 	}
 	return pse.toPatchSet(), nil
 }
@@ -261,7 +262,7 @@ func (s *StoreImpl) PutChangeList(ctx context.Context, cl code_review.ChangeList
 	cd := s.client.Collection(changelistCollection).Doc(fID)
 	record := changeListEntry{
 		SystemID: cl.SystemID,
-		System:   s.crsName,
+		System:   s.crsID,
 		Owner:    cl.Owner,
 		Status:   cl.Status,
 		Subject:  cl.Subject,
@@ -282,7 +283,7 @@ func (s *StoreImpl) PutPatchSet(ctx context.Context, ps code_review.PatchSet) er
 		Collection(patchsetCollection).Doc(ps.SystemID)
 	record := patchSetEntry{
 		SystemID:                      ps.SystemID,
-		System:                        s.crsName,
+		System:                        s.crsID,
 		ChangeListID:                  ps.ChangeListID,
 		Order:                         ps.Order,
 		GitHash:                       ps.GitHash,
@@ -294,11 +295,6 @@ func (s *StoreImpl) PutPatchSet(ctx context.Context, ps code_review.PatchSet) er
 		return skerr.Wrapf(err, "could not write PS %v to clstore", ps)
 	}
 	return nil
-}
-
-// System implements the clstore.Store interface.
-func (s *StoreImpl) System() string {
-	return s.crsName
 }
 
 // Make sure StoreImpl fulfills the clstore.Store interface.
