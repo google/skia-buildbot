@@ -254,7 +254,7 @@ func runChromiumPerfOnWorkers() error {
 		defaultMaxPagesPerSwarmingBot = MAX_PAGES_PER_ANDROID_SWARMING_BOT
 	}
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, defaultMaxPagesPerSwarmingBot)
-	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, "", *targetPlatform, hardTimeout, 1*time.Hour, *taskPriority, maxPagesPerBot, numPages, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), baseCmd, isolateDeps, swarmingClient)
+	numWorkers, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, "", *targetPlatform, hardTimeout, 1*time.Hour, *taskPriority, maxPagesPerBot, numPages, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark), baseCmd, isolateDeps, swarmingClient)
 	if err != nil {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
@@ -266,30 +266,30 @@ func runChromiumPerfOnWorkers() error {
 	if err != nil {
 		return fmt.Errorf("Could not get path to py files: %s", err)
 	}
-	var noOutputSlaves []string
+	var noOutputWorkers []string
 
 	// Nopatch CSV file processing.
-	noPatchCSVLocalPath, noOutputSlaves, err := util.MergeUploadCSVFiles(ctx, runIDNoPatch, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark))
+	noPatchCSVLocalPath, noOutputWorkers, err := util.MergeUploadCSVFiles(ctx, runIDNoPatch, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark))
 	if err != nil {
 		return fmt.Errorf("Unable to merge and upload CSV files for %s: %s", runIDNoPatch, err)
 	}
 	// Cleanup created dir after the run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch))
-	// If the number of noOutputSlaves is the same as the total number of triggered slaves then consider the run failed.
-	if len(noOutputSlaves) == numSlaves {
-		return fmt.Errorf("All %d slaves produced no output for nopatch run", numSlaves)
+	// If the number of noOutputWorkers is the same as the total number of triggered workers then consider the run failed.
+	if len(noOutputWorkers) == numWorkers {
+		return fmt.Errorf("All %d workers produced no output for nopatch run", numWorkers)
 	}
 
 	// Withpatch CSV file processing.
-	withPatchCSVLocalPath, noOutputSlaves, err := util.MergeUploadCSVFiles(ctx, runIDWithPatch, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark))
+	withPatchCSVLocalPath, noOutputWorkers, err := util.MergeUploadCSVFiles(ctx, runIDWithPatch, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, *repeatBenchmark))
 	if err != nil {
 		return fmt.Errorf("Unable to merge and upload CSV files for %s: %s", runIDWithPatch, err)
 	}
 	// Cleanup created dir after the run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDWithPatch))
-	// If the number of noOutputSlaves is the same as the total number of triggered slaves then consider the run failed.
-	if len(noOutputSlaves) == numSlaves {
-		return fmt.Errorf("All %d slaves produced no output for withpatch run", numSlaves)
+	// If the number of noOutputWorkers is the same as the total number of triggered workers then consider the run failed.
+	if len(noOutputWorkers) == numWorkers {
+		return fmt.Errorf("All %d workers produced no output for withpatch run", numWorkers)
 	}
 
 	totalArchivedWebpages, err := util.GetArchivesNum(gs, *benchmarkExtraArgs, *pagesetType)
@@ -328,7 +328,7 @@ func runChromiumPerfOnWorkers() error {
 		"--pageset_type=" + *pagesetType,
 		"--chromium_hash=" + *chromiumHash,
 		"--skia_hash=" + skiaHash,
-		"--missing_output_slaves=" + strings.Join(noOutputSlaves, " "),
+		"--missing_output_workers=" + strings.Join(noOutputWorkers, " "),
 		"--logs_link_prefix=" + fmt.Sprintf(util.SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE, *runID, "chromium_perf_"),
 		"--total_archives=" + strconv.Itoa(totalArchivedWebpages),
 	}

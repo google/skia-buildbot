@@ -72,7 +72,7 @@ class CsvComparer(object):
                discard_outliers, raw_csv_nopatch, raw_csv_withpatch,
                num_repeated, target_platform, crashed_instances,
                missing_devices, browser_args_nopatch, browser_args_withpatch,
-               pageset_type, chromium_hash, skia_hash, missing_output_slaves,
+               pageset_type, chromium_hash, skia_hash, missing_output_workers,
                logs_link_prefix, description, total_archives):
     """Constructs a CsvComparer instance."""
     self._csv_file1 = csv_file1
@@ -96,7 +96,7 @@ class CsvComparer(object):
     self._pageset_type = pageset_type
     self._chromium_hash = chromium_hash
     self._skia_hash = skia_hash
-    self._missing_output_slaves = missing_output_slaves
+    self._missing_output_workers = missing_output_workers
     self._logs_link_prefix = logs_link_prefix
     self._description = description
     self._total_archives = total_archives
@@ -198,12 +198,12 @@ class CsvComparer(object):
               perc_diff = _GetPercentageDiff(csv1_value, csv2_value)
               if self._IsPercDiffSameOrAboveThreshold(perc_diff):
                 rank = 1
-                slave_num = 1
+                worker_num = 1
                 m = re.match(r".* \(#([0-9]+)\)", page_name2)
                 if m and m.group(1):
                   rank = int(m.group(1))
-                  while rank > slave_num * 100:
-                    slave_num += 1
+                  while rank > worker_num * 100:
+                    worker_num += 1
                 pageset_link = (
                     '%s/swarming/page_sets/%s/%s/%s.py' % (
                         GS_HTML_DIRECT_LINK, self._pageset_type, rank, rank))
@@ -295,9 +295,9 @@ class CsvComparer(object):
     sorted_fieldnames_totals_items = sorted(
         fieldnames_to_totals.items(), key=lambda tuple: tuple[1].perc_diff,
         reverse=True)
-    missing_output_slaves_list = []
-    if self._missing_output_slaves:
-      missing_output_slaves_list = self._missing_output_slaves.split(' ')
+    missing_output_workers_list = []
+    if self._missing_output_workers:
+      missing_output_workers_list = self._missing_output_workers.split(' ')
     rendered = loader.render_to_string(
         'csv_totals.html',
         {'sorted_fieldnames_totals_items': sorted_fieldnames_totals_items,
@@ -320,7 +320,7 @@ class CsvComparer(object):
          'html_report_date': html_report_date,
          'chromium_hash': self._chromium_hash,
          'skia_hash': self._skia_hash,
-         'missing_output_slaves': missing_output_slaves_list,
+         'missing_output_workers': missing_output_workers_list,
          'logs_link_prefix': self._logs_link_prefix,
          'description': self._description,
         })
@@ -426,11 +426,11 @@ if '__main__' == __name__:
       help='The skia git hash that was used for this run.',
       default='')
   option_parser.add_option(
-      '', '--missing_output_slaves',
-      help='Slaves which had no output for this run.')
+      '', '--missing_output_workers',
+      help='Workers which had no output for this run.')
   option_parser.add_option(
       '', '--logs_link_prefix',
-      help='Prefix link to the logs of the slaves.')
+      help='Prefix link to the logs of the workers.')
   option_parser.add_option(
       '', '--description',
       help='The description of the run as entered by the requester.')
@@ -464,6 +464,6 @@ if '__main__' == __name__:
       options.crashed_instances, options.missing_devices,
       options.browser_args_nopatch, options.browser_args_withpatch,
       options.pageset_type, options.chromium_hash, options.skia_hash,
-      options.missing_output_slaves, options.logs_link_prefix,
+      options.missing_output_workers, options.logs_link_prefix,
       options.description, options.total_archives).Compare())
 

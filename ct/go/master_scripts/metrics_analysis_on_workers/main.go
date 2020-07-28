@@ -155,30 +155,30 @@ func metricsAnalysisOnWorkers() error {
 		"--metric_name=" + *metricName,
 		"--value_column_name=" + *valueColumnName,
 	}
-	numSlaves, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, "", util.PLATFORM_LINUX, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, len(traces), true /* runOnGCE */, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), baseCmd, isolateDeps, swarmingClient)
+	numWorkers, err := util.TriggerSwarmingTask(ctx, "" /* pagesetType */, "metrics_analysis", util.METRICS_ANALYSIS_ISOLATE, *runID, "", util.PLATFORM_LINUX, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, len(traces), true /* runOnGCE */, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), baseCmd, isolateDeps, swarmingClient)
 	if err != nil {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
 
 	// If "--output-format=csv" is specified then merge all CSV files and upload.
-	noOutputSlaves := []string{}
+	noOutputWorkers := []string{}
 	pathToPyFiles, err := util.GetPathToPyFiles(*master_common.Local)
 	if err != nil {
 		return fmt.Errorf("Could not get path to py files: %s", err)
 	}
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
-		if _, noOutputSlaves, err = util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, len(traces), maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1)); err != nil {
+		if _, noOutputWorkers, err = util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, len(traces), maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1)); err != nil {
 			sklog.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
 		}
 	}
-	// If the number of noOutputSlaves is the same as the total number of triggered slaves then consider the run failed.
-	if len(noOutputSlaves) == numSlaves {
-		return fmt.Errorf("All %d slaves produced no output", numSlaves)
+	// If the number of noOutputWorkers is the same as the total number of triggered workers then consider the run failed.
+	if len(noOutputWorkers) == numWorkers {
+		return fmt.Errorf("All %d workers produced no output", numWorkers)
 	}
 
-	// Display the no output slaves.
-	for _, noOutputSlave := range noOutputSlaves {
-		directLink := fmt.Sprintf(util.SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE, *runID, "metrics_analysis_"+noOutputSlave)
+	// Display the no output workers.
+	for _, noOutputWorker := range noOutputWorkers {
+		directLink := fmt.Sprintf(util.SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE, *runID, "metrics_analysis_"+noOutputWorker)
 		fmt.Printf("Missing output from %s\n", directLink)
 	}
 

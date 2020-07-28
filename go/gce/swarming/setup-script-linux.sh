@@ -105,7 +105,6 @@ fi
 HOSTNAME=`hostname`
 curl "${SWARMING}/bot_code?bot_id=${HOSTNAME}" --header "Authorization":"Bearer $TOKEN" \
   --location --output /b/s/swarming_bot.zip
-ln --symbolic --force --no-dereference /b/s /b/swarm_slave
 
 cat <<EOF | sudo tee /etc/systemd/system/swarming_bot.service
 [Unit]

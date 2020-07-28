@@ -35,7 +35,7 @@ var (
 	skpinfoRemotePath  = flag.String("skpinfo_remote_path", "", "The location of the skpinfo binary in Google Storage.")
 	runID              = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	targetPlatform     = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
-	chromeCleanerTimer = flag.Duration("cleaner_timer", 30*time.Minute, "How often all chrome processes will be killed on this slave.")
+	chromeCleanerTimer = flag.Duration("cleaner_timer", 30*time.Minute, "How often all chrome processes will be killed on this worker.")
 )
 
 func captureSkps() error {

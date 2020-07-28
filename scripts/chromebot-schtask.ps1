@@ -221,9 +221,9 @@ if (!(Test-Path ($startup_dir))) {
 }
 
 banner "Start Swarming."
-$swarm_slave_dir = "c:\b\s"
-if (!(Test-Path ($swarm_slave_dir))) {
-  new-item $swarm_slave_dir -itemtype directory
+$swarm_worker_dir = "c:\b\s"
+if (!(Test-Path ($swarm_worker_dir))) {
+  new-item $swarm_worker_dir -itemtype directory
   $swarming = "https://chromium-swarm.appspot.com"
   if ($hostname.StartsWith("skia-i-") -Or $hostname.StartsWith("ct-")) {
     $swarming = "https://chrome-swarming.appspot.com"
@@ -232,9 +232,9 @@ if (!(Test-Path ($swarm_slave_dir))) {
     $swarming = "https://chromium-swarm-dev.appspot.com"
   }
   $metadataJson = Invoke-WebRequest -Uri http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token -Headers @{"Metadata-Flavor"="Google"} -UseBasicParsing | ConvertFrom-Json
-  curl $swarming/bot_code?bot_id=$hostname -Headers @{"Authorization"="Bearer " + $metadataJson.access_token} -OutFile $swarm_slave_dir/swarming_bot.zip
+  curl $swarming/bot_code?bot_id=$hostname -Headers @{"Authorization"="Bearer " + $metadataJson.access_token} -OutFile $swarm_worker_dir/swarming_bot.zip
 }
-cmd /c "python $swarm_slave_dir/swarming_bot.zip start_bot"
+cmd /c "python $swarm_worker_dir/swarming_bot.zip start_bot"
 
 banner "The Task ended"
 

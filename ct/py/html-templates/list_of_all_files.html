@@ -12,7 +12,7 @@
     Click on a filename to view its images.<br/>
     Click on the linked column headers to sort rows.<br/><br/>
 
-    <table border="1" cellpadding="5" id="slave_results">
+    <table border="1" cellpadding="5" id="worker_results">
       <thead>
       <tr bgcolor="#CCCCFF">
         <th><a href="#" onclick="sortRows(0, false, [0, 1, 2, 3]); return false;">Failed Files</a><img src="" id="toggle-arrows-0"></th>
@@ -22,8 +22,8 @@
       </tr>
       </thead>
       <tbody>
-      {% for slave_name, slave_info in slave_name_to_info_items %}
-        {% for file_info in slave_info.failed_files %}
+      {% for worker_name, worker_info in worker_name_to_info_items %}
+        {% for file_info in worker_info.failed_files %}
         <tr>
           <td align="center">
             <a id='compare_value' href='{{ absolute_url }}{{ file_info.file_name }}.html'>{{ file_info.file_name }}</a>

@@ -28,9 +28,9 @@ STORAGE_HTTP_BASE = 'http://storage.cloud.google.com'
 # Template variables used in the django templates defined in django-settings.
 # If the values of these constants change then the django templates need to
 # change as well.
-SLAVE_NAME_TO_INFO_ITEMS_TEMPLATE_VAR = 'slave_name_to_info_items'
+WORKER_NAME_TO_INFO_ITEMS_TEMPLATE_VAR = 'worker_name_to_info_items'
 ABSOLUTE_URL_TEMPLATE_VAR = 'absolute_url'
-SLAVE_INFO_TEMPLATE_VAR = 'slave_info'
+WORKER_INFO_TEMPLATE_VAR = 'worker_info'
 FILE_INFO_TEMPLATE_VAR = 'file_info'
 RENDER_PICTURES_ARGS_TEMPLATE_VAR = 'render_pictures_args'
 NOPATCH_GPU_TEMPLATE_VAR = 'nopatch_gpu'
@@ -63,12 +63,12 @@ def _GetDiffFileName(file_name):
       file_name_no_ext, ext, file_name_no_ext, ext, ext)
 
 
-class SlaveInfo(object):
-  """Container class that holds all slave data."""
-  def __init__(self, slave_name, failed_files, skps_location,
+class WorkerInfo(object):
+  """Container class that holds all worker data."""
+  def __init__(self, worker_name, failed_files, skps_location,
                files_location_nopatch, files_location_withpatch,
                files_location_diffs, files_location_whitediffs):
-    self.slave_name = slave_name
+    self.worker_name = worker_name
     self.failed_files = failed_files
     self.files_location_nopatch = files_location_nopatch
     self.files_location_withpatch = files_location_withpatch
@@ -79,17 +79,17 @@ class SlaveInfo(object):
 
 def CombineJsonSummaries(json_summaries_dir):
   """Combines JSON summaries and returns the summaries in HTML."""
-  slave_name_to_info = {}
+  worker_name_to_info = {}
   for json_summary in glob.glob(os.path.join(json_summaries_dir, '*.json')):
     with open(json_summary) as f:
       data = json.load(f)
-    # There must be only one top level key and it must be the slave name.
+    # There must be only one top level key and it must be the worker name.
     assert len(data.keys()) == 1
 
-    slave_name = data.keys()[0]
-    slave_data = data[slave_name]
+    worker_name = data.keys()[0]
+    worker_data = data[worker_name]
     file_info_list = []
-    for failed_file in slave_data[json_summary_constants.JSONKEY_FAILED_FILES]:
+    for failed_file in worker_data[json_summary_constants.JSONKEY_FAILED_FILES]:
       failed_file_name = failed_file[json_summary_constants.JSONKEY_FILE_NAME]
       skp_location = posixpath.join(
           STORAGE_HTTP_BASE,
@@ -113,42 +113,42 @@ def CombineJsonSummaries(json_summaries_dir):
           perceptual_diff=perceptual_diff)
       file_info_list.append(file_info)
 
-    slave_info = SlaveInfo(
-        slave_name=slave_name,
+    worker_info = WorkerInfo(
+        worker_name=worker_name,
         failed_files=file_info_list,
-        skps_location=slave_data[json_summary_constants.JSONKEY_SKPS_LOCATION],
-        files_location_nopatch=slave_data[
+        skps_location=worker_data[json_summary_constants.JSONKEY_SKPS_LOCATION],
+        files_location_nopatch=worker_data[
             json_summary_constants.JSONKEY_FILES_LOCATION_NOPATCH],
-        files_location_withpatch=slave_data[
+        files_location_withpatch=worker_data[
             json_summary_constants.JSONKEY_FILES_LOCATION_WITHPATCH],
-        files_location_diffs=slave_data[
+        files_location_diffs=worker_data[
             json_summary_constants.JSONKEY_FILES_LOCATION_DIFFS],
-        files_location_whitediffs=slave_data[
+        files_location_whitediffs=worker_data[
             json_summary_constants.JSONKEY_FILES_LOCATION_WHITE_DIFFS])
-    slave_name_to_info[slave_name] = slave_info
+    worker_name_to_info[worker_name] = worker_info
 
-  return slave_name_to_info
+  return worker_name_to_info
 
 
-def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url,
+def OutputToHTML(worker_name_to_info, output_html_dir, absolute_url,
                  render_pictures_args, nopatch_gpu, withpatch_gpu):
-  """Outputs a slave name to SlaveInfo dict into HTML.
+  """Outputs a worker name to WorkerInfo dict into HTML.
 
-  Creates a top level HTML file that lists slave names to the number of failing
+  Creates a top level HTML file that lists worker names to the number of failing
   files. Also creates X number of HTML files that lists all the failing files
   and displays the nopatch and withpatch images. X here corresponds to the
-  number of slaves that have failing files.
+  number of workers that have failing files.
   """
   # Get total failing file count.
   total_failing_files = 0
-  for slave_info in slave_name_to_info.values():
-    total_failing_files += len(slave_info.failed_files)
+  for worker_info in worker_name_to_info.values():
+    total_failing_files += len(worker_info.failed_files)
 
-  slave_name_to_info_items = sorted(
-      slave_name_to_info.items(), key=lambda tuple: tuple[0])
+  worker_name_to_info_items = sorted(
+      worker_name_to_info.items(), key=lambda tuple: tuple[0])
   rendered = loader.render_to_string(
-      'slaves_totals.html',
-      {SLAVE_NAME_TO_INFO_ITEMS_TEMPLATE_VAR: slave_name_to_info_items,
+      'workers_totals.html',
+      {WORKER_NAME_TO_INFO_ITEMS_TEMPLATE_VAR: worker_name_to_info_items,
        ABSOLUTE_URL_TEMPLATE_VAR: absolute_url,
        RENDER_PICTURES_ARGS_TEMPLATE_VAR: render_pictures_args,
        NOPATCH_GPU_TEMPLATE_VAR: nopatch_gpu,
@@ -160,31 +160,31 @@ def OutputToHTML(slave_name_to_info, output_html_dir, absolute_url,
 
   rendered = loader.render_to_string(
       'list_of_all_files.html',
-      {SLAVE_NAME_TO_INFO_ITEMS_TEMPLATE_VAR: slave_name_to_info_items,
+      {WORKER_NAME_TO_INFO_ITEMS_TEMPLATE_VAR: worker_name_to_info_items,
        ABSOLUTE_URL_TEMPLATE_VAR: absolute_url}
   )
   with open(os.path.join(output_html_dir,
                          'list_of_all_files.html'), 'wb') as files_html:
     files_html.write(rendered)
 
-  for slave_info in slave_name_to_info.values():
-    for file_info in slave_info.failed_files:
+  for worker_info in worker_name_to_info.values():
+    for file_info in worker_info.failed_files:
       rendered = loader.render_to_string(
           'single_file_details.html',
           {FILE_INFO_TEMPLATE_VAR: file_info,
          ABSOLUTE_URL_TEMPLATE_VAR: absolute_url,
          GS_FILES_LOCATION_NO_PATCH_TEMPLATE_VAR: posixpath.join(
              STORAGE_HTTP_BASE,
-             slave_info.files_location_nopatch.lstrip('gs://')),
+             worker_info.files_location_nopatch.lstrip('gs://')),
          GS_FILES_LOCATION_WITH_PATCH_TEMPLATE_VAR: posixpath.join(
              STORAGE_HTTP_BASE,
-             slave_info.files_location_withpatch.lstrip('gs://')),
+             worker_info.files_location_withpatch.lstrip('gs://')),
          GS_FILES_LOCATION_DIFFS_TEMPLATE_VAR: posixpath.join(
              STORAGE_HTTP_BASE,
-             slave_info.files_location_diffs.lstrip('gs://')),
+             worker_info.files_location_diffs.lstrip('gs://')),
          GS_FILES_LOCATION_WHITE_DIFFS_TEMPLATE_VAR: posixpath.join(
              STORAGE_HTTP_BASE,
-             slave_info.files_location_whitediffs.lstrip('gs://'))}
+             worker_info.files_location_whitediffs.lstrip('gs://'))}
       )
       with open(os.path.join(output_html_dir, '%s.html' % file_info.file_name),
                 'wb') as per_file_html:
@@ -195,7 +195,7 @@ if '__main__' == __name__:
   option_parser = optparse.OptionParser()
   option_parser.add_option(
       '', '--json_summaries_dir',
-      help='Location of JSON summary files from all GCE slaves.')
+      help='Location of JSON summary files from all GCE workers.')
   option_parser.add_option(
       '', '--output_html_dir',
       help='The absolute path of the HTML dir that will contain the results of'
@@ -225,7 +225,7 @@ if '__main__' == __name__:
         'render_pictures_args, nopatch_gpu and withpatch_gpu')
 
   OutputToHTML(
-      slave_name_to_info=CombineJsonSummaries(options.json_summaries_dir),
+      worker_name_to_info=CombineJsonSummaries(options.json_summaries_dir),
       output_html_dir=options.output_html_dir,
       absolute_url=options.absolute_url,
       render_pictures_args=options.render_pictures_args,

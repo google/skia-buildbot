@@ -29,7 +29,7 @@ const (
 	DOWNLOAD_UPLOAD_GOROUTINE_POOL_SIZE = 30
 	// Use larger pool size for deletions. This is useful when deleting directories
 	// with 1M/1B subdirectories from the master. Google Storage will not be overwhelmed
-	// because all slaves do not do large scale deletions at the same time.
+	// because all workers do not do large scale deletions at the same time.
 	DELETE_GOROUTINE_POOL_SIZE = 1000
 )
 

@@ -76,8 +76,6 @@ res/imp/9/res/js
 res/imp/9/bower_components
 # Ignore all SQLite databases, because tests will create their own unique ones.
 *.db
-# Logfiles from launched buildslaves.
-launch_slaves.log*
 tracedb/local_perf.toml
 fiddle/fiddle_secwrap
 fiddle/res/css

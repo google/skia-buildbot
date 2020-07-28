@@ -30,7 +30,7 @@ var (
 	startRange         = flag.Int("start_range", 1, "The number this worker will capture webpage archives from.")
 	num                = flag.Int("num", 100, "The total number of archives to capture starting from the start_range.")
 	pagesetType        = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The pagesets to use to capture archives. Eg: 10k, Mobile10k, All.")
-	chromeCleanerTimer = flag.Duration("cleaner_timer", 30*time.Minute, "How often all chrome processes will be killed on this slave.")
+	chromeCleanerTimer = flag.Duration("cleaner_timer", 30*time.Minute, "How often all chrome processes will be killed on this worker.")
 )
 
 func captureArchives() error {

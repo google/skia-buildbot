@@ -151,7 +151,7 @@ type Task struct {
 	// Status is the current task status, default TASK_STATUS_PENDING.
 	Status TaskStatus `json:"status"`
 
-	// SwarmingBotId is the ID of the Swarming slave that ran this task. This
+	// SwarmingBotId is the ID of the Swarming bot that ran this task. This
 	// field will not be set if the Task does not correspond to a Swarming task or
 	// if the task is still pending.
 	SwarmingBotId string `json:"swarmingBotId"`
