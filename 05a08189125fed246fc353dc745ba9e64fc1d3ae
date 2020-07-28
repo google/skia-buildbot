@@ -63,6 +63,30 @@
       "revId": "05a08189125fed246fc353dc745ba9e64fc1d3ae",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae4e3a54_84ed992f",
+        "filename": "gitsync/go/gitsync/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-28T20:43:27Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8cfb1060_107916d0",
+      "range": {
+        "startLine": 139,
+        "startChar": 2,
+        "endLine": 139,
+        "endChar": 9
+      },
+      "revId": "05a08189125fed246fc353dc745ba9e64fc1d3ae",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
