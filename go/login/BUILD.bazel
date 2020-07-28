@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["login.go"],
+    importpath = "go.skia.org/infra/go/login",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/allowed:go_default_library",
+        "//go/httputils:go_default_library",
+        "//go/metadata:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_gorilla_securecookie//:go_default_library",
+        "@org_golang_google_api//oauth2/v2:go_default_library",
+        "@org_golang_x_oauth2//:go_default_library",
+        "@org_golang_x_oauth2//google:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["login_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)
