@@ -33,7 +33,7 @@ const template = (ele) => {
 
   <span>${limitString(cl.owner, 32)}</span>
 
-  <a href="/triagelog?issue=${cl.id}&system=${cl.system}">
+  <a href="/triagelog?changelist_id=${cl.id}&crs=${cl.system}">
     <find-in-page-icon-sk></find-in-page-icon-sk>Triagelog
   </a>
 </div>

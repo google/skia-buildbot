@@ -96,8 +96,7 @@ type TriageRequest struct {
 	TestDigestStatus map[types.TestName]map[types.Digest]expectations.Label `json:"testDigestStatus"`
 
 	// ChangeListID is the id of the ChangeList for which we want to change the expectations.
-	// "issue" is the JSON field for backwards compatibility.
-	ChangeListID string `json:"issue"`
+	ChangeListID string `json:"changelist_id"`
 
 	// CodeReviewSystem is the id of the crs that the ChangeListID belongs. If ChangeListID is set,
 	// CodeReviewSystem should be also.
