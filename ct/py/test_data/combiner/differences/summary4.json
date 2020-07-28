@@ -1,17 +1,17 @@
 {
-    "slave4": {
+    "worker4": {
         "failedFiles": [
                 {
-                    "fileName": "fileslave4_1.png",
-                    "skpLocation": "gs://dummy-bucket/skps/slave4/fileslave4_.skp",
+                    "fileName": "fileworker4_1.png",
+                    "skpLocation": "gs://dummy-bucket/skps/worker4/fileworker4_.skp",
                     "numPixelsDiffering": 411,                                   
                     "percentPixelsDiffering": 412,                               
                     "maxDiffPerChannel": 414,
                     "perceptualDiff": 415
                 }, 
                 {
-                    "fileName": "fileslave4_2.png",
-                    "skpLocation": "gs://dummy-bucket/skps/slave4/fileslave4_.skp",
+                    "fileName": "fileworker4_2.png",
+                    "skpLocation": "gs://dummy-bucket/skps/worker4/fileworker4_.skp",
                     "numPixelsDiffering": 421,                                   
                     "percentPixelsDiffering": 422,                               
                     "maxDiffPerChannel": 424,
@@ -19,10 +19,10 @@
                 }
         ], 
         "failedFilesCount": 2, 
-        "filesLocationNopatch": "gs://dummy-bucket/output-dir/slave4/nopatch-images", 
-        "filesLocationWithpatch": "gs://dummy-bucket/output-dir/slave4/withpatch-images", 
-        "filesLocationDiffs": "gs://dummy-bucket/output-dir/slave4/diffs",      
-        "filesLocationWhiteDiffs": "gs://dummy-bucket/output-dir/slave4/whitediffs",
-        "skpsLocation": "gs://dummy-bucket/skps/slave4"
+        "filesLocationNopatch": "gs://dummy-bucket/output-dir/worker4/nopatch-images", 
+        "filesLocationWithpatch": "gs://dummy-bucket/output-dir/worker4/withpatch-images", 
+        "filesLocationDiffs": "gs://dummy-bucket/output-dir/worker4/diffs",      
+        "filesLocationWhiteDiffs": "gs://dummy-bucket/output-dir/worker4/whitediffs",
+        "skpsLocation": "gs://dummy-bucket/skps/worker4"
     }
 }

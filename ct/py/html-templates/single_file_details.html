@@ -1,12 +1,12 @@
 <html ng-app="diff_viewer">
   <head>
-    <title>Image comparision failures for {{ slave_info.slave_name }}</title>
+    <title>Image comparision failures for {{ worker_info.worker_name }}</title>
     <script type="text/javascript" src="https://storage.cloud.google.com/chromium-skia-gm/telemetry/hosted-files/angular.min.js"></script>
     <script type="text/javascript" src="https://storage.cloud.google.com/chromium-skia-gm/telemetry/hosted-files/diff_viewer.js"></script>
   </head>
 
   <body>
-    <h2>Image comparision failures for {{ slave_info.slave_name }}</h2>
+    <h2>Image comparision failures for {{ worker_info.worker_name }}</h2>
     <a href='{{ absolute_url }}list_of_all_files.html'>Back</a>
     <br/><br/>
     Click on the image in the 'Difference per pixel' column to magnify the other three images.<br/><br/><br/>
