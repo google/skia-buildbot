@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["packages.go"],
+    importpath = "go.skia.org/infra/go/packages",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/exec:go_default_library",
+        "//go/gcs:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "@com_github_flynn_json5//:go_default_library",
+        "@org_golang_google_api//storage/v1:go_default_library",
+    ],
+)

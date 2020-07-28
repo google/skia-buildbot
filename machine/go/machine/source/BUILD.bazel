@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["source.go"],
+    importpath = "go.skia.org/infra/machine/go/machine/source",
+    visibility = ["//visibility:public"],
+    deps = ["//machine/go/machine:go_default_library"],
+)
