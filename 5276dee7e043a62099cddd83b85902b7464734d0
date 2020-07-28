@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ab85763_b3d8900f",
+        "filename": "ct/py/json_summary_constants.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-28T18:49:51Z",
+      "side": 1,
+      "message": "I suppose we\u0027re not changing \"master\" yet?",
+      "range": {
+        "startLine": 6,
+        "startChar": 42,
+        "endLine": 6,
+        "endChar": 48
+      },
+      "revId": "5276dee7e043a62099cddd83b85902b7464734d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ca99e7ba_a0f5eaa8",
+        "filename": "go/gce/swarming/setup-script-linux.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-28T18:49:51Z",
+      "side": 1,
+      "message": "Will this work?",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 59
+      },
+      "revId": "5276dee7e043a62099cddd83b85902b7464734d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cadc268_9a439f75",
+        "filename": "task_scheduler/go/types/task.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-28T18:49:51Z",
+      "side": 1,
+      "message": "Let\u0027s just call this \"bot\"",
+      "range": {
+        "startLine": 154,
+        "startChar": 44,
+        "endLine": 154,
+        "endChar": 50
+      },
+      "revId": "5276dee7e043a62099cddd83b85902b7464734d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
