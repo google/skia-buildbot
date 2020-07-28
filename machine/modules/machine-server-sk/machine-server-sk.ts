@@ -19,6 +19,7 @@ import '../../../infra-sk/modules/theme-chooser-sk';
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/cached-icon-sk';
 import 'elements-sk/icon/clear-icon-sk';
+import 'elements-sk/icon/delete-icon-sk';
 import 'elements-sk/icon/pause-icon-sk';
 import 'elements-sk/icon/play-arrow-icon-sk';
 import 'elements-sk/icon/power-settings-new-icon-sk';
@@ -166,6 +167,13 @@ const machineLink = (machine: Description) => {
   `;
 };
 
+const deleteMachine = (ele: MachineServerSk, machine: Description) => html`
+  <delete-icon-sk
+    title="Remove the machine from the database."
+    @click=${() => ele._deleteDevice(machine.Dimensions.id)}
+  ></delete-icon-sk>
+`;
+
 const rows = (ele: MachineServerSk) =>
   ele._machines.map(
     (machine) => html`
@@ -185,6 +193,7 @@ const rows = (ele: MachineServerSk) =>
         <td>${dimensions(machine)}</td>
         <td>${annotation(machine)}</td>
         <td>${imageName(machine)}</td>
+        <td>${deleteMachine(ele, machine)}</td>
       </tr>
     `
   );
@@ -231,6 +240,7 @@ const template = (ele: MachineServerSk) => html`
         <th>Dimensions</th>
         <th>Annotation</th>
         <th>Image</th>
+        <th>Delete</th>
       </tr>
       ${rows(ele)}
     </table>
@@ -326,6 +336,17 @@ export class MachineServerSk extends ElementSk {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/remove_device/${id}`);
+      this.removeAttribute('waiting');
+      this._update(true);
+    } catch (error) {
+      this._onError(error);
+    }
+  }
+
+  async _deleteDevice(id: string[]) {
+    try {
+      this.setAttribute('waiting', '');
+      await fetch(`/_/machine/delete_machine/${id}`);
       this.removeAttribute('waiting');
       this._update(true);
     } catch (error) {
