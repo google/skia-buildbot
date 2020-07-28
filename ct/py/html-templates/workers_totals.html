@@ -6,7 +6,7 @@
   <body>
     <h2>Results of Skia Tryserver Run</h2>
 
-    {% if slave_name_to_info_items %}
+    {% if worker_name_to_info_items %}
     RenderPictures args: {{ render_pictures_args }}<br/>
     NoPatch render_pictures run with GPU: {{ nopatch_gpu }}<br/>
     WithPatch render_pictures run with GPU: {{ withpatch_gpu  }}<br/><br/>
@@ -16,13 +16,13 @@
 
     <table border="1" cellpadding="5">
       <tr bgcolor="#CCCCFF">
-        <th>Slave</th>
+        <th>Worker</th>
         <th>Total failing files</th>
       </tr>
-      {% for slave_name, slave_info in slave_name_to_info_items %}
+      {% for worker_name, worker_info in worker_name_to_info_items %}
         <tr>
-          <td>{{ slave_name }}</td>
-          <td align="center">{{ slave_info.failed_files|length }}</td>
+          <td>{{ worker_name }}</td>
+          <td align="center">{{ worker_info.failed_files|length }}</td>
         </tr>
       {% endfor %}
     </table>

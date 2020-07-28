@@ -13,7 +13,7 @@
     This report was created on {{ html_report_date }}
     <br/>
     <br/>
-    The run was done on {{ target_platform }} slaves using the {{ pageset_type }} page set
+    The run was done on {{ target_platform }} workers using the {{ pageset_type }} page set
     <br/>
     The run was done using Chromium commit hash <a href='https://chromium.googlesource.com/chromium/src/+show/{{ chromium_hash }}'>{{ chromium_hash|slice:":7" }}</a> and Skia commit hash <a href='https://skia.googlesource.com/skia/+show/{{ skia_hash }}'>{{ skia_hash|slice:":7" }}</a>
     <br/>
@@ -29,15 +29,15 @@
     Read <a href="https://docs.google.com/a/chromium.org/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit?pli=1#heading=h.lgvqzgu7bc4d">this</a> for an explanation of CT's accuracy of results.
     <br/>
     {% if crashed_instances %}
-      <br/><b>Note:</b> The following slaves are down and their results are missing from the report: <b>{{ crashed_instances }}</b><br/>
+      <br/><b>Note:</b> The following workers are down and their results are missing from the report: <b>{{ crashed_instances }}</b><br/>
     {% endif %}
     {% if missing_devices %}
-      <br/><b>Note:</b> Android devices in the following slaves are down and their results are missing from the report: <b>{{ missing_devices }}</b><br/>
+      <br/><b>Note:</b> Android devices in the following workers are down and their results are missing from the report: <b>{{ missing_devices }}</b><br/>
     {% endif %}
-    {% if missing_output_slaves %}
-      <br/><b>Note:</b> The following slaves failed to report their results:
-          {% for missing_output_slave in missing_output_slaves %}
-            <a href="{{ logs_link_prefix }}{{ missing_output_slave }}">task{{ missing_output_slave }}</a>
+    {% if missing_output_workers %}
+      <br/><b>Note:</b> The following workers failed to report their results:
+          {% for missing_output_worker in missing_output_workers %}
+            <a href="{{ logs_link_prefix }}{{ missing_output_worker }}">task{{ missing_output_worker }}</a>
           {% endfor %}
       <br/>
     {% endif %}

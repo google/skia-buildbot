@@ -227,7 +227,7 @@ func runChromiumAnalysisOnWorkers() error {
 		defaultMaxPagesPerSwarmingBot = MAX_PAGES_PER_ANDROID_SWARMING_BOT
 	}
 	maxPagesPerBot := util.GetMaxPagesPerBotValue(*benchmarkExtraArgs, defaultMaxPagesPerSwarmingBot)
-	numSlaves, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, "", *targetPlatform, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, numPages, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), baseCmd, isolateDeps, swarmingClient)
+	numWorkers, err := util.TriggerSwarmingTask(ctx, *pagesetType, "chromium_analysis", util.CHROMIUM_ANALYSIS_ISOLATE, *runID, "", *targetPlatform, 12*time.Hour, 3*time.Hour, *taskPriority, maxPagesPerBot, numPages, *runOnGCE, *master_common.Local, util.GetRepeatValue(*benchmarkExtraArgs, 1), baseCmd, isolateDeps, swarmingClient)
 	if err != nil {
 		return fmt.Errorf("Error encountered when swarming tasks: %s", err)
 	}
@@ -237,21 +237,21 @@ func runChromiumAnalysisOnWorkers() error {
 	if err != nil {
 		return fmt.Errorf("Could not get path to py files: %s", err)
 	}
-	outputCSVLocalPath, noOutputSlaves, err := util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1))
+	outputCSVLocalPath, noOutputWorkers, err := util.MergeUploadCSVFiles(ctx, *runID, pathToPyFiles, gs, numPages, maxPagesPerBot, true /* handleStrings */, util.GetRepeatValue(*benchmarkExtraArgs, 1))
 	if err != nil {
 		return fmt.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
 	}
 	// Cleanup created dir after the run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
 
-	// If the number of noOutputSlaves is the same as the total number of triggered slaves then consider the run failed.
-	if len(noOutputSlaves) == numSlaves {
-		return fmt.Errorf("All %d slaves produced no output", numSlaves)
+	// If the number of noOutputWorkers is the same as the total number of triggered workers then consider the run failed.
+	if len(noOutputWorkers) == numWorkers {
+		return fmt.Errorf("All %d workers produced no output", numWorkers)
 	}
 
-	// Display the no output slaves.
-	for _, noOutputSlave := range noOutputSlaves {
-		directLink := fmt.Sprintf(util.SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE, *runID, "chromium_analysis_"+noOutputSlave)
+	// Display the no output workers.
+	for _, noOutputWorker := range noOutputWorkers {
+		directLink := fmt.Sprintf(util.SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE, *runID, "chromium_analysis_"+noOutputWorker)
 		fmt.Printf("Missing output from %s\n", directLink)
 	}
 
