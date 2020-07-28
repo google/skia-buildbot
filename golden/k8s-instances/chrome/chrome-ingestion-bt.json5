@@ -36,6 +36,7 @@
         FirestoreProjectID: "skia-firestore",
         FirestoreNamespace: "chrome",
 
+        // FIXME use CodeReviewSystems
         CodeReviewSystem:  "gerrit",
         GerritURL:         "https://chromium-review.googlesource.com",
 

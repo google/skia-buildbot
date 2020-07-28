@@ -5,6 +5,7 @@ package search
 import (
 	"context"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -53,7 +54,7 @@ type SearchImpl struct {
 	diffStore         diff.DiffStore
 	expectationsStore expectations.Store
 	indexSource       indexer.IndexSource
-	changeListStore   clstore.Store
+	reviewSystems     []clstore.CRSPackage
 	tryJobStore       tjstore.Store
 	commentStore      comment.Store
 
@@ -79,7 +80,7 @@ type SearchImpl struct {
 }
 
 // New returns a new SearchImpl instance.
-func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventRegisterer, is indexer.IndexSource, cls clstore.Store, tjs tjstore.Store, cs comment.Store, publiclyViewableParams publicparams.Matcher, flakyThreshold int) *SearchImpl {
+func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventRegisterer, is indexer.IndexSource, reviewSystems []clstore.CRSPackage, tjs tjstore.Store, cs comment.Store, publiclyViewableParams publicparams.Matcher, flakyThreshold int) *SearchImpl {
 	var triageHistoryCache sync.Map
 	if cer != nil {
 		// If the expectations change for a given ID, we should purge it from our cache so as not
@@ -93,7 +94,7 @@ func New(ds diff.DiffStore, es expectations.Store, cer expectations.ChangeEventR
 		diffStore:              ds,
 		expectationsStore:      es,
 		indexSource:            is,
-		changeListStore:        cls,
+		reviewSystems:          reviewSystems,
 		tryJobStore:            tjs,
 		commentStore:           cs,
 		publiclyViewableParams: publiclyViewableParams,
@@ -122,10 +123,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	isChangeListSearch := q.ChangeListID != "" && q.ChangeListID != "0"
 	// Get the expectations and the current index, which we assume constant
 	// for the duration of this query.
-	crs := ""
-	if s.changeListStore != nil {
-		crs = s.changeListStore.System()
-	}
+	crs := q.CodeReviewSystemID
 	exp, err := s.getExpectations(ctx, q.ChangeListID, crs)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -136,7 +134,11 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	var results []*frontend.SearchResult
 	// Find the digests (left hand side) we are interested in.
 	if isChangeListSearch {
-		cl, err := s.changeListStore.GetChangeList(ctx, q.ChangeListID)
+		reviewSystem, err := s.reviewSystem(q.CodeReviewSystemID)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		cl, err := reviewSystem.Store.GetChangeList(ctx, q.ChangeListID)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -144,11 +146,11 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 		// the trace data, which will include this CL's output appended to the end (as if it was the
 		// most recent commit to land on master).
 		commits = append(commits, web_frontend.Commit{
-			CommitTime:   cl.Updated.Unix(),
-			Hash:         cl.SystemID,
-			Author:       cl.Owner,
-			Subject:      cl.Subject,
-			IsChangeList: true,
+			CommitTime:    cl.Updated.Unix(),
+			Hash:          cl.SystemID,
+			Author:        cl.Owner,
+			Subject:       cl.Subject,
+			ChangeListURL: strings.Replace(reviewSystem.URLTemplate, "%s", cl.SystemID, 1),
 		})
 		results, err = s.queryChangeList(ctx, q, idx, exp)
 		if err != nil {
@@ -334,7 +336,7 @@ func (s *SearchImpl) getCLOnlyDigestDetails(ctx context.Context, test types.Test
 	}
 
 	// We know xps is sorted by order, if it is non-nil.
-	xps, err := s.getPatchSets(ctx, clID)
+	xps, err := s.getPatchSets(ctx, crs, clID)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "getting PatchSets for CL %s", clID)
 	}
@@ -455,7 +457,7 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 
 	clID := q.ChangeListID
 	// We know xps is sorted by order, if it is non-nil.
-	xps, err := s.getPatchSets(ctx, clID)
+	xps, err := s.getPatchSets(ctx, q.CodeReviewSystemID, clID)
 	if err != nil {
 		return skerr.Wrapf(err, "getting PatchSets for CL %s", clID)
 	}
@@ -485,7 +487,7 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 
 	id := tjstore.CombinedPSID{
 		CL:  ps.ChangeListID,
-		CRS: s.changeListStore.System(),
+		CRS: q.CodeReviewSystemID,
 		PS:  ps.SystemID,
 	}
 
@@ -570,12 +572,16 @@ func (s *SearchImpl) extractChangeListDigests(ctx context.Context, q *query.Sear
 }
 
 // getPatchSets returns the PatchSets for a given CL either from the store or from the cache.
-func (s *SearchImpl) getPatchSets(ctx context.Context, id string) ([]code_review.PatchSet, error) {
-	key := "patchsets_" + id
+func (s *SearchImpl) getPatchSets(ctx context.Context, crs, id string) ([]code_review.PatchSet, error) {
+	key := crs + "_patchsets_" + id
 	if xtr, ok := s.storeCache.Get(key); ok {
 		return xtr.([]code_review.PatchSet), nil
 	}
-	xps, err := s.changeListStore.GetPatchSets(ctx, id)
+	rs, err := s.reviewSystem(crs)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	xps, err := rs.Store.GetPatchSets(ctx, id)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -1159,6 +1165,16 @@ func (s *SearchImpl) addTriageHistory(ctx context.Context, history triageHistory
 		}(i, dr)
 	}
 	wg.Wait()
+}
+
+func (s *SearchImpl) reviewSystem(crs string) (clstore.CRSPackage, error) {
+	for _, rs := range s.reviewSystems {
+		if rs.ID == crs {
+			return rs, nil
+		}
+	}
+	sklog.Errorf("Got passed in an unknown crs - %q", crs)
+	return clstore.CRSPackage{}, skerr.Fmt("Invalid crs")
 }
 
 // Make sure SearchImpl fulfills the SearchAPI interface.

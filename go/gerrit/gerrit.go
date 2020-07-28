@@ -400,6 +400,7 @@ func (g *Gerrit) ExtractIssueFromCommit(commitMsg string) (int64, error) {
 	scanner := bufio.NewScanner(strings.NewReader(commitMsg))
 	for scanner.Scan() {
 		line := scanner.Text()
+		// Reminder, this regex has the review url (e.g. skia-review.googlesource.com) baked into it.
 		result := g.extractRegEx.FindStringSubmatch(line)
 		if len(result) == 2 {
 			ret, err := strconv.ParseInt(result[1], 10, 64)
