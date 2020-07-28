@@ -5,17 +5,14 @@
   cl_comment_template: "Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchSetOrder}}.\n\
 View them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangeListID}}",
   client_secret_file: "/etc/skia.org/login.json",
-  crs_url_template: "https://pdfium-review.googlesource.com/%s",
   diff_server_grpc: "gold-pdfium-diffserver:8000",
   diff_server_http: "gold-pdfium-diffserver:8001",
   flaky_trace_threshold: 10000, // no flaky traces
   frontend: {
     baseRepoURL: "<inherited from git_repo_url>",
-    crsTemplate: "<inherited from crs_url_template>",
     defaultCorpus: "corpus",
     title: "Pdfium Gold",
   },
-  gerrit_url: "https://pdfium-review.googlesource.com",
   lit_html_path: "/usr/local/share/skiacorrectness",
   num_commits: 500,
   port: ":8000",

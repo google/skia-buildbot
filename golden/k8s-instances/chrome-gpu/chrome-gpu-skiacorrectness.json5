@@ -11,17 +11,14 @@ If this is due to a failure in a gtest-based test, this functionality is current
 If all the trybots passed and you don't expect your CL to have any effect on browser UI, you can likely ignore this message.\n\
 See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8FFvY3YF-6BT4Mqgrb9U40t0HMfEVSSEpNs/edit?usp=sharing\n",
   client_secret_file: "/etc/skia.org/login.json",
-  crs_url_template: "https://chromium-review.googlesource.com/%s",
   diff_server_grpc: "gold-chrome-gpu-diffserver:8000",
   diff_server_http: "gold-chrome-gpu-diffserver:8001",
   flaky_trace_threshold: 10000, // no trace is flaky
   frontend: {
     baseRepoURL: "<inherited from git_repo_url>",
-    crsTemplate: "<inherited from crs_url_template>",
     defaultCorpus: "chrome-gpu",
     title: "Chrome GPU Gold",
   },
-  gerrit_url: "https://chromium-review.googlesource.com",
   lit_html_path: "/usr/local/share/skiacorrectness",
   num_commits: 512,
   port: ":8000",
