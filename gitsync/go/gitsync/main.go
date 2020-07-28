@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/sync/errgroup"
 )
 
 // This server watches a list of git repos for changes and syncs the meta data of all commits
@@ -125,8 +126,6 @@ func main() {
 		}
 	}
 
-	// TODO(stephana): Pass the token source explicitly to the BigTable related functions below.
-
 	// Create token source.
 	ts, err := auth.NewDefaultTokenSource(false, auth.SCOPE_USERINFO_EMAIL, auth.SCOPE_GERRIT, pubsub.AUTH_SCOPE)
 	if err != nil {
@@ -135,10 +134,15 @@ func main() {
 
 	// Start all repo watchers.
 	ctx := context.Background()
+	var egroup errgroup.Group
 	for _, repoURL := range config.RepoURLs {
-		if err := watcher.Start(ctx, btConfig, repoURL, gitilesURLs[repoURL], *gcsBucket, *gcsPath, time.Duration(config.RefreshInterval), ts); err != nil {
-			sklog.Fatalf("Error initializing repo watcher: %s", err)
-		}
+		repoURL := repoURL
+		egroup.Go(func() error {
+			return watcher.Start(ctx, btConfig, repoURL, gitilesURLs[repoURL], *gcsBucket, *gcsPath, time.Duration(config.RefreshInterval), ts)
+		})
+	}
+	if err := egroup.Wait(); err != nil {
+		sklog.Fatal(err)
 	}
 
 	// Set up the http handler to indicate ready-ness and start serving.
