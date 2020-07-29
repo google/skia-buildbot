@@ -1,25 +1,13 @@
-# The list of files we want to go into core.js, which is concat'd and
-# minified. These files should be either present in the project, brought
-# into third_party/bower_compoents via bower, or in node_modules.
-CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
-          third_party/bower_components/webcomponentsjs/webcomponents.min.js \
-          ../res/js/common.js \
-          res/js/ctfe.js
-
-BOWER_DIR=third_party/bower_components
-
-VULCANIZE1=true
-
 # Require clean_webtools to ensure changes to res/common/imp/*.html are reflected.
 .PHONY: ctfe
-ctfe: res/css/ctfe.css clean_webtools core_js elements_html
+ctfe:
 	cd ../infra-sk && npm ci
 	npm ci
 	npx webpack --mode=production
 	go install -v ./go/ctfe
 
 .PHONY: ctfe_debug
-ctfe_debug: res/css/ctfe.css debug
+ctfe_debug:
 	npx webpack --mode=development
 	go install -v ./go/ctfe
 
@@ -56,12 +44,6 @@ push: release
 .PHONY: push_staging
 push_staging: release
 	pushk ctfe-staging
-
-# Build debug versions of core.js and elements.html.
-.PHONY: debug
-debug: clean_webtools debug_core_js debug_elements_html
-
-include ../webtools/webtools.mk
 
 # Master scripts.
 .PHONY: build_chromium

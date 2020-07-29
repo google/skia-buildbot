@@ -19,16 +19,7 @@ ${INSTALL}     --mode=755 -T ${GOPATH}/bin/ctfe            ${ROOT}/usr/local/bin
 # Copy over all frontend artifacts.
 ${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/dist
 ${INSTALL}     --mode=644    ./dist/*                      ${ROOT}/usr/local/share/${APPNAME}/dist
-${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/templates
-${INSTALL}     --mode=644    ./templates/*                 ${ROOT}/usr/local/share/${APPNAME}/templates
-${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/res/css
-${INSTALL}     --mode=644 -T ./res/css/ctfe.css            ${ROOT}/usr/local/share/${APPNAME}/res/css/ctfe.css
-${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/res/img
-${INSTALL}     --mode=644 -T ./res/img/favicon.ico         ${ROOT}/usr/local/share/${APPNAME}/res/img/favicon.ico
-${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/res/js
-${INSTALL}     --mode=644 -T ./res/js/core.js              ${ROOT}/usr/local/share/${APPNAME}/res/js/core.js
-${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/res/vul
-${INSTALL}     --mode=644 -T ./res/vul/elements.html       ${ROOT}/usr/local/share/${APPNAME}/res/vul/elements.html
+${INSTALL}     --mode=644 -T ./res/img/favicon.ico         ${ROOT}/usr/local/share/${APPNAME}/dist/img/favicon.ico
 
 # Copy over the isolate files and python scripts.
 ${INSTALL_DIR} --mode=755                            ${ROOT}/usr/local/share/${APPNAME}/isolates
