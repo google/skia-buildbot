@@ -32,7 +32,8 @@ $$('#no_refs').appendChild(ele);
 ele = document.createElement('digest-details-sk');
 ele.details = typicalDetails;
 ele.commits = twoHundredCommits;
-ele.issue = '12345';
+ele.changeListID = '12345';
+ele.crs = 'gerrit';
 $$('#changelist_id').appendChild(ele);
 
 ele = document.createElement('digest-details-sk');

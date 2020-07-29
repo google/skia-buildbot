@@ -119,12 +119,14 @@ define('cluster-page-sk', class extends ElementSk {
     };
     this._grouping = '';
     this._changeListID = '';
+    this._crs = '';
 
     this._stateChanged = stateReflector(
       /* getState */() => {
         const state = SearchCriteriaToHintableObject(this._searchCriteria);
         state.grouping = this._grouping;
         state.changeListID = this._changeListID;
+        state.crs = this._crs;
         return state;
       },
       /* setState */(newState) => {
@@ -134,6 +136,7 @@ define('cluster-page-sk', class extends ElementSk {
         this._searchCriteria = SearchCriteriaFromHintableObject(newState);
         this._grouping = newState.grouping;
         this._changeListID = newState.changeListID;
+        this._crs = newState.crs;
         this._fetchClusterData();
         this._render();
       },
@@ -237,7 +240,8 @@ define('cluster-page-sk', class extends ElementSk {
       digest: [digest],
     };
     if (this._changeListID) {
-      urlObj.issue = [this._changeListID];
+      urlObj.changelist_id = [this._changeListID];
+      urlObj.crs = [this._crs];
     }
     const url = `/json/details?${fromObject(urlObj)}`;
 
@@ -262,7 +266,8 @@ define('cluster-page-sk', class extends ElementSk {
       right: [rightDigest],
     };
     if (this._changeListID) {
-      urlObj.issue = [this._changeListID];
+      urlObj.changelist_id = [this._changeListID];
+      urlObj.crs = [this._crs];
     }
     const url = `/json/diff?${fromObject(urlObj)}`;
 

@@ -13,6 +13,8 @@ import {
   DOT_FILL_COLORS,
   MAX_UNIQUE_DIGESTS,
 } from '../dots-sk/constants';
+import { detailHref, diffPageHref } from '../common';
+
 import 'elements-sk/icon/cancel-icon-sk';
 import 'elements-sk/icon/check-circle-icon-sk';
 import 'elements-sk/icon/help-icon-sk';
@@ -85,7 +87,8 @@ define('dots-legend-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._digests = [];
-    this._issue = '';
+    this._changeListID = '';
+    this._crs = '';
     this._test = '';
     this._totalDigests = 0;
   }
@@ -107,12 +110,22 @@ define('dots-legend-sk', class extends ElementSk {
   }
 
   /**
-   * @prop issue {string} An issue number/ID.
+   * @prop changeListID {string} The changelist id (or empty string if this is the master branch).
    */
-  get issue() { return this._issue; }
+  get changeListID() { return this._changeListID; }
 
-  set issue(issue) {
-    this._issue = issue;
+  set changeListID(id) {
+    this._changeListID = id;
+    this._render();
+  }
+
+  /**
+   * @prop crs {string} The Code Review System (e.g. "gerrit") if changeListID is set.
+   */
+  get crs() { return this._crs; }
+
+  set crs(c) {
+    this._crs = c;
     this._render();
   }
 
@@ -139,17 +152,11 @@ define('dots-legend-sk', class extends ElementSk {
   }
 
   _digestDetailHref(index) {
-    return `${'/detail'
-        + `?test=${encodeURIComponent(this._test)}`
-        + `&digest=${this._digests[index].digest}`}${
-      this._issue ? `&issue=${this._issue}` : ''}`;
+    return detailHref(this._test, this._digests[index].digest, this.changeListID, this.crs);
   }
 
   _digestDiffHref(index) {
-    return `${'/diff'
-        + `?test=${encodeURIComponent(this._test)}`
-        + `&left=${this._digests[0].digest}`
-        + `&right=${this._digests[index].digest}`}${
-      this._issue ? `&issue=${this._issue}` : ''}`;
+    return diffPageHref(this._test, this._digests[0].digest, this._digests[index].digest,
+      this.changeListID, this.crs);
   }
 });
