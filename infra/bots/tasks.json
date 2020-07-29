@@ -189,7 +189,7 @@
         {
           "name": "infra/recipe_bundles/chromium.googlesource.com/chromium/tools/build",
           "path": "recipe_bundle",
-          "version": "git_revision:617e0fd3186eaae8bcb7521def0d6d3b4a5bcaf1"
+          "version": "git_revision:57b025298deb13e7af1ce0bc07bab76716e076ff"
         },
         {
           "name": "infra/tools/git/${platform}",
