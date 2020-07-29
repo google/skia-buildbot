@@ -80,8 +80,15 @@ func (s *Server) getState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO(jcgregorio) Hook this up to Machine State server.
+	// Swarming doesn't get to decide a machine's maintenance or quarantined
+	// state. Always remove them since the presence of the key if the only thing
+	// that matters, the value is ignored.
 	delete(dict, "quarantined")
+	delete(dict, "maintenance")
+
+	if s.machine.GetMaintenanceMode() {
+		dict["maintenance"] = true
+	}
 
 	// TODO(jcgregorio) Also gather/report device temp to Machine State.
 
