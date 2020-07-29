@@ -18,6 +18,7 @@ The following licenses are used in dependent packages.
 | github.com/aws/aws-sdk-go                                         | Apache-2.0    |
 | github.com/aws/aws-sdk-go/internal/sync/singleflight              | BSD-3-Clause  |
 | github.com/beorn7/perks/quantile                                  | MIT           |
+| github.com/bradfitz/gomemcache/memcache                           | Apache-2.0    |
 | github.com/cenkalti/backoff                                       | MIT           |
 | github.com/census-instrumentation/opencensus-proto/gen-go         | Apache-2.0    |
 | github.com/cespare/xxhash/v2                                      | MIT           |
@@ -69,7 +70,6 @@ The following licenses are used in dependent packages.
 | github.com/Masterminds/goutils                                    | Apache-2.0    |
 | github.com/Masterminds/semver                                     | MIT           |
 | github.com/Masterminds/sprig                                      | MIT           |
-| github.com/mattn/go-sqlite3                                       | MIT           |
 | github.com/matttproud/golang_protobuf_extensions/pbutil           | Apache-2.0    |
 | github.com/mitchellh/copystructure                                | MIT           |
 | github.com/mitchellh/mapstructure                                 | MIT           |
