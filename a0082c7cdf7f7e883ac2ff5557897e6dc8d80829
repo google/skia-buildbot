@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6187b532_8e3579a5",
+        "filename": "golden/go/clstore/clstore.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T14:14:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6be8b1df_7c7f0b1e",
+      "range": {
+        "startLine": 68,
+        "startChar": 5,
+        "endLine": 68,
+        "endChar": 15
+      },
+      "revId": "a0082c7cdf7f7e883ac2ff5557897e6dc8d80829",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fd334f92_991d4abe",
         "filename": "golden/go/clstore/clstore.go",
         "patchSetId": 11
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "40d4923d_df22a8fd",
+        "filename": "golden/go/clstore/clstore.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T14:14:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fd334f92_991d4abe",
+      "range": {
+        "startLine": 69,
+        "startChar": 1,
+        "endLine": 69,
+        "endChar": 19
+      },
+      "revId": "a0082c7cdf7f7e883ac2ff5557897e6dc8d80829",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "591b4468_4f70b14f",
         "filename": "golden/go/config/config.go",
         "patchSetId": 11
@@ -68,6 +116,30 @@
       "revId": "a0082c7cdf7f7e883ac2ff5557897e6dc8d80829",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "265fc756_0ca02ead",
+        "filename": "golden/go/config/config.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T14:14:00Z",
+      "side": 1,
+      "message": "Leaving it as is for now. \"which variant of a system\" is essentially what I\u0027m going for.",
+      "parentUuid": "591b4468_4f70b14f",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 30
+      },
+      "revId": "a0082c7cdf7f7e883ac2ff5557897e6dc8d80829",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
