@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a5e3a4c9_b21fcc31",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-29T01:19:11Z",
+      "side": 1,
+      "message": "FYI: First pass at an updated schema for Perf using ARRAYs.",
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
