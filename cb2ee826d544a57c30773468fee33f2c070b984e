@@ -16,6 +16,190 @@
       "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f89a0359_f011822b",
+        "filename": "perf/migrations/cdb.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T12:37:37Z",
+      "side": 1,
+      "message": "nit: for consistency, I would write this using @\u003e as that reads better to me. \"params contains these keys\"",
+      "range": {
+        "startLine": 182,
+        "startChar": 2,
+        "endLine": 182,
+        "endChar": 29
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ca13342_9bc87238",
+        "filename": "perf/migrations/cdb.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T12:37:37Z",
+      "side": 1,
+      "message": "irrelevent now?",
+      "range": {
+        "startLine": 184,
+        "startChar": 39,
+        "endLine": 184,
+        "endChar": 45
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79884618_b63fa394",
+        "filename": "perf/migrations/cdb.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T12:37:37Z",
+      "side": 1,
+      "message": "nit: I would indent these to make it clear that this JOIN happens before the join on 270. Alternatively, I could be completely off on my SQL syntax style and in such a case would gladly embrace a style guide to reference :)",
+      "range": {
+        "startLine": 265,
+        "startChar": 0,
+        "endLine": 269,
+        "endChar": 5
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7e10b53_50327219",
+        "filename": "perf/migrations/cockroachdb/0002_create_initial_tables.up.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T12:37:37Z",
+      "side": 1,
+      "message": "BYTES is twice as space efficient as storing a hex encoded string. encode(trace_id, \u0027hex\u0027) is handy to see the hex encoded hash when extracting the column via SQL.\n\nAdditionally, in your hand crafted queries, you can input the bytes as x\u002747109b059f45e4f9d5ab61dd0199e2c9\u0027 which will automatically be decoded from hex.\n\nhttps://skia-review.googlesource.com/c/buildbot/+/305016/12/golden/cmd/cockroachdb_explore/cockroachdb_explore.go#182",
+      "range": {
+        "startLine": 3,
+        "startChar": 10,
+        "endLine": 3,
+        "endChar": 16
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "953ef043_40dcdb86",
+        "filename": "perf/migrations/cockroachdb/0002_create_initial_tables.up.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T12:37:37Z",
+      "side": 1,
+      "message": "FWIW in the Gold schema so far, I use the MD5 hash of the JSON string (which I need to compute anyway to store as JSON)",
+      "range": {
+        "startLine": 3,
+        "startChar": 43,
+        "endLine": 3,
+        "endChar": 53
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f44d85fa_387ac2b9",
+        "filename": "perf/migrations/cockroachdb/0002_create_initial_tables.up.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T12:37:37Z",
+      "side": 1,
+      "message": "In my queries so far for Gold, I haven\u0027t found a need to store the trace id itself, and plan on making it from the keys as I pull them out. This might be due to the fact that Gold actually rarely (never) makes use of the trace id itself, but it might be something to consider.",
+      "range": {
+        "startLine": 4,
+        "startChar": 1,
+        "endLine": 4,
+        "endChar": 11
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1b2fea21_cb1748ea",
+        "filename": "perf/migrations/cockroachdb/0002_create_initial_tables.up.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T12:37:37Z",
+      "side": 1,
+      "message": "One reason I went with JSONB over STRING[] is that I don\u0027t have to sanitize the key/values. This may not matter much in practice, but with this array format, keys should not have equal signs, as that could throw off comparison.",
+      "range": {
+        "startLine": 5,
+        "startChar": 8,
+        "endLine": 5,
+        "endChar": 16
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9de7c7f0_f57541bc",
+        "filename": "perf/migrations/cockroachdb/0002_create_initial_tables.up.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T12:37:37Z",
+      "side": 1,
+      "message": "Bigger question: Do tiles matter anymore? If the goal of tiles is to make it easy to identify which params exist in a segment of data, I think you can now do that with a JOIN to TraceValues query.\n\nSELECT DISTINCT TraceNames.params from\n  TraceNames\nJOIN\n  TraceValues2\nON TraceNames.trace_id \u003d TraceValues2.trace_id\nWHERE TraceValues2.commit_number \u003e 500 AND TraceValues2.commit_number \u003c 1000;",
+      "range": {
+        "startLine": 10,
+        "startChar": 27,
+        "endLine": 10,
+        "endChar": 32
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
