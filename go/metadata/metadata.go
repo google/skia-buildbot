@@ -29,11 +29,6 @@ const (
 	GMAIL_CLIENT_ID             = "gmail_clientid"
 	GMAIL_CLIENT_SECRET         = "gmail_clientsecret"
 
-	// ADMIN_ALLOW_LIST is the comma or whitespace separated list of domains
-	// and email address that are allowed to perform admin tasks.
-	// TODO: Is this still needed?
-	ADMIN_ALLOW_LIST = "admin_white_list"
-
 	// METADATA_PATH_PREFIX_TMPL is the template for the first part of the
 	// metadata URL. The placeholder is for the level ("instance" or
 	// "project").
