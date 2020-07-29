@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1196510c_fb6ba0e8",
+        "filename": "infra-sk/modules/test_util.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T11:38:08Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 201,
+        "startChar": 79,
+        "endLine": 201,
+        "endChar": 84
+      },
+      "revId": "41e9d37ae234969a60b8055ae8187fbb7c2019d5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b3c32da_2542546b",
+        "filename": "infra-sk/modules/test_util.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T11:38:08Z",
+      "side": 1,
+      "message": "Maybe I don\u0027t understand Typescript generics well enough yet, but don\u0027t you need to include a \u003c\u003e something in your example above to specify this type?",
+      "range": {
+        "startLine": 235,
+        "startChar": 43,
+        "endLine": 235,
+        "endChar": 58
+      },
+      "revId": "41e9d37ae234969a60b8055ae8187fbb7c2019d5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6bc8ad4c_651704a8",
+        "filename": "infra-sk/modules/test_util.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T11:38:08Z",
+      "side": 1,
+      "message": "Wouldn\u0027t this be more clear in the param part of the arrow function?",
+      "range": {
+        "startLine": 256,
+        "startChar": 56,
+        "endLine": 256,
+        "endChar": 81
+      },
+      "revId": "41e9d37ae234969a60b8055ae8187fbb7c2019d5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b7a89786_40a66b06",
+        "filename": "infra-sk/modules/test_util.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T11:38:08Z",
+      "side": 1,
+      "message": "nit: const",
+      "range": {
+        "startLine": 261,
+        "startChar": 8,
+        "endLine": 261,
+        "endChar": 11
+      },
+      "revId": "41e9d37ae234969a60b8055ae8187fbb7c2019d5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
