@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c635a6ae_739c5efa",
+        "filename": "k8s-checker/go/k8s-checker/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-29T17:38:32Z",
+      "side": 1,
+      "message": "This is finding all pods and not just crash looping ones?\nUpdate doc here and on line 383.",
+      "range": {
+        "startLine": 101,
+        "startChar": 42,
+        "endLine": 101,
+        "endChar": 55
+      },
+      "revId": "7ef1d718b9b18e0bbfa6e3606e775adeeffdbe74",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d2c270a1_3b7d7963",
+        "filename": "k8s-checker/go/k8s-checker/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-29T17:38:32Z",
+      "side": 1,
+      "message": "evictedMetrics -\u003e pod metrics",
+      "range": {
+        "startLine": 102,
+        "startChar": 24,
+        "endLine": 102,
+        "endChar": 38
+      },
+      "revId": "7ef1d718b9b18e0bbfa6e3606e775adeeffdbe74",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
