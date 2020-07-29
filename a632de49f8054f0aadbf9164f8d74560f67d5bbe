@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "95626cbe_4fa10ad8",
+        "filename": "machine/go/machineserver/main.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 291,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-29T12:48:37Z",
+      "side": 1,
+      "message": "Done and done for all similar sites in this file.",
+      "parentUuid": "f69502d4_c5ed9907",
+      "range": {
+        "startLine": 291,
+        "startChar": 2,
+        "endLine": 291,
+        "endChar": 117
+      },
+      "revId": "a632de49f8054f0aadbf9164f8d74560f67d5bbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "8f56e078_7ffd4f1c",
         "filename": "machine/go/machineserver/main_test.go",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "a632de49f8054f0aadbf9164f8d74560f67d5bbe",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d901127f_4a5ed964",
+        "filename": "machine/go/machineserver/main_test.go",
+        "patchSetId": 5
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-29T12:48:37Z",
+      "side": 1,
+      "message": "Ah, because it\u0027s a global that I never reset. Moved to setupForTest and added a comment.",
+      "parentUuid": "8f56e078_7ffd4f1c",
+      "range": {
+        "startLine": 312,
+        "startChar": 1,
+        "endLine": 312,
+        "endChar": 22
+      },
+      "revId": "a632de49f8054f0aadbf9164f8d74560f67d5bbe",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
