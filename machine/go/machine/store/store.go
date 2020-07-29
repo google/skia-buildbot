@@ -39,4 +39,7 @@ type Store interface {
 
 	// List returns a slice containing all known machines.
 	List(ctx context.Context) ([]machine.Description, error)
+
+	// Delete removes a machine from the database.
+	Delete(ctx context.Context, machineID string) error
 }

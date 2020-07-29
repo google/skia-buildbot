@@ -19,6 +19,7 @@ import '../../../infra-sk/modules/theme-chooser-sk';
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/cached-icon-sk';
 import 'elements-sk/icon/clear-icon-sk';
+import 'elements-sk/icon/delete-icon-sk';
 import 'elements-sk/icon/pause-icon-sk';
 import 'elements-sk/icon/play-arrow-icon-sk';
 import 'elements-sk/icon/power-settings-new-icon-sk';
@@ -104,7 +105,7 @@ const update = (ele: MachineServerSk, machine: Description) => {
     <button
       title="Force the pod to be killed and re-created"
       class="update"
-      @click=${() => ele._toggleUpdate(machine.Dimensions.id)}
+      @click=${() => ele._toggleUpdate(machine.Dimensions.id[0])}
     >
       ${msg}
     </button>
@@ -132,7 +133,7 @@ const powerCycle = (ele: MachineServerSk, machine: Description) => {
   return html`
     <power-settings-new-icon-sk
       title="Powercycle the host"
-      @click=${() => ele._togglePowerCycle(machine.Dimensions.id)}
+      @click=${() => ele._togglePowerCycle(machine.Dimensions.id[0])}
     ></power-settings-new-icon-sk>
   `;
 };
@@ -143,7 +144,7 @@ const clearDevice = (ele: MachineServerSk, machine: Description) => {
     : html`
         <clear-icon-sk
           title="Clear the dimensions for the bot"
-          @click=${() => ele._clearDevice(machine.Dimensions.id)}
+          @click=${() => ele._clearDevice(machine.Dimensions.id[0])}
         ></clear-icon-sk>
       `;
 };
@@ -152,7 +153,7 @@ const toggleMode = (ele: MachineServerSk, machine: Description) => {
   return html`
     <button
       class="mode"
-      @click=${() => ele._toggleMode(machine.Dimensions.id)}
+      @click=${() => ele._toggleMode(machine.Dimensions.id[0])}
       title="Put the machine in maintenance mode."
     >
       ${machine.Mode}
@@ -169,6 +170,13 @@ const machineLink = (machine: Description) => {
     </a>
   `;
 };
+
+const deleteMachine = (ele: MachineServerSk, machine: Description) => html`
+  <delete-icon-sk
+    title="Remove the machine from the database."
+    @click=${() => ele._deleteDevice(machine.Dimensions.id[0])}
+  ></delete-icon-sk>
+`;
 
 const rows = (ele: MachineServerSk) =>
   ele._machines.map(
@@ -189,6 +197,7 @@ const rows = (ele: MachineServerSk) =>
         <td>${dimensions(machine)}</td>
         <td>${annotation(machine)}</td>
         <td>${imageName(machine)}</td>
+        <td>${deleteMachine(ele, machine)}</td>
       </tr>
     `
   );
@@ -235,6 +244,7 @@ const template = (ele: MachineServerSk) => html`
         <th>Dimensions</th>
         <th>Annotation</th>
         <th>Image</th>
+        <th>Delete</th>
       </tr>
       ${rows(ele)}
     </table>
@@ -293,7 +303,7 @@ export class MachineServerSk extends ElementSk {
     }
   }
 
-  async _toggleMode(id: string[]) {
+  async _toggleMode(id: string) {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_mode/${id}`);
@@ -304,7 +314,7 @@ export class MachineServerSk extends ElementSk {
     }
   }
 
-  async _toggleUpdate(id: string[]) {
+  async _toggleUpdate(id: string) {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_update/${id}`);
@@ -315,7 +325,7 @@ export class MachineServerSk extends ElementSk {
     }
   }
 
-  async _togglePowerCycle(id: string[]) {
+  async _togglePowerCycle(id: string) {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_powercycle/${id}`);
@@ -326,10 +336,21 @@ export class MachineServerSk extends ElementSk {
     }
   }
 
-  async _clearDevice(id: string[]) {
+  async _clearDevice(id: string) {
     try {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/remove_device/${id}`);
+      this.removeAttribute('waiting');
+      this._update(true);
+    } catch (error) {
+      this._onError(error);
+    }
+  }
+
+  async _deleteDevice(id: string) {
+    try {
+      this.setAttribute('waiting', '');
+      await fetch(`/_/machine/delete_machine/${id}`);
       this.removeAttribute('waiting');
       this._update(true);
     } catch (error) {

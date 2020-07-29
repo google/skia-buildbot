@@ -2,7 +2,7 @@ import './index';
 import { MachineServerSk } from './index';
 import fetchMock from 'fetch-mock';
 
-fetchMock.config.overwriteRoutes = false;
+fetchMock.config.overwriteRoutes = true;
 
 const assert = chai.assert;
 
@@ -321,30 +321,32 @@ describe('machine-server-sk', () => {
   });
 
   describe('clears Dimensions on click', () => {
-    fetchMock.get('/_/machines', [
-      {
-        Mode: 'available',
-        Battery: 100,
-        PodName: 'rpi-swarming-123456-987',
-        ScheduledForDeletion: '',
-        Dimensions: {
-          id: ['skia-rpi2-rack4-shelf1-002'],
-          android_devices: ['1'],
-          device_os: ['H', 'HUAWEIELE-L29'],
-        },
-        Annotation: {
-          User: '',
-          Message: '',
-          LastUpdated: '2020-04-21T17:33:09.638275Z',
-        },
-        PowerCycle: false,
-        LastUpdated: '2020-04-21T17:33:09.638275Z',
-        Temperature: { dumpsys_battery: 26 },
-      },
-    ]);
-
-    it('updates PowerCycle when you click on the button', () =>
+    it('clears the Dimensions when you click on the button', () =>
       window.customElements.whenDefined('machine-server-sk').then(async () => {
+        fetchMock.reset();
+
+        fetchMock.get('/_/machines', [
+          {
+            Mode: 'available',
+            Battery: 100,
+            PodName: 'rpi-swarming-123456-987',
+            ScheduledForDeletion: '',
+            Dimensions: {
+              id: ['skia-rpi2-rack4-shelf1-002'],
+              android_devices: ['1'],
+              device_os: ['H', 'HUAWEIELE-L29'],
+            },
+            Annotation: {
+              User: '',
+              Message: '',
+              LastUpdated: '2020-04-21T17:33:09.638275Z',
+            },
+            PowerCycle: false,
+            LastUpdated: '2020-04-21T17:33:09.638275Z',
+            Temperature: { dumpsys_battery: 26 },
+          },
+        ]);
+
         container.innerHTML = '<machine-server-sk></machine-server-sk>';
         const s = container.firstElementChild;
 
@@ -387,6 +389,61 @@ describe('machine-server-sk', () => {
 
         // Confirm the dimensions are now empty.
         assert.isNull(s!.querySelector('details.dimensions table tr'));
+      }));
+  });
+
+  describe('deletes Machine on click', () => {
+    it('deletes the Machine when you click on the button', () =>
+      window.customElements.whenDefined('machine-server-sk').then(async () => {
+        fetchMock.reset();
+        fetchMock.get('/_/machines', [
+          {
+            Mode: 'available',
+            Battery: 100,
+            PodName: 'rpi-swarming-123456-987',
+            ScheduledForDeletion: '',
+            Dimensions: {
+              id: ['skia-rpi2-rack4-shelf1-002'],
+              android_devices: ['1'],
+              device_os: ['H', 'HUAWEIELE-L29'],
+            },
+            Annotation: {
+              User: '',
+              Message: '',
+              LastUpdated: '2020-04-21T17:33:09.638275Z',
+            },
+            PowerCycle: false,
+            LastUpdated: '2020-04-21T17:33:09.638275Z',
+            Temperature: { dumpsys_battery: 26 },
+          },
+        ]);
+
+        container.innerHTML = '<machine-server-sk></machine-server-sk>';
+        const s = container.firstElementChild;
+
+        // Wait for the initial fetch to finish.
+        await fetchMock.flush(true);
+
+        // Confirm there are rows in the table.
+        assert.isNotNull(s!.querySelector('main > table > tbody > tr > td'));
+
+        // Now set up fetchMock for the requests that happen when the button is clicked.
+        fetchMock.reset();
+        fetchMock.get(
+          '/_/machine/delete_machine/skia-rpi2-rack4-shelf1-002',
+          200
+        );
+        fetchMock.get('/_/machines', []);
+
+        // Click the button.
+        const button = s!.querySelector<HTMLElement>('delete-icon-sk')!;
+        button.click();
+
+        // Wait for all requests to finish.
+        await fetchMock.flush(true);
+
+        // Confirm the one machine has been removed.
+        assert.isNull(s!.querySelector('main > table > tbody > tr > td'));
       }));
   });
 });
