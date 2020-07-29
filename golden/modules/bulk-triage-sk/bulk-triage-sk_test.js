@@ -55,6 +55,7 @@ describe('bulk-triage-sk', () => {
 
     it('POSTs for all results', async () => {
       bulkTriageSk.changeListID = 'someCL';
+      bulkTriageSk.crs = 'gerrit';
       $$('checkbox-sk.toggle_all', bulkTriageSk).click();
       const finishedPromise = eventPromise('bulk_triage_finished');
       fetchMock.post('/json/triage', (url, req) => {
