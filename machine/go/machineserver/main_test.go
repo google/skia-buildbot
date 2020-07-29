@@ -27,12 +27,14 @@ func setupForTest(t *testing.T) (context.Context, config.InstanceConfig) {
 		},
 	}
 	ctx := context.Background()
+
+	// Use fake authentication.
+	*baseapp.Local = true
 	return ctx, cfg
 }
 
 func TestMachineToggleModeHandler_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	*baseapp.Local = true
 
 	ctx, cfg := setupForTest(t)
 	store, err := store.New(ctx, true, cfg)
@@ -84,7 +86,6 @@ func TestMachineToggleModeHandler_FailOnMissingID(t *testing.T) {
 
 func TestMachineToggleUpdateHandler_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	*baseapp.Local = true
 
 	ctx, cfg := setupForTest(t)
 	store, err := store.New(ctx, true, cfg)
@@ -163,7 +164,6 @@ func TestMachineToggleUpdateHandler_FailOnMissingID(t *testing.T) {
 
 func TestMachineTogglePowerCycleHandler_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	*baseapp.Local = true
 
 	ctx, cfg := setupForTest(t)
 	store, err := store.New(ctx, true, cfg)
@@ -242,7 +242,6 @@ func TestMachineTogglePowerCycleHandler_FailOnMissingID(t *testing.T) {
 
 func TestMachineRemoveDeviceHandler_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	*baseapp.Local = true
 
 	ctx, cfg := setupForTest(t)
 	store, err := store.New(ctx, true, cfg)
@@ -299,6 +298,62 @@ func TestMachineRemoveDeviceHandler_FailOnMissingID(t *testing.T) {
 	s.AddHandlers(router)
 
 	r := httptest.NewRequest("GET", "/_/machine/remove_device/", nil)
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	assert.Equal(t, 404, w.Code)
+}
+
+func TestMachineDeleteMachineHandler_Success(t *testing.T) {
+	unittest.LargeTest(t)
+
+	ctx, cfg := setupForTest(t)
+	store, err := store.New(ctx, true, cfg)
+	require.NoError(t, err)
+
+	const podName = "rpi-swarming-123456"
+	err = store.Update(ctx, "someid", func(in machine.Description) machine.Description {
+		ret := in.Copy()
+		ret.PodName = podName
+		return ret
+	})
+	require.NoError(t, err)
+
+	// Create our server.
+	s := &server{
+		store: store,
+	}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("GET", "/_/machine/delete_machine/someid", nil)
+	w := httptest.NewRecorder()
+
+	// Make the request.
+	router.ServeHTTP(w, r)
+
+	// Confirm the request was successful.
+	require.Equal(t, 200, w.Code)
+	machines, err := store.List(ctx)
+	require.NoError(t, err)
+	require.Len(t, machines, 0)
+}
+
+func TestMachineDeleteMachineHandler_FailOnMissingID(t *testing.T) {
+	unittest.LargeTest(t)
+
+	// Create our server.
+	s := &server{}
+
+	// Put a mux.Router in place so the request path gets parsed.
+	router := mux.NewRouter()
+	s.AddHandlers(router)
+
+	r := httptest.NewRequest("GET", "/_/machine/delete_machine/", nil)
 	w := httptest.NewRecorder()
 
 	// Make the request.
