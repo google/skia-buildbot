@@ -28,13 +28,6 @@ export function baseRepoURL() {
 }
 
 /**
- * @return {string}
- */
-export function codeReviewURLTemplate() {
-  return window.GoldSettings && window.GoldSettings.crsTemplate;
-}
-
-/**
  * @param newSettings {Object}
  */
 export function testOnlySetSettings(newSettings) {

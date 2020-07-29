@@ -159,17 +159,3 @@ func (_m *Store) PutPatchSet(ctx context.Context, ps code_review.PatchSet) error
 
 	return r0
 }
-
-// System provides a mock function with given fields:
-func (_m *Store) System() string {
-	ret := _m.Called()
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func() string); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	return r0
-}

@@ -810,6 +810,7 @@ func (c *CloudClient) TriageAsPositive(testName types.TestName, digest types.Dig
 	// Build TriageRequest struct and encode it into JSON.
 	triageRequest := &frontend.TriageRequest{
 		TestDigestStatus:       map[types.TestName]map[types.Digest]expectations.Label{testName: {digest: expectations.Positive}},
+		CodeReviewSystem:       c.resultState.SharedConfig.CodeReviewSystem,
 		ChangeListID:           c.resultState.SharedConfig.ChangeListID,
 		ImageMatchingAlgorithm: algorithmName,
 	}

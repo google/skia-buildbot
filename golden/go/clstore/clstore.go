@@ -17,6 +17,8 @@ import (
 // the purpose of this interface is not to store every CL.
 // A single Store interface should only be responsible for one "system", i.e.
 // Gerrit or GitHub.
+// TODO(kjlubick) Just like the tryjobstore holds onto all tryjob results (from all CIS), this
+//   should hold onto all CLs from all CRS.
 type Store interface {
 	// GetChangeList returns the ChangeList corresponding to the given id.
 	// Returns NotFound if it doesn't exist.
@@ -46,9 +48,6 @@ type Store interface {
 	// PutPatchSet stores the given PatchSet, overwriting any values for
 	// that PatchSet if they already existed.
 	PutPatchSet(ctx context.Context, ps code_review.PatchSet) error
-
-	// System returns the underlying system (e.g. "gerrit")
-	System() string
 }
 
 var ErrNotFound = errors.New("not found")
@@ -64,3 +63,11 @@ type SearchOptions struct {
 // CountMany indicates it is computationally expensive to determine exactly how many
 // items there are.
 var CountMany = math.MaxInt32
+
+// ReviewSystem combines the data needed to interface with a single CRS.
+type ReviewSystem struct {
+	ID          string // e.g. "gerrit", "gerrit-internal"
+	Client      code_review.Client
+	Store       Store
+	URLTemplate string
+}

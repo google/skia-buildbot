@@ -36,7 +36,7 @@
         FirestoreProjectID: "skia-firestore",
         FirestoreNamespace: "flutter",
 
-        CodeReviewSystem:      "github",
+        CodeReviewSystems:     "github",
         GitHubCredentialsPath: "/var/secrets/github/github_token",
         GitHubRepo:            "flutter/flutter",
 

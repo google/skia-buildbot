@@ -38,17 +38,19 @@ const (
 	firestoreProjectIDParam = "FirestoreProjectID"
 	firestoreNamespaceParam = "FirestoreNamespace"
 
-	codeReviewSystemParam      = "CodeReviewSystem"
+	codeReviewSystemsParam     = "CodeReviewSystems"
 	gerritURLParam             = "GerritURL"
+	gerritInternalURLParam     = "GerritInternalURL"
 	githubRepoParam            = "GitHubRepo"
 	githubCredentialsPathParam = "GitHubCredentialsPath"
 
 	continuousIntegrationSystemsParam = "ContinuousIntegrationSystems"
 
-	gerritCRS      = "gerrit"
-	githubCRS      = "github"
-	buildbucketCIS = "buildbucket"
-	cirrusCIS      = "cirrus"
+	gerritCRS         = "gerrit"
+	gerritInternalCRS = "gerrit-internal"
+	githubCRS         = "github"
+	buildbucketCIS    = "buildbucket"
+	cirrusCIS         = "cirrus"
 )
 
 // Register the ingestion Processor with the ingestion framework.
@@ -58,29 +60,15 @@ func init() {
 
 // goldTryjobProcessor implements the ingestion.Processor interface to ingest tryjob results.
 type goldTryjobProcessor struct {
-	reviewClient code_review.Client
-	cisClients   map[string]continuous_integration.Client
-
-	changeListStore clstore.Store
-	tryJobStore     tjstore.Store
-
-	crsName string
+	cisClients    map[string]continuous_integration.Client
+	reviewSystems []clstore.ReviewSystem
+	tryJobStore   tjstore.Store
 }
 
 // newModularTryjobProcessor returns an ingestion.Processor which is modular and can support
 // different CodeReviewSystems (e.g. "Gerrit", "GitHub") and different ContinuousIntegrationSystems
 // (e.g. "BuildBucket", "CirrusCI"). This particular implementation stores the data in Firestore.
 func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingestion.Config, client *http.Client) (ingestion.Processor, error) {
-	crsName := config.ExtraParams[codeReviewSystemParam]
-	if strings.TrimSpace(crsName) == "" {
-		return nil, skerr.Fmt("missing code review system (e.g. 'gerrit')")
-	}
-
-	crs, err := codeReviewSystemFactory(crsName, config, client)
-	if err != nil {
-		return nil, skerr.Wrapf(err, "could not create client for CRS %q", crsName)
-	}
-
 	cisNames := strings.Split(config.ExtraParams[continuousIntegrationSystemsParam], ",")
 	if len(cisNames) == 0 {
 		return nil, skerr.Fmt("missing CI system (e.g. 'buildbucket')")
@@ -114,12 +102,28 @@ func newModularTryjobProcessor(ctx context.Context, _ vcsinfo.VCS, config ingest
 		return nil, skerr.Wrapf(err, "initializing expectation store")
 	}
 
+	crsNames := strings.Split(config.ExtraParams[codeReviewSystemsParam], ",")
+	if len(crsNames) == 0 {
+		return nil, skerr.Fmt("missing CRS (e.g. 'gerrit')")
+	}
+
+	var reviewSystems []clstore.ReviewSystem
+	for _, crsName := range crsNames {
+		crsClient, err := codeReviewSystemFactory(crsName, config, client)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "could not create client for CRS %q", crsName)
+		}
+		reviewSystems = append(reviewSystems, clstore.ReviewSystem{
+			ID:     crsName,
+			Client: crsClient,
+			Store:  fs_clstore.New(fsClient, crsName),
+		})
+	}
+
 	return &goldTryjobProcessor{
-		reviewClient:    crs,
-		cisClients:      cisClients,
-		changeListStore: fs_clstore.New(fsClient, crsName),
-		tryJobStore:     fs_tjstore.New(fsClient),
-		crsName:         crsName,
+		cisClients:    cisClients,
+		tryJobStore:   fs_tjstore.New(fsClient),
+		reviewSystems: reviewSystems,
 	}, nil
 }
 
@@ -128,6 +132,17 @@ func codeReviewSystemFactory(crsName string, config ingestion.Config, client *ht
 		gerritURL := config.ExtraParams[gerritURLParam]
 		if strings.TrimSpace(gerritURL) == "" {
 			return nil, skerr.Fmt("missing URL for the Gerrit code review system")
+		}
+		gerritClient, err := gerrit.NewGerrit(gerritURL, client)
+		if err != nil {
+			return nil, skerr.Wrapf(err, "creating gerrit client for %s", gerritURL)
+		}
+		return gerrit_crs.New(gerritClient), nil
+	}
+	if crsName == gerritInternalCRS {
+		gerritURL := config.ExtraParams[gerritInternalURLParam]
+		if strings.TrimSpace(gerritURL) == "" {
+			return nil, skerr.Fmt("missing URL for the Gerrit internal code review system")
 		}
 		gerritClient, err := gerrit.NewGerrit(gerritURL, client)
 		if err != nil {
@@ -181,24 +196,25 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	psID := ""
 	crs := gr.CodeReviewSystem
 	if crs == "" {
-		// Default to Gerrit
+		// Default to Gerrit; TODO(kjlubick) who uses this?
+		sklog.Warningf("Using default CRS (this may go away soon)")
 		crs = gerritCRS
 	}
-	if crs == g.crsName {
-		clID = gr.ChangeListID
-		psOrder = gr.PatchSetOrder
-		psID = gr.PatchSetID
-	} else {
-		sklog.Warningf("Result %s said it was for crs %q, but this ingester is configured for %s", rf.Name(), crs, g.crsName)
-		// We only support one CRS and one CIS at the moment, but if needed, we can have
-		// multiple configured and pivot to the one we need.
+
+	system, ok := g.getCodeReviewSystem(crs)
+	if !ok {
+		sklog.Warningf("Result %s said it was for crs %q, which we aren't configured for", rf.Name(), crs)
 		return ingestion.IgnoreResultsFileErr
 	}
+	clID = gr.ChangeListID
+	psOrder = gr.PatchSetOrder
+	psID = gr.PatchSetID
 
 	tjID := ""
 	cisName := gr.ContinuousIntegrationSystem
 	if cisName == "" {
-		// Default to BuildBucket
+		// Default to BuildBucket; TODO(kjlubick) who uses this?
+		sklog.Warningf("Using default CIS (this may go away soon)")
 		cisName = buildbucketCIS
 	}
 	var cisClient continuous_integration.Client
@@ -213,9 +229,9 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	}
 
 	// Fetch CL from clstore if we have seen it before, from CRS if we have not.
-	cl, err := g.changeListStore.GetChangeList(ctx, clID)
+	cl, err := system.Store.GetChangeList(ctx, clID)
 	if err == clstore.ErrNotFound {
-		cl, err = g.reviewClient.GetChangeList(ctx, clID)
+		cl, err = system.Client.GetChangeList(ctx, clID)
 		if err == code_review.ErrNotFound {
 			sklog.Warningf("Unknown %s CL with id %q", crs, clID)
 			// Try again later - maybe the input was created before the CL?
@@ -229,7 +245,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 		return skerr.Wrapf(err, "fetching CL from clstore with id %q", clID)
 	}
 
-	ps, err := g.getPatchSet(ctx, psOrder, psID, clID, crs)
+	ps, err := g.getPatchSet(ctx, system, psOrder, psID, clID)
 	if err != nil {
 		// Do not wrap this error - this returns IgnoreResultsFileErr sometimes.
 		return err
@@ -273,7 +289,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 
 	// Store the results from the file.
 	tjr := toTryJobResults(gr)
-	if err := g.changeListStore.PutPatchSet(ctx, ps); err != nil {
+	if err := system.Store.PutPatchSet(ctx, ps); err != nil {
 		return skerr.Wrapf(err, "could not store PS %s of CL %q to clstore", psID, clID)
 	}
 	err = g.tryJobStore.PutResults(ctx, combinedID, tjID, cisName, tjr, time.Now())
@@ -285,7 +301,7 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 	// to determine if any changes have happened to the CL or any children PSes in a given time
 	// period.
 	cl.Updated = time.Now()
-	if err = g.changeListStore.PutChangeList(ctx, cl); err != nil {
+	if err = system.Store.PutChangeList(ctx, cl); err != nil {
 		return skerr.Wrapf(err, "updating CL with id %q to clstore", clID)
 	}
 	return nil
@@ -293,15 +309,15 @@ func (g *goldTryjobProcessor) Process(ctx context.Context, rf ingestion.ResultFi
 
 // getPatchSet looks up a PatchSet either by id or order from our changeListStore. If it's not
 // there, it looks it up from the CRS and then stores it to the changeListStore before returning it.
-func (g *goldTryjobProcessor) getPatchSet(ctx context.Context, psOrder int, psID, clID, crs string) (code_review.PatchSet, error) {
+func (g *goldTryjobProcessor) getPatchSet(ctx context.Context, system clstore.ReviewSystem, psOrder int, psID, clID string) (code_review.PatchSet, error) {
 	// Try looking up patchset by ID first, then fall back to order.
 	if psID != "" {
 		// Fetch PS from clstore if we have seen it before, from CRS if we have not.
-		ps, err := g.changeListStore.GetPatchSet(ctx, clID, psID)
+		ps, err := system.Store.GetPatchSet(ctx, clID, psID)
 		if err == clstore.ErrNotFound {
-			xps, err := g.reviewClient.GetPatchSets(ctx, clID)
+			xps, err := system.Client.GetPatchSets(ctx, clID)
 			if err != nil {
-				return code_review.PatchSet{}, skerr.Wrapf(err, "could not get patchsets for %s cl %s", crs, clID)
+				return code_review.PatchSet{}, skerr.Wrapf(err, "could not get patchsets for %s cl %s", system.ID, clID)
 			}
 			// It should be ok to overwrite any PatchSets we've seen before - they should be
 			// immutable.
@@ -310,7 +326,7 @@ func (g *goldTryjobProcessor) getPatchSet(ctx context.Context, psOrder int, psID
 					return p, nil
 				}
 			}
-			sklog.Warningf("Unknown %s PS %s for CL %q", crs, psID, clID)
+			sklog.Warningf("Unknown %s PS %s for CL %q", system.ID, psID, clID)
 			// Try again later - maybe the input was created before the CL uploaded its PS?
 			return code_review.PatchSet{}, ingestion.IgnoreResultsFileErr
 
@@ -321,11 +337,11 @@ func (g *goldTryjobProcessor) getPatchSet(ctx context.Context, psOrder int, psID
 		return ps, nil
 	}
 	// Fetch PS from clstore if we have seen it before, from CRS if we have not.
-	ps, err := g.changeListStore.GetPatchSetByOrder(ctx, clID, psOrder)
+	ps, err := system.Store.GetPatchSetByOrder(ctx, clID, psOrder)
 	if err == clstore.ErrNotFound {
-		xps, err := g.reviewClient.GetPatchSets(ctx, clID)
+		xps, err := system.Client.GetPatchSets(ctx, clID)
 		if err != nil {
-			return code_review.PatchSet{}, skerr.Wrapf(err, "could not get patchsets for %s cl %s", crs, clID)
+			return code_review.PatchSet{}, skerr.Wrapf(err, "could not get patchsets for %s cl %s", system.ID, clID)
 		}
 		// It should be ok to put any PatchSets we've seen before - they should be immutable.
 		for _, p := range xps {
@@ -333,7 +349,7 @@ func (g *goldTryjobProcessor) getPatchSet(ctx context.Context, psOrder int, psID
 				return p, nil
 			}
 		}
-		sklog.Warningf("Unknown %s PS with order %d for CL %q", crs, psOrder, clID)
+		sklog.Warningf("Unknown %s PS with order %d for CL %q", system.ID, psOrder, clID)
 		// Try again later - maybe the input was created before the CL uploaded its PS?
 		return code_review.PatchSet{}, ingestion.IgnoreResultsFileErr
 	} else if err != nil {
@@ -355,4 +371,18 @@ func toTryJobResults(j *jsonio.GoldResults) []tjstore.TryJobResult {
 		})
 	}
 	return tjr
+}
+
+// getCodeReviewSystem returns the ReviewSystem associated with the crs, or false if there was no
+// match.
+func (g *goldTryjobProcessor) getCodeReviewSystem(crs string) (clstore.ReviewSystem, bool) {
+	var system clstore.ReviewSystem
+	found := false
+	for _, rs := range g.reviewSystems {
+		if rs.ID == crs {
+			system = rs
+			found = true
+		}
+	}
+	return system, found
 }

@@ -71,19 +71,18 @@ const (
 
 // HandlersConfig holds the environment needed by the various http handler functions.
 type HandlersConfig struct {
-	Baseliner             baseline.BaselineFetcher
-	ChangeListStore       clstore.Store
-	CodeReviewURLTemplate string
-	DiffStore             diff.DiffStore
-	ExpectationsStore     expectations.Store
-	GCSClient             storage.GCSClient
-	IgnoreStore           ignore.Store
-	Indexer               indexer.IndexSource
-	SearchAPI             search.SearchAPI
-	StatusWatcher         *status.StatusWatcher
-	TileSource            tilesource.TileSource
-	TryJobStore           tjstore.Store
-	VCS                   vcsinfo.VCS
+	Baseliner         baseline.BaselineFetcher
+	DiffStore         diff.DiffStore
+	ExpectationsStore expectations.Store
+	GCSClient         storage.GCSClient
+	IgnoreStore       ignore.Store
+	Indexer           indexer.IndexSource
+	ReviewSystems     []clstore.ReviewSystem
+	SearchAPI         search.SearchAPI
+	StatusWatcher     *status.StatusWatcher
+	TileSource        tilesource.TileSource
+	TryJobStore       tjstore.Store
+	VCS               vcsinfo.VCS
 }
 
 // Handlers represents all the handlers (e.g. JSON endpoints) of Gold.
@@ -105,17 +104,14 @@ func NewHandlers(conf HandlersConfig, val validateFields) (*Handlers, error) {
 	if conf.Baseliner == nil {
 		return nil, skerr.Fmt("Baseliner cannot be nil")
 	}
-	if conf.ChangeListStore == nil {
-		return nil, skerr.Fmt("ChangeListStore cannot be nil")
+	if len(conf.ReviewSystems) == 0 {
+		return nil, skerr.Fmt("ReviewSystems cannot be empty")
 	}
 	if conf.GCSClient == nil {
 		return nil, skerr.Fmt("GCSClient cannot be nil")
 	}
 
 	if val == FullFrontEnd {
-		if conf.CodeReviewURLTemplate == "" {
-			return nil, skerr.Fmt("CodeReviewURLTemplate cannot be nil")
-		}
 		if conf.DiffStore == nil {
 			return nil, skerr.Fmt("DiffStore cannot be nil")
 		}
@@ -360,20 +356,28 @@ func (wh *Handlers) getIngestedChangeLists(ctx context.Context, offset, size int
 		so.OpenCLsOnly = true
 	}
 
-	cls, total, err := wh.ChangeListStore.GetChangeLists(ctx, so)
-	if err != nil {
-		return nil, nil, skerr.Wrapf(err, "fetching ChangeLists from [%d:%d)", offset, offset+size)
-	}
-	crs := wh.ChangeListStore.System()
+	grandTotal := 0
 	var retCls []frontend.ChangeList
-	for _, cl := range cls {
-		retCls = append(retCls, frontend.ConvertChangeList(cl, crs, wh.CodeReviewURLTemplate))
+	for _, system := range wh.ReviewSystems {
+		cls, total, err := system.Store.GetChangeLists(ctx, so)
+		if err != nil {
+			return nil, nil, skerr.Wrapf(err, "fetching ChangeLists from [%d:%d)", offset, offset+size)
+		}
+
+		for _, cl := range cls {
+			retCls = append(retCls, frontend.ConvertChangeList(cl, system.ID, system.URLTemplate))
+		}
+		if grandTotal == clstore.CountMany || total == clstore.CountMany {
+			grandTotal = clstore.CountMany
+		} else {
+			grandTotal += total
+		}
 	}
 
 	pagination := &httputils.ResponsePagination{
 		Offset: offset,
 		Size:   size,
-		Total:  total,
+		Total:  grandTotal,
 	}
 	return retCls, pagination, nil
 }
@@ -394,8 +398,18 @@ func (wh *Handlers) ChangeListSummaryHandler(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Must specify 'id' of ChangeList.", http.StatusBadRequest)
 		return
 	}
+	crs, ok := mux.Vars(r)["system"]
+	if !ok {
+		http.Error(w, "Must specify 'system' of ChangeList.", http.StatusBadRequest)
+		return
+	}
+	system, ok := wh.getCodeReviewSystem(crs)
+	if !ok {
+		http.Error(w, "Invalid Code Review System", http.StatusBadRequest)
+		return
+	}
 
-	rv, err := wh.getCLSummary(r.Context(), clID)
+	rv, err := wh.getCLSummary(r.Context(), system, clID)
 	if err != nil {
 		httputils.ReportError(w, err, "could not retrieve data for the specified CL.", http.StatusInternalServerError)
 		return
@@ -413,19 +427,18 @@ var cisTemplates = map[string]string{
 // getCLSummary does a bulk of the work for ChangeListSummaryHandler, specifically
 // fetching the ChangeList and PatchSets from clstore and any associated TryJobs from
 // the tjstore.
-func (wh *Handlers) getCLSummary(ctx context.Context, clID string) (frontend.ChangeListSummary, error) {
-	cl, err := wh.ChangeListStore.GetChangeList(ctx, clID)
+func (wh *Handlers) getCLSummary(ctx context.Context, system clstore.ReviewSystem, clID string) (frontend.ChangeListSummary, error) {
+	cl, err := system.Store.GetChangeList(ctx, clID)
 	if err != nil {
 		return frontend.ChangeListSummary{}, skerr.Wrapf(err, "getting CL %s", clID)
 	}
 
 	// We know xps is sorted by order, if it is non-nil
-	xps, err := wh.ChangeListStore.GetPatchSets(ctx, clID)
+	xps, err := system.Store.GetPatchSets(ctx, clID)
 	if err != nil {
 		return frontend.ChangeListSummary{}, skerr.Wrapf(err, "getting PatchSets for CL %s", clID)
 	}
 
-	crs := wh.ChangeListStore.System()
 	var patchsets []frontend.PatchSet
 	maxOrder := 0
 
@@ -436,7 +449,7 @@ func (wh *Handlers) getCLSummary(ctx context.Context, clID string) (frontend.Cha
 		}
 		psID := tjstore.CombinedPSID{
 			CL:  clID,
-			CRS: wh.ChangeListStore.System(),
+			CRS: system.ID,
 			PS:  ps.SystemID,
 		}
 		xtj, err := wh.TryJobStore.GetTryJobs(ctx, psID)
@@ -457,7 +470,7 @@ func (wh *Handlers) getCLSummary(ctx context.Context, clID string) (frontend.Cha
 	}
 
 	return frontend.ChangeListSummary{
-		CL:                frontend.ConvertChangeList(cl, crs, wh.CodeReviewURLTemplate),
+		CL:                frontend.ConvertChangeList(cl, system.ID, system.URLTemplate),
 		PatchSets:         patchsets,
 		NumTotalPatchSets: maxOrder,
 	}, nil
@@ -605,7 +618,15 @@ func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	clID := r.Form.Get("issue")
-	crs := wh.ChangeListStore.System()
+	crs := r.Form.Get("crs")
+	if clID != "" {
+		if _, ok := wh.getCodeReviewSystem(crs); !ok {
+			http.Error(w, "Invalid Code Review System; did you include crs?", http.StatusBadRequest)
+			return
+		}
+	} else {
+		crs = ""
+	}
 
 	ret, err := wh.SearchAPI.GetDigestDetails(r.Context(), types.TestName(test), types.Digest(digest), clID, crs)
 	if err != nil {
@@ -637,7 +658,15 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	clID := r.Form.Get("issue")
-	crs := wh.ChangeListStore.System()
+	crs := r.Form.Get("crs")
+	if clID != "" {
+		if _, ok := wh.getCodeReviewSystem(crs); !ok {
+			http.Error(w, "Invalid Code Review System; did you include crs?", http.StatusBadRequest)
+			return
+		}
+	} else {
+		crs = ""
+	}
 
 	ret, err := wh.SearchAPI.DiffDigests(r.Context(), types.TestName(test), types.Digest(left), types.Digest(right), clID, crs)
 	if err != nil {
@@ -913,6 +942,19 @@ func (wh *Handlers) TriageHandler(w http.ResponseWriter, r *http.Request) {
 
 // triage processes the given TriageRequest.
 func (wh *Handlers) triage(ctx context.Context, user string, req frontend.TriageRequest) error {
+	// TODO(kjlubick) remove the legacy check for "0" when the frontend no longer sends it.
+	if req.ChangeListID != "" && req.ChangeListID != "0" {
+		if req.CodeReviewSystem == "" {
+			// TODO(kjlubick) remove this default after the search page is converted to lit-html.
+			req.CodeReviewSystem = wh.ReviewSystems[0].ID
+		}
+		if _, ok := wh.getCodeReviewSystem(req.CodeReviewSystem); !ok {
+			return skerr.Fmt("Unknown Code Review System; did you remember to include crs?")
+		}
+	} else {
+		req.CodeReviewSystem = ""
+	}
+
 	// Build the expectations change request from the list of digests passed in.
 	tc := make([]expectations.Delta, 0, len(req.TestDigestStatus))
 	for test, digests := range req.TestDigestStatus {
@@ -939,7 +981,7 @@ func (wh *Handlers) triage(ctx context.Context, user string, req frontend.Triage
 	expStore := wh.ExpectationsStore
 	// TODO(kjlubick) remove the legacy check here after the frontend bakes in.
 	if req.ChangeListID != "" && req.ChangeListID != "0" {
-		expStore = wh.ExpectationsStore.ForChangeList(req.ChangeListID, wh.ChangeListStore.System())
+		expStore = wh.ExpectationsStore.ForChangeList(req.ChangeListID, req.CodeReviewSystem)
 	}
 
 	// If set, use the image matching algorithm's name as the author of this change.
@@ -993,8 +1035,8 @@ func (wh *Handlers) ClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO(kjlubick): Check if we need to sort these
-	// // Sort the digests so they are displayed with untriaged last, which means
-	// // they will be displayed 'on top', because in SVG document order is z-order.
+	// Sort the digests so they are displayed with untriaged last, which means
+	// they will be displayed 'on top', because in SVG document order is z-order.
 
 	digests := types.DigestSlice{}
 	for _, digest := range searchResponse.Results {
@@ -1128,10 +1170,19 @@ func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	changeList := q.Get("issue")
+	clID := q.Get("issue")
+	crs := q.Get("crs")
+	if clID != "" {
+		if _, ok := wh.getCodeReviewSystem(crs); !ok {
+			http.Error(w, "Invalid Code Review System; did you include crs?", http.StatusBadRequest)
+			return
+		}
+	} else {
+		crs = ""
+	}
 
 	details := q.Get("details") == "true"
-	logEntries, total, err := wh.getTriageLog(r.Context(), changeList, offset, size, details)
+	logEntries, total, err := wh.getTriageLog(r.Context(), crs, clID, offset, size, details)
 
 	if err != nil {
 		httputils.ReportError(w, err, "Unable to retrieve triage logs", http.StatusInternalServerError)
@@ -1148,11 +1199,11 @@ func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // getTriageLog does the actual work of the TriageLogHandler, but is easier to test.
-func (wh *Handlers) getTriageLog(ctx context.Context, changeListID string, offset, size int, withDetails bool) ([]frontend.TriageLogEntry, int, error) {
+func (wh *Handlers) getTriageLog(ctx context.Context, crs, changeListID string, offset, size int, withDetails bool) ([]frontend.TriageLogEntry, int, error) {
 	expStore := wh.ExpectationsStore
 	// TODO(kjlubick) remove this legacy handler
 	if changeListID != "" && changeListID != "0" {
-		expStore = wh.ExpectationsStore.ForChangeList(changeListID, wh.ChangeListStore.System())
+		expStore = wh.ExpectationsStore.ForChangeList(changeListID, crs)
 	}
 	entries, total, err := expStore.QueryLog(ctx, offset, size, withDetails)
 	if err != nil {
@@ -1207,8 +1258,21 @@ func (wh *Handlers) ParamsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	clID := r.Form.Get("changelist_id")
+	crs := r.Form.Get("crs")
 	if clID != "" {
-		crs := wh.ChangeListStore.System()
+		if crs == "" {
+			// TODO(kjlubick) remove this default after the search page is converted to lit-html.
+			crs = wh.ReviewSystems[0].ID
+		}
+		if _, ok := wh.getCodeReviewSystem(crs); !ok {
+			http.Error(w, "Invalid Code Review System; did you include crs?", http.StatusBadRequest)
+			return
+		}
+	} else {
+		crs = ""
+	}
+
+	if clID != "" {
 		clIdx := wh.Indexer.GetIndexForCL(crs, clID)
 		if clIdx != nil {
 			sendJSONResponse(w, clIdx.ParamSet)
@@ -1289,10 +1353,25 @@ func (wh *Handlers) BaselineHandler(w http.ResponseWriter, r *http.Request) {
 		metrics2.GetCounter("gold_baselinehandler_route_new").Inc(1)
 	}
 
-	clID := r.URL.Query().Get("issue")
-	issueOnly := r.URL.Query().Get("issueOnly") == "true"
+	q := r.URL.Query()
+	clID := q.Get("issue")
+	issueOnly := q.Get("issueOnly") == "true"
+	crs := q.Get("crs")
 
-	bl, err := wh.Baseliner.FetchBaseline(r.Context(), clID, wh.ChangeListStore.System(), issueOnly)
+	if clID != "" {
+		if crs == "" {
+			// TODO(kjlubick) remove this default after the search page is converted to lit-html.
+			crs = wh.ReviewSystems[0].ID
+		}
+		if _, ok := wh.getCodeReviewSystem(crs); !ok {
+			http.Error(w, "Invalid CRS provided.", http.StatusBadRequest)
+			return
+		}
+	} else {
+		crs = ""
+	}
+
+	bl, err := wh.Baseliner.FetchBaseline(r.Context(), clID, crs, issueOnly)
 	if err != nil {
 		httputils.ReportError(w, err, "Fetching baselines failed.", http.StatusInternalServerError)
 		return
@@ -1508,13 +1587,18 @@ func (wh *Handlers) ChangeListSearchRedirect(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Must specify 'id' of ChangeList.", http.StatusBadRequest)
 		return
 	}
+	system, ok := wh.getCodeReviewSystem(crs)
+	if !ok {
+		http.Error(w, "Invalid Code Review System", http.StatusBadRequest)
+		return
+	}
 
-	baseURL := fmt.Sprintf("/search?issue=%s", clID)
+	baseURL := fmt.Sprintf("/search?issue=%s&crs=%s", clID, system.ID)
 
-	clIdx := wh.Indexer.GetIndexForCL(crs, clID)
+	clIdx := wh.Indexer.GetIndexForCL(system.ID, clID)
 	if clIdx == nil {
 		// Not cached, so we can't cheaply determine the corpus to include
-		if _, err := wh.ChangeListStore.GetChangeList(r.Context(), clID); err != nil {
+		if _, err := system.Store.GetChangeList(r.Context(), clID); err != nil {
 			http.NotFound(w, r)
 			return
 		}
@@ -1550,4 +1634,16 @@ func (wh *Handlers) loggedInAs(r *http.Request) string {
 		return wh.testingAuthAs
 	}
 	return login.LoggedInAs(r)
+}
+
+func (wh *Handlers) getCodeReviewSystem(crs string) (clstore.ReviewSystem, bool) {
+	var system clstore.ReviewSystem
+	found := false
+	for _, rs := range wh.ReviewSystems {
+		if rs.ID == crs {
+			system = rs
+			found = true
+		}
+	}
+	return system, found
 }

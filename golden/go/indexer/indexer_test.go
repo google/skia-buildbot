@@ -208,14 +208,14 @@ func TestIndexerPartialUpdate(t *testing.T) {
 func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	const crs = "gerrit"
+	const gerritCRS = "gerrit"
 	const firstCLID = "111111"
 	const patchsetFoxtrot = "foxtrot"
 	const secondCLID = "22222"
 	const patchsetSam = "sam"
 
-	firstCombinedID := tjstore.CombinedPSID{CL: firstCLID, CRS: crs, PS: patchsetFoxtrot}
-	secondCombinedID := tjstore.CombinedPSID{CL: secondCLID, CRS: crs, PS: patchsetSam}
+	firstCombinedID := tjstore.CombinedPSID{CL: firstCLID, CRS: gerritCRS, PS: patchsetFoxtrot}
+	secondCombinedID := tjstore.CombinedPSID{CL: secondCLID, CRS: gerritCRS, PS: patchsetSam}
 
 	mcs := &mock_clstore.Store{}
 	mes := &mock_expectations.Store{}
@@ -229,7 +229,7 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 
 	// secondCL has no additional expectations
 	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
-	loadChangeListExpectations(mes, crs, map[string]*expectations.Expectations{
+	loadChangeListExpectations(mes, gerritCRS, map[string]*expectations.Expectations{
 		firstCLID:  &firstCLExp,
 		secondCLID: {},
 	})
@@ -254,7 +254,6 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 		{SystemID: "not the most recent, so it is ignored"},
 		{SystemID: patchsetSam},
 	}, nil)
-	mcs.On("System").Return(crs)
 
 	androidGroup := paramtools.Params{
 		"os":    "Android",
@@ -304,7 +303,8 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
 			GroupParams:  iosGroup,
 			Options:      firstOptionalGroup,
-			Digest:       data.AlphaNegativeDigest, // Note, for this CL, this digest has not yet been triaged.
+			// Note, for this CL, this digest has not yet been triaged.
+			Digest: data.AlphaNegativeDigest,
 		},
 		{
 			ResultParams: paramtools.Params{types.PrimaryKeyField: string(data.AlphaTest)},
@@ -316,9 +316,15 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 
 	ctx := context.Background()
 	ic := IndexerConfig{
-		CLStore:           mcs,
 		ExpectationsStore: mes,
 		TryJobStore:       mts,
+		ReviewSystems: []clstore.ReviewSystem{
+			{
+				ID:    gerritCRS,
+				Store: mcs,
+				// URLTemplate and Client are unused here
+			},
+		},
 	}
 	ixr, err := New(ctx, ic, 0)
 	require.NoError(t, err)
@@ -326,7 +332,7 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 
 	ixr.calcChangeListIndices(ctx)
 
-	clIdx := ixr.GetIndexForCL(crs, firstCLID)
+	clIdx := ixr.GetIndexForCL(gerritCRS, firstCLID)
 	assert.NotNil(t, clIdx)
 	assert.Equal(t, firstCombinedID, clIdx.LatestPatchSet)
 	assert.Len(t, clIdx.UntriagedResults, 1)
@@ -341,7 +347,7 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 		"os":          []string{"Android", "iOS"},
 	}, clIdx.ParamSet)
 
-	clIdx = ixr.GetIndexForCL(crs, secondCLID)
+	clIdx = ixr.GetIndexForCL(gerritCRS, secondCLID)
 	assert.NotNil(t, clIdx)
 	assert.Equal(t, secondCombinedID, clIdx.LatestPatchSet)
 	assert.Len(t, clIdx.UntriagedResults, 2)
@@ -364,12 +370,12 @@ func TestIndexer_CalcChangeListIndices_NoPreviousIndices_Success(t *testing.T) {
 func TestIndexer_CalcChangeListIndices_HasIndexForPreviousPS_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	const crs = "gerrit"
+	const gerritCRS = "gerrit"
 	const clID = "111111"
 	const firstPatchSet = "firstPS"
 	const secondPatchSet = "secondPS"
-	firstPatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: crs, PS: firstPatchSet}
-	secondPatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: crs, PS: secondPatchSet}
+	firstPatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: gerritCRS, PS: firstPatchSet}
+	secondPatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: gerritCRS, PS: secondPatchSet}
 
 	longAgo := time.Date(2020, time.April, 15, 15, 15, 0, 0, time.UTC)
 	recently := time.Date(2020, time.May, 5, 12, 12, 0, 0, time.UTC)
@@ -384,7 +390,7 @@ func TestIndexer_CalcChangeListIndices_HasIndexForPreviousPS_Success(t *testing.
 
 	// The CL has no additional expectations.
 	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
-	loadChangeListExpectations(mes, crs, map[string]*expectations.Expectations{
+	loadChangeListExpectations(mes, gerritCRS, map[string]*expectations.Expectations{
 		clID: {},
 	})
 
@@ -399,7 +405,6 @@ func TestIndexer_CalcChangeListIndices_HasIndexForPreviousPS_Success(t *testing.
 		{SystemID: firstPatchSet}, // all other fields ignored from patch set.
 		{SystemID: secondPatchSet},
 	}, nil)
-	mcs.On("System").Return(crs)
 
 	androidGroup := paramtools.Params{
 		"os":    "Android",
@@ -427,9 +432,15 @@ func TestIndexer_CalcChangeListIndices_HasIndexForPreviousPS_Success(t *testing.
 
 	ctx := context.Background()
 	ic := IndexerConfig{
-		CLStore:           mcs,
 		ExpectationsStore: mes,
 		TryJobStore:       mts,
+		ReviewSystems: []clstore.ReviewSystem{
+			{
+				ID:    gerritCRS,
+				Store: mcs,
+				// URLTemplate and Client are unused here
+			},
+		},
 	}
 	ixr, err := New(ctx, ic, 0)
 	require.NoError(t, err)
@@ -469,7 +480,7 @@ func TestIndexer_CalcChangeListIndices_HasIndexForPreviousPS_Success(t *testing.
 
 	ixr.calcChangeListIndices(ctx)
 
-	clIdx := ixr.GetIndexForCL(crs, clID)
+	clIdx := ixr.GetIndexForCL(gerritCRS, clID)
 	assert.NotNil(t, clIdx)
 	assert.Equal(t, secondPatchSetCombinedID, clIdx.LatestPatchSet)
 	assert.True(t, clIdx.ComputedTS.After(longAgo)) // should be updated
@@ -488,14 +499,14 @@ func TestIndexer_CalcChangeListIndices_HasIndexForPreviousPS_Success(t *testing.
 func TestIndexer_CalcChangeListIndices_HasIndexForCurrentPS_IncrementalUpdateSuccess(t *testing.T) {
 	unittest.SmallTest(t)
 
-	const crs = "gerrit"
+	const gerritCRS = "gerrit"
 	const clID = "111111"
 	const firstPatchSet = "firstPS"
 	const firstUntriagedDigest = types.Digest("11111111111111111111")
 	const secondUntriagedDigest = types.Digest("22222222222222222222")
 	const thirdUntriagedDigest = types.Digest("33333333333333333333")
 
-	firstPatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: crs, PS: firstPatchSet}
+	firstPatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: gerritCRS, PS: firstPatchSet}
 
 	longAgo := time.Date(2020, time.April, 15, 15, 15, 0, 0, time.UTC)
 	recently := time.Date(2020, time.May, 5, 12, 12, 0, 0, time.UTC)
@@ -509,7 +520,7 @@ func TestIndexer_CalcChangeListIndices_HasIndexForCurrentPS_IncrementalUpdateSuc
 
 	// The CL has no additional expectations.
 	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
-	loadChangeListExpectations(mes, crs, map[string]*expectations.Expectations{
+	loadChangeListExpectations(mes, gerritCRS, map[string]*expectations.Expectations{
 		clID: {},
 	})
 
@@ -523,7 +534,6 @@ func TestIndexer_CalcChangeListIndices_HasIndexForCurrentPS_IncrementalUpdateSuc
 	mcs.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
 		{SystemID: firstPatchSet}, // all other fields ignored from patch set.
 	}, nil)
-	mcs.On("System").Return(crs)
 
 	androidGroup := paramtools.Params{
 		"os":    "Android",
@@ -546,9 +556,15 @@ func TestIndexer_CalcChangeListIndices_HasIndexForCurrentPS_IncrementalUpdateSuc
 
 	ctx := context.Background()
 	ic := IndexerConfig{
-		CLStore:           mcs,
 		ExpectationsStore: mes,
 		TryJobStore:       mts,
+		ReviewSystems: []clstore.ReviewSystem{
+			{
+				ID:    gerritCRS,
+				Store: mcs,
+				// URLTemplate and Client are unused here
+			},
+		},
 	}
 	ixr, err := New(ctx, ic, 0)
 	require.NoError(t, err)
@@ -582,7 +598,7 @@ func TestIndexer_CalcChangeListIndices_HasIndexForCurrentPS_IncrementalUpdateSuc
 
 	ixr.calcChangeListIndices(ctx)
 
-	clIdx := ixr.GetIndexForCL(crs, clID)
+	clIdx := ixr.GetIndexForCL(gerritCRS, clID)
 	assert.NotNil(t, clIdx)
 	assert.Equal(t, firstPatchSetCombinedID, clIdx.LatestPatchSet)
 	assert.True(t, clIdx.ComputedTS.After(longAgo)) // should be updated
@@ -603,10 +619,10 @@ func TestIndexer_CalcChangeListIndices_HasIndexForCurrentPS_IncrementalUpdateSuc
 func TestIndexer_CalcChangeListIndices_PreviousIndexDoesNotNeedUpdating_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	const crs = "gerrit"
+	const gerritCRS = "gerrit"
 	const clID = "111111"
 	const thePatchSet = "firstPS"
-	thePatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: crs, PS: thePatchSet}
+	thePatchSetCombinedID := tjstore.CombinedPSID{CL: clID, CRS: gerritCRS, PS: thePatchSet}
 
 	now := time.Date(2020, time.May, 15, 15, 15, 0, 0, time.UTC)
 	fiveMinAgo := now.Add(-5 * time.Minute)
@@ -621,7 +637,7 @@ func TestIndexer_CalcChangeListIndices_PreviousIndexDoesNotNeedUpdating_Success(
 
 	// The CL has no additional expectations.
 	mes.On("Get", testutils.AnyContext).Return(&masterExp, nil)
-	loadChangeListExpectations(mes, crs, map[string]*expectations.Expectations{
+	loadChangeListExpectations(mes, gerritCRS, map[string]*expectations.Expectations{
 		clID: {},
 	})
 
@@ -637,12 +653,17 @@ func TestIndexer_CalcChangeListIndices_PreviousIndexDoesNotNeedUpdating_Success(
 	mcs.On("GetPatchSets", testutils.AnyContext, clID).Return([]code_review.PatchSet{
 		{SystemID: thePatchSet}, // all other fields ignored from patch set.
 	}, nil)
-	mcs.On("System").Return(crs)
 
 	ctx := context.Background()
 	ic := IndexerConfig{
-		CLStore:           mcs,
 		ExpectationsStore: mes,
+		ReviewSystems: []clstore.ReviewSystem{
+			{
+				ID:    gerritCRS,
+				Store: mcs,
+				// URLTemplate and Client are unused here
+			},
+		},
 	}
 	ixr, err := New(ctx, ic, 0)
 	require.NoError(t, err)
@@ -672,7 +693,7 @@ func TestIndexer_CalcChangeListIndices_PreviousIndexDoesNotNeedUpdating_Success(
 
 	ixr.calcChangeListIndices(ctx)
 
-	clIdx := ixr.GetIndexForCL(crs, clID)
+	clIdx := ixr.GetIndexForCL(gerritCRS, clID)
 	assert.NotNil(t, clIdx)
 	assert.Equal(t, thePatchSetCombinedID, clIdx.LatestPatchSet)
 	assert.Equal(t, clIdx.ComputedTS, fiveMinAgo) // should not be updated

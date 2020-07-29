@@ -1,11 +1,18 @@
 {
   bt_instance: "production",
   bt_project_id: "skia-public",
+  code_review_systems: [
+    {
+      id: "gerrit",
+      flavor: "gerrit",
+      gerrit_url: "https://skia-review.googlesource.com",
+      url_template: "https://skia-review.googlesource.com/%s"
+    },
+  ],
   gcs_bucket: "skia-infra-gm",
   git_bt_table: "git-repos2",
   git_repo_url: "https://skia.googlesource.com/skia.git",
   fs_namespace: "skia",
   fs_project_id: "skia-firestore",
   known_hashes_gcs_path: "skia-infra-gm/hash_files/gold-prod-hashes.txt",
-  primary_crs: "gerrit",
 }

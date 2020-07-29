@@ -14,16 +14,14 @@ import (
 )
 
 type Impl struct {
-	crs      code_review.Client
-	expStore expectations.Store
-	store    clstore.Store
+	expStore      expectations.Store
+	reviewSystems []clstore.ReviewSystem
 }
 
-func New(c code_review.Client, e expectations.Store, s clstore.Store) *Impl {
+func New(e expectations.Store, reviewSystems []clstore.ReviewSystem) *Impl {
 	return &Impl{
-		crs:      c,
-		expStore: e,
-		store:    s,
+		expStore:      e,
+		reviewSystems: reviewSystems,
 	}
 }
 
@@ -37,17 +35,24 @@ func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo
 		sklog.Warningf("Got more than 100 commits to update. This usually means we are starting up; We'll only check the last 100.")
 		commits = commits[len(commits)-100:]
 	}
-	crs := u.crs.System()
 	for _, c := range commits {
-		clID, err := u.crs.GetChangeListIDForCommit(ctx, c)
-		if err == code_review.ErrNotFound {
+		var clID string
+		var system clstore.ReviewSystem
+		for _, rs := range u.reviewSystems {
+			// GetChangeListIDForCommit is smart enough to distinguish between two different Gerrit
+			// systems because it looks at the review URL in the CL message.
+			if id, err := rs.Client.GetChangeListIDForCommit(ctx, c); err == nil {
+				clID = id
+				system = rs
+				break
+			}
+		}
+		if clID == "" {
 			sklog.Warningf("Saw a commit %s that did not line up with a code review", c.Hash)
 			continue
 		}
-		if err != nil {
-			return skerr.Wrapf(err, "identifying the CL for %s", c.Hash)
-		}
-		storedCL, err := u.store.GetChangeList(ctx, clID)
+
+		storedCL, err := system.Store.GetChangeList(ctx, clID)
 		if err == clstore.ErrNotFound {
 			// Wasn't in clstore, so there was no data from TryJobs associated with that
 			//  ChangeList, so there can't be any expectations associated with it.
@@ -61,7 +66,7 @@ func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo
 			continue
 		}
 
-		cl, err := u.crs.GetChangeList(ctx, clID)
+		cl, err := system.Client.GetChangeList(ctx, clID)
 		if err == code_review.ErrNotFound {
 			return skerr.Fmt("somehow got an invalid CLID %s from commit %s", clID, c.Hash)
 		}
@@ -69,24 +74,24 @@ func (u *Impl) UpdateChangeListsAsLanded(ctx context.Context, commits []*vcsinfo
 			return skerr.Wrapf(err, "querying CRS for CL %s", c.Hash)
 		}
 		if cl.Status != code_review.Landed {
-			return skerr.Fmt("cl %v of revision %s was supposed to have landed, but wasn't according to %s", cl, c.Hash, crs)
+			return skerr.Fmt("cl %v of revision %s was supposed to have landed, but wasn't according to %s", cl, c.Hash, system.ID)
 		}
 
 		// Write the expectations (if any) for the CL to master
-		clExp := u.expStore.ForChangeList(cl.SystemID, crs)
+		clExp := u.expStore.ForChangeList(cl.SystemID, system.ID)
 		e, err := clExp.Get(ctx)
 		if err != nil {
-			return skerr.Wrapf(err, "getting CLExpectations for %s (%s)", cl.SystemID, crs)
+			return skerr.Wrapf(err, "getting CLExpectations for %s (%s)", cl.SystemID, system.ID)
 		}
 		if !e.Empty() {
 			delta := expectations.AsDelta(e)
 			if err := u.expStore.AddChange(ctx, delta, cl.Owner); err != nil {
-				return skerr.Wrapf(err, "writing CLExpectations for %s (%s) to master: %v", cl.SystemID, crs, e)
+				return skerr.Wrapf(err, "writing CLExpectations for %s (%s) to master: %v", cl.SystemID, system.ID, e)
 			}
 		}
 		// cl.Status must be Landed at this point and the CRS has set the cl's Updated time to
 		// the time that it was closed or marked as landed.
-		if err := u.store.PutChangeList(ctx, cl); err != nil {
+		if err := system.Store.PutChangeList(ctx, cl); err != nil {
 			return skerr.Wrapf(err, "storing CL %v to store", cl)
 		}
 	}

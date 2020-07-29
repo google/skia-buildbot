@@ -30,11 +30,8 @@ func TestUpdateSunnyDay(t *testing.T) {
 	mcs := &mock_clstore.Store{}
 	alphaExp := &mock_expectations.Store{}
 	betaExp := &mock_expectations.Store{}
-	defer mc.AssertExpectations(t)
 	defer mes.AssertExpectations(t)
 	defer mcs.AssertExpectations(t)
-	defer alphaExp.AssertExpectations(t)
-	defer betaExp.AssertExpectations(t)
 
 	commits := makeCommits()
 
@@ -63,10 +60,8 @@ func TestUpdateSunnyDay(t *testing.T) {
 		Updated:  time.Date(2019, time.May, 15, 14, 18, 12, 0, time.UTC),
 	}, nil)
 
-	mc.On("System").Return(crs)
-
-	mes.On("ForChangeList", openCLAlpha, crs).Return(alphaExp)
-	mes.On("ForChangeList", openCLBeta, crs).Return(betaExp)
+	mes.On("ForChangeList", openCLAlpha, githubCRS).Return(alphaExp)
+	mes.On("ForChangeList", openCLBeta, githubCRS).Return(betaExp)
 	mes.On("AddChange", testutils.AnyContext, alphaDelta, alphaAuthor).Return(nil)
 	mes.On("AddChange", testutils.AnyContext, betaDelta, betaAuthor).Return(nil)
 
@@ -99,7 +94,24 @@ func TestUpdateSunnyDay(t *testing.T) {
 	}
 	mcs.On("PutChangeList", testutils.AnyContext, mock.MatchedBy(clChecker)).Return(nil).Twice()
 
-	u := New(mc, mes, mcs)
+	// Pretend we are configured for Gerrit and GitHub, and GitHub doesn't recognize any of these
+	// CLs
+	gerritClient := &mock_codereview.Client{}
+	gerritClient.On("GetChangeListIDForCommit", testutils.AnyContext, mock.Anything).Return("", code_review.ErrNotFound)
+
+	u := New(mes, []clstore.ReviewSystem{
+		{
+			ID:     gerritCRS,
+			Client: gerritClient,
+			// URLTemplate and Store not used here
+		},
+		{
+			ID:     githubCRS,
+			Client: mc,
+			Store:  mcs,
+			// URLTemplate not used here
+		},
+	})
 	err := u.UpdateChangeListsAsLanded(context.Background(), commits)
 	require.NoError(t, err)
 }
@@ -112,10 +124,7 @@ func TestUpdateEmpty(t *testing.T) {
 	mes := &mock_expectations.Store{}
 	mcs := &mock_clstore.Store{}
 	betaExp := &mock_expectations.Store{}
-	defer mc.AssertExpectations(t)
-	defer mes.AssertExpectations(t)
 	defer mcs.AssertExpectations(t)
-	defer betaExp.AssertExpectations(t)
 
 	commits := makeCommits()[2:]
 
@@ -128,9 +137,8 @@ func TestUpdateEmpty(t *testing.T) {
 		Owner:    betaAuthor,
 		Updated:  time.Date(2019, time.May, 15, 14, 18, 12, 0, time.UTC),
 	}, nil)
-	mc.On("System").Return(crs)
 
-	mes.On("ForChangeList", openCLBeta, crs).Return(betaExp)
+	mes.On("ForChangeList", openCLBeta, githubCRS).Return(betaExp)
 
 	betaExp.On("Get", testutils.AnyContext).Return(&betaChanges, nil)
 
@@ -150,7 +158,14 @@ func TestUpdateEmpty(t *testing.T) {
 	}
 	mcs.On("PutChangeList", testutils.AnyContext, mock.MatchedBy(clChecker)).Return(nil).Once()
 
-	u := New(mc, mes, mcs)
+	u := New(mes, []clstore.ReviewSystem{
+		{
+			ID:     githubCRS,
+			Client: mc,
+			Store:  mcs,
+			// URLTemplate not used here
+		},
+	})
 	err := u.UpdateChangeListsAsLanded(context.Background(), commits)
 	require.NoError(t, err)
 }
@@ -161,44 +176,55 @@ func TestUpdateNoTryJobsSeen(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mc := &mock_codereview.Client{}
-	mes := &mock_expectations.Store{}
 	mcs := &mock_clstore.Store{}
-	defer mc.AssertExpectations(t)
-	defer mes.AssertExpectations(t)
-	defer mcs.AssertExpectations(t)
 
 	commits := makeCommits()[2:]
 
 	mc.On("GetChangeListIDForCommit", testutils.AnyContext, commits[0]).Return(openCLBeta, nil)
-	mc.On("System").Return(crs)
 
 	mcs.On("GetChangeList", testutils.AnyContext, openCLBeta).Return(code_review.ChangeList{}, clstore.ErrNotFound)
 
-	u := New(mc, mes, mcs)
+	u := New(nil, []clstore.ReviewSystem{
+		{
+			ID:     githubCRS,
+			Client: mc,
+			Store:  mcs,
+			// URLTemplate not used here
+		},
+	})
 	err := u.UpdateChangeListsAsLanded(context.Background(), commits)
 	require.NoError(t, err)
 }
 
 // TestUpdateNoChangeList checks the exceptional case where a commit lands without being tied to
-// a ChangeList in the CRS (we should skip it and not crash).
+// a ChangeList in any CRS (we should skip it and not crash).
 func TestUpdateNoChangeList(t *testing.T) {
 	unittest.SmallTest(t)
 
 	mc := &mock_codereview.Client{}
-	defer mc.AssertExpectations(t)
 
 	commits := makeCommits()[2:]
-
 	mc.On("GetChangeListIDForCommit", testutils.AnyContext, commits[0]).Return("", code_review.ErrNotFound)
-	mc.On("System").Return(crs)
 
-	u := New(mc, nil, nil)
+	u := New(nil, []clstore.ReviewSystem{
+		{
+			ID:     githubCRS,
+			Client: mc,
+			// Store and URLTemplate not used here
+		},
+		{
+			ID:     gerritCRS,
+			Client: mc,
+			// Store and URLTemplate not used here
+		},
+	})
 	err := u.UpdateChangeListsAsLanded(context.Background(), commits)
 	require.NoError(t, err)
 }
 
 const (
-	crs = "github"
+	gerritCRS = "gerrit"
+	githubCRS = "github"
 
 	landedCL    = "11196d8aff4cd689c2e49336d12928a8bd23cdec"
 	openCLAlpha = "aaa5f37f5bd91f1a7b3f080bf038af8e8fa4cab2"

@@ -1,11 +1,18 @@
 {
   bt_instance: "production",
   bt_project_id: "skia-public",
+  code_review_systems: [
+    {
+      id: "gerrit",
+      flavor: "gerrit",
+      gerrit_url: "https://chromium-review.googlesource.com",
+      url_template: "https://chromium-review.googlesource.com/%s"
+    },
+  ],
   gcs_bucket: "skia-gold-chrome",
   git_bt_table: "git-repos2",
   git_repo_url: "https://chromium.googlesource.com/chromium/src",
   fs_namespace: "chrome",
   fs_project_id: "skia-firestore",
   known_hashes_gcs_path: "skia-gold-chrome/hash_files/gold-chrome-hashes.txt",
-  primary_crs: "gerrit",
 }

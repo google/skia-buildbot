@@ -95,17 +95,3 @@ func (_m *Client) GetPatchSets(ctx context.Context, clID string) ([]code_review.
 
 	return r0, r1
 }
-
-// System provides a mock function with given fields:
-func (_m *Client) System() string {
-	ret := _m.Called()
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func() string); ok {
-		r0 = rf()
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	return r0
-}

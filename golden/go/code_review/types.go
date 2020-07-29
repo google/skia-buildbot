@@ -27,9 +27,6 @@ type Client interface {
 
 	// CommentOn creates a comment on the CRS for the given CL with the given message.
 	CommentOn(ctx context.Context, clID, message string) error
-
-	// System returns the underlying system (e.g. "gerrit")
-	System() string
 }
 
 // The ChangeListLandedUpdater interface is an abstraction around the code that tracks ChangeLists

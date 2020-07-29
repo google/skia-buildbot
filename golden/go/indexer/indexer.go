@@ -273,14 +273,14 @@ func (idx *SearchIndex) MostRecentPositiveDigest(ctx context.Context, traceID ti
 }
 
 type IndexerConfig struct {
-	DiffStore         diff.DiffStore
 	ChangeListener    expectations.ChangeEventRegisterer
+	DiffStore         diff.DiffStore
 	ExpectationsStore expectations.Store
 	GCSClient         storage.GCSClient
+	ReviewSystems     []clstore.ReviewSystem
 	TileSource        tilesource.TileSource
-	Warmer            warmer.DiffWarmer
 	TryJobStore       tjstore.Store
-	CLStore           clstore.Store
+	Warmer            warmer.DiffWarmer
 }
 
 // Indexer is the type that continuously processes data as the underlying
@@ -748,89 +748,90 @@ func (ix *Indexer) calcChangeListIndices(ctx context.Context) {
 		return
 	}
 
-	// An arbitrary cut off to the amount of recent, open CLs we try to index.
-	recent := now.Add(-maxAgeOfOpenCLsToIndex)
-	xcl, _, err := ix.CLStore.GetChangeLists(ctx, clstore.SearchOptions{
-		StartIdx:    0,
-		Limit:       maxCLsToIndex,
-		OpenCLsOnly: true,
-		After:       recent,
-	})
-	if err != nil {
-		sklog.Errorf("Could not get recent changelists: %s", err)
-		return
-	}
-
-	sklog.Infof("Indexing %d CLs", len(xcl))
-
-	crs := ix.CLStore.System()
-	const numChunks = 8 // arbitrarily picked, could likely be tuned based on contention of
-	// changelistCache
-	chunkSize := (len(xcl) / numChunks) + 1 // add one to avoid integer truncation.
-	err = util.ChunkIterParallel(ctx, len(xcl), chunkSize, func(ctx context.Context, startIdx int, endIdx int) error {
-		for _, cl := range xcl[startIdx:endIdx] {
-			if err := ctx.Err(); err != nil {
-				sklog.Errorf("ChangeList indexing timed out (%v)", err)
-				return nil
-			}
-
-			issueExpStore := ix.ExpectationsStore.ForChangeList(cl.SystemID, crs)
-			clExps, err := issueExpStore.Get(ctx)
-			if err != nil {
-				return skerr.Wrapf(err, "loading expectations for cl %s (%s)", cl.SystemID, crs)
-			}
-			exps := expectations.Join(clExps, masterExp)
-
-			clKey := fmt.Sprintf("%s_%s", crs, cl.SystemID)
-			clIdx, ok := ix.getCLIndex(clKey)
-			// Ingestion should update this timestamp when it has uploaded a new file belonging to this
-			// changelist. We add a bit of a buffer period to avoid potential issues with a file being
-			// uploaded at the exact same time we create an index (skbug.com/10265).
-			updatedWithGracePeriod := cl.Updated.Add(30 * time.Second)
-			if !ok || clIdx.ComputedTS.Before(updatedWithGracePeriod) {
-				ix.changeListsReindexed.Inc(1)
-				// Compute it from scratch and store it to the index.
-				xps, err := ix.CLStore.GetPatchSets(ctx, cl.SystemID)
-				if err != nil {
-					return skerr.Wrap(err)
-				}
-				if len(xps) == 0 {
-					continue
-				}
-				latestPS := xps[len(xps)-1]
-				psID := tjstore.CombinedPSID{
-					CL:  cl.SystemID,
-					CRS: crs,
-					PS:  latestPS.SystemID,
-				}
-				afterTime := time.Time{}
-				var existingUntriagedResults []tjstore.TryJobResult
-				// Test to see if we can do an incremental index (just for results that were uploaded
-				// for this patchset since the last time we indexed).
-				if ok && clIdx.LatestPatchSet.PS == latestPS.SystemID {
-					afterTime = clIdx.ComputedTS
-					existingUntriagedResults = clIdx.UntriagedResults
-				}
-				xtjr, err := ix.TryJobStore.GetResults(ctx, psID, afterTime)
-				if err != nil {
-					return skerr.Wrap(err)
-				}
-				untriagedResults, params := indexTryJobResults(existingUntriagedResults, xtjr, exps)
-				// Copy the existing ParamSet into the newly created one. It is important to copy it from
-				// old into new (and not new into old), so we don't cause a race condition on the cached
-				// ParamSet by writing to it while GetIndexForCL is reading from it.
-				params.AddParamSet(clIdx.ParamSet)
-				clIdx.ParamSet = params
-				clIdx.LatestPatchSet = psID
-				clIdx.UntriagedResults = untriagedResults
-				clIdx.ComputedTS = now
-			}
-			ix.changeListIndices.Set(clKey, &clIdx, ttlcache.DefaultExpiration)
+	for _, system := range ix.ReviewSystems {
+		// An arbitrary cut off to the amount of recent, open CLs we try to index.
+		recent := now.Add(-maxAgeOfOpenCLsToIndex)
+		xcl, _, err := system.Store.GetChangeLists(ctx, clstore.SearchOptions{
+			StartIdx:    0,
+			Limit:       maxCLsToIndex,
+			OpenCLsOnly: true,
+			After:       recent,
+		})
+		if err != nil {
+			sklog.Errorf("Could not get recent changelists: %s", err)
+			return
 		}
-		return nil
-	})
-	if err != nil {
-		sklog.Errorf("Error indexing changelists: %s", err)
+
+		sklog.Infof("Indexing %d CLs", len(xcl))
+
+		const numChunks = 8 // arbitrarily picked, could likely be tuned based on contention of
+		// changelistCache
+		chunkSize := (len(xcl) / numChunks) + 1 // add one to avoid integer truncation.
+		err = util.ChunkIterParallel(ctx, len(xcl), chunkSize, func(ctx context.Context, startIdx int, endIdx int) error {
+			for _, cl := range xcl[startIdx:endIdx] {
+				if err := ctx.Err(); err != nil {
+					sklog.Errorf("ChangeList indexing timed out (%v)", err)
+					return nil
+				}
+
+				issueExpStore := ix.ExpectationsStore.ForChangeList(cl.SystemID, system.ID)
+				clExps, err := issueExpStore.Get(ctx)
+				if err != nil {
+					return skerr.Wrapf(err, "loading expectations for cl %s (%s)", cl.SystemID, system.ID)
+				}
+				exps := expectations.Join(clExps, masterExp)
+
+				clKey := fmt.Sprintf("%s_%s", system.ID, cl.SystemID)
+				clIdx, ok := ix.getCLIndex(clKey)
+				// Ingestion should update this timestamp when it has uploaded a new file belonging to this
+				// changelist. We add a bit of a buffer period to avoid potential issues with a file being
+				// uploaded at the exact same time we create an index (skbug.com/10265).
+				updatedWithGracePeriod := cl.Updated.Add(30 * time.Second)
+				if !ok || clIdx.ComputedTS.Before(updatedWithGracePeriod) {
+					ix.changeListsReindexed.Inc(1)
+					// Compute it from scratch and store it to the index.
+					xps, err := system.Store.GetPatchSets(ctx, cl.SystemID)
+					if err != nil {
+						return skerr.Wrap(err)
+					}
+					if len(xps) == 0 {
+						continue
+					}
+					latestPS := xps[len(xps)-1]
+					psID := tjstore.CombinedPSID{
+						CL:  cl.SystemID,
+						CRS: system.ID,
+						PS:  latestPS.SystemID,
+					}
+					afterTime := time.Time{}
+					var existingUntriagedResults []tjstore.TryJobResult
+					// Test to see if we can do an incremental index (just for results that were uploaded
+					// for this patchset since the last time we indexed).
+					if ok && clIdx.LatestPatchSet.PS == latestPS.SystemID {
+						afterTime = clIdx.ComputedTS
+						existingUntriagedResults = clIdx.UntriagedResults
+					}
+					xtjr, err := ix.TryJobStore.GetResults(ctx, psID, afterTime)
+					if err != nil {
+						return skerr.Wrap(err)
+					}
+					untriagedResults, params := indexTryJobResults(existingUntriagedResults, xtjr, exps)
+					// Copy the existing ParamSet into the newly created one. It is important to copy it from
+					// old into new (and not new into old), so we don't cause a race condition on the cached
+					// ParamSet by writing to it while GetIndexForCL is reading from it.
+					params.AddParamSet(clIdx.ParamSet)
+					clIdx.ParamSet = params
+					clIdx.LatestPatchSet = psID
+					clIdx.UntriagedResults = untriagedResults
+					clIdx.ComputedTS = now
+				}
+				ix.changeListIndices.Set(clKey, &clIdx, ttlcache.DefaultExpiration)
+			}
+			return nil
+		})
+		if err != nil {
+			sklog.Errorf("Error indexing changelists from CRS %s: %s", system.ID, err)
+		}
 	}
 }
 

@@ -8,7 +8,6 @@ Date.now = () => fakeNow;
 
 testOnlySetSettings({
   baseRepoURL: 'https://github.com/example/example',
-  crsTemplate: 'https://skia-review.googlesource.com/%s',
 });
 
 let ele = new BlamelistPanelSk();

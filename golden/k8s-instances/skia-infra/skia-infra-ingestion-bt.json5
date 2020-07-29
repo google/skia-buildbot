@@ -36,7 +36,7 @@
         FirestoreProjectID: "skia-firestore",
         FirestoreNamespace: "skia-infra",
 
-        CodeReviewSystem:  "gerrit",
+        CodeReviewSystems: "gerrit",
         GerritURL:         "https://skia-review.googlesource.com",
 
         ContinuousIntegrationSystems: "buildbucket",

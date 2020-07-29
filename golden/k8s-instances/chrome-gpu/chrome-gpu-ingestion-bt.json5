@@ -36,7 +36,7 @@
         FirestoreProjectID: "skia-firestore",
         FirestoreNamespace: "chrome-gpu",
 
-        CodeReviewSystem:  "gerrit",
+        CodeReviewSystems: "gerrit",
         GerritURL:         "https://chromium-review.googlesource.com",
 
         ContinuousIntegrationSystems: "buildbucket",

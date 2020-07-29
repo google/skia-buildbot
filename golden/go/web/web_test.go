@@ -16,11 +16,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/paramtools"
 	"golang.org/x/time/rate"
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/golden/go/baseline"
@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/golden/go/clstore"
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
+	mock_crs "go.skia.org/infra/golden/go/code_review/mocks"
 	ci "go.skia.org/infra/golden/go/continuous_integration"
 	"go.skia.org/infra/golden/go/digest_counter"
 	"go.skia.org/infra/golden/go/expectations"
@@ -78,9 +79,15 @@ func TestNewHandlers_BaselineSubset_HasAllPieces_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	hc := HandlersConfig{
-		GCSClient:       &mocks.GCSClient{},
-		Baseliner:       &mocks.BaselineFetcher{},
-		ChangeListStore: &mock_clstore.Store{},
+		GCSClient: &mocks.GCSClient{},
+		Baseliner: &mocks.BaselineFetcher{},
+		ReviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     "whatever",
+				Store:  &mock_clstore.Store{},
+				Client: &mock_crs.Client{},
+			},
+		},
 	}
 	_, err := NewHandlers(hc, BaselineSubset)
 	require.NoError(t, err)
@@ -97,12 +104,12 @@ func TestNewHandlers_BaselineSubset_MissingPieces_Failure(t *testing.T) {
 	assert.Contains(t, err.Error(), "cannot be nil")
 
 	hc = HandlersConfig{
-		GCSClient:       &mocks.GCSClient{},
-		ChangeListStore: &mock_clstore.Store{},
+		Baseliner: &mocks.BaselineFetcher{},
+		GCSClient: &mocks.GCSClient{},
 	}
 	_, err = NewHandlers(hc, BaselineSubset)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "cannot be nil")
+	assert.Contains(t, err.Error(), "cannot be empty")
 }
 
 // TestNewHandlers_FullFront_EndMissingPieces_Failure makes sure that if we omit values from
@@ -118,9 +125,15 @@ func TestNewHandlers_FullFrontEnd_MissingPieces_Failure(t *testing.T) {
 	assert.Contains(t, err.Error(), "cannot be nil")
 
 	hc = HandlersConfig{
-		GCSClient:       &mocks.GCSClient{},
-		Baseliner:       &mocks.BaselineFetcher{},
-		ChangeListStore: &mock_clstore.Store{},
+		GCSClient: &mocks.GCSClient{},
+		Baseliner: &mocks.BaselineFetcher{},
+		ReviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     "whatever",
+				Store:  &mock_clstore.Store{},
+				Client: &mock_crs.Client{},
+			},
+		},
 	}
 	_, err = NewHandlers(hc, FullFrontEnd)
 	require.Error(t, err)
@@ -315,12 +328,16 @@ func TestGetIngestedChangeLists_AllChangeLists_SunnyDay_Success(t *testing.T) {
 		StartIdx: 0,
 		Limit:    50,
 	}).Return(makeCodeReviewCLs(), len(makeCodeReviewCLs()), nil)
-	mcls.On("System").Return("gerrit")
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			CodeReviewURLTemplate: "example.com/cl/%s#templates",
-			ChangeListStore:       mcls,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID:          "gerrit",
+					Store:       mcls,
+					URLTemplate: "example.com/cl/%s#templates",
+				},
+			},
 		},
 	}
 
@@ -352,12 +369,16 @@ func TestGetIngestedChangeLists_ActiveChangeLists_SunnyDay_Success(t *testing.T)
 		Limit:       30,
 		OpenCLsOnly: true,
 	}).Return(makeCodeReviewCLs(), 3, nil)
-	mcls.On("System").Return("gerrit")
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			CodeReviewURLTemplate: "example.com/cl/%s#templates",
-			ChangeListStore:       mcls,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID:          "gerrit",
+					Store:       mcls,
+					URLTemplate: "example.com/cl/%s#templates",
+				},
+			},
 		},
 	}
 
@@ -440,6 +461,7 @@ func TestGetClSummary_SunnyDay_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const expectedCLID = "1002"
+	const gerritCRS = "gerrit"
 
 	mcls := &mock_clstore.Store{}
 	mtjs := &mock_tjstore.Store{}
@@ -450,7 +472,7 @@ func TestGetClSummary_SunnyDay_Success(t *testing.T) {
 
 	psID := tjstore.CombinedPSID{
 		CL:  expectedCLID,
-		CRS: "gerrit",
+		CRS: gerritCRS,
 		PS:  "ps-1",
 	}
 	tj1 := []ci.TryJob{
@@ -465,7 +487,7 @@ func TestGetClSummary_SunnyDay_Success(t *testing.T) {
 
 	psID = tjstore.CombinedPSID{
 		CL:  expectedCLID,
-		CRS: "gerrit",
+		CRS: gerritCRS,
 		PS:  "ps-4",
 	}
 	tj2 := []ci.TryJob{
@@ -484,15 +506,20 @@ func TestGetClSummary_SunnyDay_Success(t *testing.T) {
 	}
 	mtjs.On("GetTryJobs", testutils.AnyContext, psID).Return(tj2, nil)
 
+	gerritSystem := clstore.ReviewSystem{
+		ID:          gerritCRS,
+		Store:       mcls,
+		URLTemplate: "example.com/cl/%s#templates",
+	}
+
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			CodeReviewURLTemplate: "example.com/cl/%s#templates",
-			ChangeListStore:       mcls,
-			TryJobStore:           mtjs,
+			ReviewSystems: []clstore.ReviewSystem{gerritSystem},
+			TryJobStore:   mtjs,
 		},
 	}
 
-	cl, err := wh.getCLSummary(context.Background(), expectedCLID)
+	cl, err := wh.getCLSummary(context.Background(), gerritSystem, expectedCLID)
 	assert.NoError(t, err)
 	assert.Equal(t, frontend.ChangeListSummary{
 		CL:                makeWebCLs()[0], // matches expectedCLID
@@ -578,7 +605,6 @@ func TestTriage_SingleDigestOnMaster_Success(t *testing.T) {
 	}
 
 	tr := frontend.TriageRequest{
-		ChangeListID: "",
 		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
 			bug_revert.TestOne: {
 				bug_revert.BravoUntriagedDigest: expectations.Negative,
@@ -614,7 +640,6 @@ func TestTriage_SingleDigestOnMaster_ImageMatchingAlgorithmSet_UsesAlgorithmName
 	}
 
 	tr := frontend.TriageRequest{
-		ChangeListID: "",
 		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
 			bug_revert.TestOne: {
 				bug_revert.BravoUntriagedDigest: expectations.Negative,
@@ -634,16 +659,13 @@ func TestTriage_SingleDigestOnCL_Success(t *testing.T) {
 
 	mes := &mock_expectations.Store{}
 	clExp := &mock_expectations.Store{}
-	mcs := &mock_clstore.Store{}
-	defer mes.AssertExpectations(t)
 	defer clExp.AssertExpectations(t)
-	defer mcs.AssertExpectations(t)
 
 	const clID = "12345"
-	const crs = "github"
+	const githubCRS = "github"
 	const user = "user@example.com"
 
-	mes.On("ForChangeList", clID, crs).Return(clExp)
+	mes.On("ForChangeList", clID, githubCRS).Return(clExp)
 
 	clExp.On("AddChange", testutils.AnyContext, []expectations.Delta{
 		{
@@ -653,17 +675,21 @@ func TestTriage_SingleDigestOnCL_Success(t *testing.T) {
 		},
 	}, user).Return(nil)
 
-	mcs.On("System").Return(crs)
-
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			ExpectationsStore: mes,
-			ChangeListStore:   mcs,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: githubCRS,
+					// The rest is unused here
+				},
+			},
 		},
 	}
 
 	tr := frontend.TriageRequest{
-		ChangeListID: clID,
+		CodeReviewSystem: githubCRS,
+		ChangeListID:     clID,
 		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
 			bug_revert.TestOne: {
 				bug_revert.BravoUntriagedDigest: expectations.Negative,
@@ -680,17 +706,15 @@ func TestTriage_SingleDigestOnCL_ImageMatchingAlgorithmSet_UsesAlgorithmNameAsAu
 
 	mes := &mock_expectations.Store{}
 	clExp := &mock_expectations.Store{}
-	mcs := &mock_clstore.Store{}
 	defer mes.AssertExpectations(t)
 	defer clExp.AssertExpectations(t)
-	defer mcs.AssertExpectations(t)
 
 	const clID = "12345"
-	const crs = "github"
+	const githubCRS = "github"
 	const user = "user@example.com"
 	const algorithmName = "fuzzy"
 
-	mes.On("ForChangeList", clID, crs).Return(clExp)
+	mes.On("ForChangeList", clID, githubCRS).Return(clExp)
 
 	clExp.On("AddChange", testutils.AnyContext, []expectations.Delta{
 		{
@@ -700,17 +724,20 @@ func TestTriage_SingleDigestOnCL_ImageMatchingAlgorithmSet_UsesAlgorithmNameAsAu
 		},
 	}, algorithmName).Return(nil)
 
-	mcs.On("System").Return(crs)
-
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
 			ExpectationsStore: mes,
-			ChangeListStore:   mcs,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: githubCRS,
+				},
+			},
 		},
 	}
 
 	tr := frontend.TriageRequest{
-		ChangeListID: clID,
+		CodeReviewSystem: githubCRS,
+		ChangeListID:     clID,
 		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
 			bug_revert.TestOne: {
 				bug_revert.BravoUntriagedDigest: expectations.Negative,
@@ -766,7 +793,6 @@ func TestTriage_BulkTriageOnMaster_SunnyDay_Success(t *testing.T) {
 	}
 
 	tr := frontend.TriageRequest{
-		ChangeListID: "",
 		TestDigestStatus: map[types.TestName]map[types.Digest]expectations.Label{
 			bug_revert.TestOne: {
 				bug_revert.AlfaPositiveDigest:   expectations.Untriaged,
@@ -877,7 +903,7 @@ func TestGetTriageLog_MasterBranchNoDetails_SunnyDay_Success(t *testing.T) {
 		},
 	}, offset+2, nil)
 
-	tle, n, err := wh.getTriageLog(context.Background(), masterBranch, offset, size, false)
+	tle, n, err := wh.getTriageLog(context.Background(), masterBranch, masterBranch, offset, size, false)
 	assert.NoError(t, err)
 	assert.Equal(t, offset+2, n)
 	assert.Len(t, tle, 2)
@@ -1412,25 +1438,28 @@ func TestDeleteIgnoreRule_StoreFailure_InternalServerError(t *testing.T) {
 func TestBaselineHandler_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
+	const gerritCRS = "gerrit"
 	mbf := &mocks.BaselineFetcher{}
-	mcls := &mock_clstore.Store{}
-	mcls.On("System").Return("gerrit")
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Baseliner:       mbf,
-			ChangeListStore: mcls,
+			Baseliner: mbf,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: gerritCRS,
+				},
+			},
 		},
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, requestURL, nil)
 
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
-	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
+	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: gerritCRS}
 	expectedJSONResponse := `{"md5":"fakehash","master_str":null,"crs":"gerrit"}`
 
 	// FetchBaseline should be called as per the request parameters.
-	mbf.On("FetchBaseline", testutils.AnyContext, "" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
+	mbf.On("FetchBaseline", testutils.AnyContext, "" /* =clID */, "", false /* =issueOnly */).Return(bl, nil)
 	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
 
 	// We'll use the counters to assert that the right route was called.
@@ -1451,14 +1480,17 @@ func TestBaselineHandler_Success(t *testing.T) {
 func TestBaselineHandler_IssueSet_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
+	const gerritCRS = "gerrit"
 	mbf := &mocks.BaselineFetcher{}
-	mcls := &mock_clstore.Store{}
-	mcls.On("System").Return("gerrit")
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Baseliner:       mbf,
-			ChangeListStore: mcls,
+			Baseliner: mbf,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: gerritCRS,
+				},
+			},
 		},
 	}
 	w := httptest.NewRecorder()
@@ -1467,11 +1499,11 @@ func TestBaselineHandler_IssueSet_Success(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, requestURL+"?issue=123456", nil)
 
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
-	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
+	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: gerritCRS}
 	expectedJSONResponse := `{"md5":"fakehash","master_str":null,"crs":"gerrit"}`
 
 	// FetchBaseline should be called as per the request parameters.
-	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
+	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, gerritCRS, false /* =issueOnly */).Return(bl, nil)
 	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
 
 	// We'll use the counters to assert that the right route was called.
@@ -1492,14 +1524,17 @@ func TestBaselineHandler_IssueSet_Success(t *testing.T) {
 func TestBaselineHandler_IssueSet_IssueOnly_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
+	const gerritCRS = "gerrit"
 	mbf := &mocks.BaselineFetcher{}
-	mcls := &mock_clstore.Store{}
-	mcls.On("System").Return("gerrit")
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Baseliner:       mbf,
-			ChangeListStore: mcls,
+			Baseliner: mbf,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: gerritCRS,
+				},
+			},
 		},
 	}
 	w := httptest.NewRecorder()
@@ -1508,11 +1543,11 @@ func TestBaselineHandler_IssueSet_IssueOnly_Success(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, requestURL+"?issue=123456&issueOnly=true", nil)
 
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
-	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
+	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: gerritCRS}
 	expectedJSONResponse := `{"md5":"fakehash","master_str":null,"crs":"gerrit"}`
 
 	// FetchBaseline should be called as per the request parameters.
-	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", true /* =issueOnly */).Return(bl, nil)
+	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, gerritCRS, true /* =issueOnly */).Return(bl, nil)
 	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
 
 	// We'll use the counters to assert that the right route was called.
@@ -1533,16 +1568,18 @@ func TestBaselineHandler_IssueSet_IssueOnly_Success(t *testing.T) {
 func TestBaselineHandler_BaselineFetcherError_InternalServerError(t *testing.T) {
 	unittest.SmallTest(t)
 
+	const gerritCRS = "gerrit"
 	mbf := &mocks.BaselineFetcher{}
 	mbf.On("FetchBaseline", testutils.AnyContext, mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("oops"))
 
-	mcls := &mock_clstore.Store{}
-	mcls.On("System").Return("gerrit")
-
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Baseliner:       mbf,
-			ChangeListStore: mcls,
+			Baseliner: mbf,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: gerritCRS,
+				},
+			},
 		},
 	}
 	w := httptest.NewRecorder()
@@ -1568,14 +1605,17 @@ func TestBaselineHandler_BaselineFetcherError_InternalServerError(t *testing.T) 
 func TestBaselineHandler_CommitHashSet_IgnoresCommitHash_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
+	const gerritCRS = "gerrit"
 	mbf := &mocks.BaselineFetcher{}
-	mcls := &mock_clstore.Store{}
-	mcls.On("System").Return("gerrit")
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Baseliner:       mbf,
-			ChangeListStore: mcls,
+			Baseliner: mbf,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: gerritCRS,
+				},
+			},
 		},
 	}
 	w := httptest.NewRecorder()
@@ -1585,11 +1625,11 @@ func TestBaselineHandler_CommitHashSet_IgnoresCommitHash_Success(t *testing.T) {
 	r = mux.SetURLVars(r, map[string]string{"commit_hash": "09e87c3d93e2bb188a8dae01b7f8b9ffb2ebcad1"})
 
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
-	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
+	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: gerritCRS}
 	expectedJSONResponse := `{"md5":"fakehash","master_str":null,"crs":"gerrit"}`
 
 	// Note that the {commit_hash} doesn't appear anywhere in the FetchBaseline call.
-	mbf.On("FetchBaseline", testutils.AnyContext, "" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
+	mbf.On("FetchBaseline", testutils.AnyContext, "" /* =clID */, "", false /* =issueOnly */).Return(bl, nil)
 	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
 
 	// We'll use the counters to assert that the right route was called.
@@ -1612,14 +1652,17 @@ func TestBaselineHandler_CommitHashSet_IgnoresCommitHash_Success(t *testing.T) {
 func TestBaselineHandler_CommitHashSet_IssueSet_IgnoresCommitHash_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
+	const gerritCRS = "gerrit"
 	mbf := &mocks.BaselineFetcher{}
-	mcls := &mock_clstore.Store{}
-	mcls.On("System").Return("gerrit")
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Baseliner:       mbf,
-			ChangeListStore: mcls,
+			Baseliner: mbf,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: gerritCRS,
+				},
+			},
 		},
 	}
 	w := httptest.NewRecorder()
@@ -1631,11 +1674,11 @@ func TestBaselineHandler_CommitHashSet_IssueSet_IgnoresCommitHash_Success(t *tes
 	r = mux.SetURLVars(r, map[string]string{"commit_hash": "09e87c3d93e2bb188a8dae01b7f8b9ffb2ebcad1"})
 
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
-	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
+	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: gerritCRS}
 	expectedJSONResponse := `{"md5":"fakehash","master_str":null,"crs":"gerrit"}`
 
 	// Note that the {commit_hash} doesn't appear anywhere in the FetchBaseline call.
-	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", false /* =issueOnly */).Return(bl, nil)
+	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, gerritCRS, false /* =issueOnly */).Return(bl, nil)
 	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
 
 	// We'll use the counters to assert that the right route was called.
@@ -1658,14 +1701,17 @@ func TestBaselineHandler_CommitHashSet_IssueSet_IgnoresCommitHash_Success(t *tes
 func TestBaselineHandler_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
+	const gerritCRS = "gerrit"
 	mbf := &mocks.BaselineFetcher{}
-	mcls := &mock_clstore.Store{}
-	mcls.On("System").Return("gerrit")
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Baseliner:       mbf,
-			ChangeListStore: mcls,
+			Baseliner: mbf,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: gerritCRS,
+				},
+			},
 		},
 	}
 	w := httptest.NewRecorder()
@@ -1677,11 +1723,11 @@ func TestBaselineHandler_CommitHashSet_IssueSet_IssueOnly_IgnoresCommitHash_Succ
 	r = mux.SetURLVars(r, map[string]string{"commit_hash": "09e87c3d93e2bb188a8dae01b7f8b9ffb2ebcad1"})
 
 	// Prepare a fake response from the BaselineFetcher and the handler's expected JSON response.
-	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: "gerrit"}
+	bl := &baseline.Baseline{ChangeListID: "", MD5: "fakehash", CodeReviewSystem: gerritCRS}
 	expectedJSONResponse := `{"md5":"fakehash","master_str":null,"crs":"gerrit"}`
 
 	// Note that the {commit_hash} doesn't appear anywhere in the FetchBaseline call.
-	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, "gerrit", true /* =issueOnly */).Return(bl, nil)
+	mbf.On("FetchBaseline", testutils.AnyContext, "123456" /* =clID */, gerritCRS, true /* =issueOnly */).Return(bl, nil)
 	defer mbf.AssertExpectations(t) // Assert that the method above was called exactly as expected.
 
 	// We'll use the counters to assert that the right route was called.
@@ -1881,11 +1927,10 @@ func TestParamsHandler_MasterBranch_Success(t *testing.T) {
 func TestParamsHandler_ChangeListIndex_Success(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mockCLStore := &mock_clstore.Store{}
 	mockIndexSource := &mock_indexer.IndexSource{}
 	defer mockIndexSource.AssertExpectations(t) // want to make sure fallback happened
 
-	const crs = "gerrit"
+	const gerritCRS = "gerrit"
 	const clID = "1234"
 
 	clIdx := indexer.ChangeListIndex{
@@ -1895,18 +1940,21 @@ func TestParamsHandler_ChangeListIndex_Success(t *testing.T) {
 			"os":                  []string{"Android XYZ"},
 		},
 	}
-	mockIndexSource.On("GetIndexForCL", crs, clID).Return(&clIdx)
-	mockCLStore.On("System").Return(crs)
+	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(&clIdx)
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Indexer:         mockIndexSource,
-			ChangeListStore: mockCLStore,
+			Indexer: mockIndexSource,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: gerritCRS,
+				},
+			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
 	}
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/json/paramset?changelist_id=1234", nil)
+	r := httptest.NewRequest(http.MethodGet, "/json/paramset?changelist_id=1234&crs=gerrit", nil)
 	wh.ParamsHandler(w, r)
 	const expectedResponse = `{"name":["alpha_test","beta_test","gamma_test"],"os":["Android XYZ"],"source_type":["first_corpus","second_corpus"]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
@@ -1915,16 +1963,15 @@ func TestParamsHandler_ChangeListIndex_Success(t *testing.T) {
 func TestParamsHandler_NoChangeListIndex_FallBackToMasterBranch(t *testing.T) {
 	unittest.SmallTest(t)
 
-	mockCLStore := &mock_clstore.Store{}
 	mockIndexSearcher := &mock_indexer.IndexSearcher{}
 	mockIndexSource := &mock_indexer.IndexSource{}
 	defer mockIndexSource.AssertExpectations(t) // want to make sure fallback happened
 
-	const crs = "gerrit"
+	const gerritCRS = "gerrit"
 	const clID = "1234"
 
 	mockIndexSource.On("GetIndex").Return(mockIndexSearcher)
-	mockIndexSource.On("GetIndexForCL", crs, clID).Return(nil)
+	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(nil)
 
 	cpxTile := tiling.NewComplexTile(&tiling.Tile{
 		ParamSet: paramtools.ParamSet{
@@ -1937,17 +1984,19 @@ func TestParamsHandler_NoChangeListIndex_FallBackToMasterBranch(t *testing.T) {
 
 	mockIndexSearcher.On("Tile").Return(cpxTile)
 
-	mockCLStore.On("System").Return(crs)
-
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Indexer:         mockIndexSource,
-			ChangeListStore: mockCLStore,
+			Indexer: mockIndexSource,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: gerritCRS,
+				},
+			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
 	}
 	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "/json/paramset?changelist_id=1234", nil)
+	r := httptest.NewRequest(http.MethodGet, "/json/paramset?changelist_id=1234&crs=gerrit", nil)
 	wh.ParamsHandler(w, r)
 	const expectedResponse = `{"name":["alpha_test","beta_test","gamma_test"],"os":["Android XYZ"],"source_type":["first_corpus","second_corpus"]}`
 	assertJSONResponseWas(t, http.StatusOK, expectedResponse, w)
@@ -1959,16 +2008,16 @@ func TestChangeListSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
 	mockSearchAPI := &mock_search.SearchAPI{}
 	mockIndexSource := &mock_indexer.IndexSource{}
 
-	const crs = "gerrit"
+	const gerritCRS = "gerrit"
 	const clID = "1234"
 
 	combinedID := tjstore.CombinedPSID{
-		CRS: crs,
+		CRS: gerritCRS,
 		CL:  clID,
 		PS:  "some patchset",
 	}
 
-	mockIndexSource.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{
+	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(&indexer.ChangeListIndex{
 		LatestPatchSet: combinedID,
 		// Other fields should be ignored
 	})
@@ -1981,19 +2030,24 @@ func TestChangeListSearchRedirect_CLHasUntriagedDigests_Success(t *testing.T) {
 		HandlersConfig: HandlersConfig{
 			Indexer:   mockIndexSource,
 			SearchAPI: mockSearchAPI,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: gerritCRS,
+				},
+			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/1234", nil)
 	r = mux.SetURLVars(r, map[string]string{
-		"system": crs,
+		"system": gerritCRS,
 		"id":     clID,
 	})
 	wh.ChangeListSearchRedirect(w, r)
 	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 	headers := w.Header()
-	assert.Equal(t, []string{"/search?issue=1234&query=source_type%3Done_corpus"}, headers["Location"])
+	assert.Equal(t, []string{"/search?issue=1234&crs=gerrit&query=source_type%3Done_corpus"}, headers["Location"])
 }
 
 func TestChangeListSearchRedirect_ErrorGettingUntriagedDigests_RedirectsWithoutCorpus(t *testing.T) {
@@ -2003,16 +2057,16 @@ func TestChangeListSearchRedirect_ErrorGettingUntriagedDigests_RedirectsWithoutC
 	mockIndexSource := &mock_indexer.IndexSource{}
 	defer mockSearchAPI.AssertExpectations(t) // make sure the error was returned
 
-	const crs = "gerrit"
+	const gerritCRS = "gerrit"
 	const clID = "1234"
 
 	combinedID := tjstore.CombinedPSID{
-		CRS: crs,
+		CRS: gerritCRS,
 		CL:  clID,
 		PS:  "some patchset",
 	}
 
-	mockIndexSource.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{
+	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(&indexer.ChangeListIndex{
 		LatestPatchSet: combinedID,
 		// Other fields should be ignored
 	})
@@ -2023,19 +2077,24 @@ func TestChangeListSearchRedirect_ErrorGettingUntriagedDigests_RedirectsWithoutC
 		HandlersConfig: HandlersConfig{
 			Indexer:   mockIndexSource,
 			SearchAPI: mockSearchAPI,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID: gerritCRS,
+				},
+			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/1234", nil)
 	r = mux.SetURLVars(r, map[string]string{
-		"system": crs,
+		"system": gerritCRS,
 		"id":     clID,
 	})
 	wh.ChangeListSearchRedirect(w, r)
 	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 	headers := w.Header()
-	assert.Equal(t, []string{"/search?issue=1234"}, headers["Location"])
+	assert.Equal(t, []string{"/search?issue=1234&crs=gerrit"}, headers["Location"])
 }
 
 func TestChangeListSearchRedirect_CLExistsNotIndexed_RedirectsWithoutCorpus(t *testing.T) {
@@ -2044,31 +2103,36 @@ func TestChangeListSearchRedirect_CLExistsNotIndexed_RedirectsWithoutCorpus(t *t
 	mockIndexSource := &mock_indexer.IndexSource{}
 	mockCLStore := &mock_clstore.Store{}
 
-	const crs = "gerrit"
+	const gerritCRS = "gerrit"
 	const clID = "1234"
 
-	mockIndexSource.On("GetIndexForCL", crs, clID).Return(nil)
+	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(nil)
 
 	// all this cares about is a non-error return code
 	mockCLStore.On("GetChangeList", testutils.AnyContext, clID).Return(code_review.ChangeList{}, nil)
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Indexer:         mockIndexSource,
-			ChangeListStore: mockCLStore,
+			Indexer: mockIndexSource,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID:    gerritCRS,
+					Store: mockCLStore,
+				},
+			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/1234", nil)
 	r = mux.SetURLVars(r, map[string]string{
-		"system": crs,
+		"system": gerritCRS,
 		"id":     clID,
 	})
 	wh.ChangeListSearchRedirect(w, r)
 	assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
 	headers := w.Header()
-	assert.Equal(t, []string{"/search?issue=1234"}, headers["Location"])
+	assert.Equal(t, []string{"/search?issue=1234&crs=gerrit"}, headers["Location"])
 }
 
 func TestChangeListSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
@@ -2077,25 +2141,30 @@ func TestChangeListSearchRedirect_CLDoesNotExist_404Error(t *testing.T) {
 	mockIndexSource := &mock_indexer.IndexSource{}
 	mockCLStore := &mock_clstore.Store{}
 
-	const crs = "gerrit"
+	const gerritCRS = "gerrit"
 	const clID = "1234"
 
-	mockIndexSource.On("GetIndexForCL", crs, clID).Return(nil)
+	mockIndexSource.On("GetIndexForCL", gerritCRS, clID).Return(nil)
 
 	// all this cares about is a non-error return code
 	mockCLStore.On("GetChangeList", testutils.AnyContext, clID).Return(code_review.ChangeList{}, code_review.ErrNotFound)
 
 	wh := Handlers{
 		HandlersConfig: HandlersConfig{
-			Indexer:         mockIndexSource,
-			ChangeListStore: mockCLStore,
+			Indexer: mockIndexSource,
+			ReviewSystems: []clstore.ReviewSystem{
+				{
+					ID:    gerritCRS,
+					Store: mockCLStore,
+				},
+			},
 		},
 		anonymousCheapQuota: rate.NewLimiter(rate.Inf, 1),
 	}
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodGet, "/cl/gerrit/1234", nil)
 	r = mux.SetURLVars(r, map[string]string{
-		"system": crs,
+		"system": gerritCRS,
 		"id":     clID,
 	})
 	wh.ChangeListSearchRedirect(w, r)
