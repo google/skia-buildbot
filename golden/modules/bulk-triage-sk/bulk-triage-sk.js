@@ -78,6 +78,7 @@ define('bulk-triage-sk', class extends ElementSk {
   constructor() {
     super(template);
     this._changeListID = '';
+    this._crs = '';
     this._value = CLOSEST;
     this._triageAll = false;
 
@@ -113,6 +114,16 @@ define('bulk-triage-sk', class extends ElementSk {
 
   set changeListID(newValue) {
     this._changeListID = newValue;
+    this._render();
+  }
+
+  /**
+   * @prop crs {string} The Code Review System (e.g. "gerrit") if changeListID is set.
+   */
+  get crs() { return this._crs; }
+
+  set crs(c) {
+    this._crs = c;
     this._render();
   }
 
@@ -171,7 +182,8 @@ define('bulk-triage-sk', class extends ElementSk {
       method: 'POST',
       body: JSON.stringify({
         testDigestStatus: triageStatuses,
-        issue: this.changeListID,
+        changelist_id: this.changeListID,
+        crs: this.crs,
       }),
     }).then(() => {
       // Even if we get back a non-200 code, we want to say we finished.

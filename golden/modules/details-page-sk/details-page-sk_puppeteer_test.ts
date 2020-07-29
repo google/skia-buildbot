@@ -56,18 +56,21 @@ describe('details-page-sk', () => {
       expect(await getPropertyAsJSON(detailsPageSk!, '_grouping')).to.equal('My test has spaces');
       expect(await getPropertyAsJSON(detailsPageSk!, '_digest')).to.equal('6246b773851984c726cb2e1cb13510c2');
       expect(await getPropertyAsJSON(detailsPageSk!, '_changeListID')).to.equal('');
+      expect(await getPropertyAsJSON(detailsPageSk!, '_crs')).to.equal('');
     });
 
-    it('correctly extracts the changelistID (issue) if provided', async () => {
-      await navigateTo(testBed.page, testBed.baseUrl, `${baseParams}&issue=65432`);
+    it('correctly extracts the changelistID if provided', async () => {
+      await navigateTo(testBed.page, testBed.baseUrl, `${baseParams}&changelist_id=65432&crs=gerrit-internal`);
       const detailsPageSk = await testBed.page.$('details-page-sk');
 
       expect(await getPropertyAsJSON(detailsPageSk!, '_grouping')).to.equal('My test has spaces');
       expect(await getPropertyAsJSON(detailsPageSk!, '_digest')).to.equal('6246b773851984c726cb2e1cb13510c2');
       expect(await getPropertyAsJSON(detailsPageSk!, '_changeListID')).to.equal('65432');
+      expect(await getPropertyAsJSON(detailsPageSk!, '_crs')).to.equal('gerrit-internal');
 
       const digestDetails = await testBed.page.$('details-page-sk digest-details-sk');
-      expect(await getPropertyAsJSON(digestDetails!, '_issue')).to.equal('65432');
+      expect(await getPropertyAsJSON(digestDetails!, 'changeListID')).to.equal('65432');
+      expect(await getPropertyAsJSON(digestDetails!, 'crs')).to.equal('gerrit-internal');
     });
   });
 });

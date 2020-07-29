@@ -18,11 +18,11 @@ const tooManyDigests = [
   { digest: 'b00cb97f0d4dd7b22fb9af5378918d9f', status: 'untriaged' },
 ];
 
-function newDotsLegendSk(parentSelector, id, digests, issue, test) {
+function newDotsLegendSk(parentSelector, id, digests, clID, test) {
   const dotsLegendSk = document.createElement('dots-legend-sk');
   dotsLegendSk.id = id;
   dotsLegendSk.digests = digests;
-  dotsLegendSk.issue = issue;
+  dotsLegendSk.changeListID = clID;
   dotsLegendSk.test = test;
   dotsLegendSk.totalDigests = digests.length;
   $$(parentSelector).appendChild(dotsLegendSk);

@@ -66,12 +66,12 @@ describe('digestDiffImagePath', () => {
 });
 
 describe('detailHref', () => {
-  it('returns a path with and without an issue', () => {
+  it('returns a path with and without an changelist id', () => {
     expect(detailHref('my-test', aDigest)).to.equal(
       '/detail?test=my-test&digest=aaab78c9711cb79197d47f448ba51338',
     );
-    expect(detailHref('my-test', aDigest, '12345')).to.equal(
-      '/detail?test=my-test&digest=aaab78c9711cb79197d47f448ba51338&issue=12345',
+    expect(detailHref('my-test', aDigest, '12345', 'gerrit')).to.equal(
+      '/detail?test=my-test&digest=aaab78c9711cb79197d47f448ba51338&changelist_id=12345&crs=gerrit',
     );
   });
 });
@@ -87,8 +87,9 @@ describe('diffPageHref', () => {
     );
   });
   it('supports an optional changelist id', () => {
-    expect(diffPageHref('my-test', aDigest, bDigest, '12345')).to.equal(
-      '/diff?test=my-test&left=aaab78c9711cb79197d47f448ba51338&right=bbb8b07beb4e1247c2cbafdb92b93e55&issue=12345',
+    expect(diffPageHref('my-test', aDigest, bDigest, '123456', 'github')).to.equal(
+      '/diff?test=my-test&left=aaab78c9711cb79197d47f448ba51338'
+      + '&right=bbb8b07beb4e1247c2cbafdb92b93e55&changelist_id=123456&crs=github',
     );
   });
 });

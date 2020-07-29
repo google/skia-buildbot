@@ -617,7 +617,7 @@ func (wh *Handlers) DetailsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Some query parameters are wrong or missing", http.StatusBadRequest)
 		return
 	}
-	clID := r.Form.Get("issue")
+	clID := r.Form.Get("changelist_id")
 	crs := r.Form.Get("crs")
 	if clID != "" {
 		if _, ok := wh.getCodeReviewSystem(crs); !ok {
@@ -657,7 +657,7 @@ func (wh *Handlers) DiffHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid query params", http.StatusBadRequest)
 		return
 	}
-	clID := r.Form.Get("issue")
+	clID := r.Form.Get("changelist_id")
 	crs := r.Form.Get("crs")
 	if clID != "" {
 		if _, ok := wh.getCodeReviewSystem(crs); !ok {
@@ -1170,7 +1170,7 @@ func (wh *Handlers) TriageLogHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clID := q.Get("issue")
+	clID := q.Get("changelist_id")
 	crs := q.Get("crs")
 	if clID != "" {
 		if _, ok := wh.getCodeReviewSystem(crs); !ok {

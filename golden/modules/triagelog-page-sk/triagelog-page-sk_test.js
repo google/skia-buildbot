@@ -84,15 +84,15 @@ describe('triagelog-page-sk', () => {
     expectFirstPageOfResultsFirstEntryUndone(triagelogPageSk);
   });
 
-  it('handles the "issue" URL parameter', async () => {
+  it('handles the "changelist_id" and "crs" URL parameters', async () => {
     fetchMock.get(
-      '/json/triagelog?details=true&offset=0&size=20&issue=123456',
+      '/json/triagelog?details=true&offset=0&size=20&changelist_id=123456&crs=gerrit',
       firstPage,
     );
-    setQueryString('?issue=123456');
+    setQueryString('?changelist_id=123456&crs=gerrit');
     const triagelogPageSk = await loadTriagelogPageSk(); // Load first page.
-    expectQueryStringToEqual('?issue=123456'); // No changes to the URL.
-    expectFirstPageOfResults(triagelogPageSk, '123456' /*= changelistID */);
+    expectQueryStringToEqual('?changelist_id=123456&crs=gerrit'); // No changes to the URL.
+    expectFirstPageOfResults(triagelogPageSk, '123456' /*= changelistID */, 'gerrit' /*= crs */);
   });
 
   describe('URL parameters', () => {
@@ -207,7 +207,7 @@ function expectEmptyPage(triagelogPageSk) {
   expect($$('tbody', triagelogPageSk).children).to.be.empty;
 }
 
-function expectFirstPageOfResults(triagelogPageSk, changelistID = '') {
+function expectFirstPageOfResults(triagelogPageSk, changelistID = '', crs = '') {
   expect(nthEntryTimestamp(triagelogPageSk, 0)).to.equal(toLocalDateStr(1572000000000));
   expect(nthEntryAuthor(triagelogPageSk, 0)).to.equal('alpha@google.com');
   expect(nthEntryNumChanges(triagelogPageSk, 0)).to.equal(2);
@@ -220,9 +220,9 @@ function expectFirstPageOfResults(triagelogPageSk, changelistID = '') {
     '/detail?test=async_rescale_and_read_dog_up&digest=f16298eb14e19f9230fe81615200561f',
   );
   if (changelistID) {
-    expect(digestHref).to.contain(`&issue=${changelistID}`);
+    expect(digestHref).to.contain(`&changelist_id=${changelistID}&crs=${crs}`);
   } else {
-    expect(digestHref).not.to.contain('&issue');
+    expect(digestHref).not.to.contain('&changelist_id');
   }
 
   expect(nthEntryTimestamp(triagelogPageSk, 1)).to.equal(toLocalDateStr(1571900000000));
@@ -237,9 +237,9 @@ function expectFirstPageOfResults(triagelogPageSk, changelistID = '') {
     '/detail?test=async_rescale_and_read_rose&digest=35c77280a7d5378033f9bf8f3c755e78',
   );
   if (changelistID) {
-    expect(digestHref).to.contain(`&issue=${changelistID}`);
+    expect(digestHref).to.contain(`&changelist_id=${changelistID}&crs=${crs}`);
   } else {
-    expect(digestHref).not.to.contain('&issue');
+    expect(digestHref).not.to.contain('&changelist_id');
   }
 
   expect(nthEntryTimestamp(triagelogPageSk, 2)).to.equal(toLocalDateStr(1571800000000));
@@ -254,9 +254,9 @@ function expectFirstPageOfResults(triagelogPageSk, changelistID = '') {
     '/detail?test=draw_image_set&digest=b788aadee662c2b0390d698cbe68b808',
   );
   if (changelistID) {
-    expect(digestHref).to.contain(`&issue=${changelistID}`);
+    expect(digestHref).to.contain(`&changelist_id=${changelistID}&crs=${crs}`);
   } else {
-    expect(digestHref).not.to.contain('&issue');
+    expect(digestHref).not.to.contain('&changelist_id');
   }
 
   expect(nthDetailsRowTestName(triagelogPageSk, 3)).to.equal('filterbitmap_text_7.00pt');
@@ -267,9 +267,9 @@ function expectFirstPageOfResults(triagelogPageSk, changelistID = '') {
     '/detail?test=filterbitmap_text_7.00pt&digest=454b4b547bc6ceb4cdeb3305553be98a',
   );
   if (changelistID) {
-    expect(digestHref).to.contain(`&issue=${changelistID}`);
+    expect(digestHref).to.contain(`&changelist_id=${changelistID}&crs=${crs}`);
   } else {
-    expect(digestHref).not.to.contain('&issue');
+    expect(digestHref).not.to.contain('&changelist_id');
   }
 }
 

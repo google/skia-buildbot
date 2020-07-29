@@ -118,32 +118,38 @@ describe('digest-details-sk', () => {
     beforeEach(() => {
       digestDetailsSk.details = typicalDetails;
       digestDetailsSk.commits = twoHundredCommits;
-      digestDetailsSk.issue = '12345';
+      digestDetailsSk.changeListID = '12345';
+      digestDetailsSk.crs = 'github';
     });
 
     it('includes changelist id on the appropriate links', () => {
-      // (cluster doesn't have issue for now, since that was the way it was done before).
-      // TODO(kjlubick) should cluster take changelist ID?
+      // (cluster doesn't have changelist id for now, since that was the way it was done before).
+      // TODO(kjlubick) the new cluster page takes changelist_id and crs
       const imgComp = $$('.comparison image-compare-sk', digestDetailsSk);
       expect(imgComp.left).to.deep.equal({
         digest: '6246b773851984c726cb2e1cb13510c2',
         title: '6246b7738519...',
-        detail: '/detail?test=dots-legend-sk_too-many-digests&digest=6246b773851984c726cb2e1cb13510c2&issue=12345',
+        detail: '/detail?test=dots-legend-sk_too-many-digests'
+          + '&digest=6246b773851984c726cb2e1cb13510c2&changelist_id=12345&crs=github',
       });
 
       expect(imgComp.right).to.deep.equal({
         digest: '99c58c7002073346ff55f446d47d6311',
         title: 'Closest Positive',
-        detail: '/detail?test=dots-legend-sk_too-many-digests&digest=99c58c7002073346ff55f446d47d6311&issue=12345',
+        detail: '/detail?test=dots-legend-sk_too-many-digests&'
+          + 'digest=99c58c7002073346ff55f446d47d6311&changelist_id=12345&crs=github',
       });
 
       expect($$('.metrics_and_triage a.diffpage_link', digestDetailsSk).href).to.contain(
-        '/diff?test=dots-legend-sk_too-many-digests&left=6246b773851984c726cb2e1cb13510c2&right=99c58c7002073346ff55f446d47d6311&issue=12345',
+        '/diff?test=dots-legend-sk_too-many-digests&left=6246b773851984c726cb2e1cb13510c2'
+        + '&right=99c58c7002073346ff55f446d47d6311&changelist_id=12345&crs=github',
       );
     });
 
-    it('passes issue to appropriate subelements', () => {
-      expect($$('.trace_info dots-legend-sk', digestDetailsSk).issue).to.equal('12345');
+    it('passes changeListID and crs to appropriate subelements', () => {
+      const dots = $$('.trace_info dots-legend-sk', digestDetailsSk);
+      expect(dots.changeListID).to.equal('12345');
+      expect(dots.crs).to.equal('github');
     });
 
     describe('RPC requests', () => {
@@ -155,7 +161,7 @@ describe('digest-details-sk', () => {
       it('includes changelist id when triaging', async () => {
         const endPromise = eventPromise('end-task');
         fetchMock.post('/json/triage', (url, req) => {
-          expect(req.body).to.equal('{"testDigestStatus":{"dots-legend-sk_too-many-digests":{"6246b773851984c726cb2e1cb13510c2":"negative"}},"issue":"12345"}');
+          expect(req.body).to.equal('{"testDigestStatus":{"dots-legend-sk_too-many-digests":{"6246b773851984c726cb2e1cb13510c2":"negative"}},"changelist_id":"12345","crs":"github"}');
           return 200;
         });
 

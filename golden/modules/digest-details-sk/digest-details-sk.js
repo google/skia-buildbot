@@ -90,7 +90,7 @@ const detailsAndTriage = (ele) => {
   return html`
 <div class=metrics_and_triage>
   <div>
-    <a href=${diffPageHref(ele._grouping, ele._digest, ele.right.digest, ele.issue)}
+    <a href=${diffPageHref(ele._grouping, ele._digest, ele.right.digest, ele.changeListID, ele.crs)}
        target=_blank rel=noopener class=diffpage_link>
       Diff Details
     </a>
@@ -121,7 +121,7 @@ const imageComparison = (ele) => {
   const left = {
     digest: ele._digest,
     title: truncateWithEllipses(ele._digest),
-    detail: detailHref(ele._grouping, ele._digest, ele.issue),
+    detail: detailHref(ele._grouping, ele._digest, ele.changeListID, ele.crs),
   };
   if (!ele.right) {
     return html`<image-compare-sk .left=${left}></image-compare-sk>`;
@@ -129,7 +129,7 @@ const imageComparison = (ele) => {
   const right = {
     digest: ele.right.digest,
     title: ele.right.status === 'positive' ? 'Closest Positive' : 'Closest Negative',
-    detail: detailHref(ele._grouping, ele.right.digest, ele.issue),
+    detail: detailHref(ele._grouping, ele.right.digest, ele.changeListID, ele.crs),
   };
   return html`<image-compare-sk .left=${left} .right=${right}></image-compare-sk>`;
 };
@@ -142,8 +142,8 @@ const traceInfo = (ele) => {
 <div class=trace_info>
   <dots-sk .value=${ele._traces} .commits=${ele._commits} @hover=${ele._hoverOverTrace}
       @mouseleave=${ele._clearTraceHighlights} @showblamelist=${ele._showBlamelist}></dots-sk>
-  <dots-legend-sk .digests=${ele._traces.digests} .issue=${ele.issue} .test=${ele._grouping}
-.totalDigests=${ele._traces.total_digests || 0}></dots-legend-sk>
+  <dots-legend-sk .digests=${ele._traces.digests} .changeListID=${ele.changeListID} .crs=${ele.crs}
+     .test=${ele._grouping} .totalDigests=${ele._traces.total_digests || 0}></dots-legend-sk>
 </div>`;
 };
 
@@ -188,7 +188,8 @@ define('digest-details-sk', class extends ElementSk {
     this._params = null;
     this._traces = null;
     this._refDiffs = {};
-    this._issue = '';
+    this._changeListID = '';
+    this._crs = '';
     this._triageHistory = [];
 
     this._commits = [];
@@ -234,13 +235,28 @@ define('digest-details-sk', class extends ElementSk {
   }
 
   /**
-   * @prop issue {string} The changelist id (or empty string if this is the master branch).
-   *   TODO(kjlubick) rename this to changelistID.
+   * @prop changeListID {string} The changelist id (or empty string if this is the master branch).
    */
-  get issue() { return this._issue; }
+  get changeListID() { return this._changeListID; }
 
+  set changeListID(id) {
+    this._changeListID = id;
+    this._render();
+  }
+
+  // For backwards compatibility with Polymer search page. synnonym for changeListID
   set issue(id) {
-    this._issue = id;
+    this._changeListID = id;
+    this._render();
+  }
+
+  /**
+   * @prop crs {string} The Code Review System (e.g. "gerrit") if changeListID is set.
+   */
+  get crs() { return this._crs; }
+
+  set crs(c) {
+    this._crs = c;
     this._render();
   }
 
@@ -367,8 +383,9 @@ define('digest-details-sk', class extends ElementSk {
       testDigestStatus: {},
     };
     postBody.testDigestStatus[this._grouping] = digestStatus;
-    if (this.issue) {
-      postBody.issue = this.issue;
+    if (this.changeListID) {
+      postBody.changelist_id = this.changeListID;
+      postBody.crs = this.crs;
     }
 
     sendBeginTask(this);

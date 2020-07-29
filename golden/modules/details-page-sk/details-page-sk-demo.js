@@ -20,7 +20,7 @@ setImageEndpointsForDemos();
 // Load the demo page with some params to load if there aren't any already. 4 is an arbitrary
 // small number to check against to determine "no query params"
 if (window.location.search.length < 4) {
-  const query = '?digest=6246b773851984c726cb2e1cb13510c2&test=My%20test%20has%20spaces&issue=12353';
+  const query = '?digest=6246b773851984c726cb2e1cb13510c2&test=My%20test%20has%20spaces&changelist_id=12353&crs=gerrit-internal';
   history.pushState(null, '', window.location.origin + window.location.pathname + query);
 }
 

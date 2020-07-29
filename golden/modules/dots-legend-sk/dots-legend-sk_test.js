@@ -81,14 +81,16 @@ describe('dots-legend-sk', () => {
       ]);
     });
 
-    describe('with issue number', () => {
+    describe('with CL ID and crs', () => {
       beforeEach(() => {
         dotsLegendSk.test = 'My Test';
-        dotsLegendSk.issue = '123456';
+        dotsLegendSk.changeListID = '123456';
+        dotsLegendSk.crs = 'gerrit';
       });
 
       it('renders digest links correctly', () => {
-        const digestLinkFor = (d) => `/detail?test=My%20Test&digest=${d}&issue=123456`;
+        const digestLinkFor = (d) => `/detail?test=My%20Test&digest=${d}`
+          + '&changelist_id=123456&crs=gerrit';
         expect(digestLinks(dotsLegendSk)).to.deep.equal([
           digestLinkFor('00000000000000000000000000000000'),
           digestLinkFor('11111111111111111111111111111111'),
@@ -100,7 +102,7 @@ describe('dots-legend-sk', () => {
 
       it('renders diff links correctly', () => {
         const diffLinkFor = (d) => '/diff?test=My%20Test&left=00000000000000000000000000000000'
-            + `&right=${d}&issue=123456`;
+            + `&right=${d}&changelist_id=123456&crs=gerrit`;
         expect(diffLinks(dotsLegendSk)).to.deep.equal([
           diffLinkFor('11111111111111111111111111111111'),
           diffLinkFor('22222222222222222222222222222222'),

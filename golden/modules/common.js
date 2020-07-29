@@ -75,13 +75,14 @@ export function digestDiffImagePath(d1, d2) {
  * Returns a link to the details page for a given test-digest pair.
  * @param test {string}
  * @param digest {string}
- * @param issue {string} Optional, omit or use empty string for master branch.
+ * @param clID {string} Optional, omit or use empty string for master branch.
+ * @param crs {string} Optional, omit or use empty string for master branch.
  * @return {string}
  */
-export function detailHref(test, digest, issue = '') {
+export function detailHref(test, digest, clID = '', crs = '') {
   const u = `/detail?test=${test}&digest=${digest}`;
-  if (issue) {
-    return `${u}&issue=${issue}`;
+  if (clID) {
+    return `${u}&changelist_id=${clID}&crs=${crs}`;
   }
   return u;
 }
@@ -91,17 +92,18 @@ export function detailHref(test, digest, issue = '') {
  * @param grouping {string}
  * @param left {string}
  * @param right {string}
- * @param issue {string} Optional, omit or use empty string for master branch.
+ * @param clID {string} Optional, omit or use empty string for master branch.
+ * @param crs {string} Optional, omit or use empty string for master branch.
  * @return {string}
  */
-export function diffPageHref(grouping, left, right, issue = '') {
+export function diffPageHref(grouping, left, right, clID = '', crs = '') {
   if (!left || !right) {
     return '';
   }
 
   const u = `/diff?test=${grouping}&left=${left}&right=${right}`;
-  if (issue) {
-    return `${u}&issue=${issue}`;
+  if (clID) {
+    return `${u}&changelist_id=${clID}&crs=${crs}`;
   }
   return u;
 }
