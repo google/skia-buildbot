@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "be748d6f_3784a043",
+        "filename": "power/go/testdata/testdata/booting_device.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T18:16:44Z",
+      "side": 0,
+      "message": "Ack",
+      "parentUuid": "b6a83bf4_c0e292ef",
+      "range": {
+        "startLine": 1,
+        "startChar": 22,
+        "endLine": 1,
+        "endChar": 37
+      },
+      "revId": "b0d03478070386fe89b50e8670ced94b116f31f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c6a28cf7_34f03378",
         "filename": "scripts/check_swarming_bot_auth/check_swarming_bot_auth.go",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "b0d03478070386fe89b50e8670ced94b116f31f9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c88ac9e9_4bbe8964",
+        "filename": "scripts/check_swarming_bot_auth/check_swarming_bot_auth.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T18:16:44Z",
+      "side": 0,
+      "message": "Ack",
+      "parentUuid": "c6a28cf7_34f03378",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "b0d03478070386fe89b50e8670ced94b116f31f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
