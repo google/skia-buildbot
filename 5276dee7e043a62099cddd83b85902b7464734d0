@@ -144,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "1c95aad5_806686df",
+        "filename": "go/gce/swarming/setup-script-linux.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-29T10:55:20Z",
+      "side": 1,
+      "message": "It was the old name for the Swarming bot working directory but was changed because of the path length limit on Windows.  I don\u0027t think it\u0027s used any more, but I\u0027m not 100% sure.",
+      "parentUuid": "bce15945_0e01adf7",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 59
+      },
+      "revId": "5276dee7e043a62099cddd83b85902b7464734d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0cadc268_9a439f75",
         "filename": "task_scheduler/go/types/task.go",
         "patchSetId": 3
