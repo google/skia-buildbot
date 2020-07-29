@@ -82,29 +82,18 @@ type RequestFrameCallback = (frameResponse: FrameResponse) => void;
 
 // State is reflected to the URL via stateReflector.
 class State {
-  begin: number;
-  end: number;
-  formulas: string[];
-  queries: string[];
-  keys: string; // The id of the shortcut to a list of trace keys.
-  xbaroffset: number; // The offset of the commit in the repo.
-  showZero: boolean;
-  autoRefresh: boolean;
-  numCommits: number;
-  requestType: RequestType; // TODO(jcgregorio) Use constants in domain-picker-sk.
+  begin: number = Math.floor(Date.now() / 1000 - DEFAULT_RANGE_S);
+  end: number = Math.floor(Date.now() / 1000);
+  formulas: string[] = [];
+  queries: string[] = [];
+  keys: string = ''; // The id of the shortcut to a list of trace keys.
+  xbaroffset: number = -1; // The offset of the commit in the repo.
+  showZero: boolean = true;
+  autoRefresh: boolean = false;
+  numCommits: number = 50;
+  requestType: RequestType = 1; // TODO(jcgregorio) Use constants in domain-picker-sk.
 
-  constructor() {
-    this.begin = Math.floor(Date.now() / 1000 - DEFAULT_RANGE_S);
-    this.end = Math.floor(Date.now() / 1000);
-    this.formulas = [];
-    this.queries = [];
-    this.keys = ''; // The id of the shortcut to a list of trace keys.
-    this.xbaroffset = -1; // The offset of the commit in the repo.
-    this.showZero = true;
-    this.autoRefresh = false;
-    this.numCommits = 50;
-    this.requestType = 1; // TODO(jcgregorio) Use constants in domain-picker-sk.
-  }
+  constructor() {}
 }
 
 // TODO(jcgregorio) Move to a 'key' module.
@@ -559,12 +548,12 @@ export class ExploreSk extends ElementSk {
     this.plot!.zoom = this.rationalizeZoom(zoom);
   }
 
-  // Returns true if we have any traces to be displayed.
+  /**  Returns true if we have any traces to be displayed. */
   private hasData() {
     return Object.keys(this._dataframe.traceset).length > 0 || this._spinning;
   }
 
-  // Open the query dialog box.
+  /** Open the query dialog box. */
   private openQuery() {
     this.queryDialog!.showModal();
   }
@@ -579,7 +568,7 @@ export class ExploreSk extends ElementSk {
     this.queryCount!.current_query = e.detail.q;
   }
 
-  // Reflect the current query to the query summary.
+  /** Reflect the current query to the query summary. */
   private queryChangeHandler(e: CustomEvent<QuerySkQueryChangeEventDetail>) {
     const query = e.detail.q;
     this.summary!.paramsets = [toParamSet(query)];
@@ -592,18 +581,18 @@ export class ExploreSk extends ElementSk {
     }
   }
 
-  // Reflect the focused trace in the paramset.
+  /** Reflect the focused trace in the paramset. */
   private plotTraceFocused(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
     this.paramset!.highlight = toObject(e.detail.name);
     this.traceID!.textContent = e.detail.name;
   }
 
-  // User has zoomed in on the graph.
+  /** User has zoomed in on the graph. */
   private plotZoom(e: CustomEvent<PlotSimpleSkZoomEventDetails>) {
     this._render();
   }
 
-  // Highlight a trace when it is clicked on.
+  /** Highlight a trace when it is clicked on. */
   private traceSelected(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
     this.plot!.highlight = [e.detail.name];
     this.commits!.details = [];
@@ -728,7 +717,7 @@ export class ExploreSk extends ElementSk {
     this.shiftImpl(-this._numShift, -this._numShift);
   }
 
-  // Change the current range by the following +/- offsets.
+  /** Change the current range by the following +/- offsets. */
   private shiftImpl(beginOffset: number, endOffset: number) {
     const body = {
       begin: this.state.begin,
@@ -755,7 +744,7 @@ export class ExploreSk extends ElementSk {
       .catch(errorMessage);
   }
 
-  // Create a FrameRequest that will re-create the current state of the page.
+  /** Create a FrameRequest that will re-create the current state of the page. */
   private requestFrameBodyFullFromState(): FrameRequest {
     return {
       begin: this.state.begin,
@@ -770,7 +759,7 @@ export class ExploreSk extends ElementSk {
     };
   }
 
-  // Reload all the queries/formulas on the given time range.
+  /** Reload all the queries/formulas on the given time range. */
   private rangeChangeImpl() {
     if (!this.state) {
       return;
@@ -964,15 +953,17 @@ export class ExploreSk extends ElementSk {
     }
   }
 
-  // When Remove Highlighted or Highlighted Only are pressed then create a
-  // shortcut for just the traces that are displayed.
-  //
-  // Note that removing a trace doesn't work if the trace came from a
-  // formula that returns multiple traces. This is a known issue that
-  // isn't currently worth solving.
-  //
-  // Returns the Promise that's creating the shortcut, or undefined if
-  // there isn't a shortcut to create.
+  /**
+   * When Remove Highlighted or Highlighted Only are pressed then create a
+   * shortcut for just the traces that are displayed.
+   *
+   * Note that removing a trace doesn't work if the trace came from a
+   * formula that returns multiple traces. This is a known issue that
+   * isn't currently worth solving.
+   *
+   * Returns the Promise that's creating the shortcut, or undefined if
+   * there isn't a shortcut to create.
+   */
   private reShortCut(keys: string[]) {
     if (keys.length === 0) {
       this.state.keys = '';
@@ -999,10 +990,12 @@ export class ExploreSk extends ElementSk {
       .catch(errorMessage);
   }
 
-  // Create a shortcut for all of the traces currently being displayed.
-  //
-  // Returns the Promise that's creating the shortcut, or undefined if
-  // there isn't a shortcut to create.
+  /**
+   * Create a shortcut for all of the traces currently being displayed.
+   *
+   * Returns the Promise that's creating the shortcut, or undefined if
+   * there isn't a shortcut to create.
+   */
   private shortcutAll() {
     const toShortcut: string[] = [];
 
@@ -1037,7 +1030,7 @@ export class ExploreSk extends ElementSk {
     });
   }
 
-  // Apply scale_by_avg() to all the traces currently being displayed.
+  /** Apply scale_by_avg() to all the traces currently being displayed. */
   private scaleByAvg() {
     const promise = this.shortcutAll();
     if (!promise) {
@@ -1149,7 +1142,7 @@ export class ExploreSk extends ElementSk {
     });
   }
 
-  // Common catch function for _requestFrame and _checkFrameRequestStatus.
+  /** Common catch function for _requestFrame and _checkFrameRequestStatus. */
   private catch(msg: string) {
     this._requestId = '';
     if (msg) {
@@ -1159,7 +1152,7 @@ export class ExploreSk extends ElementSk {
     this.spinning = false;
   }
 
-  /** @prop {Boolean} spinning - True if we are waiting to retrieve data from
+  /** @prop spinning - True if we are waiting to retrieve data from
    * the server.
    */
   set spinning(b) {
@@ -1171,21 +1164,23 @@ export class ExploreSk extends ElementSk {
     return this._spinning;
   }
 
-  // Requests a new dataframe, where body is a serialized FrameRequest:
-  //
-  // {
-  //    begin:    1448325780,
-  //    end:      1476706336,
-  //    formulas: ["ave(filter("name=desk_nytimes.skp&sub_result=min_ms"))"],
-  //    hidden:   [],
-  //    queries:  [
-  //        "name=AndroidCodec_01_original.jpg_SampleSize8",
-  //        "name=AndroidCodec_1.bmp_SampleSize8"],
-  //    tz:       "America/New_York"
-  // };
-  //
-  // The 'cb' callback function will be called with the decoded JSON body
-  // of the response once it's available.
+  /**
+   * Requests a new dataframe, where body is a serialized FrameRequest:
+   *
+   * {
+   *    begin:    1448325780,
+   *    end:      1476706336,
+   *    formulas: ["ave(filter("name=desk_nytimes.skp&sub_result=min_ms"))"],
+   *    hidden:   [],
+   *    queries:  [
+   *        "name=AndroidCodec_01_original.jpg_SampleSize8",
+   *        "name=AndroidCodec_1.bmp_SampleSize8"],
+   *    tz:       "America/New_York"
+   * };
+   *
+   * The 'cb' callback function will be called with the decoded JSON body
+   * of the response once it's available.
+   */
   private requestFrame(body: FrameRequest, cb: RequestFrameCallback) {
     body.tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (this._requestId !== '') {
@@ -1212,8 +1207,10 @@ export class ExploreSk extends ElementSk {
       .catch((msg) => this.catch(msg));
   }
 
-  // Periodically check the status of a pending FrameRequest, calling the
-  // 'cb' callback with the decoded JSON upon success.
+  /**
+   * Periodically check the status of a pending FrameRequest, calling the 'cb'
+   * callback with the decoded JSON upon success.
+   */
   private checkFrameRequestStatus(cb: RequestFrameCallback) {
     fetch(`/_/frame/status/${this._requestId}`, {
       method: 'GET',
