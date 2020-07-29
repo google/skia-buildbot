@@ -204,7 +204,7 @@ export class ClusterLastNPageSk extends ElementSk {
   };
 
   private static tableRows = (ele: ClusterLastNPageSk) =>
-    ele._regressions.map(
+    ele.regressions.map(
       (reg) => html`
         <tr>
           <td class="fixed">
@@ -225,7 +225,7 @@ export class ClusterLastNPageSk extends ElementSk {
     `;
 
   private static table = (ele: ClusterLastNPageSk) => {
-    if (ele.requestId && !ele._regressions.length) {
+    if (ele.requestId && !ele.regressions.length) {
       return html`
         No regressions found yet.
       `;
@@ -265,7 +265,7 @@ export class ClusterLastNPageSk extends ElementSk {
   private state: Alert | null = null;
 
   // The regressions detected from the dryrun.
-  private _regressions: (RegressionRow | null)[] = [];
+  private regressions: (RegressionRow | null)[] = [];
 
   private alertDialog: HTMLDialogElement | null = null;
   private triageDialog: HTMLDialogElement | null = null;
@@ -280,7 +280,7 @@ export class ClusterLastNPageSk extends ElementSk {
   // Call this anytime something in private state is changed. Will be replaced
   // with the real function once stateReflector has been setup.
   // tslint:disable-next-line: no-empty
-  private _stateHasChanged = () => {};
+  private stateHasChanged = () => {};
 
   constructor() {
     super(ClusterLastNPageSk.template);
@@ -312,7 +312,7 @@ export class ClusterLastNPageSk extends ElementSk {
         dialogPolyfill.registerDialog(this.alertDialog!);
         dialogPolyfill.registerDialog(this.triageDialog!);
         this.alertConfig = this.querySelector('alert-config-sk');
-        this._stateHasChanged = stateReflector(
+        this.stateHasChanged = stateReflector(
           () => (this.state as unknown) as HintableObject,
           (state) => {
             this.state = (state as unknown) as Alert;
@@ -334,7 +334,7 @@ export class ClusterLastNPageSk extends ElementSk {
   private alertAccept() {
     this.alertDialog!.close();
     this.state = this.alertConfig!.config;
-    this._stateHasChanged();
+    this.stateHasChanged();
     this._render();
   }
 
@@ -389,7 +389,7 @@ export class ClusterLastNPageSk extends ElementSk {
         this.requestId = json.id;
         this._render();
         this.checkDryRunStatus((regressions: (RegressionRow | null)[]) => {
-          this._regressions = regressions;
+          this.regressions = regressions;
           this._render();
         });
       })
