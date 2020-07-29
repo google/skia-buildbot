@@ -80,7 +80,7 @@ const dimensions = (machine: Description) => {
             html`
               <tr>
                 <td>${pair[0]}</td>
-                <td>${asList(pair[1])}</td>
+                <td>${asList(pair[1]!)}</td>
               </tr>
             `
         )}
@@ -105,7 +105,7 @@ const update = (ele: MachineServerSk, machine: Description) => {
     <button
       title="Force the pod to be killed and re-created"
       class="update"
-      @click=${() => ele._toggleUpdate(machine.Dimensions.id[0])}
+      @click=${() => ele._toggleUpdate(machine.Dimensions.id![0])}
     >
       ${msg}
     </button>
@@ -133,7 +133,7 @@ const powerCycle = (ele: MachineServerSk, machine: Description) => {
   return html`
     <power-settings-new-icon-sk
       title="Powercycle the host"
-      @click=${() => ele._togglePowerCycle(machine.Dimensions.id[0])}
+      @click=${() => ele._togglePowerCycle(machine.Dimensions.id![0])}
     ></power-settings-new-icon-sk>
   `;
 };
@@ -144,7 +144,7 @@ const clearDevice = (ele: MachineServerSk, machine: Description) => {
     : html`
         <clear-icon-sk
           title="Clear the dimensions for the bot"
-          @click=${() => ele._clearDevice(machine.Dimensions.id[0])}
+          @click=${() => ele._clearDevice(machine.Dimensions.id![0])}
         ></clear-icon-sk>
       `;
 };
@@ -153,7 +153,7 @@ const toggleMode = (ele: MachineServerSk, machine: Description) => {
   return html`
     <button
       class="mode"
-      @click=${() => ele._toggleMode(machine.Dimensions.id[0])}
+      @click=${() => ele._toggleMode(machine.Dimensions.id![0])}
       title="Put the machine in maintenance mode."
     >
       ${machine.Mode}
@@ -174,7 +174,7 @@ const machineLink = (machine: Description) => {
 const deleteMachine = (ele: MachineServerSk, machine: Description) => html`
   <delete-icon-sk
     title="Remove the machine from the database."
-    @click=${() => ele._deleteDevice(machine.Dimensions.id[0])}
+    @click=${() => ele._deleteDevice(machine.Dimensions.id![0])}
   ></delete-icon-sk>
 `;
 

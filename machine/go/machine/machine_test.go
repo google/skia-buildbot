@@ -31,6 +31,7 @@ func TestCopy(t *testing.T) {
 		Temperature:          map[string]float64{"cpu": 26.4},
 		RunningSwarmingTask:  true,
 		PowerCycle:           true,
+		RecoveryStart:        testTime,
 	}
 	out := in.Copy()
 	require.Equal(t, in, out)

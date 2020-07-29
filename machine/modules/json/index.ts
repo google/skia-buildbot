@@ -20,6 +20,6 @@ export interface Description {
 	RunningSwarmingTask: boolean;
 }
 
-export type Mode = "available" | "maintenance";
+export type Mode = "available" | "maintenance" | "cooldown";
 
-export type SwarmingDimensions = { [key: string]: string[] };
+export type SwarmingDimensions = { [key: string]: string[] | null };
