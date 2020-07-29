@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "68b1c867_6775904f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T11:53:17Z",
+      "side": 1,
+      "message": "All comments are FYI",
+      "revId": "4705635d7a41ca06349a3811c14dd09787eaf2bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "40df0b5d_d24d0d33",
+        "filename": "golden/modules/search-page-sk/demo_data.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T11:53:17Z",
+      "side": 1,
+      "message": "Note: this will be changed with https://skia-review.googlesource.com/c/buildbot/+/306067/11/golden/modules/rpc_types.ts",
+      "range": {
+        "startLine": 13,
+        "startChar": 6,
+        "endLine": 13,
+        "endChar": 20
+      },
+      "revId": "4705635d7a41ca06349a3811c14dd09787eaf2bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4de6e3ac_d4299b1e",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T11:53:17Z",
+      "side": 1,
+      "message": "+1",
+      "range": {
+        "startLine": 35,
+        "startChar": 19,
+        "endLine": 35,
+        "endChar": 85
+      },
+      "revId": "4705635d7a41ca06349a3811c14dd09787eaf2bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d8cadfe1_7dd73ef8",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T11:53:17Z",
+      "side": 1,
+      "message": "Is making the results pageable on your radar? https://bugs.chromium.org/p/skia/issues/detail?id\u003d9037",
+      "range": {
+        "startLine": 68,
+        "startChar": 35,
+        "endLine": 68,
+        "endChar": 38
+      },
+      "revId": "4705635d7a41ca06349a3811c14dd09787eaf2bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9450eb1_c1d3543c",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T11:53:17Z",
+      "side": 1,
+      "message": "Of note: this will be changed in https://skia-review.googlesource.com/c/buildbot/+/306333 to changelist_id and crs",
+      "range": {
+        "startLine": 88,
+        "startChar": 24,
+        "endLine": 88,
+        "endChar": 29
+      },
+      "revId": "4705635d7a41ca06349a3811c14dd09787eaf2bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce99343d_06f6928c",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T11:53:17Z",
+      "side": 1,
+      "message": "I don\u0027t know if it\u0027s on your radar, but the existing search page also takes a blame query param.",
+      "range": {
+        "startLine": 117,
+        "startChar": 9,
+        "endLine": 117,
+        "endChar": 22
+      },
+      "revId": "4705635d7a41ca06349a3811c14dd09787eaf2bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39e595fb_a5374d4f",
+        "filename": "golden/modules/search-page-sk/search-page-sk_puppeteer_test.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T11:53:17Z",
+      "side": 1,
+      "message": "This is a nice showcase of the utility of PO.",
+      "range": {
+        "startLine": 51,
+        "startChar": 35,
+        "endLine": 51,
+        "endChar": 74
+      },
+      "revId": "4705635d7a41ca06349a3811c14dd09787eaf2bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
