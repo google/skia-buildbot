@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0007d6bb_a62650d3",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 14
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 7873
+      },
+      "writtenOn": "2020-07-29T17:01:08Z",
+      "side": 1,
+      "message": "OOC, what\u0027s the need for requiring this? Are returned expectations expected to change based on CRS now? Or is this referring to \"imgtest init\"?",
+      "range": {
+        "startLine": 17,
+        "startChar": 4,
+        "endLine": 17,
+        "endChar": 28
+      },
+      "revId": "47e3df904f64fd1a2c2d7b1675e43ed9bf1bde5c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
