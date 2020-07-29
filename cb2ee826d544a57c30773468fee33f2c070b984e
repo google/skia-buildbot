@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "656d4f10_fce181ad",
+        "filename": "perf/migrations/cdb.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-29T15:22:46Z",
+      "side": 1,
+      "message": "Switch to the -\u003e\u003e format which is what I will use in Go code to construct the queries.",
+      "parentUuid": "f89a0359_f011822b",
+      "range": {
+        "startLine": 182,
+        "startChar": 2,
+        "endLine": 182,
+        "endChar": 29
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5ca13342_9bc87238",
         "filename": "perf/migrations/cdb.sql",
         "patchSetId": 5
@@ -65,6 +89,30 @@
     },
     {
       "key": {
+        "uuid": "ffe753ff_312d709c",
+        "filename": "perf/migrations/cdb.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-29T15:22:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5ca13342_9bc87238",
+      "range": {
+        "startLine": 184,
+        "startChar": 39,
+        "endLine": 184,
+        "endChar": 45
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "79884618_b63fa394",
         "filename": "perf/migrations/cdb.sql",
         "patchSetId": 5
@@ -85,6 +133,30 @@
       "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a985430c_0e49b297",
+        "filename": "perf/migrations/cdb.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-29T15:22:46Z",
+      "side": 1,
+      "message": "Formatted with an SQL Formatter for VS Code.",
+      "parentUuid": "79884618_b63fa394",
+      "range": {
+        "startLine": 265,
+        "startChar": 0,
+        "endLine": 269,
+        "endChar": 5
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -134,6 +206,54 @@
     },
     {
       "key": {
+        "uuid": "2ea487b3_4735e3c1",
+        "filename": "perf/migrations/cockroachdb/0002_create_initial_tables.up.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-29T15:22:46Z",
+      "side": 1,
+      "message": "Done, except formatted\n\n   x\u002747109b059f45e4f9d5ab61dd0199e2c9\u0027\n\nas\n\n  \u0027\\x47109b059f45e4f9d5ab61dd0199e2c9\u0027\n\nwhich made the SQL formatter happy.",
+      "parentUuid": "b7e10b53_50327219",
+      "range": {
+        "startLine": 3,
+        "startChar": 10,
+        "endLine": 3,
+        "endChar": 16
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dd36e36b_eaf28c8e",
+        "filename": "perf/migrations/cockroachdb/0002_create_initial_tables.up.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-29T15:22:46Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "953ef043_40dcdb86",
+      "range": {
+        "startLine": 3,
+        "startChar": 43,
+        "endLine": 3,
+        "endChar": 53
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f44d85fa_387ac2b9",
         "filename": "perf/migrations/cockroachdb/0002_create_initial_tables.up.sql",
         "patchSetId": 5
@@ -154,6 +274,30 @@
       "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "41f469c1_413ae5ea",
+        "filename": "perf/migrations/cockroachdb/0002_create_initial_tables.up.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-29T15:22:46Z",
+      "side": 1,
+      "message": "Dropped trace_name because it is redundant.\n\nI actually need both params and trace_name when building a Dataframe has both a map from trace_name to the []float32 values, and also a ParamSet which represents the sum of all the Params from all the traces in the Dataframe, so I would have to convert from params \u003c-\u003e trace_name no matter what.",
+      "parentUuid": "f44d85fa_387ac2b9",
+      "range": {
+        "startLine": 4,
+        "startChar": 1,
+        "endLine": 4,
+        "endChar": 11
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -180,6 +324,30 @@
     },
     {
       "key": {
+        "uuid": "94dc1070_1a28e4d4",
+        "filename": "perf/migrations/cockroachdb/0002_create_initial_tables.up.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-29T15:22:46Z",
+      "side": 1,
+      "message": "Moved to JSONB.",
+      "parentUuid": "1b2fea21_cb1748ea",
+      "range": {
+        "startLine": 5,
+        "startChar": 8,
+        "endLine": 5,
+        "endChar": 16
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9de7c7f0_f57541bc",
         "filename": "perf/migrations/cockroachdb/0002_create_initial_tables.up.sql",
         "patchSetId": 5
@@ -200,6 +368,30 @@
       "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "51f091e4_bd47bdde",
+        "filename": "perf/migrations/cockroachdb/0002_create_initial_tables.up.sql",
+        "patchSetId": 5
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-29T15:22:46Z",
+      "side": 1,
+      "message": "Nice observation, that allowed me to drop an entire table, and now tile size can be changed on the fly!",
+      "parentUuid": "9de7c7f0_f57541bc",
+      "range": {
+        "startLine": 10,
+        "startChar": 27,
+        "endLine": 10,
+        "endChar": 32
+      },
+      "revId": "cb2ee826d544a57c30773468fee33f2c070b984e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
