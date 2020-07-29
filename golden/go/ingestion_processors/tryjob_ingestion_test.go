@@ -42,8 +42,9 @@ func TestGerritBuildbucketFactory(t *testing.T) {
 			firestoreProjectIDParam: "should-use-emulator",
 			firestoreNamespaceParam: "testing",
 
-			codeReviewSystemParam: "gerrit",
-			gerritURLParam:        "https://example-review.googlesource.com",
+			codeReviewSystemsParam: "gerrit,gerrit-internal",
+			gerritURLParam:         "https://example-review.googlesource.com",
+			gerritInternalURLParam: "https://example-internal-review.googlesource.com",
 
 			continuousIntegrationSystemsParam: "buildbucket",
 		},
@@ -55,7 +56,7 @@ func TestGerritBuildbucketFactory(t *testing.T) {
 
 	gtp, ok := p.(*goldTryjobProcessor)
 	require.True(t, ok)
-	assert.NotNil(t, gtp.reviewClient)
+	assert.Len(t, gtp.reviewSystems, 2)
 	assert.Len(t, gtp.cisClients, 1)
 	assert.Contains(t, gtp.cisClients, buildbucketCIS)
 }
@@ -68,7 +69,7 @@ func TestGitHubCirrusBuildbucketFactory(t *testing.T) {
 			firestoreProjectIDParam: "should-use-emulator",
 			firestoreNamespaceParam: "testing",
 
-			codeReviewSystemParam:      "github",
+			codeReviewSystemsParam:     "github",
 			githubRepoParam:            "google/skia",
 			githubCredentialsPathParam: "testdata/fake_token", // this is actually a file on disk.
 
@@ -82,7 +83,7 @@ func TestGitHubCirrusBuildbucketFactory(t *testing.T) {
 
 	gtp, ok := p.(*goldTryjobProcessor)
 	require.True(t, ok)
-	assert.NotNil(t, gtp.reviewClient)
+	assert.Len(t, gtp.reviewSystems, 1)
 	assert.Len(t, gtp.cisClients, 2)
 	assert.Contains(t, gtp.cisClients, cirrusCIS)
 	assert.Contains(t, gtp.cisClients, buildbucketCIS)
@@ -105,11 +106,16 @@ func TestTryJobProcessFreshStartSunnyDay(t *testing.T) {
 	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults(), anyTime).Return(nil).Once()
 
 	gtp := goldTryjobProcessor{
-		changeListStore: mcls,
-		crsName:         gerritCRS,
-		cisClients:      makeBuildbucketCIS(),
-		reviewClient:    makeGerritCRS(),
-		tryJobStore:     mtjs,
+		cisClients: makeBuildbucketCIS(),
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     gerritCRS,
+				Client: makeGerritCRS(),
+				Store:  mcls,
+				// URLTemplate unused here
+			},
+		},
+		tryJobStore: mtjs,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
@@ -146,11 +152,16 @@ func TestTryJobProcessFreshStartGitHub(t *testing.T) {
 	mtjs.On("PutResults", testutils.AnyContext, combinedID, githubTJID, cirrusCIS, makeGitHubTryJobResults(), anyTime).Return(nil)
 
 	gtp := goldTryjobProcessor{
-		changeListStore: mcls,
-		crsName:         githubCRS,
-		cisClients:      makeCirrusCIS(),
-		reviewClient:    makeGitHubCRS(),
-		tryJobStore:     mtjs,
+		cisClients: makeCirrusCIS(),
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     githubCRS,
+				Client: makeGitHubCRS(),
+				Store:  mcls,
+				// URLTemplate unused here
+			},
+		},
+		tryJobStore: mtjs,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(githubGoldCtlFile)
@@ -184,10 +195,15 @@ func TestProcess_MultipleCIS_CorrectlyLooksUpTryJobs(t *testing.T) {
 	}
 
 	gtp := goldTryjobProcessor{
-		changeListStore: mcls,
-		crsName:         githubCRS,
-		cisClients:      errorfulCISClients,
-		tryJobStore:     makeEmptyTJStore(),
+		cisClients: errorfulCISClients,
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:    githubCRS,
+				Store: mcls,
+				// Client, URLTemplate unused here
+			},
+		},
+		tryJobStore: makeEmptyTJStore(),
 	}
 
 	err := gtp.Process(context.Background(), githubIngestionResultFromCIS(t, buildbucketCIS))
@@ -256,11 +272,16 @@ func TestTryJobProcessCLExistsSunnyDay(t *testing.T) {
 	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults(), anyTime).Return(nil)
 
 	gtp := goldTryjobProcessor{
-		changeListStore: mcls,
-		crsName:         gerritCRS,
-		cisClients:      makeBuildbucketCIS(),
-		reviewClient:    makeGerritCRS(),
-		tryJobStore:     mtjs,
+		cisClients: makeBuildbucketCIS(),
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     gerritCRS,
+				Client: makeGerritCRS(),
+				Store:  mcls,
+				// URLTemplate unused here
+			},
+		},
+		tryJobStore: mtjs,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
@@ -293,11 +314,16 @@ func TestTryJobProcessCLExistsPreviouslyAbandoned(t *testing.T) {
 	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults(), anyTime).Return(nil)
 
 	gtp := goldTryjobProcessor{
-		changeListStore: mcls,
-		crsName:         gerritCRS,
-		cisClients:      makeBuildbucketCIS(),
-		reviewClient:    makeGerritCRS(),
-		tryJobStore:     mtjs,
+		cisClients: makeBuildbucketCIS(),
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:     gerritCRS,
+				Client: makeGerritCRS(),
+				Store:  mcls,
+				// URLTemplate unused here
+			},
+		},
+		tryJobStore: mtjs,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)
@@ -327,10 +353,15 @@ func TestTryJobProcessPSExistsSunnyDay(t *testing.T) {
 	mtjs.On("PutResults", testutils.AnyContext, gerritCombinedID, gerritTJID, buildbucketCIS, makeTryJobResults(), anyTime).Return(nil)
 
 	gtp := goldTryjobProcessor{
-		changeListStore: mcls,
-		crsName:         gerritCRS,
-		cisClients:      makeBuildbucketCIS(),
-		tryJobStore:     mtjs,
+		cisClients: makeBuildbucketCIS(),
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:    gerritCRS,
+				Store: mcls,
+				// Client, URLTemplate unused here
+			},
+		},
+		tryJobStore: mtjs,
 	}
 
 	fsResult, err := ingestion_mocks.MockResultFileLocationFromFile(legacyGoldCtlFile)

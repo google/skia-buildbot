@@ -12,11 +12,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/metrics2"
 
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/golden/go/clstore"
 	mock_clstore "go.skia.org/infra/golden/go/clstore/mocks"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/comment"
@@ -748,7 +749,6 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 			// All the rest are ignored
 		},
 	}, nil).Once() // this should be cached after fetch, as it could be expensive to retrieve.
-	mcls.On("System").Return(crs)
 
 	expectedID := tjstore.CombinedPSID{
 		CL:  clID,
@@ -807,9 +807,28 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 	mds := &mock_diffstore.DiffStore{}
 	addDiffData(mds, BetaBrandNewDigest, data.BetaPositiveDigest, makeSmallDiffMetric())
 
-	s := New(mds, mes, nil, makeThreeDevicesIndexer(), mcls, mtjs, nil, everythingPublic, nothingFlaky)
+	const gerritCRS = "gerrit"
+	const gerritInternalCRS = "gerrit-internal"
+
+	reviewSystems := []clstore.ReviewSystem{
+		{
+			ID:          gerritInternalCRS,
+			Store:       nil, // nil to catch errors if this is used (when it shouldn't be)
+			URLTemplate: "Should not be used",
+			// Client is unused here
+		},
+		{
+			ID:          gerritCRS,
+			Store:       mcls,
+			URLTemplate: "https://skia-review.googlesource.com/%s",
+			// Client is unused here
+		},
+	}
+
+	s := New(mds, mes, nil, makeThreeDevicesIndexer(), reviewSystems, mtjs, nil, everythingPublic, nothingFlaky)
 
 	q := &query.Search{
+		CodeReviewSystemID:             gerritCRS,
 		ChangeListID:                   clID,
 		IncludeDigestsProducedOnMaster: false,
 
@@ -834,11 +853,11 @@ func TestSearch_ChangeListResults_ChangeListIndexMiss_Success(t *testing.T) {
 	// We expect to see the current CL appended to the list of master branch commits.
 	masterBranchCommits := web_frontend.FromTilingCommits(data.MakeTestCommits())
 	masterBranchCommitsWithCL := append(masterBranchCommits, web_frontend.Commit{
-		CommitTime:   clTime.Unix(),
-		Hash:         clID,
-		Author:       clAuthor,
-		Subject:      clSubject,
-		IsChangeList: true,
+		CommitTime:    clTime.Unix(),
+		Hash:          clID,
+		Author:        clAuthor,
+		Subject:       clSubject,
+		ChangeListURL: "https://skia-review.googlesource.com/1234",
 	})
 	assert.Equal(t, &frontend.SearchResponse{
 		Commits: masterBranchCommitsWithCL,
@@ -938,7 +957,6 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 			// other fields are ignored
 		},
 	}, nil)
-	mcs.On("System").Return(crs)
 
 	anglerGroup := map[string]string{
 		"device": data.AnglerDevice,
@@ -984,16 +1002,23 @@ func TestSearchImpl_ExtractChangeListDigests_CacheHit_Success(t *testing.T) {
 	mis.On("Tile").Return(emptyMasterTile)
 
 	s := SearchImpl{
-		indexSource:     mi,
-		changeListStore: mcs,
-		tryJobStore:     nil, // we should not actually hit the TryJobStore, because the cache was used.
-		storeCache:      ttlcache.New(0, 0),
+		indexSource: mi,
+		reviewSystems: []clstore.ReviewSystem{
+			{
+				ID:    crs,
+				Store: mcs,
+				// Client and URLTemplate are unused here
+			},
+		},
+		tryJobStore: nil, // we should not actually hit the TryJobStore, because the cache was used.
+		storeCache:  ttlcache.New(0, 0),
 
 		clIndexCacheHitCounter:  metrics2.GetCounter("hit"),
 		clIndexCacheMissCounter: metrics2.GetCounter("miss"),
 	}
 
 	q := &query.Search{
+		CodeReviewSystemID:             crs,
 		ChangeListID:                   clID,
 		IncludeDigestsProducedOnMaster: false,
 
@@ -1299,7 +1324,16 @@ func TestDigestDetails_NewTestOnChangeList_Success(t *testing.T) {
 		},
 	}, nil)
 
-	s := New(nil, mes, nil, mis, mcs, mts, nil, everythingPublic, nothingFlaky)
+	reviewSystems := []clstore.ReviewSystem{
+		{
+			ID:          testCRS,
+			Store:       mcs,
+			URLTemplate: "https://skia-review.googlesource.com/%s",
+			// Client and URLTemplate are unused here
+		},
+	}
+
+	s := New(nil, mes, nil, mis, reviewSystems, mts, nil, everythingPublic, nothingFlaky)
 
 	rv, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)
@@ -1382,7 +1416,15 @@ func TestDigestDetails_NewTestOnChangeList_WithPublicParams_Success(t *testing.T
 }`))
 	require.NoError(t, err)
 
-	s := New(nil, mes, nil, mis, mcs, mts, nil, publicMatcher, nothingFlaky)
+	reviewSystems := []clstore.ReviewSystem{
+		{
+			ID:          testCRS,
+			Store:       mcs,
+			URLTemplate: "https://skia-review.googlesource.com/%s",
+			// Client and URLTemplate are unused here
+		},
+	}
+	s := New(nil, mes, nil, mis, reviewSystems, mts, nil, publicMatcher, nothingFlaky)
 
 	rv, err := s.GetDigestDetails(context.Background(), testWeWantDetailsAbout, digestWeWantDetailsAbout, testCLID, testCRS)
 	require.NoError(t, err)

@@ -36,8 +36,10 @@
         FirestoreProjectID: "skia-firestore",
         FirestoreNamespace: "chrome",
 
-        CodeReviewSystem:  "gerrit",
-        GerritURL:         "https://chromium-review.googlesource.com",
+        // TODO(kjlubick) this is clunky; it would be preferable to use CodeReviewSystems
+        CodeReviewSystems:  "gerrit,gerrit-internal",
+        GerritURL:          "https://chromium-review.googlesource.com",
+        GerritInternalURL:  "https://chrome-internal-review.googlesource.com",
 
         ContinuousIntegrationSystems: "buildbucket",
       }

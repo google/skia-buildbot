@@ -152,7 +152,6 @@ func TestUpdateNotOpenBotsCRSError(t *testing.T) {
 	mcs.On("GetChangeLists", testutils.AnyContext, optionsMatcher).Return(makeChangeLists(5), 5, nil)
 
 	mcr.On("GetChangeList", testutils.AnyContext, mock.Anything).Return(code_review.ChangeList{}, errors.New("GitHub down"))
-	mcr.On("System").Return("github")
 
 	c := newTestCommenter(t, mcr, mcs, nil)
 	err := c.CommentOnChangeListsWithUntriagedDigests(context.Background())
@@ -240,7 +239,6 @@ func TestCommentOnCLsSunnyDay(t *testing.T) {
 		assert.Contains(t, msg, publicInstanceURL)
 		return nil
 	}, nil)
-	mcr.On("System").Return("github")
 
 	// Pretend all CLs queried have 2 untriaged digests.
 	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(&frontend.UntriagedDigestList{
@@ -287,7 +285,6 @@ func TestCommentOnChangeListsWithUntriagedDigests_NoUntriagedDigests_Success(t *
 		assert.NoError(t, err)
 		return xcl[i]
 	}, nil)
-	mcr.On("System").Return("github")
 
 	// Pretend all CLs queried have 2 untriaged digests.
 	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(&frontend.UntriagedDigestList{
@@ -329,7 +326,6 @@ func TestCommentOnChangeListsWithUntriagedDigests_SearchAPIError_LogsErrorAndSuc
 		assert.NoError(t, err)
 		return xcl[i]
 	}, nil)
-	mcr.On("System").Return("github")
 
 	// Simulate an error working with the
 	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(nil, errors.New("boom"))
@@ -370,7 +366,6 @@ func TestCommentOnCLsLogCommentsOnly(t *testing.T) {
 		assert.NoError(t, err)
 		return xcl[i]
 	}, nil)
-	mcr.On("System").Return("github")
 
 	// Pretend all CLs queried have 2 untriaged digests.
 	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(&frontend.UntriagedDigestList{
@@ -456,7 +451,6 @@ func TestCommentOnCLsCommentError(t *testing.T) {
 		return xcl[i]
 	}, nil)
 	mcr.On("CommentOn", testutils.AnyContext, mock.Anything, mock.Anything).Return(errors.New("internet down"))
-	mcr.On("System").Return("gerritHub")
 
 	// Pretend all CLs queried have 2 untriaged digests.
 	msa.On("UntriagedUnignoredTryJobExclusiveDigests", testutils.AnyContext, mock.Anything).Return(&frontend.UntriagedDigestList{
@@ -490,7 +484,6 @@ func TestCommentOnCLs_CLNotFound_NoError(t *testing.T) {
 		return xcl[i]
 	}, nil)
 	mcr.On("CommentOn", testutils.AnyContext, mock.Anything, mock.Anything).Return(code_review.ErrNotFound)
-	mcr.On("System").Return("gerritHub")
 
 	// We should see two PatchSets with their CommentedOnCL bit set written back to Firestore.
 	// Even though we are logging the comments, we want to update Firestore that we "commented".
@@ -559,7 +552,12 @@ func assertErrorWasCanceledOrContains(t *testing.T, err error, submessages ...st
 }
 
 func newTestCommenter(t *testing.T, mcr *mock_codereview.Client, mcs *mock_clstore.Store, msa *mock_search.SearchAPI) *Impl {
-	c, err := New(mcr, mcs, msa, basicTemplate, instanceURL, publicInstanceURL, false)
+	c, err := New(clstore.ReviewSystem{
+		ID:     "github",
+		Client: mcr,
+		Store:  mcs,
+		// URLTemplate not needed here
+	}, msa, basicTemplate, instanceURL, publicInstanceURL, false)
 	require.NoError(t, err)
 	c.now = func() time.Time {
 		return fakeNow

@@ -27,8 +27,7 @@ const (
 )
 
 type Impl struct {
-	crs             code_review.Client
-	store           clstore.Store
+	system          clstore.ReviewSystem
 	instanceURL     string
 	publicURL       string
 	logCommentsOnly bool
@@ -40,14 +39,13 @@ type Impl struct {
 	now func() time.Time
 }
 
-func New(c code_review.Client, s clstore.Store, search search.SearchAPI, messageTemplate, instanceURL, publicURL string, logCommentsOnly bool) (*Impl, error) {
+func New(system clstore.ReviewSystem, search search.SearchAPI, messageTemplate, instanceURL, publicURL string, logCommentsOnly bool) (*Impl, error) {
 	templ, err := template.New("message").Parse(messageTemplate)
 	if err != nil && messageTemplate != "" {
 		return nil, skerr.Wrapf(err, "Message template %q", messageTemplate)
 	}
 	return &Impl{
-		crs:             c,
-		store:           s,
+		system:          system,
 		instanceURL:     instanceURL,
 		publicURL:       publicURL,
 		logCommentsOnly: logCommentsOnly,
@@ -69,7 +67,7 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 	// to look at CLs that were Updated "recently". We make the range of time that we search
 	// much wider than we need to account for either glitches in ingestion or outages of the CRS.
 	recent := i.now().Add(-timePeriodOfCLsToCheck)
-	xcl, _, err := i.store.GetChangeLists(ctx, clstore.SearchOptions{
+	xcl, _, err := i.system.Store.GetChangeLists(ctx, clstore.SearchOptions{
 		StartIdx:    0,
 		Limit:       pageSize,
 		OpenCLsOnly: true,
@@ -121,7 +119,7 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 
 		// Page to the next ones using len(stillOpen) because the next iteration of this query
 		// won't count the ones we just marked as Closed/Abandoned when computing the offset.
-		xcl, _, err = i.store.GetChangeLists(ctx, clstore.SearchOptions{
+		xcl, _, err = i.system.Store.GetChangeLists(ctx, clstore.SearchOptions{
 			StartIdx:    len(stillOpen),
 			Limit:       pageSize,
 			OpenCLsOnly: true,
@@ -135,7 +133,7 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 	sklog.Infof("There were originally %d recent open CLs; after checking with CRS there are %d still open", total, len(stillOpen))
 
 	for _, cl := range stillOpen {
-		xps, err := i.store.GetPatchSets(ctx, cl.SystemID)
+		xps, err := i.system.Store.GetPatchSets(ctx, cl.SystemID)
 		if err != nil {
 			return skerr.Wrapf(err, "looking for patchsets on open CL %s", cl.SystemID)
 		}
@@ -157,7 +155,7 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 				}
 				mostRecentPS.CommentedOnCL = true
 			}
-			if err := i.store.PutPatchSet(ctx, mostRecentPS); err != nil {
+			if err := i.system.Store.PutPatchSet(ctx, mostRecentPS); err != nil {
 				return skerr.Wrapf(err, "updating PS %#v", mostRecentPS)
 			}
 		}
@@ -169,9 +167,8 @@ func (i *Impl) CommentOnChangeListsWithUntriagedDigests(ctx context.Context) err
 // maybeCommentOn either comments on the given CL/PS that there are untriaged digests on it or
 // logs if this commenter is configured to not actually comment.
 func (i *Impl) maybeCommentOn(ctx context.Context, cl code_review.ChangeList, ps code_review.PatchSet, untriagedDigests int) error {
-	crs := i.crs.System()
 	msg, err := i.untriagedMessage(commentTemplateContext{
-		CRS:           crs,
+		CRS:           i.system.ID,
 		ChangeListID:  cl.SystemID,
 		PatchSetOrder: ps.Order,
 		NumUntriaged:  untriagedDigests,
@@ -183,12 +180,12 @@ func (i *Impl) maybeCommentOn(ctx context.Context, cl code_review.ChangeList, ps
 		sklog.Infof("Should comment on CL %s with message %s", cl.SystemID, msg)
 		return nil
 	}
-	if err := i.crs.CommentOn(ctx, cl.SystemID, msg); err != nil {
+	if err := i.system.Client.CommentOn(ctx, cl.SystemID, msg); err != nil {
 		if err == code_review.ErrNotFound {
-			sklog.Warningf("Cannot comment on %s CL %s because it does not exist", i.crs.System(), cl.SystemID)
+			sklog.Warningf("Cannot comment on %s CL %s because it does not exist", i.system.ID, cl.SystemID)
 			return nil
 		}
-		return skerr.Wrapf(err, "commenting on %s CL %s", i.crs.System(), cl.SystemID)
+		return skerr.Wrapf(err, "commenting on %s CL %s", i.system.ID, cl.SystemID)
 	}
 	return nil
 }
@@ -218,13 +215,13 @@ func (i *Impl) untriagedMessage(c commentTemplateContext) (string, error) {
 // returns true. If it is Abandoned, it stores the updated CL in the store and returns false.
 // If the CL is Landed, it returns false and *does not update anything* in the store.
 func (i *Impl) updateCLInStoreIfAbandoned(ctx context.Context, cl code_review.ChangeList) (bool, error) {
-	up, err := i.crs.GetChangeList(ctx, cl.SystemID)
+	up, err := i.system.Client.GetChangeList(ctx, cl.SystemID)
 	if err == code_review.ErrNotFound {
 		sklog.Debugf("CL %s might have been deleted", cl.SystemID)
 		return false, nil
 	}
 	if err != nil {
-		return false, skerr.Wrapf(err, "querying crs %s for updated CL %s", i.crs.System(), cl.SystemID)
+		return false, skerr.Wrapf(err, "querying crs %s for updated CL %s", i.system.ID, cl.SystemID)
 	}
 	if up.Status == code_review.Open {
 		return true, nil
@@ -239,7 +236,7 @@ func (i *Impl) updateCLInStoreIfAbandoned(ctx context.Context, cl code_review.Ch
 	// remember it is abandoned in the future. This also catches things like the cl Subject
 	// changing since it was opened.
 	up.Updated = i.now()
-	if err := i.store.PutChangeList(ctx, up); err != nil {
+	if err := i.system.Store.PutChangeList(ctx, up); err != nil {
 		return false, skerr.Wrapf(err, "storing CL %s", up.SystemID)
 	}
 	return false, nil
@@ -251,7 +248,7 @@ func (i *Impl) updateCLInStoreIfAbandoned(ctx context.Context, cl code_review.Ch
 func (i *Impl) searchIndexForNewUntriagedDigests(ctx context.Context, clID, psID string) (int, time.Time) {
 	digestList, err := i.search.UntriagedUnignoredTryJobExclusiveDigests(ctx, tjstore.CombinedPSID{
 		CL:  clID,
-		CRS: i.crs.System(),
+		CRS: i.system.ID,
 		PS:  psID,
 	})
 	if err != nil {

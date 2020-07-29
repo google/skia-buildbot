@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/golden/go/clstore"
 	gstorage "google.golang.org/api/storage/v1"
 
 	"go.skia.org/infra/go/auth"
@@ -20,7 +21,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
-	"go.skia.org/infra/golden/go/clstore/fs_clstore"
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/expectations/fs_expectationstore"
 	"go.skia.org/infra/golden/go/shared"
@@ -102,15 +102,18 @@ func main() {
 		sklog.Fatalf("Unable to create GCSClient: %s", err)
 	}
 
-	// Baseline doesn't need to access this, just needs a way to indicate which CRS we are on.
-	emptyCLStore := fs_clstore.New(nil, bsc.PrimaryCRS)
+	// Baselines just need a list of valid CRS; we can leave all other fields blank.
+	var reviewSystems []clstore.ReviewSystem
+	for _, cfg := range bsc.CodeReviewSystems {
+		reviewSystems = append(reviewSystems, clstore.ReviewSystem{ID: cfg.ID})
+	}
 
 	// We only need to fill in the HandlersConfig struct with the following subset, since the baseline
 	// server only supplies a subset of the functionality.
 	handlers, err := web.NewHandlers(web.HandlersConfig{
-		GCSClient:       gsClient,
-		Baseliner:       baseliner,
-		ChangeListStore: emptyCLStore,
+		Baseliner:     baseliner,
+		GCSClient:     gsClient,
+		ReviewSystems: reviewSystems,
 	}, web.BaselineSubset)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)

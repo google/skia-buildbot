@@ -29,11 +29,13 @@ import (
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo/bt_vcs"
 	"go.skia.org/infra/golden/go/baseline/simple_baseliner"
+	"go.skia.org/infra/golden/go/clstore"
 	"go.skia.org/infra/golden/go/clstore/fs_clstore"
 	"go.skia.org/infra/golden/go/code_review"
 	"go.skia.org/infra/golden/go/code_review/commenter"
@@ -85,10 +87,7 @@ type frontendServerConfig struct {
 	// Client secret file for OAuth2 authentication.
 	ClientSecretFile string `json:"client_secret_file"`
 
-	// A URL with %s where a CL ID should be placed to complete it.
-	CodeReviewSystemURLTemplate string `json:"crs_url_template"`
-
-	// If true, Gold will only log comments, it won't actually comment on the CRS.
+	// If true, Gold will only log comments, it won't actually comment on the CRSes.
 	DisableCLComments bool `json:"disable_cl_comments"`
 
 	// The grpc port of the diff server.
@@ -110,15 +109,6 @@ type frontendServerConfig struct {
 
 	// Configuration settings that will get passed to the frontend (see modules/settings.js)
 	FrontendConfig frontendConfig `json:"frontend"`
-
-	// URL of the Gerrit instance (if any) where we retrieve CL metadata.
-	GerritURL string `json:"gerrit_url" optional:"true"`
-
-	// Filepath to file containing GitHub token (if this instance needs to talk to GitHub).
-	GitHubCredPath string `json:"github_cred_path" optional:"true"`
-
-	// User and repo of GitHub project to connect to (if any), e.g. google/skia
-	GitHubRepo string `json:"github_repo" optional:"true"`
 
 	// If this instance is simply a mirror of another instance's data.
 	IsPublicView bool `json:"is_public_view"`
@@ -349,38 +339,15 @@ func main() {
 		sklog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}
 
-	cls := fs_clstore.New(fsClient, fsc.PrimaryCRS)
 	tjs := fs_tjstore.New(fsClient)
-
-	var crs code_review.Client
-	if fsc.PrimaryCRS == "gerrit" {
-		if fsc.GerritURL == "" {
-			sklog.Fatalf("You must specify gerrit_url")
-		}
-		gerritClient, err := gerrit.NewGerrit(fsc.GerritURL, client)
-		if err != nil {
-			sklog.Fatalf("Could not create gerrit client for %s", fsc.GerritURL)
-		}
-		crs = gerrit_crs.New(gerritClient)
-	} else if fsc.PrimaryCRS == "github" {
-		if fsc.GitHubRepo == "" || fsc.GitHubCredPath == "" {
-			sklog.Fatalf("You must specify github_repo and github_cred_path")
-		}
-		gBody, err := ioutil.ReadFile(fsc.GitHubCredPath)
-		if err != nil {
-			sklog.Fatalf("Couldn't find githubToken in %s: %s", fsc.GitHubCredPath, err)
-		}
-		gToken := strings.TrimSpace(string(gBody))
-		githubTS := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken})
-		c := httputils.DefaultClientConfig().With2xxOnly().WithTokenSource(githubTS).Client()
-		crs = github_crs.New(c, fsc.GitHubRepo)
-	} else {
-		sklog.Fatalf("CRS %s not supported.", fsc.PrimaryCRS)
+	reviewSystems, err := initializeReviewSystems(fsc.CodeReviewSystems, fsClient, client)
+	if err != nil {
+		sklog.Fatalf("Could not initialize CRS: %s", err)
 	}
 
 	var clUpdater code_review.ChangeListLandedUpdater
 	if isAuthoritative && !fsc.DisableCLTracking {
-		clUpdater = updater.New(crs, expStore, cls)
+		clUpdater = updater.New(expStore, reviewSystems)
 	}
 
 	ctc := tilesource.CachedTileSourceConfig{
@@ -401,14 +368,14 @@ func main() {
 	}
 
 	ic := indexer.IndexerConfig{
-		DiffStore:         diffStore,
 		ChangeListener:    expChangeHandler,
+		DiffStore:         diffStore,
 		ExpectationsStore: expStore,
 		GCSClient:         gsClient,
+		ReviewSystems:     reviewSystems,
 		TileSource:        tileSource,
-		Warmer:            warmer.New(),
 		TryJobStore:       tjs,
-		CLStore:           cls,
+		Warmer:            warmer.New(),
 	}
 
 	// Rebuild the index every few minutes.
@@ -420,16 +387,18 @@ func main() {
 	sklog.Infof("Indexer created.")
 
 	// TODO(kjlubick) include non-nil comment.Store when it is implemented.
-	searchAPI := search.New(diffStore, expStore, expChangeHandler, ixr, cls, tjs, nil, publiclyViewableParams, fsc.FlakyTraceThreshold)
+	searchAPI := search.New(diffStore, expStore, expChangeHandler, ixr, reviewSystems, tjs, nil, publiclyViewableParams, fsc.FlakyTraceThreshold)
 
 	sklog.Infof("Search API created")
 
 	if isAuthoritative && !fsc.DisableCLTracking {
-		clCommenter, err := commenter.New(crs, cls, searchAPI, fsc.CLCommentTemplate, fsc.SiteURL, fsc.PublicSiteURL, fsc.DisableCLComments)
-		if err != nil {
-			sklog.Fatalf("Could not initialize commenter: %s", err)
+		for _, rs := range reviewSystems {
+			clCommenter, err := commenter.New(rs, searchAPI, fsc.CLCommentTemplate, fsc.SiteURL, fsc.PublicSiteURL, fsc.DisableCLComments)
+			if err != nil {
+				sklog.Fatalf("Could not initialize commenter: %s", err)
+			}
+			startCommenter(ctx, clCommenter)
 		}
-		startCommenter(ctx, clCommenter)
 	}
 
 	swc := status.StatusWatcherConfig{
@@ -462,19 +431,18 @@ func main() {
 	}
 
 	handlers, err := web.NewHandlers(web.HandlersConfig{
-		Baseliner:             baseliner,
-		ChangeListStore:       cls,
-		CodeReviewURLTemplate: fsc.CodeReviewSystemURLTemplate,
-		DiffStore:             diffStore,
-		ExpectationsStore:     expStore,
-		GCSClient:             gsClient,
-		IgnoreStore:           ignoreStore,
-		Indexer:               ixr,
-		SearchAPI:             searchAPI,
-		StatusWatcher:         statusWatcher,
-		TileSource:            tileSource,
-		TryJobStore:           tjs,
-		VCS:                   vcs,
+		Baseliner:         baseliner,
+		DiffStore:         diffStore,
+		ExpectationsStore: expStore,
+		GCSClient:         gsClient,
+		IgnoreStore:       ignoreStore,
+		Indexer:           ixr,
+		ReviewSystems:     reviewSystems,
+		SearchAPI:         searchAPI,
+		StatusWatcher:     statusWatcher,
+		TileSource:        tileSource,
+		TryJobStore:       tjs,
+		VCS:               vcs,
 	}, web.FullFrontEnd)
 	if err != nil {
 		sklog.Fatalf("Failed to initialize web handlers: %s", err)
@@ -558,7 +526,6 @@ func main() {
 	loadTemplates()
 
 	fsc.FrontendConfig.BaseRepoURL = fsc.GitRepoURL
-	fsc.FrontendConfig.CodeReviewTemplate = fsc.CodeReviewSystemURLTemplate
 	fsc.FrontendConfig.IsPublic = fsc.IsPublicView
 
 	templateHandler := func(name string) http.HandlerFunc {
@@ -621,12 +588,51 @@ func main() {
 	sklog.Fatal(http.ListenAndServe(fsc.Port, rootRouter))
 }
 
+func initializeReviewSystems(configs []config.CodeReviewSystem, fc *firestore.Client, hc *http.Client) ([]clstore.ReviewSystem, error) {
+	rs := make([]clstore.ReviewSystem, 0, len(configs))
+	for _, cfg := range configs {
+		var crs code_review.Client
+		if cfg.Flavor == "gerrit" {
+			if cfg.GerritURL == "" {
+				return nil, skerr.Fmt("You must specify gerrit_url")
+			}
+			gerritClient, err := gerrit.NewGerrit(cfg.GerritURL, hc)
+			if err != nil {
+				return nil, skerr.Fmt("Could not create gerrit client for %s", cfg.GerritURL)
+			}
+			crs = gerrit_crs.New(gerritClient)
+		} else if cfg.Flavor == "github" {
+			if cfg.GitHubRepo == "" || cfg.GitHubCredPath == "" {
+				return nil, skerr.Fmt("You must specify github_repo and github_cred_path")
+			}
+			gBody, err := ioutil.ReadFile(cfg.GitHubCredPath)
+			if err != nil {
+				return nil, skerr.Fmt("Couldn't find githubToken in %s: %s", cfg.GitHubCredPath, err)
+			}
+			gToken := strings.TrimSpace(string(gBody))
+			githubTS := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: gToken})
+			c := httputils.DefaultClientConfig().With2xxOnly().WithTokenSource(githubTS).Client()
+			crs = github_crs.New(c, cfg.GitHubRepo)
+		} else {
+			return nil, skerr.Fmt("CRS flavor %s not supported.", cfg.Flavor)
+		}
+
+		rs = append(rs, clstore.ReviewSystem{
+			ID:          cfg.ID,
+			Client:      crs,
+			Store:       fs_clstore.New(fc, cfg.ID),
+			URLTemplate: cfg.URLTemplate,
+		})
+	}
+	sklog.Infof("Review systems %#v", rs)
+	return rs, nil
+}
+
 type frontendConfig struct {
-	BaseRepoURL        string `json:"baseRepoURL"`
-	CodeReviewTemplate string `json:"crsTemplate"`
-	DefaultCorpus      string `json:"defaultCorpus"`
-	Title              string `json:"title"`
-	IsPublic           bool   `json:"isPublic"`
+	BaseRepoURL   string `json:"baseRepoURL"`
+	DefaultCorpus string `json:"defaultCorpus"`
+	Title         string `json:"title"`
+	IsPublic      bool   `json:"isPublic"`
 }
 
 // startCommenter begins the background process that comments on CLs.

@@ -5,18 +5,15 @@
   cl_comment_template: "Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchSetOrder}}.\n\
 View them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangeListID}}",
   client_secret_file: "/etc/skia.org/login.json",
-  crs_url_template: "https://fuchsia-review.googlesource.com/%s",
   diff_server_grpc: "gold-fuchsia-public-diffserver:8000",
   diff_server_http: "gold-fuchsia-public-diffserver:8001",
   flaky_trace_threshold: 10000, // no trace is flaky
   force_login: true, // This instance requires authentication.
   frontend: {
     baseRepoURL: "<inherited from git_repo_url>",
-    crsTemplate: "<inherited from crs_url_template>",
     defaultCorpus: "test",
     title: "Fuchsia Gold",
   },
-  gerrit_url: "https://fuchsia-review.googlesource.com/",
   lit_html_path: "/usr/local/share/skiacorrectness",
   num_commits: 200,
   port: ":8000",
