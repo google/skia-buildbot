@@ -36,8 +36,8 @@ def _MakeFileFilter(input_api, include_extensions=None,
     # least one regexp.
     exclude = [input_api.re.compile(r'^$')]
 
-  return lambda x: input_api.FilterSourceFile(x, white_list=include,
-                                              black_list=exclude)
+  return lambda x: input_api.FilterSourceFile(x, files_to_check=include,
+                                              files_to_skip=exclude)
 
 def _CheckNonAscii(input_api, output_api):
   """Check for non-ASCII characters and throw warnings if any are found."""
@@ -196,7 +196,7 @@ def CheckChange(input_api, output_api):
       r'.*[\\\/]\.recipe_deps[\\\/].*',
       r'.*[\\\/]node_modules[\\\/].*',
   ]
-  pylint_skip.extend(input_api.DEFAULT_BLACK_LIST)
+  pylint_skip.extend(input_api.DEFAULT_FILES_TO_SKIP)
   pylint_disabled_warnings = (
       'F0401',  # Unable to import.
       'E0611',  # No name in module.
@@ -210,7 +210,7 @@ def CheckChange(input_api, output_api):
   results += input_api.canned_checks.RunPylint(
       input_api, output_api,
       disabled_warnings=pylint_disabled_warnings,
-      black_list=pylint_skip)
+      files_to_skip=pylint_skip)
 
   # Use 100 for max length for files other than python. Python length is
   # already checked during the Pylint above. No max length for Go files.

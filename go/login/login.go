@@ -43,7 +43,6 @@ import (
 	"github.com/gorilla/securecookie"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -768,8 +767,7 @@ func setActiveAllowLists(authAllowList string) {
 		return
 	}
 	activeUserDomainAllowList, activeUserEmailAllowList = splitAuthAllowList(authAllowList)
-	adminAllowList := metadata.ProjectGetWithDefault(metadata.ADMIN_ALLOW_LIST, DEFAULT_ADMIN_LIST)
-	_, activeAdminEmailAllowList = splitAuthAllowList(adminAllowList)
+	_, activeAdminEmailAllowList = splitAuthAllowList(DEFAULT_ADMIN_LIST)
 }
 
 // loginInfo is the JSON file format that client info is stored in as a kubernetes secret.
