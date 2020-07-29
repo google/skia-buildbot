@@ -59,6 +59,9 @@ type Machine struct {
 	// to swarming.
 	dimensions machine.SwarmingDimensions
 
+	// maintenanceMode is true if the machine should be put into maintenance mode.
+	maintenanceMode bool
+
 	// runningTask is true if the machine is currently running a swarming task.
 	runningTask bool
 }
@@ -178,6 +181,20 @@ func (m *Machine) DimensionsForSwarming() machine.SwarmingDimensions {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	return m.dimensions
+}
+
+// SetMaintenanceMode sets if the machine should be in maintenance mode.
+func (m *Machine) SetMaintenanceMode(value bool) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	m.maintenanceMode = value
+}
+
+// GetMaintenanceMode returns true if the machine should be in maintenance mode.
+func (m *Machine) GetMaintenanceMode() bool {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	return m.maintenanceMode
 }
 
 // SetIsRunningSwarmingTask records if a swarming task is being run.

@@ -308,7 +308,7 @@ func TestProcess_DeviceGoingMissingMeansQuarantine(t *testing.T) {
 	assert.Equal(t, machine.ModeAvailable, next.Mode)
 }
 
-func TestProcess_QuarantineDevicesInMaintenanceMode(t *testing.T) {
+func TestProcess_DoNotQuarantineDevicesInMaintenanceMode(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := context.Background()
 
@@ -326,11 +326,22 @@ func TestProcess_QuarantineDevicesInMaintenanceMode(t *testing.T) {
 	}
 	previous.Mode = machine.ModeMaintenance
 
+	// An event arrives with the device still attached.
+	props := strings.Join([]string{
+		"[ro.build.id]: [QQ2A.200305.002]",  // device_os
+		"[ro.product.brand]: [google]",      // device_os_flavor
+		"[ro.build.type]: [user]",           // device_os_type
+		"[ro.build.product]: [sargo]",       // device_type
+		"[ro.product.system.brand]: [aosp]", // device_os_flavor
+	}, "\n")
 	// An event arrives without any device info.
 	event := machine.Event{
 		EventType: machine.EventTypeRawState,
 		Host: machine.Host{
 			Name: "skia-rpi2-0001",
+		},
+		Android: machine.Android{
+			GetProp: props,
 		},
 	}
 
@@ -339,13 +350,11 @@ func TestProcess_QuarantineDevicesInMaintenanceMode(t *testing.T) {
 	require.Equal(t, int64(1), p.eventsProcessedCount.Get())
 	require.Equal(t, int64(0), p.unknownEventTypeCount.Get())
 
-	// The dimensions should not change, except for the addition of the
-	// quarantine message.
+	// The dimensions should not change.
 	expected := previous.Dimensions
-	expected[machine.DimQuarantined] = []string{"Device is quarantined for maintenance"}
 	assert.Equal(t, expected, next.Dimensions)
 	assert.Equal(t, machine.ModeMaintenance, next.Mode)
-	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_quarantined", map[string]string{"machine": "skia-rpi2-0001"}).Get())
+	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_quarantined", map[string]string{"machine": "skia-rpi2-0001"}).Get())
 }
 
 func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
@@ -404,7 +413,7 @@ func TestProcess_RemoveMachineFromQuarantineIfDeviceReturns(t *testing.T) {
 	assert.Equal(t, int64(0), metrics2.GetInt64Metric("machine_processor_device_quarantined", map[string]string{"machine": "skia-rpi2-0001"}).Get())
 }
 
-func TestProcess_QuarantineIfDeviceBatteryTooLow(t *testing.T) {
+func TestProcess_RecoveryModeIfDeviceBatteryTooLow(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := context.Background()
 
@@ -433,9 +442,13 @@ func TestProcess_QuarantineIfDeviceBatteryTooLow(t *testing.T) {
 
 	p := newProcessorForTest(t)
 	next := p.Process(ctx, previous, event)
-	assert.Equal(t, "Battery is too low", next.Dimensions[machine.DimQuarantined][0])
+	assert.Equal(t, "Battery low. ", next.Annotation.Message)
+	assert.Equal(t, machineUserName, next.Annotation.User)
 	assert.Equal(t, 9, next.Battery)
+	assert.Equal(t, machine.ModeRecovery, next.Mode)
+	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
 	assert.Equal(t, int64(9), metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": "skia-rpi2-0001"}).Get())
+	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", map[string]string{"machine": "skia-rpi2-0001"}).Get())
 }
 
 func TestProcess_ScheduleForDeletionIfPodIsTooOld(t *testing.T) {
@@ -482,7 +495,7 @@ func TestProcess_DoNoScheduleForDeletionIfPodIsntTooOld(t *testing.T) {
 	assert.NotEmpty(t, next.PodName)
 }
 
-func TestProcess_QuarantineIfDeviceTooHot(t *testing.T) {
+func TestProcess_RecoveryModeIfDeviceTooHot(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := context.Background()
 
@@ -544,11 +557,100 @@ Current cooling devices from HAL:
 
 	p := newProcessorForTest(t)
 	next := p.Process(ctx, previous, event)
-	assert.Equal(t, "Temperature is too hot", next.Dimensions[machine.DimQuarantined][0])
-	assert.Equal(t, float64(44.1), metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": "skia-rpi2-0001", "sensor": "cpu1-silver-usr"}).Get())
+	assert.Equal(t, "Too hot. ", next.Annotation.Message)
+	assert.Equal(t, machineUserName, next.Annotation.User)
+	assert.Equal(t, machine.ModeRecovery, next.Mode)
+	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
 
+	assert.Equal(t, float64(44.1), metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": "skia-rpi2-0001", "sensor": "cpu1-silver-usr"}).Get())
+	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", map[string]string{"machine": "skia-rpi2-0001"}).Get())
 }
-func TestProcess_DoNotQuarantineIfDeviceBatteryIsChargedEnough(t *testing.T) {
+
+func TestProcess_RecoveryModeIfDeviceTooHotAndBatterIsTooLow(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	previous := machine.NewDescription()
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name: "skia-rpi2-0001",
+		},
+		Android: machine.Android{
+			DumpsysBattery: `Current Battery Service state:
+  AC powered: true
+  USB powered: false
+  Wireless powered: false
+  Max charging current: 1500000
+  Max charging voltage: 5000000
+  Charge counter: 2448973
+  status: 2
+  health: 2
+  present: true
+  level: 9
+  scale: 100
+  voltage: 4248`,
+			DumpsysThermalService: `IsStatusOverride: false
+ThermalEventListeners:
+	callbacks: 3
+	killed: false
+	broadcasts count: -1
+ThermalStatusListeners:
+	callbacks: 1
+	killed: false
+	broadcasts count: -1
+Thermal Status: 0
+Cached temperatures:
+	Temperature{mValue=32.401, mType=3, mName=mb-therm-monitor, mStatus=0}
+	Temperature{mValue=46.100002, mType=0, mName=cpu0-silver-usr, mStatus=0}
+	Temperature{mValue=44.800003, mType=0, mName=cpu1-silver-usr, mStatus=0}
+	Temperature{mValue=45.100002, mType=0, mName=cpu2-silver-usr, mStatus=0}
+	Temperature{mValue=40.600002, mType=1, mName=gpu0-usr, mStatus=0}
+	Temperature{mValue=40.300003, mType=1, mName=gpu1-usr, mStatus=0}
+	Temperature{mValue=44.100002, mType=0, mName=cpu3-silver-usr, mStatus=0}
+	Temperature{mValue=45.4, mType=0, mName=cpu4-silver-usr, mStatus=0}
+	Temperature{mValue=45.4, mType=0, mName=cpu5-silver-usr, mStatus=0}
+	Temperature{mValue=30.000002, mType=2, mName=battery, mStatus=0}
+	Temperature{mValue=48.300003, mType=0, mName=cpu1-gold-usr, mStatus=0}
+	Temperature{mValue=46.7, mType=0, mName=cpu0-gold-usr, mStatus=0}
+	Temperature{mValue=27.522001, mType=4, mName=usbc-therm-monitor, mStatus=0}
+HAL Ready: true
+HAL connection:
+	ThermalHAL 2.0 connected: yes
+Current temperatures from HAL:
+	Temperature{mValue=28.000002, mType=2, mName=battery, mStatus=0}
+	Temperature{mValue=33.800003, mType=0, mName=cpu0-gold-usr, mStatus=0}
+	Temperature{mValue=33.800003, mType=0, mName=cpu0-silver-usr, mStatus=0}
+	Temperature{mValue=33.5, mType=0, mName=cpu1-gold-usr, mStatus=0}
+	Temperature{mValue=44.1, mType=0, mName=cpu1-silver-usr, mStatus=0}
+	Temperature{mValue=43.8, mType=0, mName=cpu2-silver-usr, mStatus=0}
+	Temperature{mValue=33.5, mType=0, mName=cpu3-silver-usr, mStatus=0}
+	Temperature{mValue=33.5, mType=0, mName=cpu4-silver-usr, mStatus=0}
+	Temperature{mValue=33.5, mType=0, mName=cpu5-silver-usr, mStatus=0}
+	Temperature{mValue=32.9, mType=1, mName=gpu0-usr, mStatus=0}
+	Temperature{mValue=32.9, mType=1, mName=gpu1-usr, mStatus=0}
+	Temperature{mValue=30.147001, mType=3, mName=mb-therm-monitor, mStatus=0}
+	Temperature{mValue=26.926, mType=4, mName=usbc-therm-monitor, mStatus=0}
+Current cooling devices from HAL:
+	CoolingDevice{mValue=0, mType=1, mName=battery}
+	CoolingDevice{mValue=0, mType=2, mName=thermal-cpufreq-0}
+	CoolingDevice{mValue=0, mType=2, mName=thermal-cpufreq-6}
+	CoolingDevice{mValue=0, mType=3, mName=thermal-devfreq-0}`,
+		},
+	}
+
+	p := newProcessorForTest(t)
+	next := p.Process(ctx, previous, event)
+	assert.Equal(t, "Battery low. Too hot. ", next.Annotation.Message)
+	assert.Equal(t, machineUserName, next.Annotation.User)
+	assert.Equal(t, machine.ModeRecovery, next.Mode)
+	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
+
+	assert.Equal(t, float64(44.1), metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": "skia-rpi2-0001", "sensor": "cpu1-silver-usr"}).Get())
+	assert.Equal(t, int64(1), metrics2.GetInt64Metric("machine_processor_device_maintenance", map[string]string{"machine": "skia-rpi2-0001"}).Get())
+}
+
+func TestProcess_DoNotGoIntoMaintenanceModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := context.Background()
 
@@ -578,6 +680,42 @@ func TestProcess_DoNotQuarantineIfDeviceBatteryIsChargedEnough(t *testing.T) {
 	p := newProcessorForTest(t)
 	next := p.Process(ctx, previous, event)
 	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
+	assert.Equal(t, machine.ModeAvailable, next.Mode)
+	assert.Equal(t, 95, next.Battery)
+}
+
+func TestProcess_LeaveRecoveryModeIfDeviceBatteryIsChargedEnough(t *testing.T) {
+	unittest.SmallTest(t)
+	ctx := context.Background()
+
+	previous := machine.NewDescription()
+	previous.Mode = machine.ModeRecovery
+	event := machine.Event{
+		EventType: machine.EventTypeRawState,
+		Host: machine.Host{
+			Name: "skia-rpi2-0001",
+		},
+		Android: machine.Android{
+			DumpsysBattery: `Current Battery Service state:
+  AC powered: true
+  USB powered: false
+  Wireless powered: false
+  Max charging current: 1500000
+  Max charging voltage: 5000000
+  Charge counter: 2448973
+  status: 2
+  health: 2
+  present: true
+  level: 95
+  scale: 100
+  voltage: 4248`,
+		},
+	}
+
+	p := newProcessorForTest(t)
+	next := p.Process(ctx, previous, event)
+	assert.Empty(t, next.Dimensions[machine.DimQuarantined])
+	assert.Equal(t, machine.ModeAvailable, next.Mode)
 	assert.Equal(t, 95, next.Battery)
 }
 

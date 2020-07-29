@@ -31,11 +31,15 @@ const (
 	// ModeMaintenance means the machine is in maintenance mode and should not
 	// run tasks.
 	ModeMaintenance Mode = "maintenance"
+
+	// ModeRecovery means the machine is cooling down and/or recharging its battery
+	// and is unavailable to run tests.
+	ModeRecovery Mode = "recovery"
 )
 
 // AllModes is a slice of all Mode* consts. Used when generating TypeScript
 // definitions.
-var AllModes = []Mode{ModeAvailable, ModeMaintenance}
+var AllModes = []Mode{ModeAvailable, ModeMaintenance, ModeRecovery}
 
 // Annotation is used to record the most recent user change to Description. This
 // will be in addition to the normal auditlog of user actions:
@@ -67,6 +71,7 @@ type Description struct {
 	Battery             int                // Charge as an integer percent, e.g. 50% = 50.
 	Temperature         map[string]float64 // In Celsius.
 	RunningSwarmingTask bool
+	RecoveryStart       time.Time // When did the machine start being in recovery mode.
 }
 
 // NewDescription returns a new Description instance.

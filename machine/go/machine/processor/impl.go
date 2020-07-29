@@ -124,8 +124,10 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	machineID := event.Host.Name
 	dimensions := dimensionsFromAndroidProperties(parseAndroidProperties(event.Android.GetProp))
 	dimensions[machine.DimID] = []string{machineID}
+	inMaintenanceMode := false
+	maintenanceMessage := ""
 
-	// TODO(jcgregorio) Come up with a better test than this, maybe sent info
+	// TODO(jcgregorio) Come up with a better test than this, maybe send info
 	// from back in machine.Event?
 	if strings.HasPrefix(dimensions[machine.DimID][0], "skia-rpi2-") {
 		dimensions["inside_docker"] = []string{"1", "containerd"}
@@ -134,7 +136,8 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	battery, ok := batteryFromAndroidDumpSys(event.Android.DumpsysBattery)
 	if ok {
 		if battery < minBatteryLevel {
-			dimensions[machine.DimQuarantined] = []string{"Battery is too low"}
+			inMaintenanceMode = true
+			maintenanceMessage += "Battery low. "
 		}
 		metrics2.GetInt64Metric("machine_processor_device_battery_level", map[string]string{"machine": machineID}).Update(int64(battery))
 	}
@@ -143,7 +146,8 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	if ok {
 		temperature := findMaxTemperature(temperatures)
 		if temperature > maxTemperatureC {
-			dimensions[machine.DimQuarantined] = []string{"Temperature is too hot"}
+			inMaintenanceMode = true
+			maintenanceMessage += "Too hot. "
 		}
 		for sensor, temp := range temperatures {
 			metrics2.GetFloat64Metric("machine_processor_device_temperature_c", map[string]string{"machine": machineID, "sensor": sensor}).Update(temp)
@@ -156,11 +160,6 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	// and iOS devices.
 	if len(previous.Dimensions[machine.DimDeviceType]) > 0 && len(dimensions[machine.DimDeviceType]) == 0 {
 		dimensions[machine.DimQuarantined] = []string{fmt.Sprintf("Device %q has gone missing", previous.Dimensions[machine.DimDeviceType])}
-	}
-
-	// Quarantine devices in maintenance mode.
-	if previous.Mode == machine.ModeMaintenance && len(previous.Dimensions[machine.DimQuarantined]) == 0 {
-		dimensions[machine.DimQuarantined] = []string{"Device is quarantined for maintenance"}
 	}
 
 	ret := previous.Copy()
@@ -181,6 +180,35 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 		ret.Annotation.Timestamp = time.Now()
 		ret.Annotation.Message = fmt.Sprintf("Pod too old, requested update for %q", ret.PodName)
 		ret.Annotation.User = machineUserName
+	}
+
+	// If the machine just started in Recovery mode then record the start time.
+	// Note that if the machine is currently running a test then the amount of
+	// time in recovery will also include some of the test time, but that's the
+	// price we pay to avoid a race condition where a test ends and a new test
+	// starts before we set maintenance mode.
+	if inMaintenanceMode && previous.Mode != machine.ModeRecovery {
+		ret.Mode = machine.ModeRecovery
+		ret.RecoveryStart = time.Now()
+		ret.Annotation.Timestamp = time.Now()
+		ret.Annotation.Message = maintenanceMessage
+		ret.Annotation.User = machineUserName
+	}
+
+	// If nothing put the device in maintenance this cycle then move back being
+	// available.
+	if !inMaintenanceMode && previous.Mode == machine.ModeRecovery {
+		ret.Mode = machine.ModeAvailable
+		ret.Annotation.Timestamp = time.Now()
+		ret.Annotation.Message = "Leaving recovery mode."
+		ret.Annotation.User = machineUserName
+	}
+
+	maintenanceModeMetric := metrics2.GetInt64Metric("machine_processor_device_maintenance", map[string]string{"machine": machineID})
+	if inMaintenanceMode {
+		maintenanceModeMetric.Update(1)
+	} else {
+		maintenanceModeMetric.Update(0)
 	}
 
 	// Once a pod has restarted it will have a new podname so clear the deletion.
