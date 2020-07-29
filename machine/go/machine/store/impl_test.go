@@ -527,3 +527,42 @@ func TestWatchForPowerCycle_ISCancellable(t *testing.T) {
 	}
 	assert.NoError(t, store.firestoreClient.Close())
 }
+
+func TestDelete_Success(t *testing.T) {
+	const machineName = "skia-rpi2-rack2-shelf1-001"
+	unittest.LargeTest(t)
+	ctx, cfg := setupForTest(t)
+	store, err := New(ctx, true, cfg)
+	require.NoError(t, err)
+	store.deleteCounter.Reset()
+
+	err = store.Update(ctx, machineName, func(previous machine.Description) machine.Description {
+		ret := previous.Copy()
+		ret.Mode = machine.ModeMaintenance
+		return ret
+	})
+	require.NoError(t, err)
+
+	err = store.Delete(ctx, machineName)
+	require.NoError(t, err)
+
+	assert.Equal(t, int64(1), store.deleteCounter.Get())
+
+	// Confirm it is really gone.
+	_, err = store.machinesCollection.Doc(machineName).Get(ctx)
+	require.Error(t, err)
+}
+
+func TestDelete_NoErrorIfMachineDoesntExist(t *testing.T) {
+	const machineName = "skia-rpi2-rack2-shelf1-001"
+	unittest.LargeTest(t)
+	ctx, cfg := setupForTest(t)
+	store, err := New(ctx, true, cfg)
+	require.NoError(t, err)
+	store.deleteCounter.Reset()
+
+	err = store.Delete(ctx, machineName)
+	require.NoError(t, err)
+
+	assert.Equal(t, int64(1), store.deleteCounter.Get())
+}
