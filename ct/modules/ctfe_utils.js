@@ -159,6 +159,22 @@ export function shortHash(commitHash) {
 }
 
 /**
+ * Return a URL with details about the given Chromium commit hash.
+ * @param {string} commitHash - Skia commit hash.
+ */
+export function chromiumCommitUrl(commitHash) {
+  return `https://chromium.googlesource.com/chromium/src.git/+show/${commitHash}`;
+}
+
+/**
+ * Return a URL with details about the given Skia commit hash.
+ * @param {string} commitHash - Skia commit hash.
+ */
+export function skiaCommitUrl(commitHash) {
+  return `https://skia.googlesource.com/skia/+show/${commitHash}`;
+}
+
+/**
  * Returns a short description for the given build.
  */
 export function chromiumBuildDescription(build) {
