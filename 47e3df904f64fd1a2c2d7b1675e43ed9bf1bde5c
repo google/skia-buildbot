@@ -22,6 +22,30 @@
       "revId": "47e3df904f64fd1a2c2d7b1675e43ed9bf1bde5c",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46f3cf31_f8558a4e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 14
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-29T18:14:29Z",
+      "side": 1,
+      "message": "Yes, in imgtest init, we fetch the expectations including the expectations specific to a given CL. Those are stored by CRS (and have been in the past), just we defaulted to the \"one and only\" CRS. Now we can\u0027t do that on the server side.",
+      "parentUuid": "0007d6bb_a62650d3",
+      "range": {
+        "startLine": 17,
+        "startChar": 4,
+        "endLine": 17,
+        "endChar": 28
+      },
+      "revId": "47e3df904f64fd1a2c2d7b1675e43ed9bf1bde5c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
