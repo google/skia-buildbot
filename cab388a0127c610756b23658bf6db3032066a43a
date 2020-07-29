@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "8c63544d_64a290d8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 10
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-29T20:31:12Z",
+      "side": 1,
+      "message": "Addressed in https://skia-review.googlesource.com/c/buildbot/+/306718",
+      "revId": "cab388a0127c610756b23658bf6db3032066a43a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "615d4d9d_fe657673",
         "filename": "perf/modules/explore-sk/explore-sk.ts",
         "patchSetId": 10
@@ -25,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "70026fee_c546df18",
+        "filename": "perf/modules/explore-sk/explore-sk.ts",
+        "patchSetId": 10
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-29T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "615d4d9d_fe657673",
+      "range": {
+        "startLine": 98,
+        "startChar": 0,
+        "endLine": 98,
+        "endChar": 23
+      },
+      "revId": "cab388a0127c610756b23658bf6db3032066a43a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6cb7e525_e0400f6d",
         "filename": "perf/modules/explore-sk/explore-sk.ts",
         "patchSetId": 10
@@ -45,6 +86,30 @@
       "revId": "cab388a0127c610756b23658bf6db3032066a43a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ae918ff7_803b1a2b",
+        "filename": "perf/modules/explore-sk/explore-sk.ts",
+        "patchSetId": 10
+      },
+      "lineNbr": 555,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-29T20:31:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "6cb7e525_e0400f6d",
+      "range": {
+        "startLine": 555,
+        "startChar": 0,
+        "endLine": 555,
+        "endChar": 56
+      },
+      "revId": "cab388a0127c610756b23658bf6db3032066a43a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
