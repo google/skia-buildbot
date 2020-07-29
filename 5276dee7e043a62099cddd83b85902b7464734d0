@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "bce15945_0e01adf7",
+        "filename": "go/gce/swarming/setup-script-linux.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-29T00:45:56Z",
+      "side": 1,
+      "message": "I recreated skia-e-gce-209 without this line and it seems to work fine.",
+      "parentUuid": "d111b27f_65ef0db9",
+      "range": {
+        "startLine": 108,
+        "startChar": 0,
+        "endLine": 108,
+        "endChar": 59
+      },
+      "revId": "5276dee7e043a62099cddd83b85902b7464734d0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0cadc268_9a439f75",
         "filename": "task_scheduler/go/types/task.go",
         "patchSetId": 3
