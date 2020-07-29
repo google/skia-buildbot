@@ -41,6 +41,10 @@ const (
 	RUNNING_APP_HAS_CONFIG_METRIC       = "running_app_has_config_metric"
 	RUNNING_CONTAINER_HAS_CONFIG_METRIC = "running_container_has_config_metric"
 	LIVENESS_METRIC                     = "k8s_checker"
+	POD_MAX_READY_TIME_METRIC           = "pod_max_ready_time_s"
+	POD_READY_METRIC                    = "pod_ready"
+	POD_RESTART_COUNT_METRIC            = "pod_restart_count"
+	POD_RUNNING_METRIC                  = "pod_running"
 
 	// K8s config kinds.
 	CronjobKind     = "CronJob"
@@ -91,6 +95,59 @@ func getEvictedPods(ctx context.Context, clientset *kubernetes.Clientset, metric
 		}
 	}
 
+	return nil
+}
+
+// getPodMetrics reports metrics for all pods and places them into the specified
+// metrics map.
+func getPodMetrics(ctx context.Context, clientset *kubernetes.Clientset, metrics map[metrics2.Int64Metric]struct{}) error {
+	pods, err := clientset.CoreV1().Pods("default").List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return fmt.Errorf("Error when listing running pods: %s", err)
+	}
+
+	for _, p := range pods.Items {
+		for _, c := range p.Status.ContainerStatuses {
+			tags := map[string]string{
+				"pod":       p.ObjectMeta.Name,
+				"container": c.Name,
+			}
+			if app, ok := p.Labels["app"]; ok {
+				tags["app"] = app
+			}
+			restarts := metrics2.GetInt64Metric(POD_RESTART_COUNT_METRIC, tags)
+			restarts.Update(int64(c.RestartCount))
+			metrics[restarts] = struct{}{}
+
+			running := metrics2.GetInt64Metric(POD_RUNNING_METRIC, tags)
+			isRunning := int64(0)
+			if c.State.Running != nil {
+				isRunning = 1
+			}
+			running.Update(isRunning)
+			metrics[running] = struct{}{}
+
+			ready := metrics2.GetInt64Metric(POD_READY_METRIC, tags)
+			isReady := int64(0)
+			if c.Ready {
+				isReady = 1
+			}
+			ready.Update(isReady)
+			metrics[ready] = struct{}{}
+
+			for _, containerSpec := range p.Spec.Containers {
+				if containerSpec.Name == c.Name {
+					if containerSpec.ReadinessProbe != nil {
+						rp := containerSpec.ReadinessProbe
+						maxReadyTime := rp.InitialDelaySeconds + (rp.FailureThreshold+rp.SuccessThreshold)*(rp.PeriodSeconds+rp.TimeoutSeconds)
+						mrtMetric := metrics2.GetInt64Metric(POD_MAX_READY_TIME_METRIC, tags)
+						mrtMetric.Update(int64(maxReadyTime))
+						metrics[mrtMetric] = struct{}{}
+					}
+				}
+			}
+		}
+	}
 	return nil
 }
 
@@ -323,6 +380,11 @@ func performChecks(ctx context.Context, clientset *kubernetes.Clientset, g *giti
 		}
 	}
 
+	// Check for crashing pods.
+	if err := getPodMetrics(ctx, clientset, newMetrics); err != nil {
+		return nil, fmt.Errorf("Could not check for crashing pods from kubectl: %s", err)
+	}
+
 	// Delete unused old metrics.
 	for m := range oldMetrics {
 		if _, ok := newMetrics[m]; !ok {
@@ -335,6 +397,7 @@ func performChecks(ctx context.Context, clientset *kubernetes.Clientset, g *giti
 			}
 		}
 	}
+
 	return newMetrics, nil
 }
 
