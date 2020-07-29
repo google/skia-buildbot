@@ -39,9 +39,7 @@ func ReloadTemplates(resourcesDir string) {
 		filepath.Join(resourcesDir, "dist", "recreate_page_sets_runs.html"),
 	))
 	recreateWebpageArchivesRunsHistoryTemplate = template.Must(template.ParseFiles(
-		filepath.Join(resourcesDir, "templates/recreate_webpage_archives_runs_history.html"),
-		filepath.Join(resourcesDir, "templates/header.html"),
-		filepath.Join(resourcesDir, "templates/titlebar.html"),
+		filepath.Join(resourcesDir, "dist", "recreate_webpage_archives_runs.html"),
 	))
 }
 
