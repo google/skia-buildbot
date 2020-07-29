@@ -21,6 +21,7 @@ $$('#default').appendChild(ele);
 const eleCL = document.createElement('bulk-triage-sk');
 eleCL.setDigests(examplePageData, exampleAllData);
 eleCL.changeListID = '1234567';
+eleCL.crs = 'github';
 eleCL.addEventListener('bulk_triage_invoked', handleTriaged);
 ele.addEventListener('bulk_triage_cancelled', handleCancelled);
 $$('#changelist').appendChild(eleCL);

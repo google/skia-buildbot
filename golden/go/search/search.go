@@ -123,12 +123,11 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	isChangeListSearch := q.ChangeListID != "" && q.ChangeListID != "0"
 	// Get the expectations and the current index, which we assume constant
 	// for the duration of this query.
-	crs := q.CodeReviewSystemID
-	if isChangeListSearch && crs == "" {
+	if isChangeListSearch && q.CodeReviewSystemID == "" {
 		// TODO(kjlubick) remove this default after the search page is converted to lit-html.
-		crs = s.reviewSystems[0].ID
+		q.CodeReviewSystemID = s.reviewSystems[0].ID
 	}
-	exp, err := s.getExpectations(ctx, q.ChangeListID, crs)
+	exp, err := s.getExpectations(ctx, q.ChangeListID, q.CodeReviewSystemID)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -138,7 +137,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	var results []*frontend.SearchResult
 	// Find the digests (left hand side) we are interested in.
 	if isChangeListSearch {
-		reviewSystem, err := s.reviewSystem(crs)
+		reviewSystem, err := s.reviewSystem(q.CodeReviewSystemID)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -191,7 +190,7 @@ func (s *SearchImpl) Search(ctx context.Context, q *query.Search) (*frontend.Sea
 	// Sort the digests and fill the ones that are going to be displayed with
 	// additional data.
 	displayRet, offset := s.sortAndLimitDigests(ctx, q, results, int(q.Offset), int(q.Limit))
-	s.addTriageHistory(ctx, s.makeTriageHistoryGetter(crs, q.ChangeListID), displayRet)
+	s.addTriageHistory(ctx, s.makeTriageHistoryGetter(q.CodeReviewSystemID, q.ChangeListID), displayRet)
 	traceComments := s.getTraceComments(ctx)
 	prepareTraceGroups(displayRet, exp, traceComments, isChangeListSearch)
 

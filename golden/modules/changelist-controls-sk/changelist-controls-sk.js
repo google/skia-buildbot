@@ -26,14 +26,14 @@ const template = (ele) => {
   const ps = ele._selectedPS();
   return html`
 <div class=info>
-  <span class=title>${cl.system} issue:</span>
+  <span class=title>${cl.system} changelist:</span>
   <a href=${cl.url} target=_blank rel=noopener>
     ${limitString(cl.subject, 48)}
   </a>
 
   <span>${limitString(cl.owner, 32)}</span>
 
-  <a href="/triagelog?issue=${cl.id}&system=${cl.system}">
+  <a href="/triagelog?changelist_id=${cl.id}&crs=${cl.system}">
     <find-in-page-icon-sk></find-in-page-icon-sk>Triagelog
   </a>
 </div>

@@ -624,7 +624,6 @@ func initializeReviewSystems(configs []config.CodeReviewSystem, fc *firestore.Cl
 			URLTemplate: cfg.URLTemplate,
 		})
 	}
-	sklog.Infof("Review systems %#v", rs)
 	return rs, nil
 }
 
