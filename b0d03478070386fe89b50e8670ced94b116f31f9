@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b6a83bf4_c0e292ef",
+        "filename": "power/go/testdata/testdata/booting_device.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-29T18:03:32Z",
+      "side": 0,
+      "message": "I don\u0027t think this makes a difference.",
+      "range": {
+        "startLine": 1,
+        "startChar": 22,
+        "endLine": 1,
+        "endChar": 37
+      },
+      "revId": "b0d03478070386fe89b50e8670ced94b116f31f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c6a28cf7_34f03378",
+        "filename": "scripts/check_swarming_bot_auth/check_swarming_bot_auth.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-07-29T18:03:32Z",
+      "side": 0,
+      "message": "IIRC this was needed a while back to verify that we were using the correct type of authentication for our swarming bots, and we\u0027re long past the point of needing it.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 12
+      },
+      "revId": "b0d03478070386fe89b50e8670ced94b116f31f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
