@@ -3,6 +3,7 @@
 {
   "childDisplayName": "Perfetto Trace Processor Mac",
   "commitMsg": {
+    "childLogURLTmpl": "https://android.googlesource.com/platform/external/perfetto.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
     "includeTbrLine": true
   },
   "contacts": [
