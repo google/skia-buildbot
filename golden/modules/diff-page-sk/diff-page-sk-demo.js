@@ -18,7 +18,8 @@ setImageEndpointsForDemos();
 
 // Load the demo page with some params to load if there aren't any already.
 if (window.location.search.length < 4) {
-  const query = '?left=6246b773851984c726cb2e1cb13510c2&right=99c58c7002073346ff55f446d47d6311&test=My%20test%20has%20spaces&issue=12353';
+  const query = '?left=6246b773851984c726cb2e1cb13510c2&right=99c58c7002073346ff55f446d47d6311&'+
+    'test=My%20test%20has%20spaces&changelist_id=12353&crs=gerrit';
   history.pushState(null, '', window.location.origin + window.location.pathname + query);
 }
 

@@ -9,8 +9,7 @@ export const examplePageData = {
   },
 };
 
-export const expectedPageData = '{"testDigestStatus":{"alpha_test":{"aaaaaaaaaaaaaaaaaaaaaaaaaaa":"positive","bbbbbbbbbbbbbbbbbbbbbbbbbbb":"negative"},"beta_test":{"ccccccccccccccccccccccccccc":"positive"}},"issue":""}';
-
+export const expectedPageData = '{"testDigestStatus":{"alpha_test":{"aaaaaaaaaaaaaaaaaaaaaaaaaaa":"positive","bbbbbbbbbbbbbbbbbbbbbbbbbbb":"negative"},"beta_test":{"ccccccccccccccccccccccccccc":"positive"}},"changelist_id":"","crs":""}';
 
 export const exampleAllData = {
   alpha_test: {
@@ -29,4 +28,4 @@ export const exampleAllData = {
   },
 };
 
-export const expectedAllData = '{"testDigestStatus":{"alpha_test":{"aaaaaaaaaaaaaaaaaaaaaaaaaaa":"positive","bbbbbbbbbbbbbbbbbbbbbbbbbbb":"negative","ddddddddddddddddddddddddddd":"positive"},"beta_test":{"ccccccccccccccccccccccccccc":"positive","ddddddddddddddddddddddddddd":"negative"},"gamma_test":{"eeeeeeeeeeeeeeeeeeeeeeeeeee":""}},"issue":"someCL"}';
+export const expectedAllData = '{"testDigestStatus":{"alpha_test":{"aaaaaaaaaaaaaaaaaaaaaaaaaaa":"positive","bbbbbbbbbbbbbbbbbbbbbbbbbbb":"negative","ddddddddddddddddddddddddddd":"positive"},"beta_test":{"ccccccccccccccccccccccccccc":"positive","ddddddddddddddddddddddddddd":"negative"},"gamma_test":{"eeeeeeeeeeeeeeeeeeeeeeeeeee":""}},"changelist_id":"someCL","crs":"gerrit"}';

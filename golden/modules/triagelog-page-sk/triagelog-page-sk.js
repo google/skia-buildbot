@@ -68,8 +68,8 @@ ${entry.details.map((e) => detailsEntryTemplate(el, e))}
 
 const detailsEntryTemplate = (el, detailsEntry) => {
   let detailHref = `/detail?test=${detailsEntry.test_name}&digest=${detailsEntry.digest}`;
-  if (el._issue) {
-    detailHref += `&issue=${el._issue}`;
+  if (el._changelistID) {
+    detailHref += `&changelist_id=${el._changelistID}&crs=${el._crs}`;
   }
   return html`
 <tr class=details>
@@ -92,12 +92,18 @@ define('triagelog-page-sk', class extends ElementSk {
     this._entries = []; // Log entries fetched from the server.
     this._pageOffset = 0; // Reflected in the URL.
     this._pageSize = 0; // Reflected in the URL.
-    this._issue = 0; // Reflected in the URL.
+    this._changelistID = ''; // Reflected in the URL.
+    this._crs = ''; // Code Review System (e.g. 'gerrit', 'github')
     this._totalEntries = 0; // Total number of entries in the server.
 
     // stateReflector will trigger on DomReady.
     this._stateChanged = stateReflector(
-      /* getState */ () => this._getState(),
+      /* getState */ () => ({
+        offset: this._pageOffset,
+        page_size: this._pageSize,
+        changelist_id: this._changelistID,
+        crs: this._crs,
+      }),
       /* setState */ (newState) => {
         // The stateReflector's lingering popstate event handler will continue
         // to call this function on e.g. browser back button clicks long after
@@ -108,19 +114,12 @@ define('triagelog-page-sk', class extends ElementSk {
 
         this._pageOffset = newState.offset || 0;
         this._pageSize = newState.page_size || 20;
-        this._issue = newState.issue || 0;
+        this._changelistID = newState.changelist_id || '';
+        this._crs = newState.crs || '';
         this._render();
         this._fetchEntries();
       },
     );
-  }
-
-  _getState() {
-    return {
-      offset: this._pageOffset,
-      page_size: this._pageSize,
-      issue: this._issue,
-    };
   }
 
   connectedCallback() {
@@ -150,8 +149,8 @@ define('triagelog-page-sk', class extends ElementSk {
   _fetchEntries(sendBusyDoneEvents = true) {
     let url = `/json/triagelog?details=true&offset=${this._pageOffset}`
         + `&size=${this._pageSize}`;
-    if (this._issue) {
-      url += `&issue=${this._issue}`;
+    if (this._changelistID) {
+      url += `&changelist_id=${this._changelistID}&crs=${this._crs}`;
     }
     if (sendBusyDoneEvents) {
       sendBeginTask(this);

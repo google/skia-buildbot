@@ -26,7 +26,8 @@ const template = (ele) => {
 </div>`;
   }
   return html`
-<digest-details-sk .commits=${ele._commits} .issue=${ele._changeListID} .details=${ele._details}>
+<digest-details-sk .commits=${ele._commits} .changeListID=${ele._changeListID} .crs=${ele._crs}
+                   .details=${ele._details}>
 </digest-details-sk>
   `;
 };
@@ -37,18 +38,19 @@ define('details-page-sk', class extends ElementSk {
 
     this._grouping = '';
     this._digest = '';
+    this._crs = '';
     this._changeListID = '';
     this._commits = [];
     this._details = {};
     this._didInitialLoad = false;
-
 
     this._stateChanged = stateReflector(
       /* getState */() => ({
         // provide empty values
         test: this._grouping, // TODO(kjlubick) rename test -> grouping
         digest: this._digest,
-        issue: this._changeListID, // TODO(kjlubick) rename issue -> changeListID
+        changelist_id: this._changeListID,
+        crs: this._crs,
       }), /* setState */(newState) => {
         if (!this._connected) {
           return;
@@ -56,7 +58,8 @@ define('details-page-sk', class extends ElementSk {
         // default values if not specified.
         this._grouping = newState.test || '';
         this._digest = newState.digest || '';
-        this._changeListID = newState.issue || '';
+        this._changeListID = newState.changelist_id || '';
+        this._crs = newState.crs || '';
         this._fetch();
         this._render();
       },
@@ -86,7 +89,8 @@ define('details-page-sk', class extends ElementSk {
     sendBeginTask(this);
 
     const url = `/json/details?test=${encodeURIComponent(this._grouping)}`
-      + `&digest=${encodeURIComponent(this._digest)}&issue=${this._changeListID}`;
+      + `&digest=${encodeURIComponent(this._digest)}&changelist_id=${this._changeListID}`
+      + `&crs=${this._crs}`;
     fetch(url, extra)
       .then(jsonOrThrow)
       .then((obj) => {

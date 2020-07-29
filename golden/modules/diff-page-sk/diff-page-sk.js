@@ -18,9 +18,9 @@ const template = (ele) => {
     return html`<h1>Loading...</h1>`;
   }
   return html`
-<digest-details-sk .issue=${ele._changeListID} .details=${ele._leftDetails} .right=${ele._rightDetails}>
-</digest-details-sk>
-  `;
+<digest-details-sk .details=${ele._leftDetails} .right=${ele._rightDetails}
+                   .changeListID=${ele._changeListID} .crs=${ele._crs}>
+</digest-details-sk>`;
 };
 
 define('diff-page-sk', class extends ElementSk {
@@ -30,11 +30,11 @@ define('diff-page-sk', class extends ElementSk {
     this._grouping = '';
     this._leftDigest = '';
     this._rightDigest = '';
+    this._crs = '';
     this._changeListID = '';
     this._leftDetails = {};
     this._rightDetails = {};
     this._didInitialLoad = false;
-
 
     this._stateChanged = stateReflector(
       /* getState */() => ({
@@ -42,7 +42,8 @@ define('diff-page-sk', class extends ElementSk {
         test: this._grouping, // TODO(kjlubick) rename test -> grouping
         left: this._leftDigest,
         right: this._rightDigest,
-        issue: this._changeListID, // TODO(kjlubick) rename issue -> changeListID
+        changelist_id: this._changeListID,
+        crs: this._crs,
       }), /* setState */(newState) => {
         if (!this._connected) {
           return;
@@ -51,7 +52,8 @@ define('diff-page-sk', class extends ElementSk {
         this._grouping = newState.test || '';
         this._leftDigest = newState.left || '';
         this._rightDigest = newState.right || '';
-        this._changeListID = newState.issue || '';
+        this._changeListID = newState.changelist_id || '';
+        this._crs = newState.crs || '';
         this._fetch();
         this._render();
       },
@@ -82,7 +84,9 @@ define('diff-page-sk', class extends ElementSk {
 
     const url = `/json/diff?test=${encodeURIComponent(this._grouping)}`
       + `&left=${encodeURIComponent(this._leftDigest)}`
-      + `&right=${encodeURIComponent(this._rightDigest)}&issue=${this._changeListID}`;
+      + `&right=${encodeURIComponent(this._rightDigest)}`
+      + `&changelist_id=${this._changeListID}&crs=${this._crs}`;
+
     fetch(url, extra)
       .then(jsonOrThrow)
       .then((obj) => {

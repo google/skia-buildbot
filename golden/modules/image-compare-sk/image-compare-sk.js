@@ -72,8 +72,8 @@ define('image-compare-sk', class extends ElementSk {
     this._left = {
       digest: '',
       title: '',
-      // We can't derive the detail url w/o also passing down issue (and maybe other things), so
-      // for simplicity, we have the client compute what detail page they want to link to.
+      // We can't derive the detail url w/o also passing down changelistID, crs etc, so we have
+      // the caller compute those URLs and pass them into this element.
       detail: '',
     };
     this._right = null;
