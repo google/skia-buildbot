@@ -37,6 +37,7 @@ type StoreImpl struct {
 	watchReceiveSnapshotCounter                 metrics2.Counter
 	watchDataToErrorCounter                     metrics2.Counter
 	listCounter                                 metrics2.Counter
+	deleteCounter                               metrics2.Counter
 	listIterFailureCounter                      metrics2.Counter
 	watchForDeletablePodsReceiveSnapshotCounter metrics2.Counter
 	watchForDeletablePodsDataToErrorCounter     metrics2.Counter
@@ -98,6 +99,7 @@ func New(ctx context.Context, local bool, instanceConfig config.InstanceConfig) 
 		watchReceiveSnapshotCounter:                 metrics2.GetCounter("machine_store_watch_receive_snapshot"),
 		watchDataToErrorCounter:                     metrics2.GetCounter("machine_store_watch_datato_error"),
 		listCounter:                                 metrics2.GetCounter("machine_store_list"),
+		deleteCounter:                               metrics2.GetCounter("machine_store_delete"),
 		listIterFailureCounter:                      metrics2.GetCounter("machine_store_list_iter_error"),
 		watchForDeletablePodsReceiveSnapshotCounter: metrics2.GetCounter("machine_store_watch_for_deletable_pods_receive_snapshot"),
 		watchForDeletablePodsDataToErrorCounter:     metrics2.GetCounter("machine_store_watch_for_deletable_pods_datato_error"),
@@ -262,6 +264,14 @@ func (st *StoreImpl) List(ctx context.Context) ([]machine.Description, error) {
 		ret = append(ret, machineDescription)
 	}
 	return ret, nil
+}
+
+// Delete implements the Store interface.
+func (st *StoreImpl) Delete(ctx context.Context, machineID string) error {
+	st.deleteCounter.Inc(1)
+
+	_, err := st.machinesCollection.Doc(machineID).Delete(ctx)
+	return err
 }
 
 func machineDescriptionToStoreDescription(m machine.Description) storeDescription {
