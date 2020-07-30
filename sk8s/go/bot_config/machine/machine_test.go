@@ -162,8 +162,75 @@ func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 	assert.Equal(t, int64(1), m.storeWatchArrivalCounter.Get())
 	assert.Equal(t, int64(0), m.interrogateAndSendFailures.Get())
 
-	// Confirm the firestore write make it all the way to Dims().
+	// Confirm the firestore write made it all the way to Dims().
 	assert.Equal(t, machine.SwarmingDimensions{"foo": {"bar"}}, m.DimensionsForSwarming())
+}
+
+func TestStart_FirestoreWritesGetReflectedToMachine(t *testing.T) {
+	// Manual because we are testing pubsub.
+	unittest.ManualTest(t)
+
+	ctx, _, instanceConfig := setupConfig(t)
+	ctx, cancel := context.WithCancel(ctx)
+
+	// Set the SWARMING_BOT_ID env variable.
+	oldVar := os.Getenv(swarming.SwarmingBotIDEnvVar)
+	err := os.Setenv(swarming.SwarmingBotIDEnvVar, "my-test-bot-001")
+	require.NoError(t, err)
+	defer func() {
+		err = os.Setenv(swarming.SwarmingBotIDEnvVar, oldVar)
+		require.NoError(t, err)
+	}()
+
+	const imageName = "gcr.io/skia-public/rpi-swarming-client:2020-05-09T19_28_20Z-jcgregorio-4fef3ca-clean"
+
+	// Set the IMAGE_NAME env variable.
+	oldImageVar := os.Getenv(swarming.KubernetesImageEnvVar)
+	err = os.Setenv(swarming.KubernetesImageEnvVar, imageName)
+	require.NoError(t, err)
+	defer func() {
+		err = os.Setenv(swarming.KubernetesImageEnvVar, oldImageVar)
+		require.NoError(t, err)
+	}()
+
+	// Create a Machine instance.
+	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
+	m, err := New(ctx, true, instanceConfig, start)
+	require.NoError(t, err)
+	assert.Equal(t, "my-test-bot-001", m.MachineID)
+
+	assert.False(t, m.GetMaintenanceMode())
+
+	// Start just the Firestore watcher.
+	m.startStoreWatch(ctx)
+
+	// Write a description into firestore. We expect the dimensions and mode to
+	// bubble down to the machine
+	err = m.store.Update(ctx, "my-test-bot-001", func(machine.Description) machine.Description {
+		ret := machine.NewDescription()
+		ret.Mode = machine.ModeMaintenance
+		ret.Dimensions["foo"] = []string{"bar"}
+		return ret
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, machine.SwarmingDimensions{"foo": {"bar"}}, m.DimensionsForSwarming())
+	assert.True(t, m.GetMaintenanceMode())
+
+	// Now change the mode.
+	err = m.store.Update(ctx, "my-test-bot-001", func(machine.Description) machine.Description {
+		ret := machine.NewDescription()
+		ret.Mode = machine.ModeAvailable
+		return ret
+	})
+	require.NoError(t, err)
+
+	// Confirm we go out of maintenance mode.
+	assert.False(t, m.GetMaintenanceMode())
+
+	// Cancel Go routine inside startStoreWatch.
+	cancel()
+
 }
 
 func Test_FakeExe_AdbShellGetProp_Success(t *testing.T) {
