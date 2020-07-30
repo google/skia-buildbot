@@ -1,15 +1,6 @@
 @import '../colors.css';
 
 task-priority-sk {
-  select-sk {
-    * {
-      padding: 0;
-    }
-    [selected] {
-      background-color: var(--primary-variant);
-    }
-  }
-
   .tr-container, span {
     display:inline-block;
   }

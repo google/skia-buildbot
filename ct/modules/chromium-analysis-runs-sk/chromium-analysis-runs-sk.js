@@ -109,7 +109,7 @@ const taskRowTemplate = (el, task, index) => html`
         <td>
           ${!isEmptyPatch(task.CustomWebpagesGSPath)
     ? html`<a href="${getGSLink(task.CustomWebpagesGSPath)}"
-              target=_blank rel="noopener noreferrer">$Custom Webpages</a>`
+              target=_blank rel="noopener noreferrer">Custom Webpages</a>`
     : task.PageSets}
         </td>
       </tr>

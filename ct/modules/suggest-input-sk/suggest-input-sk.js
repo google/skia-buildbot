@@ -16,6 +16,7 @@ import { html } from 'lit-html';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
+// TODO(westont): We should probably use input-sk here.
 const template = (ele) => html`
 <div class=suggest-input-container>
 <input class=suggest-input autocomplete=off required
