@@ -41,7 +41,7 @@ const (
 	// because the unique topic id it is listening to will suffice.
 	// By setting the subscriber ID to be the same on all instances of the ingester,
 	// only one of the ingesters will get each event (usually).
-	subscriptionID = "gold-ingestion"
+	subscriptionID = "gold-ingestion-sql"
 )
 
 type ingestionServerConfig struct {
