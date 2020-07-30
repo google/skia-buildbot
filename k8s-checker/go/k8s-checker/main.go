@@ -109,11 +109,9 @@ func getPodMetrics(ctx context.Context, clientset *kubernetes.Clientset, metrics
 	for _, p := range pods.Items {
 		for _, c := range p.Status.ContainerStatuses {
 			tags := map[string]string{
+				"app":       p.Labels["app"],
 				"pod":       p.ObjectMeta.Name,
 				"container": c.Name,
-			}
-			if app, ok := p.Labels["app"]; ok {
-				tags["app"] = app
 			}
 			restarts := metrics2.GetInt64Metric(POD_RESTART_COUNT_METRIC, tags)
 			restarts.Update(int64(c.RestartCount))
