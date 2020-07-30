@@ -156,16 +156,20 @@ func (m *Machine) Start(ctx context.Context) error {
 		}
 	})
 
-	// Also start a second loop that does a firestore onsnapshot watcher that gets the dims we should
-	// be reporting to swarming.
+	m.startStoreWatch(ctx)
+	return nil
+}
+
+// startStoreWatch starts a loop that does a firestore onsnapshot watcher
+// that gets the dims and state we should be reporting to swarming.
+func (m *Machine) startStoreWatch(ctx context.Context) {
 	go func() {
 		for desc := range m.store.Watch(ctx, m.MachineID) {
 			m.storeWatchArrivalCounter.Inc(1)
 			m.SetDimensionsForSwarming(desc.Dimensions)
+			m.SetMaintenanceMode(desc.Mode == machine.ModeRecovery || desc.Mode == machine.ModeMaintenance)
 		}
 	}()
-
-	return nil
 }
 
 // SetDimensionsForSwarming sets the dimensions that should be reported to swarming. Should only
