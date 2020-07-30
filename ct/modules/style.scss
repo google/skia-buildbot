@@ -1,0 +1,127 @@
+/* Common CT Styles.
+   Assumes use of infra-sk/modules/theme-chooser-sk.
+
+ Can be imported via:
+
+    @import '../style';
+*/
+
+/* Classes for styling task triggering form elements. */
+.triggering-spinner {
+    margin: auto;
+    vertical-align: middle;
+}
+
+.long-field {
+    width: 40em;
+}
+
+.smaller-font {
+    font-size: 80%;
+}
+
+select-sk {
+    * {
+        padding: 0;
+    }
+
+    [selected] {
+        background-color: var(--primary-variant);
+    }
+}
+
+/* Universal table style */
+table {
+    border-spacing: 0px;
+    .nowrap {
+        white-space: nowrap;
+    }
+    th {
+        text-align: center;
+    }
+}
+
+/* Rules for Runs History tables. */
+table.runssummary>tbody>tr>td,
+table.runssummary>tbody>tr>th {
+    padding: 10px;
+    border-style: solid;
+    border-width: 1px;
+}
+
+table.runssummary {
+    border-spacing: 0px;
+    padding-top: 2em;
+    padding-left: 2em;
+
+    th {
+        text-align: center;
+    }
+}
+
+table.inner-table {
+    td {
+        border: none;
+        padding: 0px;
+    }
+}
+
+/* The table used for task triggering form layouts. */
+table.options {
+    padding-left: 2em;
+    margin: 1em;
+    border-style: solid;
+
+    td.center {
+        text-align: center;
+        padding-top: 2em;
+    }
+}
+
+table.options>tbody>tr>td {
+    padding: 1em 2em;
+}
+
+/* Detail dialogs and their overlay background. */
+div.dialog-background {
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    position: fixed;
+    overflow: auto;
+    left: 0;
+    top: 0;
+}
+
+div.hidden {
+    display: none;
+}
+
+div.dialog-content {
+    min-width: 200px;
+    max-width: calc(100% - 10px);
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    padding: 2em;
+    border-radius: 1em;
+}
+
+/* Make Darkmode links visible */
+.darkmode a {
+    color: var(--secondary);
+}
+
+.darkmode table.options {
+    background-color: var(--surface-2dp);
+}
+
+/* Make sure the app doesn't leave empty space on the bottom/right. e.g. blank
+ white in darkmode.
+ */
+html,
+body,
+app-sk {
+    background-color: var(--background);
+}

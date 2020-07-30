@@ -23,7 +23,7 @@ import {
 } from '../ctfe_utils';
 
 const template = (el) => html`
-<table class="queue surface-themes-sk secondary-links" id=queue>
+<table class="runssummary surface-themes-sk secondary-links" id=queue>
   <tr class=primary-variant-container-themes-sk>
     <th>Queue Position</th>
     <th>Added</th>

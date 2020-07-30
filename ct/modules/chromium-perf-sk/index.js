@@ -1,2 +1,2 @@
 import './chromium-perf-sk';
-import './chromium-perf-sk.scss';
+import '../style.scss';

@@ -44,7 +44,7 @@ const template = (el) => html`
 `;
 
 const taskRowTemplate = (task) => html`
-<tr style="border: 1px solid black;">
+<tr>
   <td>${task.Type}</td>
   <td>${task.Username}</td>
   <td>${task.Description}</td>

@@ -1,2 +1,2 @@
 import './runs-history-summary-sk';
-import './runs-history-summary-sk.scss';
+import '../style.scss';
