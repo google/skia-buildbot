@@ -50,7 +50,6 @@ RUN if [ ! -z "${PATCH_REF}" ] ; then cd $GOPATH/src/go.skia.org/infra \
     && git rebase ${HASH}; fi
 
 RUN cd $GOPATH/src/go.skia.org/infra \
-    && go get \
     && go install ./...
 
 RUN cd $GOPATH/src/go.skia.org/infra/fiddlek \
