@@ -5,13 +5,18 @@ We'll look that the SQL schema used to explain how SQLTraceStore maps
 traces into an SQL database.
 
 Each trace name, which is a structured key (See /infra/go/query) of the form
-,key1=value1,key2=value2,..., is stored in the TraceIds table so we can use the
-much shorter 64 bit trace_id in other tables.
+,key1=value1,key2=value2,..., is stored in the TraceNames table so we can use the
+much shorter 126 bit md5 hash in trace_id in other tables. The value of the
+trace name is parsed into a paramtools.Params and stored in the 'params' column
+with an inverted index, which enables all the queries that Perf supportes.
 
-	TraceIDs  (
-		trace_id INTEGER PRIMARY KEY,
-		trace_name TEXT UNIQUE NOT NULL
-	)
+	CREATE TABLE IF NOT EXISTS TraceNames (
+		-- md5(trace_name)
+		trace_id BYTES PRIMARY KEY,
+		-- The params that make up the trace_id, {"arch=x86", "config=8888"}.
+		params JSONB NOT NULL,
+		INVERTED INDEX (params)
+	);
 
 Similarly we store the name of every source file that has been ingested in the
 SourceFiles table so we can use the shorter 64 bit source_file_id in other
@@ -21,18 +26,26 @@ tables.
 		source_file_id INTEGER PRIMARY KEY,
 		source_file TEXT UNIQUE NOT NULL
 	)
+	CREATE TABLE IF NOT EXISTS SourceFiles (
+		source_file_id INT PRIMARY KEY DEFAULT unique_rowid(),
+		source_file STRING UNIQUE NOT NULL
+	);
 
-We store the values of each trace in the TraceValues table, and use the trace_id
+We store the values of each trace in the TraceValues2 table, and use the trace_id
 and the commit_number as the primary key. We also store not only the value but
 the id of the source file that the value came from.
 
-	TraceValues (
-		trace_id INTEGER,
-		commit_number INTEGER,
+	CREATE TABLE IF NOT EXISTS TraceValues2 (
+		-- Id of the trace name from TraceNames.
+		trace_id BYTES,
+		-- A types.CommitNumber.
+		commit_number INT,
+		-- The floating point measurement.
 		val REAL,
-		source_file_id INTEGER,
+		-- Id of the source filename, from SourceFiles.
+		source_file_id INT,
 		PRIMARY KEY (trace_id, commit_number)
-	)
+	);
 
 Just using this table we can construct some useful queries. For example
 we can count the number of traces in a single tile, in this case the
@@ -41,83 +54,40 @@ we can count the number of traces in a single tile, in this case the
 	SELECT
 		COUNT(DISTINCT trace_id)
 	FROM
-		TraceValues
+		TraceValues2
 	WHERE
   		commit_number >= 0 AND commit_number < 256;
 
-The Postings table is our inverted index for looking up which trace ids
-contain which key=value pairs. For a good introduction to postings and search
-https://www.tbray.org/ongoing/When/200x/2003/06/18/HowSearchWorks is a good
-resource.
-
-Remember that each trace name is a structured key of the form
-,arch=x86,config=8888,..., and that over time traces may come and go, i.e. we
-may stop running a test, or start running new tests, so if we want to make
-searching for traces efficient we need to be aware of how those trace ids change
-over time. The answer is to break our store in Tiles, i.e. blocks of commits of
-tileSize length, and then for each Tile we keep an inverted index of the trace
-ids. This allows us to not only construct fast queries, but to also do things
-like build ParamSets, a collection of all the keys and all their values ever
-seen for a particular Tile.
-
-In the table below we store a key_value which is the literal "key=value" part of
-a trace name, along with the tile_number and the 64 bit trace id. Note that
-tile_number is just int(commitNumber/tileSize).
-
-	Postings  (
-		tile_number INTEGER,
-		key_value text NOT NULL,
-		trace_id INTEGER,
-		PRIMARY KEY (tile_number, key_value, trace_id)
-	)
-
-So for example to build a ParamSet from Postings:
-
-	SELECT DISTINCT
-		key_value
-	FROM
-		Postings
-	WHERE
-		tile_number=0;
-
-To find the most recent tile:
+The JSONB serialized Params in the TraceNames table allows
+building ParamSets for a range of commits:
 
 	SELECT
-		tile_number
+	    DISTINCT TraceNames.params
 	FROM
-		Postings
-	ORDER BY
-		tile_number DESC LIMIT 1;
+	    TraceNames
+	    INNER JOIN TraceValues2 ON TraceNames.trace_id = TraceValues2.trace_id
+	WHERE
+	    TraceValues2.commit_number >= 0
+	    AND TraceValues2.commit_number < 512;
+
 
 And finally, to retrieve all the trace values that
-would match a query, we first start with sub-queries for
-each of the common keys in the query, which produce the
-trace_ids, which are then ANDed across all the distinct
-keys in the query. Finally that list is inner joined to the
-TraceValues table to load up all the values.
+would match a query:
 
 	SELECT
-		TraceIDs.trace_name, TraceValues.commit_number, TraceValues.val
+	    TraceNames.params,
+	    TraceValues2.commit_number,
+	    TraceValues2.val
 	FROM
-		TraceIDs
-	INNER JOIN
-		TraceValues
-	ON
-		TraceValues.trace_id = TraceIDs.trace_id
+	    TraceNames
+	    INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
 	WHERE
-  		TraceValues.trace_id IN (
-			SELECT trace_id FROM Postings
-			WHERE key_value IN ("arch=x86", "arch=arm")
-			AND tile_number=0
-  		)
-	  AND
-	  	TraceValues.trace_id IN (
-			SELECT trace_id FROM Postings
-			WHERE key_value IN ("config=8888")
-			AND tile_number=0
-		  );
+	    TraceNames.params ->> 'arch' IN ('x86')
+	    AND TraceNames.params ->> 'config' IN ('565', '8888')
+	    AND TraceValues2.commit_number >= 0
+	    AND TraceValues2.commit_number < 255;
 
-Look in migrations/test.sql for more example of raw queries using
+Look in migrations/cdb.sql for more example of raw queries using
 a simple example dataset.
 */
 package sqltracestore
@@ -128,6 +98,7 @@ import (
 	"crypto/md5"
 	"database/sql"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strconv"
@@ -161,11 +132,18 @@ const defaultCacheSize = 20 * 1000 * 1000
 // values, so pick a batch size that allows roughly one request per core.
 const traceValuesInsertBatchSize = 1000
 
-// traceIDFromSQL is the type of the IDs that are used in the SQL database for
-// traces.
-type traceIDFromSQL int64
+// traceIDForSQL is the type of the IDs that are used in the SQL queries,
+// they are hex encoded md5 hashes of a trace name, e.g. "\x00112233...".
+// Note the \x prefix which tells CockroachDB that this is hex encoded.
+type traceIDForSQL string
 
-const badTraceIDFromSQL traceIDFromSQL = -1
+const badTraceIDFromSQL traceIDForSQL = ""
+
+// TODO(jcgregorio) Add tests.
+func traceIDForSQLFromTraceName(traceName string) traceIDForSQL {
+	b := md5.Sum([]byte(traceName))
+	return traceIDForSQL(hex.EncodeToString(b[:]))
+}
 
 // sourceFileIDFromSQL is the type of the IDs that are used in the SQL database
 // for source files.
@@ -180,12 +158,10 @@ type statement int
 const (
 	insertIntoSourceFiles statement = iota
 	getSourceFileID
-	insertIntoTraceIDs
+	insertIntoTraceNames
 	getTraceID
-	insertIntoPostings
 	replaceTraceValues
-	countIndices
-	getLatestTile
+	getLatestCommit
 	paramSetForTile
 	getSource
 	traceCount
@@ -197,33 +173,41 @@ type templates map[statement]string
 
 var templatesByDialect = map[perfsql.Dialect]templates{
 	perfsql.CockroachDBDialect: {
-		insertIntoPostings: `
-		UPSERT INTO
-			Postings (tile_number, key_value, trace_id)
-		VALUES
-			{{ range $index, $element :=  . -}}
-				{{ if $index }},{{end}}({{ $element.TileNumber }}, '{{ $element.KeyValue }}', {{ $element.TraceID }})
-	  		{{ end }}`,
 		replaceTraceValues: `
 		UPSERT INTO
-			TraceValues (trace_id, commit_number, val, source_file_id)
+			TraceValues2 (trace_id, commit_number, val, source_file_id)
 		VALUES
 		{{ range $index, $element :=  . -}}
-			{{ if $index }},{{end}}({{ $element.TraceID }}, {{ $element.CommitNumber }}, {{ $element.Val }}, {{ $element.SourceFileID }})
+			{{ if $index }},{{end}}({{ $element.HexMD5TraceID }}, {{ $element.CommitNumber }}, {{ $element.Val }}, {{ $element.SourceFileID }})
+		{{ end }}`,
+		insertIntoTraceNames: `
+		UPSERT INTO
+			TraceNames (trace_id, params)
+		VALUES
+		{{ range $index, $element :=  . -}}
+			{{ if $index }},{{end}}({{ $element.HexMD5TraceID }}, {{ $element.JSONParams }})
 		{{ end }}`,
 	},
 }
 
 // insertIntoPostingsValue represents the values used in the insertIntoPostings template.
-type insertIntoPostingsValue struct {
-	TileNumber types.TileNumber
-	KeyValue   string
-	TraceID    traceIDFromSQL
+type insertIntoTraceNamesStruct struct {
+	// The trace's Params serialize as JSON.
+	JSONParams string
+
+	// The MD5 sum of the trace name as a hex string, i.e.
+	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
+	// CockroachDB will use to know the string is in hex.
+	MD5HexTraceID string
 }
 
 // replaceTraceValue is used in the replaceTraceValues template.
-type replaceTraceValue struct {
-	TraceID      traceIDFromSQL
+type replaceTraceValuesStruct struct {
+	// The MD5 sum of the trace name as a hex string, i.e.
+	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
+	// CockroachDB will use to know the string is in hex.
+	MD5HexTraceID string
+
 	CommitNumber types.CommitNumber
 	Val          float32
 	SourceFileID sourceFileIDFromSQL
@@ -245,65 +229,39 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 			SourceFiles
 		WHERE
 			source_file=$1`,
-		insertIntoTraceIDs: `
-		INSERT INTO
-			TraceIDs (trace_name)
-		VALUES
-			($1)
-		ON CONFLICT
-		DO NOTHING`,
-		getTraceID: `
+		getLatestCommit: `
 		SELECT
-			trace_id
+    		commit_number
 		FROM
-			TraceIDs
-		WHERE
-			trace_name=$1`,
-		insertIntoPostings: `
-		INSERT INTO
-			Postings (tile_number, key_value, trace_id)
-		VALUES
-			($1, $2, $3)
-		ON CONFLICT
-		DO NOTHING`,
-		countIndices: `
-		SELECT
-			COUNT(*)
-		FROM
-			Postings
-		WHERE
-			tile_number=$1`,
-		getLatestTile: `
-		SELECT
-			tile_number
-		FROM
-			Postings
+    		TraceValues2
 		ORDER BY
-			tile_number DESC
-		LIMIT 1`,
+    		commit_number DESC
+		LIMIT
+			1;`,
 		paramSetForTile: `
-		SELECT DISTINCT
-			key_value
+		SELECT
+			DISTINCT TraceNames.params
 		FROM
-			Postings
+			TraceNames
+		INNER JOIN TraceValues2 ON TraceNames.trace_id = TraceValues2.trace_id
 		WHERE
-			tile_number=$1`,
+			TraceValues2.commit_number >= $1
+			AND TraceValues2.commit_number < $2;`,
 		getSource: `
 		SELECT
 			SourceFiles.source_file
 		FROM
-			TraceIDs
-		INNER JOIN
-			TraceValues ON TraceValues.trace_id = TraceIDs.trace_id
-		INNER JOIN
-			SourceFiles ON SourceFiles.source_file_id = TraceValues.source_file_id
+			TraceNames
+		INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+		INNER JOIN SourceFiles ON SourceFiles.source_file_id = TraceValues2.source_file_id
 		WHERE
-			TraceIDs.trace_name=$1 AND TraceValues.commit_number=$2`,
+			TraceNames.trace_id = $1
+			AND TraceValues2.commit_number = $2`,
 		traceCount: `
 		SELECT
 			COUNT(DISTINCT trace_id)
 		FROM
-			TraceValues
+			TraceValues2
 		WHERE
 		  commit_number >= $1 AND commit_number <= $2`,
 	},
@@ -416,38 +374,40 @@ func (s *SQLTraceStore) CommitNumberOfTileStart(commitNumber types.CommitNumber)
 
 // CountIndices implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) CountIndices(ctx context.Context, tileNumber types.TileNumber) (int64, error) {
-	var ret int64
-	if err := s.preparedStatements[countIndices].QueryRowContext(ctx, tileNumber).Scan(&ret); err != nil {
-		return 0, skerr.Wrap(err)
-	}
-	return ret, nil
+
+	// This doesn't make any sense for the SQL implementation of TraceStore.
+	return 0, nil
 }
 
 // GetLatestTile implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetLatestTile() (types.TileNumber, error) {
-	tileNumber := types.BadTileNumber
-	if err := s.preparedStatements[getLatestTile].QueryRowContext(context.TODO()).Scan(&tileNumber); err != nil {
-		return tileNumber, skerr.Wrap(err)
+	mostRecentCommit := types.BadCommitNumber
+	if err := s.preparedStatements[getLatestCommit].QueryRowContext(context.TODO()).Scan(&mostRecentCommit); err != nil {
+		return types.BadTileNumber, skerr.Wrap(err)
 	}
-	return tileNumber, nil
+	return types.TileNumberFromCommitNumber(mostRecentCommit, s.tileSize), nil
 }
 
 func (s *SQLTraceStore) paramSetForTile(tileNumber types.TileNumber) (paramtools.ParamSet, error) {
-	rows, err := s.preparedStatements[paramSetForTile].QueryContext(context.TODO(), tileNumber)
+	// Convert the tile number into a range of commits, since we don't store data by
+	// tile anymore.
+	beginCommit, endCommit := types.TileCommitRangeForTileNumber(tileNumber, s.tileSize)
+
+	rows, err := s.preparedStatements[paramSetForTile].QueryContext(context.TODO(), beginCommit, endCommit)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "tileNumer=%d", tileNumber)
 	}
 	ret := paramtools.NewParamSet()
 	for rows.Next() {
-		var keyValue string
-		if err := rows.Scan(&keyValue); err != nil {
+		var jsonParams string
+		if err := rows.Scan(&jsonParams); err != nil {
 			return nil, skerr.Wrapf(err, "tileNumer=%d", tileNumber)
 		}
-		parts := strings.Split(keyValue, "=")
-		if len(parts) != 2 {
-			return nil, skerr.Fmt("Invalid key=value form: %q", keyValue)
+		var ps paramtools.Params
+		if err := json.Unmarshal([]byte(jsonParams), &ps); err != nil {
+			return nil, skerr.Wrapf(err, "tileNumer=%d", tileNumber)
 		}
-		ret.AddParams(paramtools.Params{parts[0]: parts[1]})
+		ret.AddParams(ps)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, skerr.Wrapf(err, "tileNumer=%d", tileNumber)
@@ -471,7 +431,8 @@ func (s *SQLTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types
 // GetSource implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetSource(ctx context.Context, commitNumber types.CommitNumber, traceName string) (string, error) {
 	var filename string
-	if err := s.preparedStatements[getSource].QueryRowContext(ctx, traceName, commitNumber).Scan(&filename); err != nil {
+	traceID := traceIDForSQLFromTraceName(traceName)
+	if err := s.preparedStatements[getSource].QueryRowContext(ctx, traceID, commitNumber).Scan(&filename); err != nil {
 		return "", skerr.Wrapf(err, "commitNumber=%d traceName=%q", commitNumber, traceName)
 	}
 	return filename, nil
@@ -777,7 +738,7 @@ func (s *SQLTraceStore) updateSourceFile(filename string) (sourceFileIDFromSQL, 
 // updatePostings writes all the entries into our inverted index in Postings for
 // the given traceID and tileNumber. The Params given are from the parse trace
 // name.
-func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.TileNumber, traceID traceIDFromSQL) error {
+func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.TileNumber, traceID traceIDForSQL) error {
 	// Clean the data to avoid SQL injection attacks.
 	p = query.ForceValid(p)
 
@@ -806,7 +767,7 @@ func (s *SQLTraceStore) updatePostings(p paramtools.Params, tileNumber types.Til
 	return nil
 }
 
-func getPostingsCacheEntryKey(traceID traceIDFromSQL, tileNumber types.TileNumber) string {
+func getPostingsCacheEntryKey(traceID traceIDForSQL, tileNumber types.TileNumber) string {
 	return fmt.Sprintf("%d-%d", traceID, tileNumber)
 }
 
@@ -815,13 +776,13 @@ func getHashedTraceName(traceName string) string {
 	return hex.EncodeToString(sum[:])
 }
 
-func (s *SQLTraceStore) getTraceIDFromCache(hashedTraceName string) (traceIDFromSQL, bool) {
+func (s *SQLTraceStore) getTraceIDFromCache(hashedTraceName string) (traceIDForSQL, bool) {
 	if traceIDString, ok := s.cache.Get(hashedTraceName); ok {
 		traceIDInt64, err := strconv.ParseInt(traceIDString, 10, 64)
 		if err != nil {
 			return badTraceIDFromSQL, false
 		}
-		return traceIDFromSQL(traceIDInt64), true
+		return traceIDForSQL(traceIDInt64), true
 	}
 	return badTraceIDFromSQL, false
 }
@@ -834,7 +795,7 @@ const postingsCacheValue = "1"
 // writeTraceIDAndPostings writes the trace name into the TraceIDs table and
 // returns the traceIDFromSQL of that trace name. This operation will happen
 // repeatedly as data is ingested so we cache the results in the LRU cache.
-func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Params, tileNumber types.TileNumber) (traceIDFromSQL, error) {
+func (s *SQLTraceStore) writeTraceIDAndPostings(traceNameAsParams paramtools.Params, tileNumber types.TileNumber) (traceIDForSQL, error) {
 	traceID := badTraceIDFromSQL
 
 	traceName, err := query.MakeKey(traceNameAsParams)
