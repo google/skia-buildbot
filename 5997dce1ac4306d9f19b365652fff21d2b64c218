@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a7f15deb_5622e86b",
+        "filename": "sk8s/go/bot_config/machine/machine.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-07-30T17:59:51Z",
+      "side": 1,
+      "message": "Don\u0027t need it to return an error?",
+      "range": {
+        "startLine": 165,
+        "startChar": 55,
+        "endLine": 165,
+        "endChar": 60
+      },
+      "revId": "5997dce1ac4306d9f19b365652fff21d2b64c218",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
