@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "3aade777_d287a683",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-31T15:16:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "62e61c08_73607f84",
+      "range": {
+        "startLine": 9,
+        "startChar": 13,
+        "endLine": 9,
+        "endChar": 16
+      },
+      "revId": "7fa5423596b897cde9e3e3ad1d874b25fc792a8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "26d01af5_8e74bb1e",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 17
@@ -62,6 +86,30 @@
       "revId": "7fa5423596b897cde9e3e3ad1d874b25fc792a8f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95e88467_3e64ffbc",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-31T15:16:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "26d01af5_8e74bb1e",
+      "range": {
+        "startLine": 11,
+        "startChar": 64,
+        "endLine": 11,
+        "endChar": 73
+      },
+      "revId": "7fa5423596b897cde9e3e3ad1d874b25fc792a8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -88,6 +136,30 @@
     },
     {
       "key": {
+        "uuid": "d25973c7_79e73acf",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-31T15:16:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "99fd2d2a_fca2d4fe",
+      "range": {
+        "startLine": 39,
+        "startChar": 11,
+        "endLine": 39,
+        "endChar": 31
+      },
+      "revId": "7fa5423596b897cde9e3e3ad1d874b25fc792a8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9e45848b_aa869e08",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 17
@@ -108,6 +180,30 @@
       "revId": "7fa5423596b897cde9e3e3ad1d874b25fc792a8f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32cc1094_ed218d43",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 473,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-31T15:16:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9e45848b_aa869e08",
+      "range": {
+        "startLine": 473,
+        "startChar": 45,
+        "endLine": 473,
+        "endChar": 52
+      },
+      "revId": "7fa5423596b897cde9e3e3ad1d874b25fc792a8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -134,6 +230,30 @@
     },
     {
       "key": {
+        "uuid": "39b87958_0ca566b6",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 525,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-31T15:16:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "266b4751_10e50f2a",
+      "range": {
+        "startLine": 525,
+        "startChar": 47,
+        "endLine": 525,
+        "endChar": 54
+      },
+      "revId": "7fa5423596b897cde9e3e3ad1d874b25fc792a8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4afb6727_28391685",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 17
@@ -145,6 +265,30 @@
       "writtenOn": "2020-07-31T13:37:39Z",
       "side": 1,
       "message": "When ingesting Gold data, I have an LRUCache that maps md5hash \u003d\u003e bool so I don\u0027t write the same keys over and over again. Might be worth it for Perf too?",
+      "range": {
+        "startLine": 805,
+        "startChar": 13,
+        "endLine": 805,
+        "endChar": 33
+      },
+      "revId": "7fa5423596b897cde9e3e3ad1d874b25fc792a8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0fe90037_852167a3",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 805,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-31T15:16:54Z",
+      "side": 1,
+      "message": "My thoughts are that the IDs are grouped together by file, so I was going to create an md5 hash of all the trace IDs I found in a file (sorted) and make a cache bool of that.",
+      "parentUuid": "4afb6727_28391685",
       "range": {
         "startLine": 805,
         "startChar": 13,
