@@ -49,6 +49,7 @@ require (
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.2
 	github.com/GeertJohan/go.rice v1.0.0
 	github.com/Jeffail/gabs/v2 v2.5.1
+	github.com/Kount/pq-timeouts v1.0.0
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible

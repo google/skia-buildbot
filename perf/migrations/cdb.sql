@@ -146,7 +146,7 @@ FROM
     TraceNames
     INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
 WHERE
-    TraceNames.params ->> 'arch' IN ('x86')
-    AND TraceNames.params ->> 'config' IN ('565', '8888')
-    AND TraceValues2.commit_number >= 0
-    AND TraceValues2.commit_number < 255;
+    TraceValues2.commit_number >= 0
+    AND TraceValues2.commit_number < 255
+    AND TraceNames.params ->> 'arch' IN ('x86')
+    AND TraceNames.params ->> 'config' IN ('565', '8888');

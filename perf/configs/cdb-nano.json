@@ -2,7 +2,7 @@
   "URL": "https://perf.skia.org",
   "data_store_config": {
     "datastore_type": "cockroachdb",
-    "connection_string": "postgresql://root@perf-cockroachdb-public:26257/skia?sslmode=disable",
+    "connection_string": "postgresql://root@perf-cockroachdb-public:26257/skia?sslmode=disable&read_timeout=500&write_timeout=1000",
     "tile_size": 256,
     "project": "skia-public",
     "instance": "production",
