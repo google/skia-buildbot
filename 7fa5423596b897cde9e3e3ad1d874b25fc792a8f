@@ -207,6 +207,30 @@
     },
     {
       "key": {
+        "uuid": "1ad32353_f0b90dd1",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 473,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-31T15:33:17Z",
+      "side": 1,
+      "message": "unpreparedStatements are Go templates, not prepared SQL queries, there is no version of Execute that takes a context.",
+      "parentUuid": "32cc1094_ed218d43",
+      "range": {
+        "startLine": 473,
+        "startChar": 45,
+        "endLine": 473,
+        "endChar": 52
+      },
+      "revId": "7fa5423596b897cde9e3e3ad1d874b25fc792a8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "266b4751_10e50f2a",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 17
