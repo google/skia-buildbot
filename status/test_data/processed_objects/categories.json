@@ -1,0 +1,129 @@
+{
+    "Build": {
+        "colspan": 1,
+        "subcategoryList": [
+            "Debian9"
+        ],
+        "subcategories": {
+            "Debian9": {
+                "task_specs": [
+                    "Build-Debian9-Clang-arm-Release-Flutter_Android_Docker"
+                ]
+            }
+        }
+    },
+    "Other": {
+        "colspan": 1,
+        "subcategoryList": [
+            "Other"
+        ],
+        "subcategories": {
+            "Other": {
+                "task_specs": [
+                    "BuildStats-Debian10-EMCC-wasm-Debug-CanvasKit_CPU"
+                ]
+            }
+        }
+    },
+    "Housekeeper": {
+        "colspan": 1,
+        "subcategoryList": [
+            "PerCommit"
+        ],
+        "subcategories": {
+            "PerCommit": {
+                "task_specs": [
+                    "Housekeeper-PerCommit-CheckGeneratedFiles"
+                ]
+            }
+        }
+    },
+    "Perf": {
+        "colspan": 3,
+        "subcategoryList": [
+            "Debian10",
+            "iOS"
+        ],
+        "subcategories": {
+            "Debian10": {
+                "task_specs": [
+                    "Perf-Debian10-Clang-GCE-CPU-AVX2-x86_64-Release-All-SK_FORCE_RASTER_PIPELINE_BLITTER"
+                ]
+            },
+            "iOS": {
+                "task_specs": [
+                    "Perf-iOS-Clang-iPadPro-GPU-PowerVRGT7800-arm64-Release-All",
+                    "Perf-iOS-Clang-iPadPro-GPU-PowerVRGT7800-arm64-Release-All-Metal"
+                ]
+            }
+        }
+    },
+    "Test": {
+        "colspan": 22,
+        "subcategoryList": [
+            "Android",
+            "Debian10",
+            "iOS",
+            "Ubuntu18",
+            "Win10"
+        ],
+        "subcategories": {
+            "Android": {
+                "task_specs": [
+                    "Test-Android-Clang-Pixel-GPU-Adreno530-arm64-Debug-All-Android"
+                ]
+            },
+            "Debian10": {
+                "task_specs": [
+                    "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-SkVM",
+                    "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-Shard_00_16-ASAN_BonusConfigs",
+                    "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-Shard_03_16-ASAN_BonusConfigs",
+                    "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-Shard_07_16-ASAN_BonusConfigs",
+                    "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-Shard_10_16-ASAN_BonusConfigs",
+                    "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-Shard_11_16-ASAN_BonusConfigs",
+                    "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-Shard_14_16-ASAN_BonusConfigs",
+                    "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Release-All-Fast",
+                    "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Release-All-SkVM_MSAN"
+                ]
+            },
+            "iOS": {
+                "task_specs": [
+                    "Test-iOS-Clang-iPadPro-GPU-PowerVRGT7800-arm64-Debug-All",
+                    "Test-iOS-Clang-iPadPro-GPU-PowerVRGT7800-arm64-Debug-All-Metal",
+                    "Test-iOS-Clang-iPadPro-GPU-PowerVRGT7800-arm64-Release-All",
+                    "Test-iOS-Clang-iPadPro-GPU-PowerVRGT7800-arm64-Release-All-Metal"
+                ]
+            },
+            "Ubuntu18": {
+                "task_specs": [
+                    "Test-Ubuntu18-Clang-Golo-GPU-QuadroP400-x86_64-Debug-All-PreAbandonGpuContext",
+                    "Test-Ubuntu18-Clang-Golo-GPU-QuadroP400-x86_64-Release-All-PreAbandonGpuContext",
+                    "Test-Ubuntu18-Clang-Golo-GPU-QuadroP400-x86_64-Release-All-Valgrind_PreAbandonGpuContext_SK_CPU_LIMIT_SSE41"
+                ]
+            },
+            "Win10": {
+                "task_specs": [
+                    "Test-Win10-Clang-AlphaR2-GPU-RadeonR9M470X-x86_64-Debug-All-ANGLE",
+                    "Test-Win10-Clang-NUC6i5SYK-GPU-IntelIris540-x86_64-Debug-All-ANGLE",
+                    "Test-Win10-Clang-NUC8i5BEK-GPU-IntelIris655-x86_64-Debug-All-ANGLE",
+                    "Test-Win10-Clang-NUCD34010WYKH-GPU-IntelHD4400-x86_64-Debug-All-ANGLE",
+                    "Test-Win10-Clang-ShuttleA-GPU-RadeonHD7770-x86_64-Debug-All-ANGLE"
+                ]
+            }
+        }
+    },
+    "Upload": {
+        "colspan": 2,
+        "subcategoryList": [
+            "Perf"
+        ],
+        "subcategories": {
+            "Perf": {
+                "task_specs": [
+                    "Upload-Perf-Android-Clang-Pixel4XL-GPU-Adreno640-arm64-Release-All-Android",
+                    "Upload-Perf-Android-Clang-Pixel4XL-GPU-Adreno640-arm64-Release-All-Android_Vulkan"
+                ]
+            }
+        }
+    }
+}

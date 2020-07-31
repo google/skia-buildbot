@@ -1,0 +1,2 @@
+The data in this directory represent the nontrivial outputs of commits-data-sk.
+This allows for unit testing of elements relying on these outputs.
