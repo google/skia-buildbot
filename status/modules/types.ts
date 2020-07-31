@@ -1,0 +1,1 @@
+type TaskDetails = Record<string, Task>;
