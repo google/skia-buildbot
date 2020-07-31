@@ -7,6 +7,7 @@
  * </p>
  */
 
+import { deepCopy } from 'common-sk/modules/object';
 import { expect } from 'chai';
 
 /**
@@ -192,6 +193,106 @@ function buildEventPromise<T extends Event | void>(
       }, timeoutMillis);
     }
     document.addEventListener(event, handler);
+  });
+}
+
+/**
+ * Returns a promise that will resolve when the given sequence of DOM events is caught, or reject
+ * after timeoutMillis. The returned promise will resolve to an array with the caught events.
+ *
+ * This is a generalization of eventPromise() which can be used to catch multiple events of the same
+ * kind. Any out-of-sequence events will be ignored.
+ *
+ * @example
+ *
+ *   // Code under test.
+ *   function doSomething() {
+ *     this.dispatchEvent(new CustomEvent('hey',     {detail: 'a', bubbles: true});
+ *     this.dispatchEvent(new CustomEvent('there',   {detail: 'b', bubbles: true});  // Unknown.
+ *     this.dispatchEvent(new CustomEvent('hey',     {detail: 'c', bubbles: true});
+ *     this.dispatchEvent(new CustomEvent('hey',     {detail: 'd', bubbles: true});  // Ignored.
+ *     this.dispatchEvent(new CustomEvent('hello',   {detail: 'e', bubbles: true});
+ *     this.dispatchEvent(new CustomEvent('world',   {detail: 'f', bubbles: true});
+ *     this.dispatchEvent(new CustomEvent('hey',     {detail: 'g', bubbles: true});  // Ignored.
+ *     this.dispatchEvent(new CustomEvent('world',   {detail: 'h', bubbles: true});  // Ignored.
+ *     this.dispatchEvent(new CustomEvent('ok',      {detail: 'i', bubbles: true});  // Unknown.
+ *     this.dispatchEvent(new CustomEvent('goodbye', {detail: 'j', bubbles: true});
+ *   }
+ *
+ *   // Test.
+ *   it('should trigger events', async () => {
+ *     const sequence =
+ *       eventSequencePromise<CustomEvent<string>>(['hey', 'hey', 'hello', 'world', 'goodbye']);
+ *     doSomething();
+ *     const events = await sequence;
+ *     expect(events).to.have.length(5)
+ *     expect(events[0].detail).to.equal('a');
+ *     expect(events[1].detail).to.equal('c');
+ *     expect(events[2].detail).to.equal('e');
+ *     expect(events[3].detail).to.equal('f');
+ *     expect(events[4].detail).to.equal('j');
+ *   });
+ */
+export async function eventSequencePromise<T extends Event>(events: string[], timeoutMillis = 200) {
+  if (events.length === 0) {
+    return [];
+  }
+
+  return new Promise<T[]>((resolve, reject) => {
+    const eventsToGo = deepCopy(events); // We'll remove events from this list as we catch them.
+    const caughtEvents: T[] = []; // Will store any caught in-sequence events.
+
+    // We'll keep a reference to each event listener we add so we can remove them later.
+    const eventHandlers = new Map<string, (event: T) => void>();
+
+    let timeout: number | null = null;
+
+    // Called after resolving or rejecting to remove any event listeners and clear the timeout.
+    const cleanUp = () => {
+      if (timeout) {
+        window.clearTimeout(timeout);
+      }
+
+      eventHandlers.forEach((handler, eventName) => {
+        document.removeEventListener(eventName, handler as (event: Event) => void);
+      });
+    }
+
+    // Set up the event handlers.
+    for(const eventName of events) {
+      // Adding a handler for each event once allows us to catch sequences with multiple instances
+      // of the same event.
+      if (!eventHandlers.has(eventName)) {
+        const handler = (event: T) => {
+          // Skip if the caught event is out of sequence.
+          if (eventsToGo[0] !== eventName) {
+            return;
+          }
+
+          eventsToGo.splice(0, 1); // Remove the 0th event name from the sequence.
+          caughtEvents.push(event);
+
+          // Resolve promise if we're done.
+          if (eventsToGo.length === 0) {
+            cleanUp();
+            resolve(caughtEvents);
+          }
+        };
+
+        eventHandlers.set(eventName, handler);
+        document.addEventListener(eventName, handler as (event: Event) => void);
+      }
+    }
+
+    // Set up the timeout.
+    if (timeoutMillis !== 0) {
+      timeout = window.setTimeout(() => {
+        cleanUp();
+        reject(
+          `timed out after ${timeoutMillis} ms while waiting to catch events ` +
+          `"${eventsToGo.join(`", "`)}"`);
+      }, timeoutMillis);
+    }
   });
 }
 
