@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "30651f29_76108f75",
+        "filename": "Makefile",
+        "patchSetId": 19
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-31T12:11:42Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "a7f992e1_3871da28",
+      "revId": "a3e2d72e1da60b5207b8dc473d616ac7d3e22862",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "209056d6_78095ec1",
         "filename": "machine/Makefile",
         "patchSetId": 19
@@ -56,6 +74,24 @@
       "revId": "a3e2d72e1da60b5207b8dc473d616ac7d3e22862",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "59c4dc33_f986e41a",
+        "filename": "machine/Makefile",
+        "patchSetId": 19
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-31T12:11:42Z",
+      "side": 1,
+      "message": "Nothing for skia-infra, as long as you are authenticated via gcloud.\n\nWhen we get to adding non-infra folks we may need to \n\n   gcloud projects add-iam-policy-binding skia-public --role roles/remotebuildexecution.actionCacheWriter --member user:[EMAIL_ADDRESS]",
+      "parentUuid": "209056d6_78095ec1",
+      "revId": "a3e2d72e1da60b5207b8dc473d616ac7d3e22862",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
