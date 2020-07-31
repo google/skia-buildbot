@@ -11,6 +11,17 @@ BOWER_DIR=third_party/bower_components
 
 include ../kube/kube.mk
 
+.PHONY: service_definition
+service_definition: 
+	go get -u github.com/golang/protobuf/protoc-gen-go
+	go get -u github.com/twitchtv/twirp/protoc-gen-twirp
+	go get -u go.larrymyers.com/protoc-gen-twirp_typescript
+	protoc --proto_path=${GOPATH}/src:. --twirp_out=. --go_out=. go/rpc/statusFe.proto
+	# To appease the tryjob gods?
+	goimports -w go/rpc/statusFe.pb.go 
+	goimports -w go/rpc/statusFe.twirp.go 
+	
+
 .PHONY: all
 all: clean_webtools status
 
