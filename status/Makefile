@@ -24,6 +24,11 @@ touch_elements:
 	rm -f res/js/core.js
 	touch elements.html
 
+.PHONY: serve
+serve:
+	npm ci
+	npx webpack-dev-server --mode=development --watch-poll
+
 testgo:
 	go test ./go/... -v
 
