@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "afc01caf_7634c3d2",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 19
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-31T07:46:52Z",
+      "side": 1,
+      "message": "+1.",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 42
+      },
+      "revId": "a3e2d72e1da60b5207b8dc473d616ac7d3e22862",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a7f992e1_3871da28",
+        "filename": "Makefile",
+        "patchSetId": 19
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-31T07:46:52Z",
+      "side": 1,
+      "message": "Maybe we could run this as part of Infra-PerCommit-Medium and fail if there\u0027s a diff to ensure the go_repositories in the WORKSPACE file don\u0027t fall out of sync with go.mod.",
+      "revId": "a3e2d72e1da60b5207b8dc473d616ac7d3e22862",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "209056d6_78095ec1",
+        "filename": "machine/Makefile",
+        "patchSetId": 19
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-31T07:46:52Z",
+      "side": 1,
+      "message": "Is there anything one must do to get this to work besides installing Bazel on one\u0027s workstation?",
+      "revId": "a3e2d72e1da60b5207b8dc473d616ac7d3e22862",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
