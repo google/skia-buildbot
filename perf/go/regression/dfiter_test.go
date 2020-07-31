@@ -56,7 +56,7 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *per
 		Shards:   8,
 	}
 
-	store, err := sqltracestore.New(db, perfsql.CockroachDBDialect, cfg)
+	store, err := sqltracestore.New(db, cfg)
 	require.NoError(t, err)
 
 	// Add some points to the first and second tile.
