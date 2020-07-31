@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["pyspark.go"],
+    importpath = "go.skia.org/infra/go/dataproc",
+    visibility = ["//visibility:public"],
+    deps = ["//go/exec:go_default_library"],
+)

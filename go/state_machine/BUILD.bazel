@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["state_machine.go"],
+    importpath = "go.skia.org/infra/go/state_machine",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gcs:go_default_library",
+        "@com_google_cloud_go_storage//:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["state_machine_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/gcs/mem_gcsclient:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

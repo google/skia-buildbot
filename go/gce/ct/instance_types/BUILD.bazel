@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["instance_types.go"],
+    importpath = "go.skia.org/infra/go/gce/ct/instance_types",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/auth:go_default_library",
+        "//go/gce:go_default_library",
+        "//go/gce/swarming/instance_types:go_default_library",
+    ],
+)

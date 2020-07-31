@@ -1,0 +1,39 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "codec.go",
+        "errgroup.go",
+        "gob.go",
+        "string_set.go",
+        "util.go",
+    ],
+    importpath = "go.skia.org/infra/go/util",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/sklog/sklog_impl:go_default_library",
+        "@com_github_hashicorp_go_multierror//:go_default_library",
+        "@com_github_zeebo_bencode//:go_default_library",
+        "@org_golang_x_sync//errgroup:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "codec_test.go",
+        "gob_test.go",
+        "string_set_test.go",
+        "util_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/deepequal/assertdeep:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

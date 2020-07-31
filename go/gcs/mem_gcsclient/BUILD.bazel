@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["memory_client.go"],
+    importpath = "go.skia.org/infra/go/gcs/mem_gcsclient",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gcs:go_default_library",
+        "//go/util:go_default_library",
+        "@com_google_cloud_go_storage//:go_default_library",
+    ],
+)

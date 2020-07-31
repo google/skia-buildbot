@@ -53,3 +53,6 @@ package-lock.json: package.json
 test-frontend-ci:
 	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+build-remote:
+	bazel build //machine/go/machineserver:machineserver --config=remote --remote_instance_name=projects/skia-public/instances/default_instance

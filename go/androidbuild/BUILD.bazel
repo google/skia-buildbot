@@ -1,0 +1,33 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "androidbuild.go",
+        "commits.go",
+    ],
+    importpath = "go.skia.org/infra/go/androidbuild",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/androidbuildinternal/v2beta1:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "@com_github_syndtr_goleveldb//leveldb:go_default_library",
+        "@com_github_syndtr_goleveldb//leveldb/errors:go_default_library",
+        "@com_github_syndtr_goleveldb//leveldb/util:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["androidbuild_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/testutils/unittest:go_default_library",
+        "//go/util:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "@com_github_stretchr_testify//assert:go_default_library",
+        "@com_github_syndtr_goleveldb//leveldb:go_default_library",
+    ],
+)

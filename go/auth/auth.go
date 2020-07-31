@@ -12,7 +12,6 @@ import (
 
 	cloud_metadata "cloud.google.com/go/compute/metadata"
 	"cloud.google.com/go/pubsub"
-
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"

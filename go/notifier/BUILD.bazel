@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "filter.go",
+        "notifier.go",
+        "router.go",
+    ],
+    importpath = "go.skia.org/infra/go/notifier",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/chatbot:go_default_library",
+        "//go/common:go_default_library",
+        "//go/email:go_default_library",
+        "//go/issues:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "@com_google_cloud_go_pubsub//:go_default_library",
+        "@org_golang_x_sync//errgroup:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "notifier_test.go",
+        "router_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/deepequal/assertdeep:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

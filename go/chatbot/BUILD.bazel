@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["bot.go"],
+    importpath = "go.skia.org/infra/go/chatbot",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/httputils:go_default_library",
+        "//go/metadata:go_default_library",
+        "//go/sklog:go_default_library",
+    ],
+)

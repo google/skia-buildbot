@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "go.skia.org/infra/go/email/three_legged_flow",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//go/common:go_default_library",
+        "//go/email:go_default_library",
+        "//go/util:go_default_library",
+        "@org_golang_x_oauth2//:go_default_library",
+        "@org_golang_x_oauth2//google:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "three_legged_flow",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)

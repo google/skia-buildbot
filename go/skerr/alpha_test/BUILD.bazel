@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["alpha.go"],
+    importpath = "go.skia.org/infra/go/skerr/alpha_test",
+    visibility = ["//visibility:public"],
+    deps = ["//go/skerr:go_default_library"],
+)

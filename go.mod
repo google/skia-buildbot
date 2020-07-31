@@ -59,6 +59,7 @@ require (
 	github.com/andybalholm/cascadia v1.2.0 // indirect
 	github.com/apache/thrift v0.12.0 // indirect
 	github.com/aws/aws-sdk-go v1.33.14 // indirect
+	github.com/bazelbuild/bazel-gazelle v0.21.1 // indirect
 	github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect

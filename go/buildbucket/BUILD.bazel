@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["buildbucket.go"],
+    importpath = "go.skia.org/infra/go/buildbucket",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/buildbucket/common:go_default_library",
+        "@org_chromium_go_luci//buildbucket/proto:go_default_library",
+        "@org_chromium_go_luci//grpc/prpc:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["buildbucket_test.go"],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/buildbucket/bb_testutils:go_default_library",
+        "//go/deepequal/assertdeep:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+        "@io_bazel_rules_go//proto/wkt:timestamp_go_proto",
+        "@org_chromium_go_luci//buildbucket/proto:go_default_library",
+    ],
+)

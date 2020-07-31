@@ -1,0 +1,50 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "bt_gitstore.go",
+        "helpers.go",
+        "sharded_result.go",
+        "types.go",
+    ],
+    importpath = "go.skia.org/infra/go/gitstore/bt_gitstore",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/bt:go_default_library",
+        "//go/git:go_default_library",
+        "//go/git/repograph:go_default_library",
+        "//go/gitstore:go_default_library",
+        "//go/metrics2:go_default_library",
+        "//go/skerr:go_default_library",
+        "//go/sklog:go_default_library",
+        "//go/util:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "@com_github_google_uuid//:go_default_library",
+        "@com_github_hashicorp_go_multierror//:go_default_library",
+        "@com_google_cloud_go_bigtable//:go_default_library",
+        "@org_golang_x_sync//errgroup:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "bt_gitstore_test.go",
+        "repo_impl_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//go/deepequal:go_default_library",
+        "//go/git:go_default_library",
+        "//go/git/repograph:go_default_library",
+        "//go/git/repograph/shared_tests:go_default_library",
+        "//go/git/testutils:go_default_library",
+        "//go/gitstore:go_default_library",
+        "//go/gitstore/shared_tests:go_default_library",
+        "//go/testutils/unittest:go_default_library",
+        "//go/vcsinfo:go_default_library",
+        "@com_github_google_uuid//:go_default_library",
+        "@com_github_stretchr_testify//require:go_default_library",
+    ],
+)

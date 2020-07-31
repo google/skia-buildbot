@@ -105,3 +105,15 @@ test-frontend-ci:
 	cd machine && $(MAKE) test-frontend-ci
 	cd perf && $(MAKE) test-frontend-ci
 	cd push && $(MAKE) test-frontend-ci
+
+.PHONY: update-go-bazel-files
+update-go-bazel-files:
+	bazel run //:gazelle ./go/
+
+.PHONY: update-machine-bazel-files
+update-machine-bazel-files:
+	bazel run //:gazelle ./machine/
+
+.PHONE: update-go-bazel-deps
+update-go-bazel-deps:
+	bazel run //:gazelle -- update-repos -from_file=go.mod
