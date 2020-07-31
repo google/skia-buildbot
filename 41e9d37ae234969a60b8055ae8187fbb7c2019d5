@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "6982633e_62420b4e",
+        "filename": "infra-sk/modules/test_util.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-31T17:38:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1196510c_fb6ba0e8",
+      "range": {
+        "startLine": 201,
+        "startChar": 79,
+        "endLine": 201,
+        "endChar": 84
+      },
+      "revId": "41e9d37ae234969a60b8055ae8187fbb7c2019d5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "6b3c32da_2542546b",
         "filename": "infra-sk/modules/test_util.ts",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "41e9d37ae234969a60b8055ae8187fbb7c2019d5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f081de9_ba3ac94f",
+        "filename": "infra-sk/modules/test_util.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-31T17:38:06Z",
+      "side": 1,
+      "message": "Added, thanks for pointing this out.",
+      "parentUuid": "6b3c32da_2542546b",
+      "range": {
+        "startLine": 235,
+        "startChar": 43,
+        "endLine": 235,
+        "endChar": 58
+      },
+      "revId": "41e9d37ae234969a60b8055ae8187fbb7c2019d5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "54e62f34_808a7c63",
+        "filename": "infra-sk/modules/test_util.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-31T17:38:06Z",
+      "side": 1,
+      "message": "Yes, but I get this compiler error if I do that:\n\n  \u0027Event\u0027 is assignable to the constraint of type \u0027T\u0027, but \u0027T\u0027 could be instantiated with a different subtype of constraint \u0027Event\u0027. ts(2345)\n\nSo I\u0027ll leave it as is for now. Happy to revisit this later.",
+      "parentUuid": "6bc8ad4c_651704a8",
+      "range": {
+        "startLine": 256,
+        "startChar": 56,
+        "endLine": 256,
+        "endChar": 81
+      },
+      "revId": "41e9d37ae234969a60b8055ae8187fbb7c2019d5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b7a89786_40a66b06",
         "filename": "infra-sk/modules/test_util.ts",
         "patchSetId": 1
@@ -91,6 +163,30 @@
       "revId": "41e9d37ae234969a60b8055ae8187fbb7c2019d5",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0b218bbf_17ee2a71",
+        "filename": "infra-sk/modules/test_util.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 261,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-31T17:38:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "b7a89786_40a66b06",
+      "range": {
+        "startLine": 261,
+        "startChar": 8,
+        "endLine": 261,
+        "endChar": 11
+      },
+      "revId": "41e9d37ae234969a60b8055ae8187fbb7c2019d5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
