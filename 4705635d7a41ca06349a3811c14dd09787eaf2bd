@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "9a202bf3_c90c9ac9",
+        "filename": "golden/modules/search-page-sk/demo_data.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-31T23:37:36Z",
+      "side": 1,
+      "message": "Merged.",
+      "parentUuid": "40df0b5d_d24d0d33",
+      "range": {
+        "startLine": 13,
+        "startChar": 6,
+        "endLine": 13,
+        "endChar": 20
+      },
+      "revId": "4705635d7a41ca06349a3811c14dd09787eaf2bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4de6e3ac_d4299b1e",
         "filename": "golden/modules/search-page-sk/search-page-sk.ts",
         "patchSetId": 3
@@ -88,6 +112,30 @@
     },
     {
       "key": {
+        "uuid": "c7fd6e4c_15c71df3",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-31T23:37:36Z",
+      "side": 1,
+      "message": "I\u0027ll keep that in mind for after the search page is fully ported to lit-html/TS.",
+      "parentUuid": "d8cadfe1_7dd73ef8",
+      "range": {
+        "startLine": 68,
+        "startChar": 35,
+        "endLine": 68,
+        "endChar": 38
+      },
+      "revId": "4705635d7a41ca06349a3811c14dd09787eaf2bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d9450eb1_c1d3543c",
         "filename": "golden/modules/search-page-sk/search-page-sk.ts",
         "patchSetId": 3
@@ -111,6 +159,30 @@
     },
     {
       "key": {
+        "uuid": "d0281590_61a8e20e",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-31T23:37:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d9450eb1_c1d3543c",
+      "range": {
+        "startLine": 88,
+        "startChar": 24,
+        "endLine": 88,
+        "endChar": 29
+      },
+      "revId": "4705635d7a41ca06349a3811c14dd09787eaf2bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ce99343d_06f6928c",
         "filename": "golden/modules/search-page-sk/search-page-sk.ts",
         "patchSetId": 3
@@ -131,6 +203,30 @@
       "revId": "4705635d7a41ca06349a3811c14dd09787eaf2bd",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "37af1902_877dc25f",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 3
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-07-31T23:37:36Z",
+      "side": 1,
+      "message": "Added. Good catch, thanks!",
+      "parentUuid": "ce99343d_06f6928c",
+      "range": {
+        "startLine": 117,
+        "startChar": 9,
+        "endLine": 117,
+        "endChar": 22
+      },
+      "revId": "4705635d7a41ca06349a3811c14dd09787eaf2bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
