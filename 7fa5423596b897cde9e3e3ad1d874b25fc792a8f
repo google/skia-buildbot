@@ -322,6 +322,30 @@
       "revId": "7fa5423596b897cde9e3e3ad1d874b25fc792a8f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ee52e28c_1156c34f",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 805,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-07-31T15:34:33Z",
+      "side": 1,
+      "message": "I would be curious what the hit rate of that cache is. I know for Gold some trace ids change a bit somewhat regularly, thus my choice of caching per trace id. Also, some quick estimates of size: I can store 10 million md5 hashes and a bool in about 200M of RAM, so that cache won\u0027t be *too* big",
+      "parentUuid": "0fe90037_852167a3",
+      "range": {
+        "startLine": 805,
+        "startChar": 13,
+        "endLine": 805,
+        "endChar": 33
+      },
+      "revId": "7fa5423596b897cde9e3e3ad1d874b25fc792a8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
