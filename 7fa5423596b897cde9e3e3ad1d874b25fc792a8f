@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6fd5bdda_b733906e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 17
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-07-31T12:13:08Z",
+      "side": 1,
+      "message": "Passes local tests, I have a separate CL to upgrade the version of cockroachDB on the bots.",
+      "revId": "7fa5423596b897cde9e3e3ad1d874b25fc792a8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
