@@ -11,6 +11,13 @@ BOWER_DIR=third_party/bower_components
 
 include ../kube/kube.mk
 
+.PHONY: service_definition
+service_definition: 
+	protoc --proto_path=${GOPATH}/src:. --twirp_out=. --go_out=. go/rpc/statusFe.proto
+	goimports -w go/rpc/statusFe.pb.go
+	goimports -w go/rpc/statusFe.twirp.go
+	protoc --twirp_typescript_out=./modules/rpc ./go/rpc/statusFe.proto
+
 .PHONY: all
 all: clean_webtools status
 
