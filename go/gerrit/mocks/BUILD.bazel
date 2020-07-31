@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "GerritInterface.go",
+        "generate.go",
+        "simple_mock_gerrit.go",
+    ],
+    importpath = "go.skia.org/infra/go/gerrit/mocks",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//go/gerrit:go_default_library",
+        "@com_github_stretchr_testify//mock:go_default_library",
+        "@org_chromium_go_luci//buildbucket/proto:go_default_library",
+    ],
+)
