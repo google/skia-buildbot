@@ -11,6 +11,7 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
+	_ "github.com/jackc/pgx/stdlib"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/skerr"
@@ -50,7 +51,7 @@ func newCockroachDBFromConfig(instanceConfig *config.InstanceConfig) (*sql.DB, e
 	// uses.
 	migrationsConnection := strings.Replace(instanceConfig.DataStoreConfig.ConnectionString, "postgresql://", "cockroach://", 1)
 
-	db, err := sql.Open("postgres", instanceConfig.DataStoreConfig.ConnectionString)
+	db, err := sql.Open("pgx", instanceConfig.DataStoreConfig.ConnectionString)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -128,7 +129,7 @@ func NewTraceStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		return sqltracestore.New(db, perfsql.CockroachDBDialect, instanceConfig.DataStoreConfig)
+		return sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	}
 	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }
