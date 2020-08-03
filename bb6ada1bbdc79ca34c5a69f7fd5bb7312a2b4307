@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25e3854d_5eb9fab6",
+        "filename": "status/Makefile",
+        "patchSetId": 7
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-03T14:37:21Z",
+      "side": 1,
+      "message": "trailing whitespace",
+      "range": {
+        "startLine": 15,
+        "startChar": 19,
+        "endLine": 15,
+        "endChar": 20
+      },
+      "revId": "bb6ada1bbdc79ca34c5a69f7fd5bb7312a2b4307",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5390d64_1415179d",
+        "filename": "status/modules/rpc/statusFe.ts",
+        "patchSetId": 7
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-03T14:37:21Z",
+      "side": 1,
+      "message": "Doesn\u0027t have to be done, but it sure would be nice to pass this through a TS formatter to clean up the blank lines and other formatting oddities.",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 4
+      },
+      "revId": "bb6ada1bbdc79ca34c5a69f7fd5bb7312a2b4307",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
