@@ -11,6 +11,8 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
+	"github.com/jackc/pgx"
+	_ "github.com/jackc/pgx/stdlib" // pgx Go sql
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/skerr"
@@ -41,7 +43,7 @@ import (
 
 // newCockroachDBFromConfig opens an existing CockroachDB database with all
 // migrations applied.
-func newCockroachDBFromConfig(instanceConfig *config.InstanceConfig) (*sql.DB, error) {
+func newCockroachDBFromConfig(instanceConfig *config.InstanceConfig) (*pgx.Conn, error) {
 	// Note that the migrationsConnection is different from the sql.Open
 	// connection string since migrations know about CockroachDB, but we use the
 	// Postgres driver for the database/sql connection since there's no native
@@ -50,7 +52,7 @@ func newCockroachDBFromConfig(instanceConfig *config.InstanceConfig) (*sql.DB, e
 	// uses.
 	migrationsConnection := strings.Replace(instanceConfig.DataStoreConfig.ConnectionString, "postgresql://", "cockroach://", 1)
 
-	db, err := sql.Open("postgres", instanceConfig.DataStoreConfig.ConnectionString)
+	db, err := sql.Open("pgx", instanceConfig.DataStoreConfig.ConnectionString)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -62,8 +64,17 @@ func newCockroachDBFromConfig(instanceConfig *config.InstanceConfig) (*sql.DB, e
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	if err := db.Close(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	sklog.Infof("Finished applying migrations.")
-	return db, nil
+
+	cfg, err := pgx.ParseConnectionString(instanceConfig.DataStoreConfig.ConnectionString)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+
+	return pgx.Connect(cfg)
 }
 
 // NewPerfGitFromConfig return a new perfgit.Git for the given instanceConfig.
@@ -128,7 +139,7 @@ func NewTraceStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		return sqltracestore.New(db, perfsql.CockroachDBDialect, instanceConfig.DataStoreConfig)
+		return sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	}
 	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }

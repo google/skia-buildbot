@@ -87,7 +87,7 @@ func TestStart_IngestDemoRepoWithCockroachDBTraceStore_Success(t *testing.T) {
 		},
 	}
 
-	err = Start(context.Background(), true, &instanceConfig)
+	err = Start(context.Background(), true, 1, &instanceConfig)
 	require.NoError(t, err)
 	// The integration data set has 9 good files, 1 file with a bad commit, and
 	// 1 malformed JSON file.
