@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dc1f3179_f9b81af2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-03T12:21:15Z",
+      "side": 1,
+      "message": "This will let that user triage data (in theory). I might have to make some tweaks to our login https://bugs.chromium.org/p/skia/issues/detail?id\u003d10062",
+      "revId": "625ea5885093b68ca07d96325295fc9860e3e727",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
