@@ -5,11 +5,11 @@ package sqlalertstore
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/perf/go/alerts"
 	perfsql "go.skia.org/infra/perf/go/sql"
@@ -27,25 +27,21 @@ const (
 	listAllAlerts
 )
 
-// statements allows looking up raw SQL statements by their statement id.
-type statements map[statement]string
-
-// statementsByDialect holds all the raw SQL statemens used per Dialect of SQL.
-var statementsByDialect = map[perfsql.Dialect]statements{
-	perfsql.CockroachDBDialect: {
-		insertAlert: `
+// statements holds all the raw SQL statements used.
+var statements = map[statement]string{
+	insertAlert: `
 		INSERT INTO
 			Alerts (alert, last_modified)
 		VALUES
 			($1, $2)
 		`,
-		updateAlert: `
+	updateAlert: `
 		UPSERT INTO
 			Alerts (id, alert, config_state, last_modified)
 		VALUES
 			($1, $2, $3, $4)
 		`,
-		deleteAlert: `
+	deleteAlert: `
 		UPDATE
 		  	Alerts
 		SET
@@ -54,7 +50,7 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 		WHERE
 			id=$2
 		`,
-		listActiveAlerts: `
+	listActiveAlerts: `
 		SELECT
 			id, alert
 		FROM
@@ -62,37 +58,28 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 		WHERE
 			config_state=0 -- alerts.ACTIVE
 		`,
-		listAllAlerts: `
+	listAllAlerts: `
 		SELECT
 			id, alert
 		FROM
 			ALERTS
 		`,
-	},
 }
 
 // SQLAlertStore implements the alerts.Store interface.
 type SQLAlertStore struct {
-	// preparedStatements are all the prepared SQL statements.
-	preparedStatements map[statement]*sql.Stmt
+	// db is the database interface.
+	db *pgxpool.Pool
 }
 
 // New returns a new *SQLAlertStore.
 //
 // We presume all migrations have been run against db before this function is
 // called.
-func New(db *sql.DB, dialect perfsql.Dialect) (*SQLAlertStore, error) {
-	preparedStatements := map[statement]*sql.Stmt{}
-	for key, statement := range statementsByDialect[dialect] {
-		prepared, err := db.Prepare(statement)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to prepare statment %v %q", key, statement)
-		}
-		preparedStatements[key] = prepared
-	}
+func New(db *pgxpool.Pool, dialect perfsql.Dialect) (*SQLAlertStore, error) {
 
 	return &SQLAlertStore{
-		preparedStatements: preparedStatements,
+		db: db,
 	}, nil
 }
 
@@ -106,11 +93,11 @@ func (s *SQLAlertStore) Save(ctx context.Context, cfg *alerts.Alert) error {
 	now := time.Now().Unix()
 	if cfg.ID == alerts.BadAlertID {
 		// Not a valid ID, so this should be an insert, not an update.
-		if _, err := s.preparedStatements[insertAlert].ExecContext(ctx, string(b), now); err != nil {
+		if _, err := s.db.Exec(ctx, statements[insertAlert], string(b), now); err != nil {
 			return skerr.Wrapf(err, "Failed to insert alert")
 		}
 	} else {
-		if _, err := s.preparedStatements[updateAlert].ExecContext(ctx, cfg.ID, string(b), cfg.StateToInt(), now); err != nil {
+		if _, err := s.db.Exec(ctx, statements[updateAlert], cfg.ID, string(b), cfg.StateToInt(), now); err != nil {
 			return skerr.Wrapf(err, "Failed to update Alert with ID=%d", cfg.ID)
 		}
 	}
@@ -120,7 +107,7 @@ func (s *SQLAlertStore) Save(ctx context.Context, cfg *alerts.Alert) error {
 // Delete implements the alerts.Store interface.
 func (s *SQLAlertStore) Delete(ctx context.Context, id int) error {
 	now := time.Now().Unix()
-	if _, err := s.preparedStatements[deleteAlert].ExecContext(ctx, now, id); err != nil {
+	if _, err := s.db.Exec(ctx, statements[deleteAlert], now, id); err != nil {
 		return skerr.Wrapf(err, "Failed to mark Alert as deleted with ID=%d", id)
 	}
 	return nil
@@ -132,7 +119,7 @@ func (s *SQLAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alert
 	if includeDeleted {
 		stmt = listAllAlerts
 	}
-	rows, err := s.preparedStatements[stmt].QueryContext(ctx)
+	rows, err := s.db.Query(ctx, statements[stmt])
 	if err != nil {
 		return nil, err
 	}
