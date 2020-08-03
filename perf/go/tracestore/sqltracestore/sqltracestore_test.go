@@ -3,6 +3,7 @@ package sqltracestore
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"testing"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/config"
-	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -23,36 +23,36 @@ const (
 	e = vec32.MissingDataSentinel
 
 	// testTileSize is the size of tiles we use for tests.
-	testTileSize = 8
+	testTileSize = int32(8)
 )
 
-func TestCockroachDB(t *testing.T) {
-	unittest.LargeTest(t)
-
-	cfg := config.DataStoreConfig{
-		TileSize: testTileSize,
-		Project:  "test",
-		Instance: "test",
-		Table:    "test",
-		Shards:   8,
-	}
-
-	for name, subTest := range subTests {
-		t.Run(name, func(t *testing.T) {
-			db, cleanup := sqltest.NewCockroachDBForTests(t, "tracestore", sqltest.ApplyMigrations)
-			// Commenting out the defer cleanup() can sometimes make failures
-			// easier to understand.
-			defer cleanup()
-
-			store, err := New(db, perfsql.CockroachDBDialect, cfg)
-			require.NoError(t, err)
-
-			subTest(t, store)
-		})
-	}
+var cfg = config.DataStoreConfig{
+	TileSize: testTileSize,
+	Project:  "test",
+	Instance: "test",
+	Table:    "test",
+	Shards:   8,
 }
 
-func testUpdateSourceFile(t *testing.T, s *SQLTraceStore) {
+func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTraceStore, sqltest.Cleanup) {
+	unittest.LargeTest(t)
+	ctx := context.Background()
+	db, cleanup := sqltest.NewCockroachDBForTests(t, fmt.Sprintf("tracestore%d", rand.Int63()), sqltest.ApplyMigrations)
+
+	store, err := New(db, cfg)
+	require.NoError(t, err)
+
+	if populateTraces {
+		populatedTestDB(t, store)
+	}
+
+	return ctx, store, cleanup
+}
+
+func TestUpdateSourceFile(t *testing.T) {
+	_, s, cleanup := commonTestSetup(t, false)
+	defer cleanup()
+
 	// Do each update twice to ensure the IDs don't change.
 	id, err := s.updateSourceFile("foo.txt")
 	assert.NoError(t, err)
@@ -69,90 +69,9 @@ func testUpdateSourceFile(t *testing.T, s *SQLTraceStore) {
 	assert.Equal(t, id, id2)
 }
 
-func testWriteTraceIDAndPostings(t *testing.T, s *SQLTraceStore) {
-	const traceName = ",arch=x86,config=8888,"
-	p := paramtools.NewParams(traceName)
-	const tileNumber types.TileNumber = 1
-
-	// Do each update twice to ensure the IDs don't change.
-	traceID, err := s.writeTraceIDAndPostings(p, tileNumber)
-	assert.NoError(t, err)
-
-	traceID2, err := s.writeTraceIDAndPostings(p, tileNumber)
-	assert.NoError(t, err)
-	assert.Equal(t, traceID, traceID2)
-
-	// Confirm the cache entries exist.
-	got, ok := s.getTraceIDFromCache(getHashedTraceName(traceName))
-	require.True(t, ok)
-	assert.Equal(t, traceID, got)
-	assert.True(t, s.cache.Exists(getPostingsCacheEntryKey(traceID, tileNumber)))
-
-	const traceName2 = ",arch=arm,config=8888,"
-	p2 := paramtools.NewParams(traceName2)
-
-	traceID, err = s.writeTraceIDAndPostings(p2, tileNumber)
-	assert.NoError(t, err)
-	assert.NotEqual(t, traceID, traceID2)
-
-	traceID2, err = s.writeTraceIDAndPostings(p2, tileNumber)
-	assert.NoError(t, err)
-	assert.Equal(t, traceID, traceID2)
-}
-
-func testWriteTraces_MultipleBatches_Success(t *testing.T, s *SQLTraceStore) {
-	ctx := context.Background()
-
-	const commitNumber = types.CommitNumber(1)
-
-	// Add enough values to force it to be done in batches.
-	const testLength = 2*traceValuesInsertBatchSize + 1
-
-	const tileNumber = types.TileNumber(0)
-
-	traceNames := make([]paramtools.Params, 0, testLength)
-	values := make([]float32, 0, testLength)
-
-	for i := 0; i < testLength; i++ {
-		traceNames = append(traceNames, paramtools.Params{
-			"traceid": fmt.Sprintf("%d", i),
-			"config":  "8888",
-		})
-		values = append(values, float32(i))
-	}
-	err := s.WriteTraces(
-		commitNumber,
-		traceNames,
-		values,
-		paramtools.ParamSet{}, // ParamSet is empty because WriteTraces doesn't use it in this impl.
-		"gs://not-tested-as-part-of-this-test.json",
-		time.Time{}) // time is unused in this impl of TraceStore.
-	require.NoError(t, err)
-
-	// Confirm all traces were written.
-	q, err := query.NewFromString("config=8888")
-	require.NoError(t, err)
-	ts, err := s.QueryTracesByIndex(ctx, tileNumber, q)
-	assert.NoError(t, err)
-	assert.Len(t, ts, testLength)
-
-	// Spot test some values.
-	q, err = query.NewFromString("config=8888&traceid=0")
-	require.NoError(t, err)
-	ts, err = s.QueryTracesByIndex(ctx, tileNumber, q)
-	assert.NoError(t, err)
-
-	assert.Equal(t, float32(0), ts[",config=8888,traceid=0,"][s.OffsetFromCommitNumber(commitNumber)])
-
-	q, err = query.NewFromString(fmt.Sprintf("config=8888&traceid=%d", testLength-1))
-	require.NoError(t, err)
-	ts, err = s.QueryTracesByIndex(ctx, tileNumber, q)
-	assert.NoError(t, err)
-	assert.Equal(t, float32(testLength-1), ts[fmt.Sprintf(",config=8888,traceid=%d,", testLength-1)][s.OffsetFromCommitNumber(commitNumber)])
-}
-
-func testReadTraces(t *testing.T, s *SQLTraceStore) {
-	populatedTestDB(t, s)
+func TestReadTraces(t *testing.T) {
+	_, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	keys := []string{
 		",arch=x86,config=8888,",
@@ -174,8 +93,9 @@ func testReadTraces(t *testing.T, s *SQLTraceStore) {
 	}, ts)
 }
 
-func testReadTraces_InvalidKey(t *testing.T, s *SQLTraceStore) {
-	populatedTestDB(t, s)
+func TestReadTraces_InvalidKey(t *testing.T) {
+	_, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	keys := []string{
 		",arch=x86,config='); DROP TABLE TraceValues,",
@@ -186,8 +106,9 @@ func testReadTraces_InvalidKey(t *testing.T, s *SQLTraceStore) {
 	require.Error(t, err)
 }
 
-func testReadTraces_NoResults(t *testing.T, s *SQLTraceStore) {
-	populatedTestDB(t, s)
+func TestReadTraces_NoResults(t *testing.T) {
+	_, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	keys := []string{
 		",arch=unknown,",
@@ -200,8 +121,9 @@ func testReadTraces_NoResults(t *testing.T, s *SQLTraceStore) {
 	})
 }
 
-func testReadTraces_EmptyTileReturnsNoData(t *testing.T, s *SQLTraceStore) {
-	populatedTestDB(t, s)
+func TestReadTraces_EmptyTileReturnsNoData(t *testing.T) {
+	_, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	keys := []string{
 		",arch=x86,config=8888,",
@@ -217,9 +139,9 @@ func testReadTraces_EmptyTileReturnsNoData(t *testing.T, s *SQLTraceStore) {
 	})
 }
 
-func testQueryTracesIDOnlyByIndex_EmptyQueryReturnsError(t *testing.T, s *SQLTraceStore) {
-	populatedTestDB(t, s)
-	ctx := context.Background()
+func TestQueryTracesIDOnlyByIndex_EmptyQueryReturnsError(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	// Query that matches one trace.
 	q, err := query.NewFromString("")
@@ -240,9 +162,9 @@ func paramSetFromParamsChan(ch <-chan paramtools.Params) paramtools.ParamSet {
 	return ret
 }
 
-func testQueryTracesIDOnlyByIndex_EmptyTileReturnsEmptyParamset(t *testing.T, s *SQLTraceStore) {
-	populatedTestDB(t, s)
-	ctx := context.Background()
+func TestQueryTracesIDOnlyByIndex_EmptyTileReturnsEmptyParamset(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	// Query that matches one trace.
 	q, err := query.NewFromString("config=565")
@@ -252,9 +174,9 @@ func testQueryTracesIDOnlyByIndex_EmptyTileReturnsEmptyParamset(t *testing.T, s 
 	assert.Empty(t, paramSetFromParamsChan(ch))
 }
 
-func testQueryTracesIDOnlyByIndex_MatchesOneTrace(t *testing.T, s *SQLTraceStore) {
-	populatedTestDB(t, s)
-	ctx := context.Background()
+func TestQueryTracesIDOnlyByIndex_MatchesOneTrace(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	// Query that matches one trace.
 	q, err := query.NewFromString("config=565")
@@ -268,9 +190,9 @@ func testQueryTracesIDOnlyByIndex_MatchesOneTrace(t *testing.T, s *SQLTraceStore
 	assert.Equal(t, expected, paramSetFromParamsChan(ch))
 }
 
-func testQueryTracesIDOnlyByIndex_MatchesTwoTraces(t *testing.T, s *SQLTraceStore) {
-	populatedTestDB(t, s)
-	ctx := context.Background()
+func TestQueryTracesIDOnlyByIndex_MatchesTwoTraces(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	// Query that matches two traces.
 	q, err := query.NewFromString("arch=x86")
@@ -284,9 +206,9 @@ func testQueryTracesIDOnlyByIndex_MatchesTwoTraces(t *testing.T, s *SQLTraceStor
 	assert.Equal(t, expected, paramSetFromParamsChan(ch))
 }
 
-func testQueryTracesByIndex_MatchesOneTrace(t *testing.T, s *SQLTraceStore) {
-	populatedTestDB(t, s)
-	ctx := context.Background()
+func TestQueryTracesByIndex_MatchesOneTrace(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	// Query that matches one trace.
 	q, err := query.NewFromString("config=565")
@@ -298,9 +220,9 @@ func testQueryTracesByIndex_MatchesOneTrace(t *testing.T, s *SQLTraceStore) {
 	})
 }
 
-func testQueryTracesByIndex_MatchesOneTraceInTheSecondTile(t *testing.T, s *SQLTraceStore) {
-	populatedTestDB(t, s)
-	ctx := context.Background()
+func TestQueryTracesByIndex_MatchesOneTraceInTheSecondTile(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	// Query that matches one trace second tile.
 	q, err := query.NewFromString("config=565")
@@ -312,9 +234,9 @@ func testQueryTracesByIndex_MatchesOneTraceInTheSecondTile(t *testing.T, s *SQLT
 	})
 }
 
-func testQueryTracesByIndex_MatchesTwoTraces(t *testing.T, s *SQLTraceStore) {
-	populatedTestDB(t, s)
-	ctx := context.Background()
+func TestQueryTracesByIndex_MatchesTwoTraces(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	// Query that matches two traces.
 	q, err := query.NewFromString("arch=x86")
@@ -327,9 +249,9 @@ func testQueryTracesByIndex_MatchesTwoTraces(t *testing.T, s *SQLTraceStore) {
 	})
 }
 
-func testQueryTracesByIndex_QueryHasUnknownParamReturnsNoError(t *testing.T, s *SQLTraceStore) {
-	populatedTestDB(t, s)
-	ctx := context.Background()
+func TestQueryTracesByIndex_QueryHasUnknownParamReturnsNoError(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	// Query that has no matching params in the given tile.
 	q, err := query.NewFromString("arch=unknown")
@@ -339,8 +261,9 @@ func testQueryTracesByIndex_QueryHasUnknownParamReturnsNoError(t *testing.T, s *
 	assert.Nil(t, ts)
 }
 
-func testQueryTracesByIndex_QueryAgainstTileWithNoDataReturnsNoError(t *testing.T, s *SQLTraceStore) {
-	ctx := context.Background()
+func TestQueryTracesByIndex_QueryAgainstTileWithNoDataReturnsNoError(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, false)
+	defer cleanup()
 
 	// Query that has no Postings for the given tile.
 	q, err := query.NewFromString("arch=unknown")
@@ -350,9 +273,9 @@ func testQueryTracesByIndex_QueryAgainstTileWithNoDataReturnsNoError(t *testing.
 	assert.Nil(t, ts)
 }
 
-func testTraceCount(t *testing.T, s *SQLTraceStore) {
-	populatedTestDB(t, s)
-	ctx := context.Background()
+func TestTraceCount(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	count, err := s.TraceCount(ctx, 0)
 	assert.NoError(t, err)
@@ -367,79 +290,65 @@ func testTraceCount(t *testing.T, s *SQLTraceStore) {
 	assert.Equal(t, int64(0), count)
 }
 
-func testParamSetForTile(t *testing.T, s *SQLTraceStore) {
-	const tileNumber types.TileNumber = 1
-	_, err := s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=x86,"), tileNumber)
-	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=565,arch=arm,"), tileNumber)
-	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=arm64,"), tileNumber)
-	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=gpu,arch=x86_64,"), tileNumber)
-	assert.NoError(t, err)
+func TestParamSetForTile(t *testing.T) {
+	_, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	ps, err := s.paramSetForTile(1)
 	assert.NoError(t, err)
 	expected := paramtools.ParamSet{
-		"arch":   []string{"arm", "arm64", "x86", "x86_64"},
-		"config": []string{"565", "8888", "gpu"},
+		"arch":   []string{"x86"},
+		"config": []string{"565", "8888"},
 	}
 	assert.Equal(t, expected, ps)
 }
 
-func testParamSetForTile_Empty(t *testing.T, s *SQLTraceStore) {
+func TestParamSetForTile_Empty(t *testing.T) {
+	_, s, cleanup := commonTestSetup(t, false)
+	defer cleanup()
+
 	// Test the empty case where there is no data in the store.
 	ps, err := s.paramSetForTile(1)
 	assert.NoError(t, err)
 	assert.Equal(t, paramtools.ParamSet{}, ps)
 }
 
-func testGetLatestTile(t *testing.T, s *SQLTraceStore) {
-	_, err := s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=x86,"), types.TileNumber(1))
-	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=arm64,"), types.TileNumber(5))
-	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=gpu,arch=x86_64,"), types.TileNumber(7))
-	assert.NoError(t, err)
+func TestGetLatestTile(t *testing.T) {
+	_, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	tileNumber, err := s.GetLatestTile()
 	assert.NoError(t, err)
-	assert.Equal(t, types.TileNumber(7), tileNumber)
+	assert.Equal(t, types.TileNumber(1), tileNumber)
 }
 
-func testGetLatestTile_Empty(t *testing.T, s *SQLTraceStore) {
+func TestGetLatestTile_Empty(t *testing.T) {
+	_, s, cleanup := commonTestSetup(t, false)
+	defer cleanup()
+
 	// Test the empty case where there is no data in datastore.
 	tileNumber, err := s.GetLatestTile()
 	assert.Error(t, err)
 	assert.Equal(t, types.BadTileNumber, tileNumber)
 }
 
-func testGetOrderedParamSet(t *testing.T, s *SQLTraceStore) {
-	ctx := context.Background()
-
-	const tileNumber types.TileNumber = 1
-	// Now add some trace ids.
-	_, err := s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=x86,"), tileNumber)
-	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=565,arch=arm,"), tileNumber)
-	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=arm64,"), tileNumber)
-	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=gpu,arch=x86_64,"), tileNumber)
-	assert.NoError(t, err)
+func TestGetOrderedParamSet(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	ops, err := s.GetOrderedParamSet(ctx, 1)
 	assert.NoError(t, err)
 	expected := paramtools.ParamSet{
-		"arch":   []string{"arm", "arm64", "x86", "x86_64"},
-		"config": []string{"565", "8888", "gpu"},
+		"arch":   []string{"x86"},
+		"config": []string{"565", "8888"},
 	}
 	assert.Equal(t, expected, ops.ParamSet)
 	assert.Equal(t, []string{"arch", "config"}, ops.KeyOrder)
 }
 
-func testGetOrderedParamSet_Empty(t *testing.T, s *SQLTraceStore) {
-	ctx := context.Background()
+func TestGetOrderedParamSet_Empty(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, false)
+	defer cleanup()
 
 	// Test the empty case where there is no data in datastore.
 	ops, err := s.GetOrderedParamSet(ctx, 1)
@@ -447,27 +356,20 @@ func testGetOrderedParamSet_Empty(t *testing.T, s *SQLTraceStore) {
 	assert.Equal(t, paramtools.ParamSet{}, ops.ParamSet)
 }
 
-func testCountIndices(t *testing.T, s *SQLTraceStore) {
-	ctx := context.Background()
-
-	const tileNumber types.TileNumber = 1
-	// Now add some trace ids.
-	_, err := s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=x86,"), tileNumber)
-	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=565,arch=arm,"), tileNumber)
-	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=8888,arch=arm64,"), tileNumber)
-	assert.NoError(t, err)
-	_, err = s.writeTraceIDAndPostings(paramtools.NewParams(",config=gpu,arch=x86_64,"), tileNumber)
-	assert.NoError(t, err)
+func TestCountIndices(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, false)
+	defer cleanup()
 
 	count, err := s.CountIndices(ctx, 1)
 	assert.NoError(t, err)
-	assert.Equal(t, int64(8), count)
+
+	// The always returns 0.
+	assert.Equal(t, int64(0), count)
 }
 
-func testCountIndices_Empty(t *testing.T, s *SQLTraceStore) {
-	ctx := context.Background()
+func TestCountIndices_Empty(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, false)
+	defer cleanup()
 
 	// Test the empty case where there is no data in datastore.
 	count, err := s.CountIndices(ctx, 1)
@@ -475,22 +377,46 @@ func testCountIndices_Empty(t *testing.T, s *SQLTraceStore) {
 	assert.Equal(t, int64(0), count)
 }
 
-func testGetSource(t *testing.T, s *SQLTraceStore) {
-	populatedTestDB(t, s)
-	ctx := context.Background()
+func TestGetSource(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	filename, err := s.GetSource(ctx, types.CommitNumber(2), ",arch=x86,config=8888,")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "gs://perf-bucket/2020/02/08/12/testdata.json", filename)
 }
 
-func testGetSource_Empty(t *testing.T, s *SQLTraceStore) {
-	ctx := context.Background()
+func TestGetSource_Empty(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
 
 	// Confirm the call works with an empty tracestore.
 	filename, err := s.GetSource(ctx, types.CommitNumber(5), ",arch=x86,config=8888,")
 	assert.Error(t, err)
 	assert.Equal(t, "", filename)
+}
+
+func TestSQLTraceStore_TileNumber(t *testing.T) {
+	_, s, cleanup := commonTestSetup(t, false)
+	defer cleanup()
+
+	assert.Equal(t, types.TileNumber(0), s.TileNumber(types.CommitNumber(1)))
+	assert.Equal(t, types.TileNumber(1), s.TileNumber(types.CommitNumber(9)))
+}
+
+func TestSQLTraceStore_TileSize(t *testing.T) {
+	_, s, cleanup := commonTestSetup(t, false)
+	defer cleanup()
+
+	assert.Equal(t, testTileSize, s.TileSize())
+}
+
+func TestSQLTraceStore_WriteIndices_Success(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, false)
+	defer cleanup()
+
+	// WriteIndices is a no-op in the SQL backed trace store.
+	assert.NoError(t, s.WriteIndices(ctx, types.TileNumber(1)))
 }
 
 func TestCommitNumberOfTileStart(t *testing.T) {
@@ -530,36 +456,16 @@ func populatedTestDB(t *testing.T, store *SQLTraceStore) {
 	require.NoError(t, err)
 }
 
-// subTestFunction is a func we will call to test one aspect of *SQLTraceStore.
-type subTestFunction func(t *testing.T, s *SQLTraceStore)
-
-// subTests are all the tests we have for *SQLTraceStore.
-var subTests = map[string]subTestFunction{
-	"testUpdateSourceFile":                                            testUpdateSourceFile,
-	"testWriteTraceIDAndPostings":                                     testWriteTraceIDAndPostings,
-	"testParamSetForTile":                                             testParamSetForTile,
-	"testParamSetForTile_Empty":                                       testParamSetForTile_Empty,
-	"testGetLatestTile":                                               testGetLatestTile,
-	"testGetLatestTile_Empty":                                         testGetLatestTile_Empty,
-	"testGetOrderedParamSet":                                          testGetOrderedParamSet,
-	"testGetOrderedParamSet_Empty":                                    testGetOrderedParamSet_Empty,
-	"testCountIndices":                                                testCountIndices,
-	"testCountIndices_Empty":                                          testCountIndices_Empty,
-	"testGetSource_Empty":                                             testGetSource_Empty,
-	"testReadTraces":                                                  testReadTraces,
-	"testWriteTraces_MultipleBatches_Success":                         testWriteTraces_MultipleBatches_Success,
-	"testReadTraces_InvalidKey":                                       testReadTraces_InvalidKey,
-	"testReadTraces_NoResults":                                        testReadTraces_NoResults,
-	"testReadTraces_EmptyTileReturnsNoData":                           testReadTraces_EmptyTileReturnsNoData,
-	"testQueryTracesIDOnlyByIndex_EmptyQueryReturnsError":             testQueryTracesIDOnlyByIndex_EmptyQueryReturnsError,
-	"testQueryTracesIDOnlyByIndex_EmptyTileReturnsEmptyParamset":      testQueryTracesIDOnlyByIndex_EmptyTileReturnsEmptyParamset,
-	"testQueryTracesIDOnlyByIndex_MatchesOneTrace":                    testQueryTracesIDOnlyByIndex_MatchesOneTrace,
-	"testQueryTracesIDOnlyByIndex_MatchesTwoTraces":                   testQueryTracesIDOnlyByIndex_MatchesTwoTraces,
-	"testQueryTracesByIndex_MatchesOneTrace":                          testQueryTracesByIndex_MatchesOneTrace,
-	"testQueryTracesByIndex_MatchesOneTraceInTheSecondTile":           testQueryTracesByIndex_MatchesOneTraceInTheSecondTile,
-	"testQueryTracesByIndex_MatchesTwoTraces":                         testQueryTracesByIndex_MatchesTwoTraces,
-	"testQueryTracesByIndex_QueryHasUnknownParamReturnsNoError":       testQueryTracesByIndex_QueryHasUnknownParamReturnsNoError,
-	"testQueryTracesByIndex_QueryAgainstTileWithNoDataReturnsNoError": testQueryTracesByIndex_QueryAgainstTileWithNoDataReturnsNoError,
-	"testTraceCount":                                                  testTraceCount,
-	"testGetSource":                                                   testGetSource,
+func Test_traceIDForSQLFromTraceName_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	/*
+		$ python3
+		Python 3.7.3 (default, Dec 20 2019, 18:57:59)
+		[GCC 8.3.0] on linux
+		Type "help", "copyright", "credits" or "license" for more information.
+		>>> import hashlib
+		>>> hashlib.md5(b",arch=x86,config=8888,").hexdigest()
+		'fe385b159ff55dca481069805e5ff050'
+	*/
+	assert.Equal(t, traceIDForSQL(`\xfe385b159ff55dca481069805e5ff050`), traceIDForSQLFromTraceName(",arch=x86,config=8888,"))
 }
