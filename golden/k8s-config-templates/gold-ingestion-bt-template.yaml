@@ -52,7 +52,7 @@ spec:
               mountPath: /etc/gold-config/
             - name: gold-service-account-secrets
               mountPath: /var/secrets/google
-            {{if eq .primary_crs "github"}}
+            {{if .INCLUDE_GITHUB_CREDS}}
             - name: gold-github-token
               mountPath: /var/secrets/github/
             {{end}}
@@ -77,7 +77,7 @@ spec:
         - name: gold-service-account-secrets
           secret:
             secretName: gold-service-account-secrets
-        {{if eq .primary_crs "github"}}
+        {{if .INCLUDE_GITHUB_CREDS}}
         - name: gold-github-token
           secret:
             secretName: gold-github-token

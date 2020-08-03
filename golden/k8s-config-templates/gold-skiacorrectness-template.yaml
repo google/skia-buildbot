@@ -58,7 +58,7 @@ spec:
               mountPath: /var/secrets/google/
             - name: {{.K8S_LOGIN_SECRETS}}
               mountPath: /etc/skia.org/
-            {{if eq .primary_crs "github"}}
+            {{if .INCLUDE_GITHUB_CREDS}}
             - name: gold-github-token
               mountPath: /var/secrets/github/
             {{end}}
@@ -87,7 +87,7 @@ spec:
         - name: {{.K8S_LOGIN_SECRETS}}
           secret:
             secretName: {{.K8S_LOGIN_SECRETS}}
-        {{if eq .primary_crs "github"}}
+        {{if .INCLUDE_GITHUB_CREDS}}
         - name: gold-github-token
           secret:
             secretName: gold-github-token
