@@ -22,7 +22,7 @@ Date.now = () => fakeNow;
 
 fetchMock.get('/json/trstatus', () => statusResponse);
 fetchMock.get('/json/paramset', () => paramSetResponse);
-fetchMock.get('glob:/json/search*', (url) => {
+fetchMock.get('glob:/json/search*', (url: string) => {
   const filteredSearchResponse = deepCopy(searchResponse);
 
   // Filter only by untriaged/positive/negative
