@@ -6,9 +6,9 @@ package sqlregressionstore
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
-	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -30,19 +29,15 @@ const (
 	readRange
 )
 
-// statements allows looking up raw SQL statements by their statement id.
-type statements map[statement]string
-
 // statementsByDialect holds all the raw SQL statemens used per Dialect of SQL.
-var statementsByDialect = map[perfsql.Dialect]statements{
-	perfsql.CockroachDBDialect: {
-		write: `
+var statements = map[statement]string{
+	write: `
 		UPSERT INTO
 			Regressions (commit_number, alert_id, regression)
 		VALUES
 			($1, $2, $3)
 		`,
-		read: `
+	read: `
 		SELECT
 			regression
 		FROM
@@ -50,7 +45,7 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 		WHERE
 			commit_number=$1 AND
 			alert_id=$2`,
-		readRange: `
+	readRange: `
 		SELECT
 			commit_number, alert_id, regression
 		FROM
@@ -59,42 +54,28 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 			commit_number >= $1
 			AND commit_number <= $2
 		`,
-	},
 }
 
 // SQLRegressionStore implements the regression.Store interface.
 type SQLRegressionStore struct {
 	// db is the underlying database.
-	db *sql.DB
-
-	// preparedStatements are all the prepared SQL statements.
-	preparedStatements map[statement]*sql.Stmt
+	db *pgxpool.Pool
 }
 
 // New returns a new *SQLRegressionStore.
 //
 // We presume all migrations have been run against db before this function is
 // called.
-func New(db *sql.DB, dialect perfsql.Dialect) (*SQLRegressionStore, error) {
-	preparedStatements := map[statement]*sql.Stmt{}
-	for key, statement := range statementsByDialect[dialect] {
-		prepared, err := db.Prepare(statement)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to prepare statment %v %q", key, statement)
-		}
-		preparedStatements[key] = prepared
-	}
-
+func New(db *pgxpool.Pool) (*SQLRegressionStore, error) {
 	return &SQLRegressionStore{
-		db:                 db,
-		preparedStatements: preparedStatements,
+		db: db,
 	}, nil
 }
 
 // Range implements the regression.Store interface.
 func (s *SQLRegressionStore) Range(ctx context.Context, begin, end types.CommitNumber) (map[types.CommitNumber]*regression.AllRegressionsForCommit, error) {
 	ret := map[types.CommitNumber]*regression.AllRegressionsForCommit{}
-	rows, err := s.preparedStatements[readRange].QueryContext(ctx, begin, end)
+	rows, err := s.db.Query(ctx, statements[readRange], begin, end)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read regressions in range: %d %d", begin, end)
 	}
@@ -190,7 +171,7 @@ func (s *SQLRegressionStore) write(ctx context.Context, commitNumber types.Commi
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to serialize regression for alertID: %d  commitNumber=%d", alertID, commitNumber)
 	}
-	if _, err := s.preparedStatements[write].ExecContext(ctx, commitNumber, alertID, string(b)); err != nil {
+	if _, err := s.db.Exec(ctx, statements[write], commitNumber, alertID, string(b)); err != nil {
 		return skerr.Wrapf(err, "Failed to write regression for alertID: %d  commitNumber=%d", alertID, commitNumber)
 	}
 	return nil
@@ -204,7 +185,7 @@ func (s *SQLRegressionStore) read(ctx context.Context, commitNumber types.Commit
 		return nil, skerr.Fmt("Failed to convert alertIDString %q to an int.", alertIDString)
 	}
 	var jsonString string
-	if err := s.preparedStatements[read].QueryRowContext(ctx, commitNumber, alertID).Scan(&jsonString); err != nil {
+	if err := s.db.QueryRow(ctx, statements[read], commitNumber, alertID).Scan(&jsonString); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read regression for alertID: %d commitNumber=%d", alertID, commitNumber)
 	}
 	r := regression.NewRegression()
@@ -228,7 +209,7 @@ func (s *SQLRegressionStore) readModifyWrite(ctx context.Context, commitNumber t
 	}
 
 	// Do everything in a transaction so we don't have any lost updates.
-	tx, err := s.db.BeginTx(ctx, nil)
+	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "Can't start transaction")
 	}
@@ -238,13 +219,13 @@ func (s *SQLRegressionStore) readModifyWrite(ctx context.Context, commitNumber t
 	// Read the regression from the database. If any part of that fails then
 	// just use the default regression we've already constructed.
 	var jsonString string
-	if err := tx.StmtContext(ctx, s.preparedStatements[read]).QueryRowContext(ctx, commitNumber, alertID).Scan(&jsonString); err == nil {
+	if err := tx.QueryRow(ctx, statements[read], commitNumber, alertID).Scan(&jsonString); err == nil {
 		if err := json.Unmarshal([]byte(jsonString), r); err != nil {
 			sklog.Warningf("Failed to deserialize the JSON Regression: %s", err)
 		}
 	} else {
 		if mustExist {
-			if err := tx.Rollback(); err != nil {
+			if err := tx.Rollback(ctx); err != nil {
 				sklog.Errorf("Failed on rollback: %s", err)
 			}
 			return skerr.Wrapf(err, "Regression doesn't exist.")
@@ -255,19 +236,19 @@ func (s *SQLRegressionStore) readModifyWrite(ctx context.Context, commitNumber t
 
 	b, err := json.Marshal(r)
 	if err != nil {
-		if err := tx.Rollback(); err != nil {
+		if err := tx.Rollback(ctx); err != nil {
 			sklog.Errorf("Failed on rollback: %s", err)
 		}
 		return skerr.Wrapf(err, "Failed to serialize regression for alertID: %d  commitNumber=%d", alertID, commitNumber)
 	}
-	if _, err := tx.StmtContext(ctx, s.preparedStatements[write]).ExecContext(ctx, commitNumber, alertID, string(b)); err != nil {
-		if err := tx.Rollback(); err != nil {
+	if _, err := tx.Exec(ctx, statements[write], commitNumber, alertID, string(b)); err != nil {
+		if err := tx.Rollback(ctx); err != nil {
 			sklog.Errorf("Failed on rollback: %s", err)
 		}
 		return skerr.Wrapf(err, "Failed to write regression for alertID: %d  commitNumber=%d", alertID, commitNumber)
 	}
 
-	return tx.Commit()
+	return tx.Commit(ctx)
 }
 
 // Confirm that SQLRegressionStore implements regression.Store.

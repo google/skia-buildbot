@@ -11,6 +11,8 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
+	"github.com/jackc/pgx/v4/pgxpool"
+	_ "github.com/jackc/pgx/v4/stdlib" // pgx Go sql
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/skerr"
@@ -41,7 +43,7 @@ import (
 
 // newCockroachDBFromConfig opens an existing CockroachDB database with all
 // migrations applied.
-func newCockroachDBFromConfig(instanceConfig *config.InstanceConfig) (*sql.DB, error) {
+func newCockroachDBFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (*pgxpool.Pool, error) {
 	// Note that the migrationsConnection is different from the sql.Open
 	// connection string since migrations know about CockroachDB, but we use the
 	// Postgres driver for the database/sql connection since there's no native
@@ -50,7 +52,7 @@ func newCockroachDBFromConfig(instanceConfig *config.InstanceConfig) (*sql.DB, e
 	// uses.
 	migrationsConnection := strings.Replace(instanceConfig.DataStoreConfig.ConnectionString, "postgresql://", "cockroach://", 1)
 
-	db, err := sql.Open("postgres", instanceConfig.DataStoreConfig.ConnectionString)
+	db, err := sql.Open("pgx", instanceConfig.DataStoreConfig.ConnectionString)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -62,8 +64,12 @@ func newCockroachDBFromConfig(instanceConfig *config.InstanceConfig) (*sql.DB, e
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	if err := db.Close(); err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	sklog.Infof("Finished applying migrations.")
-	return db, nil
+
+	return pgxpool.Connect(ctx, instanceConfig.DataStoreConfig.ConnectionString)
 }
 
 // NewPerfGitFromConfig return a new perfgit.Git for the given instanceConfig.
@@ -96,7 +102,7 @@ func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *confi
 	sklog.Infof("Constructing perfgit with dialect: %q and connection_string: %q", dialect, instanceConfig.DataStoreConfig.ConnectionString)
 
 	// Now create the appropriate db.
-	db, err := newCockroachDBFromConfig(instanceConfig)
+	db, err := newCockroachDBFromConfig(ctx, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -124,11 +130,11 @@ func NewTraceStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 		}
 		return traceStore, nil
 	case config.CockroachDBDataStoreType:
-		db, err := newCockroachDBFromConfig(instanceConfig)
+		db, err := newCockroachDBFromConfig(ctx, instanceConfig)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		return sqltracestore.New(db, perfsql.CockroachDBDialect, instanceConfig.DataStoreConfig)
+		return sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	}
 	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }
@@ -161,7 +167,7 @@ func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 		}
 		return dsalertstore.New(), nil
 	case config.CockroachDBDataStoreType:
-		db, err := newCockroachDBFromConfig(instanceConfig)
+		db, err := newCockroachDBFromConfig(ctx, instanceConfig)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
@@ -190,11 +196,11 @@ func NewRegressionStoreFromConfig(ctx context.Context, local bool, cidl *cid.Com
 		}
 		return dsregressionstore.NewRegressionStoreDS(lookup), nil
 	case config.CockroachDBDataStoreType:
-		db, err := newCockroachDBFromConfig(instanceConfig)
+		db, err := newCockroachDBFromConfig(ctx, instanceConfig)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		return sqlregressionstore.New(db, perfsql.CockroachDBDialect)
+		return sqlregressionstore.New(db)
 	}
 	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }
@@ -210,7 +216,7 @@ func NewShortcutStoreFromConfig(ctx context.Context, local bool, instanceConfig 
 
 		return dsshortcutstore.New(), nil
 	case config.CockroachDBDataStoreType:
-		db, err := newCockroachDBFromConfig(instanceConfig)
+		db, err := newCockroachDBFromConfig(ctx, instanceConfig)
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}

@@ -2,6 +2,8 @@ package dfbuilder
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"net/url"
 	"testing"
 	"time"
@@ -34,15 +36,14 @@ var (
 	}
 )
 
-const CockroachDatabaseName = "dfbuilder"
-
 func TestBuildTraceMapper(t *testing.T) {
 	unittest.LargeTest(t)
 
-	db, cleanup := sqltest.NewCockroachDBForTests(t, CockroachDatabaseName, sqltest.ApplyMigrations)
+	dbName := fmt.Sprintf("dfbuilder%d", rand.Uint32())
+	db, cleanup := sqltest.NewCockroachDBForTests(t, dbName, sqltest.ApplyMigrations)
 	defer cleanup()
 
-	store, err := sqltracestore.New(db, perfsql.CockroachDBDialect, cfg.DataStoreConfig)
+	store, err := sqltracestore.New(db, cfg.DataStoreConfig)
 	require.NoError(t, err)
 
 	tileMap := buildTileMapOffsetToIndex([]types.CommitNumber{0, 1, 255, 256, 257}, store)
@@ -82,7 +83,7 @@ func TestBuildNew(t *testing.T) {
 
 	instanceConfig.DataStoreConfig.TileSize = 6
 
-	store, err := sqltracestore.New(db, perfsql.CockroachDBDialect, instanceConfig.DataStoreConfig)
+	store, err := sqltracestore.New(db, instanceConfig.DataStoreConfig)
 	require.NoError(t, err)
 
 	builder := NewDataFrameBuilderFromTraceStore(g, store)
@@ -113,7 +114,7 @@ func TestBuildNew(t *testing.T) {
 	now := gittest.StartTime.Add(7 * time.Minute)
 
 	df, err := builder.NewFromQueryAndRange(ctx, now.Add(-7*time.Minute), now.Add(time.Second), q, false, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Len(t, df.TraceSet, 2)
 	assert.Len(t, df.Header, 8)
 	assert.Len(t, df.TraceSet[",arch=x86,config=8888,"], 8)
