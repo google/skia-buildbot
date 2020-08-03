@@ -49,6 +49,7 @@ require (
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.2
 	github.com/GeertJohan/go.rice v1.0.0
 	github.com/Jeffail/gabs/v2 v2.5.1
+	github.com/Kount/pq-timeouts v1.0.0
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
@@ -91,6 +92,8 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.10 // indirect
+	github.com/jackc/pgx v3.6.2+incompatible
+	github.com/jackc/pgx/v4 v4.0.0-pre1.0.20190824185557-6972a5742186
 	github.com/jcgregorio/logger v0.1.2
 	github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
