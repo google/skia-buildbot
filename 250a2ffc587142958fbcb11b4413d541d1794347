@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "f871ce98_8e2acdc7",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 644,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-03T15:26:00Z",
+      "side": 1,
+      "message": "It was just the first thing that came to mind.  This is part of the mitigation for https://bugs.chromium.org/p/skia/issues/detail?id\u003d10543.  In that bug, gitsync was crashing after ~15 minutes or so.  An hour seems like a reasonable window to catch something like this.",
+      "parentUuid": "08ecb56f_a9fb2f3f",
+      "range": {
+        "startLine": 644,
+        "startChar": 42,
+        "endLine": 644,
+        "endChar": 48
+      },
+      "revId": "250a2ffc587142958fbcb11b4413d541d1794347",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "22f10d8e_03a92fcc",
         "filename": "promk/prometheus/alerts_general.yml",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "250a2ffc587142958fbcb11b4413d541d1794347",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3591ef82_e6d0203f",
+        "filename": "promk/prometheus/alerts_general.yml",
+        "patchSetId": 1
+      },
+      "lineNbr": 650,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-03T15:26:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "22f10d8e_03a92fcc",
+      "range": {
+        "startLine": 650,
+        "startChar": 53,
+        "endLine": 650,
+        "endChar": 54
+      },
+      "revId": "250a2ffc587142958fbcb11b4413d541d1794347",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
