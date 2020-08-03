@@ -37,6 +37,7 @@ Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md
 
 Cq-Include-Trybots: some-trybot
+Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
 Tbr: reviewer@google.com
 Test: some-test
@@ -71,6 +72,7 @@ Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md
 
 Cq-Include-Trybots: some-trybot
+Cq-Do-Not-Cancel-Tryjobs: true
 Bug: fakebugproject:1234,fakebugproject:5678
 Tbr: reviewer@google.com
 Test: some-test
@@ -108,6 +110,7 @@ Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md
 
 Cq-Include-Trybots: some-trybot
+Cq-Do-Not-Cancel-Tryjobs: true
 Tbr: reviewer@google.com
 Test: some-test
 `, result)
@@ -149,6 +152,7 @@ Documentation for the AutoRoller is here:
 https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md
 
 Cq-Include-Trybots: some-trybot
+Cq-Do-Not-Cancel-Tryjobs: true
 Bug: None
 Tbr: reviewer@google.com
 Test: some-test
@@ -162,6 +166,7 @@ func TestNamedTemplateDefault_Minimal(t *testing.T) {
 	b.cfg.BugProject = ""
 	b.cfg.ChildLogURLTmpl = ""
 	b.cfg.CqExtraTrybots = nil
+	b.cfg.CqDoNotCancelTrybots = false
 	b.cfg.IncludeLog = false
 	b.cfg.IncludeTbrLine = false
 	b.cfg.IncludeTests = false

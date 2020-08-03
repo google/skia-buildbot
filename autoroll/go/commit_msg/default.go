@@ -74,6 +74,9 @@ https://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md`))
 		`{{ if .CqExtraTrybots -}}
 Cq-Include-Trybots: {{ stringsJoin .CqExtraTrybots ";" }}
 {{ end -}}
+{{ if .CqDoNotCancelTrybots -}}
+Cq-Do-Not-Cancel-Tryjobs: true
+{{ end -}}
 {{ if .BugProject -}}
 Bug: {{ if .Bugs }}{{ stringsJoin .Bugs "," }}{{ else }}None{{ end }}
 {{ end -}}

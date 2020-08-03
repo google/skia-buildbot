@@ -39,6 +39,7 @@ type CommitMsgConfig struct {
 	BugProject           string   `json:"bugProject,omitempty"`
 	ChildLogURLTmpl      string   `json:"childLogURLTmpl,omitempty"`
 	CqExtraTrybots       []string `json:"cqExtraTrybots,omitempty"`
+	CqDoNotCancelTrybots bool     `json:"cqDoNotCancelTrybots,omitempty"`
 	IncludeLog           bool     `json:"includeLog,omitempty"`
 	IncludeRevisionCount bool     `json:"includeRevisionCount,omitempty"`
 	IncludeTbrLine       bool     `json:"includeTbrLine,omitempty"`
