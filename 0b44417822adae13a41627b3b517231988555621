@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ba03972_c3b6f92f",
+        "filename": "golden/k8s-config-templates/gold-ingestion-bt-template.yaml",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-03T17:34:40Z",
+      "side": 1,
+      "message": "Nit, very optional: consider using the full word CREDENTIALS for consistency with e.g. GOOGLE_APPLICATION_CREDENTIALS.",
+      "range": {
+        "startLine": 54,
+        "startChar": 38,
+        "endLine": 60,
+        "endChar": 50
+      },
+      "revId": "0b44417822adae13a41627b3b517231988555621",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
