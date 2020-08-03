@@ -13,10 +13,20 @@ include ../kube/kube.mk
 
 .PHONY: service_definition
 service_definition: 
-	protoc --proto_path=${GOPATH}/src:. --twirp_out=. --go_out=. go/rpc/statusFe.proto
+	protoc --proto_path=${GOPATH}/src:.:.. --twirp_out=. --twirp_typescript_out=library=pbjs:./modules/rpc --go_out=. go/rpc/statusFe.proto
 	goimports -w go/rpc/statusFe.pb.go
 	goimports -w go/rpc/statusFe.twirp.go
-	protoc --twirp_typescript_out=./modules/rpc ./go/rpc/statusFe.proto
+
+service_definition2: 
+	#protoc --proto_path=${GOPATH}/src:.:.. --twirp_out=. --twirp_typescript_out=library=pbjs:./modules/rpc --go_out=. go/rpc/statusFe.proto
+	goimports -w go/rpc/statusFe.pb.go
+	goimports -w go/rpc/statusFe.twirp.go
+	protoc --proto_path=${GOPATH}/src:.:.. --twirp_typescript_out=./modules/rpc ./go/rpc/statusFe.proto
+
+EXPERIMENT: 
+	protoc --proto_path=${GOPATH}/src:.:.. --twirp_out=. --twirp_typescript_out=./modules/rpc --go_out=. go/rpc/statusFe.proto
+	goimports -w go/rpc/statusFe.pb.go
+	goimports -w go/rpc/statusFe.twirp.go
 
 .PHONY: all
 all: clean_webtools status

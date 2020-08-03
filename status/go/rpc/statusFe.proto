@@ -1,6 +1,8 @@
 syntax = "proto3";
-package status.rpc;
+package autoroll.rpc;
 option go_package = "./go/rpc";
+
+//import "go/git/git.proto";
 
 service StatusFe {
   rpc GetIncrementalCommits(IncrementalCommitsRequest) returns (IncrementalCommitsResponse);
@@ -12,6 +14,32 @@ message IncrementalCommitsRequest {
 }
 
 message IncrementalCommitsResponse {
-  string metadata = 1;
-  repeated string data = 2;
+  ResponseMetadata metadata = 1;
+  IncrementalUpdate update = 2;
+}
+
+message IncrementalUpdate {
+  //repeated git.Branch branchHeads = 1;
+  //map<string, CommitComments> commitComments = 2;//todo
+ // repeated vcsinfo.LongCommit commits = 3;//todo
+  bool startOver = 4;
+  string swarmingUrl = 5;
+  //map<string, TaskComments> taskComments = 6;//todo
+  repeated Task tasks = 7;
+  string taskSchedulerUrl = 8;
+  //map<string, TaskSpecComments> taskSpecComments = 9;
+  //time.Time timestamp = 10;
+}
+
+message Task {
+  repeated string commits = 1;
+  string name = 2;
+  string id = 3;
+  string revision = 4;
+  //types.TaskStatus status = 5; //todo
+  string swarmingTaskId = 6;
+}
+
+message ResponseMetadata {
+  string pod = 1;
 }

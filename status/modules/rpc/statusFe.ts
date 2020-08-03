@@ -24,14 +24,14 @@ const IncrementalCommitsRequestToJSON = (m: IncrementalCommitsRequest): Incremen
 };
 
 export interface IncrementalCommitsResponse {
-    metadata: string;
-    data: string[];
+    metadata: ResponseMetadata;
+    update: IncrementalUpdate;
     
 }
 
 interface IncrementalCommitsResponseJSON {
-    metadata: string;
-    data: string[];
+    metadata: ResponseMetadataJSON;
+    update: IncrementalUpdateJSON;
     
 }
 
@@ -39,8 +39,86 @@ interface IncrementalCommitsResponseJSON {
 const JSONToIncrementalCommitsResponse = (m: IncrementalCommitsResponse | IncrementalCommitsResponseJSON): IncrementalCommitsResponse => {
     
     return {
-        metadata: m.metadata,
-        data: m.data,
+        metadata: JSONToResponseMetadata(m.metadata),
+        update: JSONToIncrementalUpdate(m.update),
+        
+    };
+};
+
+export interface IncrementalUpdate {
+    startover: boolean;
+    swarmingurl: string;
+    tasks: Task[];
+    taskschedulerurl: string;
+    
+}
+
+interface IncrementalUpdateJSON {
+    startOver: boolean;
+    swarmingUrl: string;
+    tasks: TaskJSON[];
+    taskSchedulerUrl: string;
+    
+}
+
+
+const JSONToIncrementalUpdate = (m: IncrementalUpdate | IncrementalUpdateJSON): IncrementalUpdate => {
+    
+    return {
+        startover: (((m as IncrementalUpdate).startover) ? (m as IncrementalUpdate).startover : (m as IncrementalUpdateJSON).startOver),
+        swarmingurl: (((m as IncrementalUpdate).swarmingurl) ? (m as IncrementalUpdate).swarmingurl : (m as IncrementalUpdateJSON).swarmingUrl),
+        tasks: (m.tasks as (Task | TaskJSON)[]).map(JSONToTask),
+        taskschedulerurl: (((m as IncrementalUpdate).taskschedulerurl) ? (m as IncrementalUpdate).taskschedulerurl : (m as IncrementalUpdateJSON).taskSchedulerUrl),
+        
+    };
+};
+
+export interface Task {
+    commits: string[];
+    name: string;
+    id: string;
+    revision: string;
+    swarmingtaskid: string;
+    
+}
+
+interface TaskJSON {
+    commits: string[];
+    name: string;
+    id: string;
+    revision: string;
+    swarmingTaskId: string;
+    
+}
+
+
+const JSONToTask = (m: Task | TaskJSON): Task => {
+    
+    return {
+        commits: m.commits,
+        name: m.name,
+        id: m.id,
+        revision: m.revision,
+        swarmingtaskid: (((m as Task).swarmingtaskid) ? (m as Task).swarmingtaskid : (m as TaskJSON).swarmingTaskId),
+        
+    };
+};
+
+export interface ResponseMetadata {
+    pod: string;
+    
+}
+
+interface ResponseMetadataJSON {
+    pod: string;
+    
+}
+
+
+const JSONToResponseMetadata = (m: ResponseMetadata | ResponseMetadataJSON): ResponseMetadata => {
+    
+    return {
+        pod: m.pod,
         
     };
 };
@@ -54,7 +132,7 @@ export class DefaultStatusFe implements StatusFe {
     private hostname: string;
     private fetch: Fetch;
     private writeCamelCase: boolean;
-    private pathPrefix = "/twirp/status.rpc.StatusFe/";
+    private pathPrefix = "/twirp/autoroll.rpc.StatusFe/";
 
     constructor(hostname: string, fetch: Fetch, writeCamelCase = false) {
         this.hostname = hostname;
