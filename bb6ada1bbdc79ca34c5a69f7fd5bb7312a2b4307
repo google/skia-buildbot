@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "bb2e591f_66afa3b8",
+        "filename": "status/Makefile",
+        "patchSetId": 7
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-03T15:07:57Z",
+      "side": 1,
+      "message": "Let\u0027s do this via go generate, not as part of the Makefile.",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 68
+      },
+      "revId": "bb6ada1bbdc79ca34c5a69f7fd5bb7312a2b4307",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d5390d64_1415179d",
         "filename": "status/modules/rpc/statusFe.ts",
         "patchSetId": 7
