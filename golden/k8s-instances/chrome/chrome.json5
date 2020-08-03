@@ -20,4 +20,7 @@
   fs_namespace: "chrome",
   fs_project_id: "skia-firestore",
   known_hashes_gcs_path: "skia-gold-chrome/hash_files/gold-chrome-hashes.txt",
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  INCLUDE_GITHUB_CREDS: false
 }

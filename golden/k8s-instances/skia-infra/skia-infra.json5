@@ -15,4 +15,7 @@
   fs_namespace: "skia-infra",
   fs_project_id: "skia-firestore",
   known_hashes_gcs_path: "skia-gold-skia-infra/hash_files/gold-skia-infra-hashes.txt",
+
+  // These values affect the k8s deployment; they are not read in by the binary.
+  INCLUDE_GITHUB_CREDS: false
 }
