@@ -56,7 +56,7 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *per
 		Shards:   8,
 	}
 
-	store, err := sqltracestore.New(db, perfsql.CockroachDBDialect, cfg)
+	store, err := sqltracestore.New(db, cfg)
 	require.NoError(t, err)
 
 	// Add some points to the first and second tile.
@@ -79,7 +79,7 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *per
 	}, "gs://foo.json", time.Now()) // Time is irrelevent.
 	assert.NoError(t, err)
 
-	ctx, db, _, _, dialect, instanceConfig, gitCleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, db, _, _, dialect, instanceConfig, _, gitCleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
 	instanceConfig.DataStoreConfig.TileSize = testTileSize
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)

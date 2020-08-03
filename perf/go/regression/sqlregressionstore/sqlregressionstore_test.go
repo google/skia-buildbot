@@ -9,7 +9,6 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/regression/regressiontest"
-	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 )
 
@@ -24,7 +23,7 @@ func TestSQLRegressionStore_CockroachDB(t *testing.T) {
 			// actual errors.
 			defer cleanup()
 
-			store, err := New(db, perfsql.CockroachDBDialect)
+			store, err := New(db)
 			require.NoError(t, err)
 			subTest(t, store)
 		})
@@ -38,7 +37,7 @@ func TestSQLRegressionStore_CockroachDB(t *testing.T) {
 			// actual errors.
 			defer cleanup()
 
-			store, err := New(db, perfsql.CockroachDBDialect)
+			store, err := New(db)
 			require.NoError(t, err)
 			subTest(t, store)
 		})
