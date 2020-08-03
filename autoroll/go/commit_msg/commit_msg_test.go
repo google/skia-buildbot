@@ -15,6 +15,7 @@ func fakeCommitMsgConfig(t *testing.T) *CommitMsgConfig {
 		Template:             TmplNameDefault,
 		ChildLogURLTmpl:      "https://fake-child-log/{{.RollingFrom}}..{{.RollingTo}}",
 		CqExtraTrybots:       []string{"some-trybot"},
+		CqDoNotCancelTrybots: true,
 		IncludeLog:           true,
 		IncludeRevisionCount: true,
 		IncludeTbrLine:       true,
