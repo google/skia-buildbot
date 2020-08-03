@@ -10,6 +10,8 @@
     "cssmin": "~0.4.2",
     "html-minifier": "~3.0.0",
     "sinon": "^1.17.2",
+    "typescript": "^3.9.2",
+    "typescript-formatter": "^7.2.2",
     "uglify-js": "^2.4.15",
     "vulcanize": "~1.10.4"
   },
