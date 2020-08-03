@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "90cdd7e0_a685815b",
+        "filename": "go.mod",
+        "patchSetId": 36
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-03T17:58:26Z",
+      "side": 1,
+      "message": "still needed?",
+      "range": {
+        "startLine": 52,
+        "startChar": 18,
+        "endLine": 52,
+        "endChar": 29
+      },
+      "revId": "736e2cf0a589a36d792502278a0ceac960a94c3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a2dbd8b_700cd83f",
+        "filename": "go.mod",
+        "patchSetId": 36
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-03T17:58:26Z",
+      "side": 1,
+      "message": "Why not google/uuid?",
+      "range": {
+        "startLine": 77,
+        "startChar": 12,
+        "endLine": 77,
+        "endChar": 22
+      },
+      "revId": "736e2cf0a589a36d792502278a0ceac960a94c3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2e106148_87370f14",
+        "filename": "go.mod",
+        "patchSetId": 36
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-03T17:58:26Z",
+      "side": 1,
+      "message": "Please remove this one.",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 97,
+        "endChar": 41
+      },
+      "revId": "736e2cf0a589a36d792502278a0ceac960a94c3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aafa7e7a_aceb7142",
+        "filename": "go.mod",
+        "patchSetId": 36
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-03T17:58:26Z",
+      "side": 1,
+      "message": "Make sure we are using v4.8.0 +. I had trouble using the prerelease version locally and we probably want to be on latest and greatest anyway.",
+      "range": {
+        "startLine": 98,
+        "startChar": 25,
+        "endLine": 98,
+        "endChar": 66
+      },
+      "revId": "736e2cf0a589a36d792502278a0ceac960a94c3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "edf4bcb3_cf11b449",
+        "filename": "go.sum",
+        "patchSetId": 36
+      },
+      "lineNbr": 589,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-03T17:58:26Z",
+      "side": 1,
+      "message": "Make sure we are using v4.8.0 +. (see .mod)",
+      "range": {
+        "startLine": 586,
+        "startChar": 0,
+        "endLine": 589,
+        "endChar": 120
+      },
+      "revId": "736e2cf0a589a36d792502278a0ceac960a94c3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
