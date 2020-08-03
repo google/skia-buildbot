@@ -640,6 +640,15 @@ groups:
       abbr: '{{ $labels.container }}'
       description: 'The app {{ $labels.exported_app }} is running in {{ $labels.project }} but is not checked into {{ $labels.repo }}'
 
+  - alert: TooManyPodRestarts
+    expr: rate(pod_restart_count{}[1h]) * 60 *60 > 2
+    labels:
+      category: infra
+      severity: critical
+    annotations:
+      abbr: '{{ $labels.container }}'
+      description: 'Container {{ $labels.container }} of app {{ $labels.exported_app }} is restarting too often.'
+
 # GitSync.
   - alert: GitSyncStalled
     expr: liveness_last_successful_git_sync_s > 5*60
