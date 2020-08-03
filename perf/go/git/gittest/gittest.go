@@ -3,13 +3,13 @@ package gittest
 
 import (
 	"context"
-	"database/sql"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git/testutils"
@@ -37,7 +37,7 @@ var (
 // The repo is populated with 8 commits, one minute apart, starting at StartTime.
 //
 // The hashes for each commit are going to be random and so are returned also.
-func NewForTest(t *testing.T, dialect perfsql.Dialect) (context.Context, *sql.DB, *testutils.GitBuilder, []string, perfsql.Dialect, *config.InstanceConfig, CleanupFunc) {
+func NewForTest(t *testing.T, dialect perfsql.Dialect) (context.Context, *pgx.Conn, *testutils.GitBuilder, []string, perfsql.Dialect, *config.InstanceConfig, CleanupFunc) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Create a git repo for testing purposes.
