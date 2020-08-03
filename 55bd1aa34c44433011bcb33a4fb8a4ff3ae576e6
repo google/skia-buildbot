@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5ede8e21_d8342fa5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-03T15:30:59Z",
+      "side": 1,
+      "message": "This might be noisy for Perf ingesters, but if so we can always add an exception.",
+      "revId": "55bd1aa34c44433011bcb33a4fb8a4ff3ae576e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
