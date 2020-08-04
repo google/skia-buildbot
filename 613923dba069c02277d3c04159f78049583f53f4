@@ -1,0 +1,85 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004204794",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/304680?revision\u003d4",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "fac6c72b_ca8068d1",
+        "filename": "autoroll/config/chromium-protos-perfetto.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-04T17:47:24Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 1,
+        "startChar": 56,
+        "endLine": 1,
+        "endChar": 62
+      },
+      "revId": "613923dba069c02277d3c04159f78049583f53f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004204794",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/304680?revision\u003d4",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "0e70850d_a0f3f171",
+        "filename": "autoroll/config/chromium-protos-perfetto.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-04T17:47:24Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 28,
+        "startChar": 20,
+        "endLine": 28,
+        "endChar": 26
+      },
+      "revId": "613923dba069c02277d3c04159f78049583f53f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004204794",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/304680?revision\u003d4",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "7c995d87_1961c1bf",
+        "filename": "autoroll/config/chromium-protos-perfetto.json",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-04T17:47:24Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 30,
+        "startChar": 21,
+        "endLine": 30,
+        "endChar": 27
+      },
+      "revId": "613923dba069c02277d3c04159f78049583f53f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
