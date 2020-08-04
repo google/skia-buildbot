@@ -3,6 +3,7 @@
 {
   "childDisplayName": "Chrome Win32 PGO profile",
   "commitMsg": {
+    "template": "{{- define \"subject\" -}}Roll Chrome Win32 Trunk PGO Profile{{- end -}}",
     "cqExtraTrybots": [
       "chrome/try:win-chrome",
     ],

@@ -3,6 +3,7 @@
 {
   "childDisplayName": "Chrome Win64 PGO profile",
   "commitMsg": {
+    "template": "{{- define \"subject\" -}}Roll Chrome Win64 Beta PGO Profile{{- end -}}",
     "cqExtraTrybots": [
       "chrome/try:win64-chrome-beta",
     ],
