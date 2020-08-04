@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "4afffe52_cf63b546",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 12339
+      },
+      "writtenOn": "2020-08-04T21:40:55Z",
+      "side": 1,
+      "message": "I see. Good point - could I throw in another template below in the same manner using boilerplate?\n\nSomething like:\n\"{{- define \\\"subject\\\" -}}Roll Chrome Mac Beta PGO Profile\n{{- end -}}\n\n{{- define \\\"boilerplate\\\" -}} Roll Mac beta pgo profile {{commit id}} to {{commit id}}\n{{- end -}}\"",
+      "parentUuid": "802ac55f_10d3c1b3",
+      "revId": "3178ddf3e3acf637964039f4b2f1af3318c6c393",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a60c169_d318c6b2",
         "filename": "autoroll/config/pgo-win32-chromium.json",
         "patchSetId": 1
@@ -57,6 +75,30 @@
       "revId": "3178ddf3e3acf637964039f4b2f1af3318c6c393",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1d46ae8e_5dc950b8",
+        "filename": "autoroll/config/pgo-win32-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 12339
+      },
+      "writtenOn": "2020-08-04T21:40:55Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "3a60c169_d318c6b2",
+      "range": {
+        "startLine": 6,
+        "startChar": 78,
+        "endLine": 6,
+        "endChar": 79
+      },
+      "revId": "3178ddf3e3acf637964039f4b2f1af3318c6c393",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
