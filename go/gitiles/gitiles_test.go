@@ -490,10 +490,22 @@ func TestListDir(t *testing.T) {
 	resp1 := base64.StdEncoding.EncodeToString([]byte(`100644 blob 573680d74f404d64a7c3441f8a502c007fdcd3b7    gitiles.go
 100644 blob c2b8be8049e8503391239bbf00877ebf5880493c    gitiles_test.go
 040000 tree 81b1fde7557bd75ad0392143a9d79ed78d0ed4ab    testutils`))
-	urlMock.MockOnce(fmt.Sprintf(DownloadURL, repoURL, "my/ref", "go/gitiles"), mockhttpclient.MockGetDialogue([]byte(resp1)))
+	md := mockhttpclient.MockGetDialogue([]byte(resp1))
+	md.ResponseHeader(ModeHeader, "0644")
+	md.ResponseHeader(TypeHeader, "tree")
+	urlMock.MockOnce(fmt.Sprintf(DownloadURL, repoURL, "my/ref", "go/gitiles"), md)
 
-	files, dirs, err := repo.ListDirAtRef(ctx, "go/gitiles", "my/ref")
+	infos, err := repo.ListDirAtRef(ctx, "go/gitiles", "my/ref")
 	require.NoError(t, err)
+	files := []string{}
+	dirs := []string{}
+	for _, fi := range infos {
+		if fi.IsDir() {
+			dirs = append(dirs, fi.Name())
+		} else {
+			files = append(files, fi.Name())
+		}
+	}
 	assertdeep.Equal(t, []string{"gitiles.go", "gitiles_test.go"}, files)
 	assertdeep.Equal(t, []string{"testutils"}, dirs)
 
@@ -519,9 +531,12 @@ func TestListDir(t *testing.T) {
 }
 `
 	urlMock.MockOnce(fmt.Sprintf(CommitURLJSON, repoURL, "my/other/ref"), mockhttpclient.MockGetDialogue([]byte(resp2)))
-	urlMock.MockOnce(fmt.Sprintf(DownloadURL, repoURL, "bbadbbadbbadbbadbbadbbadbbadbbadbbadbbad", "go/gitiles"), mockhttpclient.MockGetDialogue([]byte(resp1)))
+	urlMock.MockOnce(fmt.Sprintf(DownloadURL, repoURL, "bbadbbadbbadbbadbbadbbadbbadbbadbbadbbad", "go/gitiles"), md)
 	resp3 := base64.StdEncoding.EncodeToString([]byte(`100644 blob 6e5cdd994551045ab24a4246906c7723cb12c12e    testutils.go`))
-	urlMock.MockOnce(fmt.Sprintf(DownloadURL, repoURL, "bbadbbadbbadbbadbbadbbadbbadbbadbbadbbad", "go/gitiles/testutils"), mockhttpclient.MockGetDialogue([]byte(resp3)))
+	md = mockhttpclient.MockGetDialogue([]byte(resp3))
+	md.ResponseHeader(ModeHeader, "0644")
+	md.ResponseHeader(TypeHeader, "tree")
+	urlMock.MockOnce(fmt.Sprintf(DownloadURL, repoURL, "bbadbbadbbadbbadbbadbbadbbadbbadbbadbbad", "go/gitiles/testutils"), md)
 	files, err = repo.ListFilesRecursiveAtRef(ctx, "go/gitiles", "my/other/ref")
 	require.NoError(t, err)
 	assertdeep.Equal(t, []string{"gitiles.go", "gitiles_test.go", "testutils/testutils.go"}, files)
@@ -530,20 +545,22 @@ func TestListDir(t *testing.T) {
 func TestLogOptionsToQuery(t *testing.T) {
 	unittest.SmallTest(t)
 
-	test := func(expectQuery string, expectLimit int, opts ...LogOption) {
-		query, limit, err := LogOptionsToQuery(opts)
+	test := func(expectPath string, expectQuery string, expectLimit int, opts ...LogOption) {
+		path, query, limit, err := LogOptionsToQuery(opts)
 		require.NoError(t, err)
+		require.Equal(t, expectPath, path)
 		require.Equal(t, expectQuery, query)
 		require.Equal(t, expectLimit, limit)
 	}
-	test("", 0)
-	test("reverse=true", 0, LogReverse())
-	test("n=1", 0, LogBatchSize(1))
-	test("n=2", 2, LogLimit(2))
-	test("n=5", 5, LogLimit(5), LogBatchSize(10))
-	test("n=5", 5, LogBatchSize(10), LogLimit(5))
-	test("n=5", 0, LogBatchSize(5), LogBatchSize(10))
-	test("n=3&reverse=true", 10, LogReverse(), LogLimit(10), LogBatchSize(3))
+	test("", "", 0)
+	test("", "reverse=true", 0, LogReverse())
+	test("", "n=1", 0, LogBatchSize(1))
+	test("", "n=2", 2, LogLimit(2))
+	test("", "n=5", 5, LogLimit(5), LogBatchSize(10))
+	test("", "n=5", 5, LogBatchSize(10), LogLimit(5))
+	test("", "n=5", 0, LogBatchSize(5), LogBatchSize(10))
+	test("", "n=3&reverse=true", 10, LogReverse(), LogLimit(10), LogBatchSize(3))
+	test("mypath", "n=3&reverse=true", 10, LogReverse(), LogLimit(10), LogBatchSize(3), LogPath("mypath"))
 }
 
 func TestDetails(t *testing.T) {

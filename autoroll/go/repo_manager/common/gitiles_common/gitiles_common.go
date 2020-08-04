@@ -1,7 +1,6 @@
 package gitiles_common
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -116,9 +115,9 @@ func (r *GitilesRepo) LogFirstParent(ctx context.Context, from, to *revision.Rev
 
 // GetFile retrieves the contents of the given file at the given ref.
 func (r *GitilesRepo) GetFile(ctx context.Context, file, ref string) (string, error) {
-	var buf bytes.Buffer
-	if err := r.ReadFileAtRef(ctx, file, ref, &buf); err != nil {
+	contents, err := r.ReadFileAtRef(ctx, file, ref)
+	if err != nil {
 		return "", skerr.Wrap(err)
 	}
-	return buf.String(), nil
+	return string(contents), nil
 }

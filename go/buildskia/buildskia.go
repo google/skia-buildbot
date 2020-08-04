@@ -53,11 +53,11 @@ func GetSkiaHead(client *http.Client) (string, error) {
 //
 // If client is nil then a default timeout client is used.
 func GetSkiaHash(client *http.Client) (string, error) {
-	var buf bytes.Buffer
-	if err := gitiles.NewRepo(common.REPO_CHROMIUM, client).ReadFile(context.TODO(), deps_parser.DepsFileName, &buf); err != nil {
+	depsContents, err := gitiles.NewRepo(common.REPO_CHROMIUM, client).ReadFile(context.TODO(), deps_parser.DepsFileName)
+	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to read Chromium DEPS")
 	}
-	dep, err := deps_parser.GetDep(buf.String(), common.REPO_SKIA)
+	dep, err := deps_parser.GetDep(string(depsContents), common.REPO_SKIA)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Failed to get Skia's LKGR")
 	}

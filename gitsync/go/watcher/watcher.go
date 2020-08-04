@@ -2,7 +2,6 @@ package watcher
 
 import (
 	"context"
-	"fmt"
 	"path"
 	"runtime/debug"
 	"strings"
@@ -308,7 +307,7 @@ func (r *repoImpl) initialIngestion(ctx context.Context) error {
 				logExpr := master.Head
 				if oldHead, ok := oldBranches[master.Name]; ok {
 					sklog.Errorf("Have master @ %s; requesting %s", oldHead, master.Head)
-					logExpr = fmt.Sprintf("%s..%s", oldHead, master.Head)
+					logExpr = git.LogFromTo(oldHead, master.Head)
 				}
 				return r.loadCommitsFromGitiles(ctx, master.Name, logExpr, commitsCh, gitiles.LogReverse(), gitiles.LogBatchSize(batchSize))
 			}); err != nil {
@@ -506,7 +505,7 @@ func (r *repoImpl) Update(ctx context.Context) error {
 				continue
 			}
 			// Only load back to the previous branch head.
-			logExpr = fmt.Sprintf("%s..%s", oldBranch.Head, branch.Head)
+			logExpr = git.LogFromTo(oldBranch.Head, branch.Head)
 		}
 		if err := r.processCommits(ctx, r.addCommitsToCacheFn(), func(ctx context.Context, commitsCh chan<- *commitBatch) error {
 			err := r.loadCommitsFromGitiles(ctx, branch.Name, logExpr, commitsCh)

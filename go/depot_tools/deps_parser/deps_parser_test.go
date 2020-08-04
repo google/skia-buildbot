@@ -1,7 +1,6 @@
 package deps_parser
 
 import (
-	"bytes"
 	"context"
 	"strings"
 	"testing"
@@ -116,9 +115,9 @@ func TestParseDepsRealWorld(t *testing.T) {
 	// checkDeps loads the DEPS file from the given repo at the given
 	// revision and asserts that it contains the given deps.
 	checkDeps := func(repo string, rev string, expectMap map[string]*depsEntryPos) {
-		var buf bytes.Buffer
-		require.NoError(t, gitiles.NewRepo(repo, nil).ReadFileAtRef(ctx, "DEPS", rev, &buf))
-		actual, poss, err := parseDeps(buf.String())
+		contents, err := gitiles.NewRepo(repo, nil).ReadFileAtRef(ctx, "DEPS", rev)
+		require.NoError(t, err)
+		actual, poss, err := parseDeps(string(contents))
 		require.NoError(t, err)
 		actualMap := make(map[string]*depsEntryPos, len(actual))
 		for depId, dep := range actual {

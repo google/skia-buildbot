@@ -5,13 +5,27 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/go/vfs"
 )
+
+// Types of git objects.
+const (
+	ObjectTypeBlob   ObjectType = "blob"
+	ObjectTypeCommit ObjectType = "commit"
+	ObjectTypeTree   ObjectType = "tree"
+)
+
+// ObjectType represents a Git object type.
+type ObjectType string
 
 // Clone runs "git clone" into the given destination directory. Most callers
 // should use NewRepo or NewCheckout instead.
@@ -111,4 +125,61 @@ func DeleteLockFiles(ctx context.Context, workdir string) error {
 		}
 	}
 	return nil
+}
+
+// ParseDir parses the contents of a directory. Expects the contents to be in
+// the format used by git, ie. lines taking the form:
+//
+// mode tree|blob hash name
+//
+func ParseDir(contents []byte) ([]os.FileInfo, error) {
+	rv := []os.FileInfo{}
+	for _, line := range strings.Split(strings.TrimSpace(string(contents)), "\n") {
+		if line == "" {
+			continue
+		}
+		// Lines are formatted as follows:
+		// mode tree|blob hash name
+		fields := strings.Fields(line)
+		if len(fields) != 4 {
+			return nil, skerr.Fmt("Expected format \"mode tree|blob hash name\" but got:\n %s", contents)
+		}
+		// We can't know the size of the directory contents with the information
+		// we're given.
+		size := 0
+		fi, err := MakeFileInfo(fields[3], fields[0], ObjectType(fields[1]), size)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		rv = append(rv, fi)
+	}
+	return rv, nil
+}
+
+// MakeFileInfo returns an os.FileInfo with the given information.
+func MakeFileInfo(name, mode string, typ ObjectType, size int) (os.FileInfo, error) {
+	modeInt, err := strconv.ParseUint(mode, 8, 32)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "invalid file mode %q", mode)
+	}
+	fileMode := os.FileMode(modeInt)
+	isDir := false
+	if typ == ObjectTypeTree {
+		isDir = true
+		fileMode = fileMode | os.ModeDir
+	}
+	if typ != ObjectTypeTree && typ != ObjectTypeBlob {
+		return nil, skerr.Fmt("Invalid file type %q", typ)
+	}
+	return vfs.FileInfo{
+		Name: path.Base(name),
+		Size: int64(size),
+		Mode: fileMode,
+		// Gitiles doesn't give us the modification timestamp. We could make
+		// one up using the timestamp of the commit which last touched the
+		// file, but that would require an extra request.
+		ModTime: time.Time{},
+		IsDir:   isDir,
+		Sys:     nil,
+	}.Get(), nil
 }

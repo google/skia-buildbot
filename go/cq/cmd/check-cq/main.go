@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"flag"
 	"fmt"
@@ -56,8 +55,8 @@ func main() {
 	// For each branch head, read the tasks.json file.
 	taskCfgs := make(map[string]*specs.TasksCfg, len(branches))
 	for _, branch := range branches {
-		buf := bytes.Buffer{}
-		if err = repo.ReadFileAtRef(ctx, specs.TASKS_CFG_FILE, branch.Head, &buf); err != nil {
+		contents, err := repo.ReadFileAtRef(ctx, specs.TASKS_CFG_FILE, branch.Head)
+		if err != nil {
 			if strings.Contains(err.Error(), "404 Not Found") {
 				sklog.Warningf("Could not find %s on %s", specs.TASKS_CFG_FILE, branch.Name)
 				// This is valid; there are no trybots on this branch.
@@ -68,7 +67,7 @@ func main() {
 			}
 			sklog.Fatalf("Failed to read tasks.json for %s; %s", branch.Name, err)
 		}
-		cfg, err := specs.ParseTasksCfg(buf.String())
+		cfg, err := specs.ParseTasksCfg(string(contents))
 		if err != nil {
 			sklog.Fatalf("Failed to parse tasks.json: %s", err)
 		}
