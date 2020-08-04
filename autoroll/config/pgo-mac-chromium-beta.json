@@ -3,6 +3,8 @@
 {
   "childDisplayName": "Chrome Mac PGO profile",
   "commitMsg": {
+    "template": "{{- define \"subject\" -}}Roll Chrome Mac Beta PGO Profile\
+{{- end -}}",
     "cqExtraTrybots": [
       "chrome/try:mac-chrome-beta",
     ],
