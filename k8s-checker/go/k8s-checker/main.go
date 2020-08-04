@@ -4,7 +4,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"flag"
 	"fmt"
@@ -236,24 +235,29 @@ func performChecks(ctx context.Context, clientset *kubernetes.Clientset, g *giti
 	}
 
 	// Read files from the k8sYamlRepo using gitiles.
-	files, _, err := g.ListDir(ctx, *cluster)
+	fileInfos, err := g.ListDir(ctx, *cluster)
 	if err != nil {
 		return nil, fmt.Errorf("Error when listing files from %s: %s", k8sYamlRepo, err)
 	}
 
 	checkedInAppsToContainers := map[string]util.StringSet{}
-	for _, f := range files {
+	for _, fi := range fileInfos {
+		if fi.IsDir() {
+			// Only interested in files.
+			continue
+		}
+		f := fi.Name()
 		if filepath.Ext(f) != ".yaml" {
 			// Only interested in YAML configs.
 			continue
 		}
-		var buf bytes.Buffer
-		if err := g.ReadFile(ctx, filepath.Join(*cluster, f), &buf); err != nil {
+		yamlContents, err := g.ReadFile(ctx, filepath.Join(*cluster, f))
+		if err != nil {
 			return nil, fmt.Errorf("Could not read file %s from %s %s: %s", f, k8sYamlRepo, *cluster, err)
 		}
 
 		// There can be multiple YAML documents within a single YAML file.
-		yamlDocs := strings.Split(buf.String(), "---")
+		yamlDocs := strings.Split(string(yamlContents), "---")
 		for _, yamlDoc := range yamlDocs {
 			var config K8sConfig
 			if err := yaml.Unmarshal([]byte(yamlDoc), &config); err != nil {

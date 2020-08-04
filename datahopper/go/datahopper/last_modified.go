@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -21,7 +20,7 @@ func updateLastModifiedMetrics(ctx context.Context, client *http.Client, reposTo
 	now := time.Now()
 	for repo, files := range reposToFiles {
 		for _, file := range files {
-			log, err := repo.Log(ctx, fmt.Sprintf("master/%s", file), gitiles.LogLimit(1))
+			log, err := repo.Log(ctx, "master", gitiles.LogLimit(1), gitiles.LogPath(file))
 			if err != nil {
 				return skerr.Wrapf(err, "Failed loading %s", file)
 			}

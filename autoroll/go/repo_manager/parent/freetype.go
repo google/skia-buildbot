@@ -1,7 +1,6 @@
 package parent
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"io/ioutil"
@@ -61,11 +60,11 @@ func NewFreeTypeParent(ctx context.Context, c GitilesConfig, reg *config_vars.Re
 			return nil, skerr.Wrap(err)
 		}
 		ftVersion = strings.TrimSpace(ftVersion)
-		var buf bytes.Buffer
-		if err := parentRepo.ReadFileAtRef(ctx, FtReadmePath, baseCommit, &buf); err != nil {
+		readmeContents, err := parentRepo.ReadFileAtRef(ctx, FtReadmePath, baseCommit)
+		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		oldReadmeContents := buf.String()
+		oldReadmeContents := string(readmeContents)
 		newReadmeContents := FtReadmeVersionRegex.ReplaceAllString(oldReadmeContents, fmt.Sprintf(FtReadmeVersionTmpl, "", ftVersion))
 		newReadmeContents = FtReadmeRevisionRegex.ReplaceAllString(newReadmeContents, fmt.Sprintf(FtReadmeRevisionTmpl, "", to.Id))
 		if newReadmeContents != oldReadmeContents {
@@ -110,11 +109,11 @@ func mergeInclude(ctx context.Context, include, from, to, baseCommit string, cha
 	// Obtain the current version of the file in the parent repo.
 	parentHeader := path.Join(FtIncludeDest, include)
 	dest := filepath.Join(wd, include)
-	var buf bytes.Buffer
-	if err := parentRepo.ReadFileAtRef(ctx, parentHeader, baseCommit, &buf); err != nil {
+	parentHeaderContents, err := parentRepo.ReadFileAtRef(ctx, parentHeader, baseCommit)
+	if err != nil {
 		return skerr.Wrap(err)
 	}
-	oldParentContents := buf.String()
+	oldParentContents := string(parentHeaderContents)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -122,7 +121,7 @@ func mergeInclude(ctx context.Context, include, from, to, baseCommit string, cha
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return skerr.Wrap(err)
 	}
-	if err := ioutil.WriteFile(dest, buf.Bytes(), os.ModePerm); err != nil {
+	if err := ioutil.WriteFile(dest, parentHeaderContents, os.ModePerm); err != nil {
 		return skerr.Wrap(err)
 	}
 	if _, err := gd.Git(ctx, "add", dest); err != nil {

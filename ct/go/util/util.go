@@ -158,11 +158,11 @@ func BuildSkiaSKPInfo(ctx context.Context, runningOnSwarming bool) (string, erro
 func GetCipdPackageFromAsset(assetName string) (string, error) {
 	// Find the latest version of the asset from gitiles.
 	assetVersionFilePath := path.Join("infra", "bots", "assets", assetName, "VERSION")
-	var buf bytes.Buffer
-	if err := gitiles.NewRepo(common.REPO_SKIA, nil).ReadFile(context.Background(), assetVersionFilePath, &buf); err != nil {
+	contents, err := gitiles.NewRepo(common.REPO_SKIA, nil).ReadFile(context.Background(), assetVersionFilePath)
+	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s:skia/bots/%s:version:%s", assetName, assetName, strings.TrimSpace(buf.String())), nil
+	return fmt.Sprintf("%s:skia/bots/%s:version:%s", assetName, assetName, strings.TrimSpace(string(contents))), nil
 }
 
 // ResetCheckout resets the specified Git checkout.

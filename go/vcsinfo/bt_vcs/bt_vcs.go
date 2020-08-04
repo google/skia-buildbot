@@ -1,7 +1,6 @@
 package bt_vcs
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"math"
@@ -252,11 +251,11 @@ func (b *BigTableVCS) ByIndex(ctx context.Context, idx int) (*vcsinfo.LongCommit
 
 // GetFile implements the vcsinfo.VCS interface
 func (b *BigTableVCS) GetFile(ctx context.Context, fileName, commitHash string) (string, error) {
-	var buf bytes.Buffer
-	if err := b.gitiles.ReadFileAtRef(ctx, fileName, commitHash, &buf); err != nil {
+	contents, err := b.gitiles.ReadFileAtRef(ctx, fileName, commitHash)
+	if err != nil {
 		return "", skerr.Wrapf(err, "reading file %s @ %s via gitiles", fileName, commitHash)
 	}
-	return buf.String(), nil
+	return string(contents), nil
 }
 
 // GetGitStore implements the gitstore.GitStoreBased interface

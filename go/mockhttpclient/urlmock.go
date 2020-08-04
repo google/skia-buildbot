@@ -64,6 +64,15 @@ type MockDialogue struct {
 	responseStatus  string
 	responseCode    int
 	responsePayload []byte
+	responseHeaders map[string][]string
+}
+
+// ResponseHeader adds the given header to the response.
+func (md *MockDialogue) ResponseHeader(key, value string) {
+	if md.responseHeaders == nil {
+		md.responseHeaders = map[string][]string{}
+	}
+	md.responseHeaders[key] = append(md.responseHeaders[key], value)
 }
 
 func (md *MockDialogue) GetResponse(r *http.Request) (*http.Response, error) {
@@ -90,6 +99,7 @@ func (md *MockDialogue) GetResponse(r *http.Request) (*http.Response, error) {
 	}
 	return &http.Response{
 		Body:       &respBodyCloser{bytes.NewReader(md.responsePayload)},
+		Header:     md.responseHeaders,
 		Status:     md.responseStatus,
 		StatusCode: md.responseCode,
 	}, nil

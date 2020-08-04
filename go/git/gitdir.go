@@ -207,3 +207,21 @@ func (g GitDir) FullHash(ctx context.Context, ref string) (string, error) {
 	}
 	return output, nil
 }
+
+// CatFile runs "git cat-file -p <ref>:<path>".
+func (g GitDir) CatFile(ctx context.Context, ref, path string) ([]byte, error) {
+	output, err := g.Git(ctx, "cat-file", "-p", fmt.Sprintf("%s:%s", ref, path))
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return []byte(output), nil
+}
+
+// ReadDir is analogous to os.File.Readdir for a particular ref.
+func (g GitDir) ReadDir(ctx context.Context, ref, path string) ([]os.FileInfo, error) {
+	contents, err := g.CatFile(ctx, ref, path)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return ParseDir(contents)
+}

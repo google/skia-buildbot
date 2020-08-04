@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -49,6 +50,11 @@ const (
 	// https://gerrit.googlesource.com/gitfs/+show/59c1163fd1737445281f2339399b2b986b0d30fe/gitiles/client.go#102
 	maxQPS   = rate.Limit(4.0)
 	maxBurst = 40
+
+	// ModeHeader is an HTTP header which indicates the file mode.
+	ModeHeader = "X-Gitiles-Path-Mode"
+	// TypeHeader is an HTTP header which indicates the object type.
+	TypeHeader = "X-Gitiles-Object-Type"
 )
 
 var (
@@ -112,74 +118,82 @@ func (r *Repo) getJSON(ctx context.Context, url string, dest interface{}) error 
 	return skerr.Wrap(json.Unmarshal(b, dest))
 }
 
-// ReadFileAtRef reads the given file at the given ref.
-func (r *Repo) ReadFileAtRef(ctx context.Context, srcPath, ref string, w io.Writer) error {
-	resp, err := r.get(ctx, fmt.Sprintf(DownloadURL, r.URL, ref, srcPath))
+// ReadObject reads the given object at the given ref, returning its contents
+// and FileInfo.
+func (r *Repo) ReadObject(ctx context.Context, path, ref string) (os.FileInfo, []byte, error) {
+	path = strings.TrimSuffix(path, "/")
+	resp, err := r.get(ctx, fmt.Sprintf(DownloadURL, r.URL, ref, path))
 	if err != nil {
-		return err
+		return nil, nil, skerr.Wrap(err)
 	}
 	defer util.Close(resp.Body)
+	var buf bytes.Buffer
 	d := base64.NewDecoder(base64.StdEncoding, resp.Body)
-	if _, err := io.Copy(w, d); err != nil {
-		return err
+	if _, err := io.Copy(&buf, d); err != nil {
+		return nil, nil, skerr.Wrap(err)
 	}
-	return nil
+	content := buf.Bytes()
+	mh := resp.Header.Get(ModeHeader)
+	typ := resp.Header.Get(TypeHeader)
+	fi, err := git.MakeFileInfo(path, mh, git.ObjectType(typ), len(content))
+	if err != nil {
+		return nil, nil, skerr.Wrap(err)
+	}
+	return fi, content, nil
+}
+
+// ReadFileAtRef reads the given file at the given ref.
+func (r *Repo) ReadFileAtRef(ctx context.Context, srcPath, ref string) ([]byte, error) {
+	_, rv, err := r.ReadObject(ctx, srcPath, ref)
+	return rv, err
 }
 
 // ReadFile reads the current version of the given file from the master branch
 // of the Repo.
-func (r *Repo) ReadFile(ctx context.Context, srcPath string, w io.Writer) error {
-	return r.ReadFileAtRef(ctx, srcPath, "master", w)
+func (r *Repo) ReadFile(ctx context.Context, srcPath string) ([]byte, error) {
+	return r.ReadFileAtRef(ctx, srcPath, "master")
 }
 
 // DownloadFile downloads the current version of the given file from the master
 // branch of the Repo.
 func (r *Repo) DownloadFile(ctx context.Context, srcPath, dstPath string) error {
 	return util.WithWriteFile(dstPath, func(w io.Writer) error {
-		return r.ReadFile(ctx, srcPath, w)
+		contents, err := r.ReadFile(ctx, srcPath)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		_, err = w.Write(contents)
+		return skerr.Wrap(err)
 	})
 }
 
 // DownloadFileAtRef downloads the given file at the given ref.
 func (r *Repo) DownloadFileAtRef(ctx context.Context, srcPath, ref, dstPath string) error {
 	return util.WithWriteFile(dstPath, func(w io.Writer) error {
-		return r.ReadFileAtRef(ctx, srcPath, ref, w)
+		contents, err := r.ReadFileAtRef(ctx, srcPath, ref)
+		if err != nil {
+			return skerr.Wrap(err)
+		}
+		_, err = w.Write(contents)
+		return skerr.Wrap(err)
 	})
 }
 
 // ListDirAtRef reads the given directory at the given ref. Returns a slice of
 // file names and a slice of dir names, relative to the given directory, or any
 // error which occurred.
-func (r *Repo) ListDirAtRef(ctx context.Context, dir, ref string) ([]string, []string, error) {
-	path := strings.TrimSuffix(dir, "/")
-	buf := bytes.Buffer{}
-	if err := r.ReadFileAtRef(ctx, path, ref, &buf); err != nil {
-		return nil, nil, err
+func (r *Repo) ListDirAtRef(ctx context.Context, dir, ref string) ([]os.FileInfo, error) {
+	_, contents, err := r.ReadObject(ctx, dir, ref)
+	if err != nil {
+		return nil, skerr.Wrap(err)
 	}
-	files := []string{}
-	dirs := []string{}
-	for _, line := range strings.Split(strings.TrimSpace(buf.String()), "\n") {
-		// Lines are formatted as follows:
-		// mode tree|blob hash name
-		fields := strings.Fields(line)
-		if len(fields) != 4 {
-			return nil, nil, skerr.Fmt("Got invalid response from gitiles. Expected format \"mode tree|blob hash name\" but got:\n %s", buf.String())
-		}
-		if fields[1] == "tree" {
-			dirs = append(dirs, fields[3])
-		} else if fields[1] == "blob" {
-			files = append(files, fields[3])
-		} else {
-			return nil, nil, skerr.Fmt("Got invalid response from gitiles. Expected format \"mode tree|blob hash name\" but got %q instead of \"tree\" or \"blob\".", fields[1])
-		}
-	}
-	return files, dirs, nil
+	return git.ParseDir(contents)
 }
 
 // ListDir reads the given directory on the master branch. Returns a slice of
 // file names and a slice of dir names, relative to the given directory, or any
 // error which occurred.
-func (r *Repo) ListDir(ctx context.Context, dir string) ([]string, []string, error) {
+func (r *Repo) ListDir(ctx context.Context, dir string) ([]os.FileInfo, error) {
 	return r.ListDirAtRef(ctx, dir, "master")
 }
 
@@ -205,16 +219,17 @@ func (r *Repo) ListFilesRecursiveAtRef(ctx context.Context, topDir, ref string) 
 	rv := []string{}
 	var helper func(string) error
 	helper = func(dir string) error {
-		files, dirs, err := r.ListDirAtRef(ctx, dir, hash)
+		infos, err := r.ListDirAtRef(ctx, dir, hash)
 		if err != nil {
 			return err
 		}
-		for _, f := range files {
-			rv = append(rv, strings.TrimPrefix(dir+"/"+f, topDir+"/"))
-		}
-		for _, d := range dirs {
-			if err := helper(dir + "/" + d); err != nil {
-				return err
+		for _, fi := range infos {
+			if fi.IsDir() {
+				if err := helper(dir + "/" + fi.Name()); err != nil {
+					return err
+				}
+			} else {
+				rv = append(rv, strings.TrimPrefix(dir+"/"+fi.Name(), topDir+"/"))
 			}
 		}
 		return nil
@@ -353,10 +368,13 @@ func (r *Repo) GetTreeDiffs(ctx context.Context, ref string) ([]*TreeDiff, error
 	return c.TreeDiffs, nil
 }
 
-// LogOption represents an optional parameter to a Log function.
+// LogOption represents an optional parameter to a Log function. Either Key()
+// AND Value() OR Path() must return non-empty strings. Only one LogOption in
+// a given set may return a non-empty value for Path().
 type LogOption interface {
 	Key() string
 	Value() string
+	Path() string
 }
 
 type stringLogOption [2]string
@@ -367,6 +385,10 @@ func (s stringLogOption) Key() string {
 
 func (s stringLogOption) Value() string {
 	return s[1]
+}
+
+func (s stringLogOption) Path() string {
+	return ""
 }
 
 // LogReverse is a LogOption which indicates that the commits in the Log should
@@ -395,21 +417,56 @@ func (n logLimit) Value() string {
 	return strconv.Itoa(int(n))
 }
 
+func (n logLimit) Path() string {
+	return ""
+}
+
 // LogLimit is a LogOption which makes Log return at most N commits.
 func LogLimit(n int) LogOption {
 	return logLimit(n)
 }
 
-// LogOptionsToQuery converts the given LogOptions to a URL query string.
-// Returns the query string and the maximum number of commits to return from a
-// Log query (or zero if none is provided, indicating no limit), or any error
-// which occurred.
-func LogOptionsToQuery(opts []LogOption) (string, int, error) {
+// logPath restricts the log to a given path.
+type logPath string
+
+func (p logPath) Key() string {
+	return ""
+}
+
+func (p logPath) Value() string {
+	return ""
+}
+
+func (p logPath) Path() string {
+	return string(p)
+}
+
+// LogPath is a LogOption which limits the git log to the given path.
+func LogPath(path string) LogOption {
+	return logPath(path)
+}
+
+// LogOptionsToQuery converts the given LogOptions to a URL sub-path and query
+// string. Returns the URL sub-path and query string and the maximum number of
+// commits to return from a Log query (or zero if none is provided, indicating
+// no limit), or any error which occurred.
+func LogOptionsToQuery(opts []LogOption) (string, string, int, error) {
 	limit := 0
+	path := ""
 	query := ""
 	if len(opts) > 0 {
 		paramsMap := make(map[string]string, len(opts))
 		for _, opt := range opts {
+			optPath := opt.Path()
+			if optPath != "" {
+				if path != "" {
+					return "", "", 0, skerr.Fmt("Only one log option may change the URL path")
+				}
+				path = optPath
+			}
+			if opt.Key() == "" || opt.Value() == "" {
+				continue
+			}
 			// If LogLimit and LogBatchSize are both provided, or if
 			// LogBatchSize is provided more than once, use the
 			// smaller value. This ensures that we respect the batch
@@ -425,13 +482,13 @@ func LogOptionsToQuery(opts []LogOption) (string, int, error) {
 				if err != nil {
 					// This shouldn't happen, since we used
 					// strconv.Itoi to create it.
-					return "", 0, skerr.Wrap(err)
+					return "", "", 0, skerr.Wrap(err)
 				}
 				newInt, err := strconv.Atoi(opt.Value())
 				if err != nil {
 					// This shouldn't happen, since we used
 					// strconv.Itoi to create it.
-					return "", 0, skerr.Wrap(err)
+					return "", "", 0, skerr.Wrap(err)
 				}
 				if newInt < existInt {
 					paramsMap[opt.Key()] = opt.Value()
@@ -450,7 +507,7 @@ func LogOptionsToQuery(opts []LogOption) (string, int, error) {
 		sort.Strings(params) // For consistency in tests.
 		query = strings.Join(params, "&")
 	}
-	return query, limit, nil
+	return path, query, limit, nil
 }
 
 // logHelper is used to perform requests which are equivalent to "git log".
@@ -459,9 +516,12 @@ func LogOptionsToQuery(opts []LogOption) (string, int, error) {
 // returned, unless it was ErrStopIteration.
 func (r *Repo) logHelper(ctx context.Context, url string, fn func(context.Context, []*vcsinfo.LongCommit) error, opts ...LogOption) error {
 	// Build the query parameters.
-	query, limit, err := LogOptionsToQuery(opts)
+	path, query, limit, err := LogOptionsToQuery(opts)
 	if err != nil {
 		return err
+	}
+	if path != "" {
+		url += "/" + path
 	}
 	if query != "" {
 		url += "&" + query

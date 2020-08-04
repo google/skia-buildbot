@@ -55,11 +55,11 @@ var (
 // contents of what the new buildbucket.config file should be.
 func getBuildbucketCfgFromJobs(ctx context.Context, repo *gitiles.Repo) (string, error) {
 	// Read tasks.json from the specified repository.
-	var tasksBuf bytes.Buffer
-	if err := repo.ReadFileAtRef(ctx, specs.TASKS_CFG_FILE, "master", &tasksBuf); err != nil {
+	tasksContents, err := repo.ReadFileAtRef(ctx, specs.TASKS_CFG_FILE, "master")
+	if err != nil {
 		return "", skerr.Fmt("Could not read %s: %s", specs.TASKS_CFG_FILE, err)
 	}
-	tasksCfg, err := specs.ParseTasksCfg(tasksBuf.String())
+	tasksCfg, err := specs.ParseTasksCfg(string(tasksContents))
 	if err != nil {
 		return "", skerr.Fmt("Could not parse %s: %s", specs.TASKS_CFG_FILE, err)
 	}
@@ -90,11 +90,11 @@ func getBuildbucketCfgFromJobs(ctx context.Context, repo *gitiles.Repo) (string,
 // getCurrentBuildbucketCfg returns the current contents of buildbucket.config for the
 // specified repository.
 func getCurrentBuildbucketCfg(ctx context.Context, repo *gitiles.Repo) (string, error) {
-	var buf bytes.Buffer
-	if err := repo.ReadFileAtRef(ctx, bbCfgFileName, bbCfgBranch, &buf); err != nil {
+	contents, err := repo.ReadFileAtRef(ctx, bbCfgFileName, bbCfgBranch)
+	if err != nil {
 		return "", skerr.Fmt("Could not read %s: %s", bbCfgFileName, err)
 	}
-	return buf.String(), nil
+	return string(contents), nil
 }
 
 // updateBuildbucketCfg creates a Gerrit CL to update buildbucket.config. If submit flag is true then that CL
