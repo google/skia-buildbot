@@ -1,10 +1,12 @@
 package sqltest
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"testing"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	perfsql "go.skia.org/infra/perf/go/sql"
@@ -37,7 +39,7 @@ const (
 // test.
 //
 // If migrations to are be applied then set applyMigrations to true.
-func NewCockroachDBForTests(t *testing.T, databaseName string, applyMigrations ApplyMigrationsOption) (*sql.DB, Cleanup) {
+func NewCockroachDBForTests(t *testing.T, databaseName string, applyMigrations ApplyMigrationsOption) (*pgxpool.Pool, Cleanup) {
 	// Note that the migrationsConnection is different from the sql.Open
 	// connection string since migrations know about CockroachDB, but we use the
 	// Postgres driver for the database/sql connection since there's no native
@@ -63,12 +65,17 @@ func NewCockroachDBForTests(t *testing.T, databaseName string, applyMigrations A
 		require.NoError(t, err)
 	}
 
+	ctx := context.Background()
+	conn, err := pgxpool.Connect(ctx, connectionString)
+	require.NoError(t, err)
+
 	cleanup := func() {
 		// Don't bother applying migrations.Down since we aren't testing
 		// migrations here and it just slows down the tests.
 		_, err = db.Exec(fmt.Sprintf("DROP DATABASE %s CASCADE;", databaseName))
 		assert.NoError(t, err)
+		require.NoError(t, db.Close())
+		conn.Close()
 	}
-
-	return db, cleanup
+	return conn, cleanup
 }
