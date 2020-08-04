@@ -86,7 +86,7 @@ var PACKAGES = map[string]*Package{
 	"skia/bots/cockroachdb": {
 		Path:    "cockroachdb",
 		Name:    "skia/bots/cockroachdb",
-		Version: "version:2",
+		Version: "version:3",
 	},
 	"skia/bots/gcloud_linux": {
 		Path:    "gcloud_linux",

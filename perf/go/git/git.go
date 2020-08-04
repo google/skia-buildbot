@@ -8,7 +8,6 @@ package git
 import (
 	"bufio"
 	"context"
-	"database/sql"
 	"io"
 	"os"
 	"os/exec"
@@ -17,6 +16,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/metrics2"
@@ -49,13 +50,10 @@ var (
 	}
 )
 
-// statements allows looking up raw SQL statements by their statement id.
-type statements map[statement]string
+// statements holds all the raw SQL statemens used per Dialect of SQL.
+var statements = map[statement]string{
 
-// statementsByDialect holds all the raw SQL statemens used per Dialect of SQL.
-var statementsByDialect = map[perfsql.Dialect]statements{
-	perfsql.CockroachDBDialect: {
-		getMostRecentGitHashAndCommitNumber: `
+	getMostRecentGitHashAndCommitNumber: `
 		SELECT
 			git_hash, commit_number
 		FROM
@@ -65,7 +63,7 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 		LIMIT
 			1
 		`,
-		insert: `
+	insert: `
 		INSERT INTO
 			Commits (commit_number, git_hash, commit_time, author, subject)
 		VALUES
@@ -73,14 +71,14 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 		ON CONFLICT
 		DO NOTHING
 		`,
-		getCommitNumberFromGitHash: `
+	getCommitNumberFromGitHash: `
 		SELECT
 			commit_number
 		FROM
 			Commits
 		WHERE
 			git_hash=$1`,
-		getCommitNumberFromTime: `
+	getCommitNumberFromTime: `
 		SELECT
 			commit_number
 		FROM
@@ -92,7 +90,7 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 		LIMIT
 			1
 		`,
-		getCommitsFromTimeRange: `
+	getCommitsFromTimeRange: `
 		SELECT
 			commit_number, git_hash, commit_time, author, subject
 		FROM
@@ -103,7 +101,7 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 		ORDER BY
 			commit_number ASC
 		`,
-		getCommitsFromCommitNumberRange: `
+	getCommitsFromCommitNumberRange: `
 		SELECT
 			commit_number, git_hash, commit_time, author, subject
 		FROM
@@ -114,7 +112,7 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 		ORDER BY
 			commit_number ASC
 		`,
-		getCommitFromCommitNumber: `
+	getCommitFromCommitNumber: `
 		SELECT
 			commit_number, git_hash, commit_time, author, subject
 		FROM
@@ -122,7 +120,7 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 		WHERE
 			commit_number = $1
 		`,
-		getHashFromCommitNumber: `
+	getHashFromCommitNumber: `
 		SELECT
 			git_hash
 		FROM
@@ -130,7 +128,6 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 		WHERE
 			commit_number=$1
 		`,
-	},
 }
 
 // Git implements the minimal functionality Perf needs to interface to Git.
@@ -146,8 +143,7 @@ type Git struct {
 
 	instanceConfig *config.InstanceConfig
 
-	// preparedStatements are all the prepared SQL statements.
-	preparedStatements map[statement]*sql.Stmt
+	db *pgxpool.Pool
 
 	// Metrics
 	updateCalled                                          metrics2.Counter
@@ -164,7 +160,7 @@ type Git struct {
 //
 // The instance created does not poll by default, callers need to call
 // StartBackgroundPolling().
-func New(ctx context.Context, local bool, db *sql.DB, dialect perfsql.Dialect, instanceConfig *config.InstanceConfig) (*Git, error) {
+func New(ctx context.Context, local bool, db *pgxpool.Pool, dialect perfsql.Dialect, instanceConfig *config.InstanceConfig) (*Git, error) {
 	// Do git authentication if required.
 	if instanceConfig.GitRepoConfig.GitAuthType == config.GitAuthGerrit {
 		sklog.Info("Authenticating to Gerrit.")
@@ -199,28 +195,17 @@ func New(ctx context.Context, local bool, db *sql.DB, dialect perfsql.Dialect, i
 		}
 	}
 
-	// Prepare all our SQL statements.
-	sklog.Infof("Preparing statements.")
-	preparedStatements := map[statement]*sql.Stmt{}
-	for key, statement := range statementsByDialect[dialect] {
-		prepared, err := db.Prepare(statement)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to prepare statment %v %q", key, statement)
-		}
-		preparedStatements[key] = prepared
-	}
-
 	ret := &Git{
-		gitFullPath:                                           gitFullPath,
-		preparedStatements:                                    preparedStatements,
-		instanceConfig:                                        instanceConfig,
-		updateCalled:                                          metrics2.GetCounter("perf_git_update_called"),
-		commitNumberFromGitHashCalled:                         metrics2.GetCounter("perf_git_commit_number_from_githash_called"),
-		commitNumberFromTimeCalled:                            metrics2.GetCounter("perf_git_commit_number_from_time_called"),
-		commitSliceFromTimeRangeCalled:                        metrics2.GetCounter("perf_git_commits_slice_from_time_range_called"),
-		commitSliceFromCommitNumberRangeCalled:                metrics2.GetCounter("perf_git_commits_slice_from_commit_number_range_called"),
-		commitFromCommitNumberCalled:                          metrics2.GetCounter("perf_git_commit_from_commit_number_called"),
-		gitHashFromCommitNumberCalled:                         metrics2.GetCounter("perf_git_githash_from_commit_number_called"),
+		gitFullPath:                            gitFullPath,
+		db:                                     db,
+		instanceConfig:                         instanceConfig,
+		updateCalled:                           metrics2.GetCounter("perf_git_update_called"),
+		commitNumberFromGitHashCalled:          metrics2.GetCounter("perf_git_commit_number_from_githash_called"),
+		commitNumberFromTimeCalled:             metrics2.GetCounter("perf_git_commit_number_from_time_called"),
+		commitSliceFromTimeRangeCalled:         metrics2.GetCounter("perf_git_commits_slice_from_time_range_called"),
+		commitSliceFromCommitNumberRangeCalled: metrics2.GetCounter("perf_git_commits_slice_from_commit_number_range_called"),
+		commitFromCommitNumberCalled:           metrics2.GetCounter("perf_git_commit_from_commit_number_called"),
+		gitHashFromCommitNumberCalled:          metrics2.GetCounter("perf_git_githash_from_commit_number_called"),
 		commitNumbersWhenFileChangesInCommitNumberRangeCalled: metrics2.GetCounter("perf_git_commit_numbers_when_file_changes_in_commit_number_range_called"),
 	}
 
@@ -362,7 +347,7 @@ func (g *Git) Update(ctx context.Context) error {
 	if err != nil {
 		// If the Commits table is empty then start populating it from the very
 		// first commit to the repo.
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			cmd = exec.CommandContext(ctx, g.gitFullPath, "rev-list", "HEAD", `--pretty=%aN <%aE>%n%s%n%ct`, "--reverse")
 			nextCommitNumber = types.CommitNumber(0)
 		} else {
@@ -386,7 +371,7 @@ func (g *Git) Update(ctx context.Context) error {
 	total := 0
 	err = parseGitRevLogStream(stdout, func(p Commit) error {
 		// Add p to the database starting at nextCommitNumber.
-		_, err := g.preparedStatements[insert].ExecContext(ctx, nextCommitNumber, p.GitHash, p.Timestamp, p.Author, p.Subject)
+		_, err := g.db.Exec(ctx, statements[insert], nextCommitNumber, p.GitHash, p.Timestamp, p.Author, p.Subject)
 		if err != nil {
 			return skerr.Wrapf(err, "Failed to insert commit %q into database.", p.GitHash)
 		}
@@ -415,7 +400,7 @@ func (g *Git) Update(ctx context.Context) error {
 func (g *Git) getMostRecentCommit(ctx context.Context) (string, types.CommitNumber, error) {
 	var gitHash string
 	var commitNumber types.CommitNumber
-	if err := g.preparedStatements[getMostRecentGitHashAndCommitNumber].QueryRowContext(ctx).Scan(&gitHash, &commitNumber); err != nil {
+	if err := g.db.QueryRow(ctx, statements[getMostRecentGitHashAndCommitNumber]).Scan(&gitHash, &commitNumber); err != nil {
 		// Don't wrap the err, we need to see if it's sql.ErrNoRows.
 		return "", types.BadCommitNumber, err
 	}
@@ -426,7 +411,7 @@ func (g *Git) getMostRecentCommit(ctx context.Context) (string, types.CommitNumb
 func (g *Git) CommitNumberFromGitHash(ctx context.Context, githash string) (types.CommitNumber, error) {
 	g.commitNumberFromGitHashCalled.Inc(1)
 	ret := types.BadCommitNumber
-	if err := g.preparedStatements[getCommitNumberFromGitHash].QueryRowContext(ctx, githash).Scan(&ret); err != nil {
+	if err := g.db.QueryRow(ctx, statements[getCommitNumberFromGitHash], githash).Scan(&ret); err != nil {
 		return ret, skerr.Wrapf(err, "Failed get for hash: %q", githash)
 	}
 	return ret, nil
@@ -445,7 +430,7 @@ func (g *Git) CommitNumberFromTime(ctx context.Context, t time.Time) (types.Comm
 		_, mostRecentCommitNumber, err := g.getMostRecentCommit(ctx)
 		return mostRecentCommitNumber, err
 	}
-	if err := g.preparedStatements[getCommitNumberFromTime].QueryRowContext(ctx, t.Unix()).Scan(&ret); err != nil {
+	if err := g.db.QueryRow(ctx, statements[getCommitNumberFromTime], t.Unix()).Scan(&ret); err != nil {
 		return ret, skerr.Wrapf(err, "Failed get for time: %q", t)
 	}
 	return ret, nil
@@ -455,7 +440,7 @@ func (g *Git) CommitNumberFromTime(ctx context.Context, t time.Time) (types.Comm
 // [begin, end), i.e  inclusive of begin and exclusive of end.
 func (g *Git) CommitSliceFromTimeRange(ctx context.Context, begin, end time.Time) ([]Commit, error) {
 	g.commitSliceFromTimeRangeCalled.Inc(1)
-	rows, err := g.preparedStatements[getCommitsFromTimeRange].QueryContext(ctx, begin.Unix(), end.Unix())
+	rows, err := g.db.Query(ctx, statements[getCommitsFromTimeRange], begin.Unix(), end.Unix())
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to query for commit slice in range %s-%s", begin, end)
 	}
@@ -474,7 +459,7 @@ func (g *Git) CommitSliceFromTimeRange(ctx context.Context, begin, end time.Time
 // [begin, end], i.e  inclusive of both begin and end.
 func (g *Git) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end types.CommitNumber) ([]Commit, error) {
 	g.commitSliceFromCommitNumberRangeCalled.Inc(1)
-	rows, err := g.preparedStatements[getCommitsFromCommitNumberRange].QueryContext(ctx, begin, end)
+	rows, err := g.db.Query(ctx, statements[getCommitsFromCommitNumberRange], begin, end)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to query for commit slice in range %v-%v", begin, end)
 	}
@@ -493,7 +478,7 @@ func (g *Git) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end t
 func (g *Git) CommitFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (Commit, error) {
 	g.commitFromCommitNumberCalled.Inc(1)
 	var c Commit
-	if err := g.preparedStatements[getCommitFromCommitNumber].QueryRowContext(ctx, commitNumber).Scan(&c.CommitNumber, &c.GitHash, &c.Timestamp, &c.Author, &c.Subject); err != nil {
+	if err := g.db.QueryRow(ctx, statements[getCommitFromCommitNumber], commitNumber).Scan(&c.CommitNumber, &c.GitHash, &c.Timestamp, &c.Author, &c.Subject); err != nil {
 		return Commit{}, skerr.Wrapf(err, "Failed to read row at %v", commitNumber)
 	}
 	return c, nil
@@ -503,7 +488,7 @@ func (g *Git) CommitFromCommitNumber(ctx context.Context, commitNumber types.Com
 func (g *Git) GitHashFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (string, error) {
 	g.gitHashFromCommitNumberCalled.Inc(1)
 	var ret string
-	if err := g.preparedStatements[getHashFromCommitNumber].QueryRowContext(ctx, commitNumber).Scan(&ret); err != nil {
+	if err := g.db.QueryRow(ctx, statements[getHashFromCommitNumber], commitNumber).Scan(&ret); err != nil {
 		return "", skerr.Wrapf(err, "Failed to find git hash for commit number: %v", commitNumber)
 	}
 	return ret, nil

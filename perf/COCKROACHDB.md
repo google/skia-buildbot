@@ -52,7 +52,7 @@ can be installed by:
 
 Now port-forwarding the database port for the cockroachdb instance, for example:
 
-    kubectl port-forward perf-skia-cockroachdb-0 26257
+    kubectl port-forward perf-cockroachdb-0 26257
 
 Then run the migrations:
 

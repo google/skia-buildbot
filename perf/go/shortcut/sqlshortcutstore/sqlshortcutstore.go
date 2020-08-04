@@ -5,10 +5,10 @@ package sqlshortcutstore
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"io"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -26,20 +26,16 @@ const (
 	getAllShortcuts
 )
 
-// statements allows looking up raw SQL statements by their statement id.
-type statements map[statement]string
-
-// statementsByDialect holds all the raw SQL statemens used per Dialect of SQL.
-var statementsByDialect = map[perfsql.Dialect]statements{
-	perfsql.CockroachDBDialect: {
-		insertShortcut: `
+// statements holds all the raw SQL statemens.
+var statements = map[statement]string{
+	insertShortcut: `
 		INSERT INTO
 			Shortcuts (id, trace_ids)
 		VALUES
 			($1, $2)
 		ON CONFLICT
 		DO NOTHING`,
-		getShortcut: `
+	getShortcut: `
 		SELECT
 			(trace_ids)
 		FROM
@@ -47,38 +43,27 @@ var statementsByDialect = map[perfsql.Dialect]statements{
 		WHERE
 			id=$1
 		`,
-		getAllShortcuts: `
+	getAllShortcuts: `
 		SELECT
 			(trace_ids)
 		FROM
 			Shortcuts
 		`,
-	},
 }
 
 // SQLShortcutStore implements the shortcut.Store interface using an SQL
 // database.
 type SQLShortcutStore struct {
-	// preparedStatements are all the prepared SQL statements.
-	preparedStatements map[statement]*sql.Stmt
+	db *pgxpool.Pool
 }
 
 // New returns a new *SQLShortcutStore.
 //
 // We presume all migrations have been run against db before this function is
 // called.
-func New(db *sql.DB, dialect perfsql.Dialect) (*SQLShortcutStore, error) {
-	preparedStatements := map[statement]*sql.Stmt{}
-	for key, statement := range statementsByDialect[dialect] {
-		prepared, err := db.Prepare(statement)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to prepare statment %v %q", key, statement)
-		}
-		preparedStatements[key] = prepared
-	}
-
+func New(db *pgxpool.Pool, dialect perfsql.Dialect) (*SQLShortcutStore, error) {
 	return &SQLShortcutStore{
-		preparedStatements: preparedStatements,
+		db: db,
 	}, nil
 }
 
@@ -103,7 +88,7 @@ func (s *SQLShortcutStore) InsertShortcut(ctx context.Context, sc *shortcut.Shor
 	if err != nil {
 		return "", err
 	}
-	if _, err := s.preparedStatements[insertShortcut].ExecContext(ctx, id, string(b)); err != nil {
+	if _, err := s.db.Exec(ctx, statements[insertShortcut], id, string(b)); err != nil {
 		return "", skerr.Wrap(err)
 	}
 	return id, nil
@@ -112,7 +97,7 @@ func (s *SQLShortcutStore) InsertShortcut(ctx context.Context, sc *shortcut.Shor
 // Get implements the shortcut.Store interface.
 func (s *SQLShortcutStore) Get(ctx context.Context, id string) (*shortcut.Shortcut, error) {
 	var encoded string
-	if err := s.preparedStatements[getShortcut].QueryRowContext(ctx, id).Scan(&encoded); err != nil {
+	if err := s.db.QueryRow(ctx, statements[getShortcut], id).Scan(&encoded); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to load shortcuts.")
 	}
 	var sc shortcut.Shortcut
@@ -127,7 +112,7 @@ func (s *SQLShortcutStore) Get(ctx context.Context, id string) (*shortcut.Shortc
 func (s *SQLShortcutStore) GetAll(ctx context.Context) (<-chan *shortcut.Shortcut, error) {
 	ret := make(chan *shortcut.Shortcut)
 
-	rows, err := s.preparedStatements[getAllShortcuts].QueryContext(ctx)
+	rows, err := s.db.Query(ctx, statements[getAllShortcuts])
 	if err != nil {
 		return ret, skerr.Wrapf(err, "Failed to query for all shortcuts.")
 	}
@@ -151,5 +136,4 @@ func (s *SQLShortcutStore) GetAll(ctx context.Context) (<-chan *shortcut.Shortcu
 	}()
 
 	return ret, nil
-
 }

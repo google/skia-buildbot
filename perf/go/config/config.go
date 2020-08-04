@@ -36,24 +36,6 @@ const (
 	CockroachDBDataStoreType DataStoreType = "cockroachdb"
 )
 
-// Cache is the configuration for the LRU cache used by the storage client.
-type Cache struct {
-	// MemcachedServers is a list of memcached server names and addresses, e.g.
-	// ['memcached-0:11211', 'memcached-1:11211', 'memcached-2:11211']
-	//
-	// If this list is empty then the server will fall back to using an
-	// in-memory LRU cache per instance.
-	MemcachedServers []string `json:"memcached_servers"`
-
-	// Namespace is the string to add to each key to avoid conflicts with more
-	// than one application or application instance using the same memcached
-	// server.
-	Namespace string `json:"namespace"`
-
-	// Size is the size of the LRU cache to use if memcached isn't being used.
-	Size int `json:"size"`
-}
-
 // DataStoreConfig is the configuration for how Perf stores data.
 type DataStoreConfig struct {
 	// DataStoreType determines what type of datastore to build. This value will
@@ -97,9 +79,6 @@ type DataStoreConfig struct {
 	// regressions, and shortcuts should use. This value is only used for 'gcp'
 	// datastore types.
 	Namespace string `json:"namespace"`
-
-	// Cache is the configuration for the LRU cache used by the storage client.
-	Cache Cache `json:"cache"`
 }
 
 // SourceType determines what type of file.Source to build from a SourceConfig.
@@ -271,9 +250,10 @@ func (flags *FrontendFlags) Register(fs *pflag.FlagSet) {
 
 // IngestFlags are the command-line flags for the ingestion process.
 type IngestFlags struct {
-	InstanceConfigFile string
-	PromPort           string
-	Local              bool
+	InstanceConfigFile   string
+	PromPort             string
+	Local                bool
+	NumParallelIngesters int
 }
 
 // Register the flags in the given FlagSet.
@@ -281,6 +261,7 @@ func (flags *IngestFlags) Register(fs *pflag.FlagSet) {
 	fs.StringVar(&flags.InstanceConfigFile, "config_filename", "", "Instance config file. Must be supplied.")
 	fs.StringVar(&flags.PromPort, "prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	fs.BoolVar(&flags.Local, "local", false, "True if running locally and not in production.")
+	fs.IntVar(&flags.NumParallelIngesters, "num_parallel_ingesters", 10, "The number of parallel Go routines to have ingesting.")
 }
 
 // InstanceConfig contains all the info needed by btts.BigTableTraceStore.

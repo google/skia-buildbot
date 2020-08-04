@@ -40,6 +40,7 @@ type TraceStore interface {
 
 	// QueryTracesIDOnlyByIndex returns a stream of ParamSets that match the
 	// given query.
+	// TODO(jcgregorio) Change to just return count and ParamSet.
 	QueryTracesIDOnlyByIndex(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error)
 
 	// ReadTraces loads the traces for the given trace keys.

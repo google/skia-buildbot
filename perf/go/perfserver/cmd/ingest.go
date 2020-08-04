@@ -43,7 +43,7 @@ with that data.
 			sklog.Infof("Flags: --%s=%v", f.Name, f.Value)
 		})
 
-		return process.Start(context.Background(), ingestFlags.Local, instanceConfig)
+		return process.Start(context.Background(), ingestFlags.Local, ingestFlags.NumParallelIngesters, instanceConfig)
 	},
 }
 

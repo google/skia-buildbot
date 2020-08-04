@@ -148,7 +148,7 @@ func TestDFAppend(t *testing.T) {
 
 func TestGetSkps_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, db, _, _, dialect, instanceConfig, _, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)
@@ -170,7 +170,7 @@ func TestGetSkps_Success(t *testing.T) {
 
 func TestGetSkps_SuccessIfFileChangeMarkerNotSet(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, db, _, _, dialect, instanceConfig, _, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)
@@ -192,7 +192,7 @@ func TestGetSkps_SuccessIfFileChangeMarkerNotSet(t *testing.T) {
 
 func TestGetSkps_ErrOnBadCommitNumber(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, _, dialect, instanceConfig, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, db, _, _, dialect, instanceConfig, _, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
 	defer cleanup()
 	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
 	require.NoError(t, err)
