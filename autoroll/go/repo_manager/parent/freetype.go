@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vfs"
 )
 
 const (
@@ -60,11 +61,15 @@ func NewFreeTypeParent(ctx context.Context, c GitilesConfig, reg *config_vars.Re
 			return nil, skerr.Wrap(err)
 		}
 		ftVersion = strings.TrimSpace(ftVersion)
-		readmeContents, err := parentRepo.ReadFileAtRef(ctx, FtReadmePath, baseCommit)
+		fs, err := parentRepo.VFS(ctx, &revision.Revision{Id: baseCommit})
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		oldReadmeContents := string(readmeContents)
+		oldReadmeBytes, err := vfs.ReadFile(ctx, fs, FtReadmePath)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+		oldReadmeContents := string(oldReadmeBytes)
 		newReadmeContents := FtReadmeVersionRegex.ReplaceAllString(oldReadmeContents, fmt.Sprintf(FtReadmeVersionTmpl, "", ftVersion))
 		newReadmeContents = FtReadmeRevisionRegex.ReplaceAllString(newReadmeContents, fmt.Sprintf(FtReadmeRevisionTmpl, "", to.Id))
 		if newReadmeContents != oldReadmeContents {
@@ -109,11 +114,15 @@ func mergeInclude(ctx context.Context, include, from, to, baseCommit string, cha
 	// Obtain the current version of the file in the parent repo.
 	parentHeader := path.Join(FtIncludeDest, include)
 	dest := filepath.Join(wd, include)
-	parentHeaderContents, err := parentRepo.ReadFileAtRef(ctx, parentHeader, baseCommit)
+	fs, err := parentRepo.VFS(ctx, &revision.Revision{Id: baseCommit})
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	oldParentContents := string(parentHeaderContents)
+	oldParentBytes, err := vfs.ReadFile(ctx, fs, FtReadmePath)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	oldParentContents := string(oldParentBytes)
 	if err != nil {
 		return skerr.Wrap(err)
 	}
@@ -121,7 +130,7 @@ func mergeInclude(ctx context.Context, include, from, to, baseCommit string, cha
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return skerr.Wrap(err)
 	}
-	if err := ioutil.WriteFile(dest, parentHeaderContents, os.ModePerm); err != nil {
+	if err := ioutil.WriteFile(dest, oldParentBytes, os.ModePerm); err != nil {
 		return skerr.Wrap(err)
 	}
 	if _, err := gd.Git(ctx, "add", dest); err != nil {

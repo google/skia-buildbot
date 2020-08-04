@@ -24,7 +24,7 @@ import (
 
 func copyCfg(t *testing.T) *CopyRepoManagerConfig {
 	return &CopyRepoManagerConfig{
-		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
+		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
 				ChildBranch:  masterBranchTmpl(t),
 				ParentBranch: masterBranchTmpl(t),
@@ -63,7 +63,7 @@ func setupCopy(t *testing.T) (context.Context, string, *parentChildRepoManager, 
 	parent := git_testutils.GitInit(t, context.Background())
 	parent.Add(ctx, "somefile", "dummy")
 	parent.Add(ctx, filepath.Join(childPath, "version.sha1"), childCommits[0])
-	parent.Commit(ctx)
+	parentMaster := parent.Commit(ctx)
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
@@ -88,6 +88,9 @@ func setupCopy(t *testing.T) (context.Context, string, *parentChildRepoManager, 
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
 	}
+	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
+	mockParent.MockGetCommit(ctx, "master")
+	mockParent.MockReadFile(ctx, cfg.VersionFile, parentMaster)
 
 	// Create the RepoManager.
 	rm, err := NewCopyRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
