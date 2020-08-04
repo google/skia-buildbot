@@ -16,6 +16,23 @@
       "revId": "f997a0d2975807cce91bbc76bc61c44ff56fc7ca",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f1a2463b_e4ec2a45",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-08-04T16:59:16Z",
+      "side": 1,
+      "message": "Completed push. It is running the license scripts now.",
+      "revId": "f997a0d2975807cce91bbc76bc61c44ff56fc7ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
