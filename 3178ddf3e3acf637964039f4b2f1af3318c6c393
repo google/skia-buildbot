@@ -16,6 +16,47 @@
       "revId": "3178ddf3e3acf637964039f4b2f1af3318c6c393",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "802ac55f_10d3c1b3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-04T18:23:44Z",
+      "side": 1,
+      "message": "Yep, this will do it!  My only concern would be that the revision isn\u0027t listed at all in the commit message.",
+      "parentUuid": "6e400401_9a8d74ca",
+      "revId": "3178ddf3e3acf637964039f4b2f1af3318c6c393",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a60c169_d318c6b2",
+        "filename": "autoroll/config/pgo-win32-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-04T18:23:44Z",
+      "side": 1,
+      "message": "This newline isn\u0027t necessary",
+      "range": {
+        "startLine": 6,
+        "startChar": 78,
+        "endLine": 6,
+        "endChar": 79
+      },
+      "revId": "3178ddf3e3acf637964039f4b2f1af3318c6c393",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
