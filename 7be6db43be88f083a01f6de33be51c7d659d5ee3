@@ -50,6 +50,24 @@
       "revId": "7be6db43be88f083a01f6de33be51c7d659d5ee3",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "91cbba45_414a252d",
+        "filename": "go/git/util.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-04T13:58:06Z",
+      "side": 1,
+      "message": "This is the format used by Git. It won\u0027t be customized.  Added a comment to that effect.",
+      "parentUuid": "33b2c3e4_17b2f2ca",
+      "revId": "7be6db43be88f083a01f6de33be51c7d659d5ee3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
