@@ -11,7 +11,7 @@
  * @example
  *
  *  <iframe width=128 height=128
- *    src="https://skottie.skia.org/e/1112d01d28a776d777cebcd0632da15b"
+ *    src="https://skottie.skia.org/e/1112d01d28a776d777cebcd0632da15b?w=128&h=128"
  *    scrolling=no>
  *  </iframe>
  */
@@ -19,12 +19,16 @@ import '../skottie-player-sk'
 import { define } from 'elements-sk/define'
 import { html, render } from 'lit-html'
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow'
+import { stateReflector } from 'common-sk/modules/stateReflector'
 
 const template = (ele) => html`<skottie-player-sk></skottie-player-sk>`;
 
 define('skottie-embed-sk', class extends HTMLElement {
   constructor() {
     super();
+
+    this._width  = 128;
+    this._height = 128;
   }
 
   connectedCallback() {
@@ -45,6 +49,20 @@ define('skottie-embed-sk', class extends HTMLElement {
     } else {
       this._hash = match[1];
     }
+
+    stateReflector(
+      /*getState*/ () => {
+        return {
+          'w': this._width,
+          'h': this._height
+        };
+      },
+      /*setState*/ (newState) => {
+        this._width  = newState.w;
+        this._height = newState.h;
+      }
+    );
+
     // Run this on the next micro-task to allow mocks to be set up if needed.
     setTimeout(() => {
       fetch(`/_/j/${this._hash}`, {
@@ -52,8 +70,8 @@ define('skottie-embed-sk', class extends HTMLElement {
       }).then(jsonOrThrow).then(json => {
         let player = this.querySelector('skottie-player-sk');
         player.initialize({
-                            width:  json.width,
-                            height: json.height,
+                            width:  this._width,
+                            height: this._height,
                             lottie: json.lottie
                           });
       }).catch((msg) => {
