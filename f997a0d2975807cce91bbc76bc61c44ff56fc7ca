@@ -33,6 +33,24 @@
       "revId": "f997a0d2975807cce91bbc76bc61c44ff56fc7ca",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ab98ce30_a8108518",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5445
+      },
+      "writtenOn": "2020-08-04T17:00:01Z",
+      "side": 1,
+      "message": "Thank you for the update Ravi!",
+      "parentUuid": "f1a2463b_e4ec2a45",
+      "revId": "f997a0d2975807cce91bbc76bc61c44ff56fc7ca",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
