@@ -51,6 +51,24 @@
       "revId": "c7cb1c265f033d87962d241d07262158d82cedd8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "73e49d72_4c772d2b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-04T18:42:17Z",
+      "side": 1,
+      "message": "Err, I think we may have both pushed.",
+      "parentUuid": "31e48d7e_d975068c",
+      "revId": "c7cb1c265f033d87962d241d07262158d82cedd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
