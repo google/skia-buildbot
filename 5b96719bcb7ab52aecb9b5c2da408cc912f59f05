@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c94dd599_0b3655e0",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 51
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-04T19:29:05Z",
+      "side": 1,
+      "message": "Thanks for updating to v4",
+      "revId": "5b96719bcb7ab52aecb9b5c2da408cc912f59f05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "41086a4e_8bc6008a",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 51
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-04T19:29:05Z",
+      "side": 1,
+      "message": "nit: Add in the design decision here that by having trace_id be the first part of the primary key, data from a given trace will generally be stored in the same range for a long line of commits, giving good locality when querying a set of traces across a lot of time (which is a primary need of Perf).",
+      "range": {
+        "startLine": 35,
+        "startChar": 42,
+        "endLine": 36,
+        "endChar": 51
+      },
+      "revId": "5b96719bcb7ab52aecb9b5c2da408cc912f59f05",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
