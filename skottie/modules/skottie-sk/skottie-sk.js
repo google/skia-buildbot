@@ -75,7 +75,7 @@ const livePreview = (ele) => {
 }
 
 const iframeDirections = (ele) => {
-  return `<iframe width="${ele._width}" height="${ele._height}" src="${window.location.origin}/e/${ele._hash}" scrolling=no>`;
+  return `<iframe width="${ele._width}" height="${ele._height}" src="${window.location.origin}/e/${ele._hash}?w=${ele._width}&h=${ele._height}" scrolling=no>`;
 }
 
 const inlineDirections = (ele) => {
