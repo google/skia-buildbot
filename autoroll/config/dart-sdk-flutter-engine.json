@@ -23,7 +23,7 @@
     "checksWaitFor": ["luci-engine"]
   },
   "githubDEPSRepoManager": {
-    "childBranch": "dev",
+    "childBranch": "master",
     "childPath": "src/third_party/dart",
     "childRepo": "https://dart.googlesource.com/sdk.git",
     "childRevLinkTmpl": "https://dart.googlesource.com/sdk.git/+show/%s",
