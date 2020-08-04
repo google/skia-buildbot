@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "b3fb0854_501cb49d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 39
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-04T18:34:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "17755085_f1a52400",
+      "revId": "6765bc2149d5d36f1087bb3ba9eaaec9631d79fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "621399e1_b3fe9860",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 39
@@ -30,6 +48,24 @@
       "writtenOn": "2020-08-03T17:58:26Z",
       "side": 1,
       "message": "The pgx v4 API is nicer - we should use that https://pkg.go.dev/github.com/jackc/pgx/v4",
+      "revId": "6765bc2149d5d36f1087bb3ba9eaaec9631d79fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2446f8c9_14c0c312",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 39
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-04T18:34:43Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "621399e1_b3fe9860",
       "revId": "6765bc2149d5d36f1087bb3ba9eaaec9631d79fb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false

@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ef0aa09d_ac59a008",
+        "filename": "go.mod",
+        "patchSetId": 36
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-04T18:34:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "90cdd7e0_a685815b",
+      "range": {
+        "startLine": 52,
+        "startChar": 18,
+        "endLine": 52,
+        "endChar": 29
+      },
+      "revId": "736e2cf0a589a36d792502278a0ceac960a94c3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a2dbd8b_700cd83f",
         "filename": "go.mod",
         "patchSetId": 36
@@ -45,6 +69,30 @@
       "revId": "736e2cf0a589a36d792502278a0ceac960a94c3b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a293af9_165d9c6f",
+        "filename": "go.mod",
+        "patchSetId": 36
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-04T18:34:43Z",
+      "side": 1,
+      "message": "Was spurious dep from another library, removed.",
+      "parentUuid": "9a2dbd8b_700cd83f",
+      "range": {
+        "startLine": 77,
+        "startChar": 12,
+        "endLine": 77,
+        "endChar": 22
+      },
+      "revId": "736e2cf0a589a36d792502278a0ceac960a94c3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "e449926a_309dc8c2",
+        "filename": "go.mod",
+        "patchSetId": 36
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-04T18:34:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2e106148_87370f14",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 97,
+        "endChar": 41
+      },
+      "revId": "736e2cf0a589a36d792502278a0ceac960a94c3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aafa7e7a_aceb7142",
         "filename": "go.mod",
         "patchSetId": 36
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "a38dee02_d147609e",
+        "filename": "go.mod",
+        "patchSetId": 36
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-04T18:34:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "aafa7e7a_aceb7142",
+      "range": {
+        "startLine": 98,
+        "startChar": 25,
+        "endLine": 98,
+        "endChar": 66
+      },
+      "revId": "736e2cf0a589a36d792502278a0ceac960a94c3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "edf4bcb3_cf11b449",
         "filename": "go.sum",
         "patchSetId": 36
@@ -114,6 +210,30 @@
       "revId": "736e2cf0a589a36d792502278a0ceac960a94c3b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91f758b3_bca0416b",
+        "filename": "go.sum",
+        "patchSetId": 36
+      },
+      "lineNbr": 589,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-04T18:34:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "edf4bcb3_cf11b449",
+      "range": {
+        "startLine": 586,
+        "startChar": 0,
+        "endLine": 589,
+        "endChar": 120
+      },
+      "revId": "736e2cf0a589a36d792502278a0ceac960a94c3b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

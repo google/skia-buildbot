@@ -346,6 +346,30 @@
       "revId": "7fa5423596b897cde9e3e3ad1d874b25fc792a8f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d645341_e38bbc02",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 805,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-04T18:34:43Z",
+      "side": 1,
+      "message": "Settled on local LRU cache of md5(traceID) -\u003e bool.",
+      "parentUuid": "ee52e28c_1156c34f",
+      "range": {
+        "startLine": 805,
+        "startChar": 13,
+        "endLine": 805,
+        "endChar": 33
+      },
+      "revId": "7fa5423596b897cde9e3e3ad1d874b25fc792a8f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
