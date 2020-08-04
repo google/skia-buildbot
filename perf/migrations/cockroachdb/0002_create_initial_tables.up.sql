@@ -17,5 +17,5 @@ CREATE TABLE IF NOT EXISTS TraceValues2 (
 	val REAL,
 	-- Id of the source filename, from SourceFiles.
 	source_file_id INT,
-	PRIMARY KEY (trace_id, commit_number)
+	PRIMARY KEY (commit_number, trace_id)
 );
