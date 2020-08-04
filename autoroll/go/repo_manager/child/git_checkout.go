@@ -8,6 +8,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/vfs"
 )
 
 // GitCheckoutConfig provides configuration for a Child which uses a local
@@ -43,6 +44,11 @@ func (c *GitCheckoutChild) Update(ctx context.Context, lastRollRev *revision.Rev
 		return nil, nil, skerr.Wrap(err)
 	}
 	return tipRev, notRolledRevs, nil
+}
+
+// VFS implements the Child interface.
+func (c *GitCheckoutChild) VFS(ctx context.Context, rev *revision.Revision) (vfs.FS, error) {
+	return c.Checkout.VFS(ctx, rev.Id)
 }
 
 // GitCheckoutChild implements Child.

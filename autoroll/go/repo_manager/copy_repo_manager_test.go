@@ -24,7 +24,7 @@ import (
 
 func copyCfg(t *testing.T) *CopyRepoManagerConfig {
 	return &CopyRepoManagerConfig{
-		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
+		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
 				ChildBranch:  masterBranchTmpl(t),
 				ParentBranch: masterBranchTmpl(t),

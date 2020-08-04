@@ -1,0 +1,48 @@
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childDisplayName": "Chromium Protos",
+  "commitMsg": {
+    "childLogURLTmpl": "https://chromium.googlesource.com/chromium/src.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeTbrLine": true
+  },
+  "contacts": [
+    "ddrone@google.com"
+  ],
+  "gerrit": {
+    "url": "https://android-review.googlesource.com",
+    "project": "platform/external/perfetto",
+    "config": "android" // ???
+  },
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentDisplayName": "Perfetto",
+  "parentWaterfall": "TODO",
+  "rollerName": "chromium-protos-perfetto-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com", // TODO: New service account?
+  "sheriff": [
+    "ddrone@google.com"
+  ],
+  "copyRepoManager": {
+    "childBranch": "master",
+    "childPath": "protos/third_party/chromium",
+    "parentBranch": "master",
+    "parentRepo": "https://android.googlesource.com/platform/external/perfetto.git",
+    "childRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/chromium/src.git/+show/%s",
+    "copies": [
+      { "srcRelPath": "base/tracing/protos", "dstRelPath": "protos/third_party/chromium" },
+    ],
+    "versionFile": "base/tracing/protos/version.sha1"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "8Gi",
+    "disk": "50Gi",
+    "readinessInitialDelaySeconds": "600",
+    "readinessPeriodSeconds": "60",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "0m"
+}
