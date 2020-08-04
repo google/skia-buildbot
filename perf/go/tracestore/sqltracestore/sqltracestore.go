@@ -356,6 +356,8 @@ type SQLTraceStore struct {
 	// unpreparedStatements are parsed templates that can be used to construct SQL statements.
 	unpreparedStatements map[statement]*template.Template
 
+	// A cache from md5(trace_name) -> true if the trace_name has already been
+	// written into the database.
 	cache cache.Cache
 
 	// tileSize is the number of commits per Tile.

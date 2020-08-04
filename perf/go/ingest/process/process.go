@@ -144,8 +144,8 @@ func worker(ctx context.Context, wg *sync.WaitGroup, g *git.Git, store tracestor
 	wg.Done()
 }
 
-// Start a single go routine to process incoming ingestion files and write
-// the data they contain to a trace store.
+// Start go routines to process incoming ingestion files and write the data they
+// contain to a trace store.
 //
 // Except for file.Sources of type "dir" this function should never return
 // except on error.
@@ -183,13 +183,10 @@ func Start(ctx context.Context, local bool, numParallelIngesters int, instanceCo
 	if err != nil {
 		return skerr.Wrap(err)
 	}
-	// Polling isn't needed because we call update on the repo if we find a git hash we don't recognize.
-	// g.StartBackgroundPolling(ctx, gitRefreshDuration)
 
 	sklog.Info("Waiting on files to process.")
 
 	var wg sync.WaitGroup
-
 	for i := 0; i < numParallelIngesters; i++ {
 		wg.Add(1)
 		go worker(ctx, &wg, g, store, ch, pubSubClient, instanceConfig)
