@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6e400401_9a8d74ca",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 12339
+      },
+      "writtenOn": "2020-08-04T18:15:02Z",
+      "side": 1,
+      "message": "+borenet@ - ptal. is this the correct way to template the subject line?",
+      "revId": "3178ddf3e3acf637964039f4b2f1af3318c6c393",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
