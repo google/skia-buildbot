@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/git/gittest"
-	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -24,8 +23,8 @@ func TestCockroachDB(t *testing.T) {
 
 	for name, subTest := range subTests {
 		t.Run(name, func(t *testing.T) {
-			ctx, db, gb, hashes, dialect, instanceConfig, _, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
-			g, err := New(ctx, true, db, dialect, instanceConfig)
+			ctx, db, gb, hashes, instanceConfig, _, cleanup := gittest.NewForTest(t)
+			g, err := New(ctx, true, db, instanceConfig)
 			require.NoError(t, err)
 
 			subTest(t, ctx, g, gb, hashes, cleanup)

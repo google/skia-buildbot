@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/config"
-	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -160,7 +159,7 @@ type Git struct {
 //
 // The instance created does not poll by default, callers need to call
 // StartBackgroundPolling().
-func New(ctx context.Context, local bool, db *pgxpool.Pool, dialect perfsql.Dialect, instanceConfig *config.InstanceConfig) (*Git, error) {
+func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *config.InstanceConfig) (*Git, error) {
 	// Do git authentication if required.
 	if instanceConfig.GitRepoConfig.GitAuthType == config.GitAuthGerrit {
 		sklog.Info("Authenticating to Gerrit.")

@@ -220,7 +220,7 @@ func TestNewShortcutStoreFromConfig_CockroachDB_InvalidDatastoreTypeIsError(t *t
 
 func TestNewPerfGitFromConfig_ErrIfConnectionStringNotSet(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, _, _, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, _, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 
 	instanceConfig.DataStoreConfig.DataStoreType = config.GCPDataStoreType
@@ -232,7 +232,7 @@ func TestNewPerfGitFromConfig_ErrIfConnectionStringNotSet(t *testing.T) {
 
 func TestNewPerfGitFromConfig_GCP_ErrorsOnNonPostgresConnectionString(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, _, _, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, _, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 
 	instanceConfig.DataStoreConfig.DataStoreType = config.GCPDataStoreType
@@ -252,7 +252,7 @@ func TestNewPerfGitFromConfig_GCP_ErrorsOnNonPostgresConnectionString(t *testing
 
 func TestNewPerfGitFromConfig_GCP_SuccessIfConnectionStringIsCockroachDB(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, _, _, hashes, _, instanceConfig, dbName, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, _, _, hashes, instanceConfig, dbName, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 
 	instanceConfig.DataStoreConfig.DataStoreType = config.GCPDataStoreType
@@ -268,7 +268,7 @@ func TestNewPerfGitFromConfig_GCP_SuccessIfConnectionStringIsCockroachDB(t *test
 
 func TestNewPerfGitFromConfig_CockroachDB_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, _, _, hashes, _, instanceConfig, _, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, _, _, hashes, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
 
 	instanceConfig.DataStoreConfig.DataStoreType = config.CockroachDBDataStoreType

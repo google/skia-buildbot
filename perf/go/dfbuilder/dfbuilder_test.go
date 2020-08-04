@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
-	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
@@ -76,9 +75,9 @@ func TestBuildNew(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx := context.Background()
 
-	ctx, db, _, _, dialect, instanceConfig, _, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
-	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
 	instanceConfig.DataStoreConfig.TileSize = 6
@@ -207,9 +206,9 @@ func TestBuildNew(t *testing.T) {
 
 func TestFromIndexRange_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, _, dialect, instanceConfig, _, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
-	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
 	columnHeaders, commitNumbers, _, err := fromIndexRange(ctx, g, types.CommitNumber(0), types.CommitNumber(2))
@@ -233,9 +232,9 @@ func TestFromIndexRange_Success(t *testing.T) {
 
 func TestFromIndexRange_EmptySliceOnBadCommitNumber(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, _, dialect, instanceConfig, _, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
-	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
 	columnHeaders, commitNumbers, _, err := fromIndexRange(ctx, g, types.BadCommitNumber, types.BadCommitNumber)

@@ -9,7 +9,6 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
-	perfsql "go.skia.org/infra/perf/go/sql"
 )
 
 func TestCommitID(t *testing.T) {
@@ -121,9 +120,9 @@ func TestURLFromParts_BounceSupplied(t *testing.T) {
 
 func TestCommitIDLookup_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, hashes, dialect, instanceConfig, _, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, db, _, hashes, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
-	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 	config.Config = instanceConfig
 	commitIdLookup := New(ctx, g, instanceConfig)
@@ -161,9 +160,9 @@ func TestCommitIDLookup_Success(t *testing.T) {
 
 func TestCommitIDLookup_ErrOnBadCommit(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, _, dialect, instanceConfig, _, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
-	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 	commitIdLookup := New(ctx, g, instanceConfig)
 
