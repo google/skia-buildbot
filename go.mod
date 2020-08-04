@@ -91,6 +91,8 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.10 // indirect
+	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
+	github.com/jackc/pgx/v4 v4.8.1
 	github.com/jcgregorio/logger v0.1.2
 	github.com/jcgregorio/slog v0.0.0-20190423190439-e6f2d537f900
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
