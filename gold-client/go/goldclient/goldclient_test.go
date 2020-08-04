@@ -2465,7 +2465,7 @@ var diff12 = text.MustToNRGBA(one_by_five.DiffImageOneAndTwo)
 // An example baseline that has a single test at a single commit with a good
 // image and a bad image.
 //
-// TODO(skbug.com/10522): Rename master_str to master.
+// TODO(skbug.com/10522): Remove int expectations and rename master_str to master.
 const mockBaselineJSON = `
 {
   "md5": "7e4081337b3258555906970002a04a59",
@@ -2473,6 +2473,12 @@ const mockBaselineJSON = `
     "ThisIsTheOnlyTest": {
       "beef00d3a1527db19619ec12a4e0df68": "positive",
       "badbadbad1325855590527db196112e0": "negative"
+    }
+  },
+  "master": {
+    "ThisIsTheOnlyTest": {
+      "beef00d3a1527db19619ec12a4e0df68": 1,
+      "badbadbad1325855590527db196112e0": 2
     }
   },
   "Issue": -1
