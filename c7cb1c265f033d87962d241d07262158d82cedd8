@@ -69,6 +69,24 @@
       "revId": "c7cb1c265f033d87962d241d07262158d82cedd8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a97e199_eadd1fef",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-08-04T19:59:36Z",
+      "side": 1,
+      "message": "Looks like the roller is back to normal: https://github.com/flutter/engine/pull/20240",
+      "parentUuid": "d4559b5c_37033a77",
+      "revId": "c7cb1c265f033d87962d241d07262158d82cedd8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
