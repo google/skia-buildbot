@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/perf/go/dfbuilder"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
-	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
@@ -79,9 +78,9 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *per
 	}, "gs://foo.json", time.Now()) // Time is irrelevent.
 	assert.NoError(t, err)
 
-	ctx, db, _, _, dialect, instanceConfig, _, gitCleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, db, _, _, instanceConfig, _, gitCleanup := gittest.NewForTest(t)
 	instanceConfig.DataStoreConfig.TileSize = testTileSize
-	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 	dfb := dfbuilder.NewDataFrameBuilderFromTraceStore(g, store)
 	cleanup := func() {

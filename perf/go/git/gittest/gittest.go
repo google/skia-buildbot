@@ -16,7 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/perf/go/config"
-	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 )
 
@@ -39,7 +38,7 @@ var (
 // The repo is populated with 8 commits, one minute apart, starting at StartTime.
 //
 // The hashes for each commit are going to be random and so are returned also.
-func NewForTest(t *testing.T, dialect perfsql.Dialect) (context.Context, *pgxpool.Pool, *testutils.GitBuilder, []string, perfsql.Dialect, *config.InstanceConfig, string, CleanupFunc) {
+func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBuilder, []string, *config.InstanceConfig, string, CleanupFunc) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Create a git repo for testing purposes.
@@ -77,5 +76,5 @@ func NewForTest(t *testing.T, dialect perfsql.Dialect) (context.Context, *pgxpoo
 			Dir: filepath.Join(tmpDir, "checkout"),
 		},
 	}
-	return ctx, db, gb, hashes, dialect, instanceConfig, dbName, clean
+	return ctx, db, gb, hashes, instanceConfig, dbName, clean
 }

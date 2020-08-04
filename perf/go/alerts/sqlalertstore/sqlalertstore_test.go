@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/alerts/alertstest"
-	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/sqltest"
 )
 
@@ -20,7 +19,7 @@ func TestSQLAlertStore_CockroachDB(t *testing.T) {
 			// actual errors.
 			defer cleanup()
 
-			store, err := New(db, perfsql.CockroachDBDialect)
+			store, err := New(db)
 			require.NoError(t, err)
 			subTest(t, store)
 		})

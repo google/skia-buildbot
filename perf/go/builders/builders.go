@@ -32,7 +32,6 @@ import (
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/shortcut/dsshortcutstore"
 	"go.skia.org/infra/perf/go/shortcut/sqlshortcutstore"
-	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/sql/migrations"
 	"go.skia.org/infra/perf/go/sql/migrations/cockroachdb"
 	"go.skia.org/infra/perf/go/tracestore"
@@ -81,8 +80,6 @@ func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *confi
 		return nil, skerr.Fmt("A connection_string must always be supplied.")
 	}
 
-	// First figure out what dialect we should use.
-	var dialect perfsql.Dialect
 	switch instanceConfig.DataStoreConfig.DataStoreType {
 	case config.GCPDataStoreType:
 		if strings.HasPrefix(instanceConfig.DataStoreConfig.ConnectionString, "postgresql://") {
@@ -90,23 +87,20 @@ func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *confi
 			// CockroachDB. The first small step in that migration is to host the
 			// perfgit Commits table on CockroachDB, which has no analog in the
 			// "gcs" world.
-			dialect = perfsql.CockroachDBDialect
 		} else {
-			return nil, skerr.Fmt("unknown connection_string: Must begni with postgresql://.")
+			return nil, skerr.Fmt("unknown connection_string: Must begin with postgresql://.")
 		}
 	case config.CockroachDBDataStoreType:
-		dialect = perfsql.CockroachDBDialect
 	default:
 		return nil, skerr.Fmt("Unknown datastore_type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 	}
-	sklog.Infof("Constructing perfgit with dialect: %q and connection_string: %q", dialect, instanceConfig.DataStoreConfig.ConnectionString)
 
 	// Now create the appropriate db.
 	db, err := newCockroachDBFromConfig(ctx, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	g, err := perfgit.New(ctx, local, db, dialect, instanceConfig)
+	g, err := perfgit.New(ctx, local, db, instanceConfig)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -171,7 +165,7 @@ func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		return sqlalertstore.New(db, perfsql.CockroachDBDialect)
+		return sqlalertstore.New(db)
 	}
 	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }
@@ -220,7 +214,7 @@ func NewShortcutStoreFromConfig(ctx context.Context, local bool, instanceConfig 
 		if err != nil {
 			return nil, skerr.Wrap(err)
 		}
-		return sqlshortcutstore.New(db, perfsql.CockroachDBDialect)
+		return sqlshortcutstore.New(db)
 	}
 	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }

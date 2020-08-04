@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/shortcut"
-	perfsql "go.skia.org/infra/perf/go/sql"
 )
 
 // statement is an SQL statement identifier.
@@ -61,7 +60,7 @@ type SQLShortcutStore struct {
 //
 // We presume all migrations have been run against db before this function is
 // called.
-func New(db *pgxpool.Pool, dialect perfsql.Dialect) (*SQLShortcutStore, error) {
+func New(db *pgxpool.Pool) (*SQLShortcutStore, error) {
 	return &SQLShortcutStore{
 		db: db,
 	}, nil

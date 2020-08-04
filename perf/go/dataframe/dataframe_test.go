@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/git/gittest"
-	perfsql "go.skia.org/infra/perf/go/sql"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -134,9 +133,9 @@ func TestSlice(t *testing.T) {
 
 func TestFromTimeRange_Success(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, _, dialect, instanceConfig, _, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
-	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
 	columnHeaders, commitNumbers, _, err := FromTimeRange(ctx, g, gittest.StartTime, gittest.StartTime.Add(2*time.Minute), false)
@@ -156,9 +155,9 @@ func TestFromTimeRange_Success(t *testing.T) {
 
 func TestFromTimeRange_EmptySlicesIfNothingInTimeRange(t *testing.T) {
 	unittest.LargeTest(t)
-	ctx, db, _, _, dialect, instanceConfig, _, cleanup := gittest.NewForTest(t, perfsql.CockroachDBDialect)
+	ctx, db, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
 	defer cleanup()
-	g, err := perfgit.New(ctx, true, db, dialect, instanceConfig)
+	g, err := perfgit.New(ctx, true, db, instanceConfig)
 	require.NoError(t, err)
 
 	// Query outside the time of any commit.
