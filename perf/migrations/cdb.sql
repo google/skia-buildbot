@@ -90,20 +90,44 @@ WHERE
 SELECT
     DISTINCT TraceNames.params
 FROM
-    TraceNames
-    INNER JOIN TraceValues2 ON TraceNames.trace_id = TraceValues2.trace_id
+    TraceNames INNER LOOKUP
+    JOIN TraceValues2 ON TraceNames.trace_id = TraceValues2.trace_id
 WHERE
-    TraceValues2.commit_number >= 0
-    AND TraceValues2.commit_number < 512;
+    TraceValues2.commit_number = 48500
+LIMIT
+    1000;
 
--- Count the number traces that are in a single tile.
+SELECT
+    params
+FROM
+    TraceNames
+WHERE
+    trace_id IN (
+        SELECT
+            DISTINCT trace_id
+        FROM
+            TraceValues2
+        WHERE
+            TraceValues2.commit_number >= 49500
+            AND TraceValues2.commit_number < 49550
+    );
+
+SELECT
+    DISTINCT trace_id
+FROM
+    TraceValues2
+WHERE
+    TraceValues2.commit_number = 49500
+    OR TraceValues2.commit_number = 49502 -- Count the number traces that are in a single tile.
+;
+
 SELECT
     COUNT(DISTINCT trace_id)
 FROM
     TraceValues2
 WHERE
-    commit_number > 0
-    AND commit_number < 256;
+    commit_number > 49500
+    AND commit_number < 50012;
 
 -- Most recent commit.
 SELECT
@@ -150,3 +174,106 @@ WHERE
     AND TraceValues2.commit_number < 255
     AND TraceNames.params ->> 'arch' IN ('x86')
     AND TraceNames.params ->> 'config' IN ('565', '8888');
+
+EXPLAIN
+SELECT
+    tracenames.params,
+    tracevalues2.commit_number,
+    tracevalues2.val
+FROM
+    tracenames INNER LOOKUP
+    JOIN tracevalues2 ON tracevalues2.trace_id = tracenames.trace_id
+WHERE
+    (
+        (tracevalues2.commit_number >= 49920)
+        AND (tracevalues2.commit_number < 49950)
+    )
+    AND (
+        (tracenames.params -> 'name') IN (
+            '"AndroidCodec_01_original.jpg_SampleSize2"' :: JSONB
+        )
+    )
+LIMIT
+    10;
+
+EXPLAIN
+SELECT
+    tracevalues2.trace_id,
+    tracevalues2.commit_number,
+    tracevalues2.val
+FROM
+    tracenames INNER LOOKUP
+    JOIN tracevalues2 ON tracevalues2.trace_id = tracenames.trace_id
+WHERE
+    (
+        (tracevalues2.commit_number >= 49800)
+        AND (tracevalues2.commit_number < 49900)
+    )
+    AND params -> 'name' IN (
+        '"AndroidCodec_01_original.jpg_SampleSize2"' :: JSONB
+    )
+LIMIT
+    10;
+
+SELECT
+    DISTINCT encode(trace_id, 'hex')
+FROM
+    tracenames
+WHERE
+    params @ > '{"name":"AndroidCodec_01_original.jpg_SampleSize2"}';
+
+SELECT
+    *
+FROM
+    TraceValues2
+WHERE
+    tracevalues2.commit_number >= 49920
+    AND tracevalues2.commit_number < 49950
+    AND trace_id = '\xeaadaa2335ba9308aec8fe0264170ef3';
+
+-- This is fast with PRIMARY KEY (trace_id, commit_number)
+SELECT
+    tracenames.params,
+    tracevalues2.commit_number,
+    tracevalues2.val
+FROM
+    TraceValues2 INNER LOOKUP
+    JOIN TraceNames ON tracevalues2.trace_id = tracenames.trace_id
+WHERE
+    tracevalues2.commit_number >= 47920
+    AND tracevalues2.commit_number < 49950
+    AND tracevalues2.trace_id IN (
+        SELECT
+            DISTINCT trace_id
+        FROM
+            tracenames
+        WHERE
+            params -> 'name' = '"AndroidCodec_01_original.jpg_SampleSize2"' :: JSONB
+    );
+
+SELECT
+    tracevalues2.trace_id,
+    tracevalues2.commit_number,
+    tracevalues2.val
+FROM
+    TraceValues2
+WHERE
+    tracevalues2.trace_id IN (
+        SELECT
+            DISTINCT trace_id
+        FROM
+            tracenames
+        WHERE
+            params -> 'name' = '"AndroidCodec_01_original.jpg_SampleSize2"' :: JSONB
+    )
+    AND tracevalues2.commit_number >= 47920
+    AND tracevalues2.commit_number < 49950;
+
+-- Create the Tile table on the fly if we haven't ingested it.
+INSERT INTO
+    Tiles (tile_number, trace_id)
+SELECT
+    mod(commit_number, 1024),
+    trace_id
+FROM
+    tracevalues2 ON CONFLICT DO NOTHING;
