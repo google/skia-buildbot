@@ -65,7 +65,7 @@ building ParamSets for a range of commits:
         DISTINCT TraceNames.params
     FROM
         TraceNames
-        INNER JOIN TraceValues2 ON TraceNames.trace_id = TraceValues2.trace_id
+        INNER LOOKUP JOIN TraceValues2 ON TraceNames.trace_id = TraceValues2.trace_id
     WHERE
         TraceValues2.commit_number >= 0
         AND TraceValues2.commit_number < 512;
@@ -80,7 +80,7 @@ would match a query:
         TraceValues2.val
     FROM
         TraceNames
-        INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+        INNER LOOKUP JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
     WHERE
         TraceNames.params ->> 'arch' IN ('x86')
         AND TraceNames.params ->> 'config' IN ('565', '8888')
@@ -198,7 +198,7 @@ var templates = map[statement]string{
             TraceValues2.val
         FROM
             TraceNames
-        INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+        INNER LOOKUP JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
         WHERE
             TraceValues2.commit_number >= {{ .BeginCommitNumber }}
             AND TraceValues2.commit_number < {{ .EndCommitNumber }}
@@ -216,7 +216,7 @@ var templates = map[statement]string{
             TraceNames.params
         FROM
             TraceNames
-        INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+        INNER LOOKUP JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
         WHERE
             TraceValues2.commit_number >= {{ .BeginCommitNumber }}
             AND TraceValues2.commit_number < {{ .EndCommitNumber }}
@@ -236,7 +236,7 @@ var templates = map[statement]string{
             TraceValues2.val
         FROM
             TraceNames
-        INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+        INNER LOOKUP JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
         WHERE
             TraceValues2.commit_number >= {{ .BeginCommitNumber }}
             AND TraceValues2.commit_number < {{ .EndCommitNumber }}
@@ -335,7 +335,7 @@ var statements = map[statement]string{
             DISTINCT TraceNames.params
         FROM
             TraceNames
-        INNER JOIN TraceValues2 ON TraceNames.trace_id = TraceValues2.trace_id
+        INNER LOOKUP JOIN TraceValues2 ON TraceNames.trace_id = TraceValues2.trace_id
         WHERE
             TraceValues2.commit_number >= $1
             AND TraceValues2.commit_number < $2;`,
