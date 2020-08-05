@@ -492,7 +492,6 @@ func main() {
 	jsonRouter.HandleFunc(trim("/json/triagelog/undo"), handlers.TriageUndoHandler).Methods("POST")
 	jsonRouter.HandleFunc(trim("/json/changelists"), handlers.ChangeListsHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/changelist/{system}/{id}"), handlers.ChangeListSummaryHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/changelist/{system}/{id}/{patchset}/untriaged"), handlers.ChangeListUntriagedHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/digests"), handlers.DigestListHandler).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/whoami"), handlers.Whoami).Methods("GET")
 	jsonRouter.HandleFunc(trim("/json/latestpositivedigest/{traceId}"), handlers.LatestPositiveDigestHandler).Methods("GET")
@@ -581,6 +580,7 @@ func main() {
 	rootRouter := mux.NewRouter()
 	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
 	rootRouter.HandleFunc("/json/trstatus", httputils.CorsHandler(handlers.StatusHandler))
+	rootRouter.HandleFunc("/json/changelist/{system}/{id}/{patchset}/untriaged", httputils.CorsHandler(handlers.ChangeListUntriagedHandler)).Methods("GET")
 
 	rootRouter.PathPrefix("/").Handler(appHandler)
 
