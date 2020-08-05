@@ -55,7 +55,7 @@ func NewForTest(t *testing.T) (context.Context, *pgxpool.Pool, *testutils.GitBui
 
 	dbName := fmt.Sprintf("git%d", rand.Uint64())
 	// Init our sql database.
-	db, sqlCleanup := sqltest.NewCockroachDBForTests(t, dbName, sqltest.ApplyMigrations)
+	db, sqlCleanup := sqltest.NewCockroachDBForTests(t, dbName)
 
 	// Get tmp dir to use for repo checkout.
 	tmpDir, err := ioutil.TempDir("", "git")

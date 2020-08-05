@@ -17,5 +17,13 @@ CREATE TABLE IF NOT EXISTS TraceValues2 (
 	val REAL,
 	-- Id of the source filename, from SourceFiles.
 	source_file_id INT,
-	PRIMARY KEY (commit_number, trace_id)
+	PRIMARY KEY (trace_id, commit_number)
+);
+
+CREATE TABLE IF NOT EXISTS Tiles (
+	-- Id of the trace name from TraceNames.
+	trace_id BYTES,
+	-- The number of the tile that the trace_id appears in.
+	tile_number INT,
+	PRIMARY KEY (trace_id, tile_number)
 );
