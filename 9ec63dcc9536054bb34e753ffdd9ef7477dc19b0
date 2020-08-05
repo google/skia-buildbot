@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f9c413b2_21f5c2e3",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-05T18:07:53Z",
+      "side": 1,
+      "message": "Did you also want to make this not require login?",
+      "revId": "9ec63dcc9536054bb34e753ffdd9ef7477dc19b0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
