@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ed94fa4a_9530f225",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-08-05T18:33:56Z",
+      "side": 1,
+      "message": "Kevin, do you mind pushing this whenever you get a chance? I\u0027m not very familiar with Gold to attempt to push to it. I only care about the Skia instance right now, so up to you if other instances should also be pushed to.",
+      "revId": "ec2c8300035924cb444fb887c0b715b6c72214ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
