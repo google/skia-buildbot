@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "6433cc58_93ba17b9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-05T10:54:25Z",
+      "side": 1,
+      "message": "Yes, that should work.  I think you\u0027d want to override the \"revisions\" template, which normally shows a git log.  You\u0027ll find more details here: https://skia.googlesource.com/buildbot/+/master/autoroll/go/commit_msg/default.go\n\nInstead of {{commit id}} you\u0027ll want {{.RollingFrom}} and {{.RollingTo}}",
+      "parentUuid": "4afffe52_cf63b546",
+      "revId": "3178ddf3e3acf637964039f4b2f1af3318c6c393",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a60c169_d318c6b2",
         "filename": "autoroll/config/pgo-win32-chromium.json",
         "patchSetId": 1
