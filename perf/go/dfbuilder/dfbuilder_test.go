@@ -39,7 +39,7 @@ func TestBuildTraceMapper(t *testing.T) {
 	unittest.LargeTest(t)
 
 	dbName := fmt.Sprintf("dfbuilder%d", rand.Uint32())
-	db, cleanup := sqltest.NewCockroachDBForTests(t, dbName, sqltest.ApplyMigrations)
+	db, cleanup := sqltest.NewCockroachDBForTests(t, dbName)
 	defer cleanup()
 
 	store, err := sqltracestore.New(db, cfg.DataStoreConfig)
@@ -194,6 +194,7 @@ func TestBuildNew(t *testing.T) {
 		",config=8888,model=Pixel,": 3.0,
 	}, "gs://foo.json", time.Now())
 	assert.NoError(t, err)
+	store.ClearOrderedParamSetCache()
 
 	// This query will only encode for one tile and should still succeed.
 	q, err = query.New(url.Values{"model": []string{"Pixel"}})

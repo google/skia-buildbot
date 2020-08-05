@@ -65,7 +65,7 @@ building ParamSets for a range of commits:
         DISTINCT TraceNames.params
     FROM
         TraceNames
-        INNER JOIN TraceValues2 ON TraceNames.trace_id = TraceValues2.trace_id
+        INNER LOOKUP JOIN TraceValues2 ON TraceNames.trace_id = TraceValues2.trace_id
     WHERE
         TraceValues2.commit_number >= 0
         AND TraceValues2.commit_number < 512;
@@ -80,7 +80,7 @@ would match a query:
         TraceValues2.val
     FROM
         TraceNames
-        INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+        INNER LOOKUP JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
     WHERE
         TraceNames.params ->> 'arch' IN ('x86')
         AND TraceNames.params ->> 'config' IN ('565', '8888')
@@ -102,6 +102,7 @@ import (
 	"text/template"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/metrics2"
@@ -125,6 +126,15 @@ const writeTracesChunkSize = 200
 // defaultCacheSize is the size of the in-memory LRU cache if no size was
 // specified in the config file.
 const defaultCacheSize = 20 * 1000 * 1000
+
+const orderedParamSetCacheSize = 100
+
+const orderedParamSetCacheTTL = 5 * time.Minute
+
+type orderedParamSetCacheEntry struct {
+	expires         time.Time // When this entry expires.
+	orderedParamSet *paramtools.OrderedParamSet
+}
 
 // traceIDForSQL is the type of the IDs that are used in the SQL queries,
 // they are hex encoded md5 hashes of a trace name, e.g. "\x00112233...".
@@ -164,6 +174,7 @@ const (
 	queryTraces
 	queryTracesIDOnly
 	readTraces
+	insertIntoTiles
 )
 
 var templates = map[statement]string{
@@ -198,7 +209,7 @@ var templates = map[statement]string{
             TraceValues2.val
         FROM
             TraceNames
-        INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+        INNER LOOKUP JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
         WHERE
             TraceValues2.commit_number >= {{ .BeginCommitNumber }}
             AND TraceValues2.commit_number < {{ .EndCommitNumber }}
@@ -216,7 +227,7 @@ var templates = map[statement]string{
             TraceNames.params
         FROM
             TraceNames
-        INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+        INNER LOOKUP JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
         WHERE
             TraceValues2.commit_number >= {{ .BeginCommitNumber }}
             AND TraceValues2.commit_number < {{ .EndCommitNumber }}
@@ -236,7 +247,7 @@ var templates = map[statement]string{
             TraceValues2.val
         FROM
             TraceNames
-        INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+        INNER LOOKUP JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
         WHERE
             TraceValues2.commit_number >= {{ .BeginCommitNumber }}
             AND TraceValues2.commit_number < {{ .EndCommitNumber }}
@@ -257,6 +268,16 @@ var templates = map[statement]string{
         WHERE
             TraceNames.trace_id = '{{ .MD5HexTraceID }}'
             AND TraceValues2.commit_number = {{ .CommitNumber }}`,
+	insertIntoTiles: `
+		INSERT INTO
+			Tiles (tile_number, trace_id)
+		VALUES
+			{{ range $index, $element :=  . -}}
+				{{ if $index }},{{end}}
+				( {{ $element.TileNumber }}, '{{ $element.MD5HexTraceID }}' )
+			{{ end }}
+		ON CONFLICT
+		DO NOTHING`,
 }
 
 // replaceTraceValuesContext is the context for the replaceTraceValues template.
@@ -306,6 +327,16 @@ type getSourceContext struct {
 	MD5HexTraceID traceIDForSQL
 }
 
+// insertIntoTilesContext is the context for the insertIntoTiles template.
+type insertIntoTilesContext struct {
+	TileNumber types.TileNumber
+
+	// The MD5 sum of the trace name as a hex string, i.e.
+	// "\xfe385b159ff55dca481069805e5ff050". Note the leading \x which
+	// CockroachDB will use to know the string is in hex.
+	MD5HexTraceID traceIDForSQL
+}
+
 var statements = map[statement]string{
 	insertIntoSourceFiles: `
         INSERT INTO
@@ -332,13 +363,12 @@ var statements = map[statement]string{
             1;`,
 	paramSetForTile: `
         SELECT
-            DISTINCT TraceNames.params
+            TraceNames.params
         FROM
             TraceNames
-        INNER JOIN TraceValues2 ON TraceNames.trace_id = TraceValues2.trace_id
+        INNER LOOKUP JOIN Tiles ON TraceNames.trace_id = Tiles.trace_id
         WHERE
-            TraceValues2.commit_number >= $1
-            AND TraceValues2.commit_number < $2;`,
+            Tiles.tile_number = $1`,
 	traceCount: `
         SELECT
             COUNT(DISTINCT trace_id)
@@ -356,7 +386,16 @@ type SQLTraceStore struct {
 	// unpreparedStatements are parsed templates that can be used to construct SQL statements.
 	unpreparedStatements map[statement]*template.Template
 
+	// A cache from md5(trace_name) -> true if the trace_name has already been
+	// written to the TraceNames table.
+	//
+	// And from md5(trace_name)+tile_number -> true if the trace_name has
+	// already been written to the Tiles table.
 	cache cache.Cache
+
+	// orderedParamSetCache is a cache for OrderedParamSets that have a TTL. The
+	// cache maps tileNumber -> orderedParamSetCacheEntry.
+	orderedParamSetCache *lru.Cache
 
 	// tileSize is the number of commits per Tile.
 	tileSize int32
@@ -385,12 +424,17 @@ func New(db *pgxpool.Pool, datastoreConfig config.DataStoreConfig) (*SQLTraceSto
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
+	paramSetCache, err := lru.New(orderedParamSetCacheSize)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 
 	return &SQLTraceStore{
 		db:                        db,
 		unpreparedStatements:      unpreparedStatements,
 		tileSize:                  datastoreConfig.TileSize,
 		cache:                     cache,
+		orderedParamSetCache:      paramSetCache,
 		writeTracesMetric:         metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_writeTraces"),
 		writeTracesMetricSQL:      metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_writeTracesSQL"),
 		buildTracesContextsMetric: metrics2.GetFloat64SummaryMetric("perfserver_sqltracestore_buildTracesContext"),
@@ -421,13 +465,9 @@ func (s *SQLTraceStore) GetLatestTile() (types.TileNumber, error) {
 }
 
 func (s *SQLTraceStore) paramSetForTile(tileNumber types.TileNumber) (paramtools.ParamSet, error) {
-	// Convert the tile number into a range of commits, since we don't store data by
-	// tile anymore.
-	beginCommit, endCommit := types.TileCommitRangeForTileNumber(tileNumber, s.tileSize)
 
-	rows, err := s.db.Query(context.TODO(), statements[paramSetForTile], beginCommit, endCommit)
+	rows, err := s.db.Query(context.TODO(), statements[paramSetForTile], tileNumber)
 	if err != nil {
-		fmt.Printf("%q %d %d", statements[paramSetForTile], beginCommit, endCommit)
 		return nil, skerr.Wrapf(err, "Failed querying - tileNumber=%d", tileNumber)
 	}
 	ret := paramtools.NewParamSet()
@@ -452,8 +492,22 @@ func (s *SQLTraceStore) paramSetForTile(tileNumber types.TileNumber) (paramtools
 	return ret, nil
 }
 
+// ClearOrderedParamSetCache is only used for tests.
+func (s *SQLTraceStore) ClearOrderedParamSetCache() {
+	s.orderedParamSetCache.Purge()
+}
+
 // GetOrderedParamSet implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error) {
+func (s *SQLTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber, now time.Time) (*paramtools.OrderedParamSet, error) {
+
+	iEntry, ok := s.orderedParamSetCache.Get(tileNumber)
+	if ok {
+		entry := iEntry.(orderedParamSetCacheEntry)
+		if entry.expires.After(now) {
+			return entry.orderedParamSet, nil
+		}
+		_ = s.orderedParamSetCache.Remove(tileNumber)
+	}
 	ps, err := s.paramSetForTile(tileNumber)
 	if err != nil {
 		return nil, skerr.Wrap(err)
@@ -461,6 +515,12 @@ func (s *SQLTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types
 	ret := paramtools.NewOrderedParamSet()
 	ret.Update(ps)
 	sort.Strings(ret.KeyOrder)
+
+	_ = s.orderedParamSetCache.Add(tileNumber, orderedParamSetCacheEntry{
+		expires:         now.Add(orderedParamSetCacheTTL),
+		orderedParamSet: ret,
+	})
+
 	return ret, nil
 }
 
@@ -493,7 +553,7 @@ func (s *SQLTraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) 
 
 // QueryTracesByIndex implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) QueryTracesByIndex(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error) {
-	ops, err := s.GetOrderedParamSet(ctx, tileNumber)
+	ops, err := s.GetOrderedParamSet(ctx, tileNumber, time.Now())
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get OPS.")
 	}
@@ -583,7 +643,7 @@ func (s *SQLTraceStore) QueryTracesIDOnlyByIndex(ctx context.Context, tileNumber
 		return outParams, skerr.Fmt("Can't run QueryTracesIDOnlyByIndex for the empty query.")
 	}
 
-	ops, err := s.GetOrderedParamSet(ctx, tileNumber)
+	ops, err := s.GetOrderedParamSet(ctx, tileNumber, time.Now())
 	if err != nil {
 		close(outParams)
 		return outParams, skerr.Wrap(err)
@@ -765,9 +825,16 @@ func (s *SQLTraceStore) updateSourceFile(filename string) (sourceFileIDFromSQL, 
 	return ret, nil
 }
 
+func cacheKeyForTraceIDAndTile(traceID traceIDForSQL, tileNumber types.TileNumber) string {
+	return fmt.Sprintf("%s-%d", traceID, tileNumber)
+}
+
 // WriteTraces implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []paramtools.Params, values []float32, _ paramtools.ParamSet, source string, _ time.Time) error {
 	defer timer.NewWithSummary("perfserver_sqltracestore_writeTraces", s.writeTracesMetric).Stop()
+
+	tileNumber := s.TileNumber(commitNumber)
+
 	// Get the row id for the source file.
 	sourceID, err := s.updateSourceFile(source)
 	if err != nil {
@@ -778,6 +845,7 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 	// Build the 'context' which will be used to populate the SQL template.
 	namesTemplateContext := make([]replaceTraceNamesContext, 0, len(params))
 	valuesTemplateContext := make([]replaceTraceValuesContext, 0, len(params))
+	tilesTemplateContext := make([]insertIntoTilesContext, 0, len(params))
 
 	for i, p := range params {
 		traceName, err := query.MakeKey(p)
@@ -802,6 +870,12 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 				JSONParams:    string(jsonParams),
 			})
 		}
+		if !s.cache.Exists(cacheKeyForTraceIDAndTile(traceID, tileNumber)) {
+			tilesTemplateContext = append(tilesTemplateContext, insertIntoTilesContext{
+				MD5HexTraceID: traceID,
+				TileNumber:    tileNumber,
+			})
+		}
 	}
 	t.Stop()
 
@@ -812,8 +886,7 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 	defer cancel()
 
 	if len(namesTemplateContext) > 0 {
-
-		err = util.ChunkIter(len(namesTemplateContext), 100, func(startIdx int, endIdx int) error {
+		err := util.ChunkIter(len(namesTemplateContext), 100, func(startIdx int, endIdx int) error {
 			var b bytes.Buffer
 			if err := s.unpreparedStatements[replaceTraceNames].Execute(&b, namesTemplateContext[startIdx:endIdx]); err != nil {
 				return skerr.Wrapf(err, "failed to expand trace names template on slice [%d, %d]", startIdx, endIdx)
@@ -833,6 +906,30 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 
 		for _, entry := range namesTemplateContext {
 			s.cache.Add(string(entry.MD5HexTraceID), "1")
+		}
+	}
+
+	if len(tilesTemplateContext) > 0 {
+		err := util.ChunkIter(len(tilesTemplateContext), 100, func(startIdx int, endIdx int) error {
+			var b bytes.Buffer
+			if err := s.unpreparedStatements[insertIntoTiles].Execute(&b, tilesTemplateContext[startIdx:endIdx]); err != nil {
+				return skerr.Wrapf(err, "failed to expand tiles template on slice [%d, %d]", startIdx, endIdx)
+			}
+			sql := b.String()
+
+			sklog.Infof("About to write %d tiles tiles with sql of length %d", len(params), len(sql))
+			if _, err := s.db.Exec(ctx, sql); err != nil {
+				return skerr.Wrapf(err, "Executing: %q", b.String())
+			}
+			return nil
+		})
+
+		if err != nil {
+			return err
+		}
+
+		for _, entry := range tilesTemplateContext {
+			s.cache.Add(cacheKeyForTraceIDAndTile(entry.MD5HexTraceID, tileNumber), "1")
 		}
 	}
 
@@ -858,7 +955,7 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 
 	sklog.Info("Finished writing trace values.")
 
-	return err
+	return nil
 }
 
 // Confirm that *SQLTraceStore fulfills the tracestore.TraceStore interface.
