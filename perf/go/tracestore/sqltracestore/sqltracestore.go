@@ -270,7 +270,7 @@ var templates = map[statement]string{
             AND TraceValues2.commit_number = {{ .CommitNumber }}`,
 	insertIntoTiles: `
 		INSERT INTO
-			Tiles (tile_number, trace_id)
+			Tiles2 (tile_number, trace_id)
 		VALUES
 			{{ range $index, $element :=  . -}}
 				{{ if $index }},{{end}}
@@ -366,7 +366,7 @@ var statements = map[statement]string{
             TraceNames.params
         FROM
             TraceNames
-        INNER LOOKUP JOIN Tiles ON TraceNames.trace_id = Tiles.trace_id
+        INNER LOOKUP JOIN Tiles2 ON TraceNames.trace_id = Tiles.trace_id
         WHERE
             Tiles.tile_number = $1`,
 	traceCount: `

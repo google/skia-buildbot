@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS TraceValues2 (
 	PRIMARY KEY (trace_id, commit_number)
 );
 
-CREATE TABLE IF NOT EXISTS Tiles (
+CREATE TABLE IF NOT EXISTS Tiles2 (
 	-- Id of the trace name from TraceNames.
 	trace_id BYTES,
 	-- The number of the tile that the trace_id appears in.
