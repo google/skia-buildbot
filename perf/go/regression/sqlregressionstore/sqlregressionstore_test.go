@@ -18,7 +18,7 @@ func TestSQLRegressionStore_CockroachDB(t *testing.T) {
 	// Common regressiontest tests.
 	for name, subTest := range regressiontest.SubTests {
 		t.Run(name, func(t *testing.T) {
-			db, cleanup := sqltest.NewCockroachDBForTests(t, "regstore", sqltest.ApplyMigrations)
+			db, cleanup := sqltest.NewCockroachDBForTests(t, "regstore")
 			// If this test times out then comment out the cleanup(), as it may hide the
 			// actual errors.
 			defer cleanup()
@@ -32,7 +32,7 @@ func TestSQLRegressionStore_CockroachDB(t *testing.T) {
 	// SQLRegressionStore specific tests.
 	for name, subTest := range subTests {
 		t.Run(name, func(t *testing.T) {
-			db, cleanup := sqltest.NewCockroachDBForTests(t, "regstore", sqltest.ApplyMigrations)
+			db, cleanup := sqltest.NewCockroachDBForTests(t, "regstore")
 			// If this test times out then comment out the cleanup(), as it may hide the
 			// actual errors.
 			defer cleanup()
