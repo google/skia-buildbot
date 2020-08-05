@@ -78,7 +78,7 @@ func newCockroachDBConfigForTest(t *testing.T) (context.Context, *config.Instanc
 
 	connectionString := fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", perfsql.GetCockroachDBEmulatorHost(), databaseName)
 
-	_, cleanup := sqltest.NewCockroachDBForTests(t, databaseName, sqltest.DoNotApplyMigrations)
+	_, cleanup := sqltest.NewCockroachDBForTests(t, databaseName)
 
 	instanceConfig := &config.InstanceConfig{
 		DataStoreConfig: config.DataStoreConfig{

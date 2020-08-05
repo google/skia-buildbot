@@ -39,7 +39,7 @@ func TestBuildTraceMapper(t *testing.T) {
 	unittest.LargeTest(t)
 
 	dbName := fmt.Sprintf("dfbuilder%d", rand.Uint32())
-	db, cleanup := sqltest.NewCockroachDBForTests(t, dbName, sqltest.ApplyMigrations)
+	db, cleanup := sqltest.NewCockroachDBForTests(t, dbName)
 	defer cleanup()
 
 	store, err := sqltracestore.New(db, cfg.DataStoreConfig)
