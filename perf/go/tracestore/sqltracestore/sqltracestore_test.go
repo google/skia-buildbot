@@ -37,7 +37,7 @@ var cfg = config.DataStoreConfig{
 func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTraceStore, sqltest.Cleanup) {
 	unittest.LargeTest(t)
 	ctx := context.Background()
-	db, cleanup := sqltest.NewCockroachDBForTests(t, fmt.Sprintf("tracestore%d", rand.Int63()), sqltest.ApplyMigrations)
+	db, cleanup := sqltest.NewCockroachDBForTests(t, fmt.Sprintf("tracestore%d", rand.Int63()))
 
 	store, err := New(db, cfg)
 	require.NoError(t, err)
@@ -336,7 +336,10 @@ func TestGetOrderedParamSet(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
-	ops, err := s.GetOrderedParamSet(ctx, 1)
+	tileNumber := types.TileNumber(1)
+	assert.False(t, s.orderedParamSetCache.Contains(tileNumber))
+
+	ops, err := s.GetOrderedParamSet(ctx, tileNumber, time.Now())
 	assert.NoError(t, err)
 	expected := paramtools.ParamSet{
 		"arch":   []string{"x86"},
@@ -344,6 +347,51 @@ func TestGetOrderedParamSet(t *testing.T) {
 	}
 	assert.Equal(t, expected, ops.ParamSet)
 	assert.Equal(t, []string{"arch", "config"}, ops.KeyOrder)
+
+	assert.True(t, s.orderedParamSetCache.Contains(tileNumber))
+}
+
+func TestGetOrderedParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
+
+	tileNumber := types.TileNumber(0)
+	assert.False(t, s.orderedParamSetCache.Contains(tileNumber))
+
+	ops, err := s.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	assert.NoError(t, err)
+	expected := paramtools.ParamSet{
+		"arch":   []string{"x86"},
+		"config": []string{"565", "8888"},
+	}
+	assert.Equal(t, expected, ops.ParamSet)
+	assert.Equal(t, []string{"arch", "config"}, ops.KeyOrder)
+	assert.True(t, s.orderedParamSetCache.Contains(tileNumber))
+
+	// Add new points that will expand the ParamSet.
+	traceNames := []paramtools.Params{
+		{"config": "8888", "arch": "risc-v"},
+		{"config": "565", "arch": "risc-v"},
+	}
+	err = s.WriteTraces(types.CommitNumber(1), traceNames,
+		[]float32{1.5, 2.3},
+		paramtools.ParamSet{}, // ParamSet is empty because WriteTraces doesn't use it in this impl.
+		"gs://perf-bucket/2020/02/08/11/testdata.json",
+		time.Time{}) // time is unused in this impl of TraceStore.
+
+	// The cached version should be returned.
+	ops, err = s.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	assert.NoError(t, err)
+	assert.Equal(t, expected, ops.ParamSet)
+
+	// But if we query past the TTL we should get an updated OPS.
+	updatedExpected := paramtools.ParamSet{
+		"arch":   []string{"risc-v", "x86"},
+		"config": []string{"565", "8888"},
+	}
+	ops, err = s.GetOrderedParamSet(ctx, tileNumber, time.Now().Add(orderedParamSetCacheTTL*2))
+	assert.NoError(t, err)
+	assert.Equal(t, updatedExpected, ops.ParamSet)
 }
 
 func TestGetOrderedParamSet_Empty(t *testing.T) {
@@ -351,7 +399,7 @@ func TestGetOrderedParamSet_Empty(t *testing.T) {
 	defer cleanup()
 
 	// Test the empty case where there is no data in datastore.
-	ops, err := s.GetOrderedParamSet(ctx, 1)
+	ops, err := s.GetOrderedParamSet(ctx, 1, time.Now())
 	assert.NoError(t, err)
 	assert.Equal(t, paramtools.ParamSet{}, ops.ParamSet)
 }

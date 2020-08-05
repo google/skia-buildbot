@@ -43,9 +43,7 @@ See also [configs](./configs/README.md)
 
 ## Migrations
 
-In theory the migrations library will take care of schema migrations on startup, but
-in reality, if running more than one instance, contention for the lock can arise. The
-migrations can be applied from the desktop by using the migrations command line app, which
+Migrations can be applied from the desktop by using the migrations command line app, which
 can be installed by:
 
     go get -tags 'cockroachdb'  github.com/golang-migrate/migrate/cmd/migrate

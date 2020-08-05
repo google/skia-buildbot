@@ -18,17 +18,6 @@ import (
 // database resources.
 type Cleanup func()
 
-// ApplyMigrationsOption indicates if migrations should be applied to an SQL database.
-type ApplyMigrationsOption bool
-
-const (
-	// ApplyMigrations is used if migrations at to be applied.
-	ApplyMigrations ApplyMigrationsOption = true
-
-	// DoNotApplyMigrations is used if migrations should not be applied.
-	DoNotApplyMigrations ApplyMigrationsOption = false
-)
-
 // NewCockroachDBForTests creates a new temporary CockroachDB database with all
 // migrations applied for testing. It also returns a function to call to clean
 // up the database after the tests have completed.
@@ -39,7 +28,7 @@ const (
 // test.
 //
 // If migrations to are be applied then set applyMigrations to true.
-func NewCockroachDBForTests(t *testing.T, databaseName string, applyMigrations ApplyMigrationsOption) (*pgxpool.Pool, Cleanup) {
+func NewCockroachDBForTests(t *testing.T, databaseName string) (*pgxpool.Pool, Cleanup) {
 	// Note that the migrationsConnection is different from the sql.Open
 	// connection string since migrations know about CockroachDB, but we use the
 	// Postgres driver for the database/sql connection since there's no native
@@ -60,10 +49,8 @@ func NewCockroachDBForTests(t *testing.T, databaseName string, applyMigrations A
 	cockroachdbMigrations, err := cockroachdb.New()
 	require.NoError(t, err)
 
-	if applyMigrations {
-		err = migrations.Up(cockroachdbMigrations, migrationsConnection)
-		require.NoError(t, err)
-	}
+	err = migrations.Up(cockroachdbMigrations, migrationsConnection)
+	require.NoError(t, err)
 
 	ctx := context.Background()
 	conn, err := pgxpool.Connect(ctx, connectionString)

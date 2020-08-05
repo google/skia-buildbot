@@ -45,7 +45,7 @@ func addValuesAtIndex(store tracestore.TraceStore, index types.CommitNumber, key
 type cleanupFunc func()
 
 func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *perfgit.Git, cleanupFunc) {
-	db, dbCleanup := sqltest.NewCockroachDBForTests(t, CockroachDatabaseName, sqltest.ApplyMigrations)
+	db, dbCleanup := sqltest.NewCockroachDBForTests(t, CockroachDatabaseName)
 
 	cfg := config.DataStoreConfig{
 		TileSize: testTileSize,

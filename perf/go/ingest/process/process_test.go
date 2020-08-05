@@ -61,7 +61,7 @@ func setupPubSubClient(t *testing.T) (*pubsub.Client, *config.InstanceConfig) {
 func TestStart_IngestDemoRepoWithCockroachDBTraceStore_Success(t *testing.T) {
 	unittest.ManualTest(t)
 
-	_, cleanup := sqltest.NewCockroachDBForTests(t, CockroachDatabaseName, sqltest.ApplyMigrations)
+	_, cleanup := sqltest.NewCockroachDBForTests(t, CockroachDatabaseName)
 	defer cleanup()
 
 	// Get tmp dir to use for repo checkout.

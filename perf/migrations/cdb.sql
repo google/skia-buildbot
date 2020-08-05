@@ -86,24 +86,24 @@ WHERE
     params ->> 'arch' IN ('x86', 'arm')
     AND params ->> 'config' IN ('8888');
 
--- ParamSet for two Tiles
+-- ParamSet for a tile.
 SELECT
     DISTINCT TraceNames.params
 FROM
-    TraceNames
-    INNER JOIN TraceValues2 ON TraceNames.trace_id = TraceValues2.trace_id
+    TraceNames INNER LOOKUP
+    JOIN Tiles ON TraceNames.trace_id = Tiles.trace_id
 WHERE
-    TraceValues2.commit_number >= 0
-    AND TraceValues2.commit_number < 512;
+    Tiles.tile_number = 2
+LIMIT
+    10;
 
--- Count the number traces that are in a single tile.
+-- Count traces per tile.
 SELECT
-    COUNT(DISTINCT trace_id)
+    COUNT(trace_id)
 FROM
-    TraceValues2
+    Tiles
 WHERE
-    commit_number > 0
-    AND commit_number < 256;
+    tile_number = 3;
 
 -- Most recent commit.
 SELECT
@@ -133,7 +133,7 @@ FROM
     TraceNames
     INNER JOIN TraceValues2 ON TraceNames.trace_id = TraceValues2.trace_id
 WHERE
-    TraceNames.params ->> 'arch' IN ('riscv')
+    TraceNames.params -> 'arch' IN ('"riscv"' :: JSONB)
     AND TraceValues2.commit_number >= 256
     AND TraceValues2.commit_number < 512;
 
@@ -148,5 +148,34 @@ FROM
 WHERE
     TraceValues2.commit_number >= 0
     AND TraceValues2.commit_number < 255
-    AND TraceNames.params ->> 'arch' IN ('x86')
-    AND TraceNames.params ->> 'config' IN ('565', '8888');
+    AND TraceNames.params -> 'arch' IN ('"x86"' :: JSONB)
+    AND TraceNames.params -> 'config' IN ('"565"' :: JSONB, '"8888"' :: JSONB);
+
+-- This is fast with PRIMARY KEY (trace_id, commit_number)
+SELECT
+    tracenames.params,
+    tracevalues2.commit_number,
+    tracevalues2.val
+FROM
+    TraceValues2 INNER LOOKUP
+    JOIN TraceNames ON tracevalues2.trace_id = tracenames.trace_id
+WHERE
+    tracevalues2.commit_number >= 47920
+    AND tracevalues2.commit_number < 49950
+    AND tracevalues2.trace_id IN (
+        SELECT
+            DISTINCT trace_id
+        FROM
+            tracenames
+        WHERE
+            params -> 'name' = '"AndroidCodec_01_original.jpg_SampleSize2"' :: JSONB
+    );
+
+-- Create the Tile table on the fly if we haven't ingested it.
+INSERT INTO
+    Tiles (tile_number, trace_id)
+SELECT
+    DISTINCT mod(commit_number, 256),
+    trace_id
+FROM
+    tracevalues2 ON CONFLICT DO NOTHING;

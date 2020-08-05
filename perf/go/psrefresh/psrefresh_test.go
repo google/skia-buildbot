@@ -29,8 +29,8 @@ func TestRefresher(t *testing.T) {
 	ps2.Update(paramtools.ParamSet{
 		"config": []string{"8888", "565", "gles"},
 	})
-	op.On("GetOrderedParamSet", mock.Anything, tileNumber).Return(ps1, nil)
-	op.On("GetOrderedParamSet", mock.Anything, tileNumber2).Return(ps2, nil)
+	op.On("GetOrderedParamSet", mock.Anything, tileNumber, mock.Anything).Return(ps1, nil)
+	op.On("GetOrderedParamSet", mock.Anything, tileNumber2, mock.Anything).Return(ps2, nil)
 
 	pf := NewParamSetRefresher(op)
 	err := pf.Start(time.Minute)

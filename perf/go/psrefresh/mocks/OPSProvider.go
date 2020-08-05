@@ -8,6 +8,8 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	paramtools "go.skia.org/infra/go/paramtools"
 
+	time "time"
+
 	types "go.skia.org/infra/perf/go/types"
 )
 
@@ -37,13 +39,13 @@ func (_m *OPSProvider) GetLatestTile() (types.TileNumber, error) {
 	return r0, r1
 }
 
-// GetOrderedParamSet provides a mock function with given fields: ctx, tileNumber
-func (_m *OPSProvider) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error) {
-	ret := _m.Called(ctx, tileNumber)
+// GetOrderedParamSet provides a mock function with given fields: ctx, tileNumber, now
+func (_m *OPSProvider) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber, now time.Time) (*paramtools.OrderedParamSet, error) {
+	ret := _m.Called(ctx, tileNumber, now)
 
 	var r0 *paramtools.OrderedParamSet
-	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber) *paramtools.OrderedParamSet); ok {
-		r0 = rf(ctx, tileNumber)
+	if rf, ok := ret.Get(0).(func(context.Context, types.TileNumber, time.Time) *paramtools.OrderedParamSet); ok {
+		r0 = rf(ctx, tileNumber, now)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*paramtools.OrderedParamSet)
@@ -51,8 +53,8 @@ func (_m *OPSProvider) GetOrderedParamSet(ctx context.Context, tileNumber types.
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(context.Context, types.TileNumber) error); ok {
-		r1 = rf(ctx, tileNumber)
+	if rf, ok := ret.Get(1).(func(context.Context, types.TileNumber, time.Time) error); ok {
+		r1 = rf(ctx, tileNumber, now)
 	} else {
 		r1 = ret.Error(1)
 	}

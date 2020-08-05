@@ -6,7 +6,6 @@ package builders
 
 import (
 	"context"
-	"database/sql"
 	"strings"
 
 	"cloud.google.com/go/bigtable"
@@ -32,42 +31,17 @@ import (
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/shortcut/dsshortcutstore"
 	"go.skia.org/infra/perf/go/shortcut/sqlshortcutstore"
-	"go.skia.org/infra/perf/go/sql/migrations"
-	"go.skia.org/infra/perf/go/sql/migrations/cockroachdb"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/tracestore/btts"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
 	"google.golang.org/api/option"
 )
 
-// newCockroachDBFromConfig opens an existing CockroachDB database with all
-// migrations applied.
+// newCockroachDBFromConfig opens an existing CockroachDB database.
+//
+// No migrations are applied automatically, they must be applied by the
+// 'migrate' command line application. See COCKROACHDB.md for more details.
 func newCockroachDBFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (*pgxpool.Pool, error) {
-	// Note that the migrationsConnection is different from the sql.Open
-	// connection string since migrations know about CockroachDB, but we use the
-	// Postgres driver for the database/sql connection since there's no native
-	// CockroachDB golang driver, and the suggested SQL drive for CockroachDB is
-	// the Postgres driver since that's the underlying communication protocol it
-	// uses.
-	migrationsConnection := strings.Replace(instanceConfig.DataStoreConfig.ConnectionString, "postgresql://", "cockroach://", 1)
-
-	db, err := sql.Open("pgx", instanceConfig.DataStoreConfig.ConnectionString)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	cockroachdbMigrations, err := cockroachdb.New()
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	err = migrations.Up(cockroachdbMigrations, migrationsConnection)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	if err := db.Close(); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	sklog.Infof("Finished applying migrations.")
-
 	return pgxpool.Connect(ctx, instanceConfig.DataStoreConfig.ConnectionString)
 }
 
