@@ -42,6 +42,7 @@ import (
 	"go.skia.org/infra/status/go/capacity"
 	"go.skia.org/infra/status/go/incremental"
 	"go.skia.org/infra/status/go/lkgr"
+	"go.skia.org/infra/status/go/rpc"
 	task_driver_db "go.skia.org/infra/task_driver/go/db"
 	bigtable_db "go.skia.org/infra/task_driver/go/db/bigtable"
 	"go.skia.org/infra/task_driver/go/handlers"
