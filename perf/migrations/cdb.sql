@@ -91,7 +91,7 @@ SELECT
     DISTINCT TraceNames.params
 FROM
     TraceNames INNER LOOKUP
-    JOIN Tiles ON TraceNames.trace_id = Tiles.trace_id
+    JOIN Tiles2 ON TraceNames.trace_id = Tiles.trace_id
 WHERE
     Tiles.tile_number = 2
 LIMIT
@@ -164,18 +164,51 @@ WHERE
     AND tracevalues2.commit_number < 49950
     AND tracevalues2.trace_id IN (
         SELECT
-            DISTINCT trace_id
+            trace_id
         FROM
             tracenames
         WHERE
             params -> 'name' = '"AndroidCodec_01_original.jpg_SampleSize2"' :: JSONB
     );
 
--- Create the Tile table on the fly if we haven't ingested it.
-INSERT INTO
-    Tiles (tile_number, trace_id)
+-- The first part of every query is to pull in the trace names
+-- for the given tile.
 SELECT
-    DISTINCT mod(commit_number, 256),
-    trace_id
+    encode(TraceNames.trace_id, 'hex'),
+    params
 FROM
-    tracevalues2 ON CONFLICT DO NOTHING;
+    TraceNames INNER LOOKUP
+    JOIN Tiles2 ON TraceNames.trace_id = Tiles2.trace_id
+WHERE
+    params -> 'name' = '"AndroidCodec_01_original.jpg_SampleSize2"' :: JSONB
+    AND Tiles2.tile_number = 192;
+
+-- Then query for trace values in batches.
+SELECT
+    trace_id,
+    commit_number,
+    val
+FROM
+    TraceValues2
+WHERE
+    tracevalues2.commit_number >= 47920
+    AND tracevalues2.commit_number < 49950
+    AND tracevalues2.trace_id IN (
+        '\x17fd39b069cd9a407505ae24f2723291',
+        '\x5ef2a5f48084b8984f56014cb2070e8b',
+        '\x6455b07f0d34f9ec859b317209390af7',
+        '\x75013132ba2d0be4f4fce714b651ff3f',
+        '\x945717d7e922e254bf5962dd1305dfa7',
+        '\x94a6eddfec4caeb2ae7cb1af625f25e3',
+        '\x969804d972c1a3c8d25d1460d3142a5a',
+        '\xa879665f9ed2852ab781862165213787',
+        '\xeaadaa2335ba9308aec8fe0264170ef3'
+    );
+
+SELECT
+    count(TraceNames.params)
+FROM
+    Tiles2 INNER LOOKUP
+    JOIN TraceNames ON TraceNames.trace_id = Tiles2.trace_id
+WHERE
+    Tiles2.tile_number = 192;
