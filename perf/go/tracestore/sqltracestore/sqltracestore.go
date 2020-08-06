@@ -121,7 +121,7 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
-const writeTracesChunkSize = 200
+const writeTracesChunkSize = 100
 
 // defaultCacheSize is the size of the in-memory LRU cache if no size was
 // specified in the config file.
@@ -270,7 +270,7 @@ var templates = map[statement]string{
             AND TraceValues2.commit_number = {{ .CommitNumber }}`,
 	insertIntoTiles: `
 		INSERT INTO
-			Tiles (tile_number, trace_id)
+			Tiles2 (tile_number, trace_id)
 		VALUES
 			{{ range $index, $element :=  . -}}
 				{{ if $index }},{{end}}
@@ -366,9 +366,9 @@ var statements = map[statement]string{
             TraceNames.params
         FROM
             TraceNames
-        INNER LOOKUP JOIN Tiles ON TraceNames.trace_id = Tiles.trace_id
+        INNER LOOKUP JOIN Tiles2 ON TraceNames.trace_id = Tiles2.trace_id
         WHERE
-            Tiles.tile_number = $1`,
+            Tiles2.tile_number = $1`,
 	traceCount: `
         SELECT
             COUNT(DISTINCT trace_id)
@@ -886,7 +886,7 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 	defer cancel()
 
 	if len(namesTemplateContext) > 0 {
-		err := util.ChunkIter(len(namesTemplateContext), 100, func(startIdx int, endIdx int) error {
+		err := util.ChunkIter(len(namesTemplateContext), writeTracesChunkSize, func(startIdx int, endIdx int) error {
 			var b bytes.Buffer
 			if err := s.unpreparedStatements[replaceTraceNames].Execute(&b, namesTemplateContext[startIdx:endIdx]); err != nil {
 				return skerr.Wrapf(err, "failed to expand trace names template on slice [%d, %d]", startIdx, endIdx)
@@ -910,14 +910,14 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 	}
 
 	if len(tilesTemplateContext) > 0 {
-		err := util.ChunkIter(len(tilesTemplateContext), 100, func(startIdx int, endIdx int) error {
+		err := util.ChunkIter(len(tilesTemplateContext), writeTracesChunkSize, func(startIdx int, endIdx int) error {
 			var b bytes.Buffer
 			if err := s.unpreparedStatements[insertIntoTiles].Execute(&b, tilesTemplateContext[startIdx:endIdx]); err != nil {
 				return skerr.Wrapf(err, "failed to expand tiles template on slice [%d, %d]", startIdx, endIdx)
 			}
 			sql := b.String()
 
-			sklog.Infof("About to write %d tiles tiles with sql of length %d", len(params), len(sql))
+			sklog.Infof("About to write %d tiles with sql of length %d", len(params), len(sql))
 			if _, err := s.db.Exec(ctx, sql); err != nil {
 				return skerr.Wrapf(err, "Executing: %q", b.String())
 			}

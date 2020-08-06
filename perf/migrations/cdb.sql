@@ -91,7 +91,7 @@ SELECT
     DISTINCT TraceNames.params
 FROM
     TraceNames INNER LOOKUP
-    JOIN Tiles ON TraceNames.trace_id = Tiles.trace_id
+    JOIN Tiles2 ON TraceNames.trace_id = Tiles.trace_id
 WHERE
     Tiles.tile_number = 2
 LIMIT
@@ -164,7 +164,7 @@ WHERE
     AND tracevalues2.commit_number < 49950
     AND tracevalues2.trace_id IN (
         SELECT
-            DISTINCT trace_id
+            trace_id
         FROM
             tracenames
         WHERE
@@ -173,7 +173,7 @@ WHERE
 
 -- Create the Tile table on the fly if we haven't ingested it.
 INSERT INTO
-    Tiles (tile_number, trace_id)
+    Tiles2 (tile_number, trace_id)
 SELECT
     DISTINCT mod(commit_number, 256),
     trace_id
