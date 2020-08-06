@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "44a78888_a1de1ee7",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 398,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-06T12:10:53Z",
+      "side": 1,
+      "message": "Wouldn\u0027t a dedicated ttlcache be a better fit here? Let\u0027s assume 1k tiles (256k commits, i.e. all of time for most projects) have a paramset in memory at any given time and a paramset has 100 keys with 10 values each at 100 bytes. That\u0027s 100M of RAM, which should be plenty small w/o needing to also evict based on number of entries.",
+      "range": {
+        "startLine": 398,
+        "startChar": 22,
+        "endLine": 398,
+        "endChar": 32
+      },
+      "revId": "60321c6b10f538ab8affe95ff9dcaa0d05b82f7c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "64f74c3f_9eb5d13a",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 501,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-06T12:10:53Z",
+      "side": 1,
+      "message": "It seems a little like \"shotgun surgery\" to inject time here at the API level. If the goal is to mock this out for tests, I\u0027ve found it easier to give the struct (SQLTraceStore) a private function called now() that it uses instead of time.Now() and then I can control that from my test w/o having to rewrite a public API and all callers of it.\n\nThere may be better ways to deal with time and mocking it, but I haven\u0027t dug too much into that.",
+      "range": {
+        "startLine": 501,
+        "startChar": 93,
+        "endLine": 501,
+        "endChar": 96
+      },
+      "revId": "60321c6b10f538ab8affe95ff9dcaa0d05b82f7c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fdce49dc_cb38d601",
+        "filename": "perf/go/tracestore/tracestore.go",
+        "patchSetId": 11
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-06T12:10:53Z",
+      "side": 1,
+      "message": "include a comment what the time is used for",
+      "range": {
+        "startLine": 27,
+        "startChar": 53,
+        "endLine": 27,
+        "endChar": 57
+      },
+      "revId": "60321c6b10f538ab8affe95ff9dcaa0d05b82f7c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f92a4b33_629c60c1",
+        "filename": "perf/migrations/cockroachdb/0002_create_initial_tables.up.sql",
+        "patchSetId": 11
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-06T12:10:53Z",
+      "side": 1,
+      "message": "I would include the rationale for the key to be in this order, since the choice ended up being important for performance.",
+      "revId": "60321c6b10f538ab8affe95ff9dcaa0d05b82f7c",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
