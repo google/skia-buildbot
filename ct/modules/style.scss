@@ -66,6 +66,17 @@ table.inner-table {
     }
 }
 
+.error {
+  color: var(--red-500);
+}
+
+.darkmode .error {
+    color: var(--red-300);
+}
+
+.green {
+  color: var(--green-400);
+}
 /* The table used for task triggering form layouts. */
 table.options {
     padding-left: 2em;

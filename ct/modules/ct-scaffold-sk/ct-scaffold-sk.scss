@@ -27,6 +27,10 @@ ct-scaffold-sk {
     }
   }
 
+  main {
+    background-color: var(--background);
+  }
+
   nav {
     display:flex;
     flex-direction: column;
