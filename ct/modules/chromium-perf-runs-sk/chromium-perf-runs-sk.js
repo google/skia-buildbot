@@ -155,8 +155,8 @@ const taskRowTemplate = (el, task, index) => html`
 
   <!-- Results col -->
   <td class=nowrap>
-    ${task.Failure ? '<div class=error>Failed</div>' : ''}
-    ${!task.TaskDone ? '<div class=green>Waiting</div>' : ''}
+    ${task.Failure ? html`<div class=error>Failed</div>` : ''}
+    ${!task.TaskDone ? html`<div class=green>Waiting</div>` : ''}
     ${task.Results
     ? html`<a href="${task.Results}" target=_blank rel="noopener noreferrer">
         Overall Result
