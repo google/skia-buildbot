@@ -59,6 +59,10 @@ The following licenses are used in dependent packages.
 | github.com/jackc/pgio                                             | MIT           |
 | github.com/jackc/pgpassfile                                       | MIT           |
 | github.com/jackc/pgproto3/v2                                      | MIT           |
+| github.com/jackc/pgservicefile                                    | MIT           |
+| github.com/jackc/pgtype                                           | MIT           |
+| github.com/jackc/pgx/v4                                           | MIT           |
+| github.com/jackc/puddle                                           | MIT           |
 | github.com/jcgregorio/logger                                      | Apache-2.0    |
 | github.com/jcgregorio/slog                                        | Apache-2.0    |
 | github.com/Jeffail/gabs/v2                                        | MIT           |
