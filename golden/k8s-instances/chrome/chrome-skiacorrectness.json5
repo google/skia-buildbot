@@ -19,7 +19,7 @@ See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8F
   force_login: true, // This instance requires authentication. It has a public view (chrome-public)
   frontend: {
     baseRepoURL: "<inherited from git_repo_url>",
-    defaultCorpus: "gtest-pixeltests",
+    defaultCorpus: "android-render-tests",
     title: "Chrome Gold",
   },
   lit_html_path: "/usr/local/share/skiacorrectness",
