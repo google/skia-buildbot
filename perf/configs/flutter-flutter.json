@@ -1,18 +1,10 @@
 {
   "URL": "https://flutter-flutter-perf.skia.org/",
   "data_store_config": {
-    "datastore_type": "gcp",
+    "datastore_type": "cockroachdb",
     "connection_string": "postgresql://root@perf-cockroachdb-public:26257/flutter_flutter?sslmode=disable",
     "tile_size": 4096,
-    "shards": 8,
-    "cache": {
-      "memcached_servers": [
-        "perf-memcached-0.perf-memcached:11211",
-        "perf-memcached-1.perf-memcached:11211",
-        "perf-memcached-2.perf-memcached:11211"
-      ],
-      "namespace": "flut-f"
-    }
+    "shards": 8
   },
   "ingestion_config": {
     "source_config": {
