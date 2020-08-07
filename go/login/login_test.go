@@ -147,3 +147,26 @@ func TestIsAuthorized(t *testing.T) {
 	assert.False(t, isAuthorized("fred@example.com"))
 	assert.False(t, isAuthorized("evil@proj.iam.gserviceaccount.com"))
 }
+
+func TestIsAuthorized_Gmail(t *testing.T) {
+	unittest.SmallTest(t)
+	once.Do(loginInit)
+	setActiveAllowLists("google.com example@gmail.com")
+
+	assert.True(t, isAuthorized("example@gmail.com"))
+	assert.True(t, isAuthorized("ex.amp.le@gmail.com"))
+	assert.True(t, isAuthorized("example+somethi.ng@gmail.com"))
+	assert.True(t, isAuthorized("ex.amp.le+something@gmail.com"))
+
+	assert.False(t, isAuthorized("fred@gmail.com"))
+	assert.False(t, isAuthorized("example@g.mail.com"))
+}
+
+func TestNormalizeGmailAddress(t *testing.T) {
+	unittest.SmallTest(t)
+	assert.Equal(t, "example", normalizeGmailAddress(".ex.ampl.e."))
+	assert.Equal(t, "example", normalizeGmailAddress("exa.mple"))
+	assert.Equal(t, "example", normalizeGmailAddress("example+"))
+	assert.Equal(t, "example", normalizeGmailAddress("example+decoration+more+plus"))
+	assert.Equal(t, "example", normalizeGmailAddress("examp.le+.dec."))
+}

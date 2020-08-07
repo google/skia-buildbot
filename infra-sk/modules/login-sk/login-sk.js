@@ -15,29 +15,29 @@
  *
  * <p>
  */
-import { define } from 'elements-sk/define'
+import { define } from 'elements-sk/define';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { LoginTo } from '../login';
 
 define('login-sk', class extends HTMLElement {
   connectedCallback() {
-    this.innerHTML = `<span class=email>Loading...</span><a class=logInOut></a>`;
+    this.innerHTML = '<span class=email>Loading...</span><a class=logInOut></a>';
     const host = this.loginHost ? this.loginHost : 'skia.org';
     if (this.testingOffline) {
-      this.querySelector('.email').textContent = "test@example.com";
+      this.querySelector('.email').textContent = 'test@example.com';
       const logInOut = this.querySelector('.logInOut');
-      logInOut.href = `https://${host}/logout/?redirect=` + encodeURIComponent(document.location);
+      logInOut.href = `https://${host}/logout/?redirect=${encodeURIComponent(document.location)}`;
       logInOut.textContent = 'Logout';
     } else {
       LoginTo(`https://${host}/loginstatus/`).then((status) => {
         this.querySelector('.email').textContent = status.Email;
-        let logInOut = this.querySelector('.logInOut');
+        const logInOut = this.querySelector('.logInOut');
         if (!status.Email) {
-            logInOut.href = status.LoginURL;
-            logInOut.textContent = 'Login';
+          logInOut.href = status.LoginURL;
+          logInOut.textContent = 'Login';
         } else {
-            logInOut.href = `https://${host}/logout/?redirect=` + encodeURIComponent(document.location);
-            logInOut.textContent = 'Logout';
+          logInOut.href = `https://${host}/logout/?redirect=${encodeURIComponent(document.location)}`;
+          logInOut.textContent = 'Logout';
         }
       }).catch(errorMessage);
     }
@@ -46,6 +46,7 @@ define('login-sk', class extends HTMLElement {
   /** @prop testingOffline {boolean} Reflects the testing_offline attribute for ease of use.
    */
   get testingOffline() { return this.hasAttribute('testing_offline'); }
+
   set testingOffline(val) {
     if (val) {
       this.setAttribute('testing_offline', '');
@@ -57,6 +58,7 @@ define('login-sk', class extends HTMLElement {
   /** @prop loginHost {string} Which host should be used for login URLs.
    */
   get loginHost() { return this.getAttribute('login_host'); }
+
   set loginHost(val) {
     if (val) {
       this.setAttribute('login_host', val);
