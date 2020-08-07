@@ -43,7 +43,7 @@ const template = (ele) => html`
     </div>
     <div class=spacer></div>
     <!-- TODO(kjlubick) last commit -->
-    <login-sk ?testing_offline=${ele.testingOffline}></login-sk>
+    <login-sk ?testing_offline=${ele.testingOffline} .loginHost=${window.location.host}></login-sk>
   </header>
 
   <aside>

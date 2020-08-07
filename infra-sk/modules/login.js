@@ -13,13 +13,13 @@
  *
  * The Email will be the empty string if the user is not logged in.
  */
-export var Login = fetch('https://skia.org/loginstatus/', {
+export const Login = fetch('https://skia.org/loginstatus/', {
   credentials: 'include',
-}).then(res => {
+}).then((res) => {
   if (res.ok) {
-    return res.json()
+    return res.json();
   }
-  throw new Error('Problem reading /loginstatus/:' + res.statusText);
+  throw new Error(`Problem reading /loginstatus/:${res.statusText}`);
 });
 
 /**
@@ -36,14 +36,14 @@ export var Login = fetch('https://skia.org/loginstatus/', {
  *
  * The Email will be the empty string if the user is not logged in.
  */
-export var LoginTo = function(loginStatusURL) {
+export const LoginTo = function(loginStatusURL) {
   return fetch(loginStatusURL, {
     credentials: 'include',
-  }).then(res => {
+  }).then((res) => {
     if (res.ok) {
-      return res.json()
+      return res.json();
     }
-    throw new Error('Problem reading /loginstatus/:' + res.statusText);
+    throw new Error(`Problem reading /loginstatus/:${res.statusText}`);
   });
 };
 
