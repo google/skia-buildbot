@@ -31,7 +31,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -295,7 +294,7 @@ func generateID() (string, error) {
 func getSession(r *http.Request) (*Session, error) {
 	cookie, err := r.Cookie(COOKIE_NAME)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	var s Session
 	if cookie != nil && len(cookie.String()) > 20 {
@@ -306,10 +305,10 @@ func getSession(r *http.Request) (*Session, error) {
 	}
 
 	if err := secureCookie.Decode(COOKIE_NAME, cookie.Value, &s); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	if s.AuthScope != strings.Join(oauthConfig.Scopes, " ") {
-		return nil, fmt.Errorf("Stored auth scope differs from expected (%v vs %s)", oauthConfig.Scopes, s.AuthScope)
+		return nil, skerr.Fmt("Stored auth scope differs from expected (%v vs %s)", oauthConfig.Scopes, s.AuthScope)
 	}
 	return &s, nil
 }
@@ -319,13 +318,18 @@ func getSession(r *http.Request) (*Session, error) {
 func LoggedInAs(r *http.Request) string {
 	var email string
 	if s, err := getSession(r); err == nil {
+		sklog.Infof("Is in getSession %#v", s)
 		email = s.Email
-	} else if e, err := ViaBearerToken(r); err == nil {
-		email = e
+	} else {
+		sklog.Infof("Could not get email from session %s", err)
+		if e, err := ViaBearerToken(r); err == nil {
+			sklog.Infof("Got email via bearer token %s", e)
+			email = e
+		} else {
+			sklog.Infof("Could not get email from bearer token %s", err)
+		}
 	}
 	if isAuthorized(email) {
-		// TODO(stephana): Uncomment the following line when Debugf is different from Infof.
-		// sklog.Debugf("User %s is on the allowlist", email)
 		return email
 	}
 
@@ -564,15 +568,35 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 func isAuthorized(email string) bool {
 	parts := strings.Split(email, "@")
 	if len(parts) != 2 {
+		sklog.Errorf("Email %s was not in 2 parts: %s", email)
 		return false
 	}
+
+	user, domain := parts[0], parts[1]
+	if domain == "gmail.com" {
+		user = normalizeGmailAddress(user)
+	}
+	normalizedEmail := user + "@" + domain
+
 	if viewAllow != nil {
-		return viewAllow.Member(email)
+		return viewAllow.Member(normalizedEmail)
 	}
-	if len(activeUserDomainAllowList) > 0 && !activeUserDomainAllowList[parts[1]] && !activeUserEmailAllowList[email] {
-		return false
+
+	if len(activeUserDomainAllowList) == 0 {
+		return true // if the list is empty, everybody is allowed
 	}
-	return true
+	return activeUserDomainAllowList[domain] || activeUserEmailAllowList[normalizedEmail]
+}
+
+// normalizeGmailAddress removes periods and text after a plus sign.
+// See https://stackoverflow.com/a/15499627 for more.
+func normalizeGmailAddress(user string) string {
+	user = strings.ReplaceAll(user, ".", "")
+	plusIdx := strings.Index(user, "+")
+	if plusIdx >= 0 {
+		return user[:plusIdx]
+	}
+	return user
 }
 
 // StatusHandler returns the login status of the user as JSON that looks like:
@@ -810,12 +834,12 @@ func tryLoadingFromKnownLocations() (string, string, string) {
 func ViaBearerToken(r *http.Request) (string, error) {
 	tok := r.Header.Get("Authorization")
 	if tok == "" {
-		return "", errors.New("User is not authenticated.")
+		return "", skerr.Fmt("User is not authenticated. No Authorization header.")
 	}
 	tok = strings.TrimPrefix(tok, "Bearer ")
 	tokenInfo, err := ValidateBearerToken(tok)
 	if err != nil {
-		return "", err
+		return "", skerr.Wrap(err)
 	}
 	return tokenInfo.Email, nil
 }
