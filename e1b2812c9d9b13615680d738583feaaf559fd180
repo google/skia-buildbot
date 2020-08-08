@@ -34,6 +34,24 @@
       "revId": "e1b2812c9d9b13615680d738583feaaf559fd180",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a147a73_e8ff187b",
+        "filename": "autoroll/config/fuchsia-linux-toolchain-flutter-engine.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-08-08T01:09:25Z",
+      "side": 1,
+      "message": "k, I stopped both rollers. Let\u0027s start them after the manual roll lands.",
+      "parentUuid": "9246f00b_c143ba35",
+      "revId": "e1b2812c9d9b13615680d738583feaaf559fd180",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
