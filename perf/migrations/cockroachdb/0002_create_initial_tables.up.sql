@@ -25,5 +25,5 @@ CREATE TABLE IF NOT EXISTS Tiles (
 	trace_id BYTES,
 	-- The number of the tile that the trace_id appears in.
 	tile_number INT,
-	PRIMARY KEY (trace_id, tile_number)
+	PRIMARY KEY (trace_id, tile_number) -- TODO(jcgregorio) May need reverse key.
 );
