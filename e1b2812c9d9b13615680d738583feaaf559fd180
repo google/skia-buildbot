@@ -16,6 +16,24 @@
       "revId": "e1b2812c9d9b13615680d738583feaaf559fd180",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9246f00b_c143ba35",
+        "filename": "autoroll/config/fuchsia-linux-toolchain-flutter-engine.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 6530
+      },
+      "writtenOn": "2020-08-08T00:51:47Z",
+      "side": 1,
+      "message": "Yes, I think a manual roll will need to be landed to change the package names before the autoroller will start working.  The roller works by matching the package name as the lhs and updating the rhs.",
+      "parentUuid": "e77e5fd8_3989214b",
+      "revId": "e1b2812c9d9b13615680d738583feaaf559fd180",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
