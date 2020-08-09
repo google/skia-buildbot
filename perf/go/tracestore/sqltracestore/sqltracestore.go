@@ -121,7 +121,10 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
-const writeTracesChunkSize = 200
+// timeNow allows controlling time during tests.
+var timeNow = time.Now
+
+const writeTracesChunkSize = 100
 
 // defaultCacheSize is the size of the in-memory LRU cache if no size was
 // specified in the config file.
@@ -150,6 +153,10 @@ func traceIDForSQLFromTraceName(traceName string) traceIDForSQL {
 	return traceIDForSQL(fmt.Sprintf("\\x%x", b))
 }
 
+func traceIDForSQLFromTraceNameBytes(traceNameBytes []byte) traceIDForSQL {
+	return traceIDForSQL(fmt.Sprintf("\\x%x", traceNameBytes))
+}
+
 // sourceFileIDFromSQL is the type of the IDs that are used in the SQL database
 // for source files.
 type sourceFileIDFromSQL int64
@@ -175,6 +182,7 @@ const (
 	queryTracesIDOnly
 	readTraces
 	insertIntoTiles
+	insertIntoParamSets
 )
 
 var templates = map[statement]string{
@@ -187,9 +195,9 @@ var templates = map[statement]string{
                 '{{ $element.MD5HexTraceID }}', {{ $element.CommitNumber }}, {{ $element.Val }}, {{ $element.SourceFileID }}
             )
         {{ end }}
-		ON CONFLICT
-		DO NOTHING
-		`,
+        ON CONFLICT
+        DO NOTHING
+        `,
 	replaceTraceNames: `INSERT INTO
             TraceNames (trace_id, params)
         VALUES
@@ -199,20 +207,17 @@ var templates = map[statement]string{
                 '{{ $element.MD5HexTraceID }}', '{{ $element.JSONParams }}'
             )
         {{ end }}
-		ON CONFLICT
-		DO NOTHING
-		`,
+        ON CONFLICT
+        DO NOTHING
+        `,
 	queryTraces: `
         SELECT
-            TraceNames.params,
-            TraceValues2.commit_number,
-            TraceValues2.val
+            TraceNames.params
         FROM
-            TraceNames
-        INNER LOOKUP JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+            Tiles
+        INNER LOOKUP JOIN TraceNames ON Tiles.trace_id = TraceNames.trace_id
         WHERE
-            TraceValues2.commit_number >= {{ .BeginCommitNumber }}
-            AND TraceValues2.commit_number < {{ .EndCommitNumber }}
+            Tiles.tile_number = {{ .TileNumber }}
             {{ range  $key, $values := .QueryPlan }}
                 AND TraceNames.params ->> '{{ $key }}' IN
                 (
@@ -226,11 +231,10 @@ var templates = map[statement]string{
         SELECT
             TraceNames.params
         FROM
-            TraceNames
-        INNER LOOKUP JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+            Tiles
+        INNER LOOKUP JOIN TraceNames ON Tiles.trace_id = TraceNames.trace_id
         WHERE
-            TraceValues2.commit_number >= {{ .BeginCommitNumber }}
-            AND TraceValues2.commit_number < {{ .EndCommitNumber }}
+            Tiles.tile_number = {{ .TileNumber }}
             {{ range  $key, $values := .QueryPlan }}
                 AND TraceNames.params ->> '{{ $key }}' IN
                 (
@@ -242,16 +246,15 @@ var templates = map[statement]string{
         `,
 	readTraces: `
         SELECT
-            TraceNames.params,
-            TraceValues2.commit_number,
-            TraceValues2.val
+            trace_id,
+            commit_number,
+            val
         FROM
-            TraceNames
-        INNER LOOKUP JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+            TraceValues2
         WHERE
-            TraceValues2.commit_number >= {{ .BeginCommitNumber }}
-            AND TraceValues2.commit_number < {{ .EndCommitNumber }}
-            AND TraceValues2.trace_id IN
+            commit_number >= {{ .BeginCommitNumber }}
+            AND commit_number < {{ .EndCommitNumber }}
+            AND trace_id IN
             (
                 {{ range $index, $trace_id :=  .TraceIDs -}}
                     {{ if $index }},{{end}} '{{ $trace_id }}'
@@ -269,15 +272,25 @@ var templates = map[statement]string{
             TraceNames.trace_id = '{{ .MD5HexTraceID }}'
             AND TraceValues2.commit_number = {{ .CommitNumber }}`,
 	insertIntoTiles: `
-		INSERT INTO
-			Tiles (tile_number, trace_id)
-		VALUES
-			{{ range $index, $element :=  . -}}
-				{{ if $index }},{{end}}
-				( {{ $element.TileNumber }}, '{{ $element.MD5HexTraceID }}' )
-			{{ end }}
-		ON CONFLICT
-		DO NOTHING`,
+        INSERT INTO
+            Tiles (tile_number, trace_id)
+        VALUES
+            {{ range $index, $element :=  . -}}
+                {{ if $index }},{{end}}
+                ( {{ $element.TileNumber }}, '{{ $element.MD5HexTraceID }}' )
+            {{ end }}
+        ON CONFLICT
+        DO NOTHING`,
+	insertIntoParamSets: `
+        INSERT INTO
+            ParamSets (tile_number, param_key, param_value)
+        VALUES
+            {{ range $index, $element :=  . -}}
+                {{ if $index }},{{end}}
+                ( {{ $element.TileNumber }}, '{{ $element.Key }}', '{{ $element.Value }}' )
+            {{ end }}
+        ON CONFLICT
+        DO NOTHING`,
 }
 
 // replaceTraceValuesContext is the context for the replaceTraceValues template.
@@ -305,9 +318,8 @@ type replaceTraceNamesContext struct {
 
 // queryTracesContext is the context for the queryTraces template.
 type queryTracesContext struct {
-	BeginCommitNumber types.CommitNumber
-	EndCommitNumber   types.CommitNumber
-	QueryPlan         paramtools.ParamSet
+	TileNumber types.TileNumber
+	QueryPlan  paramtools.ParamSet
 }
 
 // readTracesContext is the context for the readTraces template.
@@ -337,6 +349,12 @@ type insertIntoTilesContext struct {
 	MD5HexTraceID traceIDForSQL
 }
 
+type insertIntoParamSetsContext struct {
+	TileNumber types.TileNumber
+	Key        string
+	Value      string
+}
+
 var statements = map[statement]string{
 	insertIntoSourceFiles: `
         INSERT INTO
@@ -354,21 +372,20 @@ var statements = map[statement]string{
             source_file=$1`,
 	getLatestCommit: `
         SELECT
-            commit_number
+            tile_number
         FROM
-            TraceValues2
+            ParamSets
         ORDER BY
-            commit_number DESC
+            tile_number DESC
         LIMIT
             1;`,
 	paramSetForTile: `
         SELECT
-            TraceNames.params
+           param_key, param_value
         FROM
-            TraceNames
-        INNER LOOKUP JOIN Tiles ON TraceNames.trace_id = Tiles.trace_id
+            ParamSets
         WHERE
-            Tiles.tile_number = $1`,
+            tile_number = $1`,
 	traceCount: `
         SELECT
             COUNT(DISTINCT trace_id)
@@ -391,6 +408,9 @@ type SQLTraceStore struct {
 	//
 	// And from md5(trace_name)+tile_number -> true if the trace_name has
 	// already been written to the Tiles table.
+	//
+	// And from (tile_number, param_key, param_value) -> true if the param has
+	// been written to the ParamSets tables.
 	cache cache.Cache
 
 	// orderedParamSetCache is a cache for OrderedParamSets that have a TTL. The
@@ -457,14 +477,16 @@ func (s *SQLTraceStore) CountIndices(ctx context.Context, tileNumber types.TileN
 
 // GetLatestTile implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetLatestTile() (types.TileNumber, error) {
-	mostRecentCommit := types.BadCommitNumber
-	if err := s.db.QueryRow(context.TODO(), statements[getLatestCommit]).Scan(&mostRecentCommit); err != nil {
+	defer timer.New("GetLatestTile").Stop()
+	tileNumber := types.BadTileNumber
+	if err := s.db.QueryRow(context.TODO(), statements[getLatestCommit]).Scan(&tileNumber); err != nil {
 		return types.BadTileNumber, skerr.Wrap(err)
 	}
-	return types.TileNumberFromCommitNumber(mostRecentCommit, s.tileSize), nil
+	return tileNumber, nil
 }
 
 func (s *SQLTraceStore) paramSetForTile(tileNumber types.TileNumber) (paramtools.ParamSet, error) {
+	defer timer.New("GetOrderedParamSet").Stop()
 
 	rows, err := s.db.Query(context.TODO(), statements[paramSetForTile], tileNumber)
 	if err != nil {
@@ -472,15 +494,12 @@ func (s *SQLTraceStore) paramSetForTile(tileNumber types.TileNumber) (paramtools
 	}
 	ret := paramtools.NewParamSet()
 	for rows.Next() {
-		var jsonParams string
-		if err := rows.Scan(&jsonParams); err != nil {
+		var key string
+		var value string
+		if err := rows.Scan(&key, &value); err != nil {
 			return nil, skerr.Wrapf(err, "Failed scanning row - tileNumber=%d", tileNumber)
 		}
-		var ps paramtools.Params
-		if err := json.Unmarshal([]byte(jsonParams), &ps); err != nil {
-			return nil, skerr.Wrapf(err, "Failed unmarshal - tileNumber=%d", tileNumber)
-		}
-		ret.AddParams(ps)
+		ret.AddParams(paramtools.Params{key: value})
 	}
 	if err == pgx.ErrNoRows {
 		return ret, nil
@@ -498,8 +517,9 @@ func (s *SQLTraceStore) ClearOrderedParamSetCache() {
 }
 
 // GetOrderedParamSet implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber, now time.Time) (*paramtools.OrderedParamSet, error) {
+func (s *SQLTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error) {
 
+	now := timeNow()
 	iEntry, ok := s.orderedParamSetCache.Get(tileNumber)
 	if ok {
 		entry := iEntry.(orderedParamSetCacheEntry)
@@ -512,9 +532,13 @@ func (s *SQLTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	ret := paramtools.NewOrderedParamSet()
-	ret.Update(ps)
-	sort.Strings(ret.KeyOrder)
+
+	keys := ps.Keys()
+	sort.Strings(keys)
+	ret := &paramtools.OrderedParamSet{
+		ParamSet: ps,
+		KeyOrder: keys,
+	}
 
 	_ = s.orderedParamSetCache.Add(tileNumber, orderedParamSetCacheEntry{
 		expires:         now.Add(orderedParamSetCacheTTL),
@@ -553,86 +577,21 @@ func (s *SQLTraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) 
 
 // QueryTracesByIndex implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) QueryTracesByIndex(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error) {
-	ops, err := s.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	traceNames := []string{}
+	pChan, err := s.QueryTracesIDOnlyByIndex(ctx, tileNumber, q)
 	if err != nil {
-		return nil, skerr.Wrapf(err, "Failed to get OPS.")
+		return nil, skerr.Wrapf(err, "Failed to get list of traceIDs matching query.")
 	}
 
-	plan, err := q.QueryPlan(ops)
-	if err != nil {
-		// Not an error, we just won't match anything in this tile.
-		//
-		// The plan may be invalid because it is querying with keys or values
-		// that don't appear in a tile, which means they query won't work on
-		// this tile, but it may still work on other tiles, so we just don't
-		// return any results for this tile.
-		return nil, nil
-	}
-	if len(plan) == 0 {
-		// We won't match anything in this tile.
-		return nil, nil
-	}
-	// Sanitize our inputs.
-	if err := query.ValidateParamSet(plan); err != nil {
-		return nil, skerr.Wrapf(err, "invalid query %#v", *q)
-	}
-
-	// Prepare the template context.
-	beginCommit, endCommit := types.TileCommitRangeForTileNumber(tileNumber, s.tileSize)
-	context := queryTracesContext{
-		BeginCommitNumber: beginCommit,
-		EndCommitNumber:   endCommit,
-		QueryPlan:         plan,
-	}
-
-	// Expand the template for the SQL.
-	var b bytes.Buffer
-	if err := s.unpreparedStatements[queryTraces].Execute(&b, context); err != nil {
-		return nil, skerr.Wrapf(err, "failed to expand trace names template")
-	}
-
-	sql := b.String()
-	// Execute the query.
-	rows, err := s.db.Query(ctx, sql)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	ret := types.TraceSet{}
-	for rows.Next() {
-		var jsonParams string
-		var commitNumber types.CommitNumber
-		var val float64
-		if err := rows.Scan(&jsonParams, &commitNumber, &val); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-
-		p := paramtools.Params{}
-		if err := json.Unmarshal([]byte(jsonParams), &p); err != nil {
-			sklog.Warningf("Invalid JSON params found in query response: %s", err)
-			continue
-		}
+	for p := range pChan {
 		traceName, err := query.MakeKey(p)
 		if err != nil {
 			sklog.Warningf("Invalid trace name found in query response: %s", err)
 			continue
 		}
-		offset := s.OffsetFromCommitNumber(commitNumber)
-		if _, ok := ret[traceName]; ok {
-			ret[traceName][offset] = float32(val)
-		} else {
-			// TODO(jcgregorio) Replace this vec32.New() with a
-			// https://golang.org/pkg/sync/#Pool since this is our most used/reused
-			// type of memory.
-			ret[traceName] = vec32.New(int(s.tileSize))
-			ret[traceName][offset] = float32(val)
-		}
+		traceNames = append(traceNames, traceName)
 	}
-	if err := rows.Err(); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	return ret, nil
+	return s.ReadTraces(tileNumber, traceNames)
 }
 
 // QueryTracesIDOnlyByIndex implements the tracestore.TraceStore interface.
@@ -643,7 +602,7 @@ func (s *SQLTraceStore) QueryTracesIDOnlyByIndex(ctx context.Context, tileNumber
 		return outParams, skerr.Fmt("Can't run QueryTracesIDOnlyByIndex for the empty query.")
 	}
 
-	ops, err := s.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	ops, err := s.GetOrderedParamSet(ctx, tileNumber)
 	if err != nil {
 		close(outParams)
 		return outParams, skerr.Wrap(err)
@@ -672,11 +631,9 @@ func (s *SQLTraceStore) QueryTracesIDOnlyByIndex(ctx context.Context, tileNumber
 	}
 
 	// Prepare the template context.
-	beginCommit, endCommit := types.TileCommitRangeForTileNumber(tileNumber, s.tileSize)
 	context := queryTracesContext{
-		BeginCommitNumber: beginCommit,
-		EndCommitNumber:   endCommit,
-		QueryPlan:         plan,
+		TileNumber: tileNumber,
+		QueryPlan:  plan,
 	}
 
 	// Expand the template for the SQL.
@@ -695,19 +652,15 @@ func (s *SQLTraceStore) QueryTracesIDOnlyByIndex(ctx context.Context, tileNumber
 		defer close(outParams)
 
 		for rows.Next() {
-			var jsonParams string
-			if err := rows.Scan(&jsonParams); err != nil {
+			p := paramtools.Params{}
+			if err := rows.Scan(&p); err != nil {
 				sklog.Errorf("Failed to scan traceName: %s", skerr.Wrap(err))
 				return
 			}
-
-			p := paramtools.Params{}
-			if err := json.Unmarshal([]byte(jsonParams), &p); err != nil {
-				sklog.Errorf("Failed to parse traceName: %s", skerr.Wrap(err))
-				continue
-			}
 			outParams <- p
-
+		}
+		if err == pgx.ErrNoRows {
+			return
 		}
 		if err := rows.Err(); err != nil {
 			sklog.Errorf("Failed while reading traceNames: %s", skerr.Wrap(err))
@@ -718,20 +671,10 @@ func (s *SQLTraceStore) QueryTracesIDOnlyByIndex(ctx context.Context, tileNumber
 }
 
 // ReadTraces implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) ReadTraces(tileNumber types.TileNumber, keys []string) (types.TraceSet, error) {
+func (s *SQLTraceStore) ReadTraces(tileNumber types.TileNumber, traceNames []string) (types.TraceSet, error) {
 	// TODO(jcgregorio) Should be broken into batches so we don't exceed the SQL
 	// engine limit on query sizes.
 	ret := types.TraceSet{}
-	for _, key := range keys {
-		if !query.ValidateKey(key) {
-			return nil, skerr.Fmt("Invalid key stored in shortcut: %q", key)
-		}
-
-		// TODO(jcgregorio) Replace this vec32.New() with a
-		// https://golang.org/pkg/sync/#Pool since this is our most used/reused
-		// type of memory.
-		ret[key] = vec32.New(int(s.tileSize))
-	}
 
 	// Get the traceIDs for the given keys.
 	beginCommit, endCommit := types.TileCommitRangeForTileNumber(tileNumber, s.tileSize)
@@ -740,43 +683,57 @@ func (s *SQLTraceStore) ReadTraces(tileNumber types.TileNumber, keys []string) (
 	readTracesContext := readTracesContext{
 		BeginCommitNumber: beginCommit,
 		EndCommitNumber:   endCommit,
-		TraceIDs:          make([]traceIDForSQL, 0, len(keys)),
+		TraceIDs:          make([]traceIDForSQL, 0, len(traceNames)),
 	}
 
-	for _, traceName := range keys {
-		readTracesContext.TraceIDs = append(readTracesContext.TraceIDs, traceIDForSQLFromTraceName(traceName))
+	// TODO(jcgregorio) Use []byte instead of traceIDForSQL.
+	traceNameMap := map[traceIDForSQL]string{}
+	for _, key := range traceNames {
+		if !query.ValidateKey(key) {
+			return nil, skerr.Fmt("Invalid key stored in shortcut: %q", key)
+		}
+
+		// TODO(jcgregorio) Replace this vec32.New() with a
+		// https://golang.org/pkg/sync/#Pool since this is our most used/reused
+		// type of memory.
+		ret[key] = vec32.New(int(s.tileSize))
+		traceID := traceIDForSQLFromTraceName(key)
+		traceNameMap[traceID] = key
+		readTracesContext.TraceIDs = append(readTracesContext.TraceIDs, traceID)
 	}
+
 	// Expand the template for the SQL.
 	var b bytes.Buffer
 	if err := s.unpreparedStatements[readTraces].Execute(&b, readTracesContext); err != nil {
-		return nil, skerr.Wrapf(err, "failed to expand read traces template")
+		return nil, skerr.Wrapf(err, "failed to expand readTraces template")
 	}
 
+	sql := b.String()
 	// Execute the query.
-	rows, err := s.db.Query(context.TODO(), b.String())
+	rows, err := s.db.Query(context.TODO(), sql)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	for rows.Next() {
-		var jsonParams string
+		var traceIDInBytes []byte
 		var commitNumber types.CommitNumber
 		var val float64
-		if err := rows.Scan(&jsonParams, &commitNumber, &val); err != nil {
+		// Does pgx convert the []byte into the '\x....' format?
+		if err := rows.Scan(&traceIDInBytes, &commitNumber, &val); err != nil {
 			return nil, skerr.Wrap(err)
 		}
 
-		p := paramtools.Params{}
-		if err := json.Unmarshal([]byte(jsonParams), &p); err != nil {
-			sklog.Warningf("Invalid JSON params found in query response: %s", err)
-			continue
-		}
-		traceName, err := query.MakeKey(p)
+		traceID := traceIDForSQLFromTraceNameBytes(traceIDInBytes)
+
 		if err != nil {
 			sklog.Warningf("Invalid trace name found in query response: %s", err)
 			continue
 		}
-		ret[traceName][s.OffsetFromCommitNumber(commitNumber)] = float32(val)
+		ret[traceNameMap[traceID]][s.OffsetFromCommitNumber(commitNumber)] = float32(val)
+	}
+	if err == pgx.ErrNoRows {
+		return ret, nil
 	}
 	if err := rows.Err(); err != nil {
 		return nil, skerr.Wrap(err)
@@ -829,11 +786,51 @@ func cacheKeyForTraceIDAndTile(traceID traceIDForSQL, tileNumber types.TileNumbe
 	return fmt.Sprintf("%s-%d", traceID, tileNumber)
 }
 
+func cacheKeyForParamSets(tileNumber types.TileNumber, key, value string) string {
+	return fmt.Sprintf("%d-%q-%q", tileNumber, key, value)
+}
+
 // WriteTraces implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []paramtools.Params, values []float32, _ paramtools.ParamSet, source string, _ time.Time) error {
+func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []paramtools.Params, values []float32, ps paramtools.ParamSet, source string, _ time.Time) error {
 	defer timer.NewWithSummary("perfserver_sqltracestore_writeTraces", s.writeTracesMetric).Stop()
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
 	tileNumber := s.TileNumber(commitNumber)
+
+	paramSetsContext := []insertIntoParamSetsContext{}
+	paramSetsCacheKeys := []string{}
+	for paramKey, paramValues := range ps {
+		for _, paramValue := range paramValues {
+			cacheKey := cacheKeyForParamSets(tileNumber, paramKey, paramValue)
+			if !s.cache.Exists(cacheKey) {
+				paramSetsCacheKeys = append(paramSetsCacheKeys, cacheKey)
+				paramSetsContext = append(paramSetsContext, insertIntoParamSetsContext{
+					TileNumber: tileNumber,
+					Key:        paramKey,
+					Value:      paramValue,
+				})
+			}
+		}
+	}
+
+	if len(paramSetsContext) > 0 {
+		var b bytes.Buffer
+		if err := s.unpreparedStatements[insertIntoParamSets].Execute(&b, paramSetsContext); err != nil {
+			return skerr.Wrapf(err, "failed to expand paramsets template")
+		}
+
+		sql := b.String()
+
+		sklog.Infof("About to write %d paramset entries with sql of length %d", len(paramSetsContext), len(sql))
+		if _, err := s.db.Exec(ctx, sql); err != nil {
+			return skerr.Wrapf(err, "Executing: %q", b.String())
+		}
+		for _, key := range paramSetsCacheKeys {
+			s.cache.Add(key, "1")
+		}
+	}
 
 	// Get the row id for the source file.
 	sourceID, err := s.updateSourceFile(source)
@@ -882,11 +879,8 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 	defer timer.NewWithSummary("perfserver_sqltracestore_writeTraces_sql", s.writeTracesMetricSQL).Stop()
 	sklog.Infof("About to format %d trace names", len(params))
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-
 	if len(namesTemplateContext) > 0 {
-		err := util.ChunkIter(len(namesTemplateContext), 100, func(startIdx int, endIdx int) error {
+		err := util.ChunkIter(len(namesTemplateContext), writeTracesChunkSize, func(startIdx int, endIdx int) error {
 			var b bytes.Buffer
 			if err := s.unpreparedStatements[replaceTraceNames].Execute(&b, namesTemplateContext[startIdx:endIdx]); err != nil {
 				return skerr.Wrapf(err, "failed to expand trace names template on slice [%d, %d]", startIdx, endIdx)
@@ -910,14 +904,14 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 	}
 
 	if len(tilesTemplateContext) > 0 {
-		err := util.ChunkIter(len(tilesTemplateContext), 100, func(startIdx int, endIdx int) error {
+		err := util.ChunkIter(len(tilesTemplateContext), writeTracesChunkSize, func(startIdx int, endIdx int) error {
 			var b bytes.Buffer
 			if err := s.unpreparedStatements[insertIntoTiles].Execute(&b, tilesTemplateContext[startIdx:endIdx]); err != nil {
 				return skerr.Wrapf(err, "failed to expand tiles template on slice [%d, %d]", startIdx, endIdx)
 			}
 			sql := b.String()
 
-			sklog.Infof("About to write %d tiles tiles with sql of length %d", len(params), len(sql))
+			sklog.Infof("About to write %d tiles with sql of length %d", len(params), len(sql))
 			if _, err := s.db.Exec(ctx, sql); err != nil {
 				return skerr.Wrapf(err, "Executing: %q", b.String())
 			}

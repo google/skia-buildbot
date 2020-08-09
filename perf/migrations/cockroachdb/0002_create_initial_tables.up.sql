@@ -25,5 +25,13 @@ CREATE TABLE IF NOT EXISTS Tiles (
 	trace_id BYTES,
 	-- The number of the tile that the trace_id appears in.
 	tile_number INT,
-	PRIMARY KEY (trace_id, tile_number)
+	PRIMARY KEY (trace_id, tile_number) -- TODO(jcgregorio) May need reverse key.
+);
+
+CREATE TABLE IF NOT EXISTS ParamSets (
+	tile_number INT,
+	param_key STRING,
+	param_value STRING,
+	PRIMARY KEY (tile_number, param_key, param_value),
+	INDEX (tile_number DESC),
 );
