@@ -375,7 +375,10 @@ func TestGetOrderedParamSet_ParamSetCacheIsClearedAfterTTL(t *testing.T) {
 	}
 	err = s.WriteTraces(types.CommitNumber(1), traceNames,
 		[]float32{1.5, 2.3},
-		paramtools.ParamSet{}, // ParamSet is empty because WriteTraces doesn't use it in this impl.
+		paramtools.ParamSet{
+			"config": {"565", "8888"},
+			"arch":   {"risc-v"},
+		}, // ParamSet is empty because WriteTraces doesn't use it in this impl.
 		"gs://perf-bucket/2020/02/08/11/testdata.json",
 		time.Time{}) // time is unused in this impl of TraceStore.
 
@@ -484,21 +487,26 @@ func populatedTestDB(t *testing.T, store *SQLTraceStore) {
 		{"config": "8888", "arch": "x86"},
 		{"config": "565", "arch": "x86"},
 	}
+	ps := paramtools.ParamSet{
+		"config": {"565", "8888"},
+		"arch":   {"x86"},
+	}
+
 	err := store.WriteTraces(types.CommitNumber(1), traceNames,
 		[]float32{1.5, 2.3},
-		paramtools.ParamSet{}, // ParamSet is empty because WriteTraces doesn't use it in this impl.
+		ps,
 		"gs://perf-bucket/2020/02/08/11/testdata.json",
 		time.Time{}) // time is unused in this impl of TraceStore.
 	require.NoError(t, err)
 	err = store.WriteTraces(types.CommitNumber(2), traceNames,
 		[]float32{2.5, 3.3},
-		paramtools.ParamSet{}, // ParamSet is empty because WriteTraces doesn't use it in this impl.
+		ps,
 		"gs://perf-bucket/2020/02/08/12/testdata.json",
 		time.Time{}) // time is unused in this impl of TraceStore.
 	require.NoError(t, err)
 	err = store.WriteTraces(types.CommitNumber(8), traceNames,
 		[]float32{3.5, 4.3},
-		paramtools.ParamSet{}, // ParamSet is empty because WriteTraces doesn't use it in this impl.
+		ps,
 		"gs://perf-bucket/2020/02/08/13/testdata.json",
 		time.Time{}) // time is unused in this impl of TraceStore.
 	require.NoError(t, err)

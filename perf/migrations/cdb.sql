@@ -53,6 +53,20 @@ VALUES
         4
     );
 
+UPSERT INTO Tiles (trace_id, tile_number)
+VALUES
+    ('\xfe385b159ff55dca481069805e5ff050', 0),
+    ('\x277262a9236d571883d47dab102070bc', 0),
+    ('\x0d1f35f01672b2105bbc3f19adfcef67', 1);
+
+UPSERT INTO ParamSets (tile_number, param_key, param_value)
+VALUES
+    (0, 'config', '8888'),
+    (0, 'config', '565'),
+    (0, 'arch', 'x86'),
+    (1, 'config', '565'),
+    (1, 'arch', 'risc-v');
+
 -- All trace_ids that match a particular key=value.
 SELECT
     encode(trace_id, 'hex'),
@@ -88,14 +102,12 @@ WHERE
 
 -- ParamSet for a tile.
 SELECT
-    DISTINCT TraceNames.params
+    param_key,
+    param_value
 FROM
-    TraceNames INNER LOOKUP
-    JOIN Tiles ON TraceNames.trace_id = Tiles.trace_id
+    ParamSets
 WHERE
-    Tiles.tile_number = 2
-LIMIT
-    10;
+    tile_number = 1;
 
 -- Count traces per tile.
 SELECT
@@ -103,7 +115,7 @@ SELECT
 FROM
     Tiles
 WHERE
-    tile_number = 3;
+    tile_number = 0;
 
 -- Most recent commit.
 SELECT
@@ -137,45 +149,29 @@ WHERE
     AND TraceValues2.commit_number >= 256
     AND TraceValues2.commit_number < 512;
 
--- Fully query traces from tile based on query plan w/o the sub-select.
+-- The first part of every query is to pull in the trace names
+-- for the given tile.
 SELECT
-    TraceNames.params,
-    TraceValues2.commit_number,
-    TraceValues2.val
+    encode(TraceNames.trace_id, 'hex'),
+    params
 FROM
-    TraceNames
-    INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
+    TraceNames INNER LOOKUP
+    JOIN Tiles ON TraceNames.trace_id = Tiles.trace_id
 WHERE
-    TraceValues2.commit_number >= 0
-    AND TraceValues2.commit_number < 255
-    AND TraceNames.params -> 'arch' IN ('"x86"' :: JSONB)
-    AND TraceNames.params -> 'config' IN ('"565"' :: JSONB, '"8888"' :: JSONB);
+    params -> 'arch' = '"x86"' :: JSONB
+    AND Tiles.tile_number = 0;
 
--- This is fast with PRIMARY KEY (trace_id, commit_number)
+-- Then query for trace values in batches.
 SELECT
-    tracenames.params,
-    tracevalues2.commit_number,
-    tracevalues2.val
+    trace_id,
+    commit_number,
+    val
 FROM
-    TraceValues2 INNER LOOKUP
-    JOIN TraceNames ON tracevalues2.trace_id = tracenames.trace_id
+    TraceValues2
 WHERE
-    tracevalues2.commit_number >= 47920
-    AND tracevalues2.commit_number < 49950
+    tracevalues2.commit_number >= 0
+    AND tracevalues2.commit_number < 256
     AND tracevalues2.trace_id IN (
-        SELECT
-            DISTINCT trace_id
-        FROM
-            tracenames
-        WHERE
-            params -> 'name' = '"AndroidCodec_01_original.jpg_SampleSize2"' :: JSONB
+        '\xfe385b159ff55dca481069805e5ff050',
+        '\x277262a9236d571883d47dab102070bc'
     );
-
--- Create the Tile table on the fly if we haven't ingested it.
-INSERT INTO
-    Tiles (tile_number, trace_id)
-SELECT
-    DISTINCT mod(commit_number, 256),
-    trace_id
-FROM
-    tracevalues2 ON CONFLICT DO NOTHING;
