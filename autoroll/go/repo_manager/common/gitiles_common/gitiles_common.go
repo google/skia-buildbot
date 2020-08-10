@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/vfs"
 )
 
 // GitilesConfig provides configuration for GitilesRepo.
@@ -120,4 +121,9 @@ func (r *GitilesRepo) GetFile(ctx context.Context, file, ref string) (string, er
 		return "", skerr.Wrap(err)
 	}
 	return string(contents), nil
+}
+
+// VFS implements the child.Child interface.
+func (r *GitilesRepo) VFS(ctx context.Context, rev *revision.Revision) (vfs.FS, error) {
+	return r.Repo.VFS(ctx, rev.Id)
 }
