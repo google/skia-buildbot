@@ -2,6 +2,7 @@
   authorized_users: [
     "google.com",
     "ian.hickson@gmail.com",
+    "lavidalovett@gmail.com",
   ],
   cl_comment_template: "Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchSetOrder}}.\n\
 View them at {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangeListID}}",
