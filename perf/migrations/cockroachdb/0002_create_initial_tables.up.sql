@@ -1,12 +1,3 @@
--- This table is used to store trace names. See go/tracestore/sqltracestore.
-CREATE TABLE IF NOT EXISTS TraceNames (
-	-- md5(trace_name)
-	trace_id BYTES PRIMARY KEY,
-	-- The params that make up the trace_id, {"arch=x86", "config=8888"}.
-	params JSONB NOT NULL,
-	INVERTED INDEX (params)
-);
-
 -- This table is used to store trace values. See go/tracestore/sqltracestore.
 CREATE TABLE IF NOT EXISTS TraceValues2 (
 	-- Id of the trace name from TraceNames.
@@ -25,5 +16,17 @@ CREATE TABLE IF NOT EXISTS Tiles (
 	trace_id BYTES,
 	-- The number of the tile that the trace_id appears in.
 	tile_number INT,
-	PRIMARY KEY (trace_id, tile_number)
+	-- The params that make up the trace_id, {"arch=x86", "config=8888"}.
+	params JSONB NOT NULL,
+	-- Indexes
+	INVERTED INDEX (params),
+	PRIMARY KEY (tile_number, trace_id)
+);
+
+CREATE TABLE IF NOT EXISTS ParamSets (
+	tile_number INT,
+	param_key STRING,
+	param_value STRING,
+	PRIMARY KEY (tile_number, param_key, param_value),
+	INDEX (tile_number DESC),
 );
