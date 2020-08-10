@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vfs"
 )
 
 const (
@@ -140,19 +141,21 @@ func (c *CIPDChild) Update(ctx context.Context, lastRollRev *revision.Revision) 
 	return tipRev, notRolledRevs, nil
 }
 
-// See documentation for Child interface.
-// The destination must be a descendant of workdir provided to NewCIPD.
-func (c *CIPDChild) Download(ctx context.Context, rev *revision.Revision, dest string) error {
-	var err error
-	dest, err = filepath.Rel(c.root, dest)
+// VFS implements the Child interface.
+func (c *CIPDChild) VFS(ctx context.Context, rev *revision.Revision) (vfs.FS, error) {
+	fs, err := vfs.TempDir(ctx, c.root, "tmp")
 	if err != nil {
-		return skerr.Wrapf(err, "destination must be a descendant of the workdir provided to NewCIPD")
+		return nil, skerr.Wrap(err)
 	}
 	pin := common.Pin{
 		PackageName: c.name,
 		InstanceID:  rev.Id,
 	}
-	return skerr.Wrap(c.client.FetchAndDeployInstance(ctx, dest, pin, 0))
+	dest, err := filepath.Rel(c.root, fs.Dir())
+	if err := c.client.FetchAndDeployInstance(ctx, dest, pin, 0); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return fs, nil
 }
 
 // SetClientForTesting sets the CIPDClient used by the CIPDChild so that it can
