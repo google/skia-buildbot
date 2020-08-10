@@ -29,6 +29,7 @@
   "sheriff": [
     "pdfium-deps-rolls@chromium.org"
   ],
+  "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
     "childBranch": "master",
     "childPath": "src/third_party/pdfium",
