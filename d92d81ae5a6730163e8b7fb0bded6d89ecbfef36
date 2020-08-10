@@ -1,0 +1,328 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004302021",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d30",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "d586ba6a_dca18db5",
+        "filename": "golden/cmd/cockroachdb_explore/cockroachdb_explore.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-10T11:17:01Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 140,
+        "startChar": 43,
+        "endLine": 140,
+        "endChar": 49
+      },
+      "revId": "d92d81ae5a6730163e8b7fb0bded6d89ecbfef36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004302021",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d30",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "9263da9c_2fe74764",
+        "filename": "golden/cmd/fs_expstore_migrator/main.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-10T11:17:01Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 186,
+        "startChar": 58,
+        "endLine": 186,
+        "endChar": 64
+      },
+      "revId": "d92d81ae5a6730163e8b7fb0bded6d89ecbfef36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004302021",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d30",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "b2879840_d1165d04",
+        "filename": "golden/cmd/fs_expstore_migrator/main.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-10T11:17:01Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 208,
+        "startChar": 16,
+        "endLine": 208,
+        "endChar": 22
+      },
+      "revId": "d92d81ae5a6730163e8b7fb0bded6d89ecbfef36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004302021",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d30",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "43099ff6_01140725",
+        "filename": "golden/cmd/fs_expstore_migrator/main.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-10T11:17:01Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 328,
+        "startChar": 23,
+        "endLine": 328,
+        "endChar": 29
+      },
+      "revId": "d92d81ae5a6730163e8b7fb0bded6d89ecbfef36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004302021",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d30",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "6fa50bb0_a1aa5d76",
+        "filename": "golden/cmd/fs_expstore_migrator/main.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 425,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-10T11:17:01Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 425,
+        "startChar": 33,
+        "endLine": 425,
+        "endChar": 39
+      },
+      "revId": "d92d81ae5a6730163e8b7fb0bded6d89ecbfef36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004302021",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d30",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "0b8365dc_b63753b8",
+        "filename": "golden/go/testutils/data_kitchen_sink/kitchen_sink.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-10T11:17:01Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 28,
+        "startChar": 26,
+        "endLine": 28,
+        "endChar": 32
+      },
+      "revId": "d92d81ae5a6730163e8b7fb0bded6d89ecbfef36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004302021",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d30",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "24a6f232_79a9d000",
+        "filename": "golden/go/testutils/data_kitchen_sink/kitchen_sink.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 641,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-10T11:17:01Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 641,
+        "startChar": 65,
+        "endLine": 641,
+        "endChar": 71
+      },
+      "revId": "d92d81ae5a6730163e8b7fb0bded6d89ecbfef36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004302021",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d30",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "ced5ad22_ca4a2919",
+        "filename": "golden/go/testutils/data_kitchen_sink/kitchen_sink.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 656,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-10T11:17:01Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 656,
+        "startChar": 59,
+        "endLine": 656,
+        "endChar": 65
+      },
+      "revId": "d92d81ae5a6730163e8b7fb0bded6d89ecbfef36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004302021",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d30",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "31aa6938_22d58385",
+        "filename": "golden/go/testutils/data_kitchen_sink/kitchen_sink.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 671,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-10T11:17:01Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 671,
+        "startChar": 53,
+        "endLine": 671,
+        "endChar": 59
+      },
+      "revId": "d92d81ae5a6730163e8b7fb0bded6d89ecbfef36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004302021",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d30",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "6a96ea6f_13cb4af7",
+        "filename": "golden/go/testutils/data_kitchen_sink/kitchen_sink.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 686,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-10T11:17:01Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 686,
+        "startChar": 55,
+        "endLine": 686,
+        "endChar": 61
+      },
+      "revId": "d92d81ae5a6730163e8b7fb0bded6d89ecbfef36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004302021",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d30",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "ad16dcc5_11965d08",
+        "filename": "golden/go/testutils/data_kitchen_sink/kitchen_sink.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 939,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-10T11:17:01Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 939,
+        "startChar": 7,
+        "endLine": 939,
+        "endChar": 13
+      },
+      "revId": "d92d81ae5a6730163e8b7fb0bded6d89ecbfef36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004302021",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/305016?revision\u003d30",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "c0235e79_1784c10f",
+        "filename": "golden/go/testutils/data_kitchen_sink/kitchen_sink.go",
+        "patchSetId": 30
+      },
+      "lineNbr": 941,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-10T11:17:01Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 941,
+        "startChar": 9,
+        "endLine": 941,
+        "endChar": 15
+      },
+      "revId": "d92d81ae5a6730163e8b7fb0bded6d89ecbfef36",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
