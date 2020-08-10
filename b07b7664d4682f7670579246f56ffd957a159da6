@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0edff24f_f15243db",
+        "filename": "autoroll/config/pgo-mac-chromium.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-10T11:28:48Z",
+      "side": 1,
+      "message": "This needs to be \"revisions\" (plural)",
+      "range": {
+        "startLine": 7,
+        "startChar": 17,
+        "endLine": 7,
+        "endChar": 25
+      },
+      "revId": "b07b7664d4682f7670579246f56ffd957a159da6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
