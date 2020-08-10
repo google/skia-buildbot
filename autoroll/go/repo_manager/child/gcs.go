@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"path"
-	"path/filepath"
 	"sort"
 
 	"cloud.google.com/go/storage"
@@ -15,7 +13,7 @@ import (
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vfs"
 	"google.golang.org/api/option"
 )
 
@@ -166,21 +164,14 @@ func (c *gcsChild) GetRevision(ctx context.Context, id string) (*revision.Revisi
 	return c.objectAttrsToRevision(item), nil
 }
 
-// See documentation for Child interface.
-func (c *gcsChild) Download(ctx context.Context, rev *revision.Revision, dest string) error {
-	// The content of the file is implementation-dependent; for example we
-	// can't know whether it is a tarball which needs to be unzipped in
-	// order to be used. So just download the file as-is.
-	srcFile := path.Join(c.gcsPath, rev.Id)
-	destFile := filepath.Join(dest, rev.Id)
-	return skerr.Wrap(util.WithWriteFile(destFile, func(w io.Writer) error {
-		r, err := c.gcs.FileReader(ctx, srcFile)
-		if err != nil {
-			return skerr.Wrap(err)
-		}
-		_, err = io.Copy(w, r)
-		return skerr.Wrap(err)
-	}))
+// VFS implements the Child interface.
+func (c *gcsChild) VFS(ctx context.Context, rev *revision.Revision) (vfs.FS, error) {
+	// VFS is not implemented for gcsChild, because we can't know whether the
+	// target is an ordinary file or some type of archive which needs to be
+	// extracted before being read. Note that we could implement this by having
+	// the caller pass in an extraction function, but at the time of writing no
+	// rollers which use gcsChild need VCS.
+	return nil, skerr.Fmt("VFS not implemented for gcsChild")
 }
 
 // objectAttrsToRevision returns a revision.Revision based on the given

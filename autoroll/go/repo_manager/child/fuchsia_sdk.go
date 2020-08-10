@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gcs"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/vfs"
 	"google.golang.org/api/option"
 )
 
@@ -100,10 +101,17 @@ func (c *FuchsiaSDKChild) Update(ctx context.Context, lastRollRev *revision.Revi
 	return tipRev, notRolledRevs, nil
 }
 
-// See documentation for Child interface.
-func (c *FuchsiaSDKChild) Download(ctx context.Context, rev *revision.Revision, dest string) error {
+// VFS implements the Child interface.
+func (c *FuchsiaSDKChild) VFS(ctx context.Context, rev *revision.Revision) (vfs.FS, error) {
+	fs, err := vfs.TempDir(ctx, "", "")
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
 	gcsPath := fmt.Sprintf(FuchsiaSDKGSTarballPathLinux, rev.Id)
-	return skerr.Wrap(gcs.DownloadAndExtractTarGz(ctx, c.storageClient, FuchsiaSDKGSBucket, gcsPath, dest))
+	if err := gcs.DownloadAndExtractTarGz(ctx, c.storageClient, FuchsiaSDKGSBucket, gcsPath, fs.Dir()); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return fs, nil
 }
 
 // fuchsiaSDKVersionToRevision returns a revision.Revision instance based on the

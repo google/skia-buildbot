@@ -7,8 +7,6 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
@@ -19,7 +17,7 @@ import (
 // CopyRepoManagerConfig provides configuration for the copy
 // RepoManager.
 type CopyRepoManagerConfig struct {
-	DepotToolsRepoManagerConfig
+	NoCheckoutRepoManagerConfig
 	Gerrit *codereview.GerritConfig `json:"gerrit,omitempty"`
 
 	// ChildRepo is the URL of the child repo.
@@ -49,17 +47,15 @@ func (c *CopyRepoManagerConfig) Validate() error {
 // and child. We shouldn't need most of the New.*RepoManager functions.
 func (c CopyRepoManagerConfig) splitParentChild() (parent.CopyConfig, child.GitilesConfig, error) {
 	parentCfg := parent.CopyConfig{
-		GitCheckoutGerritConfig: parent.GitCheckoutGerritConfig{
-			GitCheckoutConfig: parent.GitCheckoutConfig{
-				GitCheckoutConfig: git_common.GitCheckoutConfig{
-					Branch:  c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
-					RepoURL: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
-				},
-				DependencyConfig: version_file_common.DependencyConfig{
-					VersionFileConfig: version_file_common.VersionFileConfig{
-						ID:   c.ChildRepo,
-						Path: c.VersionFile,
-					},
+		GitilesConfig: parent.GitilesConfig{
+			GitilesConfig: gitiles_common.GitilesConfig{
+				Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
+				RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+			},
+			DependencyConfig: version_file_common.DependencyConfig{
+				VersionFileConfig: version_file_common.VersionFileConfig{
+					ID:   c.ChildRepo,
+					Path: c.VersionFile,
 				},
 			},
 			Gerrit: c.Gerrit,
@@ -95,13 +91,10 @@ func NewCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, reg *conf
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	uploadRoll := parent.GitCheckoutUploadGerritRollFunc(g)
-	parentRM, err := parent.NewCopy(ctx, parentCfg, reg, client, serverURL, workdir, cr.UserName(), cr.UserEmail(), childRM, uploadRoll)
+	parentRM, err := parent.NewCopy(ctx, parentCfg, reg, client, serverURL, workdir, cr.UserName(), cr.UserEmail(), childRM)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := gerrit_common.SetupGerrit(ctx, parentRM.Checkout.Checkout, g); err != nil {
-		return nil, skerr.Wrap(err)
-	}
+
 	return newParentChildRepoManager(ctx, parentRM, childRM)
 }

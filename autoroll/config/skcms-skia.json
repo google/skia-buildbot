@@ -46,7 +46,7 @@
       { "srcRelPath": "skcms.cc",         "dstRelPath": "third_party/skcms/skcms.cc" },
       { "srcRelPath": "skcms.gni",        "dstRelPath": "third_party/skcms/skcms.gni" },
       { "srcRelPath": "skcms_internal.h", "dstRelPath": "third_party/skcms/skcms_internal.h" },
-      { "srcRelPath": "src",              "dstRelPath": "third_party/skcms/src" },
+      { "srcRelPath": "src/",             "dstRelPath": "third_party/skcms/src/" },
       { "srcRelPath": "skcms.h",          "dstRelPath": "include/third_party/skcms/skcms.h" }
     ],
     "versionFile": "third_party/skcms/version.sha1"
@@ -54,7 +54,6 @@
   "kubernetes": {
     "cpu": "1",
     "memory": "8Gi",
-    "disk": "50Gi",
     "readinessInitialDelaySeconds": "600",
     "readinessPeriodSeconds": "60",
     "readinessFailureThreshold": "10"

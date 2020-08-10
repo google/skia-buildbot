@@ -2,8 +2,9 @@ package gerrit
 
 import (
 	"context"
-	"fmt"
 	"strings"
+
+	"go.skia.org/infra/go/skerr"
 )
 
 // EditChange is a helper for creating a new patch set on an existing
@@ -17,7 +18,7 @@ func EditChange(ctx context.Context, g GerritInterface, ci *ChangeInfo, fn func(
 		}
 		if rvErr != nil {
 			if err := g.DeleteChangeEdit(ctx, ci); err != nil {
-				rvErr = fmt.Errorf("%s and failed to delete edit with: %s", rvErr, err)
+				rvErr = skerr.Wrapf(rvErr, "failed to edit change and failed to delete edit with: %s", err)
 			}
 		}
 	}()
@@ -33,20 +34,20 @@ func EditChange(ctx context.Context, g GerritInterface, ci *ChangeInfo, fn func(
 func CreateAndEditChange(ctx context.Context, g GerritInterface, project, branch, commitMsg, baseCommit string, fn func(context.Context, GerritInterface, *ChangeInfo) error) (*ChangeInfo, error) {
 	ci, err := g.CreateChange(ctx, project, branch, strings.Split(commitMsg, "\n")[0], baseCommit)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create change: %s", err)
+		return nil, skerr.Wrapf(err, "failed to create change")
 	}
 	if err := EditChange(ctx, g, ci, func(ctx context.Context, g GerritInterface, ci *ChangeInfo) error {
 		if err := g.SetCommitMessage(ctx, ci, commitMsg); err != nil {
-			return fmt.Errorf("Failed to set commit message: %s", err)
+			return skerr.Wrapf(err, "failed to set commit message")
 		}
 		return fn(ctx, g, ci)
 	}); err != nil {
-		return ci, fmt.Errorf("Failed to edit change: %s", err)
+		return ci, skerr.Wrapf(err, "failed to edit change")
 	}
 	// Update the view of the Change to include the new patchset.
 	ci2, err := g.GetIssueProperties(ctx, ci.Issue)
 	if err != nil {
-		return ci, fmt.Errorf("Failed to retrieve issue properties: %s", err)
+		return ci, skerr.Wrapf(err, "failed to retrieve issue properties")
 	}
 	return ci2, nil
 }

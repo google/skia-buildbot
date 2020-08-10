@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/vfs"
 )
 
 // Child represents a Child (git repo or otherwise) which can be rolled into a
@@ -22,7 +23,7 @@ type Child interface {
 	// revision ID.
 	GetRevision(context.Context, string) (*revision.Revision, error)
 
-	// Download downloads the Child at the given Revision to the given
-	// destination.
-	Download(context.Context, *revision.Revision, string) error
+	// VFS returns a vfs.FS instance which reads from this Child at the given
+	// Revision.
+	VFS(context.Context, *revision.Revision) (vfs.FS, error)
 }

@@ -143,11 +143,11 @@ func CreateNewGerritRoll(ctx context.Context, g gerrit.GerritInterface, project,
 		for file, contents := range changes {
 			if contents == "" {
 				if err := g.DeleteFile(ctx, ci, file); err != nil {
-					return fmt.Errorf("Failed to delete %s file: %s", file, err)
+					return skerr.Wrapf(err, "failed to delete file %s", file)
 				}
 			} else {
 				if err := g.EditFile(ctx, ci, file, contents); err != nil {
-					return fmt.Errorf("Failed to edit %s file: %s", file, err)
+					return skerr.Wrapf(err, "failed to edit file %s", file)
 				}
 			}
 		}

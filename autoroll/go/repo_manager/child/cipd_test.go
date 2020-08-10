@@ -2,8 +2,6 @@ package child
 
 import (
 	"context"
-	"io/ioutil"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -13,12 +11,13 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/go/vfs"
 )
 
 // TODO(borenet): Split up the tests in github_cipd_deps_repo_manager_test.go
 // and move the relevant parts here.
 
-func TestCIPDChild_Download(t *testing.T) {
+func TestCIPDChild_VCS(t *testing.T) {
 	unittest.LargeTest(t)
 	// This is a manual test because it downloads a real CIPD package from
 	// the production server. A mock isn't going to do us any good, since we
@@ -47,20 +46,15 @@ func TestCIPDChild_Download(t *testing.T) {
 	require.NoError(t, err)
 
 	// Download.
-	dest := filepath.Join(wd, "subdir")
 	rev := &revision.Revision{Id: pkgVer}
-	require.NoError(t, c.Download(ctx, rev, dest))
+	fs, err := c.VFS(ctx, rev)
+	require.NoError(t, err)
 
 	// Verify that we have the correct contents.
-	topContents, err := ioutil.ReadDir(wd)
+	topContents, err := vfs.ReadDir(ctx, fs, ".")
 	require.NoError(t, err)
-	require.Len(t, topContents, 2)
-	require.Equal(t, ".cipd", topContents[0].Name())
-	require.Equal(t, "subdir", topContents[1].Name())
-	subdirContents, err := ioutil.ReadDir(dest)
-	require.NoError(t, err)
-	for _, fi := range subdirContents {
+	for _, fi := range topContents {
 		require.True(t, strings.HasSuffix(fi.Name(), ".svg"))
 	}
-	require.Len(t, subdirContents, 72)
+	require.Len(t, topContents, 72)
 }

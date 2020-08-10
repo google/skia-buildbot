@@ -177,6 +177,7 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	require.Equal(t, childCommits[0], lastRollRev.Id)
 
 	// Mock the request to retrieve the DEPS file.
+	mockParent.MockGetCommit(ctx, parentMaster)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 
 	// Mock the request to retrieve the README.chromium file.
