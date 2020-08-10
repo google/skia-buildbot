@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/vfs"
 )
 
 // GitilesConfig provides configuration for GitilesRepo.
@@ -97,8 +98,8 @@ func (r *GitilesRepo) GetTipRevision(ctx context.Context) (*revision.Revision, e
 }
 
 // LogFirstParent returns a slice of revision.Revision instances in the given range.
-func (r *GitilesRepo) LogFirstParent(ctx context.Context, from, to *revision.Revision) ([]*revision.Revision, error) {
-	commits, err := r.Repo.LogFirstParent(ctx, from.Id, to.Id)
+func (r *GitilesRepo) LogFirstParent(ctx context.Context, from, to *revision.Revision, logOpts ...gitiles.LogOption) ([]*revision.Revision, error) {
+	commits, err := r.Repo.LogFirstParent(ctx, from.Id, to.Id, logOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -120,4 +121,9 @@ func (r *GitilesRepo) GetFile(ctx context.Context, file, ref string) (string, er
 		return "", skerr.Wrap(err)
 	}
 	return string(contents), nil
+}
+
+// VFS implements the child.Child interface.
+func (r *GitilesRepo) VFS(ctx context.Context, rev *revision.Revision) (vfs.FS, error) {
+	return r.Repo.VFS(ctx, rev.Id)
 }

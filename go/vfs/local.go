@@ -2,6 +2,7 @@ package vfs
 
 import (
 	"context"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -72,3 +73,36 @@ func (f *localFile) Close(_ context.Context) error {
 
 // Ensure that localFile implements File.
 var _ File = &localFile{}
+
+// TempDirFS is a FS implementation which is rooted in a temporary directory.
+// Calling Close causes the directory to be deleted.
+type TempDirFS struct {
+	FS
+	dir string
+}
+
+// Close deletes the temporary directory.
+func (fs *TempDirFS) Close(ctx context.Context) error {
+	if err := fs.FS.Close(ctx); err != nil {
+		return skerr.Wrap(err)
+	}
+	return skerr.Wrap(os.RemoveAll(fs.dir))
+}
+
+// Dir returns the temporary directory.
+func (fs *TempDirFS) Dir() string {
+	return fs.dir
+}
+
+// TempDir returns a FS which is rooted in a temporary directory. Calling Close
+// causes the directory to be deleted.
+func TempDir(ctx context.Context, dir, prefix string) (*TempDirFS, error) {
+	tmp, err := ioutil.TempDir(dir, prefix)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return &TempDirFS{
+		FS:  Local(tmp),
+		dir: tmp,
+	}, nil
+}

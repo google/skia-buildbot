@@ -49,6 +49,11 @@ type Revision struct {
 	// it.
 	InvalidReason string `json:"invalidReason"`
 
+	// Modifications lists files which were added/removed/modified in this
+	// Revision. This is optional unless it is needed downstream, eg. for a
+	// RevisionFilter.
+	Modifications []string `json:"modifications,omitempty"`
+
 	// Tests are any tests which should be run on rolls including this
 	// Revision.
 	Tests []string `json:"tests"`
