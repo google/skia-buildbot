@@ -11,6 +11,7 @@
     "includeTests": true
   },
   "contacts": [
+    "dhoss@chromium.org",
     "thestig@chromium.org"
   ],
   "gerrit": {
