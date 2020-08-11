@@ -97,7 +97,7 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 	if err := gerrit_common.SetupGerrit(ctx, parentRM.Checkout.Checkout, g); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return newParentChildRepoManager(ctx, parentRM, childRM)
+	return newParentChildRepoManager(ctx, parentRM, childRM, nil)
 }
 
 // fuchsiaSDKAndroidRepoManagerCreateRollFunc returns a

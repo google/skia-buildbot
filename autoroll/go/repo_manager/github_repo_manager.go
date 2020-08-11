@@ -38,6 +38,11 @@ type GithubRepoManagerConfig struct {
 
 // See documentation for util.Validator interface.
 func (c *GithubRepoManagerConfig) Validate() error {
+	if c.BuildbucketRevisionFilter != nil {
+		if err := c.BuildbucketRevisionFilter.Validate(); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
 	_, _, err := c.splitParentChild()
 	return skerr.Wrap(err)
 }
@@ -86,9 +91,8 @@ func (c GithubRepoManagerConfig) splitParentChild() (parent.GitCheckoutGithubFil
 				RevLinkTmpl:  c.ChildRevLinkTmpl,
 			},
 		},
-		BuildbucketRevisionFilter: c.BuildbucketRevisionFilter,
-		GithubRepoName:            c.ChildRepoName,
-		GithubUserName:            c.ChildUserName,
+		GithubRepoName: c.ChildRepoName,
+		GithubUserName: c.ChildUserName,
 	}
 	if err := childCfg.Validate(); err != nil {
 		return parent.GitCheckoutGithubFileConfig{}, child.GitCheckoutGithubConfig{}, skerr.Wrapf(err, "generated child config is invalid")
@@ -121,5 +125,12 @@ func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return newParentChildRepoManager(ctx, parentRM, childRM)
+	var rf revision_filter.RevisionFilter
+	if c.BuildbucketRevisionFilter != nil {
+		rf, err = revision_filter.NewBuildbucketRevisionFilter(client, c.BuildbucketRevisionFilter.Project, c.BuildbucketRevisionFilter.Bucket)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
+	}
+	return newParentChildRepoManager(ctx, parentRM, childRM, rf)
 }

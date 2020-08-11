@@ -96,5 +96,5 @@ func NewCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, reg *conf
 		return nil, skerr.Wrap(err)
 	}
 
-	return newParentChildRepoManager(ctx, parentRM, childRM)
+	return newParentChildRepoManager(ctx, parentRM, childRM, nil)
 }

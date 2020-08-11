@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
+	"go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/skerr"
@@ -15,14 +16,16 @@ import (
 type parentChildRepoManager struct {
 	child.Child
 	parent.Parent
+	revFilter revision_filter.RevisionFilter
 }
 
 // newParentChildRepoManager returns a RepoManager which pairs a Parent with a
 // Child.
-func newParentChildRepoManager(ctx context.Context, p parent.Parent, c child.Child) (*parentChildRepoManager, error) {
+func newParentChildRepoManager(ctx context.Context, p parent.Parent, c child.Child, revFilter revision_filter.RevisionFilter) (*parentChildRepoManager, error) {
 	return &parentChildRepoManager{
-		Child:  c,
-		Parent: p,
+		Child:     c,
+		Parent:    p,
+		revFilter: revFilter,
 	}, nil
 }
 
@@ -40,6 +43,17 @@ func (rm *parentChildRepoManager) Update(ctx context.Context) (*revision.Revisio
 	tipRev, notRolledRevs, err := rm.Child.Update(ctx, lastRollRev)
 	if err != nil {
 		return nil, nil, nil, skerr.Wrapf(err, "failed to get next revision to roll from Child")
+	}
+	// Optionally filter not-rolled revisions.
+	if rm.revFilter != nil {
+		if err := revision_filter.MaybeSetInvalid(ctx, rm.revFilter, tipRev); err != nil {
+			return nil, nil, nil, skerr.Wrap(err)
+		}
+		for _, notRolledRev := range notRolledRevs {
+			if err := revision_filter.MaybeSetInvalid(ctx, rm.revFilter, notRolledRev); err != nil {
+				return nil, nil, nil, skerr.Wrap(err)
+			}
+		}
 	}
 	return lastRollRev, tipRev, notRolledRevs, nil
 }

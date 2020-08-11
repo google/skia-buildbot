@@ -92,5 +92,5 @@ func NewGitilesCIPDDEPSRepoManager(ctx context.Context, c *GitilesCIPDDEPSRepoMa
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	return newParentChildRepoManager(ctx, parentRM, childRM)
+	return newParentChildRepoManager(ctx, parentRM, childRM, nil)
 }
