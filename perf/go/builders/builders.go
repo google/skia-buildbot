@@ -10,6 +10,7 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/datastore"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/jackc/pgx/v4/stdlib" // pgx Go sql
 	"go.skia.org/infra/go/auth"
@@ -37,12 +38,37 @@ import (
 	"google.golang.org/api/option"
 )
 
+// pgxLogAdaptor allows bubbling pgx logs up into our application.
+type pgxLogAdaptor struct{}
+
+// Log a message at the given level with data key/value pairs. data may be nil.
+func (pgxLogAdaptor) Log(ctx context.Context, level pgx.LogLevel, msg string, data map[string]interface{}) {
+	switch level {
+	case pgx.LogLevelTrace:
+	case pgx.LogLevelDebug:
+		sklog.Debugf("pgx - %s %v", msg, data)
+	case pgx.LogLevelInfo:
+		sklog.Infof("pgx - %s %v", msg, data)
+	case pgx.LogLevelWarn:
+		sklog.Warningf("pgx - %s %v", msg, data)
+	case pgx.LogLevelError:
+		sklog.Errorf("pgx - %s %v", msg, data)
+	case pgx.LogLevelNone:
+	}
+}
+
 // newCockroachDBFromConfig opens an existing CockroachDB database.
 //
 // No migrations are applied automatically, they must be applied by the
 // 'migrate' command line application. See COCKROACHDB.md for more details.
 func newCockroachDBFromConfig(ctx context.Context, instanceConfig *config.InstanceConfig) (*pgxpool.Pool, error) {
-	return pgxpool.Connect(ctx, instanceConfig.DataStoreConfig.ConnectionString)
+
+	cfg, err := pgxpool.ParseConfig(instanceConfig.DataStoreConfig.ConnectionString)
+	if err != nil {
+		return nil, skerr.Wrapf(err, "Failed to parse database config: %q", instanceConfig.DataStoreConfig.ConnectionString)
+	}
+	cfg.ConnConfig.Logger = pgxLogAdaptor{}
+	return pgxpool.ConnectConfig(ctx, cfg)
 }
 
 // NewPerfGitFromConfig return a new perfgit.Git for the given instanceConfig.
