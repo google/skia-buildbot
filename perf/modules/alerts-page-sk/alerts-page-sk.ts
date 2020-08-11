@@ -8,10 +8,12 @@ import 'elements-sk/checkbox-sk';
 import 'elements-sk/icon/build-icon-sk';
 import 'elements-sk/icon/create-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
+import 'elements-sk/icon/error-icon-sk';
 import 'elements-sk/styles/buttons';
 import '../../../infra-sk/modules/paramset-sk';
 import '../alert-config-sk';
 import dialogPolyfill from 'dialog-polyfill';
+import { validate } from '../alert';
 import { define } from 'elements-sk/define';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { fromObject, toParamSet } from 'common-sk/modules/query';
@@ -53,6 +55,7 @@ class AlertsPageSk extends ElementSk {
         <th></th>
         <th></th>
         <th></th>
+        <th></th>
       </tr>
       ${AlertsPageSk.rows(ele)}
     </table>
@@ -68,6 +71,16 @@ class AlertsPageSk extends ElementSk {
     ></checkbox-sk>
   `;
 
+  private static displayIfAlertIsInvalid(item: Alert) {
+    const msg = validate(item);
+    if (msg === '') {
+      return html``;
+    }
+    return html`
+      <error-icon-sk title="${msg}"></error-icon-sk>
+    `;
+  }
+
   private static rows = (ele: AlertsPageSk) =>
     ele.alerts.map(
       (item) => html`
@@ -81,6 +94,7 @@ class AlertsPageSk extends ElementSk {
       ]}></paramset-sk></td>
       <td>${item.alert}</td>
       <td>${item.owner}</td>
+      <td>${AlertsPageSk.displayIfAlertIsInvalid(item)}</td>
       <td><delete-icon-sk title='Delete' @click=${
         ele.delete
       } .__config=${item} ?disabled=${!ele.email}></delete-icon-sk></td>

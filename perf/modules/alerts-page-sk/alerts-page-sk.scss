@@ -38,6 +38,10 @@ alerts-page-sk {
     display: block;
   }
 
+  td > error-icon-sk {
+    fill: var(--error);
+  }
+
   .dialogButtons {
     display: flex;
     justify-content: flex-end;
