@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8385fdec_dcdddf35",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6605
+      },
+      "writtenOn": "2020-08-11T17:17:11Z",
+      "side": 1,
+      "message": "dhoss: Hope you don\u0027t mind!",
+      "revId": "8050ec30c146fc6662791b1c07369e3488eef93b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
