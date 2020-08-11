@@ -12,10 +12,10 @@ func TestConfig(t *testing.T) {
 	unittest.SmallTest(t)
 
 	a := NewConfig()
-	assert.Equal(t, "-1", a.IDToString())
+	assert.Equal(t, "-1", a.IDAsString)
 	a.SetIDFromString("2")
 	assert.Equal(t, int64(2), a.ID)
-	assert.Equal(t, "2", a.IDToString())
+	assert.Equal(t, "2", a.IDAsString)
 }
 
 func TestIDToString(t *testing.T) {

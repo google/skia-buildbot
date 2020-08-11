@@ -118,16 +118,12 @@ func (c *Alert) StateToInt() int {
 	return ConfigStateToInt(c.StateAsString)
 }
 
-// IDToString returns the alerts ID formatted as a string.
-func (c *Alert) IDToString() string {
-	return IDToString(c.ID)
-}
-
 // SetIDFromString sets the Alerts ID to the parsed value of the string.
 //
 // An invalid alert id (-1) will be set if the string can't be parsed.
 func (c *Alert) SetIDFromString(s string) {
 	c.ID = StringToID(s)
+	c.IDAsString = s
 }
 
 // IDToString returns the alerts ID formatted as a string.
