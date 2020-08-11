@@ -10,7 +10,7 @@ import (
 )
 
 func TestFS(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 
 	ctx := context.Background()
 	tmp, cleanup := shared_tests.MakeTestFiles(t)
