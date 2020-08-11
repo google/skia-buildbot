@@ -51,6 +51,23 @@
       "revId": "07df127f9a93b70ada1bec8a27c90916f17f9b8a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "767d47ce_1898641c",
+        "filename": "autoroll/config/pgo-mac-chromium.json",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 12624
+      },
+      "writtenOn": "2020-08-11T17:01:30Z",
+      "side": 1,
+      "message": "Does the revision end up in the subject line? We want to keep it \u003c 80 chars.\n\nI think that you can drop \"Trunk\" from the subject, this commit will already be made on trunk so there\u0027s no reason to add this (and I don\u0027t think that we want the roll on branches to look different from the trunk ones anyway).",
+      "revId": "07df127f9a93b70ada1bec8a27c90916f17f9b8a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
