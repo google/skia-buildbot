@@ -1,8 +1,9 @@
 {
   authorized_users: [
     "google.com", "chromium.org", "skia.org",
+    // Note: gmail accounts should be in "normalized" form, that is no dots and no pluses.
     "kkinnunen@nvidia.com", "mjk@nvidia.com", "vbuzinov@nvidia.com", "martina.kollarova@intel.com",
-    "this.is.harry.stern@gmail.com", "dvonbeck@gmail.com", "zakerinasab@chromium.org",
+    "thisisharrystern@gmail.com", "dvonbeck@gmail.com", "zakerinasab@chromium.org",
     "afar.lin@imgtec.com",
   ],
   cl_comment_template: "<ignored>",
