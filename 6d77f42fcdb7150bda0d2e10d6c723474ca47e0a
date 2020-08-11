@@ -16,6 +16,23 @@
       "revId": "6d77f42fcdb7150bda0d2e10d6c723474ca47e0a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c4443e82_4d1c95d7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6605
+      },
+      "writtenOn": "2020-08-11T16:16:34Z",
+      "side": 1,
+      "message": "Thanks. I don\u0027t have \"CQ +2\" ability to actually submit CLs here. Hope you can do one more round of button pressing.",
+      "revId": "6d77f42fcdb7150bda0d2e10d6c723474ca47e0a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
