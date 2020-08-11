@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e03ad147_0c92b65b",
+        "filename": "autoroll/config/pdfium-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-11T11:27:13Z",
+      "side": 1,
+      "message": "Note: this sets the minimum interval between a roll CL landing and the next one being uploaded.  Because of CQ latency, the actual time at which the CL is uploaded could drift.  We also support a roll window, which can be used to ensure that rolls are only uploaded, eg. during working hours Mon-Fri, during the night, or whatever.  The roll window can be combined with maxRollFrequency to ensure that only one roll is uploaded per day but also ensure that it occurs within a specified window.",
+      "range": {
+        "startLine": 46,
+        "startChar": 23,
+        "endLine": 46,
+        "endChar": 26
+      },
+      "revId": "fa5e64517d46f0798f191c42ce302570702031ed",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
