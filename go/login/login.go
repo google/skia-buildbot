@@ -333,7 +333,7 @@ func LoggedInAs(r *http.Request) string {
 		return email
 	}
 
-	sklog.Debugf("User %s is logged in but not on the list of allowed users.", email)
+	sklog.Debugf("User %q is logged in but not on the list of allowed users.", email)
 	return ""
 }
 
@@ -568,7 +568,7 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 func isAuthorized(email string) bool {
 	parts := strings.Split(email, "@")
 	if len(parts) != 2 {
-		sklog.Errorf("Email %s was not in 2 parts: %s", email)
+		sklog.Errorf("Email %q was not in 2 parts", email)
 		return false
 	}
 
