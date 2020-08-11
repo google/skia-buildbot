@@ -15,7 +15,7 @@ import (
 // Ideally, this would be in the go/gitiles package, but we want to use the
 // mocks in this package.
 func TestFS(t *testing.T) {
-	unittest.SmallTest(t)
+	unittest.MediumTest(t)
 
 	ctx := context.Background()
 	repoURL := "https://fake.repo.git"
