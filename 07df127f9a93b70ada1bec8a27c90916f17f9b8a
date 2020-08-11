@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8e9801d5_68929315",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-11T11:18:51Z",
+      "side": 1,
+      "message": "Ok, just to confirm, the full commit message now looks like this:\n\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\u003d\n\nRoll Chrome Win32 Trunk PGO Profile\n\nRoll Chrome Win32 PGO profile from aaaaaaaaaaaa to cccccccccccc\n\nIf this roll has caused a breakage, revert this CL and stop the roller\nusing the controls here:\nhttps://autoroll.skia.org/r/pgo-win32-chromium\nPlease CC liaoyuke@google.com,sebmarchand+pgo_roller@google.com,jeffyoon@google.com on the revert to ensure that a human\nis aware of the problem.\n\nTo report a problem with the AutoRoller itself, please file a bug:\nhttps://bugs.chromium.org/p/skia/issues/entry?template\u003dAutoroller+Bug\n\nDocumentation for the AutoRoller is here:\nhttps://skia.googlesource.com/buildbot/+doc/master/autoroll/README.md\n\nCq-Include-Trybots: chrome/try:win-chrome\nTbr: liaoyuke@google.com,sebmarchand+pgo_roller@google.com,jeffyoon@google.com",
+      "revId": "07df127f9a93b70ada1bec8a27c90916f17f9b8a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
