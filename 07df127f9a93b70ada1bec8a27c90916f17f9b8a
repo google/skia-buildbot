@@ -68,6 +68,24 @@
       "revId": "07df127f9a93b70ada1bec8a27c90916f17f9b8a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8b552943_c3e253a3",
+        "filename": "autoroll/config/pgo-mac-chromium.json",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 12499
+      },
+      "writtenOn": "2020-08-11T17:04:49Z",
+      "side": 1,
+      "message": "My understanding is that the subject will only be: \"Roll Chrome Mac Trunk PGO Profile\", and the revisions go to the description part.",
+      "parentUuid": "767d47ce_1898641c",
+      "revId": "07df127f9a93b70ada1bec8a27c90916f17f9b8a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
