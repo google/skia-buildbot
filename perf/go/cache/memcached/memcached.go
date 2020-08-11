@@ -36,26 +36,14 @@ func New(servers []string, namespace string) (*Cache, error) {
 }
 
 // Add implements the cache.Cache interface.
-func (c *Cache) Add(key string, value string) {
+func (c *Cache) Add(key string) {
 	err := c.client.Set(&memcache.Item{
 		Key:   key + c.namespace,
-		Value: []byte(value),
+		Value: []byte{1},
 	})
 	if err != nil {
-		sklog.Errorf("Memcached failed to write: [%q: %q] %s", key, value, err)
+		sklog.Errorf("Memcached failed to write: %q %s", key, err)
 	}
-}
-
-// Get implements the cache.Cache interface.
-func (c *Cache) Get(key string) (string, bool) {
-	item, err := c.client.Get(key + c.namespace)
-	if err != nil {
-		if err != memcache.ErrCacheMiss {
-			sklog.Errorf("Memcached failed to get: %s", err)
-		}
-		return "", false
-	}
-	return string(item.Value), true
 }
 
 // Exists implements the cache.Cache interface.
