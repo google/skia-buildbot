@@ -1,7 +1,8 @@
 {
   authorized_users: [
     "google.com",
-    "ian.hickson@gmail.com",
+    // Note: gmail accounts should be in "normalized" form, that is no dots and no pluses.
+    "ianhickson@gmail.com",
     "lavidalovett@gmail.com",
   ],
   cl_comment_template: "Gold has detected about {{.NumUntriaged}} untriaged digest(s) on patchset {{.PatchSetOrder}}.\n\
