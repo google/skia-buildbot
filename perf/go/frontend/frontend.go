@@ -896,7 +896,7 @@ func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key := tr.Alert.IDToString()
+	key := tr.Alert.IDAsString
 	if tr.ClusterType == "low" {
 		err = f.regStore.TriageLow(r.Context(), detail[0], key, tr.Triage)
 	} else {
@@ -969,7 +969,7 @@ func (f *Frontend) regressionCount(ctx context.Context, category string) (int, e
 	count := 0
 	for _, regs := range regMap {
 		for _, cfg := range configs {
-			if reg, ok := regs.ByAlertID[cfg.IDToString()]; ok {
+			if reg, ok := regs.ByAlertID[cfg.IDAsString]; ok {
 				if cfg.Category == category && !reg.Triaged() {
 					// If any alert for the commit is in the category and is untriaged then we count that row only once.
 					count += 1
@@ -1180,7 +1180,7 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 		count := 0
 		if r, ok := regMap[types.CommitNumber(cid.Offset)]; ok {
 			for i, h := range headers {
-				key := h.IDToString()
+				key := h.IDAsString
 				if reg, ok := r.ByAlertID[key]; ok {
 					if rr.Subset == SubsetUntriaged && reg.Triaged() {
 						continue
