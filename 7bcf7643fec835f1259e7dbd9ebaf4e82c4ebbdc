@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9513803f_a2bb42a2",
+        "filename": "autoroll/go/repo_manager/child/gitiles.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-08-12T17:08:44Z",
+      "side": 1,
+      "message": "What happens if the path does not exist? (might be good to document and test this)",
+      "revId": "7bcf7643fec835f1259e7dbd9ebaf4e82c4ebbdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
