@@ -1,60 +1,53 @@
 package memory
 
 import (
-	"os"
 	"testing"
 
-	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/shared_tests"
 )
-
-func TestMain(m *testing.M) {
-	db.AssertDeepEqual = assertdeep.Equal
-	os.Exit(m.Run())
-}
 
 func TestInMemoryTaskDB(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestTaskDB(t, NewInMemoryTaskDB())
+	shared_tests.TestTaskDB(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryTaskDBConcurrentUpdate(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestTaskDBConcurrentUpdate(t, NewInMemoryTaskDB())
+	shared_tests.TestTaskDBConcurrentUpdate(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryTaskDBUpdateTasksWithRetries(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestUpdateTasksWithRetries(t, NewInMemoryTaskDB())
+	shared_tests.TestUpdateTasksWithRetries(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryTaskDBGetTasksFromDateRangeByRepo(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestTaskDBGetTasksFromDateRangeByRepo(t, NewInMemoryTaskDB())
+	shared_tests.TestTaskDBGetTasksFromDateRangeByRepo(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryTaskDBGetTasksFromWindow(t *testing.T) {
 	unittest.LargeTest(t)
-	db.TestTaskDBGetTasksFromWindow(t, NewInMemoryTaskDB())
+	shared_tests.TestTaskDBGetTasksFromWindow(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryUpdateDBFromSwarmingTask(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestUpdateDBFromSwarmingTask(t, NewInMemoryTaskDB())
+	shared_tests.TestUpdateDBFromSwarmingTask(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryUpdateDBFromSwarmingTaskTryjob(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestUpdateDBFromSwarmingTaskTryJob(t, NewInMemoryTaskDB())
+	shared_tests.TestUpdateDBFromSwarmingTaskTryJob(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryJobDB(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestJobDB(t, NewInMemoryJobDB())
+	shared_tests.TestJobDB(t, NewInMemoryJobDB())
 }
 
 func TestInMemoryJobDBConcurrentUpdate(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestJobDBConcurrentUpdate(t, NewInMemoryJobDB())
+	shared_tests.TestJobDBConcurrentUpdate(t, NewInMemoryJobDB())
 }

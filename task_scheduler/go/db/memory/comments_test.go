@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/shared_tests"
 )
 
 // TestCommentBox checks that CommentBox correctly implements CommentDB.
 func TestCommentBox(t *testing.T) {
 	unittest.SmallTest(t)
-	db.TestCommentDB(t, NewCommentBox())
+	shared_tests.TestCommentDB(t, NewCommentBox())
 }

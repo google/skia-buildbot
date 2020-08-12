@@ -36,27 +36,6 @@ var legacyTestImportExceptions = map[string][]string{
 	"go.skia.org/infra/task_driver/go/td": {
 		"github.com/stretchr/testify/require",
 	},
-	"go.skia.org/infra/task_scheduler/go/db": {
-		"github.com/stretchr/testify/require",
-		"go.skia.org/infra/go/deepequal/assertdeep",
-		"go.skia.org/infra/go/git/testutils",
-		"go.skia.org/infra/go/testutils",
-	},
-	"go.skia.org/infra/task_scheduler/go/isolate_cache": {
-		"github.com/stretchr/testify/require",
-		"go.skia.org/infra/go/bt/testutil",
-	},
-	"go.skia.org/infra/task_scheduler/go/task_scheduler": {
-		"go.skia.org/infra/task_scheduler/go/testutils",
-	},
-	"go.skia.org/infra/task_scheduler/go/tryjobs": {
-		"github.com/stretchr/testify/require",
-		"go.skia.org/infra/go/depot_tools/testutils",
-		"go.skia.org/infra/go/git/testutils",
-		"go.skia.org/infra/go/mockhttpclient",
-		"go.skia.org/infra/go/testutils",
-		"go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils",
-	},
 }
 
 // isTestPackage returns true if the given package should be considered a test

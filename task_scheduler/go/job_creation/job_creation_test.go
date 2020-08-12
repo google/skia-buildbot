@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
+	isolate_cache_testutils "go.skia.org/infra/task_scheduler/go/isolate_cache/testutils"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
@@ -61,7 +62,7 @@ func setup(t *testing.T) (context.Context, *git_testutils.GitBuilder, *memory.In
 	g, err := gerrit.NewGerrit(fakeGerritUrl, urlMock.Client())
 	require.NoError(t, err)
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
-	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
+	btCleanupIsolate := isolate_cache_testutils.SetupSharedBigTable(t, btProject, btInstance)
 	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
 	require.NoError(t, err)
 	isolateCache, err := isolate_cache.New(ctx, btProject, btInstance, nil)

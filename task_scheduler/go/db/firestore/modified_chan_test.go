@@ -3,35 +3,35 @@ package firestore
 import (
 	"testing"
 
-	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/shared_tests"
 )
 
 func TestModifiedTasksCh(t *testing.T) {
 	d, cleanup := setup(t)
 	defer cleanup()
-	db.TestModifiedTasksCh(t, d)
+	shared_tests.TestModifiedTasksCh(t, d)
 }
 
 func TestModifiedJobsCh(t *testing.T) {
 	d, cleanup := setup(t)
 	defer cleanup()
-	db.TestModifiedJobsCh(t, d)
+	shared_tests.TestModifiedJobsCh(t, d)
 }
 
 func TestModifiedTaskCommentsCh(t *testing.T) {
 	d, cleanup := setup(t)
 	defer cleanup()
-	db.TestModifiedTaskCommentsCh(t, d)
+	shared_tests.TestModifiedTaskCommentsCh(t, d)
 }
 
 func TestModifiedTaskSpecCommentsCh(t *testing.T) {
 	d, cleanup := setup(t)
 	defer cleanup()
-	db.TestModifiedTaskSpecCommentsCh(t, d)
+	shared_tests.TestModifiedTaskSpecCommentsCh(t, d)
 }
 
 func TestModifiedCommitCommentsCh(t *testing.T) {
 	d, cleanup := setup(t)
 	defer cleanup()
-	db.TestModifiedCommitCommentsCh(t, d)
+	shared_tests.TestModifiedCommitCommentsCh(t, d)
 }

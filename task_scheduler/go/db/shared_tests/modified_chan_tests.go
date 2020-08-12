@@ -1,4 +1,4 @@
-package db
+package shared_tests
 
 import (
 	"context"
@@ -7,12 +7,13 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/sktest"
+	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
 var deleted = true
 
-func TestModifiedTasksCh(t sktest.TestingT, db DB) {
+func TestModifiedTasksCh(t sktest.TestingT, db db.DB) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	taskCh := db.ModifiedTasksCh(ctx)
@@ -72,7 +73,7 @@ func TestModifiedTasksCh(t sktest.TestingT, db DB) {
 	require.False(t, stillOpen)
 }
 
-func TestModifiedJobsCh(t sktest.TestingT, db DB) {
+func TestModifiedJobsCh(t sktest.TestingT, db db.DB) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	jobCh := db.ModifiedJobsCh(ctx)
@@ -132,7 +133,7 @@ func TestModifiedJobsCh(t sktest.TestingT, db DB) {
 	require.False(t, stillOpen)
 }
 
-func TestModifiedTaskCommentsCh(t sktest.TestingT, db DB) {
+func TestModifiedTaskCommentsCh(t sktest.TestingT, db db.DB) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	taskCommentCh := db.ModifiedTaskCommentsCh(ctx)
@@ -203,7 +204,7 @@ func TestModifiedTaskCommentsCh(t sktest.TestingT, db DB) {
 	require.False(t, stillOpen)
 }
 
-func TestModifiedTaskSpecCommentsCh(t sktest.TestingT, db DB) {
+func TestModifiedTaskSpecCommentsCh(t sktest.TestingT, db db.DB) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	taskSpecCommentCh := db.ModifiedTaskSpecCommentsCh(ctx)
@@ -271,7 +272,7 @@ func TestModifiedTaskSpecCommentsCh(t sktest.TestingT, db DB) {
 	require.False(t, stillOpen)
 }
 
-func TestModifiedCommitCommentsCh(t sktest.TestingT, db DB) {
+func TestModifiedCommitCommentsCh(t sktest.TestingT, db db.DB) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	commitCommentCh := db.ModifiedCommitCommentsCh(ctx)

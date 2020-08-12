@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/atomic_miss_cache"
+	bt_testutil "go.skia.org/infra/go/bt/testutil"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -15,7 +16,7 @@ import (
 func TestIsolateCache(t *testing.T) {
 	unittest.LargeTest(t)
 
-	btProject, btInstance, btCleanup := SetupBigTable(t)
+	btProject, btInstance, btCleanup := bt_testutil.SetupBigTable(t, BT_TABLE, BT_COLUMN_FAMILY)
 	defer btCleanup()
 
 	ctx := context.Background()

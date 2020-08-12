@@ -41,6 +41,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
+	isolate_cache_testutils "go.skia.org/infra/task_scheduler/go/isolate_cache/testutils"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
@@ -278,7 +279,7 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 		rs1.Repo: repo,
 	}
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
-	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
+	btCleanupIsolate := isolate_cache_testutils.SetupSharedBigTable(t, btProject, btInstance)
 	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
 	require.NoError(t, err)
 	isolateCache, err := isolate_cache.New(ctx, btProject, btInstance, nil)
@@ -1320,6 +1321,12 @@ func TestComputeBlamelist(t *testing.T) {
 		TaskName     string
 	}
 
+	require.NoError(t, repos.Update(ctx))
+	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
+	defer btCleanup()
+	btCleanupIsolate := isolate_cache_testutils.SetupSharedBigTable(t, btProject, btInstance)
+	defer btCleanupIsolate()
+
 	ids := []string{}
 	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 	test := func(tc *testCase) {
@@ -2310,7 +2317,7 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 		rs1.Repo: repo,
 	}
 	btProject, btInstance, btCleanup := tcc_testutils.SetupBigTable(t)
-	btCleanupIsolate := isolate_cache.SetupSharedBigTable(t, btProject, btInstance)
+	btCleanupIsolate := isolate_cache_testutils.SetupSharedBigTable(t, btProject, btInstance)
 	taskCfgCache, err := task_cfg_cache.NewTaskCfgCache(ctx, repos, btProject, btInstance, nil)
 	require.NoError(t, err)
 	isolateCache, err := isolate_cache.New(ctx, btProject, btInstance, nil)
