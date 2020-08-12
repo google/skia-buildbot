@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -434,6 +435,24 @@ func TestTruncate(t *testing.T) {
 	require.Equal(t, s, Truncate(s, len(s)+1))
 }
 
+func TestWithWriteFile(t *testing.T) {
+	unittest.MediumTest(t)
+	tmp, err := ioutil.TempDir("", "whatever")
+	require.NoError(t, err)
+
+	targetFile := filepath.Join(tmp, "this", "is", "in", "a", "subdir.txt")
+	err = WithWriteFile(targetFile, func(w io.Writer) error {
+		_, err := w.Write([]byte("some words"))
+		return err
+	})
+	require.NoError(t, err)
+	require.FileExists(t, targetFile)
+
+	b, err := ioutil.ReadFile(targetFile)
+	require.NoError(t, err)
+	assert.Equal(t, "some words", string(b))
+}
+
 type fakeWriter struct {
 	writeFn func(p []byte) (int, error)
 }
@@ -480,9 +499,11 @@ func TestWithGzipWriter(t *testing.T) {
 		}
 		return len(p), nil
 	}
-	require.EqualError(t, WithGzipWriter(fw, func(w io.Writer) error {
+	err := WithGzipWriter(fw, func(w io.Writer) error {
 		return write(w, "hi")
-	}), "Failed to close gzip.Writer: nope")
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "closing gzip.Writer: nope")
 }
 
 func TestChunkIter_IteratesInBatches(t *testing.T) {
