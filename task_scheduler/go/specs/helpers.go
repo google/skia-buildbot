@@ -72,8 +72,9 @@ func NewTasksCfgBuilder() (*TasksCfgBuilder, error) {
 
 	// Create the config.
 	cfg := &TasksCfg{
-		Jobs:  map[string]*JobSpec{},
-		Tasks: map[string]*TaskSpec{},
+		Jobs:      map[string]*JobSpec{},
+		Tasks:     map[string]*TaskSpec{},
+		Templates: map[string]*TaskSpec{},
 	}
 
 	root, err := GetCheckoutRoot()
@@ -144,6 +145,33 @@ func (b *TasksCfgBuilder) MustAddJob(name string, j *JobSpec) {
 	}
 }
 
+// AddTemplate adds a Template to the TasksCfgBuilder. Returns an error if the
+// config already contains a Template with the same name and a different
+// implementation.
+func (b *TasksCfgBuilder) AddTemplate(name string, t *TaskSpec) error {
+	if old, ok := b.cfg.Templates[name]; ok {
+		if !reflect.DeepEqual(old, t) {
+			return fmt.Errorf("Config already contains a Template named %q with a different implementation!\nHave:\n%v\n\nGot:\n%v", name, old, t)
+		}
+		return nil
+	}
+	b.cfg.Templates[name] = t
+	return nil
+}
+
+// MustAddTemplate adds a Template to the TasksCfgBuilder and panics on failure.
+func (b *TasksCfgBuilder) MustAddTemplate(name string, t *TaskSpec) {
+	if err := b.AddTemplate(name, t); err != nil {
+		sklog.Fatal(err)
+	}
+}
+
+// HasTemplate returns true iff a template with the given name exists.
+func (b *TasksCfgBuilder) HasTemplate(name string) bool {
+	_, ok := b.cfg.Templates[name]
+	return ok
+}
+
 // GetCipdPackageFromAsset reads the version information for the given asset
 // and returns a CipdPackage instance.
 func (b *TasksCfgBuilder) GetCipdPackageFromAsset(assetName string) (*CipdPackage, error) {
@@ -199,7 +227,9 @@ func (b *TasksCfgBuilder) Finish() error {
 	}
 
 	// Validate the config.
-	if err := b.cfg.Validate(); err != nil {
+	// We have to resolve all template references first.
+	cfg2 := b.cfg.Copy()
+	if err := cfg2.Validate(); err != nil {
 		return err
 	}
 

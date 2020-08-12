@@ -218,18 +218,74 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 
 // kitchenTask returns a specs.TaskSpec instance which uses Kitchen to run a
 // recipe.
-func kitchenTask(name, recipe, isolate, serviceAccount string, dimensions []string, extraProps map[string]string, outputDir string) *specs.TaskSpec {
-	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_KITCHEN...)
-	properties := map[string]string{
-		"buildername":   name,
-		"swarm_out_dir": specs.PLACEHOLDER_ISOLATED_OUTDIR,
-	}
-	for k, v := range extraProps {
-		properties[k] = v
-	}
-	var outputs []string = nil
-	if outputDir != OUTPUT_NONE {
-		outputs = []string{outputDir}
+func kitchenTask(b *specs.TasksCfgBuilder, name, recipe, isolate, serviceAccount string, dimensions []string, extraProps map[string]string, outputDir string) *specs.TaskSpec {
+	tmplName := "kitchenTask"
+	if !b.HasTemplate(tmplName) {
+		cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_KITCHEN...)
+		properties := map[string]string{
+			"buildername":   name,
+			"patch_issue":   specs.PLACEHOLDER_ISSUE,
+			"patch_ref":     specs.PLACEHOLDER_PATCH_REF,
+			"patch_repo":    specs.PLACEHOLDER_PATCH_REPO,
+			"patch_set":     specs.PLACEHOLDER_PATCHSET,
+			"patch_storage": specs.PLACEHOLDER_PATCH_STORAGE,
+			"repository":    specs.PLACEHOLDER_REPO,
+			"revision":      specs.PLACEHOLDER_REVISION,
+			"swarm_out_dir": specs.PLACEHOLDER_ISOLATED_OUTDIR,
+		}
+		for k, v := range extraProps {
+			properties[k] = v
+		}
+		var outputs []string = nil
+		if outputDir != OUTPUT_NONE {
+			outputs = []string{outputDir}
+		}
+		tmpl := &specs.TaskSpec{
+			Caches: []*specs.Cache{
+				&specs.Cache{
+					Name: "vpython",
+					Path: "cache/vpython",
+				},
+			},
+			CipdPackages: cipd,
+			Command: []string{
+				"./kitchen${EXECUTABLE_SUFFIX}", "cook",
+				"-checkout-dir", "recipe_bundle",
+				"-mode", "swarming",
+				"-luci-system-account", "system",
+				"-cache-dir", "cache",
+				"-temp-dir", "tmp",
+				"-known-gerrit-host", "android.googlesource.com",
+				"-known-gerrit-host", "boringssl.googlesource.com",
+				"-known-gerrit-host", "chromium.googlesource.com",
+				"-known-gerrit-host", "dart.googlesource.com",
+				"-known-gerrit-host", "fuchsia.googlesource.com",
+				"-known-gerrit-host", "go.googlesource.com",
+				"-known-gerrit-host", "llvm.googlesource.com",
+				"-known-gerrit-host", "pdfium.googlesource.com",
+				"-known-gerrit-host", "skia.googlesource.com",
+				"-known-gerrit-host", "webrtc.googlesource.com",
+				"-output-result-json", "${ISOLATED_OUTDIR}/build_result_filename",
+				"-workdir", ".",
+				"-recipe", recipe,
+				"-properties", props(properties),
+				"-logdog-annotation-url", LOGDOG_ANNOTATION_URL,
+			},
+			Dependencies: []string{BUNDLE_RECIPES_NAME},
+			Dimensions:   dimensions,
+			EnvPrefixes: map[string][]string{
+				"PATH":                    []string{"cipd_bin_packages", "cipd_bin_packages/bin"},
+				"VPYTHON_VIRTUALENV_ROOT": []string{"${cache_dir}/vpython"},
+			},
+			ExtraTags: map[string]string{
+				"log_location": LOGDOG_ANNOTATION_URL,
+			},
+			Isolate:        isolate,
+			Outputs:        outputs,
+			Priority:       0.8,
+			ServiceAccount: serviceAccount,
+		}
+		b.MustAddTemplate(tmplName, tmpl)
 	}
 	python := "cipd_bin_packages/vpython${EXECUTABLE_SUFFIX}"
 	return &specs.TaskSpec{
@@ -312,10 +368,7 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 		"reason":           "CQ",
 		"repo_name":        "skia_buildbot",
 	}
-	for k, v := range EXTRA_PROPS {
-		extraProps[k] = v
-	}
-	task := kitchenTask(name, "run_presubmit", "run_recipe.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(MACHINE_TYPE_MEDIUM), extraProps, OUTPUT_NONE)
+	task := kitchenTask(b, name, "run_presubmit", "empty.isolate", SERVICE_ACCOUNT_COMPILE, linuxGceDimensions(MACHINE_TYPE_MEDIUM), extraProps, OUTPUT_NONE)
 	task.Caches = append(task.Caches, []*specs.Cache{
 		{
 			Name: "git",

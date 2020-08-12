@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -39,6 +40,13 @@ func (s StringSet) Keys() []string {
 		ret = append(ret, v)
 	}
 	return ret
+}
+
+// Sorted returns the keys of a StringSet in sorted order.
+func (s StringSet) Sorted() []string {
+	rv := s.Keys()
+	sort.Strings(rv)
+	return rv
 }
 
 // String returns a comma seperated list of the values of the set.
