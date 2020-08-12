@@ -523,13 +523,12 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		return -1, nil, err
 	}
 
-	now := time.Now()
 	if q.Empty() {
 		// If the query is empty then we have a shortcut for building the
 		// ParamSet by just using the OPS. In that case we only need to count
 		// encodedKeys to get the count.
 		for i := 0; i < 2; i++ {
-			ops, err := b.store.GetOrderedParamSet(ctx, tileNumber, now)
+			ops, err := b.store.GetOrderedParamSet(ctx, tileNumber)
 			if err != nil {
 				return -1, nil, err
 			}
@@ -551,7 +550,7 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		var ops *paramtools.OrderedParamSet
 
 		// Record the OPS for the first tile.
-		opsOne, err := b.store.GetOrderedParamSet(ctx, tileNumber, now)
+		opsOne, err := b.store.GetOrderedParamSet(ctx, tileNumber)
 		if err != nil {
 			return -1, nil, err
 		}
@@ -573,7 +572,7 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 		tileNumber = tileNumber.Prev()
 		if tileNumber != types.BadTileNumber {
 			// Record the OPS for the second tile.
-			opsTwo, err := b.store.GetOrderedParamSet(ctx, tileNumber, now)
+			opsTwo, err := b.store.GetOrderedParamSet(ctx, tileNumber)
 			if err != nil {
 				return -1, nil, err
 			}
