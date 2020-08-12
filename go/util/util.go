@@ -12,7 +12,7 @@ import (
 	"io/ioutil"
 	"math"
 	"os"
-	"path"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"sort"
@@ -562,27 +562,27 @@ func ParseIntSet(expr string) ([]int, error) {
 			rv = append(rv, v)
 		} else if len(endpoints) == 2 {
 			if endpoints[0] == "" {
-				return nil, fmt.Errorf("Invalid expression %q", r)
+				return nil, skerr.Fmt("Invalid expression %q", r)
 			}
 			start, err := strconv.Atoi(endpoints[0])
 			if err != nil {
 				return nil, err
 			}
 			if endpoints[1] == "" {
-				return nil, fmt.Errorf("Invalid expression %q", r)
+				return nil, skerr.Fmt("Invalid expression %q", r)
 			}
 			end, err := strconv.Atoi(endpoints[1])
 			if err != nil {
 				return nil, err
 			}
 			if start > end {
-				return nil, fmt.Errorf("Cannot have a range whose beginning is greater than its end (%d vs %d)", start, end)
+				return nil, skerr.Fmt("Cannot have a range whose beginning is greater than its end (%d vs %d)", start, end)
 			}
 			for i := start; i <= end; i++ {
 				rv = append(rv, i)
 			}
 		} else {
-			return nil, fmt.Errorf("Invalid expression %q", r)
+			return nil, skerr.Fmt("Invalid expression %q", r)
 		}
 	}
 	return rv, nil
@@ -620,13 +620,15 @@ func Truncate(s string, length int) string {
 // temporary intermediate file for more atomicity in case a long-running write
 // gets interrupted.
 func WithWriteFile(file string, writeFn func(io.Writer) error) error {
-	dir := path.Dir(file)
+	dir := filepath.Dir(file)
 	if err := os.MkdirAll(dir, 0700); err != nil {
-		return fmt.Errorf("Failed to MkdirAll(%s, 0700): %v", dir, err)
+		return skerr.Wrapf(err, "calling MkdirAll(%s, 0700)", dir)
 	}
-	f, err := ioutil.TempFile(dir, path.Base(file))
+
+	tempBase := filepath.Base(file)
+	f, err := ioutil.TempFile(dir, tempBase)
 	if err != nil {
-		return fmt.Errorf("Failed to create temporary file for WithWriteFile: %s", err)
+		return skerr.Wrapf(err, "creating temporary file %q in WithWriteFile for %q", tempBase, file)
 	}
 	if err := writeFn(f); err != nil {
 		_ = f.Close() // Ignore the error since we've already failed.
@@ -635,10 +637,10 @@ func WithWriteFile(file string, writeFn func(io.Writer) error) error {
 	}
 	if err := f.Close(); err != nil {
 		Remove(f.Name())
-		return fmt.Errorf("Failed to close temporary file for WithWriteFile: %s", err)
+		return skerr.Wrapf(err, "closing temporary file in WithWriteFile")
 	}
 	if err := os.Rename(f.Name(), file); err != nil {
-		return fmt.Errorf("Failed to rename temporary file for WithWriteFile: %s", err)
+		return skerr.Wrapf(err, "renaming temporary file %s to %s in WithWriteFile", f.Name(), file)
 	}
 	return nil
 }
@@ -658,7 +660,7 @@ func WithGzipWriter(w io.Writer, fn func(w io.Writer) error) (err error) {
 	defer func() {
 		err2 := gzw.Close()
 		if err == nil && err2 != nil {
-			err = fmt.Errorf("Failed to close gzip.Writer: %s", err2)
+			err = skerr.Wrapf(err2, "closing gzip.Writer")
 		}
 	}()
 	err = fn(gzw)
@@ -675,7 +677,7 @@ func WithReadFile(file string, fn func(f io.Reader) error) (err error) {
 	defer func() {
 		err2 := f.Close()
 		if err == nil && err2 != nil {
-			err = fmt.Errorf("Failed to close file: %s", err2)
+			err = skerr.Wrapf(err2, "closing file %s", file)
 		}
 	}()
 	err = fn(f)
