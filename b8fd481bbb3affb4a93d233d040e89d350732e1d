@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "21061e42_3d461bd1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-12T17:18:28Z",
+      "side": 1,
+      "message": "Forgot to plumb through CopyRepoManager. Done in PS3",
+      "revId": "b8fd481bbb3affb4a93d233d040e89d350732e1d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

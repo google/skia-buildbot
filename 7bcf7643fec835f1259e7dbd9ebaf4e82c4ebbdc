@@ -16,6 +16,24 @@
       "revId": "7bcf7643fec835f1259e7dbd9ebaf4e82c4ebbdc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81149f28_b07a288f",
+        "filename": "autoroll/go/repo_manager/child/gitiles.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-12T17:18:28Z",
+      "side": 1,
+      "message": "Looks like Gitiles doesn\u0027t give a 404 but instead gives an empty log: https://skia.googlesource.com/buildbot/+log/master/some/bogus/path\nFTR that\u0027s the same thing git does when you do \"git log\" for a path which doesn\u0027t exist: if no commits changed that path, it doesn\u0027t return any commits.",
+      "parentUuid": "9513803f_a2bb42a2",
+      "revId": "7bcf7643fec835f1259e7dbd9ebaf4e82c4ebbdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
