@@ -36,6 +36,12 @@ const (
 	CockroachDBDataStoreType DataStoreType = "cockroachdb"
 )
 
+// CacheConfig is the config for LRU caches in the trace store.
+type CacheConfig struct {
+	MemcachedServers []string `json:"memcached_servers"`
+	Namespace        string   `json:"namespace"`
+}
+
 // DataStoreConfig is the configuration for how Perf stores data.
 type DataStoreConfig struct {
 	// DataStoreType determines what type of datastore to build. This value will
@@ -79,6 +85,9 @@ type DataStoreConfig struct {
 	// regressions, and shortcuts should use. This value is only used for 'gcp'
 	// datastore types.
 	Namespace string `json:"namespace"`
+
+	// CacheConfig is the config for LRU caches in the trace store.
+	CacheConfig CacheConfig
 }
 
 // SourceType determines what type of file.Source to build from a SourceConfig.
