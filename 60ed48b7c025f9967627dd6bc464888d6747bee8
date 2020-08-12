@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "de0baaf0_4f5807cb",
+        "filename": "perf/go/builders/builders.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-12T18:06:11Z",
+      "side": 1,
+      "message": "I left these empty cases in place to make it easy to adjust the level of logging from pgx during debugging.",
+      "parentUuid": "8e4494f3_5a90801e",
+      "range": {
+        "startLine": 49,
+        "startChar": 18,
+        "endLine": 49,
+        "endChar": 24
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "29e41d76_f3d41a0d",
         "filename": "perf/go/cache/memcached/memcached.go",
         "patchSetId": 37
@@ -45,6 +69,30 @@
       "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "130ecd69_2e0475c2",
+        "filename": "perf/go/cache/memcached/memcached.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-12T18:06:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "29e41d76_f3d41a0d",
+      "range": {
+        "startLine": 14,
+        "startChar": 23,
+        "endLine": 14,
+        "endChar": 39
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "e4c4ea60_82ee7b70",
+        "filename": "perf/go/cache/memcached/memcached.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-12T18:06:11Z",
+      "side": 1,
+      "message": "Added comment:\n\t// Always store it locally regardless of memcached error, failure to do that\n\t// would mean that if memcached went down then we\u0027d have no caching at all.",
+      "parentUuid": "c395ab2d_86310b4e",
+      "range": {
+        "startLine": 58,
+        "startChar": 8,
+        "endLine": 58,
+        "endChar": 14
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "17266ead_d88fe189",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 37
@@ -91,6 +163,30 @@
       "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dfce6896_df825574",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-12T18:06:11Z",
+      "side": 1,
+      "message": "I can\u0027t think of any other way to write this query.",
+      "parentUuid": "17266ead_d88fe189",
+      "range": {
+        "startLine": 113,
+        "startChar": 4,
+        "endLine": 113,
+        "endChar": 13
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "55265cc9_f1ff0870",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-12T18:06:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d5fe879e_c1bc1e45",
+      "range": {
+        "startLine": 181,
+        "startChar": 26,
+        "endLine": 181,
+        "endChar": 30
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "acc84603_1bfbe96a",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 37
@@ -137,6 +257,30 @@
       "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42205825_055b066d",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 848,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-12T18:06:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "acc84603_1bfbe96a",
+      "range": {
+        "startLine": 848,
+        "startChar": 23,
+        "endLine": 848,
+        "endChar": 25
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "67180735_7724623a",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 853,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-12T18:06:11Z",
+      "side": 1,
+      "message": "This is just a slice that will be backed by the array that pgx Scanned the bytes into.",
+      "parentUuid": "2ee1907e_439dec82",
+      "range": {
+        "startLine": 853,
+        "startChar": 3,
+        "endLine": 853,
+        "endChar": 28
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "cd807fa5_0e04ed1d",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 37
@@ -186,6 +354,30 @@
     },
     {
       "key": {
+        "uuid": "020960c3_6a7b32c4",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 934,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-12T18:06:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "cd807fa5_0e04ed1d",
+      "range": {
+        "startLine": 934,
+        "startChar": 44,
+        "endLine": 934,
+        "endChar": 54
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bfbf0f26_702d260e",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
         "patchSetId": 37
@@ -206,6 +398,30 @@
       "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c4ee2e42_9f078dd6",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-12T18:06:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "bfbf0f26_702d260e",
+      "range": {
+        "startLine": 408,
+        "startChar": 1,
+        "endLine": 410,
+        "endChar": 2
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
