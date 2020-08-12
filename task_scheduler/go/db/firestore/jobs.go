@@ -25,6 +25,7 @@ const (
 func fixJobTimestamps(job *types.Job) {
 	job.Created = firestore.FixTimestamp(job.Created)
 	job.DbModified = firestore.FixTimestamp(job.DbModified)
+	job.Expiration = firestore.FixTimestamp(job.Expiration)
 	job.Finished = firestore.FixTimestamp(job.Finished)
 	job.Requested = firestore.FixTimestamp(job.Requested)
 }

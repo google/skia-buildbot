@@ -52,9 +52,10 @@ func fakeTaskSpec() *TaskSpec {
 
 func fakeJobSpec() *JobSpec {
 	return &JobSpec{
-		TaskSpecs: []string{"Build", "Test"},
-		Trigger:   "trigger-name",
-		Priority:  753,
+		Expiration: "4d",
+		TaskSpecs:  []string{"Build", "Test"},
+		Trigger:    "trigger-name",
+		Priority:   753,
 	}
 }
 
@@ -230,4 +231,65 @@ func TestGetTaskSpecDAG(t *testing.T) {
 		"f": {"c"},
 		"g": {"d", "e", "f"},
 	}, []string{"a", "g"})
+}
+
+func TestValidateTask(t *testing.T) {
+	unittest.SmallTest(t)
+
+	test := func(fn func(*TaskSpec), expect string) {
+		spec := fakeTaskSpec()
+		fn(spec)
+		err := spec.Validate()
+		if expect == "" {
+			require.NoError(t, err)
+		} else {
+			require.EqualError(t, err, expect)
+		}
+	}
+
+	test(func(s *TaskSpec) {}, "")
+	test(func(s *TaskSpec) {
+		s.Caches[0].Name = ""
+	}, "Caches must have a name and path.")
+	test(func(s *TaskSpec) {
+		s.Caches[0].Path = ""
+	}, "Caches must have a name and path.")
+	test(func(s *TaskSpec) {
+		s.CipdPackages[0].Name = ""
+	}, "CIPD packages must have a name, path, and version.")
+	test(func(s *TaskSpec) {
+		s.CipdPackages[0].Path = ""
+	}, "CIPD packages must have a name, path, and version.")
+	test(func(s *TaskSpec) {
+		s.CipdPackages[0].Version = ""
+	}, "CIPD packages must have a name, path, and version.")
+	test(func(s *TaskSpec) {
+		s.Dimensions[0] = "bad"
+	}, "Dimension \"bad\" does not contain a colon!")
+	test(func(s *TaskSpec) {
+		s.Isolate = ""
+	}, "Isolate file is required.")
+}
+
+func TestValidateJob(t *testing.T) {
+	unittest.SmallTest(t)
+
+	test := func(fn func(*JobSpec), expect string) {
+		spec := fakeJobSpec()
+		fn(spec)
+		err := spec.Validate()
+		if expect == "" {
+			require.NoError(t, err)
+		} else {
+			require.EqualError(t, err, expect)
+		}
+	}
+
+	test(func(s *JobSpec) {}, "")
+	test(func(s *JobSpec) {
+		s.TaskSpecs = nil
+	}, "Job must have TaskSpecs.")
+	test(func(s *JobSpec) {
+		s.Expiration = "bogus"
+	}, "Invalid job expiration: Invalid format: bogus")
 }

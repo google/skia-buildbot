@@ -29,6 +29,10 @@ const (
 	// JOB_STATUS_CANCELED indicates that the Job has been canceled.
 	JOB_STATUS_CANCELED JobStatus = "CANCELED"
 
+	// JOB_STATUS_EXPIRED indicates that the Job ran longer than its
+	// configured expiration duration.
+	JOB_STATUS_EXPIRED JobStatus = "EXPIRED"
+
 	// JOB_URL_TMPL is a template for Job URLs.
 	JOB_URL_TMPL = "%s/job/%s"
 
@@ -41,9 +45,10 @@ var (
 	JOB_STATUS_BADNESS = map[JobStatus]int{
 		JOB_STATUS_SUCCESS:     0,
 		JOB_STATUS_IN_PROGRESS: 1,
-		JOB_STATUS_CANCELED:    2,
-		JOB_STATUS_FAILURE:     3,
-		JOB_STATUS_MISHAP:      4,
+		JOB_STATUS_EXPIRED:     2,
+		JOB_STATUS_CANCELED:    3,
+		JOB_STATUS_FAILURE:     4,
+		JOB_STATUS_MISHAP:      5,
 	}
 	VALID_JOB_STATUSES = []JobStatus{
 		JOB_STATUS_IN_PROGRESS,
@@ -51,6 +56,7 @@ var (
 		JOB_STATUS_FAILURE,
 		JOB_STATUS_MISHAP,
 		JOB_STATUS_CANCELED,
+		JOB_STATUS_EXPIRED,
 	}
 )
 
@@ -117,8 +123,11 @@ type Job struct {
 	// property should never change for a given Job instance.
 	Dependencies map[string][]string `json:"dependencies"`
 
+	// Expiration is the time at which this Job will expire.
+	Expiration time.Time `json:"expiration"`
+
 	// Finished is the time at which all of the Job's dependencies finished,
-	// successfully or not.
+	// successfully or not, or when the Job expired or was canceled.
 	Finished time.Time `json:"finished"`
 
 	// Id is a unique identifier for the Job. This property should never
@@ -183,6 +192,7 @@ func (j *Job) Copy() *Job {
 		Created:             j.Created,
 		DbModified:          j.DbModified,
 		Dependencies:        deps,
+		Expiration:          j.Expiration,
 		Finished:            j.Finished,
 		Id:                  j.Id,
 		IsForce:             j.IsForce,

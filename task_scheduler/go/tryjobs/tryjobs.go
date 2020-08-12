@@ -419,6 +419,7 @@ func (t *TryJobIntegrator) insertNewJob(ctx context.Context, buildId int64) erro
 	}
 	j.Requested = firestore.FixTimestamp(requested.UTC())
 	j.Created = firestore.FixTimestamp(j.Created)
+	j.Expiration = firestore.FixTimestamp(j.Expiration)
 	if !j.Requested.Before(j.Created) {
 		sklog.Errorf("Try job created time %s is before requested time %s! Setting equal.", j.Created, j.Requested)
 		j.Requested = j.Created.Add(-firestore.TS_RESOLUTION)

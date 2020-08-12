@@ -20,6 +20,7 @@ import (
 	"go.chromium.org/luci/common/isolated"
 	"go.skia.org/infra/go/deepequal"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/firestore"
 	skfs "go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gcs/mem_gcsclient"
 	"go.skia.org/infra/go/git/repograph"
@@ -2681,8 +2682,12 @@ func TestGetTasksForJob(t *testing.T) {
 
 	// Cycle once, check that we have empty sets for all Jobs.
 	runMainLoop(t, s, ctx)
-	jobs, err := s.jCache.UnfinishedJobs()
-	require.NoError(t, err)
+	s.activeJobsMtx.Lock()
+	jobs := make([]*types.Job, 0, len(s.activeJobs))
+	for _, job := range s.activeJobs {
+		jobs = append(jobs, job)
+	}
+	s.activeJobsMtx.Unlock()
 	require.Equal(t, 5, len(jobs))
 	var j1, j2, j3, j4, j5 *types.Job
 	for _, j := range jobs {
@@ -2964,8 +2969,11 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 
 	// Update the tasks, mock in Swarming.
 	t1.Status = types.TASK_STATUS_SUCCESS
+	t1.Finished = now
 	t2.Status = types.TASK_STATUS_FAILURE
+	t2.Finished = now
 	t3.Status = types.TASK_STATUS_SUCCESS
+	t3.Finished = now
 
 	m1 := makeSwarmingRpcsTaskRequestMetadata(t, t1, linuxTaskDims)
 	m2 := makeSwarmingRpcsTaskRequestMetadata(t, t2, linuxTaskDims)
@@ -2982,10 +2990,31 @@ func TestUpdateUnfinishedTasks(t *testing.T) {
 	for _, task := range tasks {
 		got, err := s.db.GetTaskById(task.Id)
 		require.NoError(t, err)
-		// Ignore DbModified when comparing.
+		// Ignore timestamps when comparing.
 		task.DbModified = got.DbModified
+		task.Finished = got.Finished
+		task.Started = got.Started
 		assertdeep.Equal(t, task, got)
 	}
+}
+
+func TestUpdateUnfinishedJobs(t *testing.T) {
+	_, _, d, _, s, _, cleanup := setup(t)
+	defer cleanup()
+
+	// Expired jobs should be canceled.
+	now := time.Now()
+	jobs, err := d.GetJobsFromDateRange(vcsinfo.MinTime, vcsinfo.MaxTime, "")
+	require.NoError(t, err)
+	require.Equal(t, 5, len(jobs))
+	j := jobs[0]
+	require.Equal(t, types.JOB_STATUS_IN_PROGRESS, j.Status)
+	j.Expiration = now.Add(-firestore.TS_RESOLUTION)
+	require.NoError(t, s.putJob(j))
+	require.NoError(t, s.updateUnfinishedJobs(now))
+	j, err = d.GetJobById(j.Id)
+	require.NoError(t, err)
+	require.Equal(t, types.JOB_STATUS_EXPIRED, j.Status)
 }
 
 // setupAddTasksTest calls setup then adds 7 commits to the repo and returns

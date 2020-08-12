@@ -58,7 +58,7 @@ var (
 	scoreDecay24Hr    = flag.Float64("scoreDecay24Hr", 0.9, "Task candidate scores are penalized using linear time decay. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
 	swarmingPools     = common.NewMultiStringFlag("pool", nil, "Which Swarming pools to use.")
 	swarmingServer    = flag.String("swarming_server", swarming.SWARMING_SERVER, "Which Swarming server to use.")
-	timePeriod        = flag.String("timeWindow", "4d", "Time period to use.")
+	timePeriod        = flag.String("timeWindow", "5d", "Time period to use.")
 	commitWindow      = flag.Int("commitWindow", 10, "Minimum number of recent commits to keep in the timeWindow.")
 	diagnosticsBucket = flag.String("diagnostics_bucket", "skia-task-scheduler-diagnostics", "Name of Google Cloud Storage bucket to use for diagnostics data.")
 	workdir           = flag.String("workdir", "workdir", "Working directory to use.")

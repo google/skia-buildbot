@@ -88,6 +88,8 @@ var (
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
+	activeJobs          map[string]*types.Job
+	activeJobsMtx       sync.RWMutex
 	bl                  *blacklist.Blacklist
 	busyBots            *busyBots
 	candidateMetrics    map[string]metrics2.Int64Metric
@@ -97,7 +99,6 @@ type TaskScheduler struct {
 	diagInstance        string
 	isolateCache        *isolate_cache.Cache
 	isolateClient       *isolate.Client
-	jCache              cache.JobCache
 	lastScheduled       time.Time // protected by queueMtx.
 
 	pendingInsert    map[string]bool
@@ -140,12 +141,8 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		return nil, fmt.Errorf("Failed to create TaskCache: %s", err)
 	}
 
-	jCache, err := cache.NewJobCache(ctx, d, w, nil)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create JobCache: %s", err)
-	}
-
 	s := &TaskScheduler{
+		activeJobs:            map[string]*types.Job{},
 		bl:                    bl,
 		busyBots:              newBusyBots(),
 		candidateMetrics:      map[string]metrics2.Int64Metric{},
@@ -154,7 +151,6 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 		diagInstance:          diagInstance,
 		isolateCache:          isolateCache,
 		isolateClient:         isolateClient,
-		jCache:                jCache,
 		pendingInsert:         map[string]bool{},
 		pools:                 pools,
 		pubsubCount:           metrics2.GetCounter("task_scheduler_pubsub_handler"),
@@ -183,7 +179,14 @@ func (s *TaskScheduler) Close() error {
 
 // Start initiates the TaskScheduler's goroutines for scheduling tasks. beforeMainLoop
 // will be run before each scheduling iteration.
-func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
+func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) error {
+	mod := s.db.ModifiedJobsCh(ctx)
+	jobs, err := db.GetJobsFromWindow(s.db, s.window, time.Now())
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	s.handleJobsSnapshot(jobs)
+
 	lvScheduling := metrics2.NewLiveness("last_successful_task_scheduling")
 	cleanup.Repeat(5*time.Second, func(_ context.Context) {
 		// Explicitly ignore the passed-in context; this allows us to
@@ -208,6 +211,32 @@ func (s *TaskScheduler) Start(ctx context.Context, beforeMainLoop func()) {
 			lvUpdateUnfinishedTasks.Reset()
 		}
 	})
+	// Watch the unfinished jobs.
+	go func() {
+		for jobs := range mod {
+			s.handleJobsSnapshot(jobs)
+		}
+	}()
+	return nil
+}
+
+// handleJobsSnapshot processes a Firestore QuerySnapshot for active jobs.
+func (s *TaskScheduler) handleJobsSnapshot(jobs []*types.Job) {
+	s.activeJobsMtx.Lock()
+	defer s.activeJobsMtx.Unlock()
+	for _, job := range jobs {
+		if job.Done() {
+			delete(s.activeJobs, job.Id)
+			// TODO(borenet): Cancel any unfinished tasks associated
+			// with this job, as long as no other active jobs depend
+			// on them.
+		} else {
+			old, ok := s.activeJobs[job.Id]
+			if !ok || job.DbModified.After(old.DbModified) {
+				s.activeJobs[job.Id] = job
+			}
+		}
+	}
 }
 
 // putTask is a wrapper around DB.PutTask which adds the task to the cache.
@@ -243,17 +272,17 @@ func (s *TaskScheduler) putJob(j *types.Job) error {
 	if err := s.db.PutJob(j); err != nil {
 		return err
 	}
-	s.jCache.AddJobs([]*types.Job{j})
+	s.handleJobsSnapshot([]*types.Job{j})
 	return nil
 }
 
 // putJobsInChunks is a wrapper around DB.PutJobsInChunks which adds the jobs
 // to the cache.
-func (s *TaskScheduler) putJobsInChunks(j []*types.Job) error {
-	if err := s.db.PutJobsInChunks(j); err != nil {
+func (s *TaskScheduler) putJobsInChunks(jobs []*types.Job) error {
+	if err := s.db.PutJobsInChunks(jobs); err != nil {
 		return err
 	}
-	s.jCache.AddJobs(j)
+	s.handleJobsSnapshot(jobs)
 	return nil
 }
 
@@ -933,13 +962,15 @@ func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) 
 	defer metrics2.FuncTimer().Stop()
 
 	// Find the unfinished Jobs.
-	unfinishedJobs, err := s.jCache.UnfinishedJobs()
-	if err != nil {
-		return nil, nil, err
+	s.activeJobsMtx.RLock()
+	activeJobs := make([]*types.Job, 0, len(s.activeJobs))
+	for _, j := range s.activeJobs {
+		activeJobs = append(activeJobs, j)
 	}
+	s.activeJobsMtx.RUnlock()
 
 	// Find TaskSpecs for all unfinished Jobs.
-	preFilterCandidates, err := s.findTaskCandidatesForJobs(ctx, unfinishedJobs)
+	preFilterCandidates, err := s.findTaskCandidatesForJobs(ctx, activeJobs)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1343,11 +1374,7 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		return fmt.Errorf("Failed to update task cache: %s", err)
 	}
 
-	if err := s.jCache.Update(); err != nil {
-		return fmt.Errorf("Failed to update job cache: %s", err)
-	}
-
-	if err := s.updateUnfinishedJobs(); err != nil {
+	if err := s.updateUnfinishedJobs(start); err != nil {
 		return fmt.Errorf("Failed to update unfinished jobs: %s", err)
 	}
 
@@ -1584,15 +1611,8 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 			wg.Add(1)
 			go func(idx int, t *types.Task) {
 				defer wg.Done()
-				swarmTask, err := s.swarming.GetTask(t.SwarmingTaskId, false)
-				if err != nil {
-					errs[idx] = fmt.Errorf("Failed to update unfinished task; failed to get updated task from swarming: %s", err)
-					return
-				}
-				modified, err := db.UpdateDBFromSwarmingTask(s.db, swarmTask)
-				if err != nil {
+				if modified, err := s.updateTaskFromSwarming(t.SwarmingTaskId, nil); err != nil {
 					errs[idx] = fmt.Errorf("Failed to update unfinished task: %s", err)
-					return
 				} else if modified {
 					s.updateUnfinishedCount.Inc(1)
 				}
@@ -1611,16 +1631,35 @@ func (s *TaskScheduler) updateUnfinishedTasks() error {
 
 // updateUnfinishedJobs updates all not-yet-finished Jobs to determine if their
 // state has changed.
-func (s *TaskScheduler) updateUnfinishedJobs() error {
+func (s *TaskScheduler) updateUnfinishedJobs(now time.Time) error {
 	defer metrics2.FuncTimer().Stop()
-	jobs, err := s.jCache.UnfinishedJobs()
-	if err != nil {
-		return err
+
+	// Expire any old jobs.
+	s.activeJobsMtx.RLock()
+	expiredJobs := []*types.Job{}
+	activeJobs := make([]*types.Job, 0, len(s.activeJobs))
+	for _, j := range s.activeJobs {
+		if util.TimeIsZero(j.Expiration) {
+			j.Expiration = j.Created.Add(specs.DEFAULT_JOB_EXPIRATION)
+		}
+		if now.After(j.Expiration) {
+			j.Finished = now
+			j.Status = types.JOB_STATUS_EXPIRED
+			expiredJobs = append(expiredJobs, j)
+		} else {
+			activeJobs = append(activeJobs, j)
+		}
+	}
+	s.activeJobsMtx.RUnlock()
+	if len(expiredJobs) > 0 {
+		if err := s.putJobsInChunks(expiredJobs); err != nil {
+			return skerr.Wrapf(err, "Failed to expire old jobs")
+		}
 	}
 
-	modifiedJobs := make([]*types.Job, 0, len(jobs))
-	modifiedTasks := make(map[string]*types.Task, len(jobs))
-	for _, j := range jobs {
+	modifiedJobs := make([]*types.Job, 0, len(activeJobs))
+	modifiedTasks := make(map[string]*types.Task, len(activeJobs))
+	for _, j := range activeJobs {
 		tasks, err := s.getTasksForJob(j)
 		if err != nil {
 			return err
@@ -1651,6 +1690,7 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 			modifiedJobs = append(modifiedJobs, j)
 		}
 	}
+
 	if len(modifiedTasks) > 0 {
 		tasks := make([]*types.Task, 0, len(modifiedTasks))
 		for _, t := range modifiedTasks {
@@ -1831,11 +1871,12 @@ func (s *TaskScheduler) addTasks(ctx context.Context, taskMap map[string]map[str
 // HandleSwarmingPubSub loads the given Swarming task ID from Swarming and
 // updates the associated types.Task in the database. Returns a bool indicating
 // whether the pubsub message should be acknowledged.
-func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bool {
+func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) {
 	s.pubsubCount.Inc(1)
 	if msg.UserData == "" {
 		// This message is invalid. ACK it to make it go away.
-		return true
+		msg.Ack()
+		return
 	}
 
 	// If the task has been triggered but not yet inserted into the DB, NACK
@@ -1845,21 +1886,47 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 	s.pendingInsertMtx.RUnlock()
 	if isPending {
 		sklog.Debugf("Received pub/sub message for task which hasn't yet been inserted into the db: %s (%s); not ack'ing message; will try again later.", msg.SwarmingTaskId, msg.UserData)
-		return false
+		msg.Nack()
+		return
 	}
+	if _, err := s.updateTaskFromSwarming(msg.SwarmingTaskId, msg); err != nil {
+		sklog.Errorf("Failed to update task %q from swarming: %s", msg.SwarmingTaskId, err.Error())
+	}
+}
 
+// ack calls Ack() on the given PubSubTaskMessage if it is non-nil.
+func ack(msg *swarming.PubSubTaskMessage) {
+	if msg != nil {
+		msg.Ack()
+	}
+}
+
+// nack calls Nack() on the given PubSubTaskMessage if it is non-nil.
+func nack(msg *swarming.PubSubTaskMessage) {
+	if msg != nil {
+		msg.Nack()
+	}
+}
+
+// updateTaskFromSwarming retrieves the Swarming task with the given ID and
+// updates the associated task in the DB. If non-nil, Acks or Nacks the given
+// PubSubTaskMessage as appropriate. Returns a bool indicating whether the task
+// was updated in the DB, or any error which occurred.
+func (s *TaskScheduler) updateTaskFromSwarming(swarmID string, msg *swarming.PubSubTaskMessage) (bool, error) {
 	// Obtain the Swarming task data.
-	res, err := s.swarming.GetTask(msg.SwarmingTaskId, false)
+	res, err := s.swarming.GetTask(swarmID, false)
 	if err != nil {
-		sklog.Errorf("pubsub: Failed to retrieve task from Swarming: %s", err)
-		return true
+		ack(msg)
+		return false, fmt.Errorf("pubsub: Failed to retrieve task from Swarming: %s", err)
 	}
 	// Skip unfinished tasks.
 	if res.CompletedTs == "" {
-		return true
+		ack(msg)
+		return false, nil
 	}
 	// Update the task in the DB.
-	if _, err := db.UpdateDBFromSwarmingTask(s.db, res); err != nil {
+	modified, err := db.UpdateDBFromSwarmingTask(s.db, res)
+	if err != nil {
 		// TODO(borenet): Some of these cases should never be hit, after all tasks
 		// start supplying the ID in msg.UserData. We should be able to remove the logic.
 		if err == db.ErrNotFound {
@@ -1869,15 +1936,16 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 			}
 			created, err := swarming.ParseTimestamp(res.CreatedTs)
 			if err != nil {
-				sklog.Errorf("Failed to parse timestamp: %s; %s", res.CreatedTs, err)
-				return true
+				ack(msg)
+				return false, fmt.Errorf("Failed to parse timestamp: %s; %s", res.CreatedTs, err)
 			}
 			if time.Now().Sub(created) < 2*time.Minute {
-				sklog.Infof("Failed to update task %q: No such task ID: %q. Less than two minutes old; try again later.", msg.SwarmingTaskId, id)
-				return false
+				sklog.Infof("Failed to update task %q: No such task ID: %q. Less than two minutes old; try again later.", swarmID, id)
+				nack(msg)
+				return false, nil
 			}
-			sklog.Errorf("Failed to update task %q: No such task ID: %q", msg.SwarmingTaskId, id)
-			return true
+			ack(msg)
+			return false, fmt.Errorf("Failed to update task %q: No such task ID: %q", swarmID, id)
 		} else if err == db.ErrUnknownId {
 			expectedSwarmingTaskId := "<unknown>"
 			id, err := swarming.GetTagValue(res, types.SWARMING_TAG_ID)
@@ -1886,18 +1954,19 @@ func (s *TaskScheduler) HandleSwarmingPubSub(msg *swarming.PubSubTaskMessage) bo
 			} else {
 				t, err := s.db.GetTaskById(id)
 				if err != nil {
-					sklog.Errorf("Failed to update task %q; mismatched ID and failed to retrieve task from DB: %s", msg.SwarmingTaskId, err)
-					return true
+					ack(msg)
+					return false, fmt.Errorf("Failed to update task %q; mismatched ID and failed to retrieve task from DB: %s", swarmID, err)
 				} else {
 					expectedSwarmingTaskId = t.SwarmingTaskId
 				}
 			}
-			sklog.Errorf("Failed to update task %q: Task %s has a different Swarming task ID associated with it: %s", msg.SwarmingTaskId, id, expectedSwarmingTaskId)
-			return true
+			ack(msg)
+			return false, fmt.Errorf("Failed to update task %q: Task %s has a different Swarming task ID associated with it: %s", swarmID, id, expectedSwarmingTaskId)
 		} else {
-			sklog.Errorf("Failed to update task %q: %s", msg.SwarmingTaskId, err)
-			return true
+			ack(msg)
+			return false, fmt.Errorf("Failed to update task %q: %s", swarmID, err)
 		}
 	}
-	return true
+	ack(msg)
+	return modified, nil
 }

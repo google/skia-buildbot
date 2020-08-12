@@ -11,6 +11,7 @@ import (
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/atomic_miss_cache"
 	"go.skia.org/infra/go/git/repograph"
+	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -254,10 +255,22 @@ func (c *TaskCfgCache) MakeJob(ctx context.Context, rs types.RepoState, name str
 	if err != nil {
 		return nil, err
 	}
-
+	expiration := specs.DEFAULT_JOB_EXPIRATION
+	if spec.Expiration != "" {
+		exp, err := human.ParseDuration(spec.Expiration)
+		if err == nil {
+			expiration = exp
+		} else {
+			// This should be caught when the TasksCfg is first
+			// read; log an error and use the default.
+			sklog.Errorf("Invalid JobSpec; failed to parse expiration; using default: %s", err)
+		}
+	}
+	now := time.Now()
 	return &types.Job{
-		Created:      time.Now(),
+		Created:      now,
 		Dependencies: deps,
+		Expiration:   now.Add(expiration),
 		Name:         name,
 		Priority:     spec.Priority,
 		RepoState:    rs,

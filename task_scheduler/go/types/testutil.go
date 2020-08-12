@@ -45,6 +45,7 @@ func MakeFullJob(now time.Time) *Job {
 		Created:             now.Add(time.Nanosecond),
 		DbModified:          now.Add(time.Millisecond),
 		Dependencies:        map[string][]string{"A": {"B"}, "B": {}},
+		Expiration:          now.Add(24 * time.Hour),
 		Finished:            now.Add(time.Second),
 		Id:                  "abc123",
 		IsForce:             true,

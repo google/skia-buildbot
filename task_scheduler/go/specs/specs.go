@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/cipd"
+	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/periodic"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -18,6 +19,9 @@ import (
 
 const (
 	DEFAULT_TASK_SPEC_MAX_ATTEMPTS = types.DEFAULT_MAX_TASK_ATTEMPTS
+
+	// Default JobSpec.Expiration, when unspecified or invalid.
+	DEFAULT_JOB_EXPIRATION = 4 * 24 * time.Hour
 
 	// The default JobSpec.Priority, when unspecified or invalid.
 	DEFAULT_JOB_SPEC_PRIORITY = 0.5
@@ -200,7 +204,12 @@ func (c *TasksCfg) Copy() *TasksCfg {
 // Validate returns an error if the TasksCfg is not valid.
 func (c *TasksCfg) Validate() error {
 	for _, t := range c.Tasks {
-		if err := t.Validate(c); err != nil {
+		if err := t.Validate(); err != nil {
+			return fmt.Errorf("Invalid TasksCfg: %s", err)
+		}
+	}
+	for _, j := range c.Jobs {
+		if err := j.Validate(); err != nil {
 			return fmt.Errorf("Invalid TasksCfg: %s", err)
 		}
 	}
@@ -285,10 +294,17 @@ type TaskSpec struct {
 }
 
 // Validate ensures that the TaskSpec is defined properly.
-func (t *TaskSpec) Validate(cfg *TasksCfg) error {
+func (t *TaskSpec) Validate() error {
+	// Ensure that caches are specified properly.
+	for _, c := range t.Caches {
+		if c.Name == "" || c.Path == "" {
+			return fmt.Errorf("Caches must have a name and path.")
+		}
+	}
+
 	// Ensure that CIPD packages are specified properly.
 	for _, p := range t.CipdPackages {
-		if p.Name == "" || p.Path == "" {
+		if p.Name == "" || p.Path == "" || p.Version == "" {
 			return fmt.Errorf("CIPD packages must have a name, path, and version.")
 		}
 	}
@@ -380,6 +396,9 @@ type CipdPackage = cipd.Package
 // JobSpec is a struct which describes a set of TaskSpecs to run as part of a
 // larger effort.
 type JobSpec struct {
+	// Expiration is the maximum duration of the job, after which it is
+	// marked as expired. See human.ParseDuration for valid format.
+	Expiration string `json:"expiration"`
 	// Priority indicates the relative priority of the job, with 0 < p <= 1,
 	// where higher values result in scheduling the job's tasks sooner. If
 	// unspecified or outside this range, DEFAULT_JOB_SPEC_PRIORITY is used.
@@ -399,6 +418,19 @@ type JobSpec struct {
 	Trigger string `json:"trigger,omitempty"`
 }
 
+// Validate returns an error if the JobSpec is not valid.
+func (j *JobSpec) Validate() error {
+	if j.Expiration != "" {
+		if _, err := human.ParseDuration(j.Expiration); err != nil {
+			return fmt.Errorf("Invalid job expiration: %s", err)
+		}
+	}
+	if len(j.TaskSpecs) == 0 {
+		return fmt.Errorf("Job must have TaskSpecs.")
+	}
+	return nil
+}
+
 // Copy returns a copy of the JobSpec.
 func (j *JobSpec) Copy() *JobSpec {
 	var taskSpecs []string
@@ -407,9 +439,10 @@ func (j *JobSpec) Copy() *JobSpec {
 		copy(taskSpecs, j.TaskSpecs)
 	}
 	return &JobSpec{
-		Priority:  j.Priority,
-		TaskSpecs: taskSpecs,
-		Trigger:   j.Trigger,
+		Expiration: j.Expiration,
+		Priority:   j.Priority,
+		TaskSpecs:  taskSpecs,
+		Trigger:    j.Trigger,
 	}
 }
 
