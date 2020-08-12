@@ -51,12 +51,12 @@ func getFirestoreLastBackupCompleted(ctx context.Context, httpClient *http.Clien
 	latest := time.Time{}
 	nextPageToken := ""
 	for {
-		listUrl := fmt.Sprintf("https://firestore.googleapis.com/v1/projects/skia-firestore/databases/*/operations?filter=%s", url.QueryEscape("metadata.operationState=SUCCESSFUL"))
+		listURL := fmt.Sprintf("https://firestore.googleapis.com/v1/projects/skia-firestore/databases/(default)/operations?filter=%s", url.QueryEscape("metadata.operationState=SUCCESSFUL"))
 		if nextPageToken != "" {
-			listUrl = listUrl + "&pageToken=" + nextPageToken
+			listURL = listURL + "&pageToken=" + nextPageToken
 		}
-		sklog.Debugf("Sending Firestore list operations request: %q", listUrl)
-		resp, err := httpClient.Get(listUrl)
+		sklog.Debugf("Sending Firestore list operations request: %q", listURL)
+		resp, err := httpClient.Get(listURL)
 		if err != nil {
 			return z, fmt.Errorf("Error performing Firestore list operations request: %s", err)
 		}
