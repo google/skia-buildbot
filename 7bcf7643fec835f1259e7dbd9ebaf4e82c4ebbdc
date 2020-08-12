@@ -34,6 +34,24 @@
       "revId": "7bcf7643fec835f1259e7dbd9ebaf4e82c4ebbdc",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "865688ec_0d08e02b",
+        "filename": "autoroll/go/repo_manager/child/gitiles.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-08-12T18:27:10Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "81149f28_b07a288f",
+      "revId": "7bcf7643fec835f1259e7dbd9ebaf4e82c4ebbdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
