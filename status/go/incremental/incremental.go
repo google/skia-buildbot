@@ -106,12 +106,7 @@ func (c *IncrementalCache) GetRange(repo string, from, to time.Time, maxCommits 
 	defer metrics2.FuncTimer().Stop()
 	updates := c.getUpdatesInRange(repo, from, to)
 	// Merge the updates.
-	rv := &Update{
-		BranchHeads: nil,
-		Commits:     []*vcsinfo.LongCommit{},
-		StartOver:   nil,
-		Tasks:       []*Task{},
-	}
+	rv := &Update{}
 	for _, u := range updates {
 		if u.BranchHeads != nil {
 			rv.BranchHeads = u.BranchHeads

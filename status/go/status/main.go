@@ -42,6 +42,7 @@ import (
 	"go.skia.org/infra/status/go/capacity"
 	"go.skia.org/infra/status/go/incremental"
 	"go.skia.org/infra/status/go/lkgr"
+	"go.skia.org/infra/status/go/rpc"
 	task_driver_db "go.skia.org/infra/task_driver/go/db"
 	bigtable_db "go.skia.org/infra/task_driver/go/db/bigtable"
 	"go.skia.org/infra/task_driver/go/handlers"
@@ -267,28 +268,23 @@ func incrementalJsonHandler(w http.ResponseWriter, r *http.Request) {
 			numCommits = MAX_COMMITS_TO_LOAD
 		}
 	}
-	update := struct {
-		*incremental.Update
-		Pod string `json:"pod"`
-	}{
-		Pod: podId,
-	}
+	var update *incremental.Update
 	if (expectPodId != "" && expectPodId != podId) || from == nil {
-		update.Update, err = iCache.GetAll(repoUrl, numCommits)
+		update, err = iCache.GetAll(repoUrl, numCommits)
 	} else {
 		fromTime := time.Unix(0, (*from)*int64(time.Millisecond))
 		if to != nil {
 			toTime := time.Unix(0, (*to)*int64(time.Millisecond))
-			update.Update, err = iCache.GetRange(repoUrl, fromTime, toTime, numCommits)
+			update, err = iCache.GetRange(repoUrl, fromTime, toTime, numCommits)
 		} else {
-			update.Update, err = iCache.Get(repoUrl, fromTime, numCommits)
+			update, err = iCache.Get(repoUrl, fromTime, numCommits)
 		}
 	}
 	if err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to retrieve updates: %s", err), http.StatusInternalServerError)
 		return
 	}
-	if err := json.NewEncoder(w).Encode(update); err != nil {
+	if err := json.NewEncoder(w).Encode(rpc.ConvertUpdate(update, podId)); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode response: %s", err), http.StatusInternalServerError)
 		return
 	}
