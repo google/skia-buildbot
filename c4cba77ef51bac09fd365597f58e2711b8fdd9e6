@@ -1,0 +1,58 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004367204",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/307144?revision\u003d13",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "d07f0d45_a8745b0c",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 13
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-12T18:50:41Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027complex\u0027, \u0027unexpected\u0027, or \u0027placeholder\u0027; see https://developers.google.com/style/inclusive-documentation#ableist-language for more details.",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 5
+      },
+      "revId": "c4cba77ef51bac09fd365597f58e2711b8fdd9e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004367204",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/307144?revision\u003d13",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "6f23af80_7d863a91",
+        "filename": "status/go/rpc/statusFe.twirp.go",
+        "patchSetId": 13
+      },
+      "lineNbr": 573,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-12T18:50:41Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 573,
+        "startChar": 69,
+        "endLine": 573,
+        "endChar": 75
+      },
+      "revId": "c4cba77ef51bac09fd365597f58e2711b8fdd9e6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
