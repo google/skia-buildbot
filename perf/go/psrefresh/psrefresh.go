@@ -15,7 +15,7 @@ import (
 // OPSProvider allows access to OrdererParamSets. btts.BigTableTraceStore implements this interface.
 type OPSProvider interface {
 	GetLatestTile() (types.TileNumber, error)
-	GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber, now time.Time) (*paramtools.OrderedParamSet, error)
+	GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error)
 }
 
 // ParamSetRefresher keeps a fresh paramtools.ParamSet that represents all
@@ -52,19 +52,18 @@ func (pf *ParamSetRefresher) Start(period time.Duration) error {
 
 func (pf *ParamSetRefresher) oneStep() error {
 	ctx := context.Background()
-	now := time.Now()
 
 	tileKey, err := pf.traceStore.GetLatestTile()
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to get starting tile.")
 	}
-	ops, err := pf.traceStore.GetOrderedParamSet(ctx, tileKey, now)
+	ops, err := pf.traceStore.GetOrderedParamSet(ctx, tileKey)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to paramset from latest tile.")
 	}
 	ps := ops.ParamSet
 	tileKey = tileKey.Prev()
-	ops2, err := pf.traceStore.GetOrderedParamSet(ctx, tileKey, now)
+	ops2, err := pf.traceStore.GetOrderedParamSet(ctx, tileKey)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to paramset from second to latest tile.")
 	}

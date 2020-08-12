@@ -339,23 +339,28 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 	sklog.Info("About to parse templates.")
 	f.loadTemplates()
 
-	sklog.Info("About to build dataframebuilder.")
+	sklog.Info("About to build trace store.")
 
 	f.traceStore, err = builders.NewTraceStoreFromConfig(ctx, f.flags.Local, config.Config)
 	if err != nil {
 		sklog.Fatalf("Failed to build TraceStore: %s", err)
 	}
 
+	sklog.Info("About to build paramset refresher.")
+
 	f.paramsetRefresher = psrefresh.NewParamSetRefresher(f.traceStore)
 	if err := f.paramsetRefresher.Start(paramsetRefresherPeriod); err != nil {
 		sklog.Fatalf("Failed to build paramsetRefresher: %s", err)
 	}
+
+	sklog.Info("About to build perfgit.")
 
 	f.perfGit, err = builders.NewPerfGitFromConfig(ctx, f.flags.Local, config.Config)
 	if err != nil {
 		sklog.Fatalf("Failed to build perfgit.Git: %s", err)
 	}
 
+	sklog.Info("About to build dfbuilder.")
 	f.dfBuilder = dfbuilder.NewDataFrameBuilderFromTraceStore(f.perfGit, f.traceStore)
 
 	sklog.Info("About to build cidl.")

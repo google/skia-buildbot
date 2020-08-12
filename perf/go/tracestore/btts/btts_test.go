@@ -186,7 +186,7 @@ func TestTraces(t *testing.T) {
 	assert.NoError(t, err)
 
 	tileNumber := types.TileNumber(1)
-	ops, err := b.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 	assertIndices(t, ops, b, nil, "Start empty")
 
@@ -210,7 +210,7 @@ func TestTraces(t *testing.T) {
 	err = b.WriteTraces(257, expectedParams, values, paramset, "gs://some/test/location", now)
 	assert.NoError(t, err)
 
-	ops, err = b.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	ops, err = b.GetOrderedParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 	count := assertIndices(t, ops, b, expectedParams, "First write")
 	assert.Equal(t, 8, count)
@@ -272,7 +272,7 @@ func TestTraces(t *testing.T) {
 	}
 	err = b.WriteTraces(257, overWriteParams, values, paramset, "gs://some/other/test/location", now)
 	assert.NoError(t, err)
-	ops, err = b.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	ops, err = b.GetOrderedParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 	count = assertIndices(t, ops, b, expectedParams, "Overwrite")
 	assert.Equal(t, 8, count)
@@ -337,7 +337,7 @@ func TestTraces(t *testing.T) {
 
 	// Add new trace to expectations.
 	expectedParams = append(expectedParams, writeParams[0])
-	ops, err = b.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	ops, err = b.GetOrderedParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 	count = assertIndices(t, ops, b, expectedParams, "Add new trace")
 	assert.Equal(t, 10, count)

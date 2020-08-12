@@ -345,7 +345,7 @@ func (b *BigTableTraceStore) getOPS(tileKey bttsTileKey) (*opsCacheEntry, bool, 
 }
 
 // GetOrderedParamSet implements the tracestore.TraceStore interface.
-func (b *BigTableTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber, _ time.Time) (*paramtools.OrderedParamSet, error) {
+func (b *BigTableTraceStore) GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.GetOrderedParamSet")
 	defer span.End()
@@ -565,7 +565,7 @@ func (b *BigTableTraceStore) writeBatchOfIndices(ctx context.Context, indexRowKe
 func (b *BigTableTraceStore) ReadTraces(tileNumber types.TileNumber, keys []string) (types.TraceSet, error) {
 	tileKey := TileKeyFromTileNumber(tileNumber)
 	// First encode all the keys by the OrderedParamSet of the given tile.
-	ops, err := b.GetOrderedParamSet(context.TODO(), tileNumber, time.Now())
+	ops, err := b.GetOrderedParamSet(context.TODO(), tileNumber)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get OPS: %s", err)
 	}
@@ -611,7 +611,7 @@ func (b *BigTableTraceStore) ReadTraces(tileNumber types.TileNumber, keys []stri
 
 func (b *BigTableTraceStore) regexpFromQuery(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (*regexp.Regexp, error) {
 	// Get the OPS, which we need to encode the query, and decode the traceids of the results.
-	ops, err := b.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -647,7 +647,7 @@ func (b *BigTableTraceStore) queryTraces(ctx context.Context, tileNumber types.T
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTraces")
 	defer span.End()
 
-	ops, err := b.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get OPS: %s", err)
 	}
@@ -709,7 +709,7 @@ func (b *BigTableTraceStore) QueryTracesIDOnlyByIndex(ctx context.Context, tileN
 	defer span.End()
 	outParams := make(chan paramtools.Params, engine.QUERY_ENGINE_CHANNEL_SIZE)
 
-	ops, err := b.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get OPS")
 	}
@@ -771,7 +771,7 @@ func (b *BigTableTraceStore) QueryTracesByIndex(ctx context.Context, tileNumber 
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.QueryTracesByIndex")
 	defer span.End()
 
-	ops, err := b.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get OPS: %s", err)
 	}
@@ -897,7 +897,7 @@ func (b *BigTableTraceStore) allTraces(ctx context.Context, tileNumber types.Til
 	ctx, span := trace.StartSpan(ctx, "BigTableTraceStore.allTraces")
 	defer span.End()
 
-	ops, err := b.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get OPS: %s", err)
 	}
@@ -1023,7 +1023,7 @@ func (b *BigTableTraceStore) GetSource(ctx context.Context, commitNumber types.C
 	tileKey := b.tileKey(commitNumber)
 	tileNumber := types.TileNumberFromCommitNumber(commitNumber, b.tileSize)
 	offset := b.OffsetFromCommitNumber(commitNumber)
-	ops, err := b.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	if err != nil {
 		return "", fmt.Errorf("Failed to load OrderedParamSet for tile: %s", err)
 	}

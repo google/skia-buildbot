@@ -24,18 +24,8 @@ func New(size int) (*Cache, error) {
 }
 
 // Add implements the cache.Cache interface.
-func (c *Cache) Add(key string, value string) {
-	_ = c.cache.Add(key, value)
-}
-
-// Get implements the cache.Cache interface.
-func (c *Cache) Get(key string) (string, bool) {
-	iret, ok := c.cache.Get(key)
-	if !ok {
-		return "", false
-	}
-	ret, ok := iret.(string)
-	return ret, ok
+func (c *Cache) Add(key string) {
+	_ = c.cache.Add(key, 1)
 }
 
 // Exists implements the cache.Cache interface.
