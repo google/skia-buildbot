@@ -28,6 +28,11 @@ type CopyRepoManagerConfig struct {
 	// is copied.
 	Copies []parent.CopyEntry `json:"copies,omitempty"`
 
+	// Path restricts the revisions which can be rolled to those which change
+	// the given path.  Note that this may produce strange results if the git
+	// history for the path is not linear.
+	Path string `json:"path,omitempty"`
+
 	// VersionFile is the path within the repo which contains the current
 	// version of the Child.
 	VersionFile string `json:"versionFile"`
@@ -70,6 +75,7 @@ func (c CopyRepoManagerConfig) splitParentChild() (parent.CopyConfig, child.Giti
 			Branch:  c.ChildBranch,
 			RepoURL: c.ChildRepo,
 		},
+		Path: c.Path,
 	}
 	if err := childCfg.Validate(); err != nil {
 		return parent.CopyConfig{}, child.GitilesConfig{}, skerr.Wrapf(err, "generated child config is invalid")
