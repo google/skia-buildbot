@@ -14,35 +14,12 @@ func TestCache_New_Failure(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestCache_Get_Success(t *testing.T) {
-	unittest.SmallTest(t)
-	c, err := New(12)
-	require.NoError(t, err)
-
-	c.Add("foo", "bar")
-	got, ok := c.Get("foo")
-	assert.True(t, ok)
-	assert.Equal(t, "bar", got)
-
-	_, ok = c.Get("quux")
-	assert.False(t, ok)
-}
-
-func TestCache_Get_FalseOnMiss(t *testing.T) {
-	unittest.SmallTest(t)
-	c, err := New(12)
-	require.NoError(t, err)
-
-	_, ok := c.Get("quux")
-	assert.False(t, ok)
-}
-
 func TestCache_Exists_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	c, err := New(12)
 	require.NoError(t, err)
 
-	c.Add("foo", "bar")
+	c.Add("foo")
 	ok := c.Exists("foo")
 	assert.True(t, ok)
 }
