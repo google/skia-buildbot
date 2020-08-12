@@ -332,7 +332,8 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) *
 
 // allDepsMet determines whether all dependencies for the given task candidate
 // have been satisfied, and if so, returns a map of whose keys are task IDs and
-// values are their isolated outputs.
+// values are their isolated outputs. This map may contain empty strings for
+// tasks which have no isolated output.
 func (c *taskCandidate) allDepsMet(cache cache.TaskCache) (bool, map[string]string, error) {
 	rv := make(map[string]string, len(c.TaskSpec.Dependencies))
 	var missingDeps []string
@@ -345,7 +346,8 @@ func (c *taskCandidate) allDepsMet(cache cache.TaskCache) (bool, map[string]stri
 		}
 		ok := false
 		for _, t := range byKey {
-			if t.Done() && t.Success() && t.IsolatedOutput != "" {
+			if t.Done() && t.Success() {
+				// Note that t.IsolatedOutput may be empty.
 				rv[t.Id] = t.IsolatedOutput
 				ok = true
 				break

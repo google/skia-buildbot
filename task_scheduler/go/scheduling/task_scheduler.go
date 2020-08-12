@@ -663,7 +663,9 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 		hashes := make([]string, 0, len(idsToHashes))
 		parentTaskIds := make([]string, 0, len(idsToHashes))
 		for id, hash := range idsToHashes {
-			hashes = append(hashes, hash)
+			if hash != "" {
+				hashes = append(hashes, hash)
+			}
 			parentTaskIds = append(parentTaskIds, id)
 		}
 		c.IsolatedHashes = hashes

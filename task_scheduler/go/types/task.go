@@ -342,11 +342,6 @@ func (t *Task) Done() bool {
 	return t.Status != TASK_STATUS_PENDING && t.Status != TASK_STATUS_RUNNING
 }
 
-// Fake returns whether this Task does not correspond to a Swarming task.
-func (t *Task) Fake() bool {
-	return t.SwarmingTaskId == ""
-}
-
 func (t *Task) Success() bool {
 	return t.Status == TASK_STATUS_SUCCESS
 }
@@ -377,9 +372,6 @@ func (t *Task) Copy() *Task {
 func (task *Task) Validate() error {
 	if !task.TaskKey.Valid() {
 		return fmt.Errorf("TaskKey is not valid.")
-	}
-	if task.Fake() && !(task.IsolatedOutput == "" && task.SwarmingBotId == "" && task.SwarmingTaskId == "") {
-		return fmt.Errorf("Can not specify Swarming info for a fake task.")
 	}
 	for key, value := range task.Properties {
 		if !utf8.ValidString(key) {

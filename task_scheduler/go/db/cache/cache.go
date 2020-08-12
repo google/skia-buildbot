@@ -363,7 +363,7 @@ func (c *taskCache) insertOrUpdateTask(task *types.Task) {
 	}
 
 	// Unfinished tasks.
-	if !task.Done() && !task.Fake() {
+	if !task.Done() {
 		c.unfinished[task.Id] = task
 	} else if isUpdate {
 		delete(c.unfinished, task.Id)

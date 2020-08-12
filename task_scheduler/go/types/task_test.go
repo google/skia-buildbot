@@ -503,16 +503,16 @@ func TestValidateTask(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, tmpl.Valid())
 	}
+	{
+		task := tmpl.Copy()
+		task.IsolatedOutput = "loneliness"
+		test(task, "Can not specify Swarming info")
+	}
 	// Test invalid cases.
 	{
 		task := tmpl.Copy()
 		task.Name = ""
 		test(task, "TaskKey is not valid")
-	}
-	{
-		task := tmpl.Copy()
-		task.IsolatedOutput = "loneliness"
-		test(task, "Can not specify Swarming info")
 	}
 	{
 		task := tmpl.Copy()
