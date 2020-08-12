@@ -220,6 +220,20 @@ func TestQueryTracesByIndex_MatchesOneTrace(t *testing.T) {
 	})
 }
 
+func TestQueryTracesByIndex_NegativeQuery(t *testing.T) {
+	ctx, s, cleanup := commonTestSetup(t, true)
+	defer cleanup()
+
+	// Query with a negative match that matches one trace.
+	q, err := query.NewFromString("config=!565")
+	require.NoError(t, err)
+	ts, err := s.QueryTracesByIndex(ctx, 0, q)
+	require.NoError(t, err)
+	assert.Equal(t, types.TraceSet{
+		",arch=x86,config=8888,": {e, 1.5, 2.5, e, e, e, e, e},
+	}, ts)
+}
+
 func TestQueryTracesByIndex_MatchesOneTraceInTheSecondTile(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
