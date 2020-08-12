@@ -1,0 +1,280 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8e4494f3_5a90801e",
+        "filename": "perf/go/builders/builders.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-12T17:14:35Z",
+      "side": 1,
+      "message": "Is it intentional that this doesn\u0027t fall through and these logs get ignored? If so, then I would just use a default case to make that intention clear that we only care about some severity of logs.",
+      "range": {
+        "startLine": 49,
+        "startChar": 18,
+        "endLine": 49,
+        "endChar": 24
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "29e41d76_f3d41a0d",
+        "filename": "perf/go/cache/memcached/memcached.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-12T17:14:35Z",
+      "side": 1,
+      "message": "nit: why was this value chosen? Maybe include a comment with some approximate RAM calculations",
+      "range": {
+        "startLine": 14,
+        "startChar": 23,
+        "endLine": 14,
+        "endChar": 39
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c395ab2d_86310b4e",
+        "filename": "perf/go/cache/memcached/memcached.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-12T17:14:35Z",
+      "side": 1,
+      "message": "If memcached failed to write, are we sure we want to add it to the local cache and not try to re-write it later? If so, add a comment giving that rationale.",
+      "range": {
+        "startLine": 58,
+        "startChar": 8,
+        "endLine": 58,
+        "endChar": 14
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17266ead_d88fe189",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-12T17:14:35Z",
+      "side": 1,
+      "message": "nit: add comment why this form of the query is the most performant of the ones you tried.",
+      "range": {
+        "startLine": 113,
+        "startChar": 4,
+        "endLine": 113,
+        "endChar": 13
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d5fe879e_c1bc1e45",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-12T17:14:35Z",
+      "side": 1,
+      "message": "Some notes on how these chunk sizes were determined would be good as comments here.",
+      "range": {
+        "startLine": 181,
+        "startChar": 26,
+        "endLine": 181,
+        "endChar": 30
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "acc84603_1bfbe96a",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 848,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-12T17:14:35Z",
+      "side": 1,
+      "message": "nit: include sql in error message.",
+      "range": {
+        "startLine": 848,
+        "startChar": 23,
+        "endLine": 848,
+        "endChar": 25
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2ee1907e_439dec82",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 853,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-12T17:14:35Z",
+      "side": 1,
+      "message": "possible optimization is to allocate this outside the for loop, truncate it on each time through\n\nfor ... {\n traceIDInBytes \u003d traceIDInBytes[:0]\n...\n rows.Scan(\u0026traceIDInbytes, ...)\n\nThis way the memory backing the slice can be reused and not GC\u0027d every iteration. (The other variables should be on the stack and safe from GC pressure).",
+      "range": {
+        "startLine": 853,
+        "startChar": 3,
+        "endLine": 853,
+        "endChar": 28
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "cd807fa5_0e04ed1d",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 934,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-12T17:14:35Z",
+      "side": 1,
+      "message": "nit: context.TODO",
+      "range": {
+        "startLine": 934,
+        "startChar": 44,
+        "endLine": 934,
+        "endChar": 54
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bfbf0f26_702d260e",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore_test.go",
+        "patchSetId": 37
+      },
+      "lineNbr": 410,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-12T17:14:35Z",
+      "side": 1,
+      "message": "suggestion: I personally find it less error prone to make the mockable time be a field on the object (e.g. sqltracestore) rather than a module-level variable. Then, assuming I create a new variable for each test, I don\u0027t have to worry about forgetting to reset time.",
+      "range": {
+        "startLine": 408,
+        "startChar": 1,
+        "endLine": 410,
+        "endChar": 2
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c84be48_600c0f4d",
+        "filename": "perf/migrations/cockroachdb/0001_create_initial_tables.up.sql",
+        "patchSetId": 37
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-12T17:14:35Z",
+      "side": 1,
+      "message": "Add comment that this order makes the data for a given trace appear on the same range, making queries that care about specific traces faster.",
+      "range": {
+        "startLine": 11,
+        "startChar": 24,
+        "endLine": 11,
+        "endChar": 38
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8e86bef_a00daf12",
+        "filename": "perf/migrations/cockroachdb/0001_create_initial_tables.up.sql",
+        "patchSetId": 37
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-12T17:14:35Z",
+      "side": 1,
+      "message": "I think you can add DESC here and remove the secondary index\nhttps://www.cockroachlabs.com/docs/v20.1/query-order.html#sorting-in-primary-key-order",
+      "range": {
+        "startLine": 27,
+        "startChar": 14,
+        "endLine": 27,
+        "endChar": 25
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4dc01b02_bfef8bd5",
+        "filename": "perf/migrations/cockroachdb/0001_create_initial_tables.up.sql",
+        "patchSetId": 37
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-12T17:14:35Z",
+      "side": 1,
+      "message": "suggestion: TIMESTAMP WITH TIME ZONE",
+      "range": {
+        "startLine": 81,
+        "startChar": 13,
+        "endLine": 81,
+        "endChar": 16
+      },
+      "revId": "60ed48b7c025f9967627dd6bc464888d6747bee8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
