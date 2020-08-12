@@ -47,7 +47,7 @@ func TestCloseOnCancel(t *testing.T) {
 	err = b.WriteTraces(257, params, values, paramset, "gs://some/test/location", now)
 	assert.NoError(t, err)
 
-	ops, err := b.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 
 	// Now that the Tile is populated construct an encoded key=value pair to
@@ -111,7 +111,7 @@ func TestParamIndex(t *testing.T) {
 	err = b.WriteTraces(257, params, values, paramset, "gs://some/test/location", now)
 	assert.NoError(t, err)
 
-	ops, err := b.GetOrderedParamSet(ctx, tileNumber, time.Now())
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
 	assert.NoError(t, err)
 
 	// Pick out an encoded key=value pair that corresponds to a know unencoded
