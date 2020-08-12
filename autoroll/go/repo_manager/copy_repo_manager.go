@@ -96,5 +96,6 @@ func NewCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, reg *conf
 		return nil, skerr.Wrap(err)
 	}
 
-	return newParentChildRepoManager(ctx, parentRM, childRM, nil)
+	revFilter := parent.NewCopyRevisionFilter(parentCfg)
+	return newParentChildRepoManager(ctx, parentRM, childRM, revFilter)
 }

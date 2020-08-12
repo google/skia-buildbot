@@ -9,6 +9,7 @@ import (
 
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
+	"go.skia.org/infra/autoroll/go/repo_manager/child/revision_filter"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/skerr"
@@ -122,3 +123,48 @@ func NewCopy(ctx context.Context, cfg CopyConfig, reg *config_vars.Registry, cli
 	}
 	return newGitiles(ctx, cfg.GitilesConfig, reg, client, serverURL, getChangesForRoll)
 }
+
+// CopyRevisionFilter is a RevisionFilter which excludes Revisions which do not
+// modify the given files or directories.
+type CopyRevisionFilter struct {
+	dirs  []string
+	files map[string]bool
+}
+
+// NewCopyRevisionFilter returns a RevisionFilter which excludes Revisions which
+// do not modify the given paths. Directories are specified with a trailing "/".
+func NewCopyRevisionFilter(parentCfg CopyConfig) *CopyRevisionFilter {
+	var dirs []string
+	files := map[string]bool{}
+	for _, path := range parentCfg.Copies {
+		if strings.HasSuffix(path.SrcRelPath, "/") {
+			dirs = append(dirs, path.SrcRelPath)
+		} else {
+			files[path.SrcRelPath] = true
+		}
+	}
+	return &CopyRevisionFilter{
+		dirs:  dirs,
+		files: files,
+	}
+}
+
+// Skip implements RevisionFilter.
+func (rf *CopyRevisionFilter) Skip(ctx context.Context, rev *revision.Revision) (string, error) {
+	for _, mod := range rev.Modifications {
+		if rf.files[mod] {
+			return "", nil
+		}
+		for _, dir := range rf.dirs {
+			// Because directories are specified using the "/" suffix, we don't
+			// need to worry about mistakenly matching files which have the same
+			// prefix, eg. "src/foobar" matched by "src/foo/".
+			if strings.HasPrefix(mod, dir) {
+				return "", nil
+			}
+		}
+	}
+	return "No watched files were modified by this revision.", nil
+}
+
+var _ revision_filter.RevisionFilter = &CopyRevisionFilter{}
