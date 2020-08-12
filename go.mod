@@ -145,7 +145,8 @@ require (
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
 	go.chromium.org/luci v0.0.0-20200729044710-e381fc86b349
-	go.larrymyers.com/protoc-gen-twirp_typescript v0.0.0-20200623200853-f5da1af25b54
+	//go.larrymyers.com/protoc-gen-twirp_typescript v0.0.0-20200623200853-f5da1af25b54
+	go.opencensus.io v0.22.4
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
