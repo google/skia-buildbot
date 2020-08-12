@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ac975a91_73185cd7",
+        "filename": "autoroll/config/chromium-protos-perfetto.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-08-12T18:33:51Z",
+      "side": 1,
+      "message": "I\u0027m assuming this is ok to be a public roller (I forget why ours isn\u0027t).",
+      "revId": "a495418bfa26ac6b0d3fd3cfa92232c4395362e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
