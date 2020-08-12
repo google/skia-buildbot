@@ -514,15 +514,16 @@ func LogOptionsToQuery(opts []LogOption) (string, string, int, error) {
 // Loads commits in batches and calls the given function for each batch of
 // commits. If the function returns an error, iteration stops, and the error is
 // returned, unless it was ErrStopIteration.
-func (r *Repo) logHelper(ctx context.Context, url string, fn func(context.Context, []*vcsinfo.LongCommit) error, opts ...LogOption) error {
+func (r *Repo) logHelper(ctx context.Context, logExpr string, fn func(context.Context, []*vcsinfo.LongCommit) error, opts ...LogOption) error {
 	// Build the query parameters.
 	path, query, limit, err := LogOptionsToQuery(opts)
 	if err != nil {
 		return err
 	}
 	if path != "" {
-		url += "/" + path
+		logExpr += "/" + path
 	}
+	url := fmt.Sprintf(LogURL, r.URL, logExpr)
 	if query != "" {
 		url += "&" + query
 	}
@@ -567,8 +568,7 @@ func (r *Repo) logHelper(ctx context.Context, url string, fn func(context.Contex
 // Log returns Gitiles' equivalent to "git log" for the given expression.
 func (r *Repo) Log(ctx context.Context, logExpr string, opts ...LogOption) ([]*vcsinfo.LongCommit, error) {
 	rv := []*vcsinfo.LongCommit{}
-	url := fmt.Sprintf(LogURL, r.URL, logExpr)
-	if err := r.logHelper(ctx, url, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
+	if err := r.logHelper(ctx, logExpr, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
 		rv = append(rv, commits...)
 		return nil
 	}, opts...); err != nil {
@@ -688,8 +688,7 @@ func (r *Repo) LogFn(ctx context.Context, logExpr string, fn func(context.Contex
 // LogFnBatch is the same as LogFn but it runs the given function over batches
 // of commits.
 func (r *Repo) LogFnBatch(ctx context.Context, logExpr string, fn func(context.Context, []*vcsinfo.LongCommit) error, opts ...LogOption) error {
-	url := fmt.Sprintf(LogURL, r.URL, logExpr)
-	return r.logHelper(ctx, url, fn, opts...)
+	return r.logHelper(ctx, logExpr, fn, opts...)
 }
 
 // Ref represents a single ref, as returned by the API.

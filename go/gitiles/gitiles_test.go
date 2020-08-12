@@ -425,6 +425,25 @@ func TestLogLimit(t *testing.T) {
 	require.True(t, urlMock.Empty())
 }
 
+func TestLogPath(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := context.Background()
+	repoURL := "https://fake/repo"
+	urlMock := mockhttpclient.NewURLMock()
+	repo := NewRepo(repoURL, urlMock.Client())
+	repo.rl.SetLimit(rate.Inf)
+	b := append([]byte(")]}'\n"), []byte(testutils.MarshalJSON(t, &Log{
+		Log:  []*Commit{},
+		Next: "",
+	}))...)
+	// Just verify that we used the correct URL.
+	urlMock.MockOnce("https://fake/repo/+log/myref/mypath?format=JSON", mockhttpclient.MockGetDialogue(b))
+	commits, err := repo.Log(ctx, "myref", LogPath("mypath"))
+	require.NoError(t, err)
+	require.Equal(t, 0, len(commits))
+}
+
 func TestGetTreeDiffs(t *testing.T) {
 	unittest.SmallTest(t)
 
