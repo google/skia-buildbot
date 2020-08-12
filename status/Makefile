@@ -48,5 +48,13 @@ push: release pushk
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
 
+.PHONY: local_image
+local_image: status
+	SKIP_UPLOAD=1 ./build_release
+
+.PHONY: run_local
+run_local: local_image
+	docker run status
+
 include ../webtools/webtools.mk
 include webpack/webpack.mk
