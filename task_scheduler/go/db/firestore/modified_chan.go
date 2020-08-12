@@ -8,6 +8,7 @@ import (
 	"github.com/cenkalti/backoff"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/sklog"
+	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
@@ -17,11 +18,11 @@ import (
 // modifications.
 const dbModifiedLag = DEFAULT_ATTEMPTS * (PUT_MULTI_TIMEOUT + firestore.BACKOFF_WAIT*time.Duration(2^DEFAULT_ATTEMPTS))
 
-// modifiedCh is a helper function used by Modified* which runs
+// querySnapshotCh is a helper function used by Modified* which runs
 // firestore.QuerySnapshotChannel with a query by DbModified time. Starts a
 // goroutine that runs until the given context is cancelled, at which point the
 // returned channel is closed.
-func modifiedCh(ctx context.Context, coll *fs.CollectionRef, field string) <-chan *fs.QuerySnapshot {
+func querySnapshotCh(ctx context.Context, getQuery func(time.Time) fs.Query) <-chan *fs.QuerySnapshot {
 	// Note: we could specify the wait intervals for the exponential
 	// backoff, but the defaults seem like a reasonable place to start.
 	backoffWait := backoff.NewExponentialBackOff()
@@ -35,7 +36,7 @@ func modifiedCh(ctx context.Context, coll *fs.CollectionRef, field string) <-cha
 			// It's important that we recreate the query inside the
 			// loop, otherwise we may restart iteration with an old
 			// timestamp and generate a bunch of old results.
-			q := coll.Query.Where(field, ">=", lastSnapTime.Add(-dbModifiedLag))
+			q := getQuery(lastSnapTime)
 			for qsnap := range firestore.QuerySnapshotChannel(ctx, q) {
 				lastSnapTime = qsnap.ReadTime
 				backoffWait.Reset()
@@ -57,13 +58,19 @@ func modifiedCh(ctx context.Context, coll *fs.CollectionRef, field string) <-cha
 	return outCh
 }
 
+func modifiedGetQueryFn(coll *fs.CollectionRef, field string) func(time.Time) fs.Query {
+	return func(lastSnapTime time.Time) fs.Query {
+		return coll.Query.Where(field, ">=", lastSnapTime.Add(-dbModifiedLag))
+	}
+}
+
 // ModifiedTasksCh passes slices of Tasks along the returned channel as they are
 // modified in the DB.
 func (d *firestoreDB) ModifiedTasksCh(ctx context.Context) <-chan []*types.Task {
 	outCh := make(chan []*types.Task)
 	go func() {
 		defer close(outCh)
-		for snap := range modifiedCh(ctx, d.tasks(), KEY_DB_MODIFIED) {
+		for snap := range querySnapshotCh(ctx, modifiedGetQueryFn(d.tasks(), KEY_DB_MODIFIED)) {
 			tasks := make([]*types.Task, 0, len(snap.Changes))
 			for _, ch := range snap.Changes {
 				// We don't support deletion of tasks, but this
@@ -89,7 +96,7 @@ func (d *firestoreDB) ModifiedJobsCh(ctx context.Context) <-chan []*types.Job {
 	outCh := make(chan []*types.Job)
 	go func() {
 		defer close(outCh)
-		for snap := range modifiedCh(ctx, d.jobs(), KEY_DB_MODIFIED) {
+		for snap := range querySnapshotCh(ctx, modifiedGetQueryFn(d.jobs(), KEY_DB_MODIFIED)) {
 			jobs := make([]*types.Job, 0, len(snap.Changes))
 			for _, ch := range snap.Changes {
 				// We don't support deletion of jobs, but this
@@ -115,7 +122,7 @@ func (d *firestoreDB) ModifiedTaskCommentsCh(ctx context.Context) <-chan []*type
 	outCh := make(chan []*types.TaskComment)
 	go func() {
 		defer close(outCh)
-		for snap := range modifiedCh(ctx, d.taskComments(), KEY_TIMESTAMP) {
+		for snap := range querySnapshotCh(ctx, modifiedGetQueryFn(d.taskComments(), KEY_TIMESTAMP)) {
 			cs := make([]*types.TaskComment, 0, len(snap.Changes))
 			for _, ch := range snap.Changes {
 				var c types.TaskComment
@@ -143,7 +150,7 @@ func (d *firestoreDB) ModifiedTaskSpecCommentsCh(ctx context.Context) <-chan []*
 	outCh := make(chan []*types.TaskSpecComment)
 	go func() {
 		defer close(outCh)
-		for snap := range modifiedCh(ctx, d.taskSpecComments(), KEY_TIMESTAMP) {
+		for snap := range querySnapshotCh(ctx, modifiedGetQueryFn(d.taskSpecComments(), KEY_TIMESTAMP)) {
 			cs := make([]*types.TaskSpecComment, 0, len(snap.Changes))
 			for _, ch := range snap.Changes {
 				var c types.TaskSpecComment
@@ -171,7 +178,7 @@ func (d *firestoreDB) ModifiedCommitCommentsCh(ctx context.Context) <-chan []*ty
 	outCh := make(chan []*types.CommitComment)
 	go func() {
 		defer close(outCh)
-		for snap := range modifiedCh(ctx, d.commitComments(), KEY_TIMESTAMP) {
+		for snap := range querySnapshotCh(ctx, modifiedGetQueryFn(d.commitComments(), KEY_TIMESTAMP)) {
 			cs := make([]*types.CommitComment, 0, len(snap.Changes))
 			for _, ch := range snap.Changes {
 				var c types.CommitComment
@@ -188,6 +195,36 @@ func (d *firestoreDB) ModifiedCommitCommentsCh(ctx context.Context) <-chan []*ty
 				cs = append(cs, &c)
 			}
 			outCh <- cs
+		}
+	}()
+	return outCh
+}
+
+// jobsSnapshotCh is a helper for querySnapshotCh users which query for Jobs.
+func jobsSnapshotCh(ctx context.Context, q fs.Query) <-chan *db.JobsSnapshot {
+	outCh := make(chan *db.JobsSnapshot)
+	go func() {
+		defer close(outCh)
+		for snap := range querySnapshotCh(ctx, func(_ time.Time) fs.Query { return q }) {
+			s := &db.JobsSnapshot{}
+			for _, ch := range snap.Changes {
+				var job types.Job
+				if err := ch.Doc.DataTo(&job); err != nil {
+					sklog.Errorf("Failed to decode Job: %+v", ch.Doc.Data())
+					continue
+				}
+				switch ch.Kind {
+				case fs.DocumentAdded:
+					s.Added = append(s.Added, &job)
+				case fs.DocumentModified:
+					s.Modified = append(s.Modified, &job)
+				case fs.DocumentRemoved:
+					s.Removed = append(s.Removed, &job)
+				default:
+					sklog.Errorf("Unknown query snapshot type: %s", ch.Kind)
+				}
+			}
+			outCh <- s
 		}
 	}()
 	return outCh

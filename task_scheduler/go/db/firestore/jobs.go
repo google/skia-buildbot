@@ -155,12 +155,12 @@ func (d *firestoreDB) putJobs(jobs []*types.Job, isNew []bool, prevModified []ti
 	return nil
 }
 
-// See documentation for types.JobDB interface.
+// See documentation for db.JobDB interface.
 func (d *firestoreDB) PutJob(job *types.Job) error {
 	return d.PutJobs([]*types.Job{job})
 }
 
-// See documentation for types.JobDB interface.
+// See documentation for db.JobDB interface.
 func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 	if len(jobs) == 0 {
 		return nil
@@ -229,9 +229,14 @@ func (d *firestoreDB) PutJobs(jobs []*types.Job) (rvErr error) {
 	return nil
 }
 
-// See documentation for types.JobDB interface.
+// See documentation for db.JobDB interface.
 func (d *firestoreDB) PutJobsInChunks(jobs []*types.Job) error {
 	return util.ChunkIter(len(jobs), MAX_TRANSACTION_DOCS, func(i, j int) error {
 		return d.PutJobs(jobs[i:j])
 	})
+}
+
+// See documentation for db.JobDB interface.
+func (d *firestoreDB) ActiveJobsCh(ctx context.Context) <-chan *db.JobsSnapshot {
+	return jobsSnapshotCh(ctx, d.jobs().Where("Status", "==", types.JOB_STATUS_IN_PROGRESS))
 }

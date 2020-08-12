@@ -157,6 +157,23 @@ func UpdateTaskWithRetries(db TaskDB, id string, f func(*types.Task) error) (*ty
 	}
 }
 
+// JobsSnapshot represents a snapshot of the Jobs which are returned from a
+// given query.
+type JobsSnapshot struct {
+	// Added contains Jobs which were not part of the query results as of
+	// the previous JobsSnapshot but are now. If this is the first
+	// JobsSnapshot, this field contains the full results of the query.
+	Added []*types.Job
+
+	// Modified contains Jobs which were part of the query results as of the
+	// previous JobsSnapshot and have been modified since that time.
+	Modified []*types.Job
+
+	// Removed contains Jobs which were part of the query results as of the
+	// previous JobsSnapshot but are not any more.
+	Removed []*types.Job
+}
+
 // JobReader is a read-only view of a JobDB.
 type JobReader interface {
 	// GetJobById returns the job with the given Id field. Returns nil, nil if
@@ -174,6 +191,13 @@ type JobReader interface {
 	// canceled. The channel will immediately produce a slice of Jobs which
 	// may or may not be empty.
 	ModifiedJobsCh(context.Context) <-chan []*types.Job
+
+	// ActiveJobsCh returns a channel which produces JobSnapshots indicating
+	// which Jobs are currently active, as they are modified in the DB. The
+	// channel is closed when the given Context is canceled. The channel
+	// will immediately produce a JobSnapshot which contains all currently-
+	// active Jobs in the Added field.
+	ActiveJobsCh(context.Context) <-chan *JobsSnapshot
 }
 
 // JobDB is used by the task scheduler to store Jobs.
