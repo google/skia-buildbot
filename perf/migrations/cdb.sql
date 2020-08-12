@@ -9,36 +9,40 @@
 --
 -- You should be able to run this file against the same database more than once
 -- w/o error.
-UPSERT INTO TraceNames (trace_id, params)
+--
+-- For reference, the following trace names are used in this file
+-- and these are their md5 hashes:
+--   ,arch=x86,config=8888,   =>  fe385b159ff55dca481069805e5ff050
+--   ,arch=x86,config=565,    =>  277262a9236d571883d47dab102070bc
+--   ,arch=risc-v,config=565, =>  2f9eedb889a1af4e0cf5a76d29cf12b3
+INSERT INTO
+    SourceFiles (source_file, source_file_id)
 VALUES
     (
-        '\xfe385b159ff55dca481069805e5ff050',
-        '{"arch": "x86",   "config":"8888"}'
+        'gs://perf-bucket/2020/02/08/11/testdata.json',
+        1
     ),
     (
-        '\x277262a9236d571883d47dab102070bc',
-        '{"arch":"x86",   "config": "565"}'
+        'gs://perf-bucket/2020/02/08/12/testdata.json',
+        2
     ),
     (
-        '\x0f17700460ee99c6488c2f6130804de5',
-        '{"arch":"arm",   "config":"8888"}'
+        'gs://perf-bucket/2020/02/08/13/testdata.json',
+        3
     ),
     (
-        '\x6a5622e86c6059d74373f6a79df96054',
-        '{"arch":"arm",   "config":"565"}'
-    ),
-    (
-        '\x0d1f35f01672b2105bbc3f19adfcef67',
-        '{"arch":"riscv",   "config":"565"}'
-    );
+        'gs://perf-bucket/2020/02/08/14/testdata.json',
+        4
+    ) ON CONFLICT DO NOTHING;
 
-UPSERT INTO TraceValues2 (trace_id, commit_number, val, source_file_id)
+INSERT INTO
+    TraceValues (trace_id, commit_number, val, source_file_id)
 VALUES
     ('\xfe385b159ff55dca481069805e5ff050', 1, 1.2, 1),
     ('\xfe385b159ff55dca481069805e5ff050', 2, 1.3, 2),
     ('\xfe385b159ff55dca481069805e5ff050', 3, 1.4, 3),
     (
-        '\x0d1f35f01672b2105bbc3f19adfcef67',
+        '\x2f9eedb889a1af4e0cf5a76d29cf12b3',
         256,
         1.1,
         4
@@ -47,20 +51,65 @@ VALUES
     ('\x277262a9236d571883d47dab102070bc', 2, 2.3, 2),
     ('\x277262a9236d571883d47dab102070bc', 3, 2.4, 3),
     (
-        '\x0d1f35f01672b2105bbc3f19adfcef67',
+        '\x2f9eedb889a1af4e0cf5a76d29cf12b3',
         256,
         2.1,
         4
-    );
+    ) ON CONFLICT DO NOTHING;
+
+INSERT INTO
+    ParamSets (tile_number, param_key, param_value)
+VALUES
+    (0, 'config', '8888'),
+    (0, 'config', '565'),
+    (0, 'arch', 'x86'),
+    (1, 'config', '565'),
+    (1, 'arch', 'risc-v') ON CONFLICT DO NOTHING;
+
+INSERT INTO
+    Postings (tile_number, key_value, trace_id)
+VALUES
+    (
+        0,
+        'arch=x86',
+        '\xfe385b159ff55dca481069805e5ff050'
+    ),
+    (
+        0,
+        'arch=x86',
+        '\x277262a9236d571883d47dab102070bc'
+    ),
+    (
+        0,
+        'config=8888',
+        '\xfe385b159ff55dca481069805e5ff050'
+    ),
+    (
+        0,
+        'config=565',
+        '\x277262a9236d571883d47dab102070bc'
+    ),
+    (
+        1,
+        'config=565',
+        '\x2f9eedb889a1af4e0cf5a76d29cf12b3'
+    ),
+    (
+        1,
+        'arch=risc-v',
+        '\x2f9eedb889a1af4e0cf5a76d29cf12b3'
+    ) ON CONFLICT DO NOTHING;
 
 -- All trace_ids that match a particular key=value.
 SELECT
-    encode(trace_id, 'hex'),
-    params
+    encode(trace_id, 'hex')
 FROM
-    TraceNames
+    Postings
 WHERE
-    params ->> 'arch' IN ('x86');
+    key_value IN ('config=8888', 'config=565')
+    AND tile_number = 0
+ORDER BY
+    trace_id ASC;
 
 -- Retrieve matching values.
 SELECT
@@ -68,7 +117,7 @@ SELECT
     commit_number,
     val
 FROM
-    TraceValues2
+    TraceValues
 WHERE
     commit_number >= 0
     AND commit_number < 255
@@ -79,39 +128,37 @@ WHERE
 
 -- Compound queries.
 SELECT
-    params
+    encode(trace_id, 'hex')
 FROM
-    TraceNames
+    Postings
 WHERE
-    params ->> 'arch' IN ('x86', 'arm')
-    AND params ->> 'config' IN ('8888');
+    key_value IN ('config=8888', 'config=565')
+    AND tile_number = 0
+INTERSECT
+SELECT
+    encode(trace_id, 'hex')
+FROM
+    Postings
+WHERE
+    key_value IN ('arch=x86')
+    AND tile_number = 0;
 
 -- ParamSet for a tile.
 SELECT
-    DISTINCT TraceNames.params
+    param_key,
+    param_value
 FROM
-    TraceNames INNER LOOKUP
-    JOIN Tiles ON TraceNames.trace_id = Tiles.trace_id
+    ParamSets
 WHERE
-    Tiles.tile_number = 2
-LIMIT
-    10;
+    tile_number = 1;
 
--- Count traces per tile.
+-- Most recent tile.
 SELECT
-    COUNT(trace_id)
+    tile_number
 FROM
-    Tiles
-WHERE
-    tile_number = 3;
-
--- Most recent commit.
-SELECT
-    commit_number
-FROM
-    TraceValues2
+    ParamSets @by_tile_number
 ORDER BY
-    commit_number DESC
+    tile_number DESC
 LIMIT
     1;
 
@@ -119,63 +166,72 @@ LIMIT
 SELECT
     SourceFiles.source_file
 FROM
-    TraceNames
-    INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
-    INNER JOIN SourceFiles ON SourceFiles.source_file_id = TraceValues2.source_file_id
+    TraceValues INNER LOOKUP
+    JOIN SourceFiles ON TraceValues.source_file_id = SourceFiles.source_file_id
 WHERE
-    TraceNames.trace_id = '\xfe385b159ff55dca481069805e5ff050'
-    AND TraceValues2.commit_number = 3;
+    TraceValues.trace_id = '\xfe385b159ff55dca481069805e5ff050'
+    AND TraceValues.commit_number = 1;
 
 -- Count the number of matches to a query.
 SELECT
-    COUNT(*)
+    count(*)
 FROM
-    TraceNames
-    INNER JOIN TraceValues2 ON TraceNames.trace_id = TraceValues2.trace_id
-WHERE
-    TraceNames.params -> 'arch' IN ('"riscv"' :: JSONB)
-    AND TraceValues2.commit_number >= 256
-    AND TraceValues2.commit_number < 512;
-
--- Fully query traces from tile based on query plan w/o the sub-select.
-SELECT
-    TraceNames.params,
-    TraceValues2.commit_number,
-    TraceValues2.val
-FROM
-    TraceNames
-    INNER JOIN TraceValues2 ON TraceValues2.trace_id = TraceNames.trace_id
-WHERE
-    TraceValues2.commit_number >= 0
-    AND TraceValues2.commit_number < 255
-    AND TraceNames.params -> 'arch' IN ('"x86"' :: JSONB)
-    AND TraceNames.params -> 'config' IN ('"565"' :: JSONB, '"8888"' :: JSONB);
-
--- This is fast with PRIMARY KEY (trace_id, commit_number)
-SELECT
-    tracenames.params,
-    tracevalues2.commit_number,
-    tracevalues2.val
-FROM
-    TraceValues2 INNER LOOKUP
-    JOIN TraceNames ON tracevalues2.trace_id = tracenames.trace_id
-WHERE
-    tracevalues2.commit_number >= 47920
-    AND tracevalues2.commit_number < 49950
-    AND tracevalues2.trace_id IN (
+    (
         SELECT
-            DISTINCT trace_id
+            trace_id
         FROM
-            tracenames
+            Postings
         WHERE
-            params -> 'name' = '"AndroidCodec_01_original.jpg_SampleSize2"' :: JSONB
+            key_value IN ('config=8888', 'config=565')
+            AND tile_number = 0
+        INTERSECT
+        SELECT
+            trace_id
+        FROM
+            Postings
+        WHERE
+            key_value IN ('arch=x86')
+            AND tile_number = 0
     );
 
--- Create the Tile table on the fly if we haven't ingested it.
-INSERT INTO
-    Tiles (tile_number, trace_id)
+-- The first part of every query is to pull in the trace names
+-- and trace_ids that match the given query for the given tile.
 SELECT
-    DISTINCT mod(commit_number, 256),
+    key_value,
     trace_id
 FROM
-    tracevalues2 ON CONFLICT DO NOTHING;
+    Postings @by_trace_id
+WHERE
+    tile_number = 0
+    AND trace_id IN (
+        SELECT
+            trace_id
+        FROM
+            Postings
+        WHERE
+            key_value IN ('config=8888', 'config=565')
+            AND tile_number = 0
+        INTERSECT
+        SELECT
+            trace_id
+        FROM
+            Postings
+        WHERE
+            key_value IN ('arch=x86')
+            AND tile_number = 0
+    );
+
+-- Then query for trace values in batches.
+SELECT
+    trace_id,
+    commit_number,
+    val
+FROM
+    TraceValues
+WHERE
+    tracevalues.commit_number >= 0
+    AND tracevalues.commit_number < 256
+    AND tracevalues.trace_id IN (
+        '\xfe385b159ff55dca481069805e5ff050',
+        '\x277262a9236d571883d47dab102070bc'
+    );
