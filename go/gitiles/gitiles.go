@@ -441,7 +441,9 @@ func (p logPath) Path() string {
 	return string(p)
 }
 
-// LogPath is a LogOption which limits the git log to the given path.
+// LogPath is a LogOption which limits the git log to the given path. LogPath is
+// incompatible with any Log queries which also limit the returned commits, eg.
+// LogLinear and LogFirstParent.
 func LogPath(path string) LogOption {
 	return logPath(path)
 }
@@ -579,8 +581,14 @@ func (r *Repo) Log(ctx context.Context, logExpr string, opts ...LogOption) ([]*v
 
 // LogFirstParent is equivalent to "git log --first-parent A..B", ie. it
 // only returns commits which are reachable from A by following the first parent
-// (the "main" branch) but not from B.
+// (the "main" branch) but not from B. LogFirstParent is incompatible with
+// LogPath.
 func (r *Repo) LogFirstParent(ctx context.Context, from, to string, opts ...LogOption) ([]*vcsinfo.LongCommit, error) {
+	for _, opt := range opts {
+		if opt.Path() != "" {
+			return nil, skerr.Fmt("LogFirstParent is incompatible with LogPath")
+		}
+	}
 	// Retrieve the normal "git log".
 	commits, err := r.Log(ctx, git.LogFromTo(from, to), opts...)
 	if err != nil {
@@ -611,8 +619,14 @@ func (r *Repo) LogFirstParent(ctx context.Context, from, to string, opts ...LogO
 // LogLinear is equivalent to "git log --first-parent --ancestry-path from..to",
 // ie. it only returns commits which are on the direct path from A to B, and
 // only on the "main" branch. This is as opposed to "git log from..to" which
-// returns all commits which are ancestors of 'to' but not 'from'.
+// returns all commits which are ancestors of 'to' but not 'from'. LogLinear is
+// incompatible with LogPath.
 func (r *Repo) LogLinear(ctx context.Context, from, to string, opts ...LogOption) ([]*vcsinfo.LongCommit, error) {
+	for _, opt := range opts {
+		if opt.Path() != "" {
+			return nil, skerr.Fmt("LogLinear is incompatible with LogPath")
+		}
+	}
 	// Retrieve the normal "git log".
 	commits, err := r.Log(ctx, git.LogFromTo(from, to), opts...)
 	if err != nil {

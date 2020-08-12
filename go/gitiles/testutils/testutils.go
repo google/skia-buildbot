@@ -98,7 +98,13 @@ func (mr *MockRepo) MockBranches(ctx context.Context) {
 }
 
 func (mr *MockRepo) MockLog(ctx context.Context, logExpr string, opts ...gitiles.LogOption) {
-	revlist, err := mr.repo.RevList(ctx, logExpr)
+	path, query, _, err := gitiles.LogOptionsToQuery(opts)
+	require.NoError(mr.t, err)
+	args := []string{logExpr}
+	if path != "" {
+		args = append(args, "--", path)
+	}
+	revlist, err := mr.repo.RevList(ctx, args...)
 	require.NoError(mr.t, err)
 	log := &gitiles.Log{
 		Log: make([]*gitiles.Commit, len(revlist)),
@@ -109,9 +115,10 @@ func (mr *MockRepo) MockLog(ctx context.Context, logExpr string, opts ...gitiles
 	b, err := json.Marshal(log)
 	require.NoError(mr.t, err)
 	b = append([]byte(")]}'\n"), b...)
+	if path != "" {
+		logExpr += "/" + path
+	}
 	url := fmt.Sprintf(gitiles.LogURL, mr.url, logExpr)
-	_, query, _, err := gitiles.LogOptionsToQuery(opts)
-	require.NoError(mr.t, err)
 	if query != "" {
 		url += "&" + query
 	}
