@@ -1,0 +1,17 @@
+syntax = "proto3";
+package status.rpc;
+option go_package = "go.skia.org/infra/status/go/rpc";
+
+service StatusFe {
+  rpc GetIncrementalCommits(IncrementalCommitsRequest) returns (IncrementalCommitsResponse);
+}
+
+message IncrementalCommitsRequest {
+  string from = 1;
+  string to = 2;
+}
+
+message IncrementalCommitsResponse {
+  string metadata = 1;
+  repeated string data = 2;
+}
