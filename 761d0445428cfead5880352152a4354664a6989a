@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ef28f627_0886b257",
+        "filename": "go/util/util.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 631,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-12T18:37:07Z",
+      "side": 1,
+      "message": "Suggestion: \"creating temporary file %q in WithWriteFile based on %q\". Might be clearer than the dash.",
+      "range": {
+        "startLine": 631,
+        "startChar": 27,
+        "endLine": 631,
+        "endChar": 84
+      },
+      "revId": "761d0445428cfead5880352152a4354664a6989a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
