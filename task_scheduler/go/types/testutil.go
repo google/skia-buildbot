@@ -57,9 +57,9 @@ func MakeFullJob(now time.Time) *Job {
 		Status:    JOB_STATUS_SUCCESS,
 		Tasks: map[string][]*TaskSummary{
 			"task-name": {&TaskSummary{
-				Id:             "12345",
-				Status:         TASK_STATUS_FAILURE,
-				SwarmingTaskId: "abc123",
+				Id:            "12345",
+				Status:        TASK_STATUS_FAILURE,
+				SwarmingRunId: "abc123",
 			}},
 		},
 	}

@@ -156,6 +156,14 @@ type Task struct {
 	// if the task is still pending.
 	SwarmingBotId string `json:"swarmingBotId"`
 
+	// SwarmingRunId is the ID of the run (the most-recent invocation of the task)
+	// in Swarming. There is typically one run ID for each Swarming task, but there
+	// may be more in the case of automatic retries. This field is updated whenever
+	// we obtain the task data from Swarming; if there are multiple runs of the
+	// same task, this field should point to the latest run as of the last call to
+	// UpdateFromSwarming.
+	SwarmingRunId string `json:"swarmingRunId"`
+
 	// SwarmingTaskId is the Swarming task ID. This field will not be set if the
 	// Task does not correspond to a Swarming task.
 	SwarmingTaskId string `json:"swarmingTaskId"`
@@ -298,6 +306,9 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 	// Bot.
 	copy.SwarmingBotId = s.BotId
 
+	// Run ID.
+	copy.SwarmingRunId = s.RunId
+
 	// Timestamps.
 	maybeUpdateTime := func(newTimeStr string, field *time.Time, name string) error {
 		if newTimeStr == "" {
@@ -368,6 +379,7 @@ func (t *Task) Copy() *Task {
 		Started:        t.Started,
 		Status:         t.Status,
 		SwarmingBotId:  t.SwarmingBotId,
+		SwarmingRunId:  t.SwarmingRunId,
 		SwarmingTaskId: t.SwarmingTaskId,
 		TaskKey:        t.TaskKey.Copy(),
 	}
@@ -411,32 +423,32 @@ func (task *Task) Valid() bool {
 
 // TaskSummary is a subset of the information found in a Task.
 type TaskSummary struct {
-	Attempt        int        `json:"attempt"`
-	Id             string     `json:"id"`
-	MaxAttempts    int        `json:"max_attempts"`
-	Status         TaskStatus `json:"status"`
-	SwarmingTaskId string     `json:"swarmingTaskId"`
+	Attempt       int        `json:"attempt"`
+	Id            string     `json:"id"`
+	MaxAttempts   int        `json:"max_attempts"`
+	Status        TaskStatus `json:"status"`
+	SwarmingRunId string     `json:"swarmingRunId"`
 }
 
 // MakeTaskSummary creates a TaskSummary from the Task instance.
 func (t *Task) MakeTaskSummary() *TaskSummary {
 	return &TaskSummary{
-		Attempt:        t.Attempt,
-		Id:             t.Id,
-		MaxAttempts:    t.MaxAttempts,
-		Status:         t.Status,
-		SwarmingTaskId: t.SwarmingTaskId,
+		Attempt:       t.Attempt,
+		Id:            t.Id,
+		MaxAttempts:   t.MaxAttempts,
+		Status:        t.Status,
+		SwarmingRunId: t.SwarmingRunId,
 	}
 }
 
 // Copy returns a copy of the TaskSummary.
 func (t *TaskSummary) Copy() *TaskSummary {
 	return &TaskSummary{
-		Attempt:        t.Attempt,
-		Id:             t.Id,
-		MaxAttempts:    t.MaxAttempts,
-		Status:         t.Status,
-		SwarmingTaskId: t.SwarmingTaskId,
+		Attempt:       t.Attempt,
+		Id:            t.Id,
+		MaxAttempts:   t.MaxAttempts,
+		Status:        t.Status,
+		SwarmingRunId: t.SwarmingRunId,
 	}
 }
 
