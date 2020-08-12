@@ -31,6 +31,9 @@ package-lock.json: package.json
 	npm ci
 	touch package-lock.json
 
+push_backup:
+	./images/backup/release
+	pushk perf-cockroachdb-backup
 
 # First create a list of all the modules that ./go/ts depends upon.
 tsDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' go.skia.org/infra/perf/go/ts/  )
