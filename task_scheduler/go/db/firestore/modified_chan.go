@@ -59,11 +59,11 @@ func modifiedCh(ctx context.Context, coll *fs.CollectionRef, field string) <-cha
 
 // ModifiedTasksCh passes slices of Tasks along the returned channel as they are
 // modified in the DB.
-func (d *firestoreDB) ModifiedTasksCh(ctx context.Context) <-chan []*types.Task {
+func (d *FirestoreDB) ModifiedTasksCh(ctx context.Context) <-chan []*types.Task {
 	outCh := make(chan []*types.Task)
 	go func() {
 		defer close(outCh)
-		for snap := range modifiedCh(ctx, d.tasks(), KEY_DB_MODIFIED) {
+		for snap := range modifiedCh(ctx, d.Tasks(), KEY_DB_MODIFIED) {
 			tasks := make([]*types.Task, 0, len(snap.Changes))
 			for _, ch := range snap.Changes {
 				// We don't support deletion of tasks, but this
@@ -85,11 +85,11 @@ func (d *firestoreDB) ModifiedTasksCh(ctx context.Context) <-chan []*types.Task 
 
 // ModifiedJobsCh passes slices of Jobs along the returned channel as they are
 // modified in the DB.
-func (d *firestoreDB) ModifiedJobsCh(ctx context.Context) <-chan []*types.Job {
+func (d *FirestoreDB) ModifiedJobsCh(ctx context.Context) <-chan []*types.Job {
 	outCh := make(chan []*types.Job)
 	go func() {
 		defer close(outCh)
-		for snap := range modifiedCh(ctx, d.jobs(), KEY_DB_MODIFIED) {
+		for snap := range modifiedCh(ctx, d.Jobs(), KEY_DB_MODIFIED) {
 			jobs := make([]*types.Job, 0, len(snap.Changes))
 			for _, ch := range snap.Changes {
 				// We don't support deletion of jobs, but this
@@ -111,11 +111,11 @@ func (d *firestoreDB) ModifiedJobsCh(ctx context.Context) <-chan []*types.Job {
 
 // ModifiedTaskCommentsCh passes slices of TaskComments along the returned channel
 // as they are modified in the DB.
-func (d *firestoreDB) ModifiedTaskCommentsCh(ctx context.Context) <-chan []*types.TaskComment {
+func (d *FirestoreDB) ModifiedTaskCommentsCh(ctx context.Context) <-chan []*types.TaskComment {
 	outCh := make(chan []*types.TaskComment)
 	go func() {
 		defer close(outCh)
-		for snap := range modifiedCh(ctx, d.taskComments(), KEY_TIMESTAMP) {
+		for snap := range modifiedCh(ctx, d.TaskComments(), KEY_TIMESTAMP) {
 			cs := make([]*types.TaskComment, 0, len(snap.Changes))
 			for _, ch := range snap.Changes {
 				var c types.TaskComment
@@ -139,11 +139,11 @@ func (d *firestoreDB) ModifiedTaskCommentsCh(ctx context.Context) <-chan []*type
 
 // ModifiedTaskSpecCommentsCh passes slices of TaskSpecComments along the returned
 // channel as they are modified in the DB.
-func (d *firestoreDB) ModifiedTaskSpecCommentsCh(ctx context.Context) <-chan []*types.TaskSpecComment {
+func (d *FirestoreDB) ModifiedTaskSpecCommentsCh(ctx context.Context) <-chan []*types.TaskSpecComment {
 	outCh := make(chan []*types.TaskSpecComment)
 	go func() {
 		defer close(outCh)
-		for snap := range modifiedCh(ctx, d.taskSpecComments(), KEY_TIMESTAMP) {
+		for snap := range modifiedCh(ctx, d.TaskSpecComments(), KEY_TIMESTAMP) {
 			cs := make([]*types.TaskSpecComment, 0, len(snap.Changes))
 			for _, ch := range snap.Changes {
 				var c types.TaskSpecComment
@@ -167,11 +167,11 @@ func (d *firestoreDB) ModifiedTaskSpecCommentsCh(ctx context.Context) <-chan []*
 
 // ModifiedCommitCommentsCh passes slices of CommitComments along the returned
 // channel as they are modified in the DB.
-func (d *firestoreDB) ModifiedCommitCommentsCh(ctx context.Context) <-chan []*types.CommitComment {
+func (d *FirestoreDB) ModifiedCommitCommentsCh(ctx context.Context) <-chan []*types.CommitComment {
 	outCh := make(chan []*types.CommitComment)
 	go func() {
 		defer close(outCh)
-		for snap := range modifiedCh(ctx, d.commitComments(), KEY_TIMESTAMP) {
+		for snap := range modifiedCh(ctx, d.CommitComments(), KEY_TIMESTAMP) {
 			cs := make([]*types.CommitComment, 0, len(snap.Changes))
 			for _, ch := range snap.Changes {
 				var c types.CommitComment
