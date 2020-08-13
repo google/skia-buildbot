@@ -1,2 +1,8 @@
--- In theory a bunch of DROP TABLE statements should be here, but that seems
--- unneccessarily dangerous, so we'll leave them out for now.
+DROP TABLE TraceIDs;
+DROP TABLE SourceFiles;
+DROP TABLE Postings;
+DROP TABLE TraceValues;
+DROP TABLE Shortcuts;
+DROP TABLE Alerts;
+DROP TABLE Regressions;
+DROP TABLE Commits;
