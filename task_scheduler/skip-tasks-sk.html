@@ -2,21 +2,21 @@
   This in an HTML Import-able file that contains the definition
   of the following elements:
 
-    <task-scheduler-blacklist-sk>
+    <skip-tasks-sk>
 
   Status information about the task scheduler.
 
   To use this file import it:
 
-    <link href="/res/imp/task-scheduler-blacklist-sk.html" rel="import" />
+    <link href="/res/imp/skip-tasks-sk.html" rel="import" />
 
   Usage:
 
-    <task-scheduler-blacklist-sk></task-scheduler-blacklist-sk>
+    <skip-tasks-sk></skip-tasks-sk>
 
   Properties:
     // input
-    rules: Array of Objects indicating the current set of blacklist rules:
+    rules: Array of Objects indicating the current set of skip rules:
         added_by: String, Who added the rule.
         task_spec_patterns: Array, regular expressions which match task_spec names.
         commits: Array, commit hashes
@@ -44,7 +44,7 @@
 <link rel="import" href="/res/common/imp/human-date-sk.html">
 <link rel="import" href="/res/common/imp/input-list-sk.html">
 
-<dom-module id="task-scheduler-blacklist-sk">
+<dom-module id="skip-tasks-sk">
   <template>
     <style include="iron-flex iron-flex-alignment">
     :host {
@@ -140,7 +140,7 @@
     <paper-spinner active$="{{_loading}}"></paper-spinner>
     <paper-fab icon="add" on-click="_add_rule_popup"></paper-fab>
     <paper-dialog id="add_dialog">
-      <h2>Add a blacklist rule</h2>
+      <h2>Add a skip rule</h2>
       <div class="layout horizontal">
         <div id="input_pane">
           <paper-input label="name" value="{{_input_name}}"></paper-input>
@@ -174,7 +174,7 @@
   <script>
   (function(){
     Polymer({
-      is: "task-scheduler-blacklist-sk",
+      is: "skip-tasks-sk",
 
       properties: {
         rules: {
@@ -248,7 +248,7 @@
         var str = JSON.stringify(data);
         this._loading = true;
         this.$.add_dialog.close();
-        sk.post("/json/blacklist", str).then(function(resp) {
+        sk.post("/json/skip_tasks", str).then(function(resp) {
           this._loading = false;
           var rules;
           try {
@@ -284,7 +284,7 @@
         };
         var str = JSON.stringify(data);
         this._loading = true;
-        sk.delete("/json/blacklist", str).then(function(resp) {
+        sk.delete("/json/skip_tasks", str).then(function(resp) {
           this._loading = false;
           var rules;
           try {

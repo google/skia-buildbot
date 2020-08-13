@@ -48,7 +48,7 @@ func (w *Window) UpdateWithTime(now time.Time) error {
 
 	for repoUrl, r := range w.repos {
 		// Find the most recent N commits.
-		// TODO(borenet): We should probably respect a branch blacklist.
+		// TODO(borenet): We should probably respect branch skip rules.
 		latest := time.Time{}
 		for _, b := range r.Branches() {
 			c := r.Get(b)
