@@ -2,10 +2,12 @@ package autoscaler
 
 import (
 	"fmt"
+	"net/http"
 	"sort"
 	"sync"
 
 	"go.skia.org/infra/go/gce"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
 )
@@ -81,8 +83,15 @@ func GetInstanceSet(intSet string, getInstance func(int) *gce.Instance) ([]*gce.
 // NewAutoscaler returns an Autoscaler instance which manages the given GCE
 // instances. Automatically calls Update().
 func NewAutoscaler(projectId, zone string, ts oauth2.TokenSource, instances []*gce.Instance) (*Autoscaler, error) {
+	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
+	return NewAutoscalerWithClient(projectId, zone, client, instances)
+}
+
+// NewAutoscalerWithClient returns an Autoscaler instance which manages the
+// given GCE instances. Automatically calls Update().
+func NewAutoscalerWithClient(projectId, zone string, client *http.Client, instances []*gce.Instance) (*Autoscaler, error) {
 	// Create the GCloud object.
-	g, err := gce.NewGCloud(projectId, zone, ts)
+	g, err := gce.NewGCloudWithClient(projectId, zone, client)
 	if err != nil {
 		return nil, err
 	}

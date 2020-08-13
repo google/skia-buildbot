@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/user"
 	"path"
@@ -141,8 +142,13 @@ func NewLocalGCloud(project, zone string) (*GCloud, error) {
 
 // NewGCloud returns a GCloud instance with the specified http client.
 func NewGCloud(project, zone string, tokenSource oauth2.TokenSource) (*GCloud, error) {
-	httpClient := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
-	s, err := compute.New(httpClient)
+	client := httputils.DefaultClientConfig().WithTokenSource(tokenSource).Client()
+	return NewGCloudWithClient(project, zone, client)
+}
+
+// NewGCloudWithClient returns a GCloud instance with the specified http client.
+func NewGCloudWithClient(project, zone string, client *http.Client) (*GCloud, error) {
+	s, err := compute.New(client)
 	if err != nil {
 		return nil, err
 	}
