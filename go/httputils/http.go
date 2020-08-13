@@ -2,6 +2,7 @@ package httputils
 
 import (
 	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"errors"
@@ -19,7 +20,6 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff"
-	"github.com/fiorix/go-web/autogzip"
 	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/go/metrics2"
@@ -411,12 +411,20 @@ type responseProxy struct {
 	wroteHeader bool
 }
 
+// See documentation for http.ResponseWriter interface.
 func (rp *responseProxy) WriteHeader(code int) {
 	if !rp.wroteHeader {
 		sklog.Infof("Response Code: %d", code)
 		metrics2.GetCounter("http_response", map[string]string{"statuscode": strconv.Itoa(code)}).Inc(1)
 		rp.ResponseWriter.WriteHeader(code)
 		rp.wroteHeader = true
+	}
+}
+
+// See documentation for http.Flusher interface.
+func (rp *responseProxy) Flush() {
+	if flusher, ok := rp.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
 	}
 }
 
@@ -431,10 +439,48 @@ func recordResponse(h http.Handler) http.Handler {
 	})
 }
 
+// gzipWriter is an http.ResponseWriter which compressses responses using gzip.
+type gzipWriter struct {
+	http.ResponseWriter
+	gzip *gzip.Writer
+}
+
+// See documentation for http.ResponseWriter interface.
+func (w *gzipWriter) Write(b []byte) (int, error) {
+	return w.gzip.Write(b)
+}
+
+// See documentation for http.Flusher interface.
+func (w *gzipWriter) Flush() {
+	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+	if err := w.gzip.Flush(); err != nil {
+		sklog.Error(err)
+	}
+}
+
+// GzipHandler wraps the given Handler, using gzip to compress the response.
+func GzipHandler(h http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			h.ServeHTTP(w, r)
+			return
+		}
+		w.Header().Set("Content-Encoding", "gzip")
+		gz := gzip.NewWriter(w)
+		defer gz.Close()
+		h.ServeHTTP(&gzipWriter{
+			ResponseWriter: w,
+			gzip:           gz,
+		}, r)
+	}
+}
+
 // LoggingGzipRequestResponse records parts of the request and the response to
 // the logs and gzips responses when appropriate.
 func LoggingGzipRequestResponse(h http.Handler) http.Handler {
-	return autogzip.Handle(LoggingRequestResponse(h))
+	return GzipHandler(LoggingRequestResponse(h))
 }
 
 // LoggingRequestResponse records parts of the request and the response to the logs.
