@@ -1,0 +1,166 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004400742",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/310089?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "29e40627_f1ab4f98",
+        "filename": "autoroll/config/goldctl-linux-chromium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T18:48:15Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 1,
+        "startChar": 52,
+        "endLine": 1,
+        "endChar": 58
+      },
+      "revId": "6de082cb30bb5e95796d72a65bb3af3e26c43bdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004400742",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/310089?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "26e0bb10_10e466cf",
+        "filename": "autoroll/config/goldctl-linux-chromium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T18:48:15Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 33,
+        "startChar": 21,
+        "endLine": 33,
+        "endChar": 27
+      },
+      "revId": "6de082cb30bb5e95796d72a65bb3af3e26c43bdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004400742",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/310089?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "81c5c948_e6456a68",
+        "filename": "autoroll/config/goldctl-mac-chromium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T18:48:15Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 1,
+        "startChar": 52,
+        "endLine": 1,
+        "endChar": 58
+      },
+      "revId": "6de082cb30bb5e95796d72a65bb3af3e26c43bdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004400742",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/310089?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "54442a85_07ad3251",
+        "filename": "autoroll/config/goldctl-mac-chromium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T18:48:15Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 33,
+        "startChar": 21,
+        "endLine": 33,
+        "endChar": 27
+      },
+      "revId": "6de082cb30bb5e95796d72a65bb3af3e26c43bdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004400742",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/310089?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "293e5881_bb30f402",
+        "filename": "autoroll/config/goldctl-win-chromium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T18:48:15Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 1,
+        "startChar": 52,
+        "endLine": 1,
+        "endChar": 58
+      },
+      "revId": "6de082cb30bb5e95796d72a65bb3af3e26c43bdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004400742",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/310089?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "cf2ea463_9ffebf34",
+        "filename": "autoroll/config/goldctl-win-chromium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T18:48:15Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 33,
+        "startChar": 21,
+        "endLine": 33,
+        "endChar": 27
+      },
+      "revId": "6de082cb30bb5e95796d72a65bb3af3e26c43bdc",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
