@@ -1,0 +1,58 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004396283",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/310020?revision\u003d1",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "d2ad5288_f1f281de",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T15:40:39Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 32,
+        "startChar": 38,
+        "endLine": 32,
+        "endChar": 47
+      },
+      "revId": "fa268b3a3a8ada4d85baaff4b4b623c6b8d88b5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004396283",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/310020?revision\u003d1",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "97ba5db5_b66d0561",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T15:40:39Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 133,
+        "startChar": 56,
+        "endLine": 133,
+        "endChar": 65
+      },
+      "revId": "fa268b3a3a8ada4d85baaff4b4b623c6b8d88b5e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
