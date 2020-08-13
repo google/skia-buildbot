@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/timeout"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/candidate"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
@@ -105,7 +106,7 @@ type TaskScheduler struct {
 	pools        []string
 	pubsubCount  metrics2.Counter
 	pubsubTopic  string
-	queue        []*taskCandidate // protected by queueMtx.
+	queue        []*candidate.TaskCandidate // protected by queueMtx.
 	queueMtx     sync.RWMutex
 	repos        repograph.Map
 	skipTasks    *skip_tasks.DB
@@ -159,7 +160,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 		pools:                 pools,
 		pubsubCount:           metrics2.GetCounter("task_scheduler_pubsub_handler"),
 		pubsubTopic:           pubsubTopic,
-		queue:                 []*taskCandidate{},
+		queue:                 []*candidate.TaskCandidate{},
 		queueMtx:              sync.RWMutex{},
 		repos:                 repos,
 		swarming:              swarmingClient,
@@ -260,8 +261,8 @@ func (s *TaskScheduler) putJobsInChunks(j []*types.Job) error {
 // TaskSchedulerStatus is a struct which provides status information about the
 // TaskScheduler.
 type TaskSchedulerStatus struct {
-	LastScheduled time.Time        `json:"last_scheduled"`
-	TopCandidates []*taskCandidate `json:"top_candidates"`
+	LastScheduled time.Time                  `json:"last_scheduled"`
+	TopCandidates []*candidate.TaskCandidate `json:"top_candidates"`
 }
 
 // Status returns the current status of the TaskScheduler.
@@ -287,10 +288,10 @@ type TaskCandidateSearchTerms struct {
 
 // SearchQueue returns all task candidates in the queue which match the given
 // TaskKey. Any blank fields are considered to be wildcards.
-func (s *TaskScheduler) SearchQueue(q *TaskCandidateSearchTerms) []*taskCandidate {
+func (s *TaskScheduler) SearchQueue(q *TaskCandidateSearchTerms) []*candidate.TaskCandidate {
 	s.queueMtx.RLock()
 	defer s.queueMtx.RUnlock()
-	rv := []*taskCandidate{}
+	rv := []*candidate.TaskCandidate{}
 	for _, c := range s.queue {
 		// TODO(borenet): I wish there was a better way to do this.
 		if q.ForcedJobId != "" && c.ForcedJobId != q.ForcedJobId {
@@ -463,19 +464,19 @@ type taskSchedulerMainLoopDiagnostics struct {
 	StartTime  time.Time                           `json:"startTime"`
 	EndTime    time.Time                           `json:"endTime"`
 	Error      string                              `json:"error,omitEmpty"`
-	Candidates []*taskCandidate                    `json:"candidates"`
+	Candidates []*candidate.TaskCandidate          `json:"candidates"`
 	FreeBots   []*swarming_api.SwarmingRpcsBotInfo `json:"freeBots"`
 }
 
 // writeMainLoopDiagnosticsToGCS writes JSON containing allCandidates and
 // freeBots to GCS. If called in a goroutine, the arguments may not be modified.
-func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end time.Time, diagClient gcs.GCSClient, diagInstance string, allCandidates map[types.TaskKey]*taskCandidate, freeBots []*swarming_api.SwarmingRpcsBotInfo, scheduleErr error) error {
+func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end time.Time, diagClient gcs.GCSClient, diagInstance string, allCandidates map[types.TaskKey]*candidate.TaskCandidate, freeBots []*swarming_api.SwarmingRpcsBotInfo, scheduleErr error) error {
 	defer metrics2.FuncTimer().Stop()
-	candidateSlice := make([]*taskCandidate, 0, len(allCandidates))
+	candidateSlice := make([]*candidate.TaskCandidate, 0, len(allCandidates))
 	for _, c := range allCandidates {
 		candidateSlice = append(candidateSlice, c)
 	}
-	sort.Sort(taskCandidateSlice(candidateSlice))
+	sort.Sort(candidate.TaskCandidateSlice(candidateSlice))
 	content := taskSchedulerMainLoopDiagnostics{
 		StartTime:  start.UTC(),
 		EndTime:    end.UTC(),
@@ -496,13 +497,13 @@ func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end tim
 	})
 }
 
-// findTaskCandidatesForJobs returns the set of all taskCandidates needed by all
+// findTaskCandidatesForJobs returns the set of all candidate.TaskCandidates needed by all
 // currently-unfinished jobs.
-func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishedJobs []*types.Job) (map[types.TaskKey]*taskCandidate, error) {
+func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishedJobs []*types.Job) (map[types.TaskKey]*candidate.TaskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	// Get the repo+commit+taskspecs for each job.
-	candidates := map[types.TaskKey]*taskCandidate{}
+	candidates := map[types.TaskKey]*candidate.TaskCandidate{}
 	for _, j := range unfinishedJobs {
 		if !s.window.TestTime(j.Repo, j.Created) {
 			continue
@@ -531,7 +532,7 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 					sklog.Errorf("Job %s wants task %s which is not defined in %+v", j.Name, tsName, j.RepoState)
 					continue
 				}
-				c = &taskCandidate{
+				c = &candidate.TaskCandidate{
 					// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
 					// could be inherited from any matching Job. Therefore, this should be
 					// used for non-critical, informational purposes only.
@@ -549,19 +550,19 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 	return candidates, nil
 }
 
-// filterTaskCandidates reduces the set of taskCandidates to the ones we might
+// filterTaskCandidates reduces the set of TaskCandidates to the ones we might
 // actually want to run and organizes them by repo and TaskSpec name.
-func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskKey]*taskCandidate) (map[string]map[string][]*taskCandidate, error) {
+func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskKey]*candidate.TaskCandidate) (map[string]map[string][]*candidate.TaskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
-	candidatesBySpec := map[string]map[string][]*taskCandidate{}
+	candidatesBySpec := map[string]map[string][]*candidate.TaskCandidate{}
 	total := 0
 	skipped := map[string]int{}
 	for _, c := range preFilterCandidates {
 		// Reject skipped tasks.
 		if rule := s.skipTasks.MatchRule(c.Name, c.Revision); rule != "" {
 			skipped[rule]++
-			c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{SkippedByRule: rule}
+			c.GetDiagnostics().Filtering = &candidate.TaskCandidateFilteringDiagnostics{SkippedByRule: rule}
 			continue
 		}
 
@@ -570,7 +571,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 			if in, err := s.window.TestCommitHash(c.Repo, c.Revision); err != nil {
 				return nil, err
 			} else if !in {
-				c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{RevisionTooOld: true}
+				c.GetDiagnostics().Filtering = &candidate.TaskCandidateFilteringDiagnostics{RevisionTooOld: true}
 				continue
 			}
 		}
@@ -588,11 +589,11 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 		}
 		if previous != nil {
 			if previous.Status == types.TASK_STATUS_PENDING || previous.Status == types.TASK_STATUS_RUNNING {
-				c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{SupersededByTask: previous.Id}
+				c.GetDiagnostics().Filtering = &candidate.TaskCandidateFilteringDiagnostics{SupersededByTask: previous.Id}
 				continue
 			}
 			if previous.Success() {
-				c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{SupersededByTask: previous.Id}
+				c.GetDiagnostics().Filtering = &candidate.TaskCandidateFilteringDiagnostics{SupersededByTask: previous.Id}
 				continue
 			}
 			// The attempt counts are only valid if the previous
@@ -615,7 +616,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 				for _, t := range prevTasks {
 					previousIds = append(previousIds, t.Id)
 				}
-				c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{PreviousAttempts: previousIds}
+				c.GetDiagnostics().Filtering = &candidate.TaskCandidateFilteringDiagnostics{PreviousAttempts: previousIds}
 				continue
 			}
 			c.Attempt = previousAttempt + 1
@@ -623,7 +624,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 		}
 
 		// Don't consider candidates whose dependencies are not met.
-		depsMet, idsToHashes, err := c.allDepsMet(s.tCache)
+		depsMet, idsToHashes, err := c.AllDepsMet(s.tCache)
 		if err != nil {
 			return nil, err
 		}
@@ -643,7 +644,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 
 		candidates, ok := candidatesBySpec[c.Repo]
 		if !ok {
-			candidates = map[string][]*taskCandidate{}
+			candidates = map[string][]*candidate.TaskCandidate{}
 			candidatesBySpec[c.Repo] = candidates
 		}
 		candidates[c.Name] = append(candidates[c.Name], c)
@@ -659,10 +660,10 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 
 // processTaskCandidate computes the remaining information about the task
 // candidate, eg. blamelists and scoring.
-func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit, diag *taskCandidateScoringDiagnostics) error {
+func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *candidate.TaskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*repograph.Commit, diag *candidate.TaskCandidateScoringDiagnostics) error {
 	if len(c.Jobs) == 0 {
 		// Log an error and return to allow scheduling other tasks.
-		sklog.Errorf("taskCandidate has no Jobs: %#v", c)
+		sklog.Errorf("TaskCandidate has no Jobs: %#v", c)
 		c.Score = 0
 		return nil
 	}
@@ -761,34 +762,34 @@ func (s *TaskScheduler) processTaskCandidate(ctx context.Context, c *taskCandida
 }
 
 // Process the task candidates.
-func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates map[string]map[string][]*taskCandidate, now time.Time) ([]*taskCandidate, error) {
+func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates map[string]map[string][]*candidate.TaskCandidate, now time.Time) ([]*candidate.TaskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
-	processed := make(chan *taskCandidate)
+	processed := make(chan *candidate.TaskCandidate)
 	errs := make(chan error)
 	wg := sync.WaitGroup{}
 	for _, cs := range candidates {
 		for _, c := range cs {
 			wg.Add(1)
-			go func(candidates []*taskCandidate) {
+			go func(candidates []*candidate.TaskCandidate) {
 				defer wg.Done()
 				cache := newCacheWrapper(s.tCache)
 				commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 				for {
 					// Find the best candidate.
 					idx := -1
-					var orig *taskCandidate
-					var best *taskCandidate
-					var bestDiag *taskCandidateScoringDiagnostics
-					for i, candidate := range candidates {
-						c := candidate.CopyNoDiagnostics()
-						diag := &taskCandidateScoringDiagnostics{}
+					var orig *candidate.TaskCandidate
+					var best *candidate.TaskCandidate
+					var bestDiag *candidate.TaskCandidateScoringDiagnostics
+					for i, cand := range candidates {
+						c := cand.CopyNoDiagnostics()
+						diag := &candidate.TaskCandidateScoringDiagnostics{}
 						if err := s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag); err != nil {
 							errs <- err
 							return
 						}
 						if best == nil || c.Score > best.Score {
-							orig = candidate
+							orig = cand
 							best = c
 							bestDiag = diag
 							idx = i
@@ -832,7 +833,7 @@ func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates ma
 		close(processed)
 		close(errs)
 	}()
-	rvCandidates := []*taskCandidate{}
+	rvCandidates := []*candidate.TaskCandidate{}
 	rvErrs := []error{}
 	for {
 		select {
@@ -857,7 +858,7 @@ func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates ma
 	if len(rvErrs) != 0 {
 		return nil, rvErrs[0]
 	}
-	sort.Sort(taskCandidateSlice(rvCandidates))
+	sort.Sort(candidate.TaskCandidateSlice(rvCandidates))
 	return rvCandidates, nil
 }
 
@@ -876,7 +877,7 @@ func flatten(dims map[string]string) map[string]string {
 }
 
 // recordCandidateMetrics generates metrics for candidates by dimension sets.
-func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string][]*taskCandidate) {
+func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string][]*candidate.TaskCandidate) {
 	defer metrics2.FuncTimer().Stop()
 
 	// Generate counts. These maps are keyed by the MD5 hash of the
@@ -929,7 +930,7 @@ func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string]
 // regenerateTaskQueue obtains the set of all eligible task candidates, scores
 // them, and prepares them to be triggered. The second return value contains
 // all candidates.
-func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) ([]*taskCandidate, map[types.TaskKey]*taskCandidate, error) {
+func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) ([]*candidate.TaskCandidate, map[types.TaskKey]*candidate.TaskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	// Find the unfinished Jobs.
@@ -965,7 +966,7 @@ func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) 
 // getCandidatesToSchedule matches the list of free Swarming bots to task
 // candidates in the queue and returns the candidates which should be run.
 // Assumes that the tasks are sorted in decreasing order by score.
-func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*taskCandidate) []*taskCandidate {
+func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*candidate.TaskCandidate) []*candidate.TaskCandidate {
 	defer metrics2.FuncTimer().Stop()
 	// Create a bots-by-swarming-dimension mapping.
 	botsByDim := map[string]util.StringSet{}
@@ -985,16 +986,16 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 	// Map BotId to the candidates that could have used that bot. In the
 	// case that no bots are available for a candidate, map concatenated
 	// dimensions to candidates.
-	botToCandidates := map[string][]*taskCandidate{}
+	botToCandidates := map[string][]*candidate.TaskCandidate{}
 
 	// Match bots to tasks.
 	// TODO(borenet): Some tasks require a more specialized bot. We should
 	// match so that less-specialized tasks don't "steal" more-specialized
 	// bots which they don't actually need.
-	rv := make([]*taskCandidate, 0, len(bots))
+	rv := make([]*candidate.TaskCandidate, 0, len(bots))
 	countByTaskSpec := make(map[string]int, len(bots))
 	for _, c := range tasks {
-		diag := &taskCandidateSchedulingDiagnostics{}
+		diag := &candidate.TaskCandidateSchedulingDiagnostics{}
 		c.GetDiagnostics().Scheduling = diag
 		// Don't exceed SCHEDULING_LIMIT_PER_TASK_SPEC.
 		if countByTaskSpec[c.Name] == SCHEDULING_LIMIT_PER_TASK_SPEC {
@@ -1022,8 +1023,8 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 		}
 
 		// Set of candidates that could have used the same bots.
-		similarCandidates := map[*taskCandidate]struct{}{}
-		var lowestScoreSimilarCandidate *taskCandidate
+		similarCandidates := map[*candidate.TaskCandidate]struct{}{}
+		var lowestScoreSimilarCandidate *candidate.TaskCandidate
 		addCandidates := func(key string) {
 			candidates := botToCandidates[key]
 			for _, candidate := range candidates {
@@ -1072,7 +1073,7 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 			countByTaskSpec[c.Name]++
 		}
 	}
-	sort.Sort(taskCandidateSlice(rv))
+	sort.Sort(candidate.TaskCandidateSlice(rv))
 	return rv
 }
 
@@ -1081,17 +1082,17 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 // with their IsolatedInput hash set, and any error which occurred. Note that
 // the successful candidates AND an error may both be returned if some were
 // successfully isolated but others failed.
-func (s *TaskScheduler) isolateCandidates(ctx context.Context, candidates []*taskCandidate) ([]*taskCandidate, error) {
+func (s *TaskScheduler) isolateCandidates(ctx context.Context, candidates []*candidate.TaskCandidate) ([]*candidate.TaskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
-	isolatedCandidates := make([]*taskCandidate, 0, len(candidates))
+	isolatedCandidates := make([]*candidate.TaskCandidate, 0, len(candidates))
 	isolatedFiles := make([]*isolated.Isolated, 0, len(candidates))
 	var errs *multierror.Error
 	for _, c := range candidates {
 		isolatedFile, err := s.isolateCache.Get(ctx, c.RepoState, c.TaskSpec.Isolate)
 		if err != nil {
 			errStr := err.Error()
-			c.GetDiagnostics().Triggering = &taskCandidateTriggeringDiagnostics{IsolateError: errStr}
+			c.GetDiagnostics().Triggering = &candidate.TaskCandidateTriggeringDiagnostics{IsolateError: errStr}
 			errs = multierror.Append(errs, fmt.Errorf("Failed to obtain cached isolate: %s", errStr))
 			continue
 		}
@@ -1118,17 +1119,17 @@ func (s *TaskScheduler) isolateCandidates(ctx context.Context, candidates []*tas
 // triggerTasks triggers the given slice of tasks to run on Swarming and returns
 // a channel of the successfully-triggered tasks which is closed after all tasks
 // have been triggered or failed. Each failure is sent to errCh.
-func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- error) <-chan *types.Task {
+func (s *TaskScheduler) triggerTasks(candidates []*candidate.TaskCandidate, errCh chan<- error) <-chan *types.Task {
 	defer metrics2.FuncTimer().Stop()
 	triggered := make(chan *types.Task)
 	var wg sync.WaitGroup
-	for _, candidate := range candidates {
+	for _, cand := range candidates {
 		wg.Add(1)
-		go func(candidate *taskCandidate) {
+		go func(cand *candidate.TaskCandidate) {
 			defer wg.Done()
-			t := candidate.MakeTask()
-			diag := &taskCandidateTriggeringDiagnostics{}
-			candidate.GetDiagnostics().Triggering = diag
+			t := cand.MakeTask()
+			diag := &candidate.TaskCandidateTriggeringDiagnostics{}
+			cand.GetDiagnostics().Triggering = diag
 			recordErr := func(context string, err error) {
 				err = fmt.Errorf("%s: %s", context, err)
 				diag.TriggerError = err.Error()
@@ -1139,7 +1140,7 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 				return
 			}
 			diag.TaskId = t.Id
-			req := candidate.MakeTaskRequest(t.Id, s.isolateClient.ServerURL(), s.pubsubTopic)
+			req := cand.MakeTaskRequest(t.Id, s.isolateClient.ServerURL(), s.pubsubTopic)
 			s.pendingInsertMtx.Lock()
 			s.pendingInsert[t.Id] = true
 			s.pendingInsertMtx.Unlock()
@@ -1152,11 +1153,11 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 				s.pendingInsertMtx.Lock()
 				delete(s.pendingInsert, t.Id)
 				s.pendingInsertMtx.Unlock()
-				jobIds := make([]string, 0, len(candidate.Jobs))
-				for _, job := range candidate.Jobs {
+				jobIds := make([]string, 0, len(cand.Jobs))
+				for _, job := range cand.Jobs {
 					jobIds = append(jobIds, job.Id)
 				}
-				recordErr("Failed to trigger task", skerr.Wrapf(err, "%q needed for jobs: %+v", candidate.Name, jobIds))
+				recordErr("Failed to trigger task", skerr.Wrapf(err, "%q needed for jobs: %+v", cand.Name, jobIds))
 				return
 			}
 			created, err := swarming.ParseTimestamp(resp.Request.CreatedTs)
@@ -1189,7 +1190,7 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 				}
 			}
 			triggered <- t
-		}(candidate)
+		}(cand)
 	}
 	go func() {
 		wg.Wait()
@@ -1200,7 +1201,7 @@ func (s *TaskScheduler) triggerTasks(candidates []*taskCandidate, errCh chan<- e
 
 // scheduleTasks queries for free Swarming bots and triggers tasks according
 // to relative priorities in the queue.
-func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.SwarmingRpcsBotInfo, queue []*taskCandidate) error {
+func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.SwarmingRpcsBotInfo, queue []*candidate.TaskCandidate) error {
 	defer metrics2.FuncTimer().Stop()
 	// Match free bots with tasks.
 	candidates := getCandidatesToSchedule(bots, queue)
@@ -1278,7 +1279,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 			}
 
 			// Remove the tasks from the queue.
-			newQueue := make([]*taskCandidate, 0, len(queue)-numTriggered)
+			newQueue := make([]*candidate.TaskCandidate, 0, len(queue)-numTriggered)
 			for _, c := range queue {
 				if _, ok := remove[c.TaskKey]; !ok {
 					newQueue = append(newQueue, c)

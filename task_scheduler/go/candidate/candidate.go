@@ -1,4 +1,4 @@
-package scheduling
+package candidate
 
 import (
 	"bytes"
@@ -19,8 +19,8 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
-// taskCandidate is a struct used for determining which tasks to schedule.
-type taskCandidate struct {
+// TaskCandidate is a struct used for determining which tasks to schedule.
+type TaskCandidate struct {
 	Attempt int `json:"attempt"`
 	// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
 	// could be inherited from any matching Job. Therefore, this should be
@@ -37,15 +37,15 @@ type taskCandidate struct {
 	StealingFromId string       `json:"stealingFromId"`
 	types.TaskKey
 	TaskSpec    *specs.TaskSpec           `json:"taskSpec"`
-	Diagnostics *taskCandidateDiagnostics `json:"diagnostics,omitempty"`
+	Diagnostics *TaskCandidateDiagnostics `json:"diagnostics,omitempty"`
 }
 
-// CopyNoDiagnostics returns a copy of the taskCandidate, omitting the
+// CopyNoDiagnostics returns a copy of the TaskCandidate, omitting the
 // Diagnostics field.
-func (c *taskCandidate) CopyNoDiagnostics() *taskCandidate {
+func (c *TaskCandidate) CopyNoDiagnostics() *TaskCandidate {
 	jobs := make([]*types.Job, len(c.Jobs))
 	copy(jobs, c.Jobs)
-	return &taskCandidate{
+	return &TaskCandidate{
 		Attempt:            c.Attempt,
 		BuildbucketBuildId: c.BuildbucketBuildId,
 		Commits:            util.CopyStringSlice(c.Commits),
@@ -61,25 +61,25 @@ func (c *taskCandidate) CopyNoDiagnostics() *taskCandidate {
 	}
 }
 
-// MakeId generates a string ID for the taskCandidate.
-func (c *taskCandidate) MakeId() string {
+// MakeId generates a string ID for the TaskCandidate.
+func (c *TaskCandidate) MakeId() string {
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(&c.TaskKey); err != nil {
 		panic(fmt.Sprintf("Failed to GOB encode TaskKey: %s", err))
 	}
 	b64 := base64.StdEncoding.EncodeToString(buf.Bytes())
-	return fmt.Sprintf("taskCandidate|%s", b64)
+	return fmt.Sprintf("TaskCandidate|%s", b64)
 }
 
-// parseId generates taskCandidate information from the ID.
+// parseId generates TaskCandidate information from the ID.
 func parseId(id string) (types.TaskKey, error) {
 	var rv types.TaskKey
 	split := strings.Split(id, "|")
 	if len(split) != 2 {
 		return rv, fmt.Errorf("Invalid ID, not enough parts: %q", id)
 	}
-	if split[0] != "taskCandidate" {
-		return rv, fmt.Errorf("Invalid ID, no 'taskCandidate' prefix: %q", id)
+	if split[0] != "TaskCandidate" {
+		return rv, fmt.Errorf("Invalid ID, no 'TaskCandidate' prefix: %q", id)
 	}
 	b, err := base64.StdEncoding.DecodeString(split[1])
 	if err != nil {
@@ -93,7 +93,7 @@ func parseId(id string) (types.TaskKey, error) {
 
 // findJob locates job in c.Jobs and returns its index and true if found or the
 // insertion index and false if not.
-func (c *taskCandidate) findJob(job *types.Job) (int, bool) {
+func (c *TaskCandidate) findJob(job *types.Job) (int, bool) {
 	idx := sort.Search(len(c.Jobs), func(i int) bool {
 		return !c.Jobs[i].Created.Before(job.Created)
 	})
@@ -113,13 +113,13 @@ func (c *taskCandidate) findJob(job *types.Job) (int, bool) {
 }
 
 // HasJob returns true if job is a member of c.Jobs.
-func (c *taskCandidate) HasJob(job *types.Job) bool {
+func (c *TaskCandidate) HasJob(job *types.Job) bool {
 	_, ok := c.findJob(job)
 	return ok
 }
 
 // AddJob adds job to c.Jobs, unless already present.
-func (c *taskCandidate) AddJob(job *types.Job) {
+func (c *TaskCandidate) AddJob(job *types.Job) {
 	idx, ok := c.findJob(job)
 	if !ok {
 		c.Jobs = append(c.Jobs, nil)
@@ -128,8 +128,8 @@ func (c *taskCandidate) AddJob(job *types.Job) {
 	}
 }
 
-// MakeTask instantiates a types.Task from the taskCandidate.
-func (c *taskCandidate) MakeTask() *types.Task {
+// MakeTask instantiates a types.Task from the TaskCandidate.
+func (c *TaskCandidate) MakeTask() *types.Task {
 	commits := make([]string, len(c.Commits))
 	copy(commits, c.Commits)
 	jobs := make([]string, 0, len(c.Jobs))
@@ -164,7 +164,7 @@ func getPatchStorage(server string) string {
 }
 
 // replaceVars replaces variable names with their values in a given string.
-func replaceVars(c *taskCandidate, s, taskId string) string {
+func replaceVars(c *TaskCandidate, s, taskId string) string {
 	issueShort := ""
 	if len(c.Issue) < types.ISSUE_SHORT_LENGTH {
 		issueShort = c.Issue
@@ -201,8 +201,8 @@ func replaceVars(c *taskCandidate, s, taskId string) string {
 	return s
 }
 
-// MakeTaskRequest creates a SwarmingRpcsNewTaskRequest object from the taskCandidate.
-func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) *swarming_api.SwarmingRpcsNewTaskRequest {
+// MakeTaskRequest creates a SwarmingRpcsNewTaskRequest object from the TaskCandidate.
+func (c *TaskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) *swarming_api.SwarmingRpcsNewTaskRequest {
 	var caches []*swarming_api.SwarmingRpcsCacheEntry
 	if len(c.TaskSpec.Caches) > 0 {
 		caches = make([]*swarming_api.SwarmingRpcsCacheEntry, 0, len(c.TaskSpec.Caches))
@@ -330,10 +330,10 @@ func (c *taskCandidate) MakeTaskRequest(id, isolateServer, pubSubTopic string) *
 	}
 }
 
-// allDepsMet determines whether all dependencies for the given task candidate
+// AllDepsMet determines whether all dependencies for the given task candidate
 // have been satisfied, and if so, returns a map of whose keys are task IDs and
 // values are their isolated outputs.
-func (c *taskCandidate) allDepsMet(cache cache.TaskCache) (bool, map[string]string, error) {
+func (c *TaskCandidate) AllDepsMet(cache cache.TaskCache) (bool, map[string]string, error) {
 	rv := make(map[string]string, len(c.TaskSpec.Dependencies))
 	var missingDeps []string
 	for _, depName := range c.TaskSpec.Dependencies {
@@ -356,7 +356,7 @@ func (c *taskCandidate) allDepsMet(cache cache.TaskCache) (bool, map[string]stri
 		}
 	}
 	if len(missingDeps) > 0 {
-		c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{
+		c.GetDiagnostics().Filtering = &TaskCandidateFilteringDiagnostics{
 			UnmetDependencies: missingDeps,
 		}
 		return false, nil, nil
@@ -364,43 +364,43 @@ func (c *taskCandidate) allDepsMet(cache cache.TaskCache) (bool, map[string]stri
 	return true, rv, nil
 }
 
-// taskCandidateSlice is an alias used for sorting a slice of taskCandidates.
-type taskCandidateSlice []*taskCandidate
+// TaskCandidateSlice is an alias used for sorting a slice of TaskCandidates.
+type TaskCandidateSlice []*TaskCandidate
 
-func (s taskCandidateSlice) Len() int { return len(s) }
-func (s taskCandidateSlice) Swap(i, j int) {
+func (s TaskCandidateSlice) Len() int { return len(s) }
+func (s TaskCandidateSlice) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
-func (s taskCandidateSlice) Less(i, j int) bool {
+func (s TaskCandidateSlice) Less(i, j int) bool {
 	return s[i].Score > s[j].Score // candidates sort in decreasing order.
 }
 
-// taskCandidateDiagnostics stores info about why a candidate was not triggered.
-type taskCandidateDiagnostics struct {
+// TaskCandidateDiagnostics stores info about why a candidate was not triggered.
+type TaskCandidateDiagnostics struct {
 	// Filtering contains reasons that a candidate would be rejected before scoring and scheduling.
 	// Not set if the candidate was not filtered out.
-	Filtering *taskCandidateFilteringDiagnostics `json:"filtering,omitempty"`
+	Filtering *TaskCandidateFilteringDiagnostics `json:"filtering,omitempty"`
 	// Scoring contains intermediate results in the calculation of Score. Always set unless Filtering
 	// is set.
-	Scoring *taskCandidateScoringDiagnostics `json:"scoring,omitempty"`
+	Scoring *TaskCandidateScoringDiagnostics `json:"scoring,omitempty"`
 	// Scheduling contains details about selecting candidates from the queue. Always set unless
 	// Filtering is set.
-	Scheduling *taskCandidateSchedulingDiagnostics `json:"scheduling,omitempty"`
+	Scheduling *TaskCandidateSchedulingDiagnostics `json:"scheduling,omitempty"`
 	// Triggering contains detailed results of triggering tasks. Set only if this candidate was
 	// selected to be triggered (Scheduling.Selected is true).
-	Triggering *taskCandidateTriggeringDiagnostics `json:"triggering,omitempty"`
+	Triggering *TaskCandidateTriggeringDiagnostics `json:"triggering,omitempty"`
 }
 
-func (s *taskCandidate) GetDiagnostics() *taskCandidateDiagnostics {
+func (s *TaskCandidate) GetDiagnostics() *TaskCandidateDiagnostics {
 	if s.Diagnostics == nil {
-		s.Diagnostics = &taskCandidateDiagnostics{}
+		s.Diagnostics = &TaskCandidateDiagnostics{}
 	}
 	return s.Diagnostics
 }
 
-// taskCandidateFilteringDiagnostics contains information about a candidate rejected before scoring
+// TaskCandidateFilteringDiagnostics contains information about a candidate rejected before scoring
 // and scheduling. Normally exactly one field is set.
-type taskCandidateFilteringDiagnostics struct {
+type TaskCandidateFilteringDiagnostics struct {
 	// Name of rule skipping this task.
 	SkippedByRule string `json:"skippedByRule,omitempty"`
 	// True if this task's revision is outside the scheduling window (but its Job has not yet been
@@ -414,9 +414,9 @@ type taskCandidateFilteringDiagnostics struct {
 	UnmetDependencies []string `json:"unmetDependencies,omitempty"`
 }
 
-// taskCandidateScoringDiagnostics contains intermediate results in the calculation of Score. For
+// TaskCandidateScoringDiagnostics contains intermediate results in the calculation of Score. For
 // regular tasks (not forced or try jobs), all fields are set.
-type taskCandidateScoringDiagnostics struct {
+type TaskCandidateScoringDiagnostics struct {
 	// Priority calculated from all dependent Job priorities. (Note this is *not* the same as Score;
 	// Priority is an input to scoring while Score is the output.)
 	Priority float64 `json:"priority,omitempty"`
@@ -433,8 +433,8 @@ type taskCandidateScoringDiagnostics struct {
 	TimeDecay float64 `json:"timeDecay,omitempty"`
 }
 
-// taskCandidateSchedulingDiagnostics contains information about matching tasks with bots.
-type taskCandidateSchedulingDiagnostics struct {
+// TaskCandidateSchedulingDiagnostics contains information about matching tasks with bots.
+type TaskCandidateSchedulingDiagnostics struct {
 	// True if SCHEDULING_LIMIT_PER_TASK_SPEC was reached for this task spec. The remaining fields
 	// will not be set.
 	OverSchedulingLimitPerTaskSpec bool `json:"overSchedulingLimitPerTaskSpec,omitempty"`
@@ -464,9 +464,9 @@ type taskCandidateSchedulingDiagnostics struct {
 	Selected bool `json:"selected,omitempty"`
 }
 
-// taskCandidateTriggeringDiagnostics contains information about triggering a Swarming task for this
+// TaskCandidateTriggeringDiagnostics contains information about triggering a Swarming task for this
 // candidate.
-type taskCandidateTriggeringDiagnostics struct {
+type TaskCandidateTriggeringDiagnostics struct {
 	// Error message from isolating inputs.
 	IsolateError string `json:"isolateError,omitempty"`
 	// Error message from triggering the task.

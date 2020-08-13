@@ -35,6 +35,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/task_scheduler/go/candidate"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
@@ -330,7 +331,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	ctx, _, _, _, s, _, cleanup := setup(t)
 	defer cleanup()
 
-	test := func(jobs []*types.Job, expect map[types.TaskKey]*taskCandidate) {
+	test := func(jobs []*types.Job, expect map[types.TaskKey]*candidate.TaskCandidate) {
 		actual, err := s.findTaskCandidatesForJobs(ctx, jobs)
 		require.NoError(t, err)
 		assertdeep.Equal(t, expect, actual)
@@ -342,7 +343,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	require.NoError(t, err)
 
 	// Run on an empty job list, ensure empty list returned.
-	test([]*types.Job{}, map[types.TaskKey]*taskCandidate{})
+	test([]*types.Job{}, map[types.TaskKey]*candidate.TaskCandidate{})
 
 	now := time.Now().UTC()
 
@@ -356,7 +357,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		Priority:     0.5,
 		RepoState:    rs1.Copy(),
 	}
-	tc1 := &taskCandidate{
+	tc1 := &candidate.TaskCandidate{
 		Jobs: []*types.Job{j1},
 		TaskKey: types.TaskKey{
 			RepoState: rs1.Copy(),
@@ -364,7 +365,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		},
 		TaskSpec: cfg1.Tasks[tcc_testutils.BuildTaskName].Copy(),
 	}
-	tc2 := &taskCandidate{
+	tc2 := &candidate.TaskCandidate{
 		Jobs: []*types.Job{j1},
 		TaskKey: types.TaskKey{
 			RepoState: rs1.Copy(),
@@ -373,7 +374,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		TaskSpec: cfg1.Tasks[tcc_testutils.TestTaskName].Copy(),
 	}
 
-	test([]*types.Job{j1}, map[types.TaskKey]*taskCandidate{
+	test([]*types.Job{j1}, map[types.TaskKey]*candidate.TaskCandidate{
 		tc1.TaskKey: tc1,
 		tc2.TaskKey: tc2,
 	})
@@ -396,7 +397,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		Priority:     0.6,
 		RepoState:    rs2,
 	}
-	tc3 := &taskCandidate{
+	tc3 := &candidate.TaskCandidate{
 		Jobs: []*types.Job{j2, j3},
 		TaskKey: types.TaskKey{
 			RepoState: rs2.Copy(),
@@ -404,7 +405,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		},
 		TaskSpec: cfg2.Tasks[tcc_testutils.BuildTaskName].Copy(),
 	}
-	tc4 := &taskCandidate{
+	tc4 := &candidate.TaskCandidate{
 		Jobs: []*types.Job{j2},
 		TaskKey: types.TaskKey{
 			RepoState: rs2.Copy(),
@@ -412,7 +413,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		},
 		TaskSpec: cfg2.Tasks[tcc_testutils.TestTaskName].Copy(),
 	}
-	tc5 := &taskCandidate{
+	tc5 := &candidate.TaskCandidate{
 		Jobs: []*types.Job{j3},
 		TaskKey: types.TaskKey{
 			RepoState: rs2.Copy(),
@@ -420,7 +421,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		},
 		TaskSpec: cfg2.Tasks[tcc_testutils.PerfTaskName].Copy(),
 	}
-	allCandidates := map[types.TaskKey]*taskCandidate{
+	allCandidates := map[types.TaskKey]*candidate.TaskCandidate{
 		tc1.TaskKey: tc1,
 		tc2.TaskKey: tc2,
 		tc3.TaskKey: tc3,
@@ -448,7 +449,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 			Revision: "aaaaabbbbbcccccdddddeeeeefffff1111122222",
 		},
 	}
-	test([]*types.Job{j4}, map[types.TaskKey]*taskCandidate{})
+	test([]*types.Job{j4}, map[types.TaskKey]*candidate.TaskCandidate{})
 }
 
 func TestFilterTaskCandidates(t *testing.T) {
@@ -479,7 +480,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 		RepoState: rs2,
 		Name:      tcc_testutils.PerfTaskName,
 	}
-	candidates := map[types.TaskKey]*taskCandidate{
+	candidates := map[types.TaskKey]*candidate.TaskCandidate{
 		k1: {
 			TaskKey:  k1,
 			TaskSpec: &specs.TaskSpec{},
@@ -508,7 +509,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 		},
 	}
 
-	clearDiagnostics := func(candidates map[types.TaskKey]*taskCandidate) {
+	clearDiagnostics := func(candidates map[types.TaskKey]*candidate.TaskCandidate) {
 		for _, c := range candidates {
 			c.Diagnostics = nil
 		}
@@ -673,7 +674,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 	tryKey.Server = "dummy-server"
 	tryKey.Issue = "dummy-issue"
 	tryKey.Patchset = "dummy-patchset"
-	candidates[tryKey] = &taskCandidate{
+	candidates[tryKey] = &candidate.TaskCandidate{
 		TaskKey: tryKey,
 		TaskSpec: &specs.TaskSpec{
 			Dependencies: []string{tcc_testutils.BuildTaskName},
@@ -704,7 +705,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	now := time.Unix(0, 1470674884000000)
 	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 
-	checkDiagTryForced := func(c *taskCandidate, diag *taskCandidateScoringDiagnostics) {
+	checkDiagTryForced := func(c *candidate.TaskCandidate, diag *candidate.TaskCandidateScoringDiagnostics) {
 		require.Equal(t, c.Jobs[0].Priority, diag.Priority)
 		require.Equal(t, now.Sub(c.Jobs[0].Created).Hours(), diag.JobCreatedHours)
 		// The remaining fields should always be 0 for try/forced jobs.
@@ -729,14 +730,14 @@ func TestProcessTaskCandidate(t *testing.T) {
 		Priority:  0.5,
 		RepoState: tryjobRs,
 	}
-	c := &taskCandidate{
+	c := &candidate.TaskCandidate{
 		Jobs: []*types.Job{tryjob},
 		TaskKey: types.TaskKey{
 			Name:      tcc_testutils.BuildTaskName,
 			RepoState: tryjobRs,
 		},
 	}
-	diag := &taskCandidateScoringDiagnostics{}
+	diag := &candidate.TaskCandidateScoringDiagnostics{}
 	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
 	// Try job candidates have a specific score and no blamelist.
 	require.InDelta(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*0.5, c.Score, scoreDelta)
@@ -744,7 +745,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 	checkDiagTryForced(c, diag)
 
 	// Retries are scored lower.
-	c = &taskCandidate{
+	c = &candidate.TaskCandidate{
 		Attempt: 1,
 		Jobs:    []*types.Job{tryjob},
 		TaskKey: types.TaskKey{
@@ -752,7 +753,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 			RepoState: tryjobRs,
 		},
 	}
-	diag = &taskCandidateScoringDiagnostics{}
+	diag = &candidate.TaskCandidateScoringDiagnostics{}
 	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
 	require.InDelta(t, (CANDIDATE_SCORE_TRY_JOB+1.0)*0.5*CANDIDATE_SCORE_TRY_JOB_RETRY_MULTIPLIER, c.Score, scoreDelta)
 	require.Nil(t, c.Commits)
@@ -766,7 +767,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 		RepoState: rs2,
 	}
 	// Manually forced candidates have a blamelist and a specific score.
-	c = &taskCandidate{
+	c = &candidate.TaskCandidate{
 		Jobs: []*types.Job{forcedJob},
 		TaskKey: types.TaskKey{
 			Name:        tcc_testutils.BuildTaskName,
@@ -774,7 +775,7 @@ func TestProcessTaskCandidate(t *testing.T) {
 			ForcedJobId: forcedJob.Id,
 		},
 	}
-	diag = &taskCandidateScoringDiagnostics{}
+	diag = &candidate.TaskCandidateScoringDiagnostics{}
 	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
 	require.InDelta(t, (CANDIDATE_SCORE_FORCE_RUN+2.0)*0.5, c.Score, scoreDelta)
 	require.Equal(t, 2, len(c.Commits))
@@ -788,14 +789,14 @@ func TestProcessTaskCandidate(t *testing.T) {
 		Priority:  0.5,
 		RepoState: rs2,
 	}
-	c = &taskCandidate{
+	c = &candidate.TaskCandidate{
 		Jobs: []*types.Job{regularJob},
 		TaskKey: types.TaskKey{
 			Name:      tcc_testutils.BuildTaskName,
 			RepoState: rs2,
 		},
 	}
-	diag = &taskCandidateScoringDiagnostics{}
+	diag = &candidate.TaskCandidateScoringDiagnostics{}
 	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
 	require.True(t, c.Score > 0)
 	require.Equal(t, 2, len(c.Commits))
@@ -811,14 +812,14 @@ func TestProcessTaskCandidate(t *testing.T) {
 	var err error
 	s.window, err = window.New(time.Nanosecond, 0, nil)
 	require.NoError(t, err)
-	c = &taskCandidate{
+	c = &candidate.TaskCandidate{
 		Jobs: []*types.Job{regularJob},
 		TaskKey: types.TaskKey{
 			Name:      tcc_testutils.BuildTaskName,
 			RepoState: rs2,
 		},
 	}
-	diag = &taskCandidateScoringDiagnostics{}
+	diag = &candidate.TaskCandidateScoringDiagnostics{}
 	require.NoError(t, s.processTaskCandidate(ctx, c, now, cache, commitsBuf, diag))
 	require.Equal(t, 0, len(c.Commits))
 }
@@ -831,7 +832,7 @@ func TestRegularJobRetryScoring(t *testing.T) {
 	now := time.Now()
 	commitsBuf := make([]*repograph.Commit, 0, MAX_BLAMELIST_COMMITS)
 
-	checkDiag := func(c *taskCandidate, diag *taskCandidateScoringDiagnostics) {
+	checkDiag := func(c *candidate.TaskCandidate, diag *candidate.TaskCandidateScoringDiagnostics) {
 		// All candidates in this test have a single Job.
 		require.Equal(t, c.Jobs[0].Priority, diag.Priority)
 		require.Equal(t, now.Sub(c.Jobs[0].Created).Hours(), diag.JobCreatedHours)
@@ -854,14 +855,14 @@ func TestRegularJobRetryScoring(t *testing.T) {
 		RepoState: rs2,
 	}
 	// Candidates at rs1 and rs2
-	c1 := &taskCandidate{
+	c1 := &candidate.TaskCandidate{
 		Jobs: []*types.Job{j1},
 		TaskKey: types.TaskKey{
 			Name:      tcc_testutils.BuildTaskName,
 			RepoState: rs1,
 		},
 	}
-	c2 := &taskCandidate{
+	c2 := &candidate.TaskCandidate{
 		Jobs: []*types.Job{j2},
 		TaskKey: types.TaskKey{
 			Name:      tcc_testutils.BuildTaskName,
@@ -869,7 +870,7 @@ func TestRegularJobRetryScoring(t *testing.T) {
 		},
 	}
 	// Regular task at HEAD with 2 commits has score 3.5 scaled by priority 0.5.
-	diag := &taskCandidateScoringDiagnostics{}
+	diag := &candidate.TaskCandidateScoringDiagnostics{}
 	require.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf, diag))
 	require.InDelta(t, 3.5*0.5, c2.Score, scoreDelta)
 	require.Equal(t, 2, len(c2.Commits))
@@ -878,7 +879,7 @@ func TestRegularJobRetryScoring(t *testing.T) {
 	checkDiag(c2, diag)
 	// Regular task at HEAD^ (no backfill) with 1 commit has score 2 scaled by
 	// priority 0.5.
-	diag = &taskCandidateScoringDiagnostics{}
+	diag = &candidate.TaskCandidateScoringDiagnostics{}
 	require.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf, diag))
 	require.InDelta(t, 2*0.5, c1.Score, scoreDelta)
 	require.Equal(t, 1, len(c1.Commits))
@@ -898,7 +899,7 @@ func TestRegularJobRetryScoring(t *testing.T) {
 
 	// Retry task at rs2 with 2 commits for 2nd of 2 attempts has score 0.75
 	// scaled by priority 0.5.
-	diag = &taskCandidateScoringDiagnostics{}
+	diag = &candidate.TaskCandidateScoringDiagnostics{}
 	require.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf, diag))
 	require.InDelta(t, 0.75*0.5, c2.Score, scoreDelta)
 	require.Equal(t, 2, len(c2.Commits))
@@ -907,7 +908,7 @@ func TestRegularJobRetryScoring(t *testing.T) {
 	checkDiag(c2, diag)
 	// Regular task at rs1 (backfilling failed task) with 1 commit has score 1.25
 	// scaled by priority 0.5.
-	diag = &taskCandidateScoringDiagnostics{}
+	diag = &candidate.TaskCandidateScoringDiagnostics{}
 	require.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf, diag))
 	require.InDelta(t, 1.25*0.5, c1.Score, scoreDelta)
 	require.Equal(t, 1, len(c1.Commits))
@@ -920,14 +921,14 @@ func TestRegularJobRetryScoring(t *testing.T) {
 	require.NoError(t, s.putTask(t2))
 
 	// Scores should be same as for FAILURE.
-	diag = &taskCandidateScoringDiagnostics{}
+	diag = &candidate.TaskCandidateScoringDiagnostics{}
 	require.NoError(t, s.processTaskCandidate(ctx, c2, now, cache, commitsBuf, diag))
 	require.InDelta(t, 0.75*0.5, c2.Score, scoreDelta)
 	require.Equal(t, 2, len(c2.Commits))
 	require.Equal(t, 2, diag.StoleFromCommits)
 	require.Equal(t, 0.0, diag.TestednessIncrease)
 	checkDiag(c2, diag)
-	diag = &taskCandidateScoringDiagnostics{}
+	diag = &candidate.TaskCandidateScoringDiagnostics{}
 	require.NoError(t, s.processTaskCandidate(ctx, c1, now, cache, commitsBuf, diag))
 	require.InDelta(t, 1.25*0.5, c1.Score, scoreDelta)
 	require.Equal(t, 1, len(c1.Commits))
@@ -945,7 +946,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 	// Processing of individual candidates is already tested; just verify
 	// that if we pass in a bunch of candidates they all get processed.
 	// The JobSpecs do not specify priority, so they use the default of 0.5.
-	assertProcessed := func(c *taskCandidate) {
+	assertProcessed := func(c *candidate.TaskCandidate) {
 		if c.IsTryJob() {
 			require.True(t, c.Score > CANDIDATE_SCORE_TRY_JOB*0.5)
 			require.Nil(t, c.Commits)
@@ -1016,7 +1017,7 @@ func TestProcessTaskCandidates(t *testing.T) {
 		RepoState: tryjobRs,
 	}
 
-	candidates := map[string]map[string][]*taskCandidate{
+	candidates := map[string]map[string][]*candidate.TaskCandidate{
 		rs1.Repo: {
 			tcc_testutils.BuildTaskName: {
 				{
@@ -1354,7 +1355,7 @@ func TestComputeBlamelist(t *testing.T) {
 		}
 
 		// Insert the task into the DB.
-		c := &taskCandidate{
+		c := &candidate.TaskCandidate{
 			TaskKey: types.TaskKey{
 				RepoState: types.RepoState{
 					Repo:     rs1.Repo,
@@ -1733,8 +1734,8 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	require.InDelta(t, 0.5*0.5, queue[1].Score, scoreDelta)
 }
 
-func makeTaskCandidate(name string, dims []string) *taskCandidate {
-	return &taskCandidate{
+func makeTaskCandidate(name string, dims []string) *candidate.TaskCandidate {
+	return &candidate.TaskCandidate{
 		Score: 1.0,
 		TaskKey: types.TaskKey{
 			Name: name,
@@ -1763,13 +1764,13 @@ func makeSwarmingBot(id string, dims []string) *swarming_api.SwarmingRpcsBotInfo
 func TestGetCandidatesToSchedule(t *testing.T) {
 	unittest.MediumTest(t)
 	// Empty lists.
-	rv := getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{})
+	rv := getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{}, []*candidate.TaskCandidate{})
 	require.Equal(t, 0, len(rv))
 
 	// checkDiags takes a list of bots with the same dimensions and a list of
 	// ordered candidates that match those bots and checks the Diagnostics for
 	// candidates.
-	checkDiags := func(bots []*swarming_api.SwarmingRpcsBotInfo, candidates []*taskCandidate) {
+	checkDiags := func(bots []*swarming_api.SwarmingRpcsBotInfo, candidates []*candidate.TaskCandidate) {
 		var expectedBots []string
 		if len(bots) > 0 {
 			expectedBots = make([]string, len(bots), len(bots))
@@ -1801,50 +1802,50 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	}
 
 	t1 := makeTaskCandidate("task1", []string{"k:v"})
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{}, []*candidate.TaskCandidate{t1})
 	require.Equal(t, 0, len(rv))
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*candidate.TaskCandidate{t1})
 
 	b1 := makeSwarmingBot("bot1", []string{"k:v"})
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{})
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*candidate.TaskCandidate{})
 	require.Equal(t, 0, len(rv))
 
 	// Single match.
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1})
-	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1})
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*candidate.TaskCandidate{t1})
+	assertdeep.Equal(t, []*candidate.TaskCandidate{t1}, rv)
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*candidate.TaskCandidate{t1})
 
 	// No match.
 	t1.TaskSpec.Dimensions[0] = "k:v2"
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1})
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*candidate.TaskCandidate{t1})
 	require.Equal(t, 0, len(rv))
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*candidate.TaskCandidate{t1})
 
 	// Add a task candidate to match b1.
 	t1 = makeTaskCandidate("task1", []string{"k:v2"})
 	t2 := makeTaskCandidate("task2", []string{"k:v"})
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
-	assertdeep.Equal(t, []*taskCandidate{t2}, rv)
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2})
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*candidate.TaskCandidate{t1, t2})
+	assertdeep.Equal(t, []*candidate.TaskCandidate{t2}, rv)
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*candidate.TaskCandidate{t1})
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*candidate.TaskCandidate{t2})
 
 	// Switch the task order.
 	t1 = makeTaskCandidate("task1", []string{"k:v2"})
 	t2 = makeTaskCandidate("task2", []string{"k:v"})
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
-	assertdeep.Equal(t, []*taskCandidate{t2}, rv)
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2})
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*candidate.TaskCandidate{t2, t1})
+	assertdeep.Equal(t, []*candidate.TaskCandidate{t2}, rv)
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{}, []*candidate.TaskCandidate{t1})
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*candidate.TaskCandidate{t2})
 
 	// Make both tasks match the bot, ensure that we pick the first one.
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", []string{"k:v"})
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
-	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
-	assertdeep.Equal(t, []*taskCandidate{t2}, rv)
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*candidate.TaskCandidate{t1, t2})
+	assertdeep.Equal(t, []*candidate.TaskCandidate{t1}, rv)
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*candidate.TaskCandidate{t1, t2})
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*candidate.TaskCandidate{t2, t1})
+	assertdeep.Equal(t, []*candidate.TaskCandidate{t2}, rv)
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*candidate.TaskCandidate{t2, t1})
 
 	// Multiple dimensions. Ensure that different permutations of the bots
 	// and tasks lists give us the expected results.
@@ -1858,8 +1859,8 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	// is first in sorted order. The second task does not get scheduled
 	// because there is no bot available which can run it.
 	// TODO(borenet): Use a more optimal solution to avoid this case.
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2})
-	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*candidate.TaskCandidate{t1, t2})
+	assertdeep.Equal(t, []*candidate.TaskCandidate{t1}, rv)
 	// Can't use checkDiags for these cases.
 	require.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 0, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
@@ -1874,8 +1875,8 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*taskCandidate{t1, t2})
-	assertdeep.Equal(t, []*taskCandidate{t1}, rv)
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*candidate.TaskCandidate{t1, t2})
+	assertdeep.Equal(t, []*candidate.TaskCandidate{t1}, rv)
 	require.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 0, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Nil(t, t1.Diagnostics.Scheduling.LastSimilarCandidate)
@@ -1891,8 +1892,8 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	// priority. Both tasks get scheduled.
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t2, t1})
-	assertdeep.Equal(t, []*taskCandidate{t2, t1}, rv)
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*candidate.TaskCandidate{t2, t1})
+	assertdeep.Equal(t, []*candidate.TaskCandidate{t2, t1}, rv)
 	require.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 1, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Equal(t, &t2.TaskKey, t1.Diagnostics.Scheduling.LastSimilarCandidate)
@@ -1906,8 +1907,8 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 
 	t1 = makeTaskCandidate("task1", []string{"k:v"})
 	t2 = makeTaskCandidate("task2", dims)
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*taskCandidate{t2, t1})
-	assertdeep.Equal(t, []*taskCandidate{t2, t1}, rv)
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*candidate.TaskCandidate{t2, t1})
+	assertdeep.Equal(t, []*candidate.TaskCandidate{t2, t1}, rv)
 	require.Equal(t, []string{b1.BotId, b2.BotId}, t1.Diagnostics.Scheduling.MatchingBots)
 	require.Equal(t, 1, t1.Diagnostics.Scheduling.NumHigherScoreSimilarCandidates)
 	require.Equal(t, &t2.TaskKey, t1.Diagnostics.Scheduling.LastSimilarCandidate)
@@ -1925,17 +1926,17 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	t1 = makeTaskCandidate("task1", dims)
 	t2 = makeTaskCandidate("task2", dims)
 	t3 := makeTaskCandidate("task3", dims)
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3}, []*taskCandidate{t1, t2})
-	assertdeep.Equal(t, []*taskCandidate{t1, t2}, rv)
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3}, []*taskCandidate{t1, t2})
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3}, []*candidate.TaskCandidate{t1, t2})
+	assertdeep.Equal(t, []*candidate.TaskCandidate{t1, t2}, rv)
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3}, []*candidate.TaskCandidate{t1, t2})
 
 	// More tasks than bots.
 	t1 = makeTaskCandidate("task1", dims)
 	t2 = makeTaskCandidate("task2", dims)
 	t3 = makeTaskCandidate("task3", dims)
-	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2, t3})
-	assertdeep.Equal(t, []*taskCandidate{t1, t2}, rv)
-	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2, t3})
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*candidate.TaskCandidate{t1, t2, t3})
+	assertdeep.Equal(t, []*candidate.TaskCandidate{t1, t2}, rv)
+	checkDiags([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*candidate.TaskCandidate{t1, t2, t3})
 }
 
 func makeBot(id string, dims map[string]string) *swarming_api.SwarmingRpcsBotInfo {
