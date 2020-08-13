@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"golang.org/x/time/rate"
@@ -368,178 +369,125 @@ func (r *Repo) GetTreeDiffs(ctx context.Context, ref string) ([]*TreeDiff, error
 	return c.TreeDiffs, nil
 }
 
-// LogOption represents an optional parameter to a Log function. Either Key()
-// AND Value() OR Path() must return non-empty strings. Only one LogOption in
-// a given set may return a non-empty value for Path().
-type LogOption interface {
-	Key() string
-	Value() string
-	Path() string
+// LogBuilder returns a URLBuilder used to perform a query equivalent to "git log".
+func (r *Repo) LogBuilder() *URLBuilder {
+	return &URLBuilder{
+		repo:      r,
+		directive: "log",
+	}
 }
 
-type stringLogOption [2]string
-
-func (s stringLogOption) Key() string {
-	return s[0]
+// URLBuilder helps to construct API URLs for Gitiles.
+type URLBuilder struct {
+	repo         *Repo
+	directive    string
+	firstParent  bool
+	revisionExpr string
+	path         string
+	query        map[string]string
+	limit        int
 }
 
-func (s stringLogOption) Value() string {
-	return s[1]
+// Revision sets the Revision at which the Log should be based.
+func (b *URLBuilder) Revision(revision string) *URLBuilder {
+	b.revisionExpr = revision
+	return b
 }
 
-func (s stringLogOption) Path() string {
-	return ""
+// LogFromTo indicates that the Log should run from the given starting commit to
+// the given ending commit.
+func (b *URLBuilder) LogFromTo(start, end string) *URLBuilder {
+	b.revisionExpr = git.LogFromTo(start, end)
+	return b
 }
 
-// LogReverse is a LogOption which indicates that the commits in the Log should
+// Reverse is a LogOption which indicates that the commits in the Log should
 // be returned in reverse order from the typical "git log" ordering, ie. each
 // commit's parents appear before the commit itself.
-func LogReverse() LogOption {
-	return stringLogOption([2]string{"reverse", "true"})
+func (b *URLBuilder) Reverse() *URLBuilder {
+	b.query["reverse"] = "true"
+	return b
 }
 
-// LogBatchSize is a LogOption which indicates the number of commits which
-// should be included in each batch of commits returned by Log.
-func LogBatchSize(n int) LogOption {
-	return stringLogOption([2]string{logLimit(0).Key(), strconv.Itoa(n)})
+// BatchSize sets the number of commits to load at a time.
+func (b *URLBuilder) BatchSize(n int) *URLBuilder {
+	b.query["n"] = strconv.Itoa(n)
+	return b
 }
 
-// logLimit is an implementation of LogOption which is a special case, because
-// Gitiles' limit option is really just a batch size. We need a new type to
-// indicate that we shouldn't load additional batches after the first N commits.
-type logLimit int
-
-func (n logLimit) Key() string {
-	return "n"
+// Limit is a LogOption which makes Log return at most N commits.
+func (b *URLBuilder) Limit(n int) *URLBuilder {
+	b.limit = n
+	return b
 }
 
-func (n logLimit) Value() string {
-	return strconv.Itoa(int(n))
+// Path is a LogOption which limits the git log to the given path.
+func (b *URLBuilder) Path(path string) *URLBuilder {
+	b.path = path
+	return b
 }
 
-func (n logLimit) Path() string {
-	return ""
+// StartAt indicates that the log should start at the given commit.
+func (b *URLBuilder) StartAt(commit string) *URLBuilder {
+	b.query["s"] = commit
+	return b
 }
 
-// LogLimit is a LogOption which makes Log return at most N commits.
-func LogLimit(n int) LogOption {
-	return logLimit(n)
+// FirstParent indicates that the returned log should be filtered to be
+// equivalent to "git log --first-parent --ancestry-path".
+func (b *URLBuilder) FirstParent() *URLBuilder {
+	b.firstParent = true
+	return b
 }
 
-// logPath restricts the log to a given path.
-type logPath string
-
-func (p logPath) Key() string {
-	return ""
-}
-
-func (p logPath) Value() string {
-	return ""
-}
-
-func (p logPath) Path() string {
-	return string(p)
-}
-
-// LogPath is a LogOption which limits the git log to the given path. LogPath is
-// incompatible with any Log queries which also limit the returned commits, eg.
-// LogLinear and LogFirstParent.
-func LogPath(path string) LogOption {
-	return logPath(path)
-}
-
-// LogOptionsToQuery converts the given LogOptions to a URL sub-path and query
-// string. Returns the URL sub-path and query string and the maximum number of
-// commits to return from a Log query (or zero if none is provided, indicating
-// no limit), or any error which occurred.
-func LogOptionsToQuery(opts []LogOption) (string, string, int, error) {
-	limit := 0
-	path := ""
-	query := ""
-	if len(opts) > 0 {
-		paramsMap := make(map[string]string, len(opts))
-		for _, opt := range opts {
-			optPath := opt.Path()
-			if optPath != "" {
-				if path != "" {
-					return "", "", 0, skerr.Fmt("Only one log option may change the URL path")
-				}
-				path = optPath
-			}
-			if opt.Key() == "" || opt.Value() == "" {
-				continue
-			}
-			// If LogLimit and LogBatchSize are both provided, or if
-			// LogBatchSize is provided more than once, use the
-			// smaller value. This ensures that we respect the batch
-			// size when smaller than the limit but prevent loading
-			// extra commits when the limit is smaller than the
-			// batch size.
-			// NOTE: We could try to be more efficient and ensure
-			// that the final batch contains only as many commits as
-			// we need to achieve the given limit. That would
-			// require moving this logic into the loop below.
-			if exist, ok := paramsMap[opt.Key()]; ok && opt.Key() == logLimit(0).Key() {
-				existInt, err := strconv.Atoi(exist)
-				if err != nil {
-					// This shouldn't happen, since we used
-					// strconv.Itoi to create it.
-					return "", "", 0, skerr.Wrap(err)
-				}
-				newInt, err := strconv.Atoi(opt.Value())
-				if err != nil {
-					// This shouldn't happen, since we used
-					// strconv.Itoi to create it.
-					return "", "", 0, skerr.Wrap(err)
-				}
-				if newInt < existInt {
-					paramsMap[opt.Key()] = opt.Value()
-				}
-			} else {
-				paramsMap[opt.Key()] = opt.Value()
-			}
-			if n, ok := opt.(logLimit); ok {
-				limit = int(n)
-			}
+// String constructs a URL based on the options applied to the URLBuilder.
+func (b *URLBuilder) String() string {
+	parts := []string{b.repo.URL, "+" + b.directive}
+	if b.revisionExpr != "" {
+		parts = append(parts, b.revisionExpr)
+	}
+	if b.path != "" {
+		parts = append(parts, b.path)
+	}
+	url := strings.Join(parts, "/")
+	query := []string{}
+	if len(b.query) > 0 {
+		for k, v := range b.query {
+			query = append(query, fmt.Sprintf("%s=%s", k, v))
 		}
-		params := make([]string, 0, len(paramsMap))
-		for k, v := range paramsMap {
-			params = append(params, fmt.Sprintf("%s=%s", k, v))
-		}
-		sort.Strings(params) // For consistency in tests.
-		query = strings.Join(params, "&")
 	}
-	return path, query, limit, nil
+	// If no batch size was specified, use the specified limit, if any.
+	if _, ok := b.query["n"]; !ok && b.limit > 0 {
+		query = append(query, fmt.Sprintf("n=%d", b.limit))
+	}
+	if len(query) > 0 {
+		// Sort for consistency in testing.
+		sort.Strings(query)
+		url += "?" + strings.Join(query, "&")
+	}
+	return url
 }
 
-// logHelper is used to perform requests which are equivalent to "git log".
-// Loads commits in batches and calls the given function for each batch of
-// commits. If the function returns an error, iteration stops, and the error is
-// returned, unless it was ErrStopIteration.
-func (r *Repo) logHelper(ctx context.Context, logExpr string, fn func(context.Context, []*vcsinfo.LongCommit) error, opts ...LogOption) error {
-	// Build the query parameters.
-	path, query, limit, err := LogOptionsToQuery(opts)
-	if err != nil {
-		return err
-	}
-	if path != "" {
-		logExpr += "/" + path
-	}
-	url := fmt.Sprintf(LogURL, r.URL, logExpr)
-	if query != "" {
-		url += "&" + query
-	}
+// GitLogArgs returns set of arguments which produce an equivalent "git log" to
+// the current query.
+func (b *URLBuilder) GitLogArgs() []string {
+	rv := []string{}
+
+}
+
+// DoBatches performs a sequence of requests, retrieving batches of commits and
+// calling the given function for each.  If the callback returns an error,
+// iteration stops.  If the error is anything other than ErrStopIteration,
+// DoBatches returns that error.  DoBatches invalidates the URLBuilder.
+func (b *URLBuilder) DoBatches(ctx context.Context, callback func(context.Context, []*vcsinfo.LongCommit) error) error {
+	sklog.Errorf("URL (pre): ", b.String())
 
 	// Load commits in batches.
 	seen := 0
-	start := ""
 	for {
 		var l Log
-		u := url
-		if start != "" {
-			u += "&s=" + start
-		}
-		if err := r.getJSON(ctx, u, &l); err != nil {
+		u := b.String()
+		if err := b.repo.getJSON(ctx, u, &l); err != nil {
 			return err
 		}
 		// Convert to vcsinfo.LongCommit.
@@ -551,29 +499,30 @@ func (r *Repo) logHelper(ctx context.Context, logExpr string, fn func(context.Co
 			}
 			commits = append(commits, vc)
 			seen++
-			if limit > 0 && seen == limit {
+			if b.limit > 0 && seen == b.limit {
 				break
 			}
 		}
-		if err := fn(ctx, commits); err == ErrStopIteration {
+		if err := callback(ctx, commits); err == ErrStopIteration {
 			return nil
 		} else if err != nil {
 			return err
 		}
-		if l.Next == "" || (limit > 0 && seen >= limit) {
+		if l.Next == "" || (b.limit > 0 && seen >= b.limit) {
 			return nil
 		}
-		start = l.Next
+		b.StartAt(l.Next)
 	}
 }
 
-// Log returns Gitiles' equivalent to "git log" for the given expression.
-func (r *Repo) Log(ctx context.Context, logExpr string, opts ...LogOption) ([]*vcsinfo.LongCommit, error) {
+// Do performs the log request and returns all commits. Do invalidates the
+// URLBuilder.
+func (b *URLBuilder) Do(ctx context.Context) ([]*vcsinfo.LongCommit, error) {
 	rv := []*vcsinfo.LongCommit{}
-	if err := r.logHelper(ctx, logExpr, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
+	if err := b.DoBatches(ctx, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
 		rv = append(rv, commits...)
 		return nil
-	}, opts...); err != nil {
+	}); err != nil {
 		return nil, err
 	}
 	return rv, nil
@@ -581,16 +530,10 @@ func (r *Repo) Log(ctx context.Context, logExpr string, opts ...LogOption) ([]*v
 
 // LogFirstParent is equivalent to "git log --first-parent A..B", ie. it
 // only returns commits which are reachable from A by following the first parent
-// (the "main" branch) but not from B. LogFirstParent is incompatible with
-// LogPath.
-func (r *Repo) LogFirstParent(ctx context.Context, from, to string, opts ...LogOption) ([]*vcsinfo.LongCommit, error) {
-	for _, opt := range opts {
-		if opt.Path() != "" {
-			return nil, skerr.Fmt("LogFirstParent is incompatible with LogPath")
-		}
-	}
+// (the "main" branch) but not from B.
+func (r *Repo) LogFirstParent(ctx context.Context, from, to string, b *URLBuilder) ([]*vcsinfo.LongCommit, error) {
 	// Retrieve the normal "git log".
-	commits, err := r.Log(ctx, git.LogFromTo(from, to), opts...)
+	commits, err := b.Revision(git.LogFromTo(from, to)).Do(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -619,16 +562,10 @@ func (r *Repo) LogFirstParent(ctx context.Context, from, to string, opts ...LogO
 // LogLinear is equivalent to "git log --first-parent --ancestry-path from..to",
 // ie. it only returns commits which are on the direct path from A to B, and
 // only on the "main" branch. This is as opposed to "git log from..to" which
-// returns all commits which are ancestors of 'to' but not 'from'. LogLinear is
-// incompatible with LogPath.
-func (r *Repo) LogLinear(ctx context.Context, from, to string, opts ...LogOption) ([]*vcsinfo.LongCommit, error) {
-	for _, opt := range opts {
-		if opt.Path() != "" {
-			return nil, skerr.Fmt("LogLinear is incompatible with LogPath")
-		}
-	}
+// returns all commits which are ancestors of 'to' but not 'from'.
+func (r *Repo) LogLinear(ctx context.Context, from, to string) ([]*vcsinfo.LongCommit, error) {
 	// Retrieve the normal "git log".
-	commits, err := r.Log(ctx, git.LogFromTo(from, to), opts...)
+	commits, err := r.LogBuilder().Revision(git.LogFromTo(from, to)).Do(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -684,25 +621,6 @@ func (r *Repo) LogLinear(ctx context.Context, from, to string, opts ...LogOption
 		}
 	}
 	return rv, nil
-}
-
-// LogFn runs the given function for each commit in the log for the given
-// expression. It stops when ErrStopIteration is returned.
-func (r *Repo) LogFn(ctx context.Context, logExpr string, fn func(context.Context, *vcsinfo.LongCommit) error, opts ...LogOption) error {
-	return r.LogFnBatch(ctx, logExpr, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
-		for _, c := range commits {
-			if err := fn(ctx, c); err != nil {
-				return err
-			}
-		}
-		return nil
-	}, opts...)
-}
-
-// LogFnBatch is the same as LogFn but it runs the given function over batches
-// of commits.
-func (r *Repo) LogFnBatch(ctx context.Context, logExpr string, fn func(context.Context, []*vcsinfo.LongCommit) error, opts ...LogOption) error {
-	return r.logHelper(ctx, logExpr, fn, opts...)
 }
 
 // Ref represents a single ref, as returned by the API.

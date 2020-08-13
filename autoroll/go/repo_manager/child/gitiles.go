@@ -8,11 +8,8 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gitiles_common"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/go/git"
-	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/go/vcsinfo"
 )
 
 // GitilesConfig provides configuration for gitilesChild.
@@ -50,12 +47,7 @@ func (c *gitilesChild) Update(ctx context.Context, lastRollRev *revision.Revisio
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "Failed to retrieve tip rev")
 	}
-	var notRolledCommits []*vcsinfo.LongCommit
-	if c.path == "" {
-		notRolledCommits, err = c.LogFirstParent(ctx, lastRollRev.Id, tipRev.Id)
-	} else {
-		notRolledCommits, err = c.Log(ctx, git.LogFromTo(lastRollRev.Id, tipRev.Id), gitiles.LogPath(c.path))
-	}
+	notRolledRevs, err := c.LogFirstParent(ctx, lastRollRev, tipRev, c.LogBuilder().Path(c.path))
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "failed to retrieve not-rolled revisions")
 	}

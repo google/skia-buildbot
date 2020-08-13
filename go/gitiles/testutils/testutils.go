@@ -97,9 +97,8 @@ func (mr *MockRepo) MockBranches(ctx context.Context) {
 	mr.URLMock.MockOnce(url, mockhttpclient.MockGetDialogue(b))
 }
 
-func (mr *MockRepo) MockLog(ctx context.Context, logExpr string, opts ...gitiles.LogOption) {
-	path, query, _, err := gitiles.LogOptionsToQuery(opts)
-	require.NoError(mr.t, err)
+func (mr *MockRepo) MockLog(ctx context.Context, b *gitiles.URLBuilder) {
+	url := b.String()
 	args := []string{logExpr}
 	if path != "" {
 		args = append(args, "--", path)

@@ -239,14 +239,14 @@ func (r *repoImpl) processCommits(ctx context.Context, process func(context.Cont
 // loadCommitsFromGitiles loads commits from Gitiles and pushes them onto the
 // given channel, until we reach the optional from commit, or any other commit
 // we've seen before.
-func (r *repoImpl) loadCommitsFromGitiles(ctx context.Context, branch, logExpr string, commitsCh chan<- *commitBatch, opts ...gitiles.LogOption) error {
-	return r.gitiles.LogFnBatch(ctx, logExpr, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
+func (r *repoImpl) loadCommitsFromGitiles(ctx context.Context, branch string, commitsCh chan<- *commitBatch, b *gitiles.URLBuilder) error {
+	return b.DoBatches(ctx, func(ctx context.Context, commits []*vcsinfo.LongCommit) error {
 		commitsCh <- &commitBatch{
 			branch:  branch,
 			commits: commits,
 		}
 		return nil
-	}, opts...)
+	})
 }
 
 // initialIngestion performs the first-time ingestion of the repo.
@@ -309,7 +309,7 @@ func (r *repoImpl) initialIngestion(ctx context.Context) error {
 					sklog.Errorf("Have master @ %s; requesting %s", oldHead, master.Head)
 					logExpr = git.LogFromTo(oldHead, master.Head)
 				}
-				return r.loadCommitsFromGitiles(ctx, master.Name, logExpr, commitsCh, gitiles.LogReverse(), gitiles.LogBatchSize(batchSize))
+				return r.loadCommitsFromGitiles(ctx, master.Name, commitsCh, r.gitiles.LogBuilder().Revision(logExpr).Reverse().BatchSize(batchSize))
 			}); err != nil {
 				return skerr.Wrapf(err, "Failed to ingest commits for master.")
 			}
@@ -396,7 +396,7 @@ func (r *repoImpl) initialIngestion(ctx context.Context) error {
 				if oldHead, ok := oldBranches[branch.Name]; ok {
 					logExpr = git.LogFromTo(oldHead, branch.Head)
 				}
-				return r.loadCommitsFromGitiles(ctx, branch.Name, logExpr, commitsCh, gitiles.LogBatchSize(batchSize))
+				return r.loadCommitsFromGitiles(ctx, branch.Name, commitsCh, r.gitiles.LogBuilder().Revision(logExpr).BatchSize(batchSize))
 			}); err != nil {
 				return skerr.Wrapf(err, "Failed to ingest commits for branch %s.", branch.Name)
 			}
@@ -508,13 +508,13 @@ func (r *repoImpl) Update(ctx context.Context) error {
 			logExpr = git.LogFromTo(oldBranch.Head, branch.Head)
 		}
 		if err := r.processCommits(ctx, r.addCommitsToCacheFn(), func(ctx context.Context, commitsCh chan<- *commitBatch) error {
-			err := r.loadCommitsFromGitiles(ctx, branch.Name, logExpr, commitsCh)
+			err := r.loadCommitsFromGitiles(ctx, branch.Name, commitsCh, r.gitiles.LogBuilder().Revision(logExpr))
 			if err != nil && strings.Contains(err.Error(), "404 Not Found") {
 				// If history was changed, the old branch head
 				// may not be present on the server. Try again
 				// as if the branch is new.
 				sklog.Errorf("Failed loading commits for %s (%q); trying %s: %s", branch.Name, logExpr, branch.Head, err)
-				err = r.loadCommitsFromGitiles(ctx, branch.Name, branch.Head, commitsCh)
+				err = r.loadCommitsFromGitiles(ctx, branch.Name, commitsCh, r.gitiles.LogBuilder().Revision(branch.Head))
 			}
 			if err != nil {
 				return skerr.Wrapf(err, "Failed loading commits for %s (%s); %q", branch.Name, branch.Head, logExpr)
@@ -538,7 +538,7 @@ func (r *repoImpl) Details(ctx context.Context, hash string) (*vcsinfo.LongCommi
 	// local cache.
 	sklog.Errorf("Missing commit %s in %s", hash[:7], r.gitiles.URL)
 	if err := r.processCommits(ctx, r.addCommitsToCacheFn(), func(ctx context.Context, commitsCh chan<- *commitBatch) error {
-		return r.loadCommitsFromGitiles(ctx, "", hash, commitsCh)
+		return r.loadCommitsFromGitiles(ctx, "", commitsCh, r.gitiles.LogBuilder().Revision(hash))
 	}); err != nil {
 		return nil, err
 	}

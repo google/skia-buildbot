@@ -11,7 +11,6 @@ import (
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
-	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/vfs"
 )
 
@@ -98,8 +97,12 @@ func (r *GitilesRepo) GetTipRevision(ctx context.Context) (*revision.Revision, e
 	return r.GetRevision(ctx, r.branch.String())
 }
 
-// ConvertRevisions converts the given slice of LongCommits to Revisions.
-func (r *GitilesRepo) ConvertRevisions(ctx context.Context, commits []*vcsinfo.LongCommit) ([]*revision.Revision, error) {
+// LogFirstParent returns a slice of revision.Revision instances in the given range.
+func (r *GitilesRepo) LogFirstParent(ctx context.Context, from, to *revision.Revision, b *gitiles.URLBuilder) ([]*revision.Revision, error) {
+	commits, err := r.Repo.LogFirstParent(ctx, from.Id, to.Id, b)
+	if err != nil {
+		return nil, err
+	}
 	revs := make([]*revision.Revision, 0, len(commits))
 	for _, commit := range commits {
 		rev, err := r.GetRevision(ctx, commit.Hash)

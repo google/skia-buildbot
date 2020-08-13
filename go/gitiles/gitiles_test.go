@@ -286,18 +286,6 @@ func TestLogPagination(t *testing.T) {
 		log, err := repo.Log(ctx, git.LogFromTo(from.Hash, to.Hash))
 		require.NoError(t, err)
 		assertdeep.Equal(t, expect, log)
-
-		// Test LogFn
-		log = make([]*vcsinfo.LongCommit, 0, len(expect))
-		require.NoError(t, repo.LogFn(ctx, to.Hash, func(ctx context.Context, c *vcsinfo.LongCommit) error {
-			if c.Hash == from.Hash {
-				return ErrStopIteration
-			}
-			log = append(log, c)
-			return nil
-		}))
-		assertdeep.Equal(t, expect, log)
-		require.True(t, urlMock.Empty())
 	}
 
 	// Create some fake commits.

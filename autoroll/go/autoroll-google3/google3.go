@@ -117,7 +117,7 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 		if err != nil {
 			return err
 		}
-		revs, err := a.childRepo.LogFirstParent(ctx, lastSuccessRev, headRev.Hash)
+		revs, err := a.childRepo.LogFirstParent(ctx, lastSuccessRev, headRev.Hash, a.childRepo.LogBuilder())
 		if err != nil {
 			return err
 		}
