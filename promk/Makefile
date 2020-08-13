@@ -6,6 +6,7 @@ validate: ./tmp/promtool absent
 	promk-absent --input=prometheus/alerts_general.yml --output=prometheus/absent_alerts_general.yml
 	promk-absent --input=prometheus/alerts_public.yml --output=prometheus/absent_alerts_public.yml
 	promk-absent --input=prometheus/alerts_thanos.yml --output=prometheus/absent_alerts_thanos.yml
+	promk-absent --input=prometheus/alerts_perf_cockroachdb.yml --output=prometheus/absent_alerts_perf_cockroachdb.yml
 	-./tmp/promtool check config ./prometheus/prometheus-public.yml
 	-./tmp/promtool check config ./prometheus/prometheus-corp.yml
 	-./tmp/promtool check config ./prometheus/prometheus-rack4.yml
@@ -33,6 +34,7 @@ push_config_thanos: validate skia-public
 	mkdir ./tmpconf
 	cp prometheus/alerts_*.yml ./tmpconf
 	cp prometheus/absent_alerts_*.yml ./tmpconf
+	cp prometheus/*_rules.yml ./tmpconf
 	# Need to use replace so that the configmap gets updated. Change "replace"
 	# to "create" if this is the first time the configmap has been uploaded.
 	kubectl create configmap thanos-rules --from-file=./tmpconf -o yaml --dry-run | kubectl replace -f -
