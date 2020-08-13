@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "97296afc_f31599f6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 7
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-13T12:22:20Z",
+      "side": 1,
+      "message": "Associated yaml file CL: https://skia-review.googlesource.com/c/k8s-config/+/309794",
+      "revId": "5005b0f1f0f76f5fd0c5ceb7b21bc71b9e905c7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
