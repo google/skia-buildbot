@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
@@ -42,7 +43,7 @@ const (
 //
 // If client is nil then a default timeout client is used.
 func GetSkiaHead(client *http.Client) (string, error) {
-	head, err := gitiles.NewRepo(common.REPO_SKIA, client).Details(context.TODO(), "master")
+	head, err := gitiles.NewRepo(common.REPO_SKIA, client).Details(context.TODO(), git.DefaultBranch)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Could not get Skia's HEAD")
 	}

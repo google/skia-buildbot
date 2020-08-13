@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -93,8 +94,8 @@ func setupGithub(t *testing.T, cfg *GithubRepoManagerConfig) (context.Context, *
 	fork := git_testutils.GitInit(t, ctx)
 	fork.Git(ctx, "remote", "set-url", "origin", parent.RepoUrl())
 	fork.Git(ctx, "fetch", "origin")
-	fork.Git(ctx, "checkout", "master")
-	fork.Git(ctx, "reset", "--hard", "origin/master")
+	fork.Git(ctx, "checkout", git.DefaultBranch)
+	fork.Git(ctx, "reset", "--hard", git.DefaultRemoteBranch)
 
 	cfg.ChildRepoURL = child.RepoUrl()
 	cfg.ForkRepoURL = fork.RepoUrl()
@@ -108,7 +109,7 @@ func setupGithub(t *testing.T, cfg *GithubRepoManagerConfig) (context.Context, *
 			}
 			if cmd.Args[0] == "checkout" && cmd.Args[1] == "remote/master" {
 				// Pretend origin is the remote branch for testing ease.
-				cmd.Args[1] = "origin/master"
+				cmd.Args[1] = git.DefaultRemoteBranch
 			}
 		}
 		return exec.DefaultRun(ctx, cmd)

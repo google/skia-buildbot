@@ -38,7 +38,7 @@ type GitInfo struct {
 // GetBranch implements the vcsinfo.VCS interface.
 func (g *GitInfo) GetBranch() string {
 	// This was added later and we have implicitly assumed that we are tracking master.
-	return "master"
+	return git.DefaultBranch
 }
 
 // NewGitInfo creates a new GitInfo for the Git repository found in directory

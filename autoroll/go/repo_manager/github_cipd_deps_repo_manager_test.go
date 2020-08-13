@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/cipd/mocks"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
@@ -88,8 +89,8 @@ deps = {
 	fork := git_testutils.GitInit(t, ctx)
 	fork.Git(ctx, "remote", "set-url", "origin", parent.RepoUrl())
 	fork.Git(ctx, "fetch", "origin")
-	fork.Git(ctx, "checkout", "master")
-	fork.Git(ctx, "reset", "--hard", "origin/master")
+	fork.Git(ctx, "checkout", git.DefaultBranch)
+	fork.Git(ctx, "reset", "--hard", git.DefaultRemoteBranch)
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
@@ -99,7 +100,7 @@ deps = {
 			}
 			if cmd.Args[0] == "checkout" && cmd.Args[1] == "remote/master" {
 				// Pretend origin is the remote branch for testing ease.
-				cmd.Args[1] = "origin/master"
+				cmd.Args[1] = git.DefaultRemoteBranch
 			}
 		}
 		return exec.DefaultRun(ctx, cmd)

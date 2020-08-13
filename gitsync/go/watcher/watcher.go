@@ -286,7 +286,7 @@ func (r *repoImpl) initialIngestion(ctx context.Context) error {
 	// their ancestry being on master itself.
 	var master *git.Branch
 	for _, b := range branches {
-		if b.Name == "master" {
+		if b.Name == git.DefaultBranch {
 			master = b
 			break
 		}

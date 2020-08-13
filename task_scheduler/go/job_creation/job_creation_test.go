@@ -13,6 +13,7 @@ import (
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/gcs/mem_gcsclient"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/isolate"
@@ -138,7 +139,7 @@ func TestGatherNewJobs(t *testing.T) {
 	// Add a commit on a branch other than master, run gatherNewJobs, ensure
 	// that we added the new Jobs.
 	branchName := "otherBranch"
-	gb.CreateBranchTrackBranch(ctx, branchName, "master")
+	gb.CreateBranchTrackBranch(ctx, branchName, git.DefaultBranch)
 	msg := "Branch commit"
 	fileName := "some_other_file"
 	gb.Add(ctx, fileName, msg)
@@ -149,7 +150,7 @@ func TestGatherNewJobs(t *testing.T) {
 	// Add several commits in a row on different branches, ensure that we
 	// added all of the Jobs for all of the new commits.
 	makeDummyCommits(ctx, gb, 5)
-	gb.CheckoutBranch(ctx, "master")
+	gb.CheckoutBranch(ctx, git.DefaultBranch)
 	makeDummyCommits(ctx, gb, 5)
 	updateRepos(t, ctx, jc)
 	testGatherNewJobs(71) // 10 commits x 3 jobs/commit = 30, plus 41

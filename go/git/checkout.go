@@ -15,11 +15,6 @@ import (
 	Utility for managing a Git checkout.
 */
 
-const (
-	// Name of the master branch.
-	MASTER = "master"
-)
-
 // Checkout is a struct used for managing a local git checkout.
 type Checkout struct {
 	GitDir
@@ -92,7 +87,7 @@ func (c *Checkout) CleanupBranch(ctx context.Context, branch string) error {
 // Cleanup forcibly resets all changes and checks out the master branch at
 // origin/master. All local changes will be lost.
 func (c *Checkout) Cleanup(ctx context.Context) error {
-	return c.CleanupBranch(ctx, MASTER)
+	return c.CleanupBranch(ctx, DefaultBranch)
 }
 
 // UpdateBranch syncs the Checkout from its remote. Forcibly resets and checks
@@ -112,7 +107,7 @@ func (c *Checkout) UpdateBranch(ctx context.Context, branch string) error {
 // the master branch at origin/master. All local changes will be lost.
 // Equivalent to c.Fetch() + c.Cleanup().
 func (c *Checkout) Update(ctx context.Context) error {
-	return c.UpdateBranch(ctx, MASTER)
+	return c.UpdateBranch(ctx, DefaultBranch)
 }
 
 // TempCheckout is a temporary Git Checkout.

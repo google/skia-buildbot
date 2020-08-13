@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -337,7 +338,7 @@ third_party {
 	// aware that their changes are being rolled there.
 	rollEmails := []string{}
 	rollEmails = append(rollEmails, emails...)
-	if parentBranch != "master" {
+	if parentBranch != git.DefaultBranch {
 		for _, c := range rolling {
 			// Extract out the email if it is a Googler.
 			if strings.HasSuffix(c.Author, "@google.com") {
@@ -411,7 +412,7 @@ third_party {
 		// Only throw exception here if parentBranch is master. This is
 		// because other branches will not have permissions setup for the
 		// bot to run CR+2.
-		if parentBranch != "master" {
+		if parentBranch != git.DefaultBranch {
 			sklog.Warningf("Could not set labels on %d: %s", change.Issue, err)
 			sklog.Warningf("Not throwing error because %s branch is not master", parentBranch)
 		} else {

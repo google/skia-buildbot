@@ -112,11 +112,11 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 	require.NoError(t, err)
 
 	// Mock requests for Update().
-	mockParent.MockGetCommit(ctx, "master")
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockGetCommit(ctx, git.DefaultBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
@@ -139,11 +139,11 @@ func TestFreeTypeRepoManagerUpdate(t *testing.T) {
 	defer cleanup()
 
 	// Mock requests for Update().
-	mockParent.MockGetCommit(ctx, "master")
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockGetCommit(ctx, git.DefaultBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
@@ -161,11 +161,11 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	defer cleanup()
 
 	// Mock requests for Update().
-	mockParent.MockGetCommit(ctx, "master")
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockGetCommit(ctx, git.DefaultBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
@@ -191,7 +191,7 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	}
 
 	subject := strings.Split(fakeCommitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, "master", parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.DefaultBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",

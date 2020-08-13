@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/cq"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -129,7 +130,7 @@ func (c *CapacityClient) getTasksCfg(ctx context.Context, repo string) (*specs.T
 	if !ok {
 		return nil, "", skerr.Fmt("Unknown repo %q", repo)
 	}
-	commit := repoGraph.Get("master")
+	commit := repoGraph.Get(git.DefaultBranch)
 	if commit == nil {
 		return nil, "", skerr.Fmt("Unable to find master branch in %q", repo)
 	}

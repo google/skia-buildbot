@@ -19,6 +19,16 @@ import (
 	"go.skia.org/infra/go/sklog"
 )
 
+const (
+	// DefaultBranch is the name of the default branch for most repositories.
+	DefaultBranch = "master"
+	// DefaultRemote is the name of the default remote repository.
+	DefaultRemote = "origin"
+	// DefaultRemoteBranch is the name of the default branch in the default
+	// remote repository, for most repos.
+	DefaultRemoteBranch = DefaultRemote + "/" + DefaultBranch
+)
+
 var (
 	gitVersionRegex = regexp.MustCompile("git version (\\d+)\\.(\\d+)\\..*")
 	gitVersionMajor = 0

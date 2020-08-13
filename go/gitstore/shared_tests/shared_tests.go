@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/testutils/mem_git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/sktest"
@@ -36,7 +37,7 @@ func TestGitStore(t sktest.TestingT, gs gitstore.GitStore) {
 	// Put a commit, but don't update the branch head. It should show up in
 	// results of Get() and Range, but the master branch should not be
 	// updated.
-	master := "master"
+	master := git.DefaultBranch
 	c0 := mem_git.FakeCommit(t, "c0", master)
 	require.NoError(t, gs.Put(ctx, []*vcsinfo.LongCommit{c0}))
 	branches, err = gs.GetBranches(ctx)

@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/metrics2/events"
@@ -465,9 +466,9 @@ func (m *overdueJobMetrics) start(ctx context.Context) {
 // getMostRecentCachedRev returns the Commit and TasksCfg for the most recent
 // commit which has an entry in the TaskCfgCache.
 func getMostRecentCachedRev(ctx context.Context, tcc *task_cfg_cache.TaskCfgCache, repoUrl string, repo *repograph.Graph) (*repograph.Commit, *specs.TasksCfg, error) {
-	head := repo.Get("master")
+	head := repo.Get(git.DefaultBranch)
 	if head == nil {
-		return nil, nil, skerr.Fmt("Can't resolve %q in %q.", "master", repoUrl)
+		return nil, nil, skerr.Fmt("Can't resolve %q in %q.", git.DefaultBranch, repoUrl)
 	}
 	var commit *repograph.Commit
 	var cfg *specs.TasksCfg

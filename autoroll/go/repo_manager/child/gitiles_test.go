@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/go/chrome_branch/mocks"
+	"go.skia.org/infra/go/git"
 )
 
 // TODO(borenet): Split up the tests in no_checkout_deps_repo_manager_test.go
@@ -15,7 +16,7 @@ import (
 
 // TODO(borenet): This was copied from no_checkout_deps_repo_manager_test.go.
 func masterBranchTmpl(t *testing.T) *config_vars.Template {
-	master, err := config_vars.NewTemplate("master")
+	master, err := config_vars.NewTemplate(git.DefaultBranch)
 	require.NoError(t, err)
 	return master
 }

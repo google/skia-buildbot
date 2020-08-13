@@ -46,7 +46,7 @@ func GitInitWithDir(t sktest.TestingT, ctx context.Context, dir string) *GitBuil
 	g := &GitBuilder{
 		t:      t,
 		dir:    dir,
-		branch: "master",
+		branch: git_common.DefaultBranch,
 		git:    gitExec,
 		rng:    rand.New(rand.NewSource(0)),
 	}
@@ -247,7 +247,7 @@ func (g *GitBuilder) UpdateRef(ctx context.Context, args ...string) {
 // a CL on a trybot.
 func (g *GitBuilder) CreateFakeGerritCLGen(ctx context.Context, issue, patchset string) {
 	currentBranch := strings.TrimSpace(g.Git(ctx, "rev-parse", "--abbrev-ref", "HEAD"))
-	g.CreateBranchTrackBranch(ctx, "fake-patch", "master")
+	g.CreateBranchTrackBranch(ctx, "fake-patch", git_common.DefaultBranch)
 	patchCommit := g.CommitGen(ctx, "somefile")
 	g.UpdateRef(ctx, fmt.Sprintf("refs/changes/%s/%s/%s", issue[len(issue)-2:], issue, patchset), patchCommit)
 	g.CheckoutBranch(ctx, currentBranch)
@@ -275,9 +275,9 @@ func (g *GitBuilder) AcceptPushes(ctx context.Context) {
 func GitSetup(ctx context.Context, g *GitBuilder) []string {
 	c0 := g.CommitGen(ctx, "myfile.txt")
 	c1 := g.CommitGen(ctx, "myfile.txt")
-	g.CreateBranchTrackBranch(ctx, "branch2", "origin/master")
+	g.CreateBranchTrackBranch(ctx, "branch2", git_common.DefaultRemoteBranch)
 	c2 := g.CommitGen(ctx, "anotherfile.txt")
-	g.CheckoutBranch(ctx, "master")
+	g.CheckoutBranch(ctx, git_common.DefaultBranch)
 	c3 := g.CommitGen(ctx, "myfile.txt")
 	c4 := g.MergeBranch(ctx, "branch2")
 	return []string{c0, c1, c2, c3, c4}

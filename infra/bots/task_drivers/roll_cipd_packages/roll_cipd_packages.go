@@ -13,6 +13,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/cipd"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
@@ -259,7 +260,7 @@ func main() {
 			reviewers = append(reviewers, ci.Owner.Email)
 		}
 	}
-	if err := gerrit_steps.UploadCL(ctx, g, co, *gerritProject, "master", rs.Revision, "Update CIPD Packages", reviewers, isTryJob); err != nil {
+	if err := gerrit_steps.UploadCL(ctx, g, co, *gerritProject, git.DefaultBranch, rs.Revision, "Update CIPD Packages", reviewers, isTryJob); err != nil {
 		td.Fatal(ctx, err)
 	}
 }

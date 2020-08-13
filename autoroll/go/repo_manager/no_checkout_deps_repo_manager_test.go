@@ -77,11 +77,11 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (contex
 	require.NoError(t, err)
 
 	// Mock requests for Update().
-	mockParent.MockGetCommit(ctx, "master")
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
 	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockGetCommit(ctx, git.DefaultBranch)
 	if len(cfg.TransitiveDeps) > 0 {
 		mockChild.MockReadFile(ctx, "DEPS", childCommits[len(childCommits)-1])
 	}
@@ -128,11 +128,11 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 	defer cleanup()
 
 	// Mock requests for Update().
-	mockParent.MockGetCommit(ctx, "master")
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockGetCommit(ctx, git.DefaultBranch)
 	if len(cfg.TransitiveDeps) > 0 {
 		mockChild.MockReadFile(ctx, "DEPS", childCommits[len(childCommits)-1])
 	}
@@ -156,11 +156,11 @@ func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *NoCheckoutDEP
 	defer cleanup()
 
 	// Mock requests for Update().
-	mockParent.MockGetCommit(ctx, "master")
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockGetCommit(ctx, git.DefaultBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
@@ -176,7 +176,7 @@ func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *NoCheckoutDEP
 
 	// Mock the initial change creation.
 	subject := strings.Split(fakeCommitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, "master", parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.DefaultBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",
@@ -266,11 +266,11 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	defer cleanup()
 
 	// Mock requests for Update().
-	mockParent.MockGetCommit(ctx, "master")
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
 	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockGetCommit(ctx, git.DefaultBranch)
 	mockChild.MockReadFile(ctx, "DEPS", childCommits[len(childCommits)-1])
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
@@ -302,7 +302,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 		logStr += fmt.Sprintf("%s %s %s\n", ts, author, details.Subject)
 	}
 	subject := strings.Split(fakeCommitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, "master", parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.DefaultBranch, parentMaster))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",

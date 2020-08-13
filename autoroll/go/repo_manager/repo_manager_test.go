@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/go/chrome_branch/mocks"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -20,7 +21,7 @@ func setupRegistry(t *testing.T) *config_vars.Registry {
 }
 
 func masterBranchTmpl(t *testing.T) *config_vars.Template {
-	master, err := config_vars.NewTemplate("master")
+	master, err := config_vars.NewTemplate(git.DefaultBranch)
 	require.NoError(t, err)
 	return master
 }

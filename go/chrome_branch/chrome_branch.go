@@ -83,7 +83,7 @@ func (b *Branch) Validate() error {
 // Branches describes the mapping from Chrome release channel name to branch
 // number.
 type Branches struct {
-	Master *Branch `json:"master"`
+	Master *Branch `json:git.DefaultBranch`
 	Beta   *Branch `json:"beta"`
 	Stable *Branch `json:"stable"`
 }

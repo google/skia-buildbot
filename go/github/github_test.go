@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -374,7 +375,7 @@ func TestReadRawFileRequest(t *testing.T) {
 
 	githubClient, err := NewGitHub(context.Background(), "kryptonians", "krypton", httpClient)
 	require.NoError(t, err)
-	contents, readRawErr := githubClient.ReadRawFile("master", "/dummy/path/to/this.txt")
+	contents, readRawErr := githubClient.ReadRawFile(git.DefaultBranch, "/dummy/path/to/this.txt")
 	require.NoError(t, readRawErr)
 	require.Equal(t, "abcd", contents)
 }
