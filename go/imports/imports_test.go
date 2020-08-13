@@ -34,7 +34,7 @@ var testPackages = []string{
 // items should not be added to this list, only removed.
 var legacyTestImportExceptions = map[string][]string{
 	"go.skia.org/infra/task_driver/go/td": {
-		"github.com/stretchr/testify/require",
+		//"github.com/stretchr/testify/require",
 	},
 	"go.skia.org/infra/task_scheduler/go/db": {
 		"github.com/stretchr/testify/require",

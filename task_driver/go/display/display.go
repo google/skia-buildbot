@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/task_driver/go/db"
 	"go.skia.org/infra/task_driver/go/td"
+	"go.skia.org/infra/task_driver/go/td/properties"
 )
 
 const (
@@ -25,7 +26,7 @@ const (
 
 // StepDisplay represents one step in a single run of a Task Driver.
 type StepDisplay struct {
-	*td.StepProperties
+	*properties.StepProperties
 	Result   td.StepResult `json:"result,omitempty"`
 	Errors   []string      `json:"errors,omitempty"`
 	Started  time.Time     `json:"started,omitempty"`
@@ -53,8 +54,8 @@ func (s StepSlice) Less(i, j int) bool {
 
 // TaskDriverRunDisplay represents a single run of a Task Driver.
 type TaskDriverRunDisplay struct {
-	Id         string            `json:"id"`
-	Properties *td.RunProperties `json:"properties"`
+	Id         string                    `json:"id"`
+	Properties *properties.RunProperties `json:"properties"`
 	*StepDisplay
 }
 
@@ -129,7 +130,7 @@ func TaskDriverForDisplay(t *db.TaskDriverRun) (*TaskDriverRunDisplay, error) {
 				sklog.Infof("Error when gathering steps: %s", err)
 				continue
 			}
-			if s.Properties.Id == td.STEP_ID_ROOT {
+			if s.Properties.Id == properties.STEP_ID_ROOT {
 				rv.StepDisplay = steps[s.Properties.Id]
 			}
 		}

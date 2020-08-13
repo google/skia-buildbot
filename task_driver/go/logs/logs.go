@@ -15,7 +15,7 @@ import (
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_driver/go/td"
+	"go.skia.org/infra/task_driver/go/td/message"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 )
@@ -88,10 +88,10 @@ type Entry struct {
 	LogName          string            `json:"logName"`
 	ReceiveTimestamp time.Time         `json:"receiveTimestamp"`
 	//Resource
-	Severity    string      `json:"severity"`
-	JsonPayload *td.Message `json:"jsonPayload"`
-	TextPayload string      `json:"textPayload"`
-	Timestamp   time.Time   `json:"timestamp"`
+	Severity    string           `json:"severity"`
+	JsonPayload *message.Message `json:"jsonPayload"`
+	TextPayload string           `json:"textPayload"`
+	Timestamp   time.Time        `json:"timestamp"`
 }
 
 // LogsManager is a struct which provides an interface for inserting and

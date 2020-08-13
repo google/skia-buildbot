@@ -21,6 +21,8 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/db"
 	"go.skia.org/infra/task_driver/go/td"
+	"go.skia.org/infra/task_driver/go/td/message"
+	"go.skia.org/infra/task_driver/go/td/properties"
 )
 
 const (
@@ -39,14 +41,14 @@ func TestDB(t sktest.TestingT, d db.DB) {
 
 	// Create a task driver in the DB via UpdateTaskDriver.
 	msgIndex := int32(0)
-	m := &td.Message{
+	m := &message.Message{
 		Index:     int(atomic.AddInt32(&msgIndex, 1)),
 		TaskId:    id,
-		StepId:    td.STEP_ID_ROOT,
+		StepId:    properties.STEP_ID_ROOT,
 		Timestamp: time.Now().Truncate(time.Millisecond), // BigTable truncates timestamps to milliseconds.
-		Type:      td.MSG_TYPE_STEP_STARTED,
-		Step: &td.StepProperties{
-			Id: td.STEP_ID_ROOT,
+		Type:      message.MSG_TYPE_STEP_STARTED,
+		Step: &properties.StepProperties{
+			Id: properties.STEP_ID_ROOT,
 		},
 	}
 	require.NoError(t, m.Validate())
@@ -57,9 +59,9 @@ func TestDB(t sktest.TestingT, d db.DB) {
 	expect := &db.TaskDriverRun{
 		TaskId: id,
 		Steps: map[string]*db.Step{
-			td.STEP_ID_ROOT: {
-				Properties: &td.StepProperties{
-					Id: td.STEP_ID_ROOT,
+			properties.STEP_ID_ROOT: {
+				Properties: &properties.StepProperties{
+					Id: properties.STEP_ID_ROOT,
 				},
 				Started: m.Timestamp,
 			},
@@ -68,26 +70,26 @@ func TestDB(t sktest.TestingT, d db.DB) {
 	assertdeep.Equal(t, r, expect)
 
 	// Update the task driver with some data.
-	m = &td.Message{
+	m = &message.Message{
 		Index:     int(atomic.AddInt32(&msgIndex, 1)),
 		TaskId:    id,
-		StepId:    td.STEP_ID_ROOT,
+		StepId:    properties.STEP_ID_ROOT,
 		Timestamp: time.Now().Truncate(time.Millisecond), // BigTable truncates timestamps to milliseconds.
-		Type:      td.MSG_TYPE_STEP_DATA,
+		Type:      message.MSG_TYPE_STEP_DATA,
 		Data: td.LogData{
 			Name:     "fake-log",
 			Id:       "fake-log-id",
 			Severity: "ERROR",
 			Log:      "???",
 		},
-		DataType: td.DATA_TYPE_LOG,
+		DataType: message.DATA_TYPE_LOG,
 	}
 	require.NoError(t, m.Validate())
 	require.NoError(t, d.UpdateTaskDriver(id, m))
 	r, err = d.GetTaskDriver(id)
 	require.NoError(t, err)
 	require.NotNil(t, r)
-	expect.Steps[td.STEP_ID_ROOT].Data = append(expect.Steps[td.STEP_ID_ROOT].Data, &db.StepData{
+	expect.Steps[properties.STEP_ID_ROOT].Data = append(expect.Steps[properties.STEP_ID_ROOT].Data, &db.StepData{
 		Type:     m.DataType,
 		Data:     m.Data,
 		MsgIndex: m.Index,
@@ -103,7 +105,7 @@ func TestMessageOrdering(t sktest.TestingT, d db.DB) {
 	testDataFile := path.Join(wd, TEST_DATA_FILENAME)
 	err = gcs_testutils.DownloadTestDataFile(t, gcs_testutils.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, testDataFile)
 	require.NoError(t, err)
-	var msgs []*td.Message
+	var msgs []*message.Message
 	require.NoError(t, util.WithReadFile(testDataFile, func(r io.Reader) error {
 		return json.NewDecoder(r).Decode(&msgs)
 	}))
@@ -123,7 +125,7 @@ func TestMessageOrdering(t sktest.TestingT, d db.DB) {
 
 	// Reverse the messages and play them back.
 	id2 := id + "2"
-	reversed := make([]*td.Message, len(msgs))
+	reversed := make([]*message.Message, len(msgs))
 	for i, m := range msgs {
 		// Fixup the ID.
 		m.TaskId = id2
@@ -139,7 +141,7 @@ func TestMessageOrdering(t sktest.TestingT, d db.DB) {
 
 	// Shuffle the messages and play them back.
 	id3 := id + "3"
-	shuffled := make([]*td.Message, len(msgs))
+	shuffled := make([]*message.Message, len(msgs))
 	for i, shuffleIdx := range rand.Perm(len(msgs)) {
 		m := msgs[shuffleIdx]
 		// Fixup the ID.

@@ -13,7 +13,7 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"go.skia.org/infra/task_driver/go/db"
-	"go.skia.org/infra/task_driver/go/td"
+	"go.skia.org/infra/task_driver/go/td/message"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
 )
@@ -25,7 +25,7 @@ const (
 	// We use a single BigTable column family.
 	BT_COLUMN_FAMILY = "MSGS"
 
-	// We use a single BigTable column which stores gob-encoded td.Messages.
+	// We use a single BigTable column which stores gob-encoded message.Messages.
 	BT_COLUMN = "MSG"
 
 	// Format used for BigTable row keys.
@@ -42,7 +42,7 @@ var (
 
 // rowKey returns a BigTable row key for the given message, based on the given
 // Task Driver ID.
-func rowKey(id string, msg *td.Message) string {
+func rowKey(id string, msg *message.Message) string {
 	return fmt.Sprintf(ROW_KEY_FORMAT, id, msg.Index)
 }
 
@@ -70,18 +70,18 @@ func (d *BTDB) Close() error {
 	return d.client.Close()
 }
 
-// GetMessagesForTaskDriver returns all td.Messages sent for the Task Driver
+// GetMessagesForTaskDriver returns all message.Messages sent for the Task Driver
 // with the given ID.
-func (d *BTDB) GetMessagesForTaskDriver(id string) ([]*td.Message, error) {
+func (d *BTDB) GetMessagesForTaskDriver(id string) ([]*message.Message, error) {
 	// Retrieve all messages for the Task Driver from BigTable.
-	msgs := []*td.Message{}
+	msgs := []*message.Message{}
 	var decodeErr error
 	ctx, cancel := context.WithTimeout(context.Background(), QUERY_TIMEOUT)
 	defer cancel()
 	if err := d.table.ReadRows(ctx, bigtable.PrefixRange(id), func(row bigtable.Row) bool {
 		for _, ri := range row[BT_COLUMN_FAMILY] {
 			if ri.Column == BT_COLUMN_FULL {
-				var msg td.Message
+				var msg message.Message
 				decodeErr = gob.NewDecoder(bytes.NewReader(ri.Value)).Decode(&msg)
 				if decodeErr != nil {
 					return false
@@ -128,7 +128,7 @@ func (d *BTDB) GetTaskDriver(id string) (*db.TaskDriverRun, error) {
 }
 
 // See documentation for db.DB interface.
-func (d *BTDB) UpdateTaskDriver(id string, msg *td.Message) error {
+func (d *BTDB) UpdateTaskDriver(id string, msg *message.Message) error {
 	// Encode the Message.
 	buf := bytes.Buffer{}
 	if err := gob.NewEncoder(&buf).Encode(msg); err != nil {

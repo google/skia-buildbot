@@ -1,4 +1,4 @@
-package td
+package message
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/task_driver/go/td/properties"
 )
 
 func TestMessageValidation(t *testing.T) {
@@ -40,12 +41,12 @@ func TestMessageValidation(t *testing.T) {
 	msgStepStarted := func() *Message {
 		return &Message{
 			Index:     int(atomic.AddInt32(&msgIndex, 1)),
-			StepId:    STEP_ID_ROOT,
+			StepId:    properties.STEP_ID_ROOT,
 			TaskId:    "fake-task-id",
 			Timestamp: now,
 			Type:      MSG_TYPE_STEP_STARTED,
 			Step: &StepProperties{
-				Id:      STEP_ID_ROOT,
+				Id:      properties.STEP_ID_ROOT,
 				Name:    "step-name",
 				IsInfra: false,
 			},
@@ -115,7 +116,7 @@ func TestMessageValidation(t *testing.T) {
 	nonRootStarted := msgStepStarted()
 	nonRootStarted.StepId = "fake-step-id"
 	nonRootStarted.Step.Id = "fake-step-id"
-	nonRootStarted.Step.Parent = STEP_ID_ROOT
+	nonRootStarted.Step.Parent = properties.STEP_ID_ROOT
 	checkValid(nonRootStarted)
 	checkValid(msgStepFinished())
 	checkValid(msgTextStepData())
@@ -167,7 +168,7 @@ func TestMessageValidation(t *testing.T) {
 	checkNotValid(func() *Message {
 		m := msgStepStarted()
 		m.Step.Id = "mismatch"
-		m.Step.Parent = STEP_ID_ROOT
+		m.Step.Parent = properties.STEP_ID_ROOT
 		return m
 	}, "StepId must equal Step.Id (root vs mismatch)")
 	checkNotValid(func() *Message {

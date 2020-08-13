@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/task_driver/go/td/properties"
 )
 
 var (
@@ -20,7 +21,7 @@ type Context struct {
 	// The below fields override those of the parent Context, if set.
 
 	// Current step.
-	step *StepProperties
+	step *properties.StepProperties
 
 	// Environment variables, set via WithEnv.
 	env []string
