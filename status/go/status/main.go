@@ -26,6 +26,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/common/model"
 	autoroll_status "go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
@@ -74,6 +75,8 @@ var (
 	capacityClient   *capacity.CapacityClient      = nil
 	capacityTemplate *template.Template            = nil
 	commitsTemplate  *template.Template            = nil
+	flakyTemplate    *template.Template            = nil
+	httpClient       *http.Client                  = nil
 	iCache           *incremental.IncrementalCache = nil
 	lkgrObj          *lkgr.LKGR                    = nil
 	taskDb           db.RemoteDB                   = nil
@@ -147,6 +150,11 @@ func reloadTemplates() {
 		filepath.Join(*resourcesDir, "templates/capacity.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
+	flakyTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/flaky.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+
 }
 
 func Init() {
@@ -662,13 +670,93 @@ func autorollStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func flakyTasksHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *testing {
+		reloadTemplates()
+	}
+
+	if err := flakyTemplate.Execute(w, struct{}{}); err != nil {
+		httputils.ReportError(w, r, err, "Failed to expand template.")
+	}
+}
+
+type metric struct {
+	NumFlaky int `json:"numFlaky"`
+	NumTotal int `json:"numTotal"`
+}
+
+func flakyTasksJsonHandler(w http.ResponseWriter, r *http.Request) {
+	defer metrics2.FuncTimer().Stop()
+	w.Header().Set("Content-Type", "text/html")
+
+	// Query for flaky tasks.
+	query := `task_metrics{instance="skia-datahopper2:20000",metric="flaky-tasks",period="24h0m0s"}>0`
+	val, err := prometheus.API(httpClient).Query(context.Background(), query, time.Now())
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to load metrics.")
+		return
+	}
+	metrics := map[string]*metric{}
+	if val.Type() == model.ValVector {
+		vec, ok := val.(model.Vector)
+		if !ok {
+			httputils.ReportError(w, r, fmt.Errorf("Metrics result parsing failed: %+v", val), "Metrics result parsing failed.")
+			return
+		}
+		for _, s := range vec {
+			task := s.Metric["task_name"]
+			m, ok := metrics[task]
+			if !ok {
+				m = &metric{}
+				metrics[task] = m
+			}
+			if s.Metric["metric"] == "flaky-tasks" {
+				m.NumFlaky = s.Value
+			} else if s.Metric["metric"] == "total-tasks" {
+				m.NumTotal = s.Value
+			}
+		}
+	}
+
+	// Find task dimensions.
+	sklog.Infof("Finding dimensions.")
+	dims := map[string][]string{}
+	for task, _ := range metrics {
+		taskSpec, err := tasksPerCommit.tcc.GetTaskSpec(context.Background(), task.RepoState, task)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to load task spec config.")
+			return
+		}
+		dims[task.Name] = taskSpec.Dimensions
+	}
+
+	sklog.Infof("Encoding response.")
+	data := struct {
+		Dimensions map[string][]string `json:"dimensions"`
+		Metrics    map[string]*metric  `json:"metrics"`
+	}{
+		Dimensions: dims,
+		Metrics:    metrics,
+	}
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode response.")
+		return
+	}
+}
+
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", defaultRedirectHandler)
 	r.HandleFunc("/repo/{repo}", httputils.OriginTrial(statusHandler, *testing))
 	r.HandleFunc("/capacity", httputils.OriginTrial(capacityHandler, *testing))
 	r.HandleFunc("/capacity/json", capacityStatsHandler)
+	r.HandleFunc("/flaky", flakyTasksHandler)
 	r.HandleFunc("/json/autorollers", autorollStatusHandler)
+	r.HandleFunc("/json/flaky", flakyTasksJsonHandler)
 	r.HandleFunc("/json/{repo}/all_comments", commentsForRepoHandler)
 	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
 	r.HandleFunc("/json/{repo}/incremental", incrementalJsonHandler)
@@ -729,6 +817,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	httpClient = httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
 
 	// Create LKGR object.
 	lkgrObj, err = lkgr.New(ctx)

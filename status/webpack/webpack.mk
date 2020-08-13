@@ -8,3 +8,6 @@ $(WEBPACK_DIR)/package-lock.json: $(WEBPACK_DIR)/package.json
 webpack: $(WEBPACK_DIR)/package-lock.json
 	cd $(WEBPACK_DIR) && npm ci
 	cd $(WEBPACK_DIR) && npx webpack --mode=development
+
+serve: webpack
+	cd $(WEBPACK_DIR) && npx webpack-dev-server --mode=development --content-base ../dist --watch-poll

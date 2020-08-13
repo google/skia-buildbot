@@ -1,7 +1,7 @@
 {
-  "name": "task-driver-skia",
+  "name": "skia-status",
   "version": "0.0.1",
-  "description": "UI elements for Task Drivers",
+  "description": "UI elements for Skia Status",
   "private": true,
   "license": "Apache 2.0",
   "dependencies": {

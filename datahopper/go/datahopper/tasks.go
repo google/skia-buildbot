@@ -160,6 +160,8 @@ func computeTaskFlakeRate(ev []*events.Event) ([]map[string]string, []float64, e
 		if taskSum.count == 0 {
 			continue
 		}
+		add(taskName, "flaky-tasks", float64(taskSum.flakes))
+		add(taskName, "total-tasks", float64(taskSum.count))
 		add(taskName, "flake-rate", float64(taskSum.flakes)/float64(taskSum.count))
 	}
 	return rvTags, rvVals, nil

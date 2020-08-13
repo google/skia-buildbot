@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {{template "header.html" .}}
+    <title>Flaky Tasks</title>
+  </head>
+  <body>
+    <flaky-tasks-sk id="ele"></flaky-tasks-sk>
+  </body>
+  <script>
+    sk.get("/json/flaky").then(JSON.parse).then(function(data) {
+      let ele = document.getElementById('ele');
+      ele.data = data;
+    }, function(e) {
+      sk.errorMessage("Failed to load flaky tasks: " + e);
+    })
+  </script>
+</html>
