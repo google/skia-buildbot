@@ -115,6 +115,9 @@ func reportBotMetrics(now time.Time, client swarming.ApiClient, metricsClient me
 		// Bot last seen <duration> ago.
 		m1 := metricsClient.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags)
 		m1.Update(int64(now.Sub(last)))
+		if now.Sub(last) > 15*time.Minute {
+			sklog.Errorf("Bot %s has been offline for %s; last seen %s, current time %s; original timestamp %s", bot.BotId, now.Sub(last), last, now, bot.LastSeenTs)
+		}
 		newMetrics = append(newMetrics, m1)
 
 		for _, reason := range device_state_guages {
