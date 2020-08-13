@@ -26,7 +26,7 @@ var (
 // git checkout and upload changes to GitHub.
 type GitCheckoutGithubConfig struct {
 	GitCheckoutConfig
-	ForkRepoURL string `json:"forkRepoURL"`
+	GithubConfig
 }
 
 // See documentation for util.Validator interface.
@@ -34,8 +34,8 @@ func (c GitCheckoutGithubConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}
-	if c.ForkRepoURL == "" {
-		return skerr.Fmt("ForkRepoURL is required")
+	if err := c.GithubConfig.Validate(); err != nil {
+		return skerr.Wrap(err)
 	}
 	matches := REForkRepoURL.FindStringSubmatch(c.ForkRepoURL)
 	if len(matches) != 5 {
@@ -116,16 +116,12 @@ func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *c
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-
-	// See documentation for GitCheckoutUploadRollFunc.
-	uploadRoll := GitCheckoutUploadGithubRollFunc(githubClient, userName, rollerName, c.ForkRepoURL)
-
 	// Create the GitCheckout Parent.
-	p, err := NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, co, createRoll, uploadRoll)
+	p, err := NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, co, createRoll)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := github_common.SetupGithub(ctx, p.Checkout.Checkout, c.ForkRepoURL); err != nil {
+	if err := p.SetGithub(ctx, c.GithubConfig, githubClient); err != nil {
 		return nil, skerr.Wrap(err)
 	}
 	return p, nil

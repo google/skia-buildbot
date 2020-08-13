@@ -347,59 +347,39 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 		rm = append(rm, c.CommandRepoManager)
 	}
 	if c.CopyRepoManager != nil {
-		// TODO(borenet): De-duplicate the Gerrit config.
-		c.CopyRepoManager.Gerrit = c.Gerrit
 		rm = append(rm, c.CopyRepoManager)
 	}
 	if c.DEPSRepoManager != nil {
-		// TODO(borenet): De-duplicate the Gerrit config.
-		c.DEPSRepoManager.Gerrit = c.Gerrit
 		rm = append(rm, c.DEPSRepoManager)
 	}
 	if c.FreeTypeRepoManager != nil {
-		// TODO(borenet): De-duplicate the Gerrit config.
-		c.FreeTypeRepoManager.Gerrit = c.Gerrit
-		c.FreeTypeRepoManager.TransitiveDeps = c.TransitiveDeps
 		rm = append(rm, c.FreeTypeRepoManager)
 	}
 	if c.FuchsiaSDKAndroidRepoManager != nil {
-		// TODO(borenet): De-duplicate the Gerrit config.
-		c.FuchsiaSDKAndroidRepoManager.Gerrit = c.Gerrit
 		rm = append(rm, c.FuchsiaSDKAndroidRepoManager)
 	}
 	if c.FuchsiaSDKRepoManager != nil {
-		// TODO(borenet): De-duplicate the Gerrit config.
-		c.FuchsiaSDKRepoManager.Gerrit = c.Gerrit
 		rm = append(rm, c.FuchsiaSDKRepoManager)
 	}
 	if c.GithubRepoManager != nil {
-		c.GithubRepoManager.TransitiveDeps = c.TransitiveDeps
 		rm = append(rm, c.GithubRepoManager)
 	}
 	if c.GithubCipdDEPSRepoManager != nil {
 		rm = append(rm, c.GithubCipdDEPSRepoManager)
 	}
 	if c.GithubDEPSRepoManager != nil {
-		c.GithubDEPSRepoManager.TransitiveDeps = c.TransitiveDeps
 		rm = append(rm, c.GithubDEPSRepoManager)
 	}
 	if c.GitilesCIPDDEPSRepoManager != nil {
-		// TODO(borenet): De-duplicate the Gerrit config.
-		c.GitilesCIPDDEPSRepoManager.Gerrit = c.Gerrit
 		rm = append(rm, c.GitilesCIPDDEPSRepoManager)
 	}
 	if c.Google3RepoManager != nil {
 		rm = append(rm, c.Google3RepoManager)
 	}
 	if c.NoCheckoutDEPSRepoManager != nil {
-		// TODO(borenet): De-duplicate the Gerrit config.
-		c.NoCheckoutDEPSRepoManager.Gerrit = c.Gerrit
-		c.NoCheckoutDEPSRepoManager.TransitiveDeps = c.TransitiveDeps
 		rm = append(rm, c.NoCheckoutDEPSRepoManager)
 	}
 	if c.SemVerGCSRepoManager != nil {
-		// TODO(borenet): De-duplicate the Gerrit config.
-		c.SemVerGCSRepoManager.Gerrit = c.Gerrit
 		rm = append(rm, c.SemVerGCSRepoManager)
 	}
 	if len(rm) == 1 {

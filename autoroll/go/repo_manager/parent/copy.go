@@ -37,7 +37,7 @@ func (e CopyEntry) Validate() error {
 // CopyConfig provides configuration for a Parent which copies the Child
 // into itself. It uses a local git checkout and uploads changes to Gerrit.
 type CopyConfig struct {
-	GitilesConfig
+	GitCheckoutConfig
 
 	// Copies indicates which files and directories to copy from the
 	// Child into the Parent.
@@ -46,7 +46,7 @@ type CopyConfig struct {
 
 // See documentation for util.Validator interface.
 func (c CopyConfig) Validate() error {
-	if err := c.GitilesConfig.Validate(); err != nil {
+	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
 	}
 	if len(c.Copies) == 0 {

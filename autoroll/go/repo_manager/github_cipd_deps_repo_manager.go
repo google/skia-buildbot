@@ -7,21 +7,17 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/child"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/github_common"
-	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/autoroll/go/strategy"
-	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
 )
 
 // GithubCipdDEPSRepoManagerConfig provides configuration for the Github RepoManager.
 type GithubCipdDEPSRepoManagerConfig struct {
-	GithubDEPSRepoManagerConfig
-	CipdAssetName string `json:"cipdAssetName"`
-	CipdAssetTag  string `json:"cipdAssetTag"`
+	Parent      parent.DEPSLocalConfig `json:"parent"`
+	Child       child.CIPDConfig       `json:"child"`
+	ForkRepoURL string                 `json:"forkRepoURL"`
 }
 
 // See documentation for RepoManagerConfig interface.
@@ -33,44 +29,13 @@ func (c *GithubCipdDEPSRepoManagerConfig) ValidStrategies() []string {
 
 // See documentation for util.Validator interface.
 func (c *GithubCipdDEPSRepoManagerConfig) Validate() error {
-	_, _, err := c.splitParentChild()
-	return skerr.Wrap(err)
-}
-
-// splitParentChild splits the GithubCipdDEPSRepoManagerConfig into a
-// parent.DEPSLocalConfig and a child.GitCheckoutConfig.
-// TODO(borenet): Update the config format to directly define the parent
-// and child. We shouldn't need most of the New.*RepoManager functions.
-func (c GithubCipdDEPSRepoManagerConfig) splitParentChild() (parent.DEPSLocalConfig, child.CIPDConfig, error) {
-	parentCfg := parent.DEPSLocalConfig{
-		GitCheckoutConfig: parent.GitCheckoutConfig{
-			GitCheckoutConfig: git_common.GitCheckoutConfig{
-				Branch:  c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
-				RepoURL: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
-			},
-			DependencyConfig: version_file_common.DependencyConfig{
-				VersionFileConfig: version_file_common.VersionFileConfig{
-					ID:   c.CipdAssetName,
-					Path: deps_parser.DepsFileName,
-				},
-			},
-		},
-		CheckoutPath:   c.GithubParentPath,
-		GClientSpec:    c.GClientSpec,
-		PreUploadSteps: c.DepotToolsRepoManagerConfig.CommonRepoManagerConfig.PreUploadSteps,
-		RunHooks:       c.RunHooks,
+	if err := c.Parent.Validate(); err != nil {
+		return skerr.Wrap(err)
 	}
-	if err := parentCfg.Validate(); err != nil {
-		return parent.DEPSLocalConfig{}, child.CIPDConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
+	if err := c.Child.Validate(); err != nil {
+		return skerr.Wrap(err)
 	}
-	childCfg := child.CIPDConfig{
-		Name: c.CipdAssetName,
-		Tag:  c.CipdAssetTag,
-	}
-	if err := childCfg.Validate(); err != nil {
-		return parent.DEPSLocalConfig{}, child.CIPDConfig{}, skerr.Wrapf(err, "generated child.CIPDConfig is invalid")
-	}
-	return parentCfg, childCfg, nil
+	return nil
 }
 
 // NewGithubCipdDEPSRepoManager returns a RepoManager instance which operates in the given
@@ -79,19 +44,18 @@ func NewGithubCipdDEPSRepoManager(ctx context.Context, c *GithubCipdDEPSRepoMana
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	parentCfg, childCfg, err := c.splitParentChild()
+	parentRM, err := parent.NewDEPSLocal(ctx, c.Parent, reg, httpClient, serverURL, workdir, cr.UserName(), cr.UserEmail(), recipeCfgFile)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	uploadRoll := parent.GitCheckoutUploadGithubRollFunc(githubClient, cr.UserName(), rollerName, c.ForkRepoURL)
-	parentRM, err := parent.NewDEPSLocal(ctx, parentCfg, reg, httpClient, serverURL, workdir, cr.UserName(), cr.UserEmail(), recipeCfgFile, uploadRoll)
-	if err != nil {
+	if err := parentRM.SetGithub(ctx, parent.GithubConfig{
+		ForkBranchName: rollerName,
+		ForkRepoURL:    c.ForkRepoURL,
+		UserName:       cr.UserName(),
+	}, githubClient); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	if err := github_common.SetupGithub(ctx, parentRM.Checkout.Checkout, c.ForkRepoURL); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	childRM, err := child.NewCIPD(ctx, childCfg, httpClient, workdir)
+	childRM, err := child.NewCIPD(ctx, c.Child, httpClient, workdir)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

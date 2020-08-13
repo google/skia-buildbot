@@ -28,15 +28,11 @@ func NewFreeTypeRepoManager(ctx context.Context, c *FreeTypeRepoManagerConfig, r
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	parentCfg, childCfg, err := c.NoCheckoutDEPSRepoManagerConfig.splitParentChild()
+	parentRM, err := parent.NewFreeTypeParent(ctx, c.Parent, reg, workdir, client, serverURL)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	parentRM, err := parent.NewFreeTypeParent(ctx, parentCfg, reg, workdir, client, serverURL)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	childRM, err := child.NewGitiles(ctx, childCfg, reg, client)
+	childRM, err := child.NewGitiles(ctx, c.Child, reg, client)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}

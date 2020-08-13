@@ -12,10 +12,14 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/github_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -51,7 +55,7 @@ type GitCheckoutParent struct {
 
 // NewGitCheckout returns a base for implementations of Parent which use
 // a local checkout to create changes.
-func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, serverURL, workdir, userName, userEmail string, co *git.Checkout, createRoll git_common.CreateRollFunc, uploadRoll git_common.UploadRollFunc) (*GitCheckoutParent, error) {
+func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, serverURL, workdir, userName, userEmail string, co *git.Checkout, createRoll git_common.CreateRollFunc) (*GitCheckoutParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -70,8 +74,48 @@ func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.R
 		Checkout:   checkout,
 		childID:    c.DependencyConfig.ID,
 		createRoll: createRoll,
-		uploadRoll: uploadRoll,
 	}, nil
+}
+
+// SetGerrit sets up the GitCheckoutParent to upload rolls to Gerrit using the
+// given GerritInterface.
+func (p *GitCheckoutParent) SetGerrit(ctx context.Context, g gerrit.GerritInterface) error {
+	// Install the Gerrit Change-Id hook.
+	if err := gerrit_common.DownloadCommitMsgHook(ctx, g, p.Checkout.Checkout); err != nil {
+		return skerr.Wrap(err)
+	}
+	// Set the upload func.
+	p.uploadRoll = GitCheckoutUploadGerritRollFunc(g)
+	return nil
+}
+
+// SetGithub sets up the GitCheckoutParent to upload rolls to Github using the
+// given github client.
+func (p *GitCheckoutParent) SetGithub(ctx context.Context, c GithubConfig, githubClient *github.GitHub) error {
+	// Check to see whether we have a remote for the fork.
+	remoteOutput, err := p.Git(ctx, "remote", "show")
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	remoteFound := false
+	remoteLines := strings.Split(remoteOutput, "\n")
+	for _, remoteLine := range remoteLines {
+		if remoteLine == github_common.GithubForkRemoteName {
+			remoteFound = true
+			break
+		}
+	}
+	if !remoteFound {
+		if _, err := p.Git(ctx, "remote", "add", githubForkRemoteName, c.ForkRepoURL); err != nil {
+			return skerr.Wrap(err)
+		}
+	}
+	if _, err := p.Git(ctx, "fetch", githubForkRemoteName); err != nil {
+		return skerr.Wrap(err)
+	}
+
+	p.uploadRoll = GitCheckoutUploadGithubRollFunc(githubClient, c.UserName, c.ForkBranchName)
+	return nil
 }
 
 // See documentation for Parent interface.

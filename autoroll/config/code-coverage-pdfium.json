@@ -28,12 +28,15 @@
     "pdfium-reviews+autoroller@googlegroups.com"
   ],
   "noCheckoutDEPSRepoManager": {
-    "childBranch": "master",
-    "childPath": "tools/code_coverage",
-    "childRepo": "https://chromium.googlesource.com/chromium/src/tools/code_coverage.git",
-    "childRevLinkTmpl": "https://chromium.googlesource.com/chromium/src/tools/code_coverage.git/+show/%s",
-    "parentBranch": "master",
-    "parentRepo": "https://pdfium.googlesource.com/pdfium.git"
+    "child": {
+      "branch": "master",
+      "repoURL": "https://chromium.googlesource.com/chromium/src/tools/code_coverage.git",
+      "revLinkTmpl": "https://chromium.googlesource.com/chromium/src/tools/code_coverage.git/+show/%s"
+    },
+    "parent": {
+      "branch": "master",
+      "repoURL": "https://pdfium.googlesource.com/pdfium.git"
+    },
   },
   "kubernetes": {
     "cpu": "1",
