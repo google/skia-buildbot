@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/eventsource"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
@@ -119,6 +120,7 @@ var (
 
 	podId string
 	repos repograph.Map
+	es    map[string]*eventsource.EventSource
 )
 
 // StringIsInteresting returns true iff the string contains non-whitespace characters.
@@ -662,6 +664,15 @@ func autorollStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func streamHandler(w http.ResponseWriter, r *http.Request) {
+	_, repoUrl, err := getRepo(r)
+	if err != nil {
+		httputils.ReportError(w, r, err, err.Error())
+		return
+	}
+	es[repoUrl].Handler()(w, r)
+}
+
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", defaultRedirectHandler)
@@ -689,6 +700,9 @@ func runServer(serverURL string) {
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{timestamp:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
 	commits.Use(login.RestrictEditor)
+	r.HandleFunc("/json/{repo}/incremental", incrementalJsonHandler)
+	r.HandleFunc("/json/{repo}/stream", streamHandler)
+	r.HandleFunc("/json/{repo}/all_comments", commentsForRepoHandler)
 	handlers.AddTaskDriverHandlers(r, taskDriverDb, taskDriverLogs)
 	h := httputils.LoggingGzipRequestResponse(login.RestrictViewer(r))
 	if !*testing {
@@ -778,6 +792,12 @@ func main() {
 	tasksPerCommit, err = newTasksPerCommitCache(ctx, repos, 14*24*time.Hour, *btProject, *btInstance, ts)
 	if err != nil {
 		sklog.Fatalf("Failed to create tasksPerCommitCache: %s", err)
+	}
+
+	// Create EventSources.
+	es := make(map[string]*eventsource.EventSource, len(repos))
+	for repoUrl, _ := range repos {
+		es[repoUrl] = eventsource.New()
 	}
 
 	// Create the IncrementalCache.
