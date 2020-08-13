@@ -18,15 +18,21 @@ func fullTaskCandidate() *TaskCandidate {
 		BuildbucketBuildId: 8888,
 		Commits:            []string{"a", "b"},
 		Diagnostics:        &TaskCandidateDiagnostics{},
+		Id:                 "fake-id",
 		IsolatedInput:      "lonely-parameter",
 		IsolatedHashes:     []string{"browns"},
+		JobIds: []string{
+			"dummy",
+		},
 		Jobs: []*types.Job{{
 			Id: "dummy",
 		}},
 		ParentTaskIds:  []string{"38", "39", "40"},
 		RetryOf:        "41",
 		Score:          99,
+		Status:         CANDIDATE_STATUS_RUNNING,
 		StealingFromId: "rich",
+		TaskId:         "dummy-task",
 		TaskKey: types.TaskKey{
 			RepoState: types.RepoState{
 				Repo:     "nou.git",
@@ -36,6 +42,9 @@ func fullTaskCandidate() *TaskCandidate {
 		},
 		TaskSpec: &specs.TaskSpec{
 			Isolate: "confine",
+		},
+		TriggeringBlockers: map[string]bool{
+			"Previous task dummy-task has status\"\"": true,
 		},
 	}
 }

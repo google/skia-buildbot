@@ -29,6 +29,10 @@ const (
 	// JOB_STATUS_CANCELED indicates that the Job has been canceled.
 	JOB_STATUS_CANCELED JobStatus = "CANCELED"
 
+	// JOB_STATUS_EXPIRED indicates that the Job expired because it did not
+	// complete within the allotted time.
+	JOB_STATUS_EXPIRED = "EXPIRED"
+
 	// JOB_URL_TMPL is a template for Job URLs.
 	JOB_URL_TMPL = "%s/job/%s"
 
@@ -44,6 +48,7 @@ var (
 		JOB_STATUS_CANCELED:    2,
 		JOB_STATUS_FAILURE:     3,
 		JOB_STATUS_MISHAP:      4,
+		JOB_STATUS_EXPIRED:     5,
 	}
 	VALID_JOB_STATUSES = []JobStatus{
 		JOB_STATUS_IN_PROGRESS,
@@ -51,6 +56,7 @@ var (
 		JOB_STATUS_FAILURE,
 		JOB_STATUS_MISHAP,
 		JOB_STATUS_CANCELED,
+		JOB_STATUS_EXPIRED,
 	}
 )
 

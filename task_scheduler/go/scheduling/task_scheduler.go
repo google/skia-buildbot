@@ -30,6 +30,8 @@ import (
 	"go.skia.org/infra/go/timeout"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/candidate"
+	candidate_db "go.skia.org/infra/task_scheduler/go/candidate/db"
+	"go.skia.org/infra/task_scheduler/go/candidate/db/memory"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
@@ -90,6 +92,7 @@ var (
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
 	busyBots            *busyBots
+	candidateDB         candidate_db.TaskCandidateDB
 	candidateMetrics    map[string]metrics2.Int64Metric
 	candidateMetricsMtx sync.Mutex
 	db                  db.DB
@@ -149,6 +152,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 	s := &TaskScheduler{
 		skipTasks:             bl,
 		busyBots:              newBusyBots(),
+		candidateDB:           memory.NewInMemoryTaskCandidateDB(),
 		candidateMetrics:      map[string]metrics2.Int64Metric{},
 		db:                    d,
 		diagClient:            diagClient,
@@ -470,17 +474,13 @@ type taskSchedulerMainLoopDiagnostics struct {
 
 // writeMainLoopDiagnosticsToGCS writes JSON containing allCandidates and
 // freeBots to GCS. If called in a goroutine, the arguments may not be modified.
-func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end time.Time, diagClient gcs.GCSClient, diagInstance string, allCandidates map[types.TaskKey]*candidate.TaskCandidate, freeBots []*swarming_api.SwarmingRpcsBotInfo, scheduleErr error) error {
+func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end time.Time, diagClient gcs.GCSClient, diagInstance string, allCandidates []*candidate.TaskCandidate, freeBots []*swarming_api.SwarmingRpcsBotInfo, scheduleErr error) error {
 	defer metrics2.FuncTimer().Stop()
-	candidateSlice := make([]*candidate.TaskCandidate, 0, len(allCandidates))
-	for _, c := range allCandidates {
-		candidateSlice = append(candidateSlice, c)
-	}
-	sort.Sort(candidate.TaskCandidateSlice(candidateSlice))
+	sort.Sort(candidate.TaskCandidateSlice(allCandidates))
 	content := taskSchedulerMainLoopDiagnostics{
 		StartTime:  start.UTC(),
 		EndTime:    end.UTC(),
-		Candidates: candidateSlice,
+		Candidates: allCandidates,
 		FreeBots:   freeBots,
 	}
 	if scheduleErr != nil {
@@ -497,68 +497,19 @@ func writeMainLoopDiagnosticsToGCS(ctx context.Context, start time.Time, end tim
 	})
 }
 
-// findTaskCandidatesForJobs returns the set of all candidate.TaskCandidates needed by all
-// currently-unfinished jobs.
-func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishedJobs []*types.Job) (map[types.TaskKey]*candidate.TaskCandidate, error) {
-	defer metrics2.FuncTimer().Stop()
-
-	// Get the repo+commit+taskspecs for each job.
-	candidates := map[types.TaskKey]*candidate.TaskCandidate{}
-	for _, j := range unfinishedJobs {
-		if !s.window.TestTime(j.Repo, j.Created) {
-			continue
-		}
-
-		// If git history was changed, we should avoid running jobs at
-		// orphaned commits.
-		if s.repos[j.Repo].Get(j.Revision) == nil {
-			// TODO(borenet): Cancel the job.
-			continue
-		}
-
-		// Add task candidates for this job.
-		for tsName := range j.Dependencies {
-			key := j.MakeTaskKey(tsName)
-			c, ok := candidates[key]
-			if !ok {
-				taskCfg, err := s.taskCfgCache.Get(ctx, j.RepoState)
-				if err != nil {
-					return nil, skerr.Wrap(err)
-				}
-				spec, ok := taskCfg.Tasks[tsName]
-				if !ok {
-					// TODO(borenet): This should have already been caught when
-					// we validated the TasksCfg before inserting the job.
-					sklog.Errorf("Job %s wants task %s which is not defined in %+v", j.Name, tsName, j.RepoState)
-					continue
-				}
-				c = &candidate.TaskCandidate{
-					// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
-					// could be inherited from any matching Job. Therefore, this should be
-					// used for non-critical, informational purposes only.
-					BuildbucketBuildId: j.BuildbucketBuildId,
-					Jobs:               nil,
-					TaskKey:            key,
-					TaskSpec:           spec,
-				}
-				candidates[key] = c
-			}
-			c.AddJob(j)
-		}
-	}
-	sklog.Infof("Found %d task candidates for %d unfinished jobs.", len(candidates), len(unfinishedJobs))
-	return candidates, nil
-}
-
 // filterTaskCandidates reduces the set of TaskCandidates to the ones we might
 // actually want to run and organizes them by repo and TaskSpec name.
-func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskKey]*candidate.TaskCandidate) (map[string]map[string][]*candidate.TaskCandidate, error) {
+func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates []*candidate.TaskCandidate) (map[string]map[string][]*candidate.TaskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
 	candidatesBySpec := map[string]map[string][]*candidate.TaskCandidate{}
 	total := 0
 	skipped := map[string]int{}
 	for _, c := range preFilterCandidates {
+		if c.TriggeringBlockers == nil {
+			c.TriggeringBlockers = map[string]bool{}
+		}
+
 		// Reject skipped tasks.
 		if rule := s.skipTasks.MatchRule(c.Name, c.Revision); rule != "" {
 			skipped[rule]++
@@ -566,15 +517,6 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 			continue
 		}
 
-		// Reject tasks for too-old commits, as long as they aren't try jobs.
-		if !c.IsTryJob() {
-			if in, err := s.window.TestCommitHash(c.Repo, c.Revision); err != nil {
-				return nil, err
-			} else if !in {
-				c.GetDiagnostics().Filtering = &candidate.TaskCandidateFilteringDiagnostics{RevisionTooOld: true}
-				continue
-			}
-		}
 		// We shouldn't duplicate pending, in-progress,
 		// or successfully completed tasks.
 		prevTasks, err := s.tCache.GetTasksByKey(&c.TaskKey)
@@ -590,10 +532,16 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 		if previous != nil {
 			if previous.Status == types.TASK_STATUS_PENDING || previous.Status == types.TASK_STATUS_RUNNING {
 				c.GetDiagnostics().Filtering = &candidate.TaskCandidateFilteringDiagnostics{SupersededByTask: previous.Id}
+				c.TriggeringBlockers[fmt.Sprintf("Previous task %s has status %q", previous.Id, previous.Status)] = true
 				continue
 			}
 			if previous.Success() {
+				// TODO(borenet): Either mark the candidate as
+				// successful (ie. inactive) or ensure that we
+				// don't reach this case because it was already
+				// marked successful when the task succeeded.
 				c.GetDiagnostics().Filtering = &candidate.TaskCandidateFilteringDiagnostics{SupersededByTask: previous.Id}
+				c.TriggeringBlockers[fmt.Sprintf("Previous task %s has status %q", previous.Id, previous.Status)] = true
 				continue
 			}
 			// The attempt counts are only valid if the previous
@@ -617,6 +565,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 					previousIds = append(previousIds, t.Id)
 				}
 				c.GetDiagnostics().Filtering = &candidate.TaskCandidateFilteringDiagnostics{PreviousAttempts: previousIds}
+				c.TriggeringBlockers[fmt.Sprintf("Reached maximum attempt count of %d", maxAttempts)] = true
 				continue
 			}
 			c.Attempt = previousAttempt + 1
@@ -655,6 +604,7 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 		sklog.Infof("Skipped %d candidates due to skip_tasks rule %q. See details in diagnostics at %s.", numSkipped, rule, diagLink)
 	}
 	sklog.Infof("Filtered to %d candidates in %d spec categories.", total, len(candidatesBySpec))
+	// TODO(borenet): Should we update the candidates we removed in the DB?
 	return candidatesBySpec, nil
 }
 
@@ -805,7 +755,7 @@ func (s *TaskScheduler) processTaskCandidates(ctx context.Context, candidates ma
 
 					processed <- best
 					t := best.MakeTask()
-					t.Id = best.MakeId()
+					t.Id = best.Id
 					cache.insert(t)
 					if best.StealingFromId != "" {
 						stoleFrom, err := cache.GetTask(best.StealingFromId)
@@ -930,23 +880,18 @@ func (s *TaskScheduler) recordCandidateMetrics(candidates map[string]map[string]
 // regenerateTaskQueue obtains the set of all eligible task candidates, scores
 // them, and prepares them to be triggered. The second return value contains
 // all candidates.
-func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) ([]*candidate.TaskCandidate, map[types.TaskKey]*candidate.TaskCandidate, error) {
+func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) ([]*candidate.TaskCandidate, []*candidate.TaskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
-	// Find the unfinished Jobs.
-	unfinishedJobs, err := s.jCache.UnfinishedJobs()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// Find TaskSpecs for all unfinished Jobs.
-	preFilterCandidates, err := s.findTaskCandidatesForJobs(ctx, unfinishedJobs)
+	// Find the active Task Candidates.
+	// TODO(borenet): We should cache candidates, at least within each loop.
+	activeCandidates, err := s.candidateDB.GetActive(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Filter task candidates.
-	candidates, err := s.filterTaskCandidates(preFilterCandidates)
+	candidates, err := s.filterTaskCandidates(activeCandidates)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -960,7 +905,7 @@ func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) 
 		return nil, nil, err
 	}
 
-	return queue, preFilterCandidates, nil
+	return queue, activeCandidates, nil
 }
 
 // getCandidatesToSchedule matches the list of free Swarming bots to task
@@ -1139,6 +1084,9 @@ func (s *TaskScheduler) triggerTasks(candidates []*candidate.TaskCandidate, errC
 				recordErr("Failed to assign id", err)
 				return
 			}
+			// TODO(borenet): We should unset cand.TaskId if we fail
+			// to trigger the task and insert it into the DB.
+			cand.TaskId = t.Id
 			diag.TaskId = t.Id
 			req := cand.MakeTaskRequest(t.Id, s.isolateClient.ServerURL(), s.pubsubTopic)
 			s.pendingInsertMtx.Lock()
@@ -1352,6 +1300,9 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		return fmt.Errorf("Failed to update unfinished jobs: %s", err)
 	}
 
+	if err := s.updateTaskCandidates(ctx); err != nil {
+		return skerr.Wrapf(err, "Failed to update task candidates")
+	}
 	if err := s.skipTasks.Update(); err != nil {
 		return fmt.Errorf("Failed to update skip_tasks: %s", err)
 	}
@@ -1371,6 +1322,9 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	sklog.Infof("Task Scheduler scheduling tasks...")
 	err = s.scheduleTasks(ctx, bots, queue)
 
+	// Update the candidates which changed.
+	err2 := s.candidateDB.Put(ctx, allCandidates)
+
 	// An error from scheduleTasks can indicate a partial error; write diagnostics
 	// in either case.
 	if s.diagClient != nil {
@@ -1382,8 +1336,12 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		}()
 	}
 
-	if err != nil {
-		return fmt.Errorf("Failed to schedule tasks: %s", err)
+	if err != nil && err2 != nil {
+		return skerr.Wrapf(err, "Failed to schedule tasks, and failed to update candidates with: %s", err2)
+	} else if err != nil {
+		return skerr.Wrapf(err, "failed to schedule tasks")
+	} else if err2 != nil {
+		return skerr.Wrapf(err, "failed to update candidates")
 	}
 
 	sklog.Infof("Task Scheduler MainLoop finished.")
@@ -1622,6 +1580,24 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 	modifiedJobs := make([]*types.Job, 0, len(jobs))
 	modifiedTasks := make(map[string]*types.Task, len(jobs))
 	for _, j := range jobs {
+		// TODO(borenet): JobCache won't return Jobs outside of the
+		// window, so this won't do anything except in rare cases.
+		if !s.window.TestTime(j.Repo, j.Created) {
+			j.Status = types.JOB_STATUS_EXPIRED
+			s.jobFinished(j)
+			modifiedJobs = append(modifiedJobs, j)
+			continue
+		}
+
+		// If git history was changed, we should avoid running jobs at
+		// orphaned commits.
+		if s.repos[j.Repo].Get(j.Revision) == nil {
+			j.Status = types.JOB_STATUS_CANCELED
+			s.jobFinished(j)
+			modifiedJobs = append(modifiedJobs, j)
+			continue
+		}
+
 		tasks, err := s.getTasksForJob(j)
 		if err != nil {
 			return err
@@ -1664,6 +1640,99 @@ func (s *TaskScheduler) updateUnfinishedJobs() error {
 	if len(modifiedJobs) > 0 {
 		if err := s.putJobsInChunks(modifiedJobs); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// updateTaskCandidates updates the TaskCandidates to ensure that we have
+// candidates for all unfinished Jobs, and cancels/expires TaskCandidates for
+// expired/canceled Jobs.
+func (s *TaskScheduler) updateTaskCandidates(ctx context.Context) error {
+	// Retrieve the active Jobs and TaskCandidates, organize into maps.
+	jobs := s.jCache.GetAllCachedJobs()
+	jobIds := make([]string, 0, len(jobs))
+	jobsById := make(map[string]*types.Job, len(jobs))
+	for _, job := range jobs {
+		jobIds = append(jobIds, job.Id)
+		jobsById[job.Id] = job
+	}
+	candidates, err := s.candidateDB.GetRange(ctx, s.window.EarliestStart(), time.Now())
+	if err != nil {
+		return skerr.Wrapf(err, "Failed to retrieve TaskCandidates.")
+	}
+	byKey := make(map[types.TaskKey]*candidate.TaskCandidate, len(candidates))
+	for _, c := range candidates {
+		byKey[c.TaskKey] = c
+	}
+
+	// There should be candidates for all jobs.
+	modified := map[string]*candidate.TaskCandidate{}
+	for _, job := range jobs {
+		for tsName := range job.Dependencies {
+			key := job.MakeTaskKey(tsName)
+			c, ok := byKey[key]
+			if !ok {
+				spec, err := s.taskCfgCache.GetTaskSpec(ctx, job.RepoState, tsName)
+				if err != nil {
+					// Log an error but don't block scheduling due to transient errors.
+					sklog.Errorf("Failed to obtain task spec: %s", err)
+					// TODO(borenet): We should check specs.ErrorIsPermanent and
+					// consider canceling the job since we can never fulfill it.
+					continue
+				}
+				c = &candidate.TaskCandidate{
+					// NB: Because multiple Jobs may share a Task, the BuildbucketBuildId
+					// could be inherited from any matching Job. Therefore, this should be
+					// used for non-critical, informational purposes only.
+					BuildbucketBuildId: job.BuildbucketBuildId,
+					Jobs:               nil,
+					TaskKey:            key,
+					TaskSpec:           spec,
+				}
+				byKey[key] = c
+			}
+			if c.AddJob(job) {
+				modified[c.Id] = c
+			}
+		}
+	}
+
+	// Update candidates for no-longer-active jobs.
+	for _, c := range byKey {
+		hasActiveJob := false
+		for _, job := range c.Jobs {
+			if job, ok := jobsById[job.Id]; ok && !job.Done() {
+				hasActiveJob = true
+				break
+			}
+		}
+		// Arbitrarily take the result of the first job.
+		if !hasActiveJob {
+			job, err := s.jCache.GetJobMaybeExpired(c.JobIds[0])
+			if err != nil {
+				return skerr.Wrapf(err, "Failed to retrieve job %s", c.Jobs[0].Id)
+			}
+			if job.Status == types.JOB_STATUS_EXPIRED {
+				c.Status = candidate.CANDIDATE_STATUS_EXPIRED
+			} else if job.Status == types.JOB_STATUS_CANCELED {
+				c.Status = candidate.CANDIDATE_STATUS_CANCELED
+			} else {
+				// TODO(borenet): Error? Add other statuses?
+				c.Status = candidate.CANDIDATE_STATUS_CANCELED
+			}
+			modified[c.Id] = c
+		}
+	}
+
+	// Insert the candidates into the DB.
+	put := make([]*candidate.TaskCandidate, 0, len(modified))
+	for _, c := range modified {
+		put = append(put, c)
+	}
+	if len(put) > 0 {
+		if err := s.candidateDB.Put(ctx, put); err != nil {
+			return skerr.Wrapf(err, "Failed to insert TaskCandidates")
 		}
 	}
 	return nil

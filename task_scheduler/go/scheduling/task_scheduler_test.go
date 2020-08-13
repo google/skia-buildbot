@@ -327,11 +327,98 @@ func lastDiagnostics(t *testing.T, s *TaskScheduler) taskSchedulerMainLoopDiagno
 	return rv
 }
 
-func TestFindTaskCandidatesForJobs(t *testing.T) {
-	ctx, _, _, _, s, _, cleanup := setup(t)
+func updateRepos(t *testing.T, ctx context.Context, s *TaskScheduler) {
+	acked := false
+	ack := func() {
+		acked = true
+	}
+	nack := func() {
+		require.FailNow(t, "Should not have called nack()")
+	}
+	err := s.repos.UpdateWithCallback(ctx, func(repoUrl string, g *repograph.Graph) error {
+		return s.HandleRepoUpdate(ctx, repoUrl, g, ack, nack)
+	})
+	require.NoError(t, err)
+	require.True(t, acked)
+}
+
+func TestGatherNewJobs(t *testing.T) {
+	ctx, gb, _, _, s, _, cleanup := setup(t)
 	defer cleanup()
 
-	test := func(jobs []*types.Job, expect map[types.TaskKey]*candidate.TaskCandidate) {
+	testGatherNewJobs := func(expectedJobs int) {
+		updateRepos(t, ctx, s)
+		jobs, err := s.jCache.UnfinishedJobs()
+		require.NoError(t, err)
+		require.Equal(t, expectedJobs, len(jobs))
+	}
+
+	// Ensure that the JobDB is empty.
+	jobs, err := s.jCache.UnfinishedJobs()
+	require.NoError(t, err)
+	require.Equal(t, 0, len(jobs))
+
+	// Run gatherNewJobs, ensure that we added jobs for all commits in the
+	// repo.
+	testGatherNewJobs(5) // c1 has 2 jobs, c2 has 3 jobs.
+
+	// Run gatherNewJobs again, ensure that we didn't add the same Jobs
+	// again.
+	testGatherNewJobs(5) // no new jobs == 5 total jobs.
+
+	// Add a commit on master, run gatherNewJobs, ensure that we added the
+	// new Jobs.
+	makeDummyCommits(ctx, gb, 1)
+	updateRepos(t, ctx, s)
+	testGatherNewJobs(8) // we didn't add to the jobs spec, so 3 jobs/rev.
+
+	// Add several commits on master, ensure that we added all of the Jobs.
+	makeDummyCommits(ctx, gb, 10)
+	updateRepos(t, ctx, s)
+	testGatherNewJobs(38) // 3 jobs/rev + 8 pre-existing jobs.
+
+	// Add a commit on a branch other than master, run gatherNewJobs, ensure
+	// that we added the new Jobs.
+	branchName := "otherBranch"
+	gb.CreateBranchTrackBranch(ctx, branchName, "master")
+	msg := "Branch commit"
+	fileName := "some_other_file"
+	gb.Add(ctx, fileName, msg)
+	gb.Commit(ctx)
+	updateRepos(t, ctx, s)
+	testGatherNewJobs(41) // 38 previous jobs + 3 new ones.
+
+	// Add several commits in a row on different branches, ensure that we
+	// added all of the Jobs for all of the new commits.
+	makeDummyCommits(ctx, gb, 5)
+	gb.CheckoutBranch(ctx, "master")
+	makeDummyCommits(ctx, gb, 5)
+	updateRepos(t, ctx, s)
+	testGatherNewJobs(71) // 10 commits x 3 jobs/commit = 30, plus 41
+
+	// Add one more commit on the non-master branch which marks all but one
+	// job to only run on master. Ensure that we don't pick them up.
+	gb.CheckoutBranch(ctx, branchName)
+	cfg, err := specs.ReadTasksCfg(gb.Dir())
+	require.NoError(t, err)
+	for name, jobSpec := range cfg.Jobs {
+		if name != tcc_testutils.BuildTaskName {
+			jobSpec.Trigger = specs.TRIGGER_MASTER_ONLY
+		}
+	}
+	cfgBytes, err := specs.EncodeTasksCfg(cfg)
+	require.NoError(t, err)
+	gb.Add(ctx, "infra/bots/tasks.json", string(cfgBytes))
+	gb.CommitMsgAt(ctx, "abcd", time.Now())
+	updateRepos(t, ctx, s)
+	testGatherNewJobs(72)
+}
+
+/*func TestFindTaskCandidatesForJobs(t *testing.T) {
+	ctx, gb, _, _, s, _, cleanup := setup(t)
+	defer cleanup()
+
+	test := func(jobs []*types.Job, expect []*candidate.TaskCandidate) {
 		actual, err := s.findTaskCandidatesForJobs(ctx, jobs)
 		require.NoError(t, err)
 		assertdeep.Equal(t, expect, actual)
@@ -343,7 +430,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 	require.NoError(t, err)
 
 	// Run on an empty job list, ensure empty list returned.
-	test([]*types.Job{}, map[types.TaskKey]*candidate.TaskCandidate{})
+	test([]*types.Job{}, []*candidate.TaskCandidate{})
 
 	now := time.Now().UTC()
 
@@ -374,10 +461,7 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		TaskSpec: cfg1.Tasks[tcc_testutils.TestTaskName].Copy(),
 	}
 
-	test([]*types.Job{j1}, map[types.TaskKey]*candidate.TaskCandidate{
-		tc1.TaskKey: tc1,
-		tc2.TaskKey: tc2,
-	})
+	test([]*types.Job{j1}, []*candidate.TaskCandidate{tc1, tc2})
 
 	// Add a job, ensure that its dependencies are added and that the right
 	// dependencies are de-duplicated.
@@ -421,17 +505,11 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 		},
 		TaskSpec: cfg2.Tasks[tcc_testutils.PerfTaskName].Copy(),
 	}
-	allCandidates := map[types.TaskKey]*candidate.TaskCandidate{
-		tc1.TaskKey: tc1,
-		tc2.TaskKey: tc2,
-		tc3.TaskKey: tc3,
-		tc4.TaskKey: tc4,
-		tc5.TaskKey: tc5,
-	}
+	allCandidates := []*candidate.TaskCandidate{tc1, tc2, tc3, tc4, tc5}
 	test([]*types.Job{j1, j2, j3}, allCandidates)
 
 	// Finish j3, ensure that its task specs no longer show up.
-	delete(allCandidates, j3.MakeTaskKey(tcc_testutils.PerfTaskName))
+	allCandidates = allCandidates[:4]
 	// This is hacky, but findTaskCandidatesForJobs accepts an already-
 	// filtered list of jobs, so we have to pretend it never existed.
 	tc3.Jobs = tc3.Jobs[:1]
@@ -449,8 +527,8 @@ func TestFindTaskCandidatesForJobs(t *testing.T) {
 			Revision: "aaaaabbbbbcccccdddddeeeeefffff1111122222",
 		},
 	}
-	test([]*types.Job{j4}, map[types.TaskKey]*candidate.TaskCandidate{})
-}
+	test([]*types.Job{j4}, []*candidate.TaskCandidate{})
+}*/
 
 func TestFilterTaskCandidates(t *testing.T) {
 	_, _, _, _, s, _, cleanup := setup(t)
@@ -480,28 +558,28 @@ func TestFilterTaskCandidates(t *testing.T) {
 		RepoState: rs2,
 		Name:      tcc_testutils.PerfTaskName,
 	}
-	candidates := map[types.TaskKey]*candidate.TaskCandidate{
-		k1: {
+	candidates := []*candidate.TaskCandidate{
+		{
 			TaskKey:  k1,
 			TaskSpec: &specs.TaskSpec{},
 		},
-		k2: {
+		{
 			TaskKey: k2,
 			TaskSpec: &specs.TaskSpec{
 				Dependencies: []string{tcc_testutils.BuildTaskName},
 			},
 		},
-		k3: {
+		{
 			TaskKey:  k3,
 			TaskSpec: &specs.TaskSpec{},
 		},
-		k4: {
+		{
 			TaskKey: k4,
 			TaskSpec: &specs.TaskSpec{
 				Dependencies: []string{tcc_testutils.BuildTaskName},
 			},
 		},
-		k5: {
+		{
 			TaskKey: k5,
 			TaskSpec: &specs.TaskSpec{
 				Dependencies: []string{tcc_testutils.BuildTaskName},
@@ -509,7 +587,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 		},
 	}
 
-	clearDiagnostics := func(candidates map[types.TaskKey]*candidate.TaskCandidate) {
+	clearDiagnostics := func(candidates []*candidate.TaskCandidate) {
 		for _, c := range candidates {
 			c.Diagnostics = nil
 		}
@@ -629,7 +707,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 		}
 	}
 	// Candidate with k1 is blocked by t1.
-	require.Equal(t, candidates[k1].Diagnostics.Filtering.SupersededByTask, t1.Id)
+	require.Equal(t, candidates[0].Diagnostics.Filtering.SupersededByTask, t1.Id)
 
 	clearDiagnostics(candidates)
 
@@ -664,8 +742,8 @@ func TestFilterTaskCandidates(t *testing.T) {
 		}
 	}
 	// Build candidates are blocked by completed tasks.
-	require.Equal(t, candidates[k1].Diagnostics.Filtering.SupersededByTask, t1.Id)
-	require.Equal(t, candidates[k3].Diagnostics.Filtering.SupersededByTask, t2.Id)
+	require.Equal(t, candidates[0].Diagnostics.Filtering.SupersededByTask, t1.Id)
+	require.Equal(t, candidates[2].Diagnostics.Filtering.SupersededByTask, t2.Id)
 
 	clearDiagnostics(candidates)
 
@@ -674,12 +752,12 @@ func TestFilterTaskCandidates(t *testing.T) {
 	tryKey.Server = "dummy-server"
 	tryKey.Issue = "dummy-issue"
 	tryKey.Patchset = "dummy-patchset"
-	candidates[tryKey] = &candidate.TaskCandidate{
+	candidates = append(candidates, &candidate.TaskCandidate{
 		TaskKey: tryKey,
 		TaskSpec: &specs.TaskSpec{
 			Dependencies: []string{tcc_testutils.BuildTaskName},
 		},
-	}
+	})
 	c, err = s.filterTaskCandidates(candidates)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(c))
@@ -694,7 +772,7 @@ func TestFilterTaskCandidates(t *testing.T) {
 		}
 	}
 	// Check diagnostics for tryKey
-	require.Equal(t, candidates[tryKey].Diagnostics.Filtering.UnmetDependencies, []string{tcc_testutils.BuildTaskName})
+	require.Equal(t, candidates[len(candidates)-1].Diagnostics.Filtering.UnmetDependencies, []string{tcc_testutils.BuildTaskName})
 }
 
 func TestProcessTaskCandidate(t *testing.T) {

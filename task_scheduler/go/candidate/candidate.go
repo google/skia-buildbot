@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
 	"go.skia.org/infra/go/common"
@@ -19,6 +20,15 @@ import (
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
+const (
+	CANDIDATE_STATUS_ACTIVE                 CandidateStatus = "active"
+	CANDIDATE_STATUS_TRIGGERED              CandidateStatus = "triggered"
+	CANDIDATE_STATUS_NOT_NEEDED             CandidateStatus = "not needed"
+	CANDIDATE_STATUS_WAITING_FOR_DEPENDENCY CandidateStatus = "waiting for dependency"
+)
+
+type CandidateStatus string
+
 // TaskCandidate is a struct used for determining which tasks to schedule.
 type TaskCandidate struct {
 	Attempt int `json:"attempt"`
@@ -27,17 +37,26 @@ type TaskCandidate struct {
 	// used for non-critical, informational purposes only.
 	BuildbucketBuildId int64    `json:"buildbucketBuildId"`
 	Commits            []string `json:"commits"`
+	Id                 string   `json:"id"`
 	IsolatedInput      string   `json:"isolatedInput"`
 	IsolatedHashes     []string `json:"isolatedHashes"`
-	// Jobs must be kept in sorted order; see AddJob.
-	Jobs           []*types.Job `json:"jobs"`
-	ParentTaskIds  []string     `json:"parentTaskIds"`
-	RetryOf        string       `json:"retryOf"`
-	Score          float64      `json:"score"`
-	StealingFromId string       `json:"stealingFromId"`
+	// Jobs and JobIds must be kept in sorted order; see AddJob.
+	JobIds []string `json:"jobIds"`
+	// TODO(borenet): We shouldn't insert Jobs into the candidate DB.
+	Jobs           []*types.Job    `json:"jobs"`
+	ParentTaskIds  []string        `json:"parentTaskIds"`
+	RetryOf        string          `json:"retryOf"`
+	Score          float64         `json:"score"`
+	Status         CandidateStatus `json:"status"`
+	StealingFromId string          `json:"stealingFromId"`
 	types.TaskKey
-	TaskSpec    *specs.TaskSpec           `json:"taskSpec"`
-	Diagnostics *TaskCandidateDiagnostics `json:"diagnostics,omitempty"`
+	TaskId    string          `json:"taskId"`
+	TaskSpec  *specs.TaskSpec `json:"taskSpec"`
+	Timestamp time.Time       `json:"timestamp"`
+	// Reasons why we can't trigger this candidate. If empty, we can trigger
+	// a task.
+	TriggeringBlockers util.StringSet            `json:"triggeringBlockers'`
+	Diagnostics        *TaskCandidateDiagnostics `json:"diagnostics,omitempty"`
 }
 
 // CopyNoDiagnostics returns a copy of the TaskCandidate, omitting the
@@ -49,16 +68,27 @@ func (c *TaskCandidate) CopyNoDiagnostics() *TaskCandidate {
 		Attempt:            c.Attempt,
 		BuildbucketBuildId: c.BuildbucketBuildId,
 		Commits:            util.CopyStringSlice(c.Commits),
+		Id:                 c.Id,
 		IsolatedInput:      c.IsolatedInput,
 		IsolatedHashes:     util.CopyStringSlice(c.IsolatedHashes),
+		JobIds:             util.CopyStringSlice(c.JobIds),
 		Jobs:               jobs,
 		ParentTaskIds:      util.CopyStringSlice(c.ParentTaskIds),
 		RetryOf:            c.RetryOf,
 		Score:              c.Score,
+		Status:             c.Status,
 		StealingFromId:     c.StealingFromId,
+		TaskId:             c.TaskId,
 		TaskKey:            c.TaskKey.Copy(),
 		TaskSpec:           c.TaskSpec.Copy(),
+		Timestamp:          c.Timestamp,
+		TriggeringBlockers: c.TriggeringBlockers.Copy(),
 	}
+}
+
+// IsActive returns true if the candidate is active.
+func (c *TaskCandidate) Active() bool {
+	return c.Status == CANDIDATE_STATUS_PENDING
 }
 
 // MakeId generates a string ID for the TaskCandidate.
@@ -118,24 +148,27 @@ func (c *TaskCandidate) HasJob(job *types.Job) bool {
 	return ok
 }
 
-// AddJob adds job to c.Jobs, unless already present.
-func (c *TaskCandidate) AddJob(job *types.Job) {
+// AddJob adds job to c.Jobs, unless already present. Returns true if the
+// TaskCandidate was changed.
+func (c *TaskCandidate) AddJob(job *types.Job) bool {
 	idx, ok := c.findJob(job)
 	if !ok {
 		c.Jobs = append(c.Jobs, nil)
 		copy(c.Jobs[idx+1:], c.Jobs[idx:])
 		c.Jobs[idx] = job
+		c.JobIds = append(c.JobIds, "")
+		copy(c.JobIds[idx+1:], c.JobIds[idx:])
+		c.JobIds[idx] = job.Id
+		return true
 	}
+	return false
 }
 
 // MakeTask instantiates a types.Task from the TaskCandidate.
 func (c *TaskCandidate) MakeTask() *types.Task {
 	commits := make([]string, len(c.Commits))
 	copy(commits, c.Commits)
-	jobs := make([]string, 0, len(c.Jobs))
-	for _, j := range c.Jobs {
-		jobs = append(jobs, j.Id)
-	}
+	jobs := util.CopyStringSlice(c.JobIds)
 	sort.Strings(jobs)
 	parentTaskIds := make([]string, len(c.ParentTaskIds))
 	copy(parentTaskIds, c.ParentTaskIds)
@@ -353,6 +386,7 @@ func (c *TaskCandidate) AllDepsMet(cache cache.TaskCache) (bool, map[string]stri
 		}
 		if !ok {
 			missingDeps = append(missingDeps, depName)
+			c.TriggeringBlockers[fmt.Sprintf("Missing dependency %s", depName)] = true
 		}
 	}
 	if len(missingDeps) > 0 {
