@@ -1,0 +1,44 @@
+// See https://skia.googlesource.com/buildbot.git/+/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childDisplayName": "goldctl (win)",
+  "commitMsg": {
+    "bugProject": "chromium",
+    "includeTbrLine": true
+  },
+  "contacts": [
+    "bsheedy@chromium.org",
+    "kjlubick@google.com"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "chromium/src",
+    "config": "chromium"
+  },
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentDisplayName": "Chromium",
+  "parentWaterfall": "https://build.chromium.org",
+  "rollerName": "goldctl-win-chromium-autoroll",
+  "serviceAccount": "chromium-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "bsheedy@chromium.org"
+  ],
+  "gitilesCIPDDEPSRepoManager": {
+    "childBranch": "N/A", // TODO(borenet): Not needed.
+    "childPath": "src/tools/skia_goldctl/win",
+    "cipdAssetName": "skia/tools/goldctl/windows-amd64",
+    "cipdAssetTag": "latest",
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
+  },
+  "kubernetes": {
+    "cpu": "1",
+    "memory": "2Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "12h"
+}
