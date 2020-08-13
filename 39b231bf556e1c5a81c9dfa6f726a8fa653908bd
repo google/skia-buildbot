@@ -1,0 +1,58 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004398337",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/291843?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "f7ae8f9a_4556273d",
+        "filename": "autoroll/config/code-coverage-pdfium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T17:09:41Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 32,
+        "startChar": 17,
+        "endLine": 32,
+        "endChar": 23
+      },
+      "revId": "39b231bf556e1c5a81c9dfa6f726a8fa653908bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004398337",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/291843?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "c1df779f_473efd49",
+        "filename": "autoroll/config/code-coverage-pdfium.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T17:09:41Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 37,
+        "startChar": 17,
+        "endLine": 37,
+        "endChar": 23
+      },
+      "revId": "39b231bf556e1c5a81c9dfa6f726a8fa653908bd",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
