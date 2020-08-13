@@ -419,7 +419,7 @@ func (g *Goldpushk) printOutGitStatus(ctx context.Context) error {
 	if len(stdout) == 0 {
 		fmt.Printf("\nNo changes to be pushed to the k8s-config Git repository.\n")
 	} else {
-		fmt.Printf("\nChanges to be pushed to the k8s-config Git repository.:\n")
+		fmt.Printf("\nChanges to be pushed to the k8s-config Git repository:\n")
 		fmt.Print(stdout)
 	}
 	return nil
