@@ -18,7 +18,7 @@ import (
 
 const (
 	// Collection name for skip-tasks entries.
-	collection = "blacklist_rules"
+	collection = "skip-tasks"
 
 	// We'll perform this many attempts for a given request.
 	defaultAttempts = 3
