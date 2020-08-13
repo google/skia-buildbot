@@ -16,6 +16,52 @@
       "revId": "5005b0f1f0f76f5fd0c5ceb7b21bc71b9e905c7f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e6b1d064_d9cdd165",
+        "filename": "perf/images/backup/Dockerfile",
+        "patchSetId": 7
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-13T12:45:34Z",
+      "side": 1,
+      "message": "20.1.4 is most recent as of now.",
+      "range": {
+        "startLine": 5,
+        "startChar": 58,
+        "endLine": 5,
+        "endChar": 64
+      },
+      "revId": "5005b0f1f0f76f5fd0c5ceb7b21bc71b9e905c7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0655e01d_60a54995",
+        "filename": "perf/images/backup/backup.sh",
+        "patchSetId": 7
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-13T12:45:34Z",
+      "side": 1,
+      "message": "I would expect dumping \"both\" the schema and data would probably be preferable to just the data, right? It\u0027s probably not a lot of extra storage space to add the assuredness that we know what the data format is for an older backup.",
+      "range": {
+        "startLine": 12,
+        "startChar": 90,
+        "endLine": 12,
+        "endChar": 94
+      },
+      "revId": "5005b0f1f0f76f5fd0c5ceb7b21bc71b9e905c7f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
