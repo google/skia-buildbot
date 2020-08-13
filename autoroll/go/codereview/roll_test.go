@@ -3,7 +3,6 @@ package codereview
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
@@ -85,15 +84,11 @@ Tbr: some-sheriff
 func testGerritRoll(t *testing.T, cfg *GerritConfig) {
 	unittest.LargeTest(t)
 
-	tmp, err := ioutil.TempDir("", "")
-	require.NoError(t, err)
-	defer testutils.RemoveAll(t, tmp)
-
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_ROLL)
 
 	gc, err := cfg.GetConfig()
 	require.NoError(t, err)
-	g := gerrit_testutils.NewGerritWithConfig(t, gc, tmp)
+	g := gerrit_testutils.NewGerritWithConfig(t, gc, mockhttpclient.NewURLMock())
 	ctx := context.Background()
 	recent, err := recent_rolls.NewRecentRolls(ctx, "test-roller")
 	require.NoError(t, err)
@@ -316,7 +311,7 @@ func testGerritRoll(t *testing.T, cfg *GerritConfig) {
 	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	require.NoError(t, err)
 	require.NoError(t, gr.InsertIntoDB(ctx))
-	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FAKE_GERRIT_URL, ci.Issue)
+	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FakeGerritURL, ci.Issue)
 	req := testutils.MarshalJSON(t, &struct {
 		Message string `json:"message"`
 	}{
@@ -340,7 +335,7 @@ func testGerritRoll(t *testing.T, cfg *GerritConfig) {
 	gr, err = newGerritRoll(ctx, cfg, issue, g.Gerrit, recent, "http://issue/", toRev, nil)
 	require.NoError(t, err)
 	require.NoError(t, gr.InsertIntoDB(ctx))
-	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FAKE_GERRIT_URL, ci.Issue)
+	url = fmt.Sprintf("%s/a/changes/%d/abandon", gerrit_testutils.FakeGerritURL, ci.Issue)
 	req = testutils.MarshalJSON(t, &struct {
 		Message string `json:"message"`
 	}{
