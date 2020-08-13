@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d307e2f7_95bdbeb1",
+        "filename": "autoroll/config/goldctl-linux-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-13T18:43:41Z",
+      "side": 1,
+      "message": "Could this be 12h ? twice a day is more than sufficient. Same for the rest.",
+      "range": {
+        "startLine": 43,
+        "startChar": 23,
+        "endLine": 43,
+        "endChar": 25
+      },
+      "revId": "76d0670110797e95790efa570d7662fe2fe4b175",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
