@@ -1,0 +1,598 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "426ba92a_e4e5b488",
+        "filename": "go_deps/install-darwin-amd64.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 62,
+        "startChar": 13,
+        "endLine": 62,
+        "endChar": 19
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "cd96cbdd_5b465fe9",
+        "filename": "go_deps/install-darwin-amd64.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 63,
+        "startChar": 13,
+        "endLine": 63,
+        "endChar": 19
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "51d984fe_9da08f43",
+        "filename": "go_deps/install-darwin-amd64.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 64,
+        "startChar": 13,
+        "endLine": 64,
+        "endChar": 19
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "1b75ff88_70b6c3dc",
+        "filename": "go_deps/install-darwin-amd64.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027on-path attacker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 247,
+        "startChar": 28,
+        "endLine": 247,
+        "endChar": 32
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "27f647b8_4eb26278",
+        "filename": "go_deps/install-linux-amd64.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 62,
+        "startChar": 13,
+        "endLine": 62,
+        "endChar": 19
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "3c041cfb_e3d69646",
+        "filename": "go_deps/install-linux-amd64.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 63,
+        "startChar": 13,
+        "endLine": 63,
+        "endChar": 19
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "2979cc8f_c904d0b9",
+        "filename": "go_deps/install-linux-amd64.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 64,
+        "startChar": 13,
+        "endLine": 64,
+        "endChar": 19
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "fe44775b_42a87eb4",
+        "filename": "go_deps/install-linux-amd64.sh",
+        "patchSetId": 3
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027on-path attacker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 247,
+        "startChar": 28,
+        "endLine": 247,
+        "endChar": 32
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "e6c0e840_4df1f99f",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 219,
+        "startChar": 13,
+        "endLine": 219,
+        "endChar": 22
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "8d56f6f6_465ef672",
+        "filename": "infra/bots/gen_tasks.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 220,
+        "startChar": 13,
+        "endLine": 220,
+        "endChar": 22
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "531abc38_6e4f1beb",
+        "filename": "infra/bots/task_drivers/go_build/go_build.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 28,
+        "startChar": 7,
+        "endLine": 28,
+        "endChar": 16
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "17a60668_eed9538a",
+        "filename": "infra/bots/task_drivers/go_build/go_build.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 75,
+        "startChar": 13,
+        "endLine": 75,
+        "endChar": 22
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "4fa71c6d_817f0870",
+        "filename": "infra/bots/task_drivers/go_build/go_build.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 77,
+        "startChar": 12,
+        "endLine": 77,
+        "endChar": 21
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "9f80b1ed_d0c3333a",
+        "filename": "infra/bots/task_drivers/go_build/go_build.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 85,
+        "startChar": 29,
+        "endLine": 85,
+        "endChar": 38
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "ab542b22_0632cfa8",
+        "filename": "infra/bots/tasks.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 919,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 919,
+        "startChar": 18,
+        "endLine": 919,
+        "endChar": 27
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "7fe752eb_cd37a9c8",
+        "filename": "infra/bots/tasks.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 921,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 921,
+        "startChar": 18,
+        "endLine": 921,
+        "endChar": 27
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "b4e9efc9_d4cf56b0",
+        "filename": "infra/bots/tasks.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 961,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 961,
+        "startChar": 18,
+        "endLine": 961,
+        "endChar": 27
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "73b1e830_eae27887",
+        "filename": "infra/bots/tasks.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 963,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 963,
+        "startChar": 18,
+        "endLine": 963,
+        "endChar": 27
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "f60fd176_7ceee9fa",
+        "filename": "infra/bots/tasks.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 1003,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 1003,
+        "startChar": 18,
+        "endLine": 1003,
+        "endChar": 27
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "0a54cc83_7511f7ec",
+        "filename": "infra/bots/tasks.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 1005,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 1005,
+        "startChar": 18,
+        "endLine": 1005,
+        "endChar": 27
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "bc2bfa29_dff5515b",
+        "filename": "infra/bots/tasks.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 1045,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 1045,
+        "startChar": 18,
+        "endLine": 1045,
+        "endChar": 27
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004397681",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/296733?revision\u003d3",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "b9e355e1_67398148",
+        "filename": "infra/bots/tasks.json",
+        "patchSetId": 3
+      },
+      "lineNbr": 1047,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:47:05Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 1047,
+        "startChar": 18,
+        "endLine": 1047,
+        "endChar": 27
+      },
+      "revId": "ba04ae9d73accb2c957062410a01387e9a97cceb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
