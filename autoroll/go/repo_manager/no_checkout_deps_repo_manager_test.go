@@ -2,7 +2,6 @@ package repo_manager
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -11,8 +10,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/autoroll/go/codereview"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common/gerrit_common_testutils"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
-	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/depot_tools/deps_parser"
+	gerrit_testutils "go.skia.org/infra/go/gerrit/testutils"
 	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	gitiles_testutils "go.skia.org/infra/go/gitiles/testutils"
@@ -22,7 +23,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (context.Context, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
+func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (context.Context, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, *gerrit_testutils.MockGerrit, func()) {
 	unittest.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
@@ -55,18 +56,8 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (contex
 
 	ctx := context.Background()
 
-	gUrl := "https://fake-skia-review.googlesource.com"
-	serialized, err := json.Marshal(&gerrit.AccountDetails{
-		AccountId: 101,
-		Name:      mockUser,
-		Email:     mockUser,
-		UserName:  mockUser,
-	})
-	require.NoError(t, err)
-	serialized = append([]byte("abcd\n"), serialized...)
-	urlmock.MockOnce(gUrl+"/a/accounts/self/detail", mockhttpclient.MockGetDialogue(serialized))
-	g, err := gerrit.NewGerritWithConfig(codereview.GERRIT_CONFIGS[cfg.Gerrit.Config], gUrl, urlmock.Client())
-	require.NoError(t, err)
+	mockGerrit := gerrit_common_testutils.SetupMockGerrit(t, urlmock)
+	g := mockGerrit.Gerrit
 
 	cfg.ChildRepo = child.RepoUrl()
 	cfg.ParentRepo = parent.RepoUrl()
@@ -102,7 +93,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (contex
 		parent.Cleanup()
 		require.True(t, urlmock.Empty(), strings.Join(urlmock.List(), "\n"))
 	}
-	return ctx, wd, rm, child, parent, mockChild, mockParent, childCommits, urlmock, cleanup
+	return ctx, wd, rm, child, parent, mockChild, mockParent, childCommits, urlmock, mockGerrit, cleanup
 }
 
 func noCheckoutDEPSCfg(t *testing.T) *NoCheckoutDEPSRepoManagerConfig {
@@ -115,7 +106,7 @@ func noCheckoutDEPSCfg(t *testing.T) *NoCheckoutDEPSRepoManagerConfig {
 			},
 		},
 		Gerrit: &codereview.GerritConfig{
-			URL:     "https://fake-skia-review.googlesource.com",
+			URL:     gerrit_testutils.FakeGerritURL,
 			Project: "fake-gerrit-project",
 			Config:  codereview.GERRIT_CONFIG_CHROMIUM,
 		},
@@ -124,7 +115,7 @@ func noCheckoutDEPSCfg(t *testing.T) *NoCheckoutDEPSRepoManagerConfig {
 
 func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 	cfg := noCheckoutDEPSCfg(t)
-	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, cleanup := setupNoCheckout(t, cfg)
+	ctx, _, rm, _, parentRepo, mockChild, mockParent, childCommits, _, _, cleanup := setupNoCheckout(t, cfg)
 	defer cleanup()
 
 	// Mock requests for Update().
@@ -152,7 +143,7 @@ func TestNoCheckoutDEPSRepoManagerUpdate(t *testing.T) {
 }
 
 func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) {
-	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg)
+	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, _, mockGerrit, cleanup := setupNoCheckout(t, cfg)
 	defer cleanup()
 
 	// Mock requests for Update().
@@ -174,62 +165,23 @@ func testNoCheckoutDEPSRepoManagerCreateNewRoll(t *testing.T, cfg *NoCheckoutDEP
 	// Mock the request to retrieve the DEPS file.
 	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
 
-	// Mock the initial change creation.
-	subject := strings.Split(fakeCommitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, "master", parentMaster))
-	ci := gerrit.ChangeInfo{
-		ChangeId: "123",
-		Id:       "123",
-		Issue:    123,
-		Revisions: map[string]*gerrit.Revision{
-			"ps1": {
-				ID:     "ps1",
-				Number: 1,
-			},
-		},
-		WorkInProgress: true,
-	}
-	respBody, err := json.Marshal(ci)
-	require.NoError(t, err)
-	respBody = append([]byte(")]}'\n"), respBody...)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/", mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, 201))
-
-	// Mock the edit of the change to update the commit message.
-	reqBody = []byte(fmt.Sprintf(`{"message":"%s"}`, strings.Replace(fakeCommitMsg, "\n", "\\n", -1)))
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:message", mockhttpclient.MockPutDialogue("application/json", reqBody, []byte("")))
-
-	// Mock the request to modify the DEPS file.
-	reqBody = []byte(fmt.Sprintf(`deps = {
-  "%s": "%s@%s",
-  "parent/dep": "https://grandchild-in-parent@abc1230000abc1230000abc1230000abc1230000",
-}`, childPath, childRepo.RepoUrl(), tipRev.Id))
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit/DEPS", mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
-
-	// Mock the request to publish the change edit.
-	reqBody = []byte(`{"notify":"ALL"}`)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:publish", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
-
-	// Mock the request to load the updated change.
-	respBody, err = json.Marshal(ci)
-	require.NoError(t, err)
-	respBody = append([]byte(")]}'\n"), respBody...)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
-
-	// Mock the request to set the change as read for review. This is only
-	// done if ChangeInfo.WorkInProgress is true.
-	reqBody = []byte(`{}`)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/ready", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
+	// Mock the CL upload.
+	ci := mockGerrit.MockCreateChange(fakeCommitMsg, "master", parentMaster, map[string]string{
+		deps_parser.DepsFileName: fmt.Sprintf(`deps = {
+			"%s": "%s@%s",
+			"parent/dep": "https://grandchild-in-parent@abc1230000abc1230000abc1230000abc1230000",
+		  }`, childPath, childRepo.RepoUrl(), tipRev.Id),
+	})
 
 	// Mock the request to set the CQ.
 	gerritCfg := codereview.GERRIT_CONFIGS[cfg.Gerrit.Config]
 	if gerritCfg.HasCq {
-		reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
+		mockGerrit.MockPost(ci, "", gerritCfg.SetCqLabels, []string{"me@google.com"})
 	} else {
-		reqBody = []byte(`{"labels":{"Code-Review":1},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
+		mockGerrit.MockPost(ci, "", gerritCfg.SelfApproveLabels, []string{"me@google.com"})
 	}
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
 	if !gerritCfg.HasCq {
-		urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/submit", mockhttpclient.MockPostDialogue("application/json", []byte("{}"), []byte("")))
+		mockGerrit.MockSubmit(ci)
 	}
 
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, []string{"me@google.com"}, false, fakeCommitMsg)
@@ -262,7 +214,7 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 			},
 		},
 	}
-	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, cleanup := setupNoCheckout(t, cfg)
+	ctx, _, rm, childRepo, parentRepo, mockChild, mockParent, childCommits, urlmock, mockGerrit, cleanup := setupNoCheckout(t, cfg)
 	defer cleanup()
 
 	// Mock requests for Update().
@@ -285,70 +237,26 @@ func TestNoCheckoutDEPSRepoManagerCreateNewRollTransitive(t *testing.T) {
 	require.Equal(t, childCommits[len(childCommits)-1], tipRev.Id)
 
 	// Mock the request to retrieve the DEPS file.
-	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
+	mockParent.MockReadFile(ctx, deps_parser.DepsFileName, parentMaster)
 
-	// Mock the initial change creation.
-	logStr := ""
-	childGitRepo := git.GitDir(childRepo.Dir())
-	for _, c := range notRolledRevs {
-		details, err := childGitRepo.Details(ctx, c.Id)
-		require.NoError(t, err)
-		ts := details.Timestamp.Format("2006-01-02")
-		author := details.Author
-		authorSplit := strings.Split(details.Author, "(")
-		if len(authorSplit) > 1 {
-			author = strings.TrimRight(strings.TrimSpace(authorSplit[1]), ")")
-		}
-		logStr += fmt.Sprintf("%s %s %s\n", ts, author, details.Subject)
-	}
-	subject := strings.Split(fakeCommitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, "master", parentMaster))
-	ci := gerrit.ChangeInfo{
-		ChangeId: "123",
-		Id:       "123",
-		Issue:    123,
-		Revisions: map[string]*gerrit.Revision{
-			"ps1": {
-				ID:     "ps1",
-				Number: 1,
-			},
-		},
-		WorkInProgress: true,
-	}
-	respBody, err := json.Marshal(ci)
-	require.NoError(t, err)
-	respBody = append([]byte(")]}'\n"), respBody...)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/", mockhttpclient.MockPostDialogueWithResponseCode("application/json", reqBody, respBody, 201))
-
-	// Mock the edit of the change to update the commit message.
-	reqBody = []byte(fmt.Sprintf(`{"message":"%s"}`, strings.Replace(fakeCommitMsg, "\n", "\\n", -1)))
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:message", mockhttpclient.MockPutDialogue("application/json", reqBody, []byte("")))
-
-	// Mock the request to modify the DEPS file.
-	reqBody = []byte(fmt.Sprintf(`deps = {
+	// Mock the CL upload.
+	ci := mockGerrit.MockCreateChange(fakeCommitMsg, "master", parentMaster, map[string]string{
+		deps_parser.DepsFileName: fmt.Sprintf(`deps = {
   "%s": "%s@%s",
-  "parent/dep": "https://grandchild-in-parent@def4560000def4560000def4560000def4560000",
-}`, childPath, childRepo.RepoUrl(), tipRev.Id))
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit/DEPS", mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
-
-	// Mock the request to publish the change edit.
-	reqBody = []byte(`{"notify":"ALL"}`)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/edit:publish", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
-
-	// Mock the request to load the updated change.
-	respBody, err = json.Marshal(ci)
-	require.NoError(t, err)
-	respBody = append([]byte(")]}'\n"), respBody...)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/detail?o=ALL_REVISIONS", mockhttpclient.MockGetDialogue(respBody))
-
-	// Mock the request to set the change as read for review. This is only
-	// done if ChangeInfo.WorkInProgress is true.
-	reqBody = []byte(`{}`)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/ready", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
+  "parent/dep": "https://grandchild-in-parent@abc1230000abc1230000abc1230000abc1230000",
+}`, childPath, childRepo.RepoUrl(), tipRev.Id),
+	})
 
 	// Mock the request to set the CQ.
-	reqBody = []byte(`{"labels":{"Code-Review":1,"Commit-Queue":2},"message":"","reviewers":[{"reviewer":"me@google.com"}]}`)
-	urlmock.MockOnce("https://fake-skia-review.googlesource.com/a/changes/123/revisions/ps1/review", mockhttpclient.MockPostDialogue("application/json", reqBody, []byte("")))
+	gerritCfg := codereview.GERRIT_CONFIGS[cfg.Gerrit.Config]
+	if gerritCfg.HasCq {
+		mockGerrit.MockPost(ci, "", gerritCfg.SetCqLabels, []string{"me@google.com"})
+	} else {
+		mockGerrit.MockPost(ci, "", gerritCfg.SelfApproveLabels, []string{"me@google.com"})
+	}
+	if !gerritCfg.HasCq {
+		mockGerrit.MockSubmit(ci)
+	}
 
 	issue, err := rm.CreateNewRoll(ctx, lastRollRev, tipRev, notRolledRevs, []string{"me@google.com"}, false, fakeCommitMsg)
 	require.NoError(t, err)

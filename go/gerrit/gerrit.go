@@ -80,8 +80,17 @@ const (
 	VERIFIED_LABEL_RUNNING  = 0
 	VERIFIED_LABEL_ACCEPTED = 1
 
-	URL_TMPL_CHANGE     = "/changes/%s/detail?o=ALL_REVISIONS"
-	URL_COMMIT_MSG_HOOK = "/tools/hooks/commit-msg"
+	URL_TMPL_ABANDON             = "/changes/%s/abandon"
+	URL_TMPL_CHANGE              = "/changes/%s/detail?o=ALL_REVISIONS"
+	URL_TMPL_CHANGE_EDIT         = "/changes/%s/edit"
+	URL_TMPL_CHANGE_EDIT_FILE    = "/changes/%s/edit/%s"
+	URL_TMPL_CHANGE_EDIT_MESSAGE = "/changes/%s/edit:message"
+	URL_TMPL_CHANGE_EDIT_PUBLISH = "/changes/%s/edit:publish"
+	URL_TMPL_SET_REVIEW          = "/changes/%s/revisions/%s/review"
+	URL_TMPL_SUBMIT              = "/changes/%s/submit"
+	URL_COMMIT_MSG_HOOK          = "/tools/hooks/commit-msg"
+	URL_CREATE_CHANGE            = "/changes/"
+	URL_SELF_DETAIL              = "/accounts/self/detail"
 
 	// Kinds of patchsets.
 	PATCHSET_KIND_MERGE_FIRST_PARENT_UPDATE = "MERGE_FIRST_PARENT_UPDATE"
@@ -377,9 +386,8 @@ type AccountDetails struct {
 
 // GetUserEmail returns the Gerrit user's email address.
 func (g *Gerrit) GetUserEmail(ctx context.Context) (string, error) {
-	url := "/accounts/self/detail"
 	var account AccountDetails
-	if err := g.get(ctx, url, &account, nil); err != nil {
+	if err := g.get(ctx, URL_SELF_DETAIL, &account, nil); err != nil {
 		return "", fmt.Errorf("Failed to retrieve user: %s", err)
 	}
 	return account.Email, nil
@@ -546,7 +554,7 @@ func (g *Gerrit) SetReview(ctx context.Context, issue *ChangeInfo, message strin
 		postData["reviewers"] = revs
 	}
 	latestPatchset := issue.Patchsets[len(issue.Patchsets)-1]
-	return g.postJson(ctx, fmt.Sprintf("/changes/%s/revisions/%s/review", issue.ChangeId, latestPatchset.ID), postData)
+	return g.postJson(ctx, fmt.Sprintf(URL_TMPL_SET_REVIEW, issue.ChangeId, latestPatchset.ID), postData)
 }
 
 // AddComment adds a message to the issue.
@@ -591,7 +599,7 @@ func (g *Gerrit) Abandon(ctx context.Context, issue *ChangeInfo, message string)
 	postData := map[string]interface{}{
 		"message": message,
 	}
-	return g.postJson(ctx, fmt.Sprintf("/changes/%s/abandon", issue.ChangeId), postData)
+	return g.postJson(ctx, fmt.Sprintf(URL_TMPL_ABANDON, issue.ChangeId), postData)
 }
 
 // get retrieves the given sub URL and populates 'rv' with the result.
@@ -930,7 +938,7 @@ func (g *Gerrit) IsBinaryPatch(ctx context.Context, issue int64, revision string
 
 // Submit submits the Change.
 func (g *Gerrit) Submit(ctx context.Context, ci *ChangeInfo) error {
-	return g.post(ctx, fmt.Sprintf("/changes/%d/submit", ci.Issue), []byte("{}"))
+	return g.post(ctx, fmt.Sprintf(URL_TMPL_SUBMIT, ci.Id), []byte("{}"))
 }
 
 // Download the commit message hook to the specified location.
@@ -1040,7 +1048,7 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 	if err != nil {
 		return nil, err
 	}
-	resp, err := httputils.PostWithContext(ctx, g.client, g.apiUrl+"/changes/", "application/json", bytes.NewReader(b))
+	resp, err := httputils.PostWithContext(ctx, g.client, g.apiUrl+URL_CREATE_CHANGE, "application/json", bytes.NewReader(b))
 	if err != nil {
 		return nil, err
 	}
@@ -1063,7 +1071,7 @@ func (g *Gerrit) CreateChange(ctx context.Context, project, branch, subject, bas
 // one is not already active. You must call PublishChangeEdit in order for the
 // change to become a new patch set, otherwise it has no effect.
 func (g *Gerrit) EditFile(ctx context.Context, ci *ChangeInfo, filepath, content string) error {
-	u := g.apiUrl + fmt.Sprintf("/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath))
+	u := g.apiUrl + fmt.Sprintf(URL_TMPL_CHANGE_EDIT_FILE, ci.Id, url.QueryEscape(filepath))
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u, strings.NewReader(content))
 	if err != nil {
 		return fmt.Errorf("Failed to create PUT request: %s", err)
@@ -1094,14 +1102,14 @@ func (g *Gerrit) MoveFile(ctx context.Context, ci *ChangeInfo, oldPath, newPath 
 		OldPath: oldPath,
 		NewPath: newPath,
 	}
-	return g.postJson(ctx, fmt.Sprintf("/changes/%s/edit", ci.Id), data)
+	return g.postJson(ctx, fmt.Sprintf(URL_TMPL_CHANGE_EDIT, ci.Id), data)
 }
 
 // DeleteFile deletes the given file. A ChangeEdit is created, if one is not already active.
 // You must call PublishChangeEdit in order for the change to become a new patch
 // set, otherwise it has no effect.
 func (g *Gerrit) DeleteFile(ctx context.Context, ci *ChangeInfo, filepath string) error {
-	return g.delete(ctx, fmt.Sprintf("/changes/%s/edit/%s", ci.Id, url.QueryEscape(filepath)))
+	return g.delete(ctx, fmt.Sprintf(URL_TMPL_CHANGE_EDIT_FILE, ci.Id, url.QueryEscape(filepath)))
 }
 
 // SetCommitMessage sets the commit message for the ChangeEdit. A ChangeEdit is created, if one is
@@ -1113,7 +1121,7 @@ func (g *Gerrit) SetCommitMessage(ctx context.Context, ci *ChangeInfo, msg strin
 	}{
 		Message: msg,
 	}
-	u := fmt.Sprintf("/changes/%s/edit:message", ci.Id)
+	u := fmt.Sprintf(URL_TMPL_CHANGE_EDIT_MESSAGE, ci.Id)
 	return g.putJson(ctx, u, m)
 }
 
@@ -1124,13 +1132,13 @@ func (g *Gerrit) PublishChangeEdit(ctx context.Context, ci *ChangeInfo) error {
 	}{
 		Notify: "ALL",
 	}
-	u := fmt.Sprintf("/changes/%s/edit:publish", ci.Id)
+	u := fmt.Sprintf(URL_TMPL_CHANGE_EDIT_PUBLISH, ci.Id)
 	return g.postJson(ctx, u, msg)
 }
 
 // DeleteChangeEdit deletes the active ChangeEdit, restoring the state to the last patch set.
 func (g *Gerrit) DeleteChangeEdit(ctx context.Context, ci *ChangeInfo) error {
-	return g.delete(ctx, fmt.Sprintf("/changes/%s/edit", ci.Id))
+	return g.delete(ctx, fmt.Sprintf(URL_TMPL_CHANGE_EDIT, ci.Id))
 }
 
 // SetLabel sets the given label on the ChangeInfo.

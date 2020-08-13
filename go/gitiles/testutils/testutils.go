@@ -39,6 +39,10 @@ func (mr *MockRepo) Empty() bool {
 	return mr.URLMock.Empty()
 }
 
+func (mr *MockRepo) AssertEmpty() {
+	require.True(mr.t, mr.Empty())
+}
+
 func (mr *MockRepo) MockReadFile(ctx context.Context, srcPath, ref string) {
 	fs, err := mr.repo.VFS(ctx, ref)
 	require.NoError(mr.t, err)
