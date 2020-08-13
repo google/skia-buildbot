@@ -781,14 +781,6 @@
         {
           "name": "docker",
           "path": "cache/docker"
-        },
-        {
-          "name": "go_cache",
-          "path": "cache/go_cache"
-        },
-        {
-          "name": "gopath",
-          "path": "cache/gopath"
         }
       ],
       "cipd_packages": [
@@ -806,16 +798,6 @@
           "name": "infra/tools/luci/git-credential-luci/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:ec2e039a707be99e3e814d8b5659a2547953cc1e"
-        },
-        {
-          "name": "skia/bots/go",
-          "path": "go",
-          "version": "version:8"
-        },
-        {
-          "name": "skia/bots/protoc",
-          "path": "protoc",
-          "version": "version:0"
         }
       ],
       "command": [
@@ -832,8 +814,6 @@
         "Infra-PerCommit-CreateDockerImage",
         "--workdir",
         ".",
-        "--gerrit_project",
-        "buildbot",
         "--gerrit_url",
         "https://skia-review.googlesource.com",
         "--repo",
@@ -864,8 +844,7 @@
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
-          "cipd_bin_packages/bin",
-          "go/go/bin"
+          "cipd_bin_packages/bin"
         ]
       },
       "isolate": "empty.isolate",

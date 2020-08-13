@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 
 	"cloud.google.com/go/pubsub"
@@ -25,12 +24,10 @@ import (
 
 var (
 	// Required properties for this task.
-	gerritProject = flag.String("gerrit_project", "", "Gerrit project name.")
-	gerritUrl     = flag.String("gerrit_url", "", "URL of the Gerrit server.")
-	projectId     = flag.String("project_id", "", "ID of the Google Cloud project.")
-	taskId        = flag.String("task_id", "", "ID of this task.")
-	taskName      = flag.String("task_name", "", "Name of the task.")
-	workdir       = flag.String("workdir", ".", "Working directory")
+	projectId = flag.String("project_id", "", "ID of the Google Cloud project.")
+	taskId    = flag.String("task_id", "", "ID of this task.")
+	taskName  = flag.String("task_name", "", "Name of the task.")
+	workdir   = flag.String("workdir", ".", "Working directory")
 
 	dockerfileDir = flag.String("dockerfile_dir", "", "Directory that contains the Dockerfile that should be built and pushed.")
 	imageName     = flag.String("image_name", "", "Name of the image to build and push to docker. Eg: gcr.io/skia-public/infra")
@@ -52,23 +49,11 @@ func main() {
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
-	if *gerritProject == "" {
-		td.Fatalf(ctx, "--gerrit_project is required.")
-	}
-	if *gerritUrl == "" {
-		td.Fatalf(ctx, "--gerrit_url is required.")
-	}
 	if *imageName == "" {
 		td.Fatalf(ctx, "--image_name is required.")
 	}
 
 	wd, err := os_steps.Abs(ctx, *workdir)
-	if err != nil {
-		td.Fatal(ctx, err)
-	}
-
-	// Check out the code.
-	co, err := checkout.EnsureGitCheckout(ctx, path.Join(wd, "repo"), rs)
 	if err != nil {
 		td.Fatal(ctx, err)
 	}
@@ -135,7 +120,7 @@ func main() {
 		}
 
 		// Build docker image.
-		if buildErr := docker.BuildHelper(ctx, filepath.Join(co.Dir(), *dockerfileDir), imageWithTag, configDir, buildArgs); buildErr != nil {
+		if buildErr := docker.BuildHelper(ctx, *dockerfileDir, imageWithTag, configDir, nil); buildErr != nil {
 			dockerErr = buildErr
 			continue
 		}

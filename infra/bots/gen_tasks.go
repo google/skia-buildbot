@@ -429,12 +429,9 @@ func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
 
 func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
 	cipd := append([]*specs.CipdPackage{}, specs.CIPD_PKGS_GIT_LINUX_AMD64...)
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
-	cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
-
 	machineType := MACHINE_TYPE_MEDIUM
 	t := &specs.TaskSpec{
-		Caches:       append(CACHES_GO, CACHES_DOCKER...),
+		Caches:       CACHES_DOCKER,
 		CipdPackages: cipd,
 		Command: []string{
 			"./build_push_docker_image",
@@ -444,7 +441,6 @@ func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
 			"--task_id", specs.PLACEHOLDER_TASK_ID,
 			"--task_name", name,
 			"--workdir", ".",
-			"--gerrit_project", "buildbot",
 			"--gerrit_url", "https://skia-review.googlesource.com",
 			"--repo", specs.PLACEHOLDER_REPO,
 			"--revision", specs.PLACEHOLDER_REVISION,
@@ -457,7 +453,7 @@ func createDockerImage(b *specs.TasksCfgBuilder, name string) string {
 		Dependencies: []string{buildTaskDrivers(b, "Linux", "x86_64")},
 		Dimensions:   dockerGceDimensions(machineType),
 		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin"},
 		},
 		Isolate:        "empty.isolate",
 		ServiceAccount: SERVICE_ACCOUNT_COMPILE,

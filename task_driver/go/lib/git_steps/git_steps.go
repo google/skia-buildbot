@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/task_driver/go/lib/auth_steps"
 	"golang.org/x/oauth2"
 )
@@ -15,5 +16,8 @@ import (
 // Init initializes git auth for a Task Driver. Returns a TokenSource or any
 // error which occurred.
 func Init(ctx context.Context, local bool) (oauth2.TokenSource, error) {
+	if err := git_common.EnsureGitIsFromCIPD(ctx); err != nil {
+		return nil, err
+	}
 	return auth_steps.Init(ctx, local, auth.SCOPE_GERRIT, auth.SCOPE_USERINFO_EMAIL)
 }
