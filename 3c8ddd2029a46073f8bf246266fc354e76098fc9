@@ -16,6 +16,29 @@
       "revId": "3c8ddd2029a46073f8bf246266fc354e76098fc9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dfa3898f_8d113224",
+        "filename": "task_scheduler/go/specs/helpers.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-08-13T16:50:00Z",
+      "side": 1,
+      "message": "Reordering these means we can\u0027t detect a checkout at filesystem root. I\u0027m assuming we can live with that. :D",
+      "range": {
+        "startLine": 52,
+        "startChar": 2,
+        "endLine": 60,
+        "endChar": 3
+      },
+      "revId": "3c8ddd2029a46073f8bf246266fc354e76098fc9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
