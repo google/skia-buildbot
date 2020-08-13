@@ -1,0 +1,9 @@
+ARG base="gcr.io/skia-public/base-cipd:testing-slim"
+
+FROM $base
+
+# Setup.
+USER root
+RUN apt-get update \
+  && apt-get -y install \
+      curl clang libfreetype6-dev libfontconfig1-dev libgl1-mesa-dev libglu1-mesa-dev libxext-dev lld

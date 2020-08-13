@@ -1,0 +1,63 @@
+ARG base="gcr.io/skia-public/base-cipd:testing-slim"
+
+FROM $base AS sync
+
+# Setup.
+USER root
+RUN apt-get update && apt-get -y install curl
+RUN mkdir /work && chown skia:skia /work \
+  && mkdir /depot_tools && chown skia:skia /depot_tools
+USER skia:skia
+WORKDIR /work
+RUN git config --global user.name fake && git config --global user.email fake
+
+# Download depot_tools.
+# TODO(borenet): Pin this and/or obtain another way.
+RUN cd /depot_tools && git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git .
+
+# Sync the given repo to the requested revision.
+# TODO(borenet): It'd be nice to support something more granular than the Docker
+# cache, but I'm not sure how we'd do that in a way that doesn't defeat the
+# purpose of using Docker at all.
+ARG repo
+ARG revision
+ENV repo=$repo
+ENV revision=$revision
+RUN git clone ${repo} . && git reset --hard ${revision}
+
+# If provided, apply the given patch ref. Note that patch_ref is not referenced
+# above this point, which allows the image with just repo+revision to be reused
+# as needed from the Docker cache.
+ARG patch_ref
+ENV PATCH_REV=$patch_ref
+RUN if [ -n "$patch_ref" ]; then \
+  git fetch ${repo} ${patch_ref} \
+  && git checkout FETCH_HEAD \
+  && git rebase ${revision} \
+  ; fi
+
+# TODO(borenet): What's up with gclient?
+#RUN /depot_tools/gclient config --unmanaged --name=/work ${repo}
+#RUN /depot_tools/gclient sync
+RUN ./tools/git-sync-deps
+
+# Isolate the outputs.
+RUN touch -a -c -m -t 197001010000 .
+RUN for d in $(find . -type d -name .git); do rm -rf $d; done
+RUN for f in $(find .); do touch -a -c -m -t 197001010000 $f; done
+
+# Hacky workaround for the fact that COPY only copies the *contents* of the
+# given dir, not the dir itself, and creates the dest dir if it doesn't exist,
+# which causes the resulting layer not to be deterministic due to the timestamp
+# of the newly-created dest dir.
+FROM scratch AS everything-prep
+COPY --from=sync /work /out/repo
+
+FROM scratch AS everything
+COPY --from=everything-prep /out /
+
+FROM scratch AS resources-prep
+COPY --from=sync /work/resources /out/resources
+
+FROM scratch AS resources
+COPY --from=resources-prep /out /

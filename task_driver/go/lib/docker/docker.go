@@ -2,20 +2,22 @@
 package docker
 
 import (
+	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
 	"time"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/docker/docker/api/types"
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 
 	"go.skia.org/infra/go/auth"
 	docker_pubsub "go.skia.org/infra/go/docker/build/pubsub"
-	sk_exec "go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/task_driver/go/lib/json"
 	"go.skia.org/infra/task_driver/go/lib/log_parser"
 	"go.skia.org/infra/task_driver/go/lib/os_steps"
 	"go.skia.org/infra/task_driver/go/td"
@@ -127,34 +129,55 @@ func (d *Docker) Extract(ctx context.Context, image, src, dest string) error {
 		// Create a container from the image with a dummy command.
 		containerName := fmt.Sprintf("tmp-%s", uuid.New().String())
 		cmd := []string{dockerCmd, "--config", d.configDir, "create", "--name", containerName, image, "dummy-cmd"}
-		if _, err := sk_exec.RunCwd(ctx, ".", cmd...); err != nil {
+		if _, err := exec.RunCwd(ctx, ".", cmd...); err != nil {
 			return err
 		}
 
 		// Make sure we remove the container once we're done with it.
 		defer func() {
-			_, err := sk_exec.RunCwd(ctx, ".", dockerCmd, "rm", "-v", containerName)
+			_, err := exec.RunCwd(ctx, ".", dockerCmd, "rm", "-v", containerName)
 			if err != nil {
 				rv = err
 			}
 		}()
 
 		// Perform the copy.
-		_, err := sk_exec.RunCwd(ctx, ".", dockerCmd, "cp", "-L", fmt.Sprintf("%s:%s", containerName, src), dest)
+		_, err := exec.RunCwd(ctx, ".", dockerCmd, "cp", "-L", fmt.Sprintf("%s:%s", containerName, src), dest)
 		return err
+	})
+}
+
+// Run "docker image inspect" and return the information for the given image.
+func (d *Docker) Inspect(ctx context.Context, id string) (*types.ImageInspect, error) {
+	var rv *types.ImageInspect
+	return rv, td.Do(ctx, td.Props(fmt.Sprintf("docker image inspect %s", id)).Infra(), func(ctx context.Context) error {
+		out, err := exec.RunCwd(ctx, ".", dockerCmd, "--config", d.configDir, "image", "inspect", id)
+		if err != nil {
+			return err
+		}
+		var results []*types.ImageInspect
+		err = json.Decode(ctx, bytes.NewReader([]byte(out)), &results)
+		if err != nil {
+			return err
+		}
+		if len(results) != 1 {
+			return fmt.Errorf("Expected 1 result but got %d", len(results))
+		}
+		rv = results[0]
+		return nil
 	})
 }
 
 // Login to docker to be able to run authenticated commands (Eg: docker.Push).
 func Login(ctx context.Context, accessToken, hostname, configDir string) error {
-	loginCmd := &sk_exec.Command{
+	loginCmd := &exec.Command{
 		Name:      dockerCmd,
 		Args:      []string{"--config", configDir, "login", "-u", "oauth2accesstoken", "--password-stdin", hostname},
 		Stdin:     strings.NewReader(accessToken),
 		LogStdout: true,
 		LogStderr: true,
 	}
-	_, err := sk_exec.RunCommand(ctx, loginCmd)
+	_, err := exec.RunCommand(ctx, loginCmd)
 	if err != nil {
 		return err
 	}
@@ -164,7 +187,7 @@ func Login(ctx context.Context, accessToken, hostname, configDir string) error {
 // Pull a Docker image.
 func Pull(ctx context.Context, imageWithTag, configDir string) error {
 	pullCmd := fmt.Sprintf("%s --config %s pull %s", dockerCmd, configDir, imageWithTag)
-	_, err := sk_exec.RunSimple(ctx, pullCmd)
+	_, err := exec.RunSimple(ctx, pullCmd)
 	if err != nil {
 		return err
 	}
@@ -173,7 +196,7 @@ func Pull(ctx context.Context, imageWithTag, configDir string) error {
 
 // Push a Docker image.
 func Push(ctx context.Context, tag, configDir string) (string, error) {
-	out, err := sk_exec.RunCwd(ctx, ".", dockerCmd, "--config", configDir, "push", tag)
+	out, err := exec.RunCwd(ctx, ".", dockerCmd, "--config", configDir, "push", tag)
 	if err != nil {
 		return "", err
 	}
@@ -186,7 +209,7 @@ func Push(ctx context.Context, tag, configDir string) (string, error) {
 
 // Tag the given Docker image.
 func Tag(ctx context.Context, imageID, tag, configDir string) error {
-	_, err := sk_exec.RunCwd(ctx, ".", "docker", "--config", configDir, "tag", imageID, tag)
+	_, err := exec.RunCwd(ctx, ".", "docker", "--config", configDir, "tag", imageID, tag)
 	return err
 }
 
@@ -204,13 +227,13 @@ func Run(ctx context.Context, image, configDir string, cmd, volumes, env []strin
 	}
 	runArgs = append(runArgs, image)
 	runArgs = append(runArgs, cmd...)
-	runCmd := &sk_exec.Command{
+	runCmd := &exec.Command{
 		Name:      dockerCmd,
 		Args:      runArgs,
 		LogStdout: true,
 		LogStderr: true,
 	}
-	_, err := sk_exec.RunCommand(ctx, runCmd)
+	_, err := exec.RunCommand(ctx, runCmd)
 	if err != nil {
 		return err
 	}
@@ -286,16 +309,16 @@ func BuildPushImageFromInfraImage(ctx context.Context, appName, image, tag, repo
 func publishToTopic(ctx context.Context, image, tag, repo string, topic *pubsub.Topic) error {
 	return td.Do(ctx, td.Props(fmt.Sprintf("Publish pubsub msg to %s", docker_pubsub.TOPIC)).Infra(), func(ctx context.Context) error {
 		// Publish to the pubsub topic.
-		b, err := json.Marshal(&docker_pubsub.BuildInfo{
+		var buf bytes.Buffer
+		if err := json.Encode(ctx, &buf, &docker_pubsub.BuildInfo{
 			ImageName: image,
 			Tag:       tag,
 			Repo:      repo,
-		})
-		if err != nil {
+		}); err != nil {
 			return err
 		}
 		msg := &pubsub.Message{
-			Data: b,
+			Data: buf.Bytes(),
 		}
 		res := topic.Publish(ctx, msg)
 		if _, err := res.Get(ctx); err != nil {

@@ -1,0 +1,45 @@
+ARG base="golang:1.13"
+
+FROM $base AS sync-and-build
+
+# Setup.
+USER root
+RUN addgroup --gid 2000 skia && adduser --uid 2000 --gid 2000 skia
+RUN mkdir /work && chown skia:skia /work
+RUN mkdir /out && chown skia:skia /out
+USER skia:skia
+WORKDIR /work
+RUN git config --global user.name fake && git config --global user.email fake
+
+# Sync the given repo to the requested revision.
+# TODO(borenet): It'd be nice to support something more granular than the Docker
+# cache, but I'm not sure how we'd do that in a way that doesn't defeat the
+# purpose of using Docker at all.
+ARG repo
+ARG revision
+ENV repo=$repo
+ENV revision=$revision
+RUN git clone ${repo} . \
+  && git reset --hard ${revision}
+
+# If provided, apply the given patch ref. Note that patch_ref is not referenced
+# above this point, which allows the image with just repo+revision to be reused
+# as needed from the Docker cache.
+ARG patch_ref
+ENV PATCH_REV=$patch_ref
+RUN if [ -n "$patch_ref" ]; then \
+  git fetch ${repo} ${patch_ref} \
+  && git checkout FETCH_HEAD \
+  && git rebase ${revision} \
+  ; fi
+
+ARG os="linux"
+ENV GOOS=$os
+ARG arch="amd64"
+ENV GOARCH=$arch
+RUN for td in $(cd infra/bots/task_drivers && ls); do \
+  go build -o /out/${td} ./infra/bots/task_drivers/${td}/${td}.go \
+  ; done
+
+FROM scratch AS task-drivers
+COPY --from=sync-and-build /out/* /out/

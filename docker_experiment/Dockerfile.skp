@@ -1,0 +1,11 @@
+ARG base="gcr.io/skia-public/base-cipd:testing-slim"
+
+FROM $base AS download
+USER root
+RUN mkdir /skp && chown skia:skia /skp
+USER skia:skia
+ARG version="223"
+RUN cipd install --force --root=/skp skia/bots/skp version:$version
+
+FROM scratch AS skp
+COPY --from=download /skp/*.skp /skp/

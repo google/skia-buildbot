@@ -1,0 +1,14 @@
+ARG base="gcr.io/skia-public/base-cipd:testing-slim"
+
+FROM $base AS download
+USER root
+RUN mkdir /skimage && chown skia:skia /skimage \
+  && mkdir /tmp/skimage && chown skia:skia /tmp/skimage
+USER skia:skia
+ARG version="40"
+RUN cipd install --force --root=/tmp/skimage skia/bots/skimage version:$version
+# Copy and follow symlinks.
+RUN cp -L -r /tmp/skimage/* /skimage/
+
+FROM scratch AS skimage
+COPY --from=download /skimage /skimage

@@ -1,0 +1,20 @@
+#!/bin/bash
+# Docker image used to perform a Docker build + run.
+
+set -x -e
+
+APPNAME=canned-tasks
+TAG=latest
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="install -D --verbose --backup=none"
+INSTALL_DIR="install -d --verbose --backup=none"
+${INSTALL} --mode=644 -T Dockerfile                 ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${GOPATH}/bin/docker-build ${ROOT}/bin/docker-build
+${INSTALL} --mode=755 -T ${GOPATH}/bin/docker-run   ${ROOT}/bin/docker-run
+${INSTALL} --mode=755 -T ${GOPATH}/bin/git-cas      ${ROOT}/bin/git-cas
+}
+
+source ../../../bash/docker_build.sh

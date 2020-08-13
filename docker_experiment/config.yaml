@@ -1,0 +1,221 @@
+# This is the file which defines the DAG of tasks.
+
+# Pinned version of the infra-side code, eg. canned tasks, API version, etc.
+version: f1c30aae7a888f893b37923e09e934becf6e35afd77553f06080891bdb3286cd
+
+# GCP project ID.
+project: skia-swarming-bots
+
+# Static, pinned images generated elsewhere and used here. We'd want to roll
+# them periodically, which I think is orthogonal to this configuration.
+images:
+  build-task-drivers:
+    name: golang:1.13
+    sha256: 93a56423351235e070b3630e0a8b3e27d5e868883d4dff591f676315f208a574
+  linux-build:
+    name: gcr.io/skia-public/base-cipd:testing-slim
+    sha256: 31439b337e13b6c95ec10ee737e8c550720e18f6eb0f8c5c156a6597d9312707
+  skp:
+    name: gcr.io/skia-public/skp
+    sha256: bded479d2b5740ab91281a2e64d24e4af46f7a454174f6830e180958a184db65
+  skimage:
+    name: gcr.io/skia-public/skimage
+    sha256: 19b1000de3ecc54dfeba854e225185bb39b7ac8e4fd1d09dfb238f51f2913aa9
+
+# Definitions of all tasks. You'll notice that the dependencies between tasks
+# are implicit, based on the images and resources specified as inputs and
+# outputs to each task. I think we'd offer a command-line tool which could
+# validate the DAG implied by this file as well as roll versions of dependent
+# images, etc.
+tasks:
+  Sync-Skia:
+    dimensions:
+      cpu: x86-64-Haswell_GCE
+      gpu: none
+      machine_type: n1-highcpu-64
+      os: Debian-9.8
+      pool: Skia
+    sync-and-isolate:
+      outputs:
+        - name: compile
+          isolate: infra/bots/compile.isolate
+        - name: test
+          isolate: infra/bots/test_skia_bundled.isolate
+  Build-Debian9-Clang-x86_64-Debug:
+    # Descriptors indicating which machines can run this task. We might rename
+    # in a non-Swarming world.
+    dimensions:
+      cpu: x86-64-Haswell_GCE
+      gpu: none
+      machine_type: n1-highcpu-64
+      os: Debian-9.8
+      # Note that for security reasons we may want to move the "pool" dimension
+      # outside of the individual task definition and into a repo-wide config.
+      pool: Skia
+    # This task runs "docker build", which is a canned task definition which
+    # implicitly runs a task driver (whose build is regenerated on the infra
+    # side, pinned, and rolled periodically).
+    docker-run:
+      # Image used for "docker run".
+      image: linux-build
+      # Named volumes to mount into the container.
+      volumes:
+          # Friendly name of the volume. Must be a valid directory name.
+        - name: src
+          # Mount the volume at this location in the container.
+          mount: /src
+        - name: out
+          mount: /out
+      # Inputs to docker-run tasks are mounted into the container at the
+      # specified location.
+      inputs:
+        # Name of the output of a previous task.
+        - name: compile
+          # Name of the mounted volume which will include this input.
+          volume: src
+          # Location of the input inside the volume.
+          location: .
+      # Outputs produced by this task.
+      outputs:
+        - name: dm.Build-Debian9-Clang-x86_64-Debug # Needs to be unique.
+          volume: out
+          location: dm
+        - name: nanobench.Build-Debian9-Clang-x86_64-Debug
+          target: nanobench
+      # Any extra --build-arg may be defined here. "--build-arg base=<sha256>"
+      # is implied by the "base" parameter. Note that in this formulation the
+      # compile flags are part of the Dockerfile, which implies that each build
+      # task has its own Dockerfile. In Skia, with so many different build
+      # configurations, we'd probably want to have a script to generate all of
+      # the Dockerfiles. An alternative would be to group all builds which use
+      # the same build environment into a single Dockerfile and pass the compile
+      # flags as build-args. The downside would be that a developer needs to
+      # type the build-args in order to reproduce a given build.
+      build-args:
+        repo: https://skia.googlesource.com/skia.git #<(REPO)
+        revision: 4513cdde49126851ff3b8e2cade4a2f65b1c7fdd #<(REVISION)
+        patch_ref: #<(PATCH_REF)
+
+  Test-Debian9-Clang-GCE-CPU-AVX2-x86_64-Debug-All:
+    # Descriptors indicating which machines can run this task. We might rename
+    # in a non-Swarming world.
+    dimensions:
+      cpu: x86-64-Haswell_GCE
+      gpu: none
+      machine_type: n1-standard-16
+      os: Debian-9.8
+      # Note that for security reasons we may want to move the "pool" dimension
+      # outside of the individual task definition and into a repo-wide config.
+      pool: Skia
+    # This task runs "docker run", which is a canned task definition which
+    # implicitly runs a task driver (whose build is regenerated on the infra
+    # side, pinned, and rolled periodically).
+    docker-run:
+      # Docker image used to create the container in which the command runs.
+      image: gcr.io/skia-public/linux-run
+      # Inputs are Docker images which are used to deliver files needed by
+      # this task. They replace isolates and CIPD packages. Best practice is to
+      # base them on the empty "scratch" image to avoid transferring unnecessary
+      # OS files. The docker-run task driver takes these as inputs, extracts the
+      # specified files into a temporary directory, and mounts it to the
+      # specified location for "docker run".
+      inputs:
+        # This artifact contains the compiled binary which is run in the
+        # container. It is transferred as a resource rather than the image used
+        # for "docker run" because we may want to run the same binary within
+        # different contexts.
+        - image: gcr.io/skia-public/dm.build-debian9-clang-x86_64-debug
+          source: /out
+          mount: /exec
+        # This resource contains the compiled task driver which is run in the
+        # container.
+        - image: gcr.io/skia-public/task-drivers-linux-amd64
+          source: /out
+          mount: /task-drivers
+        # Resources from the Skia repo.
+        - image: gcr.io/skia-public/skia-repo.resources
+          source: /resources
+          mount: /resources
+        # The following are other artifacts needed by the task, pinned in the
+        # "images" section of this file.
+        - image: skp
+          source: /skp
+          mount: /skp
+        - image: skimage
+          source: /skimage
+          mount: /skimage
+      # This is the command which is run inside the container. Note that we're
+      # moving all of the logic about what the task should do (eg. dm flags,
+      # platform, etc) outside of the task itself. We want a task driver for
+      # this task so that we can pipe the results of multiple steps (eg.
+      # transferring files to/from devices, uploading generated images, etc) to
+      # the UI.
+      command: [
+        "/task-drivers/run-dm",
+        "--project_id=skia-swarming-bots",
+        "--task_id=<(TASK_ID)",
+        "--task_name=<(TASK_NAME)",
+        "--dm=/exec/dm", "--",
+        "--skps", "/skp",
+        "--images", "/skimage/dm",
+        "--colorImages", "/skimage/colorspace",
+        "--resourcePath", "/resources",
+        "--properties", "gitHash", "<(REVISION)", "builder", "<(TASK_NAME)", "task_id", "<(TASK_ID)",
+        "--key", "arch", "x86_64", "compiler", "Clang",
+        "--nogpu",
+        "--config", "8888",
+        "--src", "tests", "gm", "image", "colorImage",
+        "--blacklist", "_", "image", "gen_platf", "error",
+      ]
+      # Environment variables to set on the container. Like the --env flag to
+      # "docker run", these can be in the form "<key>=<value>" or "<key>"; in
+      # the latter case the value is inherited from the outer environment.
+      environment:
+        - LUCI_CONTEXT
+        - SWARMING_BOT_ID
+        - SWARMING_SERVER
+        - SWARMING_TASK_ID
+
+  Build-Task-Drivers-Linux_amd64:
+    # Descriptors indicating which machines can run this task. We might rename
+    # in a non-Swarming world.
+    dimensions:
+      cpu: x86-64-Haswell_GCE
+      gpu: none
+      machine_type: n1-highmem-2
+      os: Debian-9.8
+      # Note that for security reasons we may want to move the "pool" dimension
+      # outside of the individual task definition and into a repo-wide config.
+      pool: Skia
+    docker-build:
+      file: Dockerfile.Build-Task-Drivers
+      base: build-task-drivers
+      outputs:
+        - image: gcr.io/skia-public/task-drivers-linux-amd64
+      build-args:
+        arch: amd64
+        os: linux
+        repo: <(REPO)
+        revision: <(REVISION)
+        patch_ref: <(PATCH_REF)
+
+  Build-Linux-Image:
+    dimensions:
+      cpu: x86-64-Haswell_GCE
+      gpu: none
+      machine_type: n1-highcpu-64
+      os: Debian-9.8
+      pool: Skia
+    docker-build:
+      file: Dockerfile.Linux-Run
+      base: linux-build
+      outputs:
+        - image: gcr.io/skia-public/linux-run
+
+# Definitions of all jobs. The roles of tasks and jobs haven't changed; a job is
+# just a pointer to a sub-section of the task DAG.
+jobs:
+  Test-Debian9-Clang-GCE-CPU-AVX2-x86_64-Debug-All:
+    tasks:
+      - Test-Debian9-Clang-GCE-CPU-AVX2-x86_64-Debug-All
+    trigger: "commit"
