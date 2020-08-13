@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cc442b71_c7a3d80f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-13T18:20:39Z",
+      "side": 1,
+      "message": "LGTM for goldpushk, modulo some potential places where we could replace \"origin\" with git.DefaultRemote.",
+      "revId": "c8eb729dd020a7156062d2318a4474a91c2c1d46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "248cf9a6_dcd80966",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-13T18:20:39Z",
+      "side": 1,
+      "message": "git.DefaultRemote",
+      "range": {
+        "startLine": 406,
+        "startChar": 51,
+        "endLine": 406,
+        "endChar": 59
+      },
+      "revId": "c8eb729dd020a7156062d2318a4474a91c2c1d46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12427652_55c19223",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-13T18:20:39Z",
+      "side": 1,
+      "message": "git.DefaultRemote",
+      "range": {
+        "startLine": 390,
+        "startChar": 39,
+        "endLine": 390,
+        "endChar": 47
+      },
+      "revId": "c8eb729dd020a7156062d2318a4474a91c2c1d46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "40072bcb_39b05cb4",
+        "filename": "task_scheduler/go/scheduling/perftest/perftest.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-13T18:20:39Z",
+      "side": 1,
+      "message": "git.DefaultRemote",
+      "range": {
+        "startLine": 108,
+        "startChar": 32,
+        "endLine": 108,
+        "endChar": 38
+      },
+      "revId": "c8eb729dd020a7156062d2318a4474a91c2c1d46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "caf4f431_38fa1479",
+        "filename": "task_scheduler/go/scheduling/perftest/perftest.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-13T18:20:39Z",
+      "side": 1,
+      "message": "git.DefaultRemote",
+      "range": {
+        "startLine": 251,
+        "startChar": 31,
+        "endLine": 251,
+        "endChar": 37
+      },
+      "revId": "c8eb729dd020a7156062d2318a4474a91c2c1d46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4a2df8fa_a40b2597",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-13T18:20:39Z",
+      "side": 1,
+      "message": "git.DefaultBranch?",
+      "range": {
+        "startLine": 33,
+        "startChar": 24,
+        "endLine": 33,
+        "endChar": 30
+      },
+      "revId": "c8eb729dd020a7156062d2318a4474a91c2c1d46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
