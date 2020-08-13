@@ -374,7 +374,6 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 		Command: []string{
 			"./infra_tests",
 			"--project_id", "skia-swarming-bots",
-			"--task_id", specs.PLACEHOLDER_TASK_ID,
 			"--task_name", name,
 			"--workdir", ".",
 			"--alsologtostderr",
@@ -403,7 +402,6 @@ func updateGoDeps(b *specs.TasksCfgBuilder, name string) string {
 		Command: []string{
 			"./update_go_deps",
 			"--project_id", "skia-swarming-bots",
-			"--task_id", specs.PLACEHOLDER_TASK_ID,
 			"--task_name", name,
 			"--workdir", ".",
 			"--gerrit_project", "buildbot",

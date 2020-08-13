@@ -18,7 +18,6 @@ import (
 var (
 	// Required properties for this task.
 	projectId = flag.String("project_id", "", "ID of the Google Cloud project.")
-	taskId    = flag.String("task_id", "", "ID of this task.")
 	taskName  = flag.String("task_name", "", "Name of the task.")
 	workdir   = flag.String("workdir", ".", "Working directory")
 
@@ -29,7 +28,7 @@ var (
 
 func main() {
 	// Setup.
-	ctx := td.StartRun(projectId, taskId, taskName, output, local)
+	ctx := td.StartRun(projectId, taskName, output, local)
 	defer td.EndRun(ctx)
 
 	// Setup Go.
