@@ -3,6 +3,8 @@
      "urls": [
        "https://perf.skia.org/e/",
        "https://androidx-perf.skia.org/e/",
+       "https://flutter-engine-perf.skia.org/e/",
+       "https://flutter-flutter-perf.skia.org/e/",
      ],
      "method": "GET",
      "expected": [200],
