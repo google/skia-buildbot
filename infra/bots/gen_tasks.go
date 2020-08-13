@@ -27,6 +27,7 @@ const (
 
 	DEFAULT_OS       = DEFAULT_OS_LINUX
 	DEFAULT_OS_LINUX = "Debian-10.3"
+	DEFAULT_OS_MAC   = "Mac-10.14.6"
 	DEFAULT_OS_WIN   = "Windows-Server-17763"
 
 	LOGDOG_ANNOTATION_URL = "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
@@ -66,6 +67,7 @@ var (
 		"Infra-PerCommit-PushAppsFromInfraDockerImage",
 		"Infra-PerCommit-ValidateAutorollConfigs",
 		"Infra-Experimental-Small-Linux",
+		"Infra-Experimental-Small-Mac",
 		"Infra-Experimental-Small-Win",
 	}
 
@@ -127,6 +129,16 @@ func linuxGceDimensions(machineType string) []string {
 		"gpu:none",
 		"cpu:x86-64-Haswell_GCE",
 		fmt.Sprintf("machine_type:%s", machineType),
+	}
+}
+
+// Dimensions for Mac machines.
+func macDimensions(machineType string) []string {
+	return []string{
+		"pool:Skia",
+		fmt.Sprintf("os:%s", DEFAULT_OS_MAC),
+		"gpu:none",
+		"cpu:x86-64-E5-2697_v2",
 	}
 }
 
@@ -367,6 +379,10 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 		cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
 		deps = append(deps, buildTaskDrivers(b, "Linux", "x86_64"))
 		dims = linuxGceDimensions(machineType)
+	} else if strings.Contains(name, "Mac") {
+		cipd = append(cipd, b.MustGetCipdPackageFromAsset("go"))
+		deps = append(deps, buildTaskDrivers(b, "Mac", "x86_64"))
+		dims = macDimensions(machineType)
 	}
 	t := &specs.TaskSpec{
 		Caches:       CACHES_GO,
