@@ -145,6 +145,8 @@ type ChangeInfo struct {
 	Owner          *Person                `json:"owner"`
 	Status         string                 `json:"status"`
 	WorkInProgress bool                   `json:"work_in_progress"`
+	Topic          string                 `json:"topic"`
+	Hashtags       []string               `json:"hashtags"`
 }
 
 // Find the set of non-trivial patchsets. Returns the Revisions in order of
