@@ -1,0 +1,85 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004398008",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/267478?revision\u003d34",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "3752c96f_808b3379",
+        "filename": "docker_experiment/config.yaml",
+        "patchSetId": 34
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:59:02Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 141,
+        "startChar": 11,
+        "endLine": 141,
+        "endChar": 20
+      },
+      "revId": "6e343c277104499abdd1d1d3da65eb8eb0f68629",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004398008",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/267478?revision\u003d34",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "33234839_b8b40dbb",
+        "filename": "docker_experiment/test.json",
+        "patchSetId": 34
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:59:02Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 58,
+        "startChar": 1059,
+        "endLine": 58,
+        "endChar": 1068
+      },
+      "revId": "6e343c277104499abdd1d1d3da65eb8eb0f68629",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004398008",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/267478?revision\u003d34",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "45a2ed2d_2e6d75b3",
+        "filename": "infra/bots/tasks.json",
+        "patchSetId": 34
+      },
+      "lineNbr": 1564,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:59:02Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 1564,
+        "startChar": 1049,
+        "endLine": 1564,
+        "endChar": 1058
+      },
+      "revId": "6e343c277104499abdd1d1d3da65eb8eb0f68629",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
