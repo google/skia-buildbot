@@ -29,6 +29,8 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/timeout"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/autoscaler"
+	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
@@ -88,6 +90,7 @@ var (
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
+	autoscaler          *autoscaler.Autoscaler
 	busyBots            *busyBots
 	candidateMetrics    map[string]metrics2.Int64Metric
 	candidateMetricsMtx sync.Mutex
@@ -121,7 +124,7 @@ type TaskScheduler struct {
 	window                *window.Window
 }
 
-func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, pools []string, pubsubTopic string, taskCfgCache *task_cfg_cache.TaskCfgCache, isolateCache *isolate_cache.Cache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
+func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, pools []string, pubsubTopic string, taskCfgCache *task_cfg_cache.TaskCfgCache, isolateCache *isolate_cache.Cache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string, as *autoscaler.Autoscaler) (*TaskScheduler, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -146,7 +149,12 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 	}
 
 	s := &TaskScheduler{
+<<<<<<< HEAD
 		skipTasks:             bl,
+=======
+		autoscaler:            as,
+		bl:                    bl,
+>>>>>>> 82363006f... git squash commit for ts_autoscale.
 		busyBots:              newBusyBots(),
 		candidateMetrics:      map[string]metrics2.Int64Metric{},
 		db:                    d,
@@ -1322,23 +1330,33 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	sklog.Infof("Task Scheduler MainLoop starting...")
 	start := time.Now()
 
-	var getSwarmingBotsErr error
-	var wg sync.WaitGroup
+	var e1, e2 error
+	var wg1, wg2 sync.WaitGroup
 
 	var bots []*swarming_api.SwarmingRpcsBotInfo
-	wg.Add(1)
+	wg1.Add(1)
 	go func() {
-		defer wg.Done()
+		defer wg1.Done()
 
 		var err error
 		bots, err = getFreeSwarmingBots(s.swarming, s.busyBots, s.pools)
 		if err != nil {
-			getSwarmingBotsErr = err
+			e1 = err
 			return
 		}
 
 	}()
 
+	wg2.Add(1)
+	go func() {
+		defer wg2.Done()
+		if err := s.autoscaler.Update(); err != nil {
+			e2 = err
+			return
+		}
+	}()
+
+	now := time.Now()
 	if err := s.tCache.Update(); err != nil {
 		return fmt.Errorf("Failed to update task cache: %s", err)
 	}
@@ -1362,9 +1380,36 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		return fmt.Errorf("Failed to regenerate task queue: %s", err)
 	}
 
-	wg.Wait()
-	if getSwarmingBotsErr != nil {
-		return fmt.Errorf("Failed to retrieve free Swarming bots: %s", getSwarmingBotsErr)
+	wg2.Wait()
+	if e2 != nil {
+		return e2
+	}
+
+	// Once we have the queue, trigger an autoscale.
+	var wg3 sync.WaitGroup
+	wg3.Add(1)
+	var autoScaleErr error
+	go func() {
+		defer wg3.Done()
+		candidateDimensions := make([][]string, 0, len(queue))
+		for _, c := range queue {
+			candidateDimensions = append(candidateDimensions, c.TaskSpec.Dimensions)
+		}
+		err := s.autoscaler.Autoscale(candidateDimensions, now)
+		if err != nil {
+			if err == autoscaler.ERR_AUTOSCALE_IN_PROGRESS {
+				// Ignore this error, since autoscaling might take
+				// longer than a full scheduling cycle.
+				sklog.Infof("Autoscaler is busy; will try again on the next cycle.")
+			} else {
+				autoScaleErr = err
+			}
+		}
+	}()
+
+	wg1.Wait()
+	if e1 != nil {
+		return fmt.Errorf("Failed to retrieve free Swarming bots: %s", e1)
 	}
 
 	sklog.Infof("Task Scheduler scheduling tasks...")
@@ -1386,7 +1431,8 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 	}
 
 	sklog.Infof("Task Scheduler MainLoop finished.")
-	return nil
+	wg4.Wait()
+	return autoScaleErr
 }
 
 // QueueLen returns the length of the queue.

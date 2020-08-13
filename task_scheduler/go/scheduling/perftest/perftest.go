@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/autoscaler"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
@@ -305,7 +306,7 @@ func main() {
 	if err != nil {
 		sklog.Fatalf("Failed to create isolate cache: %s", err)
 	}
-	s, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, swarmingClient, http.DefaultClient, 0.9, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, nil, "")
+	s, err := scheduling.NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, swarmingClient, http.DefaultClient, 0.9, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, nil, "", autoscaler.New(nil, time.Now()))
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {

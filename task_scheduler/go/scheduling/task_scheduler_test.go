@@ -35,6 +35,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/task_scheduler/go/autoscaler"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
@@ -287,7 +288,8 @@ func setup(t *testing.T) (context.Context, *mem_git.MemGit, *memory.InMemoryDB, 
 	fillCaches(t, ctx, taskCfgCache, isolateCache, rs1, tcc_testutils.TasksCfg1, tcc_testutils.IsolatedsRS1)
 	fillCaches(t, ctx, taskCfgCache, isolateCache, rs2, tcc_testutils.TasksCfg2, tcc_testutils.IsolatedsRS2)
 
-	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
+	as := autoscaler.New(nil, time.Now())
+	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, swarmingClient, urlMock.Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance, as)
 	require.NoError(t, err)
 
 	// Insert jobs. This is normally done by the JobCreator.
@@ -2356,6 +2358,8 @@ func testMultipleCandidatesBackfillingEachOtherSetup(t *testing.T) (context.Cont
 		mockTasks = append(mockTasks, makeSwarmingRpcsTaskRequestMetadata(t, task, linuxTaskDims))
 		swarmingClient.MockTasks(mockTasks)
 	}
+
+	as := autoscaler.New(nil, time.Now())
 
 	// Create the TaskScheduler.
 	s, err := NewTaskScheduler(ctx, d, nil, time.Duration(math.MaxInt64), 0, repos, isolateClient, swarmingClient, mockhttpclient.NewURLMock().Client(), 1.0, swarming.POOLS_PUBLIC, "", taskCfgCache, isolateCache, nil, mem_gcsclient.New("diag_unit_tests"), btInstance)
