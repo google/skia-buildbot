@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7e4e57b6_3e9773ad",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-13T15:29:22Z",
+      "side": 1,
+      "message": "This should make it easier to change the default branch name if we end up doing so, and should help reduce linter noise at any rate.  I tried to only change instances which specifically referred to the git master branch, so if I\u0027ve accidentally included something else, please let me know.",
+      "revId": "a0413374e24e640689d197042099fdf9c2c7a014",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
