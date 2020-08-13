@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -47,8 +48,10 @@ type GitDir string
 // newGitDir creates a GitDir instance based in the given directory.
 func newGitDir(ctx context.Context, repoUrl, workdir string, mirror bool) (GitDir, error) {
 	dest := path.Join(workdir, strings.TrimSuffix(path.Base(repoUrl), ".git"))
+	sklog.Errorf("Looking for %s in %s", repoUrl, dest)
 	if _, err := os.Stat(dest); err != nil {
 		if os.IsNotExist(err) {
+			sklog.Errorf("Syncing")
 			if err := Clone(ctx, repoUrl, dest, mirror); err != nil {
 				return "", err
 			}
