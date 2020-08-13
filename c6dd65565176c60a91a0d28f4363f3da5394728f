@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4c0d21ed_b175d06f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-13T17:52:03Z",
+      "side": 1,
+      "message": "lgtm with style nits.",
+      "revId": "c6dd65565176c60a91a0d28f4363f3da5394728f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d2af7e33_c1222c40",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 342,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-13T17:52:03Z",
+      "side": 1,
+      "message": "I don\u0027t think it\u0027s a best practice to include the tag type (P) in your CSS class. I\u0027m also not a huge fan of case-sensitive selectors (since I can never remember which parts of HTML/CSS are case sensitive or not)\n\nMaybe make the class for that \u003cP\u003e tag be \"message\" and then the selector would just be #error_dialog .message\n\nIf it must be an id (Polymer selection magic?), then how about error_dialog_msg?",
+      "range": {
+        "startLine": 342,
+        "startChar": 5,
+        "endLine": 342,
+        "endChar": 17
+      },
+      "revId": "c6dd65565176c60a91a0d28f4363f3da5394728f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "06ca47d2_b98f10d1",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 812,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-13T17:52:03Z",
+      "side": 1,
+      "message": "JS does not use snake case for variables.",
+      "range": {
+        "startLine": 812,
+        "startChar": 14,
+        "endLine": 812,
+        "endChar": 21
+      },
+      "revId": "c6dd65565176c60a91a0d28f4363f3da5394728f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
