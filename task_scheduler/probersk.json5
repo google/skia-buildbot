@@ -2,7 +2,7 @@
    "task_scheduler": {
      "urls": [
        "https://task-scheduler.skia.org",
-       "https://task-scheduler.skia.org/blacklist",
+       "https://task-scheduler.skia.org/skip-tasks",
        "https://task-scheduler.skia.org/jobs/search",
        "https://task-scheduler.skia.org/trigger",
      ],

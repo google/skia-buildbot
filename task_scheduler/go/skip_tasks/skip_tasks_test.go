@@ -1,4 +1,4 @@
-package blacklist
+package skip_tasks
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func setup(t *testing.T) (*Blacklist, func()) {
+func setup(t *testing.T) (*DB, func()) {
 	unittest.LargeTest(t)
 	c, cleanup := firestore.NewClientForTesting(context.Background(), t)
 	b, err := New(context.Background(), c)

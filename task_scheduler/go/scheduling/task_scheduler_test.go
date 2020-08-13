@@ -35,11 +35,11 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/db/memory"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
+	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	tcc_testutils "go.skia.org/infra/task_scheduler/go/task_cfg_cache/testutils"
@@ -2623,24 +2623,24 @@ func TestParentTaskId(t *testing.T) {
 	}
 }
 
-func TestBlacklist(t *testing.T) {
-	// The blacklist has its own tests, so this test just verifies that it's
+func TestSkipTasks(t *testing.T) {
+	// skip_tasks has its own tests, so this test just verifies that it's
 	// actually integrated into the scheduler.
 	ctx, _, _, swarmingClient, s, _, cleanup := setup(t)
 	defer cleanup()
 	c, cleanupfs := skfs.NewClientForTesting(context.Background(), t)
 	defer cleanupfs()
-	bl, err := blacklist.New(context.Background(), c)
+	bl, err := skip_tasks.New(context.Background(), c)
 	require.NoError(t, err)
-	s.bl = bl
+	s.skipTasks = bl
 
 	c1 := rs1.Revision
 
-	// Mock some bots, add one of the build tasks to the blacklist.
+	// Mock some bots, add one of the build tasks to the skip_tasks list.
 	bot1 := makeBot("bot1", linuxTaskDims)
 	bot2 := makeBot("bot2", linuxTaskDims)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
-	require.NoError(t, s.GetBlacklist().AddRule(&blacklist.Rule{
+	require.NoError(t, s.GetSkipTasks().AddRule(&skip_tasks.Rule{
 		AddedBy:          "Tests",
 		TaskSpecPatterns: []string{".*"},
 		Commits:          []string{c1},
@@ -2651,25 +2651,25 @@ func TestBlacklist(t *testing.T) {
 	require.NoError(t, s.tCache.Update())
 	tasks, err := s.tCache.UnfinishedTasks()
 	require.NoError(t, err)
-	// The blacklisted commit should not have been triggered.
+	// The skipped commit should not have been triggered.
 	require.Equal(t, 1, len(tasks))
 	require.NotEqual(t, c1, tasks[0].Revision)
-	// Candidate diagnostics should indicate the blacklist rule.
+	// Candidate diagnostics should indicate the skip rule.
 	diag := lastDiagnostics(t, s)
-	foundBlacklisted := 0
+	foundSkipped := 0
 	for _, c := range diag.Candidates {
 		if c.Revision == c1 {
-			foundBlacklisted++
-			require.Equal(t, "My-Rule", c.Diagnostics.Filtering.BlacklistedByRule)
+			foundSkipped++
+			require.Equal(t, "My-Rule", c.Diagnostics.Filtering.SkippedByRule)
 		} else if c.TaskKey == tasks[0].TaskKey {
 			require.Nil(t, c.Diagnostics.Filtering)
 		} else {
-			require.Equal(t, "", c.Diagnostics.Filtering.BlacklistedByRule)
+			require.Equal(t, "", c.Diagnostics.Filtering.SkippedByRule)
 			require.True(t, len(c.Diagnostics.Filtering.UnmetDependencies) > 0)
 		}
 	}
-	// Should be one Build task and one Test task blacklisted.
-	require.Equal(t, 2, foundBlacklisted)
+	// Should be one Build task and one Test task skipped.
+	require.Equal(t, 2, foundSkipped)
 }
 
 func TestGetTasksForJob(t *testing.T) {

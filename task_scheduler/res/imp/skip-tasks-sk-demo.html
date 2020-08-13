@@ -1,13 +1,13 @@
 <html>
 <head>
-  <title>task-scheduler-blacklist-sk demo</title>
+  <title>skip-tasks-sk demo</title>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
   <script src="/res/common/js/common.js"></script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <script type="text/javascript" charset="utf-8">
-    var blacklist = [
+    var skips = [
       {
         "added_by": "TaskScheduler",
         "task_spec_patterns": [
@@ -46,8 +46,8 @@
 
     var gen_response = function() {
       var data = {"rules":{}};
-      for (var i = 0; i < blacklist.length; ++i) {
-        data["rules"][blacklist[i]["id"]] = blacklist[i];
+      for (var i = 0; i < skips.length; ++i) {
+        data["rules"][skips[i]["id"]] = skips[i];
       }
       return JSON.stringify(data);
     };
@@ -67,7 +67,7 @@
         }
 
         data["added_by"] = "you!";
-        blacklist.push(data);
+        skips.push(data);
         setTimeout(function() {
           resolve(gen_response());
         }, 2000);
@@ -82,8 +82,8 @@
           return;
         }
         var idx = -1;
-        for (var i = 0; i < blacklist.length; i++) {
-          if (blacklist[i]["id"] == data["id"]) {
+        for (var i = 0; i < skips.length; i++) {
+          if (skips[i]["id"] == data["id"]) {
             idx = i;
             break;
           }
@@ -92,40 +92,40 @@
           reject("No such rule");
           return;
         }
-        blacklist.splice(idx, 1);
+        skips.splice(idx, 1);
         setTimeout(function() {
           resolve(gen_response());
         }, 2000);
       });
     };
   </script>
-  <link rel="import" href="task-scheduler-blacklist-sk.html">
+  <link rel="import" href="skip-tasks-sk.html">
   <link rel="import" href="/res/common/imp/error-toast-sk.html">
 </head>
 <body>
-<dom-module id="task-scheduler-blacklist-sk-demo">
+<dom-module id="skip-tasks-sk-demo">
   <template>
-    <task-scheduler-blacklist-sk
+    <skip-tasks-sk
         rules="[[rules]]"
-        ></task-scheduler-blacklist-sk>
+        ></skip-tasks-sk>
   </template>
   <script>
   Polymer({
-    is: 'task-scheduler-blacklist-sk-demo',
+    is: 'skip-tasks-sk-demo',
 
     properties: {
       rules: {
         type: Array,
         value: function() {
-          return blacklist;
+          return skips;
         },
       },
     },
   });
   </script>
 </dom-module>
-  <h1>task-scheduler-blacklist-sk demo</h1>
-  <task-scheduler-blacklist-sk-demo></task-scheduler-blacklist-sk-demo>
+  <h1>skip-tasks-sk demo</h1>
+  <skip-tasks-sk-demo></skip-tasks-sk-demo>
   <error-toast-sk></error-toast-sk>
 </body>
 </html>

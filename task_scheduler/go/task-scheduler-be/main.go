@@ -25,10 +25,10 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/scheduling"
+	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/option"
@@ -119,8 +119,8 @@ func main() {
 		util.Close(tsDb)
 	})
 
-	// Blacklist DB.
-	bl, err := blacklist.NewWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource)
+	// Skip tasks DB.
+	skipTasks, err := skip_tasks.NewWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource)
 	if err != nil {
 		sklog.Fatal(err)
 	}
@@ -174,7 +174,7 @@ func main() {
 
 	// Create and start the task scheduler.
 	sklog.Infof("Creating task scheduler.")
-	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, bl, period, *commitWindow, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, *swarmingPools, *pubsubTopicName, taskCfgCache, isolateCache, tokenSource, diagClient, diagInstance)
+	ts, err := scheduling.NewTaskScheduler(ctx, tsDb, skipTasks, period, *commitWindow, repos, isolateClient, swarm, httpClient, *scoreDecay24Hr, *swarmingPools, *pubsubTopicName, taskCfgCache, isolateCache, tokenSource, diagClient, diagInstance)
 	if err != nil {
 		sklog.Fatal(err)
 	}

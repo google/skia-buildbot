@@ -401,8 +401,8 @@ func (s *taskCandidate) GetDiagnostics() *taskCandidateDiagnostics {
 // taskCandidateFilteringDiagnostics contains information about a candidate rejected before scoring
 // and scheduling. Normally exactly one field is set.
 type taskCandidateFilteringDiagnostics struct {
-	// Name of rule blacklisting this task.
-	BlacklistedByRule string `json:"blacklistedByRule,omitempty"`
+	// Name of rule skipping this task.
+	SkippedByRule string `json:"skippedByRule,omitempty"`
 	// True if this task's revision is outside the scheduling window (but its Job has not yet been
 	// flushed).
 	RevisionTooOld bool `json:"revisionTooOld,omitempty"`

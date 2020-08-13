@@ -1,4 +1,4 @@
-package blacklist
+package skip_tasks
 
 import (
 	"context"
@@ -17,34 +17,34 @@ import (
 )
 
 const (
-	// Collection name for blacklist entries.
-	COLLECTION_BLACKLISTS = "blacklist_rules"
+	// Collection name for skip-tasks entries.
+	collection = "blacklist_rules"
 
 	// We'll perform this many attempts for a given request.
-	DEFAULT_ATTEMPTS = 3
+	defaultAttempts = 3
 
 	// Timeouts for various requests.
-	TIMEOUT_GET = 60 * time.Second
-	TIMEOUT_PUT = 10 * time.Second
+	timeoutGet = 60 * time.Second
+	timeoutPut = 10 * time.Second
 
-	MAX_NAME_CHARS = 50
+	maxNameChars = 50
 )
 
 var (
-	ERR_NO_SUCH_RULE = fmt.Errorf("No such rule.")
+	errNoSuchRule = fmt.Errorf("No such rule.")
 )
 
-// Blacklist is a struct which contains rules specifying tasks which should
+// DB is a struct which contains rules specifying tasks which should
 // not be scheduled.
-type Blacklist struct {
+type DB struct {
 	client *firestore.Client
 	coll   *fs.CollectionRef
 	mtx    sync.RWMutex
 	rules  map[string]*Rule
 }
 
-// NewWithParams returns a Blacklist instance backed by Firestore, using the given params.
-func NewWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource) (*Blacklist, error) {
+// NewWithParams returns a DB instance backed by Firestore, using the given params.
+func NewWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource) (*DB, error) {
 	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
 	if err != nil {
 		return nil, err
@@ -52,11 +52,11 @@ func NewWithParams(ctx context.Context, project, instance string, ts oauth2.Toke
 	return New(ctx, client)
 }
 
-// New returns a Blacklist instance backed by the given firestore.Client.
-func New(ctx context.Context, client *firestore.Client) (*Blacklist, error) {
-	b := &Blacklist{
+// New returns a DB instance backed by the given firestore.Client.
+func New(ctx context.Context, client *firestore.Client) (*DB, error) {
+	b := &DB{
 		client: client,
-		coll:   client.Collection(COLLECTION_BLACKLISTS),
+		coll:   client.Collection(collection),
 	}
 	if err := b.Update(); err != nil {
 		util.LogErr(b.Close())
@@ -66,21 +66,21 @@ func New(ctx context.Context, client *firestore.Client) (*Blacklist, error) {
 }
 
 // Close closes the database.
-func (b *Blacklist) Close() error {
+func (b *DB) Close() error {
 	if b != nil {
 		return b.client.Close()
 	}
 	return nil
 }
 
-// Update updates the local view of the Blacklist to match the remote DB.
-func (b *Blacklist) Update() error {
+// Update updates the local view of the skip rules to match the remote DB.
+func (b *DB) Update() error {
 	if b == nil {
 		return nil
 	}
 	rules := map[string]*Rule{}
 	q := b.coll.Query
-	if err := b.client.IterDocs(context.TODO(), "GetBlacklistEntries", "", q, DEFAULT_ATTEMPTS, TIMEOUT_GET, func(doc *fs.DocumentSnapshot) error {
+	if err := b.client.IterDocs(context.TODO(), "GetSkipTasksEntries", "", q, defaultAttempts, timeoutGet, func(doc *fs.DocumentSnapshot) error {
 		var r Rule
 		if err := doc.DataTo(&r); err != nil {
 			return err
@@ -96,16 +96,16 @@ func (b *Blacklist) Update() error {
 	return nil
 }
 
-// AutoUpdate starts a goroutine which automatically updates the Blacklist as
-// changes occur in the DB. Starts the goroutine and returns immediately. The
-// goroutine exits when the given context expires.
-func (b *Blacklist) AutoUpdate(ctx context.Context) {
+// AutoUpdate starts a goroutine which automatically updates the DB as changes
+// occur. Starts the goroutine and returns immediately. The goroutine exits when
+// the given context expires.
+func (b *DB) AutoUpdate(ctx context.Context) {
 	go func() {
 		// TODO(borenet): The QuerySnapshotChannel will stop if it
 		// encounters any error. We should add retry with backoff,
 		// either here or in the go/firestore package.
 		for snap := range firestore.QuerySnapshotChannel(ctx, b.coll.Query) {
-			sklog.Infof("Received blacklist update")
+			sklog.Infof("Received skip_tasks update")
 			docs, err := snap.Documents.GetAll()
 			if err != nil {
 				sklog.Errorf("Failed to retrieve documents from query snapshot: %s", err)
@@ -128,15 +128,15 @@ func (b *Blacklist) AutoUpdate(ctx context.Context) {
 }
 
 // Match determines whether the given taskSpec/commit pair matches one of the
-// Rules in the Blacklist.
-func (b *Blacklist) Match(taskSpec, commit string) bool {
+// Rules in the DB.
+func (b *DB) Match(taskSpec, commit string) bool {
 	return b.MatchRule(taskSpec, commit) != ""
 }
 
-// MatchRule determines whether the given taskSpec/commit pair matches one of the
-// Rules in the Blacklist. Returns the name of the matched Rule or the empty
-// string if no Rules match.
-func (b *Blacklist) MatchRule(taskSpec, commit string) string {
+// MatchRule determines whether the given taskSpec/commit pair matches one of
+// the Rules in the DB. Returns the name of the matched Rule or the empty string
+// if no Rules match.
+func (b *DB) MatchRule(taskSpec, commit string) string {
 	if b == nil {
 		return ""
 	}
@@ -150,10 +150,10 @@ func (b *Blacklist) MatchRule(taskSpec, commit string) string {
 	return ""
 }
 
-// Add adds a new Rule to the Blacklist.
-func (b *Blacklist) AddRule(r *Rule, repos repograph.Map) error {
+// Add adds a new Rule to the DB.
+func (b *DB) AddRule(r *Rule, repos repograph.Map) error {
 	if b == nil {
-		return errors.New("Blacklist is nil; cannot add rules.")
+		return errors.New("DB is nil; cannot add rules.")
 	}
 	if err := ValidateRule(r, repos); err != nil {
 		return err
@@ -161,10 +161,10 @@ func (b *Blacklist) AddRule(r *Rule, repos repograph.Map) error {
 	return b.addRule(r)
 }
 
-// addRule adds a new Rule to the Blacklist.
-func (b *Blacklist) addRule(r *Rule) (rvErr error) {
+// addRule adds a new Rule to the DB.
+func (b *DB) addRule(r *Rule) (rvErr error) {
 	ref := b.coll.Doc(r.Name)
-	if _, err := b.client.Create(context.TODO(), ref, r, DEFAULT_ATTEMPTS, TIMEOUT_PUT); err != nil {
+	if _, err := b.client.Create(context.TODO(), ref, r, defaultAttempts, timeoutPut); err != nil {
 		return err
 	}
 	b.mtx.Lock()
@@ -200,7 +200,7 @@ func NewCommitRangeRule(ctx context.Context, name, user, description string, tas
 
 	// `git rev-list ${startCommit}..${endCommit}` returns a list of commits
 	// which does not include startCommit but does include endCommit. For
-	// blacklisting rules, we want to include startCommit and not endCommit.
+	// skip rules, we want to include startCommit and not endCommit.
 	// The rev-list command returns commits in order of newest to oldest, so
 	// we remove the first element of the slice (endCommit), and append
 	// startCommit to the end.
@@ -225,13 +225,13 @@ func NewCommitRangeRule(ctx context.Context, name, user, description string, tas
 	return rule, nil
 }
 
-// RemoveRule removes the Rule from the Blacklist.
-func (b *Blacklist) RemoveRule(id string) error {
+// RemoveRule removes the Rule from the DB.
+func (b *DB) RemoveRule(id string) error {
 	if b == nil {
-		return errors.New("Blacklist is nil; cannot remove rules.")
+		return errors.New("DB is nil; cannot remove rules.")
 	}
 	ref := b.coll.Doc(id)
-	if _, err := b.client.Delete(context.TODO(), ref, DEFAULT_ATTEMPTS, TIMEOUT_PUT); err != nil {
+	if _, err := b.client.Delete(context.TODO(), ref, defaultAttempts, timeoutPut); err != nil {
 		return err
 	}
 	b.mtx.Lock()
@@ -240,8 +240,8 @@ func (b *Blacklist) RemoveRule(id string) error {
 	return nil
 }
 
-// GetRules returns a slice containing all of the Rules in the Blacklist.
-func (b *Blacklist) GetRules() []*Rule {
+// GetRules returns a slice containing all of the Rules in the DB.
+func (b *DB) GetRules() []*Rule {
 	if b == nil {
 		return []*Rule{}
 	}
@@ -277,8 +277,8 @@ func ValidateRule(r *Rule, repos repograph.Map) error {
 	if r.Name == "" {
 		return errors.New("Rules must have a name.")
 	}
-	if len(r.Name) > MAX_NAME_CHARS {
-		return fmt.Errorf("Rule names must be shorter than %d characters. Use the Description field for detailed information.", MAX_NAME_CHARS)
+	if len(r.Name) > maxNameChars {
+		return fmt.Errorf("Rule names must be shorter than %d characters. Use the Description field for detailed information.", maxNameChars)
 	}
 	if r.AddedBy == "" {
 		return errors.New("Rules must have an AddedBy user.")

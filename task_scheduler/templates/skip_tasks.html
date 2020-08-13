@@ -1,0 +1,12 @@
+{{template "header.html"}}
+
+<h2>Skip Tasks</h2>
+<skip-tasks-sk id="skip_tasks"></skip-tasks-sk>
+
+<script>
+// Add status information from the server to the skip-tasks-sk.
+var elem = document.getElementById("skip_tasks");
+var data = JSON.parse("{{.Data}}");
+elem.rules = data.rules;
+</script>
+{{template "footer.html"}}

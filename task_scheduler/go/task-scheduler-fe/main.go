@@ -30,9 +30,9 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
+	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
@@ -49,8 +49,8 @@ var (
 	// Task Scheduler database.
 	tsDb db.DBCloser
 
-	// Task Scheduler blacklist.
-	bl *blacklist.Blacklist
+	// Tasks to skip.
+	skipTasks *skip_tasks.DB
 
 	// Git repo objects.
 	repos repograph.Map
@@ -62,7 +62,7 @@ var (
 	taskCfgCache *task_cfg_cache.TaskCfgCache
 
 	// HTML templates.
-	blacklistTemplate   *template.Template = nil
+	skipTasksTemplate   *template.Template = nil
 	jobTemplate         *template.Template = nil
 	jobSearchTemplate   *template.Template = nil
 	jobTimelineTemplate *template.Template = nil
@@ -91,8 +91,8 @@ func reloadTemplates() {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
-	blacklistTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/blacklist.html"),
+	skipTasksTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/skip_tasks.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/footer.html"),
 	))
@@ -146,16 +146,16 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func blacklistHandler(w http.ResponseWriter, r *http.Request) {
+func skipTasksHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
 	// Don't use cached templates in testing mode.
 	if *local {
 		reloadTemplates()
 	}
-	rules := bl.GetRules()
+	rules := skipTasks.GetRules()
 	enc, err := json.Marshal(&struct {
-		Rules []*blacklist.Rule `json:"rules"`
+		Rules []*skip_tasks.Rule `json:"rules"`
 	}{
 		Rules: rules,
 	})
@@ -163,7 +163,7 @@ func blacklistHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to encode JSON.", http.StatusInternalServerError)
 		return
 	}
-	if err := blacklistTemplate.Execute(w, struct {
+	if err := skipTasksTemplate.Execute(w, struct {
 		Data string
 	}{
 		Data: string(enc),
@@ -187,7 +187,7 @@ func triggerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func jsonBlacklistHandler(w http.ResponseWriter, r *http.Request) {
+func jsonSkipTasksHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if r.Method == http.MethodDelete {
 		var msg struct {
@@ -198,12 +198,12 @@ func jsonBlacklistHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer util.Close(r.Body)
-		if err := bl.RemoveRule(msg.Id); err != nil {
-			httputils.ReportError(w, err, fmt.Sprintf("Failed to delete blacklist rule: %s", err), http.StatusInternalServerError)
+		if err := skipTasks.RemoveRule(msg.Id); err != nil {
+			httputils.ReportError(w, err, fmt.Sprintf("Failed to delete skip rule: %s", err), http.StatusInternalServerError)
 			return
 		}
 	} else if r.Method == http.MethodPost {
-		var rule blacklist.Rule
+		var rule skip_tasks.Rule
 		if err := json.NewDecoder(r.Body).Decode(&rule); err != nil {
 			httputils.ReportError(w, err, fmt.Sprintf("Failed to decode request body: %s", err), http.StatusInternalServerError)
 			return
@@ -211,22 +211,22 @@ func jsonBlacklistHandler(w http.ResponseWriter, r *http.Request) {
 		defer util.Close(r.Body)
 		rule.AddedBy = login.LoggedInAs(r)
 		if len(rule.Commits) == 2 {
-			rangeRule, err := blacklist.NewCommitRangeRule(context.Background(), rule.Name, rule.AddedBy, rule.Description, rule.TaskSpecPatterns, rule.Commits[0], rule.Commits[1], repos)
+			rangeRule, err := skip_tasks.NewCommitRangeRule(context.Background(), rule.Name, rule.AddedBy, rule.Description, rule.TaskSpecPatterns, rule.Commits[0], rule.Commits[1], repos)
 			if err != nil {
 				httputils.ReportError(w, err, fmt.Sprintf("Failed to create commit range rule: %s", err), http.StatusInternalServerError)
 				return
 			}
 			rule = *rangeRule
 		}
-		if err := bl.AddRule(&rule, repos); err != nil {
-			httputils.ReportError(w, err, fmt.Sprintf("Failed to add blacklist rule: %s", err), http.StatusInternalServerError)
+		if err := skipTasks.AddRule(&rule, repos); err != nil {
+			httputils.ReportError(w, err, fmt.Sprintf("Failed to add skip rule: %s", err), http.StatusInternalServerError)
 			return
 		}
 	}
 	resp := &struct {
-		Rules []*blacklist.Rule `json:"rules"`
+		Rules []*skip_tasks.Rule `json:"rules"`
 	}{
-		Rules: bl.GetRules(),
+		Rules: skipTasks.GetRules(),
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to encode response: %s", err), http.StatusInternalServerError)
@@ -604,13 +604,13 @@ func googleVerificationHandler(w http.ResponseWriter, r *http.Request) {
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", httputils.OriginTrial(mainHandler, *local))
-	r.HandleFunc("/blacklist", httputils.OriginTrial(blacklistHandler, *local))
+	r.HandleFunc("/skip_tasks", httputils.OriginTrial(skipTasksHandler, *local))
 	r.HandleFunc("/job/{id}", httputils.OriginTrial(jobHandler, *local))
 	r.HandleFunc("/job/{id}/timeline", httputils.OriginTrial(jobTimelineHandler, *local))
 	r.HandleFunc("/jobs/search", httputils.OriginTrial(jobSearchHandler, *local))
 	r.HandleFunc("/task/{id}", httputils.OriginTrial(taskHandler, *local))
 	r.HandleFunc("/trigger", httputils.OriginTrial(triggerHandler, *local))
-	r.HandleFunc("/json/blacklist", login.RestrictEditorFn(jsonBlacklistHandler)).Methods(http.MethodPost, http.MethodDelete)
+	r.HandleFunc("/json/skip_tasks", login.RestrictEditorFn(jsonSkipTasksHandler)).Methods(http.MethodPost, http.MethodDelete)
 	r.HandleFunc("/json/job/{id}", jsonJobHandler)
 	r.HandleFunc("/json/job/{id}/cancel", login.RestrictEditorFn(jsonCancelJobHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/json/jobs/search", jsonJobSearchHandler)
@@ -671,12 +671,12 @@ func main() {
 		util.Close(tsDb)
 	})
 
-	// Blacklist DB.
-	bl, err = blacklist.NewWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource)
+	// Skip tasks DB.
+	skipTasks, err = skip_tasks.NewWithParams(ctx, firestore.FIRESTORE_PROJECT, *firestoreInstance, tokenSource)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-	bl.AutoUpdate(ctx)
+	skipTasks.AutoUpdate(ctx)
 
 	// Git repos.
 	if *repoUrls == nil {
