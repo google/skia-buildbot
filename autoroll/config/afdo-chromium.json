@@ -46,8 +46,8 @@ used for both Linux and Android.\n\
     "versionRegex": "^chromeos-chrome-amd64-(\\d+)\\.(\\d+)\\.(\\d+)\\.(\\d+)_rc-r(\\d+)-merged\\.afdo\\.bz2$"
   },
   "kubernetes": {
-    "cpu": "1",
-    "memory": "2Gi",
+    "cpu": "12m",
+    "memory": "120Mi",
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"

@@ -42,8 +42,8 @@
     "parentRepo": "https://chromium.googlesource.com/angle/angle.git"
   },
   "kubernetes": {
-    "cpu": "1",
-    "memory": "2Gi",
+    "cpu": "12m",
+    "memory": "240Mi",
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"

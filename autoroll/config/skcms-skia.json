@@ -52,8 +52,8 @@
     "versionFile": "third_party/skcms/version.sha1"
   },
   "kubernetes": {
-    "cpu": "1",
-    "memory": "8Gi",
+    "cpu": "180m",
+    "memory": "3120Mi",
     "readinessInitialDelaySeconds": "600",
     "readinessPeriodSeconds": "60",
     "readinessFailureThreshold": "10"

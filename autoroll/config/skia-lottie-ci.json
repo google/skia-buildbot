@@ -43,8 +43,8 @@
     "parentRepo": "https://skia.googlesource.com/lottie-ci.git",
   },
   "kubernetes": {
-    "cpu": "1",
-    "memory": "8Gi",
+    "cpu": "204m",
+    "memory": "4320Mi",
     "disk": "50Gi",
     "readinessInitialDelaySeconds": "600",
     "readinessPeriodSeconds": "60",

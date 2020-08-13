@@ -39,8 +39,8 @@
     "revisionFile": "bin/internal/engine.version"
   },
   "kubernetes": {
-    "cpu": "1",
-    "memory": "8Gi",
+    "cpu": "36m",
+    "memory": "480Mi",
     "disk": "50Gi",
     "readinessInitialDelaySeconds": "600",
     "readinessPeriodSeconds": "60",

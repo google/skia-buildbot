@@ -47,8 +47,8 @@
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git"
   },
   "kubernetes": {
-    "cpu": "1",
-    "memory": "2Gi",
+    "cpu": "12m",
+    "memory": "240Mi",
     "disk": "2Gi",
     "readinessInitialDelaySeconds": "30",
     "readinessPeriodSeconds": "30",
