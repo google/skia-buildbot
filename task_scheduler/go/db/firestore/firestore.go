@@ -49,13 +49,13 @@ const (
 	EST_RESULT_SIZE_MAX = 8192
 )
 
-// firestoreDB is a db.DB which uses Cloud Firestore for storage.
-type firestoreDB struct {
+// FirestoreDB is a db.DB which uses Cloud Firestore for storage.
+type FirestoreDB struct {
 	client *firestore.Client
 }
 
 // NewDB returns a db.DB which uses Cloud Firestore for storage, using the given params.
-func NewDBWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource) (db.DBCloser, error) {
+func NewDBWithParams(ctx context.Context, project, instance string, ts oauth2.TokenSource) (*FirestoreDB, error) {
 	client, err := firestore.NewClient(ctx, project, firestore.APP_TASK_SCHEDULER, instance, ts)
 	if err != nil {
 		return nil, err
@@ -64,14 +64,14 @@ func NewDBWithParams(ctx context.Context, project, instance string, ts oauth2.To
 }
 
 // NewDB returns a db.DB which uses the given firestore.Client for storage.
-func NewDB(ctx context.Context, client *firestore.Client) (db.DBCloser, error) {
-	return &firestoreDB{
+func NewDB(ctx context.Context, client *firestore.Client) (*FirestoreDB, error) {
+	return &FirestoreDB{
 		client: client,
 	}, nil
 }
 
 // See documentation for db.DBCloser interface.
-func (d *firestoreDB) Close() error {
+func (d *FirestoreDB) Close() error {
 	return d.client.Close()
 }
 
@@ -99,7 +99,7 @@ func estResultSize(chunkSize time.Duration) int {
 //    will be provided as the first argument to this function so that the caller
 //    can distinguish results from different goroutines, thus avoiding the need
 //    for a mutex.
-func (d *firestoreDB) dateRangeHelper(name string, baseQuery fs.Query, start, end time.Time, init func(int), elem func(int, *fs.DocumentSnapshot) error) error {
+func (d *FirestoreDB) dateRangeHelper(name string, baseQuery fs.Query, start, end time.Time, init func(int), elem func(int, *fs.DocumentSnapshot) error) error {
 	// Adjust start and end times for Firestore resolution.
 	start = firestore.FixTimestamp(start)
 	end = firestore.FixTimestamp(end.Add(firestore.TS_RESOLUTION - time.Nanosecond))
@@ -126,3 +126,5 @@ func (d *firestoreDB) dateRangeHelper(name string, baseQuery fs.Query, start, en
 	// Run the queries.
 	return d.client.IterDocsInParallel(context.TODO(), name, fmt.Sprintf("%s - %s", start, end), queries, DEFAULT_ATTEMPTS, GET_MULTI_TIMEOUT, elem)
 }
+
+var _ db.DBCloser = &FirestoreDB{}
