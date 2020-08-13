@@ -42,7 +42,10 @@ var (
 )
 
 var (
-	atComparison = regexp.MustCompile("[<>=!]+")
+	// atComparison is used to chop up expressions at a comparison. Note that we
+	// require a trailing space, which avoids matching the equals sign inside
+	// a label, such as {app="foo"}.
+	atComparison = regexp.MustCompile(`[<>=!]+\s`)
 )
 
 // Reverse a string.
@@ -56,11 +59,21 @@ func Reverse(s string) string {
 	return string(r)
 }
 
-func equationFromExpr(expr string) string {
+// equationFromExpr returns a bool that is true if the equation should be ignored.
+func equationFromExpr(expr string) (string, bool) {
 	if expr == "" {
-		return ""
+		return "", false
 	}
-	return strings.TrimSpace(Reverse(atComparison.Split(Reverse(expr), 2)[1]))
+	// Ignore computed metrics, which by convention have a ":".
+	if strings.Contains(expr, ":") {
+		return "", true
+	}
+	parts := atComparison.Split(Reverse(expr), -1)
+	// Ignore multipart relations, e.g. "a < b and b > c".
+	if len(parts) != 2 {
+		return "", true
+	}
+	return strings.TrimSpace(Reverse(parts[1])), false
 }
 
 func main() {
@@ -81,7 +94,10 @@ func main() {
 	for _, g := range alerts.Groups {
 		rules := []Rule{}
 		for _, rule := range g.Rules {
-			equation := equationFromExpr(rule.Expr)
+			equation, ignore := equationFromExpr(rule.Expr)
+			if ignore {
+				continue
+			}
 			if equation == "" {
 				log.Fatalf("Failed to extract an eqation for %q", rule.Alert)
 			}
