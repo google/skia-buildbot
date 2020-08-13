@@ -1,0 +1,14 @@
+#!/bin/bash
+APPNAME=perf-cockroachdb-backup
+
+set -x -e
+
+IMAGE=$(dirname "$0")
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+${INSTALL} --mode=644 -T ${IMAGE}/Dockerfile      ${ROOT}/Dockerfile
+${INSTALL} --mode=755 -T ${IMAGE}/backup.sh       ${ROOT}/backup.sh
+}
+source ../bash/docker_build.sh
