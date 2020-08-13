@@ -1,0 +1,139 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004398052",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/267478?revision\u003d64",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "da4e7ef7_f0a83949",
+        "filename": "docker_experiment/config.yaml",
+        "patchSetId": 64
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:59:19Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 145,
+        "startChar": 11,
+        "endLine": 145,
+        "endChar": 20
+      },
+      "revId": "34016b6e47f43d532e968020818089e05549e8c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004398052",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/267478?revision\u003d64",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "a7b218fe_a8129c08",
+        "filename": "docker_experiment/test.json",
+        "patchSetId": 64
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:59:19Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 58,
+        "startChar": 1255,
+        "endLine": 58,
+        "endChar": 1264
+      },
+      "revId": "34016b6e47f43d532e968020818089e05549e8c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004398052",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/267478?revision\u003d64",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "2c5e1987_4ed67b86",
+        "filename": "infra/bots/tasks.json",
+        "patchSetId": 64
+      },
+      "lineNbr": 1586,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:59:19Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 1586,
+        "startChar": 1607,
+        "endLine": 1586,
+        "endChar": 1616
+      },
+      "revId": "34016b6e47f43d532e968020818089e05549e8c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004398052",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/267478?revision\u003d64",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "3f4b74d5_90b997b8",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 64
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:59:19Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027complex\u0027, \u0027unexpected\u0027, or \u0027placeholder\u0027; see https://developers.google.com/style/inclusive-documentation#ableist-language for more details.",
+      "range": {
+        "startLine": 128,
+        "startChar": 46,
+        "endLine": 128,
+        "endChar": 51
+      },
+      "revId": "34016b6e47f43d532e968020818089e05549e8c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004398052",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/267478?revision\u003d64",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "18c0bc8e_ce6b0b07",
+        "filename": "task_driver/go/lib/docker/docker.go",
+        "patchSetId": 64
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T16:59:19Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027complex\u0027, \u0027unexpected\u0027, or \u0027placeholder\u0027; see https://developers.google.com/style/inclusive-documentation#ableist-language for more details.",
+      "range": {
+        "startLine": 130,
+        "startChar": 97,
+        "endLine": 130,
+        "endChar": 102
+      },
+      "revId": "34016b6e47f43d532e968020818089e05549e8c8",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
