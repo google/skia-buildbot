@@ -132,7 +132,7 @@ func (a *Autoscaler) Update() error {
 		})
 	}
 	if err := group.Wait(); err != nil {
-		return err
+		return fmt.Errorf("Failed to update instance statuses: %s", err)
 	}
 	a.mtx.Lock()
 	defer a.mtx.Unlock()

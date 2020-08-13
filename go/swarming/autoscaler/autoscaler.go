@@ -112,12 +112,12 @@ type Autoscaler struct {
 // NewAutoscaler returns an Autoscaler instance.
 func NewAutoscaler(projectId, zone, swarmingServer, name string, ts oauth2.TokenSource, instances []*gce.Instance) (*Autoscaler, error) {
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).Client()
-	return newAutoscalerWithClient(projectId, zone, swarmingServer, name, client, instances)
+	return NewAutoscalerWithClient(projectId, zone, swarmingServer, name, client, instances)
 }
 
-// newAutoscalerWithClient returns an Autoscaler instance which uses the given
+// NewAutoscalerWithClient returns an Autoscaler instance which uses the given
 // http.Client.
-func newAutoscalerWithClient(projectId, zone, swarmingServer, name string, client *http.Client, instances []*gce.Instance) (*Autoscaler, error) {
+func NewAutoscalerWithClient(projectId, zone, swarmingServer, name string, client *http.Client, instances []*gce.Instance) (*Autoscaler, error) {
 	s, err := swarming.NewApiClient(client, swarmingServer)
 	if err != nil {
 		return nil, err
@@ -384,11 +384,13 @@ func (a *Autoscaler) Start(instances []string) error {
 func (a *Autoscaler) botShutdown(name, taskId string) error {
 	// Wait for the bot to go offline.
 	for {
+		sklog.Infof("Waiting for %s to go offline.", name)
 		task, err := a.swarming.SwarmingService().Task.Result(taskId).Do()
 		if err != nil {
 			return fmt.Errorf("Failed to query task status: %s", err)
 		}
 		if task.State == "COMPLETED" {
+			sklog.Infof("%s Done!", name)
 			break
 		}
 		if util.In(task.State, []string{"BOT_DIED", "CANCELED", "EXPIRED", "KILLED", "NO_RESOURCE", "TIMED_OUT"}) {
@@ -397,10 +399,12 @@ func (a *Autoscaler) botShutdown(name, taskId string) error {
 		time.Sleep(time.Minute)
 	}
 	// Delete the bots from Swarming to avoid alerts.
+	sklog.Infof("Deleting bot: %s", name)
 	if err := a.swarming.DeleteBots([]string{name}); err != nil {
 		return fmt.Errorf("Failed to delete bot %q: %s", name, err)
 	}
 	// Shut down the GCE instances.
+	sklog.Infof("Shutting down GCE instance: %s", name)
 	if err := a.gceScaler.Stop([]string{name}); err != nil {
 		return fmt.Errorf("Failed to stop instance %q: %s", name, err)
 	}
@@ -438,6 +442,7 @@ func (a *Autoscaler) Stop(instances []string) error {
 				sklog.Errorf("Failed to stop bot: %s", err)
 			}
 			completed = true
+			sklog.Infof("Successfully shut down %s", name)
 		}(name, task.TaskId)
 	}
 	return nil

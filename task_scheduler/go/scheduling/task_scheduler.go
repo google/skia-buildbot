@@ -29,6 +29,8 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/timeout"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/blacklist"
+	"go.skia.org/infra/task_scheduler/go/candidate_stats"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
@@ -108,7 +110,11 @@ type TaskScheduler struct {
 	queue        []*taskCandidate // protected by queueMtx.
 	queueMtx     sync.RWMutex
 	repos        repograph.Map
+<<<<<<< HEAD
 	skipTasks    *skip_tasks.DB
+=======
+	statsClient  *candidate_stats.Client
+>>>>>>> 2b02f10b8... git squash commit for ts_autoscale_3.
 	swarming     swarming.ApiClient
 	taskCfgCache *task_cfg_cache.TaskCfgCache
 	tCache       cache.TaskCache
@@ -121,7 +127,11 @@ type TaskScheduler struct {
 	window                *window.Window
 }
 
+<<<<<<< HEAD
 func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, pools []string, pubsubTopic string, taskCfgCache *task_cfg_cache.TaskCfgCache, isolateCache *isolate_cache.Cache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
+=======
+func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, period time.Duration, numCommits int, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, pools []string, pubsubTopic string, taskCfgCache *task_cfg_cache.TaskCfgCache, isolateCache *isolate_cache.Cache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string, ts oauth2.TokenSource) (*TaskScheduler, error) {
+>>>>>>> 2b02f10b8... git squash commit for ts_autoscale_3.
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -162,6 +172,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 		queue:                 []*taskCandidate{},
 		queueMtx:              sync.RWMutex{},
 		repos:                 repos,
+		statsClient:           statsClient,
 		swarming:              swarmingClient,
 		taskCfgCache:          taskCfgCache,
 		tCache:                tCache,
@@ -942,6 +953,15 @@ func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) 
 	preFilterCandidates, err := s.findTaskCandidatesForJobs(ctx, unfinishedJobs)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	// Publish task candidate statistics.
+	stats := s.statsClient.NewCounter()
+	for _, c := range preFilterCandidates {
+		stats.Add(c.TaskSpec.Dimensions)
+	}
+	if err := stats.Publish(ctx); err != nil {
+		sklog.Errorf("Failed to publish task candidate stats: %s", err)
 	}
 
 	// Filter task candidates.

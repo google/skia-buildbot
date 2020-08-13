@@ -43,8 +43,98 @@ var (
 	STARTUP_SCRIPT_WIN_PATH    = filepath.Join("scripts", "win_startup.ps1")
 	CHROME_BOT_SCRIPT_WIN_PATH = filepath.Join("scripts", "chromebot-schtask.ps1")
 
+	VALID_INSTANCE_TYPES = []string{
+		INSTANCE_TYPE_CT,
+		INSTANCE_TYPE_LINUX_SMALL,
+		INSTANCE_TYPE_LINUX_MEDIUM,
+		INSTANCE_TYPE_LINUX_LARGE,
+		INSTANCE_TYPE_LINUX_GPU,
+		INSTANCE_TYPE_LINUX_AMD,
+		INSTANCE_TYPE_LINUX_SKYLAKE,
+		INSTANCE_TYPE_WIN_MEDIUM,
+		INSTANCE_TYPE_WIN_LARGE,
+	}
+	WIN_INSTANCE_TYPES = []string{
+		INSTANCE_TYPE_WIN_MEDIUM,
+		INSTANCE_TYPE_WIN_LARGE,
+	}
+
 	externalNamePrefixRegexp = regexp.MustCompile("^skia-e-")
 )
+
+// Return the instance creation function for the given instance type.
+func GetInstanceConstructor(ctx context.Context, instanceType, checkoutRoot, wdAbs string, internal, dev bool) (func(int) *gce.Instance, error) {
+	var setupScript, startupScript, chromebotScript string
+	var err error
+	if util.In(instanceType, WIN_INSTANCE_TYPES) {
+		setupScript, startupScript, chromebotScript, err = GetWindowsScripts(ctx, checkoutRoot, wdAbs)
+	} else {
+		setupScript, err = GetLinuxScripts(ctx, checkoutRoot, wdAbs)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	var getInstance func(int) *gce.Instance
+	switch instanceType {
+	case INSTANCE_TYPE_CT:
+		getInstance = func(num int) *gce.Instance { return SkiaCT(num, setupScript) }
+	case INSTANCE_TYPE_LINUX_SMALL:
+		getInstance = func(num int) *gce.Instance { return LinuxSmall(num, setupScript) }
+	case INSTANCE_TYPE_LINUX_MEDIUM:
+		getInstance = func(num int) *gce.Instance { return LinuxMedium(num, setupScript) }
+	case INSTANCE_TYPE_LINUX_LARGE:
+		getInstance = func(num int) *gce.Instance { return LinuxLarge(num, setupScript) }
+	case INSTANCE_TYPE_LINUX_GPU:
+		getInstance = func(num int) *gce.Instance { return LinuxGpu(num, setupScript) }
+	case INSTANCE_TYPE_LINUX_AMD:
+		getInstance = func(num int) *gce.Instance { return LinuxAmd(num, setupScript) }
+	case INSTANCE_TYPE_LINUX_SKYLAKE:
+		getInstance = func(num int) *gce.Instance { return LinuxSkylake(num, setupScript) }
+	case INSTANCE_TYPE_WIN_MEDIUM:
+		getInstance = func(num int) *gce.Instance {
+			return WinMedium(num, setupScript, startupScript, chromebotScript)
+		}
+	case INSTANCE_TYPE_WIN_LARGE:
+		getInstance = func(num int) *gce.Instance {
+			return WinLarge(num, setupScript, startupScript, chromebotScript)
+		}
+	default:
+		return nil, fmt.Errorf("Unknown instance type %q", instanceType)
+	}
+	if getInstance == nil {
+		return nil, fmt.Errorf("Could not find matching instance type for %s", instanceType)
+	}
+	if internal {
+		getInstanceInner := getInstance
+		getInstance = func(num int) *gce.Instance {
+			return Internal(getInstanceInner(num))
+		}
+	} else if dev {
+		getInstanceInner := getInstance
+		getInstance = func(num int) *gce.Instance {
+			return Dev(getInstanceInner(num))
+		}
+	}
+	return getInstance, nil
+}
+
+// Return the GCE project and zone for the given instance.
+func GetProjectAndZone(instanceType string, internal bool) (string, string) {
+	zone := gce.ZONE_DEFAULT
+	project := gce.PROJECT_ID_SWARMING
+	if instanceType == INSTANCE_TYPE_LINUX_GPU {
+		zone = gce.ZONE_GPU
+	} else if instanceType == INSTANCE_TYPE_LINUX_SKYLAKE {
+		zone = gce.ZONE_SKYLAKE
+	} else if instanceType == INSTANCE_TYPE_LINUX_AMD {
+		zone = gce.ZONE_AMD
+	}
+	if internal {
+		project = gce.PROJECT_ID_SERVER
+	}
+	return project, zone
+}
 
 // Base configs for Swarming GCE instances.
 func Swarming20180406(name string, machineType, serviceAccount, setupScriptPath, sourceImage string) *gce.Instance {

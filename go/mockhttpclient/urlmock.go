@@ -321,6 +321,8 @@ func (m *URLMock) Empty() bool {
 
 // List returns the list of all URLs registered via MockOnce.
 func (m *URLMock) List() []string {
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
 	rv := []string{}
 	for url, resps := range m.mockOnce {
 		if resps != nil && len(resps) > 0 {

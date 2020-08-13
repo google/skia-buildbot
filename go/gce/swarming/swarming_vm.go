@@ -35,24 +35,6 @@ import (
 )
 
 var (
-	VALID_INSTANCE_TYPES = []string{
-		instance_types.INSTANCE_TYPE_CT,
-		instance_types.INSTANCE_TYPE_LINUX_SMALL,
-		instance_types.INSTANCE_TYPE_LINUX_MEDIUM,
-		instance_types.INSTANCE_TYPE_LINUX_LARGE,
-		instance_types.INSTANCE_TYPE_LINUX_GPU,
-		instance_types.INSTANCE_TYPE_LINUX_AMD,
-		instance_types.INSTANCE_TYPE_LINUX_SKYLAKE,
-		instance_types.INSTANCE_TYPE_WIN_MEDIUM,
-		instance_types.INSTANCE_TYPE_WIN_LARGE,
-	}
-	WIN_INSTANCE_TYPES = []string{
-		instance_types.INSTANCE_TYPE_WIN_MEDIUM,
-		instance_types.INSTANCE_TYPE_WIN_LARGE,
-	}
-)
-
-var (
 	// Flags.
 	instances      = flag.String("instances", "", "Which instances to create/delete, eg. \"2,3-10,22\"")
 	create         = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
@@ -61,7 +43,7 @@ var (
 	dev            = flag.Bool("dev", false, "Whether or not the bots connect to chromium-swarm-dev.")
 	dumpJson       = flag.Bool("dump-json", false, "Dump out JSON for each of the instances to create/delete and exit without changing anything.")
 	ignoreExists   = flag.Bool("ignore-exists", false, "Do not fail out when creating a resource which already exists or deleting a resource which does not exist.")
-	instanceType   = flag.String("type", "", fmt.Sprintf("Type of instance; one of: %v", VALID_INSTANCE_TYPES))
+	instanceType   = flag.String("type", "", fmt.Sprintf("Type of instance; one of: %v", instance_types.VALID_INSTANCE_TYPES))
 	internal       = flag.Bool("internal", false, "Whether or not the bots are internal.")
 	workdir        = flag.String("workdir", ".", "Working directory.")
 )
@@ -73,8 +55,8 @@ func main() {
 	if *create == *delete {
 		sklog.Fatal("Please specify --create or --delete, but not both.")
 	}
-	if !util.In(*instanceType, VALID_INSTANCE_TYPES) {
-		sklog.Fatalf("--type must be one of %v", VALID_INSTANCE_TYPES)
+	if !util.In(*instanceType, instance_types.VALID_INSTANCE_TYPES) {
+		sklog.Fatalf("--type must be one of %v", instance_types.VALID_INSTANCE_TYPES)
 	}
 	instanceNums, err := util.ParseIntSet(*instances)
 	if err != nil {
@@ -90,65 +72,16 @@ func main() {
 		sklog.Fatal(err)
 	}
 
-	// Read the various scripts.
+	// Setup.
 	_, filename, _, _ := runtime.Caller(0)
 	checkoutRoot := path.Dir(path.Dir(path.Dir(path.Dir(filename))))
 	ctx := context.Background()
-	var setupScript, startupScript, chromebotScript string
-	if util.In(*instanceType, WIN_INSTANCE_TYPES) {
-		setupScript, startupScript, chromebotScript, err = instance_types.GetWindowsScripts(ctx, checkoutRoot, wdAbs)
-	} else {
-		setupScript, err = instance_types.GetLinuxScripts(ctx, checkoutRoot, wdAbs)
-	}
+
+	getInstance, err := instance_types.GetInstanceConstructor(ctx, *instanceType, checkoutRoot, wdAbs, *internal, *dev)
 	if err != nil {
 		sklog.Fatal(err)
 	}
-
-	zone := gce.ZONE_DEFAULT
-	project := gce.PROJECT_ID_SWARMING
-	var getInstance func(int) *gce.Instance
-	switch *instanceType {
-	case instance_types.INSTANCE_TYPE_CT:
-		getInstance = func(num int) *gce.Instance { return instance_types.SkiaCT(num, setupScript) }
-	case instance_types.INSTANCE_TYPE_LINUX_SMALL:
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSmall(num, setupScript) }
-	case instance_types.INSTANCE_TYPE_LINUX_MEDIUM:
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxMedium(num, setupScript) }
-	case instance_types.INSTANCE_TYPE_LINUX_LARGE:
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxLarge(num, setupScript) }
-	case instance_types.INSTANCE_TYPE_LINUX_GPU:
-		zone = gce.ZONE_GPU
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxGpu(num, setupScript) }
-	case instance_types.INSTANCE_TYPE_LINUX_AMD:
-		zone = gce.ZONE_AMD
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxAmd(num, setupScript) }
-	case instance_types.INSTANCE_TYPE_LINUX_SKYLAKE:
-		zone = gce.ZONE_SKYLAKE
-		getInstance = func(num int) *gce.Instance { return instance_types.LinuxSkylake(num, setupScript) }
-	case instance_types.INSTANCE_TYPE_WIN_MEDIUM:
-		getInstance = func(num int) *gce.Instance {
-			return instance_types.WinMedium(num, setupScript, startupScript, chromebotScript)
-		}
-	case instance_types.INSTANCE_TYPE_WIN_LARGE:
-		getInstance = func(num int) *gce.Instance {
-			return instance_types.WinLarge(num, setupScript, startupScript, chromebotScript)
-		}
-	}
-	if getInstance == nil {
-		sklog.Fatalf("Could not find matching instance type for --type %s", *instanceType)
-	}
-	if *internal {
-		project = gce.PROJECT_ID_INTERNAL_SWARMING
-		getInstanceInner := getInstance
-		getInstance = func(num int) *gce.Instance {
-			return instance_types.Internal(getInstanceInner(num))
-		}
-	} else if *dev {
-		getInstanceInner := getInstance
-		getInstance = func(num int) *gce.Instance {
-			return instance_types.Dev(getInstanceInner(num))
-		}
-	}
+	project, zone := instance_types.GetProjectAndZone(*instanceType, *internal)
 
 	// Create the GCloud object.
 	g, err := gce.NewLocalGCloud(project, zone)

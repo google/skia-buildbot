@@ -24,10 +24,10 @@ const (
 	offlineDead    = "dead"
 	offlineError   = "error"
 
-	testProject        = "fake-project"
-	testZone           = "fake-zone"
-	testSwarmingServer = "fake-swarming"
-	testAutoscalerName = "fake-autoscaler"
+	TestProject        = "fake-project"
+	TestZone           = "fake-zone"
+	TestSwarmingServer = "fake-swarming"
+	TestAutoscalerName = "fake-autoscaler"
 )
 
 var (
@@ -48,7 +48,7 @@ func Setup(t sktest.TestingT) (*Autoscaler, *mockhttpclient.URLMock, []*gce.Inst
 	urlMock := mockhttpclient.NewURLMock()
 	instances := autoscaler.GetInstanceRange(1, 100, getInstance)
 	MockAllOnline(t, urlMock, instances)
-	as, err := newAutoscalerWithClient(testProject, testZone, testSwarmingServer, testAutoscalerName, urlMock.Client(), instances)
+	as, err := NewAutoscalerWithClient(TestProject, TestZone, TestSwarmingServer, TestAutoscalerName, urlMock.Client(), instances)
 	assert.NoError(t, err)
 	assert.True(t, urlMock.Empty())
 	return as, urlMock, instances
@@ -70,7 +70,7 @@ func mockGCEInstanceStatus(t sktest.TestingT, urlMock *mockhttpclient.URLMock, n
 		Status: status,
 	}
 	js := testutils.MarshalJSON(t, rv)
-	url := fmt.Sprintf("https://compute.googleapis.com/compute/beta/projects/%s/zones/%s/instances/%s?alt=json&prettyPrint=false", testProject, testZone, name)
+	url := fmt.Sprintf("https://compute.googleapis.com/compute/beta/projects/%s/zones/%s/instances/%s?alt=json&prettyPrint=false", TestProject, testZone, name)
 	urlMock.MockOnce(url, mockhttpclient.MockGetDialogue([]byte(js)))
 }
 
@@ -112,7 +112,7 @@ func MockSwarmingStatuses(t sktest.TestingT, urlMock *mockhttpclient.URLMock, st
 		Items: items,
 	}
 	js := testutils.MarshalJSON(t, rv)
-	urlMock.MockOnce(fmt.Sprintf("https://%s/_ah/api/swarming/v1/bots/list?alt=json&dimensions=%s%%3A%s&prettyPrint=false", testSwarmingServer, AUTOSCALER_DIMENSION, testAutoscalerName), mockhttpclient.MockGetDialogue([]byte(js)))
+	urlMock.MockOnce(fmt.Sprintf("https://%s/_ah/api/swarming/v1/bots/list?alt=json&dimensions=%s%%3A%s&prettyPrint=false", TestSwarmingServer, AUTOSCALER_DIMENSION, TestAutoscalerName), mockhttpclient.MockGetDialogue([]byte(js)))
 }
 
 // Mock API calls indicating that a bot is online and idle. The returned
@@ -177,25 +177,25 @@ func MockStop(t sktest.TestingT, urlMock *mockhttpclient.URLMock, name string) {
 		TaskId: taskId,
 	}
 	js := testutils.MarshalJSON(t, terminate)
-	urlMock.MockOnce(fmt.Sprintf("https://%s/_ah/api/swarming/v1/bot/%s/terminate?alt=json&prettyPrint=false", testSwarmingServer, name), mockhttpclient.MockPostDialogue("", nil, []byte(js)))
+	urlMock.MockOnce(fmt.Sprintf("https://%s/_ah/api/swarming/v1/bot/%s/terminate?alt=json&prettyPrint=false", TestSwarmingServer, name), mockhttpclient.MockPostDialogue("", nil, []byte(js)))
 	task := &swarming_api.SwarmingRpcsTaskResult{
 		State: "COMPLETED",
 	}
 	js = testutils.MarshalJSON(t, task)
-	urlMock.MockOnce(fmt.Sprintf("https://%s/_ah/api/swarming/v1/task/%s/result?alt=json&prettyPrint=false", testSwarmingServer, taskId), mockhttpclient.MockGetDialogue([]byte(js)))
+	urlMock.MockOnce(fmt.Sprintf("https://%s/_ah/api/swarming/v1/task/%s/result?alt=json&prettyPrint=false", TestSwarmingServer, taskId), mockhttpclient.MockGetDialogue([]byte(js)))
 	deleted := &swarming_api.SwarmingRpcsDeletedResponse{
 		Deleted: true,
 	}
 	js = testutils.MarshalJSON(t, deleted)
-	urlMock.MockOnce(fmt.Sprintf("https://%s/_ah/api/swarming/v1/bot/%s/delete?alt=json&prettyPrint=false", testSwarmingServer, name), mockhttpclient.MockPostDialogue("", nil, []byte(js)))
+	urlMock.MockOnce(fmt.Sprintf("https://%s/_ah/api/swarming/v1/bot/%s/delete?alt=json&prettyPrint=false", TestSwarmingServer, name), mockhttpclient.MockPostDialogue("", nil, []byte(js)))
 	rv := &compute.Operation{
 		Name:   fmt.Sprintf("op-stop-%s", name),
 		Status: gce.OPERATION_STATUS_DONE,
-		Zone:   testZone,
+		Zone:   TestZone,
 	}
 	js = testutils.MarshalJSON(t, rv)
-	urlMock.MockOnce(fmt.Sprintf("https://compute.googleapis.com/compute/beta/projects/%s/zones/%s/instances/%s/stop?alt=json&prettyPrint=false", testProject, testZone, name), mockhttpclient.MockPostDialogue("", nil, []byte(js)))
-	urlMock.MockOnce(fmt.Sprintf("https://compute.googleapis.com/compute/beta/projects/%s/zones/%s/operations/%s?alt=json&prettyPrint=false", testProject, testZone, rv.Name), mockhttpclient.MockGetDialogue([]byte(js)))
+	urlMock.MockOnce(fmt.Sprintf("https://compute.googleapis.com/compute/beta/projects/%s/zones/%s/instances/%s/stop?alt=json&prettyPrint=false", TestProject, testZone, name), mockhttpclient.MockPostDialogue("", nil, []byte(js)))
+	urlMock.MockOnce(fmt.Sprintf("https://compute.googleapis.com/compute/beta/projects/%s/zones/%s/operations/%s?alt=json&prettyPrint=false", TestProject, testZone, rv.Name), mockhttpclient.MockGetDialogue([]byte(js)))
 	mockGCEInstanceStatus(t, urlMock, name, "TERMINATED")
 }
 
@@ -204,11 +204,11 @@ func MockStart(t sktest.TestingT, urlMock *mockhttpclient.URLMock, name string) 
 	rv := &compute.Operation{
 		Name:   fmt.Sprintf("op-start-%s", name),
 		Status: gce.OPERATION_STATUS_DONE,
-		Zone:   testZone,
+		Zone:   TestZone,
 	}
 	js := testutils.MarshalJSON(t, rv)
-	urlMock.MockOnce(fmt.Sprintf("https://compute.googleapis.com/compute/beta/projects/%s/zones/%s/instances/%s/start?alt=json&prettyPrint=false", testProject, testZone, name), mockhttpclient.MockPostDialogue("", nil, []byte(js)))
-	urlMock.MockOnce(fmt.Sprintf("https://compute.googleapis.com/compute/beta/projects/%s/zones/%s/operations/%s?alt=json&prettyPrint=false", testProject, testZone, rv.Name), mockhttpclient.MockGetDialogue([]byte(js)))
+	urlMock.MockOnce(fmt.Sprintf("https://compute.googleapis.com/compute/beta/projects/%s/zones/%s/instances/%s/start?alt=json&prettyPrint=false", TestProject, testZone, name), mockhttpclient.MockPostDialogue("", nil, []byte(js)))
+	urlMock.MockOnce(fmt.Sprintf("https://compute.googleapis.com/compute/beta/projects/%s/zones/%s/operations/%s?alt=json&prettyPrint=false", TestProject, testZone, rv.Name), mockhttpclient.MockGetDialogue([]byte(js)))
 	mockGCEInstanceStatus(t, urlMock, name, "RUNNING")
 	mockGCEInstanceStatus(t, urlMock, name, "RUNNING") // for GetIpAddress
 }
