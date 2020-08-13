@@ -16,6 +16,24 @@
       "revId": "a495418bfa26ac6b0d3fd3cfa92232c4395362e7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9507f014_ab70922c",
+        "filename": "autoroll/config/chromium-protos-perfetto.json",
+        "patchSetId": 7
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-13T11:29:51Z",
+      "side": 1,
+      "message": "I can see this repo in an incognito tab, which I think makes it okay to be public.  I\u0027m not sure the same is true for the other repos.",
+      "parentUuid": "ac975a91_73185cd7",
+      "revId": "a495418bfa26ac6b0d3fd3cfa92232c4395362e7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
