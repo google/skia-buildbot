@@ -18,6 +18,8 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_driver/go/td/message"
+	"go.skia.org/infra/task_driver/go/td/properties"
 	fsnotify "gopkg.in/fsnotify.v1"
 )
 
@@ -77,9 +79,9 @@ func MergeEnv(base, other []string) []string {
 type StepResult string
 
 // Start a new step, returning a context.Context associated with it.
-func newStep(ctx context.Context, id string, parent *StepProperties, props *StepProperties) context.Context {
+func newStep(ctx context.Context, id string, parent *properties.StepProperties, props *properties.StepProperties) context.Context {
 	if props == nil {
-		props = &StepProperties{}
+		props = &properties.StepProperties{}
 	}
 	props.Id = id
 
@@ -101,7 +103,7 @@ func newStep(ctx context.Context, id string, parent *StepProperties, props *Step
 }
 
 // Create a step.
-func StartStep(ctx context.Context, props *StepProperties) context.Context {
+func StartStep(ctx context.Context, props *properties.StepProperties) context.Context {
 	parent := getCtx(ctx).step
 	return newStep(ctx, uuid.New().String(), parent, props)
 }
@@ -172,7 +174,7 @@ func finishStep(ctx context.Context, recovered interface{}) {
 }
 
 // Attach the given StepData to this Step.
-func StepData(ctx context.Context, typ DataType, d interface{}) {
+func StepData(ctx context.Context, typ message.DataType, d interface{}) {
 	props := getCtx(ctx).step
 	getCtx(ctx).run.AddStepData(props.Id, typ, d)
 }
@@ -189,7 +191,7 @@ func StepText(ctx context.Context, label, value string) {
 
 // Do is a convenience function which runs the given function as a Step. It
 // handles creation of the sub-step and calling EndStep() for you.
-func Do(ctx context.Context, props *StepProperties, fn func(context.Context) error) error {
+func Do(ctx context.Context, props *properties.StepProperties, fn func(context.Context) error) error {
 	ctx = StartStep(ctx, props)
 	defer EndStep(ctx)
 	if err := fn(ctx); err != nil {
@@ -412,7 +414,7 @@ func execCtx(ctx context.Context) context.Context {
 				Cmd: append([]string{cmd.Name}, cmd.Args...),
 				Env: cmd.Env,
 			}
-			StepData(ctx, DATA_TYPE_COMMAND, d)
+			StepData(ctx, message.DATA_TYPE_COMMAND, d)
 
 			// Run the command.
 			return getCtx(ctx).execRun(ctx, cmd)
@@ -450,14 +452,14 @@ func (t *httpTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		ctx = t.ctx
 	}
 	return resp, Do(ctx, Props(fmt.Sprintf("%s %s", req.Method, req.URL.String())), func(ctx context.Context) error {
-		StepData(ctx, DATA_TYPE_HTTP_REQUEST, &HttpRequestData{
+		StepData(ctx, message.DATA_TYPE_HTTP_REQUEST, &HttpRequestData{
 			Method: req.Method,
 			URL:    req.URL,
 		})
 		var err error
 		resp, err = t.rt.RoundTrip(req)
 		if resp != nil {
-			StepData(ctx, DATA_TYPE_HTTP_RESPONSE, &HttpResponseData{
+			StepData(ctx, message.DATA_TYPE_HTTP_RESPONSE, &HttpResponseData{
 				StatusCode: resp.StatusCode,
 			})
 		}

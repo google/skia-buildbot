@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/task_driver/go/db"
 	"go.skia.org/infra/task_driver/go/display"
 	"go.skia.org/infra/task_driver/go/logs"
-	"go.skia.org/infra/task_driver/go/td"
+	"go.skia.org/infra/task_driver/go/td/properties"
 )
 
 // logsHandler reads log entries from BigTable and writes them to the ResponseWriter.
@@ -155,7 +155,7 @@ func fullErrorHandler(d db.DB) http.HandlerFunc {
 		}
 		stepId, ok := mux.Vars(r)["stepId"]
 		if !ok {
-			stepId = td.STEP_ID_ROOT
+			stepId = properties.STEP_ID_ROOT
 		}
 		errIdx, err := strconv.Atoi(errId)
 		if err != nil || errIdx < 0 {

@@ -2,7 +2,6 @@ package td
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -19,6 +18,8 @@ import (
 	"go.skia.org/infra/go/sklog/cloud_logging"
 	"go.skia.org/infra/go/sklog/sklog_impl"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_driver/go/td/message"
+	"go.skia.org/infra/task_driver/go/td/properties"
 	"golang.org/x/oauth2"
 	compute "google.golang.org/api/compute/v1"
 )
@@ -33,9 +34,6 @@ const (
 	// ID as well, and those labels should be used for filtering in most
 	// cases.
 	LOG_ID = "task-driver"
-
-	// Special ID of the root step.
-	STEP_ID_ROOT = "root"
 
 	// Environment variables provided to all Swarming tasks.
 	ENVVAR_SWARMING_BOT    = "SWARMING_BOT_ID"
@@ -55,53 +53,6 @@ var (
 	// Auth scopes required for all task_drivers.
 	SCOPES = []string{compute.CloudPlatformScope}
 )
-
-// RunProperties are properties for a single run of a Task Driver.
-type RunProperties struct {
-	Local          bool   `json:"local"`
-	SwarmingBot    string `json:"swarmingBot,omitempty"`
-	SwarmingServer string `json:"swarmingServer,omitempty"`
-	SwarmingTask   string `json:"swarmingTask,omitempty"`
-}
-
-// Return an error if the RunProperties are not valid.
-func (p *RunProperties) Validate() error {
-	if p.Local {
-		if p.SwarmingBot != "" {
-			return errors.New("SwarmingBot must be empty for local runs!")
-		}
-		if p.SwarmingServer != "" {
-			return errors.New("SwarmingServer must be empty for local runs!")
-		}
-		if p.SwarmingTask != "" {
-			return errors.New("SwarmingTask must be empty for local runs!")
-		}
-	} else {
-		if p.SwarmingBot == "" {
-			return errors.New("SwarmingBot is required for non-local runs!")
-		}
-		if p.SwarmingServer == "" {
-			return errors.New("SwarmingServer is required for non-local runs!")
-		}
-		if p.SwarmingTask == "" {
-			return errors.New("SwarmingTask is required for non-local runs!")
-		}
-	}
-	return nil
-}
-
-// Return a copy of the RunProperties.
-func (p *RunProperties) Copy() *RunProperties {
-	if p == nil {
-		return nil
-	}
-	return &RunProperties{
-		Local:          p.Local,
-		SwarmingBot:    p.SwarmingBot,
-		SwarmingServer: p.SwarmingServer,
-		SwarmingTask:   p.SwarmingTask,
-	}
-}
 
 // StartRunWithErr begins a new test automation run, returning any error which
 // occurs.
@@ -156,7 +107,7 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 	}
 
 	// Validate properties and flags.
-	props := &RunProperties{
+	props := &properties.RunProperties{
 		Local:          *local,
 		SwarmingBot:    swarmingBot,
 		SwarmingServer: swarmingServer,
@@ -222,7 +173,7 @@ func StartRunWithErr(projectId, taskId, taskName, output *string, local *bool) (
 	sklog.Infof("Environment:\n%s", strings.Join(os.Environ(), "\n"))
 
 	// Set up and return the root-level Step.
-	ctx = newRun(ctx, receiver, *taskId, *taskName, props)
+	ctx = NewRun(ctx, receiver, *taskId, *taskName, props)
 	return ctx, nil
 }
 
@@ -250,15 +201,16 @@ type run struct {
 	msgIndex int32
 }
 
-// newRun returns a context.Context representing a Task Driver run, including
-// creation of a root step.
-func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *RunProperties) context.Context {
+// NewRun returns a context.Context representing a Task Driver run, including
+// creation of a root step. It is not private, because it is used in tests;
+// other callers should use StartRun or StartRunWithErr.
+func NewRun(ctx context.Context, rec Receiver, taskId, taskName string, props *properties.RunProperties) context.Context {
 	r := &run{
 		receiver: rec,
 		taskId:   taskId,
 	}
-	r.send(&Message{
-		Type: MSG_TYPE_RUN_STARTED,
+	r.send(&message.Message{
+		Type: message.MSG_TYPE_RUN_STARTED,
 		Run:  props,
 	})
 	ctx = context.WithValue(ctx, contextKey, &Context{
@@ -266,13 +218,13 @@ func newRun(ctx context.Context, rec Receiver, taskId, taskName string, props *R
 		execRun: exec.DefaultRun,
 	})
 	env := MergeEnv(os.Environ(), BASE_ENV)
-	ctx = newStep(ctx, STEP_ID_ROOT, nil, Props(taskName).Env(env))
+	ctx = newStep(ctx, properties.STEP_ID_ROOT, nil, Props(taskName).Env(env))
 	return ctx
 }
 
 // Send the given message to the receiver. Does not return an error, even if
 // sending fails.
-func (r *run) send(msg *Message) {
+func (r *run) send(msg *message.Message) {
 	msg.Index = int(atomic.AddInt32(&r.msgIndex, 1))
 	msg.TaskId = r.taskId
 	msg.Timestamp = time.Now().UTC()
@@ -287,9 +239,9 @@ func (r *run) send(msg *Message) {
 }
 
 // Send a Message indicating that a new step has started.
-func (r *run) Start(props *StepProperties) {
-	msg := &Message{
-		Type:   MSG_TYPE_STEP_STARTED,
+func (r *run) Start(props *properties.StepProperties) {
+	msg := &message.Message{
+		Type:   message.MSG_TYPE_STEP_STARTED,
 		StepId: props.Id,
 		Step:   props,
 	}
@@ -297,9 +249,9 @@ func (r *run) Start(props *StepProperties) {
 }
 
 // Send a Message with additional data for the current step.
-func (r *run) AddStepData(id string, typ DataType, d interface{}) {
-	msg := &Message{
-		Type:     MSG_TYPE_STEP_DATA,
+func (r *run) AddStepData(id string, typ message.DataType, d interface{}) {
+	msg := &message.Message{
+		Type:     message.MSG_TYPE_STEP_DATA,
 		StepId:   id,
 		Data:     d,
 		DataType: typ,
@@ -310,22 +262,22 @@ func (r *run) AddStepData(id string, typ DataType, d interface{}) {
 // Send a Message indicating that the current step has failed with the given
 // error.
 func (r *run) Failed(id string, err error) {
-	msg := &Message{
+	msg := &message.Message{
 		StepId: id,
 		Error:  err.Error(),
 	}
 	if IsInfraError(err) {
-		msg.Type = MSG_TYPE_STEP_EXCEPTION
+		msg.Type = message.MSG_TYPE_STEP_EXCEPTION
 	} else {
-		msg.Type = MSG_TYPE_STEP_FAILED
+		msg.Type = message.MSG_TYPE_STEP_FAILED
 	}
 	r.send(msg)
 }
 
 // Send a Message indicating that the current step has finished.
 func (r *run) Finish(id string) {
-	msg := &Message{
-		Type:   MSG_TYPE_STEP_FINISHED,
+	msg := &message.Message{
+		Type:   message.MSG_TYPE_STEP_FINISHED,
 		StepId: id,
 	}
 	r.send(msg)
@@ -361,7 +313,7 @@ func (r *run) LogStream(stepId, logName string, severity Severity) io.Writer {
 		w: w,
 		cb: func() {
 			// Emit step data for the log stream.
-			r.AddStepData(stepId, DATA_TYPE_LOG, &LogData{
+			r.AddStepData(stepId, message.DATA_TYPE_LOG, &LogData{
 				Name:     logName,
 				Id:       logId,
 				Severity: severity.String(),

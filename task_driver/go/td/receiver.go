@@ -12,6 +12,8 @@ import (
 	"cloud.google.com/go/logging"
 	"github.com/golang/glog"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_driver/go/td/message"
+	"go.skia.org/infra/task_driver/go/td/properties"
 )
 
 // Severity indicates the importance of a LogStream, with greater values
@@ -40,7 +42,7 @@ func (s Severity) String() string {
 // metadata, as steps are run.
 type Receiver interface {
 	// Handle the given message.
-	HandleMessage(*Message) error
+	HandleMessage(*message.Message) error
 	LogStream(stepId string, logId string, severity Severity) (io.Writer, error)
 	Close() error
 }
@@ -49,7 +51,7 @@ type Receiver interface {
 type MultiReceiver []Receiver
 
 // See documentation for Receiver interface.
-func (r MultiReceiver) HandleMessage(m *Message) error {
+func (r MultiReceiver) HandleMessage(m *message.Message) error {
 	g := util.NewNamedErrGroup()
 	for _, rec := range r {
 		receiver := rec
@@ -92,19 +94,19 @@ func (r MultiReceiver) Close() error {
 type DebugReceiver struct{}
 
 // See documentation for Receiver interface.
-func (r *DebugReceiver) HandleMessage(m *Message) error {
+func (r *DebugReceiver) HandleMessage(m *message.Message) error {
 	switch m.Type {
-	case MSG_TYPE_RUN_STARTED:
+	case message.MSG_TYPE_RUN_STARTED:
 		glog.Infof("RUN_STARTED: %+v", m.Run)
-	case MSG_TYPE_STEP_STARTED:
+	case message.MSG_TYPE_STEP_STARTED:
 		glog.Infof("STEP_STARTED: %s", m.StepId)
-	case MSG_TYPE_STEP_FINISHED:
+	case message.MSG_TYPE_STEP_FINISHED:
 		glog.Infof("STEP_FINISHED: %s", m.StepId)
-	case MSG_TYPE_STEP_EXCEPTION:
+	case message.MSG_TYPE_STEP_EXCEPTION:
 		glog.Infof("STEP_EXCEPTION: %s", m.StepId)
-	case MSG_TYPE_STEP_FAILED:
+	case message.MSG_TYPE_STEP_FAILED:
 		glog.Infof("STEP_FAILED: %s", m.StepId)
-	case MSG_TYPE_STEP_DATA:
+	case message.MSG_TYPE_STEP_DATA:
 		b, err := json.MarshalIndent(m.Data, "", " ")
 		if err != nil {
 			return err
@@ -132,7 +134,7 @@ func (r *DebugReceiver) Close() error {
 
 // StepReport is a struct used to collect information about a given step.
 type StepReport struct {
-	*StepProperties
+	*properties.StepProperties
 	Data       []interface{} `json:"data,omitempty"`
 	Errors     []string      `json:"errors,omitempty"`
 	Exceptions []string      `json:"exceptions,omitempty"`
@@ -148,11 +150,16 @@ type ReportReceiver struct {
 	output string
 }
 
-// newReportReceiver returns a ReportReceiver instance.
-func newReportReceiver(output string) *ReportReceiver {
+// NewReportReceiver returns a ReportReceiver instance.
+func NewReportReceiver(output string) *ReportReceiver {
 	return &ReportReceiver{
 		output: output,
 	}
+}
+
+// Root returns the root StepReport.
+func (r *ReportReceiver) Root() *StepReport {
+	return r.root
 }
 
 // Recurse through all steps, running the given function. If the function
@@ -196,19 +203,19 @@ func (r *ReportReceiver) findStep(id string) (*StepReport, error) {
 }
 
 // See documentation for Receiver interface.
-func (r *ReportReceiver) HandleMessage(m *Message) error {
+func (r *ReportReceiver) HandleMessage(m *message.Message) error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 
 	switch m.Type {
-	case MSG_TYPE_RUN_STARTED:
+	case message.MSG_TYPE_RUN_STARTED:
 		// Do nothing.
-	case MSG_TYPE_STEP_STARTED:
+	case message.MSG_TYPE_STEP_STARTED:
 		s := &StepReport{
 			StepProperties: m.Step,
 			Logs:           map[string]*bytes.Buffer{},
 		}
-		if m.Step.Id == STEP_ID_ROOT {
+		if m.Step.Id == properties.STEP_ID_ROOT {
 			r.root = s
 		} else {
 			parent, err := r.findStep(m.Step.Parent)
@@ -217,7 +224,7 @@ func (r *ReportReceiver) HandleMessage(m *Message) error {
 			}
 			parent.Steps = append(parent.Steps, s)
 		}
-	case MSG_TYPE_STEP_FINISHED:
+	case message.MSG_TYPE_STEP_FINISHED:
 		s, err := r.findStep(m.StepId)
 		if err != nil {
 			return err
@@ -225,21 +232,21 @@ func (r *ReportReceiver) HandleMessage(m *Message) error {
 		if len(s.Errors) == 0 && len(s.Exceptions) == 0 {
 			s.Result = STEP_RESULT_SUCCESS
 		}
-	case MSG_TYPE_STEP_FAILED:
+	case message.MSG_TYPE_STEP_FAILED:
 		s, err := r.findStep(m.StepId)
 		if err != nil {
 			return err
 		}
 		s.Errors = append(s.Errors, m.Error)
 		s.Result = STEP_RESULT_FAILURE
-	case MSG_TYPE_STEP_EXCEPTION:
+	case message.MSG_TYPE_STEP_EXCEPTION:
 		s, err := r.findStep(m.StepId)
 		if err != nil {
 			return err
 		}
 		s.Exceptions = append(s.Exceptions, m.Error)
 		s.Result = STEP_RESULT_EXCEPTION
-	case MSG_TYPE_STEP_DATA:
+	case message.MSG_TYPE_STEP_DATA:
 		s, err := r.findStep(m.StepId)
 		if err != nil {
 			return err
@@ -321,7 +328,7 @@ func NewCloudLoggingReceiver(logger *logging.Logger) (*CloudLoggingReceiver, err
 }
 
 // See documentation for Receiver interface.
-func (r *CloudLoggingReceiver) HandleMessage(m *Message) error {
+func (r *CloudLoggingReceiver) HandleMessage(m *message.Message) error {
 	// TODO(borenet): When should we LogSync, or Flush? If the program
 	// crashes or is killed, we'll want to have already flushed the logs.
 	labels := map[string]string{}

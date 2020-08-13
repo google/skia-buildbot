@@ -9,7 +9,7 @@ import (
 
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/db"
-	"go.skia.org/infra/task_driver/go/td"
+	"go.skia.org/infra/task_driver/go/td/message"
 )
 
 // memoryDB is an in-memory implementation of db.DB.
@@ -38,7 +38,7 @@ func (d *memoryDB) GetTaskDriver(id string) (*db.TaskDriverRun, error) {
 }
 
 // See documentation for db.DB interface.
-func (d *memoryDB) UpdateTaskDriver(id string, msg *td.Message) error {
+func (d *memoryDB) UpdateTaskDriver(id string, msg *message.Message) error {
 	d.mtx.Lock()
 	defer d.mtx.Unlock()
 	old := d.taskDrivers[id]

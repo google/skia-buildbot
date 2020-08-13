@@ -1,4 +1,4 @@
-package td
+package testutils
 
 import (
 	"context"
@@ -9,13 +9,15 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
+	"go.skia.org/infra/task_driver/go/td"
+	"go.skia.org/infra/task_driver/go/td/properties"
 )
 
 type TestingRun struct {
 	t       sktest.TestingT
 	ctx     context.Context
 	wd      string
-	report  *ReportReceiver
+	report  *td.ReportReceiver
 	cleanup func()
 }
 
@@ -25,10 +27,10 @@ func StartTestRun(t sktest.TestingT) *TestingRun {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	output := filepath.Join(wd, "output.json")
-	report := newReportReceiver(output)
+	report := td.NewReportReceiver(output)
 	return &TestingRun{
 		t:      t,
-		ctx:    newRun(context.Background(), report, "fake-task-id", "fake-test-task", &RunProperties{Local: true}),
+		ctx:    td.NewRun(context.Background(), report, "fake-task-id", "fake-test-task", &properties.RunProperties{Local: true}),
 		wd:     wd,
 		report: report,
 		cleanup: func() {
@@ -38,11 +40,11 @@ func StartTestRun(t sktest.TestingT) *TestingRun {
 }
 
 // Finish the test Step and return its results.
-func (r *TestingRun) EndRun(expectPanic bool, err *error) *StepReport {
+func (r *TestingRun) EndRun(expectPanic bool, err *error) *td.StepReport {
 	return r.finishRun(expectPanic, err, recover())
 }
 
-func (r *TestingRun) finishRun(expectPanic bool, err *error, recovered interface{}) (rv *StepReport) {
+func (r *TestingRun) finishRun(expectPanic bool, err *error, recovered interface{}) (rv *td.StepReport) {
 	defer func() {
 		require.NoError(r.t, getCtx(r.ctx).run.Close())
 	}()
@@ -59,11 +61,11 @@ func (r *TestingRun) finishRun(expectPanic bool, err *error, recovered interface
 			if rec := recover(); rec != nil {
 				sklog.Infof("Recovered panic: %v", rec)
 			}
-			rv = r.report.root
+			rv = r.report.Root()
 		}()
 	}
 	finishStep(r.ctx, recovered)
-	return r.report.root
+	return r.report.Root()
 }
 
 // Cleanup the TestingRun.
@@ -82,7 +84,7 @@ func (r *TestingRun) Dir() string {
 }
 
 // Run testing steps inside the given context.
-func RunTestSteps(t sktest.TestingT, expectPanic bool, fn func(context.Context) error) (rv *StepReport) {
+func RunTestSteps(t sktest.TestingT, expectPanic bool, fn func(context.Context) error) (rv *td.StepReport) {
 	tr := StartTestRun(t)
 	defer tr.Cleanup()
 	var err error

@@ -1,4 +1,4 @@
-package td
+package message
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_driver/go/td/properties"
 )
 
 const (
@@ -53,11 +54,11 @@ type Message struct {
 
 	// Run is the metadata about the overall Task Driver run. Required for
 	// MSG_TYPE_RUN_STARTED.
-	Run *RunProperties `json:"run,omitempty"`
+	Run *properties.RunProperties `json:"run,omitempty"`
 
 	// Step is the metadata about the step at creation time. Required for
 	// MSG_TYPE_STEP_STARTED.
-	Step *StepProperties `json:"step,omitempty"`
+	Step *properties.StepProperties `json:"step,omitempty"`
 
 	// Error is any error which might have occurred. Required for
 	// MSG_TYPE_STEP_FAILED and MSG_TYPE_STEP_EXCEPTION.
