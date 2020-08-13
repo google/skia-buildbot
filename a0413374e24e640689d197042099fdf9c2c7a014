@@ -33,6 +33,23 @@
       "revId": "a0413374e24e640689d197042099fdf9c2c7a014",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b16814c6_8f228fa7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-08-13T16:55:23Z",
+      "side": 1,
+      "message": "LGTM for CT.",
+      "revId": "a0413374e24e640689d197042099fdf9c2c7a014",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
