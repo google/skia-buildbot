@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"reflect"
 	"sort"
@@ -40,21 +39,25 @@ func GetCheckoutRoot() (string, error) {
 		// correct checkout and not something else?
 
 		// Check for infra/bots dir.
-		s, err := os.Stat(path.Join(cwd, "infra", "bots"))
+		s, err := os.Stat(filepath.Join(cwd, "infra", "bots"))
 		if err == nil && s.IsDir() {
 			return cwd, nil
 		}
 		// Check for .git dir.
-		s, err = os.Stat(path.Join(cwd, ".git"))
+		s, err = os.Stat(filepath.Join(cwd, ".git"))
 		if err == nil && s.IsDir() {
 			return cwd, nil
 		}
 
+		// Move up a level.
+		cwd = filepath.Clean(filepath.Join(cwd, ".."))
+
 		// Stop if we're at the filesystem root.
-		if cwd == string(filepath.Separator) {
+		// Per filepath.Clean docs, cwd will end in a slash only if it
+		// represents a root directory.
+		if strings.HasSuffix(cwd, string(filepath.Separator)) {
 			return "", fmt.Errorf("Unable to find repository root.")
 		}
-		cwd = filepath.Clean(path.Join(cwd, ".."))
 	}
 }
 
@@ -152,9 +155,9 @@ func (b *TasksCfgBuilder) GetCipdPackageFromAsset(assetName string) (*CipdPackag
 	}
 	assetsDir := b.assetsDir
 	if assetsDir == "" {
-		assetsDir = path.Join(b.root, "infra", "bots", "assets")
+		assetsDir = filepath.Join(b.root, "infra", "bots", "assets")
 	}
-	versionFile := path.Join(assetsDir, assetName, "VERSION")
+	versionFile := filepath.Join(assetsDir, assetName, "VERSION")
 	contents, err := ioutil.ReadFile(versionFile)
 	if err != nil {
 		return nil, err
@@ -209,7 +212,7 @@ func (b *TasksCfgBuilder) Finish() error {
 	}
 
 	// Write the tasks.json file.
-	outFile := path.Join(b.root, TASKS_CFG_FILE)
+	outFile := filepath.Join(b.root, TASKS_CFG_FILE)
 	if *test {
 		// Don't write the file; read it and compare.
 		expect, err := ioutil.ReadFile(outFile)
