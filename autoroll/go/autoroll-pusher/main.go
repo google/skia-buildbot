@@ -35,6 +35,7 @@ const (
 	GCR_PROJECT  = PROJECT_PUBLIC
 	GCR_IMAGE_BE = "autoroll-be"
 	GCR_IMAGE_FE = "autoroll-fe"
+	GCR_IMAGE_G3 = "autoroll-google3"
 
 	// Path to internal autoroller configs.
 	CONFIG_DIR_INTERNAL = "/tmp/skia-autoroll-internal-config"
@@ -65,6 +66,7 @@ var (
 	updateRollerConfig = flag.Bool("update-config", false, "If true, update the roller config(s).")
 	updateBeImage      = flag.Bool("update-be-image", false, "If true, update to the most recently uploaded backend image.")
 	updateFeImage      = flag.Bool("update-fe-image", false, "If true, update to the most recently uploaded frontend image.")
+	updateG3Image      = flag.Bool("update-google3-image", false, "If true, update to the most recently uploaded google3 image.")
 	useTmpCheckout     = flag.Bool("use-tmp-checkout", false, "If true, use a temporary checkout of the k8s config repo. Only valid with --commit-with-msg")
 )
 
@@ -231,7 +233,7 @@ func switchCluster(ctx context.Context, project string) (kubecfg string, cleanup
 // updateConfigs updates the Kubernetes config files in k8sConfigDir to reflect
 // the current contents of configDir, inserting the roller configs into the
 // given ConfigMap.
-func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, latestImageFe, latestImageBe string, configs map[string]*roller.AutoRollerConfig) ([]string, error) {
+func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, latestImageFe, latestImageBe, latestImageG3 string, configs map[string]*roller.AutoRollerConfig) ([]string, error) {
 	// This is the subdir for the current cluster.
 	clusterCfgDir := filepath.Join(co.Dir(), cfgDir.ClusterName)
 
@@ -360,6 +362,48 @@ func updateConfigs(ctx context.Context, co *git.Checkout, cfgDir *configDir, lat
 		}
 	}
 
+	// Write the new k8s config files for google3.
+	if *updateG3Image || *updateRollerConfig {
+		tmplBe := "./go/autoroll-google3/autoroll-google3.yaml.template"
+		for cfgFile, config := range configs {
+			// Only update Google3.
+			if config.ParentName != GOOGLE3_PARENT_NAME {
+				continue
+			}
+			dst := filepath.Join(cfgDir.K8sConfigDir, "autoroll-google3.yaml")
+
+			// If the k8s file doesn't exist yet or the user supplied the
+			// --update-google3-image flag, use the latest image. Otherwise
+			// use the currently-active image.
+			image := latestImageG3
+			if _, err := os.Stat(dst); os.IsNotExist(err) {
+				// Do nothing, ie. use the latest image even if
+				// --update-be-image was not provided.
+				if !*updateG3Image {
+					fmt.Fprintf(os.Stderr, "--update-google3-image was not provided, but destination config file %q does not exist. Defaulting to use the latest image: %s\n", dst, latestImageG3)
+				}
+			} else if err != nil {
+				return nil, err
+			} else if !*updateG3Image {
+				image, err = getActiveImage(ctx, dst)
+				if err != nil {
+					return nil, err
+				}
+			}
+
+			// Regenerate the k8s config file.
+			cfgFileBase64 := cfgBase64ByRollerName[config.RollerName]
+			cfgFilePath := filepath.Join(cfgDir.Dir, cfgFile)
+			modifiedG3, err := kubeConfGenBe(ctx, tmplBe, cfgFilePath, dst, cfgFileBase64, image)
+			if err != nil {
+				return nil, err
+			}
+			if modifiedG3 {
+				modified = append(modified, filepath.Base(dst))
+			}
+		}
+	}
+
 	return modified, nil
 }
 
@@ -479,6 +523,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to get latest image for %s: %s", GCR_IMAGE_BE, err)
 	}
+	latestImageG3, err := getLatestImage(GCR_IMAGE_G3)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Find or create the checkout.
 	ctx := context.Background()
@@ -497,7 +545,7 @@ func main() {
 	// Update the configs.
 	modByDir := make(map[*configDir][]string, len(configs))
 	for cfgDir, cfgs := range configs {
-		modified, err := updateConfigs(ctx, co, cfgDir, latestImageFe, latestImageBe, cfgs)
+		modified, err := updateConfigs(ctx, co, cfgDir, latestImageFe, latestImageBe, latestImageG3, cfgs)
 		if err != nil {
 			log.Fatalf("Failed to update configs: %s", err)
 		}

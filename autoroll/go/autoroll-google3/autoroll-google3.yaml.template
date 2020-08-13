@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: autoroll-google3
+  name: autoroll-google3
+spec:
+  ports:
+    - name: metrics
+      port: 20000
+    - name: http
+      port: 8000
+  selector:
+    app: autoroll-google3
+  type: NodePort
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: autoroll-google3
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: autoroll-google3
+      annotations:
+        prometheus.io.scrape: "true"
+        prometheus.io.port: "20000"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsUser: 2000 # aka skia
+        fsGroup: 2000   # aka skia
+      containers:
+        - name: autoroll-google3
+          image: {{.image}}
+          args:
+            - "--logtostderr"
+            - "--config={{.configBase64}}"
+            - "--port=:8000"
+            - "--prom_port=:20000"
+            - "--webhook_request_salt=/var/secrets/webhook-request-salt/webhook_request_salt"
+          ports:
+            - containerPort: 8000
+            - containerPort: 20000
+          volumeMounts:
+            - name: autoroll-fe-internal-sa
+              mountPath: /var/secrets/google
+            - name: webhook-request-salt
+              mountPath: /var/secrets/webhook-request-salt
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /var/secrets/google/key.json
+          resources:
+            requests:
+              memory: "10Mi"
+              cpu: "10m"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 3
+            failureThreshold: 10
+      volumes:
+        - name: autoroll-fe-internal-sa
+          secret:
+            secretName: autoroll-fe-internal
+        - name: webhook-request-salt
+          secret:
+            secretName: webhook-request-salt

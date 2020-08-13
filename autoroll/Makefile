@@ -53,7 +53,7 @@ release-fe: autoroll-fe
 
 .PHONY: release-google3
 release-google3: autoroll-google3 setup-internal-config-repo
-	CONFIG_DIR="$(ROLLER_INTERNAL_CONFIG_DIR)" ./build_google3_release "$(MESSAGE)"
+	./build_google3_release
 
 .PHONY: release-all
 release-all: release-fe release-be release-google3
@@ -93,6 +93,13 @@ push-be: release-be autoroll-pusher setup-internal-config-repo
 .PHONY: push-fe
 push-fe: release-fe autoroll-pusher setup-internal-config-repo
 	autoroll-pusher --update-fe-image --commit-with-msg="$(MESSAGE)" --use-tmp-checkout
+
+# push-google3 generates a new Google3 release build, applies it, and commits
+# and pushes the modified kubernetes config files into the git repo, using the
+# commit message from the MESSAGE environment variable.
+.PHONY: push-google3
+push-google3: release-google3 push-helper
+	push-helper --roller="google3" --update-config --update-google3-image --commit-with-msg="$(MESSAGE)" --use-tmp-checkout
 
 # push-all generates new frontend and backend release builds, applies them along
 # with the current roller config files(s), and commits and pushes the modified
