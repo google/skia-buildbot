@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7fe1f5e8_b6a5c2d2",
+        "filename": "task_scheduler/templates/blacklist.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-08-13T12:43:57Z",
+      "side": 1,
+      "message": "This file still needs to be renamed to \u0027skip_tasks.html\u0027, for completeness and to match main.go.",
+      "revId": "9b5eba6bf7900d5dc368f100561102b735788945",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
