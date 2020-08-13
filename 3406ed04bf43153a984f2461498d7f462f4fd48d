@@ -1,0 +1,31 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004396299",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/142689?revision\u003d12",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "5b0d3a61_158f8d28",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-13T15:41:12Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027deny list\u0027 or \u0027allow list\u0027; see https://developers.google.com/style/word-list#blacklist for more details.",
+      "range": {
+        "startLine": 33,
+        "startChar": 38,
+        "endLine": 33,
+        "endChar": 47
+      },
+      "revId": "3406ed04bf43153a984f2461498d7f462f4fd48d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
