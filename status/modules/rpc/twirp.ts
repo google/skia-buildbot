@@ -2,12 +2,12 @@
 export interface TwirpErrorJSON {
     code: string;
     msg: string;
-    meta: {[index:string]: string};
+    meta: { [index: string]: string };
 }
 
 export class TwirpError extends Error {
     code: string;
-    meta: {[index:string]: string};
+    meta: { [index: string]: string };
 
     constructor(te: TwirpErrorJSON) {
         super(te.msg);
