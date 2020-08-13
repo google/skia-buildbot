@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/testutils/unittest"
 	vcstu "go.skia.org/infra/go/vcsinfo/testutils"
 )
@@ -286,7 +287,7 @@ func TestRevList(t *testing.T) {
 		Expected []string
 	}{
 		{
-			Input:    []string{"master"},
+			Input:    []string{git.DefaultBranch},
 			Expected: revs,
 		},
 		{

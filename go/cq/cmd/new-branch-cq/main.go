@@ -9,6 +9,7 @@ import (
 	"go.chromium.org/luci/cq/api/config/v2"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/cq"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -16,7 +17,7 @@ import (
 var (
 	configFile          = flag.String("cfg-file", "", "commit-queue.cfg file to edit.")
 	newBranch           = flag.String("new-branch", "", "Short name of the new branch.")
-	oldBranch           = flag.String("old-branch", "master", "Short name of the existing branch whose config to copy.")
+	oldBranch           = flag.String("old-branch", git.DefaultBranch, "Short name of the existing branch whose config to copy.")
 	excludeTrybots      = common.NewMultiStringFlag("exclude-trybots", nil, "Regular expressions for trybot names to exclude.")
 	includeExperimental = flag.Bool("include-experimental", false, "If true, include experimental trybots.")
 	includeTreeCheck    = flag.Bool("include-tree-check", false, "If true, include tree open check.")

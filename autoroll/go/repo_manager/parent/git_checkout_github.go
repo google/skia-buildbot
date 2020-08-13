@@ -54,18 +54,18 @@ func GitCheckoutUploadGithubRollFunc(githubClient *github.GitHub, userName, roll
 		forkRepoMatches := REForkRepoURL.FindStringSubmatch(forkRepoURL)
 		forkRepoOwner := forkRepoMatches[2]
 		forkRepoName := forkRepoMatches[3]
-		// Find SHA of master branch to use when creating the fork branch. It does not really
+		// Find SHA of main branch to use when creating the fork branch. It does not really
 		// matter which SHA we use, we just have to use one that exists on the server. Always
-		// get the SHA from master because master should always exist.
-		forkMasterRef, err := githubClient.GetReference(forkRepoOwner, forkRepoName, "refs/heads/master")
+		// get the SHA from the main branch because it should always exist.
+		forkMainRef, err := githubClient.GetReference(forkRepoOwner, forkRepoName, git.DefaultRef)
 		if err != nil {
 			return 0, skerr.Wrap(err)
 		}
 		// Create the fork branch.
-		if err := githubClient.CreateReference(forkRepoOwner, forkRepoName, fmt.Sprintf("refs/heads/%s", forkBranchName), *forkMasterRef.Object.SHA); err != nil {
+		if err := githubClient.CreateReference(forkRepoOwner, forkRepoName, fmt.Sprintf("refs/heads/%s", forkBranchName), *forkMainRef.Object.SHA); err != nil {
 			return 0, skerr.Wrap(err)
 		}
-		sklog.Infof("Created branch %s in %s with SHA %s", forkBranchName, forkRepoURL, *forkMasterRef.Object.SHA)
+		sklog.Infof("Created branch %s in %s with SHA %s", forkBranchName, forkRepoURL, *forkMainRef.Object.SHA)
 
 		// Make sure the forked repo is at the same hash as the target repo
 		// before creating the pull request.

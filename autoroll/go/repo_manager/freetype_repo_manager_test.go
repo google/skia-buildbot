@@ -92,9 +92,9 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 		NoCheckoutDEPSRepoManagerConfig: NoCheckoutDEPSRepoManagerConfig{
 			NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:  masterBranchTmpl(t),
+					ChildBranch:  defaultBranchTmpl(t),
 					ChildPath:    ftChildPath,
-					ParentBranch: masterBranchTmpl(t),
+					ParentBranch: defaultBranchTmpl(t),
 					ParentRepo:   parentRepo.RepoUrl(),
 				},
 			},
@@ -112,11 +112,11 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 	require.NoError(t, err)
 
 	// Mock requests for Update().
-	mockParent.MockGetCommit(ctx, "master")
-	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
+	parentHead, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockGetCommit(ctx, "master")
+	mockParent.MockReadFile(ctx, "DEPS", parentHead)
+	mockChild.MockGetCommit(ctx, git.DefaultBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
@@ -139,11 +139,11 @@ func TestFreeTypeRepoManagerUpdate(t *testing.T) {
 	defer cleanup()
 
 	// Mock requests for Update().
-	mockParent.MockGetCommit(ctx, "master")
-	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
+	parentHead, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockGetCommit(ctx, "master")
+	mockParent.MockReadFile(ctx, "DEPS", parentHead)
+	mockChild.MockGetCommit(ctx, git.DefaultBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
@@ -161,11 +161,11 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	defer cleanup()
 
 	// Mock requests for Update().
-	mockParent.MockGetCommit(ctx, "master")
-	parentMaster, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
+	parentHead, err := git.GitDir(parentRepo.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
-	mockChild.MockGetCommit(ctx, "master")
+	mockParent.MockReadFile(ctx, "DEPS", parentHead)
+	mockChild.MockGetCommit(ctx, git.DefaultBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
@@ -177,21 +177,21 @@ func TestFreeTypeRepoManagerCreateNewRoll(t *testing.T) {
 	require.Equal(t, childCommits[0], lastRollRev.Id)
 
 	// Mock the request to retrieve the DEPS file.
-	mockParent.MockGetCommit(ctx, parentMaster)
-	mockParent.MockReadFile(ctx, "DEPS", parentMaster)
+	mockParent.MockGetCommit(ctx, parentHead)
+	mockParent.MockReadFile(ctx, "DEPS", parentHead)
 
 	// Mock the request to retrieve the README.chromium file.
-	mockParent.MockReadFile(ctx, parent.FtReadmePath, parentMaster)
+	mockParent.MockReadFile(ctx, parent.FtReadmePath, parentHead)
 
 	// Mock the requests to retrieve the headers to merge.
 	for _, h := range parent.FtIncludesToMerge {
-		mockParent.MockReadFile(ctx, path.Join(parent.FtIncludeDest, h), parentMaster)
+		mockParent.MockReadFile(ctx, path.Join(parent.FtIncludeDest, h), parentHead)
 		// No need to mock reading from the child repo; the repo manager
 		// actually creates a checkout and uses that.
 	}
 
 	subject := strings.Split(fakeCommitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, "master", parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.DefaultBranch, parentHead))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",

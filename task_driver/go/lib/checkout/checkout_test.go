@@ -82,11 +82,11 @@ func TestEnsureGitCheckout(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, output, "")
 
-		// Assert that we're on the "master" branch, regardless of what
+		// Assert that we're on the main branch, regardless of what
 		// commit we wanted.
 		output, err = co.Git(ctx, "rev-parse", "--abbrev-ref", "HEAD")
 		require.NoError(t, err)
-		require.Equal(t, "master", strings.TrimSpace(output))
+		require.Equal(t, git.DefaultBranch, strings.TrimSpace(output))
 	}
 
 	// Case 1: Dest dir does not exist.
@@ -164,7 +164,7 @@ func TestEnsureGitCheckout(t *testing.T) {
 		_, err := exec.RunCwd(ctx, ".", gitExec, "clone", rs.Repo, dest)
 		require.NoError(t, err)
 		gd := git.GitDir(dest)
-		_, err = gd.Git(ctx, "checkout", "-b", "newbranch", "-t", "master")
+		_, err = gd.Git(ctx, "checkout", "-b", "newbranch", "-t", git.DefaultBranch)
 		require.NoError(t, err)
 		updated := filepath.Join(dest, f)
 		testutils.WriteFile(t, updated, "modified file")

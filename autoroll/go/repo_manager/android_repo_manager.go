@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -330,14 +331,14 @@ third_party {
 		return 0, fmt.Errorf("Failed to create repo branch: %s", repoBranchErr)
 	}
 
-	// If the parent branch is not master then:
+	// If the parent branch is not the main branch then:
 	// Add all authors of merged changes to the email list. We do not do this
-	// for the master branch because developers would get spammed due to multiple
+	// for the main branch because developers would get spammed due to multiple
 	// rolls a day. Release branch rolls run rarely and developers should be
 	// aware that their changes are being rolled there.
 	rollEmails := []string{}
 	rollEmails = append(rollEmails, emails...)
-	if parentBranch != "master" {
+	if parentBranch != git.DefaultBranch {
 		for _, c := range rolling {
 			// Extract out the email if it is a Googler.
 			if strings.HasSuffix(c.Author, "@google.com") {
@@ -408,12 +409,12 @@ third_party {
 	}
 	labels = gerrit.MergeLabels(labels, r.g.Config().SelfApproveLabels)
 	if err = r.g.SetReview(ctx, change, "Roller setting labels to auto-land change.", labels, rollEmails); err != nil {
-		// Only throw exception here if parentBranch is master. This is
+		// Only throw exception here if parentBranch is the main branch. This is
 		// because other branches will not have permissions setup for the
 		// bot to run CR+2.
-		if parentBranch != "master" {
+		if parentBranch != git.DefaultBranch {
 			sklog.Warningf("Could not set labels on %d: %s", change.Issue, err)
-			sklog.Warningf("Not throwing error because %s branch is not master", parentBranch)
+			sklog.Warningf("Not throwing error because branch %q is not %q", parentBranch, git.DefaultBranch)
 		} else {
 			return 0, err
 		}

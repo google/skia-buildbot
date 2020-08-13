@@ -98,8 +98,8 @@ func main() {
 				split := strings.Split(tj.Name, "/")
 				shortName := split[len(split)-1]
 				if strings.HasPrefix(tj.Name, "chromium") {
-					if branch.Name != "master" {
-						// Chromium tryjobs only work on master.
+					if branch.Name != git.DefaultBranch {
+						// Chromium tryjobs only work on the main branch.
 						badTryjobs[branch.Name] = append(badTryjobs[branch.Name], shortName)
 					}
 				} else if _, ok := taskCfg.Jobs[shortName]; !ok {

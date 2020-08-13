@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils"
@@ -243,7 +244,7 @@ func setupTestRepo(t *testing.T) (context.Context, *git_testutils.GitBuilder, []
 	commits = append(commits, gb.Commit(ctx))
 
 	// 7
-	gb.CheckoutBranch(ctx, "master")
+	gb.CheckoutBranch(ctx, git.DefaultBranch)
 	commits = append(commits, gb.MergeBranch(ctx, "mybranch"))
 
 	// 8
