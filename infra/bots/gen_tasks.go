@@ -65,8 +65,6 @@ var (
 		"Infra-PerCommit-Puppeteer",
 		"Infra-PerCommit-PushAppsFromInfraDockerImage",
 		"Infra-PerCommit-ValidateAutorollConfigs",
-		"Infra-Experimental-Small-Linux",
-		"Infra-Experimental-Small-Win",
 	}
 
 	CACHES_GO = []*specs.Cache{
@@ -205,7 +203,10 @@ func buildTaskDrivers(b *specs.TasksCfgBuilder, os, arch string) string {
 			"GOARCH": goarch,
 		},
 		EnvPrefixes: map[string][]string{
-			"PATH": {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
+			"GOCACHE": {"cache/go_cache"},
+			"GOPATH":  {"cache/gopath"},
+			"GOROOT":  {"go/go"},
+			"PATH":    {"cipd_bin_packages", "cipd_bin_packages/bin", "go/go/bin"},
 		},
 		// This task is idempotent but unlikely to ever be deduped
 		// because it depends on the entire repo...
@@ -337,7 +338,7 @@ func presubmit(b *specs.TasksCfgBuilder, name string) string {
 	return name
 }
 
-func experimental(b *specs.TasksCfgBuilder, name string) string {
+func goTest(b *specs.TasksCfgBuilder, name string) string {
 	cipd := []*specs.CipdPackage{}
 	if strings.Contains(name, "Win") {
 		cipd = append(cipd, specs.CIPD_PKGS_GIT_WINDOWS_AMD64...)
@@ -348,11 +349,30 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 	cipd = append(cipd, specs.CIPD_PKGS_PYTHON...)
 	cipd = append(cipd, b.MustGetCipdPackageFromAsset("node"))
 
+	cmd := []string{
+		"./go_test",
+		"--project_id", "skia-swarming-bots",
+		"--task_id", specs.PLACEHOLDER_TASK_ID,
+		"--task_name", name,
+		"--workdir", ".",
+		"--alsologtostderr",
+	}
+	args := []string{}
 	machineType := MACHINE_TYPE_MEDIUM
-	if strings.Contains(name, "Large") {
+	if strings.Contains(name, "Large") || strings.Contains(name, "Race") {
 		// Using MACHINE_TYPE_LARGE for Large tests saves ~2 minutes.
 		machineType = MACHINE_TYPE_LARGE
 		cipd = append(cipd, b.MustGetCipdPackageFromAsset("protoc"))
+		cmd = append(cmd, "--run_emulators")
+	}
+	if strings.Contains(name, "Large") {
+		args = append(args, "--large")
+	} else if strings.Contains(name, "Medium") {
+		args = append(args, "--medium")
+	} else if strings.Contains(name, "Race") {
+		args = append(args, "--small", "--medium", "--large", "--race")
+	} else if strings.Contains(name, "Small") {
+		args = append(args, "--small")
 	}
 
 	var deps []string
@@ -368,17 +388,12 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 		deps = append(deps, buildTaskDrivers(b, "Linux", "x86_64"))
 		dims = linuxGceDimensions(machineType)
 	}
-	t := &specs.TaskSpec{
+	cmd = append(cmd, "--")
+	cmd = append(cmd, args...)
+	task := &specs.TaskSpec{
 		Caches:       CACHES_GO,
 		CipdPackages: cipd,
-		Command: []string{
-			"./infra_tests",
-			"--project_id", "skia-swarming-bots",
-			"--task_id", specs.PLACEHOLDER_TASK_ID,
-			"--task_name", name,
-			"--workdir", ".",
-			"--alsologtostderr",
-		},
+		Command:      cmd,
 		Dependencies: deps,
 		Dimensions:   dims,
 		EnvPrefixes: map[string][]string{
@@ -387,7 +402,15 @@ func experimental(b *specs.TasksCfgBuilder, name string) string {
 		Isolate:        "whole_repo.isolate",
 		ServiceAccount: SERVICE_ACCOUNT_COMPILE,
 	}
-	b.MustAddTask(name, t)
+
+	// Re-run failing bots but not when testing for race conditions.
+	task.MaxAttempts = 2
+	if strings.Contains(name, "Race") {
+		task.MaxAttempts = 1
+		task.IoTimeout = 1 * time.Hour
+	}
+
+	b.MustAddTask(name, task)
 	return name
 }
 
@@ -563,9 +586,8 @@ func process(b *specs.TasksCfgBuilder, name string) {
 	var priority float64 // Leave as default for most jobs.
 	deps := []string{}
 
-	if strings.Contains(name, "Experimental") {
-		// Experimental recipe-less tasks.
-		deps = append(deps, experimental(b, name))
+	if strings.Contains(name, "GoTest") {
+		deps = append(deps, goTest(b, name))
 	} else if strings.Contains(name, "UpdateGoDeps") {
 		// Update Go deps bot.
 		deps = append(deps, updateGoDeps(b, name))
@@ -615,6 +637,11 @@ func main() {
 	bundleRecipes(b)
 	for _, name := range JOBS {
 		process(b, name)
+	}
+	for _, os := range []string{"Linux", "Win"} {
+		for _, filter := range []string{"Small", "Medium", "Large", "Race"} {
+			process(b, fmt.Sprintf("GoTest-%s-%s", os, filter))
+		}
 	}
 
 	b.MustFinish()
