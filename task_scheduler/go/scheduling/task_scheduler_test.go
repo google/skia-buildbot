@@ -517,17 +517,11 @@ func TestFilterTaskCandidates(t *testing.T) {
 
 	// Check the initial set of task candidates. The two Build tasks
 	// should be the only ones available.
-	c, err := s.filterTaskCandidates(candidates)
+	c, err := s.filterTaskCandidates(ctx, candidates)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(c))
-	require.Equal(t, 1, len(c[rs1.Repo]))
-	require.Equal(t, 2, len(c[rs1.Repo][tcc_testutils.BuildTaskName]))
-	for _, byRepo := range c {
-		for _, byName := range byRepo {
-			for _, candidate := range byName {
-				require.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
-			}
-		}
+	for _, candidate := range c {
+		require.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
 	}
 	// Check filtering diagnostics. Non-Build tasks have unmet dependencies.
 	for _, candidate := range candidates {
@@ -539,14 +533,10 @@ func TestFilterTaskCandidates(t *testing.T) {
 	// Insert a the Build task at c1 (1 dependent) into the database,
 	// transition through various states.
 	var t1 *types.Task
-	for _, byRepo := range c { // Order not guaranteed, find the right candidate.
-		for _, byName := range byRepo {
-			for _, candidate := range byName {
-				if candidate.Revision == c1 {
-					t1 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
-					break
-				}
-			}
+	for _, candidate := range c {
+		if candidate.Revision == c1 {
+			t1 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
+			break
 		}
 	}
 	require.NotNil(t, t1)
@@ -558,16 +548,12 @@ func TestFilterTaskCandidates(t *testing.T) {
 		t1.Status = status
 		require.NoError(t, s.putTask(t1))
 
-		c, err = s.filterTaskCandidates(candidates)
+		c, err = s.filterTaskCandidates(ctx, candidates)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(c))
-		for _, byRepo := range c {
-			for _, byName := range byRepo {
-				for _, candidate := range byName {
-					require.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
-					require.Equal(t, c2, candidate.Revision)
-				}
-			}
+		for _, candidate := range c {
+			require.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
+			require.Equal(t, c2, candidate.Revision)
 		}
 		// Check filtering diagnostics.
 		for _, candidate := range candidates {
@@ -589,17 +575,11 @@ func TestFilterTaskCandidates(t *testing.T) {
 	t1.Status = types.TASK_STATUS_FAILURE
 	require.NoError(t, s.putTask(t1))
 
-	c, err = s.filterTaskCandidates(candidates)
+	c, err = s.filterTaskCandidates(ctx, candidates)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(c))
-	for _, byRepo := range c {
-		require.Equal(t, 1, len(byRepo))
-		for _, byName := range byRepo {
-			require.Equal(t, 2, len(byName))
-			for _, candidate := range byName {
-				require.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
-			}
-		}
+	require.Equal(t, 2, len(c))
+	for _, candidate := range c {
+		require.Equal(t, candidate.Name, tcc_testutils.BuildTaskName)
 	}
 	// Check filtering diagnostics.
 	for _, candidate := range candidates {
@@ -617,16 +597,10 @@ func TestFilterTaskCandidates(t *testing.T) {
 	t1.IsolatedOutput = "fake isolated hash"
 	require.NoError(t, s.putTask(t1))
 
-	c, err = s.filterTaskCandidates(candidates)
+	c, err = s.filterTaskCandidates(ctx, candidates)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(c))
-	for _, byRepo := range c {
-		require.Equal(t, 2, len(byRepo))
-		for _, byName := range byRepo {
-			for _, candidate := range byName {
-				require.False(t, t1.Name == candidate.Name && t1.Revision == candidate.Revision)
-			}
-		}
+	for _, candidate := range c {
+		require.False(t, t1.Name == candidate.Name && t1.Revision == candidate.Revision)
 	}
 	// Candidate with k1 is blocked by t1.
 	require.Equal(t, candidates[k1].Diagnostics.Filtering.SupersededByTask, t1.Id)
@@ -635,14 +609,10 @@ func TestFilterTaskCandidates(t *testing.T) {
 
 	// Create the other Build task.
 	var t2 *types.Task
-	for _, byRepo := range c {
-		for _, byName := range byRepo {
-			for _, candidate := range byName {
-				if candidate.Revision == c2 && strings.HasPrefix(candidate.Name, "Build-") {
-					t2 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
-					break
-				}
-			}
+	for _, candidate := range c {
+		if candidate.Revision == c2 && strings.HasPrefix(candidate.Name, "Build-") {
+			t2 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
+			break
 		}
 	}
 	require.NotNil(t, t2)
@@ -651,17 +621,11 @@ func TestFilterTaskCandidates(t *testing.T) {
 	require.NoError(t, s.putTask(t2))
 
 	// All test and perf tasks are now candidates, no build tasks.
-	c, err = s.filterTaskCandidates(candidates)
+	c, err = s.filterTaskCandidates(ctx, candidates)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(c))
-	require.Equal(t, 2, len(c[rs1.Repo][tcc_testutils.TestTaskName]))
-	require.Equal(t, 1, len(c[rs1.Repo][tcc_testutils.PerfTaskName]))
-	for _, byRepo := range c {
-		for _, byName := range byRepo {
-			for _, candidate := range byName {
-				require.NotEqual(t, candidate.Name, tcc_testutils.BuildTaskName)
-			}
-		}
+	for _, candidate := range c {
+		require.NotEqual(t, candidate.Name, tcc_testutils.BuildTaskName)
 	}
 	// Build candidates are blocked by completed tasks.
 	require.Equal(t, candidates[k1].Diagnostics.Filtering.SupersededByTask, t1.Id)
@@ -680,18 +644,12 @@ func TestFilterTaskCandidates(t *testing.T) {
 			Dependencies: []string{tcc_testutils.BuildTaskName},
 		},
 	}
-	c, err = s.filterTaskCandidates(candidates)
+	c, err = s.filterTaskCandidates(ctx, candidates)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(c))
-	require.Equal(t, 2, len(c[rs1.Repo][tcc_testutils.TestTaskName]))
-	require.Equal(t, 1, len(c[rs1.Repo][tcc_testutils.PerfTaskName]))
-	for _, byRepo := range c {
-		for _, byName := range byRepo {
-			for _, candidate := range byName {
-				require.NotEqual(t, candidate.Name, tcc_testutils.BuildTaskName)
-				require.False(t, candidate.IsTryJob())
-			}
-		}
+	for _, candidate := range c {
+		require.NotEqual(t, candidate.Name, tcc_testutils.BuildTaskName)
+		require.False(t, candidate.IsTryJob())
 	}
 	// Check diagnostics for tryKey
 	require.Equal(t, candidates[tryKey].Diagnostics.Filtering.UnmetDependencies, []string{tcc_testutils.BuildTaskName})

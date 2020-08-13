@@ -28,7 +28,6 @@ type TaskCandidate struct {
 	BuildbucketBuildId int64    `json:"buildbucketBuildId"`
 	Commits            []string `json:"commits"`
 	IsolatedInput      string   `json:"isolatedInput"`
-	IsolatedHashes     []string `json:"isolatedHashes"`
 	// Jobs must be kept in sorted order; see AddJob.
 	Jobs           []*types.Job `json:"jobs"`
 	ParentTaskIds  []string     `json:"parentTaskIds"`
@@ -50,7 +49,6 @@ func (c *TaskCandidate) CopyNoDiagnostics() *TaskCandidate {
 		BuildbucketBuildId: c.BuildbucketBuildId,
 		Commits:            util.CopyStringSlice(c.Commits),
 		IsolatedInput:      c.IsolatedInput,
-		IsolatedHashes:     util.CopyStringSlice(c.IsolatedHashes),
 		Jobs:               jobs,
 		ParentTaskIds:      util.CopyStringSlice(c.ParentTaskIds),
 		RetryOf:            c.RetryOf,

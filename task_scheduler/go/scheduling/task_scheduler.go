@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/task_scheduler/go/candidate"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
+	"go.skia.org/infra/task_scheduler/go/dedupe"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
 	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/specs"
@@ -93,6 +94,7 @@ type TaskScheduler struct {
 	candidateMetrics    map[string]metrics2.Int64Metric
 	candidateMetricsMtx sync.Mutex
 	db                  db.DB
+	dedupe              *dedupe.DedupeCacheWrapper
 	diagClient          gcs.GCSClient
 	diagInstance        string
 	isolateCache        *isolate_cache.Cache
@@ -151,6 +153,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period ti
 		busyBots:              newBusyBots(),
 		candidateMetrics:      map[string]metrics2.Int64Metric{},
 		db:                    d,
+		dedupe:                dedupe.NewDedupeCacheWrapper(dedupe.NewMemoryDedupeCache(), tCache),
 		diagClient:            diagClient,
 		diagInstance:          diagInstance,
 		isolateCache:          isolateCache,
@@ -552,11 +555,10 @@ func (s *TaskScheduler) findTaskCandidatesForJobs(ctx context.Context, unfinishe
 
 // filterTaskCandidates reduces the set of TaskCandidates to the ones we might
 // actually want to run and organizes them by repo and TaskSpec name.
-func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskKey]*candidate.TaskCandidate) (map[string]map[string][]*candidate.TaskCandidate, error) {
+func (s *TaskScheduler) filterTaskCandidates(ctx context.Context, preFilterCandidates map[types.TaskKey]*candidate.TaskCandidate) ([]*candidate.TaskCandidate, error) {
 	defer metrics2.FuncTimer().Stop()
 
-	candidatesBySpec := map[string]map[string][]*candidate.TaskCandidate{}
-	total := 0
+	filtered := make([]*candidate.TaskCandidate, 0, len(preFilterCandidates))
 	skipped := map[string]int{}
 	for _, c := range preFilterCandidates {
 		// Reject skipped tasks.
@@ -622,33 +624,129 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 			c.Attempt = previousAttempt + 1
 			c.RetryOf = previous.Id
 		}
+		filtered = append(filtered, c)
+	}
+	sklog.Infof("Filtered to %d candidates.", len(filtered))
+	return filtered, nil
+}
 
-		// Don't consider candidates whose dependencies are not met.
-		depsMet, idsToHashes, err := c.AllDepsMet(s.tCache)
+// dedupeTaskCandidates de-duplicates any possible task candidates, filtering
+// out any whose dependencies are not yet met.
+func (s *TaskScheduler) dedupeTaskCandidates(ctx context.Context, filtered []*candidate.TaskCandidate) (map[string]map[string][]*candidate.TaskCandidate, error) {
+	defer metrics2.FuncTimer().Stop()
+	remaining := make(map[*candidate.TaskCandidate]struct{}, len(filtered))
+	for _, c := range filtered {
+		remaining[c] = struct{}{}
+	}
+	candidatesBySpec := map[string]map[string][]*candidate.TaskCandidate{}
+	for len(remaining) > 0 {
+		candidatesToIsolate := []*candidate.TaskCandidate{}
+		isolatedHashes := make(map[*candidate.TaskCandidate][]string, len(remaining))
+		for c := range remaining {
+			// Don't consider candidates whose dependencies are not met.
+			depsMet, idsToHashes, err := c.AllDepsMet(s.tCache)
+			if err != nil {
+				return nil, err
+			}
+			if !depsMet {
+				// c.Filtering set in allDepsMet.
+				continue
+			}
+
+			hashes := make([]string, 0, len(idsToHashes))
+			parentTaskIds := make([]string, 0, len(idsToHashes))
+			for id, hash := range idsToHashes {
+				hashes = append(hashes, hash)
+				parentTaskIds = append(parentTaskIds, id)
+			}
+			sort.Strings(hashes)
+			isolatedHashes[c] = hashes
+			sort.Strings(parentTaskIds)
+			c.ParentTaskIds = parentTaskIds
+
+			candidatesToIsolate = append(candidatesToIsolate, c)
+		}
+
+		// Isolate the remaining candidates.
+		isolatedCandidates := make([]*candidate.TaskCandidate, 0, len(candidatesToIsolate))
+		isolatedFiles := make([]*isolated.Isolated, 0, len(candidatesToIsolate))
+		var errs *multierror.Error
+		for _, c := range candidatesToIsolate {
+			isolatedFile, err := s.isolateCache.Get(ctx, c.RepoState, c.TaskSpec.Isolate)
+			if err != nil {
+				errStr := err.Error()
+				c.GetDiagnostics().Triggering = &candidate.TaskCandidateTriggeringDiagnostics{IsolateError: errStr}
+				errs = multierror.Append(errs, fmt.Errorf("Failed to obtain cached isolate: %s", errStr))
+				continue
+			}
+			for _, inc := range isolatedHashes[c] {
+				isolatedFile.Includes = append(isolatedFile.Includes, isolated.HexDigest(inc))
+			}
+			isolatedFiles = append(isolatedFiles, isolatedFile)
+			isolatedCandidates = append(isolatedCandidates, c)
+		}
+		if errs != nil && len(isolatedFiles) == 0 {
+			// Only quit if we failed to isolate everything.
+			return nil, errs
+		}
+		hashes, err := s.isolateClient.ReUploadIsolatedFiles(ctx, isolatedFiles)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to re-upload Isolated files: %s", err)
 		}
-		if !depsMet {
-			// c.Filtering set in allDepsMet.
-			continue
+		if len(hashes) != len(isolatedFiles) {
+			return nil, fmt.Errorf("ReUploadIsolatedFiles returned incorrect number of hashes (%d but wanted %d)", len(hashes), len(isolatedFiles))
 		}
-		hashes := make([]string, 0, len(idsToHashes))
-		parentTaskIds := make([]string, 0, len(idsToHashes))
-		for id, hash := range idsToHashes {
-			hashes = append(hashes, hash)
-			parentTaskIds = append(parentTaskIds, id)
+		for idx, c := range isolatedCandidates {
+			c.IsolatedInput = hashes[idx]
 		}
-		c.IsolatedHashes = hashes
-		sort.Strings(parentTaskIds)
-		c.ParentTaskIds = parentTaskIds
 
-		candidates, ok := candidatesBySpec[c.Repo]
-		if !ok {
-			candidates = map[string][]*candidate.TaskCandidate{}
-			candidatesBySpec[c.Repo] = candidates
+		// De-duplicate candidates where possible.
+		dedupedTasks := []*types.Task{}
+		for _, c := range isolatedCandidates {
+			if c.TaskSpec.Idempotent {
+				// Maybe de-duplicate the task.
+				candidateHash, err := dedupe.HashCandidate(c)
+				if err != nil {
+					return nil, err
+				}
+				if dedupeFrom, err := s.dedupe.Get(ctx, candidateHash); err != nil {
+					if err != dedupe.ErrNotFound {
+						return nil, err
+					}
+				} else if dedupeFrom.Success() {
+					t := c.MakeTask()
+					t.Created = dedupeFrom.Created
+					t.DbModified = dedupeFrom.DbModified
+					t.DedupedFrom = dedupeFrom.Id
+					t.Finished = dedupeFrom.Finished
+					t.IsolatedOutput = dedupeFrom.IsolatedOutput
+					t.Started = dedupeFrom.Started
+					t.SwarmingBotId = dedupeFrom.SwarmingBotId
+					t.SwarmingTaskId = dedupeFrom.SwarmingTaskId
+					dedupedTasks = append(dedupedTasks, t)
+					delete(remaining, c)
+					continue
+				}
+			}
+
+			candidates, ok := candidatesBySpec[c.Repo]
+			if !ok {
+				candidates = map[string][]*candidate.TaskCandidate{}
+				candidatesBySpec[c.Repo] = candidates
+			}
+			candidates[c.Name] = append(candidates[c.Name], c)
+			delete(remaining, c)
 		}
-		candidates[c.Name] = append(candidates[c.Name], c)
-		total++
+		if len(dedupedTasks) > 0 {
+			if err := s.db.PutTasks(dedupedTasks); err != nil {
+				return nil, err
+			}
+			if err := s.tCache.Update(); err != nil {
+				return nil, err
+			}
+		} else {
+			break
+		}
 	}
 	for rule, numSkipped := range skipped {
 		diagLink := fmt.Sprintf("https://console.cloud.google.com/storage/browser/skia-task-scheduler-diagnostics/%s?project=google.com:skia-corp", path.Join(s.diagInstance, GCS_MAIN_LOOP_DIAGNOSTICS_DIR))
@@ -946,16 +1044,22 @@ func (s *TaskScheduler) regenerateTaskQueue(ctx context.Context, now time.Time) 
 	}
 
 	// Filter task candidates.
-	candidates, err := s.filterTaskCandidates(preFilterCandidates)
+	filtered, err := s.filterTaskCandidates(ctx, preFilterCandidates)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// De-duplicated task candidates.
+	deduped, err := s.dedupeTaskCandidates(ctx, filtered)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Record the number of task candidates per dimension set.
-	s.recordCandidateMetrics(candidates)
+	s.recordCandidateMetrics(deduped)
 
 	// Process the remaining task candidates.
-	queue, err := s.processTaskCandidates(ctx, candidates, now)
+	queue, err := s.processTaskCandidates(ctx, deduped, now)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1077,49 +1181,10 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 	return rv
 }
 
-// isolateCandidates uploads inputs for the taskCandidates to the Isolate
-// server. Returns the list of candidates which were successfully isolated,
-// with their IsolatedInput hash set, and any error which occurred. Note that
-// the successful candidates AND an error may both be returned if some were
-// successfully isolated but others failed.
-func (s *TaskScheduler) isolateCandidates(ctx context.Context, candidates []*candidate.TaskCandidate) ([]*candidate.TaskCandidate, error) {
-	defer metrics2.FuncTimer().Stop()
-
-	isolatedCandidates := make([]*candidate.TaskCandidate, 0, len(candidates))
-	isolatedFiles := make([]*isolated.Isolated, 0, len(candidates))
-	var errs *multierror.Error
-	for _, c := range candidates {
-		isolatedFile, err := s.isolateCache.Get(ctx, c.RepoState, c.TaskSpec.Isolate)
-		if err != nil {
-			errStr := err.Error()
-			c.GetDiagnostics().Triggering = &candidate.TaskCandidateTriggeringDiagnostics{IsolateError: errStr}
-			errs = multierror.Append(errs, fmt.Errorf("Failed to obtain cached isolate: %s", errStr))
-			continue
-		}
-		for _, inc := range c.IsolatedHashes {
-			isolatedFile.Includes = append(isolatedFile.Includes, isolated.HexDigest(inc))
-		}
-		isolatedFiles = append(isolatedFiles, isolatedFile)
-		isolatedCandidates = append(isolatedCandidates, c)
-	}
-	hashes, err := s.isolateClient.ReUploadIsolatedFiles(ctx, isolatedFiles)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to re-upload Isolated files: %s", err)
-	}
-	if len(hashes) != len(isolatedFiles) {
-		return nil, fmt.Errorf("ReUploadIsolatedFiles returned incorrect number of hashes (%d but wanted %d)", len(hashes), len(isolatedFiles))
-	}
-	for idx, c := range isolatedCandidates {
-		c.IsolatedInput = hashes[idx]
-	}
-
-	return isolatedCandidates, errs.ErrorOrNil()
-}
-
 // triggerTasks triggers the given slice of tasks to run on Swarming and returns
 // a channel of the successfully-triggered tasks which is closed after all tasks
 // have been triggered or failed. Each failure is sent to errCh.
-func (s *TaskScheduler) triggerTasks(candidates []*candidate.TaskCandidate, errCh chan<- error) <-chan *types.Task {
+func (s *TaskScheduler) triggerTasks(ctx context.Context, candidates []*candidate.TaskCandidate, errCh chan<- error) <-chan *types.Task {
 	defer metrics2.FuncTimer().Stop()
 	triggered := make(chan *types.Task)
 	var wg sync.WaitGroup
@@ -1190,6 +1255,15 @@ func (s *TaskScheduler) triggerTasks(candidates []*candidate.TaskCandidate, errC
 				}
 			}
 			triggered <- t
+			hash, err := dedupe.HashCandidate(cand)
+			if err != nil {
+				recordErr("Failed to hash task candidate", err)
+				return
+			}
+			if err := s.dedupe.Put(ctx, hash, t); err != nil {
+				recordErr("Failed to add task to dedupe cache", err)
+				return
+			}
 		}(cand)
 	}
 	go func() {
@@ -1206,17 +1280,8 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 	// Match free bots with tasks.
 	candidates := getCandidatesToSchedule(bots, queue)
 
-	// Isolate the tasks.
-	isolated, isolateErr := s.isolateCandidates(ctx, candidates)
-	if isolateErr != nil && len(isolated) == 0 {
-		return isolateErr
-	}
-
 	// Setup the error channel.
 	errs := []error{}
-	if isolateErr != nil {
-		errs = append(errs, isolateErr)
-	}
 	errCh := make(chan error)
 	var errWg sync.WaitGroup
 	errWg.Add(1)
@@ -1228,7 +1293,7 @@ func (s *TaskScheduler) scheduleTasks(ctx context.Context, bots []*swarming_api.
 	}()
 
 	// Trigger Swarming tasks.
-	triggered := s.triggerTasks(isolated, errCh)
+	triggered := s.triggerTasks(ctx, candidates, errCh)
 
 	// Collect the tasks we triggered.
 	numTriggered := 0
@@ -1342,6 +1407,10 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 
 	if err := s.tCache.Update(); err != nil {
 		return fmt.Errorf("Failed to update task cache: %s", err)
+	}
+
+	if err := s.dedupe.Cleanup(ctx); err != nil {
+		return fmt.Errorf("Failed to update de-duplication cache: %s", err)
 	}
 
 	if err := s.jCache.Update(); err != nil {

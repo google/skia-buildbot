@@ -114,6 +114,10 @@ type Task struct {
 	// of the associated Swarming task.
 	DbModified time.Time `json:"dbModified"`
 
+	// DedupedFrom is the ID of the Task which this Task was deduplicated
+	// from, if any.
+	DedupedFrom string `json:"dedupedFrom"`
+
 	// Finished is the time the task stopped running or expired from the queue, or
 	// zero if the task is pending or running.
 	Finished time.Time `json:"finished"`
@@ -357,6 +361,7 @@ func (t *Task) Copy() *Task {
 		Commits:        util.CopyStringSlice(t.Commits),
 		Created:        t.Created,
 		DbModified:     t.DbModified,
+		DedupedFrom:    t.DedupedFrom,
 		Finished:       t.Finished,
 		Id:             t.Id,
 		IsolatedOutput: t.IsolatedOutput,
