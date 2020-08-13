@@ -29,10 +29,10 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/timeout"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 	"go.skia.org/infra/task_scheduler/go/db/cache"
 	"go.skia.org/infra/task_scheduler/go/isolate_cache"
+	"go.skia.org/infra/task_scheduler/go/skip_tasks"
 	"go.skia.org/infra/task_scheduler/go/specs"
 	"go.skia.org/infra/task_scheduler/go/task_cfg_cache"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -88,7 +88,6 @@ var (
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
-	bl                  *blacklist.Blacklist
 	busyBots            *busyBots
 	candidateMetrics    map[string]metrics2.Int64Metric
 	candidateMetricsMtx sync.Mutex
@@ -109,6 +108,7 @@ type TaskScheduler struct {
 	queue        []*taskCandidate // protected by queueMtx.
 	queueMtx     sync.RWMutex
 	repos        repograph.Map
+	skipTasks    *skip_tasks.DB
 	swarming     swarming.ApiClient
 	taskCfgCache *task_cfg_cache.TaskCfgCache
 	tCache       cache.TaskCache
@@ -121,7 +121,7 @@ type TaskScheduler struct {
 	window                *window.Window
 }
 
-func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, period time.Duration, numCommits int, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, pools []string, pubsubTopic string, taskCfgCache *task_cfg_cache.TaskCfgCache, isolateCache *isolate_cache.Cache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
+func NewTaskScheduler(ctx context.Context, d db.DB, bl *skip_tasks.DB, period time.Duration, numCommits int, repos repograph.Map, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, c *http.Client, timeDecayAmt24Hr float64, pools []string, pubsubTopic string, taskCfgCache *task_cfg_cache.TaskCfgCache, isolateCache *isolate_cache.Cache, ts oauth2.TokenSource, diagClient gcs.GCSClient, diagInstance string) (*TaskScheduler, error) {
 	// Repos must be updated before window is initialized; otherwise the repos may be uninitialized,
 	// resulting in the window being too short, causing the caches to be loaded with incomplete data.
 	for _, r := range repos {
@@ -146,7 +146,7 @@ func NewTaskScheduler(ctx context.Context, d db.DB, bl *blacklist.Blacklist, per
 	}
 
 	s := &TaskScheduler{
-		bl:                    bl,
+		skipTasks:             bl,
 		busyBots:              newBusyBots(),
 		candidateMetrics:      map[string]metrics2.Int64Metric{},
 		db:                    d,
@@ -556,12 +556,12 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 
 	candidatesBySpec := map[string]map[string][]*taskCandidate{}
 	total := 0
-	skippedByBlacklist := map[string]int{}
+	skipped := map[string]int{}
 	for _, c := range preFilterCandidates {
-		// Reject blacklisted tasks.
-		if rule := s.bl.MatchRule(c.Name, c.Revision); rule != "" {
-			skippedByBlacklist[rule]++
-			c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{BlacklistedByRule: rule}
+		// Reject skipped tasks.
+		if rule := s.skipTasks.MatchRule(c.Name, c.Revision); rule != "" {
+			skipped[rule]++
+			c.GetDiagnostics().Filtering = &taskCandidateFilteringDiagnostics{SkippedByRule: rule}
 			continue
 		}
 
@@ -649,9 +649,9 @@ func (s *TaskScheduler) filterTaskCandidates(preFilterCandidates map[types.TaskK
 		candidates[c.Name] = append(candidates[c.Name], c)
 		total++
 	}
-	for rule, numSkipped := range skippedByBlacklist {
+	for rule, numSkipped := range skipped {
 		diagLink := fmt.Sprintf("https://console.cloud.google.com/storage/browser/skia-task-scheduler-diagnostics/%s?project=google.com:skia-corp", path.Join(s.diagInstance, GCS_MAIN_LOOP_DIAGNOSTICS_DIR))
-		sklog.Infof("Skipped %d candidates due to blacklist rule %q. See details in diagnostics at %s.", numSkipped, rule, diagLink)
+		sklog.Infof("Skipped %d candidates due to skip_tasks rule %q. See details in diagnostics at %s.", numSkipped, rule, diagLink)
 	}
 	sklog.Infof("Filtered to %d candidates in %d spec categories.", total, len(candidatesBySpec))
 	return candidatesBySpec, nil
@@ -1351,8 +1351,8 @@ func (s *TaskScheduler) MainLoop(ctx context.Context) error {
 		return fmt.Errorf("Failed to update unfinished jobs: %s", err)
 	}
 
-	if err := s.bl.Update(); err != nil {
-		return fmt.Errorf("Failed to update blacklist: %s", err)
+	if err := s.skipTasks.Update(); err != nil {
+		return fmt.Errorf("Failed to update skip_tasks: %s", err)
 	}
 
 	// Regenerate the queue.
@@ -1419,8 +1419,8 @@ func (s *TaskScheduler) timeDecayForCommit(now time.Time, commit *repograph.Comm
 	return rv, nil
 }
 
-func (ts *TaskScheduler) GetBlacklist() *blacklist.Blacklist {
-	return ts.bl
+func (ts *TaskScheduler) GetSkipTasks() *skip_tasks.DB {
+	return ts.skipTasks
 }
 
 // testedness computes the total "testedness" of a set of commits covered by a

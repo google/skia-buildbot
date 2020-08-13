@@ -30,17 +30,17 @@ import (
 )
 
 var (
-	// Don't schedule on these branches.
+	// ignoreBranches indicates that we shouldn't schedule on these branches.
 	// WARNING: Any commit reachable from any of these branches will be
 	// skipped. So, for example, if you fork a branch from head of master
-	// and immediately blacklist it, no tasks will be scheduled for any
+	// and immediately ignore it, no tasks will be scheduled for any
 	// commits on master up to the branch point.
 	// TODO(borenet): An alternative would be to only follow the first
 	// parent for merge commits. That way, we could remove the checks which
-	// cause this issue but still blacklist the branch as expected. The
+	// cause this issue but still ignore the branch as expected. The
 	// downside is that we'll miss commits in the case where we fork a
 	// branch, merge it back, and delete the new branch head.
-	BRANCH_BLACKLIST = map[string][]string{
+	ignoreBranches = map[string][]string{
 		common.REPO_SKIA_INTERNAL: {
 			"skia-master",
 		},
@@ -137,25 +137,25 @@ func (jc *JobCreator) putJobsInChunks(j []*types.Job) error {
 // recurseAllBranches runs the given func on every commit on all branches, with
 // some Task Scheduler-specific exceptions.
 func (jc *JobCreator) recurseAllBranches(ctx context.Context, repoUrl string, repo *repograph.Graph, fn func(string, *repograph.Graph, *repograph.Commit) error) error {
-	blacklistBranches := BRANCH_BLACKLIST[repoUrl]
-	blacklistCommits := make(map[*repograph.Commit]string, len(blacklistBranches))
-	for _, b := range blacklistBranches {
+	skipBranches := ignoreBranches[repoUrl]
+	skipCommits := make(map[*repograph.Commit]string, len(skipBranches))
+	for _, b := range skipBranches {
 		c := repo.Get(b)
 		if c != nil {
-			blacklistCommits[c] = b
+			skipCommits[c] = b
 		}
 	}
 	if err := repo.RecurseAllBranches(func(c *repograph.Commit) error {
-		if blacklistBranch, ok := blacklistCommits[c]; ok {
-			sklog.Infof("Skipping blacklisted branch %q", blacklistBranch)
+		if skippedBranch, ok := skipCommits[c]; ok {
+			sklog.Infof("Skipping ignored branch %q", skippedBranch)
 			return repograph.ErrStopRecursing
 		}
-		for head, blacklistBranch := range blacklistCommits {
+		for head, skippedBranch := range skipCommits {
 			isAncestor, err := repo.IsAncestor(c.Hash, head.Hash)
 			if err != nil {
 				return err
 			} else if isAncestor {
-				sklog.Infof("Skipping blacklisted branch %q (--is-ancestor)", blacklistBranch)
+				sklog.Infof("Skipping ignored branch %q (--is-ancestor)", skippedBranch)
 				return repograph.ErrStopRecursing
 			}
 		}

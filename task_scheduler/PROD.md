@@ -175,7 +175,7 @@ not actually indicate that anything is wrong with the Task Scheduler. Instead,
 it may just mean that demand has exceeded bot capacity for one or more types of
 bots for an extended period. If possible, increase the bot capacity by adding
 more bots or by fixing offline or quarantined bots. Consider temporarily
-blacklisting backfill tasks for these bots to reduce load on the scheduler. An
+skipping backfill tasks for these bots to reduce load on the scheduler. An
 alternative long-term fix is to remove tasks for overloaded bots.
 
 
