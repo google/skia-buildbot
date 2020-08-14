@@ -13,6 +13,7 @@ import (
 	depot_tools_testutils "go.skia.org/infra/go/depot_tools/testutils"
 	"go.skia.org/infra/go/gcs/mem_gcsclient"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/isolate"
@@ -124,21 +125,21 @@ func TestGatherNewJobs(t *testing.T) {
 	// again.
 	testGatherNewJobs(5) // no new jobs == 5 total jobs.
 
-	// Add a commit on master, run gatherNewJobs, ensure that we added the
+	// Add a commit on main, run gatherNewJobs, ensure that we added the
 	// new Jobs.
 	makeDummyCommits(ctx, gb, 1)
 	updateRepos(t, ctx, jc)
 	testGatherNewJobs(8) // we didn't add to the jobs spec, so 3 jobs/rev.
 
-	// Add several commits on master, ensure that we added all of the Jobs.
+	// Add several commits on main, ensure that we added all of the Jobs.
 	makeDummyCommits(ctx, gb, 10)
 	updateRepos(t, ctx, jc)
 	testGatherNewJobs(38) // 3 jobs/rev + 8 pre-existing jobs.
 
-	// Add a commit on a branch other than master, run gatherNewJobs, ensure
+	// Add a commit on a branch other than main, run gatherNewJobs, ensure
 	// that we added the new Jobs.
 	branchName := "otherBranch"
-	gb.CreateBranchTrackBranch(ctx, branchName, "master")
+	gb.CreateBranchTrackBranch(ctx, branchName, git.DefaultBranch)
 	msg := "Branch commit"
 	fileName := "some_other_file"
 	gb.Add(ctx, fileName, msg)
@@ -149,13 +150,13 @@ func TestGatherNewJobs(t *testing.T) {
 	// Add several commits in a row on different branches, ensure that we
 	// added all of the Jobs for all of the new commits.
 	makeDummyCommits(ctx, gb, 5)
-	gb.CheckoutBranch(ctx, "master")
+	gb.CheckoutBranch(ctx, git.DefaultBranch)
 	makeDummyCommits(ctx, gb, 5)
 	updateRepos(t, ctx, jc)
 	testGatherNewJobs(71) // 10 commits x 3 jobs/commit = 30, plus 41
 
-	// Add one more commit on the non-master branch which marks all but one
-	// job to only run on master. Ensure that we don't pick them up.
+	// Add one more commit on the non-main branch which marks all but one
+	// job to only run on main. Ensure that we don't pick them up.
 	gb.CheckoutBranch(ctx, branchName)
 	cfg, err := specs.ReadTasksCfg(gb.Dir())
 	require.NoError(t, err)

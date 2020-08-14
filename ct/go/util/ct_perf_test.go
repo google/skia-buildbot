@@ -35,8 +35,8 @@ func TestCommitToSyntheticRepo(t *testing.T) {
 	gb.Add(ctx, "whitespace.txt", " ")
 	gb.CommitMsg(ctx, "Initial whitespace commit")
 	// Create a branch and check it out, otherwise we can't push
-	// to "master" on this repo.
-	gb.CreateBranchTrackBranch(ctx, "somebranch", "origin/master")
+	// to git.DefaultRemoteBranch on this repo.
+	gb.CreateBranchTrackBranch(ctx, "somebranch", git.DefaultRemoteBranch)
 	gb.CheckoutBranch(ctx, "somebranch")
 
 	// Create tmp dir that gets cleaned up.

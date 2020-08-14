@@ -49,14 +49,14 @@ func TestGitBranch(t *testing.T) {
 	branches, err := g.Branches(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(branches))
-	master := branches[0]
-	require.Equal(t, commits[0], master.Head)
-	require.Equal(t, "master", master.Name)
+	main := branches[0]
+	require.Equal(t, commits[0], main.Head)
+	require.Equal(t, DefaultBranch, main.Name)
 
 	// Add a branch.
-	gb.CreateBranchTrackBranch(ctx, "newbranch", "master")
+	gb.CreateBranchTrackBranch(ctx, "newbranch", DefaultBranch)
 	c10 := gb.CommitGen(ctx, "branchfile")
-	_, err = g.Git(ctx, "fetch", "origin")
+	_, err = g.Git(ctx, "fetch", DefaultRemote)
 	require.NoError(t, err)
 	_, err = g.Git(ctx, "checkout", "-b", "newbranch", "-t", "origin/newbranch")
 	require.NoError(t, err)
@@ -64,11 +64,11 @@ func TestGitBranch(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(branches))
 	m, o := branches[0], branches[1]
-	if o.Name == "master" {
+	if o.Name == DefaultBranch {
 		m, o = branches[1], branches[0]
 	}
 	require.Equal(t, commits[0], m.Head)
-	require.Equal(t, "master", m.Name)
+	require.Equal(t, DefaultBranch, m.Name)
 	require.Equal(t, c10, o.Head)
 	require.Equal(t, "newbranch", o.Name)
 
@@ -77,9 +77,9 @@ func TestGitBranch(t *testing.T) {
 	git, err := Executable(ctx)
 	require.NoError(t, err)
 	exec_testutils.Run(t, ctx, gb.Dir(), git, "update-ref", "refs/heads/meta/config", commits[6])
-	exec_testutils.Run(t, ctx, gb.Dir(), git, "push", "origin", "refs/heads/meta/config")
+	exec_testutils.Run(t, ctx, gb.Dir(), git, "push", DefaultRemote, "refs/heads/meta/config")
 	exec_testutils.Run(t, ctx, gb.Dir(), git, "update-ref", "refs/tags/meta/config", commits[3])
-	exec_testutils.Run(t, ctx, gb.Dir(), git, "push", "origin", "refs/tags/meta/config")
+	exec_testutils.Run(t, ctx, gb.Dir(), git, "push", DefaultRemote, "refs/tags/meta/config")
 	_, err = g.Git(ctx, "fetch")
 	require.NoError(t, err)
 	_, err = g.Git(ctx, "checkout", "-b", "meta/config", "-t", "origin/meta/config")

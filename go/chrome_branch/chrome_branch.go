@@ -14,12 +14,13 @@ import (
 	"strconv"
 	"strings"
 
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 )
 
 const (
-	RefMaster = "refs/heads/master"
+	RefMain = git.DefaultRef
 
 	branchBeta     = "beta"
 	branchStable   = "stable"
@@ -40,9 +41,9 @@ func ReleaseBranchRef(number int) string {
 type Branch struct {
 	// Milestone number for this branch.
 	Milestone int `json:"milestone"`
-	// Branch number for this branch. Always zero for master, because
-	// numbered release candidates are cut from master regularly and there
-	// is no single number which refers to master.
+	// Branch number for this branch. Always zero for the main branch, because
+	// numbered release candidates are cut from this branch regularly and there
+	// is no single number which refers to it.
 	Number int `json:"number"`
 	// Fully-qualified ref for this branch.
 	Ref string `json:"ref"`
@@ -68,13 +69,13 @@ func (b *Branch) Validate() error {
 	if b.Ref == "" {
 		return skerr.Fmt("Ref is required.")
 	}
-	if b.Ref == RefMaster {
+	if b.Ref == RefMain {
 		if b.Number != 0 {
-			return skerr.Fmt("Number must be zero for master branch.")
+			return skerr.Fmt("Number must be zero for main branch.")
 		}
 	} else {
 		if b.Number == 0 {
-			return skerr.Fmt("Number is required for non-master branches.")
+			return skerr.Fmt("Number is required for non-main branches.")
 		}
 	}
 	return nil
@@ -83,7 +84,7 @@ func (b *Branch) Validate() error {
 // Branches describes the mapping from Chrome release channel name to branch
 // number.
 type Branches struct {
-	Master *Branch `json:"master"`
+	Main   *Branch `json:"main"`
 	Beta   *Branch `json:"beta"`
 	Stable *Branch `json:"stable"`
 }
@@ -91,7 +92,7 @@ type Branches struct {
 // Copy the Branches.
 func (b *Branches) Copy() *Branches {
 	return &Branches{
-		Master: b.Master.Copy(),
+		Main:   b.Main.Copy(),
 		Beta:   b.Beta.Copy(),
 		Stable: b.Stable.Copy(),
 	}
@@ -113,11 +114,11 @@ func (b *Branches) Validate() error {
 		return skerr.Wrapf(err, "Stable branch is invalid")
 	}
 
-	if b.Master == nil {
-		return skerr.Fmt("Master branch is missing.")
+	if b.Main == nil {
+		return skerr.Fmt("Main branch is missing.")
 	}
-	if err := b.Master.Validate(); err != nil {
-		return skerr.Wrapf(err, "Master branch is invalid")
+	if err := b.Main.Validate(); err != nil {
+		return skerr.Wrapf(err, "Main branch is invalid")
 	}
 
 	return nil
@@ -183,12 +184,12 @@ func Get(ctx context.Context, c *http.Client) (*Branches, error) {
 				}
 			}
 			if rv.Beta != nil {
-				rv.Master = &Branch{
+				rv.Main = &Branch{
 					// TODO(borenet): Is this reliable? Is
 					// there a better way to find it?
 					Milestone: rv.Beta.Milestone + 1,
 					Number:    0,
-					Ref:       RefMaster,
+					Ref:       RefMain,
 				}
 			}
 			if err := rv.Validate(); err != nil {

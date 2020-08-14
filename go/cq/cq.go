@@ -15,6 +15,7 @@ import (
 	"go.chromium.org/luci/cq/api/config/v2"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
@@ -25,7 +26,7 @@ const (
 	CQ_CFG_FILE = "commit-queue.cfg"
 	CQ_CFG_REF  = "infra/config"
 
-	MASTER_REF = "refs/heads/master"
+	MAIN_REF = git.DefaultRef
 
 	// Constants for in-flight metrics.
 	INFLIGHT_METRIC_NAME     = "in_flight"
@@ -76,7 +77,7 @@ func GetSkiaCQTryBots() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return GetCQTryBots(cfg, MASTER_REF)
+	return GetCQTryBots(cfg, MAIN_REF)
 }
 
 // GetSkiaInfraCQTryBots is a Skia Infra implementation of GetCQTryBotsFn.
@@ -85,7 +86,7 @@ func GetSkiaInfraCQTryBots() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return GetCQTryBots(cfg, MASTER_REF)
+	return GetCQTryBots(cfg, MAIN_REF)
 }
 
 // MatchConfigGroup returns the ConfigGroup, ConfigGroup_Gerrit, and

@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/gce"
 	"go.skia.org/infra/go/gce/ct/instance_types"
 	skia_instance_types "go.skia.org/infra/go/gce/swarming/instance_types"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 )
@@ -29,7 +30,7 @@ var (
 	androidBuilder  = flag.Bool("android-builder", false, "Whether or not this is an android builder instance.")
 	linuxBuilder    = flag.Bool("linux-builder", false, "Whether or not this is a linux builder instance.")
 	windowsBuilder  = flag.Bool("windows-builder", false, "Whether or not this is a windows builder instance.")
-	master          = flag.Bool("master", false, "Whether or not this is a linux master instance.")
+	master          = flag.Bool(git.DefaultBranch, false, "Whether or not this is a linux master instance.")
 	worker          = flag.Bool("worker", false, "Whether or not this is a linux worker instance.")
 	create          = flag.Bool("create", false, "Create the instance. Either --create or --delete is required.")
 	delete          = flag.Bool("delete", false, "Delete the instance. Either --create or --delete is required.")

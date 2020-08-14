@@ -281,21 +281,21 @@ func (r *repoImpl) initialIngestion(ctx context.Context) error {
 
 	// Load commits from gitiles.
 
-	// We assume that master contains the majority of the commits in the
-	// repo, and the other branches are comparatively small, with most of
-	// their ancestry being on master itself.
-	var master *git.Branch
+	// We assume that the main branch contains the majority of the commits in
+	// the repo, and the other branches are comparatively small, with most of
+	// their ancestry being on the main branch itself.
+	var mainBranch *git.Branch
 	for _, b := range branches {
-		if b.Name == "master" {
-			master = b
+		if b.Name == git.DefaultBranch {
+			mainBranch = b
 			break
 		}
 	}
-	if master != nil {
-		if master.Head == oldBranches[master.Name] {
-			sklog.Infof("Master is up to date; skipping.")
+	if mainBranch != nil {
+		if mainBranch.Head == oldBranches[mainBranch.Name] {
+			sklog.Infof("%q is up to date; skipping.", mainBranch.Name)
 		} else {
-			sklog.Info("Loading commits from gitiles for master.")
+			sklog.Info("Loading commits from gitiles for %q.", mainBranch.Name)
 			if err := r.processCommits(ctx, func(ctx context.Context, cb *commitBatch) error {
 				// Add the new commits to our local cache.
 				sklog.Infof("Adding batch of %d commits", len(cb.commits))
@@ -304,31 +304,31 @@ func (r *repoImpl) initialIngestion(ctx context.Context) error {
 				}
 				return initialIngestCommitBatch(ctx, graph, ri.MemCacheRepoImpl, cb)
 			}, func(ctx context.Context, commitsCh chan<- *commitBatch) error {
-				logExpr := master.Head
-				if oldHead, ok := oldBranches[master.Name]; ok {
-					sklog.Errorf("Have master @ %s; requesting %s", oldHead, master.Head)
-					logExpr = git.LogFromTo(oldHead, master.Head)
+				logExpr := mainBranch.Head
+				if oldHead, ok := oldBranches[mainBranch.Name]; ok {
+					sklog.Errorf("Have %s @ %s; requesting %s", mainBranch.Name, oldHead, mainBranch.Head)
+					logExpr = git.LogFromTo(oldHead, mainBranch.Head)
 				}
-				return r.loadCommitsFromGitiles(ctx, master.Name, logExpr, commitsCh, gitiles.LogReverse(), gitiles.LogBatchSize(batchSize))
+				return r.loadCommitsFromGitiles(ctx, mainBranch.Name, logExpr, commitsCh, gitiles.LogReverse(), gitiles.LogBatchSize(batchSize))
 			}); err != nil {
-				return skerr.Wrapf(err, "Failed to ingest commits for master.")
+				return skerr.Wrapf(err, "Failed to ingest commits for %q.", mainBranch.Name)
 			}
 		}
 	}
 	ri.Wait()
 
-	// mtx protects graph and ri.commits as we load commits for non-master
+	// mtx protects graph and ri.commits as we load commits for non-main
 	// branches in different goroutines.
 	var mtx sync.Mutex
 
 	// Load commits for other branches, in non-reverse order, so that we can
-	// stop once we reach commits already on the master branch.
+	// stop once we reach commits already on the main branch.
 	var egroup errgroup.Group
 
 	for _, branch := range branches {
 		// https://golang.org/doc/faq#closures_and_goroutines
 		branch := branch
-		if branch == master {
+		if branch == mainBranch {
 			continue
 		}
 		sklog.Infof("Loading commits for %s", branch.Name)

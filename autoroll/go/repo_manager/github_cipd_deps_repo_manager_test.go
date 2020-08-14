@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/cipd/mocks"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/recipe_cfg"
@@ -51,9 +52,9 @@ func githubCipdDEPSRmCfg(t *testing.T) *GithubCipdDEPSRepoManagerConfig {
 		GithubDEPSRepoManagerConfig: GithubDEPSRepoManagerConfig{
 			DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
 				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:  masterBranchTmpl(t),
+					ChildBranch:  defaultBranchTmpl(t),
 					ChildPath:    githubCIPDDEPSChildPath,
-					ParentBranch: masterBranchTmpl(t),
+					ParentBranch: defaultBranchTmpl(t),
 				},
 			},
 		},
@@ -86,10 +87,10 @@ deps = {
 	parent.Commit(ctx)
 
 	fork := git_testutils.GitInit(t, ctx)
-	fork.Git(ctx, "remote", "set-url", "origin", parent.RepoUrl())
-	fork.Git(ctx, "fetch", "origin")
-	fork.Git(ctx, "checkout", "master")
-	fork.Git(ctx, "reset", "--hard", "origin/master")
+	fork.Git(ctx, "remote", "set-url", git.DefaultRemote, parent.RepoUrl())
+	fork.Git(ctx, "fetch", git.DefaultRemote)
+	fork.Git(ctx, "checkout", git.DefaultBranch)
+	fork.Git(ctx, "reset", "--hard", git.DefaultRemoteBranch)
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
@@ -97,9 +98,9 @@ deps = {
 			if cmd.Args[0] == "clone" || cmd.Args[0] == "fetch" || cmd.Args[0] == "reset" {
 				return nil
 			}
-			if cmd.Args[0] == "checkout" && cmd.Args[1] == "remote/master" {
+			if cmd.Args[0] == "checkout" && cmd.Args[1] == "remote/"+git.DefaultBranch {
 				// Pretend origin is the remote branch for testing ease.
-				cmd.Args[1] = "origin/master"
+				cmd.Args[1] = git.DefaultRemoteBranch
 			}
 		}
 		return exec.DefaultRun(ctx, cmd)

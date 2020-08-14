@@ -263,7 +263,7 @@ func tempGitRepoGclient(ctx context.Context, rs types.RepoState, depotToolsDir, 
 	co := &git.TempCheckout{
 		GitDir: git.GitDir(path.Join(tmp, projectName)),
 	}
-	if _, err := co.Git(ctx, "remote", "set-url", "origin", rs.Repo); err != nil {
+	if _, err := co.Git(ctx, "remote", "set-url", git.DefaultRemote, rs.Repo); err != nil {
 		return nil, err
 	}
 

@@ -45,7 +45,7 @@ func GitCheckoutUploadGerritRollFunc(g gerrit.GerritInterface) git_common.Upload
 		}
 
 		// Upload CL.
-		if _, err := co.Git(ctx, "push", "origin", fmt.Sprintf("%s:refs/for/%s", hash, upstreamBranch)); err != nil {
+		if _, err := co.Git(ctx, "push", git.DefaultRemote, fmt.Sprintf("%s:refs/for/%s", hash, upstreamBranch)); err != nil {
 			return 0, skerr.Wrap(err)
 		}
 		ci, err := g.GetChange(ctx, changeId)

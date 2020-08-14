@@ -254,14 +254,14 @@ func TestTopoSortMergeTimestamp(t *testing.T) {
 	gb.Add(ctx, "file2", "contents")
 	c2 := gb.CommitMsgAt(ctx, "Child 2", ts)
 	require.Equal(t, c2, "06d29d7f828723c79c9eba25696111c628ab5a7e")
-	gb.CheckoutBranch(ctx, "master")
+	gb.CheckoutBranch(ctx, git.DefaultBranch)
 	c3 := gb.CommitGen(ctx, "file1")
 	ts = ts.Add(10 * time.Second)
 	c4 := gb.CommitGenAt(ctx, "file1", ts)
 	gb.CheckoutBranch(ctx, "otherbranch")
 	c5 := gb.CommitGen(ctx, "file2")
 	c6 := gb.CommitGenAt(ctx, "file2", ts.Add(-time.Second))
-	gb.CheckoutBranch(ctx, "master")
+	gb.CheckoutBranch(ctx, git.DefaultBranch)
 	c7 := gb.MergeBranch(ctx, "otherbranch")
 	checkTopoSortGitBuilder(t, ctx, gb, []string{c7, c4, c3, c1, c6, c5, c2, c0})
 }
@@ -356,8 +356,8 @@ func TestMapUpdate(t *testing.T) {
 	r1.Refresh()
 	r2.Refresh()
 	require.NoError(t, m.Update(ctx))
-	require.Equal(t, new1, g1.Get("master").Hash)
-	require.Equal(t, new2, g2.Get("master").Hash)
+	require.Equal(t, new1, g1.Get(git.DefaultBranch).Hash)
+	require.Equal(t, new2, g2.Get(git.DefaultBranch).Hash)
 
 	// 2. Verify that none of the changes are committed if a callback fails.
 	new1 = gb1.CommitGen(ctx, "f")
@@ -372,14 +372,14 @@ func TestMapUpdate(t *testing.T) {
 		failNext = true
 		return nil
 	}), "Fail")
-	require.NotEqual(t, new1, g1.Get("master").Hash)
-	require.NotEqual(t, new2, g2.Get("master").Hash)
+	require.NotEqual(t, new1, g1.Get(git.DefaultBranch).Hash)
+	require.NotEqual(t, new2, g2.Get(git.DefaultBranch).Hash)
 
 	// 3. Verify that none of the changes are committed if an update fails.
 	cleanup2Once.Do(cleanup2)
 	r1.Refresh()
 	r2.Refresh()
 	require.Error(t, m.Update(ctx))
-	require.NotEqual(t, new1, g1.Get("master").Hash)
-	require.NotEqual(t, new2, g2.Get("master").Hash)
+	require.NotEqual(t, new1, g1.Get(git.DefaultBranch).Hash)
+	require.NotEqual(t, new2, g2.Get(git.DefaultBranch).Hash)
 }
