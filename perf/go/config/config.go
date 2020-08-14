@@ -90,7 +90,8 @@ type DataStoreConfig struct {
 	// used for 'gcp' datastore types.
 	Table string `json:"table"`
 
-	// Shards is the number of shards to break up all trace data into.
+	// Shards is the number of shards to break up all trace data into. This
+	// value is only used for 'gcp' datastore types.
 	Shards int32 `json:"shards"`
 
 	// Namespace is the Google Cloud Datastore namespace that alerts,
