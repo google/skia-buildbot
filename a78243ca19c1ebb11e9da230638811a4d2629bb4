@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "a22538ef_1b7e429f",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-14T19:41:18Z",
+      "side": 1,
+      "message": "Ack.",
+      "parentUuid": "c47067e4_81f371cc",
+      "revId": "a78243ca19c1ebb11e9da230638811a4d2629bb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "77c8478f_daaf7f5d",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 1
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "ef3775f0_076e1805",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 968,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-14T19:41:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "77c8478f_daaf7f5d",
+      "range": {
+        "startLine": 968,
+        "startChar": 14,
+        "endLine": 968,
+        "endChar": 23
+      },
+      "revId": "a78243ca19c1ebb11e9da230638811a4d2629bb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "ebcb3c1d_cb67a0e4",
         "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
         "patchSetId": 1
@@ -62,6 +104,30 @@
       "revId": "a78243ca19c1ebb11e9da230638811a4d2629bb4",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "015b077a_665c4fea",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 986,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-14T19:41:18Z",
+      "side": 1,
+      "message": "All the err\u0027s returned from util.ChunkIter are already wrapped.",
+      "parentUuid": "ebcb3c1d_cb67a0e4",
+      "range": {
+        "startLine": 986,
+        "startChar": 10,
+        "endLine": 986,
+        "endChar": 13
+      },
+      "revId": "a78243ca19c1ebb11e9da230638811a4d2629bb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
