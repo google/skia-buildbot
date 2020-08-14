@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5bfd2bd1_108d752d",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 12
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-14T13:42:59Z",
+      "side": 1,
+      "message": "Maybe add this as a comment in the BUILD.bazel file?",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 239
+      },
+      "revId": "5058228b8f1943daa75f1c5bc688fdada0dc63b2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bdae61e_e732f33e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 12
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-14T13:42:59Z",
+      "side": 1,
+      "message": "This does seem like a large amount of work, though a lot of it is done just once and we can re-use the rules. Did you explore what converting the infra tests to jasmine would have looked like?",
+      "revId": "5058228b8f1943daa75f1c5bc688fdada0dc63b2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
