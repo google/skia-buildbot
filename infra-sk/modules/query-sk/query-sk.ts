@@ -39,6 +39,34 @@ export interface QuerySkQueryChangeEventDetail {
   readonly q: string;
 }
 
+/**
+ * Removes the prefix, if any, from a query value.
+ *
+ * TODO(jcgregorio) - The fact that query values can have a prefix of either '!' or '~'
+ * is just something you have to know about them. We need a way to share the knowledge
+ * of all possible valid prefixes with the Go code.
+ */
+const removePrefix = (s: string): string => {
+  if (s.length == 0) {
+    return s;
+  }
+  if (s[0] == '~' || s[0] == '!') {
+    return s.slice(1);
+  }
+  return s;
+};
+
+/**
+ * Builds a Map from unprefixed values to their prefixed version.
+ */
+const buildMapFromPrefixedSelections = (arr: string[]): Map<string, string> => {
+  const ret = new Map<string, string>();
+  arr.forEach((prefixed: string) => {
+    ret.set(removePrefix(prefixed), prefixed);
+  });
+  return ret;
+};
+
 export class QuerySk extends ElementSk {
   private static template = (ele: QuerySk) => html`
     <div class="filtering">
@@ -136,20 +164,32 @@ export class QuerySk extends ElementSk {
       // Things get complicated if the user has entered a filter. The user may
       // have selections in this._query[key] which don't appear in e.detail
       // because they have been filtered out, so we should only add/remove
-      // values from this._query[key] that appear in this._paramset[key].
+      // values from this._query[key] that appear in this._paramset[key], while
+      // being careful because value(s) may be prefixed with either a '!' or a
+      // '~' if they are invert or regex queries.
 
       // Make everything into Sets to make our lives easier.
       const valuesDisplayed = new Set(this._paramset[key]);
       const currentQueryForKey = new Set(this._query[key]);
+
+      // This needs to be make from the root values (i.e. with the prefixes
+      // stripped off), but we also need a map so we can find the prefixed value
+      // from the unprefixed value.
+      const unprefixedSelectionsFromEvent = new Set(e.detail.map(removePrefix));
+      const prefixedFromUnPrefixed = buildMapFromPrefixedSelections(e.detail);
       const selectionsFromEvent = new Set(e.detail);
       // Loop over valuesDisplayed, if the value appears in selectionsFromEvent
       // then add it to currentQueryForKey, otherwise remove it from
       // currentQueryForKey.
       valuesDisplayed.forEach((value) => {
-        if (selectionsFromEvent.has(value)) {
-          currentQueryForKey.add(value);
+        // If a value has been deselected then it won't appear in
+        // prefixedFromInPrefixed, in which case we fall back to the displayed
+        // value.
+        const prefixedValue = prefixedFromUnPrefixed.get(value) || value;
+        if (unprefixedSelectionsFromEvent.has(value)) {
+          currentQueryForKey.add(prefixedValue);
         } else {
-          currentQueryForKey.delete(value);
+          currentQueryForKey.delete(prefixedValue);
         }
       });
       this._query[key] = [...currentQueryForKey];
