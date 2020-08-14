@@ -15,7 +15,7 @@
         "perf-memcached-1.perf-memcached:11211",
         "perf-memcached-2.perf-memcached:11211"
       ],
-      "namespace": "ct"
+      "namespace": "ct-cdb"
     }
   },
   "ingestion_config": {

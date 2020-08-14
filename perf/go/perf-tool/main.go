@@ -400,6 +400,7 @@ func databaseDatabaseBackupRegressionsSubAction(c *cobra.Command, args []string)
 			return err
 		}
 	}
+	fmt.Printf("Backing up from %v", backupToDate)
 
 	f, err := os.Create(c.Flag(outputFilenameFlag).Value.String())
 	if err != nil {
@@ -433,6 +434,7 @@ func databaseDatabaseBackupRegressionsSubAction(c *cobra.Command, args []string)
 
 	for {
 		if end < 0 {
+			fmt.Println("Finished backing up chunks.")
 			break
 		}
 
@@ -454,7 +456,9 @@ func databaseDatabaseBackupRegressionsSubAction(c *cobra.Command, args []string)
 			if err != nil {
 				return err
 			}
-			if time.Unix(cid.Timestamp, 0).Before(backupToDate) {
+			commitDate := time.Unix(cid.Timestamp, 0)
+			if commitDate.Before(backupToDate) {
+				fmt.Printf("Finished backup: %v < %v", commitDate, backupToDate)
 				goto End
 			}
 			body := allRegressionsForCommitWithCommitNumber{
