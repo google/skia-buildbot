@@ -942,7 +942,7 @@ func cacheKeyForParamSets(tileNumber types.TileNumber, paramKey, paramValue stri
 func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []paramtools.Params, values []float32, ps paramtools.ParamSet, source string, _ time.Time) error {
 	defer timer.NewWithSummary("perfserver_sqltracestore_write_traces", s.writeTracesMetric).Stop()
 
-	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Minute)
+	ctx, cancel := context.WithTimeout(context.TODO(), 15*time.Minute)
 	defer cancel()
 
 	tileNumber := s.TileNumber(commitNumber)
@@ -965,19 +965,26 @@ func (s *SQLTraceStore) WriteTraces(commitNumber types.CommitNumber, params []pa
 	}
 
 	if len(paramSetsContext) > 0 {
-		var b bytes.Buffer
-		if err := s.unpreparedStatements[insertIntoParamSets].Execute(&b, paramSetsContext); err != nil {
-			return skerr.Wrapf(err, "failed to expand paramsets template")
-		}
+		err := util.ChunkIter(len(paramSetsContext), writeTracesChunkSize, func(startIdx int, endIdx int) error {
+			chunk := paramSetsContext[startIdx:endIdx]
+			var b bytes.Buffer
+			if err := s.unpreparedStatements[insertIntoParamSets].Execute(&b, chunk); err != nil {
+				return skerr.Wrapf(err, "failed to expand paramsets template in slice [%d, %d]", startIdx, endIdx)
+			}
 
-		sql := b.String()
+			sql := b.String()
 
-		sklog.Infof("About to write %d paramset entries with sql of length %d", len(paramSetsContext), len(sql))
-		if _, err := s.db.Exec(ctx, sql); err != nil {
-			return skerr.Wrapf(err, "Executing: %q", b.String())
-		}
-		for _, ele := range paramSetsContext {
-			s.cache.Add(ele.cacheKey)
+			sklog.Infof("About to write %d paramset entries with sql of length %d", endIdx-startIdx, len(sql))
+			if _, err := s.db.Exec(ctx, sql); err != nil {
+				return skerr.Wrapf(err, "Executing: %q", b.String())
+			}
+			for _, ele := range chunk {
+				s.cache.Add(ele.cacheKey)
+			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 
