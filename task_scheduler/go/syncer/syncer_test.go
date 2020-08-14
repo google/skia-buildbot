@@ -58,7 +58,7 @@ func tempGitRepoGclientTests(t *testing.T, cases map[types.RepoState]error) {
 			output, err := c.Git(ctx, "remote", "-v")
 			gotRepo := "COULD NOT FIND REPO"
 			for _, s := range strings.Split(output, "\n") {
-				if strings.HasPrefix(s, "origin") {
+				if strings.HasPrefix(s, git.DefaultRemote) {
 					split := strings.Fields(s)
 					require.Equal(t, 3, len(split))
 					gotRepo = split[1]

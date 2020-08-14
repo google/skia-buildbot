@@ -28,9 +28,9 @@ func fuchsiaAndroidCfg(t *testing.T) *FuchsiaSDKAndroidRepoManagerConfig {
 		FuchsiaSDKRepoManagerConfig: FuchsiaSDKRepoManagerConfig{
 			NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 				CommonRepoManagerConfig: CommonRepoManagerConfig{
-					ChildBranch:  masterBranchTmpl(t),
+					ChildBranch:  defaultBranchTmpl(t),
 					ChildPath:    "external/fuchsia_sdk",
-					ParentBranch: masterBranchTmpl(t),
+					ParentBranch: defaultBranchTmpl(t),
 				},
 			},
 			Gerrit: &codereview.GerritConfig{
@@ -40,7 +40,7 @@ func fuchsiaAndroidCfg(t *testing.T) *FuchsiaSDKAndroidRepoManagerConfig {
 			},
 		},
 		GenSdkBpRepo:   "TODO",
-		GenSdkBpBranch: "master",
+		GenSdkBpBranch: git.DefaultBranch,
 	}
 }
 
@@ -104,10 +104,10 @@ func setupFuchsiaSDKAndroid(t *testing.T) (context.Context, *parentChildRepoMana
 	require.NoError(t, err)
 
 	// Initial update, everything up-to-date.
-	mockParent.MockGetCommit(ctx, "master")
-	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
+	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, FuchsiaSDKAndroidVersionFile, parentMaster)
+	mockParent.MockReadFile(ctx, FuchsiaSDKAndroidVersionFile, parentHead)
 	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevBase, "mac-base")
 
 	// Create a dummy commit-msg hook.
@@ -150,11 +150,11 @@ func TestFuchsiaSDKAndroidRepoManager(t *testing.T) {
 	require.Equal(t, 0, len(notRolledRevs))
 
 	// There's a new version.
-	mockParent.MockGetCommit(ctx, "master")
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
 	parentRepoDir := filepath.Join(wd, filepath.Base(parent.Dir()))
-	parentMaster, err := git.GitDir(parentRepoDir).RevParse(ctx, "HEAD")
+	parentHead, err := git.GitDir(parentRepoDir).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, FuchsiaSDKAndroidVersionFile, parentMaster)
+	mockParent.MockReadFile(ctx, FuchsiaSDKAndroidVersionFile, parentHead)
 	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevNext, "mac-next")
 
 	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)

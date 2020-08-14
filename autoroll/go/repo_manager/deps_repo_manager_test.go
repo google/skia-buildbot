@@ -49,9 +49,9 @@ func depsCfg(t *testing.T) *DEPSRepoManagerConfig {
 	return &DEPSRepoManagerConfig{
 		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  masterBranchTmpl(t),
+				ChildBranch:  defaultBranchTmpl(t),
 				ChildPath:    childPath,
-				ParentBranch: masterBranchTmpl(t),
+				ParentBranch: defaultBranchTmpl(t),
 			},
 		},
 		Gerrit: &codereview.GerritConfig{

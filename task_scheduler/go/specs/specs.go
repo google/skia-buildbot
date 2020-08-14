@@ -29,8 +29,7 @@ const (
 	// By default, all jobs trigger on any branch for which they are
 	// defined.
 	TRIGGER_ANY_BRANCH = ""
-	// Run this job on the master branch only, even if it is defined on
-	// others.
+	// Run this job on the main branch only, even if it is defined on others.
 	TRIGGER_MASTER_ONLY = "master"
 	// Trigger this job every night.
 	TRIGGER_NIGHTLY = periodic.TRIGGER_NIGHTLY

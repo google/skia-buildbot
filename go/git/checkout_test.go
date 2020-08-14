@@ -30,11 +30,11 @@ func TestCheckout(t *testing.T) {
 	// Verify that we have a working copy.
 	_, err = c.Git(ctx, "status")
 	require.NoError(t, err)
-	_, err = c.Git(ctx, "checkout", "master")
+	_, err = c.Git(ctx, "checkout", DefaultBranch)
 	require.NoError(t, err)
 
 	// Log.
-	gotCommits, err := c.RevList(ctx, "origin/master")
+	gotCommits, err := c.RevList(ctx, DefaultRemoteBranch)
 	require.NoError(t, err)
 	assertdeep.Equal(t, commits, gotCommits)
 
@@ -51,7 +51,7 @@ func TestCheckout(t *testing.T) {
 
 	// Verify that we correctly clean the repo.
 	clean := func() bool {
-		_, err = c.Git(ctx, "diff", "--no-ext-diff", "--exit-code", "origin/master")
+		_, err = c.Git(ctx, "diff", "--no-ext-diff", "--exit-code", DefaultRemoteBranch)
 		if err != nil {
 			return false
 		}
@@ -61,9 +61,9 @@ func TestCheckout(t *testing.T) {
 		if len(untracked) != 0 {
 			return false
 		}
-		h1, err := c.RevParse(ctx, "master")
+		h1, err := c.RevParse(ctx, DefaultBranch)
 		require.NoError(t, err)
-		h2, err := c.RevParse(ctx, "origin/master")
+		h2, err := c.RevParse(ctx, DefaultRemoteBranch)
 		require.NoError(t, err)
 		h3, err := c.RevParse(ctx, "HEAD")
 		if h1 != h2 {

@@ -28,7 +28,7 @@ func TestAdd(t *testing.T) {
 
 	// Create a branch and check it out, otherwise we can't push
 	// to 'master' on this repo.
-	gb.CreateBranchTrackBranch(ctx, "somebranch", "origin/master")
+	gb.CreateBranchTrackBranch(ctx, "somebranch", git.DefaultRemoteBranch)
 	gb.CheckoutBranch(ctx, "somebranch")
 
 	// Create tmp dir that gets cleaned up.
@@ -72,7 +72,7 @@ func TestAdd(t *testing.T) {
 
 	buildid, ts, hash, err = p.GetLast(ctx)
 
-	err = p.Add(ctx, 3516727, 1479863307, "master")
+	err = p.Add(ctx, 3516727, 1479863307, git.DefaultBranch)
 	assert.NoError(t, err)
 
 	foundBuildID, branch, err = p.LookupBuildID(ctx, hash)
@@ -81,7 +81,7 @@ func TestAdd(t *testing.T) {
 	assert.Equal(t, "branch1", branch)
 
 	// Try to add something wrong.
-	err = p.Add(ctx, 3516727-1, 1479863307-1, "master")
+	err = p.Add(ctx, 3516727-1, 1479863307-1, git.DefaultBranch)
 	assert.Error(t, err)
 
 	// Confirm we get what we added before the error.

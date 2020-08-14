@@ -55,7 +55,7 @@ func TestInitialIngestCommitBatch(t *testing.T) {
 	// Verify that we create a new branch.
 	c0 := commit()
 	test(&commitBatch{
-		branch:  "mybranch", // Don't use master, to make sure we didn't pick it up accidentally.
+		branch:  "mybranch", // Don't use the main branch, to make sure we didn't pick it up accidentally.
 		commits: []*vcsinfo.LongCommit{c0},
 	}, 1, 1)
 	require.True(t, util.In("mybranch", graph.Branches()))
@@ -72,7 +72,7 @@ func TestInitialIngestCommitBatch(t *testing.T) {
 	// Add two commits, both based at c1. Ensure that we create a fake
 	// branch for the second one.
 	c2 := commit()
-	gb.CreateBranchTrackBranch(ctx, "mybranch2", "master")
+	gb.CreateBranchTrackBranch(ctx, "mybranch2", git.DefaultBranch)
 	gb.Reset(ctx, "--hard", c1.Hash)
 	c3 := commit()
 	test(&commitBatch{
@@ -95,7 +95,7 @@ func TestInitialIngestCommitBatch(t *testing.T) {
 	// Add another commit on each branch. Ensure that we walk both branches
 	// forward as expected.
 	c4 := commit()
-	gb.CheckoutBranch(ctx, "master")
+	gb.CheckoutBranch(ctx, git.DefaultBranch)
 	c5 := commit()
 	test(&commitBatch{
 		branch:  "mybranch",
@@ -117,7 +117,7 @@ func TestInitialIngestCommitBatch(t *testing.T) {
 	c6 := commit()
 	gb.CheckoutBranch(ctx, "mybranch2")
 	c7 := commit()
-	c8Hash := gb.MergeBranch(ctx, "master")
+	c8Hash := gb.MergeBranch(ctx, git.DefaultBranch)
 	c8, err := gd.Details(ctx, c8Hash)
 	require.NoError(t, err)
 	test(&commitBatch{
@@ -176,7 +176,7 @@ func TestInitialIngestion(t *testing.T) {
 	c0 := commit()
 	mockRepo.MockLog(ctx, c0.Hash, gitiles.LogReverse(), gitiles.LogBatchSize(batchSize))
 	test(1, 1)
-	require.Equal(t, "master", ri.BranchList[0].Name)
+	require.Equal(t, git.DefaultBranch, ri.BranchList[0].Name)
 	require.Equal(t, c0.Hash, ri.BranchList[0].Head)
 	assertdeep.Equal(t, ri.Commits[c0.Hash], c0)
 
@@ -184,8 +184,8 @@ func TestInitialIngestion(t *testing.T) {
 	// the log of c0 again, because it's backed up in GCS.
 	test(1, 1)
 
-	// New commits on a non-master branch.
-	gb.CreateBranchTrackBranch(ctx, "branch2", "master")
+	// New commits on a non-main branch.
+	gb.CreateBranchTrackBranch(ctx, "branch2", git.DefaultBranch)
 	var newBranchCommits []*vcsinfo.LongCommit
 	for i := 0; i < 10; i++ {
 		newBranchCommits = append(newBranchCommits, commit())
@@ -194,7 +194,7 @@ func TestInitialIngestion(t *testing.T) {
 	mockRepo.MockLog(ctx, last.Hash, gitiles.LogBatchSize(batchSize))
 	test(2, 11)
 	for _, b := range ri.BranchList {
-		if b.Name == "master" {
+		if b.Name == git.DefaultBranch {
 			require.Equal(t, c0.Hash, b.Head)
 		} else {
 			require.Equal(t, "branch2", b.Name)
@@ -204,7 +204,7 @@ func TestInitialIngestion(t *testing.T) {
 
 	// New commits on several new branches.
 	for i := 0; i < 10; i++ {
-		gb.CreateBranchTrackBranch(ctx, fmt.Sprintf("b%d", i), "master")
+		gb.CreateBranchTrackBranch(ctx, fmt.Sprintf("b%d", i), git.DefaultBranch)
 		commits := []*vcsinfo.LongCommit{}
 		for j := 0; j < 10; j++ {
 			commits = append(commits, commit())
