@@ -4,11 +4,6 @@
     "datastore_type": "cockroachdb",
     "connection_string": "postgresql://root@perf-cockroachdb-public:26257/android_x?sslmode=disable",
     "tile_size": 512,
-    "project": "skia-public",
-    "instance": "production",
-    "table": "perf-android-x",
-    "shards": 8,
-    "namespace": "perf-android-x",
     "cache": {
       "memcached_servers": [
         "perf-memcached-0.perf-memcached:11211",
