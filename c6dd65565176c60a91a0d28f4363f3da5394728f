@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "2af6d115_48fb8343",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 342,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-08-14T15:12:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d2af7e33_c1222c40",
+      "range": {
+        "startLine": 342,
+        "startChar": 5,
+        "endLine": 342,
+        "endChar": 17
+      },
+      "revId": "c6dd65565176c60a91a0d28f4363f3da5394728f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "06ca47d2_b98f10d1",
         "filename": "debugger-assets/res/imp/wasm-app.html",
         "patchSetId": 2
@@ -62,6 +86,30 @@
       "revId": "c6dd65565176c60a91a0d28f4363f3da5394728f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "095afced_b5061e15",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 2
+      },
+      "lineNbr": 812,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-08-14T15:12:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "06ca47d2_b98f10d1",
+      "range": {
+        "startLine": 812,
+        "startChar": 14,
+        "endLine": 812,
+        "endChar": 21
+      },
+      "revId": "c6dd65565176c60a91a0d28f4363f3da5394728f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
