@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c47067e4_81f371cc",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-14T18:20:04Z",
+      "side": 1,
+      "message": "I can\u0027t remember if I\u0027ve discussed this before or not, but I\u0027ve come with an alternate way to generate INSERTs of ~arbitrary size that is resistant to SQL injections. It may also be more performant with pgx because pgx automatically prepares statements from text and re-uses them. https://godoc.org/github.com/jackc/pgx#hdr-Prepared_Statements\n\nBasically, it generates a string with a generated list of \"($1,$2),($3,$4)...\" and makes a slice of []interface{} that it then passes in as the argument to db.Exec()\nhttps://skia-review.googlesource.com/c/buildbot/+/305016/34/golden/go/ingestion_processors/sql_primary_ingester.go#272\n\nHelper to generate placeholders in strings:\nhttps://skia-review.googlesource.com/c/buildbot/+/305016/34/golden/go/sql/statements_test.go#23",
+      "revId": "a78243ca19c1ebb11e9da230638811a4d2629bb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "77c8478f_daaf7f5d",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 968,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-14T18:20:04Z",
+      "side": 1,
+      "message": "I usually have my first line in ChunkIter be something like\nbatch :\u003d mySlice[startIdx:endIdx]\n\nThat might clean up a few things here as well.",
+      "range": {
+        "startLine": 968,
+        "startChar": 14,
+        "endLine": 968,
+        "endChar": 23
+      },
+      "revId": "a78243ca19c1ebb11e9da230638811a4d2629bb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ebcb3c1d_cb67a0e4",
+        "filename": "perf/go/tracestore/sqltracestore/sqltracestore.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 986,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-14T18:20:04Z",
+      "side": 1,
+      "message": "skerr.Wrap(err)",
+      "range": {
+        "startLine": 986,
+        "startChar": 10,
+        "endLine": 986,
+        "endChar": 13
+      },
+      "revId": "a78243ca19c1ebb11e9da230638811a4d2629bb4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
