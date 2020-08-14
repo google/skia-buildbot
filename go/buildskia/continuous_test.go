@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -71,7 +72,7 @@ type mockVcs struct {
 	commits map[string]*vcsinfo.LongCommit
 }
 
-func (m *mockVcs) GetBranch() string                                               { return "master" }
+func (m *mockVcs) GetBranch() string                                               { return git.DefaultBranch }
 func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit                         { return nil }
 func (m *mockVcs) Update(ctx context.Context, pull, allBranches bool) error        { return nil }
 func (m *mockVcs) From(start time.Time) []string                                   { return nil }

@@ -15,11 +15,6 @@ import (
 	Utility for managing a Git checkout.
 */
 
-const (
-	// Name of the master branch.
-	MASTER = "master"
-)
-
 // Checkout is a struct used for managing a local git checkout.
 type Checkout struct {
 	GitDir
@@ -46,7 +41,7 @@ func (c *Checkout) FetchRefFromRepo(ctx context.Context, repo, ref string) error
 
 // Fetch syncs refs from the remote without modifying the working copy.
 func (c *Checkout) Fetch(ctx context.Context) error {
-	_, err := c.Git(ctx, "fetch", "--prune", "origin")
+	_, err := c.Git(ctx, "fetch", "--prune", DefaultRemote)
 	return err
 }
 
@@ -89,10 +84,10 @@ func (c *Checkout) CleanupBranch(ctx context.Context, branch string) error {
 	return nil
 }
 
-// Cleanup forcibly resets all changes and checks out the master branch at
-// origin/master. All local changes will be lost.
+// Cleanup forcibly resets all changes and checks out the main branch to match
+// that of the remote. All local changes will be lost.
 func (c *Checkout) Cleanup(ctx context.Context) error {
-	return c.CleanupBranch(ctx, MASTER)
+	return c.CleanupBranch(ctx, DefaultBranch)
 }
 
 // UpdateBranch syncs the Checkout from its remote. Forcibly resets and checks
@@ -109,10 +104,10 @@ func (c *Checkout) UpdateBranch(ctx context.Context, branch string) error {
 }
 
 // Update syncs the Checkout from its remote. Forcibly resets and checks out
-// the master branch at origin/master. All local changes will be lost.
+// the main branch to match the remote. All local changes will be lost.
 // Equivalent to c.Fetch() + c.Cleanup().
 func (c *Checkout) Update(ctx context.Context) error {
-	return c.UpdateBranch(ctx, MASTER)
+	return c.UpdateBranch(ctx, DefaultBranch)
 }
 
 // TempCheckout is a temporary Git Checkout.

@@ -22,10 +22,10 @@ import (
 // and move the relevant parts here.
 
 // TODO(borenet): This was copied from no_checkout_deps_repo_manager_test.go.
-func masterBranchTmpl(t *testing.T) *config_vars.Template {
-	master, err := config_vars.NewTemplate("master")
+func defaultBranchTmpl(t *testing.T) *config_vars.Template {
+	tmpl, err := config_vars.NewTemplate(git.DefaultBranch)
 	require.NoError(t, err)
-	return master
+	return tmpl
 }
 
 // TODO(borenet): This was copied from repo_manager_test.go.
@@ -75,7 +75,7 @@ func TestGitilesChildPathFilter(t *testing.T) {
 	// Create the GitilesChild.
 	cfg := GitilesConfig{
 		GitilesConfig: gitiles_common.GitilesConfig{
-			Branch:  masterBranchTmpl(t),
+			Branch:  defaultBranchTmpl(t),
 			RepoURL: repo.RepoUrl(),
 		},
 		Path: "", // Test without Path first.
@@ -88,7 +88,7 @@ func TestGitilesChildPathFilter(t *testing.T) {
 
 	// Update.
 	lastRollRev := &revision.Revision{Id: commits[0]}
-	mockGitiles.MockGetCommit(ctx, "master")
+	mockGitiles.MockGetCommit(ctx, git.DefaultBranch)
 	mockGitiles.MockLog(ctx, git.LogFromTo(commits[0], commits[len(commits)-1]))
 	for _, c := range commits[1:] {
 		mockGitiles.MockGetCommit(ctx, c)
@@ -102,7 +102,7 @@ func TestGitilesChildPathFilter(t *testing.T) {
 	// Now, set Path.
 	cfg.Path = "watched-dir"
 	c, err = NewGitiles(ctx, cfg, reg, urlMock.Client())
-	mockGitiles.MockGetCommit(ctx, "master")
+	mockGitiles.MockGetCommit(ctx, git.DefaultBranch)
 	mockGitiles.MockLog(ctx, git.LogFromTo(commits[0], commits[len(commits)-1]), gitiles.LogPath(cfg.Path))
 	mockGitiles.MockGetCommit(ctx, commits[2])
 	mockGitiles.MockGetCommit(ctx, commits[4])

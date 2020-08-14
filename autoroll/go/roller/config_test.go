@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/notifier"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -41,7 +42,7 @@ func validBaseConfig() *AutoRollerConfig {
 		// Use the fake Google3 repo manager config, so that we don't
 		// have to bother with correctly filling in real configs.
 		Google3RepoManager: &Google3FakeRepoManagerConfig{
-			ChildBranch: "master",
+			ChildBranch: git.DefaultBranch,
 			ChildRepo:   "my-repo",
 		},
 		Kubernetes: &KubernetesConfig{
@@ -127,15 +128,15 @@ func TestConfigs(t *testing.T) {
 	}, "kubernetes.disk is required for repo managers which use a checkout.")
 
 	testErr(func(c *AutoRollerConfig) {
-		master, err := config_vars.NewTemplate("master")
+		mainTmpl, err := config_vars.NewTemplate(git.DefaultBranch)
 		require.NoError(t, err)
 		c.Google3RepoManager = nil
 		c.NoCheckoutDEPSRepoManager = &repo_manager.NoCheckoutDEPSRepoManagerConfig{
 			NoCheckoutRepoManagerConfig: repo_manager.NoCheckoutRepoManagerConfig{
 				CommonRepoManagerConfig: repo_manager.CommonRepoManagerConfig{
-					ChildBranch:  master,
+					ChildBranch:  mainTmpl,
 					ChildPath:    "child",
-					ParentBranch: master,
+					ParentBranch: mainTmpl,
 					ParentRepo:   "fake",
 				},
 			},

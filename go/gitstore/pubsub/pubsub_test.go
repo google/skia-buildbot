@@ -175,7 +175,7 @@ func TestUpdateUsingPubSub(t *testing.T) {
 	tickAndTest()
 	commitAndTest()
 	commit()
-	gb.CreateBranchTrackBranch(ctx, "branch2", "master")
+	gb.CreateBranchTrackBranch(ctx, "branch2", git.DefaultBranch)
 	test()
 	commit()
 	commit()

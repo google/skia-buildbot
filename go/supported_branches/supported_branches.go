@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/util"
 )
@@ -28,7 +29,7 @@ type SupportedBranchesConfig struct {
 	Branches []*SupportedBranch `json:"branches"`
 }
 
-// Sort sorts the branches in a special order: master first, then all other
+// Sort sorts the branches in a special order: main branch first, then all other
 // branches in alphanumeric order, with the exception of branches which differ
 // only by an integer suffix, which are compared according to the integer, ie.
 // refs/heads/chrome/m99 sorts before refs/heads/chrome/m100.
@@ -45,10 +46,10 @@ type SupportedBranch struct {
 	Owner string `json:"owner"`
 }
 
-// SupportedBranchList is a helper used for sorting in a special order: master
-// first, then all other branches in alphanumeric order, with the exception of
-// Branches which differ only by an integer suffix, which are compared according
-// to the integer, ie. refs/heads/chrome/m99 sorts before
+// SupportedBranchList is a helper used for sorting in a special order: main
+// branch first, then all other branches in alphanumeric order, with the
+// exception of Branches which differ only by an integer suffix, which are
+// compared according to the integer, ie. refs/heads/chrome/m99 sorts before
 // refs/heads/chrome/m100.
 type SupportedBranchList []*SupportedBranch
 
@@ -56,9 +57,9 @@ func (l SupportedBranchList) Len() int { return len(l) }
 func (l SupportedBranchList) Less(a, b int) bool {
 	refA := l[a].Ref
 	refB := l[b].Ref
-	if refA == "refs/heads/master" {
+	if refA == git.DefaultRef {
 		return true
-	} else if refB == "refs/heads/master" {
+	} else if refB == git.DefaultRef {
 		return false
 	}
 	for i := 0; i < len(refA); i++ {

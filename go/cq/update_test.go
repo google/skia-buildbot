@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.chromium.org/luci/cq/api/config/v2"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -24,14 +25,14 @@ func fakeConfig() *config.Config {
 		},
 		ConfigGroups: []*config.ConfigGroup{
 			{
-				Name: "master",
+				Name: git.DefaultBranch,
 				Gerrit: []*config.ConfigGroup_Gerrit{
 					{
 						Url: "gerrit.com",
 						Projects: []*config.ConfigGroup_Gerrit_Project{
 							{
 								Name:      "skia",
-								RefRegexp: []string{"refs/heads/master"},
+								RefRegexp: []string{MAIN_REF},
 							},
 						},
 					},
@@ -83,49 +84,49 @@ func TestCloneBranch(t *testing.T) {
 
 	t.Run("clone all", func(t *testing.T) {
 		expect := fakeConfig()
-		cloneCg := fakeConfig().ConfigGroups[0] // master
+		cloneCg := fakeConfig().ConfigGroups[0] // main branch
 		cloneCg.Name = "clone"
 		cloneCg.Gerrit[0].Projects[0].RefRegexp[0] = "refs/heads/clone"
 		expect.ConfigGroups = append(expect.ConfigGroups, cloneCg)
 		actual := fakeConfig()
-		require.NoError(t, CloneBranch(actual, "master", "clone", true, true, nil))
+		require.NoError(t, CloneBranch(actual, git.DefaultBranch, "clone", true, true, nil))
 		assertdeep.Equal(t, expect, actual)
 	})
 
 	t.Run("clone without experimental", func(t *testing.T) {
 		expect := fakeConfig()
-		cloneCg := fakeConfig().ConfigGroups[0] // master
+		cloneCg := fakeConfig().ConfigGroups[0] // main branch
 		cloneCg.Name = "clone"
 		cloneCg.Gerrit[0].Projects[0].RefRegexp[0] = "refs/heads/clone"
 		cloneCg.Verifiers.Tryjob.Builders = cloneCg.Verifiers.Tryjob.Builders[:1]
 		expect.ConfigGroups = append(expect.ConfigGroups, cloneCg)
 		actual := fakeConfig()
-		require.NoError(t, CloneBranch(actual, "master", "clone", false, true, nil))
+		require.NoError(t, CloneBranch(actual, git.DefaultBranch, "clone", false, true, nil))
 		assertdeep.Equal(t, expect, actual)
 	})
 
 	t.Run("clone without tree check", func(t *testing.T) {
 		expect := fakeConfig()
-		cloneCg := fakeConfig().ConfigGroups[0] // master
+		cloneCg := fakeConfig().ConfigGroups[0] // main branch
 		cloneCg.Name = "clone"
 		cloneCg.Gerrit[0].Projects[0].RefRegexp[0] = "refs/heads/clone"
 		cloneCg.Verifiers.TreeStatus = nil
 		expect.ConfigGroups = append(expect.ConfigGroups, cloneCg)
 		actual := fakeConfig()
-		require.NoError(t, CloneBranch(actual, "master", "clone", true, false, nil))
+		require.NoError(t, CloneBranch(actual, git.DefaultBranch, "clone", true, false, nil))
 		assertdeep.Equal(t, expect, actual)
 	})
 
 	t.Run("clone exclude regex", func(t *testing.T) {
 		expect := fakeConfig()
-		cloneCg := fakeConfig().ConfigGroups[0] // master
+		cloneCg := fakeConfig().ConfigGroups[0] // main branch
 		cloneCg.Name = "clone"
 		cloneCg.Gerrit[0].Projects[0].RefRegexp[0] = "refs/heads/clone"
 		cloneCg.Verifiers.Tryjob.Builders = cloneCg.Verifiers.Tryjob.Builders[1:]
 		expect.ConfigGroups = append(expect.ConfigGroups, cloneCg)
 		excludeRe := regexp.MustCompile("^fake")
 		actual := fakeConfig()
-		require.NoError(t, CloneBranch(actual, "master", "clone", true, true, []*regexp.Regexp{excludeRe}))
+		require.NoError(t, CloneBranch(actual, git.DefaultBranch, "clone", true, true, []*regexp.Regexp{excludeRe}))
 		assertdeep.Equal(t, expect, actual)
 	})
 }
@@ -133,7 +134,7 @@ func TestCloneBranch(t *testing.T) {
 func TestDeleteBranch(t *testing.T) {
 	unittest.SmallTest(t)
 
-	cloneCg := fakeConfig().ConfigGroups[0] // master
+	cloneCg := fakeConfig().ConfigGroups[0] // main branch
 	cloneCg.Name = "clone"
 	cloneCg.Gerrit[0].Projects[0].RefRegexp[0] = "refs/heads/clone"
 	actual := fakeConfig()
