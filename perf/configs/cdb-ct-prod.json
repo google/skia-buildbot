@@ -4,18 +4,13 @@
     "datastore_type": "cockroachdb",
     "connection_string": "postgresql://root@perf-cockroachdb-public:26257/ct?sslmode=disable",
     "tile_size": 256,
-    "project": "skia-public",
-    "instance": "production",
-    "table": "perf-ct",
-    "shards": 8,
-    "namespace": "perf-ct",
     "cache": {
       "memcached_servers": [
         "perf-memcached-0.perf-memcached:11211",
         "perf-memcached-1.perf-memcached:11211",
         "perf-memcached-2.perf-memcached:11211"
       ],
-      "namespace": "ct"
+      "namespace": "ct-cdb"
     }
   },
   "ingestion_config": {
