@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "771ea57b_e621cd7b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-14T16:48:55Z",
+      "side": 1,
+      "message": "Note that there are still instances of \"master\" in a number of places.  I tried to avoid anything that would touch an API surface or DB schema.  Feel free to revert first and ask questions later, if it looks like this caused a problem.",
+      "revId": "ec1b6bb274e632db69d4f57c0e4a30faeb4ff08e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

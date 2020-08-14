@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "c83356bc_c6db87e3",
+        "filename": "golden/cmd/goldpushk/goldpushk/goldpushk.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 406,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-14T16:48:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "248cf9a6_dcd80966",
+      "range": {
+        "startLine": 406,
+        "startChar": 51,
+        "endLine": 406,
+        "endChar": 59
+      },
+      "revId": "c8eb729dd020a7156062d2318a4474a91c2c1d46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "12427652_55c19223",
         "filename": "kube/go/pushk/main.go",
         "patchSetId": 2
@@ -62,6 +86,30 @@
       "revId": "c8eb729dd020a7156062d2318a4474a91c2c1d46",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2458f6da_b6b03eb6",
+        "filename": "kube/go/pushk/main.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 390,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-14T16:48:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "12427652_55c19223",
+      "range": {
+        "startLine": 390,
+        "startChar": 39,
+        "endLine": 390,
+        "endChar": 47
+      },
+      "revId": "c8eb729dd020a7156062d2318a4474a91c2c1d46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -88,6 +136,30 @@
     },
     {
       "key": {
+        "uuid": "12d7f263_e5b429e4",
+        "filename": "task_scheduler/go/scheduling/perftest/perftest.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-14T16:48:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "40072bcb_39b05cb4",
+      "range": {
+        "startLine": 108,
+        "startChar": 32,
+        "endLine": 108,
+        "endChar": 38
+      },
+      "revId": "c8eb729dd020a7156062d2318a4474a91c2c1d46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "caf4f431_38fa1479",
         "filename": "task_scheduler/go/scheduling/perftest/perftest.go",
         "patchSetId": 2
@@ -111,6 +183,30 @@
     },
     {
       "key": {
+        "uuid": "7c9e549d_185e5930",
+        "filename": "task_scheduler/go/scheduling/perftest/perftest.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-14T16:48:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "caf4f431_38fa1479",
+      "range": {
+        "startLine": 251,
+        "startChar": 31,
+        "endLine": 251,
+        "endChar": 37
+      },
+      "revId": "c8eb729dd020a7156062d2318a4474a91c2c1d46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4a2df8fa_a40b2597",
         "filename": "task_scheduler/go/specs/specs.go",
         "patchSetId": 2
@@ -131,6 +227,30 @@
       "revId": "c8eb729dd020a7156062d2318a4474a91c2c1d46",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e3f06c9b_7dc90801",
+        "filename": "task_scheduler/go/specs/specs.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-14T16:48:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4a2df8fa_a40b2597",
+      "range": {
+        "startLine": 33,
+        "startChar": 24,
+        "endLine": 33,
+        "endChar": 30
+      },
+      "revId": "c8eb729dd020a7156062d2318a4474a91c2c1d46",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
