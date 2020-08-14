@@ -19,11 +19,11 @@ const (
 	TAG_INGESTER_ID       = "ingester"
 	TAG_INGESTER_SOURCE   = "source"
 
-	// nConcurrentProcessors is the maximum number of go-routines that run Processors.
+	// NConcurrentProcessors is the maximum number of go-routines that run Processors.
 	// The number is chosen experimentally and should be adjusted to optimize throughput.
 	// It can be small, as the number of ingesters can be increased with more
 	// kubernetes replicas.
-	nConcurrentProcessors = 40
+	NConcurrentProcessors = 40
 
 	// eventChanSize is the buffer size of the events channel. Most of the time
 	// that channel should be almost empty, but this ensures we buffer events if
@@ -87,7 +87,7 @@ func (i *Ingester) Start(ctx context.Context) error {
 		return skerr.Fmt("at least one source must have been provided")
 	}
 
-	concurrentProc := make(chan bool, nConcurrentProcessors)
+	concurrentProc := make(chan bool, NConcurrentProcessors)
 	resultChan, err := i.getInputChannel(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "retrieving input channel")
