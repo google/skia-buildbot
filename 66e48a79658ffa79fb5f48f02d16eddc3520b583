@@ -45,6 +45,30 @@
       "revId": "66e48a79658ffa79fb5f48f02d16eddc3520b583",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6bf01315_34bfe762",
+        "filename": "autoroll/config/skia-chromium-beta.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5642
+      },
+      "writtenOn": "2020-08-14T17:16:11Z",
+      "side": 1,
+      "message": "${current-sheriff} has a much nicer ring to it, so I reluctantly resign that privilege :P",
+      "parentUuid": "3622264a_e9059e75",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 50
+      },
+      "revId": "66e48a79658ffa79fb5f48f02d16eddc3520b583",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
