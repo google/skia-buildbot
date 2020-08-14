@@ -986,7 +986,7 @@ func assertNumCommits(t *testing.T, ctx context.Context, repo *testutils.GitBuil
 func assertRepositoryContainsFileWithContents(t *testing.T, ctx context.Context, repo *testutils.GitBuilder, filename, expectedContents string) {
 	clone, err := git.NewTempCheckout(ctx, repo.RepoUrl())
 	require.NoError(t, err)
-	commits, err := clone.RevList(ctx, "master")
+	commits, err := clone.RevList(ctx, git.DefaultBranch)
 	require.NoError(t, err)
 	lastCommit := commits[0]
 	actualContents, err := clone.GetFile(ctx, filename, lastCommit)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/testutils/mem_git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/sktest"
@@ -34,14 +35,14 @@ func TestGitStore(t sktest.TestingT, gs gitstore.GitStore) {
 	require.Equal(t, 0, len(ics))
 
 	// Put a commit, but don't update the branch head. It should show up in
-	// results of Get() and Range, but the master branch should not be
+	// results of Get() and Range, but the main branch should not be
 	// updated.
-	master := "master"
-	c0 := mem_git.FakeCommit(t, "c0", master)
+	main := git.DefaultBranch
+	c0 := mem_git.FakeCommit(t, "c0", main)
 	require.NoError(t, gs.Put(ctx, []*vcsinfo.LongCommit{c0}))
 	branches, err = gs.GetBranches(ctx)
 	require.NoError(t, err)
-	require.Nil(t, branches[master])
+	require.Nil(t, branches[main])
 	lcs, err = gs.Get(ctx, []string{"a", "b", c0.Hash})
 	require.NoError(t, err)
 	require.Equal(t, 3, len(lcs))
@@ -56,38 +57,38 @@ func TestGitStore(t sktest.TestingT, gs gitstore.GitStore) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(ics))
 	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
-	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, master)
+	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, main)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(ics))
-	ics, err = gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, master)
+	ics, err = gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, main)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(ics))
 
-	// Put the master branch.
+	// Put the main branch.
 	require.NoError(t, gs.PutBranches(ctx, map[string]string{
-		master: c0.Hash,
+		main: c0.Hash,
 	}))
 	branches, err = gs.GetBranches(ctx)
 	require.NoError(t, err)
-	require.NotNil(t, branches[master])
-	require.Equal(t, c0.Hash, branches[master].Head)
-	require.Equal(t, 0, branches[master].Index)
-	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, master)
+	require.NotNil(t, branches[main])
+	require.Equal(t, c0.Hash, branches[main].Head)
+	require.Equal(t, 0, branches[main].Index)
+	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, main)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(ics))
 	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
-	ics, err = gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, master)
+	ics, err = gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, main)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(ics))
 	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
 
 	// Add a second commit.
-	c1 := mem_git.FakeCommit(t, "c1", master, c0)
+	c1 := mem_git.FakeCommit(t, "c1", main, c0)
 	require.NoError(t, gs.Put(ctx, []*vcsinfo.LongCommit{c1}))
 	branches, err = gs.GetBranches(ctx)
 	require.NoError(t, err)
-	require.NotNil(t, branches[master])
-	require.Equal(t, c0.Hash, branches[master].Head)
+	require.NotNil(t, branches[main])
+	require.Equal(t, c0.Hash, branches[main].Head)
 	lcs, err = gs.Get(ctx, []string{c1.Hash})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(lcs))
@@ -100,26 +101,26 @@ func TestGitStore(t sktest.TestingT, gs gitstore.GitStore) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(ics))
 	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
-	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, master)
+	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, main)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(ics))
-	ics, err = gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, master)
+	ics, err = gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, main)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(ics))
 	require.NoError(t, gs.PutBranches(ctx, map[string]string{
-		master: c1.Hash,
+		main: c1.Hash,
 	}))
 	branches, err = gs.GetBranches(ctx)
 	require.NoError(t, err)
-	require.NotNil(t, branches[master])
-	require.Equal(t, c1.Hash, branches[master].Head)
-	require.Equal(t, 1, branches[master].Index)
-	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, master)
+	require.NotNil(t, branches[main])
+	require.Equal(t, c1.Hash, branches[main].Head)
+	require.Equal(t, 1, branches[main].Index)
+	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, main)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(ics))
 	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
 	assertdeep.Equal(t, c1.IndexCommit(), ics[1])
-	ics, err = gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, master)
+	ics, err = gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, main)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(ics))
 	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
@@ -176,12 +177,12 @@ func TestGitStore(t sktest.TestingT, gs gitstore.GitStore) {
 	require.Equal(t, 2, len(ics))
 	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
 	assertdeep.Equal(t, c2.IndexCommit(), ics[1])
-	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, master)
+	ics, err = gs.RangeN(ctx, math.MinInt32, math.MaxInt32, main)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(ics))
 	assertdeep.Equal(t, c0.IndexCommit(), ics[0])
 	assertdeep.Equal(t, c1.IndexCommit(), ics[1])
-	ics, err = gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, master)
+	ics, err = gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, main)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(ics))
 	assertdeep.Equal(t, c0.IndexCommit(), ics[0])

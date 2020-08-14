@@ -28,8 +28,8 @@ func copyCfg(t *testing.T) *CopyRepoManagerConfig {
 	return &CopyRepoManagerConfig{
 		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  masterBranchTmpl(t),
-				ParentBranch: masterBranchTmpl(t),
+				ChildBranch:  defaultBranchTmpl(t),
+				ParentBranch: defaultBranchTmpl(t),
 			},
 		},
 		VersionFile: filepath.Join(childPath, "version.sha1"),
@@ -75,7 +75,7 @@ func setupCopy(t *testing.T) (context.Context, *CopyRepoManagerConfig, string, *
 	parent.AddGen(ctx, path.Join(cfg.Copies[1].DstRelPath, "b"))
 	parent.AddGen(ctx, path.Join(cfg.Copies[1].DstRelPath, "c"))
 	parent.Add(ctx, filepath.Join(childPath, "version.sha1"), childCommits[0])
-	parentMaster := parent.Commit(ctx)
+	parentHead := parent.Commit(ctx)
 
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
@@ -94,14 +94,14 @@ func setupCopy(t *testing.T) (context.Context, *CopyRepoManagerConfig, string, *
 
 	// Mock requests for Update.
 	mockChild := gitiles_testutils.NewMockRepo(t, child.RepoUrl(), git.GitDir(child.Dir()), urlmock)
-	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockGetCommit(ctx, git.DefaultBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
 	}
 	mockParent := gitiles_testutils.NewMockRepo(t, parent.RepoUrl(), git.GitDir(parent.Dir()), urlmock)
-	mockParent.MockGetCommit(ctx, "master")
-	mockParent.MockReadFile(ctx, cfg.VersionFile, parentMaster)
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
+	mockParent.MockReadFile(ctx, cfg.VersionFile, parentHead)
 
 	// Create the RepoManager.
 	rm, err := NewCopyRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
@@ -135,14 +135,14 @@ func TestCopyRepoManager(t *testing.T) {
 
 	// Mock requests for Update.
 	mockChild.MockGetCommit(ctx, lastCommit)
-	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockGetCommit(ctx, git.DefaultBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], lastCommit))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
 	}
-	parentMaster := strings.TrimSpace(parent.Git(ctx, "rev-parse", "master"))
-	mockParent.MockGetCommit(ctx, "master")
-	mockParent.MockReadFile(ctx, cfg.VersionFile, parentMaster)
+	parentHead := strings.TrimSpace(parent.Git(ctx, "rev-parse", git.DefaultBranch))
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
+	mockParent.MockReadFile(ctx, cfg.VersionFile, parentHead)
 
 	// Update.
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
@@ -160,14 +160,14 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 
 	// Mock requests for Update.
 	mockChild.MockGetCommit(ctx, childCommits[len(childCommits)-1])
-	mockChild.MockGetCommit(ctx, "master")
+	mockChild.MockGetCommit(ctx, git.DefaultBranch)
 	mockChild.MockLog(ctx, git.LogFromTo(childCommits[0], childCommits[len(childCommits)-1]))
 	for _, hash := range childCommits {
 		mockChild.MockGetCommit(ctx, hash)
 	}
-	parentMaster := strings.TrimSpace(parentRepo.Git(ctx, "rev-parse", "master"))
-	mockParent.MockGetCommit(ctx, "master")
-	mockParent.MockReadFile(ctx, cfg.VersionFile, parentMaster)
+	parentHead := strings.TrimSpace(parentRepo.Git(ctx, "rev-parse", git.DefaultBranch))
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
+	mockParent.MockReadFile(ctx, cfg.VersionFile, parentHead)
 
 	// Update.
 	lastRollRev, tipRev, notRolledRevs, err := rm.Update(ctx)
@@ -197,18 +197,18 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "c"), tipRev.Id)
 	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "c"), tipRev.Id)
 
-	mockParent.MockReadFile(ctx, cfg.Copies[0].DstRelPath, parentMaster)
-	mockParent.MockReadFile(ctx, cfg.Copies[1].DstRelPath, parentMaster)
-	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "a"), parentMaster)
-	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "a"), parentMaster)
-	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "b"), parentMaster)
-	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "b"), parentMaster)
-	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "c"), parentMaster)
-	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "c"), parentMaster)
+	mockParent.MockReadFile(ctx, cfg.Copies[0].DstRelPath, parentHead)
+	mockParent.MockReadFile(ctx, cfg.Copies[1].DstRelPath, parentHead)
+	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "a"), parentHead)
+	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "a"), parentHead)
+	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "b"), parentHead)
+	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "b"), parentHead)
+	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "c"), parentHead)
+	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "c"), parentHead)
 
 	// Mock the initial change creation.
 	subject := strings.Split(fakeCommitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, "master", parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.DefaultBranch, parentHead))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",

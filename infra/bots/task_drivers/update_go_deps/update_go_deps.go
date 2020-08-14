@@ -53,6 +53,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_driver/go/lib/auth_steps"
@@ -259,7 +260,7 @@ func main() {
 			reviewers = append(reviewers, ci.Owner.Email)
 		}
 	}
-	if err := gerrit_steps.UploadCL(ctx, g, co, *gerritProject, "master", rs.Revision, "Update Go Deps", reviewers, isTryJob); err != nil {
+	if err := gerrit_steps.UploadCL(ctx, g, co, *gerritProject, git.DefaultBranch, rs.Revision, "Update Go Deps", reviewers, isTryJob); err != nil {
 		td.Fatal(ctx, err)
 	}
 }

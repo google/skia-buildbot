@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
@@ -55,7 +56,7 @@ var (
 // contents of what the new buildbucket.config file should be.
 func getBuildbucketCfgFromJobs(ctx context.Context, repo *gitiles.Repo) (string, error) {
 	// Read tasks.json from the specified repository.
-	tasksContents, err := repo.ReadFileAtRef(ctx, specs.TASKS_CFG_FILE, "master")
+	tasksContents, err := repo.ReadFileAtRef(ctx, specs.TASKS_CFG_FILE, git.DefaultBranch)
 	if err != nil {
 		return "", skerr.Fmt("Could not read %s: %s", specs.TASKS_CFG_FILE, err)
 	}

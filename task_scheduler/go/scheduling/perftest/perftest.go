@@ -96,7 +96,7 @@ func commit(ctx context.Context, repoDir, message string) {
 
 func makeDummyCommits(ctx context.Context, repoDir string, numCommits int) {
 	gd := git.GitDir(repoDir)
-	_, err := gd.Git(ctx, "checkout", "master")
+	_, err := gd.Git(ctx, "checkout", git.DefaultBranch)
 	assertNoError(err)
 	dummyFile := path.Join(repoDir, "dummyfile.txt")
 	for i := 0; i < numCommits; i++ {
@@ -105,7 +105,7 @@ func makeDummyCommits(ctx context.Context, repoDir string, numCommits int) {
 		_, err = gd.Git(ctx, "add", dummyFile)
 		assertNoError(err)
 		commit(ctx, repoDir, title)
-		_, err = gd.Git(ctx, "push", "origin", "master")
+		_, err = gd.Git(ctx, "push", git.DefaultRemote, git.DefaultBranch)
 		assertNoError(err)
 	}
 }
@@ -140,7 +140,7 @@ func main() {
 	gd := git.GitDir(repoDir)
 	_, err = gd.Git(ctx, "init")
 	assertNoError(err)
-	_, err = gd.Git(ctx, "remote", "add", "origin", ".")
+	_, err = gd.Git(ctx, "remote", "add", git.DefaultRemote, ".")
 	assertNoError(err)
 
 	// Write some files.
@@ -248,9 +248,9 @@ func main() {
 	_, err = gd.Git(ctx, "add", specs.TASKS_CFG_FILE)
 	assertNoError(err)
 	commit(ctx, repoDir, "Add more tasks!")
-	_, err = gd.Git(ctx, "push", "origin", "master")
+	_, err = gd.Git(ctx, "push", git.DefaultRemote, git.DefaultBranch)
 	assertNoError(err)
-	_, err = gd.Git(ctx, "branch", "-u", "origin/master")
+	_, err = gd.Git(ctx, "branch", "-u", git.DefaultRemoteBranch)
 	assertNoError(err)
 
 	// Create a bunch of bots.
@@ -272,9 +272,9 @@ func main() {
 	repo, err := repograph.NewLocalGraph(ctx, repoName, workdir)
 	assertNoError(err)
 	assertNoError(repo.Update(ctx))
-	headCommit := repo.Get("master")
+	headCommit := repo.Get(git.DefaultBranch)
 	if headCommit == nil {
-		sklog.Fatal("Could not find HEAD of master.")
+		sklog.Fatalf("Could not find HEAD of %s.", git.DefaultBranch)
 	}
 	head := headCommit.Hash
 
@@ -354,7 +354,7 @@ func main() {
 
 	// Add more commits to the repo.
 	makeDummyCommits(ctx, repoDir, 200)
-	commits, err = repo.RevList(head, "master")
+	commits, err = repo.RevList(head, git.DefaultBranch)
 	assertNoError(err)
 
 	// Start the profiler.

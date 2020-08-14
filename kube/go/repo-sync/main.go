@@ -13,6 +13,7 @@ import (
 
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -30,7 +31,7 @@ var (
 func sync(ctx context.Context) error {
 	// git pull "some external repo"
 	sklog.Info("pull")
-	cmd := fmt.Sprintf("git pull %s master", *source)
+	cmd := fmt.Sprintf("git pull %s %s", *source, git.DefaultBranch)
 	sklog.Infof("%q", cmd)
 	out, err := exec.RunSimple(ctx, cmd)
 	if err != nil {

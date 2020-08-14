@@ -66,7 +66,7 @@ func TestConvert(t *testing.T) {
 
 func TestConvertSecondBranch(t *testing.T) {
 	unittest.SmallTest(t)
-	// If our branch isn't listed as the master branch it should become part of the key.
+	// If our branch isn't listed as the main branch it should become part of the key.
 	c := New(lookupMockGood{})
 	r := bytes.NewBufferString(INCOMING)
 	benchData, err := c.Convert(r, "")

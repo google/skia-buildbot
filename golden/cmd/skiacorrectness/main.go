@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
@@ -268,7 +269,7 @@ func main() {
 	// TODO(kjlubick): remove gitilesRepo and the GetFile() from vcsinfo (unused and
 	//  leaky abstraction).
 	gitilesRepo := gitiles.NewRepo("", nil)
-	vcs, err := bt_vcs.New(ctx, gitStore, "master", gitilesRepo)
+	vcs, err := bt_vcs.New(ctx, gitStore, git.DefaultBranch, gitilesRepo)
 	if err != nil {
 		sklog.Fatalf("Error creating BT-backed VCS instance: %s", err)
 	}

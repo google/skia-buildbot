@@ -387,7 +387,7 @@ func main() {
 		if err != nil {
 			sklog.Fatalf("Failed to commit to the config repo: %s: %q", err, msg)
 		}
-		msg, err = checkout.Git(ctx, "push", "origin", "master")
+		msg, err = checkout.Git(ctx, "push", git.DefaultRemote, git.DefaultBranch)
 		if err != nil {
 			sklog.Fatalf("Failed to push the config repo: %s: %q", err, msg)
 		}

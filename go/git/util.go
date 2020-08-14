@@ -12,9 +12,23 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git/git_common"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vfs"
+)
+
+const (
+	// DefaultBranch is the name of the default branch for most repositories.
+	DefaultBranch = git_common.DefaultBranch
+	// DefaultRef is the fully-qualified ref name of the default branch for most
+	// repositories.
+	DefaultRef = git_common.DefaultRef
+	// DefaultRemote is the name of the default remote repository.
+	DefaultRemote = git_common.DefaultRemote
+	// DefaultRemoteBranch is the name of the default branch in the default
+	// remote repository, for most repos.
+	DefaultRemoteBranch = git_common.DefaultRemoteBranch
 )
 
 // Types of git objects.

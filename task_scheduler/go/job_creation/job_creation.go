@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
@@ -32,9 +33,9 @@ import (
 var (
 	// ignoreBranches indicates that we shouldn't schedule on these branches.
 	// WARNING: Any commit reachable from any of these branches will be
-	// skipped. So, for example, if you fork a branch from head of master
+	// skipped. So, for example, if you fork a branch from head of main
 	// and immediately ignore it, no tasks will be scheduled for any
-	// commits on master up to the branch point.
+	// commits on main up to the branch point.
 	// TODO(borenet): An alternative would be to only follow the first
 	// parent for merge commits. That way, we could remove the checks which
 	// cause this issue but still ignore the branch as expected. The
@@ -204,7 +205,7 @@ func (jc *JobCreator) gatherNewJobs(ctx context.Context, repoUrl string, repo *r
 				if spec.Trigger == specs.TRIGGER_ANY_BRANCH {
 					shouldRun = true
 				} else if spec.Trigger == specs.TRIGGER_MASTER_ONLY {
-					isAncestor, err := r.IsAncestor(c.Hash, "master")
+					isAncestor, err := r.IsAncestor(c.Hash, git.DefaultBranch)
 					if err != nil {
 						return err
 					} else if isAncestor {
@@ -386,13 +387,13 @@ func (jc *JobCreator) MaybeTriggerPeriodicJobs(ctx context.Context, triggerName 
 	// Find the job specs matching the trigger and create Job instances.
 	jobs := []*types.Job{}
 	for repoUrl, repo := range jc.repos {
-		master := repo.Get("master")
-		if master == nil {
-			return fmt.Errorf("Failed to retrieve branch 'master' for %s", repoUrl)
+		main := repo.Get(git.DefaultBranch)
+		if main == nil {
+			return fmt.Errorf("Failed to retrieve branch %q for %s", git.DefaultBranch, repoUrl)
 		}
 		rs := types.RepoState{
 			Repo:     repoUrl,
-			Revision: master.Hash,
+			Revision: main.Hash,
 		}
 		cfg, err := jc.taskCfgCache.Get(ctx, rs)
 		if err != nil {

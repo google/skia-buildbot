@@ -45,10 +45,10 @@ func DummyVars() *Vars {
 	return &Vars{
 		Branches: &Branches{
 			Chromium: &chrome_branch.Branches{
-				Master: &chrome_branch.Branch{
+				Main: &chrome_branch.Branch{
 					Milestone: 82,
 					Number:    0,
-					Ref:       chrome_branch.RefMaster,
+					Ref:       chrome_branch.RefMain,
 				},
 				Beta: &chrome_branch.Branch{
 					Milestone: 81,

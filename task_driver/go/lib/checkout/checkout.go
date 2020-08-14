@@ -93,7 +93,7 @@ func ValidateCheckout(ctx context.Context, dest string, rs types.RepoState) (boo
 		sklog.Infof("Output of 'git status':\n%s", output)
 
 		// We have a git checkout, but it might not be the right one.
-		// Ensure that "origin" is set to the correct URL.
+		// Ensure that the remote is set to the correct URL.
 		output, err = gd.Git(ctx, "remote", "-v")
 		if err != nil {
 			return false, err
@@ -125,7 +125,7 @@ func ValidateCheckout(ctx context.Context, dest string, rs types.RepoState) (boo
 				if len(fields) != 3 {
 					return false, fmt.Errorf("Got unexpected output from 'git remote -v':\n%s", output)
 				}
-				if fields[0] == "origin" && fields[1] != rs.Repo {
+				if fields[0] == git.DefaultRemote && fields[1] != rs.Repo {
 					sklog.Infof("Repository has remote 'origin' set to incorrect URL:\n%s", output)
 					return false, nil
 				}
@@ -203,7 +203,7 @@ func EnsureGitCheckout(ctx context.Context, dest string, rs types.RepoState) (*g
 
 	// Now we know we have a git checkout of the correct repo in the dest
 	// dir, but it could be in any state. co.Update() will forcibly clean
-	// the checkout and update it to match upstream master.
+	// the checkout and update it to match the upstream.
 	sklog.Infof("Updating git checkout")
 	if err := co.Update(ctx); err != nil {
 		return nil, td.FailStep(ctx, err)

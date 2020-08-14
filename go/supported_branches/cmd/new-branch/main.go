@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/cq"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
@@ -89,7 +90,7 @@ func main() {
 		if cg != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Already have %s in %s; not adding a duplicate.\n", newRef, cq.CQ_CFG_FILE)
 		} else {
-			if err := cq.CloneBranch(cfg, "master", *branch, false, false, excludeTrybotRegexp); err != nil {
+			if err := cq.CloneBranch(cfg, git.DefaultBranch, *branch, false, false, excludeTrybotRegexp); err != nil {
 				return err
 			}
 		}

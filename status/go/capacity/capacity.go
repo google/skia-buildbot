@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/cq"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -122,16 +123,16 @@ func botConfigKey(dims []string) string {
 	return strings.Join(dims, "|")
 }
 
-// getTasksCfg finds the most recent cached TasksCfg for the master branch of the given repo. Also
+// getTasksCfg finds the most recent cached TasksCfg for the main branch of the given repo. Also
 // returns the commit hash where the TasksCfg was found.
 func (c *CapacityClient) getTasksCfg(ctx context.Context, repo string) (*specs.TasksCfg, string, error) {
 	repoGraph, ok := c.repos[repo]
 	if !ok {
 		return nil, "", skerr.Fmt("Unknown repo %q", repo)
 	}
-	commit := repoGraph.Get("master")
+	commit := repoGraph.Get(git.DefaultBranch)
 	if commit == nil {
-		return nil, "", skerr.Fmt("Unable to find master branch in %q", repo)
+		return nil, "", skerr.Fmt("Unable to find main branch in %q", repo)
 	}
 	const lookback = 5
 	for i := 0; i < lookback; i++ {
@@ -163,7 +164,7 @@ func (c *CapacityClient) computeBotConfigs(ctx context.Context, durations map[st
 	botConfigs := make(map[string]BotConfig)
 
 	for repo, repoDurations := range durations {
-		// The db.Task structs don't have their dimensions, so we pull those off of the master
+		// The db.Task structs don't have their dimensions, so we pull those off of the main
 		// branches of the repo. If the dimensions were updated recently, this may lead
 		// to some inaccuracies. In practice, this probably won't happen because updates
 		// tend to update, say, all the Nexus10s to a new OS version, which is effectively no change.

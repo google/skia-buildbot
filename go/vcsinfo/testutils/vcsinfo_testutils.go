@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/vcsinfo"
@@ -57,7 +58,7 @@ func TestDisplay(t sktest.TestingT, vcs vcsinfo.VCS) {
 
 func TestFrom(t sktest.TestingT, vcs vcsinfo.VCS) {
 	// All timestamps refer to the repository in ./testdata/testrepo.zip unzipped by newTempRepo().
-	// The two commits in the master branch of the repo have timestamps:
+	// The two commits in the main branch of the repo have timestamps:
 	// 1406721715 and 1406721642.
 	testCases := []struct {
 		ts     int64
@@ -235,13 +236,13 @@ func TestBranchInfo(t require.TestingT, vcs vcsinfo.VCS, branches []string) {
 	}{
 		{
 			commitHash: "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
-			branchName: "master",
-			branches:   map[string]bool{"master": true, "test-branch-1": true},
+			branchName: git.DefaultBranch,
+			branches:   map[string]bool{git.DefaultBranch: true, "test-branch-1": true},
 		},
 		{
 			commitHash: "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
-			branchName: "master",
-			branches:   map[string]bool{"master": true, "test-branch-1": true},
+			branchName: git.DefaultBranch,
+			branches:   map[string]bool{git.DefaultBranch: true, "test-branch-1": true},
 		},
 		{
 			commitHash: "3f5a807d432ac232a952bbf223bc6952e4b49b2c",

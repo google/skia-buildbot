@@ -42,9 +42,9 @@ func fuchsiaCfg(t *testing.T) *FuchsiaSDKRepoManagerConfig {
 	return &FuchsiaSDKRepoManagerConfig{
 		NoCheckoutRepoManagerConfig: NoCheckoutRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  masterBranchTmpl(t),
+				ChildBranch:  defaultBranchTmpl(t),
 				ChildPath:    "unused/by/fuchsiaSDK/repomanager",
-				ParentBranch: masterBranchTmpl(t),
+				ParentBranch: defaultBranchTmpl(t),
 			},
 		},
 		Gerrit: &codereview.GerritConfig{
@@ -88,11 +88,11 @@ func setupFuchsiaSDK(t *testing.T) (context.Context, *parentChildRepoManager, *m
 	cfg.ParentRepo = parent.RepoUrl()
 
 	// Initial update, everything up-to-date.
-	mockParent.MockGetCommit(ctx, "master")
-	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
+	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathLinux, parentMaster)
-	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathMac, parentMaster)
+	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathLinux, parentHead)
+	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathMac, parentHead)
 	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevBase, "mac-base")
 
 	rm, err := NewFuchsiaSDKRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
@@ -133,11 +133,11 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	require.Equal(t, 0, len(notRolledRevs))
 
 	// There's a new version.
-	mockParent.MockGetCommit(ctx, "master")
-	parentMaster, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
+	mockParent.MockGetCommit(ctx, git.DefaultBranch)
+	parentHead, err := git.GitDir(parent.Dir()).RevParse(ctx, "HEAD")
 	require.NoError(t, err)
-	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathLinux, parentMaster)
-	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathMac, parentMaster)
+	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathLinux, parentHead)
+	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathMac, parentHead)
 	mockGetLatestSDK(urlmock, child.FuchsiaSDKGSLatestPathLinux, child.FuchsiaSDKGSLatestPathMac, fuchsiaSDKRevNext, "mac-next")
 	lastRollRev, tipRev, notRolledRevs, err = rm.Update(ctx)
 	require.NoError(t, err)
@@ -149,12 +149,12 @@ func TestFuchsiaSDKRepoManager(t *testing.T) {
 	// Upload a CL.
 
 	// Mock the request for the currently-pinned versions.
-	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathLinux, parentMaster)
-	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathMac, parentMaster)
+	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathLinux, parentHead)
+	mockParent.MockReadFile(ctx, FuchsiaSDKVersionFilePathMac, parentHead)
 
 	// Mock the initial change creation.
 	subject := strings.Split(fakeCommitMsg, "\n")[0]
-	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, "master", parentMaster))
+	reqBody := []byte(fmt.Sprintf(`{"project":"%s","subject":"%s","branch":"%s","topic":"","status":"NEW","base_commit":"%s"}`, "fake-gerrit-project", subject, git.DefaultBranch, parentHead))
 	ci := gerrit.ChangeInfo{
 		ChangeId: "123",
 		Id:       "123",

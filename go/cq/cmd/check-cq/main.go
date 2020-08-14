@@ -20,7 +20,7 @@ import (
 
 var (
 	configFile = flag.String("cfg-file", "", "commit-queue.cfg file to validate.")
-	remote     = flag.String("remote", "origin", "Name of upstream remote to use.")
+	remote     = flag.String("remote", git.DefaultRemote, "Name of upstream remote to use.")
 	repoUrl    = flag.String("repo", "", "Repo URL. Required if not currently inside a git checkout.")
 )
 
@@ -98,8 +98,8 @@ func main() {
 				split := strings.Split(tj.Name, "/")
 				shortName := split[len(split)-1]
 				if strings.HasPrefix(tj.Name, "chromium") {
-					if branch.Name != "master" {
-						// Chromium tryjobs only work on master.
+					if branch.Name != git.DefaultBranch {
+						// Chromium tryjobs only work on the main branch.
 						badTryjobs[branch.Name] = append(badTryjobs[branch.Name], shortName)
 					}
 				} else if _, ok := taskCfg.Jobs[shortName]; !ok {

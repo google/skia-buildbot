@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -40,9 +41,9 @@ func githubDEPSCfg(t *testing.T) *GithubDEPSRepoManagerConfig {
 	return &GithubDEPSRepoManagerConfig{
 		DepotToolsRepoManagerConfig: DepotToolsRepoManagerConfig{
 			CommonRepoManagerConfig: CommonRepoManagerConfig{
-				ChildBranch:  masterBranchTmpl(t),
+				ChildBranch:  defaultBranchTmpl(t),
 				ChildPath:    childPath,
-				ParentBranch: masterBranchTmpl(t),
+				ParentBranch: defaultBranchTmpl(t),
 			},
 		},
 	}
@@ -94,10 +95,10 @@ func setupGithubDEPS(t *testing.T, c *GithubDEPSRepoManagerConfig) (context.Cont
 	parent.Commit(ctx)
 
 	fork := git_testutils.GitInit(t, ctx)
-	fork.Git(ctx, "remote", "set-url", "origin", parent.RepoUrl())
-	fork.Git(ctx, "fetch", "origin")
-	fork.Git(ctx, "checkout", "master")
-	fork.Git(ctx, "reset", "--hard", "origin/master")
+	fork.Git(ctx, "remote", "set-url", git.DefaultRemote, parent.RepoUrl())
+	fork.Git(ctx, "fetch", git.DefaultRemote)
+	fork.Git(ctx, "checkout", git.DefaultBranch)
+	fork.Git(ctx, "reset", "--hard", git.DefaultRemoteBranch)
 
 	c.ChildRepo = child.RepoUrl()
 	c.ParentRepo = parent.RepoUrl()
@@ -106,7 +107,7 @@ func setupGithubDEPS(t *testing.T, c *GithubDEPSRepoManagerConfig) (context.Cont
 	mockRun := &exec.CommandCollector{}
 	mockRun.SetDelegateRun(func(ctx context.Context, cmd *exec.Command) error {
 		// Without this, the mock commands get confused with:
-		// "Could not switch upstream branch from refs/remotes/remote/master to refs/remotes/origin/master"
+		// "Could not switch upstream branch from refs/remotes/remote/X to refs/remotes/origin/X"
 		if strings.Contains(cmd.Name, "gclient") && (cmd.Args[0] == "sync" || cmd.Args[0] == "runhooks") {
 			return nil
 		}
@@ -188,7 +189,7 @@ func mockGithubRefRequests(t *testing.T, urlMock *mockhttpclient.URLMock, forkRe
 		},
 	})
 	require.NoError(t, err)
-	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs/%s", githubApiUrl, forkRepoOwner, forkRepoName, "heads%2Fmaster"), mockhttpclient.MockGetDialogue(serializedRef))
+	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs/%s", githubApiUrl, forkRepoOwner, forkRepoName, "heads%2F"+git.DefaultBranch), mockhttpclient.MockGetDialogue(serializedRef))
 	md := mockhttpclient.MockPostDialogueWithResponseCode("application/json", mockhttpclient.DONT_CARE_REQUEST, nil, http.StatusCreated)
 	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs", githubApiUrl, forkRepoOwner, forkRepoName), md)
 	require.NoError(t, err)

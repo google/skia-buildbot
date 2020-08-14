@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/git/gitinfo"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/skerr"
@@ -38,11 +39,11 @@ const (
 	CMAKE_LINK_ARGS_FILE    = "skia_link_arguments.txt"
 )
 
-// GetSkiaHead returns Skia's most recent commit hash to master.
+// GetSkiaHead returns the most recent commit hash on Skia's main branch.
 //
 // If client is nil then a default timeout client is used.
 func GetSkiaHead(client *http.Client) (string, error) {
-	head, err := gitiles.NewRepo(common.REPO_SKIA, client).Details(context.TODO(), "master")
+	head, err := gitiles.NewRepo(common.REPO_SKIA, client).Details(context.TODO(), git.DefaultBranch)
 	if err != nil {
 		return "", skerr.Wrapf(err, "Could not get Skia's HEAD")
 	}
@@ -69,7 +70,7 @@ func GetSkiaHash(client *http.Client) (string, error) {
 // dependencies needed to compile Skia have been installed (e.g. the latest
 // version of gyp).
 //
-//   branch - The empty string signifies the master branch.
+//   branch - The empty string signifies the main branch.
 //   gitHash - The git hash to check out Skia at.
 //   path - The path to check Skia out into.
 //   depotToolsPath - The depot_tools directory.
@@ -141,7 +142,7 @@ func DownloadSkia(ctx context.Context, branch, gitHash, path, depotToolsPath str
 // and check it out to the specified gitHash for the specified branch. Upon
 // success, any dependencies needed to compile Skia have been installed.
 //
-//   branch - The empty string signifies the master branch.
+//   branch - The empty string signifies the main branch.
 //   gitHash - The git hash to check out Skia at.
 //   path - The path to check Skia out into.
 //   depotToolsPath - The depot_tools directory.

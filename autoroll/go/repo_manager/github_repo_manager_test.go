@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/git"
 	git_testutils "go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/mockhttpclient"
@@ -38,9 +39,9 @@ func githubCR(t *testing.T, g *github.GitHub) codereview.CodeReview {
 func githubRmCfg(t *testing.T) *GithubRepoManagerConfig {
 	return &GithubRepoManagerConfig{
 		CommonRepoManagerConfig: CommonRepoManagerConfig{
-			ChildBranch:  masterBranchTmpl(t),
+			ChildBranch:  defaultBranchTmpl(t),
 			ChildPath:    "earth",
-			ParentBranch: masterBranchTmpl(t),
+			ParentBranch: defaultBranchTmpl(t),
 			ParentRepo:   "git@github.com:jorel/krypton.git",
 		},
 		Github: &codereview.GithubConfig{
@@ -91,10 +92,10 @@ func setupGithub(t *testing.T, cfg *GithubRepoManagerConfig) (context.Context, *
 	parent.Commit(ctx)
 
 	fork := git_testutils.GitInit(t, ctx)
-	fork.Git(ctx, "remote", "set-url", "origin", parent.RepoUrl())
-	fork.Git(ctx, "fetch", "origin")
-	fork.Git(ctx, "checkout", "master")
-	fork.Git(ctx, "reset", "--hard", "origin/master")
+	fork.Git(ctx, "remote", "set-url", git.DefaultRemote, parent.RepoUrl())
+	fork.Git(ctx, "fetch", git.DefaultRemote)
+	fork.Git(ctx, "checkout", git.DefaultBranch)
+	fork.Git(ctx, "reset", "--hard", git.DefaultRemoteBranch)
 
 	cfg.ChildRepoURL = child.RepoUrl()
 	cfg.ForkRepoURL = fork.RepoUrl()
@@ -106,9 +107,9 @@ func setupGithub(t *testing.T, cfg *GithubRepoManagerConfig) (context.Context, *
 			if cmd.Args[0] == "clone" || cmd.Args[0] == "fetch" {
 				return nil
 			}
-			if cmd.Args[0] == "checkout" && cmd.Args[1] == "remote/master" {
+			if cmd.Args[0] == "checkout" && cmd.Args[1] == "remote/"+git.DefaultBranch {
 				// Pretend origin is the remote branch for testing ease.
-				cmd.Args[1] = "origin/master"
+				cmd.Args[1] = git.DefaultRemoteBranch
 			}
 		}
 		return exec.DefaultRun(ctx, cmd)
@@ -192,7 +193,7 @@ func mockGithubRequests(t *testing.T, urlMock *mockhttpclient.URLMock, forkRepoU
 		},
 	})
 	require.NoError(t, err)
-	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs/%s", githubApiUrl, forkRepoOwner, forkRepoName, "heads%2Fmaster"), mockhttpclient.MockGetDialogue(serializedRef))
+	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs/%s", githubApiUrl, forkRepoOwner, forkRepoName, "heads%2F"+git.DefaultBranch), mockhttpclient.MockGetDialogue(serializedRef))
 	md = mockhttpclient.MockPostDialogueWithResponseCode(reqType, mockhttpclient.DONT_CARE_REQUEST, nil, http.StatusCreated)
 	urlMock.MockOnce(fmt.Sprintf("%s/repos/%s/%s/git/refs", githubApiUrl, forkRepoOwner, forkRepoName), md)
 	require.NoError(t, err)

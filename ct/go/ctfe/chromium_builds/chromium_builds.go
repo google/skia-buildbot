@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sklog"
@@ -45,7 +46,7 @@ var (
 	// Base URL of the Chromium GIT repository, to be followed by commit hash.
 	CHROMIUM_GIT_REPO_URL = fmt.Sprintf(gitiles.CommitURL, common.REPO_CHROMIUM, "")
 	// URL of a base64-encoded file that includes the GIT commit hash last known good release of Skia.
-	CHROMIUM_DEPS_FILE = fmt.Sprintf(gitiles.DownloadURL, common.REPO_CHROMIUM, "master", "DEPS")
+	CHROMIUM_DEPS_FILE = fmt.Sprintf(gitiles.DownloadURL, common.REPO_CHROMIUM, git.DefaultBranch, "DEPS")
 	// Base URL of the Skia GIT repository, to be followed by commit hash.
 	SKIA_GIT_REPO_URL = fmt.Sprintf(gitiles.CommitURL, common.REPO_SKIA, "")
 

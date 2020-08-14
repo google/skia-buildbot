@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
 	"go.skia.org/infra/go/httputils"
@@ -149,7 +150,7 @@ func main() {
 
 	// Set up VCS instance to track master.
 	gitilesRepo := gitiles.NewRepo(isc.GitRepoURL, client)
-	vcs, err := bt_vcs.New(ctx, gitStore, "master", gitilesRepo)
+	vcs, err := bt_vcs.New(ctx, gitStore, git.DefaultBranch, gitilesRepo)
 	if err != nil {
 		sklog.Fatalf("could not instantiate BT VCS for %s", isc.GitRepoURL)
 	}

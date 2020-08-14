@@ -34,10 +34,10 @@ const (
 
 func dummyBranches() *Branches {
 	return &Branches{
-		Master: &Branch{
+		Main: &Branch{
 			Milestone: 82,
 			Number:    0,
-			Ref:       RefMaster,
+			Ref:       RefMain,
 		},
 		Beta: &Branch{
 			Milestone: 81,
@@ -84,7 +84,7 @@ func TestBranchValidate(t *testing.T) {
 	// OK.
 	test(func(b *Branch) {}, "")
 	test(func(b *Branch) {
-		b.Ref = RefMaster
+		b.Ref = RefMain
 		b.Number = 0
 	}, "")
 
@@ -96,8 +96,8 @@ func TestBranchValidate(t *testing.T) {
 		b.Number = 0
 	}, "Number is required")
 	test(func(b *Branch) {
-		b.Ref = RefMaster
-	}, "Number must be zero for master branch")
+		b.Ref = RefMain
+	}, "Number must be zero for main branch")
 }
 
 func TestBranchesValidate(t *testing.T) {
@@ -126,8 +126,8 @@ func TestBranchesValidate(t *testing.T) {
 		b.Stable = nil
 	}, "Stable branch is missing")
 	test(func(b *Branches) {
-		b.Master = nil
-	}, "Master branch is missing")
+		b.Main = nil
+	}, "Main branch is missing")
 
 	// Each Branch should be validated.
 	test(func(b *Branches) {
@@ -137,8 +137,8 @@ func TestBranchesValidate(t *testing.T) {
 		b.Stable.Number = 0
 	}, "Number is required")
 	test(func(b *Branches) {
-		b.Master.Number = 42
-	}, "Number must be zero for master branch.")
+		b.Main.Number = 42
+	}, "Number must be zero for main branch.")
 }
 
 func TestGet(t *testing.T) {

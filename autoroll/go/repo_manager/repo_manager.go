@@ -22,8 +22,6 @@ import (
 )
 
 const (
-	DEFAULT_REMOTE = "origin"
-
 	ROLL_BRANCH = "roll_branch"
 )
 

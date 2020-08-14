@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitstore"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
@@ -82,7 +83,7 @@ func FakeCommit(t sktest.TestingT, msg, branch string, parents ...*vcsinfo.LongC
 // New returns a MemGit instance which writes to the given GitStore.
 func New(t sktest.TestingT, gs gitstore.GitStore) *MemGit {
 	return &MemGit{
-		branch: "master",
+		branch: git.DefaultBranch,
 		gs:     gs,
 		t:      t,
 	}

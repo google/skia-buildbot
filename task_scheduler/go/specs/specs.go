@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/cipd"
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/periodic"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/types"
@@ -29,9 +30,8 @@ const (
 	// By default, all jobs trigger on any branch for which they are
 	// defined.
 	TRIGGER_ANY_BRANCH = ""
-	// Run this job on the master branch only, even if it is defined on
-	// others.
-	TRIGGER_MASTER_ONLY = "master"
+	// Run this job on the main branch only, even if it is defined on others.
+	TRIGGER_MASTER_ONLY = git.DefaultBranch
 	// Trigger this job every night.
 	TRIGGER_NIGHTLY = periodic.TRIGGER_NIGHTLY
 	// Don't trigger this job automatically. It will only be run when

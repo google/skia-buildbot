@@ -28,7 +28,7 @@ type GitBuilder struct {
 
 // GitInit creates a new git repo in a temporary directory and returns a
 // GitBuilder to manage it. Call Cleanup to remove the temporary directory. The
-// current branch will be master.
+// current branch will be the main branch.
 func GitInit(t sktest.TestingT, ctx context.Context) *GitBuilder {
 	tmp, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
@@ -38,7 +38,7 @@ func GitInit(t sktest.TestingT, ctx context.Context) *GitBuilder {
 
 // GitInit creates a new git repo in the specified directory and returns a
 // GitBuilder to manage it. Call Cleanup to remove the temporary directory. The
-// current branch will be master.
+// current branch will be the main branch.
 func GitInitWithDir(t sktest.TestingT, ctx context.Context, dir string) *GitBuilder {
 	gitExec, _, _, err := git_common.FindGit(ctx)
 	require.NoError(t, err)
@@ -46,13 +46,13 @@ func GitInitWithDir(t sktest.TestingT, ctx context.Context, dir string) *GitBuil
 	g := &GitBuilder{
 		t:      t,
 		dir:    dir,
-		branch: "master",
+		branch: git_common.DefaultBranch,
 		git:    gitExec,
 		rng:    rand.New(rand.NewSource(0)),
 	}
 
 	g.Git(ctx, "init")
-	g.Git(ctx, "remote", "add", "origin", ".")
+	g.Git(ctx, "remote", "add", git_common.DefaultRemote, ".")
 	g.Git(ctx, "config", "--local", "user.name", "test")
 	g.Git(ctx, "config", "--local", "user.email", "test@google.com")
 	return g
@@ -102,7 +102,7 @@ func (g *GitBuilder) write(filepath, contents string) {
 }
 
 func (g *GitBuilder) push(ctx context.Context) {
-	g.Git(ctx, "push", "origin", g.branch)
+	g.Git(ctx, "push", git_common.DefaultRemote, g.branch)
 }
 
 // genString returns a string with arbitrary content.
@@ -247,7 +247,7 @@ func (g *GitBuilder) UpdateRef(ctx context.Context, args ...string) {
 // a CL on a trybot.
 func (g *GitBuilder) CreateFakeGerritCLGen(ctx context.Context, issue, patchset string) {
 	currentBranch := strings.TrimSpace(g.Git(ctx, "rev-parse", "--abbrev-ref", "HEAD"))
-	g.CreateBranchTrackBranch(ctx, "fake-patch", "master")
+	g.CreateBranchTrackBranch(ctx, "fake-patch", git_common.DefaultBranch)
 	patchCommit := g.CommitGen(ctx, "somefile")
 	g.UpdateRef(ctx, fmt.Sprintf("refs/changes/%s/%s/%s", issue[len(issue)-2:], issue, patchset), patchCommit)
 	g.CheckoutBranch(ctx, currentBranch)
@@ -275,9 +275,9 @@ func (g *GitBuilder) AcceptPushes(ctx context.Context) {
 func GitSetup(ctx context.Context, g *GitBuilder) []string {
 	c0 := g.CommitGen(ctx, "myfile.txt")
 	c1 := g.CommitGen(ctx, "myfile.txt")
-	g.CreateBranchTrackBranch(ctx, "branch2", "origin/master")
+	g.CreateBranchTrackBranch(ctx, "branch2", git_common.DefaultRemoteBranch)
 	c2 := g.CommitGen(ctx, "anotherfile.txt")
-	g.CheckoutBranch(ctx, "master")
+	g.CheckoutBranch(ctx, git_common.DefaultBranch)
 	c3 := g.CommitGen(ctx, "myfile.txt")
 	c4 := g.MergeBranch(ctx, "branch2")
 	return []string{c0, c1, c2, c3, c4}

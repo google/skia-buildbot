@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/skerr"
@@ -25,7 +26,7 @@ type CommitID struct {
 
 // ID returns a unique ID for the CommitID.
 func (c CommitID) ID() string {
-	return fmt.Sprintf("%s-%06d", "master", c.Offset)
+	return fmt.Sprintf("%s-%06d", git.DefaultBranch, c.Offset)
 }
 
 // CommitIDFromCommitNumber converts a types.CommitNumber into a *CommitID.
@@ -44,7 +45,7 @@ func FromID(s string) (*CommitID, error) {
 	if len(parts) != 2 {
 		return nil, fmt.Errorf("Invalid ID format: %s", s)
 	}
-	if parts[0] != "master" {
+	if parts[0] != git.DefaultBranch {
 		return nil, fmt.Errorf("Invalid ID format: %s", s)
 	}
 	i, err := strconv.ParseInt(parts[1], 10, 64)
@@ -68,7 +69,7 @@ type CommitDetail struct {
 
 // ID returns a unique ID for the CommitID.
 func (c CommitDetail) ID() string {
-	return fmt.Sprintf("%s-%06d", "master", c.Offset)
+	return fmt.Sprintf("%s-%06d", git.DefaultBranch, c.Offset)
 }
 
 // CommitIDLookup allows getting CommitDetails from CommitIDs.

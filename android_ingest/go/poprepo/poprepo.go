@@ -162,7 +162,7 @@ func (p *PopRepo) Add(ctx context.Context, buildid int64, ts int64, branch strin
 		return fmt.Errorf("Failed to commit updated file %q: %s", output.String(), err)
 	}
 	fmt.Printf("git commit: %q", output.String())
-	if msg, err := p.checkout.Git(ctx, "push", "origin", "master"); err != nil {
+	if msg, err := p.checkout.Git(ctx, "push", git.DefaultRemote, git.DefaultBranch); err != nil {
 		rollback = true
 		return fmt.Errorf("Failed to push updated checkout %q: %s", msg, err)
 	}

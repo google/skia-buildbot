@@ -58,7 +58,7 @@ func TestIncrementalCommits(t *testing.T) {
 	branches, commits, err := cc.Update(ctx, w, false, N)
 	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
-		"master": c0,
+		git.DefaultBranch: c0,
 	})
 	assertCommits(t, gb, commits, []string{c0})
 
@@ -73,7 +73,7 @@ func TestIncrementalCommits(t *testing.T) {
 	branches, commits, err = cc.Update(ctx, w, true, N)
 	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
-		"master": c0,
+		git.DefaultBranch: c0,
 	})
 	assertCommits(t, gb, commits, []string{c0})
 
@@ -83,17 +83,17 @@ func TestIncrementalCommits(t *testing.T) {
 	branches, commits, err = cc.Update(ctx, w, false, N)
 	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
-		"master": c2,
+		git.DefaultBranch: c2,
 	})
 	assertCommits(t, gb, commits, []string{c1, c2})
 
 	// Add a new branch, with no commits.
-	gb.CreateBranchTrackBranch(ctx, "branch2", "origin/master")
+	gb.CreateBranchTrackBranch(ctx, "branch2", git.DefaultRemoteBranch)
 	branches, commits, err = cc.Update(ctx, w, false, N)
 	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
-		"master":  c2,
-		"branch2": c2,
+		git.DefaultBranch: c2,
+		"branch2":         c2,
 	})
 	assertCommits(t, gb, commits, []string{})
 
@@ -102,49 +102,49 @@ func TestIncrementalCommits(t *testing.T) {
 	branches, commits, err = cc.Update(ctx, w, false, N)
 	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
-		"master":  c2,
-		"branch2": c3,
+		git.DefaultBranch: c2,
+		"branch2":         c3,
 	})
 	assertCommits(t, gb, commits, []string{c3})
 
-	// Merge branch2 back into master. Note that, since there are no new
-	// commits on master, this does not create a merge commit but just
-	// updates HEAD of master to point at c3.
-	gb.CheckoutBranch(ctx, "master")
+	// Merge branch2 back into main. Note that, since there are no new
+	// commits on main, this does not create a merge commit but just
+	// updates HEAD of main to point at c3.
+	gb.CheckoutBranch(ctx, git.DefaultBranch)
 	mergeCommit := gb.MergeBranch(ctx, "branch2")
 	require.Equal(t, c3, mergeCommit)
 	branches, commits, err = cc.Update(ctx, w, false, N)
 	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
-		"master":  c3,
-		"branch2": c3,
+		git.DefaultBranch: c3,
+		"branch2":         c3,
 	})
 	assertCommits(t, gb, commits, []string{})
 
-	// Add a new branch. Add commits on both master and branch3.
-	gb.CreateBranchTrackBranch(ctx, "branch3", "origin/master")
+	// Add a new branch. Add commits on both main and branch3.
+	gb.CreateBranchTrackBranch(ctx, "branch3", git.DefaultRemoteBranch)
 	c4 := gb.CommitGen(ctx, "file3")
-	gb.CheckoutBranch(ctx, "master")
+	gb.CheckoutBranch(ctx, git.DefaultBranch)
 	c5 := gb.CommitGen(ctx, "file1")
 	branches, commits, err = cc.Update(ctx, w, false, N)
 	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
-		"master":  c5,
-		"branch2": c3,
-		"branch3": c4,
+		git.DefaultBranch: c5,
+		"branch2":         c3,
+		"branch3":         c4,
 	})
 	assertCommits(t, gb, commits, []string{c4, c5})
 
-	// Merge branch3 back into master. Because there are commits on both
+	// Merge branch3 back into main. Because there are commits on both
 	// branches, a merge commit will be created.
 	c6 := gb.MergeBranch(ctx, "branch3")
 	require.NotEqual(t, c6, c4) // Ensure that we actually created a merge commit.
 	branches, commits, err = cc.Update(ctx, w, false, N)
 	require.NoError(t, err)
 	assertBranches(t, gb, branches, map[string]string{
-		"master":  c6,
-		"branch2": c3,
-		"branch3": c4,
+		git.DefaultBranch: c6,
+		"branch2":         c3,
+		"branch3":         c4,
 	})
 	assertCommits(t, gb, commits, []string{c6})
 }
