@@ -10,7 +10,6 @@ Please triage them using one of the following links before submitting:\n\
   - {{.InstanceURL}}/cl/{{.CRS}}/{{.ChangeListID}} if you are working on an internal repo or otherwise expect some test results to be non-public.\n\
   - {{.PublicInstanceURL}}/cl/{{.CRS}}/{{.ChangeListID}} otherwise.\n\
 \n\
-If this is due to a failure in a gtest-based test, this functionality is currently experimental and won't block your CL.\n\
 If all the trybots passed and you don't expect your CL to have any effect on browser UI, you can likely ignore this message.\n\
 See the FAQ for more information: https://docs.google.com/document/d/1BnwcxzhT8FFvY3YF-6BT4Mqgrb9U40t0HMfEVSSEpNs/edit?usp=sharing\n",
   client_secret_file: "/etc/skia.org/login.json",
