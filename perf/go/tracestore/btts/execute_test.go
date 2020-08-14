@@ -65,7 +65,7 @@ func TestExecuteCancel(t *testing.T) {
 	err = b.WriteTraces(257, params, values, paramset, "gs://some/test/location", now)
 	assert.NoError(t, err)
 
-	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber, time.Now())
 	assert.NoError(t, err)
 
 	// Now that the Tile is populated construct an encoded key=value pair to
@@ -134,7 +134,7 @@ func TestExecuteGoodQuery(t *testing.T) {
 	err = b.WriteTraces(257, params, values, paramset, "gs://some/test/location", now)
 	assert.NoError(t, err)
 
-	ops, err := b.GetOrderedParamSet(ctx, tileNumber)
+	ops, err := b.GetOrderedParamSet(ctx, tileNumber, time.Now())
 	assert.NoError(t, err)
 
 	// Now that the Tile is populated construct an encoded paramset to use as a
