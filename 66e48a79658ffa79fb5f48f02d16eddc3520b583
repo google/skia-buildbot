@@ -33,6 +33,33 @@
       "url": "https://android-build.googleplex.com/builds/treetop/skia-review/310438?revision\u003d1",
       "fixSuggestions": [],
       "key": {
+        "uuid": "ebc07dac_95ce92d6",
+        "filename": "autoroll/config/skia-chromium-beta.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-14T16:55:10Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 1,
+        "startChar": 56,
+        "endLine": 1,
+        "endChar": 62
+      },
+      "revId": "66e48a79658ffa79fb5f48f02d16eddc3520b583",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004422890",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/310438?revision\u003d1",
+      "fixSuggestions": [],
+      "key": {
         "uuid": "3c958267_a4c68ddb",
         "filename": "autoroll/config/skia-chromium-stable.json",
         "patchSetId": 1
@@ -42,6 +69,33 @@
         "id": 13155
       },
       "writtenOn": "2020-08-14T16:50:19Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 1,
+        "startChar": 56,
+        "endLine": 1,
+        "endChar": 62
+      },
+      "revId": "66e48a79658ffa79fb5f48f02d16eddc3520b583",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004422890",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/310438?revision\u003d1",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "8340ecb4_84c481ef",
+        "filename": "autoroll/config/skia-chromium-stable.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-14T16:55:10Z",
       "side": 1,
       "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
       "range": {
