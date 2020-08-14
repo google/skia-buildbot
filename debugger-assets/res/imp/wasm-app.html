@@ -17,6 +17,7 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel=import href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 <link rel=import href="/res/imp/bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel=import href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
 <link rel=import href="/res/imp/bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel=import href="/res/imp/bower_components/paper-header-panel/paper-header-panel.html">
 <link rel=import href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
@@ -338,8 +339,17 @@ The main application element for the Skia Debugger.
       font-size:16px;
     }
 
+    .monospace {
+      font-family: monospace;
+    }
+
   </style>
   <template>
+    <paper-dialog id="errorDialog">
+      <h2>Error</h2>
+      <p id="error_dialog_msg" class="monospace"></p>
+      <button on-tap="closePopupError">OK</button>
+    </paper-dialog>
     <header class="horizontal layout center">
       <h2>Skia WASM Debugger</h2>
       <div class=flex></div>
@@ -348,6 +358,7 @@ The main application element for the Skia Debugger.
       <div class="layout horizontal center">
         <label>SKP to open:</label>
         <input type="file" id="file_input" disabled />
+        <p>File version {{ fileVersion }}</p>
       </div>
       <div id="multi_frame_controls" class="layout horizontal center" hidden>
         <paper-icon-button id="frame_play_button" title="play/pause frames (p)" icon="av:play-circle-outline"  on-tap="_toggleFramePlay"></paper-icon-button>
@@ -588,7 +599,10 @@ The main application element for the Skia Debugger.
           type: Number,
           value: -1,
         },
-
+        fileVersion: {
+          type: Number,
+          value: 0,
+        },
       },
 
       ready() {
@@ -795,13 +809,19 @@ The main application element for the Skia Debugger.
       _openSkpFile(fileContents) {
         // Create the instance of SkpDebugPlayer and load the file.
         // This function is provided by helper.js in the JS bundled with the wasm module.
-        this._player = this._debugwasm.SkpFilePlayer(fileContents);
+        const playerResult = this._debugwasm.SkpFilePlayer(fileContents);
+        if (playerResult['error']) {
+          this.showPopupError(playerResult['error']);
+          return;
+        }
+        this._player = playerResult['player'];
         this._replaceSurface();
         // Set player clip and overdraw setting to match UI selection, but don't update view yet.
         this._clipHandler(false);
         this._androidClipHandler(false);
         this._overdrawHandler(false);
         this._gpuOpBounds();
+        this.fileVersion = this._player.fileVersion();
         // Determine if we loaded a single-frame or multi-frame SKP.
         if (this._player.getFrameCount() > 1) {
           this._pauseFrames();
@@ -976,7 +996,7 @@ The main application element for the Skia Debugger.
       _rangeFilter(rawFilter) {
         let parts = rawFilter.split(':');
         if (parts.length !== 2) {
-          sk.errorMessage('Range filters are of the form "N:M".');
+          showPopupError('Range filters are of the form "N:M".');
           return
         }
         let begin = +parts[0];
@@ -1475,7 +1495,16 @@ The main application element for the Skia Debugger.
             this._moveToTargetItem();
           }
         }
-      }
+      },
+
+      showPopupError(e) {
+        this.$.error_dialog_msg.textContent = e;
+        this.$.errorDialog.open();
+      },
+
+      closePopupError(e) {
+        this.$.errorDialog.close();
+      },
     }); // end of Polymer(
   })(); // end of the declaration of an anonymous function, called.
 </script>
