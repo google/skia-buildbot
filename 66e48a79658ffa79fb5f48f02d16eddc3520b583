@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "41bb4ec9_d8d60d40",
+        "filename": "autoroll/config/skia-chromium-beta.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-14T16:55:07Z",
+      "side": 1,
+      "message": "Do these exist on the beta and stable branches?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 6
+      },
+      "revId": "66e48a79658ffa79fb5f48f02d16eddc3520b583",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3622264a_e9059e75",
+        "filename": "autoroll/config/skia-chromium-beta.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-14T16:55:07Z",
+      "side": 1,
+      "message": "I used the Skia sheriff here instead of Florin.  I\u0027ll add him if he really wants to be on the hook for these rolls :)",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 50
+      },
+      "revId": "66e48a79658ffa79fb5f48f02d16eddc3520b583",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
