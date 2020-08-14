@@ -1,14 +1,9 @@
 {
   "URL": "https://flutter-engine-perf.skia.org/",
   "data_store_config": {
-    "datastore_type": "gcp",
+    "datastore_type": "cockroachdb",
     "connection_string": "postgresql://root@perf-cockroachdb-public:26257/flutter_engine?sslmode=disable",
-    "tile_size": 256,
-    "project": "skia-public",
-    "instance": "production",
-    "table": "perf-flutter",
-    "shards": 8,
-    "namespace": "perf-flutter"
+    "tile_size": 256
   },
   "ingestion_config": {
     "source_config": {
@@ -16,9 +11,7 @@
       "project": "skia-public",
       "topic": "perf-ingestion-flutter",
       "subscription": "perf-ingestion-flutter-engine-cdb-prod",
-      "sources": [
-        "gs://flutter-skia-perf/flutter-engine"
-      ]
+      "sources": ["gs://flutter-skia-perf/flutter-engine"]
     },
     "branches": [],
     "file_ingestion_pubsub_topic_name": ""
