@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "8032bd4d_6b71ba01",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 12
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-14T16:32:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "5bfd2bd1_108d752d",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 239
+      },
+      "revId": "5058228b8f1943daa75f1c5bc688fdada0dc63b2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1bdae61e_e732f33e",
         "filename": "/PATCHSET_LEVEL",
         "patchSetId": 12
@@ -36,6 +60,24 @@
       "writtenOn": "2020-08-14T13:42:59Z",
       "side": 1,
       "message": "This does seem like a large amount of work, though a lot of it is done just once and we can re-use the rules. Did you explore what converting the infra tests to jasmine would have looked like?",
+      "revId": "5058228b8f1943daa75f1c5bc688fdada0dc63b2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8ed9ebcc_374297f1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 12
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-14T16:32:52Z",
+      "side": 1,
+      "message": "(To be clear, I\u0027ve only had to change \u003c10 LOC from the original karma_web_test rule. This took maybe a couple hours at most.)\n\nMigrating our tests to Jasmine is definitely possible and not particularly difficult. This is what it would take:\n\n1) Change Chai-style expect(foo).to.equal(bar) assertions to Jasmine-style expecto(foo).toEqual(bar), and\n\n2) Update some test helpers, such as setUpElementUnderTest() in test_util.ts to use Jasmine hooks instead of Mocha hooks.\n\nI figured it\u0027s best to provide a karma_mocha_test rule now and migrate gradually to Jasmine whenever we\u0027re ready.",
+      "parentUuid": "1bdae61e_e732f33e",
       "revId": "5058228b8f1943daa75f1c5bc688fdada0dc63b2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
