@@ -3,3 +3,5 @@ load("@bazel_gazelle//:def.bzl", "gazelle")
 
 # gazelle:prefix go.skia.org/infra
 gazelle(name = "gazelle")
+
+exports_files(["tsconfig.json"], visibility = ["//visibility:public"])

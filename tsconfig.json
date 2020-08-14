@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "es2017",
+    "lib": ["DOM", "ES2017"],
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+  }
+}

@@ -1,4 +1,17 @@
+workspace(
+    name = "skia_infra",
+
+    # Must be kept in sync with the npm_install rules defined below invoked below.
+    managed_directories = {
+        "@infra-sk_npm": ["infra-sk/node_modules"],
+    },
+)
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+##############################
+# Go rules and dependencies. #
+##############################
 
 http_archive(
     name = "io_bazel_rules_go",
@@ -2931,6 +2944,35 @@ go_repository(
     sum = "h1:pMen7vLs8nvgEYhywH3KDWJIJTeEr2ULsVWHWYHQyBs=",
     version = "v3.0.0",
 )
+
+###################################################
+# JavaScript / TypeScript rules and dependencies. #
+###################################################
+
+http_archive(
+    name = "build_bazel_rules_nodejs",
+    sha256 = "0f2de53628e848c1691e5729b515022f5a77369c76a09fbe55611e12731c90e3",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/2.0.1/rules_nodejs-2.0.1.tar.gz"],
+)
+
+# The npm_install rule runs anytime the package.json or package-lock.json file changes. It also
+# extracts any Bazel rules distributed in an npm package.
+#
+# There must be one npm_install rule for each package.json file in this repository. Any node_modules
+# directories managed by npm_install rules must be mentioned in the workspace() rule at the top of
+# this file.
+load("@build_bazel_rules_nodejs//:index.bzl", "npm_install")
+
+# Manages infra-sk's node_modules directory.
+npm_install(
+    name = "infra-sk_npm",
+    package_json = "//infra-sk:package.json",
+    package_lock_json = "//infra-sk:package-lock.json",
+)
+
+###########################
+# Remote Build Execution. #
+###########################
 
 http_archive(
     name = "bazel_toolchains",
