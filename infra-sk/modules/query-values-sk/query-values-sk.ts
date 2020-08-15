@@ -13,36 +13,57 @@
  * @attr {boolean} hide_regex - If the option to include regex in the query should be made
  *       available to the user.
  */
-import { define } from 'elements-sk/define'
-import { html } from 'lit-html'
-import { ElementSk } from '../../../infra-sk/modules/ElementSk'
+import { define } from 'elements-sk/define';
+import { html } from 'lit-html';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { CheckOrRadio } from 'elements-sk/checkbox-sk/checkbox-sk';
-import { MultiSelectSk, MultiSelectSkSelectionChangedEventDetail } from 'elements-sk/multi-select-sk/multi-select-sk';
+import {
+  MultiSelectSk,
+  MultiSelectSkSelectionChangedEventDetail,
+} from 'elements-sk/multi-select-sk/multi-select-sk';
 
-import 'elements-sk/checkbox-sk'
-import 'elements-sk/multi-select-sk'
+import 'elements-sk/checkbox-sk';
+import 'elements-sk/multi-select-sk';
 
-export type QueryValuesSkQueryValuesChangedEventDetail = string[];
+export interface QueryValuesSkQueryValuesChangedEventDetail {
+  invert: boolean;
+  regex: boolean;
+  values: string[];
+}
 
 export class QueryValuesSk extends ElementSk {
-
   private static template = (ele: QueryValuesSk) => html`
-    <checkbox-sk id=invert @change=${ele._invertChange} title='Match items not selected below.'
-                 label='Invert' ?hidden=${ele.hide_invert}> </checkbox-sk>
-    <checkbox-sk id=regex @change=${ele._regexChange} title='Match items via regular expression.'
-                 label='Regex' ?hidden=${ele.hide_regex}> </checkbox-sk>
-    <input type=text id=regexValue class=hidden @input=${ele._regexInputChange}>
-    <multi-select-sk
-      id=values
-      @selection-changed=${ele._selectionChange}>
+    <checkbox-sk
+      id="invert"
+      @change=${ele._invertChange}
+      title="Match items not selected below."
+      label="Invert"
+      ?hidden=${ele.hide_invert}
+    ></checkbox-sk>
+    <checkbox-sk
+      id="regex"
+      @change=${ele._regexChange}
+      title="Match items via regular expression."
+      label="Regex"
+      ?hidden=${ele.hide_regex}
+    ></checkbox-sk>
+    <input
+      type="text"
+      id="regexValue"
+      class="hidden"
+      @input=${ele._regexInputChange}
+    />
+    <multi-select-sk id="values" @selection-changed=${ele._selectionChange}>
       ${QueryValuesSk.valuesTemplate(ele)}
     </multi-select-sk>
-    `;
+  `;
 
   private static valuesTemplate = (ele: QueryValuesSk) => {
-    return ele._options.map((v) => html`
-      <div value=${v} ?selected=${ele._selected.indexOf(v) !== -1}>${v}</div>
-    `);
+    return ele._options.map(
+      (v) => html`
+        <div value=${v} ?selected=${ele._selected.indexOf(v) !== -1}>${v}</div>
+      `
+    );
   };
 
   private _options: string[] = [];
@@ -90,15 +111,19 @@ export class QueryValuesSk extends ElementSk {
     this._fireEvent();
   }
 
-  private _selectionChange(e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>) {
-    this._selected = e.detail.selection.map((i) =>  this._options[i]);
+  private _selectionChange(
+    e: CustomEvent<MultiSelectSkSelectionChangedEventDetail>
+  ) {
+    this._selected = e.detail.selection.map((i) => this._options[i]);
     this._render();
     this._fireEvent();
   }
 
   private _fireEvent() {
     const prefix = this._invert!.checked ? '!' : '';
-    let selected = this._values!.selection.map((i) =>  prefix + this._options[i]);
+    let selected = this._values!.selection.map(
+      (i) => prefix + this._options[i]
+    );
     if (this._regex!.checked) {
       selected = [`~${this._regexValue!.value}`];
     }
@@ -106,13 +131,21 @@ export class QueryValuesSk extends ElementSk {
       new CustomEvent<QueryValuesSkQueryValuesChangedEventDetail>(
         'query-values-changed',
         {
-          detail: selected,
+          detail: {
+            invert: this._invert!.checked,
+            regex: this._regex!.checked,
+            values: selected,
+          },
           bubbles: true,
-        }));
+        }
+      )
+    );
   }
 
   /** Mirrors the hide_invert attribute. */
-  get hide_invert() { return this.hasAttribute('hide_invert');  }
+  get hide_invert() {
+    return this.hasAttribute('hide_invert');
+  }
   set hide_invert(val) {
     if (val) {
       this.setAttribute('hide_invert', '');
@@ -123,7 +156,9 @@ export class QueryValuesSk extends ElementSk {
   }
 
   /** Mirrors the hide_regex attribute. */
-  get hide_regex() { return this.hasAttribute('hide_regex');  }
+  get hide_regex() {
+    return this.hasAttribute('hide_regex');
+  }
   set hide_regex(val) {
     if (val) {
       this.setAttribute('hide_regex', '');
@@ -134,7 +169,9 @@ export class QueryValuesSk extends ElementSk {
   }
 
   /** The available options. */
-  get options() { return this._options }
+  get options() {
+    return this._options;
+  }
   set options(val) {
     this._options = val;
     this._selected = [];
@@ -142,11 +179,17 @@ export class QueryValuesSk extends ElementSk {
   }
 
   /** Current selections. */
-  get selected() { return this._selected }
+  get selected() {
+    return this._selected;
+  }
   set selected(val) {
     this._selected = val;
-    this._invert!.checked = !!(this._selected.length >= 1 && this._selected[0][0] === '!');
-    this._regex!.checked = !!(this._selected.length === 1 && this._selected[0][0] === '~');
+    this._invert!.checked = !!(
+      this._selected.length >= 1 && this._selected[0][0] === '!'
+    );
+    this._regex!.checked = !!(
+      this._selected.length === 1 && this._selected[0][0] === '~'
+    );
     this._cleanSelected();
     if (this._selected!.length && this._regex!.checked) {
       this._regexValue!.value = this._selected[0];
@@ -156,7 +199,7 @@ export class QueryValuesSk extends ElementSk {
 
   private _cleanSelected() {
     // Remove prefixes from _selected.
-    this._selected = this._selected.map(val => {
+    this._selected = this._selected.map((val) => {
       if ('~!'.includes(val[0])) {
         return val.slice(1);
       } else {
@@ -172,6 +215,6 @@ export class QueryValuesSk extends ElementSk {
   attributeChangedCallback() {
     this._render();
   }
-};
+}
 
 define('query-values-sk', QueryValuesSk);
