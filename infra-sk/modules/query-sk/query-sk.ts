@@ -39,6 +39,23 @@ export interface QuerySkQueryChangeEventDetail {
   readonly q: string;
 }
 
+/**
+ * Removes the prefix, if any, from a query value.
+ *
+ * TODO(jcgregorio) - The fact that query values can have a prefix of either '!' or '~'
+ * is just something you have to know about them. We need a way to share the knowledge
+ * of all possible valid prefixes with the Go code.
+ */
+export const removePrefix = (s: string): string => {
+  if (s.length == 0) {
+    return s;
+  }
+  if ('~!'.includes(s[0])) {
+    return s.slice(1);
+  }
+  return s;
+};
+
 export class QuerySk extends ElementSk {
   private static template = (ele: QuerySk) => html`
     <div class="filtering">
@@ -136,27 +153,71 @@ export class QuerySk extends ElementSk {
       // Things get complicated if the user has entered a filter. The user may
       // have selections in this._query[key] which don't appear in e.detail
       // because they have been filtered out, so we should only add/remove
-      // values from this._query[key] that appear in this._paramset[key].
+      // values from this._query[key] that appear in this._paramset[key], while
+      // being careful because value(s) may be prefixed with either a '!' or a
+      // '~' if they are invert or regex queries.
+
+      // When we toggle from a regex to a non-regex we need to clear the values.
+      if (
+        !e.detail.regex &&
+        this._query[key] &&
+        this._query[key][0][0] === '~'
+      ) {
+        this._query[key] = [];
+      }
+
+      if (e.detail.regex) {
+        this._query[key] = e.detail.values;
+      }
+
+      // The user might have toggled the invert checkbox, which means we need to
+      // make sure that the current values for the current key are also inverted
+      // appropriately even if not displayed due to the filter.
+      this._applyInvert(key, e.detail.invert);
 
       // Make everything into Sets to make our lives easier.
       const valuesDisplayed = new Set(this._paramset[key]);
       const currentQueryForKey = new Set(this._query[key]);
-      const selectionsFromEvent = new Set(e.detail);
+      const unprefixedSelectionsFromEvent = new Set(
+        e.detail.values.map(removePrefix)
+      );
+
       // Loop over valuesDisplayed, if the value appears in selectionsFromEvent
       // then add it to currentQueryForKey, otherwise remove it from
       // currentQueryForKey.
       valuesDisplayed.forEach((value) => {
-        if (selectionsFromEvent.has(value)) {
-          currentQueryForKey.add(value);
+        const prefix = e.detail.invert ? '!' : '';
+        const prefixedValue = prefix + value;
+        if (unprefixedSelectionsFromEvent.has(value)) {
+          currentQueryForKey.add(prefixedValue);
         } else {
-          currentQueryForKey.delete(value);
+          currentQueryForKey.delete(prefixedValue);
         }
       });
       this._query[key] = [...currentQueryForKey];
     } else {
-      this._query[key] = e.detail;
+      this._query[key] = e.detail.values;
     }
     this._queryChanged();
+  }
+
+  /**
+   * Set or clear the invery prefix ('!') on all the values for the given key in
+   * this._query, based on the value of 'invert'.
+   */
+  private _applyInvert(key: string, invert: boolean) {
+    const values = this._query[key];
+    if (!values || !values.length) {
+      return;
+    }
+    const valuesHaveInvert = values[0][0] === '!';
+    if (invert === valuesHaveInvert) {
+      return;
+    } else if (invert && !valuesHaveInvert) {
+      this._query[key] = values.map((v) => '!' + v);
+    } else {
+      this._query[key] = values.map(removePrefix);
+    }
   }
 
   private _keyChange() {
