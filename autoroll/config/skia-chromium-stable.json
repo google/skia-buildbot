@@ -39,7 +39,7 @@
   ],
   "supportsManualRolls": true,
   "noCheckoutDEPSRepoManager": {
-    "childBranch": "refs/heads/chrome/{{.Branches.Chromium.Stable.Milestone}}",
+    "childBranch": "refs/heads/chrome/m{{.Branches.Chromium.Stable.Milestone}}",
     "childPath": "src/third_party/skia",
     "childRepo": "https://skia.googlesource.com/skia.git",
     "childRevLinkTmpl": "https://skia.googlesource.com/skia.git/+show/%s",
