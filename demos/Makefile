@@ -44,6 +44,11 @@ test_js:
 
 test: test_js test_puppeteer
 
+.PHONY: build-frontend-ci
+build-frontend-ci: wasm_libs
+	npm ci
+	npx webpack --mode=production
+
 .PHONY: test-frontend-ci
 test-frontend-ci:
 	npm ci
