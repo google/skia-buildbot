@@ -44,3 +44,8 @@ push: release skia-public
 	pushk particles
 
 .PHONY: serve watch app release release_ci wasm_libs_fixed wasm_libs_tot get_latest_skia push
+
+.PHONY: build-frontend-ci
+build-frontend-ci: wasm_libs_tot
+	npm ci
+	npx webpack --mode=production

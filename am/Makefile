@@ -50,6 +50,11 @@ watch: package-lock.json
 package-lock.json: package.json
 	npm install
 
+.PHONY: build-frontend-ci
+build-frontend-ci:
+	npm ci
+	npx webpack --mode=production
+
 .PHONY: test-frontend-ci
 test-frontend-ci:
 	npm ci

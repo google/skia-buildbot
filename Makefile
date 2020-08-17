@@ -65,8 +65,9 @@ skolo:
 task_scheduler:
 	cd task_scheduler && $(MAKE) all
 
+# This target is invoked by the Infra-PerCommit-Build tryjob.
 .PHONY: all
-all: puppeteer-tests-npm-deps infra-sk autoroll datahopper perf sharedgo ct ctfe cq_watcher status task_scheduler
+all: puppeteer-tests-npm-deps infra-sk autoroll datahopper perf sharedgo ct ctfe cq_watcher status task_scheduler build-frontend-ci
 
 .PHONY: tags
 tags:
@@ -84,6 +85,47 @@ puppeteer-tests:
 		--mount type=bind,source=`pwd`/puppeteer-tests/output,target=/out \
 		gcr.io/skia-public/puppeteer-tests:latest \
 		/src/puppeteer-tests/docker/run-tests.sh
+
+# Front-end code will be built by the Infra-PerCommit-Build tryjob.
+.PHONY: build-frontend-ci
+build-frontend-ci:
+	# infra-sk needs to be built first because this pulls its npm dependencies
+	# with "npm ci", which are needed by other apps.
+	cd infra-sk && $(MAKE) build-frontend-ci
+
+	# Other apps can be built in alphabetical order.
+	cd am && $(MAKE) build-frontend-ci
+	cd ct && $(MAKE) build-frontend-ci
+	cd golden && $(MAKE) build-frontend-ci
+	cd hashtag && $(MAKE) build-frontend-ci
+	cd leasing && $(MAKE) build-frontend-ci
+	cd machine && $(MAKE) build-frontend-ci
+	cd perf && $(MAKE) build-frontend-ci
+	cd power && $(MAKE) build-frontend-ci
+	cd pulld && $(MAKE) build-frontend-ci
+	cd push && $(MAKE) build-frontend-ci
+	cd status && $(MAKE) build-frontend-ci
+	cd task_driver && $(MAKE) build-frontend-ci
+	cd tree_status && $(MAKE) build-frontend-ci
+
+	# The following apps are commented out because they require running the
+	# gcr.io/skia-public/skia-wasm-release:prod	Docker container as part of their build process, which
+	# currently produces an authorization error when run from the Infra-PerCommit-Build tryjob, e.g.:
+	#
+	#   $ docker run -u $(id -u chrome-bot):$(id -g chrome-bot) --rm \
+	#     --volume `pwd`/build:/OUT gcr.io/skia-public/skia-wasm-release:prod \
+	#     sh -c "cp -r /tmp/* /OUT/"
+	#
+	#   Unable to find image 'gcr.io/skia-public/skia-wasm-release:prod' locally
+	#   docker: Error response from daemon: unauthorized: You don't have the needed permissions to
+	#   perform this operation, and you may have invalid credentials. To authenticate your request,
+	#   follow the steps in: https://cloud.google.com/container-registry/docs/advanced-authentication.
+	#   See 'docker run --help'.
+
+	# cd demos && $(MAKE) build-frontend-ci
+	# cd jsfiddle && $(MAKE) build-frontend-ci
+	# cd particles && $(MAKE) build-frontend-ci
+	# cd skottie && $(MAKE) build-frontend-ci
 
 # Front-end tests will be included in the Infra-PerCommit-Medium tryjob.
 .PHONY: test-frontend-ci
