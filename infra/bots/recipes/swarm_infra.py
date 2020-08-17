@@ -85,8 +85,12 @@ def RunSteps(api):
     retry(api, 3, 'go mod download', cmd=['go', 'mod', 'download'])
 
     install_targets = [
+      'github.com/GeertJohan/go.rice/rice',
       'github.com/golang/protobuf/protoc-gen-go',
       'github.com/kisielk/errcheck',
+      'github.com/twitchtv/twirp/protoc-gen-twirp',
+      'github.com/vektra/mockery/...',
+      'go.larrymyers.com/protoc-gen-twirp_typescript',
       'golang.org/x/tools/cmd/goimports',
       'golang.org/x/tools/cmd/stringer',
       'github.com/vektra/mockery/...',
