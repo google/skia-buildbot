@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aeb2432a_3ece6a66",
+        "filename": "kube/secrets/download-secret.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-08-17T13:32:13Z",
+      "side": 1,
+      "message": "optional: Do we want to specify that cleanup will be done after enter is pressed? (that /tmp/ramdisk will go away)",
+      "revId": "3a47f2406dce70f58f03a974c626b2d936481269",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
