@@ -145,6 +145,7 @@ func TestStart_InterrogatesDeviceInitiallyAndOnTimer(t *testing.T) {
 				Name:            "my-test-bot-001",
 				PodName:         hostname,
 				KubernetesImage: imageName,
+				StartTime:       start,
 			},
 		},
 		event)
@@ -314,8 +315,9 @@ func TestStart_AdbFailsToTalkToDevice_EmptyEventsSentToServer(t *testing.T) {
 				DumpsysThermalService: "",
 			},
 			Host: machine.Host{
-				Name:    "my-test-bot-001",
-				PodName: hostname,
+				Name:      "my-test-bot-001",
+				PodName:   hostname,
+				StartTime: start,
 			},
 		},
 		event)
@@ -420,4 +422,122 @@ func TestStart_RunningSwarmingTaskInMachineIsSentInEvent(t *testing.T) {
 	}
 
 	assert.Equal(t, int64(0), m.interrogateAndSendFailures.Get())
+}
+
+func TestRebootDevice_Success(t *testing.T) {
+	// Manual because we are testing pubsub.
+	unittest.ManualTest(t)
+	ctx, _, instanceConfig := setupConfig(t)
+
+	// Set the SWARMING_BOT_ID env variable.
+	oldVar := os.Getenv(swarming.SwarmingBotIDEnvVar)
+	err := os.Setenv(swarming.SwarmingBotIDEnvVar, "my-test-bot-001")
+	require.NoError(t, err)
+	defer func() {
+		err = os.Setenv(swarming.SwarmingBotIDEnvVar, oldVar)
+		assert.NoError(t, err)
+	}()
+
+	// Create a Machine instance.
+	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
+	m, err := New(ctx, true, instanceConfig, start)
+	m.SetDimensionsForSwarming(machine.SwarmingDimensions{
+		machine.DimAndroidDevices: {"1"},
+	})
+
+	ctx = executil.WithFakeTests(ctx,
+		"Test_FakeExe_AdbReboot_Success",
+	)
+
+	err = m.RebootDevice(ctx)
+	require.NoError(t, err)
+}
+
+func Test_FakeExe_AdbReboot_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "reboot"}, args)
+
+	// Force exit so we don't get PASS in the output.
+	os.Exit(0)
+}
+
+func TestRebootDevice_ErrOnNonZeroExitCode(t *testing.T) {
+	// Manual because we are testing pubsub.
+	unittest.ManualTest(t)
+	ctx, _, instanceConfig := setupConfig(t)
+
+	// Set the SWARMING_BOT_ID env variable.
+	oldVar := os.Getenv(swarming.SwarmingBotIDEnvVar)
+	err := os.Setenv(swarming.SwarmingBotIDEnvVar, "my-test-bot-001")
+	require.NoError(t, err)
+	defer func() {
+		err = os.Setenv(swarming.SwarmingBotIDEnvVar, oldVar)
+		assert.NoError(t, err)
+	}()
+
+	// Create a Machine instance.
+	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
+	m, err := New(ctx, true, instanceConfig, start)
+
+	m.SetDimensionsForSwarming(machine.SwarmingDimensions{
+		machine.DimAndroidDevices: {"1"},
+	})
+
+	ctx = executil.WithFakeTests(ctx,
+		"Test_FakeExe_Reboot_NonZeroExitCode",
+	)
+
+	err = m.RebootDevice(ctx)
+	require.Error(t, err)
+}
+
+func TestRebootDevice_NoErrorIfNoAndroidDeviceAttached(t *testing.T) {
+	// Manual because we are testing pubsub.
+	unittest.ManualTest(t)
+	ctx, _, instanceConfig := setupConfig(t)
+
+	// Set the SWARMING_BOT_ID env variable.
+	oldVar := os.Getenv(swarming.SwarmingBotIDEnvVar)
+	err := os.Setenv(swarming.SwarmingBotIDEnvVar, "my-test-bot-001")
+	require.NoError(t, err)
+	defer func() {
+		err = os.Setenv(swarming.SwarmingBotIDEnvVar, oldVar)
+		assert.NoError(t, err)
+	}()
+
+	// Create a Machine instance.
+	start := time.Date(2020, time.May, 1, 0, 0, 0, 0, time.UTC)
+	m, err := New(ctx, true, instanceConfig, start)
+
+	m.SetDimensionsForSwarming(machine.SwarmingDimensions{
+		machine.DimAndroidDevices: {},
+	})
+
+	// If adb reboot gets called it will return an error.
+	ctx = executil.WithFakeTests(ctx,
+		"Test_FakeExe_Reboot_NonZeroExitCode",
+	)
+
+	err = m.RebootDevice(ctx)
+
+	// Since the dimensions say there's no Android device attached we shouldn't run
+	// "adb reboot" and should not return an error.
+	require.NoError(t, err)
+}
+
+func Test_FakeExe_Reboot_NonZeroExitCode(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
+
+	os.Exit(127)
 }

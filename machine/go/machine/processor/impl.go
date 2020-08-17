@@ -168,6 +168,7 @@ func (p *ProcessorImpl) Process(ctx context.Context, previous machine.Descriptio
 	ret.RunningSwarmingTask = event.RunningSwarmingTask
 	ret.PodName = event.Host.PodName
 	ret.LastUpdated = time.Now()
+	ret.DeviceUptime = int32(event.Android.Uptime.Seconds())
 
 	ret.KubernetesImage = sanitizeKubernetesImageName(event.Host.KubernetesImage)
 	for k, values := range dimensions {

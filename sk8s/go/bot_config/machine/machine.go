@@ -126,6 +126,12 @@ func (m *Machine) interrogate(ctx context.Context) machine.Event {
 		ret.Android.DumpsysThermalService = thermal
 	}
 
+	if uptime, err := m.adb.Uptime(ctx); err != nil {
+		sklog.Infof("Failed to read uptime: %s", err)
+	} else {
+		ret.Android.Uptime = uptime
+	}
+
 	ret.RunningSwarmingTask = m.runningTask
 
 	ret.Host.StartTime = m.startTime
@@ -213,4 +219,13 @@ func (m *Machine) IsRunningSwarmingTask() bool {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	return m.runningTask
+}
+
+// RebootDevice reboots the attached device.
+func (m *Machine) RebootDevice(ctx context.Context) error {
+	if len(m.dimensions[machine.DimAndroidDevices]) > 0 {
+		return m.adb.Reboot(ctx)
+	}
+	sklog.Info("No attached device to reboot.")
+	return nil
 }

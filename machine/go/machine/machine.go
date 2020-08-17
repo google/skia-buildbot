@@ -9,10 +9,11 @@ type SwarmingDimensions map[string][]string
 
 // Well known swarming dimensions.
 const (
-	DimID          = "id"
-	DimOS          = "os"
-	DimQuarantined = "quarantined"
-	DimDeviceType  = "device_type"
+	DimID             = "id"
+	DimOS             = "os"
+	DimQuarantined    = "quarantined"
+	DimDeviceType     = "device_type"
+	DimAndroidDevices = "android_devices"
 )
 
 // Mode is the mode we want the machine to be in. Note that this is the desired
@@ -72,6 +73,7 @@ type Description struct {
 	Temperature         map[string]float64 // In Celsius.
 	RunningSwarmingTask bool
 	RecoveryStart       time.Time // When did the machine start being in recovery mode.
+	DeviceUptime        int32     // Seconds
 }
 
 // NewDescription returns a new Description instance.
@@ -109,9 +111,10 @@ const (
 
 // Android contains the raw results from interrogating an Android device.
 type Android struct {
-	GetProp               string `json:"getprop"`
-	DumpsysBattery        string `json:"dumpsys_battery"`
-	DumpsysThermalService string `json:"dumpsys_thermal_service"`
+	GetProp               string        `json:"getprop"`
+	DumpsysBattery        string        `json:"dumpsys_battery"`
+	DumpsysThermalService string        `json:"dumpsys_thermal_service"`
+	Uptime                time.Duration `json:"uptime"`
 }
 
 // Host is information about the host machine.
