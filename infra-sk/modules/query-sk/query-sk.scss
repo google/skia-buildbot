@@ -11,11 +11,16 @@ query-sk {
 
   .selection {
     display: inline-block;
+    margin-right: 1em;
   }
 
   query-values-sk {
     display: inline-block;
     margin: 0 1em;
+  }
+
+  query-values-sk.hidden {
+    display: none;
   }
 
   select-sk {
