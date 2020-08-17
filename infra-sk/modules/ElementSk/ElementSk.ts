@@ -7,19 +7,16 @@ import { render } from 'lit-html'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 /**
- * A base class that records the connected status of the element in
- * this._connected and provides a _render() function that doesn't do anything
- * this this._connected is false.
- *
- * @property {Boolean} _connected - True if the connectedCallback has been
- *   called.
+ * A base class that records the connected status of the element in this._connected and provides a
+ * _render() function that doesn't do anything if this this._connected is false.
  *
  * @example
  *
  * class MyElement extends ElementSk {
+ *   greeting = "Hello";
+ *
  *   constructor() {
- *     super();
- *     this._template = (ele) => html`<p>Hello World!</p>`;
+ *     super((ele: MyElement) => html`<p>${ele.greeting} World!</p>`);
  *   }
  *
  *   connectedCallback() {
@@ -27,16 +24,18 @@ import { upgradeProperty } from 'elements-sk/upgradeProperty'
  *     this._render();
  *   }
  * }
- *
  */
 export class ElementSk extends HTMLElement {
+  protected _template: ((el: any) => unknown) | null = null;
+  protected _connected: boolean = false;
+
   /**
-   * @param template A lit-html template to be used in _render().
+   * @param templateFn A function that, when applied to this component, will returns the component's
+   *     lit-html template.
    */
-  constructor(template = null) {
+  constructor(templateFn?: (el: any) => unknown) {
     super();
-    this._template = template;
-    this._connected = false;
+    this._template = templateFn || null;
   }
 
   connectedCallback() {
@@ -55,20 +54,17 @@ export class ElementSk extends HTMLElement {
    *    https://developers.google.com/web/fundamentals/web-components/best-practices#lazy-properties
    *    } for more details.
    *
-   * @param name {string} Property name.
-   * @protected
+   * @param name Property name.
    */
-  _upgradeProperty(name) {
+  protected _upgradeProperty(name: string) {
     upgradeProperty(this, name);
   }
 
   /**
-   * Renders the lit-html template found at this._template if not-null, but
-   * only if connectedCallback has been called.
-   *
-   * @protected
+   * Renders the lit-html template found at this._template if not-null, but only if
+   * connectedCallback has been called.
    */
-  _render() {
+  protected _render() {
     if (this._connected && !!this._template) {
       render(this._template(this), this, {eventContext: this});
     }
