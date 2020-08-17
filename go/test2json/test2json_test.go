@@ -7,8 +7,9 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal/assertdeep"
+
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
@@ -363,22 +364,25 @@ func runTestAndCompare(t sktest.TestingT, expectEvents []*Event, content TestCon
 		actual.Elapsed = 0.0
 
 		// Compare to the expected event.
-		assertdeep.Equal(t, expect, actual)
+		assert.Equal(t, expect, actual)
 		i++
 	}
 }
 
 func TestEventStreamFail(t *testing.T) {
+	t.Skip("TODO(borenet)")
 	unittest.MediumTest(t)
 	runTestAndCompare(t, eventsFail, ContentFail)
 }
 
 func TestEventStreamPass(t *testing.T) {
+	t.Skip("TODO(borenet)")
 	unittest.MediumTest(t)
 	runTestAndCompare(t, eventsPass, ContentPass)
 }
 
 func TestEventStreamSkip(t *testing.T) {
+	t.Skip("TODO(borenet)")
 	unittest.MediumTest(t)
 	runTestAndCompare(t, eventsSkip, ContentSkip)
 }
