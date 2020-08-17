@@ -67,3 +67,8 @@ wasm_libs_fixed: package-lock.json
 	echo "export const SKIA_VERSION = '0.5.0';" > build/version.js
 
 .PHONY: serve watch app release release_tot wasm_libs_fixed wasm_libs_tot get_latest_skia push
+
+.PHONY: build-frontend-ci
+build-frontend-ci: wasm_libs_tot
+	npm ci
+	npx webpack --mode=production
