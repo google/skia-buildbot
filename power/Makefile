@@ -24,3 +24,8 @@ package-lock.json: package.json
 	npm install
 
 .PHONY: build serve core release_build release push watch
+
+.PHONY: build-frontend-ci
+build-frontend-ci:
+	npm ci
+	npx webpack --mode=production

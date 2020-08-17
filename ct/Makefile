@@ -180,6 +180,11 @@ e2e_tests:
 	@echo
 	@echo
 
+.PHONY: build-frontend-ci
+build-frontend-ci:
+	npm ci
+	npx webpack --mode=production
+
 .PHONY: test-frontend-ci
 test-frontend-ci:
 	npm ci
