@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "595f818b_e47d2ce3",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-17T21:03:43Z",
+      "side": 1,
+      "message": "Any particular reason this is int32 (put another way, should Battery also be int32?) Could this be time.Duration to align with Android.Uptime?",
+      "range": {
+        "startLine": 76,
+        "startChar": 21,
+        "endLine": 76,
+        "endChar": 26
+      },
+      "revId": "e476f7106b365b291e2d48bfcce38ab503d20ee6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
