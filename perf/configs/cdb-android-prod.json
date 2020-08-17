@@ -23,7 +23,7 @@
       "reject_if_name_matches": "/tx_log/"
     },
     "branches": [],
-    "file_ingestion_pubsub_topic_name": "perf-ingestion-complete-android-production"
+    "file_ingestion_pubsub_topic_name": "perf-ingestion-complete-android-production-cdb"
   },
   "git_repo_config": {
     "git_auth_type": "gerrit",
