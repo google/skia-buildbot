@@ -381,6 +381,7 @@ func (x *Task) GetSwarmingTaskId() string {
 	return ""
 }
 
+// vscinfo.LongCommit
 type LongCommit struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
