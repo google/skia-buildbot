@@ -50,3 +50,12 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
 include webpack/webpack.mk
+
+.PHONY: build-frontend-ci
+build-frontend-ci:
+	# TODO(lovisolo): This only builds what's under //status/webpack. This
+	#                 make target should probably have "web" as a dependency,
+	#                 but this fails to build on my workstation. Investigate
+	#                 and ask others for help.
+	cd webpack && npm ci
+	cd webpack && npx webpack --mode=production
