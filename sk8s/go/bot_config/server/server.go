@@ -178,6 +178,7 @@ func (s *Server) onBeforeTask(w http.ResponseWriter, r *http.Request) {
 func (s *Server) onAfterTask(w http.ResponseWriter, r *http.Request) {
 	s.machine.SetIsRunningSwarmingTask(false)
 	s.onAfterTaskSuccess.Inc(1)
+	s.machine.RebootDevice(r.Context())
 }
 
 // Start the http server. This function never returns.
