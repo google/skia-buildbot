@@ -3,20 +3,23 @@
  * @description <h2><code>ElementSk</code></h2>
  *
  */
-import { render, TemplateResult } from 'lit-html'
+import { render } from 'lit-html'
 import { upgradeProperty } from 'elements-sk/upgradeProperty'
 
 /**
- * A base class that records the connected status of the element in this._connected and provides a
- * _render() function that doesn't do anything if this this._connected is false.
+ * A base class that records the connected status of the element in
+ * this._connected and provides a _render() function that doesn't do anything
+ * this this._connected is false.
+ *
+ * @property {Boolean} _connected - True if the connectedCallback has been
+ *   called.
  *
  * @example
  *
  * class MyElement extends ElementSk {
- *   greeting = "Hello";
- *
  *   constructor() {
- *     super((ele: MyElement) => html`<p>${ele.greeting} World!</p>`);
+ *     super();
+ *     this._template = (ele) => html`<p>Hello World!</p>`;
  *   }
  *
  *   connectedCallback() {
@@ -24,18 +27,16 @@ import { upgradeProperty } from 'elements-sk/upgradeProperty'
  *     this._render();
  *   }
  * }
+ *
  */
 export class ElementSk extends HTMLElement {
-  protected _template: ((el: any) => TemplateResult) | null = null;
-  protected _connected: boolean = false;
-
   /**
-   * @param template A function that, when applied to this component, will returns the component's
-   *     lit-html template.
+   * @param template A lit-html template to be used in _render().
    */
-  constructor(templateFn?: (el: any) => TemplateResult) {
+  constructor(template = null) {
     super();
-    this._template = templateFn || null;
+    this._template = template;
+    this._connected = false;
   }
 
   connectedCallback() {
@@ -54,17 +55,20 @@ export class ElementSk extends HTMLElement {
    *    https://developers.google.com/web/fundamentals/web-components/best-practices#lazy-properties
    *    } for more details.
    *
-   * @param name Property name.
+   * @param name {string} Property name.
+   * @protected
    */
-  protected _upgradeProperty(name: string) {
+  _upgradeProperty(name) {
     upgradeProperty(this, name);
   }
 
   /**
-   * Renders the lit-html template found at this._template if not-null, but only if
-   * connectedCallback has been called.
+   * Renders the lit-html template found at this._template if not-null, but
+   * only if connectedCallback has been called.
+   *
+   * @protected
    */
-  protected _render() {
+  _render() {
     if (this._connected && !!this._template) {
       render(this._template(this), this, {eventContext: this});
     }
