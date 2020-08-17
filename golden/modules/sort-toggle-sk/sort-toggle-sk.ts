@@ -37,7 +37,7 @@ export class SortToggleSk<T extends Object> extends ElementSk {
   private _data: Array<T> = [];
 
   constructor() {
-    super(null); // There is no template to use for rendering.
+    super(); // There is no template to use for rendering.
   }
 
   connectedCallback() {
