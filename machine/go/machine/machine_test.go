@@ -11,6 +11,8 @@ import (
 
 var testTime = time.Date(2020, 1, 1, 1, 1, 1, 1, time.UTC)
 
+var testDuration = time.Second
+
 func TestCopy(t *testing.T) {
 	unittest.SmallTest(t)
 	in := Description{
@@ -32,6 +34,7 @@ func TestCopy(t *testing.T) {
 		RunningSwarmingTask:  true,
 		PowerCycle:           true,
 		RecoveryStart:        testTime,
+		DeviceUptime:         testDuration,
 	}
 	out := in.Copy()
 	require.Equal(t, in, out)
