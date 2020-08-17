@@ -23,12 +23,18 @@ func (p valuePercentSortable) Less(i, j int) bool { return p[i].Percent > p[j].P
 func (p valuePercentSortable) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // valuePercentSliceSortable is a utility class for sorting []ValuePercent's by
-// the Percent of the first entry in the []ValuePercent.
+// the Percent of the first entry in the []ValuePercent. If they are equal then
+// sort by Value.
 type valuePercentSliceSortable [][]ValuePercent
 
-func (p valuePercentSliceSortable) Len() int           { return len(p) }
-func (p valuePercentSliceSortable) Less(i, j int) bool { return p[i][0].Percent > p[j][0].Percent }
-func (p valuePercentSliceSortable) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p valuePercentSliceSortable) Len() int { return len(p) }
+func (p valuePercentSliceSortable) Less(i, j int) bool {
+	if p[i][0].Percent == p[j][0].Percent {
+		return p[i][0].Value < p[j][0].Value
+	}
+	return p[i][0].Percent > p[j][0].Percent
+}
+func (p valuePercentSliceSortable) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
 // SortValuePercentSlice the slice of ValuePercent in a way that's useful to humans.
 func SortValuePercentSlice(arr []ValuePercent) {
