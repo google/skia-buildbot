@@ -37,6 +37,7 @@ type PreUploadStep func(context.Context, []string, *http.Client, string) error
 // preUploadSteps is the registry of known PreUploadStep instances.
 var preUploadSteps = map[string]PreUploadStep{
 	"ANGLECodeGeneration":             ANGLECodeGeneration,
+	"ANGLERollChromium":               ANGLERollChromium,
 	"GoGenerateCipd":                  GoGenerateCipd,
 	"TrainInfra":                      TrainInfra,
 	"FlutterLicenseScripts":           FlutterLicenseScripts,
@@ -306,5 +307,18 @@ func ANGLECodeGeneration(ctx context.Context, env []string, client *http.Client,
 		Env:  env,
 	})
 	sklog.Infof("Output from run_code_generation:\n%s", out)
+	return skerr.Wrap(err)
+}
+
+// Run the ANGLE roll_chromium_deps.py script.
+func ANGLERollChromium(ctx context.Context, env []string, _ *http.Client, parentRepoDir string) error {
+	sklog.Info("Running roll_chromium_deps script...")
+	out, err := exec.RunCommand(ctx, &exec.Command{
+		Name: "python",
+		Args: []string{filepath.Join("scripts", "roll_chromium_deps.py")},
+		Dir:  parentRepoDir,
+		Env:  env,
+	})
+	sklog.Infof("Output from roll_chromium_deps.py:\n%s", out)
 	return skerr.Wrap(err)
 }
