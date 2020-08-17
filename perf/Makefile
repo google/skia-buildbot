@@ -97,6 +97,11 @@ start_datastore_emulator:
 start_cockroachdb_emulator:
 	cd /tmp; cockroach start-single-node --insecure  --listen-addr=127.0.0.1
 
+.PHONY: build-frontend-ci
+build-frontend-ci:
+	npm ci
+	npx webpack --mode=production
+
 .PHONY: test-frontend-ci
 test-frontend-ci:
 	npm ci

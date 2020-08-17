@@ -25,3 +25,8 @@ testgo:
 
 watch:
 	npx webpack --mode=development --watch
+
+.PHONY: build-frontend-ci
+build-frontend-ci:
+	npm ci
+	npx webpack --mode=production

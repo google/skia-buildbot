@@ -45,3 +45,8 @@ push: get_latest_skia release
 	pushk jsfiddle
 
 .PHONY: build serve release_build watch core release wasm_libs get_latest_skia
+
+.PHONY: build-frontend-ci
+build-frontend-ci: wasm_libs
+	npm ci
+	npx webpack --mode=production
