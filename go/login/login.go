@@ -566,6 +566,9 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 // isAuthorized returns true if the given email address matches either the
 // domain or the user allow list.
 func isAuthorized(email string) bool {
+	if email == "" {
+		return false
+	}
 	parts := strings.Split(email, "@")
 	if len(parts) != 2 {
 		sklog.Errorf("Email %q was not in 2 parts", email)
