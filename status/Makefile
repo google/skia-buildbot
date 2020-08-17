@@ -50,3 +50,10 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
 include webpack/webpack.mk
+
+.PHONY: build-frontend-ci
+build-frontend-ci:
+	# The below commands use //status/webpack/webpack.config.ts to build the code in //status/webpack.
+	# In the future this should probably be updated to target //status/webpack.config.ts instead.
+	cd webpack && npm ci
+	cd webpack && npx webpack --mode=production
