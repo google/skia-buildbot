@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4c327681_a9db0b14",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-17T14:27:35Z",
+      "side": 1,
+      "message": "Likely needs some ANGLE-side work before landing.",
+      "revId": "1e0dc4b2361f4d2c2f9561c2ac4ddd0bd389f374",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
