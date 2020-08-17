@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "91170034_fd893c30",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-17T18:43:34Z",
+      "side": 1,
+      "message": "Eric, PTAL at the (hopefully) temporarily skipped tests in test2json_test.go I plan to land this as is so you can fix those at your lesiure.",
+      "revId": "4de718ba306572ed03288afa8502ea115c852f64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
