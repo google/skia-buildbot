@@ -214,3 +214,12 @@ func (m *Machine) IsRunningSwarmingTask() bool {
 	defer m.mutex.Unlock()
 	return m.runningTask
 }
+
+// RebootDevice reboots the attached device.
+func (m *Machine) RebootDevice(ctx context.Context) error {
+	if len(m.dimensions[machine.DimAndroidDevices]) > 0 {
+		return m.adb.Reboot(ctx)
+	}
+	sklog.Info("No attached device to reboot.")
+	return nil
+}

@@ -9,10 +9,11 @@ type SwarmingDimensions map[string][]string
 
 // Well known swarming dimensions.
 const (
-	DimID          = "id"
-	DimOS          = "os"
-	DimQuarantined = "quarantined"
-	DimDeviceType  = "device_type"
+	DimID             = "id"
+	DimOS             = "os"
+	DimQuarantined    = "quarantined"
+	DimDeviceType     = "device_type"
+	DimAndroidDevices = "android_devices"
 )
 
 // Mode is the mode we want the machine to be in. Note that this is the desired
