@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,8 +36,43 @@ voltage: 3997
 temperature: 248
 technology: Li-ion`
 
+	adbShellGetUptimeSuccess = `135.7 523.8`
+
 	nonZeroExitCode = 123
 )
+
+func TestUptime_HappyPath(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := executil.FakeTestsContext("Test_FakeExe_AdbShellGetUptime_Success")
+
+	a := New()
+	got, err := a.Uptime(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 135*time.Second, got)
+}
+
+func TestUptime_ErrOnMalformedUptimeContents(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := executil.FakeTestsContext("Test_FakeExe_AdbShellGetUptime_MalformedContents")
+
+	a := New()
+	got, err := a.Uptime(ctx)
+	require.Error(t, err)
+	assert.Equal(t, time.Duration(0), got)
+}
+
+func TestUptime_ErrFromAdbNonZeroExitCode(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ctx := executil.FakeTestsContext("Test_FakeExe_Uptime_NonZeroExitCode")
+
+	a := New()
+	got, err := a.Uptime(ctx)
+	require.Error(t, err)
+	assert.Equal(t, time.Duration(0), got)
+}
 
 func TestRawProperties_HappyPath(t *testing.T) {
 	unittest.SmallTest(t)
@@ -156,4 +192,47 @@ func Test_FakeExe_RawDumpSys_NonZeroExitCode(t *testing.T) {
 	fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
 
 	os.Exit(nonZeroExitCode)
+}
+
+func Test_FakeExe_AdbShellGetUptime_Success(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "shell", "cat", "/proc/uptime"}, args)
+
+	fmt.Print(adbShellGetUptimeSuccess)
+
+	// Force exit so we don't get PASS in the output.
+	os.Exit(0)
+}
+
+func Test_FakeExe_Uptime_NonZeroExitCode(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	fmt.Fprintf(os.Stderr, "error: no devices/emulators found")
+
+	os.Exit(nonZeroExitCode)
+}
+
+func Test_FakeExe_AdbShellGetUptime_MalformedContents(t *testing.T) {
+	unittest.FakeExeTest(t)
+	if os.Getenv(executil.OverrideEnvironmentVariable) == "" {
+		return
+	}
+
+	// Check the input arguments to make sure they were as expected.
+	args := executil.OriginalArgs()
+	require.Equal(t, []string{"adb", "shell", "cat", "/proc/uptime"}, args)
+
+	fmt.Print("this is not valid contents for /proc/uptime")
+
+	// Force exit so we don't get PASS in the output.
+	os.Exit(0)
 }
