@@ -1,6 +1,7 @@
 import { define } from 'elements-sk/define'
-import { ElementSk } from './ElementSk.js'
+import { ElementSk } from './ElementSk'
 import { html } from 'lit-html'
+import { assert } from 'chai'
 
 let container = document.createElement('div');
 document.body.appendChild(container);
@@ -9,7 +10,9 @@ afterEach(function() {
   container.innerHTML = "";
 });
 
-define('my-test-element-sk', class extends ElementSk {
+class MyTestElementSk extends ElementSk {
+  attributeCalled = false;
+
   constructor() {
     super((ele) => html`<p>Hello World!</p>`);
     assert.isNull(this.querySelector('p'));
@@ -28,19 +31,19 @@ define('my-test-element-sk', class extends ElementSk {
     super._render();
     assert.isFalse(this._connected);
     assert.isNull(this.querySelector('p'));
-    this._attributeCalled = true;
+    this.attributeCalled = true;
   }
-});
+}
+
+define('my-test-element-sk', MyTestElementSk);
 
 describe('ElementSk', function() {
   describe('render', function() {
     it('only renders if connected', function() {
         container.innerHTML = `<my-test-element-sk some-attribute><my-test-element-sk>`;
-        let ele = container.firstElementChild;
+        let ele = container.firstElementChild as MyTestElementSk;
         assert.isNotNull(ele.querySelector('p'));
-        assert.isTrue(ele._attributeCalled);
+        assert.isTrue(ele.attributeCalled);
     });
   });
 });
-
-
