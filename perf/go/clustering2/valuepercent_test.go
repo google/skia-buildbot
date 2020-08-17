@@ -52,3 +52,29 @@ func TestSortValuePercentSlice_OnlyOneValuePerSubSlice(t *testing.T) {
 
 	assert.Equal(t, expected, vpSlice)
 }
+
+func TestSortValuePercentSlice_MultipleKeysWithAllTheSamePercent(t *testing.T) {
+	unittest.SmallTest(t)
+
+	vpSlice := []ValuePercent{
+		{"arch=x86", 100},
+		{"foo=a", 50},
+		{"config=565", 100},
+		{"foo=b", 50},
+		{"os=linux", 100},
+		{"gpu=mali", 100},
+	}
+
+	SortValuePercentSlice(vpSlice)
+
+	expected := []ValuePercent{
+		{"arch=x86", 100},
+		{"config=565", 100},
+		{"gpu=mali", 100},
+		{"os=linux", 100},
+		{"foo=a", 50},
+		{"foo=b", 50},
+	}
+
+	assert.Equal(t, expected, vpSlice)
+}
