@@ -357,6 +357,7 @@ func (g *Git) Update(ctx context.Context) error {
 		cmd = exec.CommandContext(ctx, g.gitFullPath, "rev-list", "HEAD", "^"+mostRecentGitHash, `--pretty=%aN <%aE>%n%s%n%ct`, "--reverse")
 	}
 	sklog.Infof("perfgit: Starting update with nextCommitNumber: %d", nextCommitNumber)
+	sklog.Infof("perfgit rev-list cmd: %q", cmd)
 	cmd.Dir = g.instanceConfig.GitRepoConfig.Dir
 
 	stdout, err := cmd.StdoutPipe()
