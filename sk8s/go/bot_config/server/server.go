@@ -178,6 +178,9 @@ func (s *Server) onBeforeTask(w http.ResponseWriter, r *http.Request) {
 func (s *Server) onAfterTask(w http.ResponseWriter, r *http.Request) {
 	s.machine.SetIsRunningSwarmingTask(false)
 	s.onAfterTaskSuccess.Inc(1)
+	if err := s.machine.RebootDevice(r.Context()); err != nil {
+		sklog.Warningf("Failed to reboot device: %s", err)
+	}
 }
 
 // Start the http server. This function never returns.
