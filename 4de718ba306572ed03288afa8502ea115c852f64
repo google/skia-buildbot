@@ -16,6 +16,24 @@
       "revId": "4de718ba306572ed03288afa8502ea115c852f64",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "60a6c147_a8d3fe23",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-17T18:53:49Z",
+      "side": 1,
+      "message": "Please don\u0027t skip tests. test2json is used to parse results for task drivers.  It should be fixed like any other code which breaks due to a Go version change.  If you want me to do it, I\u0027ll take a look, but I\u0027m not going to get to it today.",
+      "parentUuid": "91170034_fd893c30",
+      "revId": "4de718ba306572ed03288afa8502ea115c852f64",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
