@@ -16,6 +16,24 @@
       "revId": "3a47f2406dce70f58f03a974c626b2d936481269",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cd03fd1f_843e262f",
+        "filename": "kube/secrets/download-secret.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-17T16:01:20Z",
+      "side": 1,
+      "message": "Done.",
+      "parentUuid": "aeb2432a_3ece6a66",
+      "revId": "3a47f2406dce70f58f03a974c626b2d936481269",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
