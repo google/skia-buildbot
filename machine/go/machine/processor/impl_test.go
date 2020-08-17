@@ -134,6 +134,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 	// The current machine has nothing attached.
 	previous := machine.NewDescription()
 	require.Empty(t, previous.Dimensions)
+	uptime := int32(5)
 
 	// An event arrives with the attachment of an Android device.
 	props := strings.Join([]string{
@@ -147,6 +148,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 		EventType: machine.EventTypeRawState,
 		Android: machine.Android{
 			GetProp: props,
+			Uptime:  time.Duration(int64(uptime) * int64(time.Second)),
 		},
 		Host: machine.Host{
 			Name:            "skia-rpi2-0001",
@@ -175,6 +177,7 @@ func TestProcess_NewDeviceAttached(t *testing.T) {
 	assert.Equal(t, machine.ModeAvailable, next.Mode)
 	assert.Equal(t, event.Host.PodName, next.PodName)
 	assert.Equal(t, event.Host.KubernetesImage, next.KubernetesImage)
+	assert.Equal(t, uptime, next.DeviceUptime)
 }
 
 func TestProcess_DetectInsideDocker(t *testing.T) {
