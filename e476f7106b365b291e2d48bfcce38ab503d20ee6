@@ -22,6 +22,30 @@
       "revId": "e476f7106b365b291e2d48bfcce38ab503d20ee6",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd3502dd_992efc64",
+        "filename": "machine/go/machine/machine.go",
+        "patchSetId": 12
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-17T21:09:41Z",
+      "side": 1,
+      "message": "time.Duration is effectively an int64, which doesn\u0027t play well with Javascript.",
+      "parentUuid": "595f818b_e47d2ce3",
+      "range": {
+        "startLine": 76,
+        "startChar": 21,
+        "endLine": 76,
+        "endChar": 26
+      },
+      "revId": "e476f7106b365b291e2d48bfcce38ab503d20ee6",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
