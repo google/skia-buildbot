@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9b59c3c3_4d1e71fe",
+        "filename": "am/Makefile",
+        "patchSetId": 21
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-18T12:03:05Z",
+      "side": 1,
+      "message": "My only complaint is that this deletes and recreates the node_modules directory unconditionally, which can be pretty slow.  I don\u0027t remember which of our Makefiles I copied this trick from, but I like it: add a \"node_modules/lastupdate\" target to indicate whether the node_modules directory is up to date:\n\nnode_modules/lastupdate: package-lock.json\n    npm ci\n    touch node_modules/lastupdate\n\nAnd then subsequent steps depend on it, eg.\n\n.PHONY: build-frontend-ci\nbuild-frontend-ci: node_modules/lastupdate\n    npx webpack --mode\u003dproduction\n\nAnother nit: there is at least one target in this Makefile (and maybe several among the others) which could depend on the new build-frontend-ci target rather than running webpack directly.\n\nIt would also be nice to be able to make the webpack target not be phony, ie. list the input files and derive the output files from them and make a real target which depends on pages/*, modules/*, and node_modules/lastupdate, and runs webpack to generate dist/*.  That gets sort of fiddly, but there\u0027s an example here: https://skia-review.googlesource.com/c/buildbot/+/302504/10/autoroll/Makefile#25",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 7
+      },
+      "revId": "101f0ccebd4ce310db690fff6dc83b92e09d3715",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
