@@ -11,19 +11,12 @@ load("@build_bazel_rules_nodejs//internal/npm_install:npm_umd_bundle.bzl", "npm_
 ##############################
 
 COMMON_SK_MODULES = [
-    "dom",
-    "hintable",
-    "human",
-    "jsonOrThrow",
-    "object",
-    "query",
-    "stateReflector",
+    filename                                             # node_modules/common-sk/modules/dom.js
+        .replace("node_modules/common-sk/modules/", "")  # dom.js
+        .replace(".js", "")                              # dom
+    for filename in glob(["node_modules/common-sk/modules/*.js"])
+    if not filename.endswith("_test.js")
 ]
-
-filegroup(
-    name = "common-sk_umd",
-    srcs = ["common-sk/modules/%s.umd.js" % module for module in COMMON_SK_MODULES],
-)
 
 [
     npm_umd_bundle(
@@ -35,9 +28,55 @@ filegroup(
     for module in COMMON_SK_MODULES
 ]
 
+filegroup(
+    name = "common-sk_umd",
+    srcs = ["common-sk/modules/%s.umd.js" % module for module in COMMON_SK_MODULES],
+)
+
+################################
+# UMD bundles for elements-sk. #
+################################
+
+ELEMENT_SK_MODULES = [
+    filename                                       # node_modules/elements-sk/icon/add-icon-sk.js
+        .replace("node_modules/elements-sk/", "")  # icon/add-icon-sk.js
+        .replace(".js", "")                        # icon/add-icon-sk
+    for filename in glob(["node_modules/elements-sk/**/*.js"])
+    if not filename.endswith("/index.js") and not filename.endswith("_test.js")
+]
+
+[
+    npm_umd_bundle(
+        name = "elements-sk_%s_umd" % module.replace("/", "__"),
+        package_name = "elements-sk/%s" % module,
+        entry_point = "@infra-sk_npm//:node_modules/elements-sk/%s.js" % module,
+        package = "@infra-sk_npm//elements-sk",
+        excluded = [
+            # The npm_umd_bundle rule chokes when it sees CSS modules imported from JavaScript code
+            # (e.g. "import './icon-sk.css'") because it treats any imports as JavaScript imports.
+            # Excluding any imported CSS modules prevents said erros.
+            './icon-sk.css',
+            './toast-sk.css',
+        ],
+    )
+    for module in ELEMENT_SK_MODULES
+]
+
+filegroup(
+    name = "elements-sk_umd",
+    srcs = ["elements-sk/%s.umd.js" % module for module in ELEMENT_SK_MODULES],
+)
+
 ######################
 # Other UMD bundles. #
 ######################
+
+npm_umd_bundle(
+    name = "lit-html_umd",
+    package_name = "lit-html",
+    entry_point = "@infra-sk_npm//:node_modules/lit-html/lit-html.js",
+    package = "@infra-sk_npm//lit-html",
+)
 
 npm_umd_bundle(
     name = "chai_umd",
