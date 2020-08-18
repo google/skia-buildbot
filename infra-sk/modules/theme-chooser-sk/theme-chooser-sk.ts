@@ -28,7 +28,7 @@
  */
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
-import { ElementSk } from '../ElementSk';
+import { ElementSk } from '../ElementSk/ElementSk';
 import 'elements-sk/icon/invert-colors-icon-sk';
 
 /** Class applied to <body> to enable darkmode, and the key in localstorage to persist it. */
