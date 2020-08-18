@@ -16,6 +16,24 @@
       "revId": "a95f73bdba97931ba4fa0bf2086b9ecde853c919",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0274e75_527f659e",
+        "filename": "machine/modules/json/index.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-18T19:23:41Z",
+      "side": 1,
+      "message": "This file is generated via go2ts.",
+      "parentUuid": "bdd93dce_95975ce5",
+      "revId": "a95f73bdba97931ba4fa0bf2086b9ecde853c919",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
