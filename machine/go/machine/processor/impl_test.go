@@ -103,7 +103,7 @@ func TestProcess_DetectBadEventType(t *testing.T) {
 	unittest.SmallTest(t)
 	ctx := context.Background()
 	event := machine.Event{
-		EventType: machine.EventType(-1),
+		EventType: machine.EventType(""),
 	}
 	previous := machine.Description{}
 	p := newProcessorForTest(t)
