@@ -22,6 +22,30 @@
       "revId": "3f6d7bc2bfa90ea8a62b4352a9df2c19f84eef56",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d79cfab_12537b01",
+        "filename": "golden/modules/query-dialog-sk/query-dialog-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-18T18:07:48Z",
+      "side": 1,
+      "message": "D\u0027oh. No.",
+      "parentUuid": "0eee5724_9cdcffc2",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 21
+      },
+      "revId": "3f6d7bc2bfa90ea8a62b4352a9df2c19f84eef56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
