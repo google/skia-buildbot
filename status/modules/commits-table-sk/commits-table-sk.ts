@@ -1,5 +1,5 @@
 /**
- * @module modules/commits-data-sk
+ * @module modules/commits-table-sk
  * @description An element that manages fetching and processing commits data for Status.
  */
 
@@ -18,39 +18,8 @@ import {
 } from '../rpc/statusFe'
 import 'elements-sk/select-sk';
 
-const VALID_TASK_SPEC_CATEGORIES = ["Build", "Housekeeper", "Infra", "Perf", "Test", "Upload"];
-
-const FILTER_ALL = "all";
-const FILTER_DEFAULT = "default";
-const FILTER_INTERESTING = "interesting";
-const FILTER_FAILURES = "failures";
-const FILTER_FAIL_NO_COMMENT = "nocomment";
-const FILTER_COMMENTS = "comments";
-const FILTER_SEARCH = "search";
-
-const TASK_STATUS_PENDING = "";
-const TASK_STATUS_RUNNING = "RUNNING";
-const TASK_STATUS_SUCCESS = "SUCCESS";
-const TASK_STATUS_FAILURE = "FAILURE";
-const TASK_STATUS_MISHAP = "MISHAP";
-
-const TIME_POINTS = [
-    {
-        label: "-1h",
-        offset: 60 * 60 * 1000,
-    },
-    {
-        label: "-3h",
-        offset: 3 * 60 * 60 * 1000,
-    },
-    {
-        label: "-1d",
-        offset: 24 * 60 * 60 * 1000,
-    },
-];
-
 const template = () => html`
-<div class=tr-container>
+<div id=statusTable>
   
 </div>
 `;
@@ -68,6 +37,7 @@ export interface Commit extends LongCommit {
   patchStorage: string;
   isRevert: boolean;
   isReland: boolean;
+  ignoreFailure: boolean;
 }
 
 export class CommitsDataSk extends ElementSk {
@@ -157,6 +127,7 @@ export class CommitsDataSk extends ElementSk {
                 this.tasksByCommit.set(commit, tasksForCommit);
               }
               tasksForCommit.set(task.name, task);
+              // TODO clear old comments?
             }
           }
         }
@@ -176,32 +147,48 @@ export class CommitsDataSk extends ElementSk {
 
         // Process commits.
         for (let commit of this.commits) {
+          // Metadata for display/links.
           commit.shortAuthor = shortAuthor(commit.author);
           commit.shortHash = shortCommit(commit.hash);
           commit.shortSubject = shortSubject(commit.subject);
-          
           [commit.issue, commit.patchStorage] = findIssueAndReviewTool(commit);
 
+          // Map reverts and relands.
           commit.isRevert = false;
           var reverted = findRevertedCommit(this.commitsByHash, commit);
           if (reverted) {
             commit.isRevert = true;
-            this.reverted_map.set(reverted.hash,commit);
+            this.reverted_map.set(reverted.hash, commit);
+            reverted.ignoreFailure = true;
           }
-
           commit.isReland = false;
           var relanded = findRelandedCommit(this.commitsByHash, commit);
           if (relanded) {
             commit.isReland = true;
             this.relanded_map.set(relanded.hash, commit);
           }
+
+          const commitCommentsByTaskSpec = (this.comments.get(commit.hash) || new Map()).get('') as Comment | null;
+          if (commitCommentsByTaskSpec) {
+            //const commentsForCommit = 
+          }
+
+          // TODO Previously,we calculated dotted lines for branch-broken commits ahead of time. I'm going to try to just do it at render time.
+
+
+          // TODO Same as above for continued tasks (tasks covering multiple commits)
+
+          // TODO Autoroll tags as branch heads.
+
+          // TODO Time Offsets
+
         }
       })
       .catch(errorMessage);;
   }
 };
 
-define('commits-data-sk', CommitsDataSk);
+define('commits-table-sk', CommitsDataSk);
 
 // shortCommit returns the first 7 characters of a commit hash.
 function shortCommit(commit: string): string {
