@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
-	"strings"
 
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
@@ -20,16 +19,17 @@ import (
 )
 
 const (
+	// RefMain is the ref name for the main branch.
 	RefMain = git.DefaultRef
 
 	branchBeta     = "beta"
 	branchStable   = "stable"
-	jsonUrl        = "https://omahaproxy.appspot.com/all.json"
+	jsonURL        = "https://omahaproxy.appspot.com/all.json"
 	os             = "linux"
 	refTmplRelease = "refs/branch-heads/%d"
 )
 
-var trueBranchRegex = regexp.MustCompile(`(\d+)`)
+var versionRegex = regexp.MustCompile(`(\d+)\.\d+\.(\d+)\.\d+`)
 
 // ReleaseBranchRef returns the fully-qualified ref for the release branch with
 // the given number.
@@ -126,7 +126,7 @@ func (b *Branches) Validate() error {
 
 // Get retrieves the current Branches.
 func Get(ctx context.Context, c *http.Client) (*Branches, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, jsonUrl, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, jsonURL, nil)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -143,7 +143,6 @@ func Get(ctx context.Context, c *http.Client) (*Branches, error) {
 	type osVersion struct {
 		Os       string `json:"os"`
 		Versions []struct {
-			Branch         string `json:"true_branch"`
 			Channel        string `json:"channel"`
 			CurrentVersion string `json:"current_version"`
 		}
@@ -156,32 +155,31 @@ func Get(ctx context.Context, c *http.Client) (*Branches, error) {
 		if osv.Os == os {
 			rv := &Branches{}
 			for _, v := range osv.Versions {
-				m := trueBranchRegex.FindString(v.Branch)
-				if m == "" {
-					return nil, skerr.Fmt("invalid branch number: %q", v.Branch)
-				}
-				number, err := strconv.Atoi(m)
-				if err != nil {
-					return nil, skerr.Wrapf(err, "invalid branch number")
-				}
-				split := strings.Split(v.CurrentVersion, ".")
-				milestone, err := strconv.Atoi(split[0])
-				if err != nil {
-					return nil, skerr.Wrapf(err, "invalid milestone number")
-				}
+				var branch *Branch
 				if v.Channel == branchBeta {
-					rv.Beta = &Branch{
-						Milestone: milestone,
-						Number:    number,
-						Ref:       ReleaseBranchRef(number),
-					}
+					branch = &Branch{}
+					rv.Beta = branch
 				} else if v.Channel == branchStable {
-					rv.Stable = &Branch{
-						Milestone: milestone,
-						Number:    number,
-						Ref:       ReleaseBranchRef(number),
-					}
+					branch = &Branch{}
+					rv.Stable = branch
+				} else {
+					continue
 				}
+				matches := versionRegex.FindStringSubmatch(v.CurrentVersion)
+				if len(matches) != 3 {
+					return nil, skerr.Fmt("invalid current_version %q for channel %s on os %s", v.CurrentVersion, v.Channel, osv.Os)
+				}
+				milestone, err := strconv.Atoi(matches[1])
+				if err != nil {
+					return nil, skerr.Wrapf(err, "invalid milestone number %q for channel %s on os %s", v.CurrentVersion, v.Channel, osv.Os)
+				}
+				branch.Milestone = milestone
+				number, err := strconv.Atoi(matches[2])
+				if err != nil {
+					return nil, skerr.Wrapf(err, "invalid branch number %q for channel %s on os %s", v.CurrentVersion, v.Channel, osv.Os)
+				}
+				branch.Number = number
+				branch.Ref = ReleaseBranchRef(number)
 			}
 			if rv.Beta != nil {
 				rv.Main = &Branch{
