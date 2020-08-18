@@ -4,26 +4,51 @@
 
 include ../kube/kube.mk
 
-.PHONY: autoroll-fe
-autoroll-fe:
+# First create a list of all the modules that ./go/rpc depends upon.
+rpcDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' ./go/rpc)
+
+# Then use that list to find all the Go files that make up those dependent modules.
+rpcDependentFiles := ./go/rpc/rpc.proto $(shell echo $(rpcDependentModules) | xargs -L 1 go list -f '{{ $$dir := .Dir }}{{ range  .GoFiles }}{{ $$dir }}/{{ . }}{{ "\n" }}{{ end }}')
+
+rpcOutputFiles := ./go/rpc/rpc.pb.go ./go/rpc/rpc.twirp.go ./modules/rpc/rpc.ts ./modules/rpc/twirp.ts
+
+$(rpcOutputFiles): $(rpcDependentFiles)
+	go generate ./go/rpc
+
+./package-lock.json: package.json
+	npm install
+
+./node_modules/lastupdate: ./package-lock.json
 	npm ci
+	touch ./node_modules/lastupdate
+
+pages := $(shell find ./pages -type f)
+modules := $(shell find ./modules -type f)
+frontendInputFiles := $(pages) $(modules) $(rpcOutputFiles) ./node_modules/lastupdate
+pageBaseNames := $(sort $(basename $(notdir $(pages))))
+distNames := $(addsuffix -bundle.js,$(pageBaseNames)) $(addsuffix -bundle.css,$(pageBaseNames)) $(addsuffix .html,$(pageBaseNames))
+dist := $(addprefix ./dist/,$(distNames))
+
+$(dist): $(frontendInputFiles)
 	npx webpack --mode=production
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-fe
+
+.PHONY: autoroll-fe
+autoroll-fe: $(dist)
+	CGO_ENABLED=0 GOOS=linux go install -v ./go/autoroll-fe
 
 .PHONY: autoroll-be
 autoroll-be:
-	GOOS=linux go install -a ./go/autoroll-be
+	GOOS=linux go install -v ./go/autoroll-be
 
 .PHONY: autoroll-google3
 autoroll-google3:
-	CGO_ENABLED=0 GOOS=linux go install -a ./go/autoroll-google3
+	CGO_ENABLED=0 GOOS=linux go install -v ./go/autoroll-google3
 
 .PHONY: all
 all: autoroll-fe autoroll-be autoroll-google3
 
 .PHONY: serve
-serve:
-	npm ci
+serve: $(dist)
 	npx webpack-dev-server --mode=development --watch-poll
 
 ROLLER_INTERNAL_CONFIG_DIR = "/tmp/skia-autoroll-internal-config"
@@ -108,3 +133,8 @@ push-all: release-be release-fe autoroll-pusher setup-internal-config-repo
 .PHONY: validate
 validate:
 	go run ../infra/bots/task_drivers/validate_autoroll_configs/validate_autoroll_configs.go --local --config="$(CONFIG)"
+
+# Run the autoroll-fe locally. This is just for convenience in testing.
+.PHONY: run-fe
+run-fe: autoroll-fe
+	autoroll-fe --local --logtostderr --firestore_instance=staging --config_file=./config/skia-skiabot-test.json
