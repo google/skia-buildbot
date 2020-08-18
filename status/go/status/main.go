@@ -75,6 +75,7 @@ var (
 	capacityClient   *capacity.CapacityClient      = nil
 	capacityTemplate *template.Template            = nil
 	commitsTemplate  *template.Template            = nil
+	demoTemplate     *template.Template            = nil
 	iCache           *incremental.IncrementalCache = nil
 	lkgrObj          *lkgr.LKGR                    = nil
 	taskDb           db.RemoteDB                   = nil
@@ -147,6 +148,9 @@ func reloadTemplates() {
 	capacityTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/capacity.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+	demoTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "dist", "demo.html"),
 	))
 }
 
@@ -673,6 +677,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
+	r.PathPrefix("/dist/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	taskComments := r.PathPrefix("/json/tasks/{id}").Subrouter()
 	taskComments.HandleFunc("/comments", addTaskCommentHandler).Methods("POST")
 	taskComments.HandleFunc("/comments/{timestamp:[0-9]+}", deleteTaskCommentHandler).Methods("DELETE")
