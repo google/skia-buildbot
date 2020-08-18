@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3bfc1958_28c5599b",
+        "filename": "go/test2json/test2json_test.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-18T12:36:57Z",
+      "side": 1,
+      "message": "I believe we stopped aliasing require as assert.",
+      "range": {
+        "startLine": 10,
+        "startChar": 1,
+        "endLine": 10,
+        "endChar": 7
+      },
+      "revId": "92bf7021ecef70ab2c7d5ecea043f0c4861a0982",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
