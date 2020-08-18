@@ -43,18 +43,9 @@ See also [configs](./configs/README.md)
 
 ## Migrations
 
-Migrations can be applied from the desktop by using the migrations command line app, which
-can be installed by:
+Migrations can be applied from the desktop by using `perf-tool`.
 
-    go get -tags 'cockroachdb'  github.com/golang-migrate/migrate/cmd/migrate
-
-Now port-forwarding the database port for the cockroachdb instance, for example:
-
-    kubectl port-forward perf-cockroachdb-0 26257
-
-Then run the migrations:
-
-    migrate -verbose -path ./migrations/cockroachdb/ -database cockroachdb://root@localhost:26257/skia?sslmode=disable up
+    perf-tool database migrate --config_filename=my-config.json
 
 ## Backups
 
