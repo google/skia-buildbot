@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0eee5724_9cdcffc2",
+        "filename": "golden/modules/query-dialog-sk/query-dialog-sk.scss",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-18T17:58:20Z",
+      "side": 1,
+      "message": "Is this included intentionally?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 9,
+        "endChar": 21
+      },
+      "revId": "3f6d7bc2bfa90ea8a62b4352a9df2c19f84eef56",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
