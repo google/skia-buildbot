@@ -171,6 +171,7 @@ func gobPublicReposGood(r io.Reader, headers http.Header) bool {
 		sklog.Warningf("Failed to read probe response: %s", err)
 		return false
 	}
+	sklog.Info("Comparing expectations.")
 	ret := string(b) == string(gobb)
 	if !ret {
 		sklog.Warningf("GoB expectations didn't match, check for new or removed repos.")

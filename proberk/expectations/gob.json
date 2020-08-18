@@ -8,10 +8,6 @@
     "name": "common",
     "clone_url": "https://skia.googlesource.com/common"
   },
-  "eskia": {
-    "name": "eskia",
-    "clone_url": "https://skia.googlesource.com/eskia"
-  },
   "external/github.com/2d-inc/Nima-Cpp": {
     "name": "external/github.com/2d-inc/Nima-Cpp",
     "clone_url": "https://skia.googlesource.com/external/github.com/2d-inc/Nima-Cpp",
