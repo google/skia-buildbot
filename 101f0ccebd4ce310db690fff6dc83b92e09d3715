@@ -46,6 +46,30 @@
       "revId": "101f0ccebd4ce310db690fff6dc83b92e09d3715",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1322b519_0a895cea",
+        "filename": "am/Makefile",
+        "patchSetId": 21
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-18T18:43:10Z",
+      "side": 1,
+      "message": "(to be clear, my intent was not to block this CL on my comments here, just to bring up some issues I\u0027ve been thinking about)\n\n\u003e I estimate this will add ~3 minutes to the Infra-PerCommit-Build task, based on how long it takes to run \"make build-frontend-ci\" from the repository\u0027s root directory on my workstation. I figured this is OK since this is not an interactive task.\n\n\u003e If this is a deal breaker, what do you think would be maximum acceptable additional overhead?\n\nInfra-PerCommit-Build isn\u0027t on the CQ, so within reason it doesn\u0027t really matter if it gets a little slower.  I was mainly concerned about how long it takes to build locally, which is not something that was introduced in this CL.  It just seemed like a good opportunity to open the discussion.\n\n\u003e Instead of making other rules depend on build-frontend-ci, WDYT about going the other way around and have build-frontend-ci be a phony target that delegates to the actual rules used to produce production builds?\n\nNo objection here, but if it means that \"build-frontend-ci\" is just an alias for a different target then it seems unnecessary.\n\n\u003e That\u0027s what I initially intended to do, but there\u0027s a lot of variation in the frontend make targets across our apps. For example, some apps don\u0027t use \"npm ci\" at all; instead, they use \"npm install\", which updates the package-lock.json file on every run.\n\nI suspect that any use of \"npm install\" (outside of a dedicated target to regenerate package-lock.json) is accidental and could be replaced with \"npm ci\" with only positive effects.  \"npm ci\" either didn\u0027t exist or I wasn\u0027t aware of it at the time that I wrote most of my Makefiles, so I used \"npm install\".  I think I\u0027ve replaced all of those instances with \"npm ci\" but I\u0027m not 100% sure.\n\nMore generally, I don\u0027t think that the variation between Makefiles is intentional (eg. because any one app needs some very specific build workflow) but just happened naturally over time as things grew and changed.  I would be in favor of a cleanup/unification, maybe after the dust settles from lit-html and typescript (and Bazel, shared package.json, etc) migrations.",
+      "parentUuid": "c9d3e340_db4d9746",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 7
+      },
+      "revId": "101f0ccebd4ce310db690fff6dc83b92e09d3715",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
