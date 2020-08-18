@@ -1,0 +1,16 @@
+load(":index.bzl", "remove_css_imports_from_js")
+
+remove_css_imports_from_js(
+  name = "actual_output",
+  src = ":testdata/input.js",
+  out = ":testdata/actual_output.js"
+)
+
+sh_test(
+  name = "unit_test",
+  srcs = ["unit_test.sh"],
+  data = [
+     ":testdata/actual_output.js",
+     ":testdata/expected_output.js"
+  ]
+)
