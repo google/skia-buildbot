@@ -12,7 +12,7 @@ import { html } from 'lit-html';
 import { Description } from '../json';
 
 import { errorMessage } from 'elements-sk/errorMessage';
-import { diffDate } from 'common-sk/modules/human';
+import { diffDate, strDuration } from 'common-sk/modules/human';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../../../infra-sk/modules/theme-chooser-sk';
@@ -178,6 +178,11 @@ const deleteMachine = (ele: MachineServerSk, machine: Description) => html`
   ></delete-icon-sk>
 `;
 
+/** Displays the device uptime, truncated to the minute. */
+const deviceUptime = (machine: Description) => html`
+  ${strDuration(machine.DeviceUptime - (machine.DeviceUptime % 60))}
+`;
+
 const rows = (ele: MachineServerSk) =>
   ele._machines.map(
     (machine) => html`
@@ -194,6 +199,7 @@ const rows = (ele: MachineServerSk) =>
         <td>${machine.Battery}</td>
         <td>${temps(machine.Temperature)}</td>
         <td>${diffDate(machine.LastUpdated)}</td>
+        <td>${deviceUptime(machine)}</td>
         <td>${dimensions(machine)}</td>
         <td>${annotation(machine)}</td>
         <td>${imageName(machine)}</td>
@@ -241,6 +247,7 @@ const template = (ele: MachineServerSk) => html`
         <th>Battery</th>
         <th>Temperature</th>
         <th>Last Seen</th>
+        <th>Uptime</th>
         <th>Dimensions</th>
         <th>Annotation</th>
         <th>Image</th>
