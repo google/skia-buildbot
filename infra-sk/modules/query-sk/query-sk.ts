@@ -60,6 +60,7 @@ export class QuerySk extends ElementSk {
       </div>
       <query-values-sk
         id="values"
+        ?hidden=${ele._keySelect?.selection === -1}
         @query-values-changed=${ele._valuesChanged}
         ?hide_invert=${ele.hide_invert}
         ?hide_regex=${ele.hide_regex}

@@ -18,6 +18,10 @@ query-sk {
     margin: 0 1em;
   }
 
+  query-values-sk.hidden {
+    display: none;
+  }
+
   select-sk {
     display: block;
     max-height: 20em;
