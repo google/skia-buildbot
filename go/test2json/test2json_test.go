@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/deepequal/assertdeep"
+
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/sktest"
 	"go.skia.org/infra/go/testutils"
@@ -33,13 +33,13 @@ var (
 			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
-			Output:  fmt.Sprintf("--- FAIL: %s (0.00s)\n", TestName),
+			Output:  fmt.Sprintf("    test2json_test.go:6: %s\n", FailText),
 		},
 		{
 			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
-			Output:  fmt.Sprintf("    test2json_test.go:6: %s\n", FailText),
+			Output:  fmt.Sprintf("--- FAIL: %s (0.00s)\n", TestName),
 		},
 		{
 			Action:  ActionFail,
@@ -78,13 +78,13 @@ var (
 			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
-			Output:  fmt.Sprintf("--- PASS: %s (0.00s)\n", TestName),
+			Output:  fmt.Sprintf("    test2json_test.go:6: %s\n", passText),
 		},
 		{
 			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
-			Output:  fmt.Sprintf("    test2json_test.go:6: %s\n", passText),
+			Output:  fmt.Sprintf("--- PASS: %s (0.00s)\n", TestName),
 		},
 		{
 			Action:  ActionPass,
@@ -123,13 +123,13 @@ var (
 			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
-			Output:  fmt.Sprintf("--- SKIP: %s (0.00s)\n", TestName),
+			Output:  "    test2json_test.go:6: no thanks!\n",
 		},
 		{
 			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
-			Output:  "    test2json_test.go:6: no thanks!\n",
+			Output:  fmt.Sprintf("--- SKIP: %s (0.00s)\n", TestName),
 		},
 		{
 			Action:  ActionSkip,
@@ -165,6 +165,12 @@ var (
 			Output:  fmt.Sprintf("=== RUN   %s\n", TestName),
 		},
 		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName,
+			Output:  "    test2json_test.go:6: test-level log, before sub-steps\n",
+		},
+		{
 			Action:  ActionRun,
 			Package: PackageFullPath,
 			Test:    TestName + "/1",
@@ -176,6 +182,12 @@ var (
 			Output:  fmt.Sprintf("=== RUN   %s/1\n", TestName),
 		},
 		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName + "/1",
+			Output:  "    test2json_test.go:8: nested 1 log, before sub-steps\n",
+		},
+		{
 			Action:  ActionRun,
 			Package: PackageFullPath,
 			Test:    TestName + "/1/2",
@@ -185,6 +197,12 @@ var (
 			Package: PackageFullPath,
 			Test:    TestName + "/1/2",
 			Output:  fmt.Sprintf("=== RUN   %s/1/2\n", TestName),
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName + "/1/2",
+			Output:  "    test2json_test.go:10: nested 2 log, before sub-steps\n",
 		},
 		{
 			Action:  ActionRun,
@@ -200,14 +218,65 @@ var (
 		{
 			Action:  ActionOutput,
 			Package: PackageFullPath,
+			Test:    TestName + "/1/2/3",
+			Output:  "    test2json_test.go:12: nested 3 log\n",
+		},
+		{
+			Action:  ActionCont,
+			Package: PackageFullPath,
+			Test:    TestName + "/1/2",
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName + "/1/2",
+			Output:  fmt.Sprintf("=== CONT  %s/1/2\n", TestName),
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName + "/1/2",
+			Output:  "    test2json_test.go:14: nested 2 log, after sub-steps\n",
+		},
+		{
+			Action:  ActionCont,
+			Package: PackageFullPath,
+			Test:    TestName + "/1",
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName + "/1",
+			Output:  fmt.Sprintf("=== CONT  %s/1\n", TestName),
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName + "/1",
+			Output:  "    test2json_test.go:16: nested 1 log, after sub-steps\n",
+		},
+		{
+			Action:  ActionCont,
+			Package: PackageFullPath,
 			Test:    TestName,
-			Output:  fmt.Sprintf("--- PASS: %s (0.00s)\n", TestName),
 		},
 		{
 			Action:  ActionOutput,
 			Package: PackageFullPath,
 			Test:    TestName,
-			Output:  "    test2json_test.go:6: test-level log, before sub-steps\n",
+			Output:  fmt.Sprintf("=== CONT  %s\n", TestName),
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName,
+			Output:  "    test2json_test.go:18: test-level log, after sub-steps\n",
+		},
+		{
+			Action:  ActionOutput,
+			Package: PackageFullPath,
+			Test:    TestName,
+			Output:  fmt.Sprintf("--- PASS: %s (0.00s)\n", TestName),
 		},
 		{
 			Action:  ActionOutput,
@@ -218,79 +287,14 @@ var (
 		{
 			Action:  ActionOutput,
 			Package: PackageFullPath,
-			Test:    TestName + "/1",
-			Output:  "        test2json_test.go:8: nested 1 log, before sub-steps\n",
-		},
-		{
-			Action:  ActionOutput,
-			Package: PackageFullPath,
 			Test:    TestName + "/1/2",
 			Output:  fmt.Sprintf("        --- PASS: %s/1/2 (0.00s)\n", TestName),
 		},
 		{
 			Action:  ActionOutput,
 			Package: PackageFullPath,
-			Test:    TestName + "/1/2",
-			Output:  "            test2json_test.go:10: nested 2 log, before sub-steps\n",
-		},
-		{
-			Action:  ActionOutput,
-			Package: PackageFullPath,
 			Test:    TestName + "/1/2/3",
 			Output:  fmt.Sprintf("            --- PASS: %s/1/2/3 (0.00s)\n", TestName),
-		},
-		{
-			Action:  ActionOutput,
-			Package: PackageFullPath,
-			Test:    TestName + "/1/2/3",
-			Output:  "                test2json_test.go:12: nested 3 log\n",
-		},
-		{
-			Action:  ActionOutput,
-			Package: PackageFullPath,
-			// TODO(borenet): Unfortunately, it seems that output is
-			// attributed to the most recently started sub-test,
-			// despite using t.Log() on the testing.T instance for
-			// a specific sub-step. In this case, we should see
-			// `Test: TestName + "/1/2"` The same is true of eg.
-			// fmt.Println. If this becomes a problem, we should
-			// write additional tests to check the behavior of
-			// t.Log, os.Stdout, os.Stderr, etc, and come up with a
-			// way to ensure that they're attributed to the correct
-			// test.
-			Test:   TestName + "/1/2/3",
-			Output: "            test2json_test.go:14: nested 2 log, after sub-steps\n",
-		},
-		{
-			Action:  ActionOutput,
-			Package: PackageFullPath,
-			// TODO(borenet): Unfortunately, it seems that output is
-			// attributed to the most recently started sub-test,
-			// despite using t.Log() on the testing.T instance for
-			// a specific sub-step. In this case, we should see
-			// `Test: TestName + "/1"` The same is true of eg.
-			// fmt.Println. If this becomes a problem, we should
-			// write additional tests to check the behavior of
-			// t.Log, os.Stdout, os.Stderr, etc, and come up with a
-			// way to ensure that they're attributed to the correct
-			// test.
-			Test:   TestName + "/1/2/3",
-			Output: "        test2json_test.go:16: nested 1 log, after sub-steps\n",
-		},
-		{
-			Action:  ActionOutput,
-			Package: PackageFullPath,
-			// TODO(borenet): Unfortunately, it seems that output is
-			// attributed to the most recently started sub-test,
-			// despite using t.Log() on the testing.T instance for
-			// a specific sub-step. In this case, we should see
-			// `Test: TestName` The same is true of eg. fmt.Println.
-			// If this becomes a problem, we should write additional
-			// tests to check the behavior of t.Log, os.Stdout,
-			// os.Stderr, etc, and come up with a way to ensure that
-			// they're attributed to the correct test.
-			Test:   TestName + "/1/2/3",
-			Output: "    test2json_test.go:18: test-level log, after sub-steps\n",
 		},
 		{
 			Action:  ActionPass,
@@ -363,7 +367,7 @@ func runTestAndCompare(t sktest.TestingT, expectEvents []*Event, content TestCon
 		actual.Elapsed = 0.0
 
 		// Compare to the expected event.
-		assertdeep.Equal(t, expect, actual)
+		require.Equal(t, expect, actual)
 		i++
 	}
 }
