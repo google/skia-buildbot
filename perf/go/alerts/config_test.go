@@ -272,5 +272,5 @@ func TestConfigStateToInt_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	assert.Equal(t, 0, ConfigStateToInt(ACTIVE))
 	assert.Equal(t, 1, ConfigStateToInt(DELETED))
-	assert.Equal(t, 0, ConfigStateToInt(ConfigState(17)), "Invalid ConfigState value.")
+	assert.Equal(t, 0, ConfigStateToInt("INVALID STATE"), "Invalid ConfigState value.")
 }
