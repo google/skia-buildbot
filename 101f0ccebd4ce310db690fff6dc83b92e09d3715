@@ -22,6 +22,30 @@
       "revId": "101f0ccebd4ce310db690fff6dc83b92e09d3715",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c9d3e340_db4d9746",
+        "filename": "am/Makefile",
+        "patchSetId": 21
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-18T18:21:43Z",
+      "side": 1,
+      "message": "\u003e My only complaint is that this deletes and recreates the node_modules directory unconditionally, which can be pretty slow.\n\nI estimate this will add ~3 minutes to the Infra-PerCommit-Build task, based on how long it takes to run \"make build-frontend-ci\" from the repository\u0027s root directory on my workstation. I figured this is OK since this is not an interactive task.\n\nIf this is a deal breaker, what do you think would be maximum acceptable additional overhead?\n\nNote that these build-frontend-ci targets will go away once we complete our transition to Bazel. Both build-frontend-ci and test-frontend-ci can be replaced with running \"bazel build ...\" and \"bazel test ...\" from the repo\u0027s root directory, respectively (though this would build and test all targets, not just the frontend ones).\n\n\u003e Another nit: there is at least one target in this Makefile (and maybe several among the others) which could depend on the new build-frontend-ci target rather than running webpack directly.\n\nInstead of making other rules depend on build-frontend-ci, WDYT about going the other way around and have build-frontend-ci be a phony target that delegates to the actual rules used to produce production builds?\n\nThat\u0027s what I initially intended to do, but there\u0027s a lot of variation in the frontend make targets across our apps. For example, some apps don\u0027t use \"npm ci\" at all; instead, they use \"npm install\", which updates the package-lock.json file on every run.\n\nSo to err on the safe side, I figured I\u0027d start with a standard build-frontend-ci target for all apps, and let each app owner customize their build-frontend-ci target as they see fit.\n\nWould you be OK with this approach?",
+      "parentUuid": "9b59c3c3_4d1e71fe",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 7
+      },
+      "revId": "101f0ccebd4ce310db690fff6dc83b92e09d3715",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
