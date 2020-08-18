@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bdd93dce_95975ce5",
+        "filename": "machine/modules/json/index.ts",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-08-18T19:19:08Z",
+      "side": 1,
+      "message": "Unused?",
+      "revId": "a95f73bdba97931ba4fa0bf2086b9ecde853c919",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
