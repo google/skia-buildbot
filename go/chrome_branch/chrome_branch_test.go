@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/mockhttpclient"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -19,13 +20,11 @@ const (
     "versions": [
       {
         "channel": "beta",
-        "current_version": "81.0.4044.17",
-        "true_branch": "4044"
+        "current_version": "81.0.4044.17"
       },
       {
         "channel": "stable",
-        "current_version": "80.0.3987.100",
-        "true_branch": "3987_137"
+        "current_version": "80.0.3987.100"
       }
     ]
   }
@@ -149,36 +148,37 @@ func TestGet(t *testing.T) {
 	c := urlmock.Client()
 
 	// Everything okay.
-	urlmock.MockOnce(jsonUrl, mockhttpclient.MockGetDialogue([]byte(fakeData)))
+	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(fakeData)))
 	b, err := Get(ctx, c)
 	require.NoError(t, err)
 	assertdeep.Equal(t, dummyBranches(), b)
 
 	// OS missing altogether.
-	urlmock.MockOnce(jsonUrl, mockhttpclient.MockGetDialogue([]byte("[]")))
+	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte("[]")))
 	b, err = Get(ctx, c)
 	require.Nil(t, b)
 	require.NotNil(t, err)
 	require.True(t, strings.Contains(err.Error(), "No branches found for OS"))
 
 	// Beta channel is missing.
-	urlmock.MockOnce(jsonUrl, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, branchBeta, "dev"))))
+	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, branchBeta, "dev"))))
 	b, err = Get(ctx, c)
 	require.Nil(t, b)
 	require.NotNil(t, err)
 	require.True(t, strings.Contains(err.Error(), "Beta branch is missing"), err)
 
-	// Missing number.
-	urlmock.MockOnce(jsonUrl, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, "true_branch", "nope"))))
+	// Invalid branch number.
+	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, "4044", "nope"))))
 	b, err = Get(ctx, c)
 	require.Nil(t, b)
 	require.NotNil(t, err)
-	require.True(t, strings.Contains(err.Error(), "invalid branch number"), err)
+	sklog.Errorf("Err: %s", err)
+	require.True(t, strings.Contains(err.Error(), "invalid current_version \"81.0.nope.17\""), err)
 
 	// Missing milestone.
-	urlmock.MockOnce(jsonUrl, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, "current_version", "nope"))))
+	urlmock.MockOnce(jsonURL, mockhttpclient.MockGetDialogue([]byte(strings.ReplaceAll(fakeData, "81", "nope"))))
 	b, err = Get(ctx, c)
 	require.Nil(t, b)
 	require.NotNil(t, err)
-	require.True(t, strings.Contains(err.Error(), "invalid milestone"), err)
+	require.True(t, strings.Contains(err.Error(), "invalid current_version \"nope.0.4044.17\""), err)
 }
