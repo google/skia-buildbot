@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/jsonutils"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
@@ -43,7 +44,7 @@ const (
 type AutoRoller struct {
 	cfg         *roller.AutoRollerConfig
 	recent      *recent_rolls.RecentRolls
-	status      *status.AutoRollStatusCache
+	status      *status.Cache
 	childBranch string
 	childRepo   *gitiles.Repo
 	mtx         sync.Mutex
@@ -53,12 +54,12 @@ type AutoRoller struct {
 func NewAutoRoller(ctx context.Context, cfg *roller.AutoRollerConfig, client *http.Client) (*AutoRoller, error) {
 	recent, err := recent_rolls.NewRecentRolls(ctx, cfg.RollerName)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
-
-	cache, err := status.NewCache(ctx, cfg.RollerName)
+	statusDB := status.NewDatastoreDB()
+	cache, err := status.NewCache(ctx, statusDB, cfg.RollerName)
 	if err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	a := &AutoRoller{
 		cfg:         cfg,
@@ -70,7 +71,7 @@ func NewAutoRoller(ctx context.Context, cfg *roller.AutoRollerConfig, client *ht
 	}
 
 	if err := a.UpdateStatus(ctx, "", true); err != nil {
-		return nil, err
+		return nil, skerr.Wrap(err)
 	}
 	return a, nil
 }
@@ -164,7 +165,7 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 		ValidStrategies: []string{strategy.ROLL_STRATEGY_BATCH},
 	}
 	sklog.Infof("Updating status: %+v", newStatus)
-	if err := status.Set(ctx, a.cfg.RollerName, newStatus); err != nil {
+	if err := a.status.Set(ctx, a.cfg.RollerName, newStatus); err != nil {
 		return err
 	}
 	if lastRoll != nil && util.In(lastRoll.Result, []string{autoroll.ROLL_RESULT_DRY_RUN_SUCCESS, autoroll.ROLL_RESULT_SUCCESS}) {

@@ -77,7 +77,7 @@ type autoroller struct {
 
 	// Interactions with the roller through the DB.
 	Mode     modes.ModeHistory
-	Status   *status.AutoRollStatusCache
+	Status   *status.Cache
 	Strategy strategy.StrategyHistory
 }
 
@@ -485,7 +485,8 @@ func main() {
 				sklog.Error(err)
 			}
 		})
-		arbStatus, err := status.NewCache(ctx, cfg.RollerName)
+		arbStatusDB := status.NewDatastoreDB()
+		arbStatus, err := status.NewCache(ctx, arbStatusDB, cfg.RollerName)
 		if err != nil {
 			sklog.Fatal(err)
 		}
