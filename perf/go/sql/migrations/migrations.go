@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb" // For support of connection URLs that start with "cochroach://".
+	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb" // For support of connection URLs that start with "postgresql://".
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/golang-migrate/migrate/v4/source/httpfs"
 	"go.skia.org/infra/go/skerr"

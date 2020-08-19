@@ -43,18 +43,18 @@ See also [configs](./configs/README.md)
 
 ## Migrations
 
-Migrations can be applied from the desktop by using the migrations command line app, which
-can be installed by:
+Migrations can be applied from the desktop by using `perf-tool`.
 
-    go get -tags 'cockroachdb'  github.com/golang-migrate/migrate/cmd/migrate
+    perf-tool database migrate --config_filename=my-config.json
 
-Now port-forwarding the database port for the cockroachdb instance, for example:
+You might need to forward the CockroachDB connection:
 
     kubectl port-forward perf-cockroachdb-0 26257
 
-Then run the migrations:
+And then override the connection string, for example:
 
-    migrate -verbose -path ./migrations/cockroachdb/ -database cockroachdb://root@localhost:26257/skia?sslmode=disable up
+    perf-tool database migrate --config_filename=my-config.json \
+      --connection_string=cockroachdb://root@localhost:26257/mytest?sslmode=disable
 
 ## Backups
 
@@ -65,6 +65,6 @@ Migrating between cockroachdb instances can be done by using the 'dump' and
 
     $ cockroach sql --url postgresql://root@localhost:26257/?sslmode=disable --database flutter_flutter < flutter_flutter.sql
 
-Note that you should run this from one of the cockroachdb instances in the
-cluster since they have local SSD and the bandwidth is much higher than to your
-workstation.
+Note that you might want to run this from one of the cockroachdb instances in
+the cluster since they have local SSD and the bandwidth is much higher than to
+your workstation.

@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/pubsub"
@@ -30,6 +31,8 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut"
+	"go.skia.org/infra/perf/go/sql/migrations"
+	"go.skia.org/infra/perf/go/sql/migrations/cockroachdb"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
 	"google.golang.org/api/option"
@@ -112,6 +115,13 @@ func main() {
 		Use: "database [sub]",
 	}
 	databaseCmd.PersistentFlags().String(connectionStringFlag, "", "Override the connection_string in the config file.")
+
+	databaseMigrateSubCmd := &cobra.Command{
+		Use:   "migrate",
+		Short: "Migrate the database to the latest version of the schema.",
+		RunE:  databaseMigrateSubAction,
+	}
+	databaseCmd.AddCommand(databaseMigrateSubCmd)
 
 	databaseBackupSubCmd := &cobra.Command{
 		Use: "backup [sub]",
@@ -273,6 +283,25 @@ func updateInstanceConfigWithOverride(c *cobra.Command) {
 	if connectionStringOverride != "" {
 		instanceConfig.DataStoreConfig.ConnectionString = connectionStringOverride
 	}
+}
+
+func databaseMigrateSubAction(c *cobra.Command, args []string) error {
+	updateInstanceConfigWithOverride(c)
+
+	cockroachdbMigrations, err := cockroachdb.New()
+	if err != nil {
+		return skerr.Wrapf(err, "failed to load migrations")
+	}
+
+	// Modify the connection string so it works with the migration package.
+	connectionString := strings.Replace(instanceConfig.DataStoreConfig.ConnectionString, "postgresql://", "cockroachdb://", 1)
+
+	err = migrations.Up(cockroachdbMigrations, connectionString)
+	if err != nil {
+		return skerr.Wrapf(err, "failed to apply migrations to %q", connectionString)
+	}
+	fmt.Printf("Successfully applied SQL Schema migrations to %q\n", instanceConfig.DataStoreConfig.ConnectionString)
+	return nil
 }
 
 func databaseDatabaseBackupAlertsSubAction(c *cobra.Command, args []string) error {
