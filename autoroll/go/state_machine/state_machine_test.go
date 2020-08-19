@@ -197,7 +197,7 @@ func NewTestAutoRollerImpl(t *testing.T, ctx context.Context, gcsClient gcs.GCSC
 	return &TestAutoRollerImpl{
 		t:               t,
 		failureThrottle: failureThrottle,
-		getModeResult:   modes.MODE_RUNNING,
+		getModeResult:   modes.ModeRunning,
 		rolledPast:      map[string]bool{},
 		safetyThrottle:  safetyThrottle,
 		successThrottle: successThrottle,
@@ -397,11 +397,11 @@ func TestNormal(t *testing.T) {
 	// Should stay throttled.
 	checkNextState(t, sm, S_NORMAL_FAILURE_THROTTLED)
 	// We still have to respect mode changes.
-	r.SetMode(ctx, modes.MODE_DRY_RUN)
+	r.SetMode(ctx, modes.ModeDryRun)
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertDryRun()
-	r.SetMode(ctx, modes.MODE_RUNNING)
+	r.SetMode(ctx, modes.ModeRunning)
 	require.NoError(t, roll.RetryCQ(ctx))
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	roll.SetFailed()
@@ -473,11 +473,11 @@ func TestNormal(t *testing.T) {
 	roll.SetFailed()
 	checkNextState(t, sm, S_NORMAL_FAILURE)
 	checkNextState(t, sm, S_NORMAL_FAILURE_THROTTLED)
-	r.SetMode(ctx, modes.MODE_STOPPED)
+	r.SetMode(ctx, modes.ModeStopped)
 	checkNextState(t, sm, S_STOPPED)
 	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
 	// We don't reopen the CL and go back to throttled state in this case.
-	r.SetMode(ctx, modes.MODE_RUNNING)
+	r.SetMode(ctx, modes.ModeRunning)
 	checkNextState(t, sm, S_NORMAL_IDLE)
 
 	// Close the roll window.
@@ -500,7 +500,7 @@ func TestDryRun(t *testing.T) {
 	r.SetCurrentRev("HEAD")
 	r.SetNextRollRev("HEAD")
 	checkState(t, sm, S_NORMAL_IDLE)
-	r.SetMode(ctx, modes.MODE_DRY_RUN)
+	r.SetMode(ctx, modes.ModeDryRun)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
 
 	// Create a new roll.
@@ -535,11 +535,11 @@ func TestDryRun(t *testing.T) {
 	// Should stay throttled.
 	checkNextState(t, sm, S_DRY_RUN_FAILURE_THROTTLED)
 	// We still have to respect mode changes.
-	r.SetMode(ctx, modes.MODE_RUNNING)
+	r.SetMode(ctx, modes.ModeRunning)
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertNotDryRun()
-	r.SetMode(ctx, modes.MODE_DRY_RUN)
+	r.SetMode(ctx, modes.ModeDryRun)
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	roll.SetFailed()
 	checkNextState(t, sm, S_DRY_RUN_FAILURE)
@@ -597,11 +597,11 @@ func TestDryRun(t *testing.T) {
 	uploaded.(*TestRollCLImpl).SetDryRunFailed()
 	checkNextState(t, sm, S_DRY_RUN_FAILURE)
 	checkNextState(t, sm, S_DRY_RUN_FAILURE_THROTTLED)
-	r.SetMode(ctx, modes.MODE_STOPPED)
+	r.SetMode(ctx, modes.ModeStopped)
 	checkNextState(t, sm, S_STOPPED)
 	roll.AssertClosed(autoroll.ROLL_RESULT_DRY_RUN_FAILURE)
 	// We don't reopen the CL and go back to throttled state in this case.
-	r.SetMode(ctx, modes.MODE_DRY_RUN)
+	r.SetMode(ctx, modes.ModeDryRun)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
 
 	// Close the roll window. In dry run mode we ignore the window.
@@ -642,10 +642,10 @@ func TestNormalToDryRun(t *testing.T) {
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	roll := r.GetActiveRoll().(*TestRollCLImpl)
 	roll.AssertNotDryRun()
-	r.SetMode(ctx, modes.MODE_DRY_RUN)
+	r.SetMode(ctx, modes.ModeDryRun)
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	roll.AssertDryRun()
-	r.SetMode(ctx, modes.MODE_RUNNING)
+	r.SetMode(ctx, modes.ModeRunning)
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	roll.AssertNotDryRun()
 }
@@ -656,27 +656,27 @@ func TestStopped(t *testing.T) {
 
 	// Switch in and out of stopped mode.
 	checkState(t, sm, S_NORMAL_IDLE)
-	r.SetMode(ctx, modes.MODE_STOPPED)
+	r.SetMode(ctx, modes.ModeStopped)
 	checkNextState(t, sm, S_STOPPED)
 	checkNextState(t, sm, S_STOPPED)
-	r.SetMode(ctx, modes.MODE_DRY_RUN)
+	r.SetMode(ctx, modes.ModeDryRun)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
-	r.SetMode(ctx, modes.MODE_STOPPED)
+	r.SetMode(ctx, modes.ModeStopped)
 	checkNextState(t, sm, S_STOPPED)
 
 	r.SetNextRollRev("HEAD+1")
-	r.SetMode(ctx, modes.MODE_RUNNING)
+	r.SetMode(ctx, modes.ModeRunning)
 	checkNextState(t, sm, S_NORMAL_IDLE)
 	checkNextState(t, sm, S_NORMAL_ACTIVE)
 	roll := r.GetActiveRoll().(*TestRollCLImpl)
-	r.SetMode(ctx, modes.MODE_STOPPED)
+	r.SetMode(ctx, modes.ModeStopped)
 	checkNextState(t, sm, S_STOPPED)
 	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
-	r.SetMode(ctx, modes.MODE_DRY_RUN)
+	r.SetMode(ctx, modes.ModeDryRun)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 	roll = r.GetActiveRoll().(*TestRollCLImpl)
-	r.SetMode(ctx, modes.MODE_STOPPED)
+	r.SetMode(ctx, modes.ModeStopped)
 	checkNextState(t, sm, S_STOPPED)
 	roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
 }
@@ -700,14 +700,14 @@ func testSafetyThrottle(t *testing.T, mode string, attemptCount int64, period ti
 		roll := r.GetActiveRoll().(*TestRollCLImpl)
 		n++
 		r.SetNextRollRev(fmt.Sprintf("HEAD+%d", n))
-		if mode == modes.MODE_DRY_RUN {
+		if mode == modes.ModeDryRun {
 			roll.SetDryRunFailed()
 		} else {
 			roll.SetFailed()
 		}
 		require.NoError(t, sm.NextTransition(ctx))
 		require.NoError(t, sm.NextTransition(ctx))
-		if mode == modes.MODE_DRY_RUN {
+		if mode == modes.ModeDryRun {
 			roll.AssertClosed(autoroll.ROLL_RESULT_DRY_RUN_FAILURE)
 		} else {
 			roll.AssertClosed(autoroll.ROLL_RESULT_FAILURE)
@@ -715,7 +715,7 @@ func testSafetyThrottle(t *testing.T, mode string, attemptCount int64, period ti
 	}
 	// Now we should be throttled.
 	throttled := S_NORMAL_SAFETY_THROTTLED
-	if mode == modes.MODE_DRY_RUN {
+	if mode == modes.ModeDryRun {
 		throttled = S_DRY_RUN_SAFETY_THROTTLED
 	}
 	checkNextState(t, sm, throttled)
@@ -733,18 +733,18 @@ func testSafetyThrottle(t *testing.T, mode string, attemptCount int64, period ti
 	r.safetyThrottle = safetyThrottle
 	require.Equal(t, throttled, sm.Current())
 	idle := S_NORMAL_IDLE
-	if mode == modes.MODE_DRY_RUN {
+	if mode == modes.ModeDryRun {
 		idle = S_DRY_RUN_IDLE
 	}
 	checkNextState(t, sm, idle)
 }
 
 func TestSafetyThrottle(t *testing.T) {
-	testSafetyThrottle(t, modes.MODE_RUNNING, 3, 30*time.Minute)
+	testSafetyThrottle(t, modes.ModeRunning, 3, 30*time.Minute)
 }
 
 func TestSafetyThrottleDryRun(t *testing.T) {
-	testSafetyThrottle(t, modes.MODE_DRY_RUN, 3, 30*time.Minute)
+	testSafetyThrottle(t, modes.ModeDryRun, 3, 30*time.Minute)
 }
 
 func TestPersistence(t *testing.T) {
@@ -798,16 +798,16 @@ func TestSuccessThrottle(t *testing.T) {
 	checkNextState(t, sm, S_NORMAL_SUCCESS_THROTTLED)
 	checkNextState(t, sm, S_NORMAL_SUCCESS_THROTTLED)
 	// We should still respect switches to dry run in this state.
-	r.SetMode(ctx, modes.MODE_DRY_RUN)
+	r.SetMode(ctx, modes.ModeDryRun)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
 	// And when we switch back we should still be throttled.
-	r.SetMode(ctx, modes.MODE_RUNNING)
+	r.SetMode(ctx, modes.ModeRunning)
 	checkNextState(t, sm, S_NORMAL_SUCCESS_THROTTLED)
 	// Now, stop the roller, restart it, and ensure that we're still
 	// throttled.
-	r.SetMode(ctx, modes.MODE_STOPPED)
+	r.SetMode(ctx, modes.ModeStopped)
 	checkNextState(t, sm, S_STOPPED)
-	r.SetMode(ctx, modes.MODE_RUNNING)
+	r.SetMode(ctx, modes.ModeRunning)
 	checkNextState(t, sm, S_NORMAL_IDLE)
 	checkNextState(t, sm, S_NORMAL_SUCCESS_THROTTLED)
 	// This would continue for the next 30 minutes... Instead, we'll hack

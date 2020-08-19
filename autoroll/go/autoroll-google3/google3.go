@@ -147,7 +147,7 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 		AutoRollMiniStatus: status.AutoRollMiniStatus{
 			CurrentRollRev:      currentRollRev,
 			LastRollRev:         lastSuccessRev,
-			Mode:                modes.MODE_RUNNING,
+			Mode:                modes.ModeRunning,
 			NumFailedRolls:      numFailures,
 			NumNotRolledCommits: commitsNotRolled,
 		},
@@ -160,7 +160,7 @@ func (a *AutoRoller) UpdateStatus(ctx context.Context, errorMsg string, preserve
 		ParentName:      a.cfg.ParentDisplayName,
 		Recent:          recent,
 		Status:          state_machine.S_NORMAL_ACTIVE,
-		ValidModes:      []string{modes.MODE_RUNNING},
+		ValidModes:      []string{modes.ModeRunning},
 		ValidStrategies: []string{strategy.ROLL_STRATEGY_BATCH},
 	}
 	sklog.Infof("Updating status: %+v", newStatus)
