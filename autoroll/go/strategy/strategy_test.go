@@ -18,7 +18,7 @@ func TestStrategyHistory(t *testing.T) {
 
 	// Create the StrategyHistory.
 	rollerName := "test-roller"
-	sh, err := NewStrategyHistory(ctx, rollerName, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE})
+	sh, err := NewDatastoreStrategyHistory(ctx, rollerName, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE})
 	require.NoError(t, err)
 
 	// Use this function for checking expectations.
@@ -76,7 +76,7 @@ func TestStrategyHistory(t *testing.T) {
 	// Create a new StrategyHistory for a different roller. Ensure that we
 	// don't get the two mixed up.
 	rollerName2 := "test-roller-2"
-	sh2, err := NewStrategyHistory(ctx, rollerName2, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE})
+	sh2, err := NewDatastoreStrategyHistory(ctx, rollerName2, []string{ROLL_STRATEGY_BATCH, ROLL_STRATEGY_SINGLE})
 	require.NoError(t, err)
 	require.Nil(t, sh2.CurrentStrategy())
 	sc0_2 := &StrategyChange{
