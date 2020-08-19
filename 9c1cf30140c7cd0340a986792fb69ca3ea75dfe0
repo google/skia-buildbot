@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8cafd925_46590971",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 9065
+      },
+      "writtenOn": "2020-08-19T13:29:28Z",
+      "side": 1,
+      "message": "Derek, may I start sending you reviews of Debugger changes?",
+      "revId": "9c1cf30140c7cd0340a986792fb69ca3ea75dfe0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
