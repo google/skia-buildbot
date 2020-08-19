@@ -26,6 +26,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/autoroll/go/status"
 	autoroll_status "go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
@@ -813,11 +814,12 @@ func main() {
 	if err := ds.InitWithOpt(common.PROJECT_ID, ds.AUTOROLL_NS, option.WithTokenSource(ts)); err != nil {
 		sklog.Fatalf("Failed to initialize datastore: %s", err)
 	}
+	autorollStatusDB := status.NewDatastoreDB()
 	updateAutorollStatus := func(ctx context.Context) error {
 		statuses := map[string]autoRollStatus{}
 		for host, subMap := range AUTOROLLERS {
 			for roller, friendlyName := range subMap {
-				s, err := autoroll_status.Get(ctx, roller)
+				s, err := autorollStatusDB.Get(ctx, roller)
 				if err != nil {
 					return err
 				}
