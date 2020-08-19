@@ -11,3 +11,5 @@ perf-tool database restore alerts      --local --config_filename=./configs/cdb-a
   --connection_string=postgresql://root@localhost:26257/android?sslmode=disable --in=/tmp/alerts.dat
 perf-tool database restore regressions --local --config_filename=./configs/cdb-android-prod.json \
   --connection_string=postgresql://root@localhost:26257/android?sslmode=disable --in=/tmp/regressions.dat
+perf-tool database restore shortcuts --local --config_filename=./configs/cdb-android-prod.json \
+  --connection_string=postgresql://root@localhost:26257/android?sslmode=disable --in=/tmp/regressions.dat
