@@ -1,0 +1,58 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004512157",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/311723?revision\u003d1",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "8b52f1e8_d2de0bf4",
+        "filename": "skfe/envoy-starter.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 800,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-19T15:07:39Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 800,
+        "startChar": 42,
+        "endLine": 800,
+        "endChar": 48
+      },
+      "revId": "d84fead8e280e0c4a54094698bb839541accb13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004512157",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/311723?revision\u003d1",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "928d0fd5_af544e12",
+        "filename": "skfe/envoy-starter.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 801,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-19T15:07:39Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 801,
+        "startChar": 39,
+        "endLine": 801,
+        "endChar": 45
+      },
+      "revId": "d84fead8e280e0c4a54094698bb839541accb13d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
