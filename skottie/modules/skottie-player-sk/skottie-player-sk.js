@@ -285,7 +285,7 @@ define('skottie-player-sk', class extends HTMLElement {
       window.requestAnimationFrame(this._drawFrame.bind(this));
     }
 
-    let frame = this._state.seekPoint * this.duration() * this._state.nativeFps / 1000;
+    let frame = this._state.seekPoint * this._state.duration * this._state.nativeFps / 1000;
     if (this._config.fps) {
       // When a render FPS is specified, quantize to the desired rate.
       const fpsScale = this._config.fps / this._state.nativeFps;
