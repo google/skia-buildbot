@@ -85,7 +85,7 @@ type AutoRoller struct {
 	status             *status.AutoRollStatusCache
 	statusMtx          sync.RWMutex
 	strategy           strategy.NextRollStrategy
-	strategyHistory    *strategy.StrategyHistory
+	strategyHistory    *strategy.DatastoreStrategyHistory
 	strategyMtx        sync.RWMutex // Protects strategy
 	successThrottle    *state_machine.Throttler
 	timeWindow         *time_window.TimeWindow
@@ -114,7 +114,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 	}
 
 	sklog.Info("Creating strategy history.")
-	sh, err := strategy.NewStrategyHistory(ctx, rollerName, c.ValidStrategies())
+	sh, err := strategy.NewDatastoreStrategyHistory(ctx, rollerName, c.ValidStrategies())
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create strategy history")
 	}

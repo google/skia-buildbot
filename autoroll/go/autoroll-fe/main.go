@@ -78,7 +78,7 @@ type autoroller struct {
 	// Interactions with the roller through the DB.
 	Mode     modes.ModeHistory
 	Status   *status.AutoRollStatusCache
-	Strategy *strategy.StrategyHistory
+	Strategy strategy.StrategyHistory
 }
 
 // Union types for combining roller status with modes and strategies.
@@ -494,7 +494,7 @@ func main() {
 				sklog.Error(err)
 			}
 		})
-		arbStrategy, err := strategy.NewStrategyHistory(ctx, cfg.RollerName, cfg.ValidStrategies())
+		arbStrategy, err := strategy.NewDatastoreStrategyHistory(ctx, cfg.RollerName, cfg.ValidStrategies())
 		if err != nil {
 			sklog.Fatal(err)
 		}
