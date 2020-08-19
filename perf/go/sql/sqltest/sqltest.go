@@ -40,7 +40,7 @@ func NewCockroachDBForTests(t *testing.T, databaseName string) (*pgxpool.Pool, C
 	db, err := sql.Open("postgres", connectionString)
 	require.NoError(t, err)
 
-	// Create a database in the cockroachdb just for this test.
+	// Create a database in cockroachdb just for this test.
 	_, err = db.Exec(fmt.Sprintf(`
  		CREATE DATABASE IF NOT EXISTS %s;
  		SET DATABASE = %s;`, databaseName, databaseName))
