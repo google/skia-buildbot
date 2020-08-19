@@ -405,7 +405,7 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 				// Start running continuous clustering looking for regressions.
 				time.Sleep(startClusterDelay)
 				c := regression.NewContinuous(f.perfGit, f.cidl, f.configProvider, f.regStore, f.shortcutStore, f.flags.NumContinuous, f.flags.Radius, f.notifier, paramsProvider, f.dfBuilder,
-					f.flags.Local, config.Config.DataStoreConfig.Project, config.Config.IngestionConfig.FileIngestionTopicName, f.flags.EventDrivenRegressionDetection)
+					f.flags.Local, config.Config.IngestionConfig.SourceConfig.Project, config.Config.IngestionConfig.FileIngestionTopicName, f.flags.EventDrivenRegressionDetection)
 				f.continuous = append(f.continuous, c)
 				go c.Run(context.Background())
 			}
