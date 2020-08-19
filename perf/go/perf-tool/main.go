@@ -461,6 +461,7 @@ func databaseDatabaseBackupRegressionsSubAction(c *cobra.Command, args []string)
 		return err
 	}
 
+	shortcuts := map[string]bool{}
 	for {
 		if end < 0 {
 			fmt.Println("Finished backing up chunks.")
@@ -481,6 +482,16 @@ func databaseDatabaseBackupRegressionsSubAction(c *cobra.Command, args []string)
 		fmt.Printf("Regressions: [%d, %d]. Total commits: %d\n", begin, end, len(regressions))
 
 		for commitNumber, allRegressionsForCommit := range regressions {
+			// Find all the shortcuts in the regressions.
+			for _, reg := range allRegressionsForCommit.ByAlertID {
+				if reg.High != nil && reg.High.Shortcut != "" {
+					shortcuts[reg.High.Shortcut] = true
+				}
+				if reg.Low != nil && reg.Low.Shortcut != "" {
+					shortcuts[reg.Low.Shortcut] = true
+				}
+			}
+
 			cid, err := perfGit.CommitFromCommitNumber(ctx, commitNumber)
 			if err != nil {
 				return err
@@ -501,6 +512,37 @@ func databaseDatabaseBackupRegressionsSubAction(c *cobra.Command, args []string)
 		end = begin - 1
 	}
 End:
+
+	// Backup Shortcuts found in Regressions.
+	shortcutsZipWriter, err := z.Create(backupFilenameShortcuts)
+	if err != nil {
+		return err
+	}
+	shortcutsEncoder := gob.NewEncoder(shortcutsZipWriter)
+	shortcutStore, err := builders.NewShortcutStoreFromConfig(ctx, local, instanceConfig)
+	if err != nil {
+		return err
+	}
+
+	fmt.Print("Shortcuts: ")
+	total := 0
+	for shortcutID := range shortcuts {
+		shortcut, err := shortcutStore.Get(ctx, shortcutID)
+		if err != nil {
+			continue
+		}
+		if err := shortcutsEncoder.Encode(shortcutWithID{
+			ID:       shortcutID,
+			Shortcut: shortcut,
+		}); err != nil {
+			return err
+		}
+		total++
+		if total%100 == 0 {
+			fmt.Print(".")
+		}
+	}
+
 	if err := z.Close(); err != nil {
 		return err
 	}
