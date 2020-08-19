@@ -24,6 +24,7 @@
    "android_ingest": {
      "urls": [
        "https://android-master-ingest.skia.org",
+       "https://android-metric-ingest.skia.org",
      ],
      "method": "GET",
      "expected": [307],

@@ -1,7 +1,9 @@
 build-config:
 	go install ./go/merge_envoy
 	go install ./go/update_probers
+	update_probers
 	../kube/attach.sh skia-public  ./build_envoy_json
+
 
 release: build-config
 	./build_envoy_skia_org_release
