@@ -152,7 +152,8 @@ func main() {
 			log.Fatal(err)
 		}
 
-		st, err := status.Get(ctx, cfg.RollerName)
+		statusDB := status.NewDatastoreDB()
+		st, err := statusDB.Get(ctx, cfg.RollerName)
 		if err != nil {
 			log.Fatal(err)
 		}
