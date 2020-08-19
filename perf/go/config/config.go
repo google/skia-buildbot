@@ -28,10 +28,6 @@ const (
 type DataStoreType string
 
 const (
-	// GCPDataStoreType is for datastores in a Google Cloud Project, i.e.
-	// BigTable for tracestore.Store, and the rest in Cloud Datastore..
-	GCPDataStoreType DataStoreType = "gcp"
-
 	// CockroachDBDataStoreType is for storing all data in a CockroachDB database.
 	CockroachDBDataStoreType DataStoreType = "cockroachdb"
 )
