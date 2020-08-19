@@ -28,10 +28,6 @@ const (
 type DataStoreType string
 
 const (
-	// GCPDataStoreType is for datastores in a Google Cloud Project, i.e.
-	// BigTable for tracestore.Store, and the rest in Cloud Datastore..
-	GCPDataStoreType DataStoreType = "gcp"
-
 	// CockroachDBDataStoreType is for storing all data in a CockroachDB database.
 	CockroachDBDataStoreType DataStoreType = "cockroachdb"
 )
@@ -61,12 +57,9 @@ type DataStoreConfig struct {
 	DataStoreType DataStoreType `json:"datastore_type"`
 
 	// If the datastore type is 'cockroachdb' then this value is a connection
-	// string of the form "postgres://...". See
+	// string of the form "postgresql://...". See
 	// https://www.cockroachlabs.com/docs/stable/connection-parameters.html for
 	// more details.
-	//
-	// If the datastore type is 'gcs' then this value is used for just the SQL
-	// database that caches git information.
 	//
 	// In addition, for 'cockroachdb' databases, the database name given in the
 	// connection string must exist and the user given in the connection string
