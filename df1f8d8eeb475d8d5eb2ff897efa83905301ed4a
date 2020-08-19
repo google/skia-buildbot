@@ -16,6 +16,24 @@
       "revId": "df1f8d8eeb475d8d5eb2ff897efa83905301ed4a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91a39bf4_af4efe8c",
+        "filename": "autoroll/go/modes/modes.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-19T18:16:38Z",
+      "side": 1,
+      "message": "Good catch, done",
+      "parentUuid": "2063a6f5_5f2e9a1e",
+      "revId": "df1f8d8eeb475d8d5eb2ff897efa83905301ed4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
