@@ -54,7 +54,7 @@ You might need to forward the CockroachDB connection:
 And then override the connection string, for example:
 
     perf-tool database migrate --config_filename=my-config.json \
-      --connection_string=cockroachdb://root@localhost:26257/mytest?sslmode=disable
+      --connection_string=postgresql://root@localhost:26257/mytest?sslmode=disable
 
 ## Backups
 
