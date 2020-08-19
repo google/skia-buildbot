@@ -1445,32 +1445,6 @@
           "seconds": 1
         },
         "load_assignment": {
-          "cluster_name": "skiaperf-android-x2",
-          "endpoints": [
-            {
-              "lb_endpoints": [
-                {
-                  "endpoint": {
-                    "address": {
-                      "socket_address": {
-                        "address": "skiaperf-android-x2",
-                        "port_value": 8000
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        "name": "skiaperf-android-x2",
-        "type": "STRICT_DNS"
-      },
-      {
-        "connect_timeout": {
-          "seconds": 1
-        },
-        "load_assignment": {
           "cluster_name": "skiaperf-ct",
           "endpoints": [
             {
@@ -1881,6 +1855,23 @@
                           },
                           "match": {
                             "prefix": "/"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "domains": "android-master-ingest.skia.org",
+                      "name": "android-master-ingest.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "androidingest",
+                            "timeout": {
+                              "seconds": 600
+                            }
                           }
                         }
                       ]
@@ -3023,8 +3014,8 @@
                       ]
                     },
                     {
-                      "domains": "android-master-ingest.skia.org",
-                      "name": "android-master-ingest.skia.org",
+                      "domains": "android-metric-ingest.skia.org",
+                      "name": "android-metric-ingest.skia.org",
                       "routes": [
                         {
                           "match": {
@@ -3474,23 +3465,6 @@
                           },
                           "route": {
                             "cluster": "skiaperf-android-x",
-                            "timeout": {
-                              "seconds": 600
-                            }
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "domains": "androidx2-perf.skia.org",
-                      "name": "androidx2-perf.skia.org",
-                      "routes": [
-                        {
-                          "match": {
-                            "prefix": "/"
-                          },
-                          "route": {
-                            "cluster": "skiaperf-android-x2",
                             "timeout": {
                               "seconds": 600
                             }
