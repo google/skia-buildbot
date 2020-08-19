@@ -12,7 +12,9 @@ import (
 )
 
 const (
-	STRATEGY_HISTORY_LENGTH = 25
+	// StrategyHistoryLength is the number of StrategyChanges which may be
+	// returned by StrategyHistory.GetHistory().
+	StrategyHistoryLength = 25
 )
 
 // Fake ancestor we supply for all ModeChanges, to force consistency.
@@ -44,17 +46,30 @@ func (c *StrategyChange) Copy() *StrategyChange {
 	}
 }
 
-// StrategyHistory is a struct used for storing and retrieving strategy change history.
-type StrategyHistory struct {
+// StrategyHistory tracks the history of StrategyChanges for all autorollers.
+type StrategyHistory interface {
+	// Add inserts a new StrategyChange.
+	Add(ctx context.Context, s, user, message string) error
+	// CurrentStrategy returns the current strategy, which is the most recently added
+	// StrategyChange.
+	CurrentStrategy() *StrategyChange
+	// GetHistory returns a slice of the most recent StrategyChanges, most recent first.
+	GetHistory() []*StrategyChange
+	// Update refreshes the strategy history from the datastore.
+	Update(ctx context.Context) error
+}
+
+// DatastoreStrategyHistory is a struct used for storing and retrieving strategy change history.
+type DatastoreStrategyHistory struct {
 	history         []*StrategyChange
 	mtx             sync.RWMutex
 	roller          string
 	validStrategies []string
 }
 
-// NewStrategyHistory returns a StrategyHistory instance.
-func NewStrategyHistory(ctx context.Context, roller string, validStrategies []string) (*StrategyHistory, error) {
-	sh := &StrategyHistory{
+// NewDatastoreStrategyHistory returns a StrategyHistory instance.
+func NewDatastoreStrategyHistory(ctx context.Context, roller string, validStrategies []string) (*DatastoreStrategyHistory, error) {
+	sh := &DatastoreStrategyHistory{
 		roller:          roller,
 		validStrategies: validStrategies,
 	}
@@ -65,7 +80,7 @@ func NewStrategyHistory(ctx context.Context, roller string, validStrategies []st
 }
 
 // Add inserts a new StrategyChange.
-func (sh *StrategyHistory) Add(ctx context.Context, s, user, message string) error {
+func (sh *DatastoreStrategyHistory) Add(ctx context.Context, s, user, message string) error {
 	if !util.In(s, sh.validStrategies) {
 		return fmt.Errorf("Invalid strategy: %s; valid strategies: %v", s, sh.validStrategies)
 	}
@@ -83,7 +98,7 @@ func (sh *StrategyHistory) Add(ctx context.Context, s, user, message string) err
 }
 
 // put inserts the StrategyChange into the datastore.
-func (sh *StrategyHistory) put(ctx context.Context, s *StrategyChange) error {
+func (sh *DatastoreStrategyHistory) put(ctx context.Context, s *StrategyChange) error {
 	key := ds.NewKey(ds.KIND_AUTOROLL_STRATEGY)
 	key.Parent = fakeAncestor()
 	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
@@ -95,18 +110,17 @@ func (sh *StrategyHistory) put(ctx context.Context, s *StrategyChange) error {
 
 // CurrentStrategy returns the current strategy, which is the most recently added
 // StrategyChange.
-func (sh *StrategyHistory) CurrentStrategy() *StrategyChange {
+func (sh *DatastoreStrategyHistory) CurrentStrategy() *StrategyChange {
 	sh.mtx.RLock()
 	defer sh.mtx.RUnlock()
 	if len(sh.history) > 0 {
 		return sh.history[0].Copy()
-	} else {
-		return nil
 	}
+	return nil
 }
 
 // GetHistory returns a slice of the most recent StrategyChanges, most recent first.
-func (sh *StrategyHistory) GetHistory() []*StrategyChange {
+func (sh *DatastoreStrategyHistory) GetHistory() []*StrategyChange {
 	sh.mtx.RLock()
 	defer sh.mtx.RUnlock()
 	rv := make([]*StrategyChange, 0, len(sh.history))
@@ -119,8 +133,8 @@ func (sh *StrategyHistory) GetHistory() []*StrategyChange {
 }
 
 // getHistory retrieves recent strategy changes from the datastore.
-func (sh *StrategyHistory) getHistory(ctx context.Context) ([]*StrategyChange, error) {
-	query := ds.NewQuery(ds.KIND_AUTOROLL_STRATEGY).Ancestor(fakeAncestor()).Filter("roller =", sh.roller).Order("-time").Limit(STRATEGY_HISTORY_LENGTH)
+func (sh *DatastoreStrategyHistory) getHistory(ctx context.Context) ([]*StrategyChange, error) {
+	query := ds.NewQuery(ds.KIND_AUTOROLL_STRATEGY).Ancestor(fakeAncestor()).Filter("roller =", sh.roller).Order("-time").Limit(StrategyHistoryLength)
 	var history []*StrategyChange
 	if _, err := ds.DS.GetAll(ctx, query, &history); err != nil {
 		return nil, fmt.Errorf("Failed to GetAll: %s", err)
@@ -129,7 +143,7 @@ func (sh *StrategyHistory) getHistory(ctx context.Context) ([]*StrategyChange, e
 }
 
 // Update refreshes the strategy history from the datastore.
-func (sh *StrategyHistory) Update(ctx context.Context) error {
+func (sh *DatastoreStrategyHistory) Update(ctx context.Context) error {
 	history, err := sh.getHistory(ctx)
 	if err != nil {
 		return err
@@ -139,3 +153,5 @@ func (sh *StrategyHistory) Update(ctx context.Context) error {
 	sh.history = history
 	return nil
 }
+
+var _ StrategyHistory = &DatastoreStrategyHistory{}
