@@ -65,7 +65,7 @@ type AutoRoller struct {
 	lastRollRev        *revision.Revision
 	liveness           metrics2.Liveness
 	manualRollDB       manual.DB
-	modeHistory        *modes.ModeHistory
+	modeHistory        modes.ModeHistory
 	nextRollRev        *revision.Revision
 	notifier           *arb_notifier.AutoRollNotifier
 	notifierConfigs    []*notifier.Config
@@ -149,13 +149,13 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, skerr.Wrapf(err, "Failed to create recent rolls DB")
 	}
 	sklog.Info("Creating mode history")
-	mh, err := modes.NewModeHistory(ctx, rollerName)
+	mh, err := modes.NewDatastoreModeHistory(ctx, rollerName)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create mode history")
 	}
 	if mh.CurrentMode() == nil {
 		sklog.Info("Setting initial mode.")
-		if err := mh.Add(ctx, modes.MODE_RUNNING, "AutoRoll Bot", "Setting initial mode."); err != nil {
+		if err := mh.Add(ctx, modes.ModeRunning, "AutoRoll Bot", "Setting initial mode."); err != nil {
 			return nil, skerr.Wrapf(err, "Failed to set initial mode")
 		}
 	}
@@ -687,7 +687,7 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 		Recent:             recent,
 		Status:             string(r.sm.Current()),
 		ThrottledUntil:     throttledUntil,
-		ValidModes:         modes.VALID_MODES,
+		ValidModes:         modes.ValidModes,
 		ValidStrategies:    r.cfg.ValidStrategies(),
 	}); err != nil {
 		return err

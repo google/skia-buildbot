@@ -515,22 +515,22 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 	switch state {
 	case S_STOPPED:
 		switch desiredMode {
-		case modes.MODE_RUNNING:
+		case modes.ModeRunning:
 			return S_NORMAL_IDLE, nil
-		case modes.MODE_DRY_RUN:
+		case modes.ModeDryRun:
 			return S_DRY_RUN_IDLE, nil
-		case modes.MODE_STOPPED:
+		case modes.ModeStopped:
 			return S_STOPPED, nil
 		default:
 			return "", fmt.Errorf("Invalid mode: %q", desiredMode)
 		}
 	case S_NORMAL_IDLE:
 		switch desiredMode {
-		case modes.MODE_RUNNING:
+		case modes.ModeRunning:
 			break
-		case modes.MODE_DRY_RUN:
+		case modes.ModeDryRun:
 			return S_DRY_RUN_IDLE, nil
-		case modes.MODE_STOPPED:
+		case modes.ModeStopped:
 			return S_STOPPED, nil
 		default:
 			return "", fmt.Errorf("Invalid mode: %q", desiredMode)
@@ -560,11 +560,11 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 				return S_NORMAL_FAILURE, nil
 			}
 		} else {
-			if desiredMode == modes.MODE_DRY_RUN {
+			if desiredMode == modes.ModeDryRun {
 				return S_DRY_RUN_ACTIVE, nil
-			} else if desiredMode == modes.MODE_STOPPED {
+			} else if desiredMode == modes.ModeStopped {
 				return S_STOPPED, nil
-			} else if desiredMode == modes.MODE_RUNNING {
+			} else if desiredMode == modes.ModeRunning {
 				return S_NORMAL_ACTIVE, nil
 			} else {
 				return "", fmt.Errorf("Invalid mode %q", desiredMode)
@@ -585,9 +585,9 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		}
 		return S_NORMAL_IDLE, nil
 	case S_NORMAL_SUCCESS_THROTTLED:
-		if desiredMode == modes.MODE_DRY_RUN {
+		if desiredMode == modes.ModeDryRun {
 			return S_DRY_RUN_IDLE, nil
-		} else if desiredMode == modes.MODE_STOPPED {
+		} else if desiredMode == modes.ModeStopped {
 			return S_STOPPED, nil
 		} else if s.a.SuccessThrottle().IsThrottled() {
 			return S_NORMAL_SUCCESS_THROTTLED, nil
@@ -624,11 +624,11 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 				return S_NORMAL_FAILURE, nil
 			}
 		}
-		if desiredMode == modes.MODE_STOPPED {
+		if desiredMode == modes.ModeStopped {
 			return S_STOPPED, nil
 		} else if s.a.GetNextRollRev().Id != currentRoll.RollingTo().Id {
 			return S_NORMAL_IDLE, nil
-		} else if desiredMode == modes.MODE_DRY_RUN {
+		} else if desiredMode == modes.ModeDryRun {
 			return S_DRY_RUN_ACTIVE, nil
 		} else if s.a.FailureThrottle().IsThrottled() {
 			return S_NORMAL_FAILURE_THROTTLED, nil
@@ -645,14 +645,14 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		}
 		return S_NORMAL_WAIT_FOR_WINDOW, nil
 	case S_DRY_RUN_IDLE:
-		if desiredMode == modes.MODE_RUNNING {
+		if desiredMode == modes.ModeRunning {
 			if s.a.SuccessThrottle().IsThrottled() {
 				return S_NORMAL_SUCCESS_THROTTLED, nil
 			}
 			return S_NORMAL_IDLE, nil
-		} else if desiredMode == modes.MODE_STOPPED {
+		} else if desiredMode == modes.ModeStopped {
 			return S_STOPPED, nil
-		} else if desiredMode != modes.MODE_DRY_RUN {
+		} else if desiredMode != modes.ModeDryRun {
 			return "", fmt.Errorf("Invalid mode %q", desiredMode)
 		}
 		current := s.a.GetCurrentRev()
@@ -684,11 +684,11 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			}
 		} else {
 			desiredMode := s.a.GetMode()
-			if desiredMode == modes.MODE_RUNNING {
+			if desiredMode == modes.ModeRunning {
 				return S_NORMAL_ACTIVE, nil
-			} else if desiredMode == modes.MODE_STOPPED {
+			} else if desiredMode == modes.ModeStopped {
 				return S_STOPPED, nil
-			} else if desiredMode == modes.MODE_DRY_RUN {
+			} else if desiredMode == modes.ModeDryRun {
 				return S_DRY_RUN_ACTIVE, nil
 			} else {
 				return "", fmt.Errorf("Invalid mode %q", desiredMode)
@@ -712,11 +712,11 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		if currentRoll.IsClosed() {
 			return S_DRY_RUN_IDLE, nil
 		}
-		if desiredMode == modes.MODE_RUNNING {
+		if desiredMode == modes.ModeRunning {
 			return S_NORMAL_ACTIVE, nil
-		} else if desiredMode == modes.MODE_STOPPED {
+		} else if desiredMode == modes.ModeStopped {
 			return S_STOPPED, nil
-		} else if desiredMode != modes.MODE_DRY_RUN {
+		} else if desiredMode != modes.ModeDryRun {
 			return "", fmt.Errorf("Invalid mode %q", desiredMode)
 		}
 		if s.a.GetNextRollRev().Id == currentRoll.RollingTo().Id {
@@ -746,11 +746,11 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 		if currentRoll.IsClosed() {
 			return S_DRY_RUN_IDLE, nil
 		}
-		if desiredMode == modes.MODE_STOPPED {
+		if desiredMode == modes.ModeStopped {
 			return S_STOPPED, nil
 		} else if s.a.GetNextRollRev().Id != currentRoll.RollingTo().Id {
 			return S_DRY_RUN_FAILURE, nil
-		} else if desiredMode == modes.MODE_RUNNING {
+		} else if desiredMode == modes.ModeRunning {
 			return S_NORMAL_ACTIVE, nil
 		} else if s.a.FailureThrottle().IsThrottled() {
 			return S_DRY_RUN_FAILURE_THROTTLED, nil

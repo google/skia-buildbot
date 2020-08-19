@@ -52,7 +52,7 @@ func TestCopyStatus(t *testing.T) {
 		Recent:          recent,
 		Status:          "some-status",
 		ThrottledUntil:  time.Now().Unix(),
-		ValidModes:      modes.VALID_MODES,
+		ValidModes:      modes.ValidModes,
 		ValidStrategies: []string{strategy.ROLL_STRATEGY_SINGLE, strategy.ROLL_STRATEGY_BATCH},
 	}
 	assertdeep.Copy(t, v, v.Copy())
@@ -96,7 +96,7 @@ func TestStatus(t *testing.T) {
 		Recent:          recent,
 		Status:          "some-status",
 		ThrottledUntil:  time.Now().Unix(),
-		ValidModes:      modes.VALID_MODES,
+		ValidModes:      modes.ValidModes,
 		ValidStrategies: []string{strategy.ROLL_STRATEGY_SINGLE, strategy.ROLL_STRATEGY_BATCH},
 	}
 	require.NoError(t, Set(ctx, rollerName, s))
