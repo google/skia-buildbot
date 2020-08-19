@@ -82,7 +82,7 @@ type AutoRoller struct {
 	sheriff            []string
 	sheriffBackup      []string
 	sm                 *state_machine.AutoRollStateMachine
-	status             *status.AutoRollStatusCache
+	status             *status.Cache
 	statusMtx          sync.RWMutex
 	strategy           strategy.NextRollStrategy
 	strategyHistory    *strategy.DatastoreStrategyHistory
@@ -198,7 +198,8 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		return nil, skerr.Wrapf(err, "Failed to create notifier")
 	}
 	sklog.Info("Creating status cache.")
-	statusCache, err := status.NewCache(ctx, rollerName)
+	statusDB := status.NewDatastoreDB()
+	statusCache, err := status.NewCache(ctx, statusDB, rollerName)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create status cache")
 	}
@@ -669,7 +670,7 @@ func (r *AutoRoller) updateStatus(ctx context.Context, replaceLastError bool, la
 	if currentRoll != nil {
 		currentRollRev = currentRoll.RollingTo
 	}
-	if err := status.Set(ctx, r.roller, &status.AutoRollStatus{
+	if err := r.status.Set(ctx, r.roller, &status.AutoRollStatus{
 		AutoRollMiniStatus: status.AutoRollMiniStatus{
 			CurrentRollRev:      currentRollRev,
 			LastRollRev:         r.lastRollRev.Id,

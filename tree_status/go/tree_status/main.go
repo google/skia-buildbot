@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"google.golang.org/api/option"
 
+	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/baseapp"
@@ -38,9 +39,10 @@ var (
 
 // Server is the state of the server.
 type Server struct {
-	templates *template.Template
-	modify    allowed.Allow // Who is allowed to modify tree status.
-	admin     allowed.Allow // Who is allowed to modify rotations.
+	templates  *template.Template
+	modify     allowed.Allow // Who is allowed to modify tree status.
+	admin      allowed.Allow // Who is allowed to modify rotations.
+	autorollDB status.DB
 }
 
 // See baseapp.Constructor.
@@ -57,7 +59,8 @@ func New() (baseapp.App, error) {
 	}
 
 	// Start watching for statuses with autorollers specified.
-	if err := AutorollersInit(ctx, ts); err != nil {
+	autorollDB, err := AutorollersInit(ctx, ts)
+	if err != nil {
 		return nil, skerr.Wrapf(err, "Could not init autorollers")
 	}
 
@@ -95,8 +98,9 @@ func New() (baseapp.App, error) {
 	login.SimpleInitWithAllow(*baseapp.Port, *baseapp.Local, admin, modify, nil /* Everyone is allowed to access */)
 
 	srv := &Server{
-		modify: modify,
-		admin:  admin,
+		modify:     modify,
+		admin:      admin,
+		autorollDB: autorollDB,
 	}
 	srv.loadTemplates()
 	liveness := metrics2.NewLiveness("alive", map[string]string{})

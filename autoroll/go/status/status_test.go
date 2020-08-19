@@ -65,7 +65,8 @@ func TestStatus(t *testing.T) {
 
 	// No data in the datastore, but we shouldn't return an error.
 	rollerName := "test-roller"
-	c, err := NewCache(ctx, rollerName)
+	db := NewDatastoreDB()
+	c, err := NewCache(ctx, db, rollerName)
 	require.NoError(t, err)
 
 	// We should return empty until there's actually some data.
@@ -99,8 +100,8 @@ func TestStatus(t *testing.T) {
 		ValidModes:      modes.ValidModes,
 		ValidStrategies: []string{strategy.ROLL_STRATEGY_SINGLE, strategy.ROLL_STRATEGY_BATCH},
 	}
-	require.NoError(t, Set(ctx, rollerName, s))
-	actual, err := Get(ctx, rollerName)
+	require.NoError(t, db.Set(ctx, rollerName, s))
+	actual, err := db.Get(ctx, rollerName)
 	require.NoError(t, err)
 	assertdeep.Equal(t, s, actual)
 
@@ -111,7 +112,8 @@ func TestStatus(t *testing.T) {
 	assertdeep.Equal(t, s, c.Get())
 
 	// Ensure that we don't confuse multiple rollers.
-	c2, err := NewCache(ctx, "roller2")
+	db2 := NewDatastoreDB()
+	c2, err := NewCache(ctx, db2, "roller2")
 	require.NoError(t, err)
 	require.Equal(t, &AutoRollStatus{}, c2.Get())
 	require.Equal(t, &AutoRollMiniStatus{}, c2.GetMini())

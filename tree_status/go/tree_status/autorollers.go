@@ -9,15 +9,14 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/oauth2"
-	"google.golang.org/api/option"
-
-	autoroll_status "go.skia.org/infra/autoroll/go/status"
+	"go.skia.org/infra/autoroll/go/status"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
+	"golang.org/x/oauth2"
+	"google.golang.org/api/option"
 )
 
 // Autoroller - describes an autoroller to query autoroll_status with.
@@ -52,10 +51,10 @@ var (
 	rollersToWatch = make(chan string, 1)
 )
 
-func getAutorollersSnapshot(ctx context.Context) ([]*AutorollerSnapshot, error) {
+func getAutorollersSnapshot(ctx context.Context, db status.DB) ([]*AutorollerSnapshot, error) {
 	autorollersSnapshot := []*AutorollerSnapshot{}
 	for name, autoroller := range nameToAutoroller {
-		s, err := autoroll_status.Get(ctx, autoroller.ID)
+		s, err := db.Get(ctx, autoroller.ID)
 		if err != nil {
 			return nil, fmt.Errorf("Could not get the status of %s: %s", autoroller.ID, err)
 		}
@@ -88,10 +87,11 @@ L:
 	}
 }
 
-func AutorollersInit(ctx context.Context, ts oauth2.TokenSource) error {
+func AutorollersInit(ctx context.Context, ts oauth2.TokenSource) (status.DB, error) {
 	if err := ds.InitWithOpt(common.PROJECT_ID, ds.AUTOROLL_NS, option.WithTokenSource(ts)); err != nil {
-		return skerr.Wrapf(err, "Failed to initialize Cloud Datastore for autorollers")
+		return nil, skerr.Wrapf(err, "Failed to initialize Cloud Datastore for autorollers")
 	}
+	db := status.NewDatastoreDB()
 
 	// Start goroutine to watch for rollers.
 	go func() {
@@ -105,7 +105,7 @@ func AutorollersInit(ctx context.Context, ts oauth2.TokenSource) error {
 			rollerNames := strings.Split(rollers, ", ")
 			for _, rollerName := range rollerNames {
 				roller := nameToAutoroller[rollerName]
-				s, err := autoroll_status.Get(ctx, roller.ID)
+				s, err := db.Get(ctx, roller.ID)
 				if err != nil {
 					sklog.Errorf("Could not get status of %s: %s\n", roller, err)
 					// Continue so that we can try again.
@@ -141,7 +141,7 @@ func AutorollersInit(ctx context.Context, ts oauth2.TokenSource) error {
 		}
 	}()
 
-	return nil
+	return db, nil
 }
 
 // HTTP Handlers.
@@ -149,7 +149,7 @@ func AutorollersInit(ctx context.Context, ts oauth2.TokenSource) error {
 func (srv *Server) autorollersHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	as, err := getAutorollersSnapshot(r.Context())
+	as, err := getAutorollersSnapshot(r.Context(), srv.autorollDB)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to get autoroll statuses.", http.StatusInternalServerError)
 		return
