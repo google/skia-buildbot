@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2063a6f5_5f2e9a1e",
+        "filename": "autoroll/go/modes/modes.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-08-19T18:03:24Z",
+      "side": 1,
+      "message": "Add a \nvar _ ModeHistory \u003d \u0026DatastoreModeHistory{} ?",
+      "revId": "df1f8d8eeb475d8d5eb2ff897efa83905301ed4a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
