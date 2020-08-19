@@ -438,7 +438,6 @@ The main application element for the Skia Debugger.
             </summary-sk>
             <paper-checkbox title="Show a semi-transparent teal overlay on the areas within the current clip." id=clip class="clipcheckbox" on-change="_clipHandler">Show Clip</paper-checkbox>
             <paper-checkbox title="Show a semi-transparent peach overlay on the areas within the current andorid device clip restriction. This is set at the beginning of each frame and recorded in the DrawAnnotation Command labeled AndroidDeviceClipRestriction" id=androidclip class="clipcheckbox" on-change="_androidClipHandler">Show Android Device Clip Restriction</paper-checkbox>
-            <paper-checkbox title="Show the origin of the coordinate space defined by the current matrix." id=origin class="clipcheckbox" on-change="_originHandler">Show Origin</paper-checkbox>
             <dbg-info-sk info="[[ info ]]"></dbg-info-sk>
           </details-sk>
           <details-sk id=gpuOpBoundsLegend class=hidden>
@@ -820,7 +819,6 @@ The main application element for the Skia Debugger.
         // Set player clip and overdraw setting to match UI selection, but don't update view yet.
         this._clipHandler(false);
         this._androidClipHandler(false);
-        this._originHandler(false);
         this._overdrawHandler(false);
         this._gpuOpBounds();
         this.fileVersion = this._player.fileVersion();
@@ -1076,10 +1074,6 @@ The main application element for the Skia Debugger.
         this._moveToTargetItem();
       },
 
-      // The following functions accept a boolean update argument meaning:
-      // After making these changes, tell the wasm binary to redraw the debugger view.
-      // Callers handling that themselves should pass false.
-
       _clipHandler(update=true) {
         if(this.$.clip.checked) {
           // ON: 30% transparent dark teal
@@ -1095,17 +1089,6 @@ The main application element for the Skia Debugger.
 
       _androidClipHandler(update=true) {
         this._player.setAndroidClipViz(this.$.androidclip.checked);
-        if (update) {
-          this._updateDebuggerView();
-        }
-      },
-
-      _originHandler(update=true) {
-        if(this.$.origin.checked) {
-          this._player.setOriginVisible(true);
-        } else {
-          this._player.setOriginVisible(false);
-        }
         if (update) {
           this._updateDebuggerView();
         }
