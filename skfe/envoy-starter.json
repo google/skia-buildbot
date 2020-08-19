@@ -797,6 +797,23 @@
                       ]
                     },
                     {
+                      "domains": "android-master-ingest.skia.org",
+                      "name": "android-master-ingest.skia.org",
+                      "routes": [
+                        {
+                          "match": {
+                            "prefix": "/"
+                          },
+                          "route": {
+                            "cluster": "androidingest",
+                            "timeout": {
+                              "seconds": 600
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
                       "domains": "go.skia.org",
                       "name": "go.skia.org",
                       "routes": [

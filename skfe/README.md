@@ -37,8 +37,7 @@ auto-generated:
     simple.json
     computed.json
 
-The `simple.json` and `computed.json` are generated files and are not checked
-into version control.
+The `simple.json` and `computed.json` are generated files.
 
 The `enjoy-starter.json` file contains our liveness handling, all redirects, and
 complicated routes for services like Gold. It is a hand-written file.
@@ -50,7 +49,7 @@ We need three pieces of information, the domain name, the target service name,
 and the port that the service is running on. Consider the following
 configuration for `https://perf.skia.org`.
 
-~~~
+```
 apiVersion: v1
 kind: Service
 metadata:
@@ -69,7 +68,7 @@ spec:
   selector:
     app: skiaperf
   type: NodePort
-~~~
+```
 
 The parts of the Service spec that are important are the `skia.org.domain`
 annotation which specifies the public domain name where this service should be
