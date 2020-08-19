@@ -76,7 +76,7 @@ type autoroller struct {
 	Cfg *roller.AutoRollerConfig
 
 	// Interactions with the roller through the DB.
-	Mode     *modes.ModeHistory
+	Mode     modes.ModeHistory
 	Status   *status.AutoRollStatusCache
 	Strategy *strategy.StrategyHistory
 }
@@ -476,7 +476,7 @@ func main() {
 		}
 
 		// Set up DBs for the roller.
-		arbMode, err := modes.NewModeHistory(ctx, cfg.RollerName)
+		arbMode, err := modes.NewDatastoreModeHistory(ctx, cfg.RollerName)
 		if err != nil {
 			sklog.Fatal(err)
 		}

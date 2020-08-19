@@ -18,7 +18,7 @@ func TestModeHistory(t *testing.T) {
 
 	// Create the ModeHistory.
 	rollerName := "test-roller"
-	mh, err := NewModeHistory(ctx, rollerName)
+	mh, err := NewDatastoreModeHistory(ctx, rollerName)
 	require.NoError(t, err)
 
 	// Use this function for checking expectations.
@@ -48,7 +48,7 @@ func TestModeHistory(t *testing.T) {
 	}
 	mc0 := &ModeChange{
 		Message: "Setting initial mode.",
-		Mode:    MODE_RUNNING,
+		Mode:    ModeRunning,
 		Roller:  rollerName,
 		User:    "AutoRoll Bot",
 	}
@@ -57,7 +57,7 @@ func TestModeHistory(t *testing.T) {
 	// Change the mode.
 	setModeAndCheck(&ModeChange{
 		Message: "Stop the presses!",
-		Mode:    MODE_STOPPED,
+		Mode:    ModeStopped,
 		Roller:  rollerName,
 		User:    "test@google.com",
 	})
@@ -65,7 +65,7 @@ func TestModeHistory(t *testing.T) {
 	// Change a few times.
 	setModeAndCheck(&ModeChange{
 		Message: "Resume!",
-		Mode:    MODE_RUNNING,
+		Mode:    ModeRunning,
 		Roller:  rollerName,
 		User:    "test@google.com",
 	})
@@ -73,12 +73,12 @@ func TestModeHistory(t *testing.T) {
 	// Create a new ModeHistory for a different roller. Ensure that we don't
 	// get the two mixed up.
 	rollerName2 := "test-roller-2"
-	mh2, err := NewModeHistory(ctx, rollerName2)
+	mh2, err := NewDatastoreModeHistory(ctx, rollerName2)
 	require.NoError(t, err)
 
 	mc0_2 := &ModeChange{
 		Message: "Setting initial mode.",
-		Mode:    MODE_RUNNING,
+		Mode:    ModeRunning,
 		Roller:  rollerName2,
 		User:    "AutoRoll Bot",
 	}

@@ -12,20 +12,39 @@ import (
 )
 
 const (
-	MODE_HISTORY_LENGTH = 25
+	// ModeHistoryLength is the number of mode changes which may be returned
+	// from ModeHistory.GetHistory().
+	ModeHistoryLength = 25
+)
 
-	MODE_RUNNING = "running"
-	MODE_STOPPED = "stopped"
-	MODE_DRY_RUN = "dry run"
+// Valid autoroller modes.
+const (
+	ModeRunning = "running"
+	ModeStopped = "stopped"
+	ModeDryRun  = "dry run"
 )
 
 var (
-	VALID_MODES = []string{
-		MODE_RUNNING,
-		MODE_STOPPED,
-		MODE_DRY_RUN,
+	// ValidModes lists the valid autoroller modes.
+	ValidModes = []string{
+		ModeRunning,
+		ModeStopped,
+		ModeDryRun,
 	}
 )
+
+// ModeHistory tracks the history of mode changes for the autoroller.
+type ModeHistory interface {
+	// Add a new ModeChange.
+	Add(ctx context.Context, mode, user, message string) error
+	// CurrentMode retrieves the most recent ModeChange.
+	CurrentMode() *ModeChange
+	// GetHistory returns a slice of recent ModeChanges. Its length is bounded
+	// by ModeHistoryLength.
+	GetHistory() []*ModeChange
+	// Update the local view of the ModeChange history.
+	Update(ctx context.Context) error
+}
 
 // Fake ancestor we supply for all ModeChanges, to force consistency.
 // We lose some performance this way but it keeps our tests from
@@ -56,16 +75,16 @@ func (c *ModeChange) Copy() *ModeChange {
 	}
 }
 
-// ModeHistory is a struct used for storing and retrieving mode change history.
-type ModeHistory struct {
+// DatastoreModeHistory is a ModeHistory which uses Datastore.
+type DatastoreModeHistory struct {
 	history []*ModeChange
 	mtx     sync.RWMutex
 	roller  string
 }
 
-// NewModeHistory returns a ModeHistory instance.
-func NewModeHistory(ctx context.Context, roller string) (*ModeHistory, error) {
-	mh := &ModeHistory{
+// NewDatastoreModeHistory returns a DatastoreModeHistory instance.
+func NewDatastoreModeHistory(ctx context.Context, roller string) (*DatastoreModeHistory, error) {
+	mh := &DatastoreModeHistory{
 		roller: roller,
 	}
 	if err := mh.Update(ctx); err != nil {
@@ -75,8 +94,8 @@ func NewModeHistory(ctx context.Context, roller string) (*ModeHistory, error) {
 }
 
 // Add inserts a new ModeChange.
-func (mh *ModeHistory) Add(ctx context.Context, mode, user, message string) error {
-	if !util.In(mode, VALID_MODES) {
+func (mh *DatastoreModeHistory) Add(ctx context.Context, mode, user, message string) error {
+	if !util.In(mode, ValidModes) {
 		return fmt.Errorf("Invalid mode: %s", mode)
 	}
 	modeChange := &ModeChange{
@@ -93,7 +112,7 @@ func (mh *ModeHistory) Add(ctx context.Context, mode, user, message string) erro
 }
 
 // put inserts the ModeChange into the datastore.
-func (mh *ModeHistory) put(ctx context.Context, m *ModeChange) error {
+func (mh *DatastoreModeHistory) put(ctx context.Context, m *ModeChange) error {
 	key := ds.NewKey(ds.KIND_AUTOROLL_MODE)
 	key.Parent = fakeAncestor()
 	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
@@ -105,18 +124,17 @@ func (mh *ModeHistory) put(ctx context.Context, m *ModeChange) error {
 
 // CurrentMode returns the current mode, which is the most recently added
 // ModeChange.
-func (mh *ModeHistory) CurrentMode() *ModeChange {
+func (mh *DatastoreModeHistory) CurrentMode() *ModeChange {
 	mh.mtx.RLock()
 	defer mh.mtx.RUnlock()
 	if len(mh.history) > 0 {
 		return mh.history[0].Copy()
-	} else {
-		return nil
 	}
+	return nil
 }
 
 // GetHistory returns a slice of the most recent ModeChanges, most recent first.
-func (mh *ModeHistory) GetHistory() []*ModeChange {
+func (mh *DatastoreModeHistory) GetHistory() []*ModeChange {
 	mh.mtx.RLock()
 	defer mh.mtx.RUnlock()
 	rv := make([]*ModeChange, 0, len(mh.history))
@@ -129,8 +147,8 @@ func (mh *ModeHistory) GetHistory() []*ModeChange {
 }
 
 // getHistory retrieves recent mode changes from the datastore.
-func (mh *ModeHistory) getHistory(ctx context.Context) ([]*ModeChange, error) {
-	query := ds.NewQuery(ds.KIND_AUTOROLL_MODE).Ancestor(fakeAncestor()).Filter("roller =", mh.roller).Order("-time").Limit(MODE_HISTORY_LENGTH)
+func (mh *DatastoreModeHistory) getHistory(ctx context.Context) ([]*ModeChange, error) {
+	query := ds.NewQuery(ds.KIND_AUTOROLL_MODE).Ancestor(fakeAncestor()).Filter("roller =", mh.roller).Order("-time").Limit(ModeHistoryLength)
 	var history []*ModeChange
 	if _, err := ds.DS.GetAll(ctx, query, &history); err != nil {
 		return nil, err
@@ -139,7 +157,7 @@ func (mh *ModeHistory) getHistory(ctx context.Context) ([]*ModeChange, error) {
 }
 
 // Update refreshes the mode history from the datastore.
-func (mh *ModeHistory) Update(ctx context.Context) error {
+func (mh *DatastoreModeHistory) Update(ctx context.Context) error {
 	history, err := mh.getHistory(ctx)
 	if err != nil {
 		return err
@@ -149,3 +167,5 @@ func (mh *ModeHistory) Update(ctx context.Context) error {
 	mh.history = history
 	return nil
 }
+
+var _ ModeHistory = &DatastoreModeHistory{}
