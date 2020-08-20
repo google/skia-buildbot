@@ -62,6 +62,7 @@ const summary: ClusterSummary = {
     timestamp: 1476983221,
   },
   num: 4,
+  ts: new Date().toISOString(),
 };
 const frame = {
   dataframe: {

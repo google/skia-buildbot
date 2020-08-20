@@ -56,6 +56,7 @@ export interface ClusterSummary {
 	step_fit: StepFit | null;
 	step_point: ColumnHeader | null;
 	num: number;
+	ts: string;
 }
 
 export interface FrameRequest {
