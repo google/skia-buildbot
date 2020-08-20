@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -112,6 +113,17 @@ func (s *SQLAlertStore) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
+type sortableAlertSlice []*alerts.Alert
+
+func (p sortableAlertSlice) Len() int { return len(p) }
+func (p sortableAlertSlice) Less(i, j int) bool {
+	if p[i].DisplayName == p[j].DisplayName {
+		return p[i].IDAsString < p[j].IDAsString
+	}
+	return p[i].DisplayName < p[j].DisplayName
+}
+func (p sortableAlertSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+
 // List implements the alerts.Store interface.
 func (s *SQLAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alerts.Alert, error) {
 	stmt := listActiveAlerts
@@ -137,5 +149,6 @@ func (s *SQLAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alert
 		a.IDAsString = fmt.Sprintf("%d", id)
 		ret = append(ret, a)
 	}
+	sort.Sort(sortableAlertSlice(ret))
 	return ret, nil
 }
