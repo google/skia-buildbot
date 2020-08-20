@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/ctrace2"
@@ -13,6 +14,22 @@ import (
 	"go.skia.org/infra/perf/go/kmeans"
 	"go.skia.org/infra/perf/go/types"
 )
+
+func TestNewClusterSummary_RecordsTheTimeTheClusterSummaryWasCreated_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Put in a fake for timeNow, and restore after the test is done.
+	testTime := time.Date(2020, 05, 01, 12, 00, 00, 00, time.UTC)
+	timeNow = func() time.Time {
+		return testTime
+	}
+	defer func() {
+		timeNow = time.Now
+	}()
+
+	cs := NewClusterSummary()
+	require.Equal(t, testTime, cs.Timestamp)
+}
 
 func TestParamSummaries(t *testing.T) {
 	unittest.SmallTest(t)
