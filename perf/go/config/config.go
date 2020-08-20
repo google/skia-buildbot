@@ -28,10 +28,6 @@ const (
 type DataStoreType string
 
 const (
-	// GCPDataStoreType is for datastores in a Google Cloud Project, i.e.
-	// BigTable for tracestore.Store, and the rest in Cloud Datastore..
-	GCPDataStoreType DataStoreType = "gcp"
-
 	// CockroachDBDataStoreType is for storing all data in a CockroachDB database.
 	CockroachDBDataStoreType DataStoreType = "cockroachdb"
 )
@@ -61,12 +57,9 @@ type DataStoreConfig struct {
 	DataStoreType DataStoreType `json:"datastore_type"`
 
 	// If the datastore type is 'cockroachdb' then this value is a connection
-	// string of the form "postgres://...". See
+	// string of the form "postgresql://...". See
 	// https://www.cockroachlabs.com/docs/stable/connection-parameters.html for
 	// more details.
-	//
-	// If the datastore type is 'gcs' then this value is used for just the SQL
-	// database that caches git information.
 	//
 	// In addition, for 'cockroachdb' databases, the database name given in the
 	// connection string must exist and the user given in the connection string
@@ -77,27 +70,6 @@ type DataStoreConfig struct {
 	// TileSize is the size of each tile in commits. This value is used for all
 	// datastore types.
 	TileSize int32 `json:"tile_size"`
-
-	// Project is the Google Cloud Project name. This value is only used for
-	// 'gcp' datastore types.
-	Project string `json:"project"`
-
-	// Instance is the name of the BigTable instance. This value is only used
-	// for 'gcp' datastore types.
-	Instance string `json:"instance"`
-
-	// Table is the name of the table in BigTable to use. This value is only
-	// used for 'gcp' datastore types.
-	Table string `json:"table"`
-
-	// Shards is the number of shards to break up all trace data into. This
-	// value is only used for 'gcp' datastore types.
-	Shards int32 `json:"shards"`
-
-	// Namespace is the Google Cloud Datastore namespace that alerts,
-	// regressions, and shortcuts should use. This value is only used for 'gcp'
-	// datastore types.
-	Namespace string `json:"namespace"`
 
 	// CacheConfig is the config for LRU caches in the trace store.
 	CacheConfig CacheConfig
@@ -286,9 +258,7 @@ func (flags *IngestFlags) Register(fs *pflag.FlagSet) {
 	fs.IntVar(&flags.NumParallelIngesters, "num_parallel_ingesters", 10, "The number of parallel Go routines to have ingesting.")
 }
 
-// InstanceConfig contains all the info needed by btts.BigTableTraceStore.
-//
-// May eventually move to a separate config file.
+// InstanceConfig contains all the info needed by a Perf instance.
 type InstanceConfig struct {
 	// URL is the root URL at which this instance is available, for example: "https://example.com".
 	URL string `json:"URL"`

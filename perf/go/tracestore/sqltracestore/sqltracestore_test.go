@@ -28,10 +28,6 @@ const (
 
 var cfg = config.DataStoreConfig{
 	TileSize: testTileSize,
-	Project:  "test",
-	Instance: "test",
-	Table:    "test",
-	Shards:   8,
 }
 
 func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTraceStore, sqltest.Cleanup) {
@@ -490,14 +486,6 @@ func TestSQLTraceStore_TileSize(t *testing.T) {
 	defer cleanup()
 
 	assert.Equal(t, testTileSize, s.TileSize())
-}
-
-func TestSQLTraceStore_WriteIndices_Success(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, false)
-	defer cleanup()
-
-	// WriteIndices is a no-op in the SQL backed trace store.
-	assert.NoError(t, s.WriteIndices(ctx, types.TileNumber(1)))
 }
 
 func TestCommitNumberOfTileStart(t *testing.T) {

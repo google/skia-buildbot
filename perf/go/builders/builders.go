@@ -7,19 +7,13 @@ package builders
 import (
 	"context"
 	"runtime"
-	"strings"
 
-	"cloud.google.com/go/bigtable"
-	"cloud.google.com/go/datastore"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/jackc/pgx/v4/stdlib" // pgx Go sql
-	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
-	"go.skia.org/infra/perf/go/alerts/dsalertstore"
 	"go.skia.org/infra/perf/go/alerts/sqlalertstore"
 	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"
@@ -28,15 +22,11 @@ import (
 	"go.skia.org/infra/perf/go/file/gcssource"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/regression"
-	"go.skia.org/infra/perf/go/regression/dsregressionstore"
 	"go.skia.org/infra/perf/go/regression/sqlregressionstore"
 	"go.skia.org/infra/perf/go/shortcut"
-	"go.skia.org/infra/perf/go/shortcut/dsshortcutstore"
 	"go.skia.org/infra/perf/go/shortcut/sqlshortcutstore"
 	"go.skia.org/infra/perf/go/tracestore"
-	"go.skia.org/infra/perf/go/tracestore/btts"
 	"go.skia.org/infra/perf/go/tracestore/sqltracestore"
-	"google.golang.org/api/option"
 )
 
 // pgxLogAdaptor allows bubbling pgx logs up into our application.
@@ -80,15 +70,6 @@ func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *confi
 	}
 
 	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.GCPDataStoreType:
-		if strings.HasPrefix(instanceConfig.DataStoreConfig.ConnectionString, "postgresql://") {
-			// This is a temporary path as we migrate away from BigTable to
-			// CockroachDB. The first small step in that migration is to host the
-			// perfgit Commits table on CockroachDB, which has no analog in the
-			// "gcs" world.
-		} else {
-			return nil, skerr.Fmt("unknown connection_string: Must begin with postgresql://.")
-		}
 	case config.CockroachDBDataStoreType:
 	default:
 		return nil, skerr.Fmt("Unknown datastore_type: %q", instanceConfig.DataStoreConfig.DataStoreType)
@@ -112,16 +93,6 @@ func NewPerfGitFromConfig(ctx context.Context, local bool, instanceConfig *confi
 // If local is true then we aren't running in production.
 func NewTraceStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (tracestore.TraceStore, error) {
 	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.GCPDataStoreType:
-		ts, err := auth.NewDefaultTokenSource(local, bigtable.Scope)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		traceStore, err := btts.NewBigTableTraceStoreFromConfig(ctx, instanceConfig, ts, false)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "Failed to open BigTable trace store.")
-		}
-		return traceStore, nil
 	case config.CockroachDBDataStoreType:
 		db, err := newCockroachDBFromConfig(ctx, instanceConfig)
 		if err != nil {
@@ -132,33 +103,9 @@ func NewTraceStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 	return nil, skerr.Fmt("Unknown datastore type: %q", instanceConfig.DataStoreConfig.DataStoreType)
 }
 
-func initCloudDatastoreOnce(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) error {
-	if ds.DS != nil {
-		sklog.Infof("Cloud Datastore has already been initialized.")
-		return nil
-	}
-
-	sklog.Info("About to create token source.")
-	ts, err := auth.NewDefaultTokenSource(local, datastore.ScopeDatastore)
-	if err != nil {
-		return skerr.Wrapf(err, "Failed to get TokenSource")
-	}
-
-	sklog.Info("About to init datastore.")
-	if err := ds.InitWithOpt(instanceConfig.DataStoreConfig.Project, instanceConfig.DataStoreConfig.Namespace, option.WithTokenSource(ts)); err != nil {
-		return skerr.Wrapf(err, "Failed to init Cloud Datastore")
-	}
-	return nil
-}
-
 // NewAlertStoreFromConfig creates a new alerts.Store from the InstanceConfig.
 func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (alerts.Store, error) {
 	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.GCPDataStoreType:
-		if err := initCloudDatastoreOnce(ctx, local, instanceConfig); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-		return dsalertstore.New(), nil
 	case config.CockroachDBDataStoreType:
 		db, err := newCockroachDBFromConfig(ctx, instanceConfig)
 		if err != nil {
@@ -175,19 +122,6 @@ func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 // If local is true then we aren't running in production.
 func NewRegressionStoreFromConfig(ctx context.Context, local bool, cidl *cid.CommitIDLookup, instanceConfig *config.InstanceConfig) (regression.Store, error) {
 	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.GCPDataStoreType:
-		if err := initCloudDatastoreOnce(ctx, local, instanceConfig); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-
-		lookup := func(ctx context.Context, c *cid.CommitID) (*cid.CommitDetail, error) {
-			details, err := cidl.Lookup(ctx, []*cid.CommitID{c})
-			if err != nil {
-				return nil, skerr.Wrap(err)
-			}
-			return details[0], nil
-		}
-		return dsregressionstore.NewRegressionStoreDS(lookup), nil
 	case config.CockroachDBDataStoreType:
 		db, err := newCockroachDBFromConfig(ctx, instanceConfig)
 		if err != nil {
@@ -202,12 +136,6 @@ func NewRegressionStoreFromConfig(ctx context.Context, local bool, cidl *cid.Com
 // InstanceConfig.
 func NewShortcutStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (shortcut.Store, error) {
 	switch instanceConfig.DataStoreConfig.DataStoreType {
-	case config.GCPDataStoreType:
-		if err := initCloudDatastoreOnce(ctx, local, instanceConfig); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-
-		return dsshortcutstore.New(), nil
 	case config.CockroachDBDataStoreType:
 		db, err := newCockroachDBFromConfig(ctx, instanceConfig)
 		if err != nil {

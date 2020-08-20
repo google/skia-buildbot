@@ -7,5 +7,4 @@
   flutter-perf-service-account \
   "The flutter perf service account." \
   roles/pubsub.editor \
-  roles/bigtable.user \
   roles/cloudtrace.agent

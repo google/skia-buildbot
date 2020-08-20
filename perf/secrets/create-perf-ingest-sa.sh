@@ -13,14 +13,6 @@ gcloud iam service-accounts create "${SA_NAME}" --display-name="perf-ingest serv
 
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member "serviceAccount:${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com" \
-  --role roles/bigtable.user
-
-gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-  --member "serviceAccount:${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com" \
-  --role roles/bigtable.user
-
-gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-  --member "serviceAccount:${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com" \
   --role roles/pubsub.editor
 
 gcloud projects add-iam-policy-binding --project ${PROJECT} \

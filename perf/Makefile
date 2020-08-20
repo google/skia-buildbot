@@ -83,16 +83,9 @@ all:
 	npm ci
 	npx webpack-cli --mode=production
 
-start_bigtable_emulator:
-	docker run -ti -p 8000:8000 google/cloud-sdk:latest gcloud beta emulators bigtable start \
-		  --project test-project --host-port 0.0.0.0:8000
-
 start_pubsub_emulator:
 	docker run -ti -p 8010:8010 google/cloud-sdk:latest gcloud beta emulators pubsub start \
 		  --project test-project --host-port 0.0.0.0:8010
-
-start_datastore_emulator:
-	 docker run -ti -p 8008:8008 google/cloud-sdk:latest gcloud beta emulators datastore start --no-store-on-disk --project testtest --host-port 0.0.0.0:8008
 
 start_cockroachdb_emulator:
 	cd /tmp; cockroach start-single-node --insecure  --listen-addr=127.0.0.1

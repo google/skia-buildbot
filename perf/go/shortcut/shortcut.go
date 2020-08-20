@@ -11,7 +11,7 @@ import (
 
 // Shortcut is a list of Trace ids, it is used in the Store interface.
 type Shortcut struct {
-	Keys []string `json:"keys" datastore:",noindex"`
+	Keys []string `json:"keys"`
 }
 
 // Store is an interface for things that persists Shortcuts.

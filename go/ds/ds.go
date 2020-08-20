@@ -23,6 +23,7 @@ const (
 	MAX_MODIFICATIONS = 500
 )
 
+// Kind of datastore entry.
 type Kind string
 
 // Below are all the Kinds used in all applications. New Kinds should be listed
@@ -34,11 +35,6 @@ const (
 	// Predict
 	FAILURES     Kind = "Failures"
 	FLAKY_RANGES Kind = "FlakyRanges"
-
-	// Perf
-	SHORTCUT   Kind = "Shortcut"
-	REGRESSION Kind = "Regression"
-	ALERT      Kind = "Alert"
 
 	// Android Compile
 	COMPILE_TASK              Kind = "CompileTask"
@@ -81,14 +77,6 @@ const (
 
 // Namespaces that are used in production, and thus might be backed up.
 const (
-	// Perf
-	PERF_NS                = "perf"
-	PERF_ANDROID_NS        = "perf-android"
-	PERF_ANDROID_X_NS      = "perf-android-x"
-	PERF_ANDROID_MASTER_NS = "perf-androidmaster"
-	PERF_CT_NS             = "perf-ct"
-	PERF_FLUTTER_NS        = "perf-flutter"
-
 	// Android Compile
 	ANDROID_COMPILE_NS = "android-compile"
 
@@ -114,18 +102,12 @@ var (
 	// even if that app isn't running there, which has a better failure mode of
 	// possibly backing up too much data rather than too little.
 	KindsToBackup = map[string][]Kind{
-		AUTOROLL_NS:            {KIND_AUTOROLL_MODE, KIND_AUTOROLL_MODE_ANCESTOR, KIND_AUTOROLL_ROLL, KIND_AUTOROLL_ROLL_ANCESTOR, KIND_AUTOROLL_STATUS, KIND_AUTOROLL_STATUS_ANCESTOR, KIND_AUTOROLL_STRATEGY, KIND_AUTOROLL_STRATEGY_ANCESTOR, KIND_AUTOROLL_UNTHROTTLE, KIND_AUTOROLL_UNTHROTTLE_ANCESTOR},
-		AUTOROLL_INTERNAL_NS:   {KIND_AUTOROLL_MODE, KIND_AUTOROLL_MODE_ANCESTOR, KIND_AUTOROLL_ROLL, KIND_AUTOROLL_ROLL_ANCESTOR, KIND_AUTOROLL_STATUS, KIND_AUTOROLL_STATUS_ANCESTOR, KIND_AUTOROLL_STRATEGY, KIND_AUTOROLL_STRATEGY_ANCESTOR, KIND_AUTOROLL_UNTHROTTLE, KIND_AUTOROLL_UNTHROTTLE_ANCESTOR},
-		PERF_NS:                {ALERT},
-		PERF_ANDROID_NS:        {ALERT},
-		PERF_ANDROID_X_NS:      {ALERT},
-		PERF_ANDROID_MASTER_NS: {ALERT},
-		PERF_CT_NS:             {ALERT},
-		PERF_FLUTTER_NS:        {ALERT},
-		ANDROID_COMPILE_NS:     {COMPILE_TASK, ANDROID_COMPILE_INSTANCES},
-		LEASING_SERVER_NS:      {TASK},
-		CT_NS:                  {CAPTURE_SKPS_TASKS, CHROMIUM_ANALYSIS_TASKS, CHROMIUM_BUILD_TASKS, CHROMIUM_PERF_TASKS, LUA_SCRIPT_TASKS, METRICS_ANALYSIS_TASKS, PIXEL_DIFF_TASKS, RECREATE_PAGESETS_TASKS, RECREATE_WEBPAGE_ARCHIVES_TASKS, CLUSTER_TELEMETRY_IDS},
-		ALERT_MANAGER_NS:       {INCIDENT_AM, INCIDENT_ACTIVE_PARENT_AM, SILENCE_AM, SILENCE_ACTIVE_PARENT_AM, REMINDER_AM},
+		AUTOROLL_NS:          {KIND_AUTOROLL_MODE, KIND_AUTOROLL_MODE_ANCESTOR, KIND_AUTOROLL_ROLL, KIND_AUTOROLL_ROLL_ANCESTOR, KIND_AUTOROLL_STATUS, KIND_AUTOROLL_STATUS_ANCESTOR, KIND_AUTOROLL_STRATEGY, KIND_AUTOROLL_STRATEGY_ANCESTOR, KIND_AUTOROLL_UNTHROTTLE, KIND_AUTOROLL_UNTHROTTLE_ANCESTOR},
+		AUTOROLL_INTERNAL_NS: {KIND_AUTOROLL_MODE, KIND_AUTOROLL_MODE_ANCESTOR, KIND_AUTOROLL_ROLL, KIND_AUTOROLL_ROLL_ANCESTOR, KIND_AUTOROLL_STATUS, KIND_AUTOROLL_STATUS_ANCESTOR, KIND_AUTOROLL_STRATEGY, KIND_AUTOROLL_STRATEGY_ANCESTOR, KIND_AUTOROLL_UNTHROTTLE, KIND_AUTOROLL_UNTHROTTLE_ANCESTOR},
+		ANDROID_COMPILE_NS:   {COMPILE_TASK, ANDROID_COMPILE_INSTANCES},
+		LEASING_SERVER_NS:    {TASK},
+		CT_NS:                {CAPTURE_SKPS_TASKS, CHROMIUM_ANALYSIS_TASKS, CHROMIUM_BUILD_TASKS, CHROMIUM_PERF_TASKS, LUA_SCRIPT_TASKS, METRICS_ANALYSIS_TASKS, PIXEL_DIFF_TASKS, RECREATE_PAGESETS_TASKS, RECREATE_WEBPAGE_ARCHIVES_TASKS, CLUSTER_TELEMETRY_IDS},
+		ALERT_MANAGER_NS:     {INCIDENT_AM, INCIDENT_ACTIVE_PARENT_AM, SILENCE_AM, SILENCE_ACTIVE_PARENT_AM, REMINDER_AM},
 	}
 )
 
@@ -276,7 +258,7 @@ func MigrateData(ctx context.Context, srcClient, dstClient *datastore.Client, ki
 	return nil
 }
 
-// Creates a new indeterminate key of the given kind.
+// NewKey creates a new indeterminate key of the given kind.
 func NewKey(kind Kind) *datastore.Key {
 	return &datastore.Key{
 		Kind:      string(kind),
@@ -290,7 +272,7 @@ func NewKeyWithParent(kind Kind, parent *datastore.Key) *datastore.Key {
 	return ret
 }
 
-// Creates a new query of the given kind with the right namespace.
+// NewQuery creates a new query of the given kind with the right namespace.
 func NewQuery(kind Kind) *datastore.Query {
 	return datastore.NewQuery(string(kind)).Namespace(Namespace)
 }

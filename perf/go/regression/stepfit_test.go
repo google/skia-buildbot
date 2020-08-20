@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -16,9 +14,6 @@ import (
 
 func TestStepFit(t *testing.T) {
 	unittest.LargeTest(t)
-
-	cleanup := testutil.InitDatastore(t, ds.REGRESSION)
-	defer cleanup()
 
 	rand.Seed(1)
 	now := time.Now()

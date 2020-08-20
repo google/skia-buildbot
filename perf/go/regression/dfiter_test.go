@@ -49,10 +49,6 @@ func newForTest(t *testing.T) (context.Context, dataframe.DataFrameBuilder, *per
 
 	cfg := config.DataStoreConfig{
 		TileSize: testTileSize,
-		Project:  "test",
-		Instance: "test",
-		Table:    "test",
-		Shards:   8,
 	}
 
 	store, err := sqltracestore.New(db, cfg)

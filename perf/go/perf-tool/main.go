@@ -1,4 +1,4 @@
-// Command-line application for interacting with BigTable backed Perf storage.
+// Command-line application for interacting with Perf.
 package main
 
 import (
@@ -204,24 +204,9 @@ using the same input file for both restores.
 		Long:  "Counts the index rows for the last (most recent) tile, or the tile specified by --tile.",
 		RunE:  indicesCountAction,
 	}
-	indicesWriteCmd := &cobra.Command{
-		Use:   "write",
-		Short: "Write indices",
-		Long:  "Rewrites the indices for the last (most recent) tile, or the tile specified by --tile.",
-		RunE:  indicesWriteAction,
-	}
-	indicesWriteAllCmd := &cobra.Command{
-		Use:   "write-all",
-		Short: "Write indices for all tiles.",
-		Long:  "Rewrites the indices for all tiles, --tiles is ignored. Starts with latest tile and keeps moving to previous tiles until it finds a tile with no traces.",
-		RunE:  indicesWriteAllAction,
-	}
-	indicesWriteCmd.Flags().Int32Var((*int32)(&indicesTileFlag), "tile", -1, "The tile to query")
 
 	indicesCmd.AddCommand(
 		indicesCountCmd,
-		indicesWriteCmd,
-		indicesWriteAllCmd,
 	)
 
 	tilesCmd := &cobra.Command{
@@ -831,44 +816,6 @@ func tracesListByIndexAction(c *cobra.Command, args []string) error {
 	}
 	for id, trace := range ts {
 		fmt.Println(id, trace)
-	}
-	return nil
-}
-
-func indicesWriteAction(c *cobra.Command, args []string) error {
-	store := mustGetStore()
-	var tileNumber types.TileNumber
-	if indicesTileFlag == -1 {
-		var err error
-		tileNumber, err = store.GetLatestTile()
-		if err != nil {
-			return fmt.Errorf("Failed to get latest tile: %s", err)
-		}
-	} else {
-		tileNumber = indicesTileFlag
-	}
-	return store.WriteIndices(context.Background(), tileNumber)
-}
-
-func indicesWriteAllAction(c *cobra.Command, args []string) error {
-	store := mustGetStore()
-	tileNumber, err := store.GetLatestTile()
-	if err != nil {
-		return fmt.Errorf("Failed to get latest tile: %s", err)
-	}
-	for {
-		if err := store.WriteIndices(context.Background(), tileNumber); err != nil {
-			return err
-		}
-		sklog.Infof("Wrote index for tile %d", tileNumber)
-		tileNumber = tileNumber.Prev()
-		count, err := store.TraceCount(context.Background(), tileNumber)
-		if err != nil {
-			return err
-		}
-		if count == 0 {
-			break
-		}
 	}
 	return nil
 }

@@ -907,12 +907,6 @@ func (s *SQLTraceStore) TraceCount(ctx context.Context, tileNumber types.TileNum
 	return ret, skerr.Wrap(err)
 }
 
-// WriteIndices implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) WriteIndices(ctx context.Context, tileNumber types.TileNumber) error {
-	// TODO(jcgregorio) This func should be removed from the interface since it only applied to BigTableTraceStore.
-	return nil
-}
-
 // updateSourceFile writes the filename into the SourceFiles table and returns
 // the sourceFileIDFromSQL of that filename.
 func (s *SQLTraceStore) updateSourceFile(filename string) (sourceFileIDFromSQL, error) {
