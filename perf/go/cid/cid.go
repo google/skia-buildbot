@@ -93,7 +93,7 @@ func New(ctx context.Context, git *perfgit.Git, instanceConfig *config.InstanceC
 
 // urlFromParts creates the URL to link to a specific commit in a repo.
 //
-// debouce - See config.PerfBigTableConfig.DebouceCommitURL.
+// debouce - See config.GitRepoConfig.DebouceCommitURL.
 func urlFromParts(repoURL, hash, subject string, debounce bool) string {
 	format := config.Config.GitRepoConfig.CommitURL
 	if format == "" {

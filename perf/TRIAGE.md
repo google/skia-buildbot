@@ -90,17 +90,6 @@ The alerting analysis will run the following analysis continuously:
         * Save results into database for regressions that show up
           for that commit.
 
-DB Model
---------
-
-A new table will need to be added to store the Regressions, which will be
-indexed by cid.CommitID, and will also have a column for timestamp to make
-time range queries easy. The Regression will be stored as serialized JSON in a
-text field.
-
- Column:     index       ts       triaged      text
-              cid     timestamp    bool    [map[string]Regression as JSON]
-
 UI Model
 --------
 

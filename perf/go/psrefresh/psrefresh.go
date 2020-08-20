@@ -12,7 +12,7 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
-// OPSProvider allows access to OrdererParamSets. btts.BigTableTraceStore implements this interface.
+// OPSProvider allows access to OrdererParamSets. TraceStore implements this interface.
 type OPSProvider interface {
 	GetLatestTile() (types.TileNumber, error)
 	GetOrderedParamSet(ctx context.Context, tileNumber types.TileNumber) (*paramtools.OrderedParamSet, error)
