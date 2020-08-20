@@ -12,14 +12,6 @@ SA_NAME=skia-perf
 cd /tmp/ramdisk
 gcloud iam service-accounts create "${SA_NAME}" --display-name="perf-ingest service account"
 
-gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-  --member "serviceAccount:${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com" \
-  --role roles/bigtable.user
-
-gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-  --member "serviceAccount:${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com" \
-  --role roles/datastore.user
-
 gcloud projects add-iam-policy-binding --project ${PROJECT} \
   --member serviceAccount:${SA_NAME}@${PROJECT_SUBDOMAIN}.iam.gserviceaccount.com \
   --role roles/cloudtrace.agent
