@@ -457,9 +457,9 @@ var statements = map[statement]string{
         SELECT
             COUNT(DISTINCT trace_id)
         FROM
-            TraceValues
+            Postings
         WHERE
-          commit_number >= $1 AND commit_number <= $2`,
+          tile_number = $1`,
 }
 
 type timeProvider func() time.Time
@@ -903,8 +903,7 @@ func (s *SQLTraceStore) TileSize() int32 {
 // TraceCount implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) TraceCount(ctx context.Context, tileNumber types.TileNumber) (int64, error) {
 	var ret int64
-	beginCommit, endCommit := types.TileCommitRangeForTileNumber(tileNumber, s.tileSize)
-	err := s.db.QueryRow(context.TODO(), statements[traceCount], beginCommit, endCommit).Scan(&ret)
+	err := s.db.QueryRow(context.TODO(), statements[traceCount], tileNumber).Scan(&ret)
 	return ret, skerr.Wrap(err)
 }
 
