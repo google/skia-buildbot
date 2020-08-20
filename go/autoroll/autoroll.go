@@ -229,7 +229,7 @@ func (a *AutoRollIssue) AllTrybotsSucceeded() bool {
 			bots[t.Builder] = t
 		}
 	}
-	sklog.Infof("AllTrybotsSucceeded? %d results.", len(bots))
+	sklog.Infof("AllTrybotsSucceeded? %d results. DryRunFinished: %t. CqFinished: %t", len(bots), a.DryRunFinished, a.CqFinished)
 	for _, t := range bots {
 		sklog.Infof("  %s: %s (%s)", t.Builder, t.Result, t.Category)
 		if t.Category != TRYBOT_CATEGORY_CQ {
