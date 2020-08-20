@@ -183,6 +183,7 @@ export class ClusterSummary2Sk extends ElementSk {
         status: 'Uninteresting',
       },
       param_summaries2: [],
+      ts: new Date().toISOString(),
     };
     this.triageStatus = {
       status: '',
