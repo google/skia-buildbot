@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"sort"
+	"time"
 
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/sklog"
@@ -15,6 +16,9 @@ import (
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
 )
+
+// timeNow allows testing calls to time.Now().
+var timeNow = time.Now
 
 const (
 
@@ -57,6 +61,9 @@ type ClusterSummary struct {
 
 	// Num is the number of observations that are in this cluster.
 	Num int `json:"num"`
+
+	// Timestamp is the timestamp when this regression was found.
+	Timestamp time.Time `json:"ts"`
 }
 
 // NewClusterSummary returns a new ClusterSummary.
@@ -66,6 +73,7 @@ func NewClusterSummary() *ClusterSummary {
 		ParamSummaries: []ValuePercent{},
 		StepFit:        &stepfit.StepFit{},
 		StepPoint:      &dataframe.ColumnHeader{},
+		Timestamp:      timeNow(),
 	}
 }
 
@@ -208,6 +216,8 @@ func getClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.C
 	return ret
 }
 
+// Progress is a function that is called periodically with the progress being
+// made in clustering.
 type Progress func(totalError float64)
 
 // CalculateClusterSummaries runs k-means clustering over the trace shapes.
