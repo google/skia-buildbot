@@ -2,6 +2,7 @@ package regression
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils/unittest"
@@ -10,13 +11,16 @@ import (
 	"go.skia.org/infra/perf/go/stepfit"
 )
 
+var testTime = time.Date(2020, 05, 01, 12, 00, 00, 00, time.UTC)
+
 func TestRegressions(t *testing.T) {
 	unittest.SmallTest(t)
 	r := New()
 	assert.True(t, r.Triaged(), "With no clusters, it should have Triaged() == true.")
 
 	df := &dataframe.FrameResponse{}
-	cl := &clustering2.ClusterSummary{}
+	cl := clustering2.NewClusterSummary()
+	cl.Timestamp = testTime
 	r.SetLow("source_type=skp", df, cl)
 	assert.False(t, r.Triaged(), "Should not be Triaged.")
 
@@ -56,7 +60,7 @@ func TestRegressions(t *testing.T) {
 	// Try serializing to JSON.
 	b, err := r.JSON()
 	assert.NoError(t, err)
-	assert.Equal(t, "{\"by_query\":{\"source_type=skp\":{\"low\":{\"centroid\":null,\"shortcut\":\"\",\"param_summaries2\":null,\"step_fit\":null,\"step_point\":null,\"num\":0},\"high\":{\"centroid\":null,\"shortcut\":\"\",\"param_summaries2\":null,\"step_fit\":null,\"step_point\":null,\"num\":0},\"frame\":{\"dataframe\":null,\"skps\":null,\"msg\":\"\"},\"low_status\":{\"status\":\"positive\",\"message\":\"SKP Update\"},\"high_status\":{\"status\":\"negative\",\"message\":\"See bug #foo.\"}}}}", string(b))
+	assert.Equal(t, "{\"by_query\":{\"source_type=skp\":{\"low\":{\"centroid\":null,\"shortcut\":\"\",\"param_summaries2\":[],\"step_fit\":{\"least_squares\":0,\"turning_point\":0,\"step_size\":0,\"regression\":0,\"status\":\"\"},\"step_point\":{\"offset\":0,\"timestamp\":0},\"num\":0,\"ts\":\"2020-05-01T12:00:00Z\"},\"high\":{\"centroid\":null,\"shortcut\":\"\",\"param_summaries2\":[],\"step_fit\":{\"least_squares\":0,\"turning_point\":0,\"step_size\":0,\"regression\":0,\"status\":\"\"},\"step_point\":{\"offset\":0,\"timestamp\":0},\"num\":0,\"ts\":\"2020-05-01T12:00:00Z\"},\"frame\":{\"dataframe\":null,\"skps\":null,\"msg\":\"\"},\"low_status\":{\"status\":\"positive\",\"message\":\"SKP Update\"},\"high_status\":{\"status\":\"negative\",\"message\":\"See bug #foo.\"}}}}", string(b))
 }
 
 func TestMerge(t *testing.T) {

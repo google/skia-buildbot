@@ -86,7 +86,7 @@ func SetLowAndTriage(t *testing.T, store regression.Store) {
 	require.Len(t, ranges, 1)
 	b, err := ranges[types.CommitNumber(1)].JSON()
 	require.NoError(t, err)
-	assert.Equal(t, "{\"by_query\":{\"1\":{\"low\":{\"centroid\":null,\"shortcut\":\"\",\"param_summaries2\":null,\"step_fit\":null,\"step_point\":null,\"num\":50},\"high\":null,\"frame\":{\"dataframe\":null,\"skps\":null,\"msg\":\"Looks like a regression\"},\"low_status\":{\"status\":\"untriaged\",\"message\":\"\"},\"high_status\":{\"status\":\"\",\"message\":\"\"}}}}", string(b))
+	assert.Equal(t, "{\"by_query\":{\"1\":{\"low\":{\"centroid\":null,\"shortcut\":\"\",\"param_summaries2\":null,\"step_fit\":null,\"step_point\":null,\"num\":50,\"ts\":\"0001-01-01T00:00:00Z\"},\"high\":null,\"frame\":{\"dataframe\":null,\"skps\":null,\"msg\":\"Looks like a regression\"},\"low_status\":{\"status\":\"untriaged\",\"message\":\"\"},\"high_status\":{\"status\":\"\",\"message\":\"\"}}}}", string(b))
 
 	// Triage existing regression.
 	tr := regression.TriageStatus{
