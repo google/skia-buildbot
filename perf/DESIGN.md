@@ -1,20 +1,10 @@
-DESIGN
-======
+# DESIGN
 
-Overview
---------
+## Overview
+
 Provides interactive dashboard for Skia performance data.
 
-Code Locations
---------------
-
-The code for the server along with VM instance setup scripts is kept in:
-
-  * https://skia.googlesource.com/buildbot/+show/master/perf/
-
-
-Architecture
-------------
+## Architecture
 
 This is the general flow of data for the Skia performance application.
 The frontend is available at http://perf.skia.org for Skia.
@@ -36,39 +26,37 @@ The frontend is available at http://perf.skia.org for Skia.
             +----------+-------------+
             |        Perf (Go)       |
             +------------------------+
-              ^    ^       ^
-              |    |       | (PubSub Events)
-              |    |       |
-              |    | +-----+--------------+
-              |    | | Perf Ingester (Go) |
-              |    | +--+-----------------+
-              |    |    |       ^
-              |    |    |       |
-              v    |    |       |
-    +---------+-+  |    | +-----+----+
-    | Datastore |  |    | | Google   |
-    |           |  |    | | Storage  |
-    +-----------+  |    | +----------+
+                   ^       ^
+                   |       | (PubSub Events)
+                   |       |
+                   | +-----+--------------+
+                   | | Perf Ingester (Go) |
+                   | +--+-----------------+
+                   |    |       ^
+                   |    |       |
+                   |    |       |
+                   |    | +-----+----+
+                   |    | | Google   |
+                   |    | | Storage  |
+                   |    | +----------+
                    |    v
-                 +-+--------+
-                 |   Tile   |
-                 |   Store  |
-                 +----------+
+                 +-+-----------+
+                 | CockroachDB |
+                 +-------------+
 
 ```
 
-Perf is a Go application that serves the HTML, CSS, JS and the JSON representations
-that the JS needs. It loads test results in the form of 'tiles' from the Tile Store.
-It combines that data with data about commits and annotations from Google Datastore
-and serves that the UI.
+Perf is a Go application that serves the HTML, CSS, JS and the JSON
+representations that the JS needs. It loads test results from the TraceStore. It
+combines that data with data about commits and serves that in the UI.
 
-The Perf Ingester is a separate application that periodically queries for fresh
-data from Google Storage and then writes Traces into the Tile Store. It
-generates PubSub events for each file it ingests. The Tile Store is currently
-implemented on top of Google BigTable.
+The Perf ingester receives PubSub events as files arrive in Google Storage and
+then writes Traces into the TraceStore from the data in those files. It
+optionally generates PubSub events for each file it ingests which can be used by
+Perf to optimize how clustering, the process of looking for regressions, is
+done.
 
-Users
------
+## Users
 
 Users must be logged in to access some content or to make some changes in the
 application, such as changing the status of perf alerts. User authentication
@@ -86,15 +74,12 @@ In Go the login.LoggedInAs(), see go/login/login.go.
 In Javascript the interface is sk.Login which is a Promise, see
 res/imp/login.html.
 
-Monitoring
-----------
+## Monitoring
 
 Monitoring of the application is done via Graphite at https://grafana2.skia.org.
 Both system and application level metrics are monitored.
 
-
-Clustering
-----------
+## Clustering
 
 The clustering is done by using k-means clustering over normalized Traces. The
 Traces are normalized by filling in missing data points so that there is a
@@ -109,8 +94,7 @@ step, the size of the step, and the least squares error of the curve fit. From
 that data we calculate the "Regression" value, which measures how much like a
 step function the centroid is, and is calculated by:
 
-  Regression = StepSize / LeastSquaresError.
-
+Regression = StepSize / LeastSquaresError.
 
 The better the fit the larger the Regression, because LSE gets smaller
 with a better fit. The higher the Step Size the larger the Regression.
@@ -118,13 +102,12 @@ with a better fit. The higher the Step Size the larger the Regression.
 A cluster is considered "Interesting" if the Regression value is large enough.
 The current cutoff for Interestingness is:
 
-  |Regression| > 150
+|Regression| > 150
 
 Where negative Regression values mean possible regressions, and positive
 values mean possible performance improvement.
 
-Alerting
---------
+## Alerting
 
 A dashboard is needed to report clusters that look "Interesting", i.e. could
 either be performance regressions, improvements, or other anomalies. The
@@ -132,9 +115,9 @@ current k-means clustering and calculating the Regression statistic for each
 cluster does a good job of indicating when something Interesting has happened,
 but a more structured system is needed that:
 
-  * Runs the clustering on a periodic basis.
-  * Allows flagging of interesting clusters as either ignorable or a bug.
-  * Finds clusters that are the same from run to run.
+- Runs the clustering on a periodic basis.
+- Allows flagging of interesting clusters as either ignorable or a bug.
+- Finds clusters that are the same from run to run.
 
 The last step, finding clusters that are the same, will be done by
 fingerprinting, i.e. use the first 20 traces of each cluster will be used as a
@@ -144,27 +127,28 @@ the same cluster. Note that we use the first 20 because traces are stored
 sorted on how close they are to the centroid for the cluster.
 
 Algorithm:
-  Run clustering and pick out the "Interesting" clusters.
-  Compare all the Interestin clusters to all the existing relevant clusters,
-    where "relevant" clusters are ones whose Hash/timestamp of the step
-    exists in the current tile.
-  Start with an empty "list".
-  For each cluster:
-    For each relevant existing cluster:
-      Take the top 20 keys from the existing cluster and count how many appear
-      in the cluster.
-    If there are no matches then this is a new cluster, add it to the "list".
-    If there are matches, possibly to multiple existing clusters, find the
-    existing cluster with the most matches.
-      Take the better of the two clusters (old/new) based on the better
-      Regression score, i.e. larger |Regression|, and update that in the "list".
-  Save all the clusters in the "list" back to the db.
+Run clustering and pick out the "Interesting" clusters.
+Compare all the Interestin clusters to all the existing relevant clusters,
+where "relevant" clusters are ones whose Hash/timestamp of the step
+exists in the current tile.
+Start with an empty "list".
+For each cluster:
+For each relevant existing cluster:
+Take the top 20 keys from the existing cluster and count how many appear
+in the cluster.
+If there are no matches then this is a new cluster, add it to the "list".
+If there are matches, possibly to multiple existing clusters, find the
+existing cluster with the most matches.
+Take the better of the two clusters (old/new) based on the better
+Regression score, i.e. larger |Regression|, and update that in the "list".
+Save all the clusters in the "list" back to the db.
 
 This algorithm should keep already triaged clusters in their triaged
 state while adding new unique clusters as they appear.
 
 Example
-~~~~~~~
+
+```
 
 Let's say we have three existing clusters with the following trace ids:
 
@@ -183,7 +167,7 @@ In the end we should end up with the following clusters:
 
 Where the 'or' chooses the cluster with the higher |Regression| value.
 
-Each unique cluster that's found will be stored in the datastore. The schema
+Each unique cluster that's found will be stored in the database. The schema
 will be:
 
     CREATE TABLE clusters (
@@ -208,10 +192,9 @@ that matches the fingerprint of an exisiting cluster, but has a higher
 regression value, than the new cluster values will be written into the
 'clusters' table, including the ts, hash, and regression values.
 
-~~~~~~~
+```
 
-Trace IDs
----------
+## Trace IDs
 
 Normal Trace IDs are of the form:
 
@@ -221,26 +204,25 @@ See go/query for more details on structured keys.
 
 There are two other forms of trace ids:
 
-  * Formula traces - A formula trace contains a formula to be evaluated which
-    may generate either a single Formula trace that is added to the plot, such
-    as ave(), or it may generate multiple calculated traces that are added to
-    the plot, such as norm(). Note that formula traces are stored in shortcuts
-    and added to plots even if it contains no data.
+- Formula traces - A formula trace contains a formula to be evaluated which
+  may generate either a single Formula trace that is added to the plot, such
+  as ave(), or it may generate multiple calculated traces that are added to
+  the plot, such as norm(). Note that formula traces are stored in shortcuts
+  and added to plots even if it contains no data.
 
-    Formula traces have IDs that begin with @. For example:
+  Formula traces have IDs that begin with @. For example:
 
-      norm(filter("config=8888"))
+  norm(filter("config=8888"))
 
-        or
+      or
 
-      norm(filter("#54"))
+  norm(filter("#54"))
 
-Installation
-------------
+## Installation
+
 See the README file.
 
-Ingestion
----------
+## Ingestion
 
 Ingestion is now event driven, using PubSub events from GCS as files
 are written. The naming convention for those PubSub topics is:
@@ -251,9 +233,7 @@ For example, for Perf ingestion of Skia data the topic will be:
 
     perf-ingestion-skia
 
-
-Event Driven Alerting
----------------------
+## Event Driven Alerting
 
 Instead of running continuously over all Alert configs and running the
 regressions found there it may be beneficial in some cases to look for
@@ -265,9 +245,9 @@ hour and having it finish in much less than an hour was expected.
 
 With the arrival of Android's data which is:
 
-   1. Sparse
-   2. Combinatorially much larger than Skia's data set, 40M traces as compared to Skia's 400K.
-   3. Alerts that need to be grouped along both Branch and BuildFlavor.
+1.  Sparse
+2.  Combinatorially much larger than Skia's data set, 40M traces as compared to Skia's 400K.
+3.  Alerts that need to be grouped along both Branch and BuildFlavor.
 
 Because of this the continuous clustering process for Android is now consuming a
 huge number of cores (60 GCE cores and 10 BT cores) and BT bandwidth (15M

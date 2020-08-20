@@ -55,10 +55,6 @@ type TraceStore interface {
 	// TraceCount returns the number of traces in a tile.
 	TraceCount(ctx context.Context, tileNumber types.TileNumber) (int64, error)
 
-	// WriteIndices recalculates the full index for the given tile and writes it
-	// back to the underlying datastore.
-	WriteIndices(ctx context.Context, tileNumber types.TileNumber) error
-
 	// WriteTraces writes the given values into the store.
 	//
 	// params is a slice of Params, where each one represents a single trace.
