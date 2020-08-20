@@ -20,13 +20,17 @@ export class TriconSk extends ElementSk {
   private static template = (ele: TriconSk) => {
     switch (ele.value) {
       case 'positive':
-        return html`<check-circle-icon-sk
-          title="Positive"
-        ></check-circle-icon-sk>`;
+        return html`
+          <check-circle-icon-sk></check-circle-icon-sk>
+        `;
       case 'negative':
-        return html`<cancel-icon-sk title="Negative"></cancel-icon-sk>`;
+        return html`
+          <cancel-icon-sk></cancel-icon-sk>
+        `;
       default:
-        return html`<help-icon-sk title="Untriaged"></help-icon-sk>`;
+        return html`
+          <help-icon-sk></help-icon-sk>
+        `;
     }
   };
 
