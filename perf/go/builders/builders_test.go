@@ -10,11 +10,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/ds"
-	"go.skia.org/infra/go/ds/testutil"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alerts/alertstest"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file/dirsource"
@@ -89,17 +86,6 @@ func newCockroachDBConfigForTest(t *testing.T) (context.Context, *config.Instanc
 	return ctx, instanceConfig, cleanup
 }
 
-func newGCPDatastoreConfigForTest(t *testing.T, kind ds.Kind) (context.Context, *config.InstanceConfig, util.CleanupFunc) {
-	ctx := context.Background()
-	cleanup := testutil.InitDatastore(t, kind)
-	instanceConfig := &config.InstanceConfig{
-		DataStoreConfig: config.DataStoreConfig{
-			DataStoreType: config.GCPDataStoreType,
-		},
-	}
-	return ctx, instanceConfig, cleanup
-}
-
 func TestNewTraceStoreFromConfig_CockroachDB_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
@@ -122,17 +108,6 @@ func TestNewTraceStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) {
 	_, err := NewTraceStoreFromConfig(ctx, true, instanceConfig)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), invalidDataStoreType)
-}
-
-func TestNewAlertStoreFromConfig_GCPDatastore_Success(t *testing.T) {
-	unittest.ManualTest(t)
-	ctx, instanceConfig, cleanup := newGCPDatastoreConfigForTest(t, ds.ALERT)
-	defer cleanup()
-
-	store, err := NewAlertStoreFromConfig(ctx, false, instanceConfig)
-	require.NoError(t, err)
-
-	alertstest.Store_SaveListDelete(t, store)
 }
 
 func TestNewAlertStoreFromConfig_CockroachDB_Success(t *testing.T) {
@@ -183,17 +158,6 @@ func TestNewRegressionStoreFromConfig_InvalidDatastoreTypeIsError(t *testing.T) 
 	assert.Contains(t, err.Error(), invalidDataStoreType)
 }
 
-func TestNewShortcutStoreFromConfig_GCPDatastore_Success(t *testing.T) {
-	unittest.ManualTest(t)
-	ctx, instanceConfig, cleanup := newGCPDatastoreConfigForTest(t, ds.SHORTCUT)
-	defer cleanup()
-
-	store, err := NewShortcutStoreFromConfig(ctx, false, instanceConfig)
-	require.NoError(t, err)
-
-	shortcuttest.InsertGet(t, store)
-}
-
 func TestNewShortcutStoreFromConfig_CockroachDB_Success(t *testing.T) {
 	unittest.LargeTest(t)
 	ctx, instanceConfig, cleanup := newCockroachDBConfigForTest(t)
@@ -216,54 +180,6 @@ func TestNewShortcutStoreFromConfig_CockroachDB_InvalidDatastoreTypeIsError(t *t
 	_, err := NewShortcutStoreFromConfig(ctx, false, instanceConfig)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), invalidDataStoreType)
-}
-
-func TestNewPerfGitFromConfig_ErrIfConnectionStringNotSet(t *testing.T) {
-	unittest.LargeTest(t)
-	ctx, _, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
-	defer cleanup()
-
-	instanceConfig.DataStoreConfig.DataStoreType = config.GCPDataStoreType
-
-	_, err := NewPerfGitFromConfig(ctx, false, instanceConfig)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "connection_string")
-}
-
-func TestNewPerfGitFromConfig_GCP_ErrorsOnNonPostgresConnectionString(t *testing.T) {
-	unittest.LargeTest(t)
-	ctx, _, _, _, instanceConfig, _, cleanup := gittest.NewForTest(t)
-	defer cleanup()
-
-	instanceConfig.DataStoreConfig.DataStoreType = config.GCPDataStoreType
-
-	// Create temp file to use for connection string.
-	tmpfile, err := ioutil.TempFile("", "newperfgit")
-	require.NoError(t, err)
-	require.NoError(t, tmpfile.Close())
-	defer func() {
-		assert.NoError(t, os.Remove(tmpfile.Name()))
-	}()
-	instanceConfig.DataStoreConfig.ConnectionString = tmpfile.Name()
-
-	_, err = NewPerfGitFromConfig(ctx, false, instanceConfig)
-	require.Error(t, err)
-}
-
-func TestNewPerfGitFromConfig_GCP_SuccessIfConnectionStringIsCockroachDB(t *testing.T) {
-	unittest.LargeTest(t)
-	ctx, _, _, hashes, instanceConfig, dbName, cleanup := gittest.NewForTest(t)
-	defer cleanup()
-
-	instanceConfig.DataStoreConfig.DataStoreType = config.GCPDataStoreType
-	instanceConfig.DataStoreConfig.ConnectionString = fmt.Sprintf("postgresql://root@%s/%s?sslmode=disable", perfsql.GetCockroachDBEmulatorHost(), dbName)
-
-	g, err := NewPerfGitFromConfig(ctx, false, instanceConfig)
-	require.NoError(t, err)
-
-	gitHash, err := g.GitHashFromCommitNumber(ctx, types.CommitNumber(2))
-	require.NoError(t, err)
-	assert.Equal(t, hashes[2], gitHash)
 }
 
 func TestNewPerfGitFromConfig_CockroachDB_Success(t *testing.T) {

@@ -67,42 +67,42 @@ type Result struct {
 	Measurements map[string][]SingleMeasurement `json:"measurements"`
 }
 
-// Format is the struct for decoding ingestion files for all cases
-// that aren't nanobench, which uses the BenchData format.
+// Format is the struct for decoding ingestion files for all cases that aren't
+// nanobench, which uses the BenchData format.
 //
 // For example, a file that looks like this:
 //
-// {
-//    "version": 1,
-//    "git_hash": "cd5...663",
-//    "key": {
-//        "config": "8888",
-//        "arch": "x86",
-//    },
-//    "results": [
-//      {
-//        "measurements": {
-//          "key": {
-//            "test": "some_test_name"
-//          }
-//          "ms": [
-//            {
-//              "value": "min",
-//              "measurement": 1.2,
-//            },
-//            {
-//              "value": "max"
-//              "measurement": 2.4,
-//            },
-//            {
-//              "value": "median",
-//              "measurement": 1.5,
-//            }
-//          ]
-//        }
-//      }
-//    ]
-// }
+//   {
+//     "version": 1,
+//     "git_hash": "cd5...663",
+//     "key": {
+//         "config": "8888",
+//         "arch": "x86",
+//     },
+//     "results": [
+//       {
+//         "measurements": {
+//           "key": {
+//             "test": "some_test_name"
+//           }
+//           "ms": [
+//             {
+//               "value": "min",
+//               "measurement": 1.2,
+//             },
+//             {
+//               "value": "max"
+//               "measurement": 2.4,
+//             },
+//             {
+//               "value": "median",
+//               "measurement": 1.5,
+//             }
+//           ]
+//         }
+//       }
+//     ]
+//   }
 //
 // Will produce this set of trace ids and values:
 //
@@ -110,6 +110,8 @@ type Result struct {
 //    ,arch=x86,config=8888,ms=max,test=some_test_name,      2.4
 //    ,arch=x86,config=8888,ms=median,test=some_test_name,   1.5
 //
+// Key value pair charactes should come from [0-9a-zA-Z\_], particularly note no
+// spaces or ':' characters.
 type Format struct {
 	// Version is the file format version. It should be 1 for this format.
 	Version int `json:"version"`
@@ -117,7 +119,7 @@ type Format struct {
 	// GitHash of the repo when these tests were run.
 	GitHash string `json:"git_hash"`
 
-	// Key contains key=value pairs will be part of all trace ids.
+	// Key contains key=value pairs that are part of all trace ids.
 	Key map[string]string `json:"key"`
 
 	// Results are all the test results.

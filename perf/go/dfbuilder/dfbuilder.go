@@ -33,7 +33,7 @@ const (
 	NEW_N_MAX_SEARCH = 40
 )
 
-// builder implements DataFrameBuilder using btts.
+// builder implements DataFrameBuilder using TraceStore.
 type builder struct {
 	git      *perfgit.Git
 	store    tracestore.TraceStore
@@ -145,8 +145,6 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 			if err != nil {
 				return err
 			}
-			// tileKey := btts.TileKeyFromTileNumber(tileNumber)
-			// sklog.Debugf("found %d traces for %s", len(traces), tileKey.OpsRowName())
 
 			traceSetBuilder.Add(traceMap, traces)
 			triggerProgress()
@@ -615,5 +613,5 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 	return count, ps, nil
 }
 
-// Validate that the concrete bttsDataFrameBuilder faithfully implements the DataFrameBuidler interface.
+// Validate that *builder faithfully implements the DataFrameBuidler interface.
 var _ dataframe.DataFrameBuilder = (*builder)(nil)
