@@ -21,7 +21,7 @@ var ingestCmd = &cobra.Command{
 	Use:   "ingest",
 	Short: "Run the ingestion process.",
 	Long: `Continuously imports files as they arrive from
-the configured ingestion sources and populates the datastore
+the configured ingestion sources and populates the TraceStore
 with that data.
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {

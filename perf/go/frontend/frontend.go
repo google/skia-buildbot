@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
-	"cloud.google.com/go/datastore"
 	"cloud.google.com/go/storage"
 	"github.com/gorilla/mux"
 	"github.com/jcgregorio/logger"
@@ -28,7 +27,6 @@ import (
 	"go.skia.org/infra/go/auditlog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/calc"
-	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/gitauth"
 	"go.skia.org/infra/go/httputils"
@@ -312,11 +310,7 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 		sklog.Fatal(err)
 	}
 
-	if !f.flags.Local && cfg.DataStoreConfig.Namespace != "" && !util.In(cfg.DataStoreConfig.Namespace, []string{ds.PERF_NS, ds.PERF_ANDROID_NS, ds.PERF_ANDROID_X_NS, ds.PERF_ANDROID_MASTER_NS, ds.PERF_CT_NS, ds.PERF_FLUTTER_NS}) {
-		sklog.Fatal("When running in prod the datastore namespace must be a known value.")
-	}
-
-	scopes := []string{storage.ScopeReadOnly, datastore.ScopeDatastore, bigtable.Scope, auth.SCOPE_GERRIT}
+	scopes := []string{storage.ScopeReadOnly, bigtable.Scope, auth.SCOPE_GERRIT}
 
 	sklog.Info("About to create token source.")
 	ts, err := auth.NewDefaultTokenSource(f.flags.Local, scopes...)

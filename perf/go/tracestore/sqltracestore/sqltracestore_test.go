@@ -28,10 +28,6 @@ const (
 
 var cfg = config.DataStoreConfig{
 	TileSize: testTileSize,
-	Project:  "test",
-	Instance: "test",
-	Table:    "test",
-	Shards:   8,
 }
 
 func commonTestSetup(t *testing.T, populateTraces bool) (context.Context, *SQLTraceStore, sqltest.Cleanup) {
