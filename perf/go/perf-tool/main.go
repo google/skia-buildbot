@@ -47,6 +47,8 @@ var (
 
 // flags
 var (
+	tileListNumFlag int32
+
 	indicesTileFlag types.TileNumber
 	tracesTileFlag  types.TileNumber
 
@@ -121,7 +123,6 @@ func main() {
 		Short: "Migrate the database to the latest version of the schema.",
 		RunE:  databaseMigrateSubAction,
 	}
-	databaseCmd.AddCommand(databaseMigrateSubCmd)
 
 	databaseBackupSubCmd := &cobra.Command{
 		Use: "backup [sub]",
@@ -162,8 +163,6 @@ using the same input file for both restores.
 	databaseBackupRegressionsSubCmd.Flags().String(backupToDateFlag, "", "How far back in time to back up Regressions. Defaults to four weeks.")
 	databaseBackupSubCmd.AddCommand(databaseBackupRegressionsSubCmd)
 
-	databaseCmd.AddCommand(databaseBackupSubCmd)
-
 	databaseRestoreSubCmd := &cobra.Command{
 		Use: "restore [sub]",
 	}
@@ -190,7 +189,10 @@ using the same input file for both restores.
 	}
 	databaseRestoreSubCmd.AddCommand(databaseRestoreRegressionsSubCmd)
 
-	databaseCmd.AddCommand(databaseRestoreSubCmd)
+	databaseCmd.AddCommand(
+		databaseMigrateSubCmd,
+		databaseBackupSubCmd,
+		databaseRestoreSubCmd)
 
 	indicesCmd := &cobra.Command{
 		Use: "indices [sub]",
@@ -225,14 +227,23 @@ using the same input file for both restores.
 	tilesCmd := &cobra.Command{
 		Use: "tiles [sub]",
 	}
+	tilesCmd.PersistentFlags().String(connectionStringFlag, "", "Override the connection_string in the config file.")
+
 	tilesLast := &cobra.Command{
 		Use:   "last",
 		Short: "Prints the offset of the last (most recent) tile.",
 		RunE:  tilesLastAction,
 	}
+	tilesList := &cobra.Command{
+		Use:   "list",
+		Short: "Prints the last N tiles and the number of traces they contain.",
+		RunE:  tilesListAction,
+	}
+	tilesList.Flags().Int32Var(&tileListNumFlag, "num", 10, "The number of tiles to display.")
 
 	tilesCmd.AddCommand(
 		tilesLast,
+		tilesList,
 	)
 
 	tracesCmd := &cobra.Command{
@@ -764,11 +775,33 @@ func databaseDatabaseRestoreRegressionsSubAction(c *cobra.Command, args []string
 }
 
 func tilesLastAction(c *cobra.Command, args []string) error {
+	updateInstanceConfigWithOverride(c)
 	tileNumber, err := mustGetStore().GetLatestTile()
 	if err != nil {
 		return err
 	}
 	fmt.Println(tileNumber)
+	return nil
+}
+
+func tilesListAction(c *cobra.Command, args []string) error {
+	ctx := context.Background()
+	updateInstanceConfigWithOverride(c)
+	store := mustGetStore()
+
+	latestTileNumber, err := store.GetLatestTile()
+	if err != nil {
+		return err
+	}
+	fmt.Println("tile\tnum traces")
+	for tileNumber := latestTileNumber; tileNumber > latestTileNumber-types.TileNumber(tileListNumFlag); tileNumber-- {
+		count, err := store.TraceCount(ctx, tileNumber)
+		if err != nil {
+			return skerr.Wrapf(err, "failed to count traces for tile %d", tileNumber)
+		}
+		fmt.Printf("%d\t%d\n", tileNumber, count)
+	}
+
 	return nil
 }
 
