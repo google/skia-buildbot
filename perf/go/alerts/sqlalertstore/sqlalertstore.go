@@ -112,6 +112,17 @@ func (s *SQLAlertStore) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
+type alertSlice []*alerts.Alert
+
+func (p alertSlice) Len() int { return len(p) }
+func (p alertSlice) Less(i, j int) bool {
+	if p[i].DisplayName == p[j].DisplayName {
+		return p[i].IDAsString < p[j].IDAsString
+	}
+	return p[i].DisplayName < p[j].DisplayName
+}
+func (p alertSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+
 // List implements the alerts.Store interface.
 func (s *SQLAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alerts.Alert, error) {
 	stmt := listActiveAlerts
