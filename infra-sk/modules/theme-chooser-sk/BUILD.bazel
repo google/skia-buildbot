@@ -1,0 +1,109 @@
+package(default_visibility=["//visibility:public"])
+
+load("@io_bazel_rules_sass//:defs.bzl", "sass_library", "sass_binary")
+load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_devserver", "ts_library")
+load("@infra-sk_npm//html-insert-assets:index.bzl", "html_insert_assets")
+load("//infra-sk/karma_mocha_test:index.bzl", "karma_mocha_test")
+
+#############################
+# theme-chooser-sk element. #
+#############################
+
+ts_library(
+    name = "theme-chooser-sk",
+    srcs = ["theme-chooser-sk.ts"],
+    deps = [
+        '//infra-sk/modules/ElementSk:element-sk',
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+)
+
+sass_library(
+    name = "styles",
+    srcs = ["theme-chooser-sk.scss"],
+    deps = ["//infra-sk:elements-sk_scss"],
+)
+
+##########################
+# theme-chooser-sk test. #
+##########################
+
+ts_library(
+  name = "test_lib",
+  srcs = [
+      "theme-chooser-sk_test.ts",
+  ],
+  deps = [
+      ":theme-chooser-sk",
+      "//infra-sk/modules:test_util",
+      "@infra-sk_npm//@types/chai",
+      "@infra-sk_npm//@types/mocha",
+  ],
+)
+
+karma_mocha_test(
+    name = "test",
+    deps = [
+        ":test_lib",
+        "@infra-sk_npm//elements-sk",
+    ],
+    srcs = [
+        "//infra-sk:chai_umd",
+        "//infra-sk:common-sk_umd",
+        "//infra-sk:elements-sk_umd",
+        "//infra-sk:lit-html_umd",
+    ],
+)
+
+###############################
+# theme-chooser-sk demo page. #
+###############################
+
+ts_library(
+    name = "demo_page_lib",
+    srcs = ["theme-chooser-sk-demo.ts"],
+    deps = [":theme-chooser-sk"],
+)
+
+sass_binary(
+    name = "demo_page_styles",
+    src = "theme-chooser-sk-demo.scss",
+    deps = [":styles"],
+    output_style = "expanded",
+)
+
+# Inspired by
+# https://github.com/bazelbuild/rules_nodejs/blob/660b4563ca5e3f8ae25e5680cb20e494febadb79/examples/angular/src/BUILD.bazel#L88.
+html_insert_assets(
+    name = "demo_page_html",
+    outs = ["index.html"],
+    args = [
+        "--html=$(location theme-chooser-sk-demo.html)",
+        "--out=$@",
+        "--roots=. $(RULEDIR)",
+        "--assets",
+        "$(location :theme-chooser-sk-demo.css)",
+        "/bundle.js", # Matches the serving_path argument from the ts_devserver rule.
+    ],
+    data = [
+        ":demo_page_styles",
+        ":theme-chooser-sk-demo.css",
+        "theme-chooser-sk-demo.html",
+    ]
+)
+
+ts_devserver(
+    name = "demo_page_server",
+    entry_module = "skia_infra/infra-sk/modules/theme-chooser-sk/theme-chooser-sk-demo",
+    deps = [":demo_page_lib"],
+    scripts = [
+        "//infra-sk:elements-sk_umd",
+        "//infra-sk:lit-html_umd",
+    ],
+    serving_path = "/bundle.js",
+    static_files = [
+        ":demo_page_html",
+        ":demo_page_styles",
+    ]
+)

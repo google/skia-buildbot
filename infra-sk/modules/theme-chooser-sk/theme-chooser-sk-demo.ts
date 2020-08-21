@@ -1,1 +1,1 @@
-import './index'
+import './theme-chooser-sk';
