@@ -1367,6 +1367,11 @@ func alertNewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// AlertUpdateResponse is the JSON response when an Alert is created or udpated.
+type AlertUpdateResponse struct {
+	IDAsString string
+}
+
 func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if login.LoggedInAs(r) == "" {
@@ -1382,6 +1387,12 @@ func (f *Frontend) alertUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	auditlog.Log(r, "alert-update", cfg)
 	if err := f.alertStore.Save(r.Context(), cfg); err != nil {
 		httputils.ReportError(w, err, "Failed to save alerts.Config.", http.StatusInternalServerError)
+	}
+	err := json.NewEncoder(w).Encode(AlertUpdateResponse{
+		IDAsString: cfg.IDAsString,
+	})
+	if err != nil {
+		sklog.Errorf("Failed to write JSON response: %s", err)
 	}
 }
 

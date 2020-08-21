@@ -27,14 +27,13 @@ import {
   Alert,
   FrameResponse,
   RegressionRow,
-  Regression,
   DryRunStatus,
   Direction,
   ClusterSummary,
   StartDryRunRequest,
   StartDryRunResponse,
+  AlertUpdateResponse,
 } from '../json';
-import { ParamSetSk } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { TriageStatusSkStartTriageEventDetails } from '../triage-status-sk/triage-status-sk';
@@ -55,20 +54,30 @@ export class ClusterLastNPageSk extends ElementSk {
       </div>
     </dialog>
     <div class="controls">
-      <label>
-        <h2>Alert Configuration</h2>
-        <button @click=${ele.alertEdit}>
-          ${ClusterLastNPageSk.configTitle(ele)}
-        </button>
-      </label>
-      <label>
-        <h2>Time Range</h2>
+      <p>
+        Use this page to test out an Alert configuration. Configure the Alert by
+        pressing the button below.
+      </p>
+      <button @click=${ele.alertEdit}>
+        ${ClusterLastNPageSk.configTitle(ele)}
+      </button>
+      <details>
+        <summary>
+          <p>
+            You can optionally change the range of commits over which the Alert
+            is run:
+          </p>
+        </summary>
         <domain-picker-sk
           id="range"
           .state=${ele.domain}
           force_request_type="dense"
         ></domain-picker-sk>
-      </label>
+      </details>
+      <p>
+        Once configured, you can run the Alert and see the regressions it
+        detects.
+      </p>
       <div class="running">
         <button
           class="action"
@@ -79,6 +88,19 @@ export class ClusterLastNPageSk extends ElementSk {
         </button>
         <spinner-sk ?active=${!!ele.requestId}></spinner-sk>
         <pre class="messages">${ele.runningStatus}</pre>
+      </div>
+      <div class="saving">
+        <p>
+          Once satisfied with the Alert you can save it to be run periodically.
+        </p>
+        <button
+          @click=${ele.writeAlert}
+          class="action"
+          ?disabled=${!ele.state!.query}
+        >
+          ${ClusterLastNPageSk.writeAlertTitle(ele)}
+        </button>
+        <spinner-sk ?active=${ele.writingAlert}></spinner-sk>
       </div>
     </div>
     <hr />
@@ -224,6 +246,13 @@ export class ClusterLastNPageSk extends ElementSk {
       ${ele.state!.sparse} - Threshold: ${ele.state!.interesting}
     `;
 
+  private static writeAlertTitle = (ele: ClusterLastNPageSk) => {
+    if (ele.state?.id_as_string === '-1') {
+      return 'Create Alert';
+    }
+    return 'Update Alert';
+  };
+
   private static table = (ele: ClusterLastNPageSk) => {
     if (ele.requestId && !ele.regressions.length) {
       return html`
@@ -251,6 +280,9 @@ export class ClusterLastNPageSk extends ElementSk {
     num_commits: 200,
     request_type: 1,
   };
+
+  // True if the Alert is being saved to the database.
+  private writingAlert: boolean = false;
 
   // The paramsets for the alert config.
   private paramset: ParamSet = {};
@@ -325,6 +357,31 @@ export class ClusterLastNPageSk extends ElementSk {
 
   private alertEdit() {
     this.alertDialog!.showModal();
+  }
+
+  private writeAlert() {
+    this.writingAlert = true;
+    this._render();
+    // Post the config.
+    fetch('/_/alert/update', {
+      method: 'POST',
+      body: JSON.stringify(this.state),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(jsonOrThrow)
+      .then((json: AlertUpdateResponse) => {
+        this.state!.id_as_string = json.IDAsString;
+        this.state!.id = +json.IDAsString;
+        this.writingAlert = false;
+        this._render();
+      })
+      .catch((msg) => {
+        this.writingAlert = false;
+        this._render();
+        errorMessage(msg);
+      });
   }
 
   private alertClose() {

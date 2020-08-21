@@ -18,6 +18,19 @@ cluster-lastn-page-sk {
     }
   }
 
+  domain-picker-sk {
+    margin-left: 16px;
+    display: block;
+  }
+
+  details {
+    margin-left: 8px;
+  }
+
+  summary p {
+    display: inline-block;
+  }
+
   .messages {
     overflow-x: auto;
     width: 75%;
