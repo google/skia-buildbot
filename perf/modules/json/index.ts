@@ -124,6 +124,10 @@ export interface StartDryRunResponse {
 	id: string;
 }
 
+export interface AlertUpdateResponse {
+	IDAsString: string;
+}
+
 export interface ClusterStartResponse {
 	id: string;
 }
