@@ -1,7 +1,39 @@
 package(default_visibility=["//visibility:public"])
 
 load("@build_bazel_rules_nodejs//internal/npm_install:npm_umd_bundle.bzl", "npm_umd_bundle")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_library")
+load("//infra-sk/css_to_scss:index.bzl", "css_to_scss")
 load("//infra-sk/remove_css_imports_from_js:index.bzl", "remove_css_imports_from_js")
+
+#################################
+# Sass library for elements-sk. #
+#################################
+
+ELEMENTS_SK_CSS = glob(["node_modules/elements-sk/**/*.css"])
+ELEMENTS_SK_SCSS = [css.replace(".css", ".scss") for css in ELEMENTS_SK_CSS]
+
+# The Sass compiler (and by extension the sass_binary rule) does not inline plain CSS (non-Sass)
+# files imported with the @import rule[1], so we transform the elements-sk CSS stylesheets into Sass
+# via the css_to_scss macro, which changes their extension and replaces `@import url(foo.css)` rules
+# with Sass `@use "foo.scss"` rules.
+#
+# As an alternative, we could rewrite the elements-sk stylesheets in Sass and distribute both the
+# *.scss and transpiled *.css files in the NPM package.
+#
+# [1] https://sass-lang.com/documentation/at-rules/import#plain-css-imports
+[
+    css_to_scss(
+        name = "elements-sk_%s_generator" % css.replace("/", "__").replace(".css", ".scss"),
+        src = css,
+        out = css.replace(".css", ".scss")
+    )
+    for css in ELEMENTS_SK_CSS
+]
+
+sass_library(
+    name = "elements-sk_scss",
+    srcs = ELEMENTS_SK_SCSS,
+)
 
 # The UMD bundles below are only necessary for karma_mocha_test and karma_web_test BUILD targets,
 # which require 3rd-party dependencies to be bundled as UMD modules and provided explicitly via the
@@ -65,7 +97,7 @@ ELEMENTS_SK_MODULES = [
 
 # Some elements-sk modules import CSS files from JavaScript, e.g. `import "styles.css"`. When said
 # elements-sk modules are bundled as UMD modules and loaded from a Karma test, the test fails
-# because the `require("styles.css")` calls in the UMD modules cannot be resolved.
+# because the `require("styles.css")` imports in the UMD modules cannot be resolved.
 #
 # Erasing the CSS imports from the UMD bundles prevents these errors. This is OK because the CSS
 # imports are only intended for generating CSS bundles with Webpack and the css-loader plugin, and
