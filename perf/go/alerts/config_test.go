@@ -1,9 +1,11 @@
 package alerts
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 )
@@ -273,4 +275,20 @@ func TestConfigStateToInt_Success(t *testing.T) {
 	assert.Equal(t, 0, ConfigStateToInt(ACTIVE))
 	assert.Equal(t, 1, ConfigStateToInt(DELETED))
 	assert.Equal(t, 0, ConfigStateToInt("INVALID STATE"), "Invalid ConfigState value.")
+}
+
+func TestSetIDFromInt64_GoodAlertID_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	cfg := NewConfig()
+	cfg.SetIDFromInt64(12)
+	require.Equal(t, int64(12), cfg.ID)
+	require.Equal(t, "12", cfg.IDAsString)
+}
+
+func TestSetIDFromInt64_BadAlertID_Success(t *testing.T) {
+	unittest.SmallTest(t)
+	cfg := NewConfig()
+	cfg.SetIDFromInt64(BadAlertID)
+	require.Equal(t, int64(BadAlertID), cfg.ID)
+	require.Equal(t, fmt.Sprintf("%d", BadAlertID), cfg.IDAsString)
 }

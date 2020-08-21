@@ -6,7 +6,6 @@ package sqlalertstore
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"sort"
 	"time"
 
@@ -34,6 +33,8 @@ var statements = map[statement]string{
 			Alerts (alert, last_modified)
 		VALUES
 			($1, $2)
+		RETURNING
+			id
 		`,
 	updateAlert: `
 		UPSERT INTO
@@ -92,15 +93,18 @@ func (s *SQLAlertStore) Save(ctx context.Context, cfg *alerts.Alert) error {
 	}
 	now := time.Now().Unix()
 	if cfg.ID == alerts.BadAlertID {
+		newID := alerts.BadAlertID
 		// Not a valid ID, so this should be an insert, not an update.
-		if _, err := s.db.Exec(ctx, statements[insertAlert], string(b), now); err != nil {
+		if err := s.db.QueryRow(ctx, statements[insertAlert], string(b), now).Scan(&newID); err != nil {
 			return skerr.Wrapf(err, "Failed to insert alert")
 		}
+		cfg.SetIDFromInt64(newID)
 	} else {
 		if _, err := s.db.Exec(ctx, statements[updateAlert], cfg.ID, string(b), cfg.StateToInt(), now); err != nil {
 			return skerr.Wrapf(err, "Failed to update Alert with ID=%d", cfg.ID)
 		}
 	}
+
 	return nil
 }
 
@@ -145,8 +149,7 @@ func (s *SQLAlertStore) List(ctx context.Context, includeDeleted bool) ([]*alert
 		if err := json.Unmarshal([]byte(serializedAlert), a); err != nil {
 			return nil, skerr.Wrapf(err, "Failed to deserialize JSON Alert.")
 		}
-		a.ID = id
-		a.IDAsString = fmt.Sprintf("%d", id)
+		a.SetIDFromInt64(id)
 		ret = append(ret, a)
 	}
 	sort.Sort(sortableAlertSlice(ret))
