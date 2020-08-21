@@ -27,14 +27,13 @@ import {
   Alert,
   FrameResponse,
   RegressionRow,
-  Regression,
   DryRunStatus,
   Direction,
   ClusterSummary,
   StartDryRunRequest,
   StartDryRunResponse,
+  AlertUpdateResponse,
 } from '../json';
-import { ParamSetSk } from '../../../infra-sk/modules/paramset-sk/paramset-sk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { TriageStatusSkStartTriageEventDetails } from '../triage-status-sk/triage-status-sk';
@@ -59,6 +58,9 @@ export class ClusterLastNPageSk extends ElementSk {
         <h2>Alert Configuration</h2>
         <button @click=${ele.alertEdit}>
           ${ClusterLastNPageSk.configTitle(ele)}
+        </button>
+        <button @click=${ele.writeAlert}>
+          ${ClusterLastNPageSk.writeAlertTitle(ele)}
         </button>
       </label>
       <label>
@@ -224,6 +226,13 @@ export class ClusterLastNPageSk extends ElementSk {
       ${ele.state!.sparse} - Threshold: ${ele.state!.interesting}
     `;
 
+  private static writeAlertTitle = (ele: ClusterLastNPageSk) => {
+    if (ele.state?.id_as_string === '-1') {
+      return 'Create Alert';
+    }
+    return 'Update Alert';
+  };
+
   private static table = (ele: ClusterLastNPageSk) => {
     if (ele.requestId && !ele.regressions.length) {
       return html`
@@ -325,6 +334,23 @@ export class ClusterLastNPageSk extends ElementSk {
 
   private alertEdit() {
     this.alertDialog!.showModal();
+  }
+
+  private writeAlert() {
+    // Post the config.
+    fetch('/_/alert/update', {
+      method: 'POST',
+      body: JSON.stringify(this.state),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(jsonOrThrow)
+      .then((json: AlertUpdateResponse) => {
+        this.state!.id_as_string = json.IDAsString;
+        this.state!.id = +json.IDAsString;
+      })
+      .catch(errorMessage);
   }
 
   private alertClose() {

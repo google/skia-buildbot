@@ -16,7 +16,7 @@ const (
 	//
 	// TODO(jcgregorio) Make Alert.ID its own type and BadAlertID and
 	// instance of that type.
-	BadAlertID = -1
+	BadAlertID = int64(-1)
 )
 
 var (
@@ -105,6 +105,12 @@ type Alert struct {
 	Sparse            bool      `json:"sparse"     ` // Data is sparse, so only include commits that have data.
 	MinimumNum        int       `json:"minimum_num"` // How many traces need to be found interesting before an alert is fired.
 	Category          string    `json:"category"   ` // Which category this alert falls into.
+}
+
+// SetIDFromInt64 sets both the integer and string IDs.
+func (c *Alert) SetIDFromInt64(id int64) {
+	c.ID = id
+	c.IDAsString = fmt.Sprintf("%d", id)
 }
 
 // StateToInt converts the State into an int which is used when storing Alerts.
