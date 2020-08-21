@@ -1,4 +1,3 @@
-import './index';
 import { setUpElementUnderTest, eventPromise } from '../../../infra-sk/modules/test_util';
 import { ThemeChooserSk, ThemeChooserSkEventDetail, DARKMODE_CLASS} from './theme-chooser-sk';
 import { expect } from 'chai';

@@ -1,0 +1,10 @@
+@use "./theme-chooser-sk.scss";
+
+theme-chooser-sk {
+  cursor: pointer;
+}
+
+body.darkmode {
+  background-color: #333;
+  color: white;
+}
