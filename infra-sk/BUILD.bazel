@@ -1,6 +1,7 @@
 package(default_visibility=["//visibility:public"])
 
 load("@build_bazel_rules_nodejs//internal/npm_install:npm_umd_bundle.bzl", "npm_umd_bundle")
+load("//infra-sk/remove_css_imports_from_js:index.bzl", "remove_css_imports_from_js")
 
 # The UMD bundles below are only necessary for karma_mocha_test and karma_web_test BUILD targets,
 # which require 3rd-party dependencies to be bundled as UMD modules and provided explicitly via the
@@ -37,7 +38,7 @@ filegroup(
 # UMD bundles for elements-sk. #
 ################################
 
-ELEMENT_SK_MODULES = [
+ELEMENTS_SK_MODULES = [
     filename                                       # node_modules/elements-sk/icon/add-icon-sk.js
         .replace("node_modules/elements-sk/", "")  # icon/add-icon-sk.js
         .replace(".js", "")                        # icon/add-icon-sk
@@ -59,12 +60,28 @@ ELEMENT_SK_MODULES = [
             './toast-sk.css',
         ],
     )
-    for module in ELEMENT_SK_MODULES
+    for module in ELEMENTS_SK_MODULES
+]
+
+# Some elements-sk modules import CSS files from JavaScript, e.g. `import "styles.css"`. When said
+# elements-sk modules are bundled as UMD modules and loaded from a Karma test, the test fails
+# because the `require("styles.css")` calls in the UMD modules cannot be resolved.
+#
+# Erasing the CSS imports from the UMD bundles prevents these errors. This is OK because the CSS
+# imports are only intended for generating CSS bundles with Webpack and the css-loader plugin, and
+# have no effect when Webpack is not used.
+[
+    remove_css_imports_from_js(
+        name = "elements-sk_%s_umd_nocss" % module.replace("/", "__"),
+        src = ":elements-sk/%s.umd.js" % module,
+        out = ":elements-sk/%s.umd.nocss.js" % module,
+    )
+    for module in ELEMENTS_SK_MODULES
 ]
 
 filegroup(
     name = "elements-sk_umd",
-    srcs = ["elements-sk/%s.umd.js" % module for module in ELEMENT_SK_MODULES],
+    srcs = ["elements-sk/%s.umd.nocss.js" % module for module in ELEMENTS_SK_MODULES],
 )
 
 ######################
