@@ -4,31 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 )
-
-// GitCheckoutGerritConfig provides configuration for Parents which use a local
-// git checkout and upload changes to Gerrit.
-type GitCheckoutGerritConfig struct {
-	GitCheckoutConfig
-	Gerrit *codereview.GerritConfig `json:"gerrit,omitempty"`
-}
-
-// See documentation for util.Validator interface.
-func (c GitCheckoutGerritConfig) Validate() error {
-	if err := c.GitCheckoutConfig.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	if err := c.Gerrit.Validate(); err != nil {
-		return skerr.Wrap(err)
-	}
-	return nil
-}
 
 // GitCheckoutUploadGerritRollFunc returns a GitCheckoutUploadRollFunc which
 // uploads a CL to Gerrit.
@@ -39,7 +20,7 @@ func GitCheckoutUploadGerritRollFunc(g gerrit.GerritInterface) git_common.Upload
 		if err != nil {
 			return 0, skerr.Wrap(err)
 		}
-		changeId, err := gerrit.ParseChangeId(out)
+		changeID, err := gerrit.ParseChangeId(out)
 		if err != nil {
 			return 0, skerr.Wrapf(err, "Commit message:\n%s", out)
 		}
@@ -48,7 +29,7 @@ func GitCheckoutUploadGerritRollFunc(g gerrit.GerritInterface) git_common.Upload
 		if _, err := co.Git(ctx, "push", git.DefaultRemote, fmt.Sprintf("%s:refs/for/%s", hash, upstreamBranch)); err != nil {
 			return 0, skerr.Wrap(err)
 		}
-		ci, err := g.GetChange(ctx, changeId)
+		ci, err := g.GetChange(ctx, changeID)
 		if err != nil {
 			return 0, skerr.Wrap(err)
 		}

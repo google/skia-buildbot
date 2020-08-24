@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	FuchsiaSDKAndroidVersionFile = "sdk_id"
-	FuchsiaSDKAndroidGenScript   = "scripts/update_fuchsia_sdk.py"
+	fuchsiaSDKAndroidVersionFile = "sdk_id"
+	fuchsiaSDKAndroidGenScript   = "scripts/update_fuchsia_sdk.py"
 )
 
 // FuchsiaSDKAndroidRepoManagerConfig provides configuration for
@@ -34,12 +34,12 @@ type FuchsiaSDKAndroidRepoManagerConfig struct {
 	GenSdkBpBranch string `json:"genSdkBpBranch"`
 }
 
-// See documentation for RepoManagerConfig interface.
+// NoCheckout implements the RepoManagerConfig interface.
 func (c *FuchsiaSDKAndroidRepoManagerConfig) NoCheckout() bool {
 	return false
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *FuchsiaSDKAndroidRepoManagerConfig) Validate() error {
 	if err := c.FuchsiaSDKRepoManagerConfig.Validate(); err != nil {
 		return err
@@ -57,7 +57,9 @@ func (c *FuchsiaSDKAndroidRepoManagerConfig) Validate() error {
 // SDK into Android. Unlike the fuchsiaSDKRepoManager, it actually unzips the
 // contents of the SDK and checks them into the target repo. Additionally, it
 // generates an Android.bp file.
-func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL string, authClient *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
+func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, serverURL string, authClient *http.Client, cr codereview.CodeReview, local bool) (*ParentChildRepoManager, error) {
+	// This type of RepoManager requires some customization, so we can't use the
+	// ParentChild constructor directly.
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -80,7 +82,7 @@ func NewFuchsiaSDKAndroidRepoManager(ctx context.Context, c *FuchsiaSDKAndroidRe
 		DependencyConfig: version_file_common.DependencyConfig{
 			VersionFileConfig: version_file_common.VersionFileConfig{
 				ID:   "FuchsiaSDK",
-				Path: FuchsiaSDKAndroidVersionFile,
+				Path: fuchsiaSDKAndroidVersionFile,
 			},
 		},
 	}
@@ -123,12 +125,12 @@ func fuchsiaSDKAndroidRepoManagerCreateRollFunc(genSdkBpRepo *git.Checkout, genS
 		// Instead of simply rolling the version hash into a file, download and
 		// unzip the SDK by running the update_fuchsia_sdk script, and commit
 		// its contents.
-		sklog.Infof("Running %s at %s", FuchsiaSDKAndroidGenScript, genSdkBpRepoHash)
+		sklog.Infof("Running %s at %s", fuchsiaSDKAndroidGenScript, genSdkBpRepoHash)
 		if _, err := exec.RunCommand(ctx, &exec.Command{
 			Dir:        genSdkBpRepo.Dir(),
 			Name:       "python",
 			Env:        []string{fmt.Sprintf("ANDROID_BUILD_TOP=%s", androidTop)},
-			Args:       []string{FuchsiaSDKAndroidGenScript, "--sdk_path", parentRepo.Dir()},
+			Args:       []string{fuchsiaSDKAndroidGenScript, "--sdk_path", parentRepo.Dir()},
 			InheritEnv: true,
 			LogStdout:  true,
 			LogStderr:  true,

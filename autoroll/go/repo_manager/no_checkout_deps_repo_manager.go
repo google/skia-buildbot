@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -35,7 +36,7 @@ type NoCheckoutDEPSRepoManagerConfig struct {
 	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 	if err := c.NoCheckoutRepoManagerConfig.Validate(); err != nil {
 		return err
@@ -65,7 +66,7 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 			return skerr.Wrapf(err, "invalid TransitiveDeps Parent")
 		}
 	}
-	_, _, err := c.splitParentChild()
+	_, err := c.splitParentChild()
 	return skerr.Wrap(err)
 }
 
@@ -73,7 +74,7 @@ func (c *NoCheckoutDEPSRepoManagerConfig) Validate() error {
 // parent.GitilesConfig and a child.GitilesConfig.
 // TODO(borenet): Update the config format to directly define the parent
 // and child. We shouldn't need most of the New.*RepoManager functions.
-func (c NoCheckoutDEPSRepoManagerConfig) splitParentChild() (parent.GitilesConfig, child.GitilesConfig, error) {
+func (c NoCheckoutDEPSRepoManagerConfig) splitParentChild() (*ParentChildConfig, error) {
 	var childDeps []*version_file_common.VersionFileConfig
 	if c.TransitiveDeps != nil {
 		childDeps = make([]*version_file_common.VersionFileConfig, 0, len(c.TransitiveDeps))
@@ -81,53 +82,45 @@ func (c NoCheckoutDEPSRepoManagerConfig) splitParentChild() (parent.GitilesConfi
 			childDeps = append(childDeps, dep.Child)
 		}
 	}
-	parentCfg := parent.GitilesConfig{
-		DependencyConfig: version_file_common.DependencyConfig{
-			VersionFileConfig: version_file_common.VersionFileConfig{
-				ID:   c.ChildRepo,
-				Path: deps_parser.DepsFileName,
+	cfg := &ParentChildConfig{
+		Parent: parent.Config{
+			GitilesFile: &parent.GitilesConfig{
+				DependencyConfig: version_file_common.DependencyConfig{
+					VersionFileConfig: version_file_common.VersionFileConfig{
+						ID:   c.ChildRepo,
+						Path: deps_parser.DepsFileName,
+					},
+					TransitiveDeps: c.TransitiveDeps,
+				},
+				GitilesConfig: gitiles_common.GitilesConfig{
+					Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
+					RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+				},
+				Gerrit: c.Gerrit,
 			},
-			TransitiveDeps: c.TransitiveDeps,
 		},
-		GitilesConfig: gitiles_common.GitilesConfig{
-			Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
-			RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
-		},
-		Gerrit: c.Gerrit,
-	}
-	if err := parentCfg.Validate(); err != nil {
-		return parent.GitilesConfig{}, child.GitilesConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
-	}
-	childCfg := child.GitilesConfig{
-		GitilesConfig: gitiles_common.GitilesConfig{
-			Branch:       c.ChildBranch,
-			RepoURL:      c.ChildRepo,
-			Dependencies: childDeps,
+		Child: child.Config{
+			Gitiles: &child.GitilesConfig{
+				GitilesConfig: gitiles_common.GitilesConfig{
+					Branch:       c.ChildBranch,
+					RepoURL:      c.ChildRepo,
+					Dependencies: childDeps,
+				},
+			},
 		},
 	}
-	if err := childCfg.Validate(); err != nil {
-		return parent.GitilesConfig{}, child.GitilesConfig{}, skerr.Wrapf(err, "generated child config is invalid")
+	if err := cfg.Validate(); err != nil {
+		return nil, skerr.Wrapf(err, "generated config is invalid")
 	}
-	return parentCfg, childCfg, nil
+	return cfg, nil
 }
 
 // NewNoCheckoutDEPSRepoManager returns a RepoManager instance which does not
 // use a local checkout.
-func NewNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
-	if err := c.Validate(); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	parentCfg, childCfg, err := c.splitParentChild()
+func NewNoCheckoutDEPSRepoManager(ctx context.Context, c *NoCheckoutDEPSRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName string, gerritClient *gerrit.Gerrit, githubClient *github.GitHub, recipeCfgFile, serverURL string, httpClient *http.Client, cr codereview.CodeReview, local bool) (*ParentChildRepoManager, error) {
+	cfg, err := c.splitParentChild()
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	parentRM, err := parent.NewGitilesFile(ctx, parentCfg, reg, client, serverURL)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	childRM, err := child.NewGitiles(ctx, childCfg, reg, client)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return newParentChildRepoManager(ctx, parentRM, childRM, nil)
+	return newParentChildFromConfig(ctx, cfg, reg, httpClient, gerritClient, githubClient, serverURL, workdir, rollerName, cr.UserName(), cr.UserEmail(), recipeCfgFile)
 }

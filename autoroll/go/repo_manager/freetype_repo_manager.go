@@ -6,9 +6,8 @@ import (
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
-	"go.skia.org/infra/autoroll/go/repo_manager/child"
-	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -17,28 +16,17 @@ type FreeTypeRepoManagerConfig struct {
 	NoCheckoutDEPSRepoManagerConfig
 }
 
-// See documentation for RepoManagerConfig interface.
+// NoCheckout implements the RepoManagerConfig interface.
 func (c *FreeTypeRepoManagerConfig) NoCheckout() bool {
 	return false
 }
 
 // NewFreeTypeRepoManager returns a RepoManager instance which rolls FreeType
 // in DEPS and updates header files and README.chromium.
-func NewFreeTypeRepoManager(ctx context.Context, c *FreeTypeRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
-	if err := c.Validate(); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	parentCfg, childCfg, err := c.NoCheckoutDEPSRepoManagerConfig.splitParentChild()
+func NewFreeTypeRepoManager(ctx context.Context, c *FreeTypeRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName string, gerritClient *gerrit.Gerrit, githubClient *github.GitHub, recipeCfgFile, serverURL string, httpClient *http.Client, cr codereview.CodeReview, local bool) (*ParentChildRepoManager, error) {
+	cfg, err := c.splitParentChild()
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	parentRM, err := parent.NewFreeTypeParent(ctx, parentCfg, reg, workdir, client, serverURL)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	childRM, err := child.NewGitiles(ctx, childCfg, reg, client)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return newParentChildRepoManager(ctx, parentRM, childRM, nil)
+	return newParentChildFromConfig(ctx, cfg, reg, httpClient, gerritClient, githubClient, serverURL, workdir, rollerName, cr.UserName(), cr.UserEmail(), recipeCfgFile)
 }

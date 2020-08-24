@@ -3,8 +3,6 @@ package repo_manager
 import (
 	"context"
 	"net/http"
-	"os"
-	"path"
 
 	"go.skia.org/infra/autoroll/go/codereview"
 	"go.skia.org/infra/autoroll/go/config_vars"
@@ -13,6 +11,7 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
+	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
 )
@@ -36,14 +35,14 @@ type GithubRepoManagerConfig struct {
 	TransitiveDeps []*version_file_common.TransitiveDepConfig `json:"transitiveDeps,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *GithubRepoManagerConfig) Validate() error {
 	if c.BuildbucketRevisionFilter != nil {
 		if err := c.BuildbucketRevisionFilter.Validate(); err != nil {
 			return skerr.Wrap(err)
 		}
 	}
-	_, _, err := c.splitParentChild()
+	_, err := c.splitParentChild()
 	return skerr.Wrap(err)
 }
 
@@ -51,7 +50,7 @@ func (c *GithubRepoManagerConfig) Validate() error {
 // parent.GitCheckoutGithubConfig and a child.GitCheckoutConfig.
 // TODO(borenet): Update the config format to directly define the parent
 // and child. We shouldn't need most of the New.*RepoManager functions.
-func (c GithubRepoManagerConfig) splitParentChild() (parent.GitCheckoutGithubFileConfig, child.GitCheckoutGithubConfig, error) {
+func (c GithubRepoManagerConfig) splitParentChild() (*ParentChildConfig, error) {
 	var childDeps []*version_file_common.VersionFileConfig
 	if c.TransitiveDeps != nil {
 		childDeps = make([]*version_file_common.VersionFileConfig, 0, len(c.TransitiveDeps))
@@ -59,78 +58,56 @@ func (c GithubRepoManagerConfig) splitParentChild() (parent.GitCheckoutGithubFil
 			childDeps = append(childDeps, dep.Child)
 		}
 	}
-	parentCfg := parent.GitCheckoutGithubFileConfig{
-		GitCheckoutGithubConfig: parent.GitCheckoutGithubConfig{
-			GitCheckoutConfig: parent.GitCheckoutConfig{
-				GitCheckoutConfig: git_common.GitCheckoutConfig{
-					Branch:      c.ParentBranch,
-					RepoURL:     c.ParentRepo,
-					RevLinkTmpl: "", // Not needed.
-				},
-				DependencyConfig: version_file_common.DependencyConfig{
-					VersionFileConfig: version_file_common.VersionFileConfig{
-						ID:   c.ChildRepoURL,
-						Path: c.RevisionFile,
+	cfg := &ParentChildConfig{
+		Parent: parent.Config{
+			GitCheckoutGithubFile: &parent.GitCheckoutGithubFileConfig{
+				GitCheckoutGithubConfig: parent.GitCheckoutGithubConfig{
+					GitCheckoutConfig: parent.GitCheckoutConfig{
+						GitCheckoutConfig: git_common.GitCheckoutConfig{
+							Branch:      c.ParentBranch,
+							RepoURL:     c.ParentRepo,
+							RevLinkTmpl: "", // Not needed.
+						},
+						DependencyConfig: version_file_common.DependencyConfig{
+							VersionFileConfig: version_file_common.VersionFileConfig{
+								ID:   c.ChildRepoURL,
+								Path: c.RevisionFile,
+							},
+							TransitiveDeps: c.TransitiveDeps,
+						},
 					},
-					TransitiveDeps: c.TransitiveDeps,
+					ForkRepoURL: c.ForkRepoURL,
 				},
-			},
-			ForkRepoURL: c.ForkRepoURL,
-		},
-		PreUploadSteps: c.PreUploadSteps,
-	}
-	if err := parentCfg.Validate(); err != nil {
-		return parent.GitCheckoutGithubFileConfig{}, child.GitCheckoutGithubConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
-	}
-	childCfg := child.GitCheckoutGithubConfig{
-		GitCheckoutConfig: child.GitCheckoutConfig{
-			GitCheckoutConfig: git_common.GitCheckoutConfig{
-				Branch:       c.ChildBranch,
-				Dependencies: childDeps,
-				RepoURL:      c.ChildRepoURL,
-				RevLinkTmpl:  c.ChildRevLinkTmpl,
+				PreUploadSteps: c.PreUploadSteps,
 			},
 		},
-		GithubRepoName: c.ChildRepoName,
-		GithubUserName: c.ChildUserName,
+		Child: child.Config{
+			GitCheckoutGithub: &child.GitCheckoutGithubConfig{
+				GitCheckoutConfig: child.GitCheckoutConfig{
+					GitCheckoutConfig: git_common.GitCheckoutConfig{
+						Branch:       c.ChildBranch,
+						Dependencies: childDeps,
+						RepoURL:      c.ChildRepoURL,
+						RevLinkTmpl:  c.ChildRevLinkTmpl,
+					},
+				},
+				GithubRepoName: c.ChildRepoName,
+				GithubUserName: c.ChildUserName,
+			},
+		},
 	}
-	if err := childCfg.Validate(); err != nil {
-		return parent.GitCheckoutGithubFileConfig{}, child.GitCheckoutGithubConfig{}, skerr.Wrapf(err, "generated child config is invalid")
+	if err := cfg.Validate(); err != nil {
+		return nil, skerr.Wrapf(err, "generated config is invalid")
 	}
-	return parentCfg, childCfg, nil
+	return cfg, nil
 }
 
 // NewGithubRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName string, githubClient *github.GitHub, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
-	if err := c.Validate(); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	wd := path.Join(workdir, "github_repos")
-	if _, err := os.Stat(wd); err != nil {
-		if err := os.MkdirAll(wd, 0755); err != nil {
-			return nil, skerr.Wrap(err)
-		}
-	}
-
-	parentCfg, childCfg, err := c.splitParentChild()
+func NewGithubRepoManager(ctx context.Context, c *GithubRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName string, gerritClient *gerrit.Gerrit, githubClient *github.GitHub, recipeCfgFile, serverURL string, httpClient *http.Client, cr codereview.CodeReview, local bool) (*ParentChildRepoManager, error) {
+	cfg, err := c.splitParentChild()
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	parentRM, err := parent.NewGitCheckoutGithubFile(ctx, parentCfg, reg, client, githubClient, serverURL, wd, cr.UserName(), cr.UserEmail(), rollerName, nil)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	childRM, err := child.NewGitCheckoutGithub(ctx, childCfg, reg, client, wd, cr.UserName(), cr.UserEmail(), nil)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	var rf revision_filter.RevisionFilter
-	if c.BuildbucketRevisionFilter != nil {
-		rf, err = revision_filter.NewBuildbucketRevisionFilter(client, c.BuildbucketRevisionFilter.Project, c.BuildbucketRevisionFilter.Bucket)
-		if err != nil {
-			return nil, skerr.Wrap(err)
-		}
-	}
-	return newParentChildRepoManager(ctx, parentRM, childRM, rf)
+	return newParentChildFromConfig(ctx, cfg, reg, httpClient, gerritClient, githubClient, serverURL, workdir, rollerName, cr.UserName(), cr.UserEmail(), recipeCfgFile)
 }

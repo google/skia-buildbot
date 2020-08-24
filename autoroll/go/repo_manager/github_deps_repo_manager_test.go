@@ -64,7 +64,7 @@ func TestGithubDEPSRepoManagerConfigValidation(t *testing.T) {
 	require.Error(t, cfg.Validate())
 }
 
-func setupGithubDEPS(t *testing.T, c *GithubDEPSRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
+func setupGithubDEPS(t *testing.T, c *GithubDEPSRepoManagerConfig) (context.Context, *ParentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -118,7 +118,7 @@ func setupGithubDEPS(t *testing.T, c *GithubDEPSRepoManagerConfig) (context.Cont
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	g, urlmock := setupFakeGithubDEPS(t, ctx)
-	rm, err := NewGithubDEPSRepoManager(ctx, c, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	rm, err := NewGithubDEPSRepoManager(ctx, c, setupRegistry(t), wd, "fake-roller", nil, g, recipesCfg, "fake.server.com", urlmock.Client(), githubCR(t, g), false)
 	require.NoError(t, err)
 
 	cleanup := func() {

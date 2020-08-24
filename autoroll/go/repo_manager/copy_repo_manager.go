@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/parent"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -38,9 +39,9 @@ type CopyRepoManagerConfig struct {
 	VersionFile string `json:"versionFile"`
 }
 
-// Validate the config.
+// Validate implements the util.Validator interface.
 func (c *CopyRepoManagerConfig) Validate() error {
-	if _, _, err := c.splitParentChild(); err != nil {
+	if _, err := c.splitParentChild(); err != nil {
 		return skerr.Wrap(err)
 	}
 	return nil
@@ -50,57 +51,48 @@ func (c *CopyRepoManagerConfig) Validate() error {
 // and a child.GitilesConfig.
 // TODO(borenet): Update the config format to directly define the parent
 // and child. We shouldn't need most of the New.*RepoManager functions.
-func (c CopyRepoManagerConfig) splitParentChild() (parent.CopyConfig, child.GitilesConfig, error) {
-	parentCfg := parent.CopyConfig{
-		GitilesConfig: parent.GitilesConfig{
-			GitilesConfig: gitiles_common.GitilesConfig{
-				Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
-				RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
-			},
-			DependencyConfig: version_file_common.DependencyConfig{
-				VersionFileConfig: version_file_common.VersionFileConfig{
-					ID:   c.ChildRepo,
-					Path: c.VersionFile,
+func (c CopyRepoManagerConfig) splitParentChild() (*ParentChildConfig, error) {
+	cfg := &ParentChildConfig{
+		Parent: parent.Config{
+			Copy: &parent.CopyConfig{
+				GitilesConfig: parent.GitilesConfig{
+					GitilesConfig: gitiles_common.GitilesConfig{
+						Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
+						RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+					},
+					DependencyConfig: version_file_common.DependencyConfig{
+						VersionFileConfig: version_file_common.VersionFileConfig{
+							ID:   c.ChildRepo,
+							Path: c.VersionFile,
+						},
+					},
+					Gerrit: c.Gerrit,
 				},
+				Copies: c.Copies,
 			},
-			Gerrit: c.Gerrit,
 		},
-		Copies: c.Copies,
-	}
-	if err := parentCfg.Validate(); err != nil {
-		return parent.CopyConfig{}, child.GitilesConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
-	}
-	childCfg := child.GitilesConfig{
-		GitilesConfig: gitiles_common.GitilesConfig{
-			Branch:  c.ChildBranch,
-			RepoURL: c.ChildRepo,
+		Child: child.Config{
+			Gitiles: &child.GitilesConfig{
+				GitilesConfig: gitiles_common.GitilesConfig{
+					Branch:  c.ChildBranch,
+					RepoURL: c.ChildRepo,
+				},
+				Path: c.Path,
+			},
 		},
-		Path: c.Path,
 	}
-	if err := childCfg.Validate(); err != nil {
-		return parent.CopyConfig{}, child.GitilesConfig{}, skerr.Wrapf(err, "generated child config is invalid")
+	if err := cfg.Validate(); err != nil {
+		return nil, skerr.Wrapf(err, "generated config is invalid")
 	}
-	return parentCfg, childCfg, nil
+	return cfg, nil
 }
 
 // NewCopyRepoManager returns a RepoManager instance which rolls a dependency
 // which is copied directly into a subdir of the parent repo.
-func NewCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, reg *config_vars.Registry, workdir string, g *gerrit.Gerrit, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
-	if err := c.Validate(); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	parentCfg, childCfg, err := c.splitParentChild()
+func NewCopyRepoManager(ctx context.Context, c *CopyRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName string, gerritClient *gerrit.Gerrit, githubClient *github.GitHub, recipeCfgFile, serverURL string, httpClient *http.Client, cr codereview.CodeReview, local bool) (*ParentChildRepoManager, error) {
+	cfg, err := c.splitParentChild()
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	childRM, err := child.NewGitiles(ctx, childCfg, reg, client)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	parentRM, err := parent.NewCopy(ctx, parentCfg, reg, client, serverURL, workdir, cr.UserName(), cr.UserEmail(), childRM)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-
-	return newParentChildRepoManager(ctx, parentRM, childRM, nil)
+	return newParentChildFromConfig(ctx, cfg, reg, httpClient, gerritClient, githubClient, serverURL, workdir, rollerName, cr.UserName(), cr.UserEmail(), recipeCfgFile)
 }
