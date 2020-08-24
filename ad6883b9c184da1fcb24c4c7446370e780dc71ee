@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa839f00_c1b1ae06",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2020-08-24T17:19:24Z",
+      "side": 1,
+      "message": "It\u0027s possible that both fetches succeed if the user uploads a google font asset.  I\u0027m not super concerned about that case - I guess we\u0027ll end up using whichever is slower to complete?",
+      "revId": "ad6883b9c184da1fcb24c4c7446370e780dc71ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
