@@ -1,0 +1,52 @@
+//@import '../colors.css';
+
+commits-table-sk {
+  #commitsTableContainer {
+    //display: flex;
+    //flex-direction: row;
+    display: grid;
+    border: black solid 1px;
+  }
+  #commits {
+    // height and width
+    display: block;
+    ///////min-height: 780px;
+    min-width: 50px;
+    border: black solid 1px;
+    grid-row: 1 / -1;
+    grid-column: 1 / 2;
+  }
+  .commit {
+    //display: flex;
+    font-family: monospace;
+    font-size: .75em;
+    height: 16px;
+    padding: 2px;
+    position: relative;
+    cursor: pointer;
+  }
+  .commit:nth-child(even) {
+    background-color: #EFEFEF;
+  }
+  #legend {
+    border-right: 1px solid black;
+    font-size: 10px;
+   /////// height: 68px;
+  }
+
+  #tasksTable {
+    min-height: 780px;
+    grid-column: 2 / 3;
+    grid-row: 1 / -1;
+    border: black solid 1px;
+    display: contents;
+    //grid-template-columns: subgrid;
+    //grid-template-rows: subgrid;
+    //display: flex;
+    //flex-direction: row;
+  }
+  .category {
+    border: black solid 1px;
+
+  }
+}
