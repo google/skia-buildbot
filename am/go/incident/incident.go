@@ -47,13 +47,13 @@ const (
 // incident of an alert firing. There will be many Incidents in the datastore
 // with the same ID, but at most one will be Active.
 type Incident struct {
-	Key          string            `json:"key" datastore:"key"`             // Key is the web-safe serialized Datastore key for the incident.
-	ID           string            `json:"id" datastore:"id"`               // Also appears in Params.
-	Active       bool              `json:"active" datastore:"active"`       // Or archived.
-	Start        int64             `json:"start" datastore:"start"`         // Time in seconds since the epoch.
-	LastSeen     int64             `json:"last_seen" datastore:"last_seen"` // Time in seconds since the epoch.
-	Params       map[string]string `json:"params" datastore:"-"`            // Params
-	ParamsSerial string            `json:"-" datastore:"params_serial"`     // Params serialized as JSON for easy storing in the datastore.
+	Key          string            `json:"key" datastore:"key"`                 // Key is the web-safe serialized Datastore key for the incident.
+	ID           string            `json:"id" datastore:"id"`                   // Also appears in Params.
+	Active       bool              `json:"active" datastore:"active"`           // Or archived.
+	Start        int64             `json:"start" datastore:"start"`             // Time in seconds since the epoch.
+	LastSeen     int64             `json:"last_seen" datastore:"last_seen"`     // Time in seconds since the epoch.
+	Params       map[string]string `json:"params" datastore:"-"`                // Params
+	ParamsSerial string            `json:"-" datastore:"params_serial,noindex"` // Params serialized as JSON for easy storing in the datastore.
 	Notes        []note.Note       `json:"notes" datastore:"notes,flatten"`
 }
 
