@@ -23,7 +23,7 @@ type CopyEntry struct {
 	DstRelPath string `json:"dstRelPath"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (e CopyEntry) Validate() error {
 	if e.SrcRelPath == "" {
 		return skerr.Fmt("SrcRelPath is required")
@@ -44,7 +44,7 @@ type CopyConfig struct {
 	Copies []CopyEntry `json:"copies,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c CopyConfig) Validate() error {
 	if err := c.GitilesConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -62,7 +62,7 @@ func (c CopyConfig) Validate() error {
 
 // NewCopy returns a Parent implementation which copies the Child into itself.
 // It uses a local git checkout and uploads changes to Gerrit.
-func NewCopy(ctx context.Context, cfg CopyConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, userName, userEmail string, dep child.Child) (*gitilesParent, error) {
+func NewCopy(ctx context.Context, cfg CopyConfig, reg *config_vars.Registry, client *http.Client, serverURL, workdir, userName, userEmail string, dep child.Child) (*GitilesParent, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}

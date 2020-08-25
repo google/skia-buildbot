@@ -2,6 +2,7 @@ package child
 
 import (
 	"context"
+	"path/filepath"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
@@ -15,6 +16,11 @@ import (
 // Git checkout.
 type GitCheckoutConfig struct {
 	git_common.GitCheckoutConfig
+
+	// CheckoutPath is the path, relative to the top of the working directory,
+	// where the checkout should be located.  If not provided, the checkout is
+	// placed in the root of the working directory.
+	CheckoutPath string `json:"checkoutPath"`
 }
 
 // GitCheckoutChild is an implementation of Child which uses a local Git
@@ -25,7 +31,12 @@ type GitCheckoutChild struct {
 
 // NewGitCheckout returns an implementation of Child which uses a local Git
 // checkout.
-func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, workdir, userName, userEmail string, co *git.Checkout) (*GitCheckoutChild, error) {
+func NewGitCheckout(ctx context.Context, c GitCheckoutConfig, reg *config_vars.Registry, workdir, userName, userEmail string) (*GitCheckoutChild, error) {
+	var co *git.Checkout
+	if c.CheckoutPath != "" {
+		checkoutPath := filepath.Join(workdir, c.CheckoutPath)
+		co = &git.Checkout{GitDir: git.GitDir(checkoutPath)}
+	}
 	checkout, err := git_common.NewCheckout(ctx, c.GitCheckoutConfig, reg, workdir, userName, userEmail, co)
 	if err != nil {
 		return nil, skerr.Wrap(err)

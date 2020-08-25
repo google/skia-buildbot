@@ -50,7 +50,7 @@ type CommitMsgConfig struct {
 	Template string `json:"template,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *CommitMsgConfig) Validate() error {
 	// We are not concerned with the presence or absence of any given field,
 	// since some rollers may not need all of the fields. If we are able to

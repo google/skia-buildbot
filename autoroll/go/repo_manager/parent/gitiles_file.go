@@ -24,7 +24,7 @@ func gitilesFileGetChangesForRollFunc(dep version_file_common.DependencyConfig) 
 
 // NewGitilesFile returns a Parent implementation which uses Gitiles to roll
 // a dependency.
-func NewGitilesFile(ctx context.Context, c GitilesConfig, reg *config_vars.Registry, client *http.Client, serverURL string) (*gitilesParent, error) {
+func NewGitilesFile(ctx context.Context, c GitilesConfig, reg *config_vars.Registry, client *http.Client, serverURL string) (*GitilesParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}

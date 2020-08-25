@@ -20,7 +20,7 @@ type VersionFileConfig struct {
 	Path string `json:"path"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c VersionFileConfig) Validate() error {
 	if c.ID == "" {
 		return skerr.Fmt("ID is required")
@@ -38,7 +38,7 @@ type TransitiveDepConfig struct {
 	Parent *VersionFileConfig `json:"parent"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *TransitiveDepConfig) Validate() error {
 	if c.Child == nil {
 		return skerr.Fmt("Child is required")
@@ -64,7 +64,7 @@ type DependencyConfig struct {
 	TransitiveDeps TransitiveDepConfigs
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c DependencyConfig) Validate() error {
 	if err := c.VersionFileConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -79,7 +79,7 @@ func (c DependencyConfig) Validate() error {
 // dependencies.
 type TransitiveDepConfigs []*TransitiveDepConfig
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c TransitiveDepConfigs) Validate() error {
 	for _, elem := range c {
 		if err := elem.Validate(); err != nil {

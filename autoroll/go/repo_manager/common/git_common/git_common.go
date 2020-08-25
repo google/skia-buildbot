@@ -36,7 +36,7 @@ type GitCheckoutConfig struct {
 	Dependencies []*version_file_common.VersionFileConfig `json:"dependencies,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c GitCheckoutConfig) Validate() error {
 	if c.Branch == nil {
 		return skerr.Fmt("Branch is required")

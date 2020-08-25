@@ -29,7 +29,7 @@ type GitilesConfig struct {
 	Gerrit *codereview.GerritConfig `json:"gerrit,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c GitilesConfig) Validate() error {
 	if c.Gerrit == nil {
 		return skerr.Fmt("Gerrit is required")
@@ -49,14 +49,19 @@ func (c GitilesConfig) Validate() error {
 	return nil
 }
 
+// NestedChild implements the Config interface.
+func (c GitilesConfig) NestedChild() bool {
+	return false
+}
+
 // gitilesGetChangesForRollFunc computes the changes to be made in the next
 // roll. These are returned in a map[string]string whose keys are file paths
 // within the repo and values are the new whole contents of the files. Also
 // returns any dependencies which are being transitively rolled.
 type gitilesGetChangesForRollFunc func(context.Context, *gitiles_common.GitilesRepo, string, *revision.Revision, *revision.Revision, []*revision.Revision) (map[string]string, error)
 
-// gitilesParent is a base for implementations of Parent which use Gitiles.
-type gitilesParent struct {
+// GitilesParent is a base for implementations of Parent which use Gitiles.
+type GitilesParent struct {
 	*gitiles_common.GitilesRepo
 	childID      string
 	gerrit       gerrit.GerritInterface
@@ -73,7 +78,7 @@ type gitilesParent struct {
 }
 
 // newGitiles returns a base for implementations of Parent which use Gitiles.
-func newGitiles(ctx context.Context, c GitilesConfig, reg *config_vars.Registry, client *http.Client, serverURL string, getChangesForRoll gitilesGetChangesForRollFunc) (*gitilesParent, error) {
+func newGitiles(ctx context.Context, c GitilesConfig, reg *config_vars.Registry, client *http.Client, serverURL string, getChangesForRoll gitilesGetChangesForRollFunc) (*GitilesParent, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -95,7 +100,7 @@ func newGitiles(ctx context.Context, c GitilesConfig, reg *config_vars.Registry,
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to create Gerrit client")
 	}
-	return &gitilesParent{
+	return &GitilesParent{
 		childID:           c.DependencyConfig.ID,
 		GitilesRepo:       gr,
 		gerrit:            g,
@@ -104,8 +109,8 @@ func newGitiles(ctx context.Context, c GitilesConfig, reg *config_vars.Registry,
 	}, nil
 }
 
-// See documentation for Parent interface.
-func (p *gitilesParent) Update(ctx context.Context) (string, error) {
+// Update implements the Parent interface.
+func (p *GitilesParent) Update(ctx context.Context) (string, error) {
 	// Find the head of the branch we're tracking.
 	baseCommit, err := p.GetTipRevision(ctx)
 	if err != nil {
@@ -123,8 +128,8 @@ func (p *gitilesParent) Update(ctx context.Context) (string, error) {
 	return lastRollRev, nil
 }
 
-// See documentation for Parent interface.
-func (p *gitilesParent) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
+// CreateNewRoll implements the Parent interface.
+func (p *GitilesParent) CreateNewRoll(ctx context.Context, from, to *revision.Revision, rolling []*revision.Revision, emails []string, dryRun bool, commitMsg string) (int64, error) {
 	p.baseCommitMtx.Lock()
 	defer p.baseCommitMtx.Unlock()
 
@@ -167,4 +172,4 @@ func CreateNewGerritRoll(ctx context.Context, g gerrit.GerritInterface, project,
 	return ci.Issue, nil
 }
 
-var _ Parent = &gitilesParent{}
+var _ Parent = &GitilesParent{}

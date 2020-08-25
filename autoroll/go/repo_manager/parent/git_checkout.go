@@ -26,7 +26,7 @@ type GitCheckoutConfig struct {
 	version_file_common.DependencyConfig
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c GitCheckoutConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)

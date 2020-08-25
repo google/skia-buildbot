@@ -9,7 +9,10 @@ import (
 	"strings"
 
 	"go.skia.org/infra/autoroll/go/config_vars"
+	"go.skia.org/infra/autoroll/go/repo_manager/child"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/gerrit_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/git_common"
+	"go.skia.org/infra/autoroll/go/repo_manager/common/github_common"
 	"go.skia.org/infra/autoroll/go/repo_manager/common/version_file_common"
 	"go.skia.org/infra/autoroll/go/revision"
 	"go.skia.org/infra/go/depot_tools"
@@ -17,11 +20,13 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/git"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 )
 
 const (
+	// GClient is the gclient Python script.
 	GClient = "gclient.py"
 )
 
@@ -47,7 +52,7 @@ type DEPSLocalConfig struct {
 	RunHooks bool `json:"runHooks,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c DEPSLocalConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -64,6 +69,18 @@ func (c DEPSLocalConfig) Validate() error {
 		}
 	}
 	return nil
+}
+
+// NestedChild implements the Config interface.
+func (c DEPSLocalConfig) NestedChild() bool {
+	return true
+}
+
+// DEPSLocalParent is a Parent which uses a local checkout and DEPS to manage
+// dependencies.
+type DEPSLocalParent struct {
+	GitCheckoutParent
+	child child.Child
 }
 
 // NewDEPSLocal returns a Parent which uses a local checkout and DEPS to manage
@@ -179,7 +196,15 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 		return nil, skerr.Wrap(err)
 	}
 	co := &git.Checkout{GitDir: git.GitDir(checkoutPath)}
-	return NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, co, createRoll, uploadRoll)
+	p, err := NewGitCheckout(ctx, c.GitCheckoutConfig, reg, serverURL, workdir, userName, userEmail, co, createRoll, uploadRoll)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	c, err := child.
+	return &DEPSLocalParent{
+		GitCheckoutParent: p,
+		child: c,
+	}
 }
 
 // GetDEPSCheckoutPath returns the path to the checkout within the workdir,
@@ -187,13 +212,48 @@ func NewDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Regis
 func GetDEPSCheckoutPath(c DEPSLocalConfig, workdir string) (string, error) {
 	var repoRelPath string
 	if c.CheckoutPath == "" {
-		normUrl, err := git.NormalizeURL(c.RepoURL)
+		normURL, err := git.NormalizeURL(c.RepoURL)
 		if err != nil {
 			return "", skerr.Wrap(err)
 		}
-		repoRelPath = path.Base(normUrl)
+		repoRelPath = path.Base(normURL)
 	} else {
 		repoRelPath = c.CheckoutPath
 	}
 	return filepath.Join(workdir, repoRelPath), nil
+}
+
+// GithubDEPSLocalConfig provides configuration for a Parent which uses a local
+// checkout and DEPS to manage dependencies using a Github fork.
+type GithubDEPSLocalConfig struct {
+	DEPSLocalConfig
+	ForkRepoURL string `json:"forkRepoURL"`
+}
+
+// NewGithubDEPSLocal returns a Parent which uses a local checkout and DEPS to
+// manage dependencies using a Github fork.
+func NewGithubDEPSLocal(ctx context.Context, c GithubDEPSLocalConfig, reg *config_vars.Registry, client *http.Client, githubClient *github.GitHub, serverURL, workdir, rollerName, userName, userEmail, recipeCfgFile string) (*GitCheckoutParent, error) {
+	uploadRoll := GitCheckoutUploadGithubRollFunc(githubClient, userName, rollerName, c.ForkRepoURL)
+	parentRM, err := NewDEPSLocal(ctx, c.DEPSLocalConfig, reg, client, serverURL, workdir, userName, userEmail, recipeCfgFile, uploadRoll)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := github_common.SetupGithub(ctx, parentRM.Checkout.Checkout, c.ForkRepoURL); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return parentRM, nil
+}
+
+// NewGitilesDEPSLocal returns a Parent which uses a local checkout and DEPS to
+// manage dependencies using Gitiles.
+func NewGitilesDEPSLocal(ctx context.Context, c DEPSLocalConfig, reg *config_vars.Registry, client *http.Client, gerritClient *gerrit.Gerrit, serverURL, workdir, userName, userEmail, recipeCfgFile string) (*GitCheckoutParent, error) {
+	uploadRoll := GitCheckoutUploadGerritRollFunc(gerritClient)
+	parentRM, err := NewDEPSLocal(ctx, c, reg, client, serverURL, workdir, userName, userEmail, recipeCfgFile, uploadRoll)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	if err := gerrit_common.SetupGerrit(ctx, parentRM.Checkout.Checkout, gerritClient); err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	return parentRM, nil
 }

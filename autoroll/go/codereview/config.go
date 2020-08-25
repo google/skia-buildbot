@@ -67,7 +67,7 @@ type GerritConfig struct {
 	Config string `json:"config"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *GerritConfig) Validate() error {
 	if c.URL == "" {
 		return errors.New("URL is required.")
@@ -115,7 +115,7 @@ type GithubConfig struct {
 	ChecksWaitFor []string `json:"checksWaitFor,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *GithubConfig) Validate() error {
 	if c.RepoOwner == "" {
 		return errors.New("RepoOwner is required.")
@@ -134,7 +134,7 @@ func (c *GithubConfig) Init(gerritClient gerrit.GerritInterface, githubClient *g
 // Google3 config is an empty configuration object for Google3.
 type Google3Config struct{}
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *Google3Config) Validate() error {
 	return nil
 }

@@ -20,15 +20,18 @@ import (
 	"go.skia.org/infra/go/vfs"
 )
 
+// Constant values for FreeType.
+// TODO(borenet): Move the FreeType repo manager tests into the parent package
+// and make these private.
 const (
 	FtReadmePath         = "third_party/freetype/README.chromium"
 	FtReadmeVersionTmpl  = "%sVersion: %s"
 	FtReadmeRevisionTmpl = "%sRevision: %s"
-
-	FtIncludeSrc  = "include"
-	FtIncludeDest = "third_party/freetype/include/freetype-custom"
+	FtIncludeSrc         = "include"
+	FtIncludeDest        = "third_party/freetype/include/freetype-custom"
 )
 
+// Variables for FreeType.
 var (
 	FtReadmeVersionRegex  = regexp.MustCompile(fmt.Sprintf(FtReadmeVersionTmpl, "(?m)^", ".*"))
 	FtReadmeRevisionRegex = regexp.MustCompile(fmt.Sprintf(FtReadmeRevisionTmpl, "(?m)^", ".*"))
@@ -39,7 +42,8 @@ var (
 	}
 )
 
-func NewFreeTypeParent(ctx context.Context, c GitilesConfig, reg *config_vars.Registry, workdir string, client *http.Client, serverURL string) (*gitilesParent, error) {
+// NewFreeTypeParent returns a Parent which rolls FreeType.
+func NewFreeTypeParent(ctx context.Context, c GitilesConfig, reg *config_vars.Registry, workdir string, client *http.Client, serverURL string) (*GitilesParent, error) {
 	localChildRepo, err := git.NewRepo(ctx, c.DependencyConfig.ID, workdir)
 	if err != nil {
 		return nil, err

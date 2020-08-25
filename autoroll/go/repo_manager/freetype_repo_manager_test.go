@@ -108,7 +108,7 @@ func setupFreeType(t *testing.T) (context.Context, string, RepoManager, *git_tes
 	}
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
-	rm, err := NewFreeTypeRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := NewFreeTypeRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", g, nil, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
 
 	// Mock requests for Update().
