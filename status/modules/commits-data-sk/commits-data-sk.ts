@@ -264,12 +264,13 @@ export class CommitsDataSk extends ElementSk {
           // TODO Time Offsets
 
         }
+        this.dispatchEvent(new CustomEvent('commits-data-update', { bubbles: true }));
       })
       .catch(errorMessage);;
   }
 };
 
-define('commits-table-sk', CommitsDataSk);
+define('commits-data-sk', CommitsDataSk);
 
 // shortCommit returns the first 7 characters of a commit hash.
 function shortCommit(commit: string): string {
