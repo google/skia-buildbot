@@ -26,7 +26,7 @@ type GitCheckoutGithubFileConfig struct {
 	PreUploadSteps []string `json:"preUploadSteps,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c GitCheckoutGithubFileConfig) Validate() error {
 	if err := c.GitCheckoutGithubConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -40,6 +40,11 @@ func (c GitCheckoutGithubFileConfig) Validate() error {
 		}
 	}
 	return nil
+}
+
+// NestedChild implements the Config interface.
+func (c GitCheckoutGithubFileConfig) NestedChild() bool {
+	return false
 }
 
 // NewGitCheckoutGithubFile returns a Parent which uses a local checkout and a

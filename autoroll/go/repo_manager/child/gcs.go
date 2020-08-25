@@ -31,7 +31,7 @@ type GCSConfig struct {
 	GCSPath string
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *GCSConfig) Validate() error {
 	if c.GCSBucket == "" {
 		return errors.New("GCSBucket is required.")

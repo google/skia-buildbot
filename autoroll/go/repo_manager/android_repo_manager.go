@@ -46,7 +46,7 @@ type ProjectMetadataFileConfig struct {
 	LicenseType string `json:"projectLicenseType"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *ProjectMetadataFileConfig) Validate() error {
 	if c.FilePath == "" || c.Name == "" || c.Description == "" || c.HomePage == "" || c.GitURL == "" || c.LicenseType == "" {
 		return errors.New("All parts of ProjectMetadataFileConfig are required")
@@ -61,7 +61,7 @@ type AndroidRepoManagerConfig struct {
 	ChildRepoURL               string `json:"childRepoURL"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *AndroidRepoManagerConfig) Validate() error {
 	if err := c.CommonRepoManagerConfig.Validate(); err != nil {
 		return err

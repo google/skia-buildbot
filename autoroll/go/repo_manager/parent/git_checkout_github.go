@@ -29,7 +29,7 @@ type GitCheckoutGithubConfig struct {
 	ForkRepoURL string `json:"forkRepoURL"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c GitCheckoutGithubConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)

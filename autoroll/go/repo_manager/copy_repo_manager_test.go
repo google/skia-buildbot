@@ -52,7 +52,7 @@ func copyCfg(t *testing.T) *CopyRepoManagerConfig {
 	}
 }
 
-func setupCopy(t *testing.T) (context.Context, *CopyRepoManagerConfig, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
+func setupCopy(t *testing.T) (context.Context, *CopyRepoManagerConfig, string, *ParentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -104,7 +104,7 @@ func setupCopy(t *testing.T) (context.Context, *CopyRepoManagerConfig, string, *
 	mockParent.MockReadFile(ctx, cfg.VersionFile, parentHead)
 
 	// Create the RepoManager.
-	rm, err := NewCopyRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := NewCopyRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", g, nil, "fake-recipes-cfg", "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
 
 	// Update.

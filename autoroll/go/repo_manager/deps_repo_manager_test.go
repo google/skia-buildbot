@@ -62,7 +62,7 @@ func depsCfg(t *testing.T) *DEPSRepoManagerConfig {
 	}
 }
 
-func setupDEPSRepoManager(t *testing.T, cfg *DEPSRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, *mockhttpclient.URLMock, *bool, func()) {
+func setupDEPSRepoManager(t *testing.T, cfg *DEPSRepoManagerConfig) (context.Context, *ParentChildRepoManager, string, *git_testutils.GitBuilder, []string, *git_testutils.GitBuilder, *exec.CommandCollector, *vcsinfo.LongCommit, *mockhttpclient.URLMock, *bool, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -126,7 +126,7 @@ func setupDEPSRepoManager(t *testing.T, cfg *DEPSRepoManagerConfig) (context.Con
 
 	// Create the RepoManager.
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
-	rm, err := NewDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := NewDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", g, nil, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
 
 	cleanup := func() {

@@ -8,7 +8,6 @@ import (
 
 	"go.skia.org/infra/autoroll/go/config_vars"
 	"go.skia.org/infra/autoroll/go/revision"
-	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -26,7 +25,7 @@ type GitCheckoutGithubConfig struct {
 	GithubUserName string `json:"githubUserName"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c GitCheckoutGithubConfig) Validate() error {
 	if err := c.GitCheckoutConfig.Validate(); err != nil {
 		return skerr.Wrap(err)
@@ -50,11 +49,11 @@ type GitCheckoutGithubChild struct {
 
 // NewGitCheckoutGithub returns an implementation of Child which uses a local
 // Git checkout of a Github repo.
-func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *config_vars.Registry, client *http.Client, workdir, userName, userEmail string, co *git.Checkout) (*GitCheckoutGithubChild, error) {
+func NewGitCheckoutGithub(ctx context.Context, c GitCheckoutGithubConfig, reg *config_vars.Registry, client *http.Client, workdir, userName, userEmail string) (*GitCheckoutGithubChild, error) {
 	if err := c.Validate(); err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	child, err := NewGitCheckout(ctx, c.GitCheckoutConfig, reg, workdir, userName, userEmail, co)
+	child, err := NewGitCheckout(ctx, c.GitCheckoutConfig, reg, workdir, userName, userEmail)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -74,7 +73,7 @@ func (c *GitCheckoutGithubChild) fixPullRequestLinks(rev *revision.Revision) err
 	return nil
 }
 
-// See documentation for Child interface.
+// GetRevision implements the Child interface.
 func (c *GitCheckoutGithubChild) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
 	rev, err := c.GitCheckoutChild.GetRevision(ctx, id)
 	if err != nil {
@@ -86,7 +85,7 @@ func (c *GitCheckoutGithubChild) GetRevision(ctx context.Context, id string) (*r
 	return rev, nil
 }
 
-// See documentation for Child interface.
+// Update implements the Child interface.
 func (c *GitCheckoutGithubChild) Update(ctx context.Context, lastRollRev *revision.Revision) (*revision.Revision, []*revision.Revision, error) {
 	tipRev, notRolledRevs, err := c.GitCheckoutChild.Update(ctx, lastRollRev)
 	if err != nil {

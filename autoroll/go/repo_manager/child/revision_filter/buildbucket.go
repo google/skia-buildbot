@@ -19,7 +19,7 @@ type BuildbucketRevisionFilterConfig struct {
 	Bucket  string `json:"bucket"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c BuildbucketRevisionFilterConfig) Validate() error {
 	if c.Project == "" {
 		return skerr.Fmt("Project is required")

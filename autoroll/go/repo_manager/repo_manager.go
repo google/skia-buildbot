@@ -256,7 +256,7 @@ func (c *NoCheckoutRepoManagerConfig) NoCheckout() bool {
 	return true
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *NoCheckoutRepoManagerConfig) Validate() error {
 	if err := c.CommonRepoManagerConfig.Validate(); err != nil {
 		return err
