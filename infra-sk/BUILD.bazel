@@ -75,7 +75,7 @@ ELEMENTS_SK_MODULES = [
         .replace("node_modules/elements-sk/", "")  # icon/add-icon-sk.js
         .replace(".js", "")                        # icon/add-icon-sk
     for filename in glob(["node_modules/elements-sk/**/*.js"])
-    if not filename.endswith("/index.js") and not filename.endswith("_test.js")
+    if not filename.endswith("_test.js")
 ]
 
 [
@@ -85,11 +85,24 @@ ELEMENTS_SK_MODULES = [
         entry_point = "@infra-sk_npm//:node_modules/elements-sk/%s.js" % module,
         package = "@infra-sk_npm//elements-sk",
         excluded = [
-            # The npm_umd_bundle rule chokes when it sees CSS modules imported from JavaScript code
-            # (e.g. "import './icon-sk.css'") because it treats any imports as JavaScript imports.
+            # The npm_umd_bundle rule fails with e.g. "Error: Cannot find module './spinner-sk.css'"
+            # when it encounters CSS modules imported from JavaScript code, e.g.
+            # "import './spinner-sk.css'", because it treats all imports as JavaScript imports.
             # Excluding any imported CSS modules prevents said erros.
-            './icon-sk.css',
-            './toast-sk.css',
+            "./buttons.css",
+            "./checkbox-sk.css",
+            "./collapse-sk.css",
+            "./icon-sk.css",
+            "./multi-select-sk.css",
+            "./nav-links-sk.css",
+            "./radio-sk.css",
+            "./select.css",
+            "./select-sk.css",
+            "./spinner-sk.css",
+            "./table.css",
+            "./tabs-panel-sk.css",
+            "./tabs-sk.css",
+            "./toast-sk.css",
         ],
     )
     for module in ELEMENTS_SK_MODULES
@@ -139,4 +152,11 @@ npm_umd_bundle(
     package_name = "sinon",
     entry_point = "@infra-sk_npm//:node_modules/sinon/lib/sinon.js",
     package = "@infra-sk_npm//sinon",
+)
+
+npm_umd_bundle(
+    name = "fetch-mock_umd",
+    package_name = "fetch-mock",
+    entry_point = "@infra-sk_npm//:node_modules/fetch-mock/esm/client.js",
+    package = "@infra-sk_npm//fetch-mock",
 )
