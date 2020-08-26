@@ -38,6 +38,8 @@ exclude (
 	k8s.io/client-go v9.0.0+incompatible // #2
 )
 
+replace go.larrymyers.com/protoc-gen-twirp_typescript => github.com/s19-tech/protoc-gen-twirp_typescript v0.0.0-20191017103916-3ccab48e3ce6
+
 require (
 	cloud.google.com/go v0.63.0
 	cloud.google.com/go/bigtable v1.5.0
