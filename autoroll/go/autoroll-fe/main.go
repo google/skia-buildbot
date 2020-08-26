@@ -67,6 +67,7 @@ var (
 	rollerTemplate *template.Template = nil
 
 	manualRollDB manual.DB              = nil
+	throttleDB   unthrottle.Throttle    = nil
 	rollerNames  []string               = nil
 	rollers      map[string]*autoroller = nil
 )
@@ -260,7 +261,7 @@ func unthrottleHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := unthrottle.Unthrottle(context.Background(), roller.Cfg.RollerName); err != nil {
+	if err := throttleDB.Unthrottle(context.Background(), roller.Cfg.RollerName); err != nil {
 		httputils.ReportError(w, err, "Failed to unthrottle.", http.StatusInternalServerError)
 		return
 	}
@@ -433,6 +434,7 @@ func main() {
 	if err != nil {
 		sklog.Fatal(err)
 	}
+	throttleDB = unthrottle.NewDatastore(ctx)
 
 	// Read the configs for the rollers.
 	if len(*configs) > 0 && len(*configFiles) > 0 {

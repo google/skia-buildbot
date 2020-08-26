@@ -17,8 +17,10 @@ func TestUnthrottle(t *testing.T) {
 	ctx := context.Background()
 	testutil.InitDatastore(t, ds.KIND_AUTOROLL_UNTHROTTLE)
 
+	db := NewDatastore(ctx)
+
 	check := func(expect bool) {
-		actual, err := Get(ctx, r)
+		actual, err := db.Get(ctx, r)
 		require.NoError(t, err)
 		require.Equal(t, expect, actual)
 	}
@@ -27,10 +29,10 @@ func TestUnthrottle(t *testing.T) {
 	check(false)
 
 	// Unthrottle the roller.
-	require.NoError(t, Unthrottle(ctx, r))
+	require.NoError(t, db.Unthrottle(ctx, r))
 	check(true)
 
 	// Reset.
-	require.NoError(t, Reset(ctx, r))
+	require.NoError(t, db.Reset(ctx, r))
 	check(false)
 }

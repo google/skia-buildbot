@@ -7,8 +7,21 @@ import (
 	"go.skia.org/infra/go/ds"
 )
 
-// Entry is a struct representing the should-unthrottle status for a roller.
-type Entry struct {
+// Throttle tracks whether a given roller should be throttled.
+// TODO(borenet): This should include throttle-enabling as well as disabling,
+// and it should maintain history like modes and strategies.
+type Throttle interface {
+	// Unthrottle the given roller.
+	Unthrottle(ctx context.Context, roller string) error
+	// Reset the should-unthrottle status of the roller, allowing it to become
+	// throttled again if necessary.
+	Reset(ctx context.Context, roller string) error
+	// Get determines whether the given roller should be unthrottled.
+	Get(ctx context.Context, roller string) (bool, error)
+}
+
+// entry is a struct representing the should-unthrottle status for a roller.
+type entry struct {
 	ShouldUnthrottle bool `datastore:"shouldUnthrottle,noindex"`
 }
 
@@ -29,19 +42,27 @@ func key(roller string) *datastore.Key {
 	return k
 }
 
-// Unthrottle the given roller.
-func Unthrottle(ctx context.Context, roller string) error {
+// DatastoreThrottle is an implementation of Throttle which uses Datastore.
+type DatastoreThrottle struct{}
+
+// NewDatastore returns an implementation of Throttle which uses Datastore.
+func NewDatastore(ctx context.Context) *DatastoreThrottle {
+	return &DatastoreThrottle{}
+}
+
+// Unthrottle implements the Throttle interface.
+func (t *DatastoreThrottle) Unthrottle(ctx context.Context, roller string) error {
 	return set(ctx, roller, true)
 }
 
-// Reset the should-unthrottle status of the roller.
-func Reset(ctx context.Context, roller string) error {
+// Reset implements the Throttle interface.
+func (t *DatastoreThrottle) Reset(ctx context.Context, roller string) error {
 	return set(ctx, roller, false)
 }
 
 // Set whether the given roller should be unthrottled.
 func set(ctx context.Context, roller string, shouldUnthrottle bool) error {
-	e := &Entry{
+	e := &entry{
 		ShouldUnthrottle: shouldUnthrottle,
 	}
 	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
@@ -51,9 +72,9 @@ func set(ctx context.Context, roller string, shouldUnthrottle bool) error {
 	return err
 }
 
-// Determine whether the given roller should be unthrottled.
-func Get(ctx context.Context, roller string) (bool, error) {
-	var e Entry
+// Get implements the Throttle interface.
+func (t *DatastoreThrottle) Get(ctx context.Context, roller string) (bool, error) {
+	var e entry
 	_, err := ds.DS.RunInTransaction(ctx, func(tx *datastore.Transaction) error {
 		return tx.Get(key(roller), &e)
 	})
@@ -66,3 +87,5 @@ func Get(ctx context.Context, roller string) (bool, error) {
 	}
 	return e.ShouldUnthrottle, nil
 }
+
+var _ Throttle = &DatastoreThrottle{}
