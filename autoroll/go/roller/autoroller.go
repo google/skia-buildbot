@@ -88,6 +88,7 @@ type AutoRoller struct {
 	strategyHistory    *strategy.DatastoreStrategyHistory
 	strategyMtx        sync.RWMutex // Protects strategy
 	successThrottle    *state_machine.Throttler
+	throttle           unthrottle.Throttle
 	timeWindow         *time_window.TimeWindow
 	tipRev             *revision.Revision
 }
@@ -243,6 +244,7 @@ func NewAutoRoller(ctx context.Context, c AutoRollerConfig, emailer *email.GMail
 		strategy:           strat,
 		strategyHistory:    sh,
 		successThrottle:    successThrottle,
+		throttle:           unthrottle.NewDatastore(ctx),
 		timeWindow:         tw,
 		tipRev:             tipRev,
 	}
@@ -709,7 +711,7 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 	}
 
 	// Determine if we should unthrottle.
-	shouldUnthrottle, err := unthrottle.Get(ctx, r.roller)
+	shouldUnthrottle, err := r.throttle.Get(ctx, r.roller)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to determine whether we should unthrottle")
 	}
@@ -717,7 +719,7 @@ func (r *AutoRoller) Tick(ctx context.Context) error {
 		if err := r.unthrottle(ctx); err != nil {
 			return skerr.Wrapf(err, "Failed to unthrottle")
 		}
-		if err := unthrottle.Reset(ctx, r.roller); err != nil {
+		if err := r.throttle.Reset(ctx, r.roller); err != nil {
 			return skerr.Wrapf(err, "Failed to reset unthrottle counter")
 		}
 	}
