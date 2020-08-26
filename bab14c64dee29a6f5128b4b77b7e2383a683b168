@@ -1,0 +1,85 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004627304",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/311043?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "4b2d5806_8281f3cf",
+        "filename": "autoroll/config/chromium-angle.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-26T18:08:34Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 1,
+        "startChar": 56,
+        "endLine": 1,
+        "endChar": 62
+      },
+      "revId": "bab14c64dee29a6f5128b4b77b7e2383a683b168",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004627304",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/311043?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "2b7a3c39_ad4989a2",
+        "filename": "autoroll/config/chromium-angle.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-26T18:08:34Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 36,
+        "startChar": 20,
+        "endLine": 36,
+        "endChar": 26
+      },
+      "revId": "bab14c64dee29a6f5128b4b77b7e2383a683b168",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004627304",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/311043?revision\u003d2",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "0b9d27bd_dcd5467b",
+        "filename": "autoroll/config/chromium-angle.json",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-08-26T18:08:34Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 40,
+        "startChar": 21,
+        "endLine": 40,
+        "endChar": 27
+      },
+      "revId": "bab14c64dee29a6f5128b4b77b7e2383a683b168",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
