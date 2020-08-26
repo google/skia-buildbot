@@ -14,16 +14,16 @@ import { Description } from '../json';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { diffDate, strDuration } from 'common-sk/modules/human';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
-import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import '../../../infra-sk/modules/theme-chooser-sk';
-import 'elements-sk/error-toast-sk';
+import { ElementSk } from '../../../infra-sk/modules/ElementSk/ElementSk';
+import '../../../infra-sk/modules/theme-chooser-sk/theme-chooser-sk';
+import 'elements-sk/error-toast-sk/index';
 import 'elements-sk/icon/cached-icon-sk';
 import 'elements-sk/icon/clear-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
 import 'elements-sk/icon/pause-icon-sk';
 import 'elements-sk/icon/play-arrow-icon-sk';
 import 'elements-sk/icon/power-settings-new-icon-sk';
-import 'elements-sk/styles/buttons';
+import 'elements-sk/styles/buttons/index';
 
 const REFRESH_LOCALSTORAGE_KEY = 'autorefresh';
 
@@ -315,7 +315,7 @@ export class MachineServerSk extends ElementSk {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_mode/${id}`);
       this.removeAttribute('waiting');
-      this._update(true);
+      await this._update(true);
     } catch (error) {
       this._onError(error);
     }
@@ -326,7 +326,7 @@ export class MachineServerSk extends ElementSk {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_update/${id}`);
       this.removeAttribute('waiting');
-      this._update(true);
+      await this._update(true);
     } catch (error) {
       this._onError(error);
     }
@@ -337,7 +337,7 @@ export class MachineServerSk extends ElementSk {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/toggle_powercycle/${id}`);
       this.removeAttribute('waiting');
-      this._update(true);
+      await this._update(true);
     } catch (error) {
       this._onError(error);
     }
@@ -348,7 +348,7 @@ export class MachineServerSk extends ElementSk {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/remove_device/${id}`);
       this.removeAttribute('waiting');
-      this._update(true);
+      await this._update(true);
     } catch (error) {
       this._onError(error);
     }
@@ -359,7 +359,7 @@ export class MachineServerSk extends ElementSk {
       this.setAttribute('waiting', '');
       await fetch(`/_/machine/delete_machine/${id}`);
       this.removeAttribute('waiting');
-      this._update(true);
+      await this._update(true);
     } catch (error) {
       this._onError(error);
     }
