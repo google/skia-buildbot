@@ -1,0 +1,68 @@
+// See https://skia.googlesource.com/buildbot.git/+show/master/autoroll/go/roller/config.go#130
+// for documentation of the autoroller config.
+{
+  "childDisplayName": "Chromium",
+  "commitMsg": {
+    "bugProject": "angleproject",
+    "childLogURLTmpl": "https://chromium.googlesource.com/chromium/src.git/+log/{{.RollingFrom}}..{{.RollingTo}}",
+    "includeRevisionCount": true,
+    "includeTbrLine": true
+  },
+  "contacts": [
+    "geofflang@chromium.org",
+    "jmadill@chromium.org",
+    "syoussefi@chromium.org",
+    "ynovikov@chromium.org"
+  ],
+  "gerrit": {
+    "url": "https://chromium-review.googlesource.com",
+    "project": "angle/angle",
+    "config": "angle"
+  },
+  "isInternal": false,
+  "ownerPrimary": "borenet",
+  "ownerSecondary": "rmistry",
+  "parentDisplayName": "ANGLE",
+  "parentWaterfall": "https://ci.chromium.org/p/angle/g/ci/console",
+  "rollerName": "chromium-angle-autoroll",
+  "serviceAccount": "angle-autoroll@skia-public.iam.gserviceaccount.com",
+  "sheriff": [
+    "https://rota-ng.appspot.com/legacy/sheriff_angle.json"
+  ],
+  "sheriffBackup": [
+    "ynovikov@chromium.org"
+  ],
+  "depsGitilesRepoManager": {
+    "childBranch": "master",
+    "childPath": "third_party/dummy_chromium",
+    "childRepo": "https://chromium.googlesource.com/chromium/src.git",
+    "childRevLinkTmpl": "https://chromium.googlesource.com/chromium/src.git/+show/%s",
+    "parentBranch": "master",
+    "parentRepo": "https://chromium.googlesource.com/angle/angle.git",
+    "preUploadSteps": [
+      "ANGLERollChromium"
+    ],
+    "runHooks": true
+  },
+  "kubernetes": {
+    "cpu": "2",
+    "memory": "4Gi",
+    "disk": "50Gi",
+    "readinessInitialDelaySeconds": "30",
+    "readinessPeriodSeconds": "30",
+    "readinessFailureThreshold": "10"
+  },
+  "maxRollFrequency": "6h",
+  "notifiers": [
+    {
+      "filter": "error",
+      "email": {
+        "emails": [
+          "$SHERIFF",
+          "angle-bots+autoroll-info@google.com"
+        ]
+      }
+    }
+  ],
+  "timeWindow": "M-F 07:00-10:00"
+}

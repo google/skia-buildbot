@@ -7,6 +7,7 @@ package parent
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -16,6 +17,8 @@ import (
 	"github.com/google/uuid"
 	"go.skia.org/infra/go/android_skia_checkout"
 	"go.skia.org/infra/go/cipd"
+	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/git"
 	"go.skia.org/infra/go/go_install"
@@ -37,6 +40,7 @@ type PreUploadStep func(context.Context, []string, *http.Client, string) error
 // preUploadSteps is the registry of known PreUploadStep instances.
 var preUploadSteps = map[string]PreUploadStep{
 	"ANGLECodeGeneration":             ANGLECodeGeneration,
+	"ANGLERollChromium":               ANGLERollChromium,
 	"GoGenerateCipd":                  GoGenerateCipd,
 	"TrainInfra":                      TrainInfra,
 	"FlutterLicenseScripts":           FlutterLicenseScripts,
@@ -306,5 +310,26 @@ func ANGLECodeGeneration(ctx context.Context, env []string, client *http.Client,
 		Env:  env,
 	})
 	sklog.Infof("Output from run_code_generation:\n%s", out)
+	return skerr.Wrap(err)
+}
+
+// Run the ANGLE roll_chromium_deps.py script.
+func ANGLERollChromium(ctx context.Context, env []string, _ *http.Client, parentRepoDir string) error {
+	sklog.Info("Running roll_chromium_deps script...")
+	contents, err := ioutil.ReadFile(filepath.Join(parentRepoDir, deps_parser.DepsFileName))
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	dep, err := deps_parser.GetDep(string(contents), common.REPO_CHROMIUM)
+	if err != nil {
+		return skerr.Wrap(err)
+	}
+	out, err := exec.RunCommand(ctx, &exec.Command{
+		Name: "python",
+		Args: []string{filepath.Join("scripts", "roll_chromium_deps.py"), fmt.Sprintf("--revision=%s", dep.Version), "--ignore-unclean-workdir", "--autoroll", "-v"},
+		Dir:  parentRepoDir,
+		Env:  env,
+	})
+	sklog.Infof("Output from roll_chromium_deps.py:\n%s", out)
 	return skerr.Wrap(err)
 }
