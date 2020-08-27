@@ -81,7 +81,7 @@ func (s *Server) getState(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Swarming doesn't get to decide a machine's maintenance or quarantined
-	// state. Always remove them since the presence of the key if the only thing
+	// state. Always remove them since the presence of the key is the only thing
 	// that matters, the value is ignored.
 	delete(dict, "quarantined")
 	delete(dict, "maintenance")
