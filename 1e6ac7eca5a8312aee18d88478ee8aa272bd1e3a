@@ -19,6 +19,52 @@
     },
     {
       "key": {
+        "uuid": "e248db81_363dbf80",
+        "filename": "autoroll/go/rpc/rpc.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "I recommend \"AutoRollService\", which is conventional in google3, or just \"AutoRoll\".",
+      "range": {
+        "startLine": 5,
+        "startChar": 8,
+        "endLine": 5,
+        "endChar": 20
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9fc15e3a_5e6531c3",
+        "filename": "autoroll/go/rpc/rpc.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "In google3 it\u0027s fairly typical for an RPC named Foo to take a FooRequest message and return a FooResponse message, even if FooResponse has just one single field, e.g. of type AutoRollMiniStatuses.\n\nSome benefits of this pattern include:\n\n- More future proof: It decouples the RPC request/response from the underlying message. For example, today GetRollersResponse might include just one field of type AutoRollMiniStatuses, tomorrow GetRollersResponse could include something else entirely.\n\n- Easier for the reader to follow: any references to GetRollersResponse in code indicate to the reader that said code pertains to the GetRollers RPC, whereas a shared response message such as AutoRollMiniStatuses does not carry this information.\n\n- Nicer tests: inputs are always of type FooRequest, expected/actual outputs are always of type FooResponse.\n\n- Easy to find all usages of the RPC: just search / grep for \"FooRequest\" or \"FooResponse\".\n\nThis is what things would look like if you accept my suggestion:\n\n  service AutoRollService {\n    rpc GetRollers(GetRollersRequest) returns (GetRollersResponse);\n    ...\n  }\n\n  ...\n\n  message GetRollersRequest {}\n\n  message GetRollersResponse {\n    AutoRollMiniStatuses statuses \u003d 1;\n\n    // Or alternatively:\n    repeated AutoRollMiniStatus statuses \u003d 1;\n  }\n\nSame for the other RPCs.",
+      "range": {
+        "startLine": 6,
+        "startChar": 2,
+        "endLine": 6,
+        "endChar": 65
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "d21bb5a0_972456da",
         "filename": "autoroll/go/rpc/rpc.proto",
         "patchSetId": 17
@@ -35,6 +81,145 @@
         "startChar": 8,
         "endLine": 15,
         "endChar": 26
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8ed2834_dbb30a78",
+        "filename": "autoroll/go/rpc/rpc.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "d21bb5a0_972456da",
+      "range": {
+        "startLine": 15,
+        "startChar": 8,
+        "endLine": 15,
+        "endChar": 26
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8f88ae6d_bf6f3c04",
+        "filename": "autoroll/go/rpc/rpc.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "Please use snake_case for field names: https://developers.google.com/protocol-buffers/docs/style?hl\u003den#message_and_field_names.\n\nDownstream tools rely on this convention for code generation purposes, see e.g. https://google.aip.dev/140.",
+      "range": {
+        "startLine": 17,
+        "startChar": 9,
+        "endLine": 17,
+        "endChar": 18
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb1bc668_a38880bb",
+        "filename": "autoroll/go/rpc/rpc.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "This might be better suited as an enum, please see https://google.aip.dev/126.",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 18
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f514ed0e_64b89a3d",
+        "filename": "autoroll/go/rpc/rpc.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "If you accept my suggestion above, this message could be deleted and replaced with a repeated AutoRollMiniStatus field in the GetRollersResponse message.",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 1
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c95623f1_cfc407d9",
+        "filename": "autoroll/go/rpc/rpc.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "If these are timestamps then please use google.protobuf.Timestamp, see https://google.aip.dev/142.\n\nSame below (CTRL+F time).",
+      "range": {
+        "startLine": 44,
+        "startChar": 2,
+        "endLine": 45,
+        "endChar": 21
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "011253df_97c0b027",
+        "filename": "autoroll/go/rpc/rpc.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "Enum?",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 18
       },
       "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
@@ -88,6 +273,98 @@
     },
     {
       "key": {
+        "uuid": "5f9752a6_79769b1b",
+        "filename": "autoroll/go/rpc/rpc.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "Enum?",
+      "range": {
+        "startLine": 86,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 20
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "afa6f25b_148cf430",
+        "filename": "autoroll/go/rpc/rpc.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "Enum?",
+      "range": {
+        "startLine": 126,
+        "startChar": 0,
+        "endLine": 126,
+        "endChar": 18
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d6f0b41_d588d2f4",
+        "filename": "autoroll/go/rpc/rpc.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "Enum?",
+      "range": {
+        "startLine": 132,
+        "startChar": 0,
+        "endLine": 132,
+        "endChar": 22
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1947c5f0_2be75031",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 17
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "Using snake_case for the field names in the .proto file will probably produce TypeScript types with the right camelCase field names.",
+      "range": {
+        "startLine": 170,
+        "startChar": 21,
+        "endLine": 170,
+        "endChar": 29
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "20f5306c_2b5fa15b",
         "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
         "patchSetId": 17
@@ -99,6 +376,30 @@
       "writtenOn": "2020-08-27T13:59:20Z",
       "side": 1,
       "message": "Is this casting away the undefined? If so then \n\n  return this.getAttribute(\u0027roller\u0027)!;\n\nis the preferred syntax.",
+      "range": {
+        "startLine": 372,
+        "startChar": 11,
+        "endLine": 372,
+        "endChar": 47
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "317595e2_fa7953a0",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 17
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "+1. Either that or:\n\n  get roller() {\n    return this.getAttribute(\u0027roller\u0027) || \u0027\u0027;\n  }",
+      "parentUuid": "20f5306c_2b5fa15b",
       "range": {
         "startLine": 372,
         "startChar": 11,
@@ -157,6 +458,29 @@
     },
     {
       "key": {
+        "uuid": "aab54ed8_baf16189",
+        "filename": "autoroll/modules/rpc/rpc.ts",
+        "patchSetId": 17
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "Is this file generated? If so, maybe it\u0027d be useful to add a README.md file to this directory stating which files are generated, and how to regenerate them.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 67
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "ed65d132_062dfa69",
         "filename": "go.mod",
         "patchSetId": 17
@@ -185,6 +509,75 @@
       "writtenOn": "2020-08-27T13:59:20Z",
       "side": 1,
       "message": "SessionMiddleware and GetSession should have tests.",
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c49ffccc_d2475085",
+        "filename": "go/twirp_helper/twirp_helper.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "Seems like these are all auth related. Maybe twirpauth?",
+      "range": {
+        "startLine": 1,
+        "startChar": 8,
+        "endLine": 1,
+        "endChar": 20
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3bcb765f_1d722b32",
+        "filename": "infra-sk/modules/string.ts",
+        "patchSetId": 17
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "Gold has a very similar function:\n\nhttp://cs/skia/buildbot/golden/modules/common.js?l\u003d22\u0026rcl\u003db0d03478070386fe89b50e8670ced94b116f31f9\n\nhttp://cs/skia/buildbot/golden/modules/common_test.js?l\u003d27-44\u0026rcl\u003db0d03478070386fe89b50e8670ced94b116f31f9\n\nYou might want to use that instead. If so, please move it to infra-sk first.",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 52
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2586641b_2583afe7",
+        "filename": "infra-sk/modules/string.ts",
+        "patchSetId": 17
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-27T20:14:44Z",
+      "side": 1,
+      "message": "A test for this would be great.",
+      "range": {
+        "startLine": 11,
+        "startChar": 2,
+        "endLine": 14,
+        "endChar": 3
+      },
       "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
