@@ -203,6 +203,7 @@ type AutoRollerConfig struct {
 	AndroidRepoManager           *repo_manager.AndroidRepoManagerConfig           `json:"androidRepoManager,omitempty"`
 	CommandRepoManager           *repo_manager.CommandRepoManagerConfig           `json:"commandRepoManager,omitempty"`
 	CopyRepoManager              *repo_manager.CopyRepoManagerConfig              `json:"copyRepoManager,omitempty"`
+	DEPSGitilesRepoManager       *repo_manager.DEPSGitilesRepoManagerConfig       `json:"depsGitilesRepoManager,omitempty"`
 	DEPSRepoManager              *repo_manager.DEPSRepoManagerConfig              `json:"depsRepoManager,omitempty"`
 	FreeTypeRepoManager          *repo_manager.FreeTypeRepoManagerConfig          `json:"freeTypeRepoManager,omitempty"`
 	FuchsiaSDKAndroidRepoManager *repo_manager.FuchsiaSDKAndroidRepoManagerConfig `json:"fuchsiaSDKAndroidRepoManager,omitempty"`
@@ -351,6 +352,11 @@ func (c *AutoRollerConfig) repoManagerConfig() (RepoManagerConfig, error) {
 		c.CopyRepoManager.Gerrit = c.Gerrit
 		rm = append(rm, c.CopyRepoManager)
 	}
+	if c.DEPSGitilesRepoManager != nil {
+		// TODO(borenet): De-duplicate the Gerrit config.
+		c.DEPSGitilesRepoManager.Gerrit = c.Gerrit
+		rm = append(rm, c.DEPSGitilesRepoManager)
+	}
 	if c.DEPSRepoManager != nil {
 		// TODO(borenet): De-duplicate the Gerrit config.
 		c.DEPSRepoManager.Gerrit = c.Gerrit
@@ -455,6 +461,8 @@ func (c *AutoRollerConfig) CreateRepoManager(ctx context.Context, cr codereview.
 		rm, err = repo_manager.NewCommandRepoManager(ctx, *c.CommandRepoManager, reg, workdir, g, serverURL, cr)
 	} else if c.CopyRepoManager != nil {
 		rm, err = repo_manager.NewCopyRepoManager(ctx, c.CopyRepoManager, reg, workdir, g, serverURL, client, cr, local)
+	} else if c.DEPSGitilesRepoManager != nil {
+		rm, err = repo_manager.NewDEPSGitilesRepoManager(ctx, c.DEPSGitilesRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr)
 	} else if c.DEPSRepoManager != nil {
 		rm, err = repo_manager.NewDEPSRepoManager(ctx, c.DEPSRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.FuchsiaSDKAndroidRepoManager != nil {
