@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "c0b8922d_508f790d",
+        "filename": "machine/modules/json/BUILD.bazel",
+        "patchSetId": 8
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-27T13:15:26Z",
+      "side": 1,
+      "message": "json/index.ts is built from machine/go/machine/ts/main.go via go2ts, but can wait for a later CL.",
+      "revId": "31f0b04152c36890d2f2ab6a20547ad85a16f268",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
