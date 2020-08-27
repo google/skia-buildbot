@@ -9,6 +9,7 @@ import (
 
 	fs "cloud.google.com/go/firestore"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -94,6 +95,23 @@ func (d *firestoreDB) GetJobsFromDateRange(start, end time.Time, repo string) ([
 	}
 	sort.Sort(types.JobSlice(rv))
 	return rv, nil
+}
+
+// SearchJobs implements the db.JobReader interface.
+func (d *firestoreDB) SearchJobs(ctx context.Context, cursor string, terms ...firestore.WhereClause) (string, []*types.Job, error) {
+	cursor, docs, err := firestore.Search(ctx, d.jobs().Query, 0, cursor, terms...)
+	if err != nil {
+		return "", nil, skerr.Wrap(err)
+	}
+	jobs := make([]*types.Job, 0, len(docs))
+	for _, doc := range docs {
+		job := new(types.Job)
+		if err := doc.DataTo(job); err != nil {
+			return "", nil, skerr.Wrap(err)
+		}
+		jobs = append(jobs, job)
+	}
+	return cursor, jobs, nil
 }
 
 // putJobs sets the contents of the given jobs in Firestore, as part of the
