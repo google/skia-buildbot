@@ -31,8 +31,11 @@ package-lock.json: package.json
 	npm ci
 	touch package-lock.json
 
-push_backup:
+build_backup: migration_source
+	CGO_ENABLED=0 GOOS=linux go install -a ./go/perf-tool
 	./images/backup/release
+
+push_backup: build_backup
 	pushk perf-cockroachdb-backup
 
 # First create a list of all the modules that ./go/ts depends upon.
