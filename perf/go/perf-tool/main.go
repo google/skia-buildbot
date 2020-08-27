@@ -532,7 +532,7 @@ End:
 		return err
 	}
 
-	fmt.Print("Shortcuts: ")
+	fmt.Println("Shortcuts:")
 	total := 0
 	for shortcutID := range shortcuts {
 		shortcut, err := shortcutStore.Get(ctx, shortcutID)
@@ -551,6 +551,7 @@ End:
 		}
 	}
 
+	fmt.Println()
 	if err := z.Close(); err != nil {
 		return err
 	}
