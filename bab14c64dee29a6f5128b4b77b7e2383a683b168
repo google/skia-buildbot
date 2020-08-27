@@ -16,6 +16,92 @@
       "revId": "bab14c64dee29a6f5128b4b77b7e2383a683b168",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bb2fc754_25bdd4ef",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-08-27T12:47:33Z",
+      "side": 1,
+      "message": "LGTM",
+      "revId": "bab14c64dee29a6f5128b4b77b7e2383a683b168",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "efeb0421_5cfd8d80",
+        "filename": "autoroll/go/repo_manager/deps_gitiles_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-08-27T12:47:33Z",
+      "side": 1,
+      "message": "nit",
+      "range": {
+        "startLine": 20,
+        "startChar": 3,
+        "endLine": 20,
+        "endChar": 24
+      },
+      "revId": "bab14c64dee29a6f5128b4b77b7e2383a683b168",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c26387a0_d14e8b91",
+        "filename": "autoroll/go/repo_manager/deps_gitiles_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-08-27T12:47:33Z",
+      "side": 1,
+      "message": "nit",
+      "range": {
+        "startLine": 40,
+        "startChar": 31,
+        "endLine": 40,
+        "endChar": 52
+      },
+      "revId": "bab14c64dee29a6f5128b4b77b7e2383a683b168",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f16db706_6194a622",
+        "filename": "autoroll/go/repo_manager/deps_gitiles_repo_manager.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-08-27T12:47:33Z",
+      "side": 1,
+      "message": "nit",
+      "range": {
+        "startLine": 41,
+        "startChar": 38,
+        "endLine": 41,
+        "endChar": 55
+      },
+      "revId": "bab14c64dee29a6f5128b4b77b7e2383a683b168",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
