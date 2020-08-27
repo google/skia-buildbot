@@ -1,0 +1,8 @@
+load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
+
+# TODO(lovisolo): Replace with genrule to regenerate this file with //machine/go/machine/ts:ts.
+ts_library(
+    name = "json",
+    srcs = ["index.ts"],
+    visibility = ["//visibility:public"],
+)

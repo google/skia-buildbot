@@ -1,10 +1,9 @@
-import './index';
-import { MachineServerSk } from './index';
+import './machine-server-sk';
+import { MachineServerSk } from './machine-server-sk';
 import fetchMock from 'fetch-mock';
+import { assert } from 'chai';
 
 fetchMock.config.overwriteRoutes = true;
-
-const assert = chai.assert;
 
 const container = document.createElement('div');
 document.body.appendChild(container);

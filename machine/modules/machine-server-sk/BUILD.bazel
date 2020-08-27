@@ -1,0 +1,59 @@
+load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_library")
+load("//infra-sk/karma_mocha_test:index.bzl", "karma_mocha_test")
+
+##############################
+# machine-server-sk element. #
+##############################
+
+ts_library(
+    name = "machine-server-sk",
+    srcs = ["machine-server-sk.ts"],
+    deps = [
+        '//infra-sk/modules/ElementSk:element-sk',
+        '//infra-sk/modules/theme-chooser-sk',
+        "//machine/modules/json",
+        "@infra-sk_npm//common-sk",
+        "@infra-sk_npm//elements-sk",
+        "@infra-sk_npm//lit-html",
+    ],
+)
+
+sass_library(
+    name = "styles",
+    srcs = ["machine-server-sk.scss"],
+    deps = ["//infra-sk:elements-sk_scss"],
+)
+
+###########################
+# machine-server-sk test. #
+###########################
+
+ts_library(
+  name = "test_lib",
+  srcs = [
+      "machine-server-sk_test.ts",
+  ],
+  deps = [
+      ":machine-server-sk",
+      "//infra-sk/modules:test_util",
+      "@infra-sk_npm//@types/chai",
+      "@infra-sk_npm//@types/mocha",
+      "@infra-sk_npm//fetch-mock",
+  ],
+)
+
+karma_mocha_test(
+    name = "test",
+    deps = [
+        ":test_lib",
+        "@infra-sk_npm//elements-sk",
+    ],
+    srcs = [
+        "//infra-sk:chai_umd",
+        "//infra-sk:common-sk_umd",
+        "//infra-sk:elements-sk_umd",
+        "//infra-sk:fetch-mock_umd",
+        "//infra-sk:lit-html_umd",
+    ],
+)
