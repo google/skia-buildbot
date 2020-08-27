@@ -16,6 +16,178 @@
       "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d21bb5a0_972456da",
+        "filename": "autoroll/go/rpc/rpc.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-27T13:59:20Z",
+      "side": 1,
+      "message": "All the messages here should be commented.\n\nFor example, is \u0027roller\u0027 a descriptive name or a database id? What are valid values of mode? Etc.",
+      "range": {
+        "startLine": 15,
+        "startChar": 8,
+        "endLine": 15,
+        "endChar": 26
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "55410d33_d2b5b8c1",
+        "filename": "autoroll/go/rpc/rpc.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-27T13:59:20Z",
+      "side": 1,
+      "message": "trailing whitespace.",
+      "range": {
+        "startLine": 69,
+        "startChar": 21,
+        "endLine": 69,
+        "endChar": 22
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "981bcfd9_105dd62e",
+        "filename": "autoroll/go/rpc/rpc.proto",
+        "patchSetId": 17
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-27T13:59:20Z",
+      "side": 1,
+      "message": "trailing whitespace.",
+      "range": {
+        "startLine": 77,
+        "startChar": 21,
+        "endLine": 77,
+        "endChar": 22
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "20f5306c_2b5fa15b",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 17
+      },
+      "lineNbr": 372,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-27T13:59:20Z",
+      "side": 1,
+      "message": "Is this casting away the undefined? If so then \n\n  return this.getAttribute(\u0027roller\u0027)!;\n\nis the preferred syntax.",
+      "range": {
+        "startLine": 372,
+        "startChar": 11,
+        "endLine": 372,
+        "endChar": 47
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80c210cc_8220fbc5",
+        "filename": "autoroll/modules/arb-status-sk/arb-status-sk.ts",
+        "patchSetId": 17
+      },
+      "lineNbr": 710,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-27T13:59:20Z",
+      "side": 1,
+      "message": "\u003d\u003d\u003d",
+      "range": {
+        "startLine": 710,
+        "startChar": 62,
+        "endLine": 710,
+        "endChar": 64
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8010cb74_2d5cdc0b",
+        "filename": "autoroll/modules/rpc-mock/index.ts",
+        "patchSetId": 17
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-27T13:59:20Z",
+      "side": 1,
+      "message": "Blank line between functions. Here and below.",
+      "range": {
+        "startLine": 49,
+        "startChar": 2,
+        "endLine": 50,
+        "endChar": 3
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ed65d132_062dfa69",
+        "filename": "go.mod",
+        "patchSetId": 17
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-27T13:59:20Z",
+      "side": 1,
+      "message": "Needs a comment as to why this is done, and if it can be undone in the future.",
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "334446dd_57c90981",
+        "filename": "go/login/login.go",
+        "patchSetId": 17
+      },
+      "lineNbr": 878,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-27T13:59:20Z",
+      "side": 1,
+      "message": "SessionMiddleware and GetSession should have tests.",
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
