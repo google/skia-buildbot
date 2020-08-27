@@ -1,15 +1,29 @@
 #!/bin/bash
 
+set -e
+
 # Authenticate using the credentials provided at GOOGLE_APPLICATION_CREDENTIALS.
 gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
 
-DATABASE=('skia' 'android' 'android_x' 'ct' 'flutter_flutter' 'flutter_engine')
+CONFIGS=(
+  'cdb-ct-prod.json'
+  'cdb-nano.json'
+  'cdb-flutter-engine.json'
+  'flutter-flutter.json'
+  'cdb-android-x.json'
+  'cdb-android-prod.json'
+)
 
 # Dump the tables we want backed up and copy the gzipped output to Google Cloud Storage.
-for database in "${DATABASE[@]}"
+for config in "${CONFIGS[@]}"
 do
-    echo "Backing up $database"
-    cockroach dump $database alerts --insecure --host=perf-cockroachdb-public \
-    | gzip --stdout \
-    | gsutil cp - gs://skia-public-backup/cockroachdb/perf/$database/$(date +%Y)/$(date +%m)/$(date +%d)/alerts.gz
+    echo "Backing up $config"
+    /usr/local/bin/perf-tool database backup alerts \
+      --config_filename=/usr/local/share/skiaperf/configs/$config --out=/tmp/alerts.dat
+    # Defaults to backing up one month.
+    /usr/local/bin/perf-tool database backup regressions \
+      --config_filename=/usr/local/share/skiaperf/configs/$config --out=/tmp/regressions.dat
+
+    gsutil cp /tmp/alerts.dat      gs://skia-public-backup/perf/$(date +%Y)/$(date +%m)/$(date +%d)/$config/alerts.dat
+    gsutil cp /tmp/regressions.dat gs://skia-public-backup/perf/$(date +%Y)/$(date +%m)/$(date +%d)/$config/regressions.dat
 done
