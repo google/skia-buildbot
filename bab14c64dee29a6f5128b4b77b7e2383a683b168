@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f58fd72_d59cfac7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-27T11:06:29Z",
+      "side": 1,
+      "message": "PTAL, I needed to add another repo manager to support not having a local checkout of chromium.",
+      "revId": "bab14c64dee29a6f5128b4b77b7e2383a683b168",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
