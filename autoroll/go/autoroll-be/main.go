@@ -26,7 +26,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chatbot"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/firestore"
@@ -41,7 +40,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
-	"google.golang.org/api/option"
 )
 
 const (
@@ -118,13 +116,6 @@ func main() {
 		sklog.Fatal(err)
 	}
 	client := httputils.DefaultClientConfig().WithTokenSource(ts).With2xxOnly().Client()
-	namespace := ds.AUTOROLL_NS
-	if cfg.IsInternal {
-		namespace = ds.AUTOROLL_INTERNAL_NS
-	}
-	if err := ds.InitWithOpt(common.PROJECT_ID, namespace, option.WithTokenSource(ts)); err != nil {
-		sklog.Fatal(err)
-	}
 
 	chatbot.Init(fmt.Sprintf("%s -> %s AutoRoller", cfg.ChildDisplayName, cfg.ParentDisplayName))
 

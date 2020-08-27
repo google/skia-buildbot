@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/chrome_branch"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/gcs/gcsclient"
 	"go.skia.org/infra/go/gerrit"
 	"go.skia.org/infra/go/github"
@@ -31,7 +30,6 @@ import (
 	"go.skia.org/infra/go/repo_root"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
-	"google.golang.org/api/option"
 )
 
 var (
@@ -140,15 +138,6 @@ func main() {
 
 		rm, err := cfg.CreateRepoManager(ctx, cr, reg, gerritClient, githubClient, *workdir, recipesCfgFile, *serverURL, cfg.RollerName, gcsClient, client, true)
 		if err != nil {
-			log.Fatal(err)
-		}
-
-		// Read the most recent roll from the roller.
-		namespace := ds.AUTOROLL_NS
-		if cfg.IsInternal {
-			namespace = ds.AUTOROLL_INTERNAL_NS
-		}
-		if err := ds.InitWithOpt(common.PROJECT_ID, namespace, option.WithTokenSource(ts)); err != nil {
 			log.Fatal(err)
 		}
 
