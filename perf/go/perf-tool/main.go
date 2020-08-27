@@ -437,7 +437,7 @@ func databaseDatabaseBackupRegressionsSubAction(c *cobra.Command, args []string)
 			return err
 		}
 	}
-	fmt.Printf("Backing up from %v", backupToDate)
+	fmt.Printf("Backing up from %v\n", backupToDate)
 
 	f, err := os.Create(c.Flag(outputFilenameFlag).Value.String())
 	if err != nil {
@@ -467,6 +467,9 @@ func databaseDatabaseBackupRegressionsSubAction(c *cobra.Command, args []string)
 	end, err := perfGit.CommitNumberFromTime(ctx, time.Time{})
 	if err != nil {
 		return err
+	}
+	if end == types.BadCommitNumber {
+		return skerr.Fmt("Got bad commit number.")
 	}
 
 	shortcuts := map[string]bool{}
@@ -506,8 +509,7 @@ func databaseDatabaseBackupRegressionsSubAction(c *cobra.Command, args []string)
 			}
 			commitDate := time.Unix(cid.Timestamp, 0)
 			if commitDate.Before(backupToDate) {
-				fmt.Printf("Finished backup: %v < %v", commitDate, backupToDate)
-				goto End
+				continue
 			}
 			body := allRegressionsForCommitWithCommitNumber{
 				CommitNumber:            commitNumber,
@@ -519,7 +521,6 @@ func databaseDatabaseBackupRegressionsSubAction(c *cobra.Command, args []string)
 		}
 		end = begin - 1
 	}
-End:
 
 	// Backup Shortcuts found in Regressions.
 	shortcutsZipWriter, err := z.Create(backupFilenameShortcuts)
@@ -532,7 +533,7 @@ End:
 		return err
 	}
 
-	fmt.Print("Shortcuts: ")
+	fmt.Println("Shortcuts:")
 	total := 0
 	for shortcutID := range shortcuts {
 		shortcut, err := shortcutStore.Get(ctx, shortcutID)
@@ -551,6 +552,7 @@ End:
 		}
 	}
 
+	fmt.Println()
 	if err := z.Close(); err != nil {
 		return err
 	}
