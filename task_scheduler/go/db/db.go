@@ -9,6 +9,7 @@ import (
 	"time"
 
 	swarming_api "go.chromium.org/luci/common/api/swarming/swarming/v1"
+	"go.skia.org/infra/go/firestore"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/swarming"
@@ -67,6 +68,12 @@ type TaskReader interface {
 	// canceled. The channel will immediately produce a slice of Tasks which
 	// may or may not be empty.
 	ModifiedTasksCh(context.Context) <-chan []*types.Task
+
+	// SearchTasks searches the DB for tasks which match the given search terms.
+	// Returns the matching tasks and a cursor which is non-empty if there are
+	// additional results.  Call SearchTasks again with the same terms and the
+	// cursor to retrieve the next batch of results.
+	SearchTasks(ctx context.Context, cursor string, terms ...firestore.WhereClause) (string, []*types.Task, error)
 }
 
 // TaskDB is used by the task scheduler to store Tasks.
@@ -174,6 +181,12 @@ type JobReader interface {
 	// canceled. The channel will immediately produce a slice of Jobs which
 	// may or may not be empty.
 	ModifiedJobsCh(context.Context) <-chan []*types.Job
+
+	// SearchJobs searches the DB for jobs which match the given search terms.
+	// Returns the matching jobs and a cursor which is non-empty if there are
+	// additional results.  Call SearchJobs again with the same terms and the
+	// cursor to retrieve the next batch of results.
+	SearchJobs(ctx context.Context, cursor string, terms ...firestore.WhereClause) (string, []*types.Job, error)
 }
 
 // JobDB is used by the task scheduler to store Jobs.
