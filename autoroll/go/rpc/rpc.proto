@@ -1,0 +1,181 @@
+syntax = "proto3";
+package autoroll.rpc;
+option go_package = "go.skia.org/infra/autoroll/go/rpc";
+
+import "google/protobuf/timestamp.proto";
+
+service AutoRollService {
+  rpc GetRollers(GetRollersRequest) returns (GetRollersResponse);
+  rpc GetMiniStatus(GetMiniStatusRequest) returns (GetMiniStatusResponse);
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  rpc SetMode(SetModeRequest) returns (SetModeResponse);
+  rpc SetStrategy(SetStrategyRequest) returns (SetStrategyResponse);
+  rpc CreateManualRoll(CreateManualRollRequest) returns (CreateManualRollResponse);
+  rpc Unthrottle(UnthrottleRequest) returns (UnthrottleResponse);
+}
+
+// These must be kept in sync with autoroll/go/modes/modes.go.
+enum Mode {
+  MODE_RUNNING = 0;
+  MODE_STOPPED = 1;
+  MODE_DRY_RUN = 2;
+}
+
+// These must be kept in sync with autoroll/go/strategy/strategies.go.
+enum Strategy {
+  STRATEGY_BATCH = 0;
+  STRATEGY_N_BATCH = 1;
+  STRATEGY_SINGLE = 2;
+}
+
+message AutoRollMiniStatus {
+  string roller = 1;
+  string child_name = 2;
+  string parent_name = 3;
+  Mode mode = 4;
+  string current_roll_rev = 5;
+  string last_roll_rev = 6;
+  int32 num_failed = 7;
+  int32 num_behind = 8;
+}
+
+message TryResult {
+  string name = 1;
+  string status = 2;
+  string result = 3;
+  string url = 4;
+  string category = 5;
+}
+
+message AutoRollCL {
+  string id = 1;
+  string result = 2;
+  string subject = 3;
+  string rolling_to = 4;
+  string rolling_from = 5;
+  google.protobuf.Timestamp created = 6;
+  google.protobuf.Timestamp modified = 7;
+  repeated TryResult try_results = 8;
+}
+
+message Revision {
+  string id = 1;
+  string display = 2;
+  string description = 3;
+  google.protobuf.Timestamp time = 4;
+  string url = 5;
+}
+
+message AutoRollConfig {
+  string parent_waterfall = 1;
+  string roller_name = 2;
+  bool supports_manual_rolls = 3;
+  string time_window = 4;
+}
+
+message ModeChange {
+  string roller = 1;
+  Mode mode = 2;
+  string user = 3;
+  google.protobuf.Timestamp time = 4;
+  string message = 5;
+}
+
+message StrategyChange {
+  string roller = 1;
+  Strategy strategy = 2;
+  string user = 3;
+  google.protobuf.Timestamp time = 4;
+  string message = 5;
+}
+
+message ManualRollRequest {
+  string id = 1;
+  string roller = 2;
+  string revision = 3;
+  string requester = 4;
+  string result = 5;
+  string status = 6;
+  google.protobuf.Timestamp timestamp = 7;
+  string url = 8;
+  bool dry_run = 9;
+  bool no_email = 10;
+  bool no_resolve_revision = 11;
+}
+
+message AutoRollStatus {
+  AutoRollMiniStatus mini_status = 1;
+  string status = 2;
+  AutoRollConfig config = 3;
+  string childHead = 4;
+  string full_history_url = 5;
+  string issue_url_base = 6;
+  ModeChange mode = 7;
+  StrategyChange strategy = 8;
+  repeated Revision not_rolled_revisions = 9;
+  AutoRollCL current_roll = 10;
+  AutoRollCL last_roll = 11;
+  repeated AutoRollCL recent = 12;
+  repeated string valid_modes = 13;
+  repeated string valid_strategies = 14;
+  repeated ManualRollRequest manual_requests = 15;
+  string error = 16;
+  google.protobuf.Timestamp throttled_until = 17;
+}
+
+message GetRollersRequest {}
+
+message GetRollersResponse {
+  repeated AutoRollMiniStatus rollers = 1;
+}
+
+message GetMiniStatusRequest {
+  string roller = 1;
+}
+
+message GetMiniStatusResponse {
+  AutoRollMiniStatus status = 1;
+}
+
+message GetStatusRequest {
+  string roller = 1;
+}
+
+message GetStatusResponse {
+  AutoRollStatus status = 1;
+}
+
+message SetModeRequest {
+  string roller = 1;
+  Mode mode = 2;
+  string message = 4;
+}
+
+message SetModeResponse {
+  AutoRollStatus status = 1;
+}
+
+message SetStrategyRequest {
+  string roller = 1;
+  Strategy strategy = 2;
+  string message = 4;
+}
+
+message SetStrategyResponse {
+  AutoRollStatus status = 1;
+}
+
+message CreateManualRollRequest {
+  string roller = 1;
+  string revision = 2;
+}
+
+message CreateManualRollResponse {
+  ManualRollRequest request = 1;
+}
+
+message UnthrottleRequest {
+  string roller = 1;
+}
+
+message UnthrottleResponse {}
