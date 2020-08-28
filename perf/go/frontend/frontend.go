@@ -300,6 +300,9 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 	if err := config.Init(f.flags.ConfigFilename); err != nil {
 		sklog.Fatal(err)
 	}
+	if f.flags.ConnectionString != "" {
+		config.Config.DataStoreConfig.ConnectionString = f.flags.ConnectionString
+	}
 	cfg := config.Config
 
 	var err error
