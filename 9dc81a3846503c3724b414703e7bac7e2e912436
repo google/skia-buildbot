@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "23b52564_2dd7f06a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-08-28T17:05:57Z",
+      "side": 1,
+      "message": "Note that the vk-gl-cts roller does not currently use a roll window, so it is not modified in this CL.",
+      "revId": "9dc81a3846503c3724b414703e7bac7e2e912436",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
