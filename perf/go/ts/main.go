@@ -65,6 +65,8 @@ func main() {
 		frontend.RangeRequest{},
 		frontend.RegressionRangeRequest{},
 		frontend.RegressionRangeResponse{},
+		frontend.ShiftRequest{},
+		frontend.ShiftResponse{},
 		frontend.SkPerfConfig{},
 		frontend.TriageRequest{},
 		frontend.TriageResponse{},
