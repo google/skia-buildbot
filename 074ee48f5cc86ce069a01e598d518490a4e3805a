@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "001eab15_cf9d805b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-08-28T17:58:22Z",
+      "side": 1,
+      "message": "LGTM!\n\nYou might want to consider adding a screenshot test for perf-scaffold-sk at some point to capture unwanted changes, etc.",
+      "revId": "074ee48f5cc86ce069a01e598d518490a4e3805a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
