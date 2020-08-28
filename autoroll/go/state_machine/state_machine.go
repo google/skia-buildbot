@@ -31,7 +31,7 @@ const (
 	S_NORMAL_FAILURE               = "failure"
 	S_NORMAL_FAILURE_THROTTLED     = "failure throttled"
 	S_NORMAL_SAFETY_THROTTLED      = "safety throttled"
-	S_NORMAL_WAIT_FOR_WINDOW       = "waiting for roll window"
+	S_WAIT_FOR_WINDOW              = "waiting for roll window"
 	S_DRY_RUN_IDLE                 = "dry run idle"
 	S_DRY_RUN_ACTIVE               = "dry run active"
 	S_DRY_RUN_SUCCESS              = "dry run success"
@@ -422,7 +422,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_NORMAL_IDLE, S_NORMAL_SAFETY_THROTTLED, F_NOTIFY_SAFETY_THROTTLE)
 	b.T(S_NORMAL_IDLE, S_NORMAL_SUCCESS_THROTTLED, F_NOOP)
 	b.T(S_NORMAL_IDLE, S_NORMAL_ACTIVE, F_UPLOAD_ROLL)
-	b.T(S_NORMAL_IDLE, S_NORMAL_WAIT_FOR_WINDOW, F_NOOP)
+	b.T(S_NORMAL_IDLE, S_WAIT_FOR_WINDOW, F_NOOP)
 	b.T(S_NORMAL_ACTIVE, S_NORMAL_ACTIVE, F_UPDATE_ROLL)
 	b.T(S_NORMAL_ACTIVE, S_DRY_RUN_ACTIVE, F_SWITCH_TO_DRY_RUN)
 	b.T(S_NORMAL_ACTIVE, S_NORMAL_SUCCESS, F_NOOP)
@@ -449,8 +449,6 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_NORMAL_FAILURE_THROTTLED, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_NORMAL_SAFETY_THROTTLED, S_NORMAL_IDLE, F_NOOP)
 	b.T(S_NORMAL_SAFETY_THROTTLED, S_NORMAL_SAFETY_THROTTLED, F_UPDATE_REPOS)
-	b.T(S_NORMAL_WAIT_FOR_WINDOW, S_NORMAL_WAIT_FOR_WINDOW, F_UPDATE_REPOS)
-	b.T(S_NORMAL_WAIT_FOR_WINDOW, S_NORMAL_IDLE, F_NOOP)
 
 	// Dry run states.
 	b.T(S_DRY_RUN_IDLE, S_STOPPED, F_NOOP)
@@ -459,6 +457,7 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_DRY_RUN_IDLE, S_NORMAL_SUCCESS_THROTTLED, F_NOOP)
 	b.T(S_DRY_RUN_IDLE, S_DRY_RUN_SAFETY_THROTTLED, F_NOTIFY_SAFETY_THROTTLE)
 	b.T(S_DRY_RUN_IDLE, S_DRY_RUN_ACTIVE, F_UPLOAD_DRY_RUN)
+	b.T(S_DRY_RUN_IDLE, S_WAIT_FOR_WINDOW, F_NOOP)
 	b.T(S_DRY_RUN_ACTIVE, S_DRY_RUN_ACTIVE, F_UPDATE_ROLL)
 	b.T(S_DRY_RUN_ACTIVE, S_NORMAL_ACTIVE, F_SWITCH_TO_NORMAL)
 	b.T(S_DRY_RUN_ACTIVE, S_DRY_RUN_SUCCESS, F_NOOP)
@@ -487,6 +486,10 @@ func New(ctx context.Context, impl AutoRollerImpl, n *notifier.AutoRollNotifier,
 	b.T(S_DRY_RUN_FAILURE_THROTTLED, S_CURRENT_ROLL_MISSING, F_NOOP)
 	b.T(S_DRY_RUN_SAFETY_THROTTLED, S_DRY_RUN_IDLE, F_NOOP)
 	b.T(S_DRY_RUN_SAFETY_THROTTLED, S_DRY_RUN_SAFETY_THROTTLED, F_UPDATE_REPOS)
+
+	b.T(S_WAIT_FOR_WINDOW, S_WAIT_FOR_WINDOW, F_UPDATE_REPOS)
+	b.T(S_WAIT_FOR_WINDOW, S_NORMAL_IDLE, F_NOOP)
+	b.T(S_WAIT_FOR_WINDOW, S_DRY_RUN_IDLE, F_NOOP)
 
 	// Error; current roll is missing.
 	b.T(S_CURRENT_ROLL_MISSING, S_NORMAL_IDLE, F_ERROR_CURRENT_ROLL_MISSING)
@@ -525,27 +528,21 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			return "", fmt.Errorf("Invalid mode: %q", desiredMode)
 		}
 	case S_NORMAL_IDLE:
-		switch desiredMode {
-		case modes.ModeRunning:
-			break
-		case modes.ModeDryRun:
-			return S_DRY_RUN_IDLE, nil
-		case modes.ModeStopped:
+		if desiredMode == modes.ModeStopped {
 			return S_STOPPED, nil
-		default:
-			return "", fmt.Errorf("Invalid mode: %q", desiredMode)
-		}
-		if !s.a.InRollWindow(time.Now()) {
-			return S_NORMAL_WAIT_FOR_WINDOW, nil
+		} else if !s.a.InRollWindow(time.Now()) {
+			return S_WAIT_FOR_WINDOW, nil
+		} else if desiredMode == modes.ModeDryRun {
+			return S_DRY_RUN_IDLE, nil
+		} else if s.a.SafetyThrottle().IsThrottled() {
+			return S_NORMAL_SAFETY_THROTTLED, nil
+		} else if s.a.SuccessThrottle().IsThrottled() {
+			return S_NORMAL_SUCCESS_THROTTLED, nil
 		}
 		current := s.a.GetCurrentRev()
 		next := s.a.GetNextRollRev()
 		if current.Id == next.Id {
 			return S_NORMAL_IDLE, nil
-		} else if s.a.SafetyThrottle().IsThrottled() {
-			return S_NORMAL_SAFETY_THROTTLED, nil
-		} else if s.a.SuccessThrottle().IsThrottled() {
-			return S_NORMAL_SUCCESS_THROTTLED, nil
 		} else {
 			return S_NORMAL_ACTIVE, nil
 		}
@@ -639,28 +636,28 @@ func (s *AutoRollStateMachine) GetNext(ctx context.Context) (string, error) {
 			return S_NORMAL_SAFETY_THROTTLED, nil
 		}
 		return S_NORMAL_IDLE, nil
-	case S_NORMAL_WAIT_FOR_WINDOW:
-		if s.a.InRollWindow(time.Now()) {
-			return S_NORMAL_IDLE, nil
+	case S_WAIT_FOR_WINDOW:
+		if !s.a.InRollWindow(time.Now()) {
+			return S_WAIT_FOR_WINDOW, nil
 		}
-		return S_NORMAL_WAIT_FOR_WINDOW, nil
+		if desiredMode == modes.ModeDryRun {
+			return S_DRY_RUN_IDLE, nil
+		}
+		return S_NORMAL_IDLE, nil
 	case S_DRY_RUN_IDLE:
-		if desiredMode == modes.ModeRunning {
-			if s.a.SuccessThrottle().IsThrottled() {
-				return S_NORMAL_SUCCESS_THROTTLED, nil
-			}
-			return S_NORMAL_IDLE, nil
-		} else if desiredMode == modes.ModeStopped {
+		if desiredMode == modes.ModeStopped {
 			return S_STOPPED, nil
-		} else if desiredMode != modes.ModeDryRun {
-			return "", fmt.Errorf("Invalid mode %q", desiredMode)
+		} else if !s.a.InRollWindow(time.Now()) {
+			return S_WAIT_FOR_WINDOW, nil
+		} else if desiredMode == modes.ModeRunning {
+			return S_NORMAL_IDLE, nil
+		} else if s.a.SafetyThrottle().IsThrottled() {
+			return S_DRY_RUN_SAFETY_THROTTLED, nil
 		}
 		current := s.a.GetCurrentRev()
 		next := s.a.GetNextRollRev()
 		if current.Id == next.Id {
 			return S_DRY_RUN_IDLE, nil
-		} else if s.a.SafetyThrottle().IsThrottled() {
-			return S_DRY_RUN_SAFETY_THROTTLED, nil
 		} else {
 			return S_DRY_RUN_ACTIVE, nil
 		}

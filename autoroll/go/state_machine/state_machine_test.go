@@ -482,8 +482,8 @@ func TestNormal(t *testing.T) {
 
 	// Close the roll window.
 	r.rollWindowOpen = false
-	checkNextState(t, sm, S_NORMAL_WAIT_FOR_WINDOW)
-	checkNextState(t, sm, S_NORMAL_WAIT_FOR_WINDOW)
+	checkNextState(t, sm, S_WAIT_FOR_WINDOW)
+	checkNextState(t, sm, S_WAIT_FOR_WINDOW)
 	r.rollWindowOpen = true
 	checkNextState(t, sm, S_NORMAL_IDLE)
 }
@@ -604,11 +604,12 @@ func TestDryRun(t *testing.T) {
 	r.SetMode(ctx, modes.ModeDryRun)
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
 
-	// Close the roll window. In dry run mode we ignore the window.
+	// Close the roll window.
 	r.rollWindowOpen = false
-	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
-	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
+	checkNextState(t, sm, S_WAIT_FOR_WINDOW)
+	checkNextState(t, sm, S_WAIT_FOR_WINDOW)
 	r.rollWindowOpen = true
+	checkNextState(t, sm, S_DRY_RUN_IDLE)
 	checkNextState(t, sm, S_DRY_RUN_ACTIVE)
 
 	// Somebody landed the CL.
@@ -802,6 +803,7 @@ func TestSuccessThrottle(t *testing.T) {
 	checkNextState(t, sm, S_DRY_RUN_IDLE)
 	// And when we switch back we should still be throttled.
 	r.SetMode(ctx, modes.ModeRunning)
+	checkNextState(t, sm, S_NORMAL_IDLE)
 	checkNextState(t, sm, S_NORMAL_SUCCESS_THROTTLED)
 	// Now, stop the roller, restart it, and ensure that we're still
 	// throttled.
