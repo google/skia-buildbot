@@ -8,6 +8,7 @@ import (
 
 	fs "cloud.google.com/go/firestore"
 	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
@@ -93,6 +94,24 @@ func (d *firestoreDB) GetTasksFromDateRange(start, end time.Time, repo string) (
 	}
 	sort.Sort(types.TaskSlice(rv))
 	return rv, nil
+}
+
+// SearchTasks implements the db.TaskReader interface.
+func (d *firestoreDB) SearchTasks(ctx context.Context, cursor string, terms ...firestore.WhereClause) (string, []*types.Task, error) {
+	q := firestore.NewQuery(d.tasks()).OrderBy(KEY_CREATED, fs.Asc).WhereAll(terms...).Cursor(cursor)
+	docs, q, err := q.Search(ctx)
+	if err != nil {
+		return "", nil, skerr.Wrap(err)
+	}
+	tasks := make([]*types.Task, 0, len(docs))
+	for _, doc := range docs {
+		task := new(types.Task)
+		if err := doc.DataTo(task); err != nil {
+			return "", nil, skerr.Wrap(err)
+		}
+		tasks = append(tasks, task)
+	}
+	return q.GetCursor(), tasks, nil
 }
 
 // See documentation for types.TaskDB interface.

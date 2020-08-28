@@ -8,10 +8,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.skia.org/infra/go/firestore"
+	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/task_scheduler/go/db"
-	"go.skia.org/infra/task_scheduler/go/db/firestore"
+	ts_firestore "go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/types"
 )
 
@@ -61,6 +63,11 @@ func (d *InMemoryTaskDB) GetTasksFromDateRange(start, end time.Time, repo string
 	return rv, nil
 }
 
+// SearchTasks implements the TaskReader interface.
+func (d *InMemoryTaskDB) SearchTasks(ctx context.Context, _ string, _ ...firestore.WhereClause) (string, []*types.Task, error) {
+	return "", nil, skerr.Fmt("SearchJobs not implemented for InMemoryTaskDB")
+}
+
 // See docs for TaskDB interface.
 func (d *InMemoryTaskDB) PutTask(task *types.Task) error {
 	return d.PutTasks([]*types.Task{task})
@@ -68,8 +75,8 @@ func (d *InMemoryTaskDB) PutTask(task *types.Task) error {
 
 // See docs for TaskDB interface.
 func (d *InMemoryTaskDB) PutTasks(tasks []*types.Task) error {
-	if len(tasks) > firestore.MAX_TRANSACTION_DOCS {
-		sklog.Errorf("Inserting %d tasks, which is more than the Firestore maximum of %d; consider switching to PutTasksInChunks.", len(tasks), firestore.MAX_TRANSACTION_DOCS)
+	if len(tasks) > ts_firestore.MAX_TRANSACTION_DOCS {
+		sklog.Errorf("Inserting %d tasks, which is more than the Firestore maximum of %d; consider switching to PutTasksInChunks.", len(tasks), ts_firestore.MAX_TRANSACTION_DOCS)
 	}
 	d.tasksMtx.Lock()
 	defer d.tasksMtx.Unlock()
@@ -121,7 +128,7 @@ func (d *InMemoryTaskDB) PutTasks(tasks []*types.Task) error {
 
 // See docs for TaskDB interface.
 func (d *InMemoryTaskDB) PutTasksInChunks(tasks []*types.Task) error {
-	return util.ChunkIter(len(tasks), firestore.MAX_TRANSACTION_DOCS, func(i, j int) error {
+	return util.ChunkIter(len(tasks), ts_firestore.MAX_TRANSACTION_DOCS, func(i, j int) error {
 		return d.PutTasks(tasks[i:j])
 	})
 }
@@ -251,6 +258,11 @@ func (d *InMemoryJobDB) GetJobsFromDateRange(start, end time.Time, repo string) 
 	return rv, nil
 }
 
+// SearchJobs implements the JobReader interface.
+func (d *InMemoryJobDB) SearchJobs(ctx context.Context, _ string, _ ...firestore.WhereClause) (string, []*types.Job, error) {
+	return "", nil, skerr.Fmt("SearchJobs not implemented for InMemoryJobDB")
+}
+
 // See docs for JobDB interface.
 func (d *InMemoryJobDB) PutJob(job *types.Job) error {
 	return d.PutJobs([]*types.Job{job})
@@ -259,7 +271,7 @@ func (d *InMemoryJobDB) PutJob(job *types.Job) error {
 // See docs for JobDB interface.
 func (d *InMemoryJobDB) PutJobs(jobs []*types.Job) error {
 	if len(jobs) > firestore.MAX_TRANSACTION_DOCS {
-		sklog.Errorf("Inserting %d jobs, which is more than the Firestore maximum of %d; consider switching to PutJobsInChunks.", len(jobs), firestore.MAX_TRANSACTION_DOCS)
+		sklog.Errorf("Inserting %d jobs, which is more than the Firestore maximum of %d; consider switching to PutJobsInChunks.", len(jobs), ts_firestore.MAX_TRANSACTION_DOCS)
 	}
 	d.jobsMtx.Lock()
 	defer d.jobsMtx.Unlock()
@@ -310,7 +322,7 @@ func (d *InMemoryJobDB) PutJobs(jobs []*types.Job) error {
 
 // See docs for JobDB interface.
 func (d *InMemoryJobDB) PutJobsInChunks(jobs []*types.Job) error {
-	return util.ChunkIter(len(jobs), firestore.MAX_TRANSACTION_DOCS, func(i, j int) error {
+	return util.ChunkIter(len(jobs), ts_firestore.MAX_TRANSACTION_DOCS, func(i, j int) error {
 		return d.PutJobs(jobs[i:j])
 	})
 }
