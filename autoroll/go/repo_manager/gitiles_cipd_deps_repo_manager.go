@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/autoroll/go/strategy"
 	"go.skia.org/infra/go/depot_tools/deps_parser"
 	"go.skia.org/infra/go/gerrit"
+	"go.skia.org/infra/go/github"
 	"go.skia.org/infra/go/skerr"
 )
 
@@ -27,19 +28,19 @@ type GitilesCIPDDEPSRepoManagerConfig struct {
 	CipdAssetTag string `json:"cipdAssetTag"`
 }
 
-// See documentation for RepoManagerConfig interface.
-func (r *GitilesCIPDDEPSRepoManagerConfig) ValidStrategies() []string {
+// ValidStrategies implements the RepoManagerConfig interface.
+func (c *GitilesCIPDDEPSRepoManagerConfig) ValidStrategies() []string {
 	return []string{
 		strategy.ROLL_STRATEGY_BATCH,
 	}
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *GitilesCIPDDEPSRepoManagerConfig) Validate() error {
 	if err := c.NoCheckoutRepoManagerConfig.Validate(); err != nil {
 		return err
 	}
-	_, _, err := c.splitParentChild()
+	_, err := c.splitParentChild()
 	return skerr.Wrap(err)
 }
 
@@ -47,50 +48,42 @@ func (c *GitilesCIPDDEPSRepoManagerConfig) Validate() error {
 // parent.GitilesConfig and a child.CIPDConfig.
 // TODO(borenet): Update the config format to directly define the parent
 // and child. We shouldn't need most of the New.*RepoManager functions.
-func (c GitilesCIPDDEPSRepoManagerConfig) splitParentChild() (parent.GitilesConfig, child.CIPDConfig, error) {
-	parentCfg := parent.GitilesConfig{
-		DependencyConfig: version_file_common.DependencyConfig{
-			VersionFileConfig: version_file_common.VersionFileConfig{
-				ID:   c.CipdAssetName,
-				Path: deps_parser.DepsFileName,
+func (c GitilesCIPDDEPSRepoManagerConfig) splitParentChild() (*ParentChildConfig, error) {
+	cfg := &ParentChildConfig{
+		Parent: parent.ConfigUnion{
+			GitilesFile: &parent.GitilesConfig{
+				DependencyConfig: version_file_common.DependencyConfig{
+					VersionFileConfig: version_file_common.VersionFileConfig{
+						ID:   c.CipdAssetName,
+						Path: deps_parser.DepsFileName,
+					},
+				},
+				GitilesConfig: gitiles_common.GitilesConfig{
+					Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
+					RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+				},
+				Gerrit: c.Gerrit,
 			},
 		},
-		GitilesConfig: gitiles_common.GitilesConfig{
-			Branch:  c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentBranch,
-			RepoURL: c.NoCheckoutRepoManagerConfig.CommonRepoManagerConfig.ParentRepo,
+		Child: child.Config{
+			CIPD: &child.CIPDConfig{
+				Name: c.CipdAssetName,
+				Tag:  c.CipdAssetTag,
+			},
 		},
-		Gerrit: c.Gerrit,
 	}
-	if err := parentCfg.Validate(); err != nil {
-		return parent.GitilesConfig{}, child.CIPDConfig{}, skerr.Wrapf(err, "generated parent config is invalid")
+	if err := cfg.Validate(); err != nil {
+		return nil, skerr.Wrapf(err, "generated child config is invalid")
 	}
-	childCfg := child.CIPDConfig{
-		Name: c.CipdAssetName,
-		Tag:  c.CipdAssetTag,
-	}
-	if err := childCfg.Validate(); err != nil {
-		return parent.GitilesConfig{}, child.CIPDConfig{}, skerr.Wrapf(err, "generated child config is invalid")
-	}
-	return parentCfg, childCfg, nil
+	return cfg, nil
 }
 
 // NewGitilesCIPDDEPSRepoManager returns a RepoManager instance which does not use
 // a local checkout.
-func NewGitilesCIPDDEPSRepoManager(ctx context.Context, c *GitilesCIPDDEPSRepoManagerConfig, reg *config_vars.Registry, workdir string, g gerrit.GerritInterface, recipeCfgFile, serverURL string, client *http.Client, cr codereview.CodeReview, local bool) (*parentChildRepoManager, error) {
-	if err := c.Validate(); err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	parentCfg, childCfg, err := c.splitParentChild()
+func NewGitilesCIPDDEPSRepoManager(ctx context.Context, c *GitilesCIPDDEPSRepoManagerConfig, reg *config_vars.Registry, workdir, rollerName string, gerritClient *gerrit.Gerrit, githubClient *github.GitHub, recipeCfgFile, serverURL string, httpClient *http.Client, cr codereview.CodeReview, local bool) (*ParentChildRepoManager, error) {
+	cfg, err := c.splitParentChild()
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
-	parentRM, err := parent.NewGitilesFile(ctx, parentCfg, reg, client, serverURL)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	childRM, err := child.NewCIPD(ctx, childCfg, client, workdir)
-	if err != nil {
-		return nil, skerr.Wrap(err)
-	}
-	return newParentChildRepoManager(ctx, parentRM, childRM, nil)
+	return newParentChildFromConfig(ctx, cfg, reg, httpClient, gerritClient, githubClient, serverURL, workdir, rollerName, cr.UserName(), cr.UserEmail(), recipeCfgFile)
 }

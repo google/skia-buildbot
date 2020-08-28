@@ -63,7 +63,7 @@ func githubCipdDEPSRmCfg(t *testing.T) *GithubCipdDEPSRepoManagerConfig {
 	}
 }
 
-func setupGithubCipdDEPS(t *testing.T, cfg *GithubCipdDEPSRepoManagerConfig) (context.Context, *parentChildRepoManager, string, *git_testutils.GitBuilder, *exec.CommandCollector, *mocks.CIPDClient, *mockhttpclient.URLMock, func()) {
+func setupGithubCipdDEPS(t *testing.T, cfg *GithubCipdDEPSRepoManagerConfig) (context.Context, *ParentChildRepoManager, string, *git_testutils.GitBuilder, *exec.CommandCollector, *mocks.CIPDClient, *mockhttpclient.URLMock, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -113,7 +113,7 @@ deps = {
 
 	cfg.ParentRepo = parent.RepoUrl()
 	cfg.ForkRepoURL = fork.RepoUrl()
-	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "test_roller_name", g, recipesCfg, "fake.server.com", nil, githubCR(t, g), false)
+	rm, err := NewGithubCipdDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", nil, g, recipesCfg, "fake.server.com", urlMock.Client(), githubCR(t, g), false)
 	require.NoError(t, err)
 	mockCipd := getCipdMock(ctx)
 	rm.Child.(*child.CIPDChild).SetClientForTesting(mockCipd)

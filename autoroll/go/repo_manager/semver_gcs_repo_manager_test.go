@@ -84,7 +84,7 @@ func gerritCR(t *testing.T, g gerrit.GerritInterface) codereview.CodeReview {
 	return rv
 }
 
-func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
+func setupAfdo(t *testing.T) (context.Context, *ParentChildRepoManager, *mockhttpclient.URLMock, *gitiles_testutils.MockRepo, *git_testutils.GitBuilder, func()) {
 	wd, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 
@@ -114,7 +114,7 @@ func setupAfdo(t *testing.T) (context.Context, *parentChildRepoManager, *mockhtt
 	cfg := afdoCfg(t)
 	cfg.ParentRepo = parent.RepoUrl()
 
-	rm, err := NewSemVerGCSRepoManager(ctx, cfg, setupRegistry(t), wd, g, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := NewSemVerGCSRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", g, nil, "fake-recipes-cfg", "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
 
 	// Mock requests for Update.

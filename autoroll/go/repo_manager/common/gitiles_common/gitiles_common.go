@@ -27,7 +27,7 @@ type GitilesConfig struct {
 	Dependencies []*version_file_common.VersionFileConfig `json:"dependencies,omitempty"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *GitilesConfig) Validate() error {
 	if c.Branch == nil {
 		return errors.New("Branch is required.")

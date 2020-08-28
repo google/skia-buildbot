@@ -29,7 +29,7 @@ type SemVerGCSConfig struct {
 	VersionRegex *config_vars.Template
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *SemVerGCSConfig) Validate() error {
 	if err := c.GCSConfig.Validate(); err != nil {
 		return err

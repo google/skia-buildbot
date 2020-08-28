@@ -26,7 +26,7 @@ type FuchsiaSDKConfig struct {
 	IncludeMacSDK bool `json:"includeMacSDK"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c FuchsiaSDKConfig) Validate() error {
 	// Can't validate a lone bool...
 	return nil

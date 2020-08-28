@@ -112,7 +112,7 @@ func (r *Google3FakeRepoManagerConfig) ValidStrategies() []string {
 	}
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *Google3FakeRepoManagerConfig) Validate() error {
 	if c.ChildBranch == "" {
 		return errors.New("ChildBranch is required.")
@@ -460,29 +460,29 @@ func (c *AutoRollerConfig) CreateRepoManager(ctx context.Context, cr codereview.
 	} else if c.CommandRepoManager != nil {
 		rm, err = repo_manager.NewCommandRepoManager(ctx, *c.CommandRepoManager, reg, workdir, g, serverURL, cr)
 	} else if c.CopyRepoManager != nil {
-		rm, err = repo_manager.NewCopyRepoManager(ctx, c.CopyRepoManager, reg, workdir, g, serverURL, client, cr, local)
+		rm, err = repo_manager.NewCopyRepoManager(ctx, c.CopyRepoManager, reg, workdir, rollerName, g, nil, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.DEPSGitilesRepoManager != nil {
 		rm, err = repo_manager.NewDEPSGitilesRepoManager(ctx, c.DEPSGitilesRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr)
 	} else if c.DEPSRepoManager != nil {
-		rm, err = repo_manager.NewDEPSRepoManager(ctx, c.DEPSRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
+		rm, err = repo_manager.NewDEPSRepoManager(ctx, c.DEPSRepoManager, reg, workdir, rollerName, g, nil, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.FuchsiaSDKAndroidRepoManager != nil {
 		rm, err = repo_manager.NewFuchsiaSDKAndroidRepoManager(ctx, c.FuchsiaSDKAndroidRepoManager, reg, workdir, g, serverURL, client, cr, local)
 	} else if c.FreeTypeRepoManager != nil {
-		rm, err = repo_manager.NewFreeTypeRepoManager(ctx, c.FreeTypeRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
+		rm, err = repo_manager.NewFreeTypeRepoManager(ctx, c.FreeTypeRepoManager, reg, workdir, rollerName, g, nil, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.FuchsiaSDKRepoManager != nil {
-		rm, err = repo_manager.NewFuchsiaSDKRepoManager(ctx, c.FuchsiaSDKRepoManager, reg, workdir, g, serverURL, client, cr, local)
+		rm, err = repo_manager.NewFuchsiaSDKRepoManager(ctx, c.FuchsiaSDKRepoManager, reg, workdir, rollerName, g, nil, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.GithubRepoManager != nil {
-		rm, err = repo_manager.NewGithubRepoManager(ctx, c.GithubRepoManager, reg, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
+		rm, err = repo_manager.NewGithubRepoManager(ctx, c.GithubRepoManager, reg, workdir, rollerName, g, nil, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.GithubCipdDEPSRepoManager != nil {
-		rm, err = repo_manager.NewGithubCipdDEPSRepoManager(ctx, c.GithubCipdDEPSRepoManager, reg, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
+		rm, err = repo_manager.NewGithubCipdDEPSRepoManager(ctx, c.GithubCipdDEPSRepoManager, reg, workdir, rollerName, g, nil, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.GithubDEPSRepoManager != nil {
-		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, reg, workdir, rollerName, githubClient, recipesCfgFile, serverURL, client, cr, local)
+		rm, err = repo_manager.NewGithubDEPSRepoManager(ctx, c.GithubDEPSRepoManager, reg, workdir, rollerName, g, nil, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.GitilesCIPDDEPSRepoManager != nil {
-		rm, err = repo_manager.NewGitilesCIPDDEPSRepoManager(ctx, c.GitilesCIPDDEPSRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
+		rm, err = repo_manager.NewGitilesCIPDDEPSRepoManager(ctx, c.GitilesCIPDDEPSRepoManager, reg, workdir, rollerName, g, nil, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.NoCheckoutDEPSRepoManager != nil {
-		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, reg, workdir, g, recipesCfgFile, serverURL, client, cr, local)
+		rm, err = repo_manager.NewNoCheckoutDEPSRepoManager(ctx, c.NoCheckoutDEPSRepoManager, reg, workdir, rollerName, g, nil, recipesCfgFile, serverURL, client, cr, local)
 	} else if c.SemVerGCSRepoManager != nil {
-		rm, err = repo_manager.NewSemVerGCSRepoManager(ctx, c.SemVerGCSRepoManager, reg, workdir, g, serverURL, client, cr, local)
+		rm, err = repo_manager.NewSemVerGCSRepoManager(ctx, c.SemVerGCSRepoManager, reg, workdir, rollerName, g, nil, recipesCfgFile, serverURL, client, cr, local)
 	} else {
 		return nil, skerr.Fmt("Invalid roller config; no repo manager defined!")
 	}

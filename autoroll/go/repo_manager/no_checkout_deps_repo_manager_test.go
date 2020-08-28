@@ -22,7 +22,7 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
-func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (context.Context, string, *parentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
+func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (context.Context, string, *ParentChildRepoManager, *git_testutils.GitBuilder, *git_testutils.GitBuilder, *gitiles_testutils.MockRepo, *gitiles_testutils.MockRepo, []string, *mockhttpclient.URLMock, func()) {
 	unittest.LargeTest(t)
 
 	wd, err := ioutil.TempDir("", "")
@@ -73,7 +73,7 @@ func setupNoCheckout(t *testing.T, cfg *NoCheckoutDEPSRepoManagerConfig) (contex
 	recipesCfg := filepath.Join(testutils.GetRepoRoot(t), recipe_cfg.RECIPE_CFG_PATH)
 
 	// Create the RepoManager.
-	rm, err := NewNoCheckoutDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, g, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
+	rm, err := NewNoCheckoutDEPSRepoManager(ctx, cfg, setupRegistry(t), wd, "fake-roller", g, nil, recipesCfg, "fake.server.com", urlmock.Client(), gerritCR(t, g), false)
 	require.NoError(t, err)
 
 	// Mock requests for Update().

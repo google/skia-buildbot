@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	cipdPackageUrlTmpl  = "%s/p/%s/+/%s"
+	cipdPackageURLTmpl  = "%s/p/%s/+/%s"
 	cipdBuganizerPrefix = "b/"
 )
 
@@ -37,7 +37,7 @@ type CIPDConfig struct {
 	Tag  string `json:"tag"`
 }
 
-// See documentation for util.Validator interface.
+// Validate implements the util.Validator interface.
 func (c *CIPDConfig) Validate() error {
 	if c.Name == "" {
 		return skerr.Fmt("Name is required.")
@@ -75,7 +75,7 @@ type CIPDChild struct {
 	tag    string
 }
 
-// See documentation for Child interface.
+// GetRevision implements the Child interface.
 func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revision, error) {
 	instance, err := c.client.Describe(ctx, c.name, id)
 	if err != nil {
@@ -84,7 +84,7 @@ func (c *CIPDChild) GetRevision(ctx context.Context, id string) (*revision.Revis
 	return CIPDInstanceToRevision(c.name, instance), nil
 }
 
-// See documentation for Child interface.
+// Update implements the Child interface.
 // Note: that this just finds all versions of the package between the last
 // rolled version and the version currently pointed to by the configured tag; we
 // can't know whether the tag we're tracking was ever actually applied to any of
@@ -191,7 +191,7 @@ func CIPDInstanceToRevision(name string, instance *cipd_api.InstanceDescription)
 		Display:     util.Truncate(instance.Pin.InstanceID, 12),
 		Description: instance.Pin.String(),
 		Timestamp:   time.Time(instance.RegisteredTs),
-		URL:         fmt.Sprintf(cipdPackageUrlTmpl, cipd.ServiceUrl, name, instance.Pin.InstanceID),
+		URL:         fmt.Sprintf(cipdPackageURLTmpl, cipd.ServiceUrl, name, instance.Pin.InstanceID),
 	}
 	detailsLines := []*cipdDetailsLine{}
 	for _, tag := range instance.Tags {
