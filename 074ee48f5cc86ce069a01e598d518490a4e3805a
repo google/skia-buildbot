@@ -16,6 +16,24 @@
       "revId": "074ee48f5cc86ce069a01e598d518490a4e3805a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "576874bf_c92c8a29",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-08-28T18:10:25Z",
+      "side": 1,
+      "message": "Already exists, but there\u0027s a bug in the Gold notification for infra tests.\n\nhttps://skia-infra-gold.skia.org/search?blame\u003d074ee48f5cc86ce069a01e598d518490a4e3805a\u0026fdiffmax\u003d-1\u0026fref\u003dfalse\u0026frgbamax\u003d255\u0026frgbamin\u003d0\u0026head\u003dtrue\u0026include\u003dfalse\u0026limit\u003d50\u0026master\u003dfalse\u0026match\u003dname\u0026metric\u003dcombined\u0026neg\u003dfalse\u0026offset\u003d0\u0026pos\u003dfalse\u0026query\u003dsource_type%3Dinfra\u0026sort\u003ddesc\u0026unt\u003dtrue",
+      "parentUuid": "001eab15_cf9d805b",
+      "revId": "074ee48f5cc86ce069a01e598d518490a4e3805a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
