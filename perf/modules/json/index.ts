@@ -260,7 +260,7 @@ export type CommitNumber = number;
 
 export type StepFitStatus = "Low" | "High" | "Uninteresting";
 
-export type RequestType = 1 | 0;
+export type RequestType = 0 | 1 | 2;
 
 export type Trace = number[] | null;
 

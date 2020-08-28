@@ -33,14 +33,15 @@ const (
 	PROCESS_ERROR   ProcessState = "Error"
 
 	// Values for FrameRequest.RequestType.
-	REQUEST_TIME_RANGE RequestType = 0
-	REQUEST_COMPACT    RequestType = 1
+	REQUEST_TIME_RANGE   RequestType = 0
+	REQUEST_COMPACT      RequestType = 1
+	REQUEST_OFFSET_RANGE RequestType = 2
 
 	DEFAULT_COMPACT_NUM_COMMITS = 200
 )
 
 // AllRequestType is all possible values for a RequestType variable.
-var AllRequestType = []RequestType{REQUEST_COMPACT, REQUEST_TIME_RANGE}
+var AllRequestType = []RequestType{REQUEST_TIME_RANGE, REQUEST_COMPACT, REQUEST_OFFSET_RANGE}
 
 const (
 	MAX_TRACES_IN_RESPONSE = 350
@@ -262,8 +263,37 @@ func (p *FrameRequestProcess) Run() {
 	ctx, span := trace.StartSpan(p.ctx, "FrameRequestProcess.Run")
 	defer span.End()
 
-	begin := time.Unix(int64(p.request.Begin), 0)
-	end := time.Unix(int64(p.request.End), 0)
+	var begin time.Time
+	var end time.Time
+	var err error
+	if p.request.RequestType == REQUEST_OFFSET_RANGE {
+		// Convert REQUEST_OFFSET_RANGE request into a REQUEST_TIME_RANGE request.
+		commit, err := p.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(p.request.Begin))
+		if err != nil {
+			p.reportError(err, "Failed to look up begin commit.")
+			return
+		}
+		begin = time.Unix(commit.Timestamp, 0)
+
+		commit, err = p.perfGit.CommitFromCommitNumber(ctx, types.CommitNumber(p.request.End))
+		if err != nil {
+			lastCommitNumber, err := p.perfGit.CommitNumberFromTime(ctx, time.Time{})
+			if err != nil {
+				p.reportError(err, "Failed to look up last commit.")
+				return
+			}
+			commit, err = p.perfGit.CommitFromCommitNumber(ctx, lastCommitNumber)
+			if err != nil {
+				p.reportError(err, "Failed to look up end commit.")
+				return
+			}
+		}
+		end = time.Unix(commit.Timestamp, 0)
+		p.request.RequestType = REQUEST_TIME_RANGE
+	} else {
+		begin = time.Unix(int64(p.request.Begin), 0)
+		end = time.Unix(int64(p.request.End), 0)
+	}
 
 	// Results from all the queries and calcs will be accumulated in this dataframe.
 	df := NewEmpty()
