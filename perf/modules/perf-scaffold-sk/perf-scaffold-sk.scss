@@ -77,6 +77,24 @@ perf-scaffold-sk {
     li:hover {
       opacity: 0.8;
     }
+
+    #help {
+      fill: var(--primary);
+      color: var(--primary);
+
+      .mono {
+        font-family: 'Courier New', Courier, monospace;
+      }
+
+      h3 {
+        font-size: 14px;
+        margin-left: 8px;
+      }
+
+      table {
+        margin-left: 8px;
+      }
+    }
   }
 
   #topbar {

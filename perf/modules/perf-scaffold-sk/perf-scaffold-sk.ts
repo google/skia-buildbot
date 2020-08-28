@@ -26,6 +26,10 @@ import '../../../infra-sk/modules/theme-chooser-sk';
 // as the key for localStorage, which is used to remember the user's preference.
 const SIDEBAR_HIDDEN_CLASS = 'sidebar_hidden';
 
+// The ID of a top level element under perf-scaffold-sk that will be moved under
+// the right hand side nav bar.
+const SIDEBAR_HELP_ID = 'sidebar_help';
+
 /**
  * Moves the elements from a list to be the children of the target element.
  *
@@ -39,7 +43,7 @@ function move(from: HTMLCollection | NodeList, to: HTMLElement) {
 export class PerfScaffoldSk extends ElementSk {
   private static template = (ele: PerfScaffoldSk) => html`
   <nav id=topbar>
-    <button id=toggleSidebarButton @click=${() => ele._toggleSidebar()}>
+    <button id=toggleSidebarButton @click=${() => ele.toggleSidebar()}>
       <menu-icon-sk></menu-icon-sk>
     </button>
     <h1 class=name>Perf</h1>
@@ -55,12 +59,15 @@ export class PerfScaffoldSk extends ElementSk {
       <li><a href="/c/" tab-index=0 ><sort-icon-sk></sort-icon-sk><span>Clustering<span></a></li>
       <li><a href="http://go/perf-user-doc" tab-index=0 ><help-icon-sk></help-icon-sk><span>Help</span></a></li>
     </ul>
+    <div id=help>
+    </div>
   </nav>
   <main>
   </main>
   <error-toast-sk></error-toast-sk>
 `;
   private _main: HTMLElement | null = null;
+  private _help: HTMLElement | null = null;
 
   constructor() {
     super(PerfScaffoldSk.template);
@@ -84,14 +91,16 @@ export class PerfScaffoldSk extends ElementSk {
     // the template.
     this._render();
 
-    // Move the old children back under main.
-    this._main = this.querySelector('main')!;
-    move(div.children, this._main);
+    this._main = this.querySelector('main');
+    this._help = this.querySelector('#help');
 
-    // Move all future children under main also.
+    // Move the old children back.
+    this.redistributeAddedNodes(div.childNodes);
+
+    // Move all future children also.
     const observer = new MutationObserver((mutList) => {
       mutList.forEach((mut) => {
-        move(mut.addedNodes, this._main!);
+        this.redistributeAddedNodes(mut.addedNodes);
       });
     });
     observer.observe(this, { childList: true });
@@ -104,7 +113,19 @@ export class PerfScaffoldSk extends ElementSk {
     );
   }
 
-  private _toggleSidebar() {
+  // Place these newly added nodes in the right place under the perf-scaffold-sk
+  // element.
+  private redistributeAddedNodes(from: NodeList) {
+    Array.prototype.slice.call(from).forEach((node: Node) => {
+      if ((node as Element).id === SIDEBAR_HELP_ID) {
+        this._help!.appendChild(node);
+      } else {
+        this._main!.appendChild(node);
+      }
+    });
+  }
+
+  private toggleSidebar() {
     this.classList.toggle(SIDEBAR_HIDDEN_CLASS);
     // Remember the user's preference.
     window.localStorage.setItem(
