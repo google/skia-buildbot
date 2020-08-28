@@ -196,6 +196,7 @@ type GitRepoConfig struct {
 type FrontendFlags struct {
 	AuthBypassList                 string
 	ConfigFilename                 string
+	ConnectionString               string
 	CommitRangeURL                 string
 	DefaultSparse                  bool
 	DoClustering                   bool
@@ -221,6 +222,7 @@ type FrontendFlags struct {
 func (flags *FrontendFlags) Register(fs *pflag.FlagSet) {
 	fs.StringVar(&flags.AuthBypassList, "auth_bypass_list", "", "Space separated list of email addresses allowed access. Usually just service account emails. Bypasses the domain checks.")
 	fs.StringVar(&flags.ConfigFilename, "config_filename", "./configs/nano.json", "The name of the config file to use.")
+	fs.StringVar(&flags.ConnectionString, "connection_string", "", " Override the connection_string in the config file.")
 	fs.StringVar(&flags.CommitRangeURL, "commit_range_url", "", "A URI Template to be used for expanding details on a range of commits, from {begin} to {end} git hash. See cluster-summary2-sk.")
 	fs.BoolVar(&flags.DefaultSparse, "default_sparse", false, "The default value for 'Sparse' in Alerts.")
 	fs.BoolVar(&flags.DoClustering, "do_clustering", true, "If true then run continuous clustering over all the alerts.")
@@ -244,7 +246,8 @@ func (flags *FrontendFlags) Register(fs *pflag.FlagSet) {
 
 // IngestFlags are the command-line flags for the ingestion process.
 type IngestFlags struct {
-	InstanceConfigFile   string
+	ConfigFilename       string
+	ConnectionString     string
 	PromPort             string
 	Local                bool
 	NumParallelIngesters int
@@ -252,7 +255,8 @@ type IngestFlags struct {
 
 // Register the flags in the given FlagSet.
 func (flags *IngestFlags) Register(fs *pflag.FlagSet) {
-	fs.StringVar(&flags.InstanceConfigFile, "config_filename", "", "Instance config file. Must be supplied.")
+	fs.StringVar(&flags.ConfigFilename, "config_filename", "", "Instance config file. Must be supplied.")
+	fs.StringVar(&flags.ConnectionString, "connection_string", "", " Override the connection_string in the config file.")
 	fs.StringVar(&flags.PromPort, "prom_port", ":20000", "Metrics service address (e.g., ':20000')")
 	fs.BoolVar(&flags.Local, "local", false, "True if running locally and not in production.")
 	fs.IntVar(&flags.NumParallelIngesters, "num_parallel_ingesters", 10, "The number of parallel Go routines to have ingesting.")

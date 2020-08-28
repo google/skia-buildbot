@@ -32,9 +32,12 @@ with that data.
 			})),
 		)
 
-		instanceConfig, err := config.InstanceConfigFromFile(ingestFlags.InstanceConfigFile)
+		instanceConfig, err := config.InstanceConfigFromFile(ingestFlags.ConfigFilename)
 		if err != nil {
 			return err
+		}
+		if ingestFlags.ConnectionString != "" {
+			instanceConfig.DataStoreConfig.ConnectionString = ingestFlags.ConnectionString
 		}
 
 		metrics2.InitPrometheus(ingestFlags.PromPort)

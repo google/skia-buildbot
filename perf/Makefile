@@ -102,3 +102,9 @@ build-frontend-ci:
 test-frontend-ci:
 	npm ci
 	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+# Presumes you've already run:
+#
+#   kubectl port-forward perf-cockroachdb-0 26257
+run-local-instance:
+	perfserver frontend --local --do_clustering=false --noemail --config_filename=./configs/cdb-nano.json --connection_string=postgresql://root@localhost:26257/skia?sslmode=disable
