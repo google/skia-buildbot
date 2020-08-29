@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/vec32"
-	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/tracesetbuilder"
@@ -244,26 +243,6 @@ func (b *builder) NewFromKeysAndRange(ctx context.Context, keys []string, begin,
 	}
 	triggerProgress()
 	return d, nil
-}
-
-// See DataFrameBuilder.
-func (b *builder) NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, q *query.Query, progress types.Progress) (*dataframe.DataFrame, error) {
-	defer timer.NewWithSummary("perfserver_dfbuilder_NewFromCommitIDsAndQuery", b.newFromCommitIDsAndQueryTimer).Stop()
-
-	details, err := cidl.Lookup(ctx, cids)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to look up CommitIDs: %s", err)
-	}
-	colHeaders := []*dataframe.ColumnHeader{}
-	indices := []types.CommitNumber{}
-	for _, d := range details {
-		colHeaders = append(colHeaders, &dataframe.ColumnHeader{
-			Offset:    d.Offset,
-			Timestamp: d.Timestamp,
-		})
-		indices = append(indices, types.CommitNumber(d.Offset))
-	}
-	return b.new(ctx, colHeaders, indices, q, progress, 0)
 }
 
 // findIndexForTime finds the index of the closest commit <= 'end'.

@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/timer"
-	"go.skia.org/infra/perf/go/cid"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -37,11 +36,6 @@ type DataFrameBuilder interface {
 	// the given set of 'keys' over the range of [begin, end). The 'progress'
 	// callback is called periodically as the query is processed.
 	NewFromKeysAndRange(ctx context.Context, keys []string, begin, end time.Time, downsample bool, progress types.Progress) (*DataFrame, error)
-
-	// NewFromCommitIDsAndQuery returns a populated DataFrame of the traces that
-	// match the given time set of commits 'cids' and the query 'q'. The 'progress'
-	// callback is called periodically as the query is processed.
-	NewFromCommitIDsAndQuery(ctx context.Context, cids []*cid.CommitID, cidl *cid.CommitIDLookup, q *query.Query, progress types.Progress) (*DataFrame, error)
 
 	// NewNFromQuery returns a populated DataFrame of condensed traces of N data
 	// points ending at the given 'end' time that match the given query.
