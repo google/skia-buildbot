@@ -796,7 +796,7 @@ func tracesListByIndexAction(c *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	ts, err := store.QueryTracesByIndex(context.Background(), tileNumber, q)
+	ts, err := store.QueryTraces(context.Background(), tileNumber, q)
 	if err != nil {
 		return err
 	}

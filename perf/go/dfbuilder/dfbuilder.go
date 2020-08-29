@@ -141,7 +141,7 @@ func (b *builder) new(ctx context.Context, colHeaders []*dataframe.ColumnHeader,
 			defer timer.NewWithSummary("perfserver_dfbuilder_new_by_tile", b.newByTileTimer).Stop()
 
 			// Query for matching traces in the given tile.
-			traces, err := b.store.QueryTracesByIndex(ctx, tileNumber, q)
+			traces, err := b.store.QueryTraces(ctx, tileNumber, q)
 			if err != nil {
 				return err
 			}
@@ -556,7 +556,7 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 
 		ops = opsOne
 		// Count the matches and sum the params in the first tile.
-		out, err := b.store.QueryTracesIDOnlyByIndex(ctx, tileNumber, q)
+		out, err := b.store.QueryTracesIDOnly(ctx, tileNumber, q)
 		if err != nil {
 			return -1, nil, fmt.Errorf("Failed to query traces: %s", err)
 		}
@@ -577,7 +577,7 @@ func (b *builder) PreflightQuery(ctx context.Context, end time.Time, q *query.Qu
 			}
 
 			// Count the matches and sum the params in the second tile.
-			out, err = b.store.QueryTracesIDOnlyByIndex(ctx, tileNumber, q)
+			out, err = b.store.QueryTracesIDOnly(ctx, tileNumber, q)
 			if err != nil {
 				return -1, nil, fmt.Errorf("Failed to query traces: %s", err)
 			}

@@ -30,14 +30,14 @@ type TraceStore interface {
 	// OffsetFromCommitNumber returns the offset from within a Tile that a commit sits.
 	OffsetFromCommitNumber(commitNumber types.CommitNumber) int32
 
-	// QueryTracesByIndex returns a map of trace keys to a slice of floats for
+	// QueryTraces returns a map of trace keys to a slice of floats for
 	// all traces that match the given query.
-	QueryTracesByIndex(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error)
+	QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error)
 
-	// QueryTracesIDOnlyByIndex returns a stream of ParamSets that match the
+	// QueryTracesIDOnly returns a stream of ParamSets that match the
 	// given query.
 	// TODO(jcgregorio) Change to just return count and ParamSet.
-	QueryTracesIDOnlyByIndex(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error)
+	QueryTracesIDOnly(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error)
 
 	// ReadTraces loads the traces for the given trace keys.
 	ReadTraces(tileNumber types.TileNumber, keys []string) (types.TraceSet, error)

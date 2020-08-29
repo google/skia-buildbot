@@ -135,7 +135,7 @@ func TestReadTraces_EmptyTileReturnsNoData(t *testing.T) {
 	})
 }
 
-func TestQueryTracesIDOnlyByIndex_EmptyQueryReturnsError(t *testing.T) {
+func TestQueryTracesIDOnly_EmptyQueryReturnsError(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
@@ -143,7 +143,7 @@ func TestQueryTracesIDOnlyByIndex_EmptyQueryReturnsError(t *testing.T) {
 	q, err := query.NewFromString("")
 	assert.NoError(t, err)
 	const emptyTileNumber = types.TileNumber(5)
-	_, err = s.QueryTracesIDOnlyByIndex(ctx, emptyTileNumber, q)
+	_, err = s.QueryTracesIDOnly(ctx, emptyTileNumber, q)
 	assert.Error(t, err)
 }
 
@@ -158,26 +158,26 @@ func paramSetFromParamsChan(ch <-chan paramtools.Params) paramtools.ParamSet {
 	return ret
 }
 
-func TestQueryTracesIDOnlyByIndex_EmptyTileReturnsEmptyParamset(t *testing.T) {
+func TestQueryTracesIDOnly_EmptyTileReturnsEmptyParamset(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	// Query that matches one trace.
 	q, err := query.NewFromString("config=565")
 	assert.NoError(t, err)
-	ch, err := s.QueryTracesIDOnlyByIndex(ctx, 5, q)
+	ch, err := s.QueryTracesIDOnly(ctx, 5, q)
 	require.NoError(t, err)
 	assert.Empty(t, paramSetFromParamsChan(ch))
 }
 
-func TestQueryTracesIDOnlyByIndex_MatchesOneTrace(t *testing.T) {
+func TestQueryTracesIDOnly_MatchesOneTrace(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	// Query that matches one trace.
 	q, err := query.NewFromString("config=565")
 	require.NoError(t, err)
-	ch, err := s.QueryTracesIDOnlyByIndex(ctx, 0, q)
+	ch, err := s.QueryTracesIDOnly(ctx, 0, q)
 	require.NoError(t, err)
 	expected := paramtools.ParamSet{
 		"arch":   []string{"x86"},
@@ -186,14 +186,14 @@ func TestQueryTracesIDOnlyByIndex_MatchesOneTrace(t *testing.T) {
 	assert.Equal(t, expected, paramSetFromParamsChan(ch))
 }
 
-func TestQueryTracesIDOnlyByIndex_MatchesTwoTraces(t *testing.T) {
+func TestQueryTracesIDOnly_MatchesTwoTraces(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	// Query that matches two traces.
 	q, err := query.NewFromString("arch=x86")
 	assert.NoError(t, err)
-	ch, err := s.QueryTracesIDOnlyByIndex(ctx, 0, q)
+	ch, err := s.QueryTracesIDOnly(ctx, 0, q)
 	require.NoError(t, err)
 	expected := paramtools.ParamSet{
 		"arch":   []string{"x86"},
@@ -202,56 +202,56 @@ func TestQueryTracesIDOnlyByIndex_MatchesTwoTraces(t *testing.T) {
 	assert.Equal(t, expected, paramSetFromParamsChan(ch))
 }
 
-func TestQueryTracesByIndex_MatchesOneTrace(t *testing.T) {
+func TestQueryTraces_MatchesOneTrace(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	// Query that matches one trace.
 	q, err := query.NewFromString("config=565")
 	assert.NoError(t, err)
-	ts, err := s.QueryTracesByIndex(ctx, 0, q)
+	ts, err := s.QueryTraces(ctx, 0, q)
 	assert.NoError(t, err)
 	assert.Equal(t, ts, types.TraceSet{
 		",arch=x86,config=565,": {e, 2.3, 3.3, e, e, e, e, e},
 	})
 }
 
-func TestQueryTracesByIndex_NegativeQuery(t *testing.T) {
+func TestQueryTraces_NegativeQuery(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	// Query with a negative match that matches one trace.
 	q, err := query.NewFromString("config=!565")
 	require.NoError(t, err)
-	ts, err := s.QueryTracesByIndex(ctx, 0, q)
+	ts, err := s.QueryTraces(ctx, 0, q)
 	require.NoError(t, err)
 	assert.Equal(t, types.TraceSet{
 		",arch=x86,config=8888,": {e, 1.5, 2.5, e, e, e, e, e},
 	}, ts)
 }
 
-func TestQueryTracesByIndex_MatchesOneTraceInTheSecondTile(t *testing.T) {
+func TestQueryTraces_MatchesOneTraceInTheSecondTile(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	// Query that matches one trace second tile.
 	q, err := query.NewFromString("config=565")
 	assert.NoError(t, err)
-	ts, err := s.QueryTracesByIndex(ctx, 1, q)
+	ts, err := s.QueryTraces(ctx, 1, q)
 	assert.NoError(t, err)
 	assert.Equal(t, ts, types.TraceSet{
 		",arch=x86,config=565,": {4.3, e, e, e, e, e, e, e},
 	})
 }
 
-func TestQueryTracesByIndex_MatchesTwoTraces(t *testing.T) {
+func TestQueryTraces_MatchesTwoTraces(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	// Query that matches two traces.
 	q, err := query.NewFromString("arch=x86")
 	assert.NoError(t, err)
-	ts, err := s.QueryTracesByIndex(ctx, 0, q)
+	ts, err := s.QueryTraces(ctx, 0, q)
 	assert.NoError(t, err)
 	assert.Equal(t, ts, types.TraceSet{
 		",arch=x86,config=565,":  {e, 2.3, 3.3, e, e, e, e, e},
@@ -259,26 +259,26 @@ func TestQueryTracesByIndex_MatchesTwoTraces(t *testing.T) {
 	})
 }
 
-func TestQueryTracesByIndex_QueryHasUnknownParamReturnsNoError(t *testing.T) {
+func TestQueryTraces_QueryHasUnknownParamReturnsNoError(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()
 
 	// Query that has no matching params in the given tile.
 	q, err := query.NewFromString("arch=unknown")
 	assert.NoError(t, err)
-	ts, err := s.QueryTracesByIndex(ctx, 0, q)
+	ts, err := s.QueryTraces(ctx, 0, q)
 	assert.NoError(t, err)
 	assert.Nil(t, ts)
 }
 
-func TestQueryTracesByIndex_QueryAgainstTileWithNoDataReturnsNoError(t *testing.T) {
+func TestQueryTraces_QueryAgainstTileWithNoDataReturnsNoError(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, false)
 	defer cleanup()
 
 	// Query that has no Postings for the given tile.
 	q, err := query.NewFromString("arch=unknown")
 	assert.NoError(t, err)
-	ts, err := s.QueryTracesByIndex(ctx, 2, q)
+	ts, err := s.QueryTraces(ctx, 2, q)
 	assert.NoError(t, err)
 	assert.Nil(t, ts)
 }
