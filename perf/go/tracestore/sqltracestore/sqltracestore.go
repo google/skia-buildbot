@@ -659,10 +659,10 @@ func (s *SQLTraceStore) OffsetFromCommitNumber(commitNumber types.CommitNumber) 
 	return int32(commitNumber) % s.tileSize
 }
 
-// QueryTracesByIndex implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) QueryTracesByIndex(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error) {
+// QueryTraces implements the tracestore.TraceStore interface.
+func (s *SQLTraceStore) QueryTraces(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (types.TraceSet, error) {
 	traceNames := []string{}
-	pChan, err := s.QueryTracesIDOnlyByIndex(ctx, tileNumber, q)
+	pChan, err := s.QueryTracesIDOnly(ctx, tileNumber, q)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed to get list of traceIDs matching query.")
 	}
@@ -683,8 +683,8 @@ func (s *SQLTraceStore) QueryTracesByIndex(ctx context.Context, tileNumber types
 	return s.ReadTraces(tileNumber, traceNames)
 }
 
-// QueryTracesIDOnlyByIndex implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) QueryTracesIDOnlyByIndex(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error) {
+// QueryTracesIDOnly implements the tracestore.TraceStore interface.
+func (s *SQLTraceStore) QueryTracesIDOnly(ctx context.Context, tileNumber types.TileNumber, q *query.Query) (<-chan paramtools.Params, error) {
 	defer timer.New("QueryTracesIDOnlyByIndex").Stop()
 	outParams := make(chan paramtools.Params, queryTracesIDOnlyByIndexChannelSize)
 	if q.Empty() {
