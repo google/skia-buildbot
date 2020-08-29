@@ -560,13 +560,6 @@ func (s *SQLTraceStore) CommitNumberOfTileStart(commitNumber types.CommitNumber)
 	return beginCommit
 }
 
-// CountIndices implements the tracestore.TraceStore interface.
-func (s *SQLTraceStore) CountIndices(ctx context.Context, tileNumber types.TileNumber) (int64, error) {
-
-	// This doesn't make any sense for the SQL implementation of TraceStore.
-	return 0, nil
-}
-
 // GetLatestTile implements the tracestore.TraceStore interface.
 func (s *SQLTraceStore) GetLatestTile() (types.TileNumber, error) {
 	defer timer.New("GetLatestTile").Stop()

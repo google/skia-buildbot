@@ -433,27 +433,6 @@ func TestGetOrderedParamSet_Empty(t *testing.T) {
 	assert.Equal(t, paramtools.ParamSet{}, ops.ParamSet)
 }
 
-func TestCountIndices(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, false)
-	defer cleanup()
-
-	count, err := s.CountIndices(ctx, 1)
-	assert.NoError(t, err)
-
-	// The always returns 0.
-	assert.Equal(t, int64(0), count)
-}
-
-func TestCountIndices_Empty(t *testing.T) {
-	ctx, s, cleanup := commonTestSetup(t, false)
-	defer cleanup()
-
-	// Test the empty case where there is no data in datastore.
-	count, err := s.CountIndices(ctx, 1)
-	assert.NoError(t, err)
-	assert.Equal(t, int64(0), count)
-}
-
 func TestGetSource(t *testing.T) {
 	ctx, s, cleanup := commonTestSetup(t, true)
 	defer cleanup()

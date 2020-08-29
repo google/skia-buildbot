@@ -194,21 +194,6 @@ using the same input file for both restores.
 		databaseBackupSubCmd,
 		databaseRestoreSubCmd)
 
-	indicesCmd := &cobra.Command{
-		Use: "indices [sub]",
-	}
-	indicesCmd.PersistentFlags().Int32Var((*int32)(&indicesTileFlag), "tile", -1, "The tile to query")
-	indicesCountCmd := &cobra.Command{
-		Use:   "count",
-		Short: "Counts the number of index rows.",
-		Long:  "Counts the index rows for the last (most recent) tile, or the tile specified by --tile.",
-		RunE:  indicesCountAction,
-	}
-
-	indicesCmd.AddCommand(
-		indicesCountCmd,
-	)
-
 	tilesCmd := &cobra.Command{
 		Use: "tiles [sub]",
 	}
@@ -266,7 +251,6 @@ using the same input file for both restores.
 	cmd.AddCommand(
 		configCmd,
 		databaseCmd,
-		indicesCmd,
 		tilesCmd,
 		tracesCmd,
 		ingestCmd,
@@ -820,25 +804,6 @@ func tracesListByIndexAction(c *cobra.Command, args []string) error {
 		fmt.Println(id, trace)
 	}
 	return nil
-}
-
-func indicesCountAction(c *cobra.Command, args []string) error {
-	store := mustGetStore()
-	var tileNumber types.TileNumber
-	if indicesTileFlag == -1 {
-		var err error
-		tileNumber, err = store.GetLatestTile()
-		if err != nil {
-			return fmt.Errorf("Failed to get latest tile: %s", err)
-		}
-	} else {
-		tileNumber = indicesTileFlag
-	}
-	count, err := store.CountIndices(context.Background(), tileNumber)
-	if err == nil {
-		fmt.Println(count)
-	}
-	return err
 }
 
 func createPubSubTopic(ctx context.Context, client *pubsub.Client, topicName string) error {
