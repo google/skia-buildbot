@@ -1272,79 +1272,63 @@ func (f *Frontend) detailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type shiftRequest struct {
-	// Begin is the timestamp of the beginning of a range of commits.
-	Begin int64 `json:"begin"`
-	// BeginOffset is the number of commits to move (+ or -) the Begin timestamp.
-	BeginOffset int `json:"begin_offset"`
+// ShiftRequest is a request to find the timestamps of a range of commits.
+type ShiftRequest struct {
+	// Begin is the commit number at the beginning of the range.
+	Begin types.CommitNumber `json:"begin"`
 
-	// End is the timestamp of the end of a range of commits.
-	End int64 `json:"end"`
-	// EndOffset is the number of commits to move (+ or -) the End timestamp.
-	EndOffset int `json:"end_offset"`
-
-	// See dataframe.FrameRequest.
-	NumCommits int `json:"num_commits"`
-
-	// See dataframe.FrameRequest.
-	RequestType dataframe.RequestType `json:"request_type"`
+	// End is the commit number at the end of the range.
+	End types.CommitNumber `json:"end"`
 }
 
-type shiftResponse struct {
-	Begin      int64 `json:"begin"`
-	End        int64 `json:"end"`
-	NumCommits int   `json:"num_commits"`
+// ShiftResponse are the timestamps from a ShiftRequest.
+type ShiftResponse struct {
+	Begin int64 `json:"begin"` // In seconds from the epoch.
+	End   int64 `json:"end"`   // In seconds from the epoch.
 }
 
 // shiftHandler computes a new begin and end timestamp for a dataframe given
-// the current begin and end timestamps and offsets, given in +/- the number of
-// commits to move.
+// the current begin and end offsets.
 func (f *Frontend) shiftHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var sr shiftRequest
+	var sr ShiftRequest
 	if err := json.NewDecoder(r.Body).Decode(&sr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
 	sklog.Infof("ShiftRequest: %#v", &sr)
 
-	beginCommit, err := f.perfGit.CommitNumberFromTime(r.Context(), time.Unix(sr.Begin, 0))
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to look up begin commit.", http.StatusInternalServerError)
-		return
-	}
-	endCommit, err := f.perfGit.CommitNumberFromTime(r.Context(), time.Unix(sr.End, 0))
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to look up end commit.", http.StatusInternalServerError)
-		return
-	}
+	ctx := r.Context()
+	var begin time.Time
+	var end time.Time
+	var err error
 
-	numCommits := int(endCommit - beginCommit)
-	if sr.RequestType == dataframe.REQUEST_COMPACT {
-		numCommits = sr.NumCommits - sr.BeginOffset + sr.EndOffset
-	}
-	newBegin, err := f.perfGit.CommitFromCommitNumber(r.Context(), beginCommit+types.CommitNumber(sr.BeginOffset))
+	commit, err := f.perfGit.CommitFromCommitNumber(ctx, sr.Begin)
 	if err != nil {
-		httputils.ReportError(w, err, "Scrolled too far.", http.StatusInternalServerError)
+		httputils.ReportError(w, err, "Failed to look up begin commit.", http.StatusBadRequest)
 		return
 	}
-	newEnd, err := f.perfGit.CommitFromCommitNumber(r.Context(), endCommit+types.CommitNumber(sr.EndOffset))
+	begin = time.Unix(commit.Timestamp, 0)
+
+	commit, err = f.perfGit.CommitFromCommitNumber(ctx, sr.End)
 	if err != nil {
-		newEndCommitNumber, err := f.perfGit.CommitNumberFromTime(r.Context(), time.Time{})
+		// If sr.End isn't a valid offset then just use the most recent commit.
+		lastCommitNumber, err := f.perfGit.CommitNumberFromTime(ctx, time.Time{})
 		if err != nil {
-			httputils.ReportError(w, err, "Scrolled too far.", http.StatusInternalServerError)
+			httputils.ReportError(w, err, "Failed to look up last commit.", http.StatusBadRequest)
 			return
 		}
-		newEnd, err = f.perfGit.CommitFromCommitNumber(r.Context(), newEndCommitNumber)
+		commit, err = f.perfGit.CommitFromCommitNumber(ctx, lastCommitNumber)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to look up end commit.", http.StatusBadRequest)
+			return
+		}
 	}
-	if newBegin.Timestamp == newEnd.Timestamp {
-		httputils.ReportError(w, err, "No commits found in range.", http.StatusInternalServerError)
-		return
-	}
-	resp := shiftResponse{
-		Begin:      newBegin.Timestamp,
-		End:        newEnd.Timestamp + 1,
-		NumCommits: numCommits,
+	end = time.Unix(commit.Timestamp, 0)
+
+	resp := ShiftResponse{
+		Begin: begin.Unix(),
+		End:   end.Unix(),
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to write JSON response: %s", err)
