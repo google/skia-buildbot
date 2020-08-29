@@ -27,7 +27,6 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/builders"
-	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut"
@@ -441,8 +440,7 @@ func databaseDatabaseBackupRegressionsSubAction(c *cobra.Command, args []string)
 	if err != nil {
 		return err
 	}
-	cidl := cid.New(ctx, perfGit, instanceConfig)
-	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, local, cidl, instanceConfig)
+	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, local, instanceConfig)
 	if err != nil {
 		return err
 	}
@@ -670,12 +668,7 @@ func databaseDatabaseRestoreRegressionsSubAction(c *cobra.Command, args []string
 	defer util.Close(z)
 
 	// Restore Regressions
-	perfGit, err := builders.NewPerfGitFromConfig(ctx, local, instanceConfig)
-	if err != nil {
-		return err
-	}
-	cidl := cid.New(ctx, perfGit, instanceConfig)
-	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, local, cidl, instanceConfig)
+	regressionStore, err := builders.NewRegressionStoreFromConfig(ctx, local, instanceConfig)
 	if err != nil {
 		return err
 	}

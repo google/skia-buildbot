@@ -24,7 +24,7 @@ func Run(
 	responseProcessor RegressionDetectionResponseProcessor,
 	progressCallback ProgressCallback,
 ) ([]*RegressionDetectionResponse, error) {
-	proc, err := newProcess(ctx, req, perfGit, cidl, dfBuilder, shortcutStore, responseProcessor, progressCallback)
+	proc, err := newProcess(ctx, req, perfGit, dfBuilder, shortcutStore, responseProcessor, progressCallback)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to start new regression detection process: %s", err)
 	}

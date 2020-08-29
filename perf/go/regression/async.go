@@ -13,7 +13,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vec32"
 	"go.skia.org/infra/perf/go/alerts"
-	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
@@ -106,7 +105,6 @@ func newProcess(
 	ctx context.Context,
 	req *RegressionDetectionRequest,
 	perfGit *perfgit.Git,
-	cidl *cid.CommitIDLookup,
 	dfBuilder dataframe.DataFrameBuilder,
 	shortcutStore shortcut.Store,
 	responseProcessor RegressionDetectionResponseProcessor,
@@ -132,8 +130,8 @@ func newProcess(
 	return ret, nil
 }
 
-func newRunningProcess(ctx context.Context, req *RegressionDetectionRequest, perfGit *perfgit.Git, cidl *cid.CommitIDLookup, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) (*RegressionDetectionProcess, error) {
-	ret, err := newProcess(ctx, req, perfGit, cidl, dfBuilder, shortcutStore, responseProcessor, nil)
+func newRunningProcess(ctx context.Context, req *RegressionDetectionRequest, perfGit *perfgit.Git, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) (*RegressionDetectionProcess, error) {
+	ret, err := newProcess(ctx, req, perfGit, dfBuilder, shortcutStore, responseProcessor, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +145,6 @@ func newRunningProcess(ctx context.Context, req *RegressionDetectionRequest, per
 // for MAX_FINISHED_PROCESS_AGE before being deleted.
 type RunningRegressionDetectionRequests struct {
 	perfGit            *perfgit.Git
-	cidl               *cid.CommitIDLookup
 	defaultInteresting float32 // The threshold to control if a regression is considered interesting.
 	dfBuilder          dataframe.DataFrameBuilder
 	shortcutStore      shortcut.Store
@@ -159,10 +156,9 @@ type RunningRegressionDetectionRequests struct {
 }
 
 // NewRunningRegressionDetectionRequests return a new RegressionDetectionRequests.
-func NewRunningRegressionDetectionRequests(perfGit *perfgit.Git, cidl *cid.CommitIDLookup, interesting float32, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store) *RunningRegressionDetectionRequests {
+func NewRunningRegressionDetectionRequests(perfGit *perfgit.Git, interesting float32, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store) *RunningRegressionDetectionRequests {
 	fr := &RunningRegressionDetectionRequests{
 		perfGit:            perfGit,
-		cidl:               cidl,
 		inProcess:          map[string]*RegressionDetectionProcess{},
 		defaultInteresting: interesting,
 		dfBuilder:          dfBuilder,
@@ -217,7 +213,7 @@ func (fr *RunningRegressionDetectionRequests) Add(ctx context.Context, req *Regr
 	}
 	responseProcessor := func(_ *RegressionDetectionRequest, _ []*RegressionDetectionResponse, _ string) {}
 	if _, ok := fr.inProcess[id]; !ok {
-		proc, err := newRunningProcess(ctx, req, fr.perfGit, fr.cidl, fr.dfBuilder, fr.shortcutStore, responseProcessor)
+		proc, err := newRunningProcess(ctx, req, fr.perfGit, fr.dfBuilder, fr.shortcutStore, responseProcessor)
 		if err != nil {
 			return "", err
 		}
