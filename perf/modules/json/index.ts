@@ -193,6 +193,16 @@ export interface RegressionRangeResponse {
 	categories: string[] | null;
 }
 
+export interface ShiftRequest {
+	begin: CommitNumber;
+	end: CommitNumber;
+}
+
+export interface ShiftResponse {
+	begin: number;
+	end: number;
+}
+
 export interface SkPerfConfig {
 	radius: number;
 	key_order: string[] | null;
@@ -260,7 +270,7 @@ export type CommitNumber = number;
 
 export type StepFitStatus = "Low" | "High" | "Uninteresting";
 
-export type RequestType = 1 | 0;
+export type RequestType = 0 | 1;
 
 export type Trace = number[] | null;
 
