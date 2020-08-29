@@ -107,4 +107,4 @@ test-frontend-ci:
 #
 #   kubectl port-forward perf-cockroachdb-0 26257
 run-local-instance:
-	perfserver frontend --local --do_clustering=false --noemail --config_filename=./configs/cdb-nano.json --connection_string=postgresql://root@localhost:26257/skia?sslmode=disable
+	perfserver frontend --local --do_clustering=false --port=:8001 --noemail --config_filename=./configs/cdb-nano.json --connection_string=postgresql://root@localhost:26257/skia?sslmode=disable

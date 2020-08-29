@@ -34,6 +34,8 @@ import {
   ParamSet,
   FrameRequest,
   FrameResponse,
+  ShiftRequest,
+  ShiftResponse,
 } from '../json';
 import {
   PlotSimpleSkZoomEventDetails,
@@ -74,6 +76,11 @@ const COMMIT_TAB_INDEX = 1;
 
 // The percentage of the current zoom window to pan or zoom on a keypress.
 const ZOOM_JUMP_PERCENT = 0.1;
+
+// When we are zooming around and bump into the edges of the graph, how much
+// should we widen the range of commits, as a percentage of the currently
+// displayed commit.
+const RANGE_CHANGE_ON_ZOOM_PERCENT = 0.5;
 
 // The minimum length [right - left] of a zoom range.
 const MIN_ZOOM_RANGE = 0.1;
@@ -123,6 +130,72 @@ function toObject(key: string): { [key: string]: string } {
   return ret;
 }
 
+interface RangeChange {
+  /**
+   * If true then do a range change with the provided offsets, otherwise just
+   * do a zoom.
+   */
+  rangeChange: boolean;
+
+  newOffsets?: [number, number];
+}
+
+// clamp ensures a number is not negative.
+function clampToNonNegative(x: number): number {
+  if (x < 0) {
+    return 0;
+  }
+  return x;
+}
+
+/**
+ * Determines if a range change is needed based on a zoom request, and if so
+ * calculates what the new range change should be.
+ *
+ * @param zoom is the requested zoom.
+ * @param clampedZoom is the requested zoom clamped to the current dataframe.
+ * @param offsets are the commit offset of the first and last value in the
+ * dataframe.
+ */
+export function calculateRangeChange(
+  zoom: [number, number],
+  clampedZoom: [number, number],
+  offsets: [number, number]
+): RangeChange {
+  // How much we will change the offset if we zoom beyond an edge.
+  const offsetDelta = Math.floor(
+    (offsets[1] - offsets[0]) * RANGE_CHANGE_ON_ZOOM_PERCENT
+  );
+  const exceedsLeftEdge = zoom[0] != clampedZoom[0];
+  const exceedsRightEdge = zoom[1] != clampedZoom[1];
+  if (exceedsLeftEdge && exceedsRightEdge) {
+    // shift both
+    return {
+      rangeChange: true,
+      newOffsets: [
+        clampToNonNegative(offsets[0] - offsetDelta),
+        offsets[1] + offsetDelta,
+      ],
+    };
+  } else if (exceedsLeftEdge) {
+    // shift left
+    return {
+      rangeChange: true,
+      newOffsets: [clampToNonNegative(offsets[0] - offsetDelta), offsets[1]],
+    };
+  } else if (exceedsRightEdge) {
+    // shift right
+    return {
+      rangeChange: true,
+      newOffsets: [offsets[0], offsets[1] + offsetDelta],
+    };
+  } else {
+    return {
+      rangeChange: false,
+    };
+  }
+}
+
 export class ExploreSk extends ElementSk {
   private static template = (ele: ExploreSk) => html`
   <div id=buttons>
@@ -157,6 +230,26 @@ export class ExploreSk extends ElementSk {
       <checkbox-sk name=auto @change=${ele.autoRefreshHandler} ?checked=${
     ele.state.autoRefresh
   } label='Auto-refresh'   title='Auto-refresh the data displayed in the graph.'>Auto-Refresh</checkbox-sk>
+      <div
+        id=calcButtons
+        ?hide_if_no_data=${!ele.hasData()}>
+        <button
+          @click=${ele.norm}
+          title='Apply norm() to all the traces.'>
+          Normalize
+        </button>
+        <button
+          @click=${ele.scaleByAvg}
+          title='Apply scale_by_avg() to all the traces.'>
+          Scale By Avg
+        </button>
+        <button
+          @click=${ele.csv}
+          title='Download all displayed data as a CSV file.'>
+          CSV
+        </button>
+        <a href='' target=_blank download='traces.csv' id=csv_download></a>
+      </div>
     </div>
   </div>
 
@@ -176,49 +269,6 @@ export class ExploreSk extends ElementSk {
     <div id=spin-container ?spinning=${ele.spinning}>
       <spinner-sk id=spinner ?active=${ele.spinning}></spinner-sk>
       <span id=percent></span>
-    </div>
-  </div>
-
-  <div id=bottomButtons>
-    <div id=shiftButtons ?hide_if_no_data=${!ele.hasData()}>
-      <button
-        @click=${ele.shiftLeft}
-        title='Move ${ele._numShift} commits in the past.'>&lt;&lt; ${
-    ele._numShift
-  }
-       </button>
-      <button
-        @click=${ele.shiftBoth}
-        title='Expand the display ${
-          ele._numShift
-        } commits in both directions.'>&lt;&lt; ${+ele._numShift} &gt;&gt;
-      </button>
-      <button
-        @click=${ele.shiftRight}
-        title='Move ${
-          ele._numShift
-        } commits in the future.'> ${+ele._numShift} &gt;&gt;
-      </button>
-    </div>
-    <div
-      id=calcButtons
-      ?hide_if_no_data=${!ele.hasData()}>
-      <button
-        @click=${ele.norm}
-        title='Apply norm() to all the traces.'>
-        Normalize
-      </button>
-      <button
-        @click=${ele.scaleByAvg}
-        title='Apply scale_by_avg() to all the traces.'>
-        Scale By Avg
-      </button>
-      <button
-        @click=${ele.csv}
-        title='Download all displayed data as a CSV file.'>
-        CSV
-      </button>
-      <a href='' target=_blank download='traces.csv' id=csv_download></a>
     </div>
   </div>
 
@@ -485,7 +535,7 @@ export class ExploreSk extends ElementSk {
   /**
    * Clamp a single zoom endpoint.
    */
-  private clampZoomEnd(z: number): number {
+  private clampZoomIndexToDataFrame(z: number): number {
     if (z < 0) {
       z = 0;
     }
@@ -502,8 +552,6 @@ export class ExploreSk extends ElementSk {
    * @returns {Array<Number>} The zoom range.
    */
   private rationalizeZoom(zoom: [number, number]) {
-    zoom[0] = this.clampZoomEnd(zoom[0]);
-    zoom[1] = this.clampZoomEnd(zoom[1]);
     if (zoom[0] > zoom[1]) {
       const left = zoom[0];
       zoom[0] = zoom[1];
@@ -512,13 +560,60 @@ export class ExploreSk extends ElementSk {
     return zoom;
   }
 
+  /**
+   * Zooms to the desired range, or changes the range of commits being displayed
+   * if the zoom range extends past either end of the current commits.
+   *
+   * @param zoom is the desired zoom range. Each number is an index into the
+   * dataframe.
+   */
+  private zoomOrRangeChange(zoom: [number, number]) {
+    zoom = this.rationalizeZoom(zoom);
+    const clampedZoom: [number, number] = [
+      this.clampZoomIndexToDataFrame(zoom[0]),
+      this.clampZoomIndexToDataFrame(zoom[1]),
+    ];
+    const offsets: [number, number] = [
+      this._dataframe.header![0]!.offset,
+      this._dataframe.header![this._dataframe.header!.length - 1]!.offset,
+    ];
+
+    const result = calculateRangeChange(zoom, clampedZoom, offsets);
+    if (result.rangeChange) {
+      // Convert the offsets into timestamps, which are needed when building
+      // dataframes.
+      const req: ShiftRequest = {
+        begin: result.newOffsets![0],
+        end: result.newOffsets![1],
+      };
+      fetch('/_/shift/', {
+        method: 'POST',
+        body: JSON.stringify(req),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(jsonOrThrow)
+        .then((json: ShiftResponse) => {
+          this.state.begin = json.begin;
+          this.state.end = json.end;
+          this.state.requestType = 0;
+          this._stateHasChanged();
+          this.rangeChangeImpl();
+        })
+        .catch(errorMessage);
+    } else {
+      this.plot!.zoom = zoom;
+    }
+  }
+
   private zoomInKey() {
     const cz = this.getCurrentZoom();
     const zoom: [number, number] = [
       cz.zoom[0] + ZOOM_JUMP_PERCENT * cz.delta,
       cz.zoom[1] - ZOOM_JUMP_PERCENT * cz.delta,
     ];
-    this.plot!.zoom = this.rationalizeZoom(zoom);
+    this.zoomOrRangeChange(zoom);
   }
 
   private zoomOutKey() {
@@ -527,7 +622,7 @@ export class ExploreSk extends ElementSk {
       cz.zoom[0] - ZOOM_JUMP_PERCENT * cz.delta,
       cz.zoom[1] + ZOOM_JUMP_PERCENT * cz.delta,
     ];
-    this.plot!.zoom = this.rationalizeZoom(zoom);
+    this.zoomOrRangeChange(zoom);
   }
 
   private zoomLeftKey() {
@@ -536,7 +631,7 @@ export class ExploreSk extends ElementSk {
       cz.zoom[0] - ZOOM_JUMP_PERCENT * cz.delta,
       cz.zoom[1] - ZOOM_JUMP_PERCENT * cz.delta,
     ];
-    this.plot!.zoom = this.rationalizeZoom(zoom);
+    this.zoomOrRangeChange(zoom);
   }
 
   private zoomRightKey() {
@@ -545,7 +640,7 @@ export class ExploreSk extends ElementSk {
       cz.zoom[0] + ZOOM_JUMP_PERCENT * cz.delta,
       cz.zoom[1] + ZOOM_JUMP_PERCENT * cz.delta,
     ];
-    this.plot!.zoom = this.rationalizeZoom(zoom);
+    this.zoomOrRangeChange(zoom);
   }
 
   /**  Returns true if we have any traces to be displayed. */
@@ -703,45 +798,6 @@ export class ExploreSk extends ElementSk {
       this.plot!.highlight = keys;
     }
     this._render();
-  }
-
-  private shiftBoth() {
-    this.shiftImpl(-this._numShift, this._numShift);
-  }
-
-  private shiftRight() {
-    this.shiftImpl(this._numShift, this._numShift);
-  }
-
-  private shiftLeft() {
-    this.shiftImpl(-this._numShift, -this._numShift);
-  }
-
-  /** Change the current range by the following +/- offsets. */
-  private shiftImpl(beginOffset: number, endOffset: number) {
-    const body = {
-      begin: this.state.begin,
-      begin_offset: beginOffset,
-      end: this.state.end,
-      end_offset: endOffset,
-      num_commits: this.state.numCommits,
-      request_type: this.state.requestType,
-    };
-    fetch('/_/shift/', {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(jsonOrThrow)
-      .then((json) => {
-        this.state.begin = json.begin;
-        this.state.end = json.end;
-        this.state.numCommits = json.num_commits;
-        this.rangeChangeImpl();
-      })
-      .catch(errorMessage);
   }
 
   /** Create a FrameRequest that will re-create the current state of the page. */
@@ -925,6 +981,7 @@ export class ExploreSk extends ElementSk {
     if (this.state.queries.indexOf(q) === -1) {
       this.state.queries.push(q);
     }
+    this._stateHasChanged();
     const body = this.requestFrameBodyFullFromState();
     this.requestFrame(body, (json) => {
       this.addTraces(json, true);
@@ -1137,6 +1194,7 @@ export class ExploreSk extends ElementSk {
       this.state.formulas.push(f);
     }
     const body = this.requestFrameBodyFullFromState();
+    this._stateHasChanged();
     this.requestFrame(body, (json) => {
       this.addTraces(json, false);
     });
@@ -1191,7 +1249,6 @@ export class ExploreSk extends ElementSk {
 
     this.spinning = true;
 
-    this._stateHasChanged();
     fetch('/_/frame/start', {
       method: 'POST',
       body: JSON.stringify(body),
