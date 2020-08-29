@@ -149,7 +149,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *RegressionDetec
 			if cl.StepPoint.Offset == midOffset {
 				if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.DOWN || cfg.DirectionAsString == alerts.BOTH) {
 					sklog.Infof("Found Low regression at %s: StepFit: %v Shortcut: %s AlertID: %d %d req: %#v", details[0].Message, *cl.StepFit, cl.Shortcut, cfg.ID, c.current.Alert.ID, *req)
-					isNew, err := c.store.SetLow(ctx, details[0], key, resp.Frame, cl)
+					isNew, err := c.store.SetLow(ctx, details[0].Offset, key, resp.Frame, cl)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster: %s", err)
 						continue
@@ -162,7 +162,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *RegressionDetec
 				}
 				if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.UP || cfg.DirectionAsString == alerts.BOTH) {
 					sklog.Infof("Found High regression at %s: StepFit: %v Shortcut: %s AlertID: %d %d req: %#v", details[0].Message, *cl.StepFit, cl.Shortcut, cfg.ID, c.current.Alert.ID, *req)
-					isNew, err := c.store.SetHigh(ctx, details[0], key, resp.Frame, cl)
+					isNew, err := c.store.SetHigh(ctx, details[0].Offset, key, resp.Frame, cl)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster for alert %q length=%d: %s", key, len(cl.Keys), err)
 						continue

@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/alerts/sqlalertstore"
-	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/file"
 	"go.skia.org/infra/perf/go/file/dirsource"
@@ -120,7 +119,7 @@ func NewAlertStoreFromConfig(ctx context.Context, local bool, instanceConfig *co
 // the InstanceConfig.
 //
 // If local is true then we aren't running in production.
-func NewRegressionStoreFromConfig(ctx context.Context, local bool, cidl *cid.CommitIDLookup, instanceConfig *config.InstanceConfig) (regression.Store, error) {
+func NewRegressionStoreFromConfig(ctx context.Context, local bool, instanceConfig *config.InstanceConfig) (regression.Store, error) {
 	switch instanceConfig.DataStoreConfig.DataStoreType {
 	case config.CockroachDBDataStoreType:
 		db, err := newCockroachDBFromConfig(ctx, instanceConfig)

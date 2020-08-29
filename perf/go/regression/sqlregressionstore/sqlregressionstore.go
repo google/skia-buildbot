@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
-	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
@@ -102,9 +101,9 @@ func (s *SQLRegressionStore) Range(ctx context.Context, begin, end types.CommitN
 }
 
 // SetHigh implements the regression.Store interface.
-func (s *SQLRegressionStore) SetHigh(ctx context.Context, cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
+func (s *SQLRegressionStore) SetHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *dataframe.FrameResponse, high *clustering2.ClusterSummary) (bool, error) {
 	ret := false
-	err := s.readModifyWrite(ctx, types.CommitNumber(cid.Offset), alertID, false /* mustExist*/, func(r *regression.Regression) {
+	err := s.readModifyWrite(ctx, commitNumber, alertID, false /* mustExist*/, func(r *regression.Regression) {
 		if r.Frame == nil {
 			r.Frame = df
 			ret = true
@@ -119,9 +118,9 @@ func (s *SQLRegressionStore) SetHigh(ctx context.Context, cid *cid.CommitDetail,
 }
 
 // SetLow implements the regression.Store interface.
-func (s *SQLRegressionStore) SetLow(ctx context.Context, cid *cid.CommitDetail, alertID string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) (bool, error) {
+func (s *SQLRegressionStore) SetLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, df *dataframe.FrameResponse, low *clustering2.ClusterSummary) (bool, error) {
 	ret := false
-	err := s.readModifyWrite(ctx, types.CommitNumber(cid.Offset), alertID, false /* mustExist*/, func(r *regression.Regression) {
+	err := s.readModifyWrite(ctx, commitNumber, alertID, false /* mustExist*/, func(r *regression.Regression) {
 		if r.Frame == nil {
 			r.Frame = df
 			ret = true
@@ -135,15 +134,15 @@ func (s *SQLRegressionStore) SetLow(ctx context.Context, cid *cid.CommitDetail, 
 }
 
 // TriageLow implements the regression.Store interface.
-func (s *SQLRegressionStore) TriageLow(ctx context.Context, cid *cid.CommitDetail, alertID string, tr regression.TriageStatus) error {
-	return s.readModifyWrite(ctx, types.CommitNumber(cid.Offset), alertID, true /* mustExist*/, func(r *regression.Regression) {
+func (s *SQLRegressionStore) TriageLow(ctx context.Context, commitNumber types.CommitNumber, alertID string, tr regression.TriageStatus) error {
+	return s.readModifyWrite(ctx, commitNumber, alertID, true /* mustExist*/, func(r *regression.Regression) {
 		r.LowStatus = tr
 	})
 }
 
 // TriageHigh implements the regression.Store interface.
-func (s *SQLRegressionStore) TriageHigh(ctx context.Context, cid *cid.CommitDetail, alertID string, tr regression.TriageStatus) error {
-	return s.readModifyWrite(ctx, types.CommitNumber(cid.Offset), alertID, true /* mustExist*/, func(r *regression.Regression) {
+func (s *SQLRegressionStore) TriageHigh(ctx context.Context, commitNumber types.CommitNumber, alertID string, tr regression.TriageStatus) error {
+	return s.readModifyWrite(ctx, commitNumber, alertID, true /* mustExist*/, func(r *regression.Regression) {
 		r.HighStatus = tr
 	})
 }

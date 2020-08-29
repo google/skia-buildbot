@@ -385,8 +385,8 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 	}
 
 	f.frameRequests = dataframe.NewRunningFrameRequests(f.perfGit, f.dfBuilder, f.shortcutStore)
-	f.clusterRequests = regression.NewRunningRegressionDetectionRequests(f.perfGit, f.cidl, float32(f.flags.Interesting), f.dfBuilder, f.shortcutStore)
-	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, f.flags.Local, f.cidl, cfg)
+	f.clusterRequests = regression.NewRunningRegressionDetectionRequests(f.perfGit, float32(f.flags.Interesting), f.dfBuilder, f.shortcutStore)
+	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, f.flags.Local, cfg)
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
 	}
@@ -899,9 +899,9 @@ func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 
 	key := tr.Alert.IDAsString
 	if tr.ClusterType == "low" {
-		err = f.regStore.TriageLow(r.Context(), detail[0], key, tr.Triage)
+		err = f.regStore.TriageLow(r.Context(), detail[0].Offset, key, tr.Triage)
 	} else {
-		err = f.regStore.TriageHigh(r.Context(), detail[0], key, tr.Triage)
+		err = f.regStore.TriageHigh(r.Context(), detail[0].Offset, key, tr.Triage)
 	}
 
 	if err != nil {

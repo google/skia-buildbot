@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/regression"
@@ -25,31 +24,10 @@ var (
 		1580000000 + 300}
 )
 
-// GetDetailLookupForTests returns a lookup function that will work with the
-// tests we run against the datastore, that is we are faking CommitIDs and
-// timestamps so they align with what the tests use.
-func GetDetailLookupForTests() regression.DetailLookup {
-	lookupValues := []*cid.CommitDetail{}
-	for i := 0; i < len(timestamps); i++ {
-		lookupValues = append(lookupValues, &cid.CommitDetail{
-			Offset:    types.CommitNumber(i),
-			Timestamp: timestamps[i],
-		})
-	}
-
-	lookup := func(_ context.Context, c *cid.CommitID) (*cid.CommitDetail, error) {
-		return lookupValues[c.Offset], nil
-	}
-	return lookup
-}
-
 // getTestVars returns vars needed by all the subtests below.
-func getTestVars() (context.Context, *cid.CommitDetail) {
+func getTestVars() (context.Context, types.CommitNumber) {
 	ctx := context.Background()
-	c := &cid.CommitDetail{
-		Offset:    1,
-		Timestamp: timestamps[1],
-	}
+	c := types.CommitNumber(1)
 
 	return ctx, c
 }
