@@ -17,10 +17,6 @@ type TraceStore interface {
 	// given tile.
 	CommitNumberOfTileStart(commitNumber types.CommitNumber) types.CommitNumber
 
-	// CountIndices returns the number of index rows that exist for the given
-	// tileKey.
-	CountIndices(ctx context.Context, tileNumber types.TileNumber) (int64, error)
-
 	// GetLatestTile returns the latest, i.e. the newest tile.
 	GetLatestTile() (types.TileNumber, error)
 
