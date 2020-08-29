@@ -40,7 +40,7 @@ const (
 )
 
 // AllRequestType is all possible values for a RequestType variable.
-var AllRequestType = []RequestType{REQUEST_COMPACT, REQUEST_TIME_RANGE}
+var AllRequestType = []RequestType{REQUEST_TIME_RANGE, REQUEST_COMPACT}
 
 const (
 	MAX_TRACES_IN_RESPONSE = 350
