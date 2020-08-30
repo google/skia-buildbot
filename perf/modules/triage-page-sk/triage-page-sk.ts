@@ -134,9 +134,7 @@ export class TriagePageSk extends ElementSk {
         </summary>
         <div>
           <p>The current work on detecting regressions:</p>
-          <div class="status">
-            ${TriagePageSk.statusItems(ele)}
-          </div>
+          <div class="status"> ${TriagePageSk.statusItems(ele)} </div>
         </div>
       </details>
     </header>
@@ -206,11 +204,7 @@ export class TriagePageSk extends ElementSk {
       }
 
       if (ele.notBoth(colIndex)) {
-        ret.push(
-          html`
-            <td></td>
-          `
-        );
+        ret.push(html` <td></td> `);
       }
       return ret;
     });
@@ -275,27 +269,15 @@ export class TriagePageSk extends ElementSk {
     ele.reg.header!.map((_, index) => {
       const ret = [];
       if (ele.stepDownAt(index)) {
-        ret.push(
-          html`
-            <th>Low</th>
-          `
-        );
+        ret.push(html` <th>Low</th> `);
       }
       if (ele.stepUpAt(index)) {
-        ret.push(
-          html`
-            <th>High</th>
-          `
-        );
+        ret.push(html` <th>High</th> `);
       }
       // If we have only one of High or Low we stuff in an empty th to match
       // colspan=2 above.
       if (ele.notBoth(index)) {
-        ret.push(
-          html`
-            <th></th>
-          `
-        );
+        ret.push(html` <th></th> `);
       }
       return ret;
     });
@@ -524,7 +506,7 @@ export class TriagePageSk extends ElementSk {
   }
 
   private hashFrom(rowIndex: number) {
-    return this.reg.table![rowIndex]!.cid!.hash;
+    return this.reg.table![rowIndex]!.cid!.offset;
   }
 
   private openKeys(e: CustomEvent<ClusterSummary2SkOpenKeysEventDetail>) {

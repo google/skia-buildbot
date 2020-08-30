@@ -155,21 +155,21 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 				defer running.mutex.Unlock()
 				// Loop over clusterResponse, convert each one to a regression, and merge with running.Regressions.
 				for _, cr := range clusterResponse {
-					c, reg, err := regression.RegressionFromClusterResponse(ctx, cr, &req.Config, d.cidl)
+					c, reg, err := regression.RegressionFromClusterResponse(ctx, cr, &req.Config, d.perfGit)
 					if err != nil {
 						running.Message = "Failed to convert to Regression, some data may be missing."
 						sklog.Errorf("Failed to convert to Regression: %s", err)
 						return
 					}
-					running.Message = fmt.Sprintf("Step: %d/%d\nQuery: %q\nLooking for regressions in query results.\n  Commit: %d\n  Details: %q", queryRequest.Step+1, queryRequest.TotalQueries, queryRequest.Query, c.Offset, message)
+					running.Message = fmt.Sprintf("Step: %d/%d\nQuery: %q\nLooking for regressions in query results.\n  Commit: %d\n  Details: %q", queryRequest.Step+1, queryRequest.TotalQueries, queryRequest.Query, c.CommitNumber, message)
 					// We might not have found any regressions.
 					if reg.Low == nil && reg.High == nil {
 						continue
 					}
-					if origReg, ok := running.Regressions[c.Offset]; !ok {
-						running.Regressions[c.Offset] = reg
+					if origReg, ok := running.Regressions[c.CommitNumber]; !ok {
+						running.Regressions[c.CommitNumber] = reg
 					} else {
-						running.Regressions[c.Offset] = origReg.Merge(reg)
+						running.Regressions[c.CommitNumber] = origReg.Merge(reg)
 					}
 				}
 			}
@@ -204,20 +204,21 @@ func domainFromUIDomain(uiDomain UIDomain) types.Domain {
 	}
 }
 
-// RegressionRow is a Regression found for a specific commit.
-type RegressionRow struct {
-	CID        *cid.CommitDetail      `json:"cid"`
+// RegressionAtCommit is a Regression found for a specific commit.
+type RegressionAtCommit struct {
+	CID        perfgit.Commit         `json:"cid"`
 	Regression *regression.Regression `json:"regression"`
 }
 
 // DryRunStatus is the JSON response sent from StatusHandler.
 type DryRunStatus struct {
-	Finished    bool             `json:"finished"`
-	Message     string           `json:"message"`
-	Regressions []*RegressionRow `json:"regressions"`
+	Finished    bool                  `json:"finished"`
+	Message     string                `json:"message"`
+	Regressions []*RegressionAtCommit `json:"regressions"`
 }
 
 func (d *Requests) StatusHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
 
@@ -234,35 +235,28 @@ func (d *Requests) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	status := &DryRunStatus{
 		Finished:    running.Finished,
 		Message:     running.Message,
-		Regressions: []*RegressionRow{},
+		Regressions: []*RegressionAtCommit{},
 	}
 
 	// Convert the Running.Regressions into a properly formed Status response.
 	if running.Finished {
 		running.mutex.Lock()
 		defer running.mutex.Unlock()
-		keys := []types.CommitNumber{}
+		commitNumbers := []types.CommitNumber{}
 		for id := range running.Regressions {
-			keys = append(keys, id)
+			commitNumbers = append(commitNumbers, id)
 		}
-		sort.Sort(types.CommitNumberSlice(keys))
+		sort.Sort(types.CommitNumberSlice(commitNumbers))
 
-		cids := []*cid.CommitID{}
-		for _, key := range keys {
-			cids = append(cids, &cid.CommitID{
-				Offset: key,
-			})
-		}
-
-		cidd, err := d.cidl.Lookup(r.Context(), cids)
-		if err != nil {
-			httputils.ReportError(w, err, "Failed to find commit ids.", http.StatusInternalServerError)
-			return
-		}
-		for _, details := range cidd {
-			status.Regressions = append(status.Regressions, &RegressionRow{
+		for _, commitNumber := range commitNumbers {
+			details, err := d.perfGit.Details(ctx, commitNumber)
+			if err != nil {
+				sklog.Errorf("Failed to look up commit %d: %s", commitNumber, err)
+				continue
+			}
+			status.Regressions = append(status.Regressions, &RegressionAtCommit{
 				CID:        details,
-				Regression: running.Regressions[details.Offset],
+				Regression: running.Regressions[commitNumber],
 			})
 		}
 	}

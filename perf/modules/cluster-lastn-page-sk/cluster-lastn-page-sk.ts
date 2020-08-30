@@ -26,7 +26,7 @@ import {
   ParamSet,
   Alert,
   FrameResponse,
-  RegressionRow,
+  RegressionAtCommit,
   DryRunStatus,
   Direction,
   ClusterSummary,
@@ -132,31 +132,15 @@ export class ClusterLastNPageSk extends ElementSk {
   }
 
   private static tableHeader = (ele: ClusterLastNPageSk) => {
-    const ret = [
-      html`
-        <th></th>
-      `,
-    ];
+    const ret = [html` <th></th> `];
     if (ClusterLastNPageSk.stepDownAt(ele.state!.direction)) {
-      ret.push(
-        html`
-          <th>Low</th>
-        `
-      );
+      ret.push(html` <th>Low</th> `);
     }
     if (ClusterLastNPageSk.stepUpAt(ele.state!.direction)) {
-      ret.push(
-        html`
-          <th>High</th>
-        `
-      );
+      ret.push(html` <th>High</th> `);
     }
     if (ClusterLastNPageSk.notBoth(ele.state!.direction)) {
-      ret.push(
-        html`
-          <th></th>
-        `
-      );
+      ret.push(html` <th></th> `);
     }
     return ret;
   };
@@ -168,7 +152,7 @@ export class ClusterLastNPageSk extends ElementSk {
     };
   }
 
-  private static low = (ele: ClusterLastNPageSk, reg: RegressionRow) => {
+  private static low = (ele: ClusterLastNPageSk, reg: RegressionAtCommit) => {
     if (!ClusterLastNPageSk.stepDownAt(ele.state!.direction)) {
       return html``;
     }
@@ -187,12 +171,10 @@ export class ClusterLastNPageSk extends ElementSk {
         </td>
       `;
     }
-    return html`
-      <td class="cluster"></td>
-    `;
+    return html` <td class="cluster"></td> `;
   };
 
-  private static high = (ele: ClusterLastNPageSk, reg: RegressionRow) => {
+  private static high = (ele: ClusterLastNPageSk, reg: RegressionAtCommit) => {
     if (!ClusterLastNPageSk.stepUpAt(ele.state!.direction)) {
       return html``;
     }
@@ -211,16 +193,12 @@ export class ClusterLastNPageSk extends ElementSk {
         </td>
       `;
     }
-    return html`
-      <td class="cluster"></td>
-    `;
+    return html` <td class="cluster"></td> `;
   };
 
   private static filler = (ele: ClusterLastNPageSk) => {
     if (ClusterLastNPageSk.notBoth(ele.state!.direction)) {
-      return html`
-        <td></td>
-      `;
+      return html` <td></td> `;
     }
     return html``;
   };
@@ -255,9 +233,7 @@ export class ClusterLastNPageSk extends ElementSk {
 
   private static table = (ele: ClusterLastNPageSk) => {
     if (ele.requestId && !ele.regressions.length) {
-      return html`
-        No regressions found yet.
-      `;
+      return html` No regressions found yet. `;
     }
     return html`
       <table @start-triage=${ele.triageStart}>
@@ -265,9 +241,7 @@ export class ClusterLastNPageSk extends ElementSk {
           <th>Commit</th>
           <th colspan="2">Regressions</th>
         </tr>
-        <tr>
-          ${ClusterLastNPageSk.tableHeader(ele)}
-        </tr>
+        <tr> ${ClusterLastNPageSk.tableHeader(ele)} </tr>
         ${ClusterLastNPageSk.tableRows(ele)}
       </table>
     `;
@@ -297,7 +271,7 @@ export class ClusterLastNPageSk extends ElementSk {
   private state: Alert | null = null;
 
   // The regressions detected from the dryrun.
-  private regressions: (RegressionRow | null)[] = [];
+  private regressions: (RegressionAtCommit | null)[] = [];
 
   private alertDialog: HTMLDialogElement | null = null;
   private triageDialog: HTMLDialogElement | null = null;
@@ -445,7 +419,7 @@ export class ClusterLastNPageSk extends ElementSk {
       .then((json: StartDryRunResponse) => {
         this.requestId = json.id;
         this._render();
-        this.checkDryRunStatus((regressions: (RegressionRow | null)[]) => {
+        this.checkDryRunStatus((regressions: (RegressionAtCommit | null)[]) => {
           this.regressions = regressions;
           this._render();
         });
@@ -454,7 +428,7 @@ export class ClusterLastNPageSk extends ElementSk {
   }
 
   private checkDryRunStatus(
-    cb: (regressions: (RegressionRow | null)[]) => void
+    cb: (regressions: (RegressionAtCommit | null)[]) => void
   ) {
     fetch(`/_/dryrun/status/${this.requestId}`)
       .then(jsonOrThrow)
