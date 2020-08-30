@@ -8,6 +8,7 @@ package git
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -247,6 +248,7 @@ type Commit struct {
 	Timestamp    int64 // Unix timestamp, seconds from the epoch.
 	Author       string
 	Subject      string
+	URL          string
 }
 
 type parseGitRevLogStreamProcessSingleCommit func(commit Commit) error
@@ -430,6 +432,11 @@ func (g *Git) Details(ctx context.Context, commitNumber types.CommitNumber) (Com
 	if err := g.db.QueryRow(ctx, statements[getDetails], commitNumber).Scan(&ret.GitHash, &ret.Timestamp, &ret.Author, &ret.Subject); err != nil {
 		return ret, skerr.Wrapf(err, "Failed to get details for CommitNumber: %d", commitNumber)
 	}
+	format := g.instanceConfig.GitRepoConfig.CommitURL
+	if format == "" {
+		format = "%s/+show/%s"
+	}
+	ret.URL = fmt.Sprintf(format, g.instanceConfig.GitRepoConfig.URL, ret.GitHash)
 
 	return ret, nil
 }
