@@ -133,13 +133,11 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *RegressionDetec
 
 		midOffset := resp.Frame.DataFrame.Header[midPoint].Offset
 
-		id := &cid.CommitID{
-			Offset: midOffset,
-		}
+		commitNumber := types.CommitNumber(midOffset)
 
-		details, err := c.cidl.Lookup(ctx, []*cid.CommitID{id})
+		details, err := c.perfGit.Details(ctx, commitNumber)
 		if err != nil {
-			sklog.Errorf("Failed to look up commit %v: %s", *id, err)
+			sklog.Errorf("Failed to look up commit %d: %s", commitNumber, err)
 			continue
 		}
 		for _, cl := range resp.Summary.Clusters {
@@ -148,27 +146,27 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *RegressionDetec
 			// Update database if regression at the midpoint is found.
 			if cl.StepPoint.Offset == midOffset {
 				if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.DOWN || cfg.DirectionAsString == alerts.BOTH) {
-					sklog.Infof("Found Low regression at %s: StepFit: %v Shortcut: %s AlertID: %d %d req: %#v", details[0].Message, *cl.StepFit, cl.Shortcut, cfg.ID, c.current.Alert.ID, *req)
-					isNew, err := c.store.SetLow(ctx, details[0].Offset, key, resp.Frame, cl)
+					sklog.Infof("Found Low regression at %s: StepFit: %v Shortcut: %s AlertID: %d %d req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, cfg.ID, c.current.Alert.ID, *req)
+					isNew, err := c.store.SetLow(ctx, commitNumber, key, resp.Frame, cl)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster: %s", err)
 						continue
 					}
 					if isNew {
-						if err := c.notifier.Send(details[0], cfg, cl); err != nil {
+						if err := c.notifier.Send(details, cfg, cl); err != nil {
 							sklog.Errorf("Failed to send notification: %s", err)
 						}
 					}
 				}
 				if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.UP || cfg.DirectionAsString == alerts.BOTH) {
-					sklog.Infof("Found High regression at %s: StepFit: %v Shortcut: %s AlertID: %d %d req: %#v", details[0].Message, *cl.StepFit, cl.Shortcut, cfg.ID, c.current.Alert.ID, *req)
-					isNew, err := c.store.SetHigh(ctx, details[0].Offset, key, resp.Frame, cl)
+					sklog.Infof("Found High regression at %s: StepFit: %v Shortcut: %s AlertID: %d %d req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, cfg.ID, c.current.Alert.ID, *req)
+					isNew, err := c.store.SetHigh(ctx, commitNumber, key, resp.Frame, cl)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster for alert %q length=%d: %s", key, len(cl.Keys), err)
 						continue
 					}
 					if isNew {
-						if err := c.notifier.Send(details[0], cfg, cl); err != nil {
+						if err := c.notifier.Send(details, cfg, cl); err != nil {
 							sklog.Errorf("Failed to send notification: %s", err)
 						}
 					}
