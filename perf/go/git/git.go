@@ -8,6 +8,7 @@ package git
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -20,6 +21,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gitauth"
+	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
@@ -247,6 +249,7 @@ type Commit struct {
 	Timestamp    int64 // Unix timestamp, seconds from the epoch.
 	Author       string
 	Subject      string
+	URL          string
 }
 
 type parseGitRevLogStreamProcessSingleCommit func(commit Commit) error
@@ -424,12 +427,26 @@ func (g *Git) CommitNumberFromGitHash(ctx context.Context, githash string) (type
 	return ret, nil
 }
 
+// urlFromParts creates the URL to link to a specific commit in a repo.
+func urlFromParts(instanceConfig *config.InstanceConfig, commit Commit) string {
+	if instanceConfig.GitRepoConfig.DebouceCommitURL {
+		return commit.Subject
+	}
+
+	format := instanceConfig.GitRepoConfig.CommitURL
+	if format == "" {
+		format = gitiles.CommitURL
+	}
+	return fmt.Sprintf(format, instanceConfig.GitRepoConfig.URL, commit.GitHash)
+}
+
 // Details returns all the stored details for a given commit number.
 func (g *Git) Details(ctx context.Context, commitNumber types.CommitNumber) (Commit, error) {
 	var ret Commit
 	if err := g.db.QueryRow(ctx, statements[getDetails], commitNumber).Scan(&ret.GitHash, &ret.Timestamp, &ret.Author, &ret.Subject); err != nil {
 		return ret, skerr.Wrapf(err, "Failed to get details for CommitNumber: %d", commitNumber)
 	}
+	ret.URL = urlFromParts(g.instanceConfig, ret)
 
 	return ret, nil
 }
