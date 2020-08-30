@@ -84,6 +84,15 @@ export interface FrameResponse {
 	msg: string;
 }
 
+export interface Commit {
+	CommitNumber: CommitNumber;
+	GitHash: string;
+	Timestamp: number;
+	Author: string;
+	Subject: string;
+	URL: string;
+}
+
 export interface TriageStatus {
 	status: Status;
 	message: string;
@@ -97,15 +106,15 @@ export interface Regression {
 	high_status: TriageStatus;
 }
 
-export interface RegressionRow {
-	cid: CommitDetail | null;
+export interface RegressionAtCommit {
+	cid: Commit;
 	regression: Regression | null;
 }
 
 export interface DryRunStatus {
 	finished: boolean;
 	message: string;
-	regressions: (RegressionRow | null)[] | null;
+	regressions: (RegressionAtCommit | null)[] | null;
 }
 
 export interface UIDomain {
