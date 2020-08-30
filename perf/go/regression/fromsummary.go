@@ -17,10 +17,9 @@ func RegressionFromClusterResponse(ctx context.Context, resp *RegressionDetectio
 	headerLength := len(resp.Frame.DataFrame.Header)
 	midPoint := headerLength / 2
 	commitNumber := resp.Frame.DataFrame.Header[midPoint].Offset
-
 	details, err := perfGit.Details(ctx, commitNumber)
 	if err != nil {
-		return perfgit.Commit{}, nil, fmt.Errorf("Failed to look up commit %d: %s", commitNumber, err)
+		return perfgit.BadCommit, nil, fmt.Errorf("Failed to look up commit %d: %s", commitNumber, err)
 	}
 	lastLowRegression := float64(-1.0)
 	lastHighRegression := float64(-1.0)

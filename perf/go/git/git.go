@@ -29,6 +29,18 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
+// Commit represents a single commit stored in the database.
+//
+// JSON annotations make it serialize like the legacy cid.CommitDetail.
+type Commit struct {
+	CommitNumber types.CommitNumber `json:"offset"`
+	GitHash      string             `json:"hash"`
+	Timestamp    int64              `json:"ts"` // Unix timestamp, seconds from the epoch.
+	Author       string             `json:"author"`
+	Subject      string             `json:"message"`
+	URL          string             `json:"url"`
+}
+
 // statement is an SQL statement identifier.
 type statement int
 
@@ -242,16 +254,6 @@ func (g *Git) StartBackgroundPolling(ctx context.Context, duration time.Duration
 	}()
 }
 
-// Commit represents a single commit stored in the database.
-type Commit struct {
-	CommitNumber types.CommitNumber
-	GitHash      string
-	Timestamp    int64 // Unix timestamp, seconds from the epoch.
-	Author       string
-	Subject      string
-	URL          string
-}
-
 type parseGitRevLogStreamProcessSingleCommit func(commit Commit) error
 
 // parseGitRevLogStream parses the input stream for input of the form:
@@ -446,6 +448,7 @@ func (g *Git) Details(ctx context.Context, commitNumber types.CommitNumber) (Com
 	if err := g.db.QueryRow(ctx, statements[getDetails], commitNumber).Scan(&ret.GitHash, &ret.Timestamp, &ret.Author, &ret.Subject); err != nil {
 		return ret, skerr.Wrapf(err, "Failed to get details for CommitNumber: %d", commitNumber)
 	}
+	ret.CommitNumber = commitNumber
 	ret.URL = urlFromParts(g.instanceConfig, ret)
 
 	return ret, nil
