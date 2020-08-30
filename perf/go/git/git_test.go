@@ -37,6 +37,8 @@ type subTestFunction func(t *testing.T, ctx context.Context, g *Git, gb *testuti
 
 // subTests are all the tests we have for *SQLTraceStore.
 var subTests = map[string]subTestFunction{
+	"testDetails_FailOnBadCommitNumber":                                    testDetails_FailOnBadCommitNumber,
+	"testDetails_Success":                                                  testDetails_Success,
 	"testUpdate_NewCommitsAreFoundAfterUpdate":                             testUpdate_NewCommitsAreFoundAfterUpdate,
 	"testCommitNumberFromGitHash_Success":                                  testCommitNumberFromGitHash_Success,
 	"testCommitNumberFromGitHash_ErrorOnUnknownGitHash":                    testCommitNumberFromGitHash_ErrorOnUnknownGitHash,
@@ -88,6 +90,26 @@ func testCommitNumberFromGitHash_Success(t *testing.T, ctx context.Context, g *G
 	commitNumber, err = g.CommitNumberFromGitHash(ctx, hashes[2])
 	assert.NoError(t, err)
 	assert.Equal(t, types.CommitNumber(2), commitNumber)
+}
+
+func testDetails_FailOnBadCommitNumber(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {
+	defer cleanup()
+
+	_, err := g.Details(ctx, types.BadCommitNumber)
+	require.Error(t, err)
+}
+
+func testDetails_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {
+	defer cleanup()
+
+	commit, err := g.Details(ctx, types.CommitNumber(1))
+	require.NoError(t, err)
+	assert.Equal(t, Commit{
+		Timestamp: gittest.StartTime.Add(time.Minute).Unix(),
+		GitHash:   "881dfc43620250859549bb7e0301b6910d9b8e70",
+		Author:    "test <test@google.com>",
+		Subject:   "501233450539197794",
+	}, commit)
 }
 
 func testCommitNumberFromGitHash_ErrorOnUnknownGitHash(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {

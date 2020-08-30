@@ -40,6 +40,7 @@ const (
 	getCommitsFromCommitNumberRange
 	getCommitFromCommitNumber
 	getHashFromCommitNumber
+	getDetails
 )
 
 var (
@@ -51,7 +52,14 @@ var (
 
 // statements holds all the raw SQL statemens used per Dialect of SQL.
 var statements = map[statement]string{
-
+	getDetails: `
+		SELECT
+			git_hash, commit_time, author, subject
+		FROM
+			Commits
+		WHERE
+			commit_number=$1
+	`,
 	getMostRecentGitHashAndCommitNumber: `
 		SELECT
 			git_hash, commit_number
@@ -413,6 +421,16 @@ func (g *Git) CommitNumberFromGitHash(ctx context.Context, githash string) (type
 	if err := g.db.QueryRow(ctx, statements[getCommitNumberFromGitHash], githash).Scan(&ret); err != nil {
 		return ret, skerr.Wrapf(err, "Failed get for hash: %q", githash)
 	}
+	return ret, nil
+}
+
+// Details returns all the stored details for a given commit number.
+func (g *Git) Details(ctx context.Context, commitNumber types.CommitNumber) (Commit, error) {
+	var ret Commit
+	if err := g.db.QueryRow(ctx, statements[getDetails], commitNumber).Scan(&ret.GitHash, &ret.Timestamp, &ret.Author, &ret.Subject); err != nil {
+		return ret, skerr.Wrapf(err, "Failed to get details for CommitNumber: %d", commitNumber)
+	}
+
 	return ret, nil
 }
 
