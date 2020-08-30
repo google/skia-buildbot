@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/git/testutils"
 	"go.skia.org/infra/go/testutils/unittest"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/git/gittest"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -104,11 +105,16 @@ func testDetails_Success(t *testing.T, ctx context.Context, g *Git, gb *testutil
 
 	commit, err := g.Details(ctx, types.CommitNumber(1))
 	require.NoError(t, err)
+
+	// The prefix of the URL will change, so just confirm it has the right suffix.
+	require.True(t, strings.HasSuffix(commit.URL, commit.GitHash))
+
 	assert.Equal(t, Commit{
 		Timestamp: gittest.StartTime.Add(time.Minute).Unix(),
 		GitHash:   "881dfc43620250859549bb7e0301b6910d9b8e70",
 		Author:    "test <test@google.com>",
 		Subject:   "501233450539197794",
+		URL:       commit.URL,
 	}, commit)
 }
 
@@ -416,4 +422,50 @@ func TestParseGitRevLogStream_ErrMalformedCommitLine(t *testing.T) {
 		return nil
 	})
 	assert.Contains(t, err.Error(), "expected commit at")
+}
+
+func TestURLFromParts_DebounceCommitURL_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	const debounceURL = "https://some.other.url.example.org"
+	instanceConfig := &config.InstanceConfig{
+		GitRepoConfig: config.GitRepoConfig{
+			URL:              "https://skia.googlesource.com/skia",
+			DebouceCommitURL: true,
+		},
+	}
+	commit := Commit{
+		GitHash: "6079a7810530025d9877916895dd14eb8bb454c0",
+		Subject: debounceURL,
+	}
+	assert.Equal(t, debounceURL, urlFromParts(instanceConfig, commit))
+}
+
+func TestURLFromParts_CommitURLSupplied_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	instanceConfig := &config.InstanceConfig{
+		GitRepoConfig: config.GitRepoConfig{
+			URL:       "https://github.com/google/skia",
+			CommitURL: "%s/commit/%s",
+		},
+	}
+	commit := Commit{
+		GitHash: "6079a7810530025d9877916895dd14eb8bb454c0",
+	}
+	assert.Equal(t, "https://github.com/google/skia/commit/6079a7810530025d9877916895dd14eb8bb454c0", urlFromParts(instanceConfig, commit))
+}
+
+func TestURLFromParts_DefaultCommitURL_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	instanceConfig := &config.InstanceConfig{
+		GitRepoConfig: config.GitRepoConfig{
+			URL: "https://skia.googlesource.com/skia",
+		},
+	}
+	commit := Commit{
+		GitHash: "6079a7810530025d9877916895dd14eb8bb454c0",
+	}
+	assert.Equal(t, "https://skia.googlesource.com/skia/+show/6079a7810530025d9877916895dd14eb8bb454c0", urlFromParts(instanceConfig, commit))
 }
