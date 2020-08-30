@@ -85,12 +85,12 @@ export interface FrameResponse {
 }
 
 export interface Commit {
-	CommitNumber: CommitNumber;
-	GitHash: string;
-	Timestamp: number;
-	Author: string;
-	Subject: string;
-	URL: string;
+	offset: CommitNumber;
+	hash: string;
+	ts: number;
+	author: string;
+	message: string;
+	url: string;
 }
 
 export interface TriageStatus {
