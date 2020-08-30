@@ -103,18 +103,20 @@ func testDetails_FailOnBadCommitNumber(t *testing.T, ctx context.Context, g *Git
 func testDetails_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {
 	defer cleanup()
 
-	commit, err := g.Details(ctx, types.CommitNumber(1))
+	commitNumber := types.CommitNumber(1)
+	commit, err := g.Details(ctx, commitNumber)
 	require.NoError(t, err)
 
 	// The prefix of the URL will change, so just confirm it has the right suffix.
 	require.True(t, strings.HasSuffix(commit.URL, commit.GitHash))
 
 	assert.Equal(t, Commit{
-		Timestamp: gittest.StartTime.Add(time.Minute).Unix(),
-		GitHash:   "881dfc43620250859549bb7e0301b6910d9b8e70",
-		Author:    "test <test@google.com>",
-		Subject:   "501233450539197794",
-		URL:       commit.URL,
+		Timestamp:    gittest.StartTime.Add(time.Minute).Unix(),
+		GitHash:      "881dfc43620250859549bb7e0301b6910d9b8e70",
+		Author:       "test <test@google.com>",
+		Subject:      "501233450539197794",
+		URL:          commit.URL,
+		CommitNumber: commitNumber,
 	}, commit)
 }
 
