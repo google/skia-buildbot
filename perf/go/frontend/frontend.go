@@ -1215,8 +1215,8 @@ func (f *Frontend) regressionCurrentHandler(w http.ResponseWriter, r *http.Reque
 // CommitDetailsRequest is for deserializing incoming POST requests
 // in detailsHandler.
 type CommitDetailsRequest struct {
-	CID     cid.CommitID `json:"cid"`
-	TraceID string       `json:"traceid"`
+	CommitNumber types.CommitNumber `json:"cid"`
+	TraceID      string             `json:"traceid"`
 }
 
 func (f *Frontend) detailsHandler(w http.ResponseWriter, r *http.Request) {
@@ -1230,8 +1230,7 @@ func (f *Frontend) detailsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	name := ""
-	index := types.CommitNumber(dr.CID.Offset)
-	name, err = f.traceStore.GetSource(r.Context(), index, dr.TraceID)
+	name, err = f.traceStore.GetSource(r.Context(), dr.CommitNumber, dr.TraceID)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load details", http.StatusInternalServerError)
 		return
