@@ -17,7 +17,7 @@
         }
       ],
       extra_configuration: {
-        SQLConnectionURL: "postgresql://root@gold-cockroachdb-public:26234/demo_gold_db?sslmode=disable",
+        SQLConnectionURL: "postgresql://root@gold-cockroachdb-public:26234/staging_db?sslmode=disable",
       }
     }
   }
