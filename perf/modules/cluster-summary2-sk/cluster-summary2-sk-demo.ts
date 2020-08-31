@@ -18,6 +18,7 @@ ClusterSummary2Sk.lookupCids = () =>
   new Promise((resolve) => {
     resolve([
       {
+        hash: '566ac1e41bd7953a7179da9832bc883e1c758fac',
         offset: 24748,
         author: 'msarett@google.com',
         message: '313c463 - Safely handle unsupported color xforms in SkCodec',
