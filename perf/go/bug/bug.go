@@ -3,12 +3,12 @@ package bug
 
 import (
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/perf/go/cid"
+	perfgit "go.skia.org/infra/perf/go/git"
 	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
 // Expand the uriTemplate given a link to the regressing cluster, the commit, and the user's message about the regression.
-func Expand(uriTemplate string, clusterLink string, c *cid.CommitDetail, message string) string {
+func Expand(uriTemplate string, clusterLink string, c perfgit.Commit, message string) string {
 	expansion := map[string]string{
 		"cluster_url": clusterLink,
 		"commit_url":  c.URL,
@@ -23,7 +23,7 @@ func Expand(uriTemplate string, clusterLink string, c *cid.CommitDetail, message
 
 // ExampleExpand expands the given uriTemplate with example data.
 func ExampleExpand(uriTemplate string) string {
-	c := &cid.CommitDetail{
+	c := perfgit.Commit{
 		URL: "https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664",
 	}
 	clusterLink := "https://perf.skia.org/t/?begin=1498332791&end=1498528391&subset=flagged"
