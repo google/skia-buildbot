@@ -71,6 +71,24 @@
     },
     {
       "key": {
+        "uuid": "fc78680a_1796f567",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2020-08-31T13:57:46Z",
+      "side": 1,
+      "message": "Makes sense - then the user-provided asset should override the GF blob deterministically, which seems reasonable.",
+      "parentUuid": "89c78ecd_1890065c",
+      "revId": "ad6883b9c184da1fcb24c4c7446370e780dc71ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "331494fd_9108c09c",
         "filename": "skottie/modules/skottie-sk/skottie-sk.js",
         "patchSetId": 1
@@ -94,6 +112,30 @@
     },
     {
       "key": {
+        "uuid": "30664346_6c323afa",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2020-08-31T13:57:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "331494fd_9108c09c",
+      "range": {
+        "startLine": 383,
+        "startChar": 4,
+        "endLine": 383,
+        "endChar": 7
+      },
+      "revId": "ad6883b9c184da1fcb24c4c7446370e780dc71ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "17d8ac7c_56962bee",
         "filename": "skottie/modules/skottie-sk/skottie-sk.js",
         "patchSetId": 1
@@ -114,6 +156,30 @@
       "revId": "ad6883b9c184da1fcb24c4c7446370e780dc71ee",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "57f933f7_60dee75b",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 451,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2020-08-31T13:57:46Z",
+      "side": 1,
+      "message": "Indeed, that should be fine - the last one (user-provided asset) will override the map entry from GF.  Added a comment.",
+      "parentUuid": "17d8ac7c_56962bee",
+      "range": {
+        "startLine": 451,
+        "startChar": 6,
+        "endLine": 451,
+        "endChar": 15
+      },
+      "revId": "ad6883b9c184da1fcb24c4c7446370e780dc71ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
