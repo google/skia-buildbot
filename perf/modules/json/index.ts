@@ -158,12 +158,8 @@ export interface ClusterStatus {
 	value: RegressionDetectionResponse | null;
 }
 
-export interface CommitID {
-	offset: CommitNumber;
-}
-
 export interface CommitDetailsRequest {
-	cid: CommitID;
+	cid: CommitNumber;
 	traceid: string;
 }
 
@@ -220,6 +216,10 @@ export interface SkPerfConfig {
 	step_up_only: boolean;
 	commit_range_url: string;
 	demo: boolean;
+}
+
+export interface CommitID {
+	offset: CommitNumber;
 }
 
 export interface TriageRequest {

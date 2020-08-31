@@ -249,7 +249,7 @@ func (d *Requests) StatusHandler(w http.ResponseWriter, r *http.Request) {
 		sort.Sort(types.CommitNumberSlice(commitNumbers))
 
 		for _, commitNumber := range commitNumbers {
-			details, err := d.perfGit.Details(ctx, commitNumber)
+			details, err := d.perfGit.CommitFromCommitNumber(ctx, commitNumber)
 			if err != nil {
 				sklog.Errorf("Failed to look up commit %d: %s", commitNumber, err)
 				continue
