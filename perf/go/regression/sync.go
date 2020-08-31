@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/shortcut"
@@ -18,7 +17,6 @@ func Run(
 	ctx context.Context,
 	req *RegressionDetectionRequest,
 	perfGit *perfgit.Git,
-	cidl *cid.CommitIDLookup,
 	dfBuilder dataframe.DataFrameBuilder,
 	shortcutStore shortcut.Store,
 	responseProcessor RegressionDetectionResponseProcessor,

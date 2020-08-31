@@ -33,7 +33,6 @@ import {
   ClusterAlgo,
   RangeRequest,
   Commit,
-  CommitDetail,
   ClusterStartResponse,
   ClusterStatus,
   FullSummary,
@@ -203,7 +202,7 @@ export class ClusterPageSk extends ElementSk {
   private summaries: FullSummary[] = [];
 
   // The commits to choose from.
-  private cids: CommitDetail[] = [];
+  private cids: Commit[] = [];
 
   // Which commit is selected.
   private selectedCommitIndex: number = -1;
@@ -343,7 +342,7 @@ export class ClusterPageSk extends ElementSk {
       },
     })
       .then(jsonOrThrow)
-      .then((cids: CommitDetail[]) => {
+      .then((cids: Commit[]) => {
         this.updatingCommits = false;
         cids.reverse();
         this.cids = cids;

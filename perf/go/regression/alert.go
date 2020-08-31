@@ -8,7 +8,6 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
-	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/shortcut"
@@ -26,7 +25,6 @@ func RegressionsForAlert(
 	shortcutStore shortcut.Store,
 	clusterResponseProcessor RegressionDetectionResponseProcessor,
 	perfGit *perfgit.Git,
-	cidl *cid.CommitIDLookup,
 	dfBuilder dataframe.DataFrameBuilder,
 	progressCallback ProgressCallback,
 ) {
@@ -56,7 +54,7 @@ func RegressionsForAlert(
 			Step:         step,
 			TotalQueries: len(queries),
 		}
-		_, err := Run(ctx, req, perfGit, cidl, dfBuilder, shortcutStore, clusterResponseProcessor, progressCallback)
+		_, err := Run(ctx, req, perfGit, dfBuilder, shortcutStore, clusterResponseProcessor, progressCallback)
 		if err != nil {
 			sklog.Warningf("Failed while clustering %v %s", *req, err)
 			continue

@@ -9,7 +9,6 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/alerts"
-	"go.skia.org/infra/perf/go/cid"
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/dataframe"
 	"go.skia.org/infra/perf/go/dryrun"
@@ -48,7 +47,6 @@ func main() {
 	generator := go2ts.New()
 	err := addMultiple(generator, []interface{}{
 		alerts.Alert{},
-		cid.CommitDetail{},
 		clustering2.ClusterSummary{},
 		clustering2.ValuePercent{},
 		dataframe.FrameRequest{},
