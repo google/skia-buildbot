@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f7b2a397_520c2fdd",
+        "filename": "perf/modules/cluster-lastn-page-sk/cluster-lastn-page-sk.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-31T13:39:39Z",
+      "side": 1,
+      "message": "nit: Are these surrounding spaces necessary? Might be good to have a comment explaining why they are.",
+      "range": {
+        "startLine": 135,
+        "startChar": 22,
+        "endLine": 135,
+        "endChar": 23
+      },
+      "revId": "7113c5ccc2dabaf3597efef908476ea458476b79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
