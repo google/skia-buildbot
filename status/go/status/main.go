@@ -42,6 +42,7 @@ import (
 	"go.skia.org/infra/status/go/capacity"
 	"go.skia.org/infra/status/go/incremental"
 	"go.skia.org/infra/status/go/lkgr"
+	"go.skia.org/infra/status/go/rpc"
 	task_driver_db "go.skia.org/infra/task_driver/go/db"
 	bigtable_db "go.skia.org/infra/task_driver/go/db/bigtable"
 	"go.skia.org/infra/task_driver/go/handlers"
@@ -69,18 +70,19 @@ const (
 )
 
 var (
-	autorollMtx      sync.RWMutex
-	autorollStatus   []byte                        = nil
-	capacityClient   *capacity.CapacityClient      = nil
-	capacityTemplate *template.Template            = nil
-	commitsTemplate  *template.Template            = nil
-	iCache           *incremental.IncrementalCache = nil
-	lkgrObj          *lkgr.LKGR                    = nil
-	taskDb           db.RemoteDB                   = nil
-	taskDriverDb     task_driver_db.DB             = nil
-	taskDriverLogs   *logs.LogsManager             = nil
-	tasksPerCommit   *tasksPerCommitCache          = nil
-	tCache           cache.TaskCache               = nil
+	autorollMtx                 sync.RWMutex
+	autorollStatus              []byte                        = nil
+	capacityClient              *capacity.CapacityClient      = nil
+	capacityTemplate            *template.Template            = nil
+	commitsTemplate             *template.Template            = nil
+	experimentalCommitsTemplate *template.Template            = nil
+	iCache                      *incremental.IncrementalCache = nil
+	lkgrObj                     *lkgr.LKGR                    = nil
+	taskDb                      db.RemoteDB                   = nil
+	taskDriverDb                task_driver_db.DB             = nil
+	taskDriverLogs              *logs.LogsManager             = nil
+	tasksPerCommit              *tasksPerCommitCache          = nil
+	tCache                      cache.TaskCache               = nil
 
 	// AUTOROLLERS maps autoroll frontend host to maps of roller IDs to
 	// their human-friendly display names.
@@ -139,6 +141,9 @@ func reloadTemplates() {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
+	experimentalCommitsTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "dist", "status.html"),
+	))
 	commitsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/commits.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
@@ -207,6 +212,16 @@ func getRepo(r *http.Request) (string, string, error) {
 		return "", "", err
 	}
 	return repoUrlToName(repoUrl), repoUrl, nil
+}
+
+// Same as above, for new WIP Twirp server.
+// TODO(westont): Refactor once Twirp server is in use.
+func getRepoTwirp(r *rpc.IncrementalCommitsRequest) (string, string, error) {
+	repoURL, err := repoNameToUrl(r.RepoPath)
+	if err != nil {
+		return "", "", err
+	}
+	return repoUrlToName(repoURL), repoURL, nil
 }
 
 // getRepoNames returns the nicknames for all repos on this server.
@@ -529,6 +544,12 @@ func defaultRedirectHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
+	statusHandlerInternal(w, r, false)
+}
+func experimentalStatusHandler(w http.ResponseWriter, r *http.Request) {
+	statusHandlerInternal(w, r, true)
+}
+func statusHandlerInternal(w http.ResponseWriter, r *http.Request, experimental bool) {
 	defer metrics2.FuncTimer().Stop()
 	w.Header().Set("Content-Type", "text/html")
 
@@ -550,7 +571,13 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 		Title:    fmt.Sprintf("Status: %s", repoName),
 	}
 
-	if err := commitsTemplate.Execute(w, d); err != nil {
+	var template *template.Template
+	if experimental {
+		template = experimentalCommitsTemplate
+	} else {
+		template = commitsTemplate
+	}
+	if err := template.Execute(w, d); err != nil {
 		httputils.ReportError(w, err, fmt.Sprintf("Failed to expand template: %v", err), http.StatusInternalServerError)
 	}
 }
@@ -662,9 +689,11 @@ func autorollStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func runServer(serverURL string) {
+func runServer(serverURL string, srv http.Handler) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", defaultRedirectHandler)
+	r.PathPrefix(rpc.StatusFePathPrefix).Handler(srv)
+	r.HandleFunc("/experimental/repo/{repo}", httputils.OriginTrial(experimentalStatusHandler, *testing))
 	r.HandleFunc("/repo/{repo}", httputils.OriginTrial(statusHandler, *testing))
 	r.HandleFunc("/capacity", httputils.OriginTrial(capacityHandler, *testing))
 	r.HandleFunc("/capacity/json", capacityStatsHandler)
@@ -856,6 +885,9 @@ func main() {
 		sklog.Fatal(err)
 	}
 
+	// Create Twirp Server.
+	twirpServer := rpc.NewStatusServer(iCache, getRepoTwirp, MAX_COMMITS_TO_LOAD, DEFAULT_COMMITS_TO_LOAD, podId)
+
 	// Run the server.
-	runServer(serverURL)
+	runServer(serverURL, twirpServer)
 }
