@@ -14,14 +14,14 @@ import { errorMessage } from 'elements-sk/errorMessage';
 import { jsonOrThrow } from 'common-sk/modules/jsonOrThrow';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import { SpinnerSk } from 'elements-sk/spinner-sk/spinner-sk';
-import { CommitID, CommitDetailsRequest } from '../json';
+import { CommitID, CommitDetailsRequest, CommitNumber } from '../json';
 
 import 'elements-sk/spinner-sk';
 import 'elements-sk/styles/buttons';
 
 export class JSONSourceSk extends ElementSk {
   private _json: string;
-  private _cid: CommitID | null = null;
+  private _cid: CommitNumber = -1;
   private _traceid: string;
   private _spinner: SpinnerSk | null = null;
 
@@ -85,7 +85,7 @@ export class JSONSourceSk extends ElementSk {
     if (!this.traceid) {
       return;
     }
-    if (!this.cid || this.cid.offset === undefined) {
+    if (this.cid === -1) {
       return;
     }
     const body: CommitDetailsRequest = {
