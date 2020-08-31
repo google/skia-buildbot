@@ -347,7 +347,6 @@ export class ClusterLastNPageSk extends ElementSk {
       .then(jsonOrThrow)
       .then((json: AlertUpdateResponse) => {
         this.state!.id_as_string = json.IDAsString;
-        this.state!.id = +json.IDAsString;
         this.writingAlert = false;
         this._render();
       })

@@ -138,7 +138,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *RegressionDetec
 			// Update database if regression at the midpoint is found.
 			if cl.StepPoint.Offset == commitNumber {
 				if cl.StepFit.Status == stepfit.LOW && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.DOWN || cfg.DirectionAsString == alerts.BOTH) {
-					sklog.Infof("Found Low regression at %s: StepFit: %v Shortcut: %s AlertID: %d %d req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, cfg.ID, c.current.Alert.ID, *req)
+					sklog.Infof("Found Low regression at %s: StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.Alert.IDAsString, *req)
 					isNew, err := c.store.SetLow(ctx, commitNumber, key, resp.Frame, cl)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster: %s", err)
@@ -151,7 +151,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *RegressionDetec
 					}
 				}
 				if cl.StepFit.Status == stepfit.HIGH && len(cl.Keys) >= cfg.MinimumNum && (cfg.DirectionAsString == alerts.UP || cfg.DirectionAsString == alerts.BOTH) {
-					sklog.Infof("Found High regression at %s: StepFit: %v Shortcut: %s AlertID: %d %d req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, cfg.ID, c.current.Alert.ID, *req)
+					sklog.Infof("Found High regression at %s: StepFit: %v Shortcut: %s AlertID: %s req: %#v", details.Subject, *cl.StepFit, cl.Shortcut, c.current.Alert.IDAsString, *req)
 					isNew, err := c.store.SetHigh(ctx, commitNumber, key, resp.Frame, cl)
 					if err != nil {
 						sklog.Errorf("Failed to save newly found cluster for alert %q length=%d: %s", key, len(cl.Keys), err)
@@ -290,7 +290,7 @@ func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 						for _, config := range configs {
 							q, err := query.NewFromString(config.Query)
 							if err != nil {
-								sklog.Errorf("An alert %q has an invalid query %q: %s", config.ID, config.Query, err)
+								sklog.Errorf("An alert %q has an invalid query %q: %s", config.IDAsString, config.Query, err)
 								continue
 							}
 							// If any traceID matches the query in the alert then it's an alert we should run.

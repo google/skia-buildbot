@@ -20,10 +20,10 @@ func TestBuildConfigsAndParamSet(t *testing.T) {
 			// what we set here.
 			return []*alerts.Alert{
 				{
-					ID: 1,
+					IDAsString: "1",
 				},
 				{
-					ID: 3,
+					IDAsString: "3",
 				},
 			}, nil
 		},
@@ -44,11 +44,11 @@ func TestBuildConfigsAndParamSet(t *testing.T) {
 	// Confirm it conforms to expectations.
 	assert.Equal(t, c.paramsProvider(), cnp.paramset)
 	assert.Len(t, cnp.configs, 2)
-	ids := []int64{}
+	ids := []string{}
 	for _, cfg := range cnp.configs {
-		ids = append(ids, cfg.ID)
+		ids = append(ids, cfg.IDAsString)
 	}
-	assert.Subset(t, []int64{1, 3}, ids)
+	assert.Subset(t, []string{"1", "3"}, ids)
 
 	// Confirm we continue to get items from the channel.
 	cnp = <-ch

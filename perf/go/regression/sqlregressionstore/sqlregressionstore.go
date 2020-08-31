@@ -162,7 +162,7 @@ func (s *SQLRegressionStore) Write(ctx context.Context, regressions map[types.Co
 // write the given Regression into the database at the given commitNumber and
 // alert id.
 func (s *SQLRegressionStore) write(ctx context.Context, commitNumber types.CommitNumber, alertIDString string, r *regression.Regression) error {
-	alertID := alerts.StringToID(alertIDString)
+	alertID := alerts.IDAsStringToInt(alertIDString)
 	if alertID == alerts.BadAlertID {
 		return skerr.Fmt("Failed to convert alertIDString %q to an int.", alertIDString)
 	}
@@ -179,7 +179,7 @@ func (s *SQLRegressionStore) write(ctx context.Context, commitNumber types.Commi
 // read the Regression from the database at the given commitNumber and alert id.
 // This func is only used in tests.
 func (s *SQLRegressionStore) read(ctx context.Context, commitNumber types.CommitNumber, alertIDString string) (*regression.Regression, error) {
-	alertID := alerts.StringToID(alertIDString)
+	alertID := alerts.IDAsStringToInt(alertIDString)
 	if alertID == alerts.BadAlertID {
 		return nil, skerr.Fmt("Failed to convert alertIDString %q to an int.", alertIDString)
 	}
@@ -202,7 +202,7 @@ func (s *SQLRegressionStore) read(ctx context.Context, commitNumber types.Commit
 // default Regression will be used and stored back to the database after the
 // callback is called.
 func (s *SQLRegressionStore) readModifyWrite(ctx context.Context, commitNumber types.CommitNumber, alertIDString string, mustExist bool, cb func(r *regression.Regression)) error {
-	alertID := alerts.StringToID(alertIDString)
+	alertID := alerts.IDAsStringToInt(alertIDString)
 	if alertID == alerts.BadAlertID {
 		return skerr.Fmt("Failed to convert alertIDString %q to an int.", alertIDString)
 	}
