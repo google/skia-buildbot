@@ -676,16 +676,22 @@ func (f *Frontend) countHandler(w http.ResponseWriter, r *http.Request) {
 // cidHandler takes the POST'd list of dataframe.ColumnHeaders, and returns a
 // serialized slice of cid.CommitDetails.
 func (f *Frontend) cidHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	w.Header().Set("Content-Type", "application/json")
-	cids := []*cid.CommitID{}
+	cids := []types.CommitNumber{}
 	if err := json.NewDecoder(r.Body).Decode(&cids); err != nil {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
 	}
-	resp, err := f.cidl.Lookup(context.Background(), cids)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to lookup all commit ids", http.StatusInternalServerError)
-		return
+	resp := make([]perfgit.Commit, len(cids))
+	for i, commitNumber := range cids {
+		details, err := f.perfGit.Details(ctx, commitNumber)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to lookup all commit ids", http.StatusInternalServerError)
+			return
+
+		}
+		resp[i] = details
 	}
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -1215,8 +1221,8 @@ func (f *Frontend) regressionCurrentHandler(w http.ResponseWriter, r *http.Reque
 // CommitDetailsRequest is for deserializing incoming POST requests
 // in detailsHandler.
 type CommitDetailsRequest struct {
-	CID     cid.CommitID `json:"cid"`
-	TraceID string       `json:"traceid"`
+	CommitNumber types.CommitNumber `json:"cid"`
+	TraceID      string             `json:"traceid"`
 }
 
 func (f *Frontend) detailsHandler(w http.ResponseWriter, r *http.Request) {
@@ -1230,8 +1236,7 @@ func (f *Frontend) detailsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	name := ""
-	index := types.CommitNumber(dr.CID.Offset)
-	name, err = f.traceStore.GetSource(r.Context(), index, dr.TraceID)
+	name, err = f.traceStore.GetSource(r.Context(), dr.CommitNumber, dr.TraceID)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load details", http.StatusInternalServerError)
 		return
