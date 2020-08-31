@@ -50,6 +50,52 @@
       "revId": "ad6883b9c184da1fcb24c4c7446370e780dc71ee",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "331494fd_9108c09c",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 383,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-31T12:20:32Z",
+      "side": 1,
+      "message": "Prefer const and let over var",
+      "range": {
+        "startLine": 383,
+        "startChar": 4,
+        "endLine": 383,
+        "endChar": 7
+      },
+      "revId": "ad6883b9c184da1fcb24c4c7446370e780dc71ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17d8ac7c_56962bee",
+        "filename": "skottie/modules/skottie-sk/skottie-sk.js",
+        "patchSetId": 1
+      },
+      "lineNbr": 451,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-31T12:20:32Z",
+      "side": 1,
+      "message": "I\u0027m a little confused here, won\u0027t we potentially have two font data blobs for the same name? Is that ok? Which one will Skottie use?\n\nIf Skottie is fine with that, I\u0027m ok with this code, I would just like to make the comment on line 450 more explicit that we are loading the same font in parallel from two potential sources and that if both return the code will still work.",
+      "range": {
+        "startLine": 451,
+        "startChar": 6,
+        "endLine": 451,
+        "endChar": 15
+      },
+      "revId": "ad6883b9c184da1fcb24c4c7446370e780dc71ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
