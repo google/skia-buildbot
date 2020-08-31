@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bb57c3bc_a5961fc6",
+        "filename": "perf/go/regression/fromsummary.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-31T13:41:03Z",
+      "side": 1,
+      "message": "nit: skerr.Wrapf",
+      "range": {
+        "startLine": 22,
+        "startChar": 33,
+        "endLine": 22,
+        "endChar": 43
+      },
+      "revId": "774d97ea9199a10d3f6c423111e467c71d9e61c1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
