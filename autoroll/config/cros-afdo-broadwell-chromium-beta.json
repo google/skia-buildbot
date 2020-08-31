@@ -29,11 +29,11 @@
     "childPath": "chromeos/profiles/broadwell.afdo.newest.txt",
     "gcsBucket": "chromeos-prebuilt",
     "gcsPath": "afdo-job/vetted/release",
-    "parentBranch": "refs/branch-heads/4183", // m85
+    "parentBranch": "refs/branch-heads/4240", // m86
     "parentRepo": "https://chromium.googlesource.com/chromium/src.git",
     "shortRevRegex": "\\d+-\\d+.\\d+-\\d+-benchmark-\\d+.\\d+.\\d+.\\d+-r\\d+",
     "versionFile": "chromeos/profiles/broadwell.afdo.newest.txt",
-    "versionRegex": "^chromeos-chrome-amd64-broadwell-85-\\d+.\\d+-(\\d+)-benchmark-85.(\\d+).4183.(\\d+)-r(\\d+)-redacted.afdo.xz$"
+    "versionRegex": "^chromeos-chrome-amd64-broadwell-86-\\d+.\\d+-(\\d+)-benchmark-86.(\\d+).4240.(\\d+)-r(\\d+)-redacted.afdo.xz$"
   },
   "kubernetes": {
     "cpu": "1",
