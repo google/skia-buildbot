@@ -380,12 +380,18 @@ define('skottie-sk', class extends HTMLElement {
     const toLoad = [];
 
     const lottie = this._state.lottie;
+    let fonts  = [];
+    let assets = [];
     if (lottie.fonts && lottie.fonts.list) {
-      toLoad.push(...this._loadFonts(lottie.fonts.list));
+      fonts = lottie.fonts.list;
     }
     if (lottie.assets && lottie.assets.length) {
-      toLoad.push(...this._loadAssets(lottie.assets));
+      assets = lottie.assets;
     }
+
+    toLoad.push(...this._loadFonts(fonts));
+    toLoad.push(...this._loadAssets(assets));
+
     Promise.all(toLoad).then((externalAssets) => {
       const assets = {};
       for (const asset of externalAssets) {
@@ -393,6 +399,14 @@ define('skottie-sk', class extends HTMLElement {
           assets[asset.name] = asset.bytes;
         }
       }
+
+      // check fonts
+      fonts.forEach(font => {
+        if (!assets[font.fName]) {
+          console.error(`Could not load font '${font.fName}'.`);
+        }
+      });
+
       this._state.assets = assets;
       this.render();
       this._initializePlayer();
@@ -405,18 +419,15 @@ define('skottie-sk', class extends HTMLElement {
   _loadFonts(fonts) {
     const promises = [];
     for (const font of fonts) {
-      if (font.fPath && font.fPath.startsWith('https://fonts.googleapis.com')) {
-        // We have a mirror of google web fonts with a flattened directory structure which
-        // makes them easier to find. Additionally, we can host the full .ttf
-        // font, instead of the .woff2 font which is served by Google due to
-        // it's smaller size by being a subset based on what glyphs are rendered.
-        // Since we don't know all the glyphs we need up front, it's easiest
-        // to just get the full font as a .ttf file.
-        promises.push(fetch(`${GOOGLE_WEB_FONTS_HOST}/${font.fName}.ttf`)
+      if (!font.fName) {
+        continue;
+      }
+
+      const fetchFont = (fontURL) => {
+        promises.push(fetch(fontURL)
           .then((resp) => {
             // fetch does not reject on 404
             if (!resp.ok) {
-              console.error(`Could not load webfont ${font.fName}: status ${resp.status}`)
               return null;
             }
             return resp.arrayBuffer().then((buffer) => {
@@ -426,27 +437,22 @@ define('skottie-sk', class extends HTMLElement {
               };
             });
           }));
-      }
-      // Look for the fonts in the assets directory with a .ttf extension
-      else if (font.fName) {
-        promises.push(fetch(`${this._assetsPath}/${this._hash}/${font.fName}.ttf`)
-          .then((resp) => {
-            // fetch does not reject on 404
-            if (!resp.ok) {
-              console.error(`Could not load ${font.fName}.ttf: status ${resp.status}`)
-              return null;
-            }
-            return resp.arrayBuffer().then((buffer) => {
-              return {
-                'name': font.fName,
-                'bytes': buffer
-              };
-            });
-          })
-        );
-      }
+      };
 
+      // We have a mirror of google web fonts with a flattened directory structure which
+      // makes them easier to find. Additionally, we can host the full .ttf
+      // font, instead of the .woff2 font which is served by Google due to
+      // it's smaller size by being a subset based on what glyphs are rendered.
+      // Since we don't know all the glyphs we need up front, it's easiest
+      // to just get the full font as a .ttf file.
+      fetchFont(`${GOOGLE_WEB_FONTS_HOST}/${font.fName}.ttf`);
+
+      // Also try using uploaded assets.
+      // We may end up with two different blobs for the same font name, in which case
+      // the user-provided one takes precedence.
+      fetchFont(`${this._assetsPath}/${this._hash}/${font.fName}.ttf`);
     }
+
     return promises;
   }
 
