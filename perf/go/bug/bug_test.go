@@ -5,13 +5,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/testutils/unittest"
-	"go.skia.org/infra/perf/go/cid"
+	perfgit "go.skia.org/infra/perf/go/git"
 )
 
 func TestExpand(t *testing.T) {
 	unittest.SmallTest(t)
 
-	c := &cid.CommitDetail{
+	c := perfgit.Commit{
 		URL: "https://skia.googlesource.com/skia/+show/d261e1075a93677442fdf7fe72aba7e583863664",
 	}
 	clusterLink := "https://perf.skia.org/t/?begin=1498332791&end=1498528391&subset=flagged"

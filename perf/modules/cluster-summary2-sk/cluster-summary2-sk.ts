@@ -50,7 +50,6 @@ import {
   FrameResponse,
   ClusterSummary,
   TriageStatus,
-  CommitID,
   Commit,
   CommitNumber,
   Status,
@@ -79,7 +78,7 @@ function trunc(value: number) {
 }
 
 export interface ClusterSummary2SkTriagedEventDetail {
-  cid: CommitID;
+  columnHeader: ColumnHeader;
   triage: TriageStatus;
 }
 
@@ -211,9 +210,9 @@ export class ClusterSummary2Sk extends ElementSk {
   }
 
   private update() {
-    const cid = this.summary.step_point!;
+    const columnHeader = this.summary.step_point!;
     const detail: ClusterSummary2SkTriagedEventDetail = {
-      cid,
+      columnHeader: columnHeader,
       triage: this.triage,
     };
     this.dispatchEvent(

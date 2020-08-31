@@ -812,14 +812,9 @@ func (f *Frontend) gotoHandler(w http.ResponseWriter, r *http.Request) {
 	if end > int(lastIndex) {
 		end = int(lastIndex)
 	}
-	details, err := f.cidl.Lookup(ctx, []*cid.CommitID{
-		{
-			Offset: types.CommitNumber(begin),
-		},
-		{
-			Offset: types.CommitNumber(end),
-		},
-	})
+	details, err := f.perfGit.CommitSliceFromCommitNumberSlice(ctx, []types.CommitNumber{
+		types.CommitNumber(begin),
+		types.CommitNumber(end)})
 	if err != nil {
 		httputils.ReportError(w, err, "Could not convert indices to hashes.", http.StatusInternalServerError)
 		return
@@ -842,7 +837,7 @@ func (f *Frontend) gotoHandler(w http.ResponseWriter, r *http.Request) {
 
 // TriageRequest is used in triageHandler.
 type TriageRequest struct {
-	Cid         *cid.CommitID           `json:"cid"`
+	Cid         types.CommitNumber      `json:"cid"`
 	Alert       alerts.Alert            `json:"alert"`
 	Triage      regression.TriageStatus `json:"triage"`
 	ClusterType string                  `json:"cluster_type"`
@@ -858,6 +853,7 @@ type TriageResponse struct {
 //
 // If successful it returns a 200, or an HTTP status code of 500 otherwise.
 func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	w.Header().Set("Content-Type", "application/json")
 	if login.LoggedInAs(r) == "" {
 		httputils.ReportError(w, fmt.Errorf("Not logged in."), "You must be logged in to triage.", http.StatusInternalServerError)
@@ -869,7 +865,7 @@ func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditlog.Log(r, "triage", tr)
-	detail, err := f.cidl.Lookup(context.Background(), []*cid.CommitID{tr.Cid})
+	detail, err := f.perfGit.CommitFromCommitNumber(ctx, tr.Cid)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to find CommitID.", http.StatusInternalServerError)
 		return
@@ -877,16 +873,16 @@ func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 
 	key := tr.Alert.IDAsString
 	if tr.ClusterType == "low" {
-		err = f.regStore.TriageLow(r.Context(), detail[0].Offset, key, tr.Triage)
+		err = f.regStore.TriageLow(r.Context(), detail.CommitNumber, key, tr.Triage)
 	} else {
-		err = f.regStore.TriageHigh(r.Context(), detail[0].Offset, key, tr.Triage)
+		err = f.regStore.TriageHigh(r.Context(), detail.CommitNumber, key, tr.Triage)
 	}
 
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to triage.", http.StatusInternalServerError)
 		return
 	}
-	link := fmt.Sprintf("%s/t/?begin=%d&end=%d&subset=all", r.Header.Get("Origin"), detail[0].Timestamp, detail[0].Timestamp+1)
+	link := fmt.Sprintf("%s/t/?begin=%d&end=%d&subset=all", r.Header.Get("Origin"), detail.Timestamp, detail.Timestamp+1)
 
 	resp := &TriageResponse{}
 
@@ -902,7 +898,7 @@ func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 		}
-		resp.Bug = bug.Expand(uritemplate, link, detail[0], tr.Triage.Message)
+		resp.Bug = bug.Expand(uritemplate, link, detail, tr.Triage.Message)
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to write or encode output: %s", err)
