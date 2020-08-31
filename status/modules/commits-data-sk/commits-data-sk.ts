@@ -74,7 +74,6 @@ export class TaskSpecDetails {
   comments: Array<Comment> = [];
   category: string | null = null;
   subcategory: string | null = null;
-  // TODO colorlcass?
   flaky: boolean = false;
   ignoreFailure: boolean = false;
 }
@@ -118,7 +117,7 @@ export class CommitsDataSk extends ElementSk {
 
 
 
-  private static template = (ele: CommitsDataSk) => html`<div>Hello World!</div>`;
+  private static template = (ele: CommitsDataSk) => html``;
   constructor() {
       super(CommitsDataSk.template);
   }
@@ -257,12 +256,13 @@ export class CommitsDataSk extends ElementSk {
           // TODO Time Offsets
 
         }
+        this.dispatchEvent(new CustomEvent('commits-data-update', { bubbles: true }));
       })
       .catch(errorMessage);;
   }
 };
 
-define('commits-table-sk', CommitsDataSk);
+define('commits-data-sk', CommitsDataSk);
 
 // shortCommit returns the first 7 characters of a commit hash.
 function shortCommit(commit: string): string {
