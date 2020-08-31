@@ -51,6 +51,8 @@ import {
   ClusterSummary,
   TriageStatus,
   CommitID,
+  Commit,
+  CommitNumber,
   Status,
   SkPerfConfig,
   ColumnHeader,
@@ -243,10 +245,10 @@ export class ClusterSummary2Sk extends ElementSk {
   /**
    * Look up the commit ids for the given offsets and sources.
    *
-   * @param {Array} cids - An array of serialized cid.CommitID.
-   * @returns {Promise} A Promise that resolves the cids and returns an Array of serialized cid.CommitDetails.
+   * @param An array of CommitNumbers.
+   * @returns A Promise that resolves the cids and returns an Array of serialized perfgit.Commit.
    */
-  static lookupCids(cids: CommitID[]) {
+  static lookupCids(cids: CommitNumber[]): Promise<Commit[]> {
     return fetch('/_/cid/', {
       method: 'POST',
       body: JSON.stringify(cids),
@@ -257,8 +259,8 @@ export class ClusterSummary2Sk extends ElementSk {
   }
 
   private traceSelected(e: CustomEvent<PlotSimpleSkTraceEventDetails>) {
-    const h = this.frame!.dataframe!.header![e.detail.x];
-    ClusterSummary2Sk.lookupCids([h!])
+    const commitNumber = this.frame!.dataframe!.header![e.detail.x]?.offset;
+    ClusterSummary2Sk.lookupCids([commitNumber!])
       .then((json) => {
         this.commits!.details = json;
       })
@@ -351,10 +353,7 @@ export class ClusterSummary2Sk extends ElementSk {
       // If step_point is set then display the commit
       // details for the xbar location.
       if (step && step.offset > 0) {
-        const commitIDAtXBar = {
-          offset: step.offset,
-        };
-        ClusterSummary2Sk.lookupCids([commitIDAtXBar])
+        ClusterSummary2Sk.lookupCids([step.offset])
           .then((json: CommitDetail[]) => {
             this.commits!.details = json;
           })
@@ -368,9 +367,9 @@ export class ClusterSummary2Sk extends ElementSk {
         while (prevCommit > 0 && this.summary!.centroid![prevCommit] === 1e32) {
           prevCommit -= 1;
         }
-        const cids: ColumnHeader[] = [
-          this.frame!.dataframe!.header![prevCommit]!,
-          this.frame!.dataframe!.header![xbar]!,
+        const cids: CommitNumber[] = [
+          this.frame!.dataframe!.header![prevCommit]!.offset,
+          this.frame!.dataframe!.header![xbar]!.offset,
         ];
         // Run those through cid lookup to get the hashes.
         ClusterSummary2Sk.lookupCids(cids)

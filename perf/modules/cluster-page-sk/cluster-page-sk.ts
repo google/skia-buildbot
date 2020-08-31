@@ -189,11 +189,7 @@ export class ClusterPageSk extends ElementSk {
         `
     );
     if (!ret.length) {
-      ret.push(html`
-        <p class="info">
-          No clusters found.
-        </p>
-      `);
+      ret.push(html`<p class="info"> No clusters found. </p>`);
     }
     return ret;
   };
@@ -355,10 +351,7 @@ export class ClusterPageSk extends ElementSk {
         this.selectedCommitIndex = -1;
         // Look for commit id in this._cids.
         for (let i = 0; i < cids.length; i++) {
-          if (
-            // TODO(jcgregorio) Fix how go2ts handles nested structs.
-            ((cids[i] as unknown) as CommitID).offset === this.state.offset
-          ) {
+          if (((cids[i] as unknown) as CommitID).offset === this.state.offset) {
             this.selectedCommitIndex = i;
             break;
           }

@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.skia.org/infra/go/auth"
@@ -28,6 +29,11 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/types"
 )
+
+// For rough numbers a Commit Author is 50 , Subject 80 , URL 200, and GitHash 32 bytes. So
+// so rounding up about 400 bytes per Commit. If we want to cap the lru cache at 10MB that's
+// 25,000 entries.
+const commitCacheSize = 25_000
 
 // Commit represents a single commit stored in the database.
 //
@@ -159,17 +165,21 @@ var statements = map[statement]string{
 //
 // Please see perf/sql/migrations for the database schema used.
 type Git struct {
-	// The path of the git executable.
+	// gitFullPath is the path of the git executable.
 	gitFullPath string
 
 	instanceConfig *config.InstanceConfig
 
 	db *pgxpool.Pool
 
+	// cache for CommitFromCommitNumber.
+	cache *lru.Cache
+
 	// Metrics
 	updateCalled                                          metrics2.Counter
 	commitNumberFromGitHashCalled                         metrics2.Counter
 	commitNumberFromTimeCalled                            metrics2.Counter
+	commitSliceFromCommitNumberSlice                      metrics2.Counter
 	commitSliceFromTimeRangeCalled                        metrics2.Counter
 	commitSliceFromCommitNumberRangeCalled                metrics2.Counter
 	commitFromCommitNumberCalled                          metrics2.Counter
@@ -216,13 +226,17 @@ func New(ctx context.Context, local bool, db *pgxpool.Pool, instanceConfig *conf
 		}
 	}
 
+	cache, err := lru.New(commitCacheSize)
+
 	ret := &Git{
 		gitFullPath:                            gitFullPath,
 		db:                                     db,
+		cache:                                  cache,
 		instanceConfig:                         instanceConfig,
 		updateCalled:                           metrics2.GetCounter("perf_git_update_called"),
 		commitNumberFromGitHashCalled:          metrics2.GetCounter("perf_git_commit_number_from_githash_called"),
 		commitNumberFromTimeCalled:             metrics2.GetCounter("perf_git_commit_number_from_time_called"),
+		commitSliceFromCommitNumberSlice:       metrics2.GetCounter("perf_git_commits_slice_from_commit_number_slice_called"),
 		commitSliceFromTimeRangeCalled:         metrics2.GetCounter("perf_git_commits_slice_from_time_range_called"),
 		commitSliceFromCommitNumberRangeCalled: metrics2.GetCounter("perf_git_commits_slice_from_commit_number_range_called"),
 		commitFromCommitNumberCalled:           metrics2.GetCounter("perf_git_commit_from_commit_number_called"),
@@ -442,8 +456,12 @@ func urlFromParts(instanceConfig *config.InstanceConfig, commit Commit) string {
 	return fmt.Sprintf(format, instanceConfig.GitRepoConfig.URL, commit.GitHash)
 }
 
-// Details returns all the stored details for a given commit number.
-func (g *Git) Details(ctx context.Context, commitNumber types.CommitNumber) (Commit, error) {
+// CommitFromCommitNumber returns all the stored details for a given CommitNumber.
+func (g *Git) CommitFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (Commit, error) {
+	g.commitFromCommitNumberCalled.Inc(1)
+	if iCommit, ok := g.cache.Get(commitNumber); ok {
+		return iCommit.(Commit), nil
+	}
 	var ret Commit
 	if err := g.db.QueryRow(ctx, statements[getDetails], commitNumber).Scan(&ret.GitHash, &ret.Timestamp, &ret.Author, &ret.Subject); err != nil {
 		return ret, skerr.Wrapf(err, "Failed to get details for CommitNumber: %d", commitNumber)
@@ -451,6 +469,22 @@ func (g *Git) Details(ctx context.Context, commitNumber types.CommitNumber) (Com
 	ret.CommitNumber = commitNumber
 	ret.URL = urlFromParts(g.instanceConfig, ret)
 
+	_ = g.cache.Add(commitNumber, ret)
+	return ret, nil
+}
+
+// CommitSliceFromCommitNumberSlice returns all the stored details for a given slice of CommitNumbers.
+func (g *Git) CommitSliceFromCommitNumberSlice(ctx context.Context, commitNumberSlice []types.CommitNumber) ([]Commit, error) {
+	g.commitSliceFromCommitNumberSlice.Inc(1)
+	ret := make([]Commit, len(commitNumberSlice))
+	for i, commitNumber := range commitNumberSlice {
+		details, err := g.CommitFromCommitNumber(ctx, commitNumber)
+		if err != nil {
+			return ret, skerr.Wrapf(err, "failed looking up CommitNumber %d", commitNumber)
+
+		}
+		ret[i] = details
+	}
 	return ret, nil
 }
 
@@ -509,16 +543,6 @@ func (g *Git) CommitSliceFromCommitNumberRange(ctx context.Context, begin, end t
 		ret = append(ret, c)
 	}
 	return ret, nil
-}
-
-// CommitFromCommitNumber returns a Commit for the given commitNumber.
-func (g *Git) CommitFromCommitNumber(ctx context.Context, commitNumber types.CommitNumber) (Commit, error) {
-	g.commitFromCommitNumberCalled.Inc(1)
-	var c Commit
-	if err := g.db.QueryRow(ctx, statements[getCommitFromCommitNumber], commitNumber).Scan(&c.CommitNumber, &c.GitHash, &c.Timestamp, &c.Author, &c.Subject); err != nil {
-		return Commit{}, skerr.Wrapf(err, "Failed to read row at %v", commitNumber)
-	}
-	return c, nil
 }
 
 // GitHashFromCommitNumber returns the git hash of the given commit number.

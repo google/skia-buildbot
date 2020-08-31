@@ -695,13 +695,13 @@ export class ExploreSk extends ElementSk {
     const x = e.detail.x;
     // loop backwards from x until you get the next
     // non MISSING_DATA_SENTINEL point.
-    const commits = [this._dataframe.header![x]];
+    const commits = [this._dataframe.header![x]?.offset];
     const trace = this._dataframe.traceset[e.detail.name];
     for (let i = x - 1; i >= 0; i--) {
       if (trace![i] !== MISSING_DATA_SENTINEL) {
         break;
       }
-      commits.push(this._dataframe.header![i]);
+      commits.push(this._dataframe.header![i]?.offset);
     }
     // Convert the trace id into a paramset to display.
     const params: { [key: string]: string } = toObject(e.detail.name);
@@ -726,7 +726,7 @@ export class ExploreSk extends ElementSk {
         this.commitsTab!.disabled = false;
         this.simpleParamset!.paramsets = [paramset as CommonSkParamSet];
         this.detailTab!.selected = COMMIT_TAB_INDEX;
-        this.jsonsource!.cid = commits[0];
+        this.jsonsource!.cid = commits[0]!;
         this.jsonsource!.traceid = e.detail.name;
       })
       .catch(errorMessage);

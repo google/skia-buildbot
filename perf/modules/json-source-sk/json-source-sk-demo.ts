@@ -11,9 +11,7 @@ window.customElements.whenDefined('json-source-sk').then(() => {
   const sources = document.querySelectorAll<JSONSourceSk>('json-source-sk')!;
   sources.forEach((source) => {
     source.traceid = 'foo';
-    source.cid = {
-      offset: 12,
-    };
+    source.cid = 12;
     source.querySelector<HTMLButtonElement>('#controls button')!.click();
   });
 });
