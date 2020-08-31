@@ -59,7 +59,6 @@ type Current struct {
 // look for regressions.
 type Continuous struct {
 	perfGit         *perfgit.Git
-	cidl            *cid.CommitIDLookup
 	store           Store
 	shortcutStore   shortcut.Store
 	numCommits      int // Number of recent commits to do clustering over.
@@ -85,7 +84,6 @@ type Continuous struct {
 //   radius - The number of commits on each side of a commit to include when clustering.
 func NewContinuous(
 	perfGit *perfgit.Git,
-	cidl *cid.CommitIDLookup,
 	provider ConfigProvider,
 	store Store,
 	shortcutStore shortcut.Store,
@@ -100,7 +98,6 @@ func NewContinuous(
 	eventDriven bool) *Continuous {
 	return &Continuous{
 		perfGit:         perfGit,
-		cidl:            cidl,
 		store:           store,
 		shortcutStore:   shortcutStore,
 		numCommits:      numCommits,
@@ -423,7 +420,7 @@ func (c *Continuous) Run(ctx context.Context) {
 				N:   int32(c.numCommits),
 				End: time.Time{},
 			}
-			RegressionsForAlert(ctx, cfg, domain, cnp.paramset, c.shortcutStore, clusterResponseProcessor, c.perfGit, c.cidl, c.dfBuilder, c.progressCallback)
+			RegressionsForAlert(ctx, cfg, domain, cnp.paramset, c.shortcutStore, clusterResponseProcessor, c.perfGit, c.dfBuilder, c.progressCallback)
 			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()
