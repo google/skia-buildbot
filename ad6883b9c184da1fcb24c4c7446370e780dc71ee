@@ -53,6 +53,24 @@
     },
     {
       "key": {
+        "uuid": "89c78ecd_1890065c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-08-31T12:22:51Z",
+      "side": 1,
+      "message": "I think we would use the google APIs font first, since that will always be first in the list of promise resolutions (remember the promises are pushed in a deterministic order, so the results will be in a deterministic order even if the fetches complete nondeterministically).",
+      "parentUuid": "fa839f00_c1b1ae06",
+      "revId": "ad6883b9c184da1fcb24c4c7446370e780dc71ee",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "331494fd_9108c09c",
         "filename": "skottie/modules/skottie-sk/skottie-sk.js",
         "patchSetId": 1
