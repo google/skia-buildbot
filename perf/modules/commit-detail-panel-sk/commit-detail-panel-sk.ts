@@ -30,12 +30,12 @@ import { html } from 'lit-html';
 import { findParent } from 'common-sk/modules/dom';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 import '../commit-detail-sk';
-import { CommitDetail } from '../json';
+import { Commit } from '../json';
 
 export interface CommitDetailPanelSkCommitSelectedDetails {
   selected: number;
   description: string;
-  commit: CommitDetail;
+  commit: Commit;
 }
 
 export class CommitDetailPanelSk extends ElementSk {
@@ -52,12 +52,10 @@ export class CommitDetailPanelSk extends ElementSk {
     );
 
   private static template = (ele: CommitDetailPanelSk) => html`
-    <table @click=${ele._click}>
-      ${CommitDetailPanelSk.rows(ele)}
-    </table>
+    <table @click=${ele._click}> ${CommitDetailPanelSk.rows(ele)} </table>
   `;
 
-  private _details: CommitDetail[] = [];
+  private _details: Commit[] = [];
 
   constructor() {
     super(CommitDetailPanelSk.template);

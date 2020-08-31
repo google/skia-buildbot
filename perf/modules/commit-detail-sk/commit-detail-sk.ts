@@ -10,7 +10,7 @@ import { html } from 'lit-html';
 import { $$ } from 'common-sk/modules/dom';
 import { upgradeProperty } from 'elements-sk/upgradeProperty';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { CommitDetail } from '../json';
+import { Commit } from '../json';
 
 export class CommitDetailSk extends ElementSk {
   private static template = (ele: CommitDetailSk) => html`
@@ -25,7 +25,7 @@ export class CommitDetailSk extends ElementSk {
     </div>
   `;
 
-  private _cid: CommitDetail;
+  private _cid: Commit;
 
   constructor() {
     super(CommitDetailSk.template);

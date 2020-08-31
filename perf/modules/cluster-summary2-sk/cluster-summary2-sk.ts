@@ -55,7 +55,6 @@ import {
   Status,
   SkPerfConfig,
   ColumnHeader,
-  CommitDetail,
 } from '../json';
 import { PlotSimpleSkTraceEventDetails } from '../plot-simple-sk/plot-simple-sk';
 import { PlotSimpleSk } from '../plot-simple-sk/plot-simple-sk';
@@ -212,7 +211,7 @@ export class ClusterSummary2Sk extends ElementSk {
   private update() {
     const columnHeader = this.summary.step_point!;
     const detail: ClusterSummary2SkTriagedEventDetail = {
-      columnHeader: columnHeader,
+      columnHeader,
       triage: this.triage,
     };
     this.dispatchEvent(
@@ -353,7 +352,7 @@ export class ClusterSummary2Sk extends ElementSk {
       // details for the xbar location.
       if (step && step.offset > 0) {
         ClusterSummary2Sk.lookupCids([step.offset])
-          .then((json: CommitDetail[]) => {
+          .then((json: Commit[]) => {
             this.commits!.details = json;
           })
           .catch(errorMessage);

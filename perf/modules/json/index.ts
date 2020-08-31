@@ -22,15 +22,6 @@ export interface Alert {
 	category: string;
 }
 
-export interface CommitDetail {
-	offset: CommitNumber;
-	author: string;
-	message: string;
-	url: string;
-	hash: string;
-	ts: number;
-}
-
 export interface ValuePercent {
 	value: string;
 	percent: number;
@@ -188,7 +179,7 @@ export interface RegressionRangeRequest {
 }
 
 export interface RegressionRow {
-	cid: CommitDetail | null;
+	cid: Commit;
 	columns: (Regression | null)[] | null;
 }
 
@@ -238,7 +229,7 @@ export interface TryBugResponse {
 }
 
 export interface Current {
-	commit: CommitDetail | null;
+	commit: Commit;
 	alert: Alert | null;
 	message: string;
 }
@@ -271,9 +262,9 @@ export type ConfigState = "ACTIVE" | "DELETED";
 
 export type Direction = "UP" | "DOWN" | "BOTH";
 
-export type CommitNumber = number;
-
 export type StepFitStatus = "Low" | "High" | "Uninteresting";
+
+export type CommitNumber = number;
 
 export type RequestType = 0 | 1;
 

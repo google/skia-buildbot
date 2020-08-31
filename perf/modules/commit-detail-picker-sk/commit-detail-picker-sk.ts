@@ -23,7 +23,7 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import dialogPolyfill from 'dialog-polyfill';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { CommitDetail } from '../json';
+import { Commit } from '../json';
 import { CommitDetailPanelSkCommitSelectedDetails } from '../commit-detail-panel-sk/commit-detail-panel-sk';
 
 const NO_COMMIT_SELECTED_MSG = 'Choose a commit.';
@@ -54,7 +54,7 @@ export class CommitDetailPickerSk extends ElementSk {
     </dialog>
   `;
 
-  private _details: CommitDetail[];
+  private _details: Commit[];
   private _dialog: HTMLDialogElement | null = null;
 
   constructor() {
