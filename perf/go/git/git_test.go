@@ -40,6 +40,8 @@ type subTestFunction func(t *testing.T, ctx context.Context, g *Git, gb *testuti
 var subTests = map[string]subTestFunction{
 	"testDetails_FailOnBadCommitNumber":                                    testDetails_FailOnBadCommitNumber,
 	"testDetails_Success":                                                  testDetails_Success,
+	"testDetailsSlice_EmptyInputSlice_Success":                             testDetailsSlice_EmptyInputSlice_Success,
+	"testDetailsSlice_Success":                                             testDetailsSlice_Success,
 	"testUpdate_NewCommitsAreFoundAfterUpdate":                             testUpdate_NewCommitsAreFoundAfterUpdate,
 	"testCommitNumberFromGitHash_Success":                                  testCommitNumberFromGitHash_Success,
 	"testCommitNumberFromGitHash_ErrorOnUnknownGitHash":                    testCommitNumberFromGitHash_ErrorOnUnknownGitHash,
@@ -104,6 +106,7 @@ func testDetails_Success(t *testing.T, ctx context.Context, g *Git, gb *testutil
 	defer cleanup()
 
 	commitNumber := types.CommitNumber(1)
+	assert.False(t, g.cache.Contains(commitNumber))
 	commit, err := g.Details(ctx, commitNumber)
 	require.NoError(t, err)
 
@@ -118,6 +121,49 @@ func testDetails_Success(t *testing.T, ctx context.Context, g *Git, gb *testutil
 		URL:          commit.URL,
 		CommitNumber: commitNumber,
 	}, commit)
+	assert.True(t, g.cache.Contains(commitNumber))
+}
+
+func testDetailsSlice_EmptyInputSlice_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {
+	defer cleanup()
+
+	resp, err := g.DetailsSlice(ctx, []types.CommitNumber{})
+	require.NoError(t, err)
+	assert.Empty(t, resp)
+}
+
+func testDetailsSlice_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {
+	defer cleanup()
+
+	commitNumbers := []types.CommitNumber{1, 3}
+	assert.False(t, g.cache.Contains(commitNumbers[0]))
+	assert.False(t, g.cache.Contains(commitNumbers[1]))
+	commits, err := g.DetailsSlice(ctx, commitNumbers)
+	require.NoError(t, err)
+
+	// The prefix of the URL will change, so just confirm it has the right suffix.
+	require.True(t, strings.HasSuffix(commits[0].URL, commits[0].GitHash))
+	require.True(t, strings.HasSuffix(commits[1].URL, commits[1].GitHash))
+
+	assert.Equal(t, Commit{
+		Timestamp:    gittest.StartTime.Add(time.Minute).Unix(),
+		GitHash:      "881dfc43620250859549bb7e0301b6910d9b8e70",
+		Author:       "test <test@google.com>",
+		Subject:      "501233450539197794",
+		URL:          commits[0].URL,
+		CommitNumber: commitNumbers[0],
+	}, commits[0])
+	assert.Equal(t, Commit{
+		Timestamp:    gittest.StartTime.Add(3 * time.Minute).Unix(),
+		GitHash:      "e85ec3ff4cecb5bab1ba605910f523552d1267dd",
+		Author:       "test <test@google.com>",
+		Subject:      "6044372234677422456",
+		URL:          commits[1].URL,
+		CommitNumber: commitNumbers[1],
+	}, commits[1])
+
+	assert.True(t, g.cache.Contains(commitNumbers[0]))
+	assert.True(t, g.cache.Contains(commitNumbers[1]))
 }
 
 func testCommitNumberFromGitHash_ErrorOnUnknownGitHash(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {
