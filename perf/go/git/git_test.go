@@ -38,27 +38,24 @@ type subTestFunction func(t *testing.T, ctx context.Context, g *Git, gb *testuti
 
 // subTests are all the tests we have for *SQLTraceStore.
 var subTests = map[string]subTestFunction{
-	"testDetails_FailOnBadCommitNumber":                                    testDetails_FailOnBadCommitNumber,
-	"testDetails_Success":                                                  testDetails_Success,
-	"testUpdate_NewCommitsAreFoundAfterUpdate":                             testUpdate_NewCommitsAreFoundAfterUpdate,
-	"testCommitNumberFromGitHash_Success":                                  testCommitNumberFromGitHash_Success,
-	"testCommitNumberFromGitHash_ErrorOnUnknownGitHash":                    testCommitNumberFromGitHash_ErrorOnUnknownGitHash,
-	"testCommitNumberFromTime_Success":                                     testCommitNumberFromTime_Success,
-	"testCommitNumberFromTime_ErrorOnTimeTooOld":                           testCommitNumberFromTime_ErrorOnTimeTooOld,
-	"testCommitNumberFromTime_SuccessOnZeroTime":                           testCommitNumberFromTime_SuccessOnZeroTime,
-	"testCommitSliceFromTimeRange_Success":                                 testCommitSliceFromTimeRange_Success,
-	"testCommitSliceFromTimeRange_ZeroWidthRangeReturnsZeroResults":        testCommitSliceFromTimeRange_ZeroWidthRangeReturnsZeroResults,
-	"testCommitSliceFromTimeRange_NegativeWidthRangeReturnsZeroResults":    testCommitSliceFromTimeRange_NegativeWidthRangeReturnsZeroResults,
-	"testCommitSliceFromCommitNumberRange_Success":                         testCommitSliceFromCommitNumberRange_Success,
-	"testCommitSliceFromCommitNumberRange_ZeroWidthReturnsOneResult":       testCommitSliceFromCommitNumberRange_ZeroWidthReturnsOneResult,
-	"testCommitSliceFromCommitNumberRange_NegativeWidthReturnsZeroResults": testCommitSliceFromCommitNumberRange_NegativeWidthReturnsZeroResults,
-
-	"testCommitFromCommitNumber_Success":                  testCommitFromCommitNumber_Success,
-	"testCommitFromCommitNumber_ErrWhenCommitDoesntExist": testCommitFromCommitNumber_ErrWhenCommitDoesntExist,
-
-	"testGitHashFromCommitNumber_Success":                  testGitHashFromCommitNumber_Success,
-	"testGitHashFromCommitNumber_ErrWhenCommitDoesntExist": testGitHashFromCommitNumber_ErrWhenCommitDoesntExist,
-
+	"testDetails_FailOnBadCommitNumber":                                                  testDetails_FailOnBadCommitNumber,
+	"testDetails_Success":                                                                testDetails_Success,
+	"testCommitSliceFromCommitNumberSlice_EmptyInputSlice_Success":                       testCommitSliceFromCommitNumberSlice_EmptyInputSlice_Success,
+	"testCommitSliceFromCommitNumberSlice_Success":                                       testCommitSliceFromCommitNumberSlice_Success,
+	"testUpdate_NewCommitsAreFoundAfterUpdate":                                           testUpdate_NewCommitsAreFoundAfterUpdate,
+	"testCommitNumberFromGitHash_Success":                                                testCommitNumberFromGitHash_Success,
+	"testCommitNumberFromGitHash_ErrorOnUnknownGitHash":                                  testCommitNumberFromGitHash_ErrorOnUnknownGitHash,
+	"testCommitNumberFromTime_Success":                                                   testCommitNumberFromTime_Success,
+	"testCommitNumberFromTime_ErrorOnTimeTooOld":                                         testCommitNumberFromTime_ErrorOnTimeTooOld,
+	"testCommitNumberFromTime_SuccessOnZeroTime":                                         testCommitNumberFromTime_SuccessOnZeroTime,
+	"testCommitSliceFromTimeRange_Success":                                               testCommitSliceFromTimeRange_Success,
+	"testCommitSliceFromTimeRange_ZeroWidthRangeReturnsZeroResults":                      testCommitSliceFromTimeRange_ZeroWidthRangeReturnsZeroResults,
+	"testCommitSliceFromTimeRange_NegativeWidthRangeReturnsZeroResults":                  testCommitSliceFromTimeRange_NegativeWidthRangeReturnsZeroResults,
+	"testCommitSliceFromCommitNumberRange_Success":                                       testCommitSliceFromCommitNumberRange_Success,
+	"testCommitSliceFromCommitNumberRange_ZeroWidthReturnsOneResult":                     testCommitSliceFromCommitNumberRange_ZeroWidthReturnsOneResult,
+	"testCommitSliceFromCommitNumberRange_NegativeWidthReturnsZeroResults":               testCommitSliceFromCommitNumberRange_NegativeWidthReturnsZeroResults,
+	"testGitHashFromCommitNumber_Success":                                                testGitHashFromCommitNumber_Success,
+	"testGitHashFromCommitNumber_ErrWhenCommitDoesntExist":                               testGitHashFromCommitNumber_ErrWhenCommitDoesntExist,
 	"testCommitNumbersWhenFileChangesInCommitNumberRange_Success":                        testCommitNumbersWhenFileChangesInCommitNumberRange_Success,
 	"testCommitNumbersWhenFileChangesInCommitNumberRange_EmptySliceIfFileDoesntExist":    testCommitNumbersWhenFileChangesInCommitNumberRange_EmptySliceIfFileDoesntExist,
 	"testCommitNumbersWhenFileChangesInCommitNumberRange_RangeIsInclusiveOfBegin":        testCommitNumbersWhenFileChangesInCommitNumberRange_RangeIsInclusiveOfBegin,
@@ -96,7 +93,7 @@ func testCommitNumberFromGitHash_Success(t *testing.T, ctx context.Context, g *G
 func testDetails_FailOnBadCommitNumber(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {
 	defer cleanup()
 
-	_, err := g.Details(ctx, types.BadCommitNumber)
+	_, err := g.CommitFromCommitNumber(ctx, types.BadCommitNumber)
 	require.Error(t, err)
 }
 
@@ -104,7 +101,8 @@ func testDetails_Success(t *testing.T, ctx context.Context, g *Git, gb *testutil
 	defer cleanup()
 
 	commitNumber := types.CommitNumber(1)
-	commit, err := g.Details(ctx, commitNumber)
+	assert.False(t, g.cache.Contains(commitNumber))
+	commit, err := g.CommitFromCommitNumber(ctx, commitNumber)
 	require.NoError(t, err)
 
 	// The prefix of the URL will change, so just confirm it has the right suffix.
@@ -112,12 +110,55 @@ func testDetails_Success(t *testing.T, ctx context.Context, g *Git, gb *testutil
 
 	assert.Equal(t, Commit{
 		Timestamp:    gittest.StartTime.Add(time.Minute).Unix(),
-		GitHash:      "881dfc43620250859549bb7e0301b6910d9b8e70",
+		GitHash:      hashes[1],
 		Author:       "test <test@google.com>",
 		Subject:      "501233450539197794",
 		URL:          commit.URL,
 		CommitNumber: commitNumber,
 	}, commit)
+	assert.True(t, g.cache.Contains(commitNumber))
+}
+
+func testCommitSliceFromCommitNumberSlice_EmptyInputSlice_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {
+	defer cleanup()
+
+	resp, err := g.CommitSliceFromCommitNumberSlice(ctx, []types.CommitNumber{})
+	require.NoError(t, err)
+	assert.Empty(t, resp)
+}
+
+func testCommitSliceFromCommitNumberSlice_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {
+	defer cleanup()
+
+	commitNumbers := []types.CommitNumber{1, 3}
+	assert.False(t, g.cache.Contains(commitNumbers[0]))
+	assert.False(t, g.cache.Contains(commitNumbers[1]))
+	commits, err := g.CommitSliceFromCommitNumberSlice(ctx, commitNumbers)
+	require.NoError(t, err)
+
+	// The prefix of the URLs will change, so just confirm it has the right suffix.
+	require.True(t, strings.HasSuffix(commits[0].URL, commits[0].GitHash))
+	require.True(t, strings.HasSuffix(commits[1].URL, commits[1].GitHash))
+
+	assert.Equal(t, Commit{
+		Timestamp:    gittest.StartTime.Add(time.Minute).Unix(),
+		GitHash:      hashes[1],
+		Author:       "test <test@google.com>",
+		Subject:      "501233450539197794",
+		URL:          commits[0].URL,
+		CommitNumber: commitNumbers[0],
+	}, commits[0])
+	assert.Equal(t, Commit{
+		Timestamp:    gittest.StartTime.Add(3 * time.Minute).Unix(),
+		GitHash:      hashes[3],
+		Author:       "test <test@google.com>",
+		Subject:      "6044372234677422456",
+		URL:          commits[1].URL,
+		CommitNumber: commitNumbers[1],
+	}, commits[1])
+
+	assert.True(t, g.cache.Contains(commitNumbers[0]))
+	assert.True(t, g.cache.Contains(commitNumbers[1]))
 }
 
 func testCommitNumberFromGitHash_ErrorOnUnknownGitHash(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {
@@ -217,22 +258,6 @@ func testCommitSliceFromCommitNumberRange_NegativeWidthReturnsZeroResults(t *tes
 	commits, err := g.CommitSliceFromCommitNumberRange(ctx, 3, 2)
 	require.NoError(t, err)
 	require.Empty(t, commits)
-}
-
-func testCommitFromCommitNumber_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {
-	defer cleanup()
-
-	commit, err := g.CommitFromCommitNumber(ctx, types.CommitNumber(3))
-	require.NoError(t, err)
-	assert.Equal(t, hashes[3], commit.GitHash)
-	assert.Equal(t, types.CommitNumber(3), commit.CommitNumber)
-}
-
-func testCommitFromCommitNumber_ErrWhenCommitDoesntExist(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {
-	defer cleanup()
-
-	_, err := g.CommitFromCommitNumber(ctx, types.BadCommitNumber)
-	require.Error(t, err)
 }
 
 func testGitHashFromCommitNumber_Success(t *testing.T, ctx context.Context, g *Git, gb *testutils.GitBuilder, hashes []string, cleanup gittest.CleanupFunc) {

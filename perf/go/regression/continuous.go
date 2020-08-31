@@ -131,7 +131,7 @@ func (c *Continuous) reportRegressions(ctx context.Context, req *RegressionDetec
 		headerLength := len(resp.Frame.DataFrame.Header)
 		midPoint := headerLength / 2
 		commitNumber := resp.Frame.DataFrame.Header[midPoint].Offset
-		details, err := c.perfGit.Details(ctx, commitNumber)
+		details, err := c.perfGit.CommitFromCommitNumber(ctx, commitNumber)
 		if err != nil {
 			sklog.Errorf("Failed to look up commit %d: %s", commitNumber, err)
 			continue
