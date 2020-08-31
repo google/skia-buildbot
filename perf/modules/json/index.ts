@@ -188,7 +188,7 @@ export interface RegressionRangeRequest {
 }
 
 export interface RegressionRow {
-	cid: CommitDetail | null;
+	cid: Commit;
 	columns: (Regression | null)[] | null;
 }
 

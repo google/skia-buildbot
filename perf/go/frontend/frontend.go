@@ -1000,7 +1000,7 @@ type RegressionRangeRequest struct {
 //
 // The Columns have the same order as RegressionRangeResponse.Header.
 type RegressionRow struct {
-	Id      *cid.CommitDetail        `json:"cid"`
+	Id      perfgit.Commit           `json:"cid"`
 	Columns []*regression.Regression `json:"columns"`
 }
 
@@ -1087,23 +1087,16 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	// Get a list of commits for the range.
-	var ids []*cid.CommitID
+	var commits []perfgit.Commit
 	if rr.Subset == SubsetAll {
-		commits, err := f.perfGit.CommitSliceFromTimeRange(r.Context(), time.Unix(rr.Begin, 0), time.Unix(rr.End, 0))
+		commits, err = f.perfGit.CommitSliceFromTimeRange(r.Context(), time.Unix(rr.Begin, 0), time.Unix(rr.End, 0))
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to load git info.", http.StatusInternalServerError)
 			return
 		}
-		ids = make([]*cid.CommitID, len(commits), len(commits))
-		for i, c := range commits {
-			ids[i] = &cid.CommitID{
-				Offset: c.CommitNumber,
-			}
-		}
 	} else {
 		// If rr.Subset == UNTRIAGED_QS or FLAGGED_QS then only get the commits that
 		// exactly line up with the regressions in regMap.
-		ids = make([]*cid.CommitID, 0, len(regMap))
 		keys := []types.CommitNumber{}
 		for k := range regMap {
 			keys = append(keys, k)
@@ -1111,30 +1104,19 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 		sort.Slice(keys, func(i, j int) bool {
 			return keys[i] < keys[j]
 		})
-		for _, key := range keys {
-			c := &cid.CommitID{
-				Offset: key,
-			}
-			if err != nil {
-				httputils.ReportError(w, err, "Got an invalid commit id.", http.StatusInternalServerError)
-				return
-			}
-			ids = append(ids, c)
+		commits, err = f.perfGit.CommitSliceFromCommitNumberSlice(ctx, keys)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to load git info.", http.StatusInternalServerError)
+			return
 		}
-	}
 
-	// Convert the CommitIDs to CommitDetails.
-	cids, err := f.cidl.Lookup(ctx, ids)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to look up commit details", http.StatusInternalServerError)
-		return
 	}
 
 	// Reverse the order of the cids, so the latest
 	// commit shows up first in the UI display.
-	revCids := make([]*cid.CommitDetail, len(cids), len(cids))
-	for i, c := range cids {
-		revCids[len(cids)-1-i] = c
+	revCids := make([]perfgit.Commit, len(commits), len(commits))
+	for i, c := range commits {
+		revCids[len(commits)-1-i] = c
 	}
 
 	categories := categorySet.Keys()
@@ -1153,7 +1135,7 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 			Columns: make([]*regression.Regression, len(headers), len(headers)),
 		}
 		count := 0
-		if r, ok := regMap[types.CommitNumber(cid.Offset)]; ok {
+		if r, ok := regMap[cid.CommitNumber]; ok {
 			for i, h := range headers {
 				key := h.IDAsString
 				if reg, ok := r.ByAlertID[key]; ok {
