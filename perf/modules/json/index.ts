@@ -218,12 +218,8 @@ export interface SkPerfConfig {
 	demo: boolean;
 }
 
-export interface CommitID {
-	offset: CommitNumber;
-}
-
 export interface TriageRequest {
-	cid: CommitID | null;
+	cid: CommitNumber;
 	alert: Alert;
 	triage: TriageStatus;
 	cluster_type: string;

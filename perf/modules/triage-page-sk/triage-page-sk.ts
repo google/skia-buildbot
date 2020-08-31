@@ -443,10 +443,15 @@ export class TriagePageSk extends ElementSk {
 
   private triaged(e: CustomEvent<ClusterSummary2SkTriagedEventDetail>) {
     e.stopPropagation();
-    const body: TriageRequest = Object.assign({}, e.detail, {
-      alert: this.dialogState!.alert!,
-      cluster_type: this.dialogState!.cluster_type!,
-    });
+    const body: TriageRequest = Object.assign(
+      {},
+      {
+        cid: e.detail.cid.offset,
+        triage: e.detail.triage,
+        alert: this.dialogState!.alert!,
+        cluster_type: this.dialogState!.cluster_type!,
+      }
+    );
     this.dialog!.close();
     this._render();
     if (this.triageInProgress) {

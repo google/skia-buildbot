@@ -31,8 +31,8 @@ import {
   ParamSet,
   RegressionDetectionRequest,
   ClusterAlgo,
-  CommitID,
   RangeRequest,
+  Commit,
   CommitDetail,
   ClusterStartResponse,
   ClusterStatus,
@@ -314,7 +314,7 @@ export class ClusterPageSk extends ElementSk {
   private commitSelected(
     e: CustomEvent<CommitDetailPanelSkCommitSelectedDetails>
   ) {
-    this.state.offset = ((e.detail.commit as unknown) as CommitID).offset;
+    this.state.offset = ((e.detail.commit as unknown) as Commit).offset;
     this.stateHasChanged();
   }
 
@@ -351,7 +351,7 @@ export class ClusterPageSk extends ElementSk {
         this.selectedCommitIndex = -1;
         // Look for commit id in this._cids.
         for (let i = 0; i < cids.length; i++) {
-          if (((cids[i] as unknown) as CommitID).offset === this.state.offset) {
+          if (((cids[i] as unknown) as Commit).offset === this.state.offset) {
             this.selectedCommitIndex = i;
             break;
           }
