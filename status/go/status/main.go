@@ -706,6 +706,7 @@ func runServer(serverURL string, srv http.Handler) {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc(login.DEFAULT_OAUTH2_CALLBACK, login.OAuth2CallbackHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
+	r.PathPrefix("/dist/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	taskComments := r.PathPrefix("/json/tasks/{id}").Subrouter()
 	taskComments.HandleFunc("/comments", addTaskCommentHandler).Methods("POST")
 	taskComments.HandleFunc("/comments/{timestamp:[0-9]+}", deleteTaskCommentHandler).Methods("DELETE")
