@@ -470,51 +470,41 @@ type RangeRequest struct {
 // cidRangeHandler accepts a POST'd JSON serialized RangeRequest
 // and returns a serialized JSON slice of cid.CommitDetails.
 func (f *Frontend) cidRangeHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	w.Header().Set("Content-Type", "application/json")
 	var rr RangeRequest
 	if err := json.NewDecoder(r.Body).Decode(&rr); err != nil {
 		httputils.ReportError(w, err, "Failed to decode JSON.", http.StatusInternalServerError)
 		return
 	}
-
-	now := time.Now()
-	begin := now.Add(-24 * time.Hour).Unix()
-	end := now.Unix()
-	var err error
-	if rr.Begin != 0 || rr.End != 0 {
-		if rr.Begin != 0 {
-			begin = rr.Begin
-		}
-		if rr.End != 0 {
-			end = rr.End
-		}
+	begin, err := f.perfGit.CommitNumberFromTime(ctx, time.Unix(rr.Begin, 0))
+	if err != nil || begin == types.BadCommitNumber {
+		httputils.ReportError(w, err, "Failed to find begin commit", http.StatusInternalServerError)
+		return
 	}
-	df, err := dataframe.NewHeaderOnly(r.Context(), f.perfGit, time.Unix(begin, 0), time.Unix(end, 0), false)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to get dataframe.", http.StatusInternalServerError)
+	end, err := f.perfGit.CommitNumberFromTime(ctx, time.Unix(rr.End, 0))
+	if err != nil || end == types.BadCommitNumber {
+		httputils.ReportError(w, err, "Failed to find end commit", http.StatusInternalServerError)
 		return
 	}
 
-	found := false
-	cids := []*cid.CommitID{}
-	for _, h := range df.Header {
-		cids = append(cids, &cid.CommitID{
-			Offset: h.Offset,
-		})
-		if h.Offset == rr.Offset {
-			found = true
+	resp := []perfgit.Commit{}
+	for i := begin; i <= end; i++ {
+		details, err := f.perfGit.Details(ctx, i)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to look up commit", http.StatusInternalServerError)
+			return
 		}
-	}
-	if !found && rr.Offset != types.BadCommitNumber {
-		cids = append(cids, &cid.CommitID{
-			Offset: rr.Offset,
-		})
+		resp = append(resp, details)
 	}
 
-	resp, err := f.cidl.Lookup(context.Background(), cids)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to lookup all commit ids", http.StatusInternalServerError)
-		return
+	if rr.Offset != types.BadCommitNumber {
+		details, err := f.perfGit.Details(ctx, rr.Offset)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to look up commit", http.StatusInternalServerError)
+			return
+		}
+		resp = append(resp, details)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -676,16 +666,22 @@ func (f *Frontend) countHandler(w http.ResponseWriter, r *http.Request) {
 // cidHandler takes the POST'd list of dataframe.ColumnHeaders, and returns a
 // serialized slice of cid.CommitDetails.
 func (f *Frontend) cidHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	w.Header().Set("Content-Type", "application/json")
-	cids := []*cid.CommitID{}
+	cids := []types.CommitNumber{}
 	if err := json.NewDecoder(r.Body).Decode(&cids); err != nil {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
 	}
-	resp, err := f.cidl.Lookup(context.Background(), cids)
-	if err != nil {
-		httputils.ReportError(w, err, "Failed to lookup all commit ids", http.StatusInternalServerError)
-		return
+	resp := make([]perfgit.Commit, len(cids))
+	for i, commitNumber := range cids {
+		details, err := f.perfGit.Details(ctx, commitNumber)
+		if err != nil {
+			httputils.ReportError(w, err, "Failed to lookup all commit ids", http.StatusInternalServerError)
+			return
+
+		}
+		resp[i] = details
 	}
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
@@ -1215,8 +1211,8 @@ func (f *Frontend) regressionCurrentHandler(w http.ResponseWriter, r *http.Reque
 // CommitDetailsRequest is for deserializing incoming POST requests
 // in detailsHandler.
 type CommitDetailsRequest struct {
-	CID     cid.CommitID `json:"cid"`
-	TraceID string       `json:"traceid"`
+	CommitNumber types.CommitNumber `json:"cid"`
+	TraceID      string             `json:"traceid"`
 }
 
 func (f *Frontend) detailsHandler(w http.ResponseWriter, r *http.Request) {
@@ -1230,8 +1226,7 @@ func (f *Frontend) detailsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	name := ""
-	index := types.CommitNumber(dr.CID.Offset)
-	name, err = f.traceStore.GetSource(r.Context(), index, dr.TraceID)
+	name, err = f.traceStore.GetSource(r.Context(), dr.CommitNumber, dr.TraceID)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load details", http.StatusInternalServerError)
 		return

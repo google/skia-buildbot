@@ -82,17 +82,13 @@ export class DayRangeSk extends ElementSk {
     );
   }
 
-  _beginChanged(e: Event) {
-    this.begin = Math.floor(
-      (e.target! as CalendarInputSk).displayDate.valueOf() / 1000
-    );
+  _beginChanged(e: CustomEvent<Date>) {
+    this.begin = Math.floor(e.detail.valueOf() / 1000);
     this._sendEvent();
   }
 
-  _endChanged(e: Event) {
-    this.end = Math.floor(
-      (e.target! as CalendarInputSk).displayDate.valueOf() / 1000
-    );
+  _endChanged(e: CustomEvent<Date>) {
+    this.end = Math.floor(e.detail.valueOf() / 1000);
     this._sendEvent();
   }
 
