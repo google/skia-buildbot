@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"text/template"
 
 	"go.skia.org/infra/go/util"
@@ -48,6 +49,13 @@ Will not overwrite existing files.
 	}
 	name := os.Args[1]
 
+	// Convert the element name, "some-element-sk", into a class name, "SomeElementSk".
+	parts := strings.Split(name, "-")
+	for i, part := range parts {
+		parts[i] = strings.Title(part)
+	}
+	className := strings.Join(parts, "")
+
 	// Create directory for the element. Will fail if the directory already exists.
 	if err := os.Mkdir(filepath.Join(modulesDirectory, name), 0755); err != nil {
 		log.Fatalf("Failed to create element directory: %s", err)
@@ -55,14 +63,15 @@ Will not overwrite existing files.
 
 	context := map[string]string{
 		"ElementName": name,
+		"ClassName":   className,
 	}
 
 	files := map[string]string{
 		"file-demo.html": filepath.Join(modulesDirectory, name, name+"-demo.html"),
-		"file-demo.js":   filepath.Join(modulesDirectory, name, name+"-demo.js"),
-		"file.js":        filepath.Join(modulesDirectory, name, name+".js"),
+		"file-demo.ts":   filepath.Join(modulesDirectory, name, name+"-demo.ts"),
+		"file.ts":        filepath.Join(modulesDirectory, name, name+".ts"),
 		"file.scss":      filepath.Join(modulesDirectory, name, name+".scss"),
-		"index.js":       filepath.Join(modulesDirectory, name, "index.js"),
+		"index.ts":       filepath.Join(modulesDirectory, name, "index.ts"),
 	}
 
 	// Write each file.

@@ -12,17 +12,21 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-const template = (ele) => html`
-<h3>Hello world</h3>
-`;
 
-define('{{.ElementName}}', class extends ElementSk {
+
+export class {{.ClassName}} extends ElementSk {
+  private static const template = (ele) => html`
+    <h3>Hello world</h3>
+  `;
+
   constructor() {
-    super(template);
+    super({{.ClassName}}.template);
   }
 
   connectedCallback() {
     super.connectedCallback();
     this._render();
   }
-});
+};
+
+define('{{.ElementName}}', {{.ClassName}});
