@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "007afac1_59444b9b",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-01T21:35:32Z",
+      "side": 1,
+      "message": "(Oops, accidentally marked this comment as resolved.)",
+      "parentUuid": "6dfef685_da777b34",
+      "revId": "43d0f715a5790abb7137c3e97b75b78dbeb34db2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "7844201d_eb4166fa",
         "filename": "cmd/new_element/Makefile",
         "patchSetId": 9
