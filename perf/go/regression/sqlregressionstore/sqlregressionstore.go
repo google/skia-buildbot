@@ -162,10 +162,11 @@ func (s *SQLRegressionStore) Write(ctx context.Context, regressions map[types.Co
 // write the given Regression into the database at the given commitNumber and
 // alert id.
 func (s *SQLRegressionStore) write(ctx context.Context, commitNumber types.CommitNumber, alertIDString string, r *regression.Regression) error {
-	alertID := alerts.StringToID(alertIDString)
-	if alertID == alerts.BadAlertID {
+	if alertIDString == alerts.BadAlertIDAsAsString {
 		return skerr.Fmt("Failed to convert alertIDString %q to an int.", alertIDString)
 	}
+	alertID := alerts.IDAsStringToInt(alertIDString)
+
 	b, err := json.Marshal(r)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to serialize regression for alertID: %d  commitNumber=%d", alertID, commitNumber)
@@ -179,10 +180,10 @@ func (s *SQLRegressionStore) write(ctx context.Context, commitNumber types.Commi
 // read the Regression from the database at the given commitNumber and alert id.
 // This func is only used in tests.
 func (s *SQLRegressionStore) read(ctx context.Context, commitNumber types.CommitNumber, alertIDString string) (*regression.Regression, error) {
-	alertID := alerts.StringToID(alertIDString)
-	if alertID == alerts.BadAlertID {
+	if alertIDString == alerts.BadAlertIDAsAsString {
 		return nil, skerr.Fmt("Failed to convert alertIDString %q to an int.", alertIDString)
 	}
+	alertID := alerts.IDAsStringToInt(alertIDString)
 	var jsonString string
 	if err := s.db.QueryRow(ctx, statements[read], commitNumber, alertID).Scan(&jsonString); err != nil {
 		return nil, skerr.Wrapf(err, "Failed to read regression for alertID: %d commitNumber=%d", alertID, commitNumber)
@@ -202,10 +203,10 @@ func (s *SQLRegressionStore) read(ctx context.Context, commitNumber types.Commit
 // default Regression will be used and stored back to the database after the
 // callback is called.
 func (s *SQLRegressionStore) readModifyWrite(ctx context.Context, commitNumber types.CommitNumber, alertIDString string, mustExist bool, cb func(r *regression.Regression)) error {
-	alertID := alerts.StringToID(alertIDString)
-	if alertID == alerts.BadAlertID {
+	if alertIDString == alerts.BadAlertIDAsAsString {
 		return skerr.Fmt("Failed to convert alertIDString %q to an int.", alertIDString)
 	}
+	alertID := alerts.IDAsStringToInt(alertIDString)
 
 	// Do everything in a transaction so we don't have any lost updates.
 	tx, err := s.db.Begin(ctx)

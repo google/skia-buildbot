@@ -86,13 +86,13 @@ func New(db *pgxpool.Pool) (*SQLAlertStore, error) {
 
 // Save implements the alerts.Store interface.
 func (s *SQLAlertStore) Save(ctx context.Context, cfg *alerts.Alert) error {
-	cfg.SetIDFromString(cfg.IDAsString)
 	b, err := json.Marshal(cfg)
 	if err != nil {
-		return skerr.Wrapf(err, "Failed to serialize Alert for saving with ID=%d", cfg.ID)
+		return skerr.Wrapf(err, "Failed to serialize Alert for saving with ID=%s", cfg.IDAsString)
 	}
 	now := time.Now().Unix()
-	if cfg.ID == alerts.BadAlertID {
+
+	if cfg.IDAsString == alerts.BadAlertIDAsAsString {
 		newID := alerts.BadAlertID
 		// Not a valid ID, so this should be an insert, not an update.
 		if err := s.db.QueryRow(ctx, statements[insertAlert], string(b), now).Scan(&newID); err != nil {
@@ -100,8 +100,8 @@ func (s *SQLAlertStore) Save(ctx context.Context, cfg *alerts.Alert) error {
 		}
 		cfg.SetIDFromInt64(newID)
 	} else {
-		if _, err := s.db.Exec(ctx, statements[updateAlert], cfg.ID, string(b), cfg.StateToInt(), now); err != nil {
-			return skerr.Wrapf(err, "Failed to update Alert with ID=%d", cfg.ID)
+		if _, err := s.db.Exec(ctx, statements[updateAlert], cfg.IDAsStringToInt(), string(b), cfg.StateToInt(), now); err != nil {
+			return skerr.Wrapf(err, "Failed to update Alert with ID=%s", cfg.IDAsString)
 		}
 	}
 

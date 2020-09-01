@@ -887,7 +887,7 @@ func (f *Frontend) triageHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		uritemplate := defaultBugURLTemplate
 		for _, c := range cfgs {
-			if c.ID == tr.Alert.ID {
+			if c.IDAsString == tr.Alert.IDAsString {
 				uritemplate = c.BugURITemplate
 				break
 			}

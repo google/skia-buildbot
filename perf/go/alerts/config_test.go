@@ -1,7 +1,6 @@
 package alerts
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,24 +15,16 @@ func TestConfig(t *testing.T) {
 	a := NewConfig()
 	assert.Equal(t, "-1", a.IDAsString)
 	a.SetIDFromString("2")
-	assert.Equal(t, int64(2), a.ID)
 	assert.Equal(t, "2", a.IDAsString)
-}
-
-func TestIDToString(t *testing.T) {
-	unittest.SmallTest(t)
-
-	assert.Equal(t, "12", IDToString(12))
-	assert.Equal(t, "-1", IDToString(-1))
 }
 
 func TestStringToID(t *testing.T) {
 	unittest.SmallTest(t)
 
-	assert.Equal(t, int64(-1), StringToID("foo"))
-	assert.Equal(t, int64(12), StringToID("12"))
-	assert.Equal(t, int64(-1), StringToID("-1"))
-	assert.Equal(t, int64(-1), StringToID(""))
+	assert.Equal(t, int64(-1), IDAsStringToInt("foo"))
+	assert.Equal(t, int64(12), IDAsStringToInt("12"))
+	assert.Equal(t, int64(-1), IDAsStringToInt("-1"))
+	assert.Equal(t, int64(-1), IDAsStringToInt(""))
 }
 
 func TestValidate(t *testing.T) {
@@ -281,7 +272,6 @@ func TestSetIDFromInt64_GoodAlertID_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	cfg := NewConfig()
 	cfg.SetIDFromInt64(12)
-	require.Equal(t, int64(12), cfg.ID)
 	require.Equal(t, "12", cfg.IDAsString)
 }
 
@@ -289,6 +279,17 @@ func TestSetIDFromInt64_BadAlertID_Success(t *testing.T) {
 	unittest.SmallTest(t)
 	cfg := NewConfig()
 	cfg.SetIDFromInt64(BadAlertID)
-	require.Equal(t, int64(BadAlertID), cfg.ID)
-	require.Equal(t, fmt.Sprintf("%d", BadAlertID), cfg.IDAsString)
+	require.Equal(t, BadAlertIDAsAsString, cfg.IDAsString)
+}
+
+func TestIDAsStringToInt_ValidID_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Equal(t, int64(12), IDAsStringToInt("12"))
+}
+
+func TestIDAsStringToInt_InvalidID_Success(t *testing.T) {
+	unittest.SmallTest(t)
+
+	assert.Equal(t, BadAlertID, IDAsStringToInt("not-a-number"))
 }

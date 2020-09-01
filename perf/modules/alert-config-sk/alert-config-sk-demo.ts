@@ -26,7 +26,6 @@ const paramset = {
 };
 
 const config: Alert = {
-  id: 1,
   id_as_string: '1',
   sparse: false,
   step_up_only: false,
