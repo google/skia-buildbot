@@ -1,6 +1,7 @@
 (function() {
   require("valid_import");
   // foo
+  // foo (plain CSS)
   // bar
   // path to baz
   // concatenated path
@@ -8,8 +9,8 @@
   // no semicolon
   // indented with tabs
   // not indented
-  console.log('hello'); require('sandwiched.css'); console.log('bye');
-  // require('commented_out.css')
-  console.log(`require('inside_a_string.css');`);
+  console.log('hello'); require('sandwiched.scss'); console.log('bye');
+  // require('commented_out.scss')
+  console.log(`require('inside_a_string.scss');`);
   require("another_valid_import");
 })();
