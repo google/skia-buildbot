@@ -7,5 +7,5 @@ def remove_css_imports_from_js(name, src, out):
         name = name,
         srcs = [src],
         outs = [out],
-        cmd = "sed 's/^[ \t]*require(.*\.css.);\?//' $< > $@",
+        cmd = "sed 's/^[ \t]*require(.*\.[s]\?css.);\?//' $< > $@",
     )
