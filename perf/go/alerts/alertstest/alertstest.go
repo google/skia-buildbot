@@ -20,7 +20,7 @@ func Store_SaveListDelete(t *testing.T, a alerts.Store) {
 	cfg.DisplayName = "bar"
 	err := a.Save(ctx, cfg)
 	assert.NoError(t, err)
-	require.NotEqual(t, alerts.BadAlertID, cfg.ID)
+	require.NotEqual(t, alerts.BadAlertIDAsAsString, cfg.IDAsString)
 
 	// Confirm it appears in the list.
 	cfgs, err := a.List(ctx, false)
@@ -28,14 +28,14 @@ func Store_SaveListDelete(t *testing.T, a alerts.Store) {
 	require.Len(t, cfgs, 1)
 
 	// Delete it.
-	err = a.Delete(ctx, int(cfgs[0].ID))
+	err = a.Delete(ctx, int(cfgs[0].IDAsStringToInt()))
 	assert.NoError(t, err)
 
 	// Confirm it is still there if we list deleted configs.
 	cfgs, err = a.List(ctx, true)
 	assert.NoError(t, err)
 	assert.Len(t, cfgs, 1)
-	require.NotEqual(t, alerts.BadAlertID, cfgs[0].ID)
+	require.NotEqual(t, alerts.BadAlertIDAsAsString, cfgs[0].IDAsString)
 
 	// Confirm it is not there if we don't list deleted configs.
 	cfgs, err = a.List(ctx, false)

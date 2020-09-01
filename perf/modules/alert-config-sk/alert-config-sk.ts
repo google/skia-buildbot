@@ -313,10 +313,7 @@ export class AlertConfigSk extends ElementSk {
   private static _groupByChoices = (ele: AlertConfigSk) => {
     const groups = ele._config.group_by.split(',');
     return ele.paramkeys.map(
-      (p) =>
-        html`
-          <div ?selected=${groups.indexOf(p) !== -1}>${p}</div>
-        `
+      (p) => html`<div ?selected=${groups.indexOf(p) !== -1}>${p}</div>`
     );
   };
 
@@ -333,7 +330,6 @@ export class AlertConfigSk extends ElementSk {
     this._paramset = {};
     this.paramkeys = [];
     this._config = {
-      id: -1,
       id_as_string: '-1',
       display_name: 'Name',
       query: '',

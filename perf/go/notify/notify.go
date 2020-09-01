@@ -106,7 +106,7 @@ func splitEmails(s string) []string {
 // Send a notification for the given cluster found at the given commit. Where to send it is defined in the alerts.Config.
 func (n *Notifier) Send(c perfgit.Commit, alert *alerts.Alert, cl *clustering2.ClusterSummary) error {
 	if alert.Alert == "" {
-		return fmt.Errorf("No notification sent. No email address set for alert #%d", alert.ID)
+		return fmt.Errorf("No notification sent. No email address set for alert #%s", alert.IDAsString)
 	}
 	body, err := n.formatEmail(c, alert, cl)
 	if err != nil {

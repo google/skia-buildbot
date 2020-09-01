@@ -17,6 +17,10 @@ const (
 	// TODO(jcgregorio) Make Alert.ID its own type and BadAlertID and
 	// instance of that type.
 	BadAlertID = int64(-1)
+
+	// BadAlertIDAsString is the value of an Alert.ID if it is invalid, i.e.
+	// hasn't been stored yet.
+	BadAlertIDAsAsString = "-1"
 )
 
 var (
@@ -78,7 +82,6 @@ type Alert struct {
 	// We need to keep the int64 version of the ID around to support Cloud
 	// Datastore. Once everyone migrates to SQL backed datastores it can be
 	// removed.
-	ID             int64                             `json:"id"              `
 	IDAsString     string                            `json:"id_as_string"    `
 	DisplayName    string                            `json:"display_name"    `
 	Query          string                            `json:"query"           ` // The query to perform on the trace store to select the traces to alert on.
@@ -109,8 +112,30 @@ type Alert struct {
 
 // SetIDFromInt64 sets both the integer and string IDs.
 func (c *Alert) SetIDFromInt64(id int64) {
-	c.ID = id
 	c.IDAsString = fmt.Sprintf("%d", id)
+}
+
+// IDAsStringToInt returns the IDAsString as an int64.
+//
+// An invalid alert id (-1) will be returned if the string can't be parsed.
+func (c *Alert) IDAsStringToInt() int64 {
+	return IDAsStringToInt(c.IDAsString)
+}
+
+// IDAsStringToInt returns the IDAsString as an int64.
+//
+// An invalid alert id (-1) will be returned if the string can't be parsed.
+func IDAsStringToInt(s string) int64 {
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return BadAlertID
+	}
+	return i
+}
+
+// IDToString returns the alerts ID formatted as a string.
+func IDToString(id int64) string {
+	return fmt.Sprintf("%d", id)
 }
 
 // StateToInt converts the State into an int which is used when storing Alerts.
@@ -122,24 +147,7 @@ func (c *Alert) StateToInt() int {
 //
 // An invalid alert id (-1) will be set if the string can't be parsed.
 func (c *Alert) SetIDFromString(s string) {
-	c.ID = StringToID(s)
 	c.IDAsString = s
-}
-
-// IDToString returns the alerts ID formatted as a string.
-func IDToString(alertID int64) string {
-	return strconv.FormatInt(alertID, 10)
-}
-
-// StringToID returns the int64 alert ID of the parsed value of the string.
-//
-// An invalid alert id (-1) will be returned if the string can't be parsed.
-func StringToID(s string) int64 {
-	i, err := strconv.ParseInt(s, 10, 64)
-	if err != nil {
-		return -1
-	}
-	return i
 }
 
 // GroupedBy returns the parsed GroupBy value as a slice of strings.
@@ -305,7 +313,6 @@ func (c *Alert) Validate() error {
 // NewConfig creates a new Config properly initialized.
 func NewConfig() *Alert {
 	return &Alert{
-		ID:                BadAlertID,
 		IDAsString:        fmt.Sprintf("%d", BadAlertID),
 		Algo:              types.KMeansGrouping,
 		StateAsString:     ACTIVE,
