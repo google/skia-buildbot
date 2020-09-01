@@ -246,6 +246,14 @@ The main application element for the Skia Debugger.
       padding: 0.2em;
     }
 
+    #histogram tr:hover {
+      background-color: #eee;
+    }
+
+    #histogram tr.pinkBackground {
+      background-color: #ffc9db;
+    }
+
     zoom-sk {
       display: inline-block;
       margin-top: 1em;
@@ -305,6 +313,10 @@ The main application element for the Skia Debugger.
 
     #file_input {
       width: 100%;
+    }
+
+    .range-input {
+      width: 4em;
     }
 
     .delay-input {
@@ -373,7 +385,10 @@ The main application element for the Skia Debugger.
           <div class="layout horizontal">
             <paper-input id="fast" on-change="_fastFilter" label="Filter
               (Leading ! means remove matches)" placeholder="!save restore"
-              class=flex></paper-input>
+              class=flex></paper-input>&nbsp;
+            <paper-input id="rangeLow" on-change="_applyRangeFilter" label="Range" class=range-input placeholder="0"></paper-input>
+            <span style="font-size: 2.5em; margin-top: 0.8em">:</span>
+            <paper-input id="rangeHigh" on-change="_applyRangeFilter" class=range-input placeholder="100"></paper-input>
             <button id=clear on-tap=_clearFilter>Clear</button>
           </div>
           <div class="layout horizontal">
@@ -438,6 +453,7 @@ The main application element for the Skia Debugger.
             </summary-sk>
             <paper-checkbox title="Show a semi-transparent teal overlay on the areas within the current clip." id=clip class="clipcheckbox" on-change="_clipHandler">Show Clip</paper-checkbox>
             <paper-checkbox title="Show a semi-transparent peach overlay on the areas within the current andorid device clip restriction. This is set at the beginning of each frame and recorded in the DrawAnnotation Command labeled AndroidDeviceClipRestriction" id=androidclip class="clipcheckbox" on-change="_androidClipHandler">Show Android Device Clip Restriction</paper-checkbox>
+            <paper-checkbox title="Show the origin of the coordinate space defined by the current matrix." id=origin class="clipcheckbox" on-change="_originHandler">Show Origin</paper-checkbox>
             <dbg-info-sk info="[[ info ]]"></dbg-info-sk>
           </details-sk>
           <details-sk id=gpuOpBoundsLegend class=hidden>
@@ -455,12 +471,12 @@ The main application element for the Skia Debugger.
             <summary-sk>
               Histogram
             </summary-sk>
-            <table>
               <template is="dom-repeat" items="[[histogram]]">
-                <tr><td class=countCol>[[item.count]]</td><td>[[item.name]]</td></tr>
+                <button on-tap="_clickedHistogramRow" class$="[[_histogramRowClass(item)]]">
+                  [[item.count]] [[item.name]]
+                </button>
               </template>
-              <tr><td class=countCol>[[_filtered.commands.length]]</td><td><b>Total</b></td></tr>
-            </table>
+              <div class=countCol>[[_filtered.commands.length]] Total</div>
           </details-sk>
           <dl>
             <dt>Postion</dt>
@@ -819,6 +835,7 @@ The main application element for the Skia Debugger.
         // Set player clip and overdraw setting to match UI selection, but don't update view yet.
         this._clipHandler(false);
         this._androidClipHandler(false);
+        this._originHandler(false);
         this._overdrawHandler(false);
         this._gpuOpBounds();
         this.fileVersion = this._player.fileVersion();
@@ -833,8 +850,9 @@ The main application element for the Skia Debugger.
         } else {
           this.$.multi_frame_controls.hidden = true;
         }
-        // Request and parse command list for this frame
+        // Clear state that depends on command list.
         this.jsonCommandListCache = {};
+        // Request and parse command list for this frame
         this._setCommands();
         this._moveToLastFilteredCommand();
         this.$.zoom.allow_draw = true;
@@ -978,73 +996,93 @@ The main application element for the Skia Debugger.
 
       // consider putting these filter functions in the commands element
       _clearFilter()  {
-        this.$.fast.value = '';
-        this._fastFilter();
+        //this.excludedCommandNames = {};
+
+        this.$.rangeLow.value = 0;
+        this.$.rangeHigh.value = this._cmd.commands.length-1;
+
+        this._applyRangeFilter();
+        // todo apply new filters
+        //this.$.fast.value = '';
+        //this._fastFilter();
       },
 
-      _fastFilter() {
-        let rawFilter = this.$.fast.value.trim().toLowerCase();
-        if (rawFilter.indexOf(':') > 0) {
-          // This is a range filter, e.g. '3:21'.
-          this._rangeFilter(rawFilter);
-        } else {
-          // Text filter, e.g. '!save restore'.
-          this._textFilter(rawFilter);
+      // _fastFilter() {
+      //   let rawFilter = this.$.fast.value.trim().toLowerCase();
+      //   if (rawFilter.indexOf(':') > 0) {
+      //     // This is a range filter, e.g. '3:21'.
+      //     this._rangeFilter(rawFilter);
+      //   } else {
+      //     // Text filter, e.g. '!save restore'.
+      //     this._textFilter(rawFilter);
+      //   }
+      // },
+
+      // _applyRangeFilter() {
+
+      //   this._applyCommandFilter();
+      // },
+
+      // _applyCommandFilter() {
+
+      // },
+
+      // Applies range filter and recalculates command name histogram.
+      // The range filter is the first filter applied. The histogram shows any command that passes the
+      // range filter, and shows a nonzero count for any command that passes the command filter.
+      _applyRangeFilter() {
+        let begin = this.$.rangeLow.value;
+        let end = this.$.rangeHigh.value;
+        let filtered = [];
+        let counts = {}; // Tally of each command.
+        for (let i = begin; i <= end; i++) {
+          let c = this._cmd.commands[i];
+          const name = c.details.command;
+          counts[name] = (counts[name] || 0) + 1;
+          filtered.push(c);
         }
+
+        // Histogram only needs to change when the range filter changes.
+        this.histogram = this._formatHistogram(counts);
+        this.rangeFilteredCommands = filtered;
+
+        this._applyCommandFilter();
       },
 
-      _rangeFilter(rawFilter) {
-        let parts = rawFilter.split(':');
-        if (parts.length !== 2) {
-          showPopupError('Range filters are of the form "N:M".');
-          return
-        }
-        let begin = +parts[0];
-        let end = +parts[1];
+      // Starting with the current rangeFilteredCommands, apply the command filter and
+      // set the filtered list to be visible.
+      _applyCommandFilter() {
         let filtered = {
           version: 1,
           commands: [],
         };
-        this._cmd.commands.forEach((c, i) => {
-          if (i >= begin && i <= end) {
+
+        this.rangeFilteredCommands.forEach((c) => {
+          // excludedCommandNames is the single source of truth for the command filter.
+          //if (!(c.details.command.toLowerCase() in this.excludedCommandNames)) {
             filtered.commands.push(c);
-          }
+          //}
         });
+
+        console.log('commands that pass filter '+filtered.commands.length);
         this._setFiltered(filtered);
       },
 
-      _textFilter(rawFilter) {
-        let negative = (rawFilter[0] == '!');
-        if (negative) {
-          rawFilter = rawFilter.slice(1).trim();
-        }
-        let filters = rawFilter.split(/\s+/);
-        let matches = function(s) {
-          s = s.toLowerCase();
-          for (let i = 0; i < filters.length; i++) {
-            if (negative) {
-              if (s.indexOf(filters[i]) >= 0) {
-                return false;
-              }
-            } else {
-              if (s.indexOf(filters[i]) >= 0) {
-                return true;
-              }
-            }
-          }
-          return negative;
-        };
-        let filtered = {
-          version: 1,
-          commands: [],
-        };
-        this._cmd.commands.forEach((c) => {
-          if (matches(JSON.stringify(c.details).toLowerCase())) {
-            filtered.commands.push(c);
-          }
-        });
-        this._setFiltered(filtered);
-      },
+      // // Parse a text filter into a list of excluded commands, return the set of excluded commands as a map
+      // _parseTextFilter(rawFilter) {
+      //   let negative = (rawFilter[0] == '!');
+      //   if (negative) {
+      //     rawFilter = rawFilter.slice(1).trim();
+      //   } else {
+      //     console.log('todo non negative filter');
+      //     return;
+      //   }
+      //   excluded = {}
+      //   for (const token of rawFilter.split(/\s+/)) {
+      //     excluded[token.toLowerCase()] = 1;
+      //   }
+      //   return excluded;
+      // },
 
       _setCommands() {
         // Cache only holds the regular frame's commands, not layers.
@@ -1058,8 +1096,12 @@ The main application element for the Skia Debugger.
             version: 1,
             commands: this._cmd.commands.slice(),
           };
-          this._setFiltered(filtered);
+          
+          this.$.rangeLow.value = 0;
+          this.$.rangeHigh.value = this._cmd.commands.length-1;
+          this._applyRangeFilter();
         }
+        this.$.histogram.classList.remove('hidden');
         this._setLayerList();
       },
 
@@ -1073,6 +1115,10 @@ The main application element for the Skia Debugger.
         this._targetItem = this._filtered.commands.length - 1;
         this._moveToTargetItem();
       },
+
+      // The following functions accept a boolean update argument meaning:
+      // After making these changes, tell the wasm binary to redraw the debugger view.
+      // Callers handling that themselves should pass false.
 
       _clipHandler(update=true) {
         if(this.$.clip.checked) {
@@ -1089,6 +1135,17 @@ The main application element for the Skia Debugger.
 
       _androidClipHandler(update=true) {
         this._player.setAndroidClipViz(this.$.androidclip.checked);
+        if (update) {
+          this._updateDebuggerView();
+        }
+      },
+
+      _originHandler(update=true) {
+        if(this.$.origin.checked) {
+          this._player.setOriginVisible(true);
+        } else {
+          this._player.setOriginVisible(false);
+        }
         if (update) {
           this._updateDebuggerView();
         }
@@ -1276,7 +1333,6 @@ The main application element for the Skia Debugger.
         let commands = cmd.commands;
         let depth = 0;
         let prefixes = []; // A stack of indenting commands
-        let counts = {}; // Tally of each command.
         let matchup = []; // Match up saves and restores.
         let layeruse = {} // A Map from layer ids to command indices.
         let renderNodeRe = /^RenderNode\(id=([0-9]+), name='([A-Za-z0-9_]+)'\)/;
@@ -1288,7 +1344,6 @@ The main application element for the Skia Debugger.
           commands[i]._depth = depth;
           commands[i]._prefix = this._deepCopy(prefixes);
           let name = commands[i].details.command;
-          counts[name] = (counts[name] || 0) + 1;
           if (name in INDENTERS) {
             depth++;
 
@@ -1339,18 +1394,26 @@ The main application element for the Skia Debugger.
         }
 
         this.layerUseEvents = layeruse;
+        return cmd;
+      },
 
-        // Calculate the histogram of the ops.
-        // First convert the object into an Array of objects.
+      // Take a map of names to counts and produce the formatted histogram array that controls
+      // the histogram template.
+      // this function should remain insensitive to changes to the command filter and depend only on it's argument.
+      _formatHistogram(counts) {
+        // First convert the counts map into an Array of objects.
         let histogram = [];
         for (const k in counts) {
           histogram.push({
             name: k,
+            // record the count of this command in the current filtered range, pre command filter.
             count: counts[k],
+            included: true,
           });
         }
-        // Now sort the array, descending on the count, ascending
+        // Now sort the array, descending on the rangeCount, ascending
         // on the op name.
+        // sort by rangeCount so entries don't move on enable/disable
         histogram.sort(function(a,b) {
           if (a.count == b.count) {
             if (a.name < b.name) {
@@ -1364,10 +1427,7 @@ The main application element for the Skia Debugger.
             return b.count - a.count;
           }
         });
-        this.histogram = histogram;
-        this.$.histogram.classList.remove('hidden');
-
-        return cmd;
+        return histogram;
       },
 
       // refresh the layer list from the player any time playback stops on a frame.
@@ -1504,6 +1564,31 @@ The main application element for the Skia Debugger.
 
       closePopupError(e) {
         this.$.errorDialog.close();
+      },
+
+      _clickedHistogramRow(e) {
+        const name = e.model.item.name.toLowerCase();
+        console.log('_clickedHistogramRow '+name);
+        e.model.set('item.included', !e.model.item.included);
+        this._applyCommandFilter();
+        // setTimeout(() => {
+        //   this.notifyPath('histogram');
+        //   console.log('dammit wake up angular');
+        // }, 0);
+       e.model.notifyPath('item');
+        //e.model.notifyPath('excludedCommandNames');
+      },
+
+      // return name of class to apply to histogram tr tag based on which item it shows
+      // it seems as if nothing will make polymer update the template and call this function
+      // try putting excluded command status inside histogram and get rid of this.excludedCommandNames
+      _histogramRowClass(item) {
+        const style = '';
+        if (!item.included) {
+          style = 'pinkBackground';
+        }
+        console.log('-- '+ item.name + ' ' + style);
+        return style
       },
     }); // end of Polymer(
   })(); // end of the declaration of an anonymous function, called.

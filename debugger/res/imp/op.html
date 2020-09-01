@@ -130,7 +130,7 @@
         </template>
         <span>{{ op.details.command }}</span>
         <template is="dom-if" if="{{ op._zoom }}">
-          <button class=zoom on-tap=_zoom>Zoom</button>
+          <button class=zoom on-tap=_zoom title="Filter to commands between this save/restore pair">Zoom</button>
         </template>
         <code>{{op.details.shortDesc }}</code>
         <template is="dom-repeat" items="{{ _fixList(op.details.auditTrail.Ops) }}" as=gpuOp>
