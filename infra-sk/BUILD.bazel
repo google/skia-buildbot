@@ -1,38 +1,16 @@
-package(default_visibility=["//visibility:public"])
-
 load("@build_bazel_rules_nodejs//internal/npm_install:npm_umd_bundle.bzl", "npm_umd_bundle")
 load("@io_bazel_rules_sass//:defs.bzl", "sass_library")
-load("//infra-sk/css_to_scss:index.bzl", "css_to_scss")
 load("//infra-sk/remove_css_imports_from_js:index.bzl", "remove_css_imports_from_js")
+
+package(default_visibility=["//visibility:public"])
 
 #################################
 # Sass library for elements-sk. #
 #################################
 
-ELEMENTS_SK_CSS = glob(["node_modules/elements-sk/**/*.css"])
-ELEMENTS_SK_SCSS = [css.replace(".css", ".scss") for css in ELEMENTS_SK_CSS]
-
-# The Sass compiler (and by extension the sass_binary rule) does not inline plain CSS (non-Sass)
-# files imported with the @import rule[1], so we transform the elements-sk CSS stylesheets into Sass
-# via the css_to_scss macro, which changes their extension and replaces `@import url(foo.css)` rules
-# with Sass `@use "foo.scss"` rules.
-#
-# As an alternative, we could rewrite the elements-sk stylesheets in Sass and distribute both the
-# *.scss and transpiled *.css files in the NPM package.
-#
-# [1] https://sass-lang.com/documentation/at-rules/import#plain-css-imports
-[
-    css_to_scss(
-        name = "elements-sk_%s_generator" % css.replace("/", "__").replace(".css", ".scss"),
-        src = css,
-        out = css.replace(".css", ".scss")
-    )
-    for css in ELEMENTS_SK_CSS
-]
-
 sass_library(
     name = "elements-sk_scss",
-    srcs = ELEMENTS_SK_SCSS,
+    srcs = glob(["node_modules/elements-sk/**/*.scss"]),
 )
 
 # The UMD bundles below are only necessary for karma_mocha_test and karma_web_test BUILD targets,
@@ -85,24 +63,24 @@ ELEMENTS_SK_MODULES = [
         entry_point = "@infra-sk_npm//:node_modules/elements-sk/%s.js" % module,
         package = "@infra-sk_npm//elements-sk",
         excluded = [
-            # The npm_umd_bundle rule fails with e.g. "Error: Cannot find module './spinner-sk.css'"
-            # when it encounters CSS modules imported from JavaScript code, e.g.
-            # "import './spinner-sk.css'", because it treats all imports as JavaScript imports.
-            # Excluding any imported CSS modules prevents said erros.
-            "./buttons.css",
-            "./checkbox-sk.css",
-            "./collapse-sk.css",
-            "./icon-sk.css",
-            "./multi-select-sk.css",
-            "./nav-links-sk.css",
-            "./radio-sk.css",
-            "./select.css",
-            "./select-sk.css",
-            "./spinner-sk.css",
-            "./table.css",
-            "./tabs-panel-sk.css",
-            "./tabs-sk.css",
-            "./toast-sk.css",
+            # The npm_umd_bundle rule fails with e.g. "Error: Cannot find module './buttons.scss'"
+            # when it encounters Sass/CSS modules imported from JavaScript code, e.g.
+            # "import './buttons.css'", because it treats all imports as JavaScript imports.
+            # Excluding any imported Sass/CSS modules prevents said erros.
+            "./buttons.scss",
+            "./checkbox-sk.scss",
+            "./collapse-sk.scss",
+            "./icon-sk.scss",
+            "./multi-select-sk.scss",
+            "./nav-links-sk.scss",
+            "./radio-sk.scss",
+            "./select.scss",
+            "./select-sk.scss",
+            "./spinner-sk.scss",
+            "./table.scss",
+            "./tabs-panel-sk.scss",
+            "./tabs-sk.scss",
+            "./toast-sk.scss",
         ],
     )
     for module in ELEMENTS_SK_MODULES

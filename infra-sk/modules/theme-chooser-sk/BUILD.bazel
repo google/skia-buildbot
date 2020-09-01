@@ -71,6 +71,7 @@ sass_binary(
     src = "theme-chooser-sk-demo.scss",
     deps = [":styles"],
     output_style = "expanded",
+    sourcemap_embed_sources = False,
 )
 
 # Inspired by
