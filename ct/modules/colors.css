@@ -5,7 +5,7 @@
 
     @import '../colors';
 */
-@import '~elements-sk/themes/themes.css';
+@import '~elements-sk/themes/themes';
 
 
 /* Use the default theme except for the primary colors, and we'll use
