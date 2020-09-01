@@ -39,8 +39,8 @@
     "webpack-dev-server": "~3.11.0"
   },
   "dependencies": {
-    "lit-html": "^1.2.1",
     "common-sk": "^3.4.0",
-    "elements-sk": "^3.3.1"
+    "elements-sk": "^4.0.0",
+    "lit-html": "^1.2.1"
   }
 }

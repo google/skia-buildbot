@@ -14,7 +14,7 @@
     "@webcomponents/custom-elements": "~1.4.1",
     "common-sk": "~3.4.0",
     "dialog-polyfill": "^0.5.1",
-    "elements-sk": "~3.3.1",
+    "elements-sk": "^4.0.0",
     "html-webpack-inject-attributes-plugin": "^1.0.3",
     "lit-html": "~1.2.1"
   },
