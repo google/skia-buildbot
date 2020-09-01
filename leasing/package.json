@@ -14,7 +14,6 @@
     "copy-webpack-plugin": "~5.0.4",
     "css-loader": "^3.5.3",
     "cssnano": "^3.10.0",
-    "elements-sk": "^3.0.1",
     "eslint": "^6.8.0",
     "html-loader": "^0.5.5",
     "html-webpack-inject-attributes-plugin": "^1.0.1",
@@ -39,5 +38,8 @@
     "webpack": "^4.40.2",
     "webpack-cli": "~3.3.9",
     "webpack-dev-server": "^3.8.1"
+  },
+  "dependencies": {
+    "elements-sk": "^4.0.0"
   }
 }

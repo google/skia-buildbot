@@ -40,9 +40,9 @@
   "author": "",
   "license": "",
   "dependencies": {
-    "task-driver-skia": "file:webpack",
     "common-sk": "^3.4.1",
-    "elements-sk": "^3.3.4",
-    "lit-html": "^1.1.2"
+    "elements-sk": "^4.0.0",
+    "lit-html": "^1.1.2",
+    "task-driver-skia": "file:webpack"
   }
 }

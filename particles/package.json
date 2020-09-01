@@ -7,7 +7,7 @@
   "dependencies": {
     "@webcomponents/custom-elements": "^1.2.1",
     "common-sk": "~3.1.0",
-    "elements-sk": "3.0.1",
+    "elements-sk": "^4.0.0",
     "jsoneditor": "~5.24.3",
     "lit-html": "~1.0.0"
   },
