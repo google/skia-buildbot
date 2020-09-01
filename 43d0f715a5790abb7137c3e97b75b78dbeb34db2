@@ -1,0 +1,314 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6dfef685_da777b34",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 9
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-01T21:34:43Z",
+      "side": 1,
+      "message": "Two ideas (feel free to disregard):\n\n1) Add a //go:generate comment in main.go to regenerate the example module. This will report any unwanted diffs in Infra-PerCommit-Large and will ensure the example module is always kept up-to-date.\n\n2) Include the generated Karma and Puppeteer tests in Infra-PerCommit-Medium and Infra-PerCommit-Puppeteer, respectively, by adding files package.json, webpack.config.ts, and karma.conf.ts to //cmd/new_element, and updating the test-frontend-ci target in //Makefile and the //puppeteer-tests/docker/run-tests.sh script to run said tests. This (in combination with the above suggestion) will ensure the generated code is always valid.",
+      "revId": "43d0f715a5790abb7137c3e97b75b78dbeb34db2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7844201d_eb4166fa",
+        "filename": "cmd/new_element/Makefile",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-01T21:34:43Z",
+      "side": 1,
+      "message": "Nit: blank lines.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 0
+      },
+      "revId": "43d0f715a5790abb7137c3e97b75b78dbeb34db2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ce4a8894_a9ed49b0",
+        "filename": "cmd/new_element/Makefile",
+        "patchSetId": 9
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-01T21:34:43Z",
+      "side": 1,
+      "message": "Can this be turned into a //go:generate comment inside main.go or a separate generate.go file?\n\n  //go:generate rice embed-go\n\nThis would be preferable as any unwanted diffs would be surfaced in the Infra-PerCommit-Large task, and it would guarantee that the rice box and the templates are always in sync.",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 14
+      },
+      "revId": "43d0f715a5790abb7137c3e97b75b78dbeb34db2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5a7042e7_880e6687",
+        "filename": "cmd/new_element/main.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-01T21:34:43Z",
+      "side": 1,
+      "message": "Nit: line length.",
+      "range": {
+        "startLine": 1,
+        "startChar": 96,
+        "endLine": 1,
+        "endChar": 106
+      },
+      "revId": "43d0f715a5790abb7137c3e97b75b78dbeb34db2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4417a382_798dbf0b",
+        "filename": "cmd/new_element/templates/file-demo.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-01T21:34:43Z",
+      "side": 1,
+      "message": "I suspect the TypeScript compiler will complain about not using the \"?.\" operator here. Same below.",
+      "range": {
+        "startLine": 3,
+        "startChar": 42,
+        "endLine": 3,
+        "endChar": 43
+      },
+      "revId": "43d0f715a5790abb7137c3e97b75b78dbeb34db2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "89d6c433_f821fd62",
+        "filename": "cmd/new_element/templates/file_puppeteer_test.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-01T21:34:43Z",
+      "side": 1,
+      "message": "Note that this is Gold-specific. You\u0027ll probably want to base this template off a Puppeteer test from e.g. Perf, which follows the same style as most other non-Gold Puppeteer tests.\n\nSee e.g. http://cs/skia/buildbot/perf/modules/calendar-input-sk/calendar-input-sk_puppeteer_test.ts?rcl\u003d4cbfff6d6e4d23a552981218a64fd2fa0c657eef.",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 3,
+        "endChar": 77
+      },
+      "revId": "43d0f715a5790abb7137c3e97b75b78dbeb34db2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49ed5704_1944d33e",
+        "filename": "cmd/new_element/templates/file_puppeteer_test.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-01T21:34:43Z",
+      "side": 1,
+      "message": "Note that some apps use a different prefix (e.g. http://cs/skia/buildbot/am/webpack.config.ts?l\u003d13\u0026rcl\u003d83c07f5277ead43e9bf9a1c9347d8bd6dd79f5d8). We should probably standardize at some point.",
+      "range": {
+        "startLine": 11,
+        "startChar": 48,
+        "endLine": 11,
+        "endChar": 52
+      },
+      "revId": "43d0f715a5790abb7137c3e97b75b78dbeb34db2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "b4583c71_ce23be24",
+        "filename": "cmd/new_element/templates/file_puppeteer_test.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-01T21:34:43Z",
+      "side": 1,
+      "message": "I think we can probably remove this comment, or maybe add it to the test name if you think will help the reader, e.g.\n\n  it(\u0027should render the demo page (smoke test)\u0027, ...);",
+      "range": {
+        "startLine": 15,
+        "startChar": 4,
+        "endLine": 15,
+        "endChar": 18
+      },
+      "revId": "43d0f715a5790abb7137c3e97b75b78dbeb34db2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b647f84_c6d6b3d8",
+        "filename": "cmd/new_element/templates/file_puppeteer_test.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-01T21:34:43Z",
+      "side": 1,
+      "message": "Should we turn this into a command-line argument?",
+      "range": {
+        "startLine": 23,
+        "startChar": 7,
+        "endLine": 23,
+        "endChar": 32
+      },
+      "revId": "43d0f715a5790abb7137c3e97b75b78dbeb34db2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "387a760d_1535a233",
+        "filename": "cmd/new_element/templates/file_test.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-01T21:34:43Z",
+      "side": 1,
+      "message": "Most tests use Chai \"expect\"-style assertions:\n\n  import { expect } from \u0027chai\u0027;",
+      "revId": "43d0f715a5790abb7137c3e97b75b78dbeb34db2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e789f02_e944c623",
+        "filename": "cmd/new_element/templates/file_test.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-01T21:34:43Z",
+      "side": 1,
+      "message": "let element: {{.ClassName}};",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 14
+      },
+      "revId": "43d0f715a5790abb7137c3e97b75b78dbeb34db2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "22f62f55_8959d18a",
+        "filename": "cmd/new_element/templates/file_test.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-01T21:34:43Z",
+      "side": 1,
+      "message": "el: {{.ClassName}}",
+      "range": {
+        "startLine": 10,
+        "startChar": 27,
+        "endLine": 10,
+        "endChar": 29
+      },
+      "revId": "43d0f715a5790abb7137c3e97b75b78dbeb34db2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f79a0850_467b2e09",
+        "filename": "cmd/new_element/templates/file_test.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-01T21:34:43Z",
+      "side": 1,
+      "message": "I\u0027d make this a bit more specific, e.g.:\n\n      // Place here any code that must run after the element is instantiated but before it is \n      // attached to the DOM (e.g. property setter calls, document-level event listeners, etc.).",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 56
+      },
+      "revId": "43d0f715a5790abb7137c3e97b75b78dbeb34db2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8e214122_7341297d",
+        "filename": "cmd/new_element/templates/file_test.ts",
+        "patchSetId": 9
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-01T21:34:43Z",
+      "side": 1,
+      "message": "I would include an example test case using a Chai assertion, e.g.\n\n  // Example test. \n  it(\u0027should be instantiated\u0027, () \u003d\u003e {\n    expect(element).to.not.be.null;\n  });",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 5
+      },
+      "revId": "43d0f715a5790abb7137c3e97b75b78dbeb34db2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
