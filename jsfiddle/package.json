@@ -2,7 +2,7 @@
   "dependencies": {
     "@webcomponents/custom-elements": "~1.2.0",
     "common-sk": "~3.1.0",
-    "elements-sk": "3.0.1",
+    "elements-sk": "^4.0.0",
     "lit-html": "~1.0.0-rc.2"
   },
   "devDependencies": {
