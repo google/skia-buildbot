@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "2ef60e81_3391830c",
+        "filename": "golden/modules/last-commit-sk/last-commit-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-02T18:27:02Z",
+      "side": 1,
+      "message": "Maybe. I\u0027m not sure if there always is a space or not though. I think the extra space is harmless.",
+      "parentUuid": "2cc3710f_d043c15e",
+      "range": {
+        "startLine": 41,
+        "startChar": 29,
+        "endLine": 41,
+        "endChar": 32
+      },
+      "revId": "86b45a987902df75b57e02d767f7e5dfd0305e79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "36d1f9b7_93cab007",
         "filename": "golden/modules/last-commit-sk/last-commit-sk.js",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2020-09-02T18:12:56Z",
       "side": 1,
       "message": "You\u0027ll probably want to call clearTimeout() from disconnectedCallback() to avoid any potential JS errors on the browser console or stray network requests after the element is detached from the DOM.\n\nTypically we would see such errors on the Karma test runner browser console.",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 45
+      },
+      "revId": "86b45a987902df75b57e02d767f7e5dfd0305e79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "50e7035c_9e3c42ec",
+        "filename": "golden/modules/last-commit-sk/last-commit-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-02T18:27:02Z",
+      "side": 1,
+      "message": "I considered that, which is why I added the check on line 61. It should be the same protection, right?",
+      "parentUuid": "36d1f9b7_93cab007",
       "range": {
         "startLine": 69,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7b97d27a_a133ce70",
+        "filename": "golden/modules/last-commit-sk/last-commit-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-02T18:27:02Z",
+      "side": 1,
+      "message": "The original code also used setTimeout over setInterval for the reason of not overloading the servers. Imagine the server is under load and can\u0027t handle the requests fast enough. If the code were setInterval, multiple requests would start stacking up. With setTimeout, we only re-request after our request returns.\n\nI\u0027ll add that decision as a comment.",
+      "parentUuid": "0de78992_7235e5ce",
+      "range": {
+        "startLine": 74,
+        "startChar": 10,
+        "endLine": 74,
+        "endChar": 45
+      },
+      "revId": "86b45a987902df75b57e02d767f7e5dfd0305e79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "264101ff_a49b0932",
         "filename": "golden/modules/last-commit-sk/last-commit-sk_puppeteer_test.ts",
         "patchSetId": 2
@@ -85,6 +157,24 @@
       "revId": "86b45a987902df75b57e02d767f7e5dfd0305e79",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6510bf2_f34e5181",
+        "filename": "golden/modules/last-commit-sk/last-commit-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-02T18:27:02Z",
+      "side": 1,
+      "message": "Sure - I\u0027ll move the test I added in the followup CL here.",
+      "parentUuid": "264101ff_a49b0932",
+      "revId": "86b45a987902df75b57e02d767f7e5dfd0305e79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
