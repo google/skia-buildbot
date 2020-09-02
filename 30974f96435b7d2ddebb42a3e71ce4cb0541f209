@@ -16,6 +16,184 @@
       "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "731cc488_c5eb7404",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 19
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T19:29:31Z",
+      "side": 1,
+      "message": "Thanks, looks great!",
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "006fa835_6cdfe0e1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 19
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T19:29:31Z",
+      "side": 1,
+      "message": "npx webpack --mode\u003dproduction is failing because in the absence of a \"pages\" directory, there are no Webpack entry points defined.\n\nThis can be solved by e.g. defining an index page:\n\n  //new_element/pages/index.html\n\n  \u003c!DOCTYPE html\u003e\n  \u003chtml\u003e\n  \u003chead\u003e\n    \u003ctitle\u003eExample page\u003c/title\u003e \n  \u003c/head\u003e\n  \u003cbody\u003e\n  \u003cexample-control-sk\u003e\u003c/example-control-sk\u003e\n  \u003c/body\u003e\n  \u003c/html\u003e\n\n  //new_element/pages/index.ts\n\n  import \u0027../modules/example-control-sk\u0027;",
+      "parentUuid": "f4d23088_a110ee16",
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0f61ec4a_9e1abb94",
+        "filename": "Makefile",
+        "patchSetId": 19
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T19:29:31Z",
+      "side": 1,
+      "message": "Ubernit: Please keep this and the below change sorted.",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 110,
+        "endChar": 44
+      },
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f23c7c1c_c4cfbb11",
+        "filename": "new_element/Makefile",
+        "patchSetId": 19
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T19:29:31Z",
+      "side": 1,
+      "message": "Does it make sense / is it possible to include this in the go.mod file?\n\n(Apologies in advance if the question is nonsensical, I\u0027m not well versed in Go modules.)",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 42
+      },
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "338d66e6_d3c1463e",
+        "filename": "new_element/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T19:29:31Z",
+      "side": 1,
+      "message": "Should we include a comment to generate the rice box as well?\n\n  //go:generate rice embed-go",
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8697b4c2_8eab3287",
+        "filename": "new_element/modules/json/index.ts",
+        "patchSetId": 19
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T19:29:31Z",
+      "side": 1,
+      "message": "Delete this file?",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 53
+      },
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "832260b1_5840ce98",
+        "filename": "new_element/templates/file.ts",
+        "patchSetId": 19
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T19:29:31Z",
+      "side": 1,
+      "message": "Nit: modules.",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8fc4b5d_e105cec5",
+        "filename": "new_element/templates/file.ts",
+        "patchSetId": 19
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T19:29:31Z",
+      "side": 1,
+      "message": "Nit: Please add a line return.",
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "74ca49a6_479beaa0",
+        "filename": "new_element/templates/file_test.ts",
+        "patchSetId": 19
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T19:29:31Z",
+      "side": 1,
+      "message": "Nit: Two superfluous line returns.",
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
