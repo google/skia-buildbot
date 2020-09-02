@@ -38,6 +38,8 @@ exclude (
 	k8s.io/client-go v9.0.0+incompatible // #2
 )
 
+replace go.larrymyers.com/protoc-gen-twirp_typescript => github.com/s19-tech/protoc-gen-twirp_typescript v0.0.0-20191017103916-3ccab48e3ce6
+
 require (
 	cloud.google.com/go v0.63.0
 	cloud.google.com/go/bigtable v1.5.0
@@ -52,18 +54,15 @@ require (
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/OneOfOne/struct2ts v1.0.4 // indirect
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/a8m/envsubst v1.2.0
-	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/andybalholm/cascadia v1.2.0 // indirect
-	github.com/apache/thrift v0.12.0 // indirect
 	github.com/aws/aws-sdk-go v1.34.0 // indirect
-	github.com/bazelbuild/bazel-gazelle v0.21.1 // indirect
+	github.com/bazelbuild/remote-apis v0.0.0-20200812111343-5a7b1a472165 // indirect
+	github.com/bazelbuild/remote-apis-sdks v0.0.0-20200902000807-6d8a65db18bc // indirect
 	github.com/bradfitz/gomemcache v0.0.0-20190913173617-a41fca850d0b
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
-	github.com/codegangsta/negroni v1.0.0 // indirect
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/danjacques/gofslock v0.0.0-20191023191349-0a45f885bc37 // indirect
 	github.com/davecgh/go-spew v1.1.1
@@ -72,7 +71,6 @@ require (
 	github.com/flynn/json5 v0.0.0-20160717195620-7620272ed633
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-python/gpython v0.0.3
-	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
 	github.com/golang-migrate/migrate/v4 v4.12.2
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -86,14 +84,12 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.4.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20190915194858-d3ddacdb130f // indirect
-	github.com/gorilla/csrf v1.7.0 // indirect
 	github.com/gorilla/mux v1.7.4
 	github.com/gorilla/securecookie v1.1.1
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.10 // indirect
-	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
 	github.com/jackc/pgproto3/v2 v2.0.4 // indirect
 	github.com/jackc/pgx/v4 v4.8.1
 	github.com/jcgregorio/logger v0.1.2
@@ -101,23 +97,17 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/kisielk/errcheck v1.2.0
 	github.com/kr/text v0.2.0 // indirect
-	github.com/kylelemons/godebug v1.1.0 // indirect
-	github.com/mailru/easyjson v0.7.2 // indirect
 	github.com/maruel/subcommands v0.0.0-20200206125935-de1d40e70d4b // indirect
 	github.com/maruel/ut v1.0.1 // indirect
-	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/mitchellh/reflectwalk v1.0.1 // indirect
-	github.com/neo4j-drivers/gobolt v1.7.4 // indirect
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/openzipkin/zipkin-go v0.1.6 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pelletier/go-toml v1.8.0 // indirect
-	github.com/peterh/liner v1.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.7.1
 	github.com/robertkrimen/otto v0.0.0-20191219234010-c382bd3c16ff // indirect
@@ -137,6 +127,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/texttheater/golang-levenshtein v1.0.1
+	github.com/twitchtv/twirp v5.12.1+incompatible
 	github.com/unrolled/secure v1.0.8
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/willf/bitset v1.1.10
@@ -144,6 +135,7 @@ require (
 	github.com/zeebo/bencode v1.0.0
 	go.chromium.org/gae v0.0.0-20190826183307-50a499513efa // indirect
 	go.chromium.org/luci v0.0.0-20200810035958-a85648a14281
+	go.larrymyers.com/protoc-gen-twirp_typescript v0.0.0-20200623200853-f5da1af25b54
 	go.opencensus.io v0.22.4
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
@@ -162,11 +154,9 @@ require (
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
-	honnef.co/go/tools v0.0.1-2020.1.5 // indirect
 	k8s.io/api v0.18.6
 	k8s.io/apimachinery v0.18.6
 	k8s.io/client-go v0.18.6
-	rsc.io/sampler v1.99.99 // indirect
 )
 
 go 1.13

@@ -1,0 +1,73 @@
+syntax = "proto3";
+package status;
+option go_package = "go.skia.org/infra/status/go/rpc";
+
+service StatusFe {
+  rpc GetIncrementalCommits(IncrementalCommitsRequest) returns (IncrementalCommitsResponse);
+}
+
+message IncrementalCommitsRequest {
+  int64 from = 1;
+  int64 to = 2;
+  int64 n = 3;
+  string pod = 4;
+  string repoPath = 5;
+}
+
+message IncrementalCommitsResponse {
+  ResponseMetadata metadata = 1;
+  IncrementalUpdate update = 2;
+}
+
+message IncrementalUpdate {
+  repeated Branch branchHeads = 1;
+  repeated LongCommit commits = 2;
+  bool startOver = 3;
+  string swarmingUrl = 4;
+  repeated Task tasks = 5;
+  string taskSchedulerUrl = 6;
+  repeated Comment comments = 7;
+  string timestamp = 8;
+}
+
+message Branch {
+  string name = 1;
+  string head = 2;
+}
+
+message Task {
+  repeated string commits = 1;
+  string name = 2;
+  string id = 3;
+  string revision = 4;
+  string status = 5;
+  string swarmingTaskId = 6;
+}
+
+message LongCommit {
+  string hash = 1;
+  string author = 2;
+  string subject = 3;
+  repeated string parents = 4;
+  string body = 5;
+  string timestamp = 6;
+}
+
+message Comment {
+  string id = 1;
+  string repo = 2;
+  string revision = 3;
+  string timestamp = 4;
+  string user = 5;
+  string message = 6;
+  bool deleted = 7;
+  bool ignoreFailure = 8; // Only for commit and taskSpec comments.
+  bool flaky = 9; // Only for taskSpec comments.
+  string taskSpecName = 10; // Only for task and taskSpec comments
+  string taskId = 11; // Only for task comments
+  string commitHash = 12; // Only for commit comments.
+}
+
+message ResponseMetadata {
+  string pod = 1;
+}
