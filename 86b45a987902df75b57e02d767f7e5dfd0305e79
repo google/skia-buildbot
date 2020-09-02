@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "1b0bb1d0_7c98e430",
+        "filename": "golden/modules/last-commit-sk/last-commit-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T18:40:38Z",
+      "side": 1,
+      "message": "Ah, yes, I missed that check. That would achieve the same effect. Thanks!",
+      "parentUuid": "50e7035c_9e3c42ec",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 45
+      },
+      "revId": "86b45a987902df75b57e02d767f7e5dfd0305e79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0de78992_7235e5ce",
         "filename": "golden/modules/last-commit-sk/last-commit-sk.js",
         "patchSetId": 2
@@ -143,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "8b81d9d8_97cb6238",
+        "filename": "golden/modules/last-commit-sk/last-commit-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T18:40:38Z",
+      "side": 1,
+      "message": "Good point. Thanks, the comment will definitely be helpful in the future.",
+      "parentUuid": "7b97d27a_a133ce70",
+      "range": {
+        "startLine": 74,
+        "startChar": 10,
+        "endLine": 74,
+        "endChar": 45
+      },
+      "revId": "86b45a987902df75b57e02d767f7e5dfd0305e79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "264101ff_a49b0932",
         "filename": "golden/modules/last-commit-sk/last-commit-sk_puppeteer_test.ts",
         "patchSetId": 2
@@ -172,6 +220,24 @@
       "side": 1,
       "message": "Sure - I\u0027ll move the test I added in the followup CL here.",
       "parentUuid": "264101ff_a49b0932",
+      "revId": "86b45a987902df75b57e02d767f7e5dfd0305e79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f6a3f51e_c164c657",
+        "filename": "golden/modules/last-commit-sk/last-commit-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T18:40:38Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "a6510bf2_f34e5181",
       "revId": "86b45a987902df75b57e02d767f7e5dfd0305e79",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
