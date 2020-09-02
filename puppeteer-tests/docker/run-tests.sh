@@ -88,6 +88,11 @@ cp -r /src/ct/webpack.config.ts          /tests/ct
 cp -r /src/ct/tsconfig.json              /tests/ct
 cp -r /src/ct/modules                    /tests/ct
 
+mkdir /tests/new_element
+cp -r /src/new_element/package*                   /tests/new_element
+cp -r /src/new_element/webpack.config.ts          /tests/new_element
+cp -r /src/new_element/tsconfig.json              /tests/new_element
+cp -r /src/new_element/modules                    /tests/new_element
 ################################################################################
 # Install node modules.                                                        #
 ################################################################################
@@ -108,6 +113,9 @@ cd /tests/am
 npm ci
 
 cd /tests/ct
+npm ci
+
+cd /tests/new_element
 npm ci
 
 ################################################################################
@@ -136,4 +144,7 @@ cd /tests/am
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/ct
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+
+cd /tests/new_element
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
