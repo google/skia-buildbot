@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2cc3710f_d043c15e",
+        "filename": "golden/modules/last-commit-sk/last-commit-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T18:12:56Z",
+      "side": 1,
+      "message": "Does it make sense to include a space before the parenthesis so we don\u0027t have a trailing white space in the trimmed author name?",
+      "range": {
+        "startLine": 41,
+        "startChar": 29,
+        "endLine": 41,
+        "endChar": 32
+      },
+      "revId": "86b45a987902df75b57e02d767f7e5dfd0305e79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "36d1f9b7_93cab007",
+        "filename": "golden/modules/last-commit-sk/last-commit-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T18:12:56Z",
+      "side": 1,
+      "message": "You\u0027ll probably want to call clearTimeout() from disconnectedCallback() to avoid any potential JS errors on the browser console or stray network requests after the element is detached from the DOM.\n\nTypically we would see such errors on the Karma test runner browser console.",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 45
+      },
+      "revId": "86b45a987902df75b57e02d767f7e5dfd0305e79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0de78992_7235e5ce",
+        "filename": "golden/modules/last-commit-sk/last-commit-sk.js",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T18:12:56Z",
+      "side": 1,
+      "message": "Idea: would it be simpler to use setInterval() instead, and call clearInterval() from disconnectedCallback()?",
+      "range": {
+        "startLine": 74,
+        "startChar": 10,
+        "endLine": 74,
+        "endChar": 45
+      },
+      "revId": "86b45a987902df75b57e02d767f7e5dfd0305e79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "264101ff_a49b0932",
+        "filename": "golden/modules/last-commit-sk/last-commit-sk_puppeteer_test.ts",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T18:12:56Z",
+      "side": 1,
+      "message": "It would be great to test that we\u0027re linking to the expected URL and that the author name is correct (e.g. the email is trimmed as expected, etc.).",
+      "revId": "86b45a987902df75b57e02d767f7e5dfd0305e79",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
