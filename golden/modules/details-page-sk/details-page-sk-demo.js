@@ -6,6 +6,7 @@ import { typicalDetails, fakeNow, twoHundredCommits } from '../digest-details-sk
 import { delay, isPuppeteerTest } from '../demo_util';
 import { setImageEndpointsForDemos } from '../common';
 import { testOnlySetSettings } from '../settings';
+import { exampleStatusData } from '../last-commit-sk/demo_data';
 
 const fetchMock = require('fetch-mock');
 
@@ -13,7 +14,6 @@ testOnlySetSettings({
   title: 'Skia Public',
   baseRepoURL: 'https://skia.googlesource.com/skia.git',
 });
-$$('gold-scaffold-sk')._render(); // pick up title from settings.
 
 setImageEndpointsForDemos();
 
@@ -49,7 +49,7 @@ fetchMock.get('glob:/json/details*', delay(() => {
     trace_comments: null,
   });
 }, rpcDelay));
-fetchMock.catch(404);
+fetchMock.get('/json/trstatus', JSON.stringify(exampleStatusData));
 
 // make the page reload when checkboxes change.
 document.addEventListener('change', () => {
@@ -61,3 +61,11 @@ $$('#remove_btn').addEventListener('click', () => {
   ele._changeListID = '';
   ele._render();
 });
+
+// By adding these elements after all the fetches are mocked out, they should load ok.
+const newScaf = document.createElement('gold-scaffold-sk');
+newScaf.setAttribute('testing_offline', 'true');
+const body = $$('body');
+body.insertBefore(newScaf, body.childNodes[0]); // Make it the first element in body.
+const page = document.createElement('details-page-sk');
+newScaf.appendChild(page);

@@ -1,11 +1,10 @@
 import './index';
-import '../gold-scaffold-sk';
 import { $$ } from 'common-sk/modules/dom';
 import { QueryDialogSk } from './query-dialog-sk';
 import { ParamSet, fromParamSet } from 'common-sk/modules/query';
 
-const queryDialogSk = new QueryDialogSk()
-$$('gold-scaffold-sk')?.appendChild(queryDialogSk);
+const queryDialogSk = new QueryDialogSk();
+$$('body')?.appendChild(queryDialogSk);
 
 const paramSet: ParamSet = {
   'car make': ['chevrolet', 'dodge', 'ford', 'lincoln motor company'],
