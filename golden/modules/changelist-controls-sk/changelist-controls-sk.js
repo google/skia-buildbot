@@ -1,6 +1,7 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { truncateWithEllipses } from '../common';
 
 import 'elements-sk/radio-sk';
 import 'elements-sk/styles/select';
@@ -13,7 +14,7 @@ const patchSet = (ps, ele) => html`
 const tryJob = (tj) => html`
 <div class=tryjob title=${tj.name}>
   <a href=${tj.url} target=_blank rel=noopener>
-    ${limitString(tj.name, 60)}
+    ${truncateWithEllipses(tj.name, 60)}
   </a>
 </div>
 `;
@@ -28,10 +29,10 @@ const template = (ele) => {
 <div class=info>
   <span class=title>${cl.system} changelist:</span>
   <a href=${cl.url} target=_blank rel=noopener>
-    ${limitString(cl.subject, 48)}
+    ${truncateWithEllipses(cl.subject, 48)}
   </a>
 
-  <span>${limitString(cl.owner, 32)}</span>
+  <span>${truncateWithEllipses(cl.owner, 32)}</span>
 
   <a href="/triagelog?changelist_id=${cl.id}&crs=${cl.system}">
     <find-in-page-icon-sk></find-in-page-icon-sk>Triagelog
@@ -56,13 +57,6 @@ const template = (ele) => {
 </div>
 `;
 };
-
-function limitString(s, maxLength) {
-  if (s.length <= maxLength) {
-    return s;
-  }
-  return `${s.substring(0, maxLength - 3)}...`;
-}
 
 define('changelist-controls-sk', class extends ElementSk {
   constructor() {
