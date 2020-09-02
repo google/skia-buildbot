@@ -107,6 +107,7 @@ build-frontend-ci:
 	cd status && $(MAKE) build-frontend-ci
 	cd task_driver && $(MAKE) build-frontend-ci
 	cd tree_status && $(MAKE) build-frontend-ci
+	cd new_element && $(MAKE) build-frontend-ci
 
 	# The following apps are commented out because they require running the
 	# gcr.io/skia-public/skia-wasm-release:prod	Docker container as part of their build process, which
@@ -147,6 +148,7 @@ test-frontend-ci:
 	cd machine && $(MAKE) test-frontend-ci
 	cd perf && $(MAKE) test-frontend-ci
 	cd push && $(MAKE) test-frontend-ci
+	cd new_element && $(MAKE) test-frontend-ci
 
 .PHONY: update-go-bazel-files
 update-go-bazel-files:
