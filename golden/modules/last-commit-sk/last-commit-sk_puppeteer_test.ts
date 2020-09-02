@@ -17,10 +17,18 @@ describe('last-commit-sk', () => {
     expect(await testBed.page.$$('last-commit-sk')).to.have.length(1);
   });
 
-  describe('screenshots', () => {
-    it('displays commit hash and author', async () => {
-      const lastCommitSk = await testBed.page.$('#container');
-      await takeScreenshot(lastCommitSk!, 'gold', 'last-commit-sk');
+  it('takes a screenshot', async () => {
+    const lastCommitSk = await testBed.page.$('#container');
+    await takeScreenshot(lastCommitSk!, 'gold', 'last-commit-sk');
+  });
+
+  it('has the correct link', async() => {
+    const lastCommit = await testBed.page.$('#container a');
+    const lastCommitHref = await lastCommit?.evaluate((link : Element) => {
+      return (link as HTMLAnchorElement).href;
     });
+
+    expect(lastCommitHref).to.equal(
+        'https://github.com/flutter/flutter/commit/a8281e31afa9dddfa0764f59128c3a2360c48f49');
   });
 });
