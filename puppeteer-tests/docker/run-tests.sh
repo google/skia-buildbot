@@ -88,6 +88,12 @@ cp -r /src/ct/webpack.config.ts          /tests/ct
 cp -r /src/ct/tsconfig.json              /tests/ct
 cp -r /src/ct/modules                    /tests/ct
 
+mkdir /tests/ct
+cp -r /src/fiddlek/package*                   /tests/fiddlek
+cp -r /src/fiddlek/webpack.config.ts          /tests/fiddlek
+cp -r /src/fiddlek/tsconfig.json              /tests/fiddlek
+cp -r /src/fiddlek/modules                    /tests/fiddlek
+
 ################################################################################
 # Install node modules.                                                        #
 ################################################################################
@@ -108,6 +114,9 @@ cd /tests/am
 npm ci
 
 cd /tests/ct
+npm ci
+
+cd /tests/fiddlek
 npm ci
 
 ################################################################################
@@ -136,4 +145,7 @@ cd /tests/am
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
 
 cd /tests/ct
+npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
+
+cd /tests/fiddlek
 npx mocha -r ts-node/register ./**/*_puppeteer_test.ts
