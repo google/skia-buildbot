@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "61281549_a1e95100",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk-demo.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-02T18:41:37Z",
+      "side": 1,
+      "message": "I personally prefer the more explicit call out that gold-scaffold-sk will be there too.",
+      "parentUuid": "f828e14d_b55bb6c7",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 8
+      },
+      "revId": "7c672fbb514d7f312e4b5c8f1bb9a0ff80202013",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "423c9aee_84264f6b",
         "filename": "golden/modules/changelists-page-sk/changelists-page-sk-demo.js",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "7c672fbb514d7f312e4b5c8f1bb9a0ff80202013",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9995314_5036e5fe",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk-demo.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-02T18:41:37Z",
+      "side": 1,
+      "message": "That would reduce repetition. I\u0027m not quite sure I want to spend more time on that refactor right now (it was already somewhat tedious to touch all those files once today). I\u0027m certainly open to adding that in the future though.",
+      "parentUuid": "423c9aee_84264f6b",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 26
+      },
+      "revId": "7c672fbb514d7f312e4b5c8f1bb9a0ff80202013",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
