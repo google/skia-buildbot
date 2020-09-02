@@ -13,11 +13,6 @@ testOnlySetSettings({
   defaultCorpus: 'infra',
   baseRepoURL: 'https://skia.googlesource.com/buildbot.git',
 });
-
-// TODO(lovisolo): Replace any with GoldScaffoldSk when said component is ported to TypeScript.
-// TODO(lovisolo): Consider folding this into testOnlySetSettings().
-$$<any>('gold-scaffold-sk')._render(); // Pick up title from instance settings.
-
 Date.now = () => fakeNow;
 
 fetchMock.get('/json/trstatus', () => statusResponse);
@@ -38,5 +33,9 @@ fetchMock.get('glob:/json/search*', (url: string) => {
 
 setImageEndpointsForDemos();
 
-const searchPageSk = new SearchPageSk();
-$$('gold-scaffold-sk')!.appendChild(searchPageSk);
+const newScaf = document.createElement('gold-scaffold-sk');
+newScaf.setAttribute('testing_offline', 'true');
+const body = $$('body');
+body?.insertBefore(newScaf, body.childNodes[0]); // Make it the first element in body.
+const page = new SearchPageSk();
+newScaf.appendChild(page);

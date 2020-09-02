@@ -1,5 +1,4 @@
 import './index';
-import '../gold-scaffold-sk';
 import { ParamSet, fromParamSet } from 'common-sk/modules/query';
 import { SearchControlsSk, SearchCriteria } from './search-controls-sk';
 import { $$ } from 'common-sk/modules/dom';

@@ -21,6 +21,8 @@ import { title } from '../settings';
 import '../../../infra-sk/modules/app-sk';
 import '../../../infra-sk/modules/login-sk';
 
+import '../last-commit-sk';
+
 import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/find-in-page-icon-sk';
 import 'elements-sk/icon/folder-icon-sk';
@@ -42,7 +44,7 @@ const template = (ele) => html`
       <spinner-sk></spinner-sk>
     </div>
     <div class=spacer></div>
-    <!-- TODO(kjlubick) last commit -->
+    <last-commit-sk></last-commit-sk>
     <login-sk ?testing_offline=${ele.testingOffline} .loginHost=${window.location.host}></login-sk>
   </header>
 

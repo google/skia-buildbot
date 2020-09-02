@@ -3,16 +3,30 @@ import './index';
 import { $, $$ } from 'common-sk/modules/dom';
 import { eventPromise, setUpElementUnderTest } from '../../../infra-sk/modules/test_util';
 import { sendBeginTask, sendEndTask } from '../common';
+import { fetchMock } from 'fetch-mock';
+import { exampleStatusData } from '../last-commit-sk/demo_data';
+import { testOnlySetSettings } from '../settings';
 
 describe('gold-scaffold-sk', () => {
   const newInstance = setUpElementUnderTest('gold-scaffold-sk');
 
   let goldScaffoldSk;
   beforeEach(() => {
+    testOnlySetSettings({
+      title: 'Skia Public',
+      baseRepoURL: 'https://skia.googlesource.com/skia.git',
+    });
+    fetchMock.get('/json/trstatus', JSON.stringify(exampleStatusData));
     goldScaffoldSk = newInstance((el) => {
       el.setAttribute('testing_offline', '');
       el.innerHTML = '<div>content</div>';
     });
+  });
+
+  afterEach(() => {
+    expect(fetchMock.done()).to.be.true; // All mock RPCs called at least once.
+    // Remove fetch mocking to prevent test cases interfering with each other.
+    fetchMock.reset();
   });
 
   describe('html layout', () => {

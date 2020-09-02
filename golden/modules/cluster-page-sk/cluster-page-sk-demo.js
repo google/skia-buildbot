@@ -8,12 +8,13 @@ import { delay, isPuppeteerTest } from '../demo_util';
 import { setImageEndpointsForDemos } from '../common';
 import { clusterDiffJSON } from './test_data';
 import { fakeNow, typicalDetails } from '../digest-details-sk/test_data';
+import { exampleStatusData } from '../last-commit-sk/demo_data';
 
 testOnlySetSettings({
   title: 'Skia Demo',
   defaultCorpus: 'infra',
+  baseRepoURL: 'https://skia.googlesource.com/skia.git',
 });
-$$('gold-scaffold-sk')._render(); // pick up title from settings.
 
 setImageEndpointsForDemos();
 
@@ -31,6 +32,7 @@ const fakeRpcDelayMillis = isPuppeteerTest() ? 5 : 300;
 fetchMock.get('glob:/json/clusterdiff*', delay(clusterDiffJSON, fakeRpcDelayMillis));
 fetchMock.get('/json/paramset', delay(clusterDiffJSON.paramsetsUnion, fakeRpcDelayMillis));
 fetchMock.get('glob:/json/details*', delay(typicalDetails, fakeRpcDelayMillis));
+fetchMock.get('/json/trstatus', JSON.stringify(exampleStatusData));
 
 const leftDetails = JSON.parse(JSON.stringify(typicalDetails));
 const rightDetails = typicalDetails.refDiffs.neg;
@@ -43,3 +45,11 @@ fetchMock.get('glob:/json/diff*', delay({
   left: leftDetails,
   right: rightDetails,
 }, fakeRpcDelayMillis));
+
+// By adding these elements after all the fetches are mocked out, they should load ok.
+const newScaf = document.createElement('gold-scaffold-sk');
+newScaf.setAttribute('testing_offline', 'true');
+const body = $$('body');
+body.insertBefore(newScaf, body.childNodes[0]); // Make it the first element in body.
+const page = document.createElement('cluster-page-sk');
+newScaf.appendChild(page);
