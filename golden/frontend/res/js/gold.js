@@ -72,6 +72,7 @@ var gold = gold || {};
     blame: '',
     limit: 50,
     offset: 0,
+    crs: '',
     issue: '',
     patchsets: '',
 
