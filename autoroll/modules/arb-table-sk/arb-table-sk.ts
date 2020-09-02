@@ -13,15 +13,12 @@ import { define } from 'elements-sk/define'
 import 'elements-sk/styles/table';
 
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-
-
-export class Roller {
-  mode: string = "";
-  childName: string = "";
-  parentName: string = "";
-  numBehind: number = 0;
-  numFailed: number = 0;
-}
+import {
+  AutoRollMiniStatus,
+  AutoRollService,
+  GetAutoRollService,
+  GetRollersResponse,
+} from '../rpc';
 
 export class ARBTableSk extends ElementSk {
   private static template = (ele: ARBTableSk) => html`
@@ -32,34 +29,36 @@ export class ARBTableSk extends ElementSk {
       <th>Num Behind</th>
       <th>Num Failed</th>
     </tr>
-    ${Object.keys(ele.rollers).sort().map((id) => html`
+    ${ele.rollers?.map((st) => html`
     <tr>
       <td>
-        <a href="/r/${id}">${ele.rollers[id].childName} into ${ele.rollers[id].parentName}</a>
+        <a href="/r/${st.rollerId}">${st.childName} into ${st.parentName}</a>
       </td>
-      <td>${ele.rollers[id].mode}</td>
-      <td>${ele.rollers[id].numBehind}</td>
-      <td>${ele.rollers[id].numFailed}</td>
+      <td>${st.mode.toLowerCase()}</td>
+      <td>${st.numBehind}</td>
+      <td>${st.numFailed}</td>
     </tr>
   `)}
   </table>
 `;
-  private _rollers: {[key:string]: Roller} = {};
+  private rollers: AutoRollMiniStatus[] = [];
+  private rpc: AutoRollService;
 
   constructor() {
     super(ARBTableSk.template);
+    this.rpc = GetAutoRollService(this);
   }
 
   connectedCallback() {
     super.connectedCallback();
-    this._upgradeProperty('rollers');
-    this._render();
+    this.reload();
   }
 
-  get rollers() { return this._rollers; }
-  set rollers(val: {[key:string]: Roller}) {
-    this._rollers = val;
-    this._render();
+  private reload() {
+    this.rpc.getRollers({}).then((resp: GetRollersResponse) => {
+      this.rollers = resp.rollers!;
+      this._render();
+    });
   }
 }
 

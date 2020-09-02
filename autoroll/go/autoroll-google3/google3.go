@@ -33,6 +33,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -51,7 +52,7 @@ type AutoRoller struct {
 	liveness    metrics2.Liveness
 }
 
-func NewAutoRoller(ctx context.Context, cfg *roller.AutoRollerConfig, client *http.Client) (*AutoRoller, error) {
+func NewAutoRoller(ctx context.Context, cfg *roller.AutoRollerConfig, client *http.Client, ts oauth2.TokenSource) (*AutoRoller, error) {
 	recent, err := recent_rolls.NewRecentRolls(ctx, cfg.RollerName)
 	if err != nil {
 		return nil, skerr.Wrap(err)
