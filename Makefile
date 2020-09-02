@@ -147,6 +147,7 @@ test-frontend-ci:
 	cd machine && $(MAKE) test-frontend-ci
 	cd perf && $(MAKE) test-frontend-ci
 	cd push && $(MAKE) test-frontend-ci
+	cd new_element && $(MAKE) test-frontend-ci
 
 .PHONY: update-go-bazel-files
 update-go-bazel-files:
