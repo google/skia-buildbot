@@ -27,6 +27,7 @@ package login
 // N.B. The cookiesaltkey metadata value must be set on the GCE instance.
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
@@ -117,6 +118,9 @@ var (
 	adminAllow allowed.Allow
 	editAllow  allowed.Allow
 	viewAllow  allowed.Allow
+
+	// loginCtxKey is used to store login information in the request context.
+	loginCtxKey = &struct{}{}
 )
 
 // Session is encrypted and serialized and stored in a user's cookie.
@@ -867,4 +871,27 @@ func ValidateBearerToken(token string) (*oauth2_api.Tokeninfo, error) {
 		return nil, fmt.Errorf("Email not verified.")
 	}
 	return ti, nil
+}
+
+// SessionMiddleware is middleware which attaches login info to the request
+// context. This allows the passed-in handler to use GetSession().
+func SessionMiddleware(sub http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Ignore the error. If it matters that the user is not logged in, the
+		// request will fail at some other level.
+		session, _ := getSession(r)
+		ctx := context.WithValue(r.Context(), loginCtxKey, session)
+		sub.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// GetSession returns the current user's Session, or nil if the user is not
+// logged in. The passed-in Context must be from a request whose http.Handler
+// was wrapped using SessionMiddleware.
+func GetSession(ctx context.Context) *Session {
+	session := ctx.Value(loginCtxKey)
+	if session != nil {
+		return session.(*Session)
+	}
+	return nil
 }
