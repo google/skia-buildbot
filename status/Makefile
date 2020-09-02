@@ -18,7 +18,7 @@ all: clean_webtools status
 .PHONY: web
 web: webpack touch_elements core_js elements_html
 	ln -sf ../../res res/imp/res
-	npx webpack --mode=production
+	npx webpack --mode=development
 
 .PHONY: touch_elements
 touch_elements:

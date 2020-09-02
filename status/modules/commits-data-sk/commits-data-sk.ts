@@ -75,9 +75,12 @@ export class TaskSpecDetails {
   comments: Array<Comment> = [];
   category: string | null = null;
   subcategory: string | null = null;
-  // TODO colorlcass?
   flaky: boolean = false;
   ignoreFailure: boolean = false;
+}
+
+function doFetch(input: RequestInfo, init?: RequestInit | undefined): Promise<Response> {
+  return fetch(input, init);
 }
 
 export class CommitsDataSk extends ElementSk {
@@ -117,10 +120,14 @@ export class CommitsDataSk extends ElementSk {
   serverPodId: string | null = 'ashfadshaqafda';
   data: IncrementalCommitsResponse | null = null;
 
+<<<<<<< HEAD
+  client: DefaultStatusFe = new DefaultStatusFe(window.location.protocol + "//" + window.location.host, window.fetch.bind(window));
+=======
   client: StatusFeClient = new StatusFeClient(window.location.protocol + "//" + window.location.host, window.fetch.bind(window));
+>>>>>>> 76d5dbdb30da91d760577a50f7bd97f70d1c9cc8
 
 
-  private static template = (ele: CommitsDataSk) => html`<div>Hello World!</div>`;
+  private static template = (ele: CommitsDataSk) => html``;
   constructor() {
       super(CommitsDataSk.template);
   }
@@ -259,12 +266,17 @@ export class CommitsDataSk extends ElementSk {
         // TODO Time Offsets
 
         }
+        this.dispatchEvent(new CustomEvent('commits-data-update', { bubbles: true }));
       })
-      .catch(errorMessage);;
+      .catch((e) => {
+        debugger;
+        errorMessage(e);
+        console.error(e);
+      });;
   }
 };
 
-define('commits-table-sk', CommitsDataSk);
+define('commits-data-sk', CommitsDataSk);
 
 // shortCommit returns the first 7 characters of a commit hash.
 function shortCommit(commit: string): string {

@@ -693,7 +693,7 @@ func runServer(serverURL string, srv http.Handler) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", defaultRedirectHandler)
 	r.PathPrefix(rpc.StatusFePathPrefix).Handler(srv)
-	r.HandleFunc("/experimental/repo/{repo}", httputils.OriginTrial(experimentalStatusHandler, *testing))
+	r.HandleFunc("/experimental/repo/{repo}", httputils.CorsHandler(experimentalStatusHandler))
 	r.HandleFunc("/repo/{repo}", httputils.OriginTrial(statusHandler, *testing))
 	r.HandleFunc("/capacity", httputils.OriginTrial(capacityHandler, *testing))
 	r.HandleFunc("/capacity/json", capacityStatsHandler)
@@ -720,7 +720,8 @@ func runServer(serverURL string, srv http.Handler) {
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{timestamp:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
 	commits.Use(login.RestrictEditor)
 	handlers.AddTaskDriverHandlers(r, taskDriverDb, taskDriverLogs)
-	h := httputils.LoggingGzipRequestResponse(login.RestrictViewer(r))
+	//h := httputils.LoggingGzipRequestResponse(login.RestrictViewer(r))
+	h := login.RestrictViewer(r)
 	if !*testing {
 		h = httputils.HealthzAndHTTPS(h)
 	}

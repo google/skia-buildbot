@@ -2,10 +2,12 @@ package rpc
 
 import (
 	context "context"
+	json "encoding/json"
 	"net/http"
 	"time"
 
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/status/go/incremental"
 )
 
@@ -31,6 +33,7 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context, req *Incre
 	defer metrics2.FuncTimer().Stop()
 	_, repoURL, err := s.getRepo(req)
 	if err != nil {
+		sklog.Error(err)
 		return nil, err
 	}
 	from := req.From
@@ -46,7 +49,11 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context, req *Incre
 	}
 	var update *incremental.Update
 	if (expectPodId != "" && expectPodId != s.podID) || from == 0 {
+		sklog.Infof("Getting data from icache: %s commits", numCommits)
+
 		update, err = s.iCache.GetAll(repoURL, numCommits)
+		//up, _ := json.Marshal(update)
+		//sklog.Info("update pre convert: " + string(resp))
 	} else {
 		fromTime := time.Unix(0, from*int64(time.Millisecond))
 		if to != 0 {
@@ -57,9 +64,13 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context, req *Incre
 		}
 	}
 	if err != nil {
+		sklog.Error(err)
 		return nil, err
 	}
-	return ConvertUpdate(update, s.podID), nil
+	ret := ConvertUpdate(update, s.podID)
+	resp, _ := json.Marshal(ret)
+	sklog.Info(string(resp))
+	return ret, nil
 }
 
 // NewStatusServer creates and returns a Twirp HTTP Server.
@@ -130,6 +141,9 @@ func ConvertUpdate(u *incremental.Update, podID string) *IncrementalCommitsRespo
 			}
 		}
 	}
+	update.Commits = commits
+	update.Tasks = tasks
+	update.Comments = comments
 
 	update.Timestamp = u.Timestamp.Format(time.RFC3339)
 
