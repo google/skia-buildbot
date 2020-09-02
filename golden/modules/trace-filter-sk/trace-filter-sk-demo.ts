@@ -1,5 +1,4 @@
 import './index';
-import '../gold-scaffold-sk';
 import { $$ } from 'common-sk/modules/dom';
 import { TraceFilterSk } from './trace-filter-sk';
 

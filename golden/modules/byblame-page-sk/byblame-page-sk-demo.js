@@ -17,7 +17,6 @@ testOnlySetSettings({
   defaultCorpus: 'gm',
   baseRepoURL: 'https://skia.googlesource.com/skia.git',
 });
-$$('gold-scaffold-sk')._render(); // pick up title from settings.
 
 // Set up RPC failure simulation.
 const getSimulateRpcFailure = () => sessionStorage.getItem('simulateRpcFailure') === 'true';
@@ -48,6 +47,10 @@ fetchMock.get('/json/trstatus', () => {
   return delay(trstatus, fakeRpcDelayMillis);
 });
 
-// Create the component after we've had a chance to mock the JSON endpoints.
+// By adding these elements after all the fetches are mocked out, they should load ok.
+const newScaf = document.createElement('gold-scaffold-sk');
+newScaf.setAttribute('testing_offline', 'true');
+const body = $$('body');
+body.insertBefore(newScaf, body.childNodes[0]); // Make it the first element in body.
 const page = document.createElement('byblame-page-sk');
-$$('gold-scaffold-sk').appendChild(page);
+newScaf.appendChild(page);

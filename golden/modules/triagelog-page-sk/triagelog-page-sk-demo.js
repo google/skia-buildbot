@@ -7,13 +7,14 @@ import { fetchMock } from 'fetch-mock';
 import { delay } from '../demo_util';
 import { triageLogs } from './demo_data';
 import { testOnlySetSettings } from '../settings';
+import { exampleStatusData } from '../last-commit-sk/demo_data';
 
 const fakeRpcDelayMillis = 300;
 
 testOnlySetSettings({
   title: 'Skia Public',
+  baseRepoURL: 'https://skia.googlesource.com/skia.git',
 });
-$$('gold-scaffold-sk')._render(); // pick up title from settings.
 
 // The mock /json/triagelog/undo RPC will populate this set.
 const undoneIds = new Set();
@@ -77,6 +78,12 @@ fetchMock.get('glob:/json/triagelog*', (url) => {
   // Fake a 300ms delay.
   return delay(getTriageLogs(details, offset, size), fakeRpcDelayMillis);
 });
+fetchMock.get('/json/trstatus', JSON.stringify(exampleStatusData));
 
-// Create the component after we've had a chance to mock the JSON endpoints.
-$$('gold-scaffold-sk').appendChild(document.createElement('triagelog-page-sk'));
+// By adding these elements after all the fetches are mocked out, they should load ok.
+const newScaf = document.createElement('gold-scaffold-sk');
+newScaf.setAttribute('testing_offline', 'true');
+const body = $$('body');
+body.insertBefore(newScaf, body.childNodes[0]); // Make it the first element in body.
+const page = document.createElement('triagelog-page-sk');
+newScaf.appendChild(page);

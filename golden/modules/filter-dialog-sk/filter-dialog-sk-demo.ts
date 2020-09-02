@@ -1,5 +1,4 @@
 import './index';
-import '../gold-scaffold-sk';
 import { $$ } from 'common-sk/modules/dom';
 import { ParamSet, fromParamSet } from 'common-sk/modules/query';
 import { deepCopy } from 'common-sk/modules/object';
@@ -39,7 +38,7 @@ function updateValues() {
 }
 
 const filterDialogSk = new FilterDialogSk();
-$$('gold-scaffold-sk')?.appendChild(filterDialogSk);
+$$('body')?.appendChild(filterDialogSk);
 
 filterDialogSk.addEventListener('edit', (e: Event) => {
   const value: Filters = (e as CustomEvent<Filters>).detail;
