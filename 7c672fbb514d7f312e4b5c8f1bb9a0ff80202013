@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f828e14d_b55bb6c7",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk-demo.html",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T18:36:33Z",
+      "side": 1,
+      "message": "Nit: we can probably replace these with something shorter, e.g.:\n\n  \u003c!-- Demoed element will be inserted dynamically here. --\u003e",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 8
+      },
+      "revId": "7c672fbb514d7f312e4b5c8f1bb9a0ff80202013",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "423c9aee_84264f6b",
+        "filename": "golden/modules/changelists-page-sk/changelists-page-sk-demo.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-02T18:36:33Z",
+      "side": 1,
+      "message": "Idea to reduce repetition: add an insertGoldScaffoldSk() helper to //golden/modules/demo_util.js with the following signature:\n\n  function insertGoldScaffoldSk(\n      childNode: ElementSk,\n      mockJsonTrstatusResponse: string | null \u003d JSON.stringify(exampleStatusData)) {\n\n    if(mockJsonTrstatusResponse) {\n      // Mock the JSON endpoint.\n    }\n\n    // Insert gold-scaffold-sk.\n\n    // Add childNode as a child of the gold-scaffold-sk.\n  }\n\nMost demo pages will simply call insertGoldScaffoldSk(childNode).\n\nDemo pages that mock the /json/trstatus endpoint (such as byblame-page-sk) can either call insertGoldScaffoldSk(childNode, /* mockJsonTrstatusResponse\u003d */ null) to opt out, or pass a non-null, custom mock response.",
+      "range": {
+        "startLine": 47,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 26
+      },
+      "revId": "7c672fbb514d7f312e4b5c8f1bb9a0ff80202013",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
