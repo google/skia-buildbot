@@ -126,11 +126,15 @@ const imageComparison = (ele) => {
   if (!ele.right) {
     return html`<image-compare-sk .left=${left}></image-compare-sk>`;
   }
+
   const right = {
     digest: ele.right.digest,
-    title: ele.right.status === 'positive' ? 'Closest Positive' : 'Closest Negative',
     detail: detailHref(ele._grouping, ele.right.digest, ele.changeListID, ele.crs),
   };
+  right.title = ele.right.status === 'positive' ? 'Closest Positive' : 'Closest Negative';
+  if (ele._overrideRight) {
+    right.title = truncateWithEllipses(right.digest);
+  }
   return html`<image-compare-sk .left=${left} .right=${right}></image-compare-sk>`;
 };
 
