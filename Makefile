@@ -89,7 +89,10 @@ puppeteer-tests:
 # Front-end code will be built by the Infra-PerCommit-Build tryjob.
 .PHONY: build-frontend-ci
 build-frontend-ci:
-	# infra-sk needs to be built first because this pulls its npm dependencies
+	# Generate the //puppeteer-tests/node_modules directory. Some targets will not compile without it.
+	cd puppeteer-tests && npm ci
+
+	# infra-sk needs to be built first because this pulls its NPM dependencies
 	# with "npm ci", which are needed by other apps.
 	cd infra-sk && $(MAKE) build-frontend-ci
 
@@ -100,6 +103,7 @@ build-frontend-ci:
 	cd hashtag && $(MAKE) build-frontend-ci
 	cd leasing && $(MAKE) build-frontend-ci
 	cd machine && $(MAKE) build-frontend-ci
+	cd new_element && $(MAKE) build-frontend-ci
 	cd perf && $(MAKE) build-frontend-ci
 	cd power && $(MAKE) build-frontend-ci
 	cd pulld && $(MAKE) build-frontend-ci
@@ -130,7 +134,10 @@ build-frontend-ci:
 # Front-end tests will be included in the Infra-PerCommit-Medium tryjob.
 .PHONY: test-frontend-ci
 test-frontend-ci:
-	# infra-sk needs to be tested first because this pulls its npm dependencies
+	# Generate the //puppeteer-tests/node_modules directory. Some targets will not compile without it.
+	cd puppeteer-tests && npm ci
+
+	# infra-sk needs to be tested first because this pulls its NPM dependencies
 	# with "npm ci", which are needed by other apps.
 	cd infra-sk && $(MAKE) test-frontend-ci
 
@@ -145,6 +152,7 @@ test-frontend-ci:
 	cd demos && $(MAKE) test-frontend-ci
 	cd golden && $(MAKE) test-frontend-ci
 	cd machine && $(MAKE) test-frontend-ci
+	cd new_element && $(MAKE) test-frontend-ci
 	cd perf && $(MAKE) test-frontend-ci
 	cd push && $(MAKE) test-frontend-ci
 
