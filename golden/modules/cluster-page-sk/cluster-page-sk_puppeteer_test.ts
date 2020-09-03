@@ -54,4 +54,24 @@ describe('cluster-page-sk', () => {
     await shiftClickNodeWithDigest(testBed, untriagedDigest);
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_three-digests-selected');
   });
+
+  it('shows all values when a paramset key is clicked', async () => {
+    await testBed.page.setViewport({ width: 1200, height: 1200 });
+    await clickParamKey(testBed, 'gpu')
+    await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_key-clicked');
+  });
+
+  it('shows nodes with matching values when a value is clicked', async () => {
+    await testBed.page.setViewport({ width: 1200, height: 1200 });
+    await clickParamValue(testBed, 'AMD')
+    await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_value-clicked');
+  });
+
+  async function clickParamKey(testBed: TestBed, key: string) {
+    await testBed.page.click(`paramset-sk[clickable] th[data-key="${key}"]`);
+  }
+
+  async function clickParamValue(testBed: TestBed, value: string) {
+    await testBed.page.click(`paramset-sk[clickable] div[data-value="${value}"]`);
+  }
 });

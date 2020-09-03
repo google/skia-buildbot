@@ -99,6 +99,11 @@ define('cluster-digests-sk', class extends ElementSk {
           .attr('cx', (d) => d.x)
           .attr('cy', (d) => d.y);
 
+        d3Select.select(clusterSk)
+          .selectAll('.label')
+          .attr('x', (d) => d.x + 14) // offset the labels from the center of the nodes.
+          .attr('y', (d) => d.y + 20);
+
         // source and target are supplied and updated by forceLink:
         // https://github.com/d3/d3-force#link_links
         d3Select.select(clusterSk)
@@ -125,7 +130,7 @@ define('cluster-digests-sk', class extends ElementSk {
    * Sets the new data to render in a cluster view.
    *
    * @param nodes Array<Object>: contains Strings for keys digest (called name for historical
-   *   reasons) and status.
+   *   reasons), status, and label.
    * @param links Array<Object>: contains Numbers for keys source, target, and value. source and
    *   target refer to the index of the nodes array. value represents how far apart those two
    *   nodes should be.
@@ -143,7 +148,7 @@ define('cluster-digests-sk', class extends ElementSk {
 
       // Delete existing SVG elements
       d3Select.select(clusterSk)
-        .selectAll('.link,.node')
+        .selectAll('.link,.node,.label')
         .remove();
 
       // Reset selection.
@@ -190,6 +195,17 @@ define('cluster-digests-sk', class extends ElementSk {
           }
           this._updateSelection();
         });
+
+      d3Select.select(clusterSk)
+        .selectAll('text.label')
+        .data(this._nodes)
+        .enter()
+        .append('text')
+        .attr('class', 'label');
+      d3Select.select(clusterSk) // update all nodes with the correct label.
+        .selectAll('text.label')
+        .text((d) => d.label || '');
+
 
       d3Select.select(clusterSk).on('click tap', () => {
         // Capture this event (prevent it from propagating outside the SVG).
