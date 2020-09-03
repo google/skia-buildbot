@@ -46,6 +46,30 @@
       "revId": "2432d641363fb3d76429a371f83e678a0c350566",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2652d0b_4207a3b3",
+        "filename": "infra-sk/index.bzl",
+        "patchSetId": 7
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T18:30:48Z",
+      "side": 1,
+      "message": "LGTM!\n\nMight want to add a comment to that effect.",
+      "parentUuid": "c1a74e1e_03423f0d",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 27
+      },
+      "revId": "2432d641363fb3d76429a371f83e678a0c350566",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
