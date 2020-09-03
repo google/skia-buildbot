@@ -246,6 +246,14 @@ The main application element for the Skia Debugger.
       padding: 0.2em;
     }
 
+    #histogram tr:hover {
+      background-color: #eee;
+    }
+
+    #histogram tr.pinkBackground {
+      background-color: #ffc9db;
+    }
+
     zoom-sk {
       display: inline-block;
       margin-top: 1em;
@@ -305,6 +313,10 @@ The main application element for the Skia Debugger.
 
     #file_input {
       width: 100%;
+    }
+
+    .range-input {
+      width: 4em;
     }
 
     .delay-input {
@@ -373,7 +385,10 @@ The main application element for the Skia Debugger.
           <div class="layout horizontal">
             <paper-input id="fast" on-change="_fastFilter" label="Filter
               (Leading ! means remove matches)" placeholder="!save restore"
-              class=flex></paper-input>
+              class=flex></paper-input>&nbsp;
+            <paper-input id="rangeLow" on-change="_applyRangeFilter" label="Range" class=range-input placeholder="0"></paper-input>
+            <span style="font-size: 2.5em; margin-top: 0.8em">:</span>
+            <paper-input id="rangeHigh" on-change="_applyRangeFilter" class=range-input placeholder="100"></paper-input>
             <button id=clear on-tap=_clearFilter>Clear</button>
           </div>
           <div class="layout horizontal">
@@ -456,12 +471,14 @@ The main application element for the Skia Debugger.
             <summary-sk>
               Histogram
             </summary-sk>
-            <table>
-              <template is="dom-repeat" items="[[histogram]]">
-                <tr><td class=countCol>[[item.count]]</td><td>[[item.name]]</td></tr>
-              </template>
-              <tr><td class=countCol>[[_filtered.commands.length]]</td><td><b>Total</b></td></tr>
-            </table>
+              <table id="histogramTable">
+                <template is="dom-repeat" items="{{histogram}}">
+                  <tr on-tap="_clickedHistogramRow" >
+                    <td class=countCol>[[item.visibleCount]]</td><td>[[item.name]]</td>
+                  </tr>
+                </template>
+                <tr><td class=countCol>[[_filtered.commands.length]]</td><td><b>Total</b></td></tr>
+              </table>
           </details-sk>
           <dl>
             <dt>Postion</dt>
@@ -657,7 +674,8 @@ The main application element for the Skia Debugger.
         // element. it is automatically paused when the frame is changed.
         this.nextFrameTimeout = 0; // currently paused
 
-        // When true indicates playback was unpaused while the last command of a frame was selected.
+        // When true indicates playback was unpaused while the last command of a frame was
+        // selected.
         this.drawToEnd = false;
 
         // A map from layer node ids to command indices where they were used this frame, if any.
@@ -699,8 +717,10 @@ The main application element for the Skia Debugger.
         });
 
         this.$.commands.addEventListener('op-zoom', (e) => {
-          this.$.fast.value = e.detail;
-          this._fastFilter();
+          const pair = e.detail.split(':');
+          this.$.rangeLow.value = pair[0];
+          this.$.rangeHigh.value = pair[1];
+          this._applyRangeFilter();
         });
 
         this.$.commands.addEventListener('op-image-jump', (e) => {
@@ -746,7 +766,8 @@ The main application element for the Skia Debugger.
               && (this._prevSelectionColor !== this._currSelectionColor)) {
             this.$.prevColor.style.backgroundColor = this._prevSelectionColor;
             this.$.currColor.style.backgroundColor = this._currSelectionColor;
-            this.$.colorTextCommand.textContent = this._targetItem;
+            const index = this._filtered.commands[this._targetItem]._index;
+            this.$.colorTextCommand.textContent = index;
             this.$.colorTextColor1.textContent = this._prevSelectionColor;
             this.$.colorTextColor2.textContent = this._currSelectionColor;
             this.$.colorText.classList.remove('hidden');
@@ -835,8 +856,9 @@ The main application element for the Skia Debugger.
         } else {
           this.$.multi_frame_controls.hidden = true;
         }
-        // Request and parse command list for this frame
+        // Clear state that depends on command list.
         this.jsonCommandListCache = {};
+        // Request and parse command list for this frame
         this._setCommands();
         this._moveToLastFilteredCommand();
         this.$.zoom.allow_draw = true;
@@ -923,7 +945,8 @@ The main application element for the Skia Debugger.
         this.$.layers.appendChild(newCanvas);
         if (this._surface) { this._surface.dispose(); }
         if (this._player) {
-          // From the loaded SKP, player knows how large its picture is. Resize our canvas to match.
+          // From the loaded SKP, player knows how large its picture is. Resize our canvas to
+          // match.
           let bounds = this._player.getBounds();
           this._dvcanvas.width = bounds.fRight - bounds.fLeft;
           this._dvcanvas.height = bounds.fBottom - bounds.fTop;
@@ -961,9 +984,13 @@ The main application element for the Skia Debugger.
 
       _breakPoint() {
         if (this.$.colorBreakPoint.checked) {
-          // We want to be able to jump to any op when the breakpoint
-          // triggers, so we remove all filtering.
-          this._clearFilter();
+          // If there is no filter, set a filter that removes non-drawing commands.
+          // The user can remove it if they want to, it just helps with speed, since only drawing
+          // commands can trigger the breakpoint.
+          if (this.$.fast.value === '') {
+            this.$.fast.value = '!DrawAnnotation Save Restore ClipRect Concat SetMatrix';
+            this._fastFilter();
+          }
         }
       },
 
@@ -980,68 +1007,121 @@ The main application element for the Skia Debugger.
 
       // consider putting these filter functions in the commands element
       _clearFilter()  {
+        // restore range filter to full value
+        this.$.rangeLow.value = 0;
+        this.$.rangeHigh.value = this._cmd.commands.length-1;
+        // clear text filter
         this.$.fast.value = '';
-        this._fastFilter();
+        this._clearHistogramSelections();
+        // calling this clears histogram selections and applies all filters.
+        this._applyRangeFilter();
       },
 
+      // Conveniently, this only gets triggered when the user changes it.
       _fastFilter() {
         let rawFilter = this.$.fast.value.trim().toLowerCase();
-        if (rawFilter.indexOf(':') > 0) {
-          // This is a range filter, e.g. '3:21'.
-          this._rangeFilter(rawFilter);
-        } else {
-          // Text filter, e.g. '!save restore'.
-          this._textFilter(rawFilter);
-        }
-      },
-
-      _rangeFilter(rawFilter) {
-        let parts = rawFilter.split(':');
-        if (parts.length !== 2) {
-          showPopupError('Range filters are of the form "N:M".');
-          return
-        }
-        let begin = +parts[0];
-        let end = +parts[1];
-        let filtered = {
-          version: 1,
-          commands: [],
-        };
-        this._cmd.commands.forEach((c, i) => {
-          if (i >= begin && i <= end) {
-            filtered.commands.push(c);
-          }
-        });
-        this._setFiltered(filtered);
-      },
-
-      _textFilter(rawFilter) {
-        let negative = (rawFilter[0] == '!');
+        const negative = (rawFilter[0] == '!');
         if (negative) {
           rawFilter = rawFilter.slice(1).trim();
-        }
-        let filters = rawFilter.split(/\s+/);
-        let matches = function(s) {
-          s = s.toLowerCase();
-          for (let i = 0; i < filters.length; i++) {
-            if (negative) {
-              if (s.indexOf(filters[i]) >= 0) {
-                return false;
-              }
+          const tokens = rawFilter.split(/\s+/);
+          // negative filters can also be represented with histogram selections, so apply this
+          // filter by translating it into excluded commands and then filter via the same route as
+          // the histogram.
+          excluded = {}
+          for (const token of tokens) {
+            excluded[token] = 1;
+          }
+          for (let i = 0; i < this.histogram.length; i++) {
+            // a lot of this nonsense is because polymer wouldn't update {{}} bindings inside the
+            // histogram dom-repeat template
+            if (this.histogram[i].name.toLowerCase() in excluded) {
+              this.set(`histogram.${i}.included`, false);
+              this.set(`histogram.${i}.visibleCount`, 0);
+              this.$.histogramTable.children[i].classList.add('pinkBackground');
             } else {
-              if (s.indexOf(filters[i]) >= 0) {
+              this.set(`histogram.${i}.included`, true);
+              this.set(`histogram.${i}.visibleCount`, this.histogram[i].count);
+              this.$.histogramTable.children[i].classList.remove('pinkBackground');
+            }
+          }
+          this._applyCommandFilter();
+        } else {
+          // for positive filters, clear the histogram selections and free text search the
+          // command's json representation.
+          const tokens = rawFilter.split(/\s+/);
+          this._clearHistogramSelections();
+          let filtered = {
+            version: 1,
+            commands: [],
+          };
+          // match function returns true if any search token is found in the provided string
+          const matches = function(s) {
+            for (const token of tokens) {
+              if (s.indexOf(token) >= 0) {
                 return true;
               }
             }
+            return false;
           }
-          return negative;
-        };
+          this.rangeFilteredCommands.forEach((c) => {
+            const commandText = JSON.stringify(c.details).toLowerCase();
+            if (matches(commandText)) {
+              filtered.commands.push(c);
+            }
+          });
+          this._setFiltered(filtered);
+          return;
+        }
+      },
+
+      // Applies range filter and recalculates command name histogram.
+      // The range filter is the first filter applied. The histogram shows any command that passes
+      // the range filter, and shows a nonzero count for any command that passes the command
+      // filter.
+      _applyRangeFilter() {
+        let begin = this.$.rangeLow.value;
+        let end = this.$.rangeHigh.value;
+        let filtered = [];
+        let counts = {}; // Tally of each command.
+        for (let i = begin; i <= end; i++) {
+          let c = this._cmd.commands[i];
+          const name = c.details.command;
+          counts[name] = (counts[name] || 0) + 1;
+          filtered.push(c);
+        }
+
+        // Histogram only needs to change when the range filter changes.
+        this._clearHistogramSelections();
+        this.histogram = this._formatHistogram(counts);
+        this.rangeFilteredCommands = filtered;
+        // setting this.histogram cleared the histogram, but the user's selections are still
+        // present in fast. Apply them now to this new histogram.
+        if (this.$.fast.value) {
+          this._fastFilter();
+        } else {
+          this._applyCommandFilter();
+        }
+      },
+
+      // Apply a filter specified by the 'included' property of the items in this.histogram and
+      // set the filtered list to be visible.
+      _applyCommandFilter() {
         let filtered = {
           version: 1,
           commands: [],
         };
-        this._cmd.commands.forEach((c) => {
-          if (matches(JSON.stringify(c.details).toLowerCase())) {
+        includedSet = {}
+        for (const h of this.histogram) {
+          if (h.included) {
+            includedSet[h.name.toLowerCase()] = 1;
+          }
+        }
+        passCommandFilter = function(command) {
+          const name = command.details.command.toLowerCase();
+          return (name in includedSet);
+        };
+        this.rangeFilteredCommands.forEach((c) => {
+          if (passCommandFilter(c)) {
             filtered.commands.push(c);
           }
         });
@@ -1060,8 +1140,12 @@ The main application element for the Skia Debugger.
             version: 1,
             commands: this._cmd.commands.slice(),
           };
-          this._setFiltered(filtered);
+
+          this.$.rangeLow.value = 0;
+          this.$.rangeHigh.value = this._cmd.commands.length-1;
+          this._applyRangeFilter();
         }
+        this.$.histogram.classList.remove('hidden');
         this._setLayerList();
       },
 
@@ -1293,7 +1377,6 @@ The main application element for the Skia Debugger.
         let commands = cmd.commands;
         let depth = 0;
         let prefixes = []; // A stack of indenting commands
-        let counts = {}; // Tally of each command.
         let matchup = []; // Match up saves and restores.
         let layeruse = {} // A Map from layer ids to command indices.
         let renderNodeRe = /^RenderNode\(id=([0-9]+), name='([A-Za-z0-9_]+)'\)/;
@@ -1305,7 +1388,6 @@ The main application element for the Skia Debugger.
           commands[i]._depth = depth;
           commands[i]._prefix = this._deepCopy(prefixes);
           let name = commands[i].details.command;
-          counts[name] = (counts[name] || 0) + 1;
           if (name in INDENTERS) {
             depth++;
 
@@ -1356,18 +1438,28 @@ The main application element for the Skia Debugger.
         }
 
         this.layerUseEvents = layeruse;
+        return cmd;
+      },
 
-        // Calculate the histogram of the ops.
-        // First convert the object into an Array of objects.
+      // Take a map of names to counts and produce the formatted histogram array that controls
+      // the histogram template.
+      // this function should remain insensitive to changes to the command filter and depend only
+      // on it's argument.
+      _formatHistogram(counts) {
+        // First convert the counts map into an Array of objects.
         let histogram = [];
         for (const k in counts) {
           histogram.push({
             name: k,
+            // record the count of this command in the current filtered range, pre command filter.
             count: counts[k],
+            visibleCount: counts[k],
+            included: true,
           });
         }
-        // Now sort the array, descending on the count, ascending
+        // Now sort the array, descending on the rangeCount, ascending
         // on the op name.
+        // sort by rangeCount so entries don't move on enable/disable
         histogram.sort(function(a,b) {
           if (a.count == b.count) {
             if (a.name < b.name) {
@@ -1381,10 +1473,7 @@ The main application element for the Skia Debugger.
             return b.count - a.count;
           }
         });
-        this.histogram = histogram;
-        this.$.histogram.classList.remove('hidden');
-
-        return cmd;
+        return histogram;
       },
 
       // refresh the layer list from the player any time playback stops on a frame.
@@ -1521,6 +1610,46 @@ The main application element for the Skia Debugger.
 
       closePopupError(e) {
         this.$.errorDialog.close();
+      },
+
+      _clickedHistogramRow(e) {
+        const name = e.model.item.name.toLowerCase();
+        e.model.set('item.included', !e.model.item.included);
+        this._applyCommandFilter();
+        // Polymer wouldn't allow the class$ binding to control this.
+        let tr = e.path[1];
+        if (e.model.item.included) {
+          tr.classList.remove('pinkBackground');
+          e.model.set('item.visibleCount', e.model.item.count);
+        } else {
+          tr.classList.add('pinkBackground');
+          e.model.set('item.visibleCount', 0);
+        }
+        // override current text filter
+        this.$.fast.value = this._textFilterFromHistogram();
+      },
+
+      _clearHistogramSelections() {
+        if (this.histogram.length === 0) {
+          return;
+        }
+        let histrows = this.$.histogramTable.children;
+        for (let i = 0; i < this.histogram.length; i++) {
+          this.set(`histogram.${i}.included`, true);
+          this.set(`histogram.${i}.visibleCount`, this.histogram[i].count);
+          histrows[i].classList.remove('pinkBackground');
+        }
+      },
+
+      // Make text filter match histogram selections
+      _textFilterFromHistogram() {
+        let excluded = [];
+        for (const item of this.histogram) {
+          if (!item.included) {
+            excluded.push(item.name);
+          }
+        }
+        return '!'+excluded.join(' ');
       },
     }); // end of Polymer(
   })(); // end of the declaration of an anonymous function, called.
