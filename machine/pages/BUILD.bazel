@@ -1,0 +1,9 @@
+load("//infra-sk:index.bzl", "sk_page")
+
+sk_page(
+    name = "index",
+    deps = ["//machine/modules/machine-server-sk"],
+    sass_deps = ["//machine/modules/machine-server-sk:styles"],
+    assets_serving_path = "/static",
+    nonce = "{% .Nonce %}",
+)
