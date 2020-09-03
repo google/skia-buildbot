@@ -1,13 +1,21 @@
-# The list of files we want to go into core.js, which is concat'd and
-# minified. These files should be either present in the project, brought
-# into third_party/bower_components via bower, or in node_modules.
-CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
-  third_party/bower_components/webcomponentsjs/webcomponents-lite.min.js \
-  ../res/js/common.js
+web: package-lock.json
+	npx webpack --mode=development
 
-BOWER_DIR=third_party/bower_components
+testjs:
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
 
-VULCANIZE1=true
+debugjs:
+	npx karma start --no-single-run
+
+watch: package-lock.json
+	npx webpack --mode=development --watch
+
+test-frontend-ci:
+	npm ci
+	xvfb-run --auto-servernum --server-args "-screen 0 1280x1024x24" npx karma start --single-run
+
+testpptr:
+	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -v -r ts-node/register ./modules/**/*_puppeteer_test.ts
 
 .PHONY: build
 build: elements_html core_js

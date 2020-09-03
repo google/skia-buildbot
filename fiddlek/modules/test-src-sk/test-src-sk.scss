@@ -1,0 +1,14 @@
+@import 'elements-sk/themes/themes.scss';
+
+test-src-sk {
+  .output {
+    margin: 0;
+    padding: 0;
+    background: var(--in-primary);
+    color: var(--primary);
+    width: 56em;
+    overflow-x: auto;
+    font-family: monospace;
+    font-size: 13px;
+  }
+}
