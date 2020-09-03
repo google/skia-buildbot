@@ -1,5 +1,5 @@
 /**
- * @module module/{{.ElementName}}
+ * @module modules/{{.ElementName}}
  * @description <h2><code>{{.ElementName}}</code></h2>
  *
  * @evt
@@ -12,17 +12,18 @@ import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
 
-const template = (ele) => html`
-<h3>Hello world</h3>
-`;
+export class {{.ClassName}} extends ElementSk {
+  private static template = (ele: {{.ClassName}}) =>
+    html`<h3>Hello world</h3>`;
 
-define('{{.ElementName}}', class extends ElementSk {
   constructor() {
-    super(template);
+    super({{.ClassName}}.template);
   }
 
   connectedCallback() {
     super.connectedCallback();
     this._render();
   }
-});
+};
+
+define('{{.ElementName}}', {{.ClassName}});
