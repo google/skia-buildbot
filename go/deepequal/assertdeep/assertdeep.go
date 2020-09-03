@@ -10,6 +10,7 @@ import (
 	"github.com/pmezard/go-difflib/difflib"
 	"github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/deepequal"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/sktest"
 )
 
@@ -90,7 +91,7 @@ var spewConfig = spew.ConfigState{
 // Copy is Equal but also checks that none of the direct fields
 // have a zero value and none of the direct fields point to the same object.
 // This catches regressions where a new field is added without adding that field
-// to the Copy method. Arguments must be structs.
+// to the Copy method. Arguments must be structs. Does not check private fields.
 func Copy(t sktest.TestingT, a, b interface{}) {
 	Equal(t, a, b)
 
@@ -108,6 +109,10 @@ func Copy(t sktest.TestingT, a, b interface{}) {
 	for i := 0; i < va.NumField(); i++ {
 		fa := va.Field(i)
 		z := reflect.Zero(fa.Type())
+		if !fa.CanInterface() || !z.CanInterface() {
+			sklog.Errorf("Cannot Interface() field %q; skipping", va.Type().Field(i).Name)
+			continue
+		}
 		if reflect.DeepEqual(fa.Interface(), z.Interface()) {
 			require.FailNow(t, fmt.Sprintf("Missing field %q (or set to zero value).", va.Type().Field(i).Name))
 		}

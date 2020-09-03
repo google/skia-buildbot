@@ -17,13 +17,15 @@ import (
 )
 
 var (
-	// COMMON_DEPS are dependencies needed by the infra tests in this repo.
-	COMMON_DEPS = []string{
+	// commonDeps are dependencies needed by the infra tests in this repo.
+	commonDeps = []string{
 		"github.com/golang/protobuf/protoc-gen-go",
 		"github.com/kisielk/errcheck",
+		"github.com/twitchtv/twirp/protoc-gen-twirp",
+		"github.com/vektra/mockery/...",
+		"go.larrymyers.com/protoc-gen-twirp_typescript",
 		"golang.org/x/tools/cmd/goimports",
 		"golang.org/x/tools/cmd/stringer",
-		"github.com/vektra/mockery/...",
 	}
 )
 
@@ -94,7 +96,7 @@ func Install(ctx context.Context, cwd string, args ...string) error {
 // this repo. Tries up to three times per dependency in case of transient
 // network issues.
 func InstallCommonDeps(ctx context.Context, workdir string) error {
-	for _, target := range COMMON_DEPS {
+	for _, target := range commonDeps {
 		if err := td.WithRetries(ctx, 3, func(ctx context.Context) error {
 			return Install(ctx, workdir, "-v", target)
 		}); err != nil {

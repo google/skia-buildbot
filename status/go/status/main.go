@@ -31,7 +31,6 @@ import (
 	"go.skia.org/infra/go/allowed"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/ds"
 	"go.skia.org/infra/go/git/repograph"
 	"go.skia.org/infra/go/gitiles"
 	"go.skia.org/infra/go/gitstore/bt_gitstore"
@@ -52,7 +51,6 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db/firestore"
 	"go.skia.org/infra/task_scheduler/go/types"
 	"go.skia.org/infra/task_scheduler/go/window"
-	"google.golang.org/api/option"
 )
 
 const (
@@ -811,9 +809,6 @@ func main() {
 	capacityClient.StartLoading(ctx, *capacityRecalculateInterval)
 
 	// Periodically obtain the autoroller statuses.
-	if err := ds.InitWithOpt(common.PROJECT_ID, ds.AUTOROLL_NS, option.WithTokenSource(ts)); err != nil {
-		sklog.Fatalf("Failed to initialize datastore: %s", err)
-	}
 	autorollStatusDB := status.NewDatastoreDB()
 	updateAutorollStatus := func(ctx context.Context) error {
 		statuses := map[string]autoRollStatus{}

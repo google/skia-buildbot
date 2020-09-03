@@ -37,7 +37,7 @@ func setup(t *testing.T) (context.Context, *AutoRoller, *git_testutils.GitBuilde
 		},
 		ParentDisplayName: "test-parent",
 		RollerName:        "test-roller",
-	}, urlmock.Client())
+	}, urlmock.Client(), nil)
 	require.NoError(t, err)
 	a.Start(ctx, time.Second, time.Second)
 	return ctx, a, gb, mockChild, func() {

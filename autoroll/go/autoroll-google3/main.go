@@ -63,7 +63,7 @@ func main() {
 		sklog.Fatal(err)
 	}
 	ctx := context.Background()
-	arb, err := NewAutoRoller(ctx, &cfg, client)
+	arb, err := NewAutoRoller(ctx, &cfg, client, ts)
 	if err != nil {
 		sklog.Fatal(err)
 	}
