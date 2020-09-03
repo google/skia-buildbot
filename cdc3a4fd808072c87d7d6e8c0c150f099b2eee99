@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "488eb638_3e54605c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 26
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-03T17:26:09Z",
+      "side": 1,
+      "message": "LGTM!",
+      "revId": "cdc3a4fd808072c87d7d6e8c0c150f099b2eee99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "91b44774_32996e5f",
+        "filename": "status/go/rpc/status.proto",
+        "patchSetId": 26
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-03T17:26:09Z",
+      "side": 1,
+      "message": "nit: snake case?",
+      "range": {
+        "startLine": 32,
+        "startChar": 13,
+        "endLine": 32,
+        "endChar": 14
+      },
+      "revId": "cdc3a4fd808072c87d7d6e8c0c150f099b2eee99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
