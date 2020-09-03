@@ -54,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "a7f36b64_5c9172c9",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 19
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T02:13:05Z",
+      "side": 1,
+      "message": "That still didn\u0027t fix it, I\u0027ve given up, committing w/o the Medium tests.",
+      "parentUuid": "006fa835_6cdfe0e1",
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0f61ec4a_9e1abb94",
         "filename": "Makefile",
         "patchSetId": 19
@@ -77,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "588b8973_efd94f06",
+        "filename": "Makefile",
+        "patchSetId": 19
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T02:13:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "0f61ec4a_9e1abb94",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 110,
+        "endChar": 44
+      },
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f23c7c1c_c4cfbb11",
         "filename": "new_element/Makefile",
         "patchSetId": 19
@@ -88,6 +130,30 @@
       "writtenOn": "2020-09-02T19:29:31Z",
       "side": 1,
       "message": "Does it make sense / is it possible to include this in the go.mod file?\n\n(Apologies in advance if the question is nonsensical, I\u0027m not well versed in Go modules.)",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 42
+      },
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6824a35_66f5d0b3",
+        "filename": "new_element/Makefile",
+        "patchSetId": 19
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T02:13:05Z",
+      "side": 1,
+      "message": "It doesn\u0027t make sense to add it since we need the executable built and not just the library added.",
+      "parentUuid": "f23c7c1c_c4cfbb11",
       "range": {
         "startLine": 10,
         "startChar": 0,
@@ -117,6 +183,24 @@
     },
     {
       "key": {
+        "uuid": "99e344a0_303d26cb",
+        "filename": "new_element/main.go",
+        "patchSetId": 19
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T02:13:05Z",
+      "side": 1,
+      "message": "No, the generated rice file contains the timestamp of the /template files, which will change on every checkout, which will cause a diff on go generate for every bot run.",
+      "parentUuid": "338d66e6_d3c1463e",
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "8697b4c2_8eab3287",
         "filename": "new_element/modules/json/index.ts",
         "patchSetId": 19
@@ -137,6 +221,30 @@
       "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "80aeda18_222f0a18",
+        "filename": "new_element/modules/json/index.ts",
+        "patchSetId": 19
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T02:13:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "8697b4c2_8eab3287",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 53
+      },
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     },
     {
       "key": {
@@ -163,6 +271,30 @@
     },
     {
       "key": {
+        "uuid": "98711785_c486a37d",
+        "filename": "new_element/templates/file.ts",
+        "patchSetId": 19
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T02:13:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "832260b1_5840ce98",
+      "range": {
+        "startLine": 2,
+        "startChar": 11,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "c8fc4b5d_e105cec5",
         "filename": "new_element/templates/file.ts",
         "patchSetId": 19
@@ -180,6 +312,24 @@
     },
     {
       "key": {
+        "uuid": "ba358001_1446e273",
+        "filename": "new_element/templates/file.ts",
+        "patchSetId": 19
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T02:13:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "c8fc4b5d_e105cec5",
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "74ca49a6_479beaa0",
         "filename": "new_element/templates/file_test.ts",
         "patchSetId": 19
@@ -194,6 +344,24 @@
       "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b4a0f4a_609de1ff",
+        "filename": "new_element/templates/file_test.ts",
+        "patchSetId": 19
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T02:13:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "74ca49a6_479beaa0",
+      "revId": "30974f96435b7d2ddebb42a3e71ce4cb0541f209",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
