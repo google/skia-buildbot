@@ -2,6 +2,8 @@ load("@infra-sk_npm//@bazel/typescript:index.bzl", "ts_library")
 load("@io_bazel_rules_sass//:defs.bzl", "sass_library")
 load("//infra-sk/karma_mocha_test:index.bzl", "karma_mocha_test")
 
+package(default_visibility=["//machine:__subpackages__"])
+
 ##############################
 # machine-server-sk element. #
 ##############################
@@ -22,7 +24,10 @@ ts_library(
 sass_library(
     name = "styles",
     srcs = ["machine-server-sk.scss"],
-    deps = ["//infra-sk:elements-sk_scss"],
+    deps = [
+        "//infra-sk:elements-sk_scss",
+        "//infra-sk/modules/theme-chooser-sk:styles",
+    ],
 )
 
 ###########################
