@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5af16487_2d313537",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T15:23:54Z",
+      "side": 0,
+      "message": "Looks like you\u0027ve lost the ability to edit and reload a page w/o restarting the application when developing locally. Was that intentional?\n\nIf not, you could simplify the code by always calling reloadTemplates and then inside reloadTemplates use sync.Once if not running with --local.",
+      "range": {
+        "startLine": 280,
+        "startChar": 0,
+        "endLine": 282,
+        "endChar": 2
+      },
+      "revId": "561acab459a087a8dc895ca897f18d2c522cac15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}

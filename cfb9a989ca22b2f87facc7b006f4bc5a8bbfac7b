@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e3a6f4f3_f572ad3d",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 22
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T15:23:54Z",
+      "side": 1,
+      "message": "Just nits.",
+      "revId": "cfb9a989ca22b2f87facc7b006f4bc5a8bbfac7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "79b6f357_07335d68",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T15:23:54Z",
+      "side": 1,
+      "message": "nit: Why not just pass in nil?",
+      "range": {
+        "startLine": 131,
+        "startChar": 1,
+        "endLine": 131,
+        "endChar": 19
+      },
+      "revId": "cfb9a989ca22b2f87facc7b006f4bc5a8bbfac7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60d5054d_e8d1cc42",
+        "filename": "go/login/login_test.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T15:23:54Z",
+      "side": 1,
+      "message": "Seems like a good place to use Subtests: https://golang.org/pkg/testing/#hdr-Subtests_and_Sub_benchmarks",
+      "revId": "cfb9a989ca22b2f87facc7b006f4bc5a8bbfac7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
