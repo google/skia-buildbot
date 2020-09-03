@@ -42,6 +42,30 @@
     },
     {
       "key": {
+        "uuid": "8f04cd72_2510b751",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-03T16:32:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "79b6f357_07335d68",
+      "range": {
+        "startLine": 131,
+        "startChar": 1,
+        "endLine": 131,
+        "endChar": 19
+      },
+      "revId": "cfb9a989ca22b2f87facc7b006f4bc5a8bbfac7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "60d5054d_e8d1cc42",
         "filename": "go/login/login_test.go",
         "patchSetId": 22
@@ -56,6 +80,24 @@
       "revId": "cfb9a989ca22b2f87facc7b006f4bc5a8bbfac7b",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7d45f95b_47f66f2e",
+        "filename": "go/login/login_test.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-03T16:32:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "60d5054d_e8d1cc42",
+      "revId": "cfb9a989ca22b2f87facc7b006f4bc5a8bbfac7b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }

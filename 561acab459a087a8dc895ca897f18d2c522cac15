@@ -22,6 +22,30 @@
       "revId": "561acab459a087a8dc895ca897f18d2c522cac15",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f543d3ca_a7055888",
+        "filename": "autoroll/go/autoroll-fe/main.go",
+        "patchSetId": 22
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-03T16:32:37Z",
+      "side": 0,
+      "message": "I removed it because (at least recently) I always have to rebuild the server and the frontend code anyway, so it wasn\u0027t doing any good.",
+      "parentUuid": "5af16487_2d313537",
+      "range": {
+        "startLine": 280,
+        "startChar": 0,
+        "endLine": 282,
+        "endChar": 2
+      },
+      "revId": "561acab459a087a8dc895ca897f18d2c522cac15",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
