@@ -4,13 +4,15 @@ load("//infra-sk/remove_css_imports_from_js:index.bzl", "remove_css_imports_from
 
 package(default_visibility=["//visibility:public"])
 
+exports_files(["rollup.config.js"])
+
 #################################
 # Sass library for elements-sk. #
 #################################
 
 sass_library(
     name = "elements-sk_scss",
-    srcs = glob(["node_modules/elements-sk/**/*.scss"]),
+    srcs = glob(["node_modules/elements-sk/**/*.scss"]) + ["//:tilde-elements-sk_styles"],
 )
 
 # The UMD bundles below are only necessary for karma_mocha_test and karma_web_test BUILD targets,
