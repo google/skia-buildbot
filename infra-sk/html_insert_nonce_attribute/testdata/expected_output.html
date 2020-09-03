@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test case</title>
+    <link nonce="ABC123" href="/no-slash.css" rel="stylesheet">
+    <link nonce="ABC123" href="/no-slash-1.css" rel="stylesheet"><link nonce="ABC123" href="/no-slash-2.css" rel="stylesheet">
+    <link nonce="ABC123" href="/slash.css" rel="stylesheet"/>
+    <link nonce="ABC123" href="/slash-1.css" rel="stylesheet"/><link nonce="ABC123" href="/slash-2.css" rel="stylesheet"/>
+    <link nonce="ABC123" href="/multiline-no-slash.css"
+          rel="stylesheet">
+    <link nonce="ABC123" href="/multiline-slash.css"
+          rel="stylesheet"/>
+  </head>
+  <body>
+    <script nonce="ABC123" type="text/javascript" src="/single-line.js"></script>
+    <script nonce="ABC123" type="text/javascript" src="/single-line-1.js"></script><script nonce="ABC123" type="text/javascript" src="/single-line-2.js"></script>
+    <script nonce="ABC123" type="text/javascript"
+            src="/multiline.js">
+    </script>
+  </body>
+</html>
