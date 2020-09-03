@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"sync"
 	"text/template"
 	"time"
 
@@ -36,8 +37,9 @@ var (
 )
 
 type server struct {
-	store     machineStore.Store
-	templates *template.Template
+	store             machineStore.Store
+	templates         *template.Template
+	loadTemplatesOnce sync.Once
 }
 
 // See baseapp.Constructor.
@@ -104,17 +106,22 @@ func user(r *http.Request) string {
 	return user
 }
 
-func (s *server) loadTemplates() {
+func (s *server) loadTemplatesImpl() {
 	s.templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
 		filepath.Join(*baseapp.ResourcesDir, "index.html"),
 	))
 }
 
+func (s *server) loadTemplates() {
+	if *baseapp.Local {
+		s.loadTemplatesImpl()
+	}
+	s.loadTemplatesOnce.Do(s.loadTemplatesImpl)
+}
+
 func (s *server) mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	if *baseapp.Local {
-		s.loadTemplates()
-	}
+	s.loadTemplates()
 	if err := s.templates.ExecuteTemplate(w, "index.html", map[string]string{
 		// Look in webpack.config.js for where the nonce templates are injected.
 		"Nonce": secure.CSPNonce(r.Context()),
