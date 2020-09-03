@@ -16,6 +16,24 @@
       "revId": "0446beae3df7b4ebb8ddf980af74a736e9550d27",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "530beb7d_aab74ea6",
+        "filename": "infra-sk/remove_css_imports_from_js/BUILD.bazel",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-03T18:33:53Z",
+      "side": 1,
+      "message": "Added a note to the macro definition (file index.bzl).",
+      "parentUuid": "058d1d3e_91c6dc40",
+      "revId": "0446beae3df7b4ebb8ddf980af74a736e9550d27",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
