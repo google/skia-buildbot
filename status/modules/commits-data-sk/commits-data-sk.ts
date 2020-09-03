@@ -74,9 +74,12 @@ export class TaskSpecDetails {
   comments: Array<Comment> = [];
   category: string | null = null;
   subcategory: string | null = null;
-  // TODO colorlcass?
   flaky: boolean = false;
   ignoreFailure: boolean = false;
+}
+
+function doFetch(input: RequestInfo, init?: RequestInit | undefined): Promise<Response> {
+  return fetch(input, init);
 }
 
 export class CommitsDataSk extends ElementSk {
@@ -238,12 +241,17 @@ export class CommitsDataSk extends ElementSk {
         }
         // TODO(westont): Branch tags and time offset tags.
         }
+        this.dispatchEvent(new CustomEvent('commits-data-update', { bubbles: true }));
       })
-      .catch(errorMessage);;
+      .catch((e) => {
+        debugger;
+        errorMessage(e);
+        console.error(e);
+      });;
   }
 };
 
-define('commits-table-sk', CommitsDataSk);
+define('commits-data-sk', CommitsDataSk);
 
 // shortCommit returns the first 7 characters of a commit hash.
 function shortCommit(commit: string): string {
