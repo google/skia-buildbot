@@ -39,6 +39,30 @@
       "revId": "cdc3a4fd808072c87d7d6e8c0c150f099b2eee99",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "65300b97_5a8c362e",
+        "filename": "status/go/rpc/status.proto",
+        "patchSetId": 26
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-03T18:20:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "91b44774_32996e5f",
+      "range": {
+        "startLine": 32,
+        "startChar": 13,
+        "endLine": 32,
+        "endChar": 14
+      },
+      "revId": "cdc3a4fd808072c87d7d6e8c0c150f099b2eee99",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
