@@ -16,6 +16,24 @@
       "revId": "35d1fdd3e6be769c685d793c93f479587d464bdb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4b8f2ae3_baf61cc2",
+        "filename": "infra-sk/html_insert_nonce_attribute/BUILD.bazel",
+        "patchSetId": 9
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T15:05:33Z",
+      "side": 1,
+      "message": "I see in a later CL that\u0027s exactly how you used this, so I just think the test and comments should be updated to use a more realistic value than \"ABC123\".",
+      "parentUuid": "884ba89f_061f35d8",
+      "revId": "35d1fdd3e6be769c685d793c93f479587d464bdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
