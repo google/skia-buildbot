@@ -5,3 +5,60 @@ load("@bazel_gazelle//:def.bzl", "gazelle")
 gazelle(name = "gazelle")
 
 exports_files(["tsconfig.json"], visibility = ["//visibility:public"])
+
+####################################################################################################
+# Support for "~"-prefixed Sass imports of elements-sk styles, e.g.:                               #
+#                                                                                                  #
+#   @import '~elements-sk/themes/themes';                                                          #
+#                                                                                                  #
+# This hack is necessary to maintain compatibility with the Webpack build, which uses the          #
+# css-loader plugin to inline CSS imports. Said plugin adds all NPM packages to the Sass compiler  #
+# import path with the "~" prefix. See https://webpack.js.org/loaders/css-loader/#import for more. #
+####################################################################################################
+
+ELEMENTS_SK_SCSS = [
+    # To regenerate this list, please run the following Bash command:
+    #
+    #   $ find infra-sk/node_modules/elements-sk -name "*.scss" \
+    #       | sed -E "s/infra-sk\//\/\/infra-sk:/" | sort
+    "//infra-sk:node_modules/elements-sk/checkbox-sk/checkbox-sk.scss",
+    "//infra-sk:node_modules/elements-sk/collapse-sk/collapse-sk.scss",
+    "//infra-sk:node_modules/elements-sk/colors.scss",
+    "//infra-sk:node_modules/elements-sk/icon/icon-sk.scss",
+    "//infra-sk:node_modules/elements-sk/multi-select-sk/multi-select-sk.scss",
+    "//infra-sk:node_modules/elements-sk/nav-links-sk/nav-links-sk.scss",
+    "//infra-sk:node_modules/elements-sk/radio-sk/radio-sk.scss",
+    "//infra-sk:node_modules/elements-sk/select-sk/select-sk.scss",
+    "//infra-sk:node_modules/elements-sk/spinner-sk/spinner-sk.scss",
+    "//infra-sk:node_modules/elements-sk/styles/buttons/buttons.scss",
+    "//infra-sk:node_modules/elements-sk/styles/select/select.scss",
+    "//infra-sk:node_modules/elements-sk/styles/table/table.scss",
+    "//infra-sk:node_modules/elements-sk/tabs-panel-sk/tabs-panel-sk.scss",
+    "//infra-sk:node_modules/elements-sk/tabs-sk/tabs-sk.scss",
+    "//infra-sk:node_modules/elements-sk/themes/color-palette.scss",
+    "//infra-sk:node_modules/elements-sk/themes/themes.scss",
+    "//infra-sk:node_modules/elements-sk/toast-sk/toast-sk.scss",
+]
+
+TILDE_ELEMENTS_SK_SCSS = [f.replace("//infra-sk:node_modules/", "~") for f in ELEMENTS_SK_SCSS]
+
+# Recursively copies all *.scss files from //infra-sk/node_modules/elements-sk to //~elements-sk.
+genrule(
+    name = "~elements-sk_generator",
+    srcs = ELEMENTS_SK_SCSS,
+    outs = TILDE_ELEMENTS_SK_SCSS,
+    cmd =
+        "for FILENAME in $(SRCS); do " +
+        "  TILDE_FILENAME=`echo $$FILENAME | sed -E 's/infra-sk\\/node_modules\\/(.*)/~\\1/'`; " +
+        "  TILDE_DIR=$$(dirname $$TILDE_FILENAME); " +
+        "  mkdir -p $(RULEDIR)/$$TILDE_DIR; " +
+        "  cp $$FILENAME $(RULEDIR)/$$TILDE_FILENAME; " +
+        "done",
+)
+
+# Do not use directly. Use //infra-sk:elements-sk_scss instead, which includes these files as well.
+filegroup(
+    name = "~elements-sk",
+    srcs = TILDE_ELEMENTS_SK_SCSS,
+    visibility = ["//infra-sk:__pkg__"],
+)
