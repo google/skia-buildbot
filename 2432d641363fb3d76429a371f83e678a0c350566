@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b3af877e_5f67935e",
+        "filename": "infra-sk/index.bzl",
+        "patchSetId": 7
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T15:04:04Z",
+      "side": 1,
+      "message": "The webpack build names them using a hash of the contents of the file, i.e. \u003cname\u003e_\u003chash\u003e.ts and \u003cname\u003e_\u003chash\u003e.scss. This does cache busting so we always get the latest code and styles.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 27
+      },
+      "revId": "2432d641363fb3d76429a371f83e678a0c350566",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
