@@ -100,6 +100,7 @@ build-frontend-ci:
 	cd hashtag && $(MAKE) build-frontend-ci
 	cd leasing && $(MAKE) build-frontend-ci
 	cd machine && $(MAKE) build-frontend-ci
+	cd new_element && $(MAKE) build-frontend-ci
 	cd perf && $(MAKE) build-frontend-ci
 	cd power && $(MAKE) build-frontend-ci
 	cd pulld && $(MAKE) build-frontend-ci
@@ -145,6 +146,7 @@ test-frontend-ci:
 	cd demos && $(MAKE) test-frontend-ci
 	cd golden && $(MAKE) test-frontend-ci
 	cd machine && $(MAKE) test-frontend-ci
+	cd new_element && $(MAKE) test-frontend-ci
 	cd perf && $(MAKE) test-frontend-ci
 	cd push && $(MAKE) test-frontend-ci
 
