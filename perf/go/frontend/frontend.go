@@ -16,6 +16,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -82,6 +83,8 @@ type Frontend struct {
 	perfGit *perfgit.Git
 
 	templates *template.Template
+
+	loadTemplatesOnce sync.Once
 
 	frameRequests *dataframe.RunningFrameRequests
 
@@ -153,7 +156,7 @@ var templateFilenames = []string{
 	"dryRunAlert.html",
 }
 
-func (f *Frontend) loadTemplates() {
+func (f *Frontend) loadTemplatesImpl() {
 	f.templates = template.New("")
 	for _, filename := range templateFilenames {
 		contents, err := fileContentsFromFileSystem(f.distFileSystem, filename)
@@ -166,6 +169,14 @@ func (f *Frontend) loadTemplates() {
 			sklog.Fatal(err)
 		}
 	}
+}
+
+func (f *Frontend) loadTemplates() {
+	if f.flags.Local {
+		f.loadTemplatesImpl()
+		return
+	}
+	f.loadTemplatesOnce.Do(f.loadTemplatesImpl)
 }
 
 // SkPerfConfig is the configuration data that will appear
@@ -183,9 +194,7 @@ type SkPerfConfig struct {
 func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
-		if f.flags.Local {
-			f.loadTemplates()
-		}
+		f.loadTemplates()
 		context := SkPerfConfig{
 			Radius:         f.flags.Radius,
 			KeyOrder:       strings.Split(f.flags.KeyOrder, ","),
@@ -208,9 +217,7 @@ func (f *Frontend) templateHandler(name string) http.HandlerFunc {
 func (f *Frontend) scriptHandler(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/javascript")
-		if f.flags.Local {
-			f.loadTemplates()
-		}
+		f.loadTemplates()
 		if err := f.templates.ExecuteTemplate(w, name, nil); err != nil {
 			sklog.Error("Failed to expand template:", err)
 		}
@@ -406,9 +413,7 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 // helpHandler handles the GET of the main page.
 func (f *Frontend) helpHandler(w http.ResponseWriter, r *http.Request) {
 	sklog.Infof("Help Handler: %q\n", r.URL.Path)
-	if f.flags.Local {
-		f.loadTemplates()
-	}
+	f.loadTemplates()
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "text/html")
 		ctx := calc.NewContext(nil, nil)
