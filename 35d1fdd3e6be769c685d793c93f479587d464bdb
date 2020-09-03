@@ -34,6 +34,24 @@
       "revId": "35d1fdd3e6be769c685d793c93f479587d464bdb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e11494cf_b2c95b19",
+        "filename": "infra-sk/html_insert_nonce_attribute/BUILD.bazel",
+        "patchSetId": 9
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-03T18:25:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "4b8f2ae3_baf61cc2",
+      "revId": "35d1fdd3e6be769c685d793c93f479587d464bdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
