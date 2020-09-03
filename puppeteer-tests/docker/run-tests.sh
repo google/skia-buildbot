@@ -89,10 +89,11 @@ cp -r /src/ct/tsconfig.json              /tests/ct
 cp -r /src/ct/modules                    /tests/ct
 
 mkdir /tests/new_element
-cp -r /src/new_element/package*                   /tests/new_element
-cp -r /src/new_element/webpack.config.ts          /tests/new_element
-cp -r /src/new_element/tsconfig.json              /tests/new_element
-cp -r /src/new_element/modules                    /tests/new_element
+cp -r /src/new_element/package*          /tests/new_element
+cp -r /src/new_element/webpack.config.ts /tests/new_element
+cp -r /src/new_element/tsconfig.json     /tests/new_element
+cp -r /src/new_element/modules           /tests/new_element
+
 ################################################################################
 # Install node modules.                                                        #
 ################################################################################
