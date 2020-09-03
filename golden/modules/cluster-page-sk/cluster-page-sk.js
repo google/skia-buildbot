@@ -27,8 +27,6 @@ const template = (ele) => {
   }
   return html`
 <div>
-  <!-- TODO(kjlubick) hide filter dialog option from search-controls-sk here; we shouldn't use
-       any of those fields.-->
   <search-controls-sk .corpora=${ele._corpora}
       .paramSet=${ele._paramset}
       .searchCriteria=${ele._searchCriteria}
@@ -46,9 +44,9 @@ const infoPanel = (ele) => {
     return html`
 <div>Click on one digest or shift click multiple digests to see more specific information.</div>
 
-<!-- TODO(kjlubick) clicking on this paramset should do something. In the old version, it
-     caused text labels to spawn on the appropriate digests.-->
-<paramset-sk .paramsets=${[ele._paramsetOfAllDigests]}></paramset-sk>`;
+<paramset-sk clickable .paramsets=${[ele._paramsetOfAllDigests]}
+  @paramset-key-click=${ele._paramKeyClicked} @paramset-key-value-click=${ele._paramValueClicked}>
+</paramset-sk>`;
   }
   if (ele._selectedDigests.length === 1) {
     if (ele._digestDetails) {
@@ -73,9 +71,9 @@ const infoPanel = (ele) => {
   return html`
 <div>Summary of ${ele._selectedDigests.length} digests</div>
 
-<!-- TODO(kjlubick) clicking on this paramset should do something. In the old version, it
-     caused text labels to spawn on the appropriate digests.-->
-<paramset-sk .paramsets=${[selectedDigestParamset]}></paramset-sk>
+<paramset-sk clickable .paramsets=${[selectedDigestParamset]}
+  @paramset-key-click=${ele._paramKeyClicked} @paramset-key-value-click=${ele._paramValueClicked}>
+</paramset-sk>
 `;
 };
 
@@ -151,6 +149,11 @@ define('cluster-page-sk', class extends ElementSk {
     // A map of digest -> paramset. Useful for showing the params of the selected digests.
     this._paramsetsByDigest = {};
 
+    // These are the nodes and links that are drawn in the cluster-digests-sk. Holding onto them
+    // lets us update them (e.g. their labels) and easily re-layout the diagram.
+    this._renderedNodes = [];
+    this._renderedLinks = [];
+
     // Allows us to abort fetches if we fetch again.
     this._fetchController = null;
   }
@@ -199,9 +202,9 @@ define('cluster-page-sk', class extends ElementSk {
     fetch(url, extra)
       .then(jsonOrThrow)
       .then((json) => {
-        const digestNodes = json.nodes;
-        const links = json.links;
-        $$('cluster-digests-sk', this).setData(digestNodes, links);
+        this._renderedNodes = json.nodes;
+        this._renderedLinks = json.links;
+        this._layoutCluster();
         // TODO(kjlubick) remove json.test from the RPC value ( we have it in this._grouping)
         this._paramsetOfAllDigests = json.paramsetsUnion;
         this._paramsetsByDigest = json.paramsetByDigest;
@@ -279,6 +282,33 @@ define('cluster-page-sk', class extends ElementSk {
         sendEndTask(this);
       })
       .catch((e) => sendFetchError(this, e, 'diff details'));
+  }
+
+  _layoutCluster() {
+    $$('cluster-digests-sk', this).setData(this._renderedNodes, this._renderedLinks);
+  }
+
+  _paramKeyClicked(e) {
+    const keyClicked = e.detail.key;
+    for (const node of this._renderedNodes) {
+      const ps = this._paramsetsByDigest[node.name];
+      node.label = ps[keyClicked] || '';
+    }
+    this._layoutCluster();
+  }
+
+  _paramValueClicked(e) {
+    const keyClicked = e.detail.key;
+    const valueClicked = e.detail.value;
+    for (const node of this._renderedNodes) {
+      const ps = this._paramsetsByDigest[node.name];
+      if (ps[keyClicked].includes(valueClicked)) {
+        node.label = ps[keyClicked];
+      } else {
+        node.label = '';
+      }
+    }
+    this._layoutCluster();
   }
 
   _prefetch() {

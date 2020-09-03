@@ -5,4 +5,8 @@ cluster-page-sk {
   digest-details-sk {
     max-width: 1000px;
   }
+
+  search-controls-sk .more-filters {
+    display: none;
+  }
 }

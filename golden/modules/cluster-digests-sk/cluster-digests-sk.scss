@@ -6,6 +6,7 @@ cluster-digests-sk {
 
     circle.node {
       stroke-width: 2px;
+      cursor: pointer;
 
       &.positive {
         fill: var(--triaged-positive);
