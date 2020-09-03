@@ -22,6 +22,30 @@
       "revId": "e827cb12b3098efe28959420eab75e8f0e71ca0f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "136e2a64_063e608c",
+        "filename": "BUILD.bazel",
+        "patchSetId": 7
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-03T18:07:15Z",
+      "side": 1,
+      "message": "Not needed anymore. Good catch!",
+      "parentUuid": "72619a6b_508a7efb",
+      "range": {
+        "startLine": 2,
+        "startChar": 41,
+        "endLine": 2,
+        "endChar": 53
+      },
+      "revId": "e827cb12b3098efe28959420eab75e8f0e71ca0f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
