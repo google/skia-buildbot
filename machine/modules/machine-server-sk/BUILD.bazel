@@ -10,7 +10,10 @@ package(default_visibility=["//machine:__subpackages__"])
 
 ts_library(
     name = "machine-server-sk",
-    srcs = ["machine-server-sk.ts"],
+    srcs = [
+        "index.ts",
+        "machine-server-sk.ts"
+    ],
     deps = [
         '//infra-sk/modules/ElementSk:element-sk',
         '//infra-sk/modules/theme-chooser-sk',
