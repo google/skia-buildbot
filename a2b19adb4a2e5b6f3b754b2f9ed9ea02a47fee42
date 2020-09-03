@@ -1,0 +1,274 @@
+{
+  "comments": [
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004778894",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/302504?revision\u003d23",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "015bc6ee_efde6540",
+        "filename": "autoroll/go/rpc/rpc.twirp.go",
+        "patchSetId": 23
+      },
+      "lineNbr": 1637,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-09-03T16:28:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 1637,
+        "startChar": 69,
+        "endLine": 1637,
+        "endChar": 75
+      },
+      "revId": "a2b19adb4a2e5b6f3b754b2f9ed9ea02a47fee42",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004778894",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/302504?revision\u003d23",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "477e7f66_6eee61a4",
+        "filename": "autoroll/modules/rpc-mock/fake-ministatuses.ts",
+        "patchSetId": 23
+      },
+      "lineNbr": 687,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-09-03T16:28:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 687,
+        "startChar": 33,
+        "endLine": 687,
+        "endChar": 39
+      },
+      "revId": "a2b19adb4a2e5b6f3b754b2f9ed9ea02a47fee42",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004778894",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/302504?revision\u003d23",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "5a088842_83fd0d0d",
+        "filename": "autoroll/modules/rpc-mock/fake-ministatuses.ts",
+        "patchSetId": 23
+      },
+      "lineNbr": 688,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-09-03T16:28:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 688,
+        "startChar": 30,
+        "endLine": 688,
+        "endChar": 36
+      },
+      "revId": "a2b19adb4a2e5b6f3b754b2f9ed9ea02a47fee42",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004778894",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/302504?revision\u003d23",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "1ecd8b8c_31fb4350",
+        "filename": "autoroll/modules/rpc-mock/fake-ministatuses.ts",
+        "patchSetId": 23
+      },
+      "lineNbr": 693,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-09-03T16:28:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 693,
+        "startChar": 27,
+        "endLine": 693,
+        "endChar": 33
+      },
+      "revId": "a2b19adb4a2e5b6f3b754b2f9ed9ea02a47fee42",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004778894",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/302504?revision\u003d23",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "c5ed6139_eb2b0068",
+        "filename": "autoroll/modules/rpc-mock/fake-ministatuses.ts",
+        "patchSetId": 23
+      },
+      "lineNbr": 707,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-09-03T16:28:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 707,
+        "startChar": 35,
+        "endLine": 707,
+        "endChar": 41
+      },
+      "revId": "a2b19adb4a2e5b6f3b754b2f9ed9ea02a47fee42",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004778894",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/302504?revision\u003d23",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "96d607d6_fd89d2a1",
+        "filename": "autoroll/modules/rpc-mock/fake-ministatuses.ts",
+        "patchSetId": 23
+      },
+      "lineNbr": 708,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-09-03T16:28:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 708,
+        "startChar": 32,
+        "endLine": 708,
+        "endChar": 38
+      },
+      "revId": "a2b19adb4a2e5b6f3b754b2f9ed9ea02a47fee42",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004778894",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/302504?revision\u003d23",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "e8f3c081_e8ec1d1c",
+        "filename": "autoroll/modules/rpc-mock/fake-ministatuses.ts",
+        "patchSetId": 23
+      },
+      "lineNbr": 713,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-09-03T16:28:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 713,
+        "startChar": 27,
+        "endLine": 713,
+        "endChar": 33
+      },
+      "revId": "a2b19adb4a2e5b6f3b754b2f9ed9ea02a47fee42",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004778894",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/302504?revision\u003d23",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "62bbc7d8_9aa9e219",
+        "filename": "autoroll/modules/rpc-mock/fake-ministatuses.ts",
+        "patchSetId": 23
+      },
+      "lineNbr": 727,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-09-03T16:28:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 727,
+        "startChar": 35,
+        "endLine": 727,
+        "endChar": 41
+      },
+      "revId": "a2b19adb4a2e5b6f3b754b2f9ed9ea02a47fee42",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004778894",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/302504?revision\u003d23",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "103e03db_119cfb61",
+        "filename": "autoroll/modules/rpc-mock/fake-ministatuses.ts",
+        "patchSetId": 23
+      },
+      "lineNbr": 728,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-09-03T16:28:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 728,
+        "startChar": 32,
+        "endLine": 728,
+        "endChar": 38
+      },
+      "revId": "a2b19adb4a2e5b6f3b754b2f9ed9ea02a47fee42",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004778894",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/302504?revision\u003d23",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "edf5c97a_7f33cec6",
+        "filename": "autoroll/modules/rpc-mock/fake-ministatuses.ts",
+        "patchSetId": 23
+      },
+      "lineNbr": 733,
+      "author": {
+        "id": 13155
+      },
+      "writtenOn": "2020-09-03T16:28:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 733,
+        "startChar": 27,
+        "endLine": 733,
+        "endChar": 33
+      },
+      "revId": "a2b19adb4a2e5b6f3b754b2f9ed9ea02a47fee42",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
