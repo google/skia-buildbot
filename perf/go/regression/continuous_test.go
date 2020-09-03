@@ -8,13 +8,13 @@ import (
 	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/testutils/unittest"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/config"
 )
 
 func TestBuildConfigsAndParamSet(t *testing.T) {
 	unittest.SmallTest(t)
 
 	c := Continuous{
-		eventDriven: false,
 		provider: func() ([]*alerts.Alert, error) {
 			// Only fill in ID since we are just testing if ch channel returns
 			// what we set here.
@@ -33,6 +33,12 @@ func TestBuildConfigsAndParamSet(t *testing.T) {
 			}
 		},
 		pollingDelay: time.Nanosecond,
+		instanceConfig: &config.InstanceConfig{
+			DataStoreConfig: config.DataStoreConfig{},
+			GitRepoConfig:   config.GitRepoConfig{},
+			IngestionConfig: config.IngestionConfig{},
+		},
+		flags: &config.FrontendFlags{},
 	}
 
 	// Build channel.

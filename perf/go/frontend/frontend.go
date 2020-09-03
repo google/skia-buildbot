@@ -401,8 +401,8 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 			for i := 0; i < f.flags.NumContinuousParallel; i++ {
 				// Start running continuous clustering looking for regressions.
 				time.Sleep(startClusterDelay)
-				c := regression.NewContinuous(f.perfGit, f.configProvider, f.regStore, f.shortcutStore, f.flags.NumContinuous, f.flags.Radius, f.notifier, paramsProvider, f.dfBuilder,
-					f.flags.Local, config.Config.IngestionConfig.SourceConfig.Project, config.Config.IngestionConfig.FileIngestionTopicName, f.flags.EventDrivenRegressionDetection)
+				c := regression.NewContinuous(f.perfGit, f.configProvider, f.regStore, f.shortcutStore, f.notifier, paramsProvider, f.dfBuilder,
+					cfg, f.flags)
 				f.continuous = append(f.continuous, c)
 				go c.Run(context.Background())
 			}

@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/perf/go/alerts"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/ingestevents"
@@ -57,20 +58,16 @@ type Current struct {
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
-	perfGit         *perfgit.Git
-	store           Store
-	shortcutStore   shortcut.Store
-	numCommits      int // Number of recent commits to do clustering over.
-	radius          int
-	eventDriven     bool   // True if doing event driven regression detection.
-	pubSubTopicName string // PubSub Topic name for incoming ingestion events.
-	projectID       string // GCP Project name.
-	local           bool   // Are we running locally or in prod.
-	provider        ConfigProvider
-	notifier        *notify.Notifier
-	paramsProvider  ParamsetProvider
-	dfBuilder       dataframe.DataFrameBuilder
-	pollingDelay    time.Duration
+	perfGit        *perfgit.Git
+	store          Store
+	shortcutStore  shortcut.Store
+	provider       ConfigProvider
+	notifier       *notify.Notifier
+	paramsProvider ParamsetProvider
+	dfBuilder      dataframe.DataFrameBuilder
+	pollingDelay   time.Duration
+	instanceConfig *config.InstanceConfig
+	flags          *config.FrontendFlags
 
 	mutex   sync.Mutex // Protects current.
 	current *Current
@@ -86,31 +83,23 @@ func NewContinuous(
 	provider ConfigProvider,
 	store Store,
 	shortcutStore shortcut.Store,
-	numCommits int,
-	radius int,
 	notifier *notify.Notifier,
 	paramsProvider ParamsetProvider,
 	dfBuilder dataframe.DataFrameBuilder,
-	local bool,
-	projectID string,
-	fileIngestionTopicName string,
-	eventDriven bool) *Continuous {
+	instanceConfig *config.InstanceConfig,
+	flags *config.FrontendFlags) *Continuous {
 	return &Continuous{
-		perfGit:         perfGit,
-		store:           store,
-		shortcutStore:   shortcutStore,
-		numCommits:      numCommits,
-		radius:          radius,
-		provider:        provider,
-		eventDriven:     eventDriven,
-		pubSubTopicName: fileIngestionTopicName,
-		local:           local,
-		projectID:       projectID,
-		notifier:        notifier,
-		current:         &Current{},
-		paramsProvider:  paramsProvider,
-		dfBuilder:       dfBuilder,
-		pollingDelay:    pollingClusteringDelay,
+		perfGit:        perfGit,
+		store:          store,
+		shortcutStore:  shortcutStore,
+		provider:       provider,
+		notifier:       notifier,
+		current:        &Current{},
+		paramsProvider: paramsProvider,
+		dfBuilder:      dfBuilder,
+		pollingDelay:   pollingClusteringDelay,
+		instanceConfig: instanceConfig,
+		flags:          flags,
 	}
 }
 
@@ -189,7 +178,7 @@ type configsAndParamSet struct {
 // getPubSubSubscription returns a pubsub.Subscription or an error if the
 // subscription can't be established.
 func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
-	if c.pubSubTopicName == "" {
+	if c.instanceConfig.IngestionConfig.FileIngestionTopicName == "" {
 		return nil, skerr.Fmt("Subscription name isn't set.")
 	}
 	hostname, err := os.Hostname()
@@ -197,17 +186,17 @@ func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
 		return nil, skerr.Wrap(err)
 	}
 	ctx := context.Background()
-	client, err := pubsub.NewClient(ctx, c.projectID)
+	client, err := pubsub.NewClient(ctx, c.instanceConfig.IngestionConfig.SourceConfig.Project)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
 
 	// When running in production we have every instance use the same topic name
 	// so that they load-balance pulling items from the topic.
-	topicName := fmt.Sprintf("%s-%s", c.pubSubTopicName, "prod")
-	if c.local {
+	topicName := fmt.Sprintf("%s-%s", c.instanceConfig.IngestionConfig.FileIngestionTopicName, "prod")
+	if c.flags.Local {
 		// When running locally create a new topic for every host.
-		topicName = fmt.Sprintf("%s-%s", c.pubSubTopicName, hostname)
+		topicName = fmt.Sprintf("%s-%s", c.instanceConfig.IngestionConfig.FileIngestionTopicName, hostname)
 	}
 	sub := client.Subscription(topicName)
 	ok, err := sub.Exists(ctx)
@@ -216,7 +205,7 @@ func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
 	}
 	if !ok {
 		sub, err = client.CreateSubscription(ctx, topicName, pubsub.SubscriptionConfig{
-			Topic: client.Topic(c.pubSubTopicName),
+			Topic: client.Topic(topicName),
 		})
 		if err != nil {
 			return nil, skerr.Wrapf(err, "Failed creating subscription")
@@ -237,7 +226,7 @@ func (c *Continuous) getPubSubSubscription() (*pubsub.Subscription, error) {
 func (c *Continuous) buildConfigAndParamsetChannel() <-chan configsAndParamSet {
 	ret := make(chan configsAndParamSet)
 
-	if c.eventDriven {
+	if c.flags.EventDrivenRegressionDetection {
 		sub, err := c.getPubSubSubscription()
 		if err != nil {
 			sklog.Errorf("Failed to create pubsub subscription, not doing event driven regression detection: %s", err)
@@ -384,7 +373,7 @@ func (c *Continuous) Run(ctx context.Context) {
 			c.setCurrentConfig(cfg)
 
 			// Smoketest the query, but only if we are not in event driven mode.
-			if cfg.GroupBy != "" && !c.eventDriven {
+			if cfg.GroupBy != "" && !c.flags.EventDrivenRegressionDetection {
 				sklog.Infof("Alert contains a GroupBy, doing a smoketest first: %q", cfg.DisplayName)
 				u, err := url.ParseQuery(cfg.Query)
 				if err != nil {
@@ -413,10 +402,10 @@ func (c *Continuous) Run(ctx context.Context) {
 				c.reportRegressions(ctx, req, resps, cfg)
 			}
 			if cfg.Radius == 0 {
-				cfg.Radius = c.radius
+				cfg.Radius = c.flags.Radius
 			}
 			domain := types.Domain{
-				N:   int32(c.numCommits),
+				N:   int32(c.flags.NumContinuous),
 				End: time.Time{},
 			}
 			RegressionsForAlert(ctx, cfg, domain, cnp.paramset, c.shortcutStore, clusterResponseProcessor, c.perfGit, c.dfBuilder, c.progressCallback)
