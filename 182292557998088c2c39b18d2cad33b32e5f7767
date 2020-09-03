@@ -16,6 +16,23 @@
       "revId": "182292557998088c2c39b18d2cad33b32e5f7767",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c72cafda_09b521be",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-03T16:39:38Z",
+      "side": 1,
+      "message": "Maybe this is the kind of thing we could centralize somehow?  I\u0027m not familiar with baseapp, but that might be the way to go.",
+      "revId": "182292557998088c2c39b18d2cad33b32e5f7767",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
