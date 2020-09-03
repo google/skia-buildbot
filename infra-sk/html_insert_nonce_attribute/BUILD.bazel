@@ -1,0 +1,15 @@
+load("@build_bazel_rules_nodejs//:index.bzl", "generated_file_test")
+load(":index.bzl", "html_insert_nonce_attribute")
+
+html_insert_nonce_attribute(
+    name = "actual_output",
+    src = ":testdata/input.html",
+    out = ":testdata/actual_output.html",
+    nonce = "{% .Nonce %}",
+)
+
+generated_file_test(
+    name = "test",
+    src = ":testdata/expected_output.html",
+    generated = ":testdata/actual_output.html",
+)
