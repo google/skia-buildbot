@@ -42,5 +42,15 @@
     "readinessPeriodSeconds": "30",
     "readinessFailureThreshold": "10"
   },
-  "maxRollFrequency": "6h"
+  "maxRollFrequency": "6h",
+  "notifiers": [
+    {
+      "filter": "error",
+      "email": {
+        "emails": [
+          "chrome-fuchsia-gardener@grotations.appspotmail.com"
+        ]
+      }
+    }
+  ]
 }
