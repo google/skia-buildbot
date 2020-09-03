@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0e26656_01fe7107",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2020-09-03T13:13:44Z",
+      "side": 1,
+      "message": "LGTM with minor predicate adjustment.",
+      "revId": "68de7aab1b83d05fed64bb49c66fb12ac56747b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}

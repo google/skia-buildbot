@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3db9baf2_a24b408f",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2020-09-03T13:13:44Z",
+      "side": 1,
+      "message": "||",
+      "range": {
+        "startLine": 86,
+        "startChar": 30,
+        "endLine": 86,
+        "endChar": 32
+      },
+      "revId": "8d0cfb0d1bf4864a3d535f8a0eebe489e82a735b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ae16676_67bfe0b0",
+        "filename": "skottie/modules/skottie-player-sk/skottie-player-sk.js",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 5641
+      },
+      "writtenOn": "2020-09-03T13:13:44Z",
+      "side": 1,
+      "message": "||",
+      "range": {
+        "startLine": 90,
+        "startChar": 35,
+        "endLine": 90,
+        "endChar": 37
+      },
+      "revId": "8d0cfb0d1bf4864a3d535f8a0eebe489e82a735b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
