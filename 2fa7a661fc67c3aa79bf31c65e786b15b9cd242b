@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "973c96bb_93fd72f8",
+        "filename": "debugger-assets/res/imp/wasm-app.html",
+        "patchSetId": 4
+      },
+      "lineNbr": 1026,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-03T15:00:19Z",
+      "side": 1,
+      "message": "wrap all comments to 100 cols.",
+      "range": {
+        "startLine": 1026,
+        "startChar": 96,
+        "endLine": 1026,
+        "endChar": 105
+      },
+      "revId": "2fa7a661fc67c3aa79bf31c65e786b15b9cd242b",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
