@@ -10,7 +10,7 @@ package(default_visibility=["//visibility:public"])
 
 sass_library(
     name = "elements-sk_scss",
-    srcs = glob(["node_modules/elements-sk/**/*.scss"]),
+    srcs = glob(["node_modules/elements-sk/**/*.scss"]) + ["//:~elements-sk"],
 )
 
 # The UMD bundles below are only necessary for karma_mocha_test and karma_web_test BUILD targets,
