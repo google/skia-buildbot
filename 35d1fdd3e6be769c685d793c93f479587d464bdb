@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "884ba89f_061f35d8",
+        "filename": "infra-sk/html_insert_nonce_attribute/BUILD.bazel",
+        "patchSetId": 9
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-03T14:50:35Z",
+      "side": 1,
+      "message": "The nonce needs to be 128-bits of entropy that is different every time the page is loaded, i.e. it\u0027s a Golang template. So this should work as long as nonce can be set to things like {{.Nonce}} or {%.body.nonce%}. For example:\n\n  \u003clink href\u003d\"/no-slash.css\" rel\u003d\"stylesheet\"\u003e\n\nshould become:\n\n  \u003clink nonce\u003d\"{%.Nonce%}\" href\u003d\"/no-slash.css\" rel\u003d\"stylesheet\"\u003e",
+      "revId": "35d1fdd3e6be769c685d793c93f479587d464bdb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
