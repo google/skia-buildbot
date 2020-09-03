@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/deepequal/assertdeep"
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
@@ -169,4 +171,48 @@ func TestNormalizeGmailAddress(t *testing.T) {
 	assert.Equal(t, "example", normalizeGmailAddress("example+"))
 	assert.Equal(t, "example", normalizeGmailAddress("example+decoration+more+plus"))
 	assert.Equal(t, "example", normalizeGmailAddress("examp.le+.dec."))
+}
+
+func TestSessionMiddleware(t *testing.T) {
+	unittest.SmallTest(t)
+
+	// Setup.
+	once.Do(loginInit)
+	setActiveAllowLists(DEFAULT_ALLOWED_DOMAINS)
+
+	// Helper function to set up a request with the given Session and test the
+	// middleware, verifying that we get the session back via GetSession.
+	test := func(t *testing.T, expect *Session) {
+		// Create a request.
+		req, err := http.NewRequest("GET", "/", nil)
+		require.NoError(t, err)
+		if expect != nil {
+			cookie, err := CookieFor(expect, req)
+			require.NoError(t, err)
+			req.AddCookie(cookie)
+		}
+
+		// Create an http.Handler which uses LoginMiddleware and checks the
+		// return value of GetSession against the expectation.
+		handler := SessionMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			actual := GetSession(r.Context())
+			assertdeep.Equal(t, expect, actual)
+		}))
+
+		// Run the test.
+		handler.ServeHTTP(nil, req)
+	}
+
+	// Test cases.
+	t.Run("not logged in", func(t *testing.T) {
+		test(t, nil)
+	})
+	t.Run("logged in", func(t *testing.T) {
+		test(t, &Session{
+			Email:     "fred@chromium.org",
+			ID:        "12345",
+			AuthScope: DEFAULT_SCOPE[0],
+			Token:     nil,
+		})
+	})
 }
