@@ -1,4 +1,4 @@
-package regression
+package continuous
 
 import (
 	"testing"
