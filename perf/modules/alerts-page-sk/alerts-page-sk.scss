@@ -11,6 +11,10 @@ alerts-page-sk {
     padding: 0.2em 1em;
   }
 
+  td > a {
+    color: var(--primary);
+  }
+
   td > build-icon-sk,
   td > create-icon-sk,
   td > a > build-icon-sk,
