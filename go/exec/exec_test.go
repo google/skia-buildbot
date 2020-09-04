@@ -3,6 +3,7 @@ package exec
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -240,6 +241,9 @@ sys.exit(1)
 	})
 	expect.Error(t, err)
 	expect.Contains(t, err.Error(), "exit status 1")
+	var exitError *exec.ExitError
+	assert.True(t, errors.As(err, &exitError))
+	assert.Equal(t, 1, exitError.ExitCode())
 	expect.Contains(t, string(output.Bytes()), "Error in subprocess!")
 }
 
