@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8adc4504_3da1afee",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-04T14:47:44Z",
+      "side": 1,
+      "message": "Change the Dry Run icon to text.\n - Has been confused in the past with the edit button.\n - Makes the connection clearer to the Dry Run page.",
+      "revId": "a617724ec6e4a3f866f79843d20c6a9210cbe8af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
