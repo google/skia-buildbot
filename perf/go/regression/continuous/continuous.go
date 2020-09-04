@@ -1,4 +1,4 @@
-package regression
+package continuous
 
 import (
 	"context"
@@ -21,6 +21,7 @@ import (
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/ingestevents"
 	"go.skia.org/infra/perf/go/notify"
+	"go.skia.org/infra/perf/go/regression"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
@@ -36,17 +37,6 @@ const (
 	pollingClusteringDelay = 5 * time.Minute
 )
 
-// ConfigProvider is a function that's called to return a slice of
-// alerts.Config. It is passed to NewContinuous.
-type ConfigProvider func() ([]*alerts.Alert, error)
-
-// ParamsetProvider is a function that's called to return the current paramset.
-// It is passed to NewContinuous.
-type ParamsetProvider func() paramtools.ParamSet
-
-// ProgressCallback if a func that's called to return information on a currently running process.
-type ProgressCallback func(message string)
-
 // Current state of looking for regressions, i.e. the current commit and alert
 // being worked on.
 type Current struct {
@@ -59,11 +49,11 @@ type Current struct {
 // look for regressions.
 type Continuous struct {
 	perfGit        *perfgit.Git
-	store          Store
+	store          regression.Store
 	shortcutStore  shortcut.Store
-	provider       ConfigProvider
+	provider       regression.ConfigProvider
 	notifier       *notify.Notifier
-	paramsProvider ParamsetProvider
+	paramsProvider regression.ParamsetProvider
 	dfBuilder      dataframe.DataFrameBuilder
 	pollingDelay   time.Duration
 	instanceConfig *config.InstanceConfig
@@ -80,11 +70,11 @@ type Continuous struct {
 //   radius - The number of commits on each side of a commit to include when clustering.
 func NewContinuous(
 	perfGit *perfgit.Git,
-	provider ConfigProvider,
-	store Store,
+	provider regression.ConfigProvider,
+	store regression.Store,
 	shortcutStore shortcut.Store,
 	notifier *notify.Notifier,
-	paramsProvider ParamsetProvider,
+	paramsProvider regression.ParamsetProvider,
 	dfBuilder dataframe.DataFrameBuilder,
 	instanceConfig *config.InstanceConfig,
 	flags *config.FrontendFlags) *Continuous {
@@ -110,7 +100,7 @@ func (c *Continuous) CurrentStatus() Current {
 	return *c.current
 }
 
-func (c *Continuous) reportRegressions(ctx context.Context, req *RegressionDetectionRequest, resps []*RegressionDetectionResponse, cfg *alerts.Alert) {
+func (c *Continuous) reportRegressions(ctx context.Context, req *regression.RegressionDetectionRequest, resps []*regression.RegressionDetectionResponse, cfg *alerts.Alert) {
 	key := cfg.IDAsString
 	for _, resp := range resps {
 		headerLength := len(resp.Frame.DataFrame.Header)
@@ -398,7 +388,7 @@ func (c *Continuous) Run(ctx context.Context) {
 				sklog.Infof("Alert %q passed smoketest.", cfg.DisplayName)
 			}
 
-			clusterResponseProcessor := func(req *RegressionDetectionRequest, resps []*RegressionDetectionResponse, message string) {
+			clusterResponseProcessor := func(req *regression.RegressionDetectionRequest, resps []*regression.RegressionDetectionResponse, message string) {
 				c.reportRegressions(ctx, req, resps, cfg)
 			}
 			if cfg.Radius == 0 {
@@ -408,7 +398,7 @@ func (c *Continuous) Run(ctx context.Context) {
 				N:   int32(c.flags.NumContinuous),
 				End: time.Time{},
 			}
-			RegressionsForAlert(ctx, cfg, domain, cnp.paramset, c.shortcutStore, clusterResponseProcessor, c.perfGit, c.dfBuilder, c.progressCallback)
+			regression.RegressionsForAlert(ctx, cfg, domain, cnp.paramset, c.shortcutStore, clusterResponseProcessor, c.perfGit, c.dfBuilder, c.progressCallback)
 			configsCounter.Inc(1)
 		}
 		clusteringLatency.Stop()
