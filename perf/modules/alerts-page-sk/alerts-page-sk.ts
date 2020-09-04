@@ -5,10 +5,8 @@
  * A page for editing all the alert configs.
  */
 import 'elements-sk/checkbox-sk';
-import 'elements-sk/icon/build-icon-sk';
-import 'elements-sk/icon/create-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
-import 'elements-sk/icon/error-icon-sk';
+import 'elements-sk/icon/create-icon-sk';
 import 'elements-sk/styles/buttons';
 import '../../../infra-sk/modules/paramset-sk';
 import '../alert-config-sk';
@@ -76,34 +74,40 @@ class AlertsPageSk extends ElementSk {
     if (msg === '') {
       return html``;
     }
-    return html`
-      <error-icon-sk title="${msg}"></error-icon-sk>
-    `;
+    return html`${msg}`;
   }
 
   private static rows = (ele: AlertsPageSk) =>
     ele.alerts.map(
       (item) => html`
-    <tr>
-      <td><create-icon-sk title='Edit' @click=${
-        ele.edit
-      } .__config=${item} ?disabled=${!ele.email}></create-icon-sk></td>
-      <td>${item.display_name}</td>
-      <td><paramset-sk .paramsets=${[
-        toParamSet(item.query),
-      ]}></paramset-sk></td>
-      <td>${item.alert}</td>
-      <td>${item.owner}</td>
-      <td>${AlertsPageSk.displayIfAlertIsInvalid(item)}</td>
-      <td><delete-icon-sk title='Delete' @click=${
-        ele.delete
-      } .__config=${item} ?disabled=${!ele.email}></delete-icon-sk></td>
-      <td> <a href=${AlertsPageSk.dryrunUrl(
-        item
-      )}> <build-icon-sk title='Dry Run'> </build-icon-sk> </td>
-      <td>${AlertsPageSk.ifNotActive(item.state)}</td>
-    </tr>
-    `
+        <tr>
+          <td
+            ><create-icon-sk
+              title="Edit"
+              @click=${ele.edit}
+              .__config=${item}
+              ?disabled=${!ele.email}
+            ></create-icon-sk
+          ></td>
+          <td>${item.display_name}</td>
+          <td
+            ><paramset-sk .paramsets=${[toParamSet(item.query)]}></paramset-sk
+          ></td>
+          <td>${item.alert}</td>
+          <td>${item.owner}</td>
+          <td>${AlertsPageSk.displayIfAlertIsInvalid(item)}</td>
+          <td
+            ><delete-icon-sk
+              title="Delete"
+              @click=${ele.delete}
+              .__config=${item}
+              ?disabled=${!ele.email}
+            ></delete-icon-sk
+          ></td>
+          <td><a href=${AlertsPageSk.dryrunUrl(item)}> Dry Run </a></td>
+          <td>${AlertsPageSk.ifNotActive(item.state)}</td>
+        </tr>
+      `
     );
 
   private static dryrunUrl = (config: Alert) => {

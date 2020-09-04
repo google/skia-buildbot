@@ -12,7 +12,7 @@ describe('alerts-page-sk', () => {
 
   beforeEach(async () => {
     await testBed.page.goto(`${testBed.baseUrl}/dist/alerts-page-sk.html`);
-    await testBed.page.setViewport({ width: 800, height: 400 });
+    await testBed.page.setViewport({ width: 1200, height: 800 });
   });
 
   it('should render the demo page', async () => {
