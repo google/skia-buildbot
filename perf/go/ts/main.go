@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/perf/go/frontend"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/regression"
+	"go.skia.org/infra/perf/go/regression/continuous"
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -72,7 +73,7 @@ func main() {
 		frontend.TryBugRequest{},
 		frontend.TryBugResponse{},
 		perfgit.Commit{},
-		regression.Current{},
+		continuous.Current{},
 		regression.FullSummary{},
 		regression.RegressionDetectionRequest{},
 		regression.TriageStatus{},

@@ -52,6 +52,7 @@ import (
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/psrefresh"
 	"go.skia.org/infra/perf/go/regression"
+	"go.skia.org/infra/perf/go/regression/continuous"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/tracestore"
 	"go.skia.org/infra/perf/go/types"
@@ -92,7 +93,7 @@ type Frontend struct {
 
 	regStore regression.Store
 
-	continuous []*regression.Continuous
+	continuous []*continuous.Continuous
 
 	storageClient *storage.Client
 
@@ -100,7 +101,7 @@ type Frontend struct {
 
 	shortcutStore shortcut.Store
 
-	configProvider regression.ConfigProvider
+	configProvider continuous.ConfigProvider
 
 	notifier *notify.Notifier
 
@@ -235,7 +236,7 @@ func newParamsetProvider(pf *psrefresh.ParamSetRefresher) regression.ParamsetPro
 
 // newAlertsConfigProvider returns a regression.ConfigProvider which produces a slice
 // of alerts.Config to run continuous clustering against.
-func (f *Frontend) newAlertsConfigProvider() regression.ConfigProvider {
+func (f *Frontend) newAlertsConfigProvider() continuous.ConfigProvider {
 	return func() ([]*alerts.Alert, error) {
 		return f.alertStore.List(context.Background(), false)
 	}
@@ -401,7 +402,7 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 			for i := 0; i < f.flags.NumContinuousParallel; i++ {
 				// Start running continuous clustering looking for regressions.
 				time.Sleep(startClusterDelay)
-				c := regression.NewContinuous(f.perfGit, f.configProvider, f.regStore, f.shortcutStore, f.notifier, paramsProvider, f.dfBuilder,
+				c := continuous.NewContinuous(f.perfGit, f.configProvider, f.regStore, f.shortcutStore, f.notifier, paramsProvider, f.dfBuilder,
 					cfg, f.flags)
 				f.continuous = append(f.continuous, c)
 				go c.Run(context.Background())
@@ -1161,7 +1162,7 @@ func (f *Frontend) regressionRangeHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (f *Frontend) regressionCurrentHandler(w http.ResponseWriter, r *http.Request) {
-	status := []regression.Current{}
+	status := []continuous.Current{}
 	for _, c := range f.continuous {
 		status = append(status, c.CurrentStatus())
 	}
