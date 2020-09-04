@@ -14,6 +14,12 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
+// ProgressCallback if a func that's called to return information on a currently running process.
+type ProgressCallback func(message string)
+
+// ParamsetProvider is a function that's called to return the current paramset.
+type ParamsetProvider func() paramtools.ParamSet
+
 // RegressionsForAlert looks for regressions to the given alert over the last
 // domain.N commits with data and periodically calls clusterResponseProcessor
 // with the results of checking each commit.
