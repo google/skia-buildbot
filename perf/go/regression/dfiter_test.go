@@ -97,18 +97,16 @@ func TestNewDataFrameIterator_MultipleDataframes_SingleFrameOfLengthThree(t *tes
 	// This request should only return one frame since we only have data at
 	// three commits in the entire store, and NewDataFrameIterator only produces
 	// dense dataframes.
-	request := &RegressionDetectionRequest{
-		Alert: &alerts.Alert{
-			Radius: 1,
-		},
-		Domain: types.Domain{
-			End:    gittest.StartTime.Add(8 * time.Minute), // Some time after the last commit.
-			N:      10,
-			Offset: 0,
-		},
-		Query: "arch=x86",
+	alert := &alerts.Alert{
+		Radius: 1,
 	}
-	iter, err := NewDataFrameIterator(ctx, nil, request, dfb, g, nil)
+	domain := types.Domain{
+		End:    gittest.StartTime.Add(8 * time.Minute), // Some time after the last commit.
+		N:      10,
+		Offset: 0,
+	}
+	query := "arch=x86"
+	iter, err := NewDataFrameIterator(ctx, nil, dfb, g, nil, query, domain, alert)
 	require.NoError(t, err)
 	require.True(t, iter.Next())
 	df, err := iter.Value(ctx)
@@ -131,18 +129,16 @@ func TestNewDataFrameIterator_MultipleDataframes_TwoFramesOfLengthTwo(t *testing
 	// have data at three commits in the entire store, and NewDataFrameIterator
 	// only produces dense dataframes and an Alert.Radius of 0 means the
 	// dataframe will have a length of 1.
-	request := &RegressionDetectionRequest{
-		Alert: &alerts.Alert{
-			Radius: 0,
-		},
-		Domain: types.Domain{
-			End:    gittest.StartTime.Add(8 * time.Minute),
-			N:      2,
-			Offset: 0,
-		},
-		Query: "arch=x86",
+	alert := &alerts.Alert{
+		Radius: 0,
 	}
-	iter, err := NewDataFrameIterator(ctx, nil, request, dfb, g, nil)
+	domain := types.Domain{
+		End:    gittest.StartTime.Add(8 * time.Minute),
+		N:      2,
+		Offset: 0,
+	}
+	query := "arch=x86"
+	iter, err := NewDataFrameIterator(ctx, nil, dfb, g, nil, query, domain, alert)
 	require.NoError(t, err)
 
 	require.True(t, iter.Next())
@@ -172,17 +168,15 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchAfterLastCommit
 
 	// This request should error because we start at commit 10 which doesn't
 	// exist.
-	request := &RegressionDetectionRequest{
-		Alert: &alerts.Alert{
-			Radius: 1,
-		},
-		Domain: types.Domain{
-			N:      2,
-			Offset: 10,
-		},
-		Query: "arch=x86",
+	alert := &alerts.Alert{
+		Radius: 1,
 	}
-	_, err := NewDataFrameIterator(ctx, nil, request, dfb, g, nil)
+	domain := types.Domain{
+		N:      2,
+		Offset: 10,
+	}
+	q := "arch=x86"
+	_, err := NewDataFrameIterator(ctx, nil, dfb, g, nil, q, domain, alert)
 	require.Contains(t, err.Error(), "Failed to look up CommitNumber")
 }
 
@@ -192,17 +186,15 @@ func TestNewDataFrameIterator_ExactDataframeRequest_Success(t *testing.T) {
 	defer cleanup()
 
 	// This is an ExactDataframeRequest because Offset != 0.
-	request := &RegressionDetectionRequest{
-		Alert: &alerts.Alert{
-			Radius: 1,
-		},
-		Domain: types.Domain{
-			N:      2,
-			Offset: 6, // Start at 6 with a radius of 1 to get the commit at 7.
-		},
-		Query: "arch=x86",
+	alert := &alerts.Alert{
+		Radius: 1,
 	}
-	iter, err := NewDataFrameIterator(ctx, nil, request, dfb, g, nil)
+	domain := types.Domain{
+		N:      2,
+		Offset: 6, // Start at 6 with a radius of 1 to get the commit at 7.
+	}
+	q := "arch=x86"
+	iter, err := NewDataFrameIterator(ctx, nil, dfb, g, nil, q, domain, alert)
 	require.NoError(t, err)
 	require.True(t, iter.Next())
 	df, err := iter.Value(ctx)
@@ -222,17 +214,15 @@ func TestNewDataFrameIterator_ExactDataframeRequest_ErrIfWeSearchBeforeFirstComm
 
 	// This request should error because we start at commit -5 which doesn't
 	// exist.
-	request := &RegressionDetectionRequest{
-		Alert: &alerts.Alert{
-			Radius: 1,
-		},
-		Domain: types.Domain{
-			N:      2,
-			Offset: -5,
-		},
-		Query: "arch=x86",
+	alert := &alerts.Alert{
+		Radius: 1,
 	}
-	_, err := NewDataFrameIterator(ctx, nil, request, dfb, g, nil)
+	domain := types.Domain{
+		N:      2,
+		Offset: -5,
+	}
+	q := "arch=x86"
+	_, err := NewDataFrameIterator(ctx, nil, dfb, g, nil, q, domain, alert)
 	require.Contains(t, err.Error(), "Failed to look up CommitNumber")
 }
 
@@ -245,17 +235,15 @@ func TestNewDataFrameIterator_MultipleDataframes_ErrIfWeSearchBeforeFirstCommit(
 
 	// This request should error because we start at a commit time before the
 	// first commit in the repo.
-	request := &RegressionDetectionRequest{
-		Alert: &alerts.Alert{
-			Radius: 1,
-		},
-		Domain: types.Domain{
-			End:    gittest.StartTime.Add(-1 * time.Minute),
-			N:      2,
-			Offset: 0,
-		},
-		Query: "arch=x86",
+	alert := &alerts.Alert{
+		Radius: 1,
 	}
-	_, err := NewDataFrameIterator(ctx, nil, request, dfb, g, nil)
+	domain := types.Domain{
+		End:    gittest.StartTime.Add(-1 * time.Minute),
+		N:      2,
+		Offset: 0,
+	}
+	q := "arch=x86"
+	_, err := NewDataFrameIterator(ctx, nil, dfb, g, nil, q, domain, alert)
 	require.Contains(t, err.Error(), "Failed to build dataframe iterator")
 }
