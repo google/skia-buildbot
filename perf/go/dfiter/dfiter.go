@@ -1,4 +1,5 @@
-package regression
+// Package dfiter efficiently creates dataframes used in regression detection.
+package dfiter
 
 import (
 	"context"
@@ -50,12 +51,12 @@ func (d *dataframeSlicer) Value(ctx context.Context) (*dataframe.DataFrame, erro
 }
 
 // NewDataFrameIterator returns a DataFrameIterator that produces a set of
-// dataframes for the given RegressionDetectionRequest.
+// dataframes for the given query, domain, and alert.
 //
-// If req.Domain.Offset is non-zero then we want the iterator to return a single
-// dataframe of req.Alert.Radius around the specified commit. Otherwise it
-// returns a series of dataframes of size 2*req.Alert.Radius+1 sliced from a
-// single dataframe of size req.Domain.N.
+// If domain.Offset is non-zero then we want the iterator to return a single
+// dataframe of alert.Radius around the specified commit. Otherwise it returns a
+// series of dataframes of size 2*alert.Radius+1 sliced from a single dataframe
+// of size domain.N.
 func NewDataFrameIterator(
 	ctx context.Context,
 	progress types.Progress,
