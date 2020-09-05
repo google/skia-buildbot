@@ -153,3 +153,6 @@ type Domain struct {
 	// both N and End.
 	Offset int32 `json:"offset"`
 }
+
+// ProgressCallback if a func that's called to return information on a currently running process.
+type ProgressCallback func(message string)

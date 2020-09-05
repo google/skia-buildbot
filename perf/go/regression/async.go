@@ -108,7 +108,7 @@ func newProcess(
 	dfBuilder dataframe.DataFrameBuilder,
 	shortcutStore shortcut.Store,
 	responseProcessor RegressionDetectionResponseProcessor,
-	progressCallback ProgressCallback,
+	progressCallback types.ProgressCallback,
 ) (*RegressionDetectionProcess, error) {
 	ret := &RegressionDetectionProcess{
 		request:           req,
@@ -122,7 +122,7 @@ func newProcess(
 		ctx:               ctx,
 	}
 	// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
-	iter, err := NewDataFrameIterator(ctx, ret.progress, req, dfBuilder, perfGit, progressCallback)
+	iter, err := NewDataFrameIterator(ctx, ret.progress, dfBuilder, perfGit, progressCallback, req.Query, req.Domain, req.Alert)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create iterator: %s", err)
 	}

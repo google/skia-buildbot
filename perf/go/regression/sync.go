@@ -7,6 +7,7 @@ import (
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/shortcut"
+	"go.skia.org/infra/perf/go/types"
 )
 
 // RegressionDetectionResponseProcessor is a callback that is called with RegressionDetectionResponses as a RegressionDetectionRequest is being processed.
@@ -20,7 +21,7 @@ func Run(
 	dfBuilder dataframe.DataFrameBuilder,
 	shortcutStore shortcut.Store,
 	responseProcessor RegressionDetectionResponseProcessor,
-	progressCallback ProgressCallback,
+	progressCallback types.ProgressCallback,
 ) ([]*RegressionDetectionResponse, error) {
 	proc, err := newProcess(ctx, req, perfGit, dfBuilder, shortcutStore, responseProcessor, progressCallback)
 	if err != nil {
