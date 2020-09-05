@@ -8,6 +8,7 @@ import (
 
 	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/skerr"
+	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/types"
@@ -58,12 +59,16 @@ func (d *dataframeSlicer) Value(ctx context.Context) (*dataframe.DataFrame, erro
 func NewDataFrameIterator(
 	ctx context.Context,
 	progress types.Progress,
-	req *RegressionDetectionRequest,
 	dfBuilder dataframe.DataFrameBuilder,
 	perfGit *perfgit.Git,
-	regressionStateCallback ProgressCallback,
+	regressionStateCallback types.ProgressCallback,
+	queryAsString string,
+	domain types.Domain,
+	alert *alerts.Alert,
 ) (DataFrameIterator, error) {
-	u, err := url.ParseQuery(req.Query)
+	// Because of GroupBy the Alert query isn't the one we use, instead a
+	// sub-query is passed in.
+	u, err := url.ParseQuery(queryAsString)
 	if err != nil {
 		return nil, skerr.Wrap(err)
 	}
@@ -72,8 +77,8 @@ func NewDataFrameIterator(
 		return nil, skerr.Wrap(err)
 	}
 	var df *dataframe.DataFrame
-	if req.Domain.Offset == 0 {
-		df, err = dfBuilder.NewNFromQuery(ctx, req.Domain.End, q, req.Domain.N, progress)
+	if domain.Offset == 0 {
+		df, err = dfBuilder.NewNFromQuery(ctx, domain.End, q, domain.N, progress)
 		if err != nil {
 			if regressionStateCallback != nil {
 				regressionStateCallback("Failed querying the data due to an internal error.")
@@ -84,7 +89,7 @@ func NewDataFrameIterator(
 		// We can get an iterator that returns just a single dataframe by making
 		// sure that the size of the origin dataframe is the same size as the
 		// slicer size, so we set them both to 2*Radius+1.
-		n := int32(2*req.Alert.Radius + 1)
+		n := int32(2*alert.Radius + 1)
 		// Need to find an End time, which is the commit time of the commit at
 		// Offset+Radius.
 		//
@@ -103,7 +108,7 @@ func NewDataFrameIterator(
 		// All of these contortions are to keep the detection algorithms
 		// consistent. Eventually types.OriginalStep should be changed to work
 		// on a dataframe of length 2*n like all the rest.
-		endCommit := types.CommitNumber(int(req.Domain.Offset) + req.Alert.Radius)
+		endCommit := types.CommitNumber(int(domain.Offset) + alert.Radius)
 		commit, err := perfGit.CommitFromCommitNumber(ctx, endCommit)
 		if err != nil {
 			if regressionStateCallback != nil {
@@ -120,15 +125,15 @@ func NewDataFrameIterator(
 			return nil, skerr.Wrapf(err, "Failed to build dataframe iterator source dataframe.")
 		}
 	}
-	if len(df.Header) < int(2*req.Alert.Radius+1) {
+	if len(df.Header) < int(2*alert.Radius+1) {
 		if regressionStateCallback != nil {
-			regressionStateCallback(fmt.Sprintf("Query didn't return enough data points: Got %d. Want %d.", len(df.Header), 2*req.Alert.Radius+1))
+			regressionStateCallback(fmt.Sprintf("Query didn't return enough data points: Got %d. Want %d.", len(df.Header), 2*alert.Radius+1))
 		}
-		return nil, skerr.Fmt("Query didn't return enough data points: Got %d. Want %d.", len(df.Header), 2*req.Alert.Radius+1)
+		return nil, skerr.Fmt("Query didn't return enough data points: Got %d. Want %d.", len(df.Header), 2*alert.Radius+1)
 	}
 	return &dataframeSlicer{
 		df:     df,
-		size:   2*req.Alert.Radius + 1,
+		size:   2*alert.Radius + 1,
 		offset: 0,
 	}, nil
 }

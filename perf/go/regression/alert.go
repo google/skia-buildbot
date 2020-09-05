@@ -14,9 +14,6 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
-// ProgressCallback if a func that's called to return information on a currently running process.
-type ProgressCallback func(message string)
-
 // ParamsetProvider is a function that's called to return the current paramset.
 type ParamsetProvider func() paramtools.ParamSet
 
@@ -32,7 +29,7 @@ func RegressionsForAlert(
 	clusterResponseProcessor RegressionDetectionResponseProcessor,
 	perfGit *perfgit.Git,
 	dfBuilder dataframe.DataFrameBuilder,
-	progressCallback ProgressCallback,
+	progressCallback types.ProgressCallback,
 ) {
 	queriesCounter := metrics2.GetCounter("perf_clustering_queries", nil)
 	sklog.Infof("About to cluster for: %#v", *alert)
