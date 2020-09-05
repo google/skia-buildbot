@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/perf/go/clustering2"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/dataframe"
+	"go.skia.org/infra/perf/go/dfiter"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/types"
@@ -88,7 +89,7 @@ type RegressionDetectionProcess struct {
 	// These members are read-only, should not be modified.
 	request           *RegressionDetectionRequest
 	perfGit           *perfgit.Git
-	iter              DataFrameIterator
+	iter              dfiter.DataFrameIterator
 	responseProcessor RegressionDetectionResponseProcessor
 	shortcutStore     shortcut.Store
 	ctx               context.Context
@@ -122,7 +123,7 @@ func newProcess(
 		ctx:               ctx,
 	}
 	// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
-	iter, err := NewDataFrameIterator(ctx, ret.progress, dfBuilder, perfGit, progressCallback, req.Query, req.Domain, req.Alert)
+	iter, err := dfiter.NewDataFrameIterator(ctx, ret.progress, dfBuilder, perfGit, progressCallback, req.Query, req.Domain, req.Alert)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create iterator: %s", err)
 	}
