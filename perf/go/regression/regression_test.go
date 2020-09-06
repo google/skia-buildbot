@@ -13,16 +13,6 @@ import (
 
 var testTime = time.Date(2020, 05, 01, 12, 00, 00, 00, time.UTC)
 
-func TestRegressions(t *testing.T) {
-	unittest.SmallTest(t)
-	r := New()
-
-	// Try serializing to JSON.
-	b, err := r.JSON()
-	assert.NoError(t, err)
-	assert.Equal(t, "{\"by_query\":{}}", string(b))
-}
-
 func TestMerge(t *testing.T) {
 	unittest.SmallTest(t)
 
