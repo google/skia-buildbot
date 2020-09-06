@@ -2,7 +2,6 @@
 package regression
 
 import (
-	"encoding/json"
 	"errors"
 	"sync"
 
@@ -113,12 +112,4 @@ func (r *Regression) Triaged() bool {
 	ret = ret && (r.HighStatus.Status != Untriaged)
 	ret = ret && (r.LowStatus.Status != Untriaged)
 	return ret
-}
-
-// JSON returns the Regressions serialized as JSON. Use this instead of
-// serializing Regression directly as it holds the mutex while serializing.
-func (r *AllRegressionsForCommit) JSON() ([]byte, error) {
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
-	return json.Marshal(r)
 }
