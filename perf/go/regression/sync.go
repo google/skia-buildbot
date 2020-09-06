@@ -14,6 +14,8 @@ import (
 type RegressionDetectionResponseProcessor func(*RegressionDetectionRequest, []*RegressionDetectionResponse, string)
 
 // Run takes a RegressionDetectionRequest and runs it to completion before returning the results.
+//
+// TODO(jcgregorio) Make a member of RunningRegressionDetectionRequests.
 func Run(
 	ctx context.Context,
 	req *RegressionDetectionRequest,
@@ -27,9 +29,9 @@ func Run(
 	if err != nil {
 		return nil, fmt.Errorf("Failed to start new regression detection process: %s", err)
 	}
-	proc.Run()
+	proc.run()
 	if proc.state == ProcessError {
 		return nil, fmt.Errorf("Failed to complete regression detection: %s", proc.message)
 	}
-	return proc.Responses(), nil
+	return proc.responses(), nil
 }
