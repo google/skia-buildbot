@@ -84,8 +84,8 @@ type RegressionDetectionResponse struct {
 	Frame   *dataframe.FrameResponse      `json:"frame"`
 }
 
-// RegressionDetectionProcess handles the processing of a single RegressionDetectionRequest.
-type RegressionDetectionProcess struct {
+// regressionDetectionProcess handles the processing of a single RegressionDetectionRequest.
+type regressionDetectionProcess struct {
 	// These members are read-only, should not be modified.
 	request           *RegressionDetectionRequest
 	perfGit           *perfgit.Git
@@ -102,6 +102,7 @@ type RegressionDetectionProcess struct {
 	message    string                         // Describes the current state of the process.
 }
 
+// TODO(jcgregorio) Make a member of RunningRegressionDetectionRequests.
 func newProcess(
 	ctx context.Context,
 	req *RegressionDetectionRequest,
@@ -110,8 +111,8 @@ func newProcess(
 	shortcutStore shortcut.Store,
 	responseProcessor RegressionDetectionResponseProcessor,
 	progressCallback types.ProgressCallback,
-) (*RegressionDetectionProcess, error) {
-	ret := &RegressionDetectionProcess{
+) (*regressionDetectionProcess, error) {
+	ret := &regressionDetectionProcess{
 		request:           req,
 		perfGit:           perfGit,
 		responseProcessor: responseProcessor,
@@ -131,12 +132,13 @@ func newProcess(
 	return ret, nil
 }
 
-func newRunningProcess(ctx context.Context, req *RegressionDetectionRequest, perfGit *perfgit.Git, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) (*RegressionDetectionProcess, error) {
+// TODO(jcgregorio) Make a member of RunningRegressionDetectionRequests.
+func newRunningProcess(ctx context.Context, req *RegressionDetectionRequest, perfGit *perfgit.Git, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) (*regressionDetectionProcess, error) {
 	ret, err := newProcess(ctx, req, perfGit, dfBuilder, shortcutStore, responseProcessor, nil)
 	if err != nil {
 		return nil, err
 	}
-	go ret.Run()
+	go ret.run()
 	return ret, nil
 }
 
@@ -153,14 +155,14 @@ type RunningRegressionDetectionRequests struct {
 	mutex sync.Mutex
 	// inProcess maps a RegressionDetectionRequest.Id() of the request to the RegressionDetectionProcess
 	// handling that request.
-	inProcess map[string]*RegressionDetectionProcess
+	inProcess map[string]*regressionDetectionProcess
 }
 
 // NewRunningRegressionDetectionRequests return a new RegressionDetectionRequests.
 func NewRunningRegressionDetectionRequests(perfGit *perfgit.Git, interesting float32, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store) *RunningRegressionDetectionRequests {
 	fr := &RunningRegressionDetectionRequests{
 		perfGit:            perfGit,
-		inProcess:          map[string]*RegressionDetectionProcess{},
+		inProcess:          map[string]*regressionDetectionProcess{},
 		defaultInteresting: interesting,
 		dfBuilder:          dfBuilder,
 		shortcutStore:      shortcutStore,
@@ -207,7 +209,7 @@ func (fr *RunningRegressionDetectionRequests) Add(ctx context.Context, req *Regr
 	}
 	id := req.Id()
 	if p, ok := fr.inProcess[id]; ok {
-		state, _, _ := p.Status()
+		state, _, _ := p.status()
 		if state != ProcessRunning {
 			delete(fr.inProcess, id)
 		}
@@ -232,7 +234,7 @@ func (fr *RunningRegressionDetectionRequests) Status(id string) (ProcessState, s
 	if !ok {
 		return ProcessError, "Not Found", errorNotFound
 	}
-	return p.Status()
+	return p.status()
 }
 
 // Response returns the RegressionDetectionResponse of the completed RegressionDetectionProcess.
@@ -243,7 +245,7 @@ func (fr *RunningRegressionDetectionRequests) Response(id string) (*RegressionDe
 	if !ok {
 		return nil, errorNotFound
 	}
-	return p.Response(), nil
+	return p.getResponse(), nil
 }
 
 // Responses returns the RegressionDetectionResponse's of the completed RegressionDetectionProcess.
@@ -254,11 +256,11 @@ func (fr *RunningRegressionDetectionRequests) Responses(id string) ([]*Regressio
 	if !ok {
 		return nil, errorNotFound
 	}
-	return p.Responses(), nil
+	return p.responses(), nil
 }
 
 // reportError records the reason a RegressionDetectionProcess failed.
-func (p *RegressionDetectionProcess) reportError(err error, message string) {
+func (p *regressionDetectionProcess) reportError(err error, message string) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	sklog.Warningf("RegressionDetectionRequest failed: %#v %s: %s", *(p.request), message, err)
@@ -268,7 +270,7 @@ func (p *RegressionDetectionProcess) reportError(err error, message string) {
 }
 
 // progress records the progress of a RegressionDetectionProcess.
-func (p *RegressionDetectionProcess) progress(step, totalSteps int) {
+func (p *regressionDetectionProcess) progress(step, totalSteps int) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	p.message = fmt.Sprintf("Querying: %d%%", int(float32(100.0)*float32(step)/float32(totalSteps)))
@@ -276,30 +278,30 @@ func (p *RegressionDetectionProcess) progress(step, totalSteps int) {
 }
 
 // detectionProgress records the progress of a RegressionDetectionProcess.
-func (p *RegressionDetectionProcess) detectionProgress(totalError float64) {
+func (p *regressionDetectionProcess) detectionProgress(totalError float64) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	p.message = fmt.Sprintf("Regression Total Error: %0.2f", totalError)
 	p.lastUpdate = time.Now()
 }
 
-// Response returns the RegressionDetectionResponse of the completed RegressionDetectionProcess.
-func (p *RegressionDetectionProcess) Response() *RegressionDetectionResponse {
+// getResponse returns the RegressionDetectionResponse of the completed RegressionDetectionProcess.
+func (p *regressionDetectionProcess) getResponse() *RegressionDetectionResponse {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	return p.response[0]
 }
 
-// Responses returns all the RegressionDetectionResponse's of the RegressionDetectionProcess.
-func (p *RegressionDetectionProcess) Responses() []*RegressionDetectionResponse {
+// responses returns all the RegressionDetectionResponse's of the RegressionDetectionProcess.
+func (p *regressionDetectionProcess) responses() []*RegressionDetectionResponse {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	return p.response
 }
 
-// Status returns the ProcessingState and the message of a
+// status returns the ProcessingState and the message of a
 // RegressionDetectionProcess of the given 'id'.
-func (p *RegressionDetectionProcess) Status() (ProcessState, string, error) {
+func (p *regressionDetectionProcess) status() (ProcessState, string, error) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	return p.state, p.message, nil
@@ -332,8 +334,8 @@ func tooMuchMissingData(tr types.Trace) bool {
 	return missing(tr[:n]) || missing(tr[len(tr)-n:])
 }
 
-// ShortcutFromKeys stores a new shortcut for each regression based on its Keys.
-func (p *RegressionDetectionProcess) ShortcutFromKeys(summary *clustering2.ClusterSummaries) error {
+// shortcutFromKeys stores a new shortcut for each regression based on its Keys.
+func (p *regressionDetectionProcess) shortcutFromKeys(summary *clustering2.ClusterSummaries) error {
 	var err error
 	for _, cs := range summary.Clusters {
 		if cs.Shortcut, err = p.shortcutStore.InsertShortcut(context.Background(), &shortcut.Shortcut{Keys: cs.Keys}); err != nil {
@@ -343,9 +345,9 @@ func (p *RegressionDetectionProcess) ShortcutFromKeys(summary *clustering2.Clust
 	return nil
 }
 
-// Run does the work in a RegressionDetectionProcess. It does not return until all the
+// run does the work in a RegressionDetectionProcess. It does not return until all the
 // work is done or the request failed. Should be run as a Go routine.
-func (p *RegressionDetectionProcess) Run() {
+func (p *regressionDetectionProcess) run() {
 	if p.request.Alert.Algo == "" {
 		p.request.Alert.Algo = types.KMeansGrouping
 	}
@@ -392,7 +394,7 @@ func (p *RegressionDetectionProcess) Run() {
 			p.reportError(err, "Invalid regression detection.")
 			return
 		}
-		if err := p.ShortcutFromKeys(summary); err != nil {
+		if err := p.shortcutFromKeys(summary); err != nil {
 			p.reportError(err, "Failed to write shortcut for keys.")
 			return
 		}
