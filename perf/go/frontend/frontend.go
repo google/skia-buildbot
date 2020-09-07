@@ -89,7 +89,7 @@ type Frontend struct {
 
 	frameRequests *dataframe.RunningFrameRequests
 
-	clusterRequests *regression.RunningRegressionDetectionRequests
+	regressionDetector regression.Detector
 
 	regStore regression.Store
 
@@ -387,7 +387,7 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 	}
 
 	f.frameRequests = dataframe.NewRunningFrameRequests(f.perfGit, f.dfBuilder, f.shortcutStore)
-	f.clusterRequests = regression.NewRunningRegressionDetectionRequests(f.perfGit, float32(f.flags.Interesting), f.dfBuilder, f.shortcutStore)
+	f.regressionDetector = regression.NewDetector(f.perfGit, float32(f.flags.Interesting), f.dfBuilder, f.shortcutStore)
 	f.regStore, err = builders.NewRegressionStoreFromConfig(ctx, f.flags.Local, cfg)
 	if err != nil {
 		sklog.Fatalf("Failed to build regression.Store: %s", err)
@@ -690,7 +690,7 @@ func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditlog.Log(r, "cluster", req)
-	id, err := f.clusterRequests.Add(context.Background(), req)
+	id, err := f.regressionDetector.Add(context.Background(), req)
 	sklog.Infof("Added to clusterRequests")
 	if err != nil {
 		httputils.ReportError(w, err, "Cluster request was invalid", http.StatusInternalServerError)
@@ -720,7 +720,7 @@ func (f *Frontend) clusterStatusHandler(w http.ResponseWriter, r *http.Request) 
 	id := mux.Vars(r)["id"]
 
 	status := &ClusterStatus{}
-	state, msg, err := f.clusterRequests.Status(id)
+	state, msg, err := f.regressionDetector.Status(id)
 	if err != nil {
 		httputils.ReportError(w, err, msg, http.StatusInternalServerError)
 		return
@@ -728,7 +728,7 @@ func (f *Frontend) clusterStatusHandler(w http.ResponseWriter, r *http.Request) 
 	status.State = state
 	status.Message = msg
 	if state == regression.ProcessSuccess {
-		value, err := f.clusterRequests.Response(id)
+		value, err := f.regressionDetector.Response(id)
 		if err != nil {
 			httputils.ReportError(w, err, "Failed to retrieve results.", http.StatusInternalServerError)
 			return
