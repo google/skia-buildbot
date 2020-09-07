@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/paramtools"
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/vec32"
@@ -102,7 +104,7 @@ type regressionDetectionProcess struct {
 	message    string                         // Describes the current state of the process.
 }
 
-// TODO(jcgregorio) Make a member of RunningRegressionDetectionRequests.
+// TODO(jcgregorio) Make a member of detector.
 func newProcess(
 	ctx context.Context,
 	req *RegressionDetectionRequest,
@@ -132,7 +134,7 @@ func newProcess(
 	return ret, nil
 }
 
-// TODO(jcgregorio) Make a member of RunningRegressionDetectionRequests.
+// TODO(jcgregorio) Make a member of detector.
 func newRunningProcess(ctx context.Context, req *RegressionDetectionRequest, perfGit *perfgit.Git, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, responseProcessor RegressionDetectionResponseProcessor) (*regressionDetectionProcess, error) {
 	ret, err := newProcess(ctx, req, perfGit, dfBuilder, shortcutStore, responseProcessor, nil)
 	if err != nil {
@@ -142,11 +144,11 @@ func newRunningProcess(ctx context.Context, req *RegressionDetectionRequest, per
 	return ret, nil
 }
 
-// RunningRegressionDetectionRequests keeps track of all the RegressionDetectionProcess's.
+// detector keeps track of all the RegressionDetectionProcess's.
 //
 // Once a RegressionDetectionProcess is complete the results will be kept in memory
 // for MAX_FINISHED_PROCESS_AGE before being deleted.
-type RunningRegressionDetectionRequests struct {
+type detector struct {
 	perfGit            *perfgit.Git
 	defaultInteresting float32 // The threshold to control if a regression is considered interesting.
 	dfBuilder          dataframe.DataFrameBuilder
@@ -158,9 +160,9 @@ type RunningRegressionDetectionRequests struct {
 	inProcess map[string]*regressionDetectionProcess
 }
 
-// NewRunningRegressionDetectionRequests return a new RegressionDetectionRequests.
-func NewRunningRegressionDetectionRequests(perfGit *perfgit.Git, interesting float32, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store) *RunningRegressionDetectionRequests {
-	fr := &RunningRegressionDetectionRequests{
+// NewDetector return a new RegressionDetectionRequests.
+func NewDetector(perfGit *perfgit.Git, interesting float32, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store) Detector {
+	fr := &detector{
 		perfGit:            perfGit,
 		inProcess:          map[string]*regressionDetectionProcess{},
 		defaultInteresting: interesting,
@@ -172,7 +174,7 @@ func NewRunningRegressionDetectionRequests(perfGit *perfgit.Git, interesting flo
 }
 
 // step does a single step in cleaning up old RegressionDetectionProcess's.
-func (fr *RunningRegressionDetectionRequests) step() {
+func (fr *detector) step() {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
 	now := time.Now()
@@ -186,18 +188,117 @@ func (fr *RunningRegressionDetectionRequests) step() {
 }
 
 // background periodically cleans up old RegressionDetectionProcess's.
-func (fr *RunningRegressionDetectionRequests) background() {
+func (fr *detector) background() {
 	fr.step()
 	for range time.Tick(time.Minute) {
 		fr.step()
 	}
 }
 
+// RegressionDetectionResponseProcessor is a callback that is called with RegressionDetectionResponses as a RegressionDetectionRequest is being processed.
+type RegressionDetectionResponseProcessor func(*RegressionDetectionRequest, []*RegressionDetectionResponse, string)
+
+// run takes a RegressionDetectionRequest and runs it to completion before returning the results.
+//
+// TODO(jcgregorio) Make a member of detector.
+func run(
+	ctx context.Context,
+	req *RegressionDetectionRequest,
+	perfGit *perfgit.Git,
+	dfBuilder dataframe.DataFrameBuilder,
+	shortcutStore shortcut.Store,
+	responseProcessor RegressionDetectionResponseProcessor,
+	progressCallback types.ProgressCallback,
+) ([]*RegressionDetectionResponse, error) {
+	proc, err := newProcess(ctx, req, perfGit, dfBuilder, shortcutStore, responseProcessor, progressCallback)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to start new regression detection process: %s", err)
+	}
+	proc.run()
+	if proc.state == ProcessError {
+		return nil, fmt.Errorf("Failed to complete regression detection: %s", proc.message)
+	}
+	return proc.responses(), nil
+}
+
+// ParamsetProvider is a function that's called to return the current paramset.
+type ParamsetProvider func() paramtools.ParamSet
+
+// RegressionsForAlert looks for regressions to the given alert over the last
+// domain.N commits with data and periodically calls clusterResponseProcessor
+// with the results of checking each commit.
+//
+// TODO(jcgregorio) Make RegressionsForAlert a member of Detector.
+func RegressionsForAlert(
+	ctx context.Context,
+	alert *alerts.Alert,
+	domain types.Domain,
+	ps paramtools.ParamSet,
+	shortcutStore shortcut.Store,
+	clusterResponseProcessor RegressionDetectionResponseProcessor,
+	perfGit *perfgit.Git,
+	dfBuilder dataframe.DataFrameBuilder,
+	progressCallback types.ProgressCallback,
+) {
+	queriesCounter := metrics2.GetCounter("perf_clustering_queries", nil)
+	sklog.Infof("About to cluster for: %#v", *alert)
+
+	// This set of queries is restricted by the incoming set of trace ids, if
+	// that's the kind of loop we're doing, by restricting 'ps' to just the
+	// trace ids.
+	queries, err := alert.QueriesFromParamset(ps)
+	if err != nil {
+		sklog.Errorf("Failed to build GroupBy combinations: %s", err)
+		return
+	}
+	sklog.Infof("Config expanded into %d queries.", len(queries))
+	for step, q := range queries {
+		if progressCallback != nil {
+			progressCallback(fmt.Sprintf("Step %d/%d\nQuery: %q", step+1, len(queries), q))
+		}
+		sklog.Infof("Clustering for query: %q", q)
+
+		// Create RegressionDetectionRequest and run.
+		req := &RegressionDetectionRequest{
+			Alert:        alert,
+			Domain:       domain,
+			Query:        q,
+			Step:         step,
+			TotalQueries: len(queries),
+		}
+		_, err := run(ctx, req, perfGit, dfBuilder, shortcutStore, clusterResponseProcessor, progressCallback)
+		if err != nil {
+			sklog.Warningf("Failed while clustering %v %s", *req, err)
+			continue
+		}
+		queriesCounter.Inc(1)
+	}
+	sklog.Infof("Finished clustering for: %#v", *alert)
+}
+
+// Detector does regression detection.
+type Detector interface {
+	// Add a new RegressionDetectionRequest.
+	Add(context.Context, *RegressionDetectionRequest) (string, error)
+
+	// Status of a running request.
+	Status(id string) (ProcessState, string, error)
+
+	// Response from a running request.
+	Response(id string) (*RegressionDetectionResponse, error)
+
+	// Responses from a running request.
+	Responses(id string) ([]*RegressionDetectionResponse, error)
+}
+
+// Confirm that detector fulfills the Detector interface.
+var _ Detector = (*detector)(nil)
+
 // Add starts a new running RegressionDetectionProcess and returns
 // the ID of the process to be used in calls to Status() and
 // Response().
-func (fr *RunningRegressionDetectionRequests) Add(ctx context.Context, req *RegressionDetectionRequest) (string, error) {
-	sklog.Info("RunningRegressionDetectionRequests.Add")
+func (fr *detector) Add(ctx context.Context, req *RegressionDetectionRequest) (string, error) {
+	sklog.Info("detector.Add")
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
 
@@ -227,7 +328,7 @@ func (fr *RunningRegressionDetectionRequests) Add(ctx context.Context, req *Regr
 
 // Status returns the ProcessingState and the message of a
 // RegressionDetectionProcess of the given 'id'.
-func (fr *RunningRegressionDetectionRequests) Status(id string) (ProcessState, string, error) {
+func (fr *detector) Status(id string) (ProcessState, string, error) {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
 	p, ok := fr.inProcess[id]
@@ -238,7 +339,7 @@ func (fr *RunningRegressionDetectionRequests) Status(id string) (ProcessState, s
 }
 
 // Response returns the RegressionDetectionResponse of the completed RegressionDetectionProcess.
-func (fr *RunningRegressionDetectionRequests) Response(id string) (*RegressionDetectionResponse, error) {
+func (fr *detector) Response(id string) (*RegressionDetectionResponse, error) {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
 	p, ok := fr.inProcess[id]
@@ -249,7 +350,7 @@ func (fr *RunningRegressionDetectionRequests) Response(id string) (*RegressionDe
 }
 
 // Responses returns the RegressionDetectionResponse's of the completed RegressionDetectionProcess.
-func (fr *RunningRegressionDetectionRequests) Responses(id string) ([]*RegressionDetectionResponse, error) {
+func (fr *detector) Responses(id string) ([]*RegressionDetectionResponse, error) {
 	fr.mutex.Lock()
 	defer fr.mutex.Unlock()
 	p, ok := fr.inProcess[id]
