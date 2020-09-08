@@ -472,9 +472,16 @@ The main application element for the Skia Debugger.
               Histogram
             </summary-sk>
               <table id="histogramTable">
+                <tr>
+                  <td title="Occurrences of command in current frame (or single frame skp file).">frame</td>
+                  <td title="Occurrences of command within the current range filter.">range</td>
+                  <td>name</td>
+                </tr>
                 <template is="dom-repeat" items="{{histogram}}">
-                  <tr on-tap="_clickedHistogramRow" >
-                    <td class=countCol>[[item.visibleCount]]</td><td>[[item.name]]</td>
+                  <tr on-tap="_clickedHistogramRow">
+                    <td class=countCol>[[item.countInFrame]]</td>
+                    <td class=countCol>[[item.countInRange]]</td>
+                    <td>[[item.name]]</td>
                   </tr>
                 </template>
                 <tr><td class=countCol>[[_filtered.commands.length]]</td><td><b>Total</b></td></tr>
@@ -1036,11 +1043,9 @@ The main application element for the Skia Debugger.
             // histogram dom-repeat template
             if (this.histogram[i].name.toLowerCase() in excluded) {
               this.set(`histogram.${i}.included`, false);
-              this.set(`histogram.${i}.visibleCount`, 0);
               this.$.histogramTable.children[i].classList.add('pinkBackground');
             } else {
               this.set(`histogram.${i}.included`, true);
-              this.set(`histogram.${i}.visibleCount`, this.histogram[i].count);
               this.$.histogramTable.children[i].classList.remove('pinkBackground');
             }
           }
@@ -1083,11 +1088,23 @@ The main application element for the Skia Debugger.
         let end = this.$.rangeHigh.value;
         let filtered = [];
         let counts = {}; // Tally of each command.
-        for (let i = begin; i <= end; i++) {
+        // Each item is an object containing two different counts,
+        //  { count_in_frame: 0,
+        //    count_in_range_filter: 0 }
+        for (let i = 0; i < this._cmd.commands.length; i++) {
           let c = this._cmd.commands[i];
           const name = c.details.command;
-          counts[name] = (counts[name] || 0) + 1;
-          filtered.push(c);
+          if (!counts[name]) {
+            counts[name] = {
+              count_in_frame: 0,
+              count_in_range_filter: 0
+            };
+          }
+          counts[name].count_in_frame += 1; // always increment first count
+          if (i >= begin && i <= end) {
+            filtered.push(c);
+            counts[name].count_in_range_filter += 1; // optionally increment filtered count.
+          }
         }
 
         // Histogram only needs to change when the range filter changes.
@@ -1445,6 +1462,10 @@ The main application element for the Skia Debugger.
       // the histogram template.
       // this function should remain insensitive to changes to the command filter and depend only
       // on it's argument.
+      // counts is a map from function names to a pair of counts
+      // [ count_in_frame,        - occurances of the command in the current frame / skp file
+      //   count_in_range_filter, - occurances of the command in the current range filter.
+      // ]
       _formatHistogram(counts) {
         // First convert the counts map into an Array of objects.
         let histogram = [];
@@ -1452,8 +1473,8 @@ The main application element for the Skia Debugger.
           histogram.push({
             name: k,
             // record the count of this command in the current filtered range, pre command filter.
-            count: counts[k],
-            visibleCount: counts[k],
+            countInFrame: counts[k].count_in_frame,
+            countInRange: counts[k].count_in_range_filter,
             included: true,
           });
         }
@@ -1461,7 +1482,7 @@ The main application element for the Skia Debugger.
         // on the op name.
         // sort by rangeCount so entries don't move on enable/disable
         histogram.sort(function(a,b) {
-          if (a.count == b.count) {
+          if (a.countInRange == b.countInRange) {
             if (a.name < b.name) {
               return -1;
             }
@@ -1470,7 +1491,7 @@ The main application element for the Skia Debugger.
             }
             return 0;
           } else {
-            return b.count - a.count;
+            return b.countInRange - a.countInRange;
           }
         });
         return histogram;
@@ -1620,10 +1641,8 @@ The main application element for the Skia Debugger.
         let tr = e.path[1];
         if (e.model.item.included) {
           tr.classList.remove('pinkBackground');
-          e.model.set('item.visibleCount', e.model.item.count);
         } else {
           tr.classList.add('pinkBackground');
-          e.model.set('item.visibleCount', 0);
         }
         // override current text filter
         this.$.fast.value = this._textFilterFromHistogram();
@@ -1633,11 +1652,13 @@ The main application element for the Skia Debugger.
         if (this.histogram.length === 0) {
           return;
         }
-        let histrows = this.$.histogramTable.children;
+        // get the tr elements in the histogram table, they're dynamically generated and can't
+        // be found by id using $
+        let tbody = this.$.histogramTable.children[0];
+        let histrows = tbody.children; // first row contains labels
         for (let i = 0; i < this.histogram.length; i++) {
           this.set(`histogram.${i}.included`, true);
-          this.set(`histogram.${i}.visibleCount`, this.histogram[i].count);
-          histrows[i].classList.remove('pinkBackground');
+          histrows[i+1].classList.remove('pinkBackground');
         }
       },
 
