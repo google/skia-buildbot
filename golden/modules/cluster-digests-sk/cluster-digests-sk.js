@@ -39,8 +39,6 @@ define('cluster-digests-sk', class extends ElementSk {
     this._linkTightness = 1 / 8;
     this._nodeRepulsion = 256;
 
-    // TODO(kjlubick) make this either settable by clients or dynamically respond to the size it
-    // has been laid out as.
     this._width = 400;
     this._height = 400;
 
@@ -81,8 +79,10 @@ define('cluster-digests-sk', class extends ElementSk {
     // See https://github.com/d3/d3-force#centering
     const centerForce = d3Force.forceCenter(this._width / 2, this._height / 2);
 
-    // TODO(kjlubick) could we have a force that keeps the nodes on the page? Then we wouldn't have
-    //   to mess around as much with _linkTightness or _nodeRepulsion.
+    const xForce = d3Force.forceX(this._width / 2);
+    xForce.strength(0.1);
+    const yForce = d3Force.forceY(this._height / 2);
+    yForce.strength(0.2);
 
     // This starts a simulation that will render over the next few seconds as the nodes are
     // simulated into place.
@@ -91,6 +91,8 @@ define('cluster-digests-sk', class extends ElementSk {
       .force('charge', chargeForce) // The names are arbitrary (and inspired by D3 documentation).
       .force('link', linkForce)
       .force('center', centerForce)
+      .force('fitX', xForce)
+      .force('fixY', yForce)
       .on('tick', () => {
         // On each tick, the simulation will update the x,y values of the nodes. We can then
         // select and update those nodes.
@@ -167,6 +169,17 @@ define('cluster-digests-sk', class extends ElementSk {
         .attr('stroke', '#ccc')
         .attr('stroke-width', '2');
 
+      // Draw the labels behind the circles because the circles are clickable.
+      d3Select.select(clusterSk)
+        .selectAll('text.label')
+        .data(this._nodes)
+        .enter()
+        .append('text')
+        .attr('class', 'label');
+      d3Select.select(clusterSk) // update all nodes with the correct label.
+        .selectAll('text.label')
+        .text((d) => d.label || '');
+
       d3Select.select(clusterSk)
         .selectAll('circle.node')
         .data(this._nodes)
@@ -196,17 +209,6 @@ define('cluster-digests-sk', class extends ElementSk {
           this._updateSelection();
         });
 
-      d3Select.select(clusterSk)
-        .selectAll('text.label')
-        .data(this._nodes)
-        .enter()
-        .append('text')
-        .attr('class', 'label');
-      d3Select.select(clusterSk) // update all nodes with the correct label.
-        .selectAll('text.label')
-        .text((d) => d.label || '');
-
-
       d3Select.select(clusterSk).on('click tap', () => {
         // Capture this event (prevent it from propagating outside the SVG).
         const evt = d3Select.event;
@@ -219,6 +221,14 @@ define('cluster-digests-sk', class extends ElementSk {
 
       this._layout();
     });
+  }
+
+  setWidth(w) {
+    if (w === this._width) {
+      return;
+    }
+    this._width = w;
+    this._layout();
   }
 
   _updateSelection() {

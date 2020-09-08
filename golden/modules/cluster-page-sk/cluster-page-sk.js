@@ -26,7 +26,7 @@ const template = (ele) => {
     return html`<h1>Need a test to cluster by</h1>`;
   }
   return html`
-<div>
+<div class=page-container>
   <search-controls-sk .corpora=${ele._corpora}
       .paramSet=${ele._paramset}
       .searchCriteria=${ele._searchCriteria}
@@ -324,6 +324,15 @@ define('cluster-page-sk', class extends ElementSk {
     return {
       signal: this._fetchController.signal,
     };
+  }
+
+  _render() {
+    super._render();
+    // Make the cluster draw to the full width.
+    const cluster = $$('cluster-digests-sk', this);
+    if (cluster) {
+      cluster.setWidth(cluster.offsetWidth);
+    }
   }
 
   _searchControlsChanged(e) {
