@@ -404,7 +404,11 @@ export class ClusterLastNPageSk extends ElementSk {
     }
     this.domain = this.querySelector<DomainPickerSk>('#range')!.state;
     const body: StartDryRunRequest = {
-      domain: this.domain,
+      domain: {
+        n: this.domain.num_commits,
+        offset: 0,
+        end: new Date(this.domain.end * 1000).toISOString(),
+      },
       config: this.state!,
     };
     fetch('/_/dryrun/start', {

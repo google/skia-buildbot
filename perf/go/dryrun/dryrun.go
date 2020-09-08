@@ -41,7 +41,7 @@ type UIDomain struct {
 // StartDryRunRequest is the data POSTed to StartHandler.
 type StartDryRunRequest struct {
 	Config alerts.Alert `json:"config"`
-	Domain UIDomain     `json:"domain"`
+	Domain types.Domain `json:"domain"`
 }
 
 // Id is used to identify StartRequests as stored in Requests.inFlight.
@@ -175,8 +175,8 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 				defer running.mutex.Unlock()
 				running.Message = message
 			}
-			domain := domainFromUIDomain(req.Domain)
-			regression.RegressionsForAlert(ctx, &req.Config, domain, d.paramsProvider(), d.shortcutStore, cb, d.perfGit, d.dfBuilder, progressCallback)
+
+			regression.RegressionsForAlert(ctx, &req.Config, req.Domain, d.paramsProvider(), d.shortcutStore, cb, d.perfGit, d.dfBuilder, progressCallback)
 			running.mutex.Lock()
 			defer running.mutex.Unlock()
 			running.Finished = true
@@ -189,15 +189,6 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to encode paramset: %s", err)
-	}
-}
-
-// domainFromUIDomain converts the UIDomain that domain-picker-sk returns into
-// a types.Domain.
-func domainFromUIDomain(uiDomain UIDomain) types.Domain {
-	return types.Domain{
-		N:   uiDomain.NumCommits,
-		End: time.Unix(int64(uiDomain.End), 0),
 	}
 }
 
