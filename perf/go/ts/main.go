@@ -55,7 +55,6 @@ func main() {
 		dryrun.DryRunStatus{},
 		dryrun.StartDryRunRequest{},
 		dryrun.StartDryRunResponse{},
-		dryrun.UIDomain{},
 		frontend.AlertUpdateResponse{},
 		frontend.ClusterStartResponse{},
 		frontend.ClusterStatus{},

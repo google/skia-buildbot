@@ -107,16 +107,15 @@ export interface DryRunStatus {
 	regressions: (RegressionAtCommit | null)[] | null;
 }
 
-export interface UIDomain {
-	begin: number;
-	end: number;
-	num_commits: number;
-	request_type: RequestType;
+export interface Domain {
+	n: number;
+	end: string;
+	offset: number;
 }
 
 export interface StartDryRunRequest {
 	config: Alert;
-	domain: UIDomain;
+	domain: Domain;
 }
 
 export interface StartDryRunResponse {
@@ -237,12 +236,6 @@ export interface FullSummary {
 	summary: ClusterSummary;
 	triage: TriageStatus;
 	frame: FrameResponse;
-}
-
-export interface Domain {
-	n: number;
-	end: string;
-	offset: number;
 }
 
 export interface RegressionDetectionRequest {

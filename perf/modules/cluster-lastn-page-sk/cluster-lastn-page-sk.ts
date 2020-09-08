@@ -22,7 +22,6 @@ import '../triage-status-sk';
 import '../alert-config-sk';
 import '../domain-picker-sk';
 import {
-  UIDomain,
   ParamSet,
   Alert,
   FrameResponse,
@@ -34,6 +33,7 @@ import {
   StartDryRunResponse,
   AlertUpdateResponse,
 } from '../json';
+import { DomainPickerState } from '../domain-picker-sk/domain-picker-sk';
 import { AlertConfigSk } from '../alert-config-sk/alert-config-sk';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { TriageStatusSkStartTriageEventDetails } from '../triage-status-sk/triage-status-sk';
@@ -248,7 +248,7 @@ export class ClusterLastNPageSk extends ElementSk {
   };
 
   // The range of commits over which we are clustering.
-  private domain: UIDomain = {
+  private domain: DomainPickerState = {
     begin: 0,
     end: Math.floor(Date.now() / 1000),
     num_commits: 200,
@@ -404,7 +404,11 @@ export class ClusterLastNPageSk extends ElementSk {
     }
     this.domain = this.querySelector<DomainPickerSk>('#range')!.state;
     const body: StartDryRunRequest = {
-      domain: this.domain,
+      domain: {
+        n: this.domain.num_commits,
+        offset: 0,
+        end: new Date(this.domain.end * 1000).toISOString(),
+      },
       config: this.state!,
     };
     fetch('/_/dryrun/start', {
