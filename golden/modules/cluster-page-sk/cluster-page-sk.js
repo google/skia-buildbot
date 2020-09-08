@@ -26,7 +26,7 @@ const template = (ele) => {
     return html`<h1>Need a test to cluster by</h1>`;
   }
   return html`
-<div>
+<div class=page-container>
   <search-controls-sk .corpora=${ele._corpora}
       .paramSet=${ele._paramset}
       .searchCriteria=${ele._searchCriteria}
@@ -42,7 +42,8 @@ const template = (ele) => {
 const infoPanel = (ele) => {
   if (!ele._selectedDigests.length) {
     return html`
-<div>Click on one digest or shift click multiple digests to see more specific information.</div>
+<div>Click on one digest or shift click multiple digests to see more specific information.
+Use A/Z to Zoom In/Out and S/X to increase/decrease node distance.</div>
 
 <paramset-sk clickable .paramsets=${[ele._paramsetOfAllDigests]}
   @paramset-key-click=${ele._paramKeyClicked} @paramset-key-value-click=${ele._paramValueClicked}>
@@ -157,11 +158,21 @@ define('cluster-page-sk', class extends ElementSk {
 
     // Allows us to abort fetches if we fetch again.
     this._fetchController = null;
+
+    this._keyEventHandler = (e) => this._keyPressed(e);
   }
 
   connectedCallback() {
     super.connectedCallback();
     this._render();
+    // This assumes that there is only one multi-zoom-sk rendered on the page at a time (if there
+    // are multiple, they may all respond to keypresses at once).
+    document.addEventListener('keydown', this._keyEventHandler);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    document.removeEventListener('keydown', this._keyEventHandler);
   }
 
   /**
@@ -285,6 +296,33 @@ define('cluster-page-sk', class extends ElementSk {
       .catch((e) => sendFetchError(this, e, 'diff details'));
   }
 
+  _keyPressed(e) {
+    // Advice taken from https://medium.com/@uistephen/keyboardevent-key-for-cross-browser-key-press-check-61dbad0a067a
+    const cluster = $$('cluster-digests-sk', this);
+    if (!cluster) {
+      return;
+    }
+    const key = e.key || e.keyCode;
+    switch (key) {
+      case 'z': case 90: // Zoom in (loosen links)
+        cluster.changeLinkTightness(false);
+        break;
+      case 'a': case 65: // Zoom out (tighten links)
+        cluster.changeLinkTightness(true);
+        break;
+      case 's': case 83: // Increase distance between nodes
+        cluster.changeNodeRepulsion(true);
+        break;
+      case 'x': case 88: // Decrease distance between nodes
+        cluster.changeNodeRepulsion(false);
+        break;
+      default:
+        return;
+    }
+    // If we captured the key event, stop it from propagating.
+    e.stopPropagation();
+  }
+
   _layoutCluster() {
     $$('cluster-digests-sk', this).setData(this._renderedNodes, this._renderedLinks);
   }
@@ -324,6 +362,15 @@ define('cluster-page-sk', class extends ElementSk {
     return {
       signal: this._fetchController.signal,
     };
+  }
+
+  _render() {
+    super._render();
+    // Make the cluster draw to the full width.
+    const cluster = $$('cluster-digests-sk', this);
+    if (cluster) {
+      cluster.setWidth(cluster.offsetWidth);
+    }
   }
 
   _searchControlsChanged(e) {

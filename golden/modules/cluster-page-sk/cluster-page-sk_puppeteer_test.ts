@@ -67,6 +67,30 @@ describe('cluster-page-sk', () => {
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_value-clicked');
   });
 
+  it('can zoom in using the keyboard', async () => {
+    await testBed.page.setViewport({ width: 1200, height: 1200 });
+    await testBed.page.type('cluster-page-sk', 'aa');
+    await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_zoom-in');
+  });
+
+  it('can zoom out using the keyboard', async () => {
+    await testBed.page.setViewport({ width: 1200, height: 1200 });
+    await testBed.page.type('cluster-page-sk', 'zz');
+    await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_zoom-out');
+  });
+
+  it('can increase node spacing using the keyboard', async () => {
+    await testBed.page.setViewport({ width: 1200, height: 1200 });
+    await testBed.page.type('cluster-page-sk', 'ss');
+    await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_more-node-space');
+  });
+
+  it('can decrease node spacing using the keyboard', async () => {
+    await testBed.page.setViewport({ width: 1200, height: 1200 });
+    await testBed.page.type('cluster-page-sk', 'xx');
+    await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_less-node-space');
+  });
+
   async function clickParamKey(testBed: TestBed, key: string) {
     await testBed.page.click(`paramset-sk[clickable] th[data-key="${key}"]`);
   }
