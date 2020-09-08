@@ -1038,15 +1038,16 @@ The main application element for the Skia Debugger.
           for (const token of tokens) {
             excluded[token] = 1;
           }
+          const tbody = this.$.histogramTable.children[0];
           for (let i = 0; i < this.histogram.length; i++) {
-            // a lot of this nonsense is because polymer wouldn't update {{}} bindings inside the
-            // histogram dom-repeat template
+            // Polymer wouldn't update {{}} bindings inside the histogram dom-repeat template.
+            // This will be obviated by lit-html
             if (this.histogram[i].name.toLowerCase() in excluded) {
               this.set(`histogram.${i}.included`, false);
-              this.$.histogramTable.children[i].classList.add('pinkBackground');
+              tbody.children[i].classList.add('pinkBackground');
             } else {
               this.set(`histogram.${i}.included`, true);
-              this.$.histogramTable.children[i].classList.remove('pinkBackground');
+              tbody.children[i].classList.remove('pinkBackground');
             }
           }
           this._applyCommandFilter();
