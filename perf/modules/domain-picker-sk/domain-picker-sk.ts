@@ -13,7 +13,7 @@
 import { define } from 'elements-sk/define';
 import { html } from 'lit-html';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
-import { UIDomain, RequestType } from '../json';
+import { RequestType } from '../json';
 
 import 'elements-sk/radio-sk';
 import 'elements-sk/styles/buttons';
@@ -37,6 +37,20 @@ const toForceRequestType = (s: string | null): ForceRequestType => {
     return '';
   }
 };
+
+/** The state of the DomainPickerSk control. */
+export interface DomainPickerState {
+  /**  Beginning of time range in Unix timestamp seconds. */
+  begin: number;
+  /**  End of time range in Unix timestamp seconds. */
+  end: number;
+  /**
+   * If RequestType is REQUEST_COMPACT (1), then this value is the number of
+   * commits to show before End, and the value of Begin is ignored.
+   */
+  num_commits: number;
+  request_type: RequestType;
+}
 
 export class DomainPickerSk extends ElementSk {
   private static template = (ele: DomainPickerSk) => html`
@@ -109,7 +123,7 @@ export class DomainPickerSk extends ElementSk {
     `;
   };
 
-  private _state: UIDomain;
+  private _state: DomainPickerState;
 
   constructor() {
     super(DomainPickerSk.template);
