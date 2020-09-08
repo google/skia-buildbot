@@ -33,6 +33,33 @@
       "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315615?revision\u003d1",
       "fixSuggestions": [],
       "key": {
+        "uuid": "3185af62_b6d047ce",
+        "filename": "autoroll/config/pgo-linux-chromium-beta.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-08T17:50:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 1,
+        "startChar": 52,
+        "endLine": 1,
+        "endChar": 58
+      },
+      "revId": "202997a0303e30b2f175677de19cd57e370e48e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004817320",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315615?revision\u003d1",
+      "fixSuggestions": [],
+      "key": {
         "uuid": "55b9ac07_1eb3ea45",
         "filename": "autoroll/config/pgo-linux-chromium-beta.json",
         "patchSetId": 1
@@ -42,6 +69,33 @@
         "id": 13155
       },
       "writtenOn": "2020-09-08T17:49:51Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 38,
+        "startChar": 20,
+        "endLine": 38,
+        "endChar": 26
+      },
+      "revId": "202997a0303e30b2f175677de19cd57e370e48e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004817320",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315615?revision\u003d1",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "4a480e1c_fcc96f1d",
+        "filename": "autoroll/config/pgo-linux-chromium-beta.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-08T17:50:55Z",
       "side": 1,
       "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
       "range": {
@@ -87,6 +141,33 @@
       "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315615?revision\u003d1",
       "fixSuggestions": [],
       "key": {
+        "uuid": "0b05a644_1b4d96b6",
+        "filename": "autoroll/config/pgo-linux-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-08T17:50:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 1,
+        "startChar": 52,
+        "endLine": 1,
+        "endChar": 58
+      },
+      "revId": "202997a0303e30b2f175677de19cd57e370e48e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004817320",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315615?revision\u003d1",
+      "fixSuggestions": [],
+      "key": {
         "uuid": "4429304e_b9265864",
         "filename": "autoroll/config/pgo-linux-chromium.json",
         "patchSetId": 1
@@ -96,6 +177,33 @@
         "id": 13155
       },
       "writtenOn": "2020-09-08T17:49:51Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 27,
+        "startChar": 33,
+        "endLine": 27,
+        "endChar": 39
+      },
+      "revId": "202997a0303e30b2f175677de19cd57e370e48e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004817320",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315615?revision\u003d1",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "ccd9172b_deb7ea41",
+        "filename": "autoroll/config/pgo-linux-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-08T17:50:55Z",
       "side": 1,
       "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
       "range": {
@@ -141,6 +249,33 @@
       "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315615?revision\u003d1",
       "fixSuggestions": [],
       "key": {
+        "uuid": "fbd8eed9_60afb7e8",
+        "filename": "autoroll/config/pgo-linux-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-08T17:50:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 38,
+        "startChar": 20,
+        "endLine": 38,
+        "endChar": 26
+      },
+      "revId": "202997a0303e30b2f175677de19cd57e370e48e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004817320",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315615?revision\u003d1",
+      "fixSuggestions": [],
+      "key": {
         "uuid": "804392da_31db5a15",
         "filename": "autoroll/config/pgo-linux-chromium.json",
         "patchSetId": 1
@@ -168,6 +303,33 @@
       "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315615?revision\u003d1",
       "fixSuggestions": [],
       "key": {
+        "uuid": "cb666bed_c48b28e6",
+        "filename": "autoroll/config/pgo-linux-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-08T17:50:55Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 42,
+        "startChar": 21,
+        "endLine": 42,
+        "endChar": 27
+      },
+      "revId": "202997a0303e30b2f175677de19cd57e370e48e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004817320",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315615?revision\u003d1",
+      "fixSuggestions": [],
+      "key": {
         "uuid": "3d2f8e59_7654608a",
         "filename": "autoroll/config/pgo-linux-chromium.json",
         "patchSetId": 1
@@ -177,6 +339,33 @@
         "id": 13155
       },
       "writtenOn": "2020-09-08T17:49:51Z",
+      "side": 1,
+      "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
+      "range": {
+        "startLine": 45,
+        "startChar": 35,
+        "endLine": 45,
+        "endChar": 41
+      },
+      "revId": "202997a0303e30b2f175677de19cd57e370e48e1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "robotId": "ayeaye",
+      "robotRunId": "AR00000000000004817320",
+      "url": "https://android-build.googleplex.com/builds/treetop/skia-review/315615?revision\u003d1",
+      "fixSuggestions": [],
+      "key": {
+        "uuid": "b56330db_4c2bbcbe",
+        "filename": "autoroll/config/pgo-linux-chromium.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 13964
+      },
+      "writtenOn": "2020-09-08T17:50:55Z",
       "side": 1,
       "message": "Prefer to use inclusive terms like \u0027primary/secondary\u0027 or \u0027manager/worker\u0027; see https://source.android.com/setup/contribute/respectful-code for more details.",
       "range": {
