@@ -25,10 +25,6 @@ const (
 	// imagePrefix is the path prefix in the GCS bucket that holds images.
 	imagePrefix = "dm-images-v1"
 
-	// knownHashesPath is path on the Gold instance to retrieve the known image hashes that do
-	// not need to be uploaded anymore.
-	knownHashesPath = "json/hashes"
-
 	// goldHostTemplate constructs the URL of the Gold instance from the instance id
 	goldHostTemplate = "https://%s-gold.skia.org"
 
@@ -99,7 +95,7 @@ func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 	r.KnownHashes = types.DigestSet{}
 
 	// Fetch the known hashes via http
-	hashesURL := fmt.Sprintf("%s/%s", r.GoldURL, knownHashesPath)
+	hashesURL := r.GoldURL + shared.KnownHashesRouteV1
 	body, err := getWithRetries(httpClient, hashesURL)
 	if err != nil {
 		return skerr.Wrapf(err, "getting known hashes from %s (with retries)", hashesURL)
@@ -121,7 +117,7 @@ func (r *resultState) loadKnownHashes(httpClient HTTPClient) error {
 
 // loadExpectations fetches the expectations from Gold to compare to tests.
 func (r *resultState) loadExpectations(httpClient HTTPClient) error {
-	urlPath := shared.ExpectationsRoute
+	urlPath := shared.ExpectationsRouteV1
 	if r.SharedConfig != nil && r.SharedConfig.ChangeListID != "" {
 		urlPath = fmt.Sprintf("%s?issue=%s&crs=%s", urlPath, url.QueryEscape(r.SharedConfig.ChangeListID), url.QueryEscape(r.SharedConfig.CodeReviewSystem))
 	}
