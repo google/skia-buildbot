@@ -10,7 +10,7 @@ export interface TestCorpus {
   negativeCount: number
 };
 
-/** These examples are based on a real request against https://gold.skia.org/json/trstatus. */
+/** These examples are based on a real request against https://gold.skia.org/json/v1/trstatus. */
 export const customTypeCorpora: TestCorpus[] = [{
   name: 'canvaskit',
   ok: false,

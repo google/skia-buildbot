@@ -70,7 +70,7 @@ document.addEventListener('fetch-error', (e) => {
   $$('#event').textContent = `fetch-error: ${JSON.stringify(e.detail)}`;
 });
 
-fetchMock.post('/json/triage', delay(() => {
+fetchMock.post('/json/v1/triage', delay(() => {
   if ($$('#simulate-not-logged-in').checked) {
     return 403;
   }

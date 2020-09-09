@@ -193,7 +193,7 @@ define('list-page-sk', class extends ElementSk {
     sendBeginTask(this);
     sendBeginTask(this);
 
-    let url = `/json/list?corpus=${encodeURIComponent(this._currentCorpus)}`;
+    let url = `/json/v1/list?corpus=${encodeURIComponent(this._currentCorpus)}`;
     if (!this._showAllDigests) {
       url += '&at_head_only=true';
     }
@@ -220,7 +220,7 @@ define('list-page-sk', class extends ElementSk {
     // TODO(kjlubick) when the search page gets a makeover to have just the params for the given
     //   corpus show up, we should do the same here. First idea is to have a separate corpora
     //   endpoint and then make paramset take a corpus.
-    fetch('/json/paramset', extra)
+    fetch('/json/v1/paramset', extra)
       .then(jsonOrThrow)
       .then((paramset) => {
         // We split the paramset into a list of corpora...

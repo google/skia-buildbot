@@ -16,10 +16,10 @@ testOnlySetSettings({
   baseRepoURL: 'https://skia.googlesource.com/skia.git',
 });
 
-// The mock /json/triagelog/undo RPC will populate this set.
+// The mock /json/v1/triagelog/undo RPC will populate this set.
 const undoneIds = new Set();
 
-// Mock /json/triagelog RPC implementation.
+// Mock /json/v1/triagelog RPC implementation.
 function getTriageLogs(details, offset, size) {
   // Filter out undone entries.
   const allTriageLogs = triageLogs.filter((entry) => !undoneIds.has(entry.id));
@@ -48,7 +48,7 @@ function getTriageLogs(details, offset, size) {
 
 // TODO(lovisolo): Consider extracting some of the mock fetch logic below into demo_utils.js.
 
-fetchMock.post('glob:/json/triagelog/undo?id=*', (url) => {
+fetchMock.post('glob:/json/v1/triagelog/undo?id=*', (url) => {
   if ($$('#simulate-rpc-failure').checked) {
     return 500; // Fake an internal server error.
   }
@@ -65,7 +65,7 @@ fetchMock.post('glob:/json/triagelog/undo?id=*', (url) => {
   return delay(getTriageLogs(false, 0, 20), fakeRpcDelayMillis);
 });
 
-fetchMock.get('glob:/json/triagelog*', (url) => {
+fetchMock.get('glob:/json/v1/triagelog*', (url) => {
   if ($$('#simulate-rpc-failure').checked) {
     return 500; // Fake an internal server error.
   }
@@ -78,7 +78,7 @@ fetchMock.get('glob:/json/triagelog*', (url) => {
   // Fake a 300ms delay.
   return delay(getTriageLogs(details, offset, size), fakeRpcDelayMillis);
 });
-fetchMock.get('/json/trstatus', JSON.stringify(exampleStatusData));
+fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.
 const newScaf = document.createElement('gold-scaffold-sk');

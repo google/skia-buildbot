@@ -185,7 +185,7 @@ define('cluster-page-sk', class extends ElementSk {
       head: !sc.includeDigestsNotAtHead,
       include: sc.includeIgnoredDigests,
     };
-    return `/json/clusterdiff?${fromObject(queryObj)}`;
+    return `/json/v1/clusterdiff?${fromObject(queryObj)}`;
   }
 
   _fetchClusterData() {
@@ -213,7 +213,7 @@ define('cluster-page-sk', class extends ElementSk {
       })
       .catch((e) => sendFetchError(this, e, 'clusterdiff'));
 
-    fetch('/json/paramset', extra)
+    fetch('/json/v1/paramset', extra)
       .then(jsonOrThrow)
       .then((paramset) => {
         // We split the paramset into a list of corpora...
@@ -246,7 +246,7 @@ define('cluster-page-sk', class extends ElementSk {
       urlObj.changelist_id = [this._changeListID];
       urlObj.crs = [this._crs];
     }
-    const url = `/json/details?${fromObject(urlObj)}`;
+    const url = `/json/v1/details?${fromObject(urlObj)}`;
 
     fetch(url, extra)
       .then(jsonOrThrow)
@@ -272,7 +272,7 @@ define('cluster-page-sk', class extends ElementSk {
       urlObj.changelist_id = [this._changeListID];
       urlObj.crs = [this._crs];
     }
-    const url = `/json/diff?${fromObject(urlObj)}`;
+    const url = `/json/v1/diff?${fromObject(urlObj)}`;
 
     fetch(url, extra)
       .then(jsonOrThrow)

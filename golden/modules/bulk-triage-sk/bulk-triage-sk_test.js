@@ -44,7 +44,7 @@ describe('bulk-triage-sk', () => {
 
     it('POSTs for just this page of results', async () => {
       const finishedPromise = eventPromise('bulk_triage_finished');
-      fetchMock.post('/json/triage', (url, req) => {
+      fetchMock.post('/json/v1/triage', (url, req) => {
         expect(req.body).to.equal(expectedPageData);
         return 200;
       });
@@ -58,7 +58,7 @@ describe('bulk-triage-sk', () => {
       bulkTriageSk.crs = 'gerrit';
       $$('checkbox-sk.toggle_all', bulkTriageSk).click();
       const finishedPromise = eventPromise('bulk_triage_finished');
-      fetchMock.post('/json/triage', (url, req) => {
+      fetchMock.post('/json/v1/triage', (url, req) => {
         expect(req.body).to.equal(expectedAllData);
         return 200;
       });

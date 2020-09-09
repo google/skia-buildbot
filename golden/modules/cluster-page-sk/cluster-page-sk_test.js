@@ -32,10 +32,10 @@ describe('cluster-page-sk', () => {
     setQueryString('?grouping=some-test');
 
     // These are the default RPC calls when the page loads.
-    fetchMock.get('/json/clusterdiff?head=true'
+    fetchMock.get('/json/v1/clusterdiff?head=true'
       + '&include=false&neg=false&pos=false&query=name%3Dsome-test'
       + '&source_type=infra&unt=false', clusterDiffJSON);
-    fetchMock.get('/json/paramset', clusterDiffJSON.paramsetsUnion);
+    fetchMock.get('/json/v1/paramset', clusterDiffJSON.paramsetsUnion);
   });
 
   afterEach(() => {
@@ -66,7 +66,7 @@ describe('cluster-page-sk', () => {
     });
 
     it('changes what it fetches based on search controls', () => {
-      fetchMock.get('/json/clusterdiff?head=false&include=true&neg=true&pos=true&'
+      fetchMock.get('/json/v1/clusterdiff?head=false&include=true&neg=true&pos=true&'
         + 'query=gpu%3DAMD%26name%3Dsome-test&source_type=some-other-corpus&unt=true',
       clusterDiffJSON);
 
@@ -90,7 +90,7 @@ describe('cluster-page-sk', () => {
     });
 
     it('makes an RPC for details when the selection is changed to one digest', () => {
-      fetchMock.get('/json/details?corpus=infra'
+      fetchMock.get('/json/v1/details?corpus=infra'
         + '&digest=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&test=some-test', {
         'these-details': 'do not matter for this test',
       });
@@ -103,7 +103,7 @@ describe('cluster-page-sk', () => {
     });
 
     it('makes an RPC for a diff when the selection is changed to two digests', () => {
-      fetchMock.get('/json/diff?corpus=infra'
+      fetchMock.get('/json/v1/diff?corpus=infra'
         + '&left=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
         + '&right=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&test=some-test', {
         'these-details': 'do not matter for this test',
