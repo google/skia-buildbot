@@ -107,17 +107,6 @@ export interface DryRunStatus {
 	regressions: (RegressionAtCommit | null)[] | null;
 }
 
-export interface Domain {
-	n: number;
-	end: string;
-	offset: number;
-}
-
-export interface StartDryRunRequest {
-	config: Alert;
-	domain: Domain;
-}
-
 export interface StartDryRunResponse {
 	id: string;
 }
@@ -236,6 +225,12 @@ export interface FullSummary {
 	summary: ClusterSummary;
 	triage: TriageStatus;
 	frame: FrameResponse;
+}
+
+export interface Domain {
+	n: number;
+	end: string;
+	offset: number;
 }
 
 export interface RegressionDetectionRequest {
