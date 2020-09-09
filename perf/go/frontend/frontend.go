@@ -395,7 +395,7 @@ func (f *Frontend) initialize(fs *pflag.FlagSet) {
 	f.configProvider = f.newAlertsConfigProvider()
 	paramsProvider := newParamsetProvider(f.paramsetRefresher)
 
-	f.dryrunRequests = dryrun.New(f.dfBuilder, f.shortcutStore, paramsProvider, f.perfGit)
+	f.dryrunRequests = dryrun.New(f.perfGit, f.regressionDetector)
 
 	if f.flags.DoClustering {
 		go func() {
