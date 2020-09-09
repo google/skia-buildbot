@@ -53,7 +53,6 @@ func main() {
 		dataframe.FrameRequest{},
 		dataframe.FrameResponse{},
 		dryrun.DryRunStatus{},
-		dryrun.StartDryRunRequest{},
 		dryrun.StartDryRunResponse{},
 		frontend.AlertUpdateResponse{},
 		frontend.ClusterStartResponse{},

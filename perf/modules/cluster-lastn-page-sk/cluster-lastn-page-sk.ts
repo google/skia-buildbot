@@ -29,7 +29,7 @@ import {
   DryRunStatus,
   Direction,
   ClusterSummary,
-  StartDryRunRequest,
+  RegressionDetectionRequest,
   StartDryRunResponse,
   AlertUpdateResponse,
 } from '../json';
@@ -403,13 +403,16 @@ export class ClusterLastNPageSk extends ElementSk {
       return;
     }
     this.domain = this.querySelector<DomainPickerSk>('#range')!.state;
-    const body: StartDryRunRequest = {
+    const body: RegressionDetectionRequest = {
       domain: {
         n: this.domain.num_commits,
         offset: 0,
         end: new Date(this.domain.end * 1000).toISOString(),
       },
-      config: this.state!,
+      alert: this.state!,
+      query: this.state!.query,
+      step: 0,
+      total_queries: 1,
     };
     fetch('/_/dryrun/start', {
       method: 'POST',
