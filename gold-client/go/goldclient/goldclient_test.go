@@ -47,10 +47,10 @@ func TestLoadKnownHashes(t *testing.T) {
 	defer uploader.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte(mockHashesTxt), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
@@ -80,10 +80,10 @@ func TestLoadBaseline(t *testing.T) {
 	defer uploader.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
@@ -116,10 +116,10 @@ func TestLoadBaselineMaster(t *testing.T) {
 	defer uploader.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations").Return(exp, nil)
 
 	goldClient, err := makeGoldClient(auth, false /*=passFail*/, false /*=uploadOnly*/, wd)
 	assert.NoError(t, err)
@@ -161,10 +161,10 @@ func TestInit(t *testing.T) {
 	defer uploader.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte(mockHashesTxt), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// no uploader calls
 
@@ -330,10 +330,10 @@ func TestNewReportNormal(t *testing.T) {
 	defer uploader.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	expectedUploadPath := string("gs://skia-gold-testing/dm-images-v1/" + imgHash + ".png")
 	uploader.On("UploadBytes", testutils.AnyContext, imgData, testImgPath, expectedUploadPath).Return(nil)
@@ -371,10 +371,10 @@ func TestNewReportNormalBadKeys(t *testing.T) {
 	defer httpClient.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// Notice the JSON is not uploaded if we are not in passfail mode - a client
 	// would need to call finalize first.
@@ -591,10 +591,10 @@ func TestNewReportPassFail(t *testing.T) {
 	defer uploader.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte("none"), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte("{}"), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	expectedUploadPath := string("gs://skia-gold-testing/dm-images-v1/" + imgHash + ".png")
 	uploader.On("UploadBytes", testutils.AnyContext, imgData, testImgPath, expectedUploadPath).Return(nil)
@@ -670,10 +670,10 @@ func TestReportPassFailPassWithCorpusInInit(t *testing.T) {
 	defer uploader.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
 	checkResults := func(g *jsonio.GoldResults) bool {
@@ -747,10 +747,10 @@ func TestReportPassFailPassWithCorpusInKeys(t *testing.T) {
 	defer uploader.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
 	checkResults := func(g *jsonio.GoldResults) bool {
@@ -843,11 +843,11 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 
 	// Mock out getting the list of known hashes.
 	hashesResp := httpResponse([]byte(newImageHash), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	// Mock out getting the test baselines.
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// Mock out retrieving the latest positive image hash for ThisIsTheOnlyTest.
 	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/latestpositivedigest/,another_notch=emeril,gpu=GPUTest,name=ThisIsTheOnlyTest,os=WinTest,source_type=gtest-pixeltests,"
@@ -959,10 +959,10 @@ func TestNegativePassFail(t *testing.T) {
 	defer uploader.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// No upload expected because the bytes were already seen in json/hashes.
 
@@ -1014,10 +1014,10 @@ func TestPositivePassFail(t *testing.T) {
 	defer uploader.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=867&crs=gerrit").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// No upload expected because the bytes were already seen in json/hashes.
 
@@ -1137,10 +1137,10 @@ func TestCheckSunnyDay(t *testing.T) {
 	defer httpClient.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations").Return(exp, nil)
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
@@ -1184,10 +1184,10 @@ func TestCheckIssue(t *testing.T) {
 	defer httpClient.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations?issue=abc&crs=github").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=abc&crs=github").Return(exp, nil)
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
@@ -1237,10 +1237,10 @@ func TestCheckSunnyDayNegative(t *testing.T) {
 	defer httpClient.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil)
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations").Return(exp, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations").Return(exp, nil)
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
@@ -1277,10 +1277,10 @@ func TestCheckLoad(t *testing.T) {
 	defer httpClient.AssertExpectations(t)
 
 	hashesResp := httpResponse([]byte(imgHash), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/hashes").Return(hashesResp, nil).Once()
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/hashes").Return(hashesResp, nil).Once()
 
 	exp := httpResponse([]byte(mockBaselineJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/expectations").Return(exp, nil).Once()
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations").Return(exp, nil).Once()
 
 	config := GoldClientConfig{
 		WorkDir:    wd,
