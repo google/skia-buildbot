@@ -1077,6 +1077,30 @@
     },
     {
       "key": {
+        "uuid": "6596d014_10f847f7",
+        "filename": "infra-sk/modules/string.ts",
+        "patchSetId": 17
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-09T21:04:16Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "8650661c_3f0b42c3",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 10,
+        "endChar": 52
+      },
+      "revId": "1e6ac7eca5a8312aee18d88478ee8aa272bd1e3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "2586641b_2583afe7",
         "filename": "infra-sk/modules/string.ts",
         "patchSetId": 17
