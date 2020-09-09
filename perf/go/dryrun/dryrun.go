@@ -2,6 +2,7 @@
 package dryrun
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -101,7 +102,8 @@ func (d *Requests) cleaner() {
 }
 
 func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	// Do not use r.Context() since this kicks off a background process.
+	ctx := context.Background()
 	w.Header().Set("Content-Type", "application/json")
 
 	var req regression.RegressionDetectionRequest
