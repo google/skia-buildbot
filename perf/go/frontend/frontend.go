@@ -690,7 +690,7 @@ func (f *Frontend) clusterStartHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auditlog.Log(r, "cluster", req)
-	id, err := f.regressionDetector.Add(context.Background(), req)
+	id, err := f.regressionDetector.Add(context.Background(), nil, req)
 	sklog.Infof("Added to clusterRequests")
 	if err != nil {
 		httputils.ReportError(w, err, "Cluster request was invalid", http.StatusInternalServerError)
