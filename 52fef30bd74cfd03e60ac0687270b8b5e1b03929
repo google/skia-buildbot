@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d9c5aba_fb0f0bf4",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-09T14:02:57Z",
+      "side": 1,
+      "message": "You can see the metrics live at https://thanos-query.skia.org/graph?g0.range_input\u003d15m\u0026g0.max_source_resolution\u003d0s\u0026g0.expr\u003dgold_rpc_call_counter\u0026g0.tab\u003d0",
+      "revId": "52fef30bd74cfd03e60ac0687270b8b5e1b03929",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
