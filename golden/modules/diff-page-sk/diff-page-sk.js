@@ -82,7 +82,7 @@ define('diff-page-sk', class extends ElementSk {
     };
     sendBeginTask(this);
 
-    const url = `/json/diff?test=${encodeURIComponent(this._grouping)}`
+    const url = `/json/v1/diff?test=${encodeURIComponent(this._grouping)}`
       + `&left=${encodeURIComponent(this._leftDigest)}`
       + `&right=${encodeURIComponent(this._rightDigest)}`
       + `&changelist_id=${this._changeListID}&crs=${this._crs}`;

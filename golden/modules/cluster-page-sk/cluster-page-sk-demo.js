@@ -29,10 +29,10 @@ Date.now = () => fakeNow;
 
 const fakeRpcDelayMillis = isPuppeteerTest() ? 5 : 300;
 
-fetchMock.get('glob:/json/clusterdiff*', delay(clusterDiffJSON, fakeRpcDelayMillis));
-fetchMock.get('/json/paramset', delay(clusterDiffJSON.paramsetsUnion, fakeRpcDelayMillis));
-fetchMock.get('glob:/json/details*', delay(typicalDetails, fakeRpcDelayMillis));
-fetchMock.get('/json/trstatus', JSON.stringify(exampleStatusData));
+fetchMock.get('glob:/json/v1/clusterdiff*', delay(clusterDiffJSON, fakeRpcDelayMillis));
+fetchMock.get('/json/v1/paramset', delay(clusterDiffJSON.paramsetsUnion, fakeRpcDelayMillis));
+fetchMock.get('glob:/json/v1/details*', delay(typicalDetails, fakeRpcDelayMillis));
+fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
 
 const leftDetails = JSON.parse(JSON.stringify(typicalDetails));
 const rightDetails = typicalDetails.refDiffs.neg;
@@ -41,7 +41,7 @@ const rightDetails = typicalDetails.refDiffs.neg;
 leftDetails.traces = null;
 leftDetails.refDiffs = null;
 
-fetchMock.get('glob:/json/diff*', delay({
+fetchMock.get('glob:/json/v1/diff*', delay({
   left: leftDetails,
   right: rightDetails,
 }, fakeRpcDelayMillis));

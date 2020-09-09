@@ -28,7 +28,7 @@ Date.now = () => fakeNow;
 
 const rpcDelay = isPuppeteerTest() ? 5 : 300;
 
-fetchMock.get('glob:/json/details*', delay(() => {
+fetchMock.get('glob:/json/v1/details*', delay(() => {
   if ($$('#simulate-rpc-error').checked) {
     return 500;
   }
@@ -49,7 +49,7 @@ fetchMock.get('glob:/json/details*', delay(() => {
     trace_comments: null,
   });
 }, rpcDelay));
-fetchMock.get('/json/trstatus', JSON.stringify(exampleStatusData));
+fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
 
 // make the page reload when checkboxes change.
 document.addEventListener('change', () => {

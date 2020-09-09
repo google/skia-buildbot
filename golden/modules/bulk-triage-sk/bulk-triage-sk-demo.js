@@ -26,4 +26,4 @@ eleCL.addEventListener('bulk_triage_invoked', handleTriaged);
 ele.addEventListener('bulk_triage_cancelled', handleCancelled);
 $$('#changelist').appendChild(eleCL);
 
-fetchMock.post('/json/triage', 200);
+fetchMock.post('/json/v1/triage', 200);

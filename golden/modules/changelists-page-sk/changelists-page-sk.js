@@ -128,7 +128,7 @@ define('changelists-page-sk', class extends ElementSk {
     };
 
     sendBeginTask(this);
-    let u = `/json/changelists?offset=${this._offset}&size=${this._page_size}`;
+    let u = `/json/v1/changelists?offset=${this._offset}&size=${this._page_size}`;
     if (!this._showAll) {
       u += '&active=true';
     }

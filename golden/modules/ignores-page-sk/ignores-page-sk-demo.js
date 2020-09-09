@@ -16,12 +16,12 @@ testOnlySetSettings({
   baseRepoURL: 'https://skia.googlesource.com/skia.git',
 });
 
-fetchMock.get('/json/paramset', delay(manyParams, 100));
-fetchMock.get('/json/ignores?counts=1', delay(ignoreRules_10, 300));
-fetchMock.post('glob:/json/ignores/del/*', delay({}, 600));
-fetchMock.post('glob:/json/ignores/add/', delay({}, 600));
-fetchMock.post('glob:/json/ignores/save/*', delay({}, 600));
-fetchMock.get('/json/trstatus', JSON.stringify(exampleStatusData));
+fetchMock.get('/json/v1/paramset', delay(manyParams, 100));
+fetchMock.get('/json/v1/ignores?counts=1', delay(ignoreRules_10, 300));
+fetchMock.post('glob:/json/v1/ignores/del/*', delay({}, 600));
+fetchMock.post('glob:/json/v1/ignores/add/', delay({}, 600));
+fetchMock.post('glob:/json/v1/ignores/save/*', delay({}, 600));
+fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.
 const newScaf = document.createElement('gold-scaffold-sk');

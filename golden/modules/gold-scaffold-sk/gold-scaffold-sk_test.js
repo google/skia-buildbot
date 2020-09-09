@@ -16,7 +16,7 @@ describe('gold-scaffold-sk', () => {
       title: 'Skia Public',
       baseRepoURL: 'https://skia.googlesource.com/skia.git',
     });
-    fetchMock.get('/json/trstatus', JSON.stringify(exampleStatusData));
+    fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
     goldScaffoldSk = newInstance((el) => {
       el.setAttribute('testing_offline', '');
       el.innerHTML = '<div>content</div>';

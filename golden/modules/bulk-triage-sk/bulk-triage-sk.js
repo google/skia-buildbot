@@ -178,7 +178,7 @@ define('bulk-triage-sk', class extends ElementSk {
     sendBeginTask(this);
     this.dispatchEvent(new CustomEvent('bulk_triage_invoked', { bubbles: true }));
 
-    fetch('/json/triage', {
+    fetch('/json/v1/triage', {
       method: 'POST',
       body: JSON.stringify({
         testDigestStatus: triageStatuses,

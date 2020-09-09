@@ -2,7 +2,7 @@ import { SearchResponse, StatusResponse, ParamSetResponse } from '../rpc_types';
 
 export const fakeNow = Date.parse('2020-07-20T00:00:00Z');
 
-// Taken from https://skia-infra-gold.skia.org/json/trstatus on 2020-07-15.
+// Taken from https://skia-infra-gold.skia.org/json/v1/trstatus on 2020-07-15.
 export const statusResponse: StatusResponse = {
   "ok": false,
   "firstCommit": {
@@ -30,7 +30,7 @@ export const statusResponse: StatusResponse = {
   }]
 };
 
-// Taken from https://skia-infra-gold.skia.org/json/paramset on 2020-07-15.
+// Taken from https://skia-infra-gold.skia.org/json/v1/paramset on 2020-07-15.
 export const paramSetResponse: ParamSetResponse = {
   "ext": ["png"],
   "name": [
@@ -172,7 +172,7 @@ export const paramSetResponse: ParamSetResponse = {
   "source_type": ["infra"]
 };
 
-// Taken from https://skia-infra-gold.skia.org/json/search on 2020-07-15. Trimmed and names removed.
+// Taken from https://skia-infra-gold.skia.org/json/v1/search on 2020-07-15. Trimmed and names removed.
 export const searchResponse: SearchResponse = {
   "digests": [{
       "digest": "fbd3de3fff6b852ae0bb6751b9763d27",
@@ -1384,7 +1384,7 @@ export const searchResponse: SearchResponse = {
       "commit_time": 1594476795,
       "hash": "31d53aac2f8f03a88993afc081282b75a6c94004",
       "author": "Bob (bob@example.com)",
-      "message": "[perf] Have ./modules/json/index.ts have proper dependencies.",
+      "message": "[perf] Have ./modules/json/v1/index.ts have proper dependencies.",
       "cl_url": ""
   }, {
       "commit_time": 1594531254,

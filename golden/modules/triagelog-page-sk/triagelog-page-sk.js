@@ -136,10 +136,10 @@ define('triagelog-page-sk', class extends ElementSk {
 
   _undoEntry(entryId) {
     sendBeginTask(this);
-    this._fetch(`/json/triagelog/undo?id=${entryId}`, 'POST')
+    this._fetch(`/json/v1/triagelog/undo?id=${entryId}`, 'POST')
     // The undo RPC returns the first page of results with details hidden.
     // But we always show details, so we need to make another request to
-    // fetch the triage log with details from /json/triagelog.
+    // fetch the triage log with details from /json/v1/triagelog.
     // TODO(lovisolo): Rethink this after we delete the old triage log page.
       .then(() => this._fetchEntries(/* sendBusyDoneEvents= */ false))
       .then(() => sendEndTask(this))
@@ -147,7 +147,7 @@ define('triagelog-page-sk', class extends ElementSk {
   }
 
   _fetchEntries(sendBusyDoneEvents = true) {
-    let url = `/json/triagelog?details=true&offset=${this._pageOffset}`
+    let url = `/json/v1/triagelog?details=true&offset=${this._pageOffset}`
         + `&size=${this._pageSize}`;
     if (this._changelistID) {
       url += `&changelist_id=${this._changelistID}&crs=${this._crs}`;
@@ -165,7 +165,7 @@ define('triagelog-page-sk', class extends ElementSk {
       .catch((e) => sendFetchError(this, e, 'triagelog'));
   }
 
-  // Both /json/triagelog and /json/triagelog/undo RPCs return the same kind of
+  // Both /json/v1/triagelog and /json/v1/triagelog/undo RPCs return the same kind of
   // response, which is a page with triage log entries. Therefore this method is
   // called by both _fetchEntries and _undoEntry to carry out their
   // corresponding RPCs and handle the server response.

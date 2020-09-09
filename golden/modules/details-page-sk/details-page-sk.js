@@ -88,7 +88,7 @@ define('details-page-sk', class extends ElementSk {
     };
     sendBeginTask(this);
 
-    const url = `/json/details?test=${encodeURIComponent(this._grouping)}`
+    const url = `/json/v1/details?test=${encodeURIComponent(this._grouping)}`
       + `&digest=${encodeURIComponent(this._digest)}&changelist_id=${this._changeListID}`
       + `&crs=${this._crs}`;
     fetch(url, extra)

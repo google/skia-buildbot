@@ -37,7 +37,7 @@ describe('search-page-sk', () => {
       async (
         searchRpcQueryString: string = defaultSearchRpcQueryString,
         initialSearchResponse: SearchResponse = searchResponse) => {
-    fetchMock.get('/json/search?' + searchRpcQueryString, () => initialSearchResponse);
+    fetchMock.get('/json/v1/search?' + searchRpcQueryString, () => initialSearchResponse);
     const events = eventSequencePromise(['end-task', 'end-task', 'end-task']);
     searchPageSk = newInstance();
     searchPageSkPO = new SearchPageSkPO(searchPageSk);
@@ -54,8 +54,8 @@ describe('search-page-sk', () => {
 
   beforeEach(() => {
     setQueryString('');
-    fetchMock.get('/json/trstatus', () => statusResponse);
-    fetchMock.get('/json/paramset', () => paramSetResponse);
+    fetchMock.get('/json/v1/trstatus', () => statusResponse);
+    fetchMock.get('/json/v1/paramset', () => paramSetResponse);
   });
 
   afterEach(() => {
@@ -87,7 +87,7 @@ describe('search-page-sk', () => {
 
     // We will pretend that the user unchecked "Include untriaged digests".
     fetchMock.get(
-      '/json/search?' + defaultSearchRpcQueryString.replace('unt=true', 'unt=false'),
+      '/json/v1/search?' + defaultSearchRpcQueryString.replace('unt=true', 'unt=false'),
       () => emptySearchResponse);
 
     const event = eventPromise('end-task');

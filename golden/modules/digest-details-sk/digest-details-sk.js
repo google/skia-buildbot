@@ -394,7 +394,7 @@ define('digest-details-sk', class extends ElementSk {
 
     sendBeginTask(this);
 
-    fetch('/json/triage', {
+    fetch('/json/v1/triage', {
       method: 'POST',
       body: JSON.stringify(postBody),
       headers: {
