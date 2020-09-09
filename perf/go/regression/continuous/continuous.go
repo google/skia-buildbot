@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/perf/go/ingestevents"
 	"go.skia.org/infra/perf/go/notify"
 	"go.skia.org/infra/perf/go/regression"
-	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/stepfit"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -37,6 +36,8 @@ const (
 	// pollingClusteringDelay is the time to wait between clustering runs, but
 	// only when not doing event driven regression detection.
 	pollingClusteringDelay = 5 * time.Minute
+
+	checkIfRegressionIsDoneDuration = time.Second
 )
 
 // Current state of looking for regressions, i.e. the current commit and alert
@@ -54,9 +55,9 @@ type ConfigProvider func() ([]*alerts.Alert, error)
 // Continuous is used to run clustering on the last numCommits commits and
 // look for regressions.
 type Continuous struct {
+	detector       regression.Detector
 	perfGit        *perfgit.Git
 	store          regression.Store
-	shortcutStore  shortcut.Store
 	provider       ConfigProvider
 	notifier       *notify.Notifier
 	paramsProvider regression.ParamsetProvider
@@ -69,25 +70,25 @@ type Continuous struct {
 	current *Current
 }
 
-// NewContinuous creates a new *Continuous.
+// New creates a new *Continuous.
 //
 //   provider - Produces the slice of alerts.Config's that determine the clustering to perform.
 //   numCommits - The number of commits to run the clustering over.
 //   radius - The number of commits on each side of a commit to include when clustering.
-func NewContinuous(
+func New(
+	detector regression.Detector,
 	perfGit *perfgit.Git,
 	provider ConfigProvider,
 	store regression.Store,
-	shortcutStore shortcut.Store,
 	notifier *notify.Notifier,
 	paramsProvider regression.ParamsetProvider,
 	dfBuilder dataframe.DataFrameBuilder,
 	instanceConfig *config.InstanceConfig,
 	flags *config.FrontendFlags) *Continuous {
 	return &Continuous{
+		detector:       detector,
 		perfGit:        perfGit,
 		store:          store,
-		shortcutStore:  shortcutStore,
 		provider:       provider,
 		notifier:       notifier,
 		current:        &Current{},
@@ -381,13 +382,12 @@ func (c *Continuous) Run(ctx context.Context) {
 					sklog.Warningf("Alert failed smoketest: Alert contains invalid query: %q: %s", cfg.Query, err)
 					continue
 				}
-				// Should be changed to PreflightQuery.
-				df, err := c.dfBuilder.NewNFromQuery(context.Background(), time.Time{}, q, 20, nil)
+				matches, _, err := c.dfBuilder.PreflightQuery(context.Background(), time.Time{}, q)
 				if err != nil {
 					sklog.Warningf("Alert failed smoketest: %q Failed while trying generic query: %s", cfg.DisplayName, err)
 					continue
 				}
-				if len(df.TraceSet) == 0 {
+				if matches == 0 {
 					sklog.Warningf("Alert failed smoketest: %q Failed to get any traces for generic query.", cfg.DisplayName)
 					continue
 				}
@@ -404,8 +404,27 @@ func (c *Continuous) Run(ctx context.Context) {
 				N:   int32(c.flags.NumContinuous),
 				End: time.Time{},
 			}
-			regression.RegressionsForAlert(ctx, cfg, domain, cnp.paramset, c.shortcutStore, clusterResponseProcessor, c.perfGit, c.dfBuilder, c.progressCallback)
+			req := regression.RegressionDetectionRequest{
+				Alert:  cfg,
+				Domain: domain,
+				Query:  cfg.Query,
+			}
+			id, err := c.detector.Add(ctx, clusterResponseProcessor, &req)
+			if err != nil {
+				sklog.Errorf("Failed to add detection request to detector: %s", err)
+				continue
+			}
 			configsCounter.Inc(1)
+			for range time.Tick(checkIfRegressionIsDoneDuration) {
+				state, msg, err := c.detector.Status(id)
+				if state == regression.ProcessError {
+					sklog.Errorf("Failed regression detection: %q: %s", msg, err)
+					break
+				}
+				if state == regression.ProcessSuccess {
+					break
+				}
+			}
 		}
 		clusteringLatency.Stop()
 		runsCounter.Inc(1)
