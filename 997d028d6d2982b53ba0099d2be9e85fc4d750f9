@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40613b3c_7499f51a",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 482,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-09T20:46:42Z",
+      "side": 1,
+      "message": "/* \u003disUnauthenticated */",
+      "range": {
+        "startLine": 482,
+        "startChar": 63,
+        "endLine": 482,
+        "endChar": 68
+      },
+      "revId": "997d028d6d2982b53ba0099d2be9e85fc4d750f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "13c3885e_034341b6",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 621,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-09T20:46:42Z",
+      "side": 1,
+      "message": "/* \u003disUnauthenticated */",
+      "range": {
+        "startLine": 621,
+        "startChar": 63,
+        "endLine": 621,
+        "endChar": 67
+      },
+      "revId": "997d028d6d2982b53ba0099d2be9e85fc4d750f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "28ea426d_a7cc3898",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 655,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-09T20:46:42Z",
+      "side": 1,
+      "message": "Feel free to ignore:\n\n- Consider extracting this into a router_util.go package shared between skiacorrectness/main.go and baseline_server/main.go.\n- Consider adding tests in a new router_util_test.go file to verify that the counter is updated as expected, authenticated vs. unauthenticated behaviors, etc.",
+      "range": {
+        "startLine": 655,
+        "startChar": 5,
+        "endLine": 655,
+        "endChar": 17
+      },
+      "revId": "997d028d6d2982b53ba0099d2be9e85fc4d750f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4670a972_64d866ce",
+        "filename": "golden/go/shared/shared.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-09T20:46:42Z",
+      "side": 1,
+      "message": "Should we suffix these with V0, or LegacyUnversioned, etc.?",
+      "range": {
+        "startLine": 20,
+        "startChar": 1,
+        "endLine": 20,
+        "endChar": 18
+      },
+      "revId": "997d028d6d2982b53ba0099d2be9e85fc4d750f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
