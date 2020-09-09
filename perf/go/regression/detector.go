@@ -511,15 +511,15 @@ func (p *regressionDetectionProcess) run() {
 			return
 		}
 
-		p.mutex.Lock()
-		p.state = ProcessSuccess
-		p.message = ""
 		cr := &RegressionDetectionResponse{
 			Summary: summary,
 			Frame:   frame,
 		}
-		p.detectorResponseProcessor(p.request, []*RegressionDetectionResponse{cr}, message)
 		p.response = append(p.response, cr)
-		p.mutex.Unlock()
+		p.detectorResponseProcessor(p.request, []*RegressionDetectionResponse{cr}, message)
 	}
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	p.message = ""
+	p.state = ProcessSuccess
 }
