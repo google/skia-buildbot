@@ -56,6 +56,29 @@ var (
 	errorNotFound = errors.New("Process not found.")
 )
 
+// DetectorResponseProcessor is a callback that is called with RegressionDetectionResponses as a RegressionDetectionRequest is being processed.
+type DetectorResponseProcessor func(*RegressionDetectionRequest, []*RegressionDetectionResponse, string)
+
+// ParamsetProvider is a function that's called to return the current paramset.
+type ParamsetProvider func() paramtools.ParamSet
+
+// Detector does regression detection.
+type Detector interface {
+	// Add a new RegressionDetectionRequest.
+	//
+	// DetectorResponseProcessor can have a nil value.
+	Add(context.Context, DetectorResponseProcessor, *RegressionDetectionRequest) (string, error)
+
+	// Status of a running request.
+	Status(id string) (ProcessState, string, error)
+
+	// Response from a running request.
+	Response(id string) (*RegressionDetectionResponse, error)
+
+	// Responses from a running request.
+	Responses(id string) ([]*RegressionDetectionResponse, error)
+}
+
 // RegressionDetectionRequest is all the info needed to start a clustering run,
 // an Alert and the Domain over which to run that Alert.
 type RegressionDetectionRequest struct {
@@ -103,46 +126,6 @@ type regressionDetectionProcess struct {
 	message    string                         // Describes the current state of the process.
 }
 
-// TODO(jcgregorio) Make a member of detector.
-func newProcess(
-	ctx context.Context,
-	req *RegressionDetectionRequest,
-	perfGit *perfgit.Git,
-	dfBuilder dataframe.DataFrameBuilder,
-	shortcutStore shortcut.Store,
-	detectorResponseProcessor DetectorResponseProcessor,
-	progressCallback types.ProgressCallback,
-) (*regressionDetectionProcess, error) {
-	ret := &regressionDetectionProcess{
-		request:                   req,
-		perfGit:                   perfGit,
-		detectorResponseProcessor: detectorResponseProcessor,
-		response:                  []*RegressionDetectionResponse{},
-		lastUpdate:                time.Now(),
-		state:                     ProcessRunning,
-		message:                   "Running",
-		shortcutStore:             shortcutStore,
-		ctx:                       ctx,
-	}
-	// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
-	iter, err := dfiter.NewDataFrameIterator(ctx, ret.progress, dfBuilder, perfGit, progressCallback, req.Query, req.Domain, req.Alert)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create iterator: %s", err)
-	}
-	ret.iter = iter
-	return ret, nil
-}
-
-// TODO(jcgregorio) Make a member of detector.
-func newRunningProcess(ctx context.Context, req *RegressionDetectionRequest, perfGit *perfgit.Git, dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, detectorResponseProcessor DetectorResponseProcessor) (*regressionDetectionProcess, error) {
-	ret, err := newProcess(ctx, req, perfGit, dfBuilder, shortcutStore, detectorResponseProcessor, nil)
-	if err != nil {
-		return nil, err
-	}
-	go ret.run()
-	return ret, nil
-}
-
 // detector keeps track of all the RegressionDetectionProcess's.
 //
 // Once a RegressionDetectionProcess is complete the results will be kept in memory
@@ -172,49 +155,53 @@ func NewDetector(perfGit *perfgit.Git, interesting float32, dfBuilder dataframe.
 	return fr
 }
 
+func (d *detector) newRunningProcess(
+	ctx context.Context,
+	req *RegressionDetectionRequest,
+	detectorResponseProcessor DetectorResponseProcessor,
+) (*regressionDetectionProcess, error) {
+	ret := &regressionDetectionProcess{
+		request:                   req,
+		perfGit:                   d.perfGit,
+		detectorResponseProcessor: detectorResponseProcessor,
+		response:                  []*RegressionDetectionResponse{},
+		lastUpdate:                time.Now(),
+		state:                     ProcessRunning,
+		message:                   "Running",
+		shortcutStore:             d.shortcutStore,
+		ctx:                       ctx,
+	}
+	// Create a single large dataframe then chop it into 2*radius+1 length sub-dataframes in the iterator.
+	iter, err := dfiter.NewDataFrameIterator(ctx, ret.progress, d.dfBuilder, d.perfGit, nil, req.Query, req.Domain, req.Alert)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create iterator: %s", err)
+	}
+	ret.iter = iter
+	go ret.run()
+
+	return ret, nil
+}
+
 // step does a single step in cleaning up old RegressionDetectionProcess's.
-func (fr *detector) step() {
-	fr.mutex.Lock()
-	defer fr.mutex.Unlock()
+func (d *detector) step() {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
 	now := time.Now()
-	for k, v := range fr.inProcess {
+	for k, v := range d.inProcess {
 		v.mutex.Lock()
 		if now.Sub(v.lastUpdate) > maxFinishedProcessAge {
-			delete(fr.inProcess, k)
+			delete(d.inProcess, k)
 		}
 		v.mutex.Unlock()
 	}
 }
 
 // background periodically cleans up old RegressionDetectionProcess's.
-func (fr *detector) background() {
-	fr.step()
+func (d *detector) background() {
+	d.step()
 	for range time.Tick(time.Minute) {
-		fr.step()
+		d.step()
 	}
-}
-
-// DetectorResponseProcessor is a callback that is called with RegressionDetectionResponses as a RegressionDetectionRequest is being processed.
-type DetectorResponseProcessor func(*RegressionDetectionRequest, []*RegressionDetectionResponse, string)
-
-// ParamsetProvider is a function that's called to return the current paramset.
-type ParamsetProvider func() paramtools.ParamSet
-
-// Detector does regression detection.
-type Detector interface {
-	// Add a new RegressionDetectionRequest.
-	//
-	// DetectorResponseProcessor can have a nil value.
-	Add(context.Context, DetectorResponseProcessor, *RegressionDetectionRequest) (string, error)
-
-	// Status of a running request.
-	Status(id string) (ProcessState, string, error)
-
-	// Response from a running request.
-	Response(id string) (*RegressionDetectionResponse, error)
-
-	// Responses from a running request.
-	Responses(id string) ([]*RegressionDetectionResponse, error)
 }
 
 // Confirm that detector fulfills the Detector interface.
@@ -223,43 +210,43 @@ var _ Detector = (*detector)(nil)
 // Add starts a new running RegressionDetectionProcess and returns
 // the ID of the process to be used in calls to Status() and
 // Response().
-func (fr *detector) Add(ctx context.Context, detectorResponseProcessor DetectorResponseProcessor, req *RegressionDetectionRequest) (string, error) {
+func (d *detector) Add(ctx context.Context, detectorResponseProcessor DetectorResponseProcessor, req *RegressionDetectionRequest) (string, error) {
 	sklog.Info("detector.Add")
-	fr.mutex.Lock()
-	defer fr.mutex.Unlock()
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
 
 	// We don't support GroupBy so just copy the Query over.
 	req.Query = req.Alert.Query
 	req.TotalQueries = 1
 	if req.Alert.Interesting == 0 {
-		req.Alert.Interesting = fr.defaultInteresting
+		req.Alert.Interesting = d.defaultInteresting
 	}
 	id := req.Id()
-	if p, ok := fr.inProcess[id]; ok {
+	if p, ok := d.inProcess[id]; ok {
 		state, _, _ := p.status()
 		if state != ProcessRunning {
-			delete(fr.inProcess, id)
+			delete(d.inProcess, id)
 		}
 	}
 	if detectorResponseProcessor == nil {
 		detectorResponseProcessor = func(_ *RegressionDetectionRequest, _ []*RegressionDetectionResponse, _ string) {}
 	}
-	if _, ok := fr.inProcess[id]; !ok {
-		proc, err := newRunningProcess(ctx, req, fr.perfGit, fr.dfBuilder, fr.shortcutStore, detectorResponseProcessor)
+	if _, ok := d.inProcess[id]; !ok {
+		proc, err := d.newRunningProcess(ctx, req, detectorResponseProcessor)
 		if err != nil {
 			return "", err
 		}
-		fr.inProcess[id] = proc
+		d.inProcess[id] = proc
 	}
 	return id, nil
 }
 
 // Status returns the ProcessingState and the message of a
 // RegressionDetectionProcess of the given 'id'.
-func (fr *detector) Status(id string) (ProcessState, string, error) {
-	fr.mutex.Lock()
-	defer fr.mutex.Unlock()
-	p, ok := fr.inProcess[id]
+func (d *detector) Status(id string) (ProcessState, string, error) {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+	p, ok := d.inProcess[id]
 	if !ok {
 		return ProcessError, "Not Found", errorNotFound
 	}
@@ -267,10 +254,10 @@ func (fr *detector) Status(id string) (ProcessState, string, error) {
 }
 
 // Response returns the RegressionDetectionResponse of the completed RegressionDetectionProcess.
-func (fr *detector) Response(id string) (*RegressionDetectionResponse, error) {
-	fr.mutex.Lock()
-	defer fr.mutex.Unlock()
-	p, ok := fr.inProcess[id]
+func (d *detector) Response(id string) (*RegressionDetectionResponse, error) {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+	p, ok := d.inProcess[id]
 	if !ok {
 		return nil, errorNotFound
 	}
@@ -278,10 +265,10 @@ func (fr *detector) Response(id string) (*RegressionDetectionResponse, error) {
 }
 
 // Responses returns the RegressionDetectionResponse's of the completed RegressionDetectionProcess.
-func (fr *detector) Responses(id string) ([]*RegressionDetectionResponse, error) {
-	fr.mutex.Lock()
-	defer fr.mutex.Unlock()
-	p, ok := fr.inProcess[id]
+func (d *detector) Responses(id string) ([]*RegressionDetectionResponse, error) {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
+	p, ok := d.inProcess[id]
 	if !ok {
 		return nil, errorNotFound
 	}
