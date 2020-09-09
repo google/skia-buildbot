@@ -3,7 +3,6 @@ package dryrun
 
 import (
 	"context"
-	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -16,7 +15,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
-	"go.skia.org/infra/perf/go/alerts"
 	"go.skia.org/infra/perf/go/dataframe"
 	perfgit "go.skia.org/infra/perf/go/git"
 	"go.skia.org/infra/perf/go/regression"
@@ -25,19 +23,8 @@ import (
 )
 
 const (
-	CLEANUP_DURATION = 5 * time.Minute
+	cleanupDuration = 5 * time.Minute
 )
-
-// StartDryRunRequest is the data POSTed to StartHandler.
-type StartDryRunRequest struct {
-	Config alerts.Alert `json:"config"`
-	Domain types.Domain `json:"domain"`
-}
-
-// Id is used to identify StartRequests as stored in Requests.inFlight.
-func (s *StartDryRunRequest) Id() string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%#v", *s))))
-}
 
 // StartDryRunResponse is the JSON response sent from StartHandler.
 type StartDryRunResponse struct {
@@ -79,7 +66,7 @@ func New(dfBuilder dataframe.DataFrameBuilder, shortcutStore shortcut.Store, par
 
 // cleanerStep does a single step of cleaner().
 func (d *Requests) cleanerStep() {
-	cutoff := time.Now().Add(-CLEANUP_DURATION)
+	cutoff := time.Now().Add(-cleanupDuration)
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 	for k, v := range d.inFlight {
@@ -95,7 +82,7 @@ func (d *Requests) cleanerStep() {
 
 // cleaner removes old dry runs from inFlight.
 func (d *Requests) cleaner() {
-	for range time.Tick(CLEANUP_DURATION) {
+	for range time.Tick(cleanupDuration) {
 		d.cleanerStep()
 	}
 }
@@ -103,17 +90,17 @@ func (d *Requests) cleaner() {
 func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var req StartDryRunRequest
+	var req regression.RegressionDetectionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httputils.ReportError(w, err, "Could not decode POST body.", http.StatusInternalServerError)
 		return
 	}
 	auditlog.Log(r, "dryrun", req)
-	if req.Config.Query == "" {
+	if req.Alert.Query == "" {
 		httputils.ReportError(w, fmt.Errorf("Query was empty."), "A Query is required.", http.StatusInternalServerError)
 		return
 	}
-	if err := req.Config.Validate(); err != nil {
+	if err := req.Alert.Validate(); err != nil {
 		httputils.ReportError(w, err, "Invalid Alert config.", http.StatusInternalServerError)
 		return
 	}
@@ -142,7 +129,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 				defer running.mutex.Unlock()
 				// Loop over clusterResponse, convert each one to a regression, and merge with running.Regressions.
 				for _, cr := range clusterResponse {
-					c, reg, err := regression.RegressionFromClusterResponse(ctx, cr, &req.Config, d.perfGit)
+					c, reg, err := regression.RegressionFromClusterResponse(ctx, cr, req.Alert, d.perfGit)
 					if err != nil {
 						running.Message = "Failed to convert to Regression, some data may be missing."
 						sklog.Errorf("Failed to convert to Regression: %s", err)
@@ -166,7 +153,7 @@ func (d *Requests) StartHandler(w http.ResponseWriter, r *http.Request) {
 				running.Message = message
 			}
 
-			regression.RegressionsForAlert(ctx, &req.Config, req.Domain, d.paramsProvider(), d.shortcutStore, cb, d.perfGit, d.dfBuilder, progressCallback)
+			regression.RegressionsForAlert(ctx, req.Alert, req.Domain, d.paramsProvider(), d.shortcutStore, cb, d.perfGit, d.dfBuilder, progressCallback)
 			running.mutex.Lock()
 			defer running.mutex.Unlock()
 			running.Finished = true
