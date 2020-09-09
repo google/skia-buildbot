@@ -58,6 +58,10 @@ const (
 	maxAnonBurstExpensive = 50
 	maxAnonQPSCheap       = rate.Limit(5.0)
 	maxAnonBurstCheap     = 50
+
+	// RPCCallCounterMetric is the metric that should be used when counting how many times a given
+	// RPC route is called from clients.
+	RPCCallCounterMetric = "gold_rpc_call_counter"
 )
 
 type validateFields int
