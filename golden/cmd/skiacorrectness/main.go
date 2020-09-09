@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/metrics2"
 	"golang.org/x/oauth2"
 	gstorage "google.golang.org/api/storage/v1"
 	"google.golang.org/grpc"
@@ -476,42 +477,44 @@ func main() {
 	// would be handled by the route that handles the returning the index template and make
 	// debugging confusing.
 	jsonRouter := loggedRouter.PathPrefix("/json").Subrouter()
+
+	v0("/byblame", handlers.ByBlameHandler, jsonRouter).Methods("GET")
+	v0("/changelist/{system}/{id}", handlers.ChangeListSummaryHandler, jsonRouter).Methods("GET")
+	v0("/changelists", handlers.ChangeListsHandler, jsonRouter).Methods("GET")
+	v0("/clusterdiff", handlers.ClusterDiffHandler, jsonRouter).Methods("GET")
+	v0("/commits", handlers.CommitsHandler, jsonRouter).Methods("GET")
+	v0("/debug/digestsbytestname/{corpus}/{testName}", handlers.GetPerTraceDigestsByTestName, jsonRouter).Methods("GET")
+	v0("/debug/flakytraces/{minUniqueDigests}", handlers.GetFlakyTracesData, jsonRouter).Methods("GET")
+	v0("/details", handlers.DetailsHandler, jsonRouter).Methods("GET")
+	v0("/diff", handlers.DiffHandler, jsonRouter).Methods("GET")
+	v0("/digests", handlers.DigestListHandler, jsonRouter).Methods("GET")
+	v0("/export", handlers.ExportHandler, jsonRouter).Methods("GET")
+	v0("/latestpositivedigest/{traceId}", handlers.LatestPositiveDigestHandler, jsonRouter).Methods("GET")
+	v0("/list", handlers.ListTestsHandler, jsonRouter).Methods("GET")
+	v0("/paramset", handlers.ParamsHandler, jsonRouter).Methods("GET")
+	v0("/search", handlers.SearchHandler, jsonRouter).Methods("GET")
+	v0("/triage", handlers.TriageHandler, jsonRouter).Methods("POST")
+	v0("/triagelog", handlers.TriageLogHandler, jsonRouter).Methods("GET")
+	v0("/triagelog/undo", handlers.TriageUndoHandler, jsonRouter).Methods("POST")
+	v0("/whoami", handlers.Whoami, jsonRouter).Methods("GET")
+
 	trim := func(r string) string { return strings.TrimPrefix(r, "/json") }
-
-	jsonRouter.HandleFunc(trim(shared.KnownHashesRoute), handlers.TextKnownHashesProxy).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/byblame"), handlers.ByBlameHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/clusterdiff"), handlers.ClusterDiffHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/commits"), handlers.CommitsHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/details"), handlers.DetailsHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/diff"), handlers.DiffHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/export"), handlers.ExportHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/list"), handlers.ListTestsHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/paramset"), handlers.ParamsHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/search"), handlers.SearchHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/triage"), handlers.TriageHandler).Methods("POST")
-	jsonRouter.HandleFunc(trim("/json/triagelog"), handlers.TriageLogHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/triagelog/undo"), handlers.TriageUndoHandler).Methods("POST")
-	jsonRouter.HandleFunc(trim("/json/changelists"), handlers.ChangeListsHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/changelist/{system}/{id}"), handlers.ChangeListSummaryHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/digests"), handlers.DigestListHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/whoami"), handlers.Whoami).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/latestpositivedigest/{traceId}"), handlers.LatestPositiveDigestHandler).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/debug/digestsbytestname/{corpus}/{testName}"), handlers.GetPerTraceDigestsByTestName).Methods("GET")
-	jsonRouter.HandleFunc(trim("/json/debug/flakytraces/{minUniqueDigests}"), handlers.GetFlakyTracesData).Methods("GET")
-
+	// Routes shared with the baseline server. These usually don't see traffic because the envoy
+	// routing directs these requests to the baseline servers, if there are some.
+	v0(trim(shared.KnownHashesRoute), handlers.TextKnownHashesProxy, jsonRouter).Methods("GET")
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
 	// These routes can be served with baseline_server for higher availability.
-	jsonRouter.HandleFunc(trim(shared.ExpectationsRoute), handlers.BaselineHandler).Methods("GET")
+	v0(trim(shared.ExpectationsRoute), handlers.BaselineHandler, jsonRouter).Methods("GET")
 	// TODO(lovisolo): Remove the below route once goldctl is fully migrated.
-	jsonRouter.HandleFunc(trim(shared.ExpectationsLegacyRoute), handlers.BaselineHandler).Methods("GET")
+	v0(trim(shared.ExpectationsLegacyRoute), handlers.BaselineHandler, jsonRouter).Methods("GET")
 
 	// Only expose these endpoints if this instance is not a public view. The reason we want to hide
 	// ignore rules is so that we don't leak params that might be in them.
 	if !fsc.IsPublicView {
-		jsonRouter.HandleFunc(trim("/json/ignores"), handlers.ListIgnoreRules).Methods("GET")
-		jsonRouter.HandleFunc(trim("/json/ignores/add/"), handlers.AddIgnoreRule).Methods("POST")
-		jsonRouter.HandleFunc(trim("/json/ignores/del/{id}"), handlers.DeleteIgnoreRule).Methods("POST")
-		jsonRouter.HandleFunc(trim("/json/ignores/save/{id}"), handlers.UpdateIgnoreRule).Methods("POST")
+		v0("/ignores", handlers.ListIgnoreRules, jsonRouter).Methods("GET")
+		v0("/ignores/add/", handlers.AddIgnoreRule, jsonRouter).Methods("POST")
+		v0("/ignores/del/{id}", handlers.DeleteIgnoreRule, jsonRouter).Methods("POST")
+		v0("/ignores/save/{id}", handlers.UpdateIgnoreRule, jsonRouter).Methods("POST")
 	}
 
 	// Make sure we return a 404 for anything that starts with /json and could not be found.
@@ -580,14 +583,28 @@ func main() {
 	// (aka the K8s container) which requires that some routes are never logged or authenticated.
 	rootRouter := mux.NewRouter()
 	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
-	rootRouter.HandleFunc("/json/trstatus", httputils.CorsHandler(handlers.StatusHandler))
-	rootRouter.HandleFunc("/json/changelist/{system}/{id}/{patchset}/untriaged", httputils.CorsHandler(handlers.ChangeListUntriagedHandler)).Methods("GET")
+	v0("/json/trstatus", httputils.CorsHandler(handlers.StatusHandler), rootRouter).Methods("GET")
+	v0("/json/changelist/{system}/{id}/{patchset}/untriaged", httputils.CorsHandler(handlers.ChangeListUntriagedHandler), rootRouter).Methods("GET")
 
 	rootRouter.PathPrefix("/").Handler(appHandler)
 
 	// Start the server
 	sklog.Infof("Serving on http://127.0.0.1" + fsc.Port)
 	sklog.Fatal(http.ListenAndServe(fsc.Port, rootRouter))
+}
+
+// v0 sets up a route on the given router with a wrapper to count the number of calls to the given
+// endpoint. A version zero route refers to the legacy, unversioned routes.
+func v0(rpcRoute string, handlerFunc http.HandlerFunc, router *mux.Router) *mux.Route {
+	counter := metrics2.GetCounter(web.RPCCallCounterMetric, map[string]string{
+		// For consistency, we remove the /json from all routes when adding them in the metrics.
+		"route":   strings.TrimPrefix(rpcRoute, "/json"),
+		"version": "v0",
+	})
+	return router.HandleFunc(rpcRoute, func(w http.ResponseWriter, r *http.Request) {
+		counter.Inc(1)
+		handlerFunc(w, r)
+	})
 }
 
 func initializeReviewSystems(configs []config.CodeReviewSystem, fc *firestore.Client, hc *http.Client) ([]clstore.ReviewSystem, error) {

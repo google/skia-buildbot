@@ -10,8 +10,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gorilla/mux"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/golden/go/clstore"
 	gstorage "google.golang.org/api/storage/v1"
 
@@ -122,13 +124,25 @@ func main() {
 	// Set up a router for all the application endpoints which are part of the Gold API.
 	appRouter := mux.NewRouter()
 
-	// Serve the known hashes from GCS.
-	appRouter.HandleFunc(shared.KnownHashesRoute, handlers.TextKnownHashesProxy).Methods("GET")
+	// Version 0 of the routes are actually the unversioned legacy versions of the route.
+	v0 := func(rpcRoute string, handlerFunc http.HandlerFunc) *mux.Route {
+		counter := metrics2.GetCounter(web.RPCCallCounterMetric, map[string]string{
+			// For consistency, we remove the /json from all routes when adding them in the metrics.
+			"route":   strings.TrimPrefix(rpcRoute, "/json"),
+			"version": "v0",
+		})
+		return appRouter.HandleFunc(rpcRoute, func(w http.ResponseWriter, r *http.Request) {
+			counter.Inc(1)
+			handlerFunc(w, r)
+		})
+	}
 
+	// Serve the known hashes from GCS.
+	v0(shared.KnownHashesRoute, handlers.TextKnownHashesProxy).Methods("GET")
 	// Serve the expectations for the master branch and for CLs in progress.
-	appRouter.HandleFunc(shared.ExpectationsRoute, handlers.BaselineHandler).Methods("GET")
+	v0(shared.ExpectationsRoute, handlers.BaselineHandler).Methods("GET")
 	// TODO(lovisolo): Remove the below route once goldctl is fully migrated.
-	appRouter.HandleFunc(shared.ExpectationsLegacyRoute, handlers.BaselineHandler).Methods("GET")
+	v0(shared.ExpectationsLegacyRoute, handlers.BaselineHandler).Methods("GET")
 
 	// Only log and compress the app routes, but not the health check.
 	router := mux.NewRouter()
