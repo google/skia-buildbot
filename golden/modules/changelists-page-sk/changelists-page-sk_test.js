@@ -31,7 +31,7 @@ describe('changelists-page-sk', () => {
     setQueryString('');
 
     // These are the default offset/page_size params
-    fetchMock.get('/json/changelists?offset=0&size=50&active=true', changelistSummaries_5);
+    fetchMock.get('/json/v1/changelists?offset=0&size=50&active=true', changelistSummaries_5);
   });
 
   afterEach(() => {
@@ -76,7 +76,7 @@ describe('changelists-page-sk', () => {
     it('includes pagination params in request to changelists', async () => {
       fetchMock.resetHistory();
 
-      fetchMock.get('/json/changelists?offset=100&size=10', empty);
+      fetchMock.get('/json/v1/changelists?offset=100&size=10', empty);
       // pretend these were loaded in via stateReflector
       changelistsPageSk._offset = 100;
       changelistsPageSk._page_size = 10;
@@ -88,7 +88,7 @@ describe('changelists-page-sk', () => {
     it('includes the active params unless show_all is set', async () => {
       fetchMock.resetHistory();
 
-      fetchMock.get('/json/changelists?offset=100&size=10&active=true', empty);
+      fetchMock.get('/json/v1/changelists?offset=100&size=10&active=true', empty);
       // pretend these were loaded in via stateReflector
       changelistsPageSk._offset = 100;
       changelistsPageSk._page_size = 10;
@@ -102,17 +102,17 @@ describe('changelists-page-sk', () => {
     it('responds to the browser back/forward buttons', async () => {
       // First page of results.
       fetchMock.get(
-        '/json/changelists?offset=0&size=5&active=true',
+        '/json/v1/changelists?offset=0&size=5&active=true',
         changelistSummaries_5,
       );
       // Second page of results.
       fetchMock.get(
-        '/json/changelists?offset=5&size=5&active=true',
+        '/json/v1/changelists?offset=5&size=5&active=true',
         changelistSummaries_5_offset5,
       );
       // Third page of results.
       fetchMock.get(
-        '/json/changelists?offset=10&size=5&active=true',
+        '/json/v1/changelists?offset=10&size=5&active=true',
         changelistSummaries_5_offset10,
       );
 
@@ -172,7 +172,7 @@ describe('changelists-page-sk', () => {
     });
 
     it('responds to clicking the show all checkbox', () => {
-      fetchMock.get('/json/changelists?offset=0&size=50', empty);
+      fetchMock.get('/json/v1/changelists?offset=0&size=50', empty);
       // click on the input inside the checkbox, otherwise, we see double
       // events, since checkbox-sk "re-throws" the click event.
       const showAllBox = $$('.controls checkbox-sk input', changelistsPageSk);

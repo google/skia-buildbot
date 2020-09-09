@@ -27,12 +27,12 @@ const CORPUS_KEY = 'source_type';
 /**
  * Counterpart to SearchRespose (declared in rpc_types.ts).
  *
- * Contains the query string arguments to the /json/search RPC. Intended to be used with common-sk's
+ * Contains the query string arguments to the /json/v1/search RPC. Intended to be used with common-sk's
  * fromObject() function.
  *
  * This type cannot be generated from Go because there is no counterpart Go struct.
  *
- * TODO(lovisolo): Consider reworking the /json/search RPC to take arguments via POST, so that we're
+ * TODO(lovisolo): Consider reworking the /json/v1/search RPC to take arguments via POST, so that we're
  *                 able to unmarshal the JSON arguments into a SearchRequest Go struct. That struct
  *                 can then be converted into TypeScript via go2ts and used here, instead of the
  *                 ad-hoc SearchRequest interface defined below.
@@ -150,7 +150,7 @@ export class SearchPageSk extends ElementSk {
     try {
       sendBeginTask(this);
       const statusResponse: StatusResponse =
-        await fetch('/json/trstatus', {method: 'GET'}).then(jsonOrThrow);
+        await fetch('/json/v1/trstatus', {method: 'GET'}).then(jsonOrThrow);
       this._corpora = statusResponse.corpStatus!.map((corpus) => corpus!.name);
       this._render();
       sendEndTask(this);
@@ -164,7 +164,7 @@ export class SearchPageSk extends ElementSk {
       sendBeginTask(this);
       const paramSetResponse: ParamSetResponse =
         await fetch(
-            '/json/paramset' + (changeListId ? '?changelist_id='+  changeListId : ''),
+            '/json/v1/paramset' + (changeListId ? '?changelist_id='+  changeListId : ''),
             {method: 'GET'})
           .then(jsonOrThrow);
 
@@ -194,7 +194,7 @@ export class SearchPageSk extends ElementSk {
     this._searchResultsFetchController = new AbortController();
 
     // Utility to insert the selected corpus into the left- and right-hand trace filters, as
-    // required by the /json/search RPC.
+    // required by the /json/v1/search RPC.
     const insertCorpus = (paramSet: ParamSet) => {
       const copy = deepCopy(paramSet);
       copy[CORPUS_KEY] = [this._searchCriteria.corpus];
@@ -202,7 +202,7 @@ export class SearchPageSk extends ElementSk {
     }
 
     // Populate a SearchRequest object, which we'll use to generate the query string for the
-    // /json/search RPC.
+    // /json/v1/search RPC.
     const searchRequest: SearchRequest = {
       query: fromParamSet(insertCorpus(this._searchCriteria.leftHandTraceFilter)),
       rquery: fromParamSet(insertCorpus(this._searchCriteria.rightHandTraceFilter)),
@@ -226,7 +226,7 @@ export class SearchPageSk extends ElementSk {
       sendBeginTask(this);
       const searchResponse: SearchResponse =
         await fetch(
-            '/json/search?' + fromObject(searchRequest as any),
+            '/json/v1/search?' + fromObject(searchRequest as any),
             {method: 'GET', signal: this._searchResultsFetchController.signal})
           .then(jsonOrThrow);
       this._searchResponse = searchResponse;

@@ -88,7 +88,7 @@ export const firstPageAfterUndoingFirstEntry = {
   },
 };
 
-// Returned by /json/triagelog/undo. We never show this in the UI, but we
+// Returned by /json/v1/triagelog/undo. We never show this in the UI, but we
 // simulate this response anyway to test that it is ignored by the page.
 export const firstPageWithoutDetailsAfterUndoingFirstEntry = {
   data: [

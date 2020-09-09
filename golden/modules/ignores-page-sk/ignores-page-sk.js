@@ -143,7 +143,7 @@ define('ignores-page-sk', class extends ElementSk {
     dialog.open('Are you sure you want to delete '
       + 'this ignore rule?').then(() => {
       sendBeginTask(this);
-      fetch(`/json/ignores/del/${rule.id}`, {
+      fetch(`/json/v1/ignores/del/${rule.id}`, {
         method: 'POST',
       }).then(jsonOrThrow).then(() => {
         this._fetch();
@@ -180,7 +180,7 @@ define('ignores-page-sk', class extends ElementSk {
     sendBeginTask(this);
 
     // We always want the counts of the ignore rules, thus the parameter counts=1.
-    fetch('/json/ignores?counts=1', extra)
+    fetch('/json/v1/ignores?counts=1', extra)
       .then(jsonOrThrow)
       .then((arr) => {
         this._rules = arr || [];
@@ -189,7 +189,7 @@ define('ignores-page-sk', class extends ElementSk {
       })
       .catch((e) => sendFetchError(this, e, 'ignores'));
 
-    fetch('/json/paramset', extra)
+    fetch('/json/v1/paramset', extra)
       .then(jsonOrThrow)
       .then((paramset) => {
         this._paramset = paramset;
@@ -216,9 +216,9 @@ define('ignores-page-sk', class extends ElementSk {
         note: editor.note,
       };
       // TODO(kjlubick) remove the / from the json endpoint
-      let url = '/json/ignores/add/';
+      let url = '/json/v1/ignores/add/';
       if (this._ruleID) {
-        url = `/json/ignores/save/${this._ruleID}`;
+        url = `/json/v1/ignores/save/${this._ruleID}`;
       }
 
       sendBeginTask(this);

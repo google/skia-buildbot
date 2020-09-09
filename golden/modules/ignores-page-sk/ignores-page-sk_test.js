@@ -21,14 +21,14 @@ describe('ignores-page-sk', () => {
     // Clear out any query params we might have to not mess with our current state.
     setQueryString('');
     // These will get called on page load.
-    fetchMock.get('/json/ignores?counts=1', ignoreRules_10);
+    fetchMock.get('/json/v1/ignores?counts=1', ignoreRules_10);
     // We only need a few params to make sure the edit-ignore-rule-dialog works properly and it
     // does not matter really what they are, so we use a small subset of actual params.
     const someParams = {
       alpha_type: ['Opaque', 'Premul'],
       arch: ['arm', 'arm64', 'x86', 'x86_64'],
     };
-    fetchMock.get('/json/paramset', someParams);
+    fetchMock.get('/json/v1/paramset', someParams);
     // set the time to our mocked Now
     Date.now = () => fakeNow;
 
@@ -133,7 +133,7 @@ describe('ignores-page-sk', () => {
       const del = findDeleteForRow(2);
       del.click();
 
-      fetchMock.post(`/json/ignores/del/${idOfThirdRule}`, '{"deleted": "true"}');
+      fetchMock.post(`/json/v1/ignores/del/${idOfThirdRule}`, '{"deleted": "true"}');
       const p = eventPromise('end-task');
       clickConfirmDeleteButton(ignoresPageSk);
       await p;
@@ -148,7 +148,7 @@ describe('ignores-page-sk', () => {
 
       setIgnoreRuleProperties(ignoresPageSk, 'alpha=beta&gamma=delta',
         '2020-02-01T00:00:00Z', 'see skia:9525');
-      fetchMock.post('/json/ignores/add/', (url, opts) => {
+      fetchMock.post('/json/v1/ignores/add/', (url, opts) => {
         expect(opts.body).to.equal(
           '{"duration":"5w","filter":"alpha=beta&gamma=delta","note":"see skia:9525"}',
         );
@@ -175,7 +175,7 @@ describe('ignores-page-sk', () => {
 
       setIgnoreRuleProperties(ignoresPageSk, 'alpha=beta&gamma=delta',
         '2020-02-01T00:00:00Z', 'see skia:9525');
-      fetchMock.post(`/json/ignores/save/${idOfThirdRule}`, (url, opts) => {
+      fetchMock.post(`/json/v1/ignores/save/${idOfThirdRule}`, (url, opts) => {
         expect(opts.body).to.equal(
           '{"duration":"5w","filter":"alpha=beta&gamma=delta","note":"see skia:9525"}',
         );
@@ -260,14 +260,14 @@ function setIgnoreRuleProperties(ele, query, expires, note) {
 }
 
 async function goBack() {
-  // Wait for /json/ignores and /json/paramset RPCs to complete.
+  // Wait for /json/v1/ignores and /json/v1/paramset RPCs to complete.
   const events = eventSequencePromise(['end-task', 'end-task']);
   history.back();
   await events;
 }
 
 async function goForward() {
-  // Wait for /json/ignores and /json/paramset RPCs to complete.
+  // Wait for /json/v1/ignores and /json/v1/paramset RPCs to complete.
   const events = eventSequencePromise(['end-task', 'end-task']);
   history.forward();
   await events;

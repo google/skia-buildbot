@@ -124,7 +124,7 @@ define('byblameentry-sk', class extends ElementSk {
 
   /**
    * @prop byBlameEntry {Object} A ByBlameEntry object returned by the
-   *     /json/byblame RPC endpoint.
+   *     /json/v1/byblame RPC endpoint.
    */
   get byBlameEntry() { return this._byBlameEntry; }
 

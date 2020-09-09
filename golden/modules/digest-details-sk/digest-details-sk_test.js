@@ -92,7 +92,7 @@ describe('digest-details-sk', () => {
 
       it('POSTs to an RPC endpoint when triage button clicked', async () => {
         const endPromise = eventPromise('end-task');
-        fetchMock.post('/json/triage', (url, req) => {
+        fetchMock.post('/json/v1/triage', (url, req) => {
           expect(req.body).to.equal('{"testDigestStatus":{"dots-legend-sk_too-many-digests":{"6246b773851984c726cb2e1cb13510c2":"negative"}}}');
           return 200;
         });
@@ -103,7 +103,7 @@ describe('digest-details-sk', () => {
 
       it('POSTs to an RPC endpoint when triggerTriage is called', async () => {
         const endPromise = eventPromise('end-task');
-        fetchMock.post('/json/triage', (url, req) => {
+        fetchMock.post('/json/v1/triage', (url, req) => {
           expect(req.body).to.equal('{"testDigestStatus":{"dots-legend-sk_too-many-digests":{"6246b773851984c726cb2e1cb13510c2":"negative"}}}');
           return 200;
         });
@@ -160,7 +160,7 @@ describe('digest-details-sk', () => {
 
       it('includes changelist id when triaging', async () => {
         const endPromise = eventPromise('end-task');
-        fetchMock.post('/json/triage', (url, req) => {
+        fetchMock.post('/json/v1/triage', (url, req) => {
           expect(req.body).to.equal('{"testDigestStatus":{"dots-legend-sk_too-many-digests":{"6246b773851984c726cb2e1cb13510c2":"negative"}},"changelist_id":"12345","crs":"github"}');
           return 200;
         });

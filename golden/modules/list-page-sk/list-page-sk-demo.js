@@ -15,9 +15,9 @@ testOnlySetSettings({
 
 const fetchMock = require('fetch-mock');
 
-fetchMock.get('/json/paramset', delay(manyParams, 100));
-fetchMock.get('glob:/json/list*', delay(sampleByTestList, 100));
-fetchMock.get('/json/trstatus', JSON.stringify(exampleStatusData));
+fetchMock.get('/json/v1/paramset', delay(manyParams, 100));
+fetchMock.get('glob:/json/v1/list*', delay(sampleByTestList, 100));
+fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
 
 // By adding these elements after all the fetches are mocked out, they should load ok.
 const newScaf = document.createElement('gold-scaffold-sk');

@@ -41,7 +41,7 @@ describe('triagelog-page-sk', () => {
 
   it('shows the right initial entries', async () => {
     fetchMock.get(
-      '/json/triagelog?details=true&offset=0&size=20', firstPage,
+      '/json/v1/triagelog?details=true&offset=0&size=20', firstPage,
     );
     const triagelogPageSk = await loadTriagelogPageSk(); // Load first page.
     expectQueryStringToEqual(''); // No state reflected to the URL.
@@ -50,10 +50,10 @@ describe('triagelog-page-sk', () => {
 
   it('advances to the second page of results', async () => {
     fetchMock.get(
-      '/json/triagelog?details=true&offset=0&size=20', firstPage,
+      '/json/v1/triagelog?details=true&offset=0&size=20', firstPage,
     );
     fetchMock.get(
-      '/json/triagelog?details=true&offset=3&size=3', secondPage,
+      '/json/v1/triagelog?details=true&offset=3&size=3', secondPage,
     );
 
     const triagelogPageSk = await loadTriagelogPageSk(); // Load first page.
@@ -64,17 +64,17 @@ describe('triagelog-page-sk', () => {
 
   it('undoes an entry', async () => {
     fetchMock.get(
-      '/json/triagelog?details=true&offset=0&size=20', firstPage,
+      '/json/v1/triagelog?details=true&offset=0&size=20', firstPage,
     );
     // We mimic the current behavior of the undo RPC, which is to always return
     // the first page of results.
     // TODO(lovisolo): Rethink this after we delete the old triage log page.
     fetchMock.post(
-      '/json/triagelog/undo?id=aaa',
+      '/json/v1/triagelog/undo?id=aaa',
       firstPageWithoutDetailsAfterUndoingFirstEntry,
     );
     fetchMock.get(
-      '/json/triagelog?details=true&offset=0&size=3',
+      '/json/v1/triagelog?details=true&offset=0&size=3',
       firstPageAfterUndoingFirstEntry,
     );
 
@@ -86,7 +86,7 @@ describe('triagelog-page-sk', () => {
 
   it('handles the "changelist_id" and "crs" URL parameters', async () => {
     fetchMock.get(
-      '/json/triagelog?details=true&offset=0&size=20&changelist_id=123456&crs=gerrit',
+      '/json/v1/triagelog?details=true&offset=0&size=20&changelist_id=123456&crs=gerrit',
       firstPage,
     );
     setQueryString('?changelist_id=123456&crs=gerrit');
@@ -98,7 +98,7 @@ describe('triagelog-page-sk', () => {
   describe('URL parameters', () => {
     it('initializes paging based on the URL parameters', async () => {
       fetchMock.get(
-        '/json/triagelog?details=true&offset=3&size=3', secondPage,
+        '/json/v1/triagelog?details=true&offset=3&size=3', secondPage,
       );
 
       setQueryString('?offset=3&page_size=3');
@@ -108,13 +108,13 @@ describe('triagelog-page-sk', () => {
 
     it('responds to back and forward browser buttons', async () => {
       fetchMock.get(
-        '/json/triagelog?details=true&offset=0&size=20', firstPage,
+        '/json/v1/triagelog?details=true&offset=0&size=20', firstPage,
       );
       fetchMock.get(
-        '/json/triagelog?details=true&offset=3&size=3', secondPage,
+        '/json/v1/triagelog?details=true&offset=3&size=3', secondPage,
       );
       fetchMock.get(
-        '/json/triagelog?details=true&offset=6&size=3', thirdPage,
+        '/json/v1/triagelog?details=true&offset=6&size=3', thirdPage,
       );
 
       // Populate window.history by setting the query string to a random value.

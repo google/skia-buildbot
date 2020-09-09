@@ -59,7 +59,7 @@ define('byblame-page-sk', class extends ElementSk {
 
     this._corpora = [];
     this._corpus = '';
-    // Will hold ByBlameEntry objects returned by /json/byblame for the selected
+    // Will hold ByBlameEntry objects returned by /json/v1/byblame for the selected
     // corpus.
     this._entries = [];
     this._loaded = false; // False if entries haven't been fetched yet.
@@ -110,7 +110,7 @@ define('byblame-page-sk', class extends ElementSk {
     };
 
     const query = encodeURIComponent(`source_type=${this._corpus}`);
-    const byBlameURL = `/json/byblame?query=${query}`;
+    const byBlameURL = `/json/v1/byblame?query=${query}`;
 
     sendBeginTask(this);
     fetch(byBlameURL, options)
@@ -124,7 +124,7 @@ define('byblame-page-sk', class extends ElementSk {
       .catch((e) => sendFetchError(this, e, 'byblamepage_entries'));
 
     sendBeginTask(this);
-    fetch('/json/trstatus', options)
+    fetch('/json/v1/trstatus', options)
       .then(jsonOrThrow)
       .then((json) => {
         this._corpora = json.corpStatus;
