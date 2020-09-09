@@ -159,6 +159,7 @@ func New() (baseapp.App, error) {
 		livenesses[location] = metrics2.NewLiveness("alive", map[string]string{"location": location})
 	}
 
+	// rmistry
 	// Process all incoming PubSub requests.
 	go func() {
 		for {
@@ -516,7 +517,7 @@ func (srv *server) silencesHandler(w http.ResponseWriter, r *http.Request) {
 	if silences == nil {
 		silences = []silence.Silence{}
 	}
-	recents, err := srv.silenceStore.GetRecentlyArchived()
+	recents, err := srv.silenceStore.GetRecentlyArchived(0)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load recents.", http.StatusInternalServerError)
 		return
@@ -539,6 +540,7 @@ func (srv *server) incidentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// rmistry
 func (srv *server) recentIncidentsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := r.FormValue("id")
@@ -549,12 +551,28 @@ func (srv *server) recentIncidentsHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	archivedSilences, err := srv.silenceStore.GetRecentlyArchived(5 * time.Minute)
+	fmt.Println("ARCHIVED SILENCES")
+	fmt.Println(archivedSilences)
+	fmt.Println(len(archivedSilences))
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to load archived silences.", http.StatusInternalServerError)
+		return
+	}
+
+	// Calculate RecentlyExpiredSilence
+	recentlyExpiredSilence := ins[0].IsSilenced(archivedSilences, false)
+	fmt.Println("recentlyExpiredSilence")
+	fmt.Println(recentlyExpiredSilence)
+
 	resp := struct {
-		Incidents []incident.Incident `json:"incidents"`
-		Flaky     bool                `json:"flaky"`
+		Incidents              []incident.Incident `json:"incidents"`
+		Flaky                  bool                `json:"flaky"`
+		RecentlyExpiredSilence bool                `json:"recently_expired_silence"`
 	}{
-		Incidents: ins,
-		Flaky:     incident.AreIncidentsFlaky(ins, reminderNumThreshold, reminderDurationThreshold, reminderDurationPercentage),
+		Incidents:              ins,
+		Flaky:                  incident.AreIncidentsFlaky(ins, reminderNumThreshold, reminderDurationThreshold, reminderDurationPercentage),
+		RecentlyExpiredSilence: recentlyExpiredSilence,
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to send response: %s", err)
