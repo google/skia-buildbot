@@ -90,7 +90,12 @@ func (s *autoRollServerImpl) GetRollers(ctx context.Context, req *GetRollersRequ
 	}
 	statuses := make([]*AutoRollMiniStatus, 0, len(s.rollers))
 	for name, roller := range s.rollers {
-		st, err := convertMiniStatus(roller.Status.GetMini(), name, roller.Mode.CurrentMode().Mode, roller.Cfg.ChildDisplayName, roller.Cfg.ParentDisplayName)
+		mc := roller.Mode.CurrentMode()
+		mode := modes.ModeRunning
+		if mc != nil {
+			mode = mc.Mode
+		}
+		st, err := convertMiniStatus(roller.Status.GetMini(), name, mode, roller.Cfg.ChildDisplayName, roller.Cfg.ParentDisplayName)
 		if err != nil {
 			return nil, err
 		}
@@ -546,18 +551,28 @@ func convertManualRollRequest(inp *manual.ManualRollRequest) (*ManualRoll, error
 	}, nil
 }
 
-func convertStatus(st *status.AutoRollStatus, cfg *roller.AutoRollerConfig, mode *modes.ModeChange, strat *strategy.StrategyChange, manualReqs []*manual.ManualRollRequest) (*AutoRollStatus, error) {
-	ms, err := convertMiniStatus(&st.AutoRollMiniStatus, cfg.RollerName, mode.Mode, cfg.ChildDisplayName, cfg.ParentDisplayName)
+func convertStatus(st *status.AutoRollStatus, cfg *roller.AutoRollerConfig, modeChange *modes.ModeChange, strat *strategy.StrategyChange, manualReqs []*manual.ManualRollRequest) (*AutoRollStatus, error) {
+	mode := modes.ModeRunning
+	if modeChange != nil {
+		mode = modeChange.Mode
+	}
+	ms, err := convertMiniStatus(&st.AutoRollMiniStatus, cfg.RollerName, mode, cfg.ChildDisplayName, cfg.ParentDisplayName)
 	if err != nil {
 		return nil, err
 	}
-	mc, err := convertModeChange(mode)
-	if err != nil {
-		return nil, err
+	var mc *ModeChange
+	if modeChange != nil {
+		mc, err = convertModeChange(modeChange)
+		if err != nil {
+			return nil, err
+		}
 	}
-	sc, err := convertStrategyChange(strat)
-	if err != nil {
-		return nil, err
+	var sc *StrategyChange
+	if strat != nil {
+		sc, err = convertStrategyChange(strat)
+		if err != nil {
+			return nil, err
+		}
 	}
 	lastRoll, err := convertRollCL(st.LastRoll)
 	if err != nil {
