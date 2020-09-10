@@ -17,7 +17,7 @@ describe('cluster-summary2-sk', () => {
 
   it('should render the demo page', async () => {
     // Smoke test.
-    expect(await testBed.page.$$('cluster-summary2-sk')).to.have.length(2);
+    expect(await testBed.page.$$('cluster-summary2-sk')).to.have.length(1);
   });
 
   describe('screenshots', () => {
