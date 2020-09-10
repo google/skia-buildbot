@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7f7ccf1d_9d45cd32",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-10T13:26:18Z",
+      "side": 1,
+      "message": "Ravi, this may impact the Gerrit Plugin (but hopefully not much in practice).\n\nKate, this may impact y\u0027alls Flutter dashboard (but hopefully not much in practice).",
+      "revId": "903d6ca7068baee3eb88c4a77cd2dad8b95a9eb5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
