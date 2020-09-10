@@ -33,6 +33,24 @@
       "revId": "04a458873e3207dd49c49687c3f98e1d1dd5d0a0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6a76d134_62615626",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1057,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-10T14:51:51Z",
+      "side": 1,
+      "message": "Sure. I\u0027ll catch the error at the webserver layer and return nothing.",
+      "parentUuid": "f5131e73_2ac7b54f",
+      "revId": "04a458873e3207dd49c49687c3f98e1d1dd5d0a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
