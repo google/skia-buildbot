@@ -16,6 +16,24 @@
       "revId": "586be69eb4e9bb4488191d8e50359482ec0461ea",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "863245a3_8591e83e",
+        "filename": "golden/modules/cluster-page-sk/cluster-page-sk_puppeteer_test.ts",
+        "patchSetId": 4
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-10T12:29:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "86f8fc43_4ab39bf5",
+      "revId": "586be69eb4e9bb4488191d8e50359482ec0461ea",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
