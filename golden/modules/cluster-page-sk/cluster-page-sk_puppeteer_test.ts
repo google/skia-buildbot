@@ -57,14 +57,50 @@ describe('cluster-page-sk', () => {
 
   it('shows all values when a paramset key is clicked', async () => {
     await testBed.page.setViewport({ width: 1200, height: 1200 });
-    await clickParamKey(testBed, 'gpu')
+    const done = promiseFactory('layout-complete');
+    await clickParamKey(testBed, 'gpu');
+    await done;
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_key-clicked');
   });
 
   it('shows nodes with matching values when a value is clicked', async () => {
     await testBed.page.setViewport({ width: 1200, height: 1200 });
-    await clickParamValue(testBed, 'AMD')
+    const done = promiseFactory('layout-complete');
+    await clickParamValue(testBed, 'AMD');
+    await done;
     await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_value-clicked');
+  });
+
+  it('can zoom in using the keyboard', async () => {
+    await testBed.page.setViewport({ width: 1200, height: 1200 });
+    const done = promiseFactory('layout-complete');
+    await testBed.page.type('cluster-page-sk', 'aa');
+    await done;
+    await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_zoom-in');
+  });
+
+  it('can zoom out using the keyboard', async () => {
+    await testBed.page.setViewport({ width: 1200, height: 1200 });
+    const done = promiseFactory('layout-complete');
+    await testBed.page.type('cluster-page-sk', 'zz');
+    await done;
+    await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_zoom-out');
+  });
+
+  it('can increase node spacing using the keyboard', async () => {
+    await testBed.page.setViewport({ width: 1200, height: 1200 });
+    const done = promiseFactory('layout-complete');
+    await testBed.page.type('cluster-page-sk', 'ss');
+    await done;
+    await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_more-node-space');
+  });
+
+  it('can decrease node spacing using the keyboard', async () => {
+    await testBed.page.setViewport({ width: 1200, height: 1200 });
+    const done = promiseFactory('layout-complete');
+    await testBed.page.type('cluster-page-sk', 'xx');
+    await done;
+    await takeScreenshot(testBed.page, 'gold', 'cluster-page-sk_less-node-space');
   });
 
   async function clickParamKey(testBed: TestBed, key: string) {
