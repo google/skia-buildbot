@@ -722,11 +722,11 @@ func runWarmer(ctx context.Context, state interface{}) error {
 const (
 	// maxAgeOfOpenCLsToIndex is the maximum time between now and a CL's last updated time that we
 	// will still index.
-	maxAgeOfOpenCLsToIndex = 10 * 24 * time.Hour
+	maxAgeOfOpenCLsToIndex = 20 * 24 * time.Hour
 	// We only keep around open CLs in the index. When a CL is closed, we don't update the indices
 	// any more. These entries will expire and be removed from the cache after
 	// changelistCacheExpirationDuration time has passed.
-	changelistCacheExpirationDuration = 24 * time.Hour
+	changelistCacheExpirationDuration = 10 * 24 * time.Hour
 	// maxCLsToIndex is the maximum number of CLs we query each loop to index them. Hopefully this
 	// limit isn't reached regularly.
 	maxCLsToIndex = 2000

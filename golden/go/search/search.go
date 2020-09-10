@@ -1053,13 +1053,9 @@ func (s *SearchImpl) UntriagedUnignoredTryJobExclusiveDigests(ctx context.Contex
 		listTS = clIdx.ComputedTS
 	} else {
 		s.clIndexCacheMissCounter.Inc(1)
-
-		// Index either has not yet been created for this CL or was too old to have been indexed.
-		var err error
-		resultsForThisPS, err = s.getTryJobResults(ctx, psID)
-		if err != nil {
-			return nil, skerr.Wrapf(err, "getting tryjob results for %v", psID)
-		}
+		// CL Data was not indexed; either the CL was closed or too old. In this case, it is too
+		// expensive to recompute this data, so we just return an error indicating we don't know.
+		return nil, skerr.Fmt("CL/PS %v was not indexed", psID)
 	}
 
 	exp, err := s.getExpectations(ctx, psID.CL, psID.CRS)
