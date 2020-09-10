@@ -11,6 +11,7 @@ import 'elements-sk/error-toast-sk';
 import 'elements-sk/icon/comment-icon-sk';
 import 'elements-sk/icon/notifications-icon-sk';
 import 'elements-sk/icon/person-icon-sk';
+import 'elements-sk/icon/alarm-off-icon-sk';
 import 'elements-sk/spinner-sk';
 import 'elements-sk/styles/buttons';
 import 'elements-sk/tabs-panel-sk';
@@ -100,6 +101,15 @@ function hasNotes(o) {
   return (o.notes && o.notes.length > 0) ? '' : 'invisible';
 }
 
+// Change name to DISPLAY
+function hasRecentlyExpiredSilence(incident, idsToExpiredRecently) {
+  return (idsToExpiredRecently[incident.id]) ? '' : 'invisible';
+}
+
+function isFlaky(o) {
+  return '';
+}
+
 function displayIncident(incident) {
   const ret = [incident.params.alertname];
   const abbr = incident.params.abbr;
@@ -137,7 +147,10 @@ function incidentList(ele, incidents) {
       ${assignedTo(i, ele)}
       ${displayIncident(i)}
     </span>
-    <comment-icon-sk title='This incident has notes.' class=${hasNotes(i)}></comment-icon-sk>
+    <span>
+      <alarm-off-icon-sk title='Recently expired silence' class=${hasRecentlyExpiredSilence(i, ele._incidentsToRecentlyExpired)}></alarm-off-icon-sk>
+      <comment-icon-sk title='This incident has notes.' class=${hasNotes(i)}></comment-icon-sk>
+    </span>
     </h2>
     `);
 }
@@ -231,6 +244,7 @@ define('alert-manager-sk', class extends HTMLElement {
     this._shift_pressed_during_click = false; // If the shift key was held down during the mouse click.
     this._last_checked_incident = null; // Keeps track of the last checked incident. Used for multi-selecting incidents with shift.
     this._incidents_notified = {}; // Keeps track of all incidents that were notified via desktop notifications.
+    this._incidentsToRecentlyExpired = {} // Map of incident IDs to whether their silences were recently expired.
     this._user = 'barney@example.org';
     this._trooper = '';
     this._state = {
@@ -284,7 +298,15 @@ define('alert-manager-sk', class extends HTMLElement {
     const incidents = fetch('/_/incidents', {
       credentials: 'include',
     }).then(jsonOrThrow).then((json) => {
-      this._incidents = json;
+      // rmistry
+      console.log("JSON OF ALL THE INCIDENTS");
+      console.log(json);
+      console.log(json.incidents);
+      console.log(this._incidentsToRecentlyExpired);
+      this._incidents = json.incidents;
+      this._incidentsToRecentlyExpired = json.ids_to_recently_expired_silences;
+      console.log(this._incidents);
+      console.log(this._incidentsToRecentlyExpired);
     });
 
     const silences = fetch('/_/silences', {
@@ -530,6 +552,7 @@ define('alert-manager-sk', class extends HTMLElement {
         email: email,
       };
       this._doImpl('/_/assign_multiple', detail, (json) => {
+        // rmistry
         this._incidents = json;
         this._checked = new Set();
         this._render();
@@ -579,6 +602,7 @@ define('alert-manager-sk', class extends HTMLElement {
 
   // Actions to take after updating an Incident.
   _incidentAction(json) {
+    // rmistry: what is this?
     const incidents = this._incidents;
     for (let i = 0; i < incidents.length; i++) {
       if (incidents[i].key === json.key) {
