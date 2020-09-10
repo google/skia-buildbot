@@ -51,6 +51,24 @@
       "revId": "04a458873e3207dd49c49687c3f98e1d1dd5d0a0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "63df335c_7f830d6f",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1057,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-09-10T14:53:45Z",
+      "side": 1,
+      "message": "Thanks!\n\nCould it look like this: https://gold.skia.org/json/changelist/gerrit/264776/81daccbafa4216f18dd8f40dd92f21df5cfb07d4/untriaged\n(making sure that\u0027s what nothing means)",
+      "parentUuid": "6a76d134_62615626",
+      "revId": "04a458873e3207dd49c49687c3f98e1d1dd5d0a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
