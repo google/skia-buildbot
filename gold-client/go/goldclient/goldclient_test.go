@@ -1767,7 +1767,7 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_InvalidParameters_R
 	}
 }
 
-func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDigests_ReturnsError(t *testing.T) {
+func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDigests_ReturnsFalse(t *testing.T) {
 	unittest.MediumTest(t) // This test reads/writes a small amount of data from/to disk.
 
 	const testName = types.TestName("my_test")
@@ -1792,9 +1792,10 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDig
 		string(imgmatching.PixelDeltaThreshold): "0",
 	}
 
-	_, _, err := goldClient.matchImageAgainstBaseline(testName, traceId, imageBytes, digest, optionalKeys)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), `no recent positive digests for trace with ID ",name=my_test,"`)
+	matched, algorithmName, err := goldClient.matchImageAgainstBaseline(testName, traceId, imageBytes, digest, optionalKeys)
+	assert.NoError(t, err)
+	assert.False(t, matched)
+	assert.Equal(t, imgmatching.FuzzyMatching, algorithmName)
 }
 
 func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_ImageAlreadyLabeled_Success(t *testing.T) {
