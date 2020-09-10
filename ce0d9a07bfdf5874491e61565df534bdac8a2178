@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7eef8dc9_27fb2c7e",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-10T03:46:04Z",
+      "side": 1,
+      "message": "The behavior at HEAD is to return an error when using inexact matching and there are no recent positive images.\n\nThis CL changes method matchImageAgainstBaseline() so that it returns (false, \u003cthe algorithm name\u003e, nil) instead.",
+      "range": {
+        "startLine": 365,
+        "startChar": 0,
+        "endLine": 365,
+        "endChar": 107
+      },
+      "revId": "ce0d9a07bfdf5874491e61565df534bdac8a2178",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e9c28733_647f2f51",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 10009
+      },
+      "writtenOn": "2020-09-10T03:46:04Z",
+      "side": 1,
+      "message": "Here is where the triage link is generated and added to the failure file if one is provided.\n\nAfter this CL lands, this block of code will be executed when using inexact matching and there are no recent positive images because the \"match\" value returned by matchImageAgainstBaseline() will be false.",
+      "range": {
+        "startLine": 381,
+        "startChar": 0,
+        "endLine": 402,
+        "endChar": 0
+      },
+      "revId": "ce0d9a07bfdf5874491e61565df534bdac8a2178",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
