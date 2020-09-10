@@ -16,6 +16,23 @@
       "revId": "04a458873e3207dd49c49687c3f98e1d1dd5d0a0",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f5131e73_2ac7b54f",
+        "filename": "golden/go/search/search.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1057,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-09-10T14:46:32Z",
+      "side": 1,
+      "message": "Returning an error is causing the plugin issues because it keeps polling NO_CODE_CHANGE patchsets. Eg in https://skia-review.googlesource.com/c/skia/+/264776: PS#32 returns no data so it moves on to PS#31 which returns an error and the plugin gives up.\n\nCould we instead return empty data and log an error instead?\nThis will keep the Gold plugin working as before (till there is a better solution in maybe https://bugs.chromium.org/p/skia/issues/detail?id\u003d10706)",
+      "revId": "04a458873e3207dd49c49687c3f98e1d1dd5d0a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
