@@ -137,10 +137,24 @@ func main() {
 		})
 	}
 
+	v1 := func(rpcRoute string, handlerFunc http.HandlerFunc) *mux.Route {
+		counter := metrics2.GetCounter(web.RPCCallCounterMetric, map[string]string{
+			// For consistency, we remove the /json/vN from all routes when adding them in the metrics.
+			"route":   strings.TrimPrefix(rpcRoute, "/json/v1"),
+			"version": "v1",
+		})
+		return appRouter.HandleFunc(rpcRoute, func(w http.ResponseWriter, r *http.Request) {
+			counter.Inc(1)
+			handlerFunc(w, r)
+		})
+	}
+
 	// Serve the known hashes from GCS.
 	v0(shared.KnownHashesRoute, handlers.TextKnownHashesProxy).Methods("GET")
+	v1(shared.KnownHashesRouteV1, handlers.TextKnownHashesProxy).Methods("GET")
 	// Serve the expectations for the master branch and for CLs in progress.
 	v0(shared.ExpectationsRoute, handlers.BaselineHandler).Methods("GET")
+	v1(shared.ExpectationsRouteV1, handlers.BaselineHandler).Methods("GET")
 	// TODO(lovisolo): Remove the below route once goldctl is fully migrated.
 	v0(shared.ExpectationsLegacyRoute, handlers.BaselineHandler).Methods("GET")
 
