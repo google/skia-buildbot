@@ -2,6 +2,11 @@
 
 cluster-page-sk {
 
+  .page-container {
+    display: flex;
+    flex-direction: column;
+  }
+
   digest-details-sk {
     max-width: 1000px;
   }
