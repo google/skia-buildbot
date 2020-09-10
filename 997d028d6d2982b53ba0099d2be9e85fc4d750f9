@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "e03c9053_21b0e5b9",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 621,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-10T12:38:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "13c3885e_034341b6",
+      "range": {
+        "startLine": 621,
+        "startChar": 63,
+        "endLine": 621,
+        "endChar": 67
+      },
+      "revId": "997d028d6d2982b53ba0099d2be9e85fc4d750f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "28ea426d_a7cc3898",
         "filename": "golden/cmd/skiacorrectness/main.go",
         "patchSetId": 4
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "a95c595b_d365adc4",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 655,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-10T12:38:52Z",
+      "side": 1,
+      "message": "The implementations between skiacorrectness and baseline_server differ enough for now that I think two small, bespoke implementations is fine for now.",
+      "parentUuid": "28ea426d_a7cc3898",
+      "range": {
+        "startLine": 655,
+        "startChar": 5,
+        "endLine": 655,
+        "endChar": 17
+      },
+      "revId": "997d028d6d2982b53ba0099d2be9e85fc4d750f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "4670a972_64d866ce",
         "filename": "golden/go/shared/shared.go",
         "patchSetId": 4
@@ -91,6 +139,30 @@
       "revId": "997d028d6d2982b53ba0099d2be9e85fc4d750f9",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3f4c1773_d8c84bac",
+        "filename": "golden/go/shared/shared.go",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-10T12:38:52Z",
+      "side": 1,
+      "message": "I don\u0027t think it\u0027s super necessary, since they\u0027ll be going away shortly.",
+      "parentUuid": "4670a972_64d866ce",
+      "range": {
+        "startLine": 20,
+        "startChar": 1,
+        "endLine": 20,
+        "endChar": 18
+      },
+      "revId": "997d028d6d2982b53ba0099d2be9e85fc4d750f9",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
