@@ -37,12 +37,13 @@ export const DARKMODE_CLASS = 'darkmode';
 /** Describes the "theme-chooser-toggle" event detail. */
 export interface ThemeChooserSkEventDetail {
   readonly darkmode: boolean;
-};
+}
 
 // TODO(weston): Add logic to optionally automatically compute the --on-* colors to white or black
 //               based on color brightness for accessibility.
 export class ThemeChooserSk extends ElementSk {
-  private static template = () => html`<invert-colors-icon-sk></invert-colors-icon-sk>`;
+  private static template = () =>
+    html`<invert-colors-icon-sk></invert-colors-icon-sk>`;
 
   constructor() {
     super(ThemeChooserSk.template);
@@ -71,9 +72,16 @@ export class ThemeChooserSk extends ElementSk {
     window.localStorage.setItem(DARKMODE_CLASS, val.toString());
     document.body.classList.toggle(DARKMODE_CLASS, this.darkmode);
     this.dispatchEvent(
-      new CustomEvent<ThemeChooserSkEventDetail>(
-        'theme-chooser-toggle', {detail: {darkmode: val}, bubbles: true}));
+      new CustomEvent<ThemeChooserSkEventDetail>('theme-chooser-toggle', {
+        detail: { darkmode: val },
+        bubbles: true,
+      })
+    );
   }
-};
+}
+
+// isDarkMode returns true if the application is currently set to darkmode.
+export const isDarkMode = () =>
+  window.localStorage.getItem(DARKMODE_CLASS) === 'true';
 
 define('theme-chooser-sk', ThemeChooserSk);
