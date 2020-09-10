@@ -488,7 +488,8 @@ func (c *CloudClient) matchImageAgainstBaseline(testName types.TestName, traceId
 		return false, "", skerr.Wrapf(err, "retrieving most recent positive image")
 	}
 	if mostRecentPositiveDigest == tiling.MissingDigest {
-		return false, "", skerr.Fmt("no recent positive digests for trace with ID %q", traceId)
+		sklog.Infof("No recent positive digests for trace with ID %q. This probably means that the test was newly added.", traceId)
+		return false, algorithmName, nil
 	}
 
 	// Download from GCS the image corresponding to the most recent positive digest.
