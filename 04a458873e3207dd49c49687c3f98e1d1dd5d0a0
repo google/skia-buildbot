@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ab1abb43_9b3b9386",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-10T14:35:03Z",
+      "side": 1,
+      "message": "Observing lower firestore load https://screenshot.googleplex.com/5buVu75g9t7rAbL",
+      "revId": "04a458873e3207dd49c49687c3f98e1d1dd5d0a0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
