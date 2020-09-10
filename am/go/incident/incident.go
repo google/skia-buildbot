@@ -38,6 +38,11 @@ const (
 	TX_RETRIES                   = 5
 	NUM_RECENTLY_RESOLVED        = 20
 	NUM_RECENTLY_RESOLVED_FOR_ID = 20
+
+	// Constants for sending reminder emails.
+	reminderNumThreshold       = 10
+	reminderDurationThreshold  = 600
+	reminderDurationPercentage = 0.60
 )
 
 // Incident - An alert that is being acted on.
@@ -55,6 +60,9 @@ type Incident struct {
 	Params       map[string]string `json:"params" datastore:"-"`                // Params
 	ParamsSerial string            `json:"-" datastore:"params_serial,noindex"` // Params serialized as JSON for easy storing in the datastore.
 	Notes        []note.Note       `json:"notes" datastore:"notes,flatten"`
+
+	// Annotations only for the UI and not for the datastore.
+	RecentlyExpiredSilence bool `json:"recentlyExpiredSilence" datastore:"-"`
 }
 
 // Load converts the JSON params back into a map[string]string.
@@ -66,6 +74,11 @@ func (in *Incident) Load(ps []datastore.Property) error {
 		return err
 	}
 	return nil
+}
+
+func (in *Incident) AddAnnotations(archivedSilences []silence.Silence) {
+	// flaky := AreIncidentsFlaky(recentlyResolved, reminderNumThreshold, reminderDurationThreshold, reminderDurationPercentage)
+	in.RecentlyExpiredSilence = in.IsSilenced(archivedSilences, false)
 }
 
 // Save serializes the params as JSON.
@@ -80,10 +93,10 @@ func (in *Incident) Save() ([]datastore.Property, error) {
 
 // IsSilence returns if any of the given silences apply to this incident.
 // Has support for regexes (see skbug.com/9587).
-func (in *Incident) IsSilenced(silences []silence.Silence) bool {
+func (in *Incident) IsSilenced(silences []silence.Silence, matchOnlyActiveSilences bool) bool {
 	ps := paramtools.NewParamSet(in.Params)
 	for _, s := range silences {
-		if !s.Active {
+		if !s.Active && matchOnlyActiveSilences {
 			continue
 		}
 		if s.ParamSet.Matches(ps) {
@@ -492,3 +505,13 @@ func AreIncidentsFlaky(incidents []Incident, numThreshold int, durationThreshold
 	}
 	return float32(durationLessThanThreshold)/float32(len(incidents)) >= durationPercentage
 }
+
+// func DidSilenceExpireWithin(incidents []Incident, archivedSilences []silence.Silence) bool {
+// 	for _, i := range incidents {
+// 		if i.IsSilenced(archivedSilences, false) {
+// 			fmt.Println("IT IS SILENCED@!@@@@@!!!!")
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }

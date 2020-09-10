@@ -100,6 +100,17 @@ function hasNotes(o) {
   return (o.notes && o.notes.length > 0) ? '' : 'invisible';
 }
 
+function hasRecentlyExpiredSilence(incident) {
+  if (incident.recently_expired_silence) {
+    return `asdf`;
+  }
+  return '';
+}
+
+function isFlaky(o) {
+  return '';
+}
+
 function displayIncident(incident) {
   const ret = [incident.params.alertname];
   const abbr = incident.params.abbr;
@@ -137,6 +148,8 @@ function incidentList(ele, incidents) {
       ${assignedTo(i, ele)}
       ${displayIncident(i)}
     </span>
+    <span title='Recently expired silence'>${hasRecentlyExpiredSilence(i)}</span>
+    <span title='Flaky'>${isFlaky(i)}</span>
     <comment-icon-sk title='This incident has notes.' class=${hasNotes(i)}></comment-icon-sk>
     </h2>
     `);
@@ -284,6 +297,7 @@ define('alert-manager-sk', class extends HTMLElement {
     const incidents = fetch('/_/incidents', {
       credentials: 'include',
     }).then(jsonOrThrow).then((json) => {
+      // rmistry
       this._incidents = json;
     });
 
@@ -530,6 +544,7 @@ define('alert-manager-sk', class extends HTMLElement {
         email: email,
       };
       this._doImpl('/_/assign_multiple', detail, (json) => {
+        // rmistry
         this._incidents = json;
         this._checked = new Set();
         this._render();
@@ -579,6 +594,7 @@ define('alert-manager-sk', class extends HTMLElement {
 
   // Actions to take after updating an Incident.
   _incidentAction(json) {
+    // rmistry: what is this?
     const incidents = this._incidents;
     for (let i = 0; i < incidents.length; i++) {
       if (incidents[i].key === json.key) {
