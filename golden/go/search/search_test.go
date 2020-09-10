@@ -1562,14 +1562,9 @@ func TestDiffDigestsChangeList(t *testing.T) {
 	assert.Equal(t, cd.Left.Status, expectations.Negative)
 }
 
-// TestUntriagedUnignoredTryJobExclusiveDigests_NoIndexBuilt_Success models the case where a set of
-// TryJobs has produced five digests that were "untriaged on master" (and one good digest). We are
-// testing that we can properly deduce which are untriaged, "newly seen" and unignored. One of
-// these untriaged digests was already seen on master (data.AlphaUntriagedDigest), one was already
-// triaged negative for this CL (gammaNegativeTryJobDigest), and one trace matched an ignore rule
-// (deltaIgnoredTryJobDigest). Thus, we only expect tjUntriagedAlpha and tjUntriagedBeta to be
-// reported to us.
-func TestUntriagedUnignoredTryJobExclusiveDigests_NoIndexBuilt_Success(t *testing.T) {
+// TestUntriagedUnignoredTryJobExclusiveDigests_NoIndexBuilt_Error is the case where an index was
+// not built. As such, we do not recompute this (it is too expensive), so we return an error.
+func TestUntriagedUnignoredTryJobExclusiveDigests_NoIndexBuilt_Error(t *testing.T) {
 	unittest.SmallTest(t)
 
 	const clID = "44474"
@@ -1580,115 +1575,15 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_NoIndexBuilt_Success(t *testin
 		PS:  "abcdef",
 	}
 
-	const alphaUntriagedTryJobDigest = types.Digest("aaaa65e567de97c8a62918401731c7ec")
-	const betaUntriagedTryJobDigest = types.Digest("bbbb34f7c915a1ac3a5ba524c741946c")
-	const gammaNegativeTryJobDigest = types.Digest("cccc41bf4584e51be99e423707157277")
-	const deltaIgnoredTryJobDigest = types.Digest("dddd84e51be99e42370715727765e563")
-
 	mi := &mock_index.IndexSource{}
-	mtjs := &mock_tjstore.Store{}
 
-	// Set up the expectations such that for this CL, we have one extra expectation - marking
-	// gammaNegativeTryJobDigest negative (it would be untriaged on master).
-	mes := makeThreeDevicesExpectationStore()
-	var ie expectations.Expectations
-	ie.Set(data.AlphaTest, gammaNegativeTryJobDigest, expectations.Negative)
-	addChangeListExpectations(mes, crs, clID, &ie)
-
-	cpxTile := tiling.NewComplexTile(data.MakeTestTile())
-	reduced := data.MakeTestTile()
-	delete(reduced.Traces, data.BullheadBetaTraceID)
-	// The following rule exclusively matches BullheadBetaTraceID, for which the tryjob produced
-	// deltaIgnoredTryJobDigest
-	cpxTile.SetIgnoreRules(reduced, paramtools.ParamMatcher{
-		{
-			"device":              []string{data.BullheadDevice},
-			types.PrimaryKeyField: []string{string(data.BetaTest)},
-		},
-	})
-	dc := digest_counter.New(data.MakeTestTile())
-	fis, err := indexer.SearchIndexForTesting(cpxTile, [2]digest_counter.DigestCounter{dc, dc}, [2]paramsets.ParamSummary{}, mes, nil)
-	require.NoError(t, err)
-	mi.On("GetIndex").Return(fis)
 	mi.On("GetIndexForCL", crs, clID).Return(nil)
 
-	anglerGroup := map[string]string{
-		"device": data.AnglerDevice,
-	}
-	bullheadGroup := map[string]string{
-		"device": data.BullheadDevice,
-	}
-	crosshatchGroup := map[string]string{
-		"device": data.CrosshatchDevice,
-	}
-	options := map[string]string{
-		"ext": data.PNGExtension,
-	}
-	mtjs.On("GetResults", testutils.AnyContext, expectedID, anyTime).Return([]tjstore.TryJobResult{
-		{
-			GroupParams: anglerGroup,
-			Options:     options,
-			Digest:      betaUntriagedTryJobDigest, // should be reported
-			ResultParams: map[string]string{
-				types.PrimaryKeyField: string(data.AlphaTest),
-				types.CorpusField:     "gm",
-			},
-		},
-		{
-			GroupParams: bullheadGroup,
-			Options:     options,
-			Digest:      data.AlphaUntriagedDigest, // already seen on master as untriaged.
-			ResultParams: map[string]string{
-				types.PrimaryKeyField: string(data.AlphaTest),
-				types.CorpusField:     "gm",
-			},
-		},
-		{
-			GroupParams: anglerGroup,
-			Options:     options,
-			Digest:      alphaUntriagedTryJobDigest, // should be reported.
-			ResultParams: map[string]string{
-				types.PrimaryKeyField: string(data.BetaTest),
-				types.CorpusField:     "gm",
-			},
-		},
-		{
-			GroupParams: bullheadGroup,
-			Options:     options,
-			Digest:      deltaIgnoredTryJobDigest, // matches an ignore rule; should be filtered.
-			ResultParams: map[string]string{
-				types.PrimaryKeyField: string(data.BetaTest),
-				types.CorpusField:     "gm",
-			},
-		},
-		{
-			GroupParams: crosshatchGroup,
-			Options:     options,
-			Digest:      gammaNegativeTryJobDigest, // already triaged as negative; should be filtered.
-			ResultParams: map[string]string{
-				types.PrimaryKeyField: string(data.AlphaTest),
-				types.CorpusField:     "gm",
-			},
-		},
-		{
-			GroupParams: crosshatchGroup,
-			Options:     options,
-			Digest:      data.BetaPositiveDigest, // seen on master as positive; should be filtered.
-			ResultParams: map[string]string{
-				types.PrimaryKeyField: string(data.BetaTest),
-				types.CorpusField:     "gm",
-			},
-		},
-	}, nil).Once()
+	s := New(nil, nil, nil, mi, nil, nil, nil, everythingPublic, nothingFlaky)
 
-	s := New(nil, mes, nil, mi, nil, mtjs, nil, everythingPublic, nothingFlaky)
-
-	dl, err := s.UntriagedUnignoredTryJobExclusiveDigests(context.Background(), expectedID)
-	require.NoError(t, err)
-	assert.Equal(t, []string{"gm"}, dl.Corpora)
-	assert.Equal(t, []types.Digest{alphaUntriagedTryJobDigest, betaUntriagedTryJobDigest}, dl.Digests)
-	// TS should be very recent, since the results were freshly computed.
-	assert.True(t, dl.TS.After(time.Now().Add(-time.Minute)))
+	_, err := s.UntriagedUnignoredTryJobExclusiveDigests(context.Background(), expectedID)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "not indexed")
 }
 
 // This test shows the case where a "flaky" trace is ignored because it (and only it) has a number
@@ -1703,20 +1598,16 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_LowFlakyTraceThreshold_FlakyTr
 		CRS: crs,
 		PS:  "abcdef",
 	}
+	indexedTS := time.Date(2020, time.September, 10, 8, 6, 4, 0, time.UTC)
 
 	const alphaUntriagedTryJobDigest = types.Digest("aaaa65e567de97c8a62918401731c7ec")
 	const betaUntriagedTryJobDigest = types.Digest("bbbb34f7c915a1ac3a5ba524c741946c")
 
 	mi := &mock_index.IndexSource{}
-	mtjs := &mock_tjstore.Store{}
 
 	mes := makeThreeDevicesExpectationStore()
 	var ie expectations.Expectations
 	addChangeListExpectations(mes, crs, clID, &ie)
-
-	fis := makeThreeDevicesIndex()
-	mi.On("GetIndex").Return(fis)
-	mi.On("GetIndexForCL", crs, clID).Return(nil)
 
 	anglerGroup := map[string]string{
 		"device": data.AnglerDevice,
@@ -1724,39 +1615,47 @@ func TestUntriagedUnignoredTryJobExclusiveDigests_LowFlakyTraceThreshold_FlakyTr
 	options := map[string]string{
 		"ext": data.PNGExtension,
 	}
-	mtjs.On("GetResults", testutils.AnyContext, expectedID, anyTime).Return([]tjstore.TryJobResult{
-		{
-			// This trace is "flaky", so should not be reported. Specifically, AnglerAlphaTraceID
-			// has 2 digests in it on master, AlphaNegativeDigest and AlphaPositiveDigest.
-			GroupParams: anglerGroup,
-			Options:     options,
-			Digest:      alphaUntriagedTryJobDigest,
-			ResultParams: map[string]string{
-				types.PrimaryKeyField: string(data.AlphaTest),
-				types.CorpusField:     "gm",
-			},
-		},
-		{
-			// This trace is not flaky and should be reported because there is only one digest seen
-			// on the master branch BetaPositiveDigest.
-			GroupParams: anglerGroup,
-			Options:     options,
-			Digest:      betaUntriagedTryJobDigest,
-			ResultParams: map[string]string{
-				types.PrimaryKeyField: string(data.BetaTest),
-				types.CorpusField:     "gm",
-			},
-		},
-	}, nil).Once()
 
-	s := New(nil, mes, nil, mi, nil, mtjs, nil, everythingPublic, 1)
+	fis := makeThreeDevicesIndex()
+	mi.On("GetIndex").Return(fis)
+	mi.On("GetIndexForCL", crs, clID).Return(&indexer.ChangeListIndex{
+		LatestPatchSet: expectedID,
+		ParamSet:       nil, // not used here
+		ComputedTS:     indexedTS,
+		UntriagedResults: []tjstore.TryJobResult{
+			{
+				// This trace is "flaky", so should not be reported. Specifically, AnglerAlphaTraceID
+				// has 2 digests in it on master, AlphaNegativeDigest and AlphaPositiveDigest.
+				GroupParams: anglerGroup,
+				Options:     options,
+				Digest:      alphaUntriagedTryJobDigest,
+				ResultParams: map[string]string{
+					types.PrimaryKeyField: string(data.AlphaTest),
+					types.CorpusField:     "gm",
+				},
+			},
+			{
+				// This trace is not flaky and should be reported because there is only one digest seen
+				// on the master branch BetaPositiveDigest.
+				GroupParams: anglerGroup,
+				Options:     options,
+				Digest:      betaUntriagedTryJobDigest,
+				ResultParams: map[string]string{
+					types.PrimaryKeyField: string(data.BetaTest),
+					types.CorpusField:     "gm",
+				},
+			},
+		},
+	})
+
+	s := New(nil, mes, nil, mi, nil, nil, nil, everythingPublic, 1)
 
 	dl, err := s.UntriagedUnignoredTryJobExclusiveDigests(context.Background(), expectedID)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"gm"}, dl.Corpora)
 	assert.Equal(t, []types.Digest{betaUntriagedTryJobDigest}, dl.Digests)
 	// TS should be very recent, since the results were freshly computed.
-	assert.True(t, dl.TS.After(time.Now().Add(-time.Minute)))
+	assert.Equal(t, indexedTS, dl.TS)
 }
 
 // TestUntriagedUnignoredTryJobExclusiveDigests_UsesIndex_Success is the same as the previous test,
