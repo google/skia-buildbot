@@ -478,33 +478,63 @@ func main() {
 	// debugging confusing.
 	jsonRouter := loggedRouter.PathPrefix("/json").Subrouter()
 
-	v0("/byblame", handlers.ByBlameHandler, jsonRouter).Methods("GET")
-	v0("/changelist/{system}/{id}", handlers.ChangeListSummaryHandler, jsonRouter).Methods("GET")
-	v0("/changelists", handlers.ChangeListsHandler, jsonRouter).Methods("GET")
-	v0("/clusterdiff", handlers.ClusterDiffHandler, jsonRouter).Methods("GET")
-	v0("/commits", handlers.CommitsHandler, jsonRouter).Methods("GET")
-	v0("/debug/digestsbytestname/{corpus}/{testName}", handlers.GetPerTraceDigestsByTestName, jsonRouter).Methods("GET")
-	v0("/debug/flakytraces/{minUniqueDigests}", handlers.GetFlakyTracesData, jsonRouter).Methods("GET")
-	v0("/details", handlers.DetailsHandler, jsonRouter).Methods("GET")
-	v0("/diff", handlers.DiffHandler, jsonRouter).Methods("GET")
-	v0("/digests", handlers.DigestListHandler, jsonRouter).Methods("GET")
-	v0("/export", handlers.ExportHandler, jsonRouter).Methods("GET")
-	v0("/latestpositivedigest/{traceId}", handlers.LatestPositiveDigestHandler, jsonRouter).Methods("GET")
-	v0("/list", handlers.ListTestsHandler, jsonRouter).Methods("GET")
-	v0("/paramset", handlers.ParamsHandler, jsonRouter).Methods("GET")
-	v0("/search", handlers.SearchHandler, jsonRouter).Methods("GET")
-	v0("/triage", handlers.TriageHandler, jsonRouter).Methods("POST")
-	v0("/triagelog", handlers.TriageLogHandler, jsonRouter).Methods("GET")
-	v0("/triagelog/undo", handlers.TriageUndoHandler, jsonRouter).Methods("POST")
-	v0("/whoami", handlers.Whoami, jsonRouter).Methods("GET")
+	v1JSON := func(rpcRoute string, handlerFunc http.HandlerFunc) *mux.Route {
+		return versionedRPC(rpcRoute, "v1", handlerFunc, jsonRouter, false /*=isAuthenticated*/)
+	}
 
-	trim := func(r string) string { return strings.TrimPrefix(r, "/json") }
+	v0("/byblame", handlers.ByBlameHandler, jsonRouter).Methods("GET")
+	v1JSON("/byblame", handlers.ByBlameHandler).Methods("GET")
+	v0("/changelist/{system}/{id}", handlers.ChangeListSummaryHandler, jsonRouter).Methods("GET")
+	v1JSON("/changelist/{system}/{id}", handlers.ChangeListSummaryHandler).Methods("GET")
+	v0("/changelists", handlers.ChangeListsHandler, jsonRouter).Methods("GET")
+	v1JSON("/changelists", handlers.ChangeListsHandler).Methods("GET")
+	v0("/clusterdiff", handlers.ClusterDiffHandler, jsonRouter).Methods("GET")
+	v1JSON("/clusterdiff", handlers.ClusterDiffHandler).Methods("GET")
+	v0("/commits", handlers.CommitsHandler, jsonRouter).Methods("GET")
+	v1JSON("/commits", handlers.CommitsHandler).Methods("GET")
+	v0("/debug/digestsbytestname/{corpus}/{testName}", handlers.GetPerTraceDigestsByTestName, jsonRouter).Methods("GET")
+	v1JSON("/debug/digestsbytestname/{corpus}/{testName}", handlers.GetPerTraceDigestsByTestName).Methods("GET")
+	v0("/debug/flakytraces/{minUniqueDigests}", handlers.GetFlakyTracesData, jsonRouter).Methods("GET")
+	v1JSON("/debug/flakytraces/{minUniqueDigests}", handlers.GetFlakyTracesData).Methods("GET")
+	v0("/details", handlers.DetailsHandler, jsonRouter).Methods("GET")
+	v1JSON("/details", handlers.DetailsHandler).Methods("GET")
+	v0("/diff", handlers.DiffHandler, jsonRouter).Methods("GET")
+	v1JSON("/diff", handlers.DiffHandler).Methods("GET")
+	v0("/digests", handlers.DigestListHandler, jsonRouter).Methods("GET")
+	v1JSON("/digests", handlers.DigestListHandler).Methods("GET")
+	v0("/export", handlers.ExportHandler, jsonRouter).Methods("GET")
+	v1JSON("/export", handlers.ExportHandler).Methods("GET")
+	v0("/latestpositivedigest/{traceId}", handlers.LatestPositiveDigestHandler, jsonRouter).Methods("GET")
+	v1JSON("/latestpositivedigest/{traceId}", handlers.LatestPositiveDigestHandler).Methods("GET")
+	v0("/list", handlers.ListTestsHandler, jsonRouter).Methods("GET")
+	v1JSON("/list", handlers.ListTestsHandler).Methods("GET")
+	v0("/paramset", handlers.ParamsHandler, jsonRouter).Methods("GET")
+	v1JSON("/paramset", handlers.ParamsHandler).Methods("GET")
+	v0("/search", handlers.SearchHandler, jsonRouter).Methods("GET")
+	v1JSON("/search", handlers.SearchHandler).Methods("GET")
+	v0("/triage", handlers.TriageHandler, jsonRouter).Methods("POST")
+	v1JSON("/triage", handlers.TriageHandler).Methods("POST")
+	v0("/triagelog", handlers.TriageLogHandler, jsonRouter).Methods("GET")
+	v1JSON("/triagelog", handlers.TriageLogHandler).Methods("GET")
+	v0("/triagelog/undo", handlers.TriageUndoHandler, jsonRouter).Methods("POST")
+	v1JSON("/triagelog/undo", handlers.TriageUndoHandler).Methods("POST")
+	v0("/whoami", handlers.Whoami, jsonRouter).Methods("GET")
+	v1JSON("/whoami", handlers.Whoami).Methods("GET")
+
+	// We trim the fulled shared route to fit the pattern of the rest of these routes.
+	trim := func(r string) string {
+		r = strings.TrimPrefix(r, "/json")
+		r = strings.TrimPrefix(r, "/v1")
+		return r
+	}
 	// Routes shared with the baseline server. These usually don't see traffic because the envoy
 	// routing directs these requests to the baseline servers, if there are some.
 	v0(trim(shared.KnownHashesRoute), handlers.TextKnownHashesProxy, jsonRouter).Methods("GET")
+	v1JSON(trim(shared.KnownHashesRouteV1), handlers.TextKnownHashesProxy).Methods("GET")
 	// Retrieving that baseline for master and an Gerrit issue are handled the same way
 	// These routes can be served with baseline_server for higher availability.
 	v0(trim(shared.ExpectationsRoute), handlers.BaselineHandler, jsonRouter).Methods("GET")
+	v1JSON(trim(shared.ExpectationsRouteV1), handlers.BaselineHandler).Methods("GET")
 	// TODO(lovisolo): Remove the below route once goldctl is fully migrated.
 	v0(trim(shared.ExpectationsLegacyRoute), handlers.BaselineHandler, jsonRouter).Methods("GET")
 
@@ -512,9 +542,13 @@ func main() {
 	// ignore rules is so that we don't leak params that might be in them.
 	if !fsc.IsPublicView {
 		v0("/ignores", handlers.ListIgnoreRules, jsonRouter).Methods("GET")
+		v1JSON("/ignores", handlers.ListIgnoreRules).Methods("GET")
 		v0("/ignores/add/", handlers.AddIgnoreRule, jsonRouter).Methods("POST")
+		v1JSON("/ignores/add/", handlers.AddIgnoreRule).Methods("POST")
 		v0("/ignores/del/{id}", handlers.DeleteIgnoreRule, jsonRouter).Methods("POST")
+		v1JSON("/ignores/del/{id}", handlers.DeleteIgnoreRule).Methods("POST")
 		v0("/ignores/save/{id}", handlers.UpdateIgnoreRule, jsonRouter).Methods("POST")
+		v1JSON("/ignores/save/{id}", handlers.UpdateIgnoreRule).Methods("POST")
 	}
 
 	// Make sure we return a 404 for anything that starts with /json and could not be found.
@@ -582,9 +616,16 @@ func main() {
 	// authentication configured. Now we wrap it into the router that is exposed to the host
 	// (aka the K8s container) which requires that some routes are never logged or authenticated.
 	rootRouter := mux.NewRouter()
+
+	v1Root := func(rpcRoute string, handlerFunc http.HandlerFunc) *mux.Route {
+		return versionedRPC(rpcRoute, "v1", handlerFunc, rootRouter, true /*=isAuthenticated*/)
+	}
+
 	rootRouter.HandleFunc("/healthz", httputils.ReadyHandleFunc)
-	v0("/json/trstatus", httputils.CorsHandler(handlers.StatusHandler), rootRouter).Methods("GET")
 	v0("/json/changelist/{system}/{id}/{patchset}/untriaged", httputils.CorsHandler(handlers.ChangeListUntriagedHandler), rootRouter).Methods("GET")
+	v1Root("/changelist/{system}/{id}/{patchset}/untriaged", httputils.CorsHandler(handlers.ChangeListUntriagedHandler)).Methods("GET")
+	v0("/json/trstatus", httputils.CorsHandler(handlers.StatusHandler), rootRouter).Methods("GET")
+	v1Root("/trstatus", httputils.CorsHandler(handlers.StatusHandler)).Methods("GET")
 
 	rootRouter.PathPrefix("/").Handler(appHandler)
 
@@ -602,6 +643,25 @@ func v0(rpcRoute string, handlerFunc http.HandlerFunc, router *mux.Router) *mux.
 		"version": "v0",
 	})
 	return router.HandleFunc(rpcRoute, func(w http.ResponseWriter, r *http.Request) {
+		counter.Inc(1)
+		handlerFunc(w, r)
+	})
+}
+
+// versionedRPC sets up a route on the given router with a wrapper to count the number of calls to
+// the given versioned endpoint. A versioned endpoint looks like /json/v1/what/ever.
+// rpcRoute is expected to be the part after /json (including a slash). If isUnauthenticated is
+// true, "/json" will be added as a prefix to the final route.
+func versionedRPC(rpcRoute, version string, handlerFunc http.HandlerFunc, router *mux.Router, isUnauthenticated bool) *mux.Route {
+	counter := metrics2.GetCounter(web.RPCCallCounterMetric, map[string]string{
+		"route":   rpcRoute,
+		"version": version,
+	})
+	fullRoute := "/" + version + rpcRoute
+	if isUnauthenticated {
+		fullRoute = "/json" + fullRoute
+	}
+	return router.HandleFunc(fullRoute, func(w http.ResponseWriter, r *http.Request) {
 		counter.Inc(1)
 		handlerFunc(w, r)
 	})
