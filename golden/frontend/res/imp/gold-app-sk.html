@@ -54,9 +54,6 @@
           <section data-route="search">
             <search-page-sk></search-page-sk>
           </section>
-          <section data-route="cluster">
-            <cluster-page-sk></cluster-page-sk>
-          </section>
        </iron-pages>
      </div>
     </app-sk>
@@ -80,7 +77,6 @@
 
       ready: function() {
         // Set up in-app routing using the history api.
-        this._setRoute('/cluster', 'cluster');
         this._setRoute('/search', 'search');
 
         // Force hitting the server if logout was selected.
@@ -97,6 +93,7 @@
         const litHtmlPages = [
           '/',  // by blame page
           '/changelists',
+          '/cluster',
           '/detail',
           '/details',
           '/diff',

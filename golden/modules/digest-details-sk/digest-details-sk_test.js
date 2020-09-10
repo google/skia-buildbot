@@ -24,7 +24,9 @@ describe('digest-details-sk', () => {
 
     it('has a link to the cluster view', () => {
       expect($$('a.cluster_link', digestDetailsSk).href).to.contain(
-        '/cluster?head=true&limit=200&neg=true&pos=true&query=name%3Ddots-legend-sk_too-many-digests%26source_type%3Dinfra&unt=true',
+        '/cluster?corpus=infra&grouping=dots-legend-sk_too-many-digests&include_ignored=false'
+        + '&left_filter=&max_rgba=0&min_rgba=0&negative=true&not_at_head=true&positive=true'
+        + '&reference_image_required=false&right_filter=&sort=descending&untriaged=true',
       );
     });
 
