@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	search_fe "go.skia.org/infra/golden/go/search/frontend"
 	"golang.org/x/time/rate"
 
 	"go.skia.org/infra/go/httputils"
@@ -506,13 +507,16 @@ func (wh *Handlers) ChangeListUntriagedHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	dl, err := wh.SearchAPI.UntriagedUnignoredTryJobExclusiveDigests(r.Context(), tjstore.CombinedPSID{
+	id := tjstore.CombinedPSID{
 		CL:  clID,
 		CRS: crs,
 		PS:  psID,
-	})
+	}
+	dl, err := wh.SearchAPI.UntriagedUnignoredTryJobExclusiveDigests(r.Context(), id)
 	if err != nil {
-		httputils.ReportError(w, err, "could not retrieve untriaged digests for CL.", http.StatusInternalServerError)
+		sklog.Warningf("Could not get untriaged digests for %v - possibly this CL/PS has none or is too old to be indexed: %s", id, err)
+		// Errors can trip up the Gerrit Plugin (at least until skbug/10706 is resolved).
+		sendJSONResponse(w, search_fe.UntriagedDigestList{TS: time.Now()})
 		return
 	}
 	sendJSONResponse(w, dl)
