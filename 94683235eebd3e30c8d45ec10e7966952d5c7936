@@ -16,6 +16,23 @@
       "revId": "94683235eebd3e30c8d45ec10e7966952d5c7936",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3d47b33b_a2938764",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 12624
+      },
+      "writtenOn": "2020-09-10T17:03:07Z",
+      "side": 1,
+      "message": "Thanks for the quick fix Jeff!",
+      "revId": "94683235eebd3e30c8d45ec10e7966952d5c7936",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
