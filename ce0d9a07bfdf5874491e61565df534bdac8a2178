@@ -45,6 +45,75 @@
       "revId": "ce0d9a07bfdf5874491e61565df534bdac8a2178",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "66697aac_74f0cefa",
+        "filename": "gold-client/go/goldclient/goldclient.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 491,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-10T12:11:40Z",
+      "side": 1,
+      "message": "Maybe add \"This probably means that the test was newly added\".",
+      "range": {
+        "startLine": 491,
+        "startChar": 60,
+        "endLine": 491,
+        "endChar": 62
+      },
+      "revId": "ce0d9a07bfdf5874491e61565df534bdac8a2178",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "463e5926_818533e4",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1770,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-10T12:11:40Z",
+      "side": 1,
+      "message": "ReturnsNoMatch or something is a little more clear (I keep conflating Success with \"positive match\")",
+      "range": {
+        "startLine": 1770,
+        "startChar": 85,
+        "endLine": 1770,
+        "endChar": 92
+      },
+      "revId": "ce0d9a07bfdf5874491e61565df534bdac8a2178",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81e7587a_e455e360",
+        "filename": "gold-client/go/goldclient/goldclient_test.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 1795,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-10T12:11:40Z",
+      "side": 1,
+      "message": "matched or wasPositive is a more clear name for this variable.",
+      "range": {
+        "startLine": 1795,
+        "startChar": 1,
+        "endLine": 1795,
+        "endChar": 4
+      },
+      "revId": "ce0d9a07bfdf5874491e61565df534bdac8a2178",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
