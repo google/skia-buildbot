@@ -77,8 +77,12 @@ describe('list-page-sk', () => {
       expect(links[3].href).to.contain('pos=false&neg=false&unt=true');
       // Fifth link is the total count, which is the same as the first link.
       expect(links[4].href).to.contain(`/search?${paramsForAllDigests}`);
-      // Sixth link should be to cluster view (with a very similar href)
-      expect(links[5].href).to.contain(`/cluster?${paramsForAllDigests}`);
+      // Sixth link should be to cluster view
+      expect(links[5].href).to.contain(
+        '/cluster?corpus=gm&grouping=this_is_another_test&include_ignored=false'
+        + '&left_filter=&max_rgba=0&min_rgba=0&negative=true&not_at_head=false&positive=true&'
+        + 'reference_image_required=false&right_filter=&sort=descending&untriaged=true',
+      );
     });
 
     it('updates the links based on toggle positions', () => {
@@ -98,7 +102,11 @@ describe('list-page-sk', () => {
       // Fifth link is the total count, which is the same as the first link.
       expect(links[4].href).to.contain(`/search?${paramsForAllDigests}`);
       // Sixth link should be to cluster view (with a very similar href)
-      expect(links[5].href).to.contain(`/cluster?${paramsForAllDigests}`);
+      expect(links[5].href).to.contain(
+        '/cluster?corpus=gm&grouping=this_is_another_test&include_ignored=true'
+        + '&left_filter=&max_rgba=0&min_rgba=0&negative=true&not_at_head=true&positive=true&'
+        + 'reference_image_required=false&right_filter=&sort=descending&untriaged=true',
+      );
     });
 
     it('updates the sort order by clicking on sort-toggle-sk', async () => {

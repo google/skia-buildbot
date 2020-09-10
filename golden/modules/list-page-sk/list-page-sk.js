@@ -22,6 +22,8 @@ import '../sort-toggle-sk';
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/icon/group-work-icon-sk';
 import 'elements-sk/icon/tune-icon-sk';
+import { SearchCriteriaToHintableObject } from '../search-controls-sk';
+import { fromObject } from 'common-sk/modules/query';
 
 const template = (ele) => html`
 <div>
@@ -74,6 +76,17 @@ const testRow = (row, ele) => {
     + `&head=${ele._showAllDigests ? 'false' : 'true'}`
     + `&include=${ele._disregardIgnoreRules ? 'true' : 'false'}`;
 
+  const searchCriteria = {
+    corpus: ele._currentCorpus,
+    includePositiveDigests: true,
+    includeNegativeDigests: true,
+    includeUntriagedDigests: true,
+    includeDigestsNotAtHead: ele._showAllDigests,
+    includeIgnoredDigests: ele._disregardIgnoreRules,
+  };
+  const clusterState = SearchCriteriaToHintableObject(searchCriteria);
+  clusterState.grouping = row.name;
+
   return html`
 <tr>
   <td>
@@ -102,7 +115,7 @@ const testRow = (row, ele) => {
     </a>
   </td>
   <td class=center>
-    <a href="/cluster?${searchParams}&${allDigests}" target=_blank rel=noopener>
+    <a href="/cluster?${fromObject(clusterState)}" target=_blank rel=noopener>
       <group-work-icon-sk></group-work-icon-sk>
     </a>
   </td>

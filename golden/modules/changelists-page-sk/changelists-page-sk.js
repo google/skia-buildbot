@@ -31,7 +31,7 @@ const _statusIcon = (cl) => {
   return html`<block-icon-sk title="ChangeList was abandoned"></block-icon-sk>`;
 };
 
-const _changelist = (cl) => html`
+const changelist = (cl) => html`
 <tr>
   <td class=id>
     <a title="See codereview in a new window" target=_blank rel=noopener href=${cl.url}
@@ -67,7 +67,7 @@ const template = (ele) => html`
     </tr>
   </thead>
   <tbody>
-  ${ele._cls.map(_changelist)}
+  ${ele._cls.map(changelist)}
 </tbody>`;
 
 define('changelists-page-sk', class extends ElementSk {

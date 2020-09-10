@@ -50,7 +50,8 @@ const infoPanel = (ele) => {
   }
   if (ele._selectedDigests.length === 1) {
     if (ele._digestDetails) {
-      return html`<digest-details-sk .details=${ele._digestDetails}></digest-details-sk>`;
+      return html`<digest-details-sk .details=${ele._digestDetails.digest}
+                     .commits=${ele._digestDetails.commits}></digest-details-sk>`;
     }
     return html`<h2>Loading digest details</h2>`;
   }

@@ -7,7 +7,7 @@ import { testOnlySetSettings } from '../settings';
 import { delay, isPuppeteerTest } from '../demo_util';
 import { setImageEndpointsForDemos } from '../common';
 import { clusterDiffJSON } from './test_data';
-import { fakeNow, typicalDetails } from '../digest-details-sk/test_data';
+import { fakeNow, twoHundredCommits, typicalDetails } from '../digest-details-sk/test_data';
 import { exampleStatusData } from '../last-commit-sk/demo_data';
 
 testOnlySetSettings({
@@ -31,7 +31,10 @@ const fakeRpcDelayMillis = isPuppeteerTest() ? 5 : 300;
 
 fetchMock.get('glob:/json/v1/clusterdiff*', delay(clusterDiffJSON, fakeRpcDelayMillis));
 fetchMock.get('/json/v1/paramset', delay(clusterDiffJSON.paramsetsUnion, fakeRpcDelayMillis));
-fetchMock.get('glob:/json/v1/details*', delay(typicalDetails, fakeRpcDelayMillis));
+fetchMock.get('glob:/json/v1/details*', delay({
+  digest: typicalDetails,
+  commits: twoHundredCommits,
+}, fakeRpcDelayMillis));
 fetchMock.get('/json/v1/trstatus', JSON.stringify(exampleStatusData));
 
 const leftDetails = JSON.parse(JSON.stringify(typicalDetails));

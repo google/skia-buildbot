@@ -34,6 +34,7 @@ import '../triage-history-sk';
 import '../image-compare-sk';
 import '../blamelist-panel-sk';
 import '../../../infra-sk/modules/paramset-sk';
+import { SearchCriteriaToHintableObject } from '../search-controls-sk';
 
 const template = (ele) => html`
 <div class=container>
@@ -306,21 +307,16 @@ define('digest-details-sk', class extends ElementSk {
       return '';
     }
 
-    const refQuery = fromParamSet({
-      name: [this._grouping],
-      // TODO(kjlubick) use corpus instead of source_type on the frontend.
-      source_type: this._params.source_type,
-    });
-
-    const q = {
-      query: refQuery,
-      head: true,
-      pos: true,
-      neg: true,
-      unt: true,
-      limit: 200,
+    const searchCriteria = {
+      corpus: this._params.source_type,
+      includePositiveDigests: true,
+      includeNegativeDigests: true,
+      includeUntriagedDigests: true,
+      includeDigestsNotAtHead: true,
     };
-    return `/cluster?${fromObject(q)}`;
+    const clusterState = SearchCriteriaToHintableObject(searchCriteria);
+    clusterState.grouping = this._grouping;
+    return `/cluster?${fromObject(clusterState)}`;
   }
 
   _hoverOverTrace(e) {
