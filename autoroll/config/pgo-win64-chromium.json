@@ -6,7 +6,7 @@
     "template": "{{- define \"subject\" -}}Roll Chrome Win64 PGO Profile{{- end -}}\
 {{- define \"revisions\" -}}Roll {{ .ChildName }} from {{ .RollingFrom }} to {{ .RollingTo }}{{- end -}}",
     "cqExtraTrybots": [
-      "chrome/try:win64-chrome",
+      "luci.chrome.try:win64-chrome",
     ],
     "includeTbrLine": true
   },

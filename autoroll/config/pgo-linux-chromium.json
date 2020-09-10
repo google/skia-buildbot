@@ -6,7 +6,7 @@
     "template": "{{- define \"subject\" -}}Roll Chrome Linux PGO Profile{{- end -}}\
 {{- define \"revisions\" -}}Roll {{ .ChildName }} from {{ .RollingFrom }} to {{ .RollingTo }}{{- end -}}",
     "cqExtraTrybots": [
-      "chrome/try:linux-chrome",
+      "luci.chrome.try:linux-chrome",
     ],
     "includeTbrLine": true
   },
