@@ -72,7 +72,7 @@ func TestIsSilenced(t *testing.T) {
 			ParamSet: paramtools.ParamSet{"foo": []string{"2123"}},
 		},
 	}
-	assert.True(t, i.IsSilenced(silences))
+	assert.True(t, i.IsSilenced(silences, true))
 
 	silences = []silence.Silence{
 		{
@@ -84,7 +84,7 @@ func TestIsSilenced(t *testing.T) {
 			ParamSet: paramtools.ParamSet{"blah": []string{"abc", "xyz", "2123"}},
 		},
 	}
-	assert.True(t, i.IsSilenced(silences))
+	assert.True(t, i.IsSilenced(silences, true))
 
 	silences = []silence.Silence{
 		{
@@ -96,7 +96,7 @@ func TestIsSilenced(t *testing.T) {
 			ParamSet: paramtools.ParamSet{"blah": []string{"abc", "xyz", "2123"}},
 		},
 	}
-	assert.False(t, i.IsSilenced(silences))
+	assert.False(t, i.IsSilenced(silences, true))
 
 	// Test with ignore.
 	silences = []silence.Silence{
@@ -105,7 +105,8 @@ func TestIsSilenced(t *testing.T) {
 			ParamSet: paramtools.ParamSet{"foo": []string{"2123"}},
 		},
 	}
-	assert.False(t, i.IsSilenced(silences))
+	assert.False(t, i.IsSilenced(silences, true))
+	assert.True(t, i.IsSilenced(silences, false))
 
 	// Tests with regexes.
 
@@ -115,7 +116,7 @@ func TestIsSilenced(t *testing.T) {
 			ParamSet: paramtools.ParamSet{"foo": []string{"2.*"}},
 		},
 	}
-	assert.True(t, i.IsSilenced(silences))
+	assert.True(t, i.IsSilenced(silences, true))
 
 	silences = []silence.Silence{
 		{
@@ -127,7 +128,7 @@ func TestIsSilenced(t *testing.T) {
 			ParamSet: paramtools.ParamSet{"bar": []string{"aa"}},
 		},
 	}
-	assert.True(t, i.IsSilenced(silences))
+	assert.True(t, i.IsSilenced(silences, true))
 
 	silences = []silence.Silence{
 		{
@@ -139,7 +140,7 @@ func TestIsSilenced(t *testing.T) {
 			ParamSet: paramtools.ParamSet{"bar": []string{"bb"}},
 		},
 	}
-	assert.False(t, i.IsSilenced(silences))
+	assert.False(t, i.IsSilenced(silences, true))
 
 	// Test with paramset with both regex and non-regex by adding another value to existing key.
 	silences = []silence.Silence{
@@ -152,7 +153,7 @@ func TestIsSilenced(t *testing.T) {
 			ParamSet: paramtools.ParamSet{"bar": []string{"bb", "aa", "cc"}},
 		},
 	}
-	assert.True(t, i.IsSilenced(silences))
+	assert.True(t, i.IsSilenced(silences, true))
 
 	// Test with silence that does not apply.
 	silences = []silence.Silence{
@@ -165,7 +166,7 @@ func TestIsSilenced(t *testing.T) {
 			ParamSet: paramtools.ParamSet{"bar": []string{"bb", "aa", "cc"}, "blah": []string{"abc"}},
 		},
 	}
-	assert.False(t, i.IsSilenced(silences))
+	assert.False(t, i.IsSilenced(silences, true))
 }
 
 func TestAlertArrival(t *testing.T) {
