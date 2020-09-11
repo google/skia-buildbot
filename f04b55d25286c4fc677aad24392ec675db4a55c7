@@ -22,6 +22,30 @@
       "revId": "f04b55d25286c4fc677aad24392ec675db4a55c7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60afa7b2_633a65b5",
+        "filename": "task_scheduler/go/rpc/rpc.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-11T11:15:44Z",
+      "side": 1,
+      "message": "go fmt has spoiled me...",
+      "parentUuid": "29535f8d_89c8ea2d",
+      "range": {
+        "startLine": 247,
+        "startChar": 2,
+        "endLine": 249,
+        "endChar": 6
+      },
+      "revId": "f04b55d25286c4fc677aad24392ec675db4a55c7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
