@@ -9,6 +9,8 @@
   "author": "",
   "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
+    "@types/codemirror": "0.0.98",
+    "codemirror": "^5.57.0",
     "common-sk": "^3.4.1",
     "copy-webpack-plugin": "~5.1.1",
     "elements-sk": "^4.0.0",
