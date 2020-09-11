@@ -48,7 +48,7 @@
       {name: "gm", untriagedCount: 27, negativeCount:649 },
       {name: "image", untriagedCount: 61, negativeCount:9 }
     ]};
-    server.respondWith("GET","https://gold.skia.org/json/trstatus", JSON.stringify(gold));
+    server.respondWith("GET","https://gold.skia.org/json/v1/trstatus", JSON.stringify(gold));
     var perf = {"alerts":1};
     server.respondWith("GET","https://perf.skia.org/_/alerts/", JSON.stringify(perf));
 

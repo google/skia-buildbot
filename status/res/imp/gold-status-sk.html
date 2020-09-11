@@ -83,7 +83,7 @@
 
     _reload: function(){
       this.async(this._reload, this.reload * 1000);
-      sk.get(this._goldUrl+"/json/trstatus").then(JSON.parse).then(function (json) {
+      sk.get(this._goldUrl+"/json/v1/trstatus").then(JSON.parse).then(function (json) {
         this.set('_goldStatus', json);
       }.bind(this)).catch(function(errorMessage) {
         this.set('_goldStatus', null);

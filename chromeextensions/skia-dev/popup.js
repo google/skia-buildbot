@@ -64,7 +64,7 @@
   }
 
   function setGoldAlerts() {
-    var goldURL = 'https://gold.skia.org/json/trstatus';
+    var goldURL = 'https://gold.skia.org/json/v1/trstatus';
     sk.get(goldURL).then(function(resp) {
       var json = JSON.parse(resp);
       json.corpStatus.forEach(function(stat) {
