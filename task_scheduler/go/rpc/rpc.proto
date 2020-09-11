@@ -1,0 +1,392 @@
+syntax = "proto3";
+package task_scheduler.rpc;
+option go_package = "go.skia.org/infra/task_scheduler/go/rpc";
+
+import "google/protobuf/timestamp.proto";
+
+// TaskSchedulerService provides interactions with the Task Scheduler frontend.
+service TaskSchedulerService {
+	// TriggerJobs triggers the given jobs.
+	rpc TriggerJobs(TriggerJobsRequest) returns (TriggerJobsResponse);
+	// GetJob returns the given job.
+	rpc GetJob(GetJobRequest) returns (GetJobResponse);
+	// CancelJob cancels the given job.
+	rpc CancelJob(CancelJobRequest) returns (CancelJobResponse);
+	// SearchJobs searches the DB and returns jobs matching the given criteria.
+	rpc SearchJobs(SearchJobsRequest) returns (SearchJobsResponse);
+
+	// GetTask returns the given task.
+	rpc GetTask(GetTaskRequest) returns (GetTaskResponse);
+	// SearchTasks searches the DB and returns tasks matching the given
+	// criteria.
+	rpc SearchTasks(SearchTasksRequest) returns (SearchTasksResponse);
+
+	// GetSkipTaskRules returns all active rules for skipping tasks.
+	rpc GetSkipTaskRules(GetSkipTaskRulesRequest) returns (GetSkipTaskRulesResponse);
+	// AddSkipTaskRule adds a rule for skipping tasks.
+	rpc AddSkipTaskRule(AddSkipTaskRuleRequest) returns (AddSkipTaskRuleResponse);
+	// DeleteSkipTaskRule deletes the given rule for skipping tasks.
+	rpc DeleteSkipTaskRule(DeleteSkipTaskRuleRequest) returns (DeleteSkipTaskRuleResponse);
+}
+
+// TriggerJob represents a single job to trigger.
+message TriggerJob {
+	// job_name is the name of the job to trigger.
+	string job_name = 1;
+	// commit_hash is the hash of the commit at which the job should run.
+	string commit_hash = 2;
+}
+
+// TriggerJobsRequest is a request to TriggerJobs.
+message TriggerJobsRequest {
+	// jobs specifies which jobs to trigger.
+	repeated TriggerJob jobs = 1;
+}
+
+// TriggerJobsResponse is a response returned by TriggerJobs.
+message TriggerJobsResponse {
+	// job_ids are the IDs of the jobs which were triggered, in the same order
+	// as they were requested.
+	repeated string job_ids = 1;
+}
+
+// GetJobRequest is a request to GetJob.
+message GetJobRequest {
+	// ID of the job to retrieve.
+	string id = 1;
+}
+
+message TaskDimensions {
+	// task_name is the name of the task.
+	string task_name = 1;
+	// dimensions are the Swarming bot dimensions requested by the task.
+	repeated string dimensions = 2;
+}
+
+// GetJobResponse is a response returned from GetJob.
+message GetJobResponse {
+	// job contains the core information about the job.
+	Job job = 1;
+	// task_dimensions are the dimensions of the tasks needed for this job.
+	repeated TaskDimensions task_dimensions = 2;
+}
+
+// CancelJobRequest is a request to CancelJob.
+message CancelJobRequest {
+	// ID of the job to cancel.
+	string id = 1;
+}
+
+// CancelJobResponse is a response returned by CancelJob.
+message CancelJobResponse {
+	// job is the updated job after cancellation.
+	Job job = 1;
+}
+
+// SearchJobsRequest is a request to SearchJobs.
+message SearchJobsRequest {
+	RepoState repo_state = 1;
+	int64 buildbucket_build_id = 2; // TODO: Make optional.
+	bool is_force = 3; // TODO: Make optional.
+	string name = 4;
+	JobStatus status = 5; // TODO: Make optional.
+	google.protobuf.Timestamp time_start = 6;
+	google.protobuf.Timestamp time_end = 7;
+}
+
+// SearchJobsRequest is a response returned by SearchJobs.
+message SearchJobsResponse {
+	repeated Job jobs = 1;
+}
+
+// GetTaskRequest is a request to GetTask.
+message GetTaskRequest {
+	// ID of the task to retrieve.
+	string id = 1;
+}
+
+// GetTaskResponse is a response returned from GetTask.
+message GetTaskResponse {
+	// task is the requested task.
+	Task task = 1;
+}
+
+// SearchTasksRequest is a request to SearchTasks.
+message SearchTasksRequest {
+	TaskKey task_key = 1;
+	int32 attempt = 2; // TODO: Make optional.
+	TaskStatus status = 3;
+	google.protobuf.Timestamp time_start = 6;
+	google.protobuf.Timestamp time_end = 7;
+}
+
+// SearchTasksResponse is a response returned from SearchTasks.
+message SearchTasksResponse {
+	repeated Task tasks = 1;
+}
+
+// GetSkipTaskRulesRequest is a request to GetSkipTaskRules.
+message GetSkipTaskRulesRequest {}
+
+// SkipTaskRule is a rule which dictates when to skip scheduling a task.
+message SkipTaskRule {
+	// added_by is the email address of the user who added this rule.
+	string added_by = 1;
+	// task_spec_patterns determines which tasks the rule applies to.
+	repeated string task_spec_patterns = 2;
+	// commits determines which commits the rule applies to.
+	repeated string commits = 3;
+	// description provides a human-readable description of the rule, eg. to
+	// provide a reason for skipping the task(s) and to indicate when the rule
+	// may be removed.
+	string description = 4;
+	// name is a brief descriptive name for the rule.
+	string name = 5;
+}
+
+// GetSkipTaskRulesResponse is a response returned from GetSkipTaskRules.
+message GetSkipTaskRulesResponse {
+	repeated SkipTaskRule rules = 1;
+}
+
+// AddSkipTaskRuleRequest is a request to AddSkipTaskRule.
+message AddSkipTaskRuleRequest {
+	// task_spec_patterns determines which tasks the rule applies to.
+	repeated string task_spec_patterns = 2;
+	// commits determines which commits the rule applies to.
+	repeated string commits = 3;
+	// description provides a human-readable description of the rule, eg. to
+	// provide a reason for skipping the task(s) and to indicate when the rule
+	// may be removed.
+	string description = 4;
+	// name is a brief descriptive name for the rule.
+	string name = 5;
+}
+
+// AddSkipTaskRuleResponse is a response returned from AddSkipTaskRule.
+message AddSkipTaskRuleResponse {
+	repeated SkipTaskRule rules = 1;
+}
+
+// DeleteSkipTaskRuleRequest is a request to DeleteSkipTaskRule.
+message DeleteSkipTaskRuleRequest {
+	// ID of the rule to delete.
+	string id = 1; // TODO(borenet): Where does this come from?
+}
+
+// DeleteSkipTaskRuleResponse is a response returned from
+// DeleteSkipTaskRule.
+message DeleteSkipTaskRuleResponse {
+	repeated SkipTaskRule rules = 1;
+}
+
+// RepoState encapsulates all of the parameters which define the state of a
+// repo.
+message RepoState {
+  // Patch describes a patch which may be applied to a code checkout.
+  message Patch {
+    // Issue ID of the Patch.
+    string issue = 1;
+    // URL of the repository where this patch may be applied.
+    string patch_repo = 2;
+    // Patch set ID.
+    string patchset = 3;
+    // URL of the code review server.
+    string server = 4;
+  }
+
+  // Patch information, optional.
+  Patch patch = 1;
+  // Repository URL.
+  string repo = 2;
+  // Revision ID, ie. commit hash.
+  string revision = 3;
+}
+
+// TaskKey is a struct used for identifying a Task instance. Note that more
+// than one Task may have the same TaskKey, eg. in the case of retries.
+message TaskKey {
+  // State of the repository for this task.
+  RepoState repo_state = 1;
+  // Name of the task.
+  string name = 2;
+  // If this task is part of a force-triggered job, ID of the job.
+  string forced_job_id = 3;
+}
+
+// TaskStatus indicates the status of a given task. Must be kept in sync with
+// types.TaskStatus.
+enum TaskStatus {
+	// TASK_STATUS_PENDING indicates the task has not started. It is the empty
+	// string so that it is the zero value of TaskStatus.
+	TASK_STATUS_PENDING = 0;
+	// TASK_STATUS_RUNNING indicates the task is in progress.
+	TASK_STATUS_RUNNING = 1;
+	// TASK_STATUS_SUCCESS indicates the task completed successfully.
+	TASK_STATUS_SUCCESS = 2;
+	// TASK_STATUS_FAILURE indicates the task completed with failures.
+	TASK_STATUS_FAILURE = 3;
+	// TASK_STATUS_MISHAP indicates the task exited early with an error, died
+	// while in progress, was manually canceled, expired while waiting on the
+	// queue, or timed out before completing.
+	TASK_STATUS_MISHAP = 4;
+}
+
+// Task describes a single task. This must be kept in sync with types.Task.
+message Task {
+	// attempt is the attempt number of this task, starting with zero.
+	int32 attempt = 1;
+
+	// commits are the commits which were tested in this Task. The list may
+	// change due to backfilling/bisecting.
+	repeated string commits = 2;
+
+	// created is the creation timestamp.
+	google.protobuf.Timestamp created = 3;
+
+	// db_modified is the time of the last successful call to TaskDB.PutTask/s
+	// for this Task, or zero if the task is new. It is not related to the
+	// ModifiedTs time of the associated Swarming task.
+	google.protobuf.Timestamp db_modified = 4;
+
+	// finished is the time the task stopped running or expired from the queue, or
+	// zero if the task is pending or running.
+	google.protobuf.Timestamp finished = 5;
+
+	// id is a generated unique identifier for this Task instance. Must be
+	// URL-safe.
+	string id = 6;
+
+	// isolated_output is the isolated hash of any outputs produced by this Task.
+	// Filled in when the task is completed. This field will not be set if the
+	// Task does not correspond to a Swarming task.
+	string isolated_output = 7;
+
+	// jobs are the IDs of all Jobs which utilized this Task.
+	repeated string jobs = 8;
+
+	// max_attempts is the maximum number of attempts for this TaskSpec.
+	int32 max_attempts = 9;
+
+	// parent_task_ids are IDs of tasks which satisfied this task's dependencies.
+	repeated string parent_task_ids = 10;
+
+	// properties contains key-value pairs from external sources. Both key and
+	// value must be UTF-8 strings. Prefer a JavaScript identifier for key. Use
+	// base64 encoding for binary data.
+	map<string, string> properties = 11;
+
+	// retry_of is the ID of the task which this task is a retry of, if any.
+	string retry_of = 12;
+
+	// started is the time the task started running, or zero if the task is
+	// pending, or the same as Finished if the task never ran.
+	google.protobuf.Timestamp started = 13;
+
+	// status is the current task status, default TASK_STATUS_PENDING.
+	TaskStatus status = 14;
+
+	// swarming_bot_id is the ID of the Swarming bot that ran this task. This
+	// field will not be set if the Task does not correspond to a Swarming task or
+	// if the task is still pending.
+	string swarming_bot_id = 15;
+
+	// swarming_task_id is the Swarming task ID. This field will not be set if the
+	// Task does not correspond to a Swarming task.
+	string swarming_task_id = 16;
+
+	// TaskKey is a struct which describes aspects of the Task related
+	// to the current state of the repo when it ran, and about the Task
+	// itself.
+	TaskKey task_key = 17;
+}
+
+enum JobStatus {
+	JOB_STATUS_IN_PROGRESS = 0;
+	JOB_STATUS_SUCCESS = 1;
+	JOB_STATUS_FAILURE = 2;
+	JOB_STATUS_MISHAP = 3;
+	JOB_STATUS_CANCELED = 4;
+}
+
+// TaskDependencies represents dependencies of a task.
+message TaskDependencies {
+	// Name of the task.
+	string task = 1;
+	// Names of the tasks which this task depends on.
+	repeated string dependencies = 2;
+}
+
+// TaskSummary provides a subset of the information of a Task.
+message TaskSummary {
+	// TODO
+}
+
+// TaskSummaries groups TaskSummaries which have the same TaskSpec name.
+message TaskSummaries {
+	string name = 1;
+	repeated TaskSummary tasks = 2;
+}
+
+// Job represents a set of Tasks which are executed as part of a larger effort.
+// This must be kept in sync with types.Job.
+message Job {
+	// buildbucket_build_id is the ID of the Buildbucket build with which this
+	// Job is associated, if one exists.
+	int64 buildbucket_build_id = 1;
+
+	// buildbucket_lease_key is the lease key for running a Buildbucket build.
+	// TODO(borenet): Maybe this doesn't belong in the DB.
+	int64 buildbucket_lease_key = 2;
+
+	// created_at is the creation timestamp. This property should never change
+	// for a given Job instance.
+	google.protobuf.Timestamp created_at = 3;
+
+	// db_modified_at is the time of the last successful call to JobDB.PutJob/s
+	// for this Job, or zero if the job is new.
+	google.protobuf.Timestamp db_modified_at = 4;
+
+	// dependencies maps out the DAG of TaskSpec names upon which this Job
+	// depends. Keys are TaskSpec names and values are slices of TaskSpec
+	// names indicating which TaskSpecs that TaskSpec depends on. This
+	// property should never change for a given Job instance.
+	repeated TaskDependencies dependencies = 5;
+
+	// finished_at is the time at which all of the Job's dependencies finished,
+	// successfully or not.
+	google.protobuf.Timestamp finished_at = 6;
+
+	// id is a unique identifier for the Job. This property should never
+	// change for a given Job instance, after its initial insertion into the
+	// DB.
+	string id = 7;
+
+	// is_force indicates whether this is a manually-triggered Job, as
+	// opposed to a normally scheduled one, or a try job.
+	bool is_force = 8;
+
+	// name is a human-friendly descriptive name for the Job. All Jobs
+	// generated from the same JobSpec have the same name. This property
+	// should never change for a given Job instance.
+	string name = 9;
+
+	// priority is an indicator of the relative priority of this Job.
+	float priority = 10;
+
+	// repoState is the current state of the repository for this Job.
+	RepoState repo_state = 11;
+
+	// requested is the time at which this Job was requested. This is a
+	// commit timestamp, tryjob request creation timestamp, time at which
+	// the server received a force trigger job request, etc.
+	google.protobuf.Timestamp requested_at = 12;
+
+	// status is the current Job status, default JOB_STATUS_IN_PROGRESS.
+	JobStatus status = 13;
+
+	// tasks are the Task instances which satisfied the dependencies of
+	// the Job. Keys are TaskSpec names and values are slices of TaskSummary
+	// instances describing the Tasks.
+	repeated TaskSummaries tasks = 14;
+}
