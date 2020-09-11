@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "42cfdbee_08443976",
+        "filename": "fiddlek/modules/textarea-numbers-sk/textarea-numbers-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 10815
+      },
+      "writtenOn": "2020-09-11T12:53:31Z",
+      "side": 1,
+      "message": "Add remainder of the description as well?",
+      "range": {
+        "startLine": 3,
+        "startChar": 4,
+        "endLine": 3,
+        "endChar": 15
+      },
+      "revId": "d70441feb855b6f8d4099236c77ad6352119963d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
