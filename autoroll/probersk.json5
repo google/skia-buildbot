@@ -11,23 +11,25 @@
    },
    "autoroll_json": {
      "urls": [
-       "https://autoroll.skia.org/json/all",
-       "https://autoroll.skia.org/r/skia-autoroll/json/ministatus",
-       "https://autoroll.skia.org/r/skia-autoroll/json/status"
+       "https://autoroll.skia.org/twirp/autoroll.rpc.AutoRollService/GetRollers",
+       "https://autoroll.skia.org/twirp/autoroll.rpc.AutoRollService/GetMiniStatus",
+       "https://autoroll.skia.org/twirp/autoroll.rpc.AutoRollService/GetStatus"
      ],
-     "method": "GET",
+     "method": "POST",
      "expected": [200],
-     "body": "",
+     "body": "{\"roller_id\": \"skia-autoroll\"}",
      "mimetype": "application/json",
      "responsetest": "validJSON"
    },
    "autoroll_post_deny": {
      "urls": [
-       "https://autoroll.skia.org/r/skia-autoroll/json/mode",
-       "https://autoroll.skia.org/r/skia-autoroll/json/strategy",
-       "https://autoroll.skia.org/r/skia-autoroll/json/unthrottle"
+       "https://autoroll.skia.org/twirp/autoroll.rpc.AutoRollService/SetMode",
+       "https://autoroll.skia.org/twirp/autoroll.rpc.AutoRollService/SetStrategy",
+       "https://autoroll.skia.org/twirp/autoroll.rpc.AutoRollService/Unthrottle"
      ],
      "method": "POST",
      "expected": [403],
+     "body": "{\"roller_id\": \"skia-skiabot-test-autoroll\", \"mode\": \"RUNNING\", \"message\": \"not allowed\"}",
+     "mimetype": "application/json"
    }
 }
