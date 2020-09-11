@@ -22,6 +22,30 @@
       "revId": "d70441feb855b6f8d4099236c77ad6352119963d",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76cc4c5f_1c79b3eb",
+        "filename": "fiddlek/modules/textarea-numbers-sk/textarea-numbers-sk.ts",
+        "patchSetId": 6
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2020-09-11T14:02:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "42cfdbee_08443976",
+      "range": {
+        "startLine": 3,
+        "startChar": 4,
+        "endLine": 3,
+        "endChar": 15
+      },
+      "revId": "d70441feb855b6f8d4099236c77ad6352119963d",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
