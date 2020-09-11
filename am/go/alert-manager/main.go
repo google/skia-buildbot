@@ -55,6 +55,10 @@ const (
 	reminderNumThreshold       = 10
 	reminderDurationThreshold  = 600
 	reminderDurationPercentage = 0.60
+
+	// silenceRecentlyExpiredDuration is the duration after which a silence is considered
+	// recently expired.
+	silenceRecentlyExpiredDuration = 15 * time.Minute
 )
 
 // server is the state of the server.
@@ -516,7 +520,7 @@ func (srv *server) silencesHandler(w http.ResponseWriter, r *http.Request) {
 	if silences == nil {
 		silences = []silence.Silence{}
 	}
-	recents, err := srv.silenceStore.GetRecentlyArchived()
+	recents, err := srv.silenceStore.GetRecentlyArchived(0)
 	if err != nil {
 		httputils.ReportError(w, err, "Failed to load recents.", http.StatusInternalServerError)
 		return
@@ -534,7 +538,25 @@ func (srv *server) incidentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to load incidents.", http.StatusInternalServerError)
 		return
 	}
-	if err := json.NewEncoder(w).Encode(ins); err != nil {
+
+	idsToRecentlyExpiredSilences := map[string]bool{}
+	archivedSilences, err := srv.silenceStore.GetRecentlyArchived(silenceRecentlyExpiredDuration)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to load archived silences.", http.StatusInternalServerError)
+	}
+	if len(archivedSilences) > 0 {
+		for _, i := range ins {
+			idsToRecentlyExpiredSilences[i.ID] = i.IsSilenced(archivedSilences, false)
+		}
+	}
+	resp := struct {
+		Incidents                    []incident.Incident `json:"incidents"`
+		IdsToRecentlyExpiredSilences map[string]bool     `json:"ids_to_recently_expired_silences"`
+	}{
+		Incidents:                    ins,
+		IdsToRecentlyExpiredSilences: idsToRecentlyExpiredSilences,
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to send response: %s", err)
 	}
 }
@@ -549,12 +571,25 @@ func (srv *server) recentIncidentsHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Get recently archived silences to see if the incident recently expired.
+	archivedSilences, err := srv.silenceStore.GetRecentlyArchived(silenceRecentlyExpiredDuration)
+	if err != nil {
+		httputils.ReportError(w, err, "Failed to load archived silences.", http.StatusInternalServerError)
+		return
+	}
+	recentlyExpired := false
+	if len(ins) > 0 {
+		recentlyExpired = ins[0].IsSilenced(archivedSilences, false)
+	}
+
 	resp := struct {
-		Incidents []incident.Incident `json:"incidents"`
-		Flaky     bool                `json:"flaky"`
+		Incidents              []incident.Incident `json:"incidents"`
+		Flaky                  bool                `json:"flaky"`
+		RecentlyExpiredSilence bool                `json:"recently_expired_silence"`
 	}{
-		Incidents: ins,
-		Flaky:     incident.AreIncidentsFlaky(ins, reminderNumThreshold, reminderDurationThreshold, reminderDurationPercentage),
+		Incidents:              ins,
+		Flaky:                  incident.AreIncidentsFlaky(ins, reminderNumThreshold, reminderDurationThreshold, reminderDurationPercentage),
+		RecentlyExpiredSilence: recentlyExpired,
 	}
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		sklog.Errorf("Failed to send response: %s", err)
