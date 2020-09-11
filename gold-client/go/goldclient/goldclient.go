@@ -102,17 +102,17 @@ type GoldClient interface {
 	// on the calls to Test().
 	Finalize() error
 
-	// Whoami makes a request to Gold's /json/whoami endpoint and returns the email address in the
+	// Whoami makes a request to Gold's /json/v1/whoami endpoint and returns the email address in the
 	// response. For debugging purposes only.
 	Whoami() (string, error)
 
 	// TriageAsPositive triages the given digest for the given test as positive by making a request
-	// to Gold's /json/triage endpoint. The image matching algorithm name will be used as the author
+	// to Gold's /json/v1/triage endpoint. The image matching algorithm name will be used as the author
 	// of the triage operation.
 	TriageAsPositive(testName types.TestName, digest types.Digest, algorithmName string) error
 
 	// MostRecentPositiveDigest retrieves the most recent positive digest for the given trace via
-	// Gold's /json/latestpositivedigest/{traceId} endpoint.
+	// Gold's /json/v1/latestpositivedigest/{traceId} endpoint.
 	MostRecentPositiveDigest(traceId tiling.TraceID) (types.Digest, error)
 }
 
@@ -672,7 +672,7 @@ func (c *CloudClient) Diff(ctx context.Context, name types.TestName, corpus, img
 	}
 
 	// 2) Check JSON endpoint digests to download
-	u := fmt.Sprintf("%s/json/digests?test=%s&corpus=%s", c.resultState.GoldURL, url.QueryEscape(string(name)), url.QueryEscape(corpus))
+	u := fmt.Sprintf("%s/json/v1/digests?test=%s&corpus=%s", c.resultState.GoldURL, url.QueryEscape(string(name)), url.QueryEscape(corpus))
 	jb, err := getWithRetries(c.httpClient, u)
 	if err != nil {
 		return skerr.Wrapf(err, "reading images for test %s, corpus %s from gold (url: %s)", name, corpus, u)
@@ -788,19 +788,19 @@ func (c *CloudClient) getDigestFromCacheOrGCS(ctx context.Context, digest types.
 
 // Whoami fulfills the GoldClient interface.
 func (c *CloudClient) Whoami() (string, error) {
-	jsonBytes, err := getWithRetries(c.httpClient, c.resultState.GoldURL+"/json/whoami")
+	jsonBytes, err := getWithRetries(c.httpClient, c.resultState.GoldURL+"/json/v1/whoami")
 	if err != nil {
-		return "", skerr.Wrapf(err, "making request to %s/json/whoami", c.resultState.GoldURL)
+		return "", skerr.Wrapf(err, "making request to %s/json/v1/whoami", c.resultState.GoldURL)
 	}
 
 	whoami := map[string]string{}
 	if err := json.Unmarshal(jsonBytes, &whoami); err != nil {
-		return "", skerr.Wrapf(err, "parsing JSON response from %s/json/whoami", c.resultState.GoldURL)
+		return "", skerr.Wrapf(err, "parsing JSON response from %s/json/v1/whoami", c.resultState.GoldURL)
 	}
 
 	email, ok := whoami["whoami"]
 	if !ok {
-		return "", skerr.Wrapf(err, `JSON response from %s/json/whoami does not contain key "whoami"`, c.resultState.GoldURL)
+		return "", skerr.Wrapf(err, `JSON response from %s/json/v1/whoami does not contain key "whoami"`, c.resultState.GoldURL)
 	}
 
 	return email, nil
@@ -820,10 +820,10 @@ func (c *CloudClient) TriageAsPositive(testName types.TestName, digest types.Dig
 		return skerr.Wrapf(err, `encoding frontend.TriageRequest into JSON for test %q, digest %q, algorithm %q and CL %q`, testName, digest, algorithmName, c.resultState.SharedConfig.ChangeListID)
 	}
 
-	// Make /json/triage request. Response is always empty.
-	_, err = post(c.httpClient, c.resultState.GoldURL+"/json/triage", "application/json", bytes.NewReader(jsonTriageRequest))
+	// Make /json/v1/triage request. Response is always empty.
+	_, err = post(c.httpClient, c.resultState.GoldURL+"/json/v1/triage", "application/json", bytes.NewReader(jsonTriageRequest))
 	if err != nil {
-		return skerr.Wrapf(err, `making POST request to %s/json/triage for test %q, digest %q, algorithm %q and CL %q`, c.resultState.GoldURL, testName, digest, algorithmName, c.resultState.SharedConfig.ChangeListID)
+		return skerr.Wrapf(err, `making POST request to %s/json/v1/triage for test %q, digest %q, algorithm %q and CL %q`, c.resultState.GoldURL, testName, digest, algorithmName, c.resultState.SharedConfig.ChangeListID)
 	}
 
 	return nil
@@ -831,7 +831,7 @@ func (c *CloudClient) TriageAsPositive(testName types.TestName, digest types.Dig
 
 // MostRecentPositiveDigest fulfills the GoldClient interface.
 func (c *CloudClient) MostRecentPositiveDigest(traceId tiling.TraceID) (types.Digest, error) {
-	endpointUrl := c.resultState.GoldURL + "/json/latestpositivedigest/" + string(traceId)
+	endpointUrl := c.resultState.GoldURL + "/json/v1/latestpositivedigest/" + string(traceId)
 
 	jsonBytes, err := getWithRetries(c.httpClient, endpointUrl)
 	if err != nil {

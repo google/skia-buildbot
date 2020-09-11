@@ -850,7 +850,7 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/expectations?issue=867&crs=gerrit").Return(exp, nil)
 
 	// Mock out retrieving the latest positive image hash for ThisIsTheOnlyTest.
-	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/latestpositivedigest/,another_notch=emeril,gpu=GPUTest,name=ThisIsTheOnlyTest,os=WinTest,source_type=gtest-pixeltests,"
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v1/latestpositivedigest/,another_notch=emeril,gpu=GPUTest,name=ThisIsTheOnlyTest,os=WinTest,source_type=gtest-pixeltests,"
 	const latestPositiveDigestResponse = `{"digest":"` + latestPositiveImageHash + `"}`
 	httpClient.On("Get", latestPositiveDigestRpcUrl).Return(httpResponse([]byte(latestPositiveDigestResponse), "200 OK", http.StatusOK), nil)
 
@@ -880,7 +880,7 @@ func TestReportPassFailPassWithFuzzyMatching(t *testing.T) {
 		}, tr)
 		return true
 	})
-	httpClient.On("Post", "https://testing-gold.skia.org/json/triage", "application/json", bodyMatcher).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
+	httpClient.On("Post", "https://testing-gold.skia.org/json/v1/triage", "application/json", bodyMatcher).Return(httpResponse([]byte{}, "200 OK", http.StatusOK), nil)
 
 	// Mock out uploading the JSON file with the test results to Gold.
 	expectedJSONPath := "skia-gold-testing/trybot/dm-json-v1/2019/04/02/19/abcd1234/117/1554234843/dm-1554234843000000000.json"
@@ -1359,7 +1359,7 @@ func TestDiffSunnyDay(t *testing.T) {
 	defer dlr.AssertExpectations(t)
 
 	digests := httpResponse([]byte(mockDigestsJSON), "200 OK", http.StatusOK)
-	httpClient.On("Get", "https://testing-gold.skia.org/json/digests?test=This+IsTheOnly+Test&corpus=This+Has+spaces").Return(digests, nil)
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/digests?test=This+IsTheOnly+Test&corpus=This+Has+spaces").Return(digests, nil)
 
 	img2 := imageToPngBytes(t, image2)
 	dlr.On("DownloadImage", testutils.AnyContext, "https://testing-gold.skia.org", types.Digest(rightHash)).Return(img2, nil)
@@ -1413,7 +1413,7 @@ func TestDiffCaching(t *testing.T) {
 	defer httpClient.AssertExpectations(t)
 	defer dlr.AssertExpectations(t)
 
-	httpClient.On("Get", "https://testing-gold.skia.org/json/digests?test=ThisIsTheOnlyTest&corpus=whatever").Return(func(_ string) *http.Response {
+	httpClient.On("Get", "https://testing-gold.skia.org/json/v1/digests?test=ThisIsTheOnlyTest&corpus=whatever").Return(func(_ string) *http.Response {
 		// return a fresh response each time Diff is called
 		return httpResponse([]byte(mockDigestsJSON), "200 OK", http.StatusOK)
 	}, nil).Twice()
@@ -1654,7 +1654,7 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_UntriagedImage_Succ
 	const traceId = tiling.TraceID(",name=my_test,")
 	const digest = types.Digest("11111111111111111111111111111111")
 
-	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/latestpositivedigest/,name=my_test,"
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v1/latestpositivedigest/,name=my_test,"
 	const latestPositiveDigestResponse = `{"digest":"22222222222222222222222222222222"}`
 	const latestPositiveDigest = types.Digest("22222222222222222222222222222222")
 	latestPositiveImageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -1777,7 +1777,7 @@ func TestCloudClient_MatchImageAgainstBaseline_FuzzyMatching_NoRecentPositiveDig
 	1 1
 	0x00000000`))
 
-	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/latestpositivedigest/,name=my_test,"
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v1/latestpositivedigest/,name=my_test,"
 	const latestPositiveDigestResponse = `{"digest":""}`
 
 	goldClient, cleanup, httpClient, _ := makeGoldClientForMatchImageAgainstBaselineTests(t)
@@ -1850,7 +1850,7 @@ func TestCloudClient_MatchImageAgainstBaseline_SobelFuzzyMatching_UntriagedImage
 	0x49 0x83 0x88 0x88 0x88 0x88 0x88 0x88
 	0x83 0x88 0x88 0x88 0x88 0x88 0x88 0x88`))
 
-	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/latestpositivedigest/,name=my_test,"
+	const latestPositiveDigestRpcUrl = "https://testing-gold.skia.org/json/v1/latestpositivedigest/,name=my_test,"
 	const latestPositiveDigestResponse = `{"digest":"22222222222222222222222222222222"}`
 	const latestPositiveDigest = types.Digest("22222222222222222222222222222222")
 	latestPositiveImageBytes := imageToPngBytes(t, text.MustToNRGBA(`! SKTEXTSIMPLE
@@ -2095,7 +2095,7 @@ func TestCloudClient_Whoami_Success(t *testing.T) {
 	goldClient, err := NewCloudClient(auth, config)
 	assert.NoError(t, err)
 
-	url := "https://testing-gold.skia.org/json/whoami"
+	url := "https://testing-gold.skia.org/json/v1/whoami"
 	response := `{"whoami": "test@example.com"}`
 	httpClient.On("Get", url).Return(httpResponse([]byte(response), "200 OK", http.StatusOK), nil)
 
@@ -2121,7 +2121,7 @@ func TestCloudClient_Whoami_InternalServerError_Failure(t *testing.T) {
 	goldClient, err := NewCloudClient(auth, config)
 	assert.NoError(t, err)
 
-	url := "https://testing-gold.skia.org/json/whoami"
+	url := "https://testing-gold.skia.org/json/v1/whoami"
 	httpClient.On("Get", url).Return(httpResponse([]byte{}, "500 Internal Server Error", http.StatusInternalServerError), nil)
 
 	_, err = goldClient.Whoami()
@@ -2150,7 +2150,7 @@ func TestCloudClient_TriageAsPositive_NoCL_Success(t *testing.T) {
 	goldClient, err := loadGoldClient(auth, wd)
 	assert.NoError(t, err)
 
-	url := "https://testing-gold.skia.org/json/triage"
+	url := "https://testing-gold.skia.org/json/v1/triage"
 	contentType := "application/json"
 	bodyMatcher := mock.MatchedBy(func(r io.Reader) bool {
 		b, err := ioutil.ReadAll(r)
@@ -2202,7 +2202,7 @@ func TestCloudClient_TriageAsPositive_WithCL_Success(t *testing.T) {
 	goldClient, err := loadGoldClient(auth, wd)
 	assert.NoError(t, err)
 
-	url := "https://testing-gold.skia.org/json/triage"
+	url := "https://testing-gold.skia.org/json/v1/triage"
 	contentType := "application/json"
 	bodyMatcher := mock.MatchedBy(func(r io.Reader) bool {
 		b, err := ioutil.ReadAll(r)
@@ -2253,7 +2253,7 @@ func TestCloudClient_TriageAsPositive_InternalServerError_Failure(t *testing.T) 
 	goldClient, err := loadGoldClient(auth, wd)
 	assert.NoError(t, err)
 
-	url := "https://testing-gold.skia.org/json/triage"
+	url := "https://testing-gold.skia.org/json/v1/triage"
 	contentType := "application/json"
 	httpClient.On("Post", url, contentType, mock.Anything).Return(httpResponse([]byte{}, "500 Internal Server Error", http.StatusInternalServerError), nil)
 
@@ -2280,7 +2280,7 @@ func TestCloudClient_MostRecentPositiveDigest_Success(t *testing.T) {
 	assert.NoError(t, err)
 
 	const traceId = tiling.TraceID(",foo=bar,")
-	const url = "https://testing-gold.skia.org/json/latestpositivedigest/,foo=bar,"
+	const url = "https://testing-gold.skia.org/json/v1/latestpositivedigest/,foo=bar,"
 	const response = `{"digest":"deadbeefcafefe771d61bf0ed3d84bc2"}`
 	const expectedDigest = types.Digest("deadbeefcafefe771d61bf0ed3d84bc2")
 
@@ -2309,7 +2309,7 @@ func TestCloudClient_MostRecentPositiveDigest_NonJSONResponse_Failure(t *testing
 	assert.NoError(t, err)
 
 	const traceId = tiling.TraceID(",foo=bar,")
-	const url = "https://testing-gold.skia.org/json/latestpositivedigest/,foo=bar,"
+	const url = "https://testing-gold.skia.org/json/v1/latestpositivedigest/,foo=bar,"
 	const response = "Not JSON"
 
 	httpClient.On("Get", url).Return(httpResponse([]byte(response), "200 OK", http.StatusOK), nil)
@@ -2337,7 +2337,7 @@ func TestCloudClient_MostRecentPositiveDigest_InternalServerError_Failure(t *tes
 	assert.NoError(t, err)
 
 	const traceId = tiling.TraceID(",foo=bar,")
-	const url = "https://testing-gold.skia.org/json/latestpositivedigest/,foo=bar,"
+	const url = "https://testing-gold.skia.org/json/v1/latestpositivedigest/,foo=bar,"
 
 	httpClient.On("Get", url).Return(httpResponse([]byte{}, "500 Internal Server Error", http.StatusInternalServerError), nil)
 
