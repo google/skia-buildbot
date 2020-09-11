@@ -18,7 +18,7 @@ func getWhoamiCmd() *cobra.Command {
 	env := &whoamiEnv{}
 	cmd := &cobra.Command{
 		Use:   "whoami",
-		Short: "Make a request to Gold's /json/whoami endpoint and print out its output.",
+		Short: "Make a request to Gold's /json/v1/whoami endpoint and print out its output.",
 		Long: `
 Will print out the email address of the user or service account used to authenticate the request.
 For debugging purposes only.`,
