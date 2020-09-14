@@ -96,7 +96,12 @@ func NewCopy(ctx context.Context, cfg CopyConfig, reg *config_vars.Registry, cli
 		}
 		return rv, nil
 	}
+	getChangesHelper := gitilesFileGetChangesForRollFunc(cfg.DependencyConfig)
 	getChangesForRoll := func(ctx context.Context, repo *gitiles_common.GitilesRepo, baseCommit string, from, to *revision.Revision, rolling []*revision.Revision) (map[string]string, error) {
+		changes, err := getChangesHelper(ctx, repo, baseCommit, from, to, rolling)
+		if err != nil {
+			return nil, skerr.Wrap(err)
+		}
 		before, err := getContentsAtRev(ctx, from)
 		if err != nil {
 			return nil, skerr.Wrap(err)
@@ -112,7 +117,6 @@ func NewCopy(ctx context.Context, cfg CopyConfig, reg *config_vars.Registry, cli
 		for f := range after {
 			filenames[f] = true
 		}
-		changes := map[string]string{}
 		for f := range filenames {
 			if before[f] != after[f] {
 				changes[f] = after[f]

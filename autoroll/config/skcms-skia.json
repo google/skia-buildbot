@@ -18,7 +18,7 @@
   ],
   "gerrit": {
     "url": "https://skia-review.googlesource.com",
-    "project": "skcms",
+    "project": "skia",
     "config": "chromium"
   },
   "isInternal": false,
