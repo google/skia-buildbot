@@ -484,8 +484,6 @@ func main() {
 
 	v0("/byblame", handlers.ByBlameHandler, jsonRouter).Methods("GET")
 	v1JSON("/byblame", handlers.ByBlameHandler).Methods("GET")
-	v0("/changelist/{system}/{id}", handlers.ChangeListSummaryHandler, jsonRouter).Methods("GET")
-	v1JSON("/changelist/{system}/{id}", handlers.ChangeListSummaryHandler).Methods("GET")
 	v0("/changelists", handlers.ChangeListsHandler, jsonRouter).Methods("GET")
 	v1JSON("/changelists", handlers.ChangeListsHandler).Methods("GET")
 	v0("/clusterdiff", handlers.ClusterDiffHandler, jsonRouter).Methods("GET")
@@ -628,6 +626,8 @@ func main() {
 	v1Root("/changelist/{system}/{id}/{patchset}/untriaged", httputils.CorsHandler(handlers.ChangeListUntriagedHandler)).Methods("GET")
 	v0("/json/trstatus", httputils.CorsHandler(handlers.StatusHandler), rootRouter).Methods("GET")
 	v1Root("/trstatus", httputils.CorsHandler(handlers.StatusHandler)).Methods("GET")
+	v0("/changelist/{system}/{id}", httputils.CorsHandler(handlers.ChangeListSummaryHandler), rootRouter).Methods("GET")
+	v1Root("/changelist/{system}/{id}", httputils.CorsHandler(handlers.ChangeListSummaryHandler)).Methods("GET")
 
 	rootRouter.PathPrefix("/").Handler(appHandler)
 
