@@ -52,7 +52,9 @@
  *
  */
 import { define } from 'elements-sk/define';
+import 'elements-sk/icon/alarm-off-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
+import 'elements-sk/icon/thumbs-up-down-icon-sk';
 import '../silence-sk';
 
 import { $$ } from 'common-sk/modules/dom';
@@ -144,12 +146,13 @@ function history(ele) {
     json = json || {};
     const incidents = json.incidents || [];
     ele.flaky = json.flaky || false;
+    ele.recently_expired_silence = json.recently_expired_silence || false;
     return incidents.map((i) => html`<incident-sk .state=${i} minimized></incident-sk>`);
   }).catch(errorMessage);
 }
 
 const template = (ele) => html`
-  <h2 class=${classOfH2(ele)}>${ele._state.params.alertname} ${abbr(ele._state)} ${ele._displayFlakiness(ele._flaky)}</h2>
+  <h2 class=${classOfH2(ele)}>${ele._state.params.alertname} ${abbr(ele._state)} ${ele._displayRecentlyExpired(ele._recently_expired_silence)} ${ele._displayFlakiness(ele._flaky)}</h2>
   <section class=detail>
     ${actionButtons(ele)}
     <table class=timing>
@@ -186,6 +189,7 @@ define('incident-sk', class extends HTMLElement {
     this._silences = [];
     this._displaySilencesWithComments = false;
     this._flaky = false;
+    this._recently_expired_silence = false;
   }
 
   /** @prop state {Object} An Incident. */
@@ -202,6 +206,17 @@ define('incident-sk', class extends HTMLElement {
   set silences(val) {
     this._render();
     this._silences = val;
+  }
+
+  /** @prop recently_expired_silence {bool} Whether silence recently expired. */
+  get recently_expired_silence() { return this._recently_expired_silence; }
+
+  set recently_expired_silence(val) {
+    // No need to render again if value is same as old value.
+    if (val !== this._recently_expired_silence) {
+      this._recently_expired_silence = val;
+      this._render();
+    }
   }
 
   /** @prop flaky {bool} Whether this incident has been flaky. */
@@ -222,9 +237,16 @@ define('incident-sk', class extends HTMLElement {
     this._render();
   }
 
+  _displayRecentlyExpired(recentlyExpiredSilence) {
+    if (recentlyExpiredSilence) {
+      return html`<alarm-off-icon-sk title='This alert has a recently expired silence'></alarm-off-icon-sk>`;
+    }
+    return '';
+  }
+
   _displayFlakiness(flaky) {
     if (flaky) {
-      return html`<span class='flaky' title='This alert is possibly flaky'>[Possibly Flaky]</span>`;
+      return html`<thumbs-up-down-icon-sk title='This alert is possibly flaky'></thumbs-up-down-icon-sk>`;
     }
     return '';
   }

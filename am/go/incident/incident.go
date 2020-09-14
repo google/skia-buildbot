@@ -80,10 +80,10 @@ func (in *Incident) Save() ([]datastore.Property, error) {
 
 // IsSilence returns if any of the given silences apply to this incident.
 // Has support for regexes (see skbug.com/9587).
-func (in *Incident) IsSilenced(silences []silence.Silence) bool {
+func (in *Incident) IsSilenced(silences []silence.Silence, matchOnlyActiveSilences bool) bool {
 	ps := paramtools.NewParamSet(in.Params)
 	for _, s := range silences {
-		if !s.Active {
+		if !s.Active && matchOnlyActiveSilences {
 			continue
 		}
 		if s.ParamSet.Matches(ps) {
