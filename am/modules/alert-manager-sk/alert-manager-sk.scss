@@ -121,7 +121,7 @@ alert-manager-sk {
     }
   }
 
-  comment-icon-sk {
+  comment-icon-sk, alarm-off-icon-sk, thumbs-up-down-icon-sk {
     fill: var(--green);
     padding: 0.2em 0.6em;
   }
@@ -177,7 +177,7 @@ alert-manager-sk {
   }
 
   display: grid;
-  height: 100vh;
+  min-height: 100vh;
   grid-template-columns: 24em 1fr;
   grid-template-rows: 36px 1fr 5px;
   grid-template-areas:
@@ -203,5 +203,10 @@ alert-manager-sk {
     .edit {
       border-top: solid 1px black;
     }
+  }
+
+  error-toast-sk toast-sk {
+    background-color: var(--error);
+    color: var(--on-error);
   }
 }
