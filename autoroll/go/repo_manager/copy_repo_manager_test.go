@@ -197,6 +197,7 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "c"), tipRev.Id)
 	mockChild.MockReadFile(ctx, path.Join(cfg.Copies[1].SrcRelPath, "c"), tipRev.Id)
 
+	mockParent.MockReadFile(ctx, cfg.VersionFile, parentHead)
 	mockParent.MockReadFile(ctx, cfg.Copies[0].DstRelPath, parentHead)
 	mockParent.MockReadFile(ctx, cfg.Copies[1].DstRelPath, parentHead)
 	mockParent.MockReadFile(ctx, path.Join(cfg.Copies[1].DstRelPath, "a"), parentHead)
@@ -244,8 +245,8 @@ func TestCopyRepoManagerCreateNewRoll(t *testing.T) {
 	mockUpdateFile(path.Join(cfg.Copies[1].SrcRelPath, "c"), path.Join(cfg.Copies[1].DstRelPath, "c"))
 
 	// Mock the request to update the version file.
-	reqBody = []byte(tipRev.Id)
-	url := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", cfg.VersionFile)
+	reqBody = []byte(tipRev.Id + "\n")
+	url := fmt.Sprintf("https://fake-skia-review.googlesource.com/a/changes/123/edit/%s", url.QueryEscape(cfg.VersionFile))
 	urlMock.MockOnce(url, mockhttpclient.MockPutDialogue("", reqBody, []byte("")))
 
 	// Mock the request to publish the change edit.
