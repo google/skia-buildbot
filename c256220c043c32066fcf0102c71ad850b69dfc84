@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2c35a59d_f35d567e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2020-09-14T15:11:10Z",
+      "side": 1,
+      "message": "Could you please push this to gold.skia.org whenever you get a chance?",
+      "revId": "c256220c043c32066fcf0102c71ad850b69dfc84",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
