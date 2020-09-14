@@ -26,12 +26,16 @@ export class TextareaNumbersSk extends ElementSk {
   private static themeFromCurrentMode = () =>
     isDarkMode() ? 'base16-dark' : 'base16-light';
 
+  private _value: string = '';
+
   constructor() {
     super();
+    console.log('textarea-numbers-sk constructor');
   }
 
   connectedCallback() {
     super.connectedCallback();
+    console.log('textarea-numbers-sk connectedCallback');
 
     // Creates and attaches the CodeMirror control as this elements only child.
     // Note we don't call _render().
@@ -40,6 +44,10 @@ export class TextareaNumbersSk extends ElementSk {
       mode: 'text/x-c++src',
       theme: TextareaNumbersSk.themeFromCurrentMode(),
     });
+
+    if (this._value !== '') {
+      this.value = this._value;
+    }
 
     this._upgradeProperty('value');
 
@@ -80,11 +88,17 @@ export class TextareaNumbersSk extends ElementSk {
 
   /** @prop value {string} The text content of the edit box. */
   get value() {
-    return this.codeMirror!.getValue();
+    if (!this.codeMirror) {
+      return '';
+    } else {
+      return this.codeMirror!.getValue();
+    }
   }
 
   set value(val: string) {
-    this.codeMirror!.setValue(val);
+    if (this.codeMirror) {
+      this.codeMirror!.setValue(val);
+    }
     this.clearErrors();
   }
 }
