@@ -17,6 +17,15 @@ test-frontend-ci:
 testpptr:
 	NODE_OPTIONS="--max-old-space-size=$(NODE_MEMORY_LIMIT)" npx mocha -v -r ts-node/register ./modules/**/*_puppeteer_test.ts
 
+# First create a list of all the modules that ./go/ts depends upon.
+tsDependentModules := $(shell go list -f '{{ join .Imports "\n" }}' go.skia.org/infra/fiddlek/go/ts/  )
+
+# Then use that list to find all the Go files that make up those dependent modules.
+tsDependentFiles := $(shell echo $(tsDependentModules) | xargs -L 1 go list -f '{{ $$dir := .Dir }}{{ range  .GoFiles }}{{ $$dir }}/{{ . }}{{ "\n" }}{{ end }}' )
+
+./modules/json/index.ts: $(tsDependentFiles)
+	go run ./go/ts
+
 .PHONY: build
 build: elements_html core_js
 	go install -v ./go/fiddle
