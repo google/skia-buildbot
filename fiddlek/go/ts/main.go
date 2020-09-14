@@ -13,10 +13,10 @@ import (
 
 func main() {
 	generator := go2ts.New()
-	if err := generator.Add(types.Options{}); err != nil {
-		sklog.Fatal(err)
-	}
-	if err := generator.Add(types.Result{}); err != nil {
+	if err := generator.AddMultiple(
+		types.Options{},
+		types.Result{},
+	); err != nil {
 		sklog.Fatal(err)
 	}
 	err := util.WithWriteFile("./modules/json/index.ts", func(w io.Writer) error {

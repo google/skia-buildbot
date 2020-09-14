@@ -20,16 +20,6 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
-func addMultiple(generator *go2ts.Go2TS, instances []interface{}) error {
-	for _, inst := range instances {
-		err := generator.Add(inst)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 type unionAndName struct {
 	v        interface{}
 	typeName string
@@ -46,7 +36,7 @@ func addMultipleUnions(generator *go2ts.Go2TS, unions []unionAndName) error {
 
 func main() {
 	generator := go2ts.New()
-	err := addMultiple(generator, []interface{}{
+	err := generator.AddMultiple(generator,
 		alerts.Alert{},
 		clustering2.ClusterSummary{},
 		clustering2.ValuePercent{},
@@ -75,10 +65,13 @@ func main() {
 		regression.FullSummary{},
 		regression.RegressionDetectionRequest{},
 		regression.TriageStatus{},
-	})
+	)
 	if err != nil {
 		sklog.Fatal(err)
 	}
+
+	// TODO(jcgregorio) Switch to generator.AddMultipleUnions() once all the
+	// names are harmonized between backend and frontend.
 	err = addMultipleUnions(generator, []unionAndName{
 		{alerts.AllConfigState, "ConfigState"},
 		{alerts.AllDirections, "Direction"},
