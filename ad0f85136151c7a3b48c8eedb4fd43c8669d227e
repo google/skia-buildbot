@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a8d904a_9f440bd8",
+        "filename": "golden/cmd/skiacorrectness/main.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 629,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-14T15:04:18Z",
+      "side": 1,
+      "message": "I was trying to think if this would leak information (e.g. the title of a private CL), but I don\u0027t believe Gold\u0027s service account has any special access to that.",
+      "range": {
+        "startLine": 629,
+        "startChar": 5,
+        "endLine": 629,
+        "endChar": 31
+      },
+      "revId": "ad0f85136151c7a3b48c8eedb4fd43c8669d227e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
