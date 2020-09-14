@@ -543,13 +543,28 @@ const JSONToTaskDependencies = (m: TaskDependenciesJSON): TaskDependencies => {
 };
 
 export interface TaskSummary {
+  id: string;
+  attempt: number;
+  maxAttempts: number;
+  status: TaskStatus;
+  swarmingTaskId: string;
 }
 
 interface TaskSummaryJSON {
+  id?: string;
+  attempt?: number;
+  max_attempts?: number;
+  status?: string;
+  swarming_task_id?: string;
 }
 
 const JSONToTaskSummary = (m: TaskSummaryJSON): TaskSummary => {
   return {
+    id: m.id || "",
+    attempt: m.attempt || 0,
+    maxAttempts: m.max_attempts || 0,
+    status: (m.status || Object.keys(TaskStatus)[0]) as TaskStatus,
+    swarmingTaskId: m.swarming_task_id || "",
   };
 };
 

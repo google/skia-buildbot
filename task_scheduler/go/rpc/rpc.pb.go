@@ -1741,6 +1741,12 @@ type TaskSummary struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
+
+	Id             string     `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Attempt        int32      `protobuf:"varint,2,opt,name=attempt,proto3" json:"attempt,omitempty"`
+	MaxAttempts    int32      `protobuf:"varint,3,opt,name=max_attempts,json=maxAttempts,proto3" json:"max_attempts,omitempty"`
+	Status         TaskStatus `protobuf:"varint,4,opt,name=status,proto3,enum=task_scheduler.rpc.TaskStatus" json:"status,omitempty"`
+	SwarmingTaskId string     `protobuf:"bytes,5,opt,name=swarming_task_id,json=swarmingTaskId,proto3" json:"swarming_task_id,omitempty"`
 }
 
 func (x *TaskSummary) Reset() {
@@ -1773,6 +1779,41 @@ func (x *TaskSummary) ProtoReflect() protoreflect.Message {
 // Deprecated: Use TaskSummary.ProtoReflect.Descriptor instead.
 func (*TaskSummary) Descriptor() ([]byte, []int) {
 	return file_rpc_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *TaskSummary) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *TaskSummary) GetAttempt() int32 {
+	if x != nil {
+		return x.Attempt
+	}
+	return 0
+}
+
+func (x *TaskSummary) GetMaxAttempts() int32 {
+	if x != nil {
+		return x.MaxAttempts
+	}
+	return 0
+}
+
+func (x *TaskSummary) GetStatus() TaskStatus {
+	if x != nil {
+		return x.Status
+	}
+	return TaskStatus_TASK_STATUS_PENDING
+}
+
+func (x *TaskSummary) GetSwarmingTaskId() string {
+	if x != nil {
+		return x.SwarmingTaskId
+	}
+	return ""
 }
 
 // TaskSummaries groups TaskSummaries which have the same TaskSpec name.
@@ -2303,8 +2344,19 @@ var file_rpc_proto_rawDesc = []byte{
 	0x6e, 0x63, 0x69, 0x65, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x61, 0x73, 0x6b, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x61, 0x73, 0x6b, 0x12, 0x22, 0x0a, 0x0c, 0x64, 0x65, 0x70,
 	0x65, 0x6e, 0x64, 0x65, 0x6e, 0x63, 0x69, 0x65, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52,
-	0x0c, 0x64, 0x65, 0x70, 0x65, 0x6e, 0x64, 0x65, 0x6e, 0x63, 0x69, 0x65, 0x73, 0x22, 0x0d, 0x0a,
-	0x0b, 0x54, 0x61, 0x73, 0x6b, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x22, 0x5a, 0x0a, 0x0d,
+	0x0c, 0x64, 0x65, 0x70, 0x65, 0x6e, 0x64, 0x65, 0x6e, 0x63, 0x69, 0x65, 0x73, 0x22, 0xbc, 0x01,
+	0x0a, 0x0b, 0x54, 0x61, 0x73, 0x6b, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x79, 0x12, 0x0e, 0x0a,
+	0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x18, 0x0a,
+	0x07, 0x61, 0x74, 0x74, 0x65, 0x6d, 0x70, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x07,
+	0x61, 0x74, 0x74, 0x65, 0x6d, 0x70, 0x74, 0x12, 0x21, 0x0a, 0x0c, 0x6d, 0x61, 0x78, 0x5f, 0x61,
+	0x74, 0x74, 0x65, 0x6d, 0x70, 0x74, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0b, 0x6d,
+	0x61, 0x78, 0x41, 0x74, 0x74, 0x65, 0x6d, 0x70, 0x74, 0x73, 0x12, 0x36, 0x0a, 0x06, 0x73, 0x74,
+	0x61, 0x74, 0x75, 0x73, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x1e, 0x2e, 0x74, 0x61, 0x73,
+	0x6b, 0x5f, 0x73, 0x63, 0x68, 0x65, 0x64, 0x75, 0x6c, 0x65, 0x72, 0x2e, 0x72, 0x70, 0x63, 0x2e,
+	0x54, 0x61, 0x73, 0x6b, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74,
+	0x75, 0x73, 0x12, 0x28, 0x0a, 0x10, 0x73, 0x77, 0x61, 0x72, 0x6d, 0x69, 0x6e, 0x67, 0x5f, 0x74,
+	0x61, 0x73, 0x6b, 0x5f, 0x69, 0x64, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0e, 0x73, 0x77,
+	0x61, 0x72, 0x6d, 0x69, 0x6e, 0x67, 0x54, 0x61, 0x73, 0x6b, 0x49, 0x64, 0x22, 0x5a, 0x0a, 0x0d,
 	0x54, 0x61, 0x73, 0x6b, 0x53, 0x75, 0x6d, 0x6d, 0x61, 0x72, 0x69, 0x65, 0x73, 0x12, 0x12, 0x0a,
 	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d,
 	0x65, 0x12, 0x35, 0x0a, 0x05, 0x74, 0x61, 0x73, 0x6b, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b,
@@ -2510,38 +2562,39 @@ var file_rpc_proto_depIdxs = []int32{
 	32, // 24: task_scheduler.rpc.Task.started:type_name -> google.protobuf.Timestamp
 	0,  // 25: task_scheduler.rpc.Task.status:type_name -> task_scheduler.rpc.TaskStatus
 	24, // 26: task_scheduler.rpc.Task.task_key:type_name -> task_scheduler.rpc.TaskKey
-	27, // 27: task_scheduler.rpc.TaskSummaries.tasks:type_name -> task_scheduler.rpc.TaskSummary
-	32, // 28: task_scheduler.rpc.Job.created_at:type_name -> google.protobuf.Timestamp
-	32, // 29: task_scheduler.rpc.Job.db_modified_at:type_name -> google.protobuf.Timestamp
-	26, // 30: task_scheduler.rpc.Job.dependencies:type_name -> task_scheduler.rpc.TaskDependencies
-	32, // 31: task_scheduler.rpc.Job.finished_at:type_name -> google.protobuf.Timestamp
-	23, // 32: task_scheduler.rpc.Job.repo_state:type_name -> task_scheduler.rpc.RepoState
-	32, // 33: task_scheduler.rpc.Job.requested_at:type_name -> google.protobuf.Timestamp
-	1,  // 34: task_scheduler.rpc.Job.status:type_name -> task_scheduler.rpc.JobStatus
-	28, // 35: task_scheduler.rpc.Job.tasks:type_name -> task_scheduler.rpc.TaskSummaries
-	3,  // 36: task_scheduler.rpc.TaskSchedulerService.TriggerJobs:input_type -> task_scheduler.rpc.TriggerJobsRequest
-	5,  // 37: task_scheduler.rpc.TaskSchedulerService.GetJob:input_type -> task_scheduler.rpc.GetJobRequest
-	8,  // 38: task_scheduler.rpc.TaskSchedulerService.CancelJob:input_type -> task_scheduler.rpc.CancelJobRequest
-	10, // 39: task_scheduler.rpc.TaskSchedulerService.SearchJobs:input_type -> task_scheduler.rpc.SearchJobsRequest
-	12, // 40: task_scheduler.rpc.TaskSchedulerService.GetTask:input_type -> task_scheduler.rpc.GetTaskRequest
-	14, // 41: task_scheduler.rpc.TaskSchedulerService.SearchTasks:input_type -> task_scheduler.rpc.SearchTasksRequest
-	16, // 42: task_scheduler.rpc.TaskSchedulerService.GetSkipTaskRules:input_type -> task_scheduler.rpc.GetSkipTaskRulesRequest
-	19, // 43: task_scheduler.rpc.TaskSchedulerService.AddSkipTaskRule:input_type -> task_scheduler.rpc.AddSkipTaskRuleRequest
-	21, // 44: task_scheduler.rpc.TaskSchedulerService.DeleteSkipTaskRule:input_type -> task_scheduler.rpc.DeleteSkipTaskRuleRequest
-	4,  // 45: task_scheduler.rpc.TaskSchedulerService.TriggerJobs:output_type -> task_scheduler.rpc.TriggerJobsResponse
-	7,  // 46: task_scheduler.rpc.TaskSchedulerService.GetJob:output_type -> task_scheduler.rpc.GetJobResponse
-	9,  // 47: task_scheduler.rpc.TaskSchedulerService.CancelJob:output_type -> task_scheduler.rpc.CancelJobResponse
-	11, // 48: task_scheduler.rpc.TaskSchedulerService.SearchJobs:output_type -> task_scheduler.rpc.SearchJobsResponse
-	13, // 49: task_scheduler.rpc.TaskSchedulerService.GetTask:output_type -> task_scheduler.rpc.GetTaskResponse
-	15, // 50: task_scheduler.rpc.TaskSchedulerService.SearchTasks:output_type -> task_scheduler.rpc.SearchTasksResponse
-	18, // 51: task_scheduler.rpc.TaskSchedulerService.GetSkipTaskRules:output_type -> task_scheduler.rpc.GetSkipTaskRulesResponse
-	20, // 52: task_scheduler.rpc.TaskSchedulerService.AddSkipTaskRule:output_type -> task_scheduler.rpc.AddSkipTaskRuleResponse
-	22, // 53: task_scheduler.rpc.TaskSchedulerService.DeleteSkipTaskRule:output_type -> task_scheduler.rpc.DeleteSkipTaskRuleResponse
-	45, // [45:54] is the sub-list for method output_type
-	36, // [36:45] is the sub-list for method input_type
-	36, // [36:36] is the sub-list for extension type_name
-	36, // [36:36] is the sub-list for extension extendee
-	0,  // [0:36] is the sub-list for field type_name
+	0,  // 27: task_scheduler.rpc.TaskSummary.status:type_name -> task_scheduler.rpc.TaskStatus
+	27, // 28: task_scheduler.rpc.TaskSummaries.tasks:type_name -> task_scheduler.rpc.TaskSummary
+	32, // 29: task_scheduler.rpc.Job.created_at:type_name -> google.protobuf.Timestamp
+	32, // 30: task_scheduler.rpc.Job.db_modified_at:type_name -> google.protobuf.Timestamp
+	26, // 31: task_scheduler.rpc.Job.dependencies:type_name -> task_scheduler.rpc.TaskDependencies
+	32, // 32: task_scheduler.rpc.Job.finished_at:type_name -> google.protobuf.Timestamp
+	23, // 33: task_scheduler.rpc.Job.repo_state:type_name -> task_scheduler.rpc.RepoState
+	32, // 34: task_scheduler.rpc.Job.requested_at:type_name -> google.protobuf.Timestamp
+	1,  // 35: task_scheduler.rpc.Job.status:type_name -> task_scheduler.rpc.JobStatus
+	28, // 36: task_scheduler.rpc.Job.tasks:type_name -> task_scheduler.rpc.TaskSummaries
+	3,  // 37: task_scheduler.rpc.TaskSchedulerService.TriggerJobs:input_type -> task_scheduler.rpc.TriggerJobsRequest
+	5,  // 38: task_scheduler.rpc.TaskSchedulerService.GetJob:input_type -> task_scheduler.rpc.GetJobRequest
+	8,  // 39: task_scheduler.rpc.TaskSchedulerService.CancelJob:input_type -> task_scheduler.rpc.CancelJobRequest
+	10, // 40: task_scheduler.rpc.TaskSchedulerService.SearchJobs:input_type -> task_scheduler.rpc.SearchJobsRequest
+	12, // 41: task_scheduler.rpc.TaskSchedulerService.GetTask:input_type -> task_scheduler.rpc.GetTaskRequest
+	14, // 42: task_scheduler.rpc.TaskSchedulerService.SearchTasks:input_type -> task_scheduler.rpc.SearchTasksRequest
+	16, // 43: task_scheduler.rpc.TaskSchedulerService.GetSkipTaskRules:input_type -> task_scheduler.rpc.GetSkipTaskRulesRequest
+	19, // 44: task_scheduler.rpc.TaskSchedulerService.AddSkipTaskRule:input_type -> task_scheduler.rpc.AddSkipTaskRuleRequest
+	21, // 45: task_scheduler.rpc.TaskSchedulerService.DeleteSkipTaskRule:input_type -> task_scheduler.rpc.DeleteSkipTaskRuleRequest
+	4,  // 46: task_scheduler.rpc.TaskSchedulerService.TriggerJobs:output_type -> task_scheduler.rpc.TriggerJobsResponse
+	7,  // 47: task_scheduler.rpc.TaskSchedulerService.GetJob:output_type -> task_scheduler.rpc.GetJobResponse
+	9,  // 48: task_scheduler.rpc.TaskSchedulerService.CancelJob:output_type -> task_scheduler.rpc.CancelJobResponse
+	11, // 49: task_scheduler.rpc.TaskSchedulerService.SearchJobs:output_type -> task_scheduler.rpc.SearchJobsResponse
+	13, // 50: task_scheduler.rpc.TaskSchedulerService.GetTask:output_type -> task_scheduler.rpc.GetTaskResponse
+	15, // 51: task_scheduler.rpc.TaskSchedulerService.SearchTasks:output_type -> task_scheduler.rpc.SearchTasksResponse
+	18, // 52: task_scheduler.rpc.TaskSchedulerService.GetSkipTaskRules:output_type -> task_scheduler.rpc.GetSkipTaskRulesResponse
+	20, // 53: task_scheduler.rpc.TaskSchedulerService.AddSkipTaskRule:output_type -> task_scheduler.rpc.AddSkipTaskRuleResponse
+	22, // 54: task_scheduler.rpc.TaskSchedulerService.DeleteSkipTaskRule:output_type -> task_scheduler.rpc.DeleteSkipTaskRuleResponse
+	46, // [46:55] is the sub-list for method output_type
+	37, // [37:46] is the sub-list for method input_type
+	37, // [37:37] is the sub-list for extension type_name
+	37, // [37:37] is the sub-list for extension extendee
+	0,  // [0:37] is the sub-list for field type_name
 }
 
 func init() { file_rpc_proto_init() }

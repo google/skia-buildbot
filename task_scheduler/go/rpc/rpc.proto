@@ -319,7 +319,11 @@ message TaskDependencies {
 
 // TaskSummary provides a subset of the information of a Task.
 message TaskSummary {
-	// TODO
+	string id = 1;
+	int32 attempt = 2;
+	int32 max_attempts = 3;
+	TaskStatus status = 4;
+	string swarming_task_id = 5;
 }
 
 // TaskSummaries groups TaskSummaries which have the same TaskSpec name.
