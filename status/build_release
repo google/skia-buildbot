@@ -8,15 +8,17 @@ copy_release_files()
 {
 INSTALL="install -D --verbose --backup=none"
 INSTALL_DIR="install -d --verbose --backup=none"
-${INSTALL} --mode=644 -T Dockerfile                   ${ROOT}/Dockerfile
-${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}     ${ROOT}/usr/local/bin/${APPNAME}
-${INSTALL} --mode=644 -T ./res/img/favicon-open.ico   ${ROOT}/usr/local/share/status/res/img/favicon-open.ico
-${INSTALL} --mode=644 -T ./res/img/favicon-closed.ico ${ROOT}/usr/local/share/status/res/img/favicon-closed.ico
-${INSTALL} --mode=644 -T ./res/js/core.js             ${ROOT}/usr/local/share/status/res/js/core.js
-${INSTALL} --mode=644 -T ./res/vul/elements.html      ${ROOT}/usr/local/share/status/res/vul/elements.html
-${INSTALL} --mode=644 -T ./templates/header.html      ${ROOT}/usr/local/share/status/templates/header.html
-${INSTALL} --mode=644 -T ./templates/commits.html     ${ROOT}/usr/local/share/status/templates/commits.html
-${INSTALL} --mode=644 -T ./templates/capacity.html    ${ROOT}/usr/local/share/status/templates/capacity.html
+${INSTALL}     --mode=644 -T Dockerfile                    ${ROOT}/Dockerfile
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/${APPNAME}      ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL}     --mode=644 -T ./res/img/favicon-open.ico    ${ROOT}/usr/local/share/status/res/img/favicon-open.ico
+${INSTALL}     --mode=644 -T ./res/img/favicon-closed.ico  ${ROOT}/usr/local/share/status/res/img/favicon-closed.ico
+${INSTALL}     --mode=644 -T ./res/js/core.js              ${ROOT}/usr/local/share/status/res/js/core.js
+${INSTALL}     --mode=644 -T ./res/vul/elements.html       ${ROOT}/usr/local/share/status/res/vul/elements.html
+${INSTALL}     --mode=644 -T ./templates/header.html       ${ROOT}/usr/local/share/status/templates/header.html
+${INSTALL}     --mode=644 -T ./templates/commits.html      ${ROOT}/usr/local/share/status/templates/commits.html
+${INSTALL}     --mode=644 -T ./templates/capacity.html     ${ROOT}/usr/local/share/status/templates/capacity.html
+${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/dist
+${INSTALL}     --mode=644    ./dist/*                      ${ROOT}/usr/local/share/${APPNAME}/dist
 }
 
 source ../bash/docker_build.sh
