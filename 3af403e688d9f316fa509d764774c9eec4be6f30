@@ -140,6 +140,30 @@
       "revId": "3af403e688d9f316fa509d764774c9eec4be6f30",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "17afc084_b2abf283",
+        "filename": "status/modules/rpc/index.ts",
+        "patchSetId": 14
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-14T14:58:53Z",
+      "side": 1,
+      "message": "Nope, up to you.  I liked the idea of having the RPC module itself emit the events, rather than requiring every caller to remember to do it.",
+      "parentUuid": "8f868080_5e30310d",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 51
+      },
+      "revId": "3af403e688d9f316fa509d764774c9eec4be6f30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
