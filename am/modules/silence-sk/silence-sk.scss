@@ -52,6 +52,10 @@ silence-sk {
     border: solid var(--gray) 1px;
   }
 
+  input.duration {
+    width: 5em;
+  }
+
   section.notes,
   section.addNote {
     max-width: 40em;

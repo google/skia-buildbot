@@ -91,7 +91,7 @@ import 'elements-sk/icon/add-box-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
 
 import { $$ } from 'common-sk/modules/dom';
-import { diffDate } from 'common-sk/modules/human';
+import { diffDate, strDuration } from 'common-sk/modules/human';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html, render } from 'lit-html';
 import { upgradeProperty } from 'elements-sk/upgradeProperty';
@@ -172,7 +172,7 @@ const template = (ele) => html`
     </section>
     <table class=info>
       <tr><th>User:</th><td>${ele._state.user}</td></th>
-      <tr><th>Duration:</th><td><input @change=${ele._durationChange} value=${ele._state.duration}></input></td></th>
+      <tr><th>Duration:</th><td><input class="duration" @change=${ele._durationChange} value=${ele._state.duration}></input><button @click=${ele._tillNextShift}>Till next shift</button></td></th>
       <tr><th>Created</th><td title=${new Date(ele._state.created * 1000).toLocaleString()}>${diffDate(ele._state.created * 1000)}</td></tr>
       <tr><th>Expires</th><td>${expiresIn(ele._state)}</td></tr>
     </table>
@@ -229,6 +229,34 @@ define('silence-sk', class extends HTMLElement {
 
   _durationChange(e) {
     this._state.duration = e.target.value;
+  }
+
+  _tillNextShift() {
+    // rmistry: HERE HERE
+
+    var now=new Date();
+    var Y = now.getFullYear();
+    var m = now.getMonth();
+    var d = now.getDate();
+
+    var date = new Date();
+    do {
+      date = new Date(Y,m,++d);
+    } while (date.getDay() != 1)
+    var target = new Date(Y,m,d,9,0,0);
+    console.log("TARGET IS:");
+    console.log(diffDate(target));
+    console.log(target);
+    console.log(target.getTime()/1000);
+    console.log(now.getTime()/1000);
+    console.log(target.getTime()/1000 - now.getTime()/1000);
+    const timeTillNextShift = strDuration(
+        target.getTime()/1000 - now.getTime()/1000);
+    // Call human.strDuration here!!!!!!
+
+
+    this._state.duration = timeTillNextShift;
+    this._render();
   }
 
   _save() {
