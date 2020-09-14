@@ -17,6 +17,8 @@ ${INSTALL} --mode=644 -T ./res/vul/elements.html      ${ROOT}/usr/local/share/st
 ${INSTALL} --mode=644 -T ./templates/header.html      ${ROOT}/usr/local/share/status/templates/header.html
 ${INSTALL} --mode=644 -T ./templates/commits.html     ${ROOT}/usr/local/share/status/templates/commits.html
 ${INSTALL} --mode=644 -T ./templates/capacity.html    ${ROOT}/usr/local/share/status/templates/capacity.html
+${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/dist
+${INSTALL}     --mode=644    ./dist/*                      ${ROOT}/usr/local/share/${APPNAME}/dist
 }
 
 source ../bash/docker_build.sh
