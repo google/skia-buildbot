@@ -16,6 +16,7 @@ func main() {
 	if err := generator.AddMultiple(
 		types.Options{},
 		types.Result{},
+		types.RunResults{},
 	); err != nil {
 		sklog.Fatal(err)
 	}

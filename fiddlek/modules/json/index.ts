@@ -44,3 +44,16 @@ export interface Result {
 	compile: Compile;
 	execute: Execute;
 }
+
+export interface CompileError {
+	text: string;
+	line: number;
+	col: number;
+}
+
+export interface RunResults {
+	compile_errors: CompileError[] | null;
+	runtime_error: string;
+	fiddleHash: string;
+	text: string;
+}
