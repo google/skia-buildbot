@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dc8baff5_8e4cff53",
+        "filename": "status/build_release",
+        "patchSetId": 14
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-14T11:25:35Z",
+      "side": 1,
+      "message": "Nit: alignment",
+      "range": {
+        "startLine": 20,
+        "startChar": 13,
+        "endLine": 20,
+        "endChar": 60
+      },
+      "revId": "3af403e688d9f316fa509d764774c9eec4be6f30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "980d26a9_1a8a065d",
+        "filename": "status/modules/commits-data-sk/commits-data-sk.ts",
+        "patchSetId": 14
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-14T11:25:35Z",
+      "side": 1,
+      "message": "I\u0027m sorry, I can\u0027t review this file with all of the lint comments.",
+      "range": {
+        "startLine": 1,
+        "startChar": 2,
+        "endLine": 1,
+        "endChar": 3
+      },
+      "revId": "3af403e688d9f316fa509d764774c9eec4be6f30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c9e13524_9dde00ba",
+        "filename": "status/modules/rpc/index.ts",
+        "patchSetId": 14
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-14T11:25:35Z",
+      "side": 1,
+      "message": "FTR, the reason for doing this in the autoroller was to add events for fetch start, finish, and failure.  Are you planning to do that in a subsequent CL?",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 51
+      },
+      "revId": "3af403e688d9f316fa509d764774c9eec4be6f30",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
