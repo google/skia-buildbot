@@ -16,6 +16,69 @@
       "revId": "10728f622b8c0c2e3b8ca7eb5dbfb2fe23324d4f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3892ad75_d5d4246c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-15T20:54:15Z",
+      "side": 1,
+      "message": "I think this should work, thanks!",
+      "revId": "10728f622b8c0c2e3b8ca7eb5dbfb2fe23324d4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "89bb87a0_9fe464dc",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-15T20:54:15Z",
+      "side": 1,
+      "message": "Explain what the includeBranches param does",
+      "range": {
+        "startLine": 126,
+        "startChar": 3,
+        "endLine": 126,
+        "endChar": 11
+      },
+      "revId": "10728f622b8c0c2e3b8ca7eb5dbfb2fe23324d4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b58e4a07_61d72ee4",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-15T20:54:15Z",
+      "side": 1,
+      "message": "if includeBranches is non-empty",
+      "range": {
+        "startLine": 256,
+        "startChar": 40,
+        "endLine": 256,
+        "endChar": 48
+      },
+      "revId": "10728f622b8c0c2e3b8ca7eb5dbfb2fe23324d4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
     }
   ]
 }
