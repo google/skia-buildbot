@@ -28,10 +28,12 @@ export class TextareaNumbersSk extends ElementSk {
 
   constructor() {
     super();
+    console.log('textarea-numbers-sk constructor');
   }
 
   connectedCallback() {
     super.connectedCallback();
+    console.log('textarea-numbers-sk connectedCallback');
 
     // Creates and attaches the CodeMirror control as this elements only child.
     // Note we don't call _render().
@@ -64,8 +66,8 @@ export class TextareaNumbersSk extends ElementSk {
     // Set the class of that line to 'cm-error'.
     this.errorLines.push(
       this.codeMirror?.markText(
-        { line: n, ch: 0 },
-        { line: n, ch: 200 }, // Some large number for the character offset.
+        { line: n - 1, ch: 0 },
+        { line: n - 1, ch: 200 }, // Some large number for the character offset.
         {
           className: 'cm-error', // See the base16-dark.css file in CodeMirror for the class name.
         }
@@ -80,11 +82,17 @@ export class TextareaNumbersSk extends ElementSk {
 
   /** @prop value {string} The text content of the edit box. */
   get value() {
-    return this.codeMirror!.getValue();
+    if (!this.codeMirror) {
+      return '';
+    } else {
+      return this.codeMirror!.getValue();
+    }
   }
 
   set value(val: string) {
-    this.codeMirror!.setValue(val);
+    if (this.codeMirror) {
+      this.codeMirror!.setValue(val);
+    }
     this.clearErrors();
   }
 }
