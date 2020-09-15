@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"sort"
 	"sync"
 	"time"
 
@@ -251,6 +252,7 @@ func (b *DB) GetRules() []*Rule {
 	for _, r := range b.rules {
 		rv = append(rv, r.Copy())
 	}
+	sort.Sort(rules(rv))
 	return rv
 }
 
@@ -264,12 +266,26 @@ func (b *DB) GetRules() []*Rule {
 // empty, the Rule applies for all commits.
 //
 // A Rule should specify TaskSpecPatterns or Commits or both.
+//
+// TODO(borenet): Add an explicit ID field and a timestamp.
 type Rule struct {
 	AddedBy          string   `json:"added_by"`
 	TaskSpecPatterns []string `json:"task_spec_patterns"`
 	Commits          []string `json:"commits"`
 	Description      string   `json:"description"`
 	Name             string   `json:"name"`
+}
+
+type rules []*Rule
+
+func (r rules) Len() int {
+	return len(r)
+}
+func (r rules) Less(a, b int) bool {
+	return r[a].Name < r[b].Name
+}
+func (r rules) Swap(a, b int) {
+	r[a], r[b] = r[b], r[a]
 }
 
 // ValidateRule returns an error if the given Rule is not valid.
