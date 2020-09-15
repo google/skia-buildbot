@@ -91,7 +91,7 @@ import 'elements-sk/icon/add-box-icon-sk';
 import 'elements-sk/icon/delete-icon-sk';
 
 import { $$ } from 'common-sk/modules/dom';
-import { diffDate } from 'common-sk/modules/human';
+import { diffDate, strDuration } from 'common-sk/modules/human';
 import { errorMessage } from 'elements-sk/errorMessage';
 import { html, render } from 'lit-html';
 import { upgradeProperty } from 'elements-sk/upgradeProperty';
@@ -172,7 +172,7 @@ const template = (ele) => html`
     </section>
     <table class=info>
       <tr><th>User:</th><td>${ele._state.user}</td></th>
-      <tr><th>Duration:</th><td><input @change=${ele._durationChange} value=${ele._state.duration}></input></td></th>
+      <tr><th>Duration:</th><td><input class="duration" @change=${ele._durationChange} value=${ele._state.duration}></input><button class="till-next-shift" @click=${ele._tillNextShift}>Till next shift</button></td></th>
       <tr><th>Created</th><td title=${new Date(ele._state.created * 1000).toLocaleString()}>${diffDate(ele._state.created * 1000)}</td></tr>
       <tr><th>Expires</th><td>${expiresIn(ele._state)}</td></tr>
     </table>
@@ -229,6 +229,24 @@ define('silence-sk', class extends HTMLElement {
 
   _durationChange(e) {
     this._state.duration = e.target.value;
+  }
+
+  // Populates duration till next Monday 9am.
+  _tillNextShift() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    let d = now.getDate();
+
+    // Increment d till we reach the next Monday.
+    let tmp = new Date();
+    do {
+      tmp = new Date(y, m, ++d);
+    } while (tmp.getDay() != 1)
+    const target = new Date(y, m, d, 9, 0, 0);
+
+    this._state.duration = diffDate(target);
+    this._render();
   }
 
   _save() {
