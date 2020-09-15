@@ -1,0 +1,74 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da177f9e_8f8b317a",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-15T16:44:32Z",
+      "side": 1,
+      "message": "In my opinion, these new names are less clear because no longer indicate what the functions/types are actually used for.  Is there any way we can combine the two so that it\u0027s clear that they\u0027re only used for the initial ingestion?",
+      "range": {
+        "startLine": 132,
+        "startChar": 3,
+        "endLine": 132,
+        "endChar": 19
+      },
+      "revId": "daba815a0e91d90f6e2f53ec0f6c60fa373eece0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0bce3f88_4c234a39",
+        "filename": "gitsync/go/watcher/initial.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-15T16:44:32Z",
+      "side": 1,
+      "message": "\u003e \"cleint\" is a possible misspelling of \"client\".\n\nPlease fix.",
+      "parentUuid": "47124ffb_4ef3ca36",
+      "range": {
+        "startLine": 176,
+        "startChar": 76,
+        "endLine": 176,
+        "endChar": 82
+      },
+      "revId": "daba815a0e91d90f6e2f53ec0f6c60fa373eece0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60996432_510026e6",
+        "filename": "gitsync/go/watcher/watcher.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-15T16:44:32Z",
+      "side": 1,
+      "message": "Could this maybe be \"temporary GCS store\"?",
+      "range": {
+        "startLine": 258,
+        "startChar": 35,
+        "endLine": 258,
+        "endChar": 38
+      },
+      "revId": "daba815a0e91d90f6e2f53ec0f6c60fa373eece0",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
