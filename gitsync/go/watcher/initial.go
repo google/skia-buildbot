@@ -129,26 +129,28 @@ func initialIngestCommitBatch(ctx context.Context, graph *repograph.Graph, ri *r
 	return nil
 }
 
-// setupInitialIngest creates a repograph.Graph and a RepoImpl to be used for
-// the initial ingestion of a git repo.
-func setupInitialIngest(ctx context.Context, gcsClient gcs.GCSClient, gcsPath, repoUrl string) (*repograph.Graph, *initialIngestRepoImpl, error) {
+// loadGraphFromGCS creates a repograph.Graph and a RepoImpl to be used for the initial
+// ingestion of a git repo. If there is a repo stored in GCS already, we read that in to populate
+// the repograph. If not, we create a blank one and return it. Of note, the returned RepoImpl
+// will back up the repograph to GCS with the specified client at the specified path.
+func loadGraphFromGCS(ctx context.Context, gcsClient gcs.GCSClient, gcsPath, repoUrl string) (*repograph.Graph, *gcsBackedRepo, error) {
 	normUrl, err := git.NormalizeURL(repoUrl)
 	if err != nil {
 		return nil, nil, skerr.Wrapf(err, "Failed to normalize repo URL: %s", repoUrl)
 	}
 	file := path.Join(gcsPath, strings.ReplaceAll(normUrl, "/", "_"))
-	ri := newInitialIngestRepoImpl(ctx, gcsClient, file)
+	ri := newGCSRepo(ctx, gcsClient, file)
 	r, err := gcsClient.FileReader(ctx, file)
 	if err != nil {
 		if err == storage.ErrObjectNotExist {
 			g, err := repograph.NewWithRepoImpl(ctx, ri)
 			if err != nil {
-				return nil, nil, skerr.Wrapf(err, "Failed to create repo graph.")
+				return nil, nil, skerr.Wrapf(err, "Failed to create repo graph for url %s.", repoUrl)
 			}
 			ri.graph = g
 			return g, ri, nil
 		} else {
-			return nil, nil, skerr.Wrapf(err, "Failed to read Graph from GCS.")
+			return nil, nil, skerr.Wrapf(err, "Failed to read Graph from GCS path %s.", gcsPath)
 		}
 	}
 	defer util.Close(r)
@@ -160,8 +162,9 @@ func setupInitialIngest(ctx context.Context, gcsClient gcs.GCSClient, gcsPath, r
 	return g, ri, nil
 }
 
-// initialIngestRepoImpl is a struct used during initial ingestion of a git repo.
-type initialIngestRepoImpl struct {
+// gcsBackedRepo is a struct used during initial ingestion of a git repo. It holds the Repo
+// in memory and occasionally written to GCS at the location specified by file.
+type gcsBackedRepo struct {
 	*repograph.MemCacheRepoImpl
 	file             string
 	gcs              gcs.GCSClient
@@ -170,11 +173,11 @@ type initialIngestRepoImpl struct {
 	writeRequestsMtx sync.Mutex
 }
 
-// newInitialIngestRepoImpl returns a repograph.RepoImpl used for initial
-// ingestion of a git repo.
-func newInitialIngestRepoImpl(ctx context.Context, gcsClient gcs.GCSClient, file string) *initialIngestRepoImpl {
+// newGCSRepo returns a gcsBackedRepo that will write to GCS with the given client at the
+// specified location.
+func newGCSRepo(ctx context.Context, gcsClient gcs.GCSClient, file string) *gcsBackedRepo {
 	mem := repograph.NewMemCacheRepoImpl(map[string]*vcsinfo.LongCommit{}, nil)
-	ri := &initialIngestRepoImpl{
+	ri := &gcsBackedRepo{
 		MemCacheRepoImpl: mem,
 		file:             file,
 		gcs:              gcsClient,
@@ -202,7 +205,7 @@ func newInitialIngestRepoImpl(ctx context.Context, gcsClient gcs.GCSClient, file
 }
 
 // See documentation for RepoImpl interface.
-func (ri *initialIngestRepoImpl) UpdateCallback(ctx context.Context, _, _ []*vcsinfo.LongCommit, _ *repograph.Graph) (rv error) {
+func (ri *gcsBackedRepo) UpdateCallback(ctx context.Context, _, _ []*vcsinfo.LongCommit, _ *repograph.Graph) (rv error) {
 	ri.writeRequestsMtx.Lock()
 	defer ri.writeRequestsMtx.Unlock()
 	ri.writeRequests += 1
@@ -210,23 +213,23 @@ func (ri *initialIngestRepoImpl) UpdateCallback(ctx context.Context, _, _ []*vcs
 }
 
 // Write the Graph to the backing store.
-func (ri *initialIngestRepoImpl) write(ctx context.Context) error {
+func (ri *gcsBackedRepo) write(ctx context.Context) error {
 	sklog.Infof("Backing up graph with %d commits.", ri.graph.Len())
 	w := ri.gcs.FileWriter(ctx, ri.file, gcs.FILE_WRITE_OPTS_TEXT)
 	writeErr := ri.graph.WriteGob(w)
 	closeErr := w.Close()
 	if writeErr != nil && closeErr != nil {
-		return skerr.Wrapf(writeErr, "Failed to write Graph to GCS and failed to close GCS file with: %s", closeErr)
+		return skerr.Wrapf(writeErr, "Failed to write Graph to gs://%s and failed to close GCS file with: %s", ri.file, closeErr)
 	} else if writeErr != nil {
-		return skerr.Wrapf(writeErr, "Failed to write Graph to GCS.")
+		return skerr.Wrapf(writeErr, "Failed to write Graph to gs://%s", ri.file)
 	} else if closeErr != nil {
-		return skerr.Wrapf(closeErr, "Failed to close GCS file.")
+		return skerr.Wrapf(closeErr, "Failed to close GCS file gs://%s", ri.file)
 	}
 	return nil
 }
 
 // Wait for any push to the backing store to be finished.
-func (ri *initialIngestRepoImpl) Wait() {
+func (ri *gcsBackedRepo) Wait() {
 	for {
 		ri.writeRequestsMtx.Lock()
 		writeRequests := ri.writeRequests
