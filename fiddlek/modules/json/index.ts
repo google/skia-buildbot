@@ -18,29 +18,15 @@ export interface Options {
 	offscreen_mipmap: boolean;
 }
 
-export interface Compile {
-	errors: string;
-	output: string;
+export interface CompileError {
+	text: string;
+	line: number;
+	col: number;
 }
 
-export interface Output {
-	Raster: string;
-	Gpu: string;
-	Pdf: string;
-	Skp: string;
-	Text: string;
-	AnimatedRaster: string;
-	AnimatedGpu: string;
-	GLInfo: string;
-}
-
-export interface Execute {
-	errors: string;
-	output: Output;
-}
-
-export interface Result {
-	errors: string;
-	compile: Compile;
-	execute: Execute;
+export interface RunResults {
+	compile_errors: CompileError[] | null;
+	runtime_error: string;
+	fiddleHash: string;
+	text: string;
 }
