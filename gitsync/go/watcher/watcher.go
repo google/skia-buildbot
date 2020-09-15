@@ -255,9 +255,9 @@ func (r *repoImpl) initialIngestion(ctx context.Context) error {
 	defer metrics2.FuncTimer().Stop()
 
 	// Create a tmpGitStore.
-	sklog.Info("Retrieving graph from temporary store.")
-	t := timer.New("Retrieving graph from temp store")
-	graph, ri, err := setupInitialIngest(ctx, r.gcsClient, r.gcsPath, r.gitiles.URL)
+	sklog.Info("Retrieving graph from GCS.")
+	t := timer.New("Retrieving graph from GCS")
+	graph, ri, err := loadGraphFromGCS(ctx, r.gcsClient, r.gcsPath, r.gitiles.URL)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed initial ingestion of %s using GCS file %s", r.gitiles.URL, r.gcsPath)
 	}
@@ -425,7 +425,7 @@ func (r *repoImpl) initialIngestion(ctx context.Context) error {
 	if err := egroup.Wait(); err != nil {
 		return skerr.Wrap(err)
 	}
-	// Wait for the initialIngestRepoImpl to finish backing up to GCS.
+	// Wait for the gcsBackedRepo to finish backing up to GCS.
 	ri.Wait()
 	t.Stop()
 

@@ -24,7 +24,7 @@ import (
 // This server watches a list of git repos for changes and syncs the meta data of all commits
 // to a BigTable backed datastore.
 
-const APPNAME = "gitsync2"
+const appName = "gitsync2"
 
 // Default config/flag values
 var defaultConf = gitSyncConfig{
@@ -47,8 +47,8 @@ func main() {
 	// Flags that cause the flags below to be disregarded.
 	configFile := flag.String("config", "", "Disregard flags and load the configuration from this JSON5 config file. The keys and types of the config file match the flags.")
 	runInit := flag.Bool("init", false, "Initialize the BigTable instance and quit. This should be run with a different different user who has admin rights.")
-	gcsBucket := flag.String("gcs_bucket", "", "GCS bucket used for temporary storage during ingestion.")
-	gcsPath := flag.String("gcs_path", "", "GCS path used for temporary storage during ingestion.")
+	gcsBucket := flag.String("gcs_bucket", "", "GCS bucket used to store repograph data.")
+	gcsPath := flag.String("gcs_path", "", "GCS path that will store repograph gob data for faster reboots.")
 
 	// Define flags that map to field in the configuration struct.
 	flag.StringVar(&config.BTInstanceID, "bt_instance", defaultConf.BTInstanceID, "Big Table instance")
@@ -89,7 +89,7 @@ func main() {
 		ProjectID:       config.ProjectID,
 		InstanceID:      config.BTInstanceID,
 		TableID:         config.BTTableID,
-		AppProfile:      APPNAME,
+		AppProfile:      appName,
 		WriteGoroutines: config.BTWriteGoroutines,
 	}
 
