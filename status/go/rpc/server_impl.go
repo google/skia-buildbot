@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/status/go/incremental"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -31,6 +32,7 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context,
 	defer metrics2.FuncTimer().Stop()
 	_, repoURL, err := s.getRepo(req)
 	if err != nil {
+		sklog.Error(err)
 		return nil, err
 	}
 	fromTime := req.From.AsTime()
@@ -55,6 +57,7 @@ func (s *statusServerImpl) GetIncrementalCommits(ctx context.Context,
 		}
 	}
 	if err != nil {
+		sklog.Error(err)
 		return nil, err
 	}
 	return ConvertUpdate(update, s.podID), nil
