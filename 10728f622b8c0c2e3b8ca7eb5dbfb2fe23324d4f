@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "40cc769c_845d5a69",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2020-09-15T18:03:56Z",
+      "side": 1,
+      "message": "PTAL.  I plan to add tests before submitting, but the tests use the current set of branches to determine which branches to mock, which won\u0027t work for testing this feature, so there\u0027s a bit of thinking to do.  If you want, you could go ahead and try this and see how it works for the new repo.",
+      "revId": "10728f622b8c0c2e3b8ca7eb5dbfb2fe23324d4f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
