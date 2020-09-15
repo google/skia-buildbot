@@ -79,7 +79,7 @@ func getDailyNextTickDuration(startTimeUTC time.Time, reminderHourUTC int) time.
 func getOwnersToAlerts(ins []incident.Incident, silences []silence.Silence) map[string][]incident.Incident {
 	ownersToAlerts := map[string][]incident.Incident{}
 	for _, i := range ins {
-		if !i.IsSilenced(silences) && (i.Params["owner"] != "" || i.Params["assigned_to"] != "") {
+		if !i.IsSilenced(silences, true) && (i.Params["owner"] != "" || i.Params["assigned_to"] != "") {
 			owner := i.Params["assigned_to"]
 			if owner == "" {
 				owner = i.Params["owner"]
