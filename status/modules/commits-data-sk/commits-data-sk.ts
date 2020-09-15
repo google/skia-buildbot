@@ -229,6 +229,7 @@ export class CommitsDataSk extends ElementSk {
             // if they have no matching taskspecs in them, address this.
             const category = details.category || "Other";
             const categoryDetails = lookupOrInsert(this.categories, category, CategorySpec)
+            console.log('Just added a string to data.categories');
             //this.categoryList.add(category);
             const subcategory = details.subcategory || "Other";
             lookupOrInsert<string, Array<string>>(
@@ -240,9 +241,10 @@ export class CommitsDataSk extends ElementSk {
         // TODO(westont): Branch tags and time offset tags.
       }
     })
-    .catch(errorMessage);
-
-    this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }));
+    .catch(errorMessage)
+    .finally(() =>
+      this.dispatchEvent(new CustomEvent('end-task', { bubbles: true }))
+    );
   }
 };
 

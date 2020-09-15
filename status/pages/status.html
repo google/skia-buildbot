@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{.Title}}</title>
+  </head>
+  <body>
+    <h2>lit-html/TS/Twirp Status Page Under Development</h2>
+    <theme-chooser-sk></theme-chooser-sk>
+    <commits-table-sk></commits-table-sk>
+  </body>
+  <script>
+    var repos = [
+      {{range .Repos}}
+        "{{.}}",
+      {{end}}
+    ];
+    var elem = document.getElementsByTagName("commits-table-sk")[0];
+    elem.repo = "{{.Repo}}";
+    elem.repo_base = "{{.RepoBase}}";
+    elem.repos = repos;
+  </script>
+</html>
