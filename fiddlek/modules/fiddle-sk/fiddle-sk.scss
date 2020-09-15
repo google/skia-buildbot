@@ -1,0 +1,34 @@
+@import '~elements-sk/themes/themes';
+
+fiddle-sk {
+  details {
+    margin-left: 16px;
+    summary {
+      margin-left: -16px;
+      outline: none;
+      h2 {
+        display: inline-block;
+      }
+    }
+  }
+
+  #f16 {
+    margin-left: 16px;
+  }
+
+  .offset {
+    margin: 8px 0 8px 16px;
+  }
+
+  pre.source-select {
+    margin: 8px 0 8px 16px;
+    padding: 8px;
+    color: var(--secondary);
+    background: var(--surface);
+  }
+
+  input {
+    background: var(--surface);
+    color: var(--on-surface);
+  }
+}
