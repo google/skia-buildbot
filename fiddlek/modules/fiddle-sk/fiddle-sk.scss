@@ -1,0 +1,40 @@
+@import '../themes/themes';
+
+fiddle-sk {
+  details {
+    margin-left: 16px;
+    summary {
+      margin-left: -16px;
+      outline: none;
+      h2 {
+        display: inline-block;
+      }
+    }
+  }
+
+  details[open] {
+    border: solid 1px var(--on-surface);
+    padding: 0 8px 16px 32px;
+    background: var(--surface);
+    margin-left: 0px;
+  }
+
+  #f16 {
+    margin-left: 16px;
+  }
+
+  .offset {
+    margin: 8px 0 8px 16px;
+  }
+
+  pre.source-select {
+    margin: 8px 0 8px 16px;
+    padding: 8px;
+    color: var(--secondary);
+    background: var(--surface);
+  }
+
+  .imgsrc {
+    border: dotted 1px var(--on-surface);
+  }
+}
