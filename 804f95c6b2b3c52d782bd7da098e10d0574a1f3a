@@ -34,6 +34,24 @@
       "revId": "804f95c6b2b3c52d782bd7da098e10d0574a1f3a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "d318ac8b_afde82bd",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-16T17:32:06Z",
+      "side": 1,
+      "message": "Ah, I see. I\u0027ll add device_string back in. If you want to do the combined thing, I don\u0027t really mind. After all, you know more about what devices should or should not get forwarded than I do.",
+      "parentUuid": "ae9d98e6_9c90cb03",
+      "revId": "804f95c6b2b3c52d782bd7da098e10d0574a1f3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
