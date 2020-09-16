@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2a6fd417_fa01076e",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-16T11:54:36Z",
+      "side": 1,
+      "message": "You can skip this functionality in the port - I believe it was used by SkQP a while ago, but hasn\u0027t for a long time now.",
+      "range": {
+        "startLine": 69,
+        "startChar": 30,
+        "endLine": 69,
+        "endChar": 36
+      },
+      "revId": "5727fcc811c50fc9f4472c04ffd3b631c35a84e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "393c321b_27be88d2",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-16T11:54:36Z",
+      "side": 1,
+      "message": "This should be singular as the API no longer supports multiple patchsets.",
+      "range": {
+        "startLine": 126,
+        "startChar": 10,
+        "endLine": 126,
+        "endChar": 20
+      },
+      "revId": "5727fcc811c50fc9f4472c04ffd3b631c35a84e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "02bd75e2_8a0436aa",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-16T11:54:36Z",
+      "side": 1,
+      "message": "Let\u0027s start calling this _changelistID",
+      "range": {
+        "startLine": 152,
+        "startChar": 27,
+        "endLine": 152,
+        "endChar": 33
+      },
+      "revId": "5727fcc811c50fc9f4472c04ffd3b631c35a84e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ec2561e2_21ec6f62",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-16T11:54:36Z",
+      "side": 1,
+      "message": "Let\u0027s maybe call this something more descriptive. includeDigestsFromPrimaryBranch?",
+      "range": {
+        "startLine": 153,
+        "startChar": 14,
+        "endLine": 153,
+        "endChar": 20
+      },
+      "revId": "5727fcc811c50fc9f4472c04ffd3b631c35a84e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "46e2086b_c9d73846",
+        "filename": "golden/modules/search-page-sk/search-page-sk.ts",
+        "patchSetId": 12
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 5395
+      },
+      "writtenOn": "2020-09-16T11:54:36Z",
+      "side": 1,
+      "message": "Yeah, let\u0027s change what we call these variables in this file, but keep the request names the same for now. Let\u0027s be more clear and more inclusive.",
+      "range": {
+        "startLine": 279,
+        "startChar": 4,
+        "endLine": 279,
+        "endChar": 55
+      },
+      "revId": "5727fcc811c50fc9f4472c04ffd3b631c35a84e3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": true
+    }
+  ]
+}
