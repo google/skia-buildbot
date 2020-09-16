@@ -12,6 +12,25 @@ import (
 	"go.skia.org/infra/go/testutils/unittest"
 )
 
+func TestValidateRegexes(t *testing.T) {
+	unittest.SmallTest(t)
+
+	ps := paramtools.ParamSet{
+		"alertname": []string{"BotQuarantined"},
+		"bot":       []string{"skia-rpi-104", "skia-rpi-114"},
+	}
+	s := &Silence{
+		User:     "fred@example.org",
+		ParamSet: ps,
+		Created:  time.Now().Unix(),
+		Duration: "2h",
+	}
+	assert.NoError(t, s.ValidateRegexes())
+
+	ps["invalid_regex"] = []string{"Absent.*[[b)"}
+	assert.Error(t, s.ValidateRegexes())
+}
+
 func TestStore(t *testing.T) {
 	unittest.LargeTest(t)
 
