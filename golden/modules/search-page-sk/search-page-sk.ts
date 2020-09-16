@@ -11,6 +11,7 @@ import { stateReflector } from 'common-sk/modules/stateReflector';
 import { ParamSet, fromParamSet, fromObject } from 'common-sk/modules/query';
 import { HintableObject } from 'common-sk/modules/hintable';
 import { ElementSk } from '../../../infra-sk/modules/ElementSk';
+import { ChangelistControlsSkChangeEventDetail } from '../changelist-controls-sk/changelist-controls-sk';
 import { SearchCriteria, SearchCriteriaToHintableObject, SearchCriteriaFromHintableObject } from '../search-controls-sk/search-controls-sk';
 import { sendBeginTask, sendEndTask, sendFetchError } from '../common';
 import { defaultCorpus } from '../settings';
@@ -19,6 +20,7 @@ import { SearchResponse, StatusResponse, ParamSetResponse, SearchResult, ChangeL
 import 'elements-sk/checkbox-sk';
 import 'elements-sk/styles/buttons';
 import '../search-controls-sk';
+import '../changelist-controls-sk';
 import '../digest-details-sk';
 
 // Used to include/exclude the corpus field from the various ParamSets being passed around.
@@ -74,7 +76,12 @@ export class SearchPageSk extends ElementSk {
                         @search-controls-sk-change=${el._onSearchControlsChange}>
     </search-controls-sk>
 
-    <!-- TODO(lovisolo): Show changelist-controls-sk if CRS/ChangeListID are set. -->
+    <!-- This is only visible when the summary property is not null. -->
+    <changelist-controls-sk .ps_order=${el._patchset}
+                            .include_master=${el._includeDigestsFromPrimary}
+                            .summary=${el._changeListSummaryResponse}
+                            @cl-control-change=${el._onChangelistControlsChange}>
+    </changelist-controls-sk>
 
     <p class=summary>${SearchPageSk._summary(el)}</p>
 
@@ -220,7 +227,6 @@ export class SearchPageSk extends ElementSk {
     }
   }
 
-  // TODO(lovisolo): Pass the response of this RPC to the changelist-controls-sk.
   private async _fetchChangeListSummary() {
     // We can skip this RPC if no CL information has been provided via URL parameters.
     if (!this._crs || !this._changelistId) return;
@@ -296,6 +302,13 @@ export class SearchPageSk extends ElementSk {
 
   private _onSearchControlsChange(event: CustomEvent<SearchCriteria>) {
     this._searchCriteria = event.detail;
+    this._stateChanged!();
+    this._fetchSearchResults();
+  }
+
+  private _onChangelistControlsChange(event: CustomEvent<ChangelistControlsSkChangeEventDetail>) {
+    this._includeDigestsFromPrimary = event.detail.include_master;
+    this._patchset = event.detail.ps_order;
     this._stateChanged!();
     this._fetchSearchResults();
   }
