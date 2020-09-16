@@ -1,4 +1,6 @@
-export const twoPatchSets = {
+import { ChangeListSummaryResponse } from '../rpc_types';
+
+export const twoPatchSets: ChangeListSummaryResponse = {
   cl: {
     system: 'gerrit',
     id: '1805837',
