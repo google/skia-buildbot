@@ -52,6 +52,24 @@
       "revId": "804f95c6b2b3c52d782bd7da098e10d0574a1f3a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "db03c452_c0428dd2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7873
+      },
+      "writtenOn": "2020-09-16T18:13:52Z",
+      "side": 1,
+      "message": "I think it\u0027s fine to keep stuff separate for now, but we can switch to a single key in the future. I could potentially see a case where some pre-production hardware we test in the future ends up reporting \"None\" for all three keys, which would end up causing it to be forwarded. Being able to explicitly not include None/None/None would prevent that.",
+      "parentUuid": "d318ac8b_afde82bd",
+      "revId": "804f95c6b2b3c52d782bd7da098e10d0574a1f3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
