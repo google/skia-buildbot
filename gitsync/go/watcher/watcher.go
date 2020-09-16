@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/skerr"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"golang.org/x/oauth2"
 	"golang.org/x/sync/errgroup"
@@ -50,7 +51,7 @@ var (
 
 // Start creates a GitStore with the provided information and starts periodic
 // ingestion.
-func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, gitilesURL, gcsBucket, gcsPath string, interval time.Duration, ts oauth2.TokenSource) error {
+func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL string, includeBranches []string, gitilesURL, gcsBucket, gcsPath string, interval time.Duration, ts oauth2.TokenSource) error {
 	sklog.Infof("Initializing watcher for %s", repoURL)
 	gitStore, err := bt_gitstore.New(ctx, conf, repoURL)
 	if err != nil {
@@ -67,7 +68,7 @@ func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, gitilesURL,
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create PubSub publisher for %s", repoURL)
 	}
-	ri, err := newRepoImpl(ctx, gitStore, gr, gcsClient, gcsPath, p)
+	ri, err := newRepoImpl(ctx, gitStore, gr, gcsClient, gcsPath, p, includeBranches)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed to create RepoImpl for %s; using gs://%s/%s.", repoURL, gcsBucket, gcsPath)
 	}
@@ -112,17 +113,19 @@ func Start(ctx context.Context, conf *bt_gitstore.BTConfig, repoURL, gitilesURL,
 // a GitStore.
 type repoImpl struct {
 	*repograph.MemCacheRepoImpl
-	gcsClient gcs.GCSClient
-	gcsPath   string
-	gitiles   *gitiles.Repo
-	gitstore  gitstore.GitStore
+	gcsClient       gcs.GCSClient
+	gcsPath         string
+	gitiles         *gitiles.Repo
+	gitstore        gitstore.GitStore
+	includeBranches []string
 	// The Publisher may be nil, in which case no pubsub messages are sent.
 	pubsub *pubsub.Publisher
 }
 
 // newRepoImpl returns a repograph.RepoImpl which uses both Gitiles and
-// GitStore.
-func newRepoImpl(ctx context.Context, gs gitstore.GitStore, repo *gitiles.Repo, gcsClient gcs.GCSClient, gcsPath string, p *pubsub.Publisher) (repograph.RepoImpl, error) {
+// GitStore.  If includeBranches is non-empty, only the specified branches are
+// synced.
+func newRepoImpl(ctx context.Context, gs gitstore.GitStore, repo *gitiles.Repo, gcsClient gcs.GCSClient, gcsPath string, p *pubsub.Publisher, includeBranches []string) (repograph.RepoImpl, error) {
 	indexCommits, err := gs.RangeByTime(ctx, vcsinfo.MinTime, vcsinfo.MaxTime, gitstore.ALL_BRANCHES)
 	if err != nil {
 		return nil, skerr.Wrapf(err, "Failed loading IndexCommits from GitStore.")
@@ -164,6 +167,7 @@ func newRepoImpl(ctx context.Context, gs gitstore.GitStore, repo *gitiles.Repo, 
 		gitiles:          repo,
 		gitstore:         gs,
 		pubsub:           p,
+		includeBranches:  includeBranches,
 	}, nil
 }
 
@@ -249,6 +253,27 @@ func (r *repoImpl) loadCommitsFromGitiles(ctx context.Context, branch, logExpr s
 	}, opts...)
 }
 
+// getFilteredBranches obtains the updated branch heads from the repo. If
+// r.includeBranches is non-empty, only those branches are returned.
+func (r *repoImpl) getFilteredBranches(ctx context.Context) ([]*git.Branch, error) {
+	gitilesBranches, err := r.gitiles.Branches(ctx)
+	if err != nil {
+		return nil, skerr.Wrap(err)
+	}
+	// Filter by includeBranches.
+	numBranches := len(gitilesBranches)
+	if len(r.includeBranches) > 0 {
+		numBranches = len(r.includeBranches)
+	}
+	branches := make([]*git.Branch, 0, numBranches)
+	for _, branch := range gitilesBranches {
+		if len(r.includeBranches) == 0 || util.In(branch.Name, r.includeBranches) {
+			branches = append(branches, branch)
+		}
+	}
+	return branches, nil
+}
+
 // initialIngestion performs the first-time ingestion of the repo.
 func (r *repoImpl) initialIngestion(ctx context.Context) error {
 	sklog.Warningf("Performing initial ingestion of %s.", r.gitiles.URL)
@@ -274,9 +299,9 @@ func (r *repoImpl) initialIngestion(ctx context.Context) error {
 
 	// Find the current set of branches.
 	t = timer.New("Loading commits from gitiles")
-	branches, err := r.gitiles.Branches(ctx)
+	branches, err := r.getFilteredBranches(ctx)
 	if err != nil {
-		return skerr.Wrapf(err, "Failed loading branches from Gitiles.")
+		return skerr.Wrapf(err, "failed to retrieve branches")
 	}
 
 	// Load commits from gitiles.
@@ -479,7 +504,7 @@ func (r *repoImpl) Update(ctx context.Context) error {
 	for _, branch := range r.BranchList {
 		oldBranches[branch.Name] = branch
 	}
-	branches, err := r.gitiles.Branches(ctx)
+	branches, err := r.getFilteredBranches(ctx)
 	if err != nil {
 		return skerr.Wrapf(err, "Failed loading branches from Gitiles.")
 	}
