@@ -1,4 +1,4 @@
-web: package-lock.json
+web: package-lock.json ./modules/json/index.ts
 	npx webpack --mode=development
 
 testjs:
