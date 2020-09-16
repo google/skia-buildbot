@@ -568,6 +568,11 @@ func (srv *server) saveSilenceHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, err, "Failed to decode silence creation request.", http.StatusInternalServerError)
 		return
 	}
+	if err := req.ValidateRegexes(); err != nil {
+		httputils.ReportError(w, err, "Silence has invalid regex.", http.StatusInternalServerError)
+		return
+	}
+
 	auditlog.Log(r, "create-silence", req)
 	silence, err := srv.silenceStore.Put(&req)
 	if err != nil {
@@ -586,6 +591,11 @@ func (srv *server) archiveSilenceHandler(w http.ResponseWriter, r *http.Request)
 		httputils.ReportError(w, err, "Failed to decode silence creation request.", http.StatusInternalServerError)
 		return
 	}
+	if err := req.ValidateRegexes(); err != nil {
+		httputils.ReportError(w, err, "Silence has invalid regex.", http.StatusInternalServerError)
+		return
+	}
+
 	auditlog.Log(r, "archive-silence", req)
 	silence, err := srv.silenceStore.Archive(req.Key)
 	if err != nil {
@@ -604,6 +614,11 @@ func (srv *server) reactivateSilenceHandler(w http.ResponseWriter, r *http.Reque
 		httputils.ReportError(w, err, "Failed to decode silence reactivation request.", http.StatusInternalServerError)
 		return
 	}
+	if err := req.ValidateRegexes(); err != nil {
+		httputils.ReportError(w, err, "Silence has invalid regex.", http.StatusInternalServerError)
+		return
+	}
+
 	auditlog.Log(r, "reactivate-silence", req)
 	silence, err := srv.silenceStore.Reactivate(req.Key, req.Duration, srv.user(r))
 	if err != nil {
