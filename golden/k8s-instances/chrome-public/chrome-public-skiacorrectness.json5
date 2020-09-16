@@ -47,5 +47,40 @@
     },
     "android-vr-render-tests": {}, // Everything public for this corpus
     "gtest-pixeltests": {}, // Everything public for this corpus
+    "chrome-gpu": {
+      device_id: [ // Set by desktop machines
+        "0x1050",
+        "0x1cb3",
+        "0x2184",
+        "0x3e92",
+        "0x5912",
+        "0x6613",
+        "0x679e",
+        "0x6821",
+        "0x699f",
+        "0xa2e",
+        "0xd26",
+        "0xfe9",
+        "None",
+      ],
+      device_string: [ // Set by mobile devices
+        "ANGLE (Vulkan 1.1.0(SwiftShader Device (LLVM 7.0.1) (0x0000C0DE)))",
+        "Adreno (TM) 330",
+        "Adreno (TM) 418",
+        "Adreno (TM) 420",
+        "Adreno (TM) 430",
+        "Adreno (TM) 540",
+        "Mali-T860",
+        "NVIDIA Tegra",
+        "None"
+      ],
+      vendor_id: [
+        "0x1002",
+        "0x10de",
+        "0x1af4",
+        "0x8086",
+        "None",
+      ],
+    },
   },
 }
