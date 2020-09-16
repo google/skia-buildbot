@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"time"
 
 	"cloud.google.com/go/datastore"
@@ -68,6 +69,18 @@ func (silence *Silence) Save() ([]datastore.Property, error) {
 	}
 	silence.ParamSetSerial = string(b)
 	return datastore.SaveStruct(silence)
+}
+
+// ValidateRegexes returns an error if the silence is not valid.
+func (silence *Silence) ValidateRegexes() error {
+	for _, vals := range silence.ParamSet {
+		for _, v := range vals {
+			if _, err := regexp.Compile(fmt.Sprintf(`^%s$`, v)); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // Store saves and updates silences in Cloud Datastore.
