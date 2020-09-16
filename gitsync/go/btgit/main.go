@@ -19,7 +19,7 @@ func main() {
 	// Define the flags and parse them.
 	var (
 		btInstanceID = flag.String("bt_instance", "production", "Big Table instance")
-		btTableID    = flag.String("bt_table", "git-repos", "BigTable table ID")
+		btTableID    = flag.String("bt_table", "git-repos2", "BigTable table ID")
 		listBranches = flag.Bool("list", false, "List all branches and quit")
 		listRepos    = flag.Bool("list_repos", false, "List all repositories quit")
 		loadGraph    = flag.Bool("load_graph", false, "Load the entire commit graph. For performance check only.")
