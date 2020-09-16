@@ -16,6 +16,24 @@
       "revId": "804f95c6b2b3c52d782bd7da098e10d0574a1f3a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ae9d98e6_9c90cb03",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 7873
+      },
+      "writtenOn": "2020-09-16T17:20:57Z",
+      "side": 1,
+      "message": "I can easily add a combined key if that makes things easier. However, device_string is not actually dependent on device_id. device_id gets populated for PCI-e devices (i.e. desktop/laptop GPUs), while device_string gets populated for mobile devices and SwANGLE.",
+      "parentUuid": "fd622fc6_dc388b53",
+      "revId": "804f95c6b2b3c52d782bd7da098e10d0574a1f3a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
