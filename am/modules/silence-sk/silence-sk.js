@@ -231,6 +231,27 @@ define('silence-sk', class extends HTMLElement {
     this._state.duration = e.target.value;
   }
 
+  /*
+  _validateSilence() {
+    console.log("VALIDATING!");
+    console.log(this._state.param_set);
+    for (const key in this._state.param_set) {
+      const values = this._state.param_set[key] || [];
+      for (const i in values) {
+        try {
+          const re = new RegExp(`^${values[i]}$`);
+        } catch(e) {
+          errorMessage(e.message);
+          console.log("RETURNING FALSE");
+          return false;
+        }
+      }
+    }
+    console.log("RETURNING TRUE");
+    return true;
+  }
+  */
+
   _save() {
     const detail = {
       silence: this._state,
@@ -261,6 +282,7 @@ define('silence-sk', class extends HTMLElement {
     const detail = {
       silence: this._state,
     };
+    console.log(detail);
     this.dispatchEvent(new CustomEvent('reactivate-silence', { detail: detail, bubbles: true }));
   }
 
