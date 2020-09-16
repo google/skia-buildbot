@@ -15,11 +15,11 @@ USER skia:skia
 # installing some packages that we prefer to obtain via CIPD.
 FROM base AS install_cipd
 USER root
-RUN apt-get update && apt-get upgrade -y && apt-get install -y git curl python-minimal
+RUN apt-get update && apt-get upgrade -y && apt-get install -y git curl python2-minimal
 USER skia:skia
 COPY ./tmp/recipes.cfg /tmp/recipes.cfg
 RUN cat /tmp/recipes.cfg | \
-    python -c "import json; import sys; print json.load(sys.stdin)['deps']['depot_tools']['revision']" > \
+    python2 -c "import json; import sys; print json.load(sys.stdin)['deps']['depot_tools']['revision']" > \
     /tmp/depot_tools_rev \
   && cd $(mktemp -d) \
   && git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git \
